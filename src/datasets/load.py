@@ -79,6 +79,7 @@ from .utils.file_utils import (
 from .utils.filelock import FileLock
 from .utils.info_utils import is_small_dataset
 from .utils.logging import get_logger
+from .utils.metadata import DatasetMetadata
 from .utils.py_utils import get_imports
 from .utils.version import Version
 
@@ -569,6 +570,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
     def get_module(self) -> DatasetModule:
         # get script and other files
         dataset_infos_path = Path(self.path).parent / config.DATASETDICT_INFOS_FILENAME
+        dataset_readme_path = Path(self.path).parent / "README.md"
         imports = get_imports(self.path)
         local_imports = _download_additional_modules(
             name=self.name,
@@ -576,9 +578,11 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
             imports=imports,
             download_config=self.download_config,
         )
-        additional_files = (
-            [(config.DATASETDICT_INFOS_FILENAME, str(dataset_infos_path))] if dataset_infos_path.is_file() else []
-        )
+        additional_files = []
+        if dataset_infos_path.is_file():
+            additional_files.append((config.DATASETDICT_INFOS_FILENAME, str(dataset_infos_path)))
+        if dataset_readme_path.is_file():
+            additional_files.append(("README.md", dataset_readme_path))
         # copy the script and the files in an importable directory
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
         module_path, hash = _create_importable_file(
@@ -658,8 +662,21 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         if os.path.isfile(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME)):
             with open(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
                 dataset_infos: DatasetInfosDict = json.load(f)
-            builder_kwargs["config_name"] = next(iter(dataset_infos))
-            builder_kwargs["info"] = DatasetInfo.from_dict(dataset_infos[builder_kwargs["config_name"]])
+            if dataset_infos:
+                builder_kwargs["config_name"] = next(iter(dataset_infos))
+                builder_kwargs["info"] = DatasetInfo.from_dict(next(iter(dataset_infos.values())))
+        if os.path.isfile(os.path.join(self.path, "README.md")):
+            dataset_metadata = DatasetMetadata.from_readme(Path(self.path) / "README.md")
+            if isinstance(dataset_metadata.get("dataset_info"), list) and dataset_metadata["dataset_info"]:
+                dataset_info_dict = dataset_metadata["dataset_info"][0]
+                builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
+                if "config_name" in dataset_info_dict:
+                    builder_kwargs["config_name"] = dataset_info_dict["config_name"]
+            elif isinstance(dataset_metadata.get("dataset_info"), dict) and dataset_metadata["dataset_info"]:
+                dataset_info_dict = dataset_metadata["dataset_info"]
+                builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
+                if "config_name" in dataset_info_dict:
+                    builder_kwargs["config_name"] = dataset_info_dict["config_name"]
         return DatasetModule(module_path, hash, builder_kwargs)
 
 
@@ -798,8 +815,31 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
                 dataset_infos: DatasetInfosDict = json.load(f)
-            builder_kwargs["config_name"] = next(iter(dataset_infos))
-            builder_kwargs["info"] = DatasetInfo.from_dict(dataset_infos[builder_kwargs["config_name"]])
+            if dataset_infos:
+                builder_kwargs["config_name"] = next(iter(dataset_infos))
+                builder_kwargs["info"] = DatasetInfo.from_dict(next(iter(dataset_infos.values())))
+        except FileNotFoundError:
+            pass
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading readme"
+        try:
+            dataset_readme_path = cached_path(
+                hf_hub_url(self.name, "README.md", revision=self.revision),
+                download_config=self.download_config,
+            )
+            dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
+            if isinstance(dataset_metadata.get("dataset_info"), list) and dataset_metadata["dataset_info"]:
+                dataset_info_dict = dataset_metadata["dataset_info"][0]
+                builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
+                if "config_name" in dataset_info_dict:
+                    builder_kwargs["config_name"] = dataset_info_dict["config_name"]
+            elif isinstance(dataset_metadata.get("dataset_info"), dict) and dataset_metadata["dataset_info"]:
+                dataset_info_dict = dataset_metadata["dataset_info"]
+                builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
+                if "config_name" in dataset_info_dict:
+                    builder_kwargs["config_name"] = dataset_info_dict["config_name"]
+
         except FileNotFoundError:
             pass
         return DatasetModule(module_path, hash, builder_kwargs)
@@ -844,10 +884,25 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         except (FileNotFoundError, ConnectionError):
             return None
 
+    def download_dataset_readme_file(self) -> str:
+        readme_url = hf_hub_url(repo_id=self.name, path="README.md", revision=self.revision)
+        # Download the dataset infos file if available
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading readme"
+        try:
+            return cached_path(
+                readme_url,
+                download_config=download_config,
+            )
+        except (FileNotFoundError, ConnectionError):
+            return None
+
     def get_module(self) -> DatasetModule:
         # get script and other files
         local_path = self.download_loading_script()
         dataset_infos_path = self.download_dataset_infos_file()
+        dataset_readme_path = self.download_dataset_readme_file()
         imports = get_imports(local_path)
         local_imports = _download_additional_modules(
             name=self.name,
@@ -855,7 +910,11 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
             imports=imports,
             download_config=self.download_config,
         )
-        additional_files = [(config.DATASETDICT_INFOS_FILENAME, dataset_infos_path)] if dataset_infos_path else []
+        additional_files = []
+        if dataset_infos_path:
+            additional_files.append((config.DATASETDICT_INFOS_FILENAME, dataset_infos_path))
+        if dataset_readme_path:
+            additional_files.append(("README.md", dataset_readme_path))
         # copy the script and the files in an importable directory
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
         module_path, hash = _create_importable_file(

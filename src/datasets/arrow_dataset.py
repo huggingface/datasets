@@ -88,7 +88,7 @@ from .formatting.formatting import _is_range_contiguous
 from .info import DatasetInfo, DatasetInfosDict
 from .naming import _split_re
 from .search import IndexableMixin
-from .splits import NamedSplit, Split, SplitInfo
+from .splits import NamedSplit, Split, SplitDict, SplitInfo
 from .table import (
     InMemoryTable,
     MemoryMappedTable,
@@ -105,6 +105,7 @@ from .utils._hf_hub_fixes import create_repo
 from .utils._hf_hub_fixes import list_repo_files as hf_api_list_repo_files
 from .utils.file_utils import _retry, cached_path, estimate_dataset_size, hf_hub_url
 from .utils.info_utils import is_small_dataset
+from .utils.metadata import DatasetMetadata
 from .utils.py_utils import asdict, convert_file_size_to_int, unique_values
 from .utils.stratify import stratified_shuffle_split_generate_indices
 from .utils.tf_utils import minimal_tf_collate_fn
@@ -4440,13 +4441,25 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         info_to_dump.download_size = uploaded_size
         info_to_dump.dataset_size = dataset_nbytes
         info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes
-        info_to_dump.splits = {
-            split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name)
-        }
-        if config.DATASETDICT_INFOS_FILENAME in repo_files:
+        info_to_dump.splits = SplitDict(
+            {split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name)}
+        )
+        # get the info from the README to update them
+        if "README.md" in repo_files:
             download_config = DownloadConfig()
             download_config.download_desc = "Downloading metadata"
-            download_config.use_auth_token = token if token is not None else HfFolder.get_token()
+            dataset_readme_path = cached_path(
+                hf_hub_url(repo_id, "README.md"),
+                download_config=download_config,
+            )
+            dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
+            dataset_infos: DatasetInfosDict = DatasetInfosDict.from_metadata(dataset_metadata)
+            repo_info = dataset_infos[next(iter(dataset_infos))]
+        # get the deprecated dataset_infos.json to uodate them
+        elif config.DATASETDICT_INFOS_FILENAME in repo_files:
+            dataset_metadata = DatasetMetadata()
+            download_config = DownloadConfig()
+            download_config.download_desc = "Downloading metadata"
             dataset_infos_path = cached_path(
                 hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME),
                 download_config=download_config,
@@ -4454,8 +4467,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             with open(dataset_infos_path, encoding="utf-8") as f:
                 dataset_infos: DatasetInfosDict = json.load(f)
                 repo_info = DatasetInfo.from_dict(dataset_infos[next(iter(dataset_infos))])
+        else:
+            dataset_metadata = DatasetMetadata()
+            repo_info = None
+        # update the total info to dump from existing info
+        if repo_info is not None:
             logger.warning("Updating downloaded metadata with the new split.")
-
             if repo_info.splits and list(repo_info.splits) != [split]:
                 if self.features != repo_info.features:
                     raise ValueError(
@@ -4464,23 +4481,40 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
                 if split in repo_info.splits:
                     repo_info.download_size -= deleted_size
-                    repo_info.dataset_size -= repo_info.splits[split].num_bytes
+                    repo_info.dataset_size -= repo_info.splits.get(split, SplitInfo()).num_bytes or 0
 
                 repo_info.download_checksums = None
-                repo_info.download_size += uploaded_size
-                repo_info.dataset_size += dataset_nbytes
+                repo_info.download_size = (repo_info.download_size or 0) + uploaded_size
+                repo_info.dataset_size = (repo_info.dataset_size or 0) + dataset_nbytes
                 repo_info.size_in_bytes = repo_info.download_size + repo_info.dataset_size
                 repo_info.splits[split] = SplitInfo(
                     split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name
                 )
                 info_to_dump = repo_info
-        buffer = BytesIO()
-        buffer.write(f'{{"{organization}--{dataset_name}": '.encode())
-        info_to_dump._dump_info(buffer, pretty_print=True)
-        buffer.write(b"}")
+        # push to the deprecated dataset_infos.json
+        if config.DATASETDICT_INFOS_FILENAME in repo_files:
+            buffer = BytesIO()
+            buffer.write(b'{"default": ')
+            info_to_dump._dump_info(buffer, pretty_print=True)
+            buffer.write(b"}")
+            HfApi(endpoint=config.HF_ENDPOINT).upload_file(
+                path_or_fileobj=buffer.getvalue(),
+                path_in_repo=config.DATASETDICT_INFOS_FILENAME,
+                repo_id=repo_id,
+                token=token,
+                repo_type="dataset",
+                revision=branch,
+            )
+        # push to README
+        DatasetInfosDict({"default": info_to_dump}).to_metadata(dataset_metadata)
+        if "README.md" in repo_files:
+            with open(dataset_readme_path, encoding="utf-8") as readme_file:
+                readme_content = readme_file.read()
+        else:
+            readme_content = f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
         HfApi(endpoint=config.HF_ENDPOINT).upload_file(
-            path_or_fileobj=buffer.getvalue(),
-            path_in_repo=config.DATASETDICT_INFOS_FILENAME,
+            path_or_fileobj=dataset_metadata._to_readme(readme_content).encode(),
+            path_in_repo="README.md",
             repo_id=repo_id,
             token=token,
             repo_type="dataset",

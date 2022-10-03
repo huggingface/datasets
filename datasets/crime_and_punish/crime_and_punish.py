@@ -8,36 +8,7 @@ _URL = "https://www.gutenberg.org/files/2554/2554-h/2554-h.htm"
 _DATA_URL = "https://raw.githubusercontent.com/patrickvonplaten/datasets/master/crime_and_punishment.txt"
 
 
-class CrimeAndPunishConfig(datasets.BuilderConfig):
-    """BuilderConfig for Crime and Punish."""
-
-    def __init__(self, data_url, **kwargs):
-        """BuilderConfig for BlogAuthorship
-
-        Args:
-          data_url: `string`, url to the dataset (word or raw level)
-          **kwargs: keyword arguments forwarded to super.
-        """
-        super(CrimeAndPunishConfig, self).__init__(
-            version=datasets.Version(
-                "1.0.0",
-            ),
-            **kwargs,
-        )
-        self.data_url = data_url
-
-
 class CrimeAndPunish(datasets.GeneratorBasedBuilder):
-
-    VERSION = datasets.Version("0.1.0")
-    BUILDER_CONFIGS = [
-        CrimeAndPunishConfig(
-            name="crime-and-punish",
-            data_url=_DATA_URL,
-            description="word level dataset. No processing is needed other than replacing newlines with <eos> tokens.",
-        ),
-    ]
-
     def _info(self):
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
@@ -58,17 +29,14 @@ class CrimeAndPunish(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
 
-        if self.config.name == "crime-and-punish":
-            data = dl_manager.download_and_extract(self.config.data_url)
+        data = dl_manager.download_and_extract(_DATA_URL)
 
-            return [
-                datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN,
-                    gen_kwargs={"data_file": data, "split": "train"},
-                ),
-            ]
-        else:
-            raise ValueError(f"{self.config.name} does not exist")
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"data_file": data, "split": "train"},
+            ),
+        ]
 
     def _generate_examples(self, data_file, split):
 

@@ -113,6 +113,9 @@ class Version:
         field_names = {f.name for f in dataclasses.fields(cls)}
         return cls(**{k: v for k, v in dic.items() if k in field_names})
 
+    def _to_yaml_string(self) -> str:
+        return self.version_str
+
 
 def _str_to_version(version_str, allow_wildcard=False):
     """Return the tuple (major, minor, patch) version extracted from the str."""

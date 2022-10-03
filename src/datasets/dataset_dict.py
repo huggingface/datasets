@@ -12,18 +12,23 @@ import fsspec
 import numpy as np
 from huggingface_hub import HfApi
 
+from datasets.utils.metadata import DatasetMetadata
+
 from . import config
 from .arrow_dataset import Dataset
+from .download import DownloadConfig
 from .features import Features
 from .features.features import FeatureType
 from .filesystems import extract_path_from_uri, is_remote_filesystem
-from .info import DatasetInfo
+from .info import DatasetInfo, DatasetInfosDict
 from .naming import _split_re
 from .splits import NamedSplit, Split, SplitDict, SplitInfo
 from .table import Table
 from .tasks import TaskTemplate
 from .utils import logging
+from .utils._hf_hub_fixes import list_repo_files as hf_api_list_repo_files
 from .utils.doc_utils import is_documented_by
+from .utils.file_utils import cached_path, hf_hub_url
 from .utils.typing import PathLike
 
 
@@ -1343,8 +1348,7 @@ class DatasetDict(dict):
         total_uploaded_size = 0
         total_dataset_nbytes = 0
         info_to_dump: DatasetInfo = next(iter(self.values())).info.copy()
-        dataset_name = repo_id.split("/")[-1]
-        info_to_dump.splits = SplitDict(dataset_name=dataset_name)
+        info_to_dump.splits = SplitDict()
 
         for split in self.keys():
             if not re.match(_split_re, split):
@@ -1364,21 +1368,47 @@ class DatasetDict(dict):
             )
             total_uploaded_size += uploaded_size
             total_dataset_nbytes += dataset_nbytes
-            info_to_dump.splits[split] = SplitInfo(
-                str(split), num_bytes=dataset_nbytes, num_examples=len(self[split]), dataset_name=dataset_name
-            )
-        organization, dataset_name = repo_id.split("/")
+            info_to_dump.splits[split] = SplitInfo(str(split), num_bytes=dataset_nbytes, num_examples=len(self[split]))
         info_to_dump.download_checksums = None
         info_to_dump.download_size = total_uploaded_size
         info_to_dump.dataset_size = total_dataset_nbytes
         info_to_dump.size_in_bytes = total_uploaded_size + total_dataset_nbytes
-        buffer = BytesIO()
-        buffer.write(f'{{"{organization}--{dataset_name}": '.encode())
-        info_to_dump._dump_info(buffer)
-        buffer.write(b"}")
+
+        api = HfApi(endpoint=config.HF_ENDPOINT)
+        repo_files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, token=token)
+
+        # push to the deprecated dataset_infos.json
+        if config.DATASETDICT_INFOS_FILENAME in repo_files:
+            buffer = BytesIO()
+            buffer.write(b'{"default": ')
+            info_to_dump._dump_info(buffer, pretty_print=True)
+            buffer.write(b"}")
+            HfApi(endpoint=config.HF_ENDPOINT).upload_file(
+                path_or_fileobj=buffer.getvalue(),
+                path_in_repo=config.DATASETDICT_INFOS_FILENAME,
+                repo_id=repo_id,
+                token=token,
+                repo_type="dataset",
+                revision=branch,
+            )
+        # push to README
+        if "README.md" in repo_files:
+            download_config = DownloadConfig()
+            download_config.download_desc = "Downloading metadata"
+            dataset_readme_path = cached_path(
+                hf_hub_url(repo_id, "README.md"),
+                download_config=download_config,
+            )
+            dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
+            with open(dataset_readme_path, encoding="utf-8") as readme_file:
+                readme_content = readme_file.read()
+        else:
+            dataset_metadata = DatasetMetadata()
+            readme_content = f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
+        DatasetInfosDict({"default": info_to_dump}).to_metadata(dataset_metadata)
         HfApi(endpoint=config.HF_ENDPOINT).upload_file(
-            path_or_fileobj=buffer.getvalue(),
-            path_in_repo=config.DATASETDICT_INFOS_FILENAME,
+            path_or_fileobj=dataset_metadata._to_readme(readme_content).encode(),
+            path_in_repo="README.md",
             repo_id=repo_id,
             token=token,
             repo_type="dataset",
