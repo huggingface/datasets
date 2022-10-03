@@ -25,15 +25,6 @@ import datasets
 logger = datasets.logging.get_logger(__name__)
 
 
-_CITATION = """\
-@inproceedings{miller2020effect,
-  author = {J. Miller and K. Krauth and B. Recht and L. Schmidt},
-  booktitle = {International Conference on Machine Learning (ICML)},
-  title = {The Effect of Natural Distribution Shift on Question Answering Models},
-  year = {2020},
-}
-"""
-
 _DESCRIPTION = r"""\
 SquadShifts consists of four new test sets for the Stanford Question Answering \
 Dataset (SQuAD) from four different domains: Wikipedia articles, New York \
@@ -47,6 +38,23 @@ to also evaluate their methods on these new datasets! \
 """
 
 _LICENSE = "CC-BY-4.0"
+
+_CITATION = """\
+@InProceedings{pmlr-v119-miller20a,
+  title = {The Effect of Natural Distribution Shift on Question Answering Models},
+  author = {Miller, John and Krauth, Karl and Recht, Benjamin and Schmidt, Ludwig},
+  booktitle = {Proceedings of the 37th International Conference on Machine Learning},
+  pages = {6905--6916},
+  year = {2020},
+  editor = {III, Hal Daumé and Singh, Aarti},
+  volume = {119},
+  series = {Proceedings of Machine Learning Research},
+  month = {13--18 Jul},
+  publisher = {PMLR},
+  pdf = {http://proceedings.mlr.press/v119/miller20a/miller20a.pdf},
+  url = {https://proceedings.mlr.press/v119/miller20a.html},
+}
+"""
 
 _URL = "https://raw.githubusercontent.com/modestyachts/squadshifts-website/master/datasets/"
 _URLS = {
