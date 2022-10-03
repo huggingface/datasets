@@ -22,7 +22,7 @@ class _NoDuplicateSafeLoader(yaml.SafeLoader):
 
 def _split_yaml_from_readme(readme_content: str) -> Tuple[Optional[str], str]:
     full_content = [line for line in readme_content.splitlines()]
-    if full_content[0] == "---" and "---" in full_content[1:]:
+    if full_content and full_content[0] == "---" and "---" in full_content[1:]:
         sep_idx = full_content[1:].index("---") + 1
         yamlblock = "\n".join(full_content[1:sep_idx])
         return yamlblock, "\n".join(full_content[sep_idx + 1 :])

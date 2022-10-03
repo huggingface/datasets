@@ -8,6 +8,32 @@ from datasets.info import DatasetInfo, DatasetInfosDict
 
 
 @pytest.mark.parametrize(
+    "files",
+    [
+        ["full:README.md", "dataset_infos.json"],
+        ["empty:README.md", "dataset_infos.json"],
+        ["dataset_infos.json"],
+        ["full:README.md"],
+    ],
+)
+def test_from_dir(files, tmp_path_factory):
+    dataset_infos_dir = tmp_path_factory.mktemp("dset_infos_dir")
+    if "full:README.md" in files:
+        with open(dataset_infos_dir / "README.md", "w") as f:
+            f.write("---\ndataset_info:\n  dataset_size: 42\n---")
+    if "empty:README.md" in files:
+        with open(dataset_infos_dir / "README.md", "w") as f:
+            f.write("")
+    # we want to support dataset_infos.json for backward compatibility
+    if "dataset_infos.json" in files:
+        with open(dataset_infos_dir / "dataset_infos.json", "w") as f:
+            f.write('{"default": {"dataset_size": 42}}')
+    dataset_infos = DatasetInfosDict.from_directory(dataset_infos_dir)
+    assert dataset_infos
+    assert dataset_infos["default"].dataset_size == 42
+
+
+@pytest.mark.parametrize(
     "dataset_info",
     [
         DatasetInfo(),

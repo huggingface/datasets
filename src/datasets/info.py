@@ -366,8 +366,9 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
         # Load the info from the YAML part of README.md
         if os.path.exists(os.path.join(dataset_infos_dir, "README.md")):
             dataset_metadata = DatasetMetadata.from_readme(Path(dataset_infos_dir) / "README.md")
-            return cls.from_metadata(dataset_metadata)
-        elif os.path.exists(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME)):
+            if "dataset_info" in dataset_metadata:
+                return cls.from_metadata(dataset_metadata)
+        if os.path.exists(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME)):
             # this is just to have backward compatibility with dataset_infos.json files
             with open(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
                 return cls(
