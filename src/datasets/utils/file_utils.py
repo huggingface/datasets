@@ -24,8 +24,8 @@ from urllib.parse import urljoin, urlparse
 
 import huggingface_hub
 import requests
-from packaging import version
 from huggingface_hub import HfFolder
+from packaging import version
 
 from .. import __version__, config
 from ..download.download_config import DownloadConfig
