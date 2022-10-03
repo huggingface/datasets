@@ -470,7 +470,7 @@ class GithubMetricModuleFactory(_MetricModuleFactory):
             local_path = self.download_loading_script(revision)
             revision = self.revision
         except FileNotFoundError:
-            if revision is not None or os.getenv("HF_SCRIPTS_VERSION", None) is not None:
+            if revision is not None:
                 raise
             else:
                 revision = "main"
@@ -750,7 +750,6 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self.data_dir = data_dir
         self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
-        assert self.name.count("/") == 1
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
@@ -1575,7 +1574,6 @@ def load_dataset(
             Dataset scripts are small python scripts that define dataset builders. They define the citation, info and format of the dataset,
             contain the path or URL to the original data files and the code to load examples from the original data files.
 
-            You can find some scripts here: https://github.com/huggingface/datasets/tree/main/datasets
             You can find the complete list of datasets in the Datasets Hub at https://huggingface.co/datasets
 
         2. Run the dataset script which will:

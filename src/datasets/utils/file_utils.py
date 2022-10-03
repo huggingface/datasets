@@ -25,6 +25,7 @@ from urllib.parse import urljoin, urlparse
 import huggingface_hub
 import requests
 from huggingface_hub import HfFolder
+from packaging import version
 
 from .. import __version__, config
 from ..download.download_config import DownloadConfig
@@ -99,9 +100,9 @@ def head_hf_s3(
 
 
 def hf_github_url(path: str, name: str, dataset=True, revision: Optional[str] = None) -> str:
-    from .. import SCRIPTS_VERSION
 
-    revision = revision or os.getenv("HF_SCRIPTS_VERSION", SCRIPTS_VERSION)
+    default_revision = "main" if version.parse(__version__).is_devrelease else __version__
+    revision = revision or default_revision
     if dataset:
         return config.REPO_DATASETS_URL.format(revision=revision, path=path, name=name)
     else:

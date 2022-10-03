@@ -36,8 +36,6 @@ if version.parse(pyarrow.__version__).major < 6:
         "If you are running this in a Google Colab, you should probably just restart the runtime to use the right version of `pyarrow`."
     )
 
-SCRIPTS_VERSION = "main" if version.parse(__version__).is_devrelease else __version__
-
 del platform
 del pyarrow
 del version
