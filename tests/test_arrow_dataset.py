@@ -1,3 +1,4 @@
+import contextlib
 import copy
 import itertools
 import json
@@ -53,6 +54,7 @@ from .utils import (
     require_jax,
     require_pil,
     require_s3,
+    require_sqlalchemy,
     require_tf,
     require_torch,
     require_transformers,
@@ -2058,6 +2060,68 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(parquet_dset.shape, dset.shape)
                 self.assertListEqual(list(parquet_dset.columns), list(dset.column_names))
 
+    @require_sqlalchemy
+    def test_to_sql(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            # Destionation specified as database URI string
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                file_path = os.path.join(tmp_dir, "test_path.sqlite")
+                _ = dset.to_sql("data", "sqlite:///" + file_path, index=False)
+
+                self.assertTrue(os.path.isfile(file_path))
+                sql_dset = pd.read_sql("data", "sqlite:///" + file_path)
+
+                self.assertEqual(sql_dset.shape, dset.shape)
+                self.assertListEqual(list(sql_dset.columns), list(dset.column_names))
+
+            # Destionation specified as sqlite3 connection
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                import sqlite3
+
+                file_path = os.path.join(tmp_dir, "test_path.sqlite")
+                with contextlib.closing(sqlite3.connect(file_path)) as con:
+                    _ = dset.to_sql("data", con, index=False, if_exists="replace")
+
+                self.assertTrue(os.path.isfile(file_path))
+                sql_dset = pd.read_sql("data", "sqlite:///" + file_path)
+
+                self.assertEqual(sql_dset.shape, dset.shape)
+                self.assertListEqual(list(sql_dset.columns), list(dset.column_names))
+
+            # Test writing to a database in chunks
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                file_path = os.path.join(tmp_dir, "test_path.sqlite")
+                _ = dset.to_sql("data", "sqlite:///" + file_path, batch_size=1, index=False, if_exists="replace")
+
+                self.assertTrue(os.path.isfile(file_path))
+                sql_dset = pd.read_sql("data", "sqlite:///" + file_path)
+
+                self.assertEqual(sql_dset.shape, dset.shape)
+                self.assertListEqual(list(sql_dset.columns), list(dset.column_names))
+
+            # After a select/shuffle transform
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                dset = dset.select(range(0, len(dset), 2)).shuffle()
+                file_path = os.path.join(tmp_dir, "test_path.sqlite")
+                _ = dset.to_sql("data", "sqlite:///" + file_path, index=False, if_exists="replace")
+
+                self.assertTrue(os.path.isfile(file_path))
+                sql_dset = pd.read_sql("data", "sqlite:///" + file_path)
+
+                self.assertEqual(sql_dset.shape, dset.shape)
+                self.assertListEqual(list(sql_dset.columns), list(dset.column_names))
+
+            # With array features
+            with self._create_dummy_dataset(in_memory, tmp_dir, array_features=True) as dset:
+                file_path = os.path.join(tmp_dir, "test_path.sqlite")
+                _ = dset.to_sql("data", "sqlite:///" + file_path, index=False, if_exists="replace")
+
+                self.assertTrue(os.path.isfile(file_path))
+                sql_dset = pd.read_sql("data", "sqlite:///" + file_path)
+
+                self.assertEqual(sql_dset.shape, dset.shape)
+                self.assertListEqual(list(sql_dset.columns), list(dset.column_names))
+
     def test_train_test_split(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
@@ -3281,6 +3345,49 @@ def test_dataset_from_generator_features(features, data_generator, tmp_path):
     )
     dataset = Dataset.from_generator(data_generator, features=features, cache_dir=cache_dir)
     _check_generator_dataset(dataset, expected_features)
+
+
+def _check_sql_dataset(dataset, expected_features):
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == 4
+    assert dataset.num_columns == 3
+    assert dataset.column_names == ["col_1", "col_2", "col_3"]
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
+
+
+@require_sqlalchemy
+@pytest.mark.parametrize(
+    "features",
+    [
+        None,
+        {"col_1": "string", "col_2": "int64", "col_3": "float64"},
+        {"col_1": "string", "col_2": "string", "col_3": "string"},
+        {"col_1": "int32", "col_2": "int32", "col_3": "int32"},
+        {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
+    ],
+)
+def test_dataset_from_sql_features(features, sqlite_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    expected_features = features.copy() if features else default_expected_features
+    features = (
+        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+    )
+    dataset = Dataset.from_sql("dataset", "sqlite:///" + sqlite_path, features=features, cache_dir=cache_dir)
+    _check_sql_dataset(dataset, expected_features)
+
+
+@require_sqlalchemy
+@pytest.mark.parametrize("keep_in_memory", [False, True])
+def test_dataset_from_sql_keep_in_memory(keep_in_memory, sqlite_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = Dataset.from_sql(
+            "dataset", "sqlite:///" + sqlite_path, cache_dir=cache_dir, keep_in_memory=keep_in_memory
+        )
+    _check_sql_dataset(dataset, expected_features)
 
 
 def test_dataset_to_json(dataset, tmp_path):

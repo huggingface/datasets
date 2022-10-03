@@ -130,6 +130,20 @@ def require_elasticsearch(test_case):
     return test_case
 
 
+def require_sqlalchemy(test_case):
+    """
+    Decorator marking a test that requires SQLAlchemy.
+
+    These tests are skipped when SQLAlchemy isn't installed.
+
+    """
+    try:
+        import sqlalchemy  # noqa
+    except ImportError:
+        test_case = unittest.skip("test requires sqlalchemy")(test_case)
+    return test_case
+
+
 def require_torch(test_case):
     """
     Decorator marking a test that requires PyTorch.

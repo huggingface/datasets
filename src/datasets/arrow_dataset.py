@@ -113,6 +113,10 @@ from .utils.typing import PathLike
 
 
 if TYPE_CHECKING:
+    import sqlite3
+
+    import sqlalchemy
+
     from .dataset_dict import DatasetDict
 
 logger = logging.get_logger(__name__)
@@ -1095,6 +1099,56 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         return TextDatasetReader(
             path_or_paths, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+        ).read()
+
+    @staticmethod
+    def from_sql(
+        sql: Union[str, "sqlalchemy.sql.Selectable"],
+        con: str,
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        **kwargs,
+    ):
+        """Create Dataset from SQL query or database table.
+
+        Args:
+            sql (`str` or :obj:`sqlalchemy.sql.Selectable`): SQL query to be executed or a table name.
+            con (`str`): A connection URI string used to instantiate a database connection.
+            features (:class:`Features`, optional): Dataset features.
+            cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
+            keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
+            **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`SqlConfig`.
+
+        Returns:
+            :class:`Dataset`
+
+        Example:
+
+        ```py
+        >>> # Fetch a database table
+        >>> ds = Dataset.from_sql("test_data", "postgres:///db_name")
+        >>> # Execute a SQL query on the table
+        >>> ds = Dataset.from_sql("SELECT sentence FROM test_data", "postgres:///db_name")
+        >>> # Use a Selectable object to specify the query
+        >>> from sqlalchemy import select, text
+        >>> stmt = select([text("sentence")]).select_from(text("test_data"))
+        >>> ds = Dataset.from_sql(stmt, "postgres:///db_name")
+        ```
+
+        <Tip {warning=true}>
+        `sqlalchemy` needs to be installed to use this function.
+        </Tip>
+        """
+        from .io.sql import SqlDatasetReader
+
+        return SqlDatasetReader(
+            sql,
+            con,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            **kwargs,
         ).read()
 
     def __del__(self):
@@ -4152,6 +4206,43 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         from .io.parquet import ParquetDatasetWriter
 
         return ParquetDatasetWriter(self, path_or_buf, batch_size=batch_size, **parquet_writer_kwargs).write()
+
+    def to_sql(
+        self,
+        name: str,
+        con: Union[str, "sqlalchemy.engine.Connection", "sqlalchemy.engine.Engine", "sqlite3.Connection"],
+        batch_size: Optional[int] = None,
+        **sql_writer_kwargs,
+    ) -> int:
+        """Exports the dataset to a SQL database.
+
+        Args:
+            name (`str`): Name of SQL table.
+            con (`str` or `sqlite3.Connection` or `sqlalchemy.engine.Connection` or `sqlalchemy.engine.Connection`):
+                A database connection URI string or an existing SQLite3/SQLAlchemy connection used to write to a database.
+            batch_size (:obj:`int`, optional): Size of the batch to load in memory and write at once.
+                Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            **sql_writer_kwargs (additional keyword arguments): Parameters to pass to pandas's :function:`Dataframe.to_sql`
+
+        Returns:
+            int: The number of records written.
+
+        Example:
+
+        ```py
+        >>> # con provided as a connection URI string
+        >>> ds.to_sql("data", "sqlite:///my_own_db.sql")
+        >>> # con provided as a sqlite3 connection object
+        >>> import sqlite3
+        >>> con = sqlite3.connect("my_own_db.sql")
+        >>> with con:
+        ...     ds.to_sql("data", con)
+        ```
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.sql import SqlDatasetWriter
+
+        return SqlDatasetWriter(self, name, con, batch_size=batch_size, **sql_writer_kwargs).write()
 
     def _push_parquet_shards_to_hub(
         self,
