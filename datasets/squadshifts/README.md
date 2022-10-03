@@ -7,7 +7,7 @@ language_creators:
 - crowdsourced
 - found
 license:
-- unknown
+- cc-by-4.0
 multilinguality:
 - monolingual
 pretty_name: SQuAD-shifts
@@ -256,7 +256,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+All the datasets are distributed under the [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/legalcode) license.
 
 ### Citation Information
 

@@ -46,6 +46,8 @@ robustness to natural distribution shifts. We encourage SQuAD model developers \
 to also evaluate their methods on these new datasets! \
 """
 
+_LICENSE = "CC-BY-4.0"
+
 _URL = "https://raw.githubusercontent.com/modestyachts/squadshifts-website/master/datasets/"
 _URLS = {
     "new_wiki": _URL + "new_wiki_v1.0.json",
@@ -110,10 +112,8 @@ class SquadShifts(datasets.GeneratorBasedBuilder):
                     ),
                 }
             ),
-            # No default supervised_keys (as we have to pass both question
-            # and context as input).
-            supervised_keys=None,
             homepage="https://modestyachts.github.io/squadshifts-website/index.html",
+            license=_LICENSE,
             citation=_CITATION,
         )
 
