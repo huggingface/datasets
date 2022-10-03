@@ -2,7 +2,7 @@ import collections
 import itertools
 import os
 from dataclasses import dataclass
-from typing import Any, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 import pandas as pd
 import pyarrow as pa
@@ -10,6 +10,7 @@ import pyarrow.compute as pc
 import pyarrow.json as paj
 
 import datasets
+from datasets.features.features import FeatureType
 from datasets.tasks.base import TaskTemplate
 
 
@@ -66,7 +67,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
         CLASSIFICATION_TASK: classification task to use if labels are obtained from the folder structure
     """
 
-    BASE_FEATURE: Any
+    BASE_FEATURE: FeatureType
     BASE_COLUMN_NAME: str
     BUILDER_CONFIG_CLASS: FolderBasedBuilderConfig
     EXTENSIONS: List[str]
