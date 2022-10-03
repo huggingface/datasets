@@ -77,7 +77,7 @@ Here, E refers to emotion, EI refers to emotion intensity, V refers to valence o
 
 Together, these tasks encompass various emotion and sentiment analysis tasks. You are free to participate in any number of tasks and on any of the datasets.
 
-**Currently only the subtask 5 (E-c) is available on the Hugging Face Dataset Hub.**
+**Currently only the subtask 2 (EI-oc) and 5 (E-c) are available on the Hugging Face Dataset Hub.**
 
 ### Supported Tasks and Leaderboards
 
@@ -88,6 +88,15 @@ English, Arabic and Spanish
 ## Dataset Structure
 
 ### Data Instances
+
+An example from the `subtask2.anger.english` config is:
+```
+{'ID': '2017-En-10264',
+ 'Tweet': "@xandraaa5 @amayaallyn6 shut up hashtags are cool #offended"
+ 'emotion': "anger"	
+ 'intensity': 2
+}
+```
 
 An example from the `subtask5.english` config is:
 
@@ -109,6 +118,12 @@ An example from the `subtask5.english` config is:
 
 ### Data Fields
 
+For any config of the subtask 2:
+- ID: string id of the tweet
+- Tweet: text content of the tweet as a string
+- affect: string containing the type of affect whose intensity is being estimated
+- intensity: int (ranging from 0 to 3), specifying the intensity of the emotion (e.g. in the case of anger: `0: no anger can be inferred, 1: low amount of anger can be inferred, 2: moderate amount of anger can be inferred, 3: high amount of anger can be inferred`)
+
 For any config of the subtask 5:
 - ID: string id of the tweet
 - Tweet: text content of the tweet as a string
@@ -127,6 +142,8 @@ For any config of the subtask 5:
 Note that the test set has no labels, and therefore all labels are set to False.
 
 ### Data Splits
+
+For subtask 5:
 
 |         | train | validation |  test |
 |---------|------:|-----------:|------:|
@@ -151,6 +168,14 @@ Twitter users.
 ### Annotations
 
 #### Annotation process
+
+We describe below how we annotated the English tweets. The same procedure was used for Arabic and Spanish annotations.
+
+We annotated all of our data by crowdsourcing. The tweets and annotation questionnaires were uploaded on the crowdsourcing platform, Figure Eight (earlier called CrowdFlower). 8 All the annotation tasks described in this paper were approved by the National Research Council Canada’s Institutional Review Board.
+
+About 5% of the tweets in each task were annotated internally beforehand (by the authors of this paper). These tweets are referred to as gold tweets. The gold tweets were interspersed with other tweets. If a crowd-worker got a gold tweet question wrong, they were immediately notiﬁed of the error. If the worker’s accuracy on the gold tweet questions fell below 70%, they were refused further annotation, and all of their annotations were discarded. This served as a mechanism to avoid malicious annotations.
+
+**Multi-Label Emotion Annotation**
 
 We presented one tweet at a time to the annotators
 and asked which of the following options best de-
@@ -177,6 +202,14 @@ than seven people. The median number of anno-
 tations was still seven. In total, 303 people anno-
 tated between 10 and 4,670 tweets each. A total of
 174,356 responses were obtained.
+
+**Identifying Ordinal Classes**
+
+For each of the EI-reg emotions, the authors of this paper independently examined the ordered list of tweets to identify suitable boundaries that partitioned the 0–1 range into four ordinal classes: no emotion, low emotion, moderate emotion, and high emotion. Similarly the V-reg tweets were examined and the 0–1 range was partitioned into seven classes: very negative, moderately negative, slightly negative, neutral or mixed, slightly positive, moderately positive, and very positive mental state can be inferred.
+
+Annotation Aggregation: The authors discussed their individual annotations to obtain consensus on the class intervals. The V-oc and EI-oc datasets were thus labeled.
+
+For more details, see:
 
 Mohammad, S., Bravo-Marquez, F., Salameh, M., & Kiritchenko, S. (2018). SemEval-2018 task 1: Affect in tweets. Proceedings of the 12th International Workshop on Semantic Evaluation, 1–17. https://doi.org/10.18653/v1/S18-1001
 
@@ -215,4 +248,4 @@ See the official [Terms and Conditions](https://competitions.codalab.org/competi
 
 ### Contributions
 
-Thanks to [@maxpel](https://github.com/maxpel) for adding this dataset.
+Thanks to [@maxpel](https://github.com/maxpel) and [@micahcarroll](https://github.com/micahcarroll) for adding this dataset.
