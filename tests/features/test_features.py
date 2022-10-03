@@ -7,8 +7,9 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
+from datasets import Array2D
 from datasets.arrow_dataset import Dataset
-from datasets.features import ClassLabel, Features, Image, Sequence, Value
+from datasets.features import Audio, ClassLabel, Features, Image, Sequence, Value
 from datasets.features.features import (
     _arrow_to_datasets_dtype,
     _cast_to_python_objects,
@@ -463,7 +464,7 @@ class CastToPythonObjectsTest(TestCase):
 
     def test_cast_to_python_objects_tuple(self):
         obj = {"col_1": [{"vec": (1, 2, 3), "txt": "foo"}] * 3, "col_2": [(1, 2), (3, 4), (5, 6)]}
-        expected_obj = {"col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3, "col_2": [[1, 2], [3, 4], [5, 6]]}
+        expected_obj = {"col_1": [{"vec": (1, 2, 3), "txt": "foo"}] * 3, "col_2": [(1, 2), (3, 4), (5, 6)]}
         casted_obj = cast_to_python_objects(obj)
         self.assertDictEqual(casted_obj, expected_obj)
 
@@ -562,3 +563,65 @@ class CastToPythonObjectsTest(TestCase):
         obj = {"col_1": [[1, 2], [3, 4], [5, 6]]}
         cast_to_python_objects(obj)
         self.assertEqual(mocked_cast.call_count, 4)  # 4 = depth of obj
+
+
+SIMPLE_FEATURES = [
+    Features(),
+    Features({"a": Value("int32")}),
+    Features({"a": Value("int32", id="my feature")}),
+    Features({"a": Value("int32"), "b": Value("float64"), "c": Value("string")}),
+]
+
+CUSTOM_FEATURES = [
+    Features({"label": ClassLabel(names=["negative", "positive"])}),
+    Features({"array": Array2D(dtype="float32", shape=(4, 4))}),
+    Features({"image": Image()}),
+    Features({"audio": Audio()}),
+    Features({"image": Image(decode=False)}),
+    Features({"audio": Audio(decode=False)}),
+    Features({"translation": Translation(["en", "fr"])}),
+    Features({"translation": TranslationVariableLanguages(["en", "fr"])}),
+]
+
+NESTED_FEATURES = [
+    Features({"foo": {}}),
+    Features({"foo": {"bar": Value("int32")}}),
+    Features({"foo": {"bar1": Value("int32"), "bar2": Value("float64")}}),
+    Features({"foo": Sequence(Value("int32"))}),
+    Features({"foo": Sequence({})}),
+    Features({"foo": Sequence({"bar": Value("int32")})}),
+    Features({"foo": [Value("int32")]}),
+    Features({"foo": [{"bar": Value("int32")}]}),
+]
+
+NESTED_CUSTOM_FEATURES = [
+    Features({"foo": {"bar": ClassLabel(names=["negative", "positive"])}}),
+    Features({"foo": Sequence(ClassLabel(names=["negative", "positive"]))}),
+    Features({"foo": Sequence({"bar": ClassLabel(names=["negative", "positive"])})}),
+    Features({"foo": [ClassLabel(names=["negative", "positive"])]}),
+    Features({"foo": [{"bar": ClassLabel(names=["negative", "positive"])}]}),
+]
+
+
+@pytest.mark.parametrize("features", SIMPLE_FEATURES + CUSTOM_FEATURES + NESTED_FEATURES + NESTED_CUSTOM_FEATURES)
+def test_features_to_dict(features: Features):
+    features_dict = features.to_dict()
+    assert isinstance(features_dict, dict)
+    reloaded = Features.from_dict(features_dict)
+    assert features == reloaded
+
+
+@pytest.mark.parametrize("features", SIMPLE_FEATURES + CUSTOM_FEATURES + NESTED_FEATURES + NESTED_CUSTOM_FEATURES)
+def test_features_to_yaml_list(features: Features):
+    features_yaml_list = features._to_yaml_list()
+    assert isinstance(features_yaml_list, list)
+    reloaded = Features._from_yaml_list(features_yaml_list)
+    assert features == reloaded
+
+
+@pytest.mark.parametrize("features", SIMPLE_FEATURES + CUSTOM_FEATURES + NESTED_FEATURES + NESTED_CUSTOM_FEATURES)
+def test_features_to_arrow_schema(features: Features):
+    arrow_schema = features.arrow_schema
+    assert isinstance(arrow_schema, pa.Schema)
+    reloaded = Features.from_arrow_schema(arrow_schema)
+    assert features == reloaded

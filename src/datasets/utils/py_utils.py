@@ -114,7 +114,7 @@ def convert_file_size_to_int(size: Union[int, str]) -> int:
     if size.upper().endswith("KB"):
         int_size = int(size[:-2]) * (10**3)
         return int_size // 8 if size.endswith("b") else int_size
-    raise ValueError("`size` is not in a valid format. Use an integer followed by the unit, e.g., '5GB'.")
+    raise ValueError(f"`size={size}` is not in a valid format. Use an integer followed by the unit, e.g., '5GB'.")
 
 
 def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
@@ -167,7 +167,8 @@ def asdict(obj):
             result = {}
             for f in fields(obj):
                 value = _asdict_inner(getattr(obj, f.name))
-                result[f.name] = value
+                if not f.init or value != f.default or f.metadata.get("include_in_asdict_even_if_is_default", False):
+                    result[f.name] = value
             return result
         elif isinstance(obj, tuple) and hasattr(obj, "_fields"):
             # obj is a namedtuple

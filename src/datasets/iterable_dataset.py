@@ -44,6 +44,35 @@ def _batch_to_examples(batch: Dict[str, list]) -> List[Dict[str, Any]]:
         yield {col: array[i] for col, array in batch.items()}
 
 
+class HasNextIterator(Iterator):
+    """Iterator with an hasnext() function. Taken from https://stackoverflow.com/questions/1966591/has-next-in-python-iterators."""
+
+    def __init__(self, it):
+        self.it = iter(it)
+        self._hasnext = None
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self._hasnext:
+            result = self._thenext
+        else:
+            result = next(self.it)
+        self._hasnext = None
+        return result
+
+    def hasnext(self):
+        if self._hasnext is None:
+            try:
+                self._thenext = next(self.it)
+            except StopIteration:
+                self._hasnext = False
+            else:
+                self._hasnext = True
+        return self._hasnext
+
+
 class _BaseExamplesIterable:
     """Base class for the examples iterable used by an IterableDataset"""
 
@@ -146,23 +175,53 @@ class ShardShuffledExamplesIterable(ExamplesIterable):
 
 
 class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
+    def __init__(
+        self, ex_iterables: List[_BaseExamplesIterable], stopping_strategy: Optional[str] = "first_exhausted"
+    ):
         self.ex_iterables = ex_iterables
+        self.stopping_strategy = stopping_strategy
+
+        # if undersampling ("first_exhausted"), we stop as soon as one dataset is exhausted
+        # if oversampling ("all_exhausted"), we stop as soons as every dataset is exhausted, i.e as soon as every samples of every dataset has been visited at least once
+        self.bool_strategy_func = np.all if (stopping_strategy == "all_exhausted") else np.any
+
+    def _give_indice_iterator(self):
+        # this is an infinite iterator to keep track of which iterator we want to pick examples from
+        return cycle(range(len(self.ex_iterables)))
 
     def __iter__(self):
-        iterators = [iter(ex_iterable) for ex_iterable in self.ex_iterables]
-        # this is an infinite iterator to keep track of which iterator we want to pick examples from
-        indices_iterator = cycle(range(len(iterators)))
+        iterators = [HasNextIterator(ex_iterable) for ex_iterable in self.ex_iterables]
+
+        indices_iterator = self._give_indice_iterator()
+
+        is_exhausted = np.full(len(self.ex_iterables), False)
         for i in indices_iterator:
             try:  # let's pick one example from the iterator at index i
                 yield next(iterators[i])
-            except StopIteration:  # if we ran out of examples on this iterator, break the main for loop
-                break
+
+                # it will resume from the yield at the next call so that we can directly test if the iterable is exhausted and if we need to break out of the loop
+                if not iterators[i].hasnext():
+                    is_exhausted[i] = True
+
+                    if self.bool_strategy_func(is_exhausted):
+                        # if the stopping criteria is met, break the main for loop
+                        break
+                    # otherwise reinitialise the iterator and yield the first example
+                    iterators[i] = HasNextIterator(self.ex_iterables[i])
+
+            except StopIteration:
+                # here it means that the i-th iterabledataset is empty, i.e we never have the occasion to yield an element of the i-th dataset.
+                # we still check if the stopping criteria is met and if we break out of the loop in case of an oversampling strategy
+                is_exhausted[i] = True
+
+                if self.bool_strategy_func(is_exhausted):
+                    # if the stopping criteria is met, break the main for loop
+                    break
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "CyclingMultiSourcesExamplesIterable":
         """Shuffle each underlying examples iterable."""
         ex_iterables = [ex_iterable.shuffle_data_sources(generator) for ex_iterable in self.ex_iterables]
-        return CyclingMultiSourcesExamplesIterable(ex_iterables)
+        return CyclingMultiSourcesExamplesIterable(ex_iterables, self.stopping_strategy)
 
     @property
     def n_shards(self) -> int:
@@ -280,8 +339,14 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
 
 
 class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIterable):
-    def __init__(self, ex_iterables, generator: np.random.Generator, probabilities: Optional[List[float]] = None):
-        super().__init__(ex_iterables)
+    def __init__(
+        self,
+        ex_iterables,
+        generator: np.random.Generator,
+        probabilities: Optional[List[float]] = None,
+        stopping_strategy: Optional[str] = "first_exhausted",
+    ):
+        super().__init__(ex_iterables, stopping_strategy)
         self.generator = deepcopy(generator)
         self.probabilities = probabilities
 
@@ -300,16 +365,10 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
             while True:
                 yield from (int(i) for i in rng.choice(num_sources, size=random_batch_size, p=p))
 
-    def __iter__(self):
+    def _give_indice_iterator(self):
         rng = deepcopy(self.generator)
-        iterators = [iter(ex_iterable) for ex_iterable in self.ex_iterables]
         # this is an infinite iterator that randomly samples the index of the source to pick examples from
-        indices_iterator = self._iter_random_indices(rng, len(iterators), p=self.probabilities)
-        for i in indices_iterator:
-            try:  # let's pick one example from the iterator at index i
-                yield next(iterators[i])
-            except StopIteration:  # if we ran out of examples on this iterator, break the main for loop
-                break
+        return self._iter_random_indices(rng, len(self.ex_iterables), p=self.probabilities)
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "RandomlyCyclingMultiSourcesExamplesIterable":
         """Shuffle the data sources of each wrapped examples iterable."""
@@ -334,6 +393,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         batch_size: int = 1000,
         drop_last_batch: bool = False,
         remove_columns: Optional[List[str]] = None,
+        fn_kwargs: Optional[dict] = None,
     ):
         self.ex_iterable = ex_iterable
         self.function = function
@@ -343,6 +403,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         self.remove_columns = remove_columns
         self.with_indices = with_indices
         self.input_columns = input_columns
+        self.fn_kwargs = fn_kwargs or {}
 
     def __iter__(self):
         iterator = iter(self.ex_iterable)
@@ -363,7 +424,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 if self.with_indices:
                     function_args.append([current_idx + i for i in range(len(key_examples_list))])
                 transformed_batch = dict(batch)  # this will be updated with the function output
-                transformed_batch.update(self.function(*function_args))
+                transformed_batch.update(self.function(*function_args, **self.fn_kwargs))
                 # then remove the unwanted columns
                 if self.remove_columns:
                     for c in self.remove_columns:
@@ -396,7 +457,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 if self.with_indices:
                     function_args.append(current_idx)
                 transformed_example = dict(example)  # this will be updated with the function output
-                transformed_example.update(self.function(*function_args))
+                transformed_example.update(self.function(*function_args, **self.fn_kwargs))
                 # then we remove the unwanted columns
                 if self.remove_columns:
                     for c in self.remove_columns:
@@ -414,6 +475,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             batched=self.batched,
             batch_size=self.batch_size,
             remove_columns=self.remove_columns,
+            fn_kwargs=self.fn_kwargs,
         )
 
     def shard_data_sources(self, shard_idx: int) -> "MappedExamplesIterable":
@@ -426,6 +488,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             batched=self.batched,
             batch_size=self.batch_size,
             remove_columns=self.remove_columns,
+            fn_kwargs=self.fn_kwargs,
         )
 
     @property
@@ -759,6 +822,7 @@ class IterableDataset(DatasetInfoMixin):
         batch_size: int = 1000,
         drop_last_batch: bool = False,
         remove_columns: Optional[Union[str, List[str]]] = None,
+        fn_kwargs: Optional[dict] = None,
     ) -> "IterableDataset":
         """
         Apply a function to all the examples in the iterable dataset (individually or in batches) and update them.
@@ -797,6 +861,7 @@ class IterableDataset(DatasetInfoMixin):
             remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
+            fn_kwargs (:obj:`Dict`, optional, default `None`): Keyword arguments to be passed to `function`.
 
         Example:
 
@@ -821,6 +886,8 @@ class IterableDataset(DatasetInfoMixin):
             remove_columns = [remove_columns]
         if function is None:
             function = lambda x: x  # noqa: E731
+        if fn_kwargs is None:
+            fn_kwargs = {}
         info = self._info.copy()
         info.features = None
         ex_iterable = MappedExamplesIterable(
@@ -834,6 +901,7 @@ class IterableDataset(DatasetInfoMixin):
             batch_size=batch_size,
             drop_last_batch=drop_last_batch,
             remove_columns=remove_columns,
+            fn_kwargs=fn_kwargs,
         )
         return iterable_dataset(
             ex_iterable=ex_iterable,
@@ -1362,6 +1430,7 @@ def _interleave_iterable_datasets(
     seed: Optional[int] = None,
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
+    stopping_strategy: Optional[str] = "first_exhausted",
 ) -> IterableDataset:
     """
     Interleave several iterable datasets (sources) into a single iterable dataset.
@@ -1376,6 +1445,13 @@ def _interleave_iterable_datasets(
         probabilities (:obj:`List[float]`, optional, default None): If specified, the new iterable dataset samples
             examples from one source at a time according to these probabilities.
         seed (:obj:`int`, optional, default None): The random seed used to choose a source for each example.
+        stopping_strategy (Optional :obj:`str`, defaults to `first_exhausted`):
+            Two strategies are proposed right now.
+            By default, `first_exhausted` is an undersampling strategy, i.e the dataset construction is stopped as soon as one dataset has ran out of samples.
+            If the strategy is `all_exhausted`,  we use an oversampling strategy, i.e the dataset construction is stopped as soon as every samples of every dataset has been added at least once.
+            Note that if the strategy is `all_exhausted`, the interleaved dataset size can get enormous:
+            - with no probabilities, the resulting dataset will have max_length_datasets*nb_dataset samples.
+            - with given probabilities, the resulting dataset will have more samples if some datasets have really low probability of visiting.
 
     Output:
         :class:`datasets.IterableDataset`
@@ -1395,11 +1471,11 @@ def _interleave_iterable_datasets(
 
     # Use cycling or random cycling or sources
     if probabilities is None:
-        ex_iterable = CyclingMultiSourcesExamplesIterable(ex_iterables)
+        ex_iterable = CyclingMultiSourcesExamplesIterable(ex_iterables, stopping_strategy=stopping_strategy)
     else:
         generator = np.random.default_rng(seed)
         ex_iterable = RandomlyCyclingMultiSourcesExamplesIterable(
-            ex_iterables, generator=generator, probabilities=probabilities
+            ex_iterables, generator=generator, probabilities=probabilities, stopping_strategy=stopping_strategy
         )
     # Set new info - we update the features
     # setting the features also ensures to fill missing columns with None

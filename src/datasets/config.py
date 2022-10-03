@@ -168,9 +168,15 @@ HF_UPDATE_DOWNLOAD_COUNTS = (
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
 DEFAULT_MAX_BATCH_SIZE = 10_000
 
+# Size of the preloaded record batch in `Dataset.__iter__`
+ARROW_READER_BATCH_SIZE_IN_DATASET_ITER = 10
+
 # Pickling tables works only for small tables (<4GiB)
 # For big tables, we write them on disk instead
 MAX_TABLE_NBYTES_FOR_PICKLING = 4 << 30
+
+# Max shard size in bytes (e.g. to shard parquet datasets in push_to_hub or download_and_prepare)
+MAX_SHARD_SIZE = "500MB"
 
 # Offline mode
 HF_DATASETS_OFFLINE = os.environ.get("HF_DATASETS_OFFLINE", "AUTO").upper() in ENV_VARS_TRUE_VALUES

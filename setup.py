@@ -16,6 +16,10 @@ To create the package for pypi.
    - Create an account in (and join the 'datasets' project):
      - PyPI: https://pypi.org/
      - Test PyPI: https://test.pypi.org/
+   - Don't break `transformers`
+     - Run the `transformers` CI using the `main` branch and make sure it's green.
+       In `transformers`, use "datasets @ git+https://github.com/huggingface/datasets@main#egg=datasets"
+       in both setup.py and src/transformers/dependency_versions_table.py and then run the CI
 
 1. Change the version in:
    - __init__.py
@@ -85,10 +89,13 @@ REQUIRED_PKGS = [
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface-hub>=0.1.0,<1.0.0",
+    # minimum 0.2.0 for set_access_token
+    "huggingface-hub>=0.2.0,<1.0.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     "responses<0.19",
+    # To parse YAML metadata from dataset cards
+    "pyyaml>=5.1",
 ]
 
 AUDIO_REQUIRE = [
@@ -186,7 +193,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.4.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.5.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

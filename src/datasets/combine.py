@@ -30,7 +30,7 @@ def interleave_datasets(
     If ``probabilities`` is ``None`` (default) the new dataset is constructed by cycling between each source to get the examples.
     If ``probabilities`` is not ``None``, the new dataset is constructed by getting examples from a random source at a time according to the provided probabilities.
 
-    The resulting dataset ends when one of the source datasets runs out of examples except when ``oversampling`` is ``True`` and :class:`Dataset` objects are used,
+    The resulting dataset ends when one of the source datasets runs out of examples except when ``oversampling`` is ``True``,
     in which case, the resulting dataset ends when all datasets have ran out of examples at least one time.
 
     Args:
@@ -43,8 +43,7 @@ def interleave_datasets(
         split ([`NamedSplit`], *optional*): Name of the dataset split.
             <Added version="2.4.0"/>
         stopping_strategy (Optional :obj:`str`, defaults to `first_exhausted`):
-            Two strategies are proposed right now for :class:`Dataset` objects.
-            For :class:`IterableDataset` objects, only `first_exhausted` is proposed right now.
+            Two strategies are proposed right now, `first_exhausted` and `all_exhausted`.
             By default, `first_exhausted` is an undersampling strategy, i.e the dataset construction is stopped as soon as one dataset has ran out of samples.
             If the strategy is `all_exhausted`,  we use an oversampling strategy, i.e the dataset construction is stopped as soon as every samples of every dataset has been added at least once.
             Note that if the strategy is `all_exhausted`, the interleaved dataset size can get enormous:
@@ -119,10 +118,6 @@ def interleave_datasets(
             raise ValueError(
                 f"Unable to interleave a {type(datasets[0])} with a {type(dataset)}. Expected a list of Dataset objects or a list of IterableDataset objects."
             )
-    if iterable and stopping_strategy != "first_exhausted":
-        raise NotImplementedError(
-            f"{stopping_strategy} stopping strategy in `interleave_datasets` is not implemented yet with a list of {type(datasets[0])}."
-        )
     if stopping_strategy not in ["first_exhausted", "all_exhausted"]:
         raise ValueError(f"{stopping_strategy} is not supported. Please enter a valid stopping_strategy.")
     if map_style:
@@ -130,7 +125,9 @@ def interleave_datasets(
             datasets, probabilities, seed, info=info, split=split, stopping_strategy=stopping_strategy
         )
     else:
-        return _interleave_iterable_datasets(datasets, probabilities, seed, info=info, split=split)
+        return _interleave_iterable_datasets(
+            datasets, probabilities, seed, info=info, split=split, stopping_strategy=stopping_strategy
+        )
 
 
 def concatenate_datasets(

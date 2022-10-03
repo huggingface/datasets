@@ -31,7 +31,7 @@ echo "apache_beam" >> /tmp/beam_requirements.txt
 ```
 datasets-cli run_beam datasets/$DATASET_NAME \
 --name $CONFIG_NAME \
---save_infos \
+--save_info \
 --cache_dir gs://$BUCKET/cache/datasets \
 --beam_pipeline_options=\
 "runner=DataflowRunner,project=$PROJECT,job_name=$DATASET_NAME-gen,"\

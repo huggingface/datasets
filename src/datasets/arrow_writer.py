@@ -38,7 +38,7 @@ from .features.features import (
 from .filesystems import is_remote_filesystem
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
-from .table import array_cast, cast_array_to_feature, table_cast
+from .table import array_cast, cast_array_to_feature, embed_table_storage, table_cast
 from .utils import logging
 from .utils.file_utils import hash_url_to_filename
 from .utils.py_utils import asdict, first_non_null_value
@@ -287,6 +287,7 @@ class ArrowWriter:
         update_features: bool = False,
         with_metadata: bool = True,
         unit: str = "examples",
+        embed_local_files: bool = False,
         storage_options: Optional[dict] = None,
     ):
         if path is None and stream is None:
@@ -332,6 +333,7 @@ class ArrowWriter:
         self.update_features = update_features
         self.with_metadata = with_metadata
         self.unit = unit
+        self.embed_local_files = embed_local_files
 
         self._num_examples = 0
         self._num_bytes = 0
@@ -536,6 +538,8 @@ class ArrowWriter:
         if self.pa_writer is None:
             self._build_writer(inferred_schema=pa_table.schema)
         pa_table = table_cast(pa_table, self._schema)
+        if self.embed_local_files:
+            pa_table = embed_table_storage(pa_table)
         self._num_bytes += pa_table.nbytes
         self._num_examples += pa_table.num_rows
         self.pa_writer.write_table(pa_table, writer_batch_size)

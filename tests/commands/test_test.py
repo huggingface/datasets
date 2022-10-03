@@ -1,11 +1,11 @@
-import json
 import os
 from collections import namedtuple
 
 import pytest
 
-from datasets import config
+from datasets import ClassLabel, Features, Sequence, Value
 from datasets.commands.test import TestCommand
+from datasets.info import DatasetInfo, DatasetInfosDict
 
 
 _TestCommandArgs = namedtuple(
@@ -25,126 +25,58 @@ _TestCommandArgs = namedtuple(
 )
 
 
+def is_1percent_close(source, target):
+    return (abs(source - target) / target) < 0.01
+
+
 @pytest.mark.integration
 def test_test_command(dataset_loading_script_dir):
     args = _TestCommandArgs(dataset=dataset_loading_script_dir, all_configs=True, save_infos=True)
     test_command = TestCommand(*args)
     test_command.run()
-    dataset_infos_path = os.path.join(dataset_loading_script_dir, config.DATASETDICT_INFOS_FILENAME)
-    assert os.path.exists(dataset_infos_path)
-    with open(dataset_infos_path, encoding="utf-8") as f:
-        dataset_infos = json.load(f)
-    expected_dataset_infos = {
-        "default": {
-            "description": "",
-            "citation": "",
-            "homepage": "",
-            "license": "",
-            "features": {
-                "tokens": {
-                    "feature": {"dtype": "string", "id": None, "_type": "Value"},
-                    "length": -1,
-                    "id": None,
-                    "_type": "Sequence",
-                },
-                "ner_tags": {
-                    "feature": {
-                        "num_classes": 7,
-                        "names": ["O", "B-PER", "I-PER", "B-ORG", "I-ORG", "B-LOC", "I-LOC"],
-                        "id": None,
-                        "_type": "ClassLabel",
+    dataset_readme_path = os.path.join(dataset_loading_script_dir, "README.md")
+    assert os.path.exists(dataset_readme_path)
+    dataset_infos = DatasetInfosDict.from_directory(dataset_loading_script_dir)
+    expected_dataset_infos = DatasetInfosDict(
+        {
+            "default": DatasetInfo(
+                features=Features(
+                    {
+                        "tokens": Sequence(Value("string")),
+                        "ner_tags": Sequence(
+                            ClassLabel(names=["O", "B-PER", "I-PER", "B-ORG", "I-ORG", "B-LOC", "I-LOC"])
+                        ),
+                        "langs": Sequence(Value("string")),
+                        "spans": Sequence(Value("string")),
+                    }
+                ),
+                splits=[
+                    {
+                        "name": "train",
+                        "num_bytes": 2351563,
+                        "num_examples": 10000,
                     },
-                    "length": -1,
-                    "id": None,
-                    "_type": "Sequence",
-                },
-                "langs": {
-                    "feature": {"dtype": "string", "id": None, "_type": "Value"},
-                    "length": -1,
-                    "id": None,
-                    "_type": "Sequence",
-                },
-                "spans": {
-                    "feature": {"dtype": "string", "id": None, "_type": "Value"},
-                    "length": -1,
-                    "id": None,
-                    "_type": "Sequence",
-                },
-            },
-            "post_processed": None,
-            "supervised_keys": None,
-            "task_templates": None,
-            "builder_name": "__dummy_dataset1__",
-            "config_name": "default",
-            "version": {"version_str": "0.0.0", "description": None, "major": 0, "minor": 0, "patch": 0},
-            "splits": {
-                "train": {
-                    "name": "train",
-                    "num_bytes": 2351591,
-                    "num_examples": 10000,
-                    "dataset_name": "__dummy_dataset1__",
-                },
-                "validation": {
-                    "name": "validation",
-                    "num_bytes": 238446,
-                    "num_examples": 1000,
-                    "dataset_name": "__dummy_dataset1__",
-                },
-            },
-            "download_checksums": {
-                "https://huggingface.co/datasets/albertvillanova/tests-raw-jsonl/resolve/main/wikiann-bn-train.jsonl": {
-                    "num_bytes": 3578339,
-                    "checksum": "6fbe6dbdcb3c9c3a98b0ab4d56b1c8b73baab9293d603064a5ab5230ab4f366b",
-                },
-                "https://huggingface.co/datasets/albertvillanova/tests-raw-jsonl/resolve/main/wikiann-bn-validation.jsonl": {
-                    "num_bytes": 362341,
-                    "checksum": "2ddd0c090a8ccb721d7aa8477ed7323750683822c247015d5cfab1af1c8c8b3f",
-                },
-            },
-            "download_size": 3940680,
-            "post_processing_size": None,
-            "dataset_size": 2590037,
-            "size_in_bytes": 6530717,
-        }
-    }
-    assert dataset_infos.keys() == expected_dataset_infos.keys()
-    assert dataset_infos["default"].keys() == expected_dataset_infos["default"].keys()
-    for key in dataset_infos["default"].keys():
-        if key in [
-            "description",
-            "citation",
-            "homepage",
-            "license",
-            "features",
-            "post_processed",
-            "supervised_keys",
-            "task_templates",
-            "builder_name",
-            "config_name",
-            "version",
-            "download_checksums",
-            "download_size",
-            "post_processing_size",
-        ]:
-            assert dataset_infos["default"][key] == expected_dataset_infos["default"][key]
-        elif key in ["dataset_size", "size_in_bytes"]:
-            assert round(dataset_infos["default"][key] / 10**5) == round(
-                expected_dataset_infos["default"][key] / 10**5
+                    {
+                        "name": "validation",
+                        "num_bytes": 238418,
+                        "num_examples": 1000,
+                    },
+                ],
+                download_size=3940680,
+                dataset_size=2589981,
             )
+        }
+    )
+    assert dataset_infos.keys() == expected_dataset_infos.keys()
+    for key in DatasetInfo._INCLUDED_INFO_IN_YAML:
+        result, expected = getattr(dataset_infos["default"], key), getattr(expected_dataset_infos["default"], key)
+        if key == "num_bytes":
+            assert is_1percent_close(result, expected)
         elif key == "splits":
-            assert dataset_infos["default"]["splits"].keys() == expected_dataset_infos["default"]["splits"].keys()
-            for split in dataset_infos["default"]["splits"].keys():
-                assert (
-                    dataset_infos["default"]["splits"][split].keys()
-                    == expected_dataset_infos["default"]["splits"][split].keys()
-                )
-                for subkey in dataset_infos["default"]["splits"][split].keys():
-                    if subkey == "num_bytes":
-                        assert round(dataset_infos["default"]["splits"][split][subkey] / 10**2) == round(
-                            expected_dataset_infos["default"]["splits"][split][subkey] / 10**2
-                        )
-                    else:
-                        assert (
-                            dataset_infos["default"]["splits"][split][subkey]
-                            == expected_dataset_infos["default"]["splits"][split][subkey]
-                        )
+            assert list(result) == list(expected)
+            for split in result:
+                assert result[split].name == expected[split].name
+                assert result[split].num_examples == expected[split].num_examples
+                assert is_1percent_close(result[split].num_bytes, expected[split].num_bytes)
+        else:
+            result == expected
