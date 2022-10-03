@@ -19,10 +19,11 @@ import ast
 import csv
 import os
 
+import pandas as pd
+
 import datasets
 
 
-# TODO: Add BibTeX citation
 # Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
 @inproceedings{iyyer2017search,
@@ -60,13 +61,16 @@ def _load_table_data(table_file):
 
     Returns:
         header: a list of headers in the table.
-        data: 2d array of data in the table.
+        rows: 2d array of data in the table.
     """
-    with open(table_file, encoding="utf-8") as f:
-        lines = f.readlines()
-    header = lines[0].strip().split(",")
-    data = [line.strip().split(",") for line in lines[1:]]
-    return header, data
+    rows = []
+    table_data = pd.read_csv(table_file)
+    # the first line is header
+    header = list(table_data.columns)
+    for row_data in table_data.values:
+        rows.append([str(_) for _ in list(row_data)])
+
+    return header, rows
 
 
 def _parse_answer_coordinates(answer_coordinate_str):
@@ -113,6 +117,8 @@ def _parse_answer_text(answer_text_str):
 class MsrSQA(datasets.GeneratorBasedBuilder):
     """Microsoft Research Sequential Question Answering (SQA) Dataset"""
 
+    VERSION = datasets.Version("1.0.0")
+
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
@@ -122,6 +128,7 @@ class MsrSQA(datasets.GeneratorBasedBuilder):
                     "annotator": datasets.Value("int32"),
                     "position": datasets.Value("int32"),
                     "question": datasets.Value("string"),
+                    "question_and_history": datasets.Sequence(datasets.Value("string")),
                     "table_file": datasets.Value("string"),
                     "table_header": datasets.features.Sequence(datasets.Value("string")),
                     "table_data": datasets.features.Sequence(datasets.features.Sequence(datasets.Value("string"))),
@@ -143,7 +150,11 @@ class MsrSQA(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": os.path.join(data_dir, "train.tsv"), "data_dir": data_dir},
+                gen_kwargs={"filepath": os.path.join(data_dir, "random-split-1-train.tsv"), "data_dir": data_dir},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": os.path.join(data_dir, "random-split-1-dev.tsv"), "data_dir": data_dir},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
@@ -155,10 +166,15 @@ class MsrSQA(datasets.GeneratorBasedBuilder):
         """Yields examples."""
         with open(filepath, encoding="utf-8") as f:
             reader = csv.DictReader(f, delimiter="\t")
+            question_and_history = []
             for idx, item in enumerate(reader):
                 item["answer_text"] = _parse_answer_text(item["answer_text"])
                 item["answer_coordinates"] = _parse_answer_coordinates(item["answer_coordinates"])
                 header, table_data = _load_table_data(os.path.join(data_dir, item["table_file"]))
                 item["table_header"] = header
                 item["table_data"] = table_data
+                if item["position"] == "0":
+                    question_and_history = []  # reset history
+                question_and_history.append(item["question"])
+                item["question_and_history"] = question_and_history
                 yield idx, item
