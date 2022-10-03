@@ -117,6 +117,8 @@ def _parse_answer_text(answer_text_str):
 class MsrSQA(datasets.GeneratorBasedBuilder):
     """Microsoft Research Sequential Question Answering (SQA) Dataset"""
 
+    VERSION = datasets.Version("1.0.0")
+
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
