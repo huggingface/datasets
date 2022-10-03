@@ -1130,6 +1130,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> stmt = select([text("sentence")]).select_from(text("test_data"))
         >>> ds = Dataset.from_sql(stmt, "postgres:///db_name")
         ```
+
+        <Tip {warning=true}>
+        `sqlalchemy` needs to be installed to use this function.
+        </Tip>
         """
         from .io.sql import SqlDatasetReader
 
