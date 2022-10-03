@@ -112,16 +112,16 @@ It is our goal to regularly update GEM and to encourage toward more inclusive pr
 by extending existing data or developing datasets for additional languages.
 
 You can find more complete information in the dataset cards for each of the subsets:
-- [CommonGen](https://gem-benchmark.github.io/data_cards/CommonGen)
-- [Czech Restaurant](https://gem-benchmark.github.io/data_cards/Czech%20Restaurant)
-- [DART](https://gem-benchmark.github.io/data_cards/DART)
-- [E2E](https://gem-benchmark.github.io/data_cards/E2E)
-- [MLSum](https://gem-benchmark.github.io/data_cards/MLSum)
-- [Schema-Guided Dialog](https://gem-benchmark.github.io/data_cards/Schema-Guided%20DIalog)
-- [WebNLG](https://gem-benchmark.github.io/data_cards/WebNLG)
-- [Wiki-Auto](https://gem-benchmark.github.io/data_cards/Wiki-Auto)/[ASSET](https://gem-benchmark.github.io/data_cards/ASSET)/[TURK](https://gem-benchmark.github.io/data_cards/TURK)
-- [WikiLingua](https://gem-benchmark.github.io/data_cards/WikiLingua)
-- [XSum](https://gem-benchmark.github.io/data_cards/XSum)
+- [CommonGen](https://gem-benchmark.com/data_cards/common_gen)
+- [Czech Restaurant](https://gem-benchmark.com/data_cards/cs_restaurants)
+- [DART](https://gem-benchmark.com/data_cards/dart)
+- [E2E](https://gem-benchmark.com/data_cards/e2e_nlg)
+- [MLSum](https://gem-benchmark.com/data_cards/mlsum)
+- [Schema-Guided Dialog](https://gem-benchmark.com/data_cards/schema_guided_dialog)
+- [WebNLG](https://gem-benchmark.com/data_cards/web_nlg)
+- [Wiki-Auto/ASSET/TURK](https://gem-benchmark.com/data_cards/wiki_auto_asset_turk)
+- [WikiLingua](https://gem-benchmark.com/data_cards/wiki_lingua)
+- [XSum](https://gem-benchmark.com/data_cards/xsum)
 
 The subsets are organized by task:
 ```
