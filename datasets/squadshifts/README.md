@@ -39,10 +39,10 @@ dataset_info:
       dtype: int32
   splits:
   - name: test
-    num_bytes: 7861360
+    num_bytes: 7865203
     num_examples: 7938
   download_size: 16505623
-  dataset_size: 7861360
+  dataset_size: 7865203
 - config_name: nyt
   features:
   - name: id
@@ -61,10 +61,10 @@ dataset_info:
       dtype: int32
   splits:
   - name: test
-    num_bytes: 10787650
+    num_bytes: 10792550
     num_examples: 10065
   download_size: 16505623
-  dataset_size: 10787650
+  dataset_size: 10792550
 - config_name: reddit
   features:
   - name: id
@@ -83,10 +83,10 @@ dataset_info:
       dtype: int32
   splits:
   - name: test
-    num_bytes: 9469258
+    num_bytes: 9473946
     num_examples: 9803
   download_size: 16505623
-  dataset_size: 9469258
+  dataset_size: 9473946
 - config_name: amazon
   features:
   - name: id
@@ -105,10 +105,10 @@ dataset_info:
       dtype: int32
   splits:
   - name: test
-    num_bytes: 9440353
+    num_bytes: 9445004
     num_examples: 9885
   download_size: 16505623
-  dataset_size: 9440353
+  dataset_size: 9445004
 ---
 
 # Dataset Card for "squadshifts"

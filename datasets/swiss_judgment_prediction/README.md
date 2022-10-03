@@ -44,18 +44,20 @@ dataset_info:
     dtype: string
   - name: legal area
     dtype: string
+  - name: source_language
+    dtype: string
   splits:
   - name: test
-    num_bytes: 25988122
+    num_bytes: 26056177
     num_examples: 9725
   - name: train
-    num_bytes: 104022593
+    num_bytes: 104270719
     num_examples: 35458
   - name: validation
-    num_bytes: 12098963
+    num_bytes: 12131878
     num_examples: 4705
-  download_size: 332435531
-  dataset_size: 142109678
+  download_size: 1000382331
+  dataset_size: 142458774
 - config_name: fr
   features:
   - name: id
@@ -78,18 +80,20 @@ dataset_info:
     dtype: string
   - name: legal area
     dtype: string
+  - name: source_language
+    dtype: string
   splits:
   - name: test
-    num_bytes: 33270639
+    num_bytes: 33318359
     num_examples: 6820
   - name: train
-    num_bytes: 96659764
+    num_bytes: 96807957
     num_examples: 21179
   - name: validation
-    num_bytes: 13010259
+    num_bytes: 13031904
     num_examples: 3095
-  download_size: 332435531
-  dataset_size: 142940662
+  download_size: 1000382331
+  dataset_size: 143158220
 - config_name: it
   features:
   - name: id
@@ -112,19 +116,21 @@ dataset_info:
     dtype: string
   - name: legal area
     dtype: string
+  - name: source_language
+    dtype: string
   splits:
   - name: test
-    num_bytes: 2469097
+    num_bytes: 2474761
     num_examples: 812
   - name: train
-    num_bytes: 10752032
+    num_bytes: 10773516
     num_examples: 3072
   - name: validation
-    num_bytes: 1042715
+    num_bytes: 1045551
     num_examples: 408
-  download_size: 332435531
-  dataset_size: 14263844
-- config_name: all_languages
+  download_size: 1000382331
+  dataset_size: 14293828
+- config_name: mt_de
   features:
   - name: id
     dtype: int32
@@ -146,18 +152,184 @@ dataset_info:
     dtype: string
   - name: legal area
     dtype: string
+  - name: source_language
+    dtype: string
   splits:
   - name: test
-    num_bytes: 61727838
+  - name: train
+    num_bytes: 106990696
+    num_examples: 24251
+  - name: validation
+  download_size: 1000382331
+  dataset_size: 106990696
+- config_name: mt_fr
+  features:
+  - name: id
+    dtype: int32
+  - name: year
+    dtype: int32
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: dismissal
+          1: approval
+  - name: language
+    dtype: string
+  - name: region
+    dtype: string
+  - name: canton
+    dtype: string
+  - name: legal area
+    dtype: string
+  - name: source_language
+    dtype: string
+  splits:
+  - name: test
+  - name: train
+    num_bytes: 117932134
+    num_examples: 38524
+  - name: validation
+  download_size: 1000382331
+  dataset_size: 117932134
+- config_name: mt_it
+  features:
+  - name: id
+    dtype: int32
+  - name: year
+    dtype: int32
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: dismissal
+          1: approval
+  - name: language
+    dtype: string
+  - name: region
+    dtype: string
+  - name: canton
+    dtype: string
+  - name: legal area
+    dtype: string
+  - name: source_language
+    dtype: string
+  splits:
+  - name: test
+  - name: train
+    num_bytes: 201749076
+    num_examples: 56631
+  - name: validation
+  download_size: 1000382331
+  dataset_size: 201749076
+- config_name: mt_en
+  features:
+  - name: id
+    dtype: int32
+  - name: year
+    dtype: int32
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: dismissal
+          1: approval
+  - name: language
+    dtype: string
+  - name: region
+    dtype: string
+  - name: canton
+    dtype: string
+  - name: legal area
+    dtype: string
+  - name: source_language
+    dtype: string
+  splits:
+  - name: test
+  - name: train
+    num_bytes: 196352783
+    num_examples: 59703
+  - name: validation
+  download_size: 1000382331
+  dataset_size: 196352783
+- config_name: all
+  features:
+  - name: id
+    dtype: int32
+  - name: year
+    dtype: int32
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: dismissal
+          1: approval
+  - name: language
+    dtype: string
+  - name: region
+    dtype: string
+  - name: canton
+    dtype: string
+  - name: legal area
+    dtype: string
+  - name: source_language
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 61849297
     num_examples: 17357
   - name: train
-    num_bytes: 211434349
+    num_bytes: 211852192
     num_examples: 59709
   - name: validation
-    num_bytes: 26151897
+    num_bytes: 26209333
     num_examples: 8208
-  download_size: 332435531
-  dataset_size: 299314084
+  download_size: 1000382331
+  dataset_size: 299910822
+- config_name: all+mt
+  features:
+  - name: id
+    dtype: int32
+  - name: year
+    dtype: int32
+  - name: text
+    dtype: string
+  - name: label
+    dtype:
+      class_label:
+        names:
+          0: dismissal
+          1: approval
+  - name: language
+    dtype: string
+  - name: region
+    dtype: string
+  - name: canton
+    dtype: string
+  - name: legal area
+    dtype: string
+  - name: source_language
+    dtype: string
+  splits:
+  - name: test
+    num_bytes: 61849297
+    num_examples: 17357
+  - name: train
+    num_bytes: 834876881
+    num_examples: 238818
+  - name: validation
+    num_bytes: 26209333
+    num_examples: 8208
+  download_size: 1000382331
+  dataset_size: 922935511
 ---
 
 # Dataset Card for "SwissJudgmentPrediction"

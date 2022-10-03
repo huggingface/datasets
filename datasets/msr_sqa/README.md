@@ -29,6 +29,8 @@ dataset_info:
     dtype: int32
   - name: question
     dtype: string
+  - name: question_and_history
+    sequence: string
   - name: table_file
     dtype: string
   - name: table_header
@@ -37,18 +39,25 @@ dataset_info:
     sequence:
       sequence: string
   - name: answer_coordinates
-    sequence: string
+    sequence:
+    - name: row_index
+      dtype: int32
+    - name: column_index
+      dtype: int32
   - name: answer_text
     sequence: string
   splits:
   - name: test
-    num_bytes: 4924516
+    num_bytes: 5105873
     num_examples: 3012
   - name: train
-    num_bytes: 22605449
-    num_examples: 14541
+    num_bytes: 19732499
+    num_examples: 12276
+  - name: validation
+    num_bytes: 3738331
+    num_examples: 2265
   download_size: 4796932
-  dataset_size: 27529965
+  dataset_size: 28576703
 ---
 
 # Dataset Card for Microsoft Research Sequential Question Answering

@@ -48,7 +48,7 @@ dataset_info:
   - name: validation
     num_bytes: 2024
     num_examples: 11
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160623559
 - config_name: anatomy
   features:
@@ -77,7 +77,7 @@ dataset_info:
   - name: validation
     num_bytes: 3140
     num_examples: 14
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160638605
 - config_name: astronomy
   features:
@@ -106,7 +106,7 @@ dataset_info:
   - name: validation
     num_bytes: 5027
     num_examples: 16
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160655251
 - config_name: business_ethics
   features:
@@ -135,7 +135,7 @@ dataset_info:
   - name: validation
     num_bytes: 3038
     num_examples: 11
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160639857
 - config_name: clinical_knowledge
   features:
@@ -164,7 +164,7 @@ dataset_info:
   - name: validation
     num_bytes: 6664
     num_examples: 29
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160672005
 - config_name: college_biology
   features:
@@ -193,7 +193,7 @@ dataset_info:
   - name: validation
     num_bytes: 4819
     num_examples: 16
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160656525
 - config_name: college_chemistry
   features:
@@ -222,7 +222,7 @@ dataset_info:
   - name: validation
     num_bytes: 2328
     num_examples: 8
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160629744
 - config_name: college_computer_science
   features:
@@ -251,7 +251,7 @@ dataset_info:
   - name: validation
     num_bytes: 4663
     num_examples: 11
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160651446
 - config_name: college_mathematics
   features:
@@ -272,16 +272,16 @@ dataset_info:
     num_bytes: 160601377
     num_examples: 99842
   - name: dev
-    num_bytes: 1490
+    num_bytes: 1493
     num_examples: 5
   - name: test
     num_bytes: 24711
     num_examples: 100
   - name: validation
-    num_bytes: 2661
+    num_bytes: 2668
     num_examples: 11
-  download_size: 166339072
-  dataset_size: 160630239
+  download_size: 166184960
+  dataset_size: 160630249
 - config_name: college_medicine
   features:
   - name: question
@@ -309,7 +309,7 @@ dataset_info:
   - name: validation
     num_bytes: 7909
     num_examples: 22
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160693353
 - config_name: college_physics
   features:
@@ -336,10 +336,10 @@ dataset_info:
     num_bytes: 30181
     num_examples: 102
   - name: validation
-    num_bytes: 3484
+    num_bytes: 3490
     num_examples: 11
-  download_size: 166339072
-  dataset_size: 160636454
+  download_size: 166184960
+  dataset_size: 160636460
 - config_name: computer_security
   features:
   - name: question
@@ -367,7 +367,7 @@ dataset_info:
   - name: validation
     num_bytes: 4549
     num_examples: 11
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160634151
 - config_name: conceptual_physics
   features:
@@ -396,7 +396,7 @@ dataset_info:
   - name: validation
     num_bytes: 4474
     num_examples: 26
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160647494
 - config_name: econometrics
   features:
@@ -425,7 +425,7 @@ dataset_info:
   - name: validation
     num_bytes: 4967
     num_examples: 12
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160654535
 - config_name: electrical_engineering
   features:
@@ -454,7 +454,7 @@ dataset_info:
   - name: validation
     num_bytes: 2903
     num_examples: 16
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160630394
 - config_name: elementary_mathematics
   features:
@@ -483,7 +483,7 @@ dataset_info:
   - name: validation
     num_bytes: 8988
     num_examples: 41
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160681913
 - config_name: formal_logic
   features:
@@ -512,7 +512,7 @@ dataset_info:
   - name: validation
     num_bytes: 6252
     num_examples: 14
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160659171
 - config_name: global_facts
   features:
@@ -541,7 +541,7 @@ dataset_info:
   - name: validation
     num_bytes: 1865
     num_examples: 10
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160622874
 - config_name: high_school_biology
   features:
@@ -570,7 +570,7 @@ dataset_info:
   - name: validation
     num_bytes: 11022
     num_examples: 32
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160723804
 - config_name: high_school_chemistry
   features:
@@ -599,7 +599,7 @@ dataset_info:
   - name: validation
     num_bytes: 7092
     num_examples: 22
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160668153
 - config_name: high_school_computer_science
   features:
@@ -628,7 +628,7 @@ dataset_info:
   - name: validation
     num_bytes: 3343
     num_examples: 9
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160652114
 - config_name: high_school_european_history
   features:
@@ -657,7 +657,7 @@ dataset_info:
   - name: validation
     num_bytes: 29632
     num_examples: 18
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160912873
 - config_name: high_school_geography
   features:
@@ -686,7 +686,7 @@ dataset_info:
   - name: validation
     num_bytes: 4332
     num_examples: 22
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160649146
 - config_name: high_school_government_and_politics
   features:
@@ -715,7 +715,7 @@ dataset_info:
   - name: validation
     num_bytes: 7063
     num_examples: 21
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160676293
 - config_name: high_school_macroeconomics
   features:
@@ -744,7 +744,7 @@ dataset_info:
   - name: validation
     num_bytes: 13020
     num_examples: 43
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160733412
 - config_name: high_school_mathematics
   features:
@@ -773,7 +773,7 @@ dataset_info:
   - name: validation
     num_bytes: 5765
     num_examples: 29
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160663293
 - config_name: high_school_microeconomics
   features:
@@ -802,7 +802,7 @@ dataset_info:
   - name: validation
     num_bytes: 7553
     num_examples: 26
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160685931
 - config_name: high_school_physics
   features:
@@ -831,7 +831,7 @@ dataset_info:
   - name: validation
     num_bytes: 6771
     num_examples: 17
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160669175
 - config_name: high_school_psychology
   features:
@@ -860,7 +860,7 @@ dataset_info:
   - name: validation
     num_bytes: 17269
     num_examples: 60
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160779958
 - config_name: high_school_statistics
   features:
@@ -889,7 +889,7 @@ dataset_info:
   - name: validation
     num_bytes: 9997
     num_examples: 23
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160724604
 - config_name: high_school_us_history
   features:
@@ -918,7 +918,7 @@ dataset_info:
   - name: validation
     num_bytes: 31706
     num_examples: 22
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160938681
 - config_name: high_school_world_history
   features:
@@ -947,7 +947,7 @@ dataset_info:
   - name: validation
     num_bytes: 45501
     num_examples: 26
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 161030377
 - config_name: human_aging
   features:
@@ -976,7 +976,7 @@ dataset_info:
   - name: validation
     num_bytes: 4707
     num_examples: 23
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160653190
 - config_name: human_sexuality
   features:
@@ -1005,7 +1005,7 @@ dataset_info:
   - name: validation
     num_bytes: 2421
     num_examples: 12
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160636985
 - config_name: international_law
   features:
@@ -1034,7 +1034,7 @@ dataset_info:
   - name: validation
     num_bytes: 6473
     num_examples: 13
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160663799
 - config_name: jurisprudence
   features:
@@ -1063,7 +1063,7 @@ dataset_info:
   - name: validation
     num_bytes: 3729
     num_examples: 11
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160640395
 - config_name: logical_fallacies
   features:
@@ -1092,7 +1092,7 @@ dataset_info:
   - name: validation
     num_bytes: 5103
     num_examples: 18
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160658170
 - config_name: machine_learning
   features:
@@ -1121,7 +1121,7 @@ dataset_info:
   - name: validation
     num_bytes: 3232
     num_examples: 11
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160640812
 - config_name: management
   features:
@@ -1150,7 +1150,7 @@ dataset_info:
   - name: validation
     num_bytes: 1820
     num_examples: 11
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160624097
 - config_name: marketing
   features:
@@ -1179,7 +1179,7 @@ dataset_info:
   - name: validation
     num_bytes: 7394
     num_examples: 25
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160673277
 - config_name: medical_genetics
   features:
@@ -1208,7 +1208,7 @@ dataset_info:
   - name: validation
     num_bytes: 3005
     num_examples: 11
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160626335
 - config_name: miscellaneous
   features:
@@ -1237,7 +1237,7 @@ dataset_info:
   - name: validation
     num_bytes: 14330
     num_examples: 86
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160764110
 - config_name: moral_disputes
   features:
@@ -1266,7 +1266,7 @@ dataset_info:
   - name: validation
     num_bytes: 12420
     num_examples: 38
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160723370
 - config_name: moral_scenarios
   features:
@@ -1293,10 +1293,10 @@ dataset_info:
     num_bytes: 374026
     num_examples: 895
   - name: validation
-    num_bytes: 204338
+    num_bytes: 42338
     num_examples: 100
-  download_size: 166339072
-  dataset_size: 161181799
+  download_size: 166184960
+  dataset_size: 161019799
 - config_name: nutrition
   features:
   - name: question
@@ -1324,7 +1324,7 @@ dataset_info:
   - name: validation
     num_bytes: 8436
     num_examples: 33
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160704308
 - config_name: philosophy
   features:
@@ -1353,7 +1353,7 @@ dataset_info:
   - name: validation
     num_bytes: 9184
     num_examples: 34
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160691622
 - config_name: prehistory
   features:
@@ -1382,7 +1382,7 @@ dataset_info:
   - name: validation
     num_bytes: 10285
     num_examples: 35
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160703134
 - config_name: professional_accounting
   features:
@@ -1411,7 +1411,7 @@ dataset_info:
   - name: validation
     num_bytes: 14372
     num_examples: 31
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160742447
 - config_name: professional_law
   features:
@@ -1440,7 +1440,7 @@ dataset_info:
   - name: validation
     num_bytes: 203519
     num_examples: 170
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 162703268
 - config_name: professional_medicine
   features:
@@ -1469,7 +1469,7 @@ dataset_info:
   - name: validation
     num_bytes: 23847
     num_examples: 31
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160846592
 - config_name: professional_psychology
   features:
@@ -1498,7 +1498,7 @@ dataset_info:
   - name: validation
     num_bytes: 29101
     num_examples: 69
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160858644
 - config_name: public_relations
   features:
@@ -1527,7 +1527,7 @@ dataset_info:
   - name: validation
     num_bytes: 4566
     num_examples: 12
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160636199
 - config_name: security_studies
   features:
@@ -1556,7 +1556,7 @@ dataset_info:
   - name: validation
     num_bytes: 22637
     num_examples: 27
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160834193
 - config_name: sociology
   features:
@@ -1585,7 +1585,7 @@ dataset_info:
   - name: validation
     num_bytes: 7184
     num_examples: 22
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160676417
 - config_name: us_foreign_policy
   features:
@@ -1614,7 +1614,7 @@ dataset_info:
   - name: validation
     num_bytes: 3264
     num_examples: 11
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160634695
 - config_name: virology
   features:
@@ -1643,7 +1643,7 @@ dataset_info:
   - name: validation
     num_bytes: 5463
     num_examples: 18
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160646695
 - config_name: world_religions
   features:
@@ -1672,7 +1672,7 @@ dataset_info:
   - name: validation
     num_bytes: 2765
     num_examples: 19
-  download_size: 166339072
+  download_size: 166184960
   dataset_size: 160630086
 ---
 
