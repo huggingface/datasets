@@ -11,6 +11,7 @@ from datasets.packaged_modules.folder_based_builder.folder_based_builder import 
     FolderBasedBuilder,
     FolderBasedBuilderConfig,
 )
+from datasets.tasks import TextClassification
 
 
 class DummyFolderBasedBuilder(FolderBasedBuilder):
@@ -18,6 +19,7 @@ class DummyFolderBasedBuilder(FolderBasedBuilder):
     BASE_COLUMN_NAME = "base"
     BUILDER_CONFIG_CLASS = FolderBasedBuilderConfig
     EXTENSIONS = [".txt"]
+    CLASSIFICATION_TASK = TextClassification(text_column="base", label_column="label")
 
 
 @pytest.fixture
