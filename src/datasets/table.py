@@ -330,6 +330,30 @@ class Table(IndexedTableMixin):
     def to_string(self, *args, **kwargs):
         return self.table.to_string(*args, **kwargs)
 
+    def to_reader(self, *args, **kwargs):
+        """
+        Convert the Table to a RecordBatchReader.
+
+        Note that this method is zero-copy, it merely exposes the same data under a different API.
+
+        Args:
+            max_chunksize (:obj:`int`, defaults to :obj:`None`)
+                Maximum size for RecordBatch chunks. Individual chunks may be smaller depending
+                on the chunk layout of individual columns.
+
+        Returns:
+            :obj:`pyarrow.RecordBatchReader`
+
+        <Tip warning={true}>
+
+        pyarrow >= 8.0.0 needs to be installed to use this method.
+
+        </Tip>
+        """
+        if config.PYARROW_VERSION.major < 8:
+            raise NotImplementedError("`pyarrow>=8.0.0` is required to use this method")
+        return self.table.to_reader(*args, **kwargs)
+
     def field(self, *args, **kwargs):
         """
         Select a schema field by its column name or numeric index.

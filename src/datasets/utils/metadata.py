@@ -1,5 +1,6 @@
 from collections import Counter
 from pathlib import Path
+from typing import Optional, Tuple
 
 import yaml
 
@@ -19,10 +20,8 @@ class _NoDuplicateSafeLoader(yaml.SafeLoader):
         return mapping
 
 
-def _split_yaml_from_readme(path: Path):
-    with open(path, encoding="utf-8") as readme_file:
-        full_content = [line.rstrip("\n") for line in readme_file]
-
+def _split_yaml_from_readme(readme_content: str) -> Tuple[Optional[str], str]:
+    full_content = [line for line in readme_content.splitlines()]
     if full_content[0] == "---" and "---" in full_content[1:]:
         sep_idx = full_content[1:].index("---") + 1
         yamlblock = "\n".join(full_content[1:sep_idx])
@@ -49,7 +48,8 @@ class DatasetMetadata(dict):
         Raises:
             :obj:`TypeError`: If the dataset's metadata is invalid
         """
-        yaml_string, _ = _split_yaml_from_readme(path)
+        with open(path, encoding="utf-8") as readme_file:
+            yaml_string, _ = _split_yaml_from_readme(readme_file.read())
         if yaml_string is not None:
             return cls.from_yaml_string(yaml_string)
         else:
@@ -57,12 +57,21 @@ class DatasetMetadata(dict):
 
     def to_readme(self, path: Path):
         if path.exists():
-            _, content = _split_yaml_from_readme(path)
+            with open(path, encoding="utf-8") as readme_file:
+                readme_content = readme_file.read()
+        else:
+            readme_content = None
+        updated_readme_content = self._to_readme(readme_content)
+        with open(path, "w", encoding="utf-8") as readme_file:
+            readme_file.write(updated_readme_content)
+
+    def _to_readme(self, readme_content: Optional[str] = None) -> str:
+        if readme_content is not None:
+            _, content = _split_yaml_from_readme(readme_content)
             full_content = "---\n" + self.to_yaml_string() + "---\n" + content
         else:
             full_content = "---\n" + self.to_yaml_string() + "---\n"
-        with open(path, "w", encoding="utf-8") as readme_file:
-            readme_file.write(full_content)
+        return full_content
 
     @classmethod
     def from_yaml_string(cls, string: str) -> "DatasetMetadata":

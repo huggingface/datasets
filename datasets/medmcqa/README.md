@@ -94,7 +94,7 @@ dataset_info:
 
 - **Homepage:** https://medmcqa.github.io
 - **Repository:** https://github.com/medmcqa/medmcqa
-- **Paper:** https://arxiv.org/abs/2203.14371
+- **Paper:** [MedMCQA: A Large-scale Multi-Subject Multi-Choice Dataset for Medical domain Question Answering](https://proceedings.mlr.press/v174/pal22a)
 - **Leaderboard:** https://paperswithcode.com/dataset/medmcqa
 - **Point of Contact:** [Aaditya Ura](mailto:aadityaura@gmail.com)
 

@@ -303,6 +303,10 @@ dataset_info:
 
 ### Dataset Summary
 
+<div class="course-tip course-tip-orange bg-gradient-to-br dark:bg-gradient-to-r before:border-orange-500 dark:before:border-orange-800 from-orange-50 dark:from-gray-900 to-white dark:to-gray-950 border border-orange-50 text-orange-700 dark:text-gray-400">
+  <p><b>Deprecated:</b> This legacy dataset doesn't support streaming and is not updated. Use "facebook/multilingual_librispeech" instead.</p>
+</div>
+
 Multilingual LibriSpeech (MLS) dataset is a large multilingual corpus suitable for speech research. The dataset is derived from read audiobooks from LibriVox and consists of 8 languages - English, German, Dutch, Spanish, French, Italian, Portuguese, Polish.
 
 ### Supported Tasks and Leaderboards

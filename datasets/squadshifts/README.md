@@ -7,7 +7,7 @@ language_creators:
 - crowdsourced
 - found
 license:
-- unknown
+- cc-by-4.0
 multilinguality:
 - monolingual
 pretty_name: SQuAD-shifts
@@ -345,20 +345,26 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+All the datasets are distributed under the [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/legalcode) license.
 
 ### Citation Information
 
 ```
-@inproceedings{miller2020effect,
-  author = {J. Miller and K. Krauth and B. Recht and L. Schmidt},
-  booktitle = {International Conference on Machine Learning (ICML)},
+@InProceedings{pmlr-v119-miller20a,
   title = {The Effect of Natural Distribution Shift on Question Answering Models},
+  author = {Miller, John and Krauth, Karl and Recht, Benjamin and Schmidt, Ludwig},
+  booktitle = {Proceedings of the 37th International Conference on Machine Learning},
+  pages = {6905--6916},
   year = {2020},
+  editor = {III, Hal Daumé and Singh, Aarti},
+  volume = {119},
+  series = {Proceedings of Machine Learning Research},
+  month = {13--18 Jul},
+  publisher = {PMLR},
+  pdf = {http://proceedings.mlr.press/v119/miller20a/miller20a.pdf},
+  url = {https://proceedings.mlr.press/v119/miller20a.html},
 }
-
 ```
-
 
 ### Contributions
 

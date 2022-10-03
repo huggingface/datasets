@@ -169,12 +169,12 @@ Sometimes you need to use several *configurations* and/or *splits* (usually at l
  To check that your dataset works correctly and to create its `dataset_infos` metadata in the dataset card, run the command:
 
 ```bash
-datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
+datasets-cli test datasets/<your-dataset-folder> --save_info --all_configs
 ```
 
 **Note:** If your dataset requires manually downloading the data and having the user provide the path to the dataset you can run the following command:
 ```bash
-datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs --data_dir your/manual/dir
+datasets-cli test datasets/<your-dataset-folder> --save_info --all_configs --data_dir your/manual/dir
 ```
 To have the configs use the path from `--data_dir` when generating them.
 
@@ -232,11 +232,10 @@ Now that your dataset script runs and create a dataset with the format you expec
 3. If all tests pass, your dataset works correctly. You can finally create the metadata by running the command:
 
 	```bash
-	datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
+	datasets-cli test datasets/<your-dataset-folder>  --all_configs
 	```
 
-	This first command should create a `README.md` file in your dataset folder if it doesn't exist already, containing the metadata.
-
+	This first command should create a `README.md` file containing the metadata if this file doesn't exist already, or add the metadata to an existing `README.md` file in your dataset folder.
 
 You have now finished the coding part, congratulation! 🎉 You are Awesome! 😎
 

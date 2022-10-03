@@ -92,7 +92,7 @@ There are two features:
 
 ### Languages
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+Monolingual English (mainly en-US) with some exceptions.
 
 ## Dataset Structure
 

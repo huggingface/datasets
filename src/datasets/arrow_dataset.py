@@ -88,7 +88,7 @@ from .formatting.formatting import _is_range_contiguous
 from .info import DatasetInfo, DatasetInfosDict
 from .naming import _split_re
 from .search import IndexableMixin
-from .splits import NamedSplit, Split, SplitInfo
+from .splits import NamedSplit, Split, SplitDict, SplitInfo
 from .table import (
     InMemoryTable,
     MemoryMappedTable,
@@ -102,8 +102,10 @@ from .table import (
 from .tasks import TaskTemplate
 from .utils import logging
 from .utils._hf_hub_fixes import create_repo
+from .utils._hf_hub_fixes import list_repo_files as hf_api_list_repo_files
 from .utils.file_utils import _retry, cached_path, estimate_dataset_size, hf_hub_url
 from .utils.info_utils import is_small_dataset
+from .utils.metadata import DatasetMetadata
 from .utils.py_utils import asdict, convert_file_size_to_int, unique_values
 from .utils.stratify import stratified_shuffle_split_generate_indices
 from .utils.tf_utils import minimal_tf_collate_fn
@@ -1854,17 +1856,64 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         return self.num_rows
 
+    def _iter_batches(self, batch_size: int, decoded: bool = True):
+        """Iterate through the batches of size `batch_size`.
+
+        If a formatting is set with :meth:`Dataset.set_format` rows will be returned with the
+        selected format.
+        """
+        if self._indices is None and config.PYARROW_VERSION.major >= 8:
+            # Fast iteration
+            # Benchmark: https://gist.github.com/mariosasko/0248288a2e3a7556873969717c1fe52b (fast_iter_batch)
+            format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
+            formatter = get_formatter(self._format_type, features=self.features, decoded=decoded, **format_kwargs)
+            for batch in self.data.to_reader(max_chunksize=batch_size):
+                pa_subtable = pa.Table.from_batches([batch])
+                formatted_output = format_table(
+                    pa_subtable,
+                    range(pa_subtable.num_rows),
+                    formatter=formatter,
+                    format_columns=self._format_columns,
+                    output_all_columns=self._output_all_columns,
+                )
+                yield formatted_output
+        else:
+            for i in range(0, self.num_rows, batch_size):
+                yield self._getitem(
+                    slice(i, i + batch_size),
+                    decoded=decoded,
+                )
+
     def _iter(self, decoded: bool = True):
         """Iterate through the examples.
 
         If a formatting is set with :meth:`Dataset.set_format` rows will be returned with the
         selected format.
         """
-        for index in range(self.num_rows):
-            yield self._getitem(
-                index,
-                decoded=decoded,
-            )
+        if self._indices is None and config.PYARROW_VERSION.major >= 8:
+            # Fast iteration
+            # Benchmark: https://gist.github.com/mariosasko/0248288a2e3a7556873969717c1fe52b (fast_iter_batch)
+            format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
+            formatter = get_formatter(self._format_type, features=self.features, decoded=decoded, **format_kwargs)
+            batch_size = config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER
+            for batch in self.data.to_reader(max_chunksize=batch_size):
+                for i in range(batch.num_rows):
+                    batch_ex = batch.slice(i, 1)
+                    pa_subtable = pa.Table.from_batches([batch_ex])
+                    formatted_output = format_table(
+                        pa_subtable,
+                        0,
+                        formatter=formatter,
+                        format_columns=self._format_columns,
+                        output_all_columns=self._output_all_columns,
+                    )
+                    yield formatted_output
+        else:
+            for i in range(self.num_rows):
+                yield self._getitem(
+                    i,
+                    decoded=decoded,
+                )
 
     def __iter__(self):
         """Iterate through the examples.
@@ -2383,8 +2432,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if num_proc is not None and num_proc <= 0:
             raise ValueError("num_proc must be an integer > 0.")
 
-        # If the array is empty we do nothing (but we make sure to remove the requested columns anyway)
+        # If the array is empty we do nothing (but we make sure to handle an empty indices mapping and remove the requested columns anyway)
         if len(self) == 0:
+            if self._indices is not None:  # empty incides mapping
+                self = Dataset(
+                    self.data.slice(0, 0),
+                    info=self.info.copy(),
+                    split=self.split,
+                    fingerprint=new_fingerprint,
+                )
             if remove_columns:
                 return self.remove_columns(remove_columns)
             else:
@@ -2733,7 +2789,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 validate_function_output(processed_inputs, indices)
             if not update_data:
                 return None  # Nothing to update, let's move on
-            if self._format_type:
+            if self._format_type or input_columns:
                 inputs = self._getitem(
                     key=(indices if isinstance(indices, int) else slice(indices[0], indices[-1] + 1)),
                     format_type=None,
@@ -2800,21 +2856,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     input_dataset = self.with_format(
                         self._format_type, columns=input_columns, output_all_columns=False, **self._format_kwargs
                     )
-                    if remove_columns:
-                        remove_columns = list(set(remove_columns) & set(input_columns))
                 else:
                     input_dataset = self
 
                 # Loop over single examples or batches and write to buffer/file if examples are to be updated
                 if not batched:
-                    pbar_iterable = input_dataset._iter(decoded=False)
                     pbar_total = len(input_dataset)
+                    pbar_iterable = input_dataset._iter(decoded=False)
                 else:
                     num_rows = (
                         len(input_dataset) if not drop_last_batch else len(input_dataset) // batch_size * batch_size
                     )
-                    pbar_iterable = range(0, num_rows, batch_size)
                     pbar_total = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
+                    pbar_iterable = itertools.islice(
+                        input_dataset._iter_batches(batch_size, decoded=False), pbar_total
+                    )
                 pbar_unit = "ex" if not batched else "ba"
                 pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
                 pbar = logging.tqdm(
@@ -2837,11 +2893,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             else:
                                 writer.write(example)
                 else:
-                    for i in pbar:
-                        batch = input_dataset._getitem(
-                            slice(i, i + batch_size),
-                            decoded=False,
-                        )
+                    for i, batch in enumerate(pbar):
                         indices = list(
                             range(*(slice(i, i + batch_size).indices(input_dataset.num_rows)))
                         )  # Something simpler?
@@ -4245,7 +4297,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
             shards = shards_with_embedded_external_files(shards)
 
-        files = api.list_repo_files(repo_id, repo_type="dataset", revision=branch, token=token)
+        files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, token=token)
         data_files = [file for file in files if file.startswith("data/")]
 
         def path_in_repo(_index, shard):
@@ -4389,13 +4441,25 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         info_to_dump.download_size = uploaded_size
         info_to_dump.dataset_size = dataset_nbytes
         info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes
-        info_to_dump.splits = {
-            split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name)
-        }
-        if config.DATASETDICT_INFOS_FILENAME in repo_files:
+        info_to_dump.splits = SplitDict(
+            {split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name)}
+        )
+        # get the info from the README to update them
+        if "README.md" in repo_files:
             download_config = DownloadConfig()
             download_config.download_desc = "Downloading metadata"
-            download_config.use_auth_token = token if token is not None else HfFolder.get_token()
+            dataset_readme_path = cached_path(
+                hf_hub_url(repo_id, "README.md"),
+                download_config=download_config,
+            )
+            dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
+            dataset_infos: DatasetInfosDict = DatasetInfosDict.from_metadata(dataset_metadata)
+            repo_info = dataset_infos[next(iter(dataset_infos))]
+        # get the deprecated dataset_infos.json to uodate them
+        elif config.DATASETDICT_INFOS_FILENAME in repo_files:
+            dataset_metadata = DatasetMetadata()
+            download_config = DownloadConfig()
+            download_config.download_desc = "Downloading metadata"
             dataset_infos_path = cached_path(
                 hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME),
                 download_config=download_config,
@@ -4403,8 +4467,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             with open(dataset_infos_path, encoding="utf-8") as f:
                 dataset_infos: DatasetInfosDict = json.load(f)
                 repo_info = DatasetInfo.from_dict(dataset_infos[next(iter(dataset_infos))])
+        else:
+            dataset_metadata = DatasetMetadata()
+            repo_info = None
+        # update the total info to dump from existing info
+        if repo_info is not None:
             logger.warning("Updating downloaded metadata with the new split.")
-
             if repo_info.splits and list(repo_info.splits) != [split]:
                 if self.features != repo_info.features:
                     raise ValueError(
@@ -4413,23 +4481,40 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
                 if split in repo_info.splits:
                     repo_info.download_size -= deleted_size
-                    repo_info.dataset_size -= repo_info.splits[split].num_bytes
+                    repo_info.dataset_size -= repo_info.splits.get(split, SplitInfo()).num_bytes or 0
 
                 repo_info.download_checksums = None
-                repo_info.download_size += uploaded_size
-                repo_info.dataset_size += dataset_nbytes
+                repo_info.download_size = (repo_info.download_size or 0) + uploaded_size
+                repo_info.dataset_size = (repo_info.dataset_size or 0) + dataset_nbytes
                 repo_info.size_in_bytes = repo_info.download_size + repo_info.dataset_size
                 repo_info.splits[split] = SplitInfo(
                     split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name
                 )
                 info_to_dump = repo_info
-        buffer = BytesIO()
-        buffer.write(f'{{"{organization}--{dataset_name}": '.encode())
-        info_to_dump._dump_info(buffer, pretty_print=True)
-        buffer.write(b"}")
+        # push to the deprecated dataset_infos.json
+        if config.DATASETDICT_INFOS_FILENAME in repo_files:
+            buffer = BytesIO()
+            buffer.write(b'{"default": ')
+            info_to_dump._dump_info(buffer, pretty_print=True)
+            buffer.write(b"}")
+            HfApi(endpoint=config.HF_ENDPOINT).upload_file(
+                path_or_fileobj=buffer.getvalue(),
+                path_in_repo=config.DATASETDICT_INFOS_FILENAME,
+                repo_id=repo_id,
+                token=token,
+                repo_type="dataset",
+                revision=branch,
+            )
+        # push to README
+        DatasetInfosDict({"default": info_to_dump}).to_metadata(dataset_metadata)
+        if "README.md" in repo_files:
+            with open(dataset_readme_path, encoding="utf-8") as readme_file:
+                readme_content = readme_file.read()
+        else:
+            readme_content = f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
         HfApi(endpoint=config.HF_ENDPOINT).upload_file(
-            path_or_fileobj=buffer.getvalue(),
-            path_in_repo=config.DATASETDICT_INFOS_FILENAME,
+            path_or_fileobj=dataset_metadata._to_readme(readme_content).encode(),
+            path_in_repo="README.md",
             repo_id=repo_id,
             token=token,
             repo_type="dataset",

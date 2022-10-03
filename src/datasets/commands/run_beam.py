@@ -20,7 +20,7 @@ def run_beam_command_factory(args, **kwargs):
         args.beam_pipeline_options,
         args.data_dir,
         args.all_configs,
-        args.save_infos,
+        args.save_info or args.save_infos,
         args.ignore_verifications,
         args.force_redownload,
         **kwargs,
@@ -52,11 +52,13 @@ class RunBeamCommand(BaseDatasetsCLICommand):
             help="Can be used to specify a manual directory to get the files from",
         )
         run_beam_parser.add_argument("--all_configs", action="store_true", help="Test all dataset configurations")
-        run_beam_parser.add_argument("--save_infos", action="store_true", help="Save the dataset infos file")
+        run_beam_parser.add_argument("--save_info", action="store_true", help="Save the dataset infos file")
         run_beam_parser.add_argument(
             "--ignore_verifications", action="store_true", help="Run the test without checksums and splits checks"
         )
         run_beam_parser.add_argument("--force_redownload", action="store_true", help="Force dataset redownload")
+        # aliases
+        run_beam_parser.add_argument("--save_infos", action="store_true", help="alias for save_info")
         run_beam_parser.set_defaults(func=run_beam_command_factory)
 
     def __init__(

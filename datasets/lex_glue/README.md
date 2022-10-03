@@ -615,7 +615,7 @@ An example of 'train' looks as follows.
 ```json
 {
   "text": "COMMISSION REGULATION (EC) No 1629/96 of 13 August 1996 on an invitation to tender for the refund on export of wholly milled round grain rice to certain third countries ...",
-  "labels": [2, 42, 72, 76, 86]
+  "labels": [4, 20, 21, 35, 68]
 }
 ```
 

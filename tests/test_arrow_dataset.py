@@ -1362,12 +1362,14 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
                 with dset.map(lambda col_1: {"label": col_1 % 2}, input_columns="col_1") as mapped_dset:
-                    self.assertEqual(mapped_dset[0].keys(), {"col_1", "label"})
+                    self.assertEqual(mapped_dset[0].keys(), {"col_1", "col_2", "col_3", "label"})
                     self.assertEqual(
                         mapped_dset.features,
                         Features(
                             {
                                 "col_1": Value("int64"),
+                                "col_2": Value("string"),
+                                "col_3": Value("bool"),
                                 "label": Value("int64"),
                             }
                         ),
@@ -1473,6 +1475,15 @@ class BaseDatasetTest(TestCase):
                     self.assertListEqual(dset["col"], [1, 2])
                     with dset.filter(lambda x: [i < 2 for i in x["col"]], batched=True) as dset:
                         self.assertListEqual(dset["col"], [1])
+
+    def test_filter_input_columns(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = Dataset.from_dict({"col_1": [0, 1, 2], "col_2": ["a", "b", "c"]})
+            with self._to(in_memory, tmp_dir, dset) as dset:
+                with dset.filter(lambda x: x > 0, input_columns=["col_1"]) as filtered_dset:
+                    self.assertListEqual(filtered_dset.column_names, dset.column_names)
+                    self.assertListEqual(filtered_dset["col_1"], [1, 2])
+                    self.assertListEqual(filtered_dset["col_2"], ["b", "c"])
 
     def test_filter_fn_kwargs(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -2156,20 +2167,45 @@ class BaseDatasetTest(TestCase):
     def test_flatten_indices(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                self.assertEqual(dset._indices, None)
+                self.assertIsNone(dset._indices)
 
                 tmp_file = os.path.join(tmp_dir, "test.arrow")
                 with dset.select(range(0, 10, 2), indices_cache_file_name=tmp_file) as dset:
                     self.assertEqual(len(dset), 5)
 
-                    self.assertNotEqual(dset._indices, None)
+                    self.assertIsNotNone(dset._indices)
 
                     tmp_file_2 = os.path.join(tmp_dir, "test_2.arrow")
                     fingerprint = dset._fingerprint
                     dset.set_format("numpy")
                     with dset.flatten_indices(cache_file_name=tmp_file_2) as dset:
                         self.assertEqual(len(dset), 5)
-                        self.assertEqual(dset._indices, None)
+                        self.assertEqual(len(dset.data), len(dset))
+                        self.assertIsNone(dset._indices)
+                        self.assertNotEqual(dset._fingerprint, fingerprint)
+                        self.assertEqual(dset.format["type"], "numpy")
+                        # Test unique works
+                        dset.unique(dset.column_names[0])
+                        assert_arrow_metadata_are_synced_with_dataset_features(dset)
+
+        # Empty indices mapping
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                self.assertIsNone(dset._indices, None)
+
+                tmp_file = os.path.join(tmp_dir, "test.arrow")
+                with dset.filter(lambda _: False, cache_file_name=tmp_file) as dset:
+                    self.assertEqual(len(dset), 0)
+
+                    self.assertIsNotNone(dset._indices, None)
+
+                    tmp_file_2 = os.path.join(tmp_dir, "test_2.arrow")
+                    fingerprint = dset._fingerprint
+                    dset.set_format("numpy")
+                    with dset.flatten_indices(cache_file_name=tmp_file_2) as dset:
+                        self.assertEqual(len(dset), 0)
+                        self.assertEqual(len(dset.data), len(dset))
+                        self.assertIsNone(dset._indices, None)
                         self.assertNotEqual(dset._fingerprint, fingerprint)
                         self.assertEqual(dset.format["type"], "numpy")
                         # Test unique works

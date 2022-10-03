@@ -15,7 +15,6 @@
 
 
 import csv
-import os
 
 import datasets
 
@@ -109,7 +108,6 @@ class HendrycksTest(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
         features = datasets.Features(
             {
                 "question": datasets.Value("string"),
@@ -118,75 +116,53 @@ class HendrycksTest(datasets.GeneratorBasedBuilder):
             }
         )
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # This defines the different columns of the dataset and their types
-            features=features,  # Here we define them above because they are different between the two configurations
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
-            supervised_keys=None,
-            # Homepage of the dataset for documentation
+            features=features,
             homepage=_HOMEPAGE,
-            # Citation for the dataset
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = dl_manager.download_and_extract(_URL)
+        archive = dl_manager.download(_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split("auxiliary_train"),
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "datadir": os.path.join(data_dir, "data", "auxiliary_train"),
+                    "iter_archive": dl_manager.iter_archive(archive),
                     "split": "auxiliary_train",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={"datadir": os.path.join(data_dir, "data", "test"), "split": "test"},
+                gen_kwargs={"iter_archive": dl_manager.iter_archive(archive), "split": "test"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "datadir": os.path.join(data_dir, "data", "val"),
+                    "iter_archive": dl_manager.iter_archive(archive),
                     "split": "val",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split("dev"),
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "datadir": os.path.join(data_dir, "data", "dev"),
+                    "iter_archive": dl_manager.iter_archive(archive),
                     "split": "dev",
                 },
             ),
         ]
 
-    def _generate_examples(self, datadir, split):
+    def _generate_examples(self, iter_archive, split):
         """Yields examples as (key, example) tuples."""
-        # This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
-        # The `key` is here for legacy reason (tfds) and is not important in itself.
-
-        id_ = 0
-        if split == "auxiliary_train":
-            for f in sorted(os.listdir(datadir)):
-                reader = csv.reader(
-                    open(os.path.join(datadir, f), "r", encoding="utf-8"), quotechar='"', delimiter=","
-                )
-                for data in reader:
-                    yield id_, {"question": data[0], "choices": data[1:5], "answer": data[5]}
-                    id_ += 1
-        else:
-            reader = csv.reader(
-                open(os.path.join(datadir, f"{self.config.name}_{split}.csv"), "r", encoding="utf-8"),
-                quotechar='"',
-                delimiter=",",
-            )
-            for data in reader:
-                yield id_, {"question": data[0], "choices": data[1:5], "answer": data[5]}
-                id_ += 1
+        n_yielded_files = 0
+        for id_file, (path, file) in enumerate(iter_archive):
+            if f"data/{split}/" in path:
+                if split == "auxiliary_train" or f"{self.config.name}_{split}.csv" in path:
+                    n_yielded_files += 1
+                    lines = (line.decode("utf-8") for line in file)
+                    reader = csv.reader(lines)
+                    for id_line, data in enumerate(reader):
+                        yield f"{id_file}_{id_line}", {"question": data[0], "choices": data[1:5], "answer": data[5]}
+                    if n_yielded_files == 8 or split != "auxiliary_train":
+                        break
