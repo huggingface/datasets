@@ -31,10 +31,10 @@ dataset_info:
           1: dog
   splits:
   - name: train
-    num_bytes: 3893603
-    num_examples: 23422
+    num_bytes: 4219400
+    num_examples: 23410
   download_size: 824887076
-  dataset_size: 3893603
+  dataset_size: 4219400
 ---
 
 # Dataset Card for Cats Vs. Dogs
