@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - de
-licenses:
+license:
 - cc-by-nc-sa-4.0
 multilinguality:
 - monolingual
@@ -49,9 +49,9 @@ pretty_name: 10k German News Articles Datasets
 
 ## Dataset Description
 
-- **Homepage: [10k German News Article Dataset](https://tblock.github.io/10kGNAD/)**
-- **Repository: [10k German News Article Dataset](https://github.com/tblock/10kGNAD)()**
-- **Point of Contact: [Steven Liu](stevhliu@gmail.com)**
+- **Homepage:** [10k German News Article Dataset](https://tblock.github.io/10kGNAD/)
+- **Repository:** [10k German News Article Dataset](https://github.com/tblock/10kGNAD)
+- **Point of Contact:** [Steven Liu](stevhliu@gmail.com)
 
 ### Dataset Summary
 
@@ -150,7 +150,19 @@ This dataset is licensed under the Creative Commons Attribution-NonCommercial-Sh
 
 ### Citation Information
 
-[More Information Needed]
+Please consider citing the authors of the "One Million Post Corpus" if you use the dataset.:
+```
+@InProceedings{Schabus2017,
+  Author    = {Dietmar Schabus and Marcin Skowron and Martin Trapp},
+  Title     = {One Million Posts: A Data Set of German Online Discussions},
+  Booktitle = {Proceedings of the 40th International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR)},
+  Pages     = {1241--1244},
+  Year      = {2017},
+  Address   = {Tokyo, Japan},
+  Doi       = {10.1145/3077136.3080711},
+  Month     = aug
+}
+```
 
 ### Contributions
 

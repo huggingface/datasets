@@ -1,8 +1,7 @@
 import os
-import sys
 import tarfile
-from ctypes.util import find_library
-from importlib.util import find_spec
+from contextlib import nullcontext
+from unittest.mock import patch
 
 import pyarrow as pa
 import pytest
@@ -10,23 +9,13 @@ import pytest
 from datasets import Dataset, concatenate_datasets, load_dataset
 from datasets.features import Audio, Features, Sequence, Value
 
-
-# pytestmark = pytest.mark.audio
-
-
-require_sndfile = pytest.mark.skipif(
-    # In Windows and OS X, soundfile installs sndfile
-    (sys.platform != "linux" and find_spec("soundfile") is None)
-    # In Linux, soundfile throws RuntimeError if sndfile not installed with distribution package manager
-    or (sys.platform == "linux" and find_library("sndfile") is None),
-    reason="Test requires 'sndfile': `pip install soundfile`; "
-    "Linux requires sndfile installed with distribution package manager, e.g.: `sudo apt-get install libsndfile1`",
+from ..utils import (
+    require_libsndfile_with_opus,
+    require_sndfile,
+    require_sox,
+    require_torchaudio,
+    require_torchaudio_latest,
 )
-require_sox = pytest.mark.skipif(
-    find_library("sox") is None,
-    reason="Test requires 'sox'; only available in non-Windows, e.g.: `sudo apt-get install sox`",
-)
-require_torchaudio = pytest.mark.skipif(find_spec("torchaudio") is None, reason="Test requires 'torchaudio'")
 
 
 @pytest.fixture()
@@ -83,11 +72,32 @@ def test_audio_feature_type_to_arrow():
         lambda audio_path: {"path": audio_path, "bytes": open(audio_path, "rb").read()},
         lambda audio_path: {"path": None, "bytes": open(audio_path, "rb").read()},
         lambda audio_path: {"bytes": open(audio_path, "rb").read()},
+        lambda audio_path: {"array": [0.1, 0.2, 0.3], "sampling_rate": 16_000},
     ],
 )
 def test_audio_feature_encode_example(shared_datadir, build_example):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     audio = Audio()
+    encoded_example = audio.encode_example(build_example(audio_path))
+    assert isinstance(encoded_example, dict)
+    assert encoded_example.keys() == {"bytes", "path"}
+    assert encoded_example["bytes"] is not None or encoded_example["path"] is not None
+    decoded_example = audio.decode_example(encoded_example)
+    assert decoded_example.keys() == {"path", "array", "sampling_rate"}
+
+
+@pytest.mark.parametrize(
+    "build_example",
+    [
+        lambda audio_path: {"path": audio_path, "sampling_rate": 16_000},
+        lambda audio_path: {"path": audio_path, "bytes": None, "sampling_rate": 16_000},
+        lambda audio_path: {"path": audio_path, "bytes": open(audio_path, "rb").read(), "sampling_rate": 16_000},
+        lambda audio_path: {"array": [0.1, 0.2, 0.3], "sampling_rate": 16_000},
+    ],
+)
+def test_audio_feature_encode_example_pcm(shared_datadir, build_example):
+    audio_path = str(shared_datadir / "test_audio_16000.pcm")
+    audio = Audio(sampling_rate=16_000)
     encoded_example = audio.encode_example(build_example(audio_path))
     assert isinstance(encoded_example, dict)
     assert encoded_example.keys() == {"bytes", "path"}
@@ -133,6 +143,49 @@ def test_audio_decode_example_mp3(shared_datadir):
     assert decoded_example["sampling_rate"] == 44100
 
 
+@pytest.mark.torchaudio_latest
+@require_torchaudio_latest
+@pytest.mark.parametrize("torchaudio_failed", [False, True])
+def test_audio_decode_example_mp3_torchaudio_latest(shared_datadir, torchaudio_failed):
+    audio_path = str(shared_datadir / "test_audio_44100.mp3")
+    audio = Audio()
+
+    with patch("torchaudio.load") if torchaudio_failed else nullcontext() as load_mock, pytest.warns(
+        UserWarning, match=r"Decoding mp3 with `librosa` instead of `torchaudio`.+?"
+    ) if torchaudio_failed else nullcontext():
+
+        if torchaudio_failed:
+            load_mock.side_effect = RuntimeError()
+
+        decoded_example = audio.decode_example(audio.encode_example(audio_path))
+        assert decoded_example["path"] == audio_path
+        assert decoded_example["array"].shape == (110592,)
+        assert decoded_example["sampling_rate"] == 44100
+
+
+@require_libsndfile_with_opus
+def test_audio_decode_example_opus(shared_datadir):
+    audio_path = str(shared_datadir / "test_audio_48000.opus")
+    audio = Audio()
+    decoded_example = audio.decode_example(audio.encode_example(audio_path))
+    assert decoded_example.keys() == {"path", "array", "sampling_rate"}
+    assert decoded_example["path"] == audio_path
+    assert decoded_example["array"].shape == (48000,)
+    assert decoded_example["sampling_rate"] == 48000
+
+
+@pytest.mark.parametrize("sampling_rate", [16_000, 48_000])
+def test_audio_decode_example_pcm(shared_datadir, sampling_rate):
+    audio_path = str(shared_datadir / "test_audio_16000.pcm")
+    audio_input = {"path": audio_path, "sampling_rate": 16_000}
+    audio = Audio(sampling_rate=sampling_rate)
+    decoded_example = audio.decode_example(audio.encode_example(audio_input))
+    assert decoded_example.keys() == {"path", "array", "sampling_rate"}
+    assert decoded_example["path"] is None
+    assert decoded_example["array"].shape == (16208 * sampling_rate // 16_000,)
+    assert decoded_example["sampling_rate"] == sampling_rate
+
+
 @require_sox
 @require_torchaudio
 def test_audio_resampling_mp3_different_sampling_rates(shared_datadir):
@@ -151,6 +204,34 @@ def test_audio_resampling_mp3_different_sampling_rates(shared_datadir):
     assert decoded_example["path"] == audio_path2
     assert decoded_example["array"].shape == (120960,)
     assert decoded_example["sampling_rate"] == 48000
+
+
+@pytest.mark.torchaudio_latest
+@require_torchaudio_latest
+@pytest.mark.parametrize("torchaudio_failed", [False, True])
+def test_audio_resampling_mp3_different_sampling_rates_torchaudio_latest(shared_datadir, torchaudio_failed):
+    audio_path = str(shared_datadir / "test_audio_44100.mp3")
+    audio_path2 = str(shared_datadir / "test_audio_16000.mp3")
+    audio = Audio(sampling_rate=48000)
+
+    # if torchaudio>=0.12 failed, mp3 must be decoded anyway (with librosa)
+    with patch("torchaudio.load") if torchaudio_failed else nullcontext() as load_mock, pytest.warns(
+        UserWarning, match=r"Decoding mp3 with `librosa` instead of `torchaudio`.+?"
+    ) if torchaudio_failed else nullcontext():
+        if torchaudio_failed:
+            load_mock.side_effect = RuntimeError()
+
+        decoded_example = audio.decode_example(audio.encode_example(audio_path))
+        assert decoded_example.keys() == {"path", "array", "sampling_rate"}
+        assert decoded_example["path"] == audio_path
+        assert decoded_example["array"].shape == (120373,)
+        assert decoded_example["sampling_rate"] == 48000
+
+        decoded_example = audio.decode_example(audio.encode_example(audio_path2))
+        assert decoded_example.keys() == {"path", "array", "sampling_rate"}
+        assert decoded_example["path"] == audio_path2
+        assert decoded_example["array"].shape == (122688,)
+        assert decoded_example["sampling_rate"] == 48000
 
 
 @require_sndfile
@@ -241,6 +322,72 @@ def test_dataset_with_audio_feature_tar_mp3(tar_mp3_path):
     assert column[0]["sampling_rate"] == 44100
 
 
+@pytest.mark.torchaudio_latest
+@require_torchaudio_latest
+def test_dataset_with_audio_feature_tar_mp3_torchaudio_latest(tar_mp3_path):
+    # no test for librosa here because it doesn't support file-like objects, only paths
+    audio_filename = "test_audio_44100.mp3"
+    data = {"audio": []}
+    for file_path, file_obj in iter_archive(tar_mp3_path):
+        data["audio"].append({"path": file_path, "bytes": file_obj.read()})
+        break
+    features = Features({"audio": Audio()})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"audio"}
+    assert item["audio"].keys() == {"path", "array", "sampling_rate"}
+    assert item["audio"]["path"] == audio_filename
+    assert item["audio"]["array"].shape == (110592,)
+    assert item["audio"]["sampling_rate"] == 44100
+    batch = dset[:1]
+    assert batch.keys() == {"audio"}
+    assert len(batch["audio"]) == 1
+    assert batch["audio"][0].keys() == {"path", "array", "sampling_rate"}
+    assert batch["audio"][0]["path"] == audio_filename
+    assert batch["audio"][0]["array"].shape == (110592,)
+    assert batch["audio"][0]["sampling_rate"] == 44100
+    column = dset["audio"]
+    assert len(column) == 1
+    assert column[0].keys() == {"path", "array", "sampling_rate"}
+    assert column[0]["path"] == audio_filename
+    assert column[0]["array"].shape == (110592,)
+    assert column[0]["sampling_rate"] == 44100
+
+
+@require_sndfile
+def test_dataset_with_audio_feature_with_none():
+    data = {"audio": [None]}
+    features = Features({"audio": Audio()})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"audio"}
+    assert item["audio"] is None
+    batch = dset[:1]
+    assert len(batch) == 1
+    assert batch.keys() == {"audio"}
+    assert isinstance(batch["audio"], list) and all(item is None for item in batch["audio"])
+    column = dset["audio"]
+    assert len(column) == 1
+    assert isinstance(column, list) and all(item is None for item in column)
+
+    # nested tests
+
+    data = {"audio": [[None]]}
+    features = Features({"audio": Sequence(Audio())})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"audio"}
+    assert all(i is None for i in item["audio"])
+
+    data = {"nested": [{"audio": None}]}
+    features = Features({"nested": {"audio": Audio()}})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"nested"}
+    assert item["nested"].keys() == {"audio"}
+    assert item["nested"]["audio"] is None
+
+
 @require_sndfile
 def test_resampling_at_loading_dataset_with_audio_feature(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
@@ -269,7 +416,7 @@ def test_resampling_at_loading_dataset_with_audio_feature(shared_datadir):
 
 
 @require_sox
-@require_sndfile
+@require_torchaudio
 def test_resampling_at_loading_dataset_with_audio_feature_mp3(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.mp3")
     data = {"audio": [audio_path]}
@@ -294,6 +441,43 @@ def test_resampling_at_loading_dataset_with_audio_feature_mp3(shared_datadir):
     assert column[0]["path"] == audio_path
     assert column[0]["array"].shape == (39707,)
     assert column[0]["sampling_rate"] == 16000
+
+
+@pytest.mark.torchaudio_latest
+@require_torchaudio_latest
+@pytest.mark.parametrize("torchaudio_failed", [False, True])
+def test_resampling_at_loading_dataset_with_audio_feature_mp3_torchaudio_latest(shared_datadir, torchaudio_failed):
+    audio_path = str(shared_datadir / "test_audio_44100.mp3")
+    data = {"audio": [audio_path]}
+    features = Features({"audio": Audio(sampling_rate=16000)})
+    dset = Dataset.from_dict(data, features=features)
+
+    # if torchaudio>=0.12 failed, mp3 must be decoded anyway (with librosa)
+    with patch("torchaudio.load") if torchaudio_failed else nullcontext() as load_mock, pytest.warns(
+        UserWarning, match=r"Decoding mp3 with `librosa` instead of `torchaudio`.+?"
+    ) if torchaudio_failed else nullcontext():
+        if torchaudio_failed:
+            load_mock.side_effect = RuntimeError()
+
+        item = dset[0]
+        assert item.keys() == {"audio"}
+        assert item["audio"].keys() == {"path", "array", "sampling_rate"}
+        assert item["audio"]["path"] == audio_path
+        assert item["audio"]["array"].shape == (40125,)
+        assert item["audio"]["sampling_rate"] == 16000
+        batch = dset[:1]
+        assert batch.keys() == {"audio"}
+        assert len(batch["audio"]) == 1
+        assert batch["audio"][0].keys() == {"path", "array", "sampling_rate"}
+        assert batch["audio"][0]["path"] == audio_path
+        assert batch["audio"][0]["array"].shape == (40125,)
+        assert batch["audio"][0]["sampling_rate"] == 16000
+        column = dset["audio"]
+        assert len(column) == 1
+        assert column[0].keys() == {"path", "array", "sampling_rate"}
+        assert column[0]["path"] == audio_path
+        assert column[0]["array"].shape == (40125,)
+        assert column[0]["sampling_rate"] == 16000
 
 
 @require_sndfile
@@ -327,7 +511,7 @@ def test_resampling_after_loading_dataset_with_audio_feature(shared_datadir):
 
 
 @require_sox
-@require_sndfile
+@require_torchaudio
 def test_resampling_after_loading_dataset_with_audio_feature_mp3(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.mp3")
     data = {"audio": [audio_path]}
@@ -355,6 +539,46 @@ def test_resampling_after_loading_dataset_with_audio_feature_mp3(shared_datadir)
     assert column[0]["path"] == audio_path
     assert column[0]["array"].shape == (39707,)
     assert column[0]["sampling_rate"] == 16000
+
+
+@pytest.mark.torchaudio_latest
+@require_torchaudio_latest
+@pytest.mark.parametrize("torchaudio_failed", [False, True])
+def test_resampling_after_loading_dataset_with_audio_feature_mp3_torchaudio_latest(shared_datadir, torchaudio_failed):
+    audio_path = str(shared_datadir / "test_audio_44100.mp3")
+    data = {"audio": [audio_path]}
+    features = Features({"audio": Audio()})
+    dset = Dataset.from_dict(data, features=features)
+
+    # if torchaudio>=0.12 failed, mp3 must be decoded anyway (with librosa)
+    with patch("torchaudio.load") if torchaudio_failed else nullcontext() as load_mock, pytest.warns(
+        UserWarning, match=r"Decoding mp3 with `librosa` instead of `torchaudio`.+?"
+    ) if torchaudio_failed else nullcontext():
+        if torchaudio_failed:
+            load_mock.side_effect = RuntimeError()
+
+        item = dset[0]
+        assert item["audio"]["sampling_rate"] == 44100
+        dset = dset.cast_column("audio", Audio(sampling_rate=16000))
+        item = dset[0]
+        assert item.keys() == {"audio"}
+        assert item["audio"].keys() == {"path", "array", "sampling_rate"}
+        assert item["audio"]["path"] == audio_path
+        assert item["audio"]["array"].shape == (40125,)
+        assert item["audio"]["sampling_rate"] == 16000
+        batch = dset[:1]
+        assert batch.keys() == {"audio"}
+        assert len(batch["audio"]) == 1
+        assert batch["audio"][0].keys() == {"path", "array", "sampling_rate"}
+        assert batch["audio"][0]["path"] == audio_path
+        assert batch["audio"][0]["array"].shape == (40125,)
+        assert batch["audio"][0]["sampling_rate"] == 16000
+        column = dset["audio"]
+        assert len(column) == 1
+        assert column[0].keys() == {"path", "array", "sampling_rate"}
+        assert column[0]["path"] == audio_path
+        assert column[0]["array"].shape == (40125,)
+        assert column[0]["sampling_rate"] == 16000
 
 
 @pytest.mark.parametrize(
@@ -543,6 +767,7 @@ def test_load_dataset_with_audio_feature(streaming, jsonl_audio_dataset_path, sh
 
 
 @require_sndfile
+@pytest.mark.integration
 def test_dataset_with_audio_feature_loaded_from_cache():
     # load first time
     ds = load_dataset("patrickvonplaten/librispeech_asr_dummy", "clean")

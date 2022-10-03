@@ -15,7 +15,6 @@
 """NLI-TR: The Turkish translation of SNLI and MultiNLI datasets using Amazon Translate."""
 
 
-import codecs
 import json
 import os
 
@@ -152,7 +151,7 @@ class NliTr(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split):
         """Yields examples."""
 
-        with codecs.open(filepath, encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             for idx, row in enumerate(f):
                 data = json.loads(row)
                 example = {"idx": idx, "premise": data["sentence1"], "hypothesis": data["sentence2"]}

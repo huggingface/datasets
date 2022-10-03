@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - ar
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -104,9 +104,9 @@ the dataset distribution and balance for each class looks like the following
 
 The dataset is not split. 
 
-|           | Tain   | 
-|---------- | ------ | 
-|no split   | 10,065  | 
+|          |   train |
+|----------|--------:|
+| no split |  10,065 |
 
 ## Dataset Creation
 

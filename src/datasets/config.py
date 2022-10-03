@@ -22,7 +22,7 @@ REPO_METRICS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{revi
 
 # Hub
 HF_ENDPOINT = os.environ.get("HF_ENDPOINT", "https://huggingface.co")
-HUB_DATASETS_URL = HF_ENDPOINT + "/datasets/{path}/resolve/{revision}/{name}"
+HUB_DATASETS_URL = HF_ENDPOINT + "/datasets/{repo_id}/resolve/{revision}/{path}"
 HUB_DEFAULT_VERSION = "main"
 
 PY_VERSION = version.parse(platform.python_version())
@@ -38,6 +38,8 @@ ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
 
 
 # Imports
+DILL_VERSION = version.parse(importlib_metadata.version("dill"))
+PANDAS_VERSION = version.parse(importlib_metadata.version("pandas"))
 PYARROW_VERSION = version.parse(importlib_metadata.version("pyarrow"))
 
 USE_TF = os.environ.get("USE_TF", "AUTO").upper()
@@ -131,6 +133,7 @@ PIL_AVAILABLE = importlib.util.find_spec("PIL") is not None
 RARFILE_AVAILABLE = importlib.util.find_spec("rarfile") is not None
 ZSTANDARD_AVAILABLE = importlib.util.find_spec("zstandard") is not None
 LZ4_AVAILABLE = importlib.util.find_spec("lz4") is not None
+PY7ZR_AVAILABLE = importlib.util.find_spec("py7zr") is not None
 
 
 # Cache location
@@ -165,9 +168,15 @@ HF_UPDATE_DOWNLOAD_COUNTS = (
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
 DEFAULT_MAX_BATCH_SIZE = 10_000
 
+# Size of the preloaded record batch in `Dataset.__iter__`
+ARROW_READER_BATCH_SIZE_IN_DATASET_ITER = 10
+
 # Pickling tables works only for small tables (<4GiB)
 # For big tables, we write them on disk instead
 MAX_TABLE_NBYTES_FOR_PICKLING = 4 << 30
+
+# Max shard size in bytes (e.g. to shard parquet datasets in push_to_hub or download_and_prepare)
+MAX_SHARD_SIZE = "500MB"
 
 # Offline mode
 HF_DATASETS_OFFLINE = os.environ.get("HF_DATASETS_OFFLINE", "AUTO").upper() in ENV_VARS_TRUE_VALUES

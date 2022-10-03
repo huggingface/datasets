@@ -40,6 +40,12 @@ class Version:
         major (:obj:`str`):
         minor (:obj:`str`):
         patch (:obj:`str`):
+
+    Example:
+
+    ```py
+    >>> VERSION = datasets.Version("1.0.0")
+    ```
     """
 
     version_str: str
@@ -66,12 +72,15 @@ class Version:
         raise AssertionError(f"{other} (type {type(other)}) cannot be compared to version.")
 
     def __eq__(self, other):
-        other = self._validate_operand(other)
-        return self.tuple == other.tuple
+        try:
+            other = self._validate_operand(other)
+        except (AssertionError, ValueError):
+            return False
+        else:
+            return self.tuple == other.tuple
 
     def __ne__(self, other):
-        other = self._validate_operand(other)
-        return self.tuple != other.tuple
+        return not self.__eq__(other)
 
     def __lt__(self, other):
         other = self._validate_operand(other)

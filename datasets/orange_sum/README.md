@@ -4,9 +4,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - fr
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -15,9 +15,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
 - summarization
+task_ids:
+- news-articles-headline-generation
+- news-articles-summarization
 paperswithcode_id: orangesum
 ---
 
@@ -92,10 +93,10 @@ Example:
 
 The data is split into a training, validation and test in both configuration.
 
-|          | Tain   | Valid | Test |
-| -----    | ------ | ----- | ---- |
-| Abstract | 21400  |  1500 | 1500 |
-| Title    | 30658  |  1500 | 1500 |
+|          | train | validation | test |
+|----------|------:|-----------:|-----:|
+| Abstract | 21400 |       1500 | 1500 |
+| Title    | 30658 |       1500 | 1500 |
 
 ## Dataset Creation
 

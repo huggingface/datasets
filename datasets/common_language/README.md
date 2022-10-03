@@ -4,7 +4,7 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - ar
 - br
 - ca
@@ -22,7 +22,7 @@ languages:
 - eu
 - fa
 - fr
-- fy-NL
+- fy
 - ia
 - id
 - it
@@ -36,21 +36,26 @@ languages:
 - nl
 - pl
 - pt
-- rm-sursilv
+- rm
 - ro
 - ru
 - rw
 - sah
 - sl
-- sv-SE
+- sv
 - ta
 - tr
 - tt
 - uk
+- zh
+language_bcp47:
+- fy-NL
+- rm-sursilv
+- sv-SE
 - zh-CN
 - zh-HK
 - zh-TW
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - multilingual
@@ -59,9 +64,9 @@ size_categories:
 source_datasets:
 - extended|common_voice
 task_categories:
-- speech-processing
+- audio-classification
 task_ids:
-- other-other-speech-classification
+- speaker-identification
 ---
 
 # Dataset Card for common_language

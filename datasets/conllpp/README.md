@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -14,11 +14,24 @@ size_categories:
 source_datasets:
 - extended|conll2003
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 paperswithcode_id: conll
 pretty_name: CoNLL++
+train-eval-index:
+- config: conllpp
+  task: token-classification
+  task_id: entity_extraction
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    tokens: tokens
+    ner_tags: tags
+  metrics:
+    - type: seqeval
+      name: seqeval
 ---
 
 # Dataset Card for "conllpp"
@@ -78,8 +91,6 @@ correction on the test set for example, is:
 [More Information Needed]
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -175,7 +186,15 @@ The data fields are the same among all splits.
 
 ### Citation Information
 
-[More Information Needed]
+```
+@inproceedings{wang2019crossweigh,
+  title={CrossWeigh: Training Named Entity Tagger from Imperfect Annotations},
+  author={Wang, Zihan and Shang, Jingbo and Liu, Liyuan and Lu, Lihao and Liu, Jiacheng and Han, Jiawei},
+  booktitle={Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)},
+  pages={5157--5166},
+  year={2019}
+}
+```
 
 ### Contributions
 

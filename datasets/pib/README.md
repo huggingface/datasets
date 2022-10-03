@@ -1,24 +1,25 @@
 ---
 task_categories:
-- conditional-text-generation
-- sequence-modeling
+- translation
+- text-generation
+- fill-mask
 task_ids:
-- machine-translation
 - language-modeling
+- masked-language-modeling
 multilinguality:
 - translation
-languages:
-- en
-- hi
-- ta
-- te
-- ml
-- ur
+language:
 - bn
-- mr
+- en
 - gu
+- hi
+- ml
+- mr
 - or
 - pa
+- ta
+- te
+- ur
 language_creators:
 - other
 annotations_creators:
@@ -26,120 +27,68 @@ annotations_creators:
 source_datasets:
 - original
 size_categories:
-  bn-en:
-  - 10K<n<100K
-  bn-gu:
-  - 10K<n<100K
-  bn-hi:
-  - 10K<n<100K
-  bn-ml:
-  - 10K<n<100K
-  bn-mr:
-  - 10K<n<100K
-  bn-or:
-  - 10K<n<100K
-  bn-pa:
-  - 10K<n<100K
-  bn-ta:
-  - 10K<n<100K
-  bn-te:
-  - 10K<n<100K
-  bn-ur:
-  - 10K<n<100K
-  en-gu:
-  - 10K<n<100K
-  en-hi:
-  - 100K<n<1M
-  en-ml:
-  - 10K<n<100K
-  en-mr:
-  - 100K<n<1M
-  en-or:
-  - 10K<n<100K
-  en-pa:
-  - 100K<n<1M
-  en-ta:
-  - 100K<n<1M
-  en-te:
-  - 10K<n<100K
-  en-ur:
-  - 100K<n<1M
-  gu-hi:
-  - 10K<n<100K
-  gu-ml:
-  - 10K<n<100K
-  gu-mr:
-  - 10K<n<100K
-  gu-or:
-  - 10K<n<100K
-  gu-pa:
-  - 10K<n<100K
-  gu-ta:
-  - 10K<n<100K
-  gu-te:
-  - 10K<n<100K
-  gu-ur:
-  - 10K<n<100K
-  hi-ml:
-  - 10K<n<100K
-  hi-mr:
-  - 10K<n<100K
-  hi-or:
-  - 10K<n<100K
-  hi-pa:
-  - 10K<n<100K
-  hi-ta:
-  - 10K<n<100K
-  hi-te:
-  - 10K<n<100K
-  hi-ur:
-  - 100K<n<1M
-  ml-mr:
-  - 10K<n<100K
-  ml-or:
-  - 10K<n<100K
-  ml-pa:
-  - 10K<n<100K
-  ml-ta:
-  - 10K<n<100K
-  ml-te:
-  - 10K<n<100K
-  ml-ur:
-  - 10K<n<100K
-  mr-or:
-  - 10K<n<100K
-  mr-pa:
-  - 10K<n<100K
-  mr-ta:
-  - 10K<n<100K
-  mr-te:
-  - 10K<n<100K
-  mr-ur:
-  - 10K<n<100K
-  or-pa:
-  - 10K<n<100K
-  or-ta:
-  - 10K<n<100K
-  or-te:
-  - 10K<n<100K
-  or-ur:
-  - 10K<n<100K
-  pa-ta:
-  - 10K<n<100K
-  pa-te:
-  - 10K<n<100K
-  pa-ur:
-  - 10K<n<100K
-  ta-te:
-  - 10K<n<100K
-  ta-ur:
-  - 10K<n<100K
-  te-ur:
-  - 10K<n<100K
-licenses:
+- 100K<n<1M
+- 10K<n<100K
+license:
 - cc-by-4.0
 paperswithcode_id: null
 pretty_name: CVIT PIB
+configs:
+- bn-en
+- bn-gu
+- bn-hi
+- bn-ml
+- bn-mr
+- bn-or
+- bn-pa
+- bn-ta
+- bn-te
+- bn-ur
+- en-gu
+- en-hi
+- en-ml
+- en-mr
+- en-or
+- en-pa
+- en-ta
+- en-te
+- en-ur
+- gu-hi
+- gu-ml
+- gu-mr
+- gu-or
+- gu-pa
+- gu-ta
+- gu-te
+- gu-ur
+- hi-ml
+- hi-mr
+- hi-or
+- hi-pa
+- hi-ta
+- hi-te
+- hi-ur
+- ml-mr
+- ml-or
+- ml-pa
+- ml-ta
+- ml-te
+- ml-ur
+- mr-or
+- mr-pa
+- mr-ta
+- mr-te
+- mr-ur
+- or-pa
+- or-ta
+- or-te
+- or-ur
+- pa-ta
+- pa-te
+- pa-ur
+- ta-te
+- ta-ur
+- te-ur
 ---
 
 # Dataset Card for CVIT PIB

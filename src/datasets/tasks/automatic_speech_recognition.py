@@ -1,20 +1,30 @@
+import copy
 from dataclasses import dataclass
 from typing import ClassVar, Dict
 
-from ..features import Features, Value
+from ..features import Audio, Features, Value
 from .base import TaskTemplate
 
 
 @dataclass(frozen=True)
 class AutomaticSpeechRecognition(TaskTemplate):
     task: str = "automatic-speech-recognition"
-    # TODO(lewtun): Replace input path feature with dedicated `Audio` features
-    # when https://github.com/huggingface/datasets/pull/2324 is implemented
-    input_schema: ClassVar[Features] = Features({"audio_file_path": Value("string")})
+    input_schema: ClassVar[Features] = Features({"audio": Audio()})
     label_schema: ClassVar[Features] = Features({"transcription": Value("string")})
-    audio_file_path_column: str = "audio_file_path"
+    audio_column: str = "audio"
     transcription_column: str = "transcription"
+
+    def align_with_features(self, features):
+        if self.audio_column not in features:
+            raise ValueError(f"Column {self.audio_column} is not present in features.")
+        if not isinstance(features[self.audio_column], Audio):
+            raise ValueError(f"Column {self.audio_column} is not an Audio type.")
+        task_template = copy.deepcopy(self)
+        input_schema = self.input_schema.copy()
+        input_schema["audio"] = features[self.audio_column]
+        task_template.__dict__["input_schema"] = input_schema
+        return task_template
 
     @property
     def column_mapping(self) -> Dict[str, str]:
-        return {self.audio_file_path_column: "audio_file_path", self.transcription_column: "transcription"}
+        return {self.audio_column: "audio", self.transcription_column: "transcription"}

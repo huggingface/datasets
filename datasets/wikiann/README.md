@@ -3,360 +3,185 @@ annotations_creators:
 - machine-generated
 language_creators:
 - crowdsourced
-languages:
-  ace:
-  - ace
-  af:
-  - af
-  als:
-  - als
-  am:
-  - am
-  an:
-  - an
-  ang:
-  - ang
-  ar:
-  - ar
-  arc:
-  - arc
-  arz:
-  - arz
-  as:
-  - as
-  ast:
-  - ast
-  ay:
-  - ay
-  az:
-  - az
-  ba:
-  - ba
-  bar:
-  - bar
-  be:
-  - be
-  bg:
-  - bg
-  bh:
-  - bh
-  bn:
-  - bn
-  bo:
-  - bo
-  br:
-  - br
-  bs:
-  - bs
-  ca:
-  - ca
-  cdo:
-  - cdo
-  ce:
-  - ce
-  ceb:
-  - ceb
-  ckb:
-  - ckb
-  co:
-  - co
-  crh:
-  - crh
-  cs:
-  - cs
-  csb:
-  - csb
-  cv:
-  - cv
-  cy:
-  - cy
-  da:
-  - da
-  de:
-  - de
-  diq:
-  - diq
-  dv:
-  - dv
-  el:
-  - el
-  en:
-  - en
-  eo:
-  - eo
-  es:
-  - es
-  et:
-  - et
-  eu:
-  - eu
-  ext:
-  - ext
-  fa:
-  - fa
-  fi:
-  - fi
-  fo:
-  - fo
-  fr:
-  - fr
-  frr:
-  - frr
-  fur:
-  - fur
-  fy:
-  - fy
-  ga:
-  - ga
-  gan:
-  - gan
-  gd:
-  - gd
-  gl:
-  - gl
-  gn:
-  - gn
-  gu:
-  - gu
-  hak:
-  - hak
-  he:
-  - he
-  hi:
-  - hi
-  hr:
-  - hr
-  hsb:
-  - hsb
-  hu:
-  - hu
-  hy:
-  - hy
-  ia:
-  - ia
-  id:
-  - id
-  ig:
-  - ig
-  ilo:
-  - ilo
-  io:
-  - io
-  is:
-  - is
-  it:
-  - it
-  ja:
-  - ja
-  jbo:
-  - jbo
-  jv:
-  - jv
-  ka:
-  - ka
-  kk:
-  - kk
-  km:
-  - km
-  kn:
-  - kn
-  ko:
-  - ko
-  ksh:
-  - ksh
-  ku:
-  - ku
-  ky:
-  - ky
-  la:
-  - la
-  lb:
-  - lb
-  li:
-  - li
-  lij:
-  - lij
-  lmo:
-  - lmo
-  ln:
-  - ln
-  lt:
-  - lt
-  lv:
-  - lv
-  mg:
-  - mg
-  mhr:
-  - mhr
-  mi:
-  - mi
-  min:
-  - min
-  mk:
-  - mk
-  ml:
-  - ml
-  mn:
-  - mn
-  mr:
-  - mr
-  ms:
-  - ms
-  mt:
-  - mt
-  mwl:
-  - mwl
-  my:
-  - my
-  mzn:
-  - mzn
-  nap:
-  - nap
-  nds:
-  - nds
-  ne:
-  - ne
-  nl:
-  - nl
-  nn:
-  - nn
-  'no':
-  - 'no'
-  nov:
-  - nov
-  oc:
-  - oc
-  or:
-  - or
-  os:
-  - os
-  other-bat-smg:
-  - sgs
-  other-be-x-old:
-  - be-tarask
-  other-cbk-zam:
-  - cbk
-  other-eml:
-  - eml
-  other-fiu-vro:
-  - vro
-  other-map-bms:
-  - jv-x-bms
-  other-simple:
-  - en-basiceng
-  other-zh-classical:
-  - lzh
-  other-zh-min-nan:
-  - nan
-  other-zh-yue:
-  - yue
-  pa:
-  - pa
-  pdc:
-  - pdc
-  pl:
-  - pl
-  pms:
-  - pms
-  pnb:
-  - pnb
-  ps:
-  - ps
-  pt:
-  - pt
-  qu:
-  - qu
-  rm:
-  - rm
-  ro:
-  - ro
-  ru:
-  - ru
-  rw:
-  - rw
-  sa:
-  - sa
-  sah:
-  - sah
-  scn:
-  - scn
-  sco:
-  - sco
-  sd:
-  - sd
-  sh:
-  - sh
-  si:
-  - si
-  sk:
-  - sk
-  sl:
-  - sl
-  so:
-  - so
-  sq:
-  - sq
-  sr:
-  - sr
-  su:
-  - su
-  sv:
-  - sv
-  sw:
-  - sw
-  szl:
-  - szl
-  ta:
-  - ta
-  te:
-  - te
-  tg:
-  - tg
-  th:
-  - th
-  tk:
-  - tk
-  tl:
-  - tl
-  tr:
-  - tr
-  tt:
-  - tt
-  ug:
-  - ug
-  uk:
-  - uk
-  ur:
-  - ur
-  uz:
-  - uz
-  vec:
-  - vec
-  vep:
-  - vep
-  vi:
-  - vi
-  vls:
-  - vls
-  vo:
-  - vo
-  wa:
-  - wa
-  war:
-  - war
-  wuu:
-  - wuu
-  xmf:
-  - xmf
-  yi:
-  - yi
-  yo:
-  - yo
-  zea:
-  - zea
-  zh:
-  - zh
-licenses:
+language:
+- ace
+- af
+- als
+- am
+- an
+- ang
+- ar
+- arc
+- arz
+- as
+- ast
+- ay
+- az
+- ba
+- bar
+- be
+- bg
+- bh
+- bn
+- bo
+- br
+- bs
+- ca
+- cbk
+- cdo
+- ce
+- ceb
+- ckb
+- co
+- crh
+- cs
+- csb
+- cv
+- cy
+- da
+- de
+- diq
+- dv
+- el
+- eml
+- en
+- eo
+- es
+- et
+- eu
+- ext
+- fa
+- fi
+- fo
+- fr
+- frr
+- fur
+- fy
+- ga
+- gan
+- gd
+- gl
+- gn
+- gu
+- hak
+- he
+- hi
+- hr
+- hsb
+- hu
+- hy
+- ia
+- id
+- ig
+- ilo
+- io
+- is
+- it
+- ja
+- jbo
+- jv
+- ka
+- kk
+- km
+- kn
+- ko
+- ksh
+- ku
+- ky
+- la
+- lb
+- li
+- lij
+- lmo
+- ln
+- lt
+- lv
+- lzh
+- mg
+- mhr
+- mi
+- min
+- mk
+- ml
+- mn
+- mr
+- ms
+- mt
+- mwl
+- my
+- mzn
+- nan
+- nap
+- nds
+- ne
+- nl
+- nn
+- 'no'
+- nov
+- oc
+- or
+- os
+- pa
+- pdc
+- pl
+- pms
+- pnb
+- ps
+- pt
+- qu
+- rm
+- ro
+- ru
+- rw
+- sa
+- sah
+- scn
+- sco
+- sd
+- sgs
+- sh
+- si
+- sk
+- sl
+- so
+- sq
+- sr
+- su
+- sv
+- sw
+- szl
+- ta
+- te
+- tg
+- th
+- tk
+- tl
+- tr
+- tt
+- ug
+- uk
+- ur
+- uz
+- vec
+- vep
+- vi
+- vls
+- vo
+- vro
+- wa
+- war
+- wuu
+- xmf
+- yi
+- yo
+- yue
+- zea
+- zh
+language_bcp47:
+- be-tarask
+- en-basiceng
+- jv-x-bms
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -365,11 +190,188 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 paperswithcode_id: wikiann-1
 pretty_name: WikiANN
+configs:
+- 'no'
+- ace
+- af
+- als
+- am
+- an
+- ang
+- ar
+- arc
+- arz
+- as
+- ast
+- ay
+- az
+- ba
+- bar
+- be
+- bg
+- bh
+- bn
+- bo
+- br
+- bs
+- ca
+- cdo
+- ce
+- ceb
+- ckb
+- co
+- crh
+- cs
+- csb
+- cv
+- cy
+- da
+- de
+- diq
+- dv
+- el
+- en
+- eo
+- es
+- et
+- eu
+- ext
+- fa
+- fi
+- fo
+- fr
+- frr
+- fur
+- fy
+- ga
+- gan
+- gd
+- gl
+- gn
+- gu
+- hak
+- he
+- hi
+- hr
+- hsb
+- hu
+- hy
+- ia
+- id
+- ig
+- ilo
+- io
+- is
+- it
+- ja
+- jbo
+- jv
+- ka
+- kk
+- km
+- kn
+- ko
+- ksh
+- ku
+- ky
+- la
+- lb
+- li
+- lij
+- lmo
+- ln
+- lt
+- lv
+- mg
+- mhr
+- mi
+- min
+- mk
+- ml
+- mn
+- mr
+- ms
+- mt
+- mwl
+- my
+- mzn
+- nap
+- nds
+- ne
+- nl
+- nn
+- nov
+- oc
+- or
+- os
+- other-bat-smg
+- other-be-x-old
+- other-cbk-zam
+- other-eml
+- other-fiu-vro
+- other-map-bms
+- other-simple
+- other-zh-classical
+- other-zh-min-nan
+- other-zh-yue
+- pa
+- pdc
+- pl
+- pms
+- pnb
+- ps
+- pt
+- qu
+- rm
+- ro
+- ru
+- rw
+- sa
+- sah
+- scn
+- sco
+- sd
+- sh
+- si
+- sk
+- sl
+- so
+- sq
+- sr
+- su
+- sv
+- sw
+- szl
+- ta
+- te
+- tg
+- th
+- tk
+- tl
+- tr
+- tt
+- ug
+- uk
+- ur
+- uz
+- vec
+- vep
+- vi
+- vls
+- vo
+- wa
+- war
+- wuu
+- xmf
+- yi
+- yo
+- zea
+- zh
 ---
 
 # Dataset Card for WikiANN

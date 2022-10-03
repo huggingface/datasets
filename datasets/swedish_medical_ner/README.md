@@ -4,9 +4,11 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
+- sv
+language_bcp47:
 - sv-SE
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
@@ -15,7 +17,7 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 pretty_name: SwedMedNER

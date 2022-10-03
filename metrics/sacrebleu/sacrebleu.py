@@ -46,14 +46,24 @@ Produces BLEU scores along with its sufficient statistics
 from a source against one or more references.
 
 Args:
-    predictions: The system stream (a sequence of segments).
-    references: A list of one or more reference streams (each a sequence of segments).
-    smooth_method: The smoothing method to use. (Default: 'exp').
-    smooth_value: The smoothing value. Only valid for 'floor' and 'add-k'. (Defaults: floor: 0.1, add-k: 1).
-    tokenize: Tokenization method to use for BLEU. If not provided, defaults to 'zh' for Chinese, 'ja-mecab' for
-        Japanese and '13a' (mteval) otherwise.
-    lowercase: Lowercase the data. If True, enables case-insensitivity. (Default: False).
-    force: Insist that your tokenized input is actually detokenized.
+    predictions (`list` of `str`): list of translations to score. Each translation should be tokenized into a list of tokens.
+    references (`list` of `list` of `str`): A list of lists of references. The contents of the first sub-list are the references for the first prediction, the contents of the second sub-list are for the second prediction, etc. Note that there must be the same number of references for each prediction (i.e. all sub-lists must be of the same length).
+    smooth_method (`str`): The smoothing method to use, defaults to `'exp'`. Possible values are:
+        - `'none'`: no smoothing
+        - `'floor'`: increment zero counts
+        - `'add-k'`: increment num/denom by k for n>1
+        - `'exp'`: exponential decay
+    smooth_value (`float`): The smoothing value. Only valid when `smooth_method='floor'` (in which case `smooth_value` defaults to `0.1`) or `smooth_method='add-k'` (in which case `smooth_value` defaults to `1`).
+    tokenize (`str`): Tokenization method to use for BLEU. If not provided, defaults to `'zh'` for Chinese, `'ja-mecab'` for Japanese and `'13a'` (mteval) otherwise. Possible values are:
+        - `'none'`: No tokenization.
+        - `'zh'`: Chinese tokenization.
+        - `'13a'`: mimics the `mteval-v13a` script from Moses.
+        - `'intl'`: International tokenization, mimics the `mteval-v14` script from Moses
+        - `'char'`: Language-agnostic character-level tokenization.
+        - `'ja-mecab'`: Japanese tokenization. Uses the [MeCab tokenizer](https://pypi.org/project/mecab-python3).
+    lowercase (`bool`): If `True`, lowercases the input, enabling case-insensitivity. Defaults to `False`.
+    force (`bool`): If `True`, insists that your tokenized input is actually detokenized. Defaults to `False`.
+    use_effective_order (`bool`): If `True`, stops including n-gram orders for which precision is 0. This should be `True`, if sentence-level BLEU will be computed. Defaults to `False`.
 
 Returns:
     'score': BLEU score,
@@ -66,14 +76,28 @@ Returns:
 
 Examples:
 
-    >>> predictions = ["hello there general kenobi", "foo bar foobar"]
-    >>> references = [["hello there general kenobi", "hello there !"], ["foo bar foobar", "foo bar foobar"]]
-    >>> sacrebleu = datasets.load_metric("sacrebleu")
-    >>> results = sacrebleu.compute(predictions=predictions, references=references)
-    >>> print(list(results.keys()))
-    ['score', 'counts', 'totals', 'precisions', 'bp', 'sys_len', 'ref_len']
-    >>> print(round(results["score"], 1))
-    100.0
+    Example 1:
+        >>> predictions = ["hello there general kenobi", "foo bar foobar"]
+        >>> references = [["hello there general kenobi", "hello there !"], ["foo bar foobar", "foo bar foobar"]]
+        >>> sacrebleu = datasets.load_metric("sacrebleu")
+        >>> results = sacrebleu.compute(predictions=predictions, references=references)
+        >>> print(list(results.keys()))
+        ['score', 'counts', 'totals', 'precisions', 'bp', 'sys_len', 'ref_len']
+        >>> print(round(results["score"], 1))
+        100.0
+
+    Example 2:
+        >>> predictions = ["hello there general kenobi",
+        ...                 "on our way to ankh morpork"]
+        >>> references = [["hello there general kenobi", "hello there !"],
+        ...                 ["goodbye ankh morpork", "ankh morpork"]]
+        >>> sacrebleu = datasets.load_metric("sacrebleu")
+        >>> results = sacrebleu.compute(predictions=predictions,
+        ...                             references=references)
+        >>> print(list(results.keys()))
+        ['score', 'counts', 'totals', 'precisions', 'bp', 'sys_len', 'ref_len']
+        >>> print(round(results["score"], 1))
+        39.8
 """
 
 

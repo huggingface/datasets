@@ -28,6 +28,8 @@ _multiple_underscores_re = re.compile(r"(_{2,})")
 
 _split_re = r"^\w+(\.\w+)*$"
 
+INVALID_WINDOWS_CHARACTERS_IN_PATH = r"<>:/\|?*"
+
 
 def camelcase_to_snakecase(name):
     """Convert camel-case string to snake-case."""

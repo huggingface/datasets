@@ -3,12 +3,10 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
-  es:
-  - es
-  nl:
-  - nl
-licenses:
+language:
+- es
+- nl
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -17,12 +15,15 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
-- part-of-speech-tagging
+- part-of-speech
 paperswithcode_id: conll-2002
 pretty_name: CoNLL-2002
+configs:
+- es
+- nl
 ---
 
 # Dataset Card for CoNLL-2002
@@ -134,10 +135,10 @@ The original splits were named `train`, `testa` and `testb` and they correspond 
 
 The splits have the following sizes :
 
-|                            | Tain   | Valid | Test |
-| -----                      | ------ | ----- | ---- |
-| N. Examples (Spanish)      | 8324   | 1916  | 1518 |
-| N. Examples (Dutch)        | 15807  | 2896  | 5196 |
+|                            |  train |  validation |  test |
+| -----                      |-------:|------------:|------:|
+| N. Examples (Spanish)      |   8324 |        1916 |  1518 |
+| N. Examples (Dutch)        |  15807 |        2896 |  5196 |
 
 ## Dataset Creation
 

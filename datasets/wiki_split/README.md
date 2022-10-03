@@ -1,8 +1,24 @@
 ---
-languages:
+annotations_creators:
+- machine-generated
+language:
 - en
-paperswithcode_id: wikisplit
+language_creators:
+- found
+license:
+- cc-by-4.0
+multilinguality:
+- monolingual
 pretty_name: WikiSplit
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- text2text-generation
+task_ids:
+- text2text-generation-other-split-and-rephrase
+paperswithcode_id: wikisplit
 ---
 
 # Dataset Card for "wiki_split"
@@ -34,8 +50,8 @@ pretty_name: WikiSplit
 ## Dataset Description
 
 - **Homepage:** [https://dataset-homepage/](https://dataset-homepage/)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** https://github.com/google-research-datasets/wiki-split
+- **Paper:** [Learning To Split and Rephrase From Wikipedia Edit History](https://arxiv.org/abs/1808.09468)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 95.63 MB
 - **Size of the generated dataset:** 370.41 MB
@@ -49,15 +65,13 @@ the dataset contains some inherent noise, it can serve as valuable training data
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- Split and Rephrase
 
 ### Languages
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -143,22 +157,30 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The WikiSplit dataset is a verbatim copy of certain content from the publicly available Wikipedia revision history. 
+The dataset is therefore licensed under [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/). 
+Any third party content or data is provided "As Is" without any warranty, express or implied.
 
 ### Citation Information
 
 ```
-@InProceedings{BothaEtAl2018,
-  title = {{Learning To Split and Rephrase From Wikipedia Edit History}},
-  author = {Botha, Jan A and Faruqui, Manaal and Alex, John and Baldridge, Jason and Das, Dipanjan},
-  booktitle = {Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing},
-  pages = {to appear},
-  note = {arXiv preprint arXiv:1808.09468},
-  year = {2018}
+@inproceedings{botha-etal-2018-learning,
+    title = "Learning To Split and Rephrase From {W}ikipedia Edit History",
+    author = "Botha, Jan A.  and
+      Faruqui, Manaal  and
+      Alex, John  and
+      Baldridge, Jason  and
+      Das, Dipanjan",
+    booktitle = "Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing",
+    month = oct # "-" # nov,
+    year = "2018",
+    address = "Brussels, Belgium",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/D18-1080",
+    doi = "10.18653/v1/D18-1080",
+    pages = "732--737",
 }
-
 ```
-
 
 ### Contributions
 

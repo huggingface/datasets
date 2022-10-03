@@ -3,9 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - en
-licenses: []
+license:
+- other
 multilinguality:
 - monolingual
 size_categories:
@@ -14,7 +15,8 @@ source_datasets:
 - original
 task_categories:
 - other
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - other-other-relation-extraction
 - dialogue-modeling
@@ -143,9 +145,9 @@ An example from the DialogRE train set looks as follows:
 
 The data is split into a training, validation and test set as per the original dataset split. 
 
-|                       | Tain | Valid | Test |
-| --------------------- | ---- | ----- | ---- |
-| Input dialog examples | 1073 | 358   | 357  |
+|                       |  train |  validation |  test |
+| --------------------- |-------:|------------:|------:|
+| Input dialog examples |   1073 |         358 |   357 |
 
 ## Dataset Creation
 

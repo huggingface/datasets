@@ -3,14 +3,14 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - da
-- nb
-- lv
-- zh
 - en
-licenses:
-- other-C-UDA
+- lv
+- nb
+- zh
+license:
+- c-uda
 multilinguality:
 - multilingual
 size_categories:
@@ -18,9 +18,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- translation
 task_ids:
-- machine-translation
+- translation-other-code-documentation-translation
 pretty_name: CodeXGlueTtTextToText
 ---
 # Dataset Card for "code_x_glue_tt_text_to_text"

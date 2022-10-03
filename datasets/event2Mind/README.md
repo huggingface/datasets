@@ -1,8 +1,24 @@
 ---
-languages:
+annotations_creators:
+- crowdsourced
+language:
 - en
-paperswithcode_id: event2mind
+language_creators:
+- found
+license:
+- unknown
+multilinguality:
+- monolingual
 pretty_name: Event2Mind
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- text2text-generation
+task_ids:
+- text2text-generation-other-common-sense-inference
+paperswithcode_id: event2mind
 ---
 
 # Dataset Card for "event2Mind"
@@ -34,9 +50,9 @@ pretty_name: Event2Mind
 ## Dataset Description
 
 - **Homepage:** [https://uwnlp.github.io/event2mind/](https://uwnlp.github.io/event2mind/)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** https://github.com/uwnlp/event2mind
+- **Paper:** [Event2Mind: Commonsense Inference on Events, Intents, and Reactions](https://arxiv.org/abs/1805.06939)
+- **Point of Contact:** [Hannah Rashkin](mailto:hrashkin@cs.washington.edu), [Maarten Sap](mailto:msap@cs.washington.edu)
 - **Size of downloaded dataset files:** 1.24 MB
 - **Size of the generated dataset:** 6.90 MB
 - **Total amount of disk used:** 8.14 MB
@@ -54,8 +70,6 @@ In Event2Mind, we explore the task of understanding stereotypical intents and re
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -154,14 +168,23 @@ The data fields are the same among all splits.
 ### Citation Information
 
 ```
-@inproceedings{event2Mind,
-    title={Event2Mind: Commonsense Inference on Events, Intents, and Reactions},
-    author={Hannah Rashkin and Maarten Sap and Emily Allaway and Noah A. Smith† Yejin Choi},
-    year={2018}
+@inproceedings{rashkin-etal-2018-event2mind,
+    title = "{E}vent2{M}ind: Commonsense Inference on Events, Intents, and Reactions",
+    author = "Rashkin, Hannah  and
+      Sap, Maarten  and
+      Allaway, Emily  and
+      Smith, Noah A.  and
+      Choi, Yejin",
+    booktitle = "Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)",
+    month = jul,
+    year = "2018",
+    address = "Melbourne, Australia",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/P18-1043",
+    doi = "10.18653/v1/P18-1043",
+    pages = "463--473",
 }
-
 ```
-
 
 ### Contributions
 

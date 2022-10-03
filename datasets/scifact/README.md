@@ -1,8 +1,24 @@
 ---
-pretty_name: SciFact
-languages:
+annotations_creators:
+- expert-generated
+language:
 - en
-paperswithcode_id: null
+language_creators:
+- found
+license:
+- cc-by-nc-2.0
+multilinguality:
+- monolingual
+pretty_name: SciFact
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- fact-checking
+paperswithcode_id: scifact
 ---
 
 # Dataset Card for "scifact"
@@ -34,16 +50,16 @@ paperswithcode_id: null
 ## Dataset Description
 
 - **Homepage:** [https://scifact.apps.allenai.org/](https://scifact.apps.allenai.org/)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** https://github.com/allenai/scifact
+- **Paper:** [Fact or Fiction: Verifying Scientific Claims](https://aclanthology.org/2020.emnlp-main.609/)
+- **Point of Contact:** [David Wadden](mailto:davidw@allenai.org)
 - **Size of downloaded dataset files:** 5.43 MB
 - **Size of the generated dataset:** 7.88 MB
 - **Total amount of disk used:** 13.32 MB
 
 ### Dataset Summary
 
-SciFact, a dataset of 1.4K expert-written scientific claims paired with evidence-containing abstracts, and annotated with labels and rationales
+SciFact, a dataset of 1.4K expert-written scientific claims paired with evidence-containing abstracts, and annotated with labels and rationales.
 
 ### Supported Tasks and Leaderboards
 
@@ -54,8 +70,6 @@ SciFact, a dataset of 1.4K expert-written scientific claims paired with evidence
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -179,20 +193,32 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+https://github.com/allenai/scifact/blob/master/LICENSE.md
+
+The SciFact dataset is released under the [CC BY-NC 2.0](https://creativecommons.org/licenses/by-nc/2.0/). By using the SciFact data, you are agreeing to its usage terms.
 
 ### Citation Information
 
 ```
-@inproceedings{scifact2020
-  title={ Fact or Fiction: Verifying Scientific Claims},
-  author={David,  Wadden and Kyle, Lo and Lucy Lu, Wang and Shanchuan, Lin and Madeleine van, Zuylen and Arman, Cohan and  Hannaneh, Hajishirzi},
-  booktitle={2011 AAAI Spring Symposium Series},
-  year={2020},
+@inproceedings{wadden-etal-2020-fact,
+    title = "Fact or Fiction: Verifying Scientific Claims",
+    author = "Wadden, David  and
+      Lin, Shanchuan  and
+      Lo, Kyle  and
+      Wang, Lucy Lu  and
+      van Zuylen, Madeleine  and
+      Cohan, Arman  and
+      Hajishirzi, Hannaneh",
+    booktitle = "Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)",
+    month = nov,
+    year = "2020",
+    address = "Online",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2020.emnlp-main.609",
+    doi = "10.18653/v1/2020.emnlp-main.609",
+    pages = "7534--7550",
 }
-
 ```
-
 
 ### Contributions
 

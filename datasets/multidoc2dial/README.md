@@ -4,20 +4,17 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - expert-generated
-languages:
+language:
 - en
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - monolingual
 pretty_name: MultiDoc2Dial
 size_categories:
-  dialogue_domain:
-  - 1K<n<10K
-  document_domain:
-  - n<1K
-  multidoc2dial:
-  - 10K<n<100K
+- 10K<n<100K
+- 1K<n<10K
+- n<1K
 source_datasets:
 - extended|doc2dial
 task_categories:
@@ -25,6 +22,10 @@ task_categories:
 task_ids:
 - open-domain-qa
 paperswithcode_id: multidoc2dial
+configs:
+- dialogue_domain
+- document_domain
+- multidoc2dial
 ---
 
 # Dataset Card for MultiDoc2Dial

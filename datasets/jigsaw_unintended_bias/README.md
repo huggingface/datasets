@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc0-1.0
 multilinguality:
 - monolingual
@@ -15,9 +15,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- text-scoring
+- text-classification
 task_ids:
-- text-scoring-other-toxicity-prediction
+- text-scoring
+- text-classification-other-toxicity-prediction
 ---
 
 # Dataset Card for Jigsaw Unintended Bias in Toxicity Classification
@@ -49,11 +50,11 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage: https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification **
-- **Repository: N/A **
-- **Paper: N/A **
-- **Leaderboard: https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification/leaderboard **
-- **Point of Contact: N/A **
+- **Homepage:** https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification
+- **Repository:**
+- **Paper:**
+- **Leaderboard:** https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification/leaderboard
+- **Point of Contact:**
 
 ### Dataset Summary
 

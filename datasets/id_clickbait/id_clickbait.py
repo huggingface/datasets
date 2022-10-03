@@ -47,7 +47,7 @@ _HOMEPAGE = "https://github.com/feryandi/Dataset-Artikel"
 
 _LICENSE = "Creative Commons Attribution 4.0 International license"
 
-_URLs = ["https://md-datasets-cache-zipfiles-prod.s3.eu-west-1.amazonaws.com/k42j7x2kpn-1.zip"]
+_URL = "https://md-datasets-cache-zipfiles-prod.s3.eu-west-1.amazonaws.com/k42j7x2kpn-1.zip"
 
 
 class IdClickbaitConfig(datasets.BuilderConfig):
@@ -72,9 +72,9 @@ class IdClickbait(datasets.GeneratorBasedBuilder):
             version=VERSION,
             description="Annotated clickbait dataset",
             label_classes=["non-clickbait", "clickbait"],
-            path="annotated/csv",
+            path=os.path.join("annotated", "csv"),
         ),
-        IdClickbaitConfig(name="raw", version=VERSION, description="Raw dataset", path="raw/csv"),
+        IdClickbaitConfig(name="raw", version=VERSION, description="Raw dataset", path=os.path.join("raw", "csv")),
     ]
 
     BUILDER_CONFIG_CLASS = IdClickbaitConfig
@@ -111,34 +111,32 @@ class IdClickbait(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        my_urls = _URLs[0]
-        data_dir = dl_manager.download_and_extract(my_urls)
+        data_dir = dl_manager.download_and_extract(_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "article_dir": os.path.join(data_dir, self.config.path),
-                    "split": "train",
                 },
             )
         ]
 
-    def _generate_examples(self, article_dir, split):
-        logger.info("⏳ Generating %s examples from = %s", split, article_dir)
-        id = 0
-        for path in sorted(glob.glob(os.path.join(article_dir, "**/*.csv"), recursive=True)):
+    def _generate_examples(self, article_dir):
+        logger.info(f"⏳ Generating examples from = {article_dir}")
+        idx = 0
+        for path in sorted(glob.glob(os.path.join(article_dir, "*.csv"))):
             with open(path, encoding="utf-8-sig", newline="") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     if self.config.name == "annotated":
-                        yield id, {
-                            "id": str(id),
+                        yield idx, {
+                            "id": str(idx),
                             "title": row["title"],
                             "label": row["label"],
                         }
                     else:
-                        yield id, {
-                            "id": str(id),
+                        yield idx, {
+                            "id": str(idx),
                             "title": row["title"],
                             "source": row["source"],
                             "date": row["date"],
@@ -147,4 +145,4 @@ class IdClickbait(datasets.GeneratorBasedBuilder):
                             "content": row["content"],
                             "url": row["url"],
                         }
-                    id += 1
+                    idx += 1

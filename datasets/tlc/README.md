@@ -5,9 +5,9 @@ annotations_creators:
 - no-annotation
 language_creators:
 - expert-generated
-languages:
+language:
 - th
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -16,9 +16,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
 paperswithcode_id: null
 ---
 

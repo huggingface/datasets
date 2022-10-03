@@ -1,8 +1,33 @@
 ---
-languages:
+annotations_creators:
+- expert-generated
+language:
 - en
+language_creators:
+- other
+license:
+- unknown
+multilinguality:
+- monolingual
 paperswithcode_id: superglue
 pretty_name: SuperGLUE
+size_categories:
+- 10K<n<100K
+source_datasets:
+- extended|other
+tags:
+- superglue
+- NLU
+- natural language understanding
+task_categories:
+- text-classification
+- token-classification
+- question-answering
+task_ids:
+- natural-language-inference
+- word-sense-disambiguation
+- coreference-resolution
+- extractive-qa
 ---
 
 # Dataset Card for "super_glue"
@@ -61,8 +86,6 @@ Wikipedia article containing the answer. Following the original work, we evaluat
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

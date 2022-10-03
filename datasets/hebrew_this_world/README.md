@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - he
-licenses:
-- gpl
+license:
+- agpl-3.0
 multilinguality:
 - monolingual
 size_categories:
@@ -14,9 +14,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
 paperswithcode_id: null
 pretty_name: HebrewSentiment
 ---
@@ -110,11 +112,9 @@ Sample:
 
 ### Data Splits
 
-|                          | train  | 
-|--------------------------|--------|
-| corpus                   | 2028  |
-
-
+|        | train | 
+|--------|------:|
+| corpus |  2028 |
 
 ## Dataset Creation
 
@@ -191,7 +191,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ### Citation Information
 
-[More Information Needed]
+https://thisworld.online/
 
 ### Contributions
 

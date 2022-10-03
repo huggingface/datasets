@@ -25,6 +25,8 @@ import datasets
 logger = datasets.logging.get_logger(__name__)
 
 
+_HOMEPAGE = "https://github.com/abisee/cnn-dailymail"
+
 _DESCRIPTION = """\
 CNN/DailyMail non-anonymized summarization dataset.
 
@@ -63,13 +65,11 @@ _CITATION = """\
 """
 
 _DL_URLS = {
-    # pylint: disable=line-too-long
-    "cnn_stories": "https://drive.google.com/uc?export=download&id=0BwmD_VLjROrfTHk4NFg2SndKcjQ",
-    "dm_stories": "https://drive.google.com/uc?export=download&id=0BwmD_VLjROrfM1BxdkxVaTY2bWs",
-    "test_urls": "https://raw.githubusercontent.com/abisee/cnn-dailymail/master/url_lists/all_test.txt",
-    "train_urls": "https://raw.githubusercontent.com/abisee/cnn-dailymail/master/url_lists/all_train.txt",
-    "val_urls": "https://raw.githubusercontent.com/abisee/cnn-dailymail/master/url_lists/all_val.txt",
-    # pylint: enable=line-too-long
+    "cnn_stories": "https://huggingface.co/datasets/cnn_dailymail/resolve/11343c3752184397d56efc19a8a7cceb68089318/data/cnn_stories.tgz",
+    "dm_stories": "https://huggingface.co/datasets/cnn_dailymail/resolve/11343c3752184397d56efc19a8a7cceb68089318/data/dailymail_stories.tgz",
+    "train": "https://raw.githubusercontent.com/abisee/cnn-dailymail/master/url_lists/all_train.txt",
+    "validation": "https://raw.githubusercontent.com/abisee/cnn-dailymail/master/url_lists/all_val.txt",
+    "test": "https://raw.githubusercontent.com/abisee/cnn-dailymail/master/url_lists/all_test.txt",
 }
 
 _HIGHLIGHTS = "highlights"
@@ -104,7 +104,7 @@ class CnnDailymailConfig(datasets.BuilderConfig):
 
 def _get_url_hashes(path):
     """Get hashes of urls in file."""
-    urls = _read_text_file(path)
+    urls = _read_text_file_path(path)
 
     def url_hash(u):
         h = hashlib.sha1()
@@ -115,47 +115,12 @@ def _get_url_hashes(path):
         h.update(u)
         return h.hexdigest()
 
-    return {url_hash(u): True for u in urls}
+    return {url_hash(u) for u in urls}
 
 
 def _get_hash_from_path(p):
     """Extract hash from path."""
-    basename = os.path.basename(p)
-    return basename[0 : basename.find(".story")]
-
-
-def _find_files(dl_paths, publisher, url_dict):
-    """Find files corresponding to urls."""
-    if publisher == "cnn":
-        top_dir = os.path.join(dl_paths["cnn_stories"], "cnn", "stories")
-    elif publisher == "dm":
-        top_dir = os.path.join(dl_paths["dm_stories"], "dailymail", "stories")
-    else:
-        logger.fatal("Unsupported publisher: %s", publisher)
-    files = sorted(os.listdir(top_dir))
-
-    ret_files = []
-    for p in files:
-        if _get_hash_from_path(p) in url_dict:
-            ret_files.append(os.path.join(top_dir, p))
-    return ret_files
-
-
-def _subset_filenames(dl_paths, split):
-    """Get filenames for a particular split."""
-    assert isinstance(dl_paths, dict), dl_paths
-    # Get filenames for a split.
-    if split == datasets.Split.TRAIN:
-        urls = _get_url_hashes(dl_paths["train_urls"])
-    elif split == datasets.Split.VALIDATION:
-        urls = _get_url_hashes(dl_paths["val_urls"])
-    elif split == datasets.Split.TEST:
-        urls = _get_url_hashes(dl_paths["test_urls"])
-    else:
-        logger.fatal("Unsupported split: %s", split)
-    cnn = _find_files(dl_paths, "cnn", urls)
-    dm = _find_files(dl_paths, "dm", urls)
-    return cnn + dm
+    return os.path.splitext(os.path.basename(p))[0]
 
 
 DM_SINGLE_CLOSE_QUOTE = "\u2019"  # unicode
@@ -164,12 +129,14 @@ DM_DOUBLE_CLOSE_QUOTE = "\u201d"
 END_TOKENS = [".", "!", "?", "...", "'", "`", '"', DM_SINGLE_CLOSE_QUOTE, DM_DOUBLE_CLOSE_QUOTE, ")"]
 
 
-def _read_text_file(text_file):
-    lines = []
-    with open(text_file, "r", encoding="utf-8") as f:
-        for line in f:
-            lines.append(line.strip())
+def _read_text_file_path(path):
+    with open(path, "r", encoding="utf-8") as f:
+        lines = [line.strip() for line in f]
     return lines
+
+
+def _read_text_file(file):
+    return [line.decode("utf-8").strip() for line in file]
 
 
 def _get_art_abs(story_file, tfds_version):
@@ -231,7 +198,6 @@ class CnnDailymail(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        # Should return a datasets.DatasetInfo object
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
@@ -242,7 +208,7 @@ class CnnDailymail(datasets.GeneratorBasedBuilder):
                 }
             ),
             supervised_keys=None,
-            homepage="https://github.com/abisee/cnn-dailymail",
+            homepage=_HOMEPAGE,
             citation=_CITATION,
         )
 
@@ -251,29 +217,34 @@ class CnnDailymail(datasets.GeneratorBasedBuilder):
             yield " ".join([ex[_ARTICLE], ex[_HIGHLIGHTS]])
 
     def _split_generators(self, dl_manager):
-        dl_paths = dl_manager.download_and_extract(_DL_URLS)
-        train_files = _subset_filenames(dl_paths, datasets.Split.TRAIN)
-        # Generate shared vocabulary
-
+        dl_paths = dl_manager.download(_DL_URLS)
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": train_files}),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={"files": _subset_filenames(dl_paths, datasets.Split.VALIDATION)},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"files": _subset_filenames(dl_paths, datasets.Split.TEST)}
-            ),
+                name=split,
+                gen_kwargs={
+                    "urls_file": dl_paths[split],
+                    "files_per_archive": [
+                        dl_manager.iter_archive(dl_paths["cnn_stories"]),
+                        dl_manager.iter_archive(dl_paths["dm_stories"]),
+                    ],
+                },
+            )
+            for split in [datasets.Split.TRAIN, datasets.Split.VALIDATION, datasets.Split.TEST]
         ]
 
-    def _generate_examples(self, files):
-        for p in files:
-            article, highlights = _get_art_abs(p, self.config.version)
-            if not article or not highlights:
-                continue
-            fname = os.path.basename(p)
-            yield fname, {
-                _ARTICLE: article,
-                _HIGHLIGHTS: highlights,
-                "id": _get_hash_from_path(fname),
-            }
+    def _generate_examples(self, urls_file, files_per_archive):
+        urls = _get_url_hashes(urls_file)
+        idx = 0
+        for files in files_per_archive:
+            for path, file in files:
+                hash_from_path = _get_hash_from_path(path)
+                if hash_from_path in urls:
+                    article, highlights = _get_art_abs(file, self.config.version)
+                    if not article or not highlights:
+                        continue
+                    yield idx, {
+                        _ARTICLE: article,
+                        _HIGHLIGHTS: highlights,
+                        "id": hash_from_path,
+                    }
+                    idx += 1

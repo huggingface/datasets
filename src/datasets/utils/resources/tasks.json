@@ -1,51 +1,121 @@
 {
-    "conditional-text-generation": {
-        "description": "data-to-text and text transduction tasks such as translation or summarization",
-        "options": [
-            "machine-translation",
-            "sentence-splitting-fusion",
-            "summarization",
-            "table-to-text",
-            "text-simplification",
-            "explanation-generation",
-            "other-structured-to-text",
-            "other"
+    "audio-classification": {
+        "type": "audio",
+        "subtasks": [
+            "keyword-spotting",
+            "speaker-identification",
+            "audio-intent-classification",
+            "audio-emotion-recognition",
+            "audio-language-identification"
         ]
+    },
+    "audio-to-audio": {
+        "type": "audio"
+    },
+    "automatic-speech-recognition": {
+        "type": "audio"
+    },
+    "conversational": {
+        "type": "nlp",
+        "subtasks": [
+            "dialogue-generation"
+        ]
+    },
+    "feature-extraction": {
+        "type": "multimodal"
+    },
+    "fill-mask": {
+        "type": "nlp",
+        "subtasks": [
+            "slot-filling",
+            "masked-language-modeling"
+        ]
+    },
+    "image-classification": {
+        "type": "cv",
+        "subtasks": [
+            "multi-label-image-classification",
+            "multi-class-image-classification"
+        ]
+    },
+    "image-segmentation": {
+        "type": "cv",
+        "subtasks": [
+            "instance-segmentation",
+            "semantic-segmentation",
+            "panoptic-segmentation"
+        ]
+    },
+    "image-to-image": {
+        "type": "cv"
+    },
+    "image-to-text": {
+        "type": "multimodal",
+        "subtasks": [
+            "image-captioning"
+        ]
+    },
+    "multiple-choice": {
+        "type": "nlp",
+        "subtasks": [
+            "multiple-choice-qa",
+            "multiple-choice-coreference-resolution"
+        ]
+    },
+    "object-detection": {
+        "type": "cv",
+        "subtasks": [
+            "face-detection",
+            "vehicle-detection"
+        ]
+    },
+    "other": {
+        "type": "other"
     },
     "question-answering": {
-        "description": "question answering tasks",
-        "options": [
-            "open-domain-qa",
-            "closed-domain-qa",
-            "multiple-choice-qa",
+        "type": "nlp",
+        "subtasks": [
             "extractive-qa",
-            "abstractive-qa",
-            "other"
+            "open-domain-qa",
+            "closed-domain-qa"
         ]
     },
-    "sequence-modeling": {
-        "description": "such as language modeling or dialogue",
-        "options": [
-            "dialogue-modeling",
-            "language-modeling",
-            "other-multi-turn",
-            "slot-filling",
-            "other"
+    "sentence-similarity": {
+        "type": "nlp"
+    },
+    "summarization": {
+        "type": "nlp",
+        "subtasks": [
+            "news-articles-summarization",
+            "news-articles-headline-generation"
         ]
     },
-    "structure-prediction": {
-        "description": "predicting structural properties of the text, such as syntax",
-        "options": [
-            "coreference-resolution",
-            "named-entity-recognition",
-            "part-of-speech-tagging",
-            "parsing",
-            "other"
+    "table-question-answering": {
+        "type": "nlp"
+    },
+    "table-to-text": {
+        "type": "nlp",
+        "subtasks": [
+            "rdf-to-text"
+        ]
+    },
+    "tabular-classification": {
+        "type": "structured",
+        "subtasks": [
+            "tabular-multi-class-classification",
+            "tabular-multi-label-classification",
+            "tabular-single-column-regression"
+        ]
+    },
+    "tabular-to-text": {
+        "type": "structured",
+        "subtasks": [
+            "rdf-to-text"
         ]
     },
     "text-classification": {
-        "description": "predicting a class index or boolean value",
-        "options": [
+        "type": "nlp",
+        "subtasks": [
             "acceptability-classification",
             "entity-linking-classification",
             "fact-checking",
@@ -56,46 +126,85 @@
             "semantic-similarity-classification",
             "sentiment-classification",
             "topic-classification",
-            "other"
+            "semantic-similarity-scoring",
+            "sentiment-scoring",
+            "sentiment-analysis",
+            "hate-speech-detection",
+            "text-scoring",
+            "multi-input-text-classification"
+        ]
+    },
+    "text-generation": {
+        "type": "nlp",
+        "subtasks": [
+            "dialogue-modeling",
+            "language-modeling"
         ]
     },
     "text-retrieval": {
-        "description": "information or text retrieval tasks",
-        "options": [
+        "type": "nlp",
+        "subtasks": [
             "document-retrieval",
             "utterance-retrieval",
             "entity-linking-retrieval",
-            "fact-checking-retrieval",
-            "other"
+            "fact-checking-retrieval"
         ]
     },
-    "text-scoring": {
-        "description": "text scoring tasks, predicting a real valued score for some text",
-        "options": [
-            "semantic-similarity-scoring",
-            "sentiment-scoring",
-            "other"
+    "text-to-image": {
+        "type": "multimodal"
+    },
+    "text-to-speech": {
+        "type": "audio"
+    },
+    "text2text-generation": {
+        "type": "nlp",
+        "subtasks": [
+            "text-simplification",
+            "explanation-generation",
+            "abstractive-qa",
+            "open-domain-abstractive-qa",
+            "closed-domain-qa",
+            "open-book-qa",
+            "closed-book-qa"
         ]
     },
-    "speech-processing": {
-        "description": "tasks related to the analysis and representations of speech signals",
-        "options": [
-            "automatic-speech-recognition",
-            "phoneme-recognition",
-            "keyword-spotting",
-            "query-by-example-spoken-term-detection",
-            "speaker-identification",
-            "automatic-speaker-verification",
-            "speaker-diarization",
-            "intent-classification",
-            "slot-filling",
-            "emotion-recognition"
+    "time-series-forecasting": {
+        "type": "structured",
+        "subtasks": [
+            "univariate-time-series-forecasting",
+            "multivariate-time-series-forecasting"
         ]
     },
-    "other": {
-        "description": "other task family not mentioned here",
-        "options": [
-            "other"
+    "token-classification": {
+        "type": "nlp",
+        "subtasks": [
+            "named-entity-recognition",
+            "part-of-speech",
+            "parsing",
+            "lemmatization",
+            "word-sense-disambiguation",
+            "coreference-resolution"
         ]
+    },
+    "translation": {
+        "type": "nlp"
+    },
+    "unconditional-image-generation": {
+        "type": "cv"
+    },
+    "visual-question-answering": {
+        "type": "multimodal",
+        "subtasks": [
+            "visual-question-answering"
+        ]
+    },
+    "voice-activity-detection": {
+        "type": "audio"
+    },
+    "zero-shot-classification": {
+        "type": "nlp"
+    },
+    "zero-shot-image-classification": {
+        "type": "cv"
     }
 }

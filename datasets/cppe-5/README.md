@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -14,9 +14,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- other
+- object-detection
 task_ids:
-- other-other-object-detection
+- object-detection-other-medical-personal-protective-equipment-detection
 paperswithcode_id: cppe-5
 pretty_name: CPPE - 5
 ---

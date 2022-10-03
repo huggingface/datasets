@@ -3,10 +3,10 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
-- cc-by-4
+license:
+- cc-by-4.0
 multilinguality:
 - monolingual
 size_categories:
@@ -14,9 +14,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- text-scoring
+- text-classification
 task_ids:
-- other-social-media-shares-prediction
+- text-scoring
+- text-classification-other-social-media-shares-prediction
 paperswithcode_id: null
 pretty_name: News Popularity in Multiple Social Media Platforms
 ---

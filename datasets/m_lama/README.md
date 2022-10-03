@@ -7,7 +7,7 @@ language_creators:
 - crowdsourced
 - expert-generated
 - machine-generated
-languages:
+language:
 - af
 - ar
 - az
@@ -61,7 +61,7 @@ languages:
 - ur
 - vi
 - zh
-licenses:
+license:
 - cc-by-nc-sa-4.0
 multilinguality:
 - translation
@@ -71,10 +71,11 @@ source_datasets:
 - extended|lama
 task_categories:
 - question-answering
-- text-scoring
+- text-classification
 task_ids:
 - open-domain-qa
-- text-scoring-other-probing
+- text-scoring
+- text-classification-other-probing
 paperswithcode_id: null
 pretty_name: MLama
 ---

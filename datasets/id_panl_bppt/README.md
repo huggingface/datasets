@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - en
 - id
-licenses:
+license:
 - unknown
 multilinguality:
 - translation
@@ -15,9 +15,8 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: null
 pretty_name: IdPanlBppt
 ---
@@ -162,7 +161,14 @@ The dataset is splitted in to train, validation and test sets.
 
 ### Citation Information
 
-[More Information Needed]
+```
+@inproceedings{id_panl_bppt,
+  author    = {PAN Localization - BPPT},
+  title     = {Parallel Text Corpora, English Indonesian},
+  year      = {2009},
+  url       = {http://digilib.bppt.go.id/sampul/p92-budiono.pdf},
+}
+```
 
 ### Contributions
 

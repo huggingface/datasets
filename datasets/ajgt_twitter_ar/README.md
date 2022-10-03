@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - ar
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -85,11 +85,11 @@ A binary datset with with negative and positive sentiments.
 
 ### Data Splits
 
-The dataset is not split. 
+The dataset is not split.
 
-|           | Tain   | 
-|---------- | ------ | 
-|no split   | 1,800  | 
+|          | train |
+|----------|------:|
+| no split | 1,800 | 
 
 ## Dataset Creation
 

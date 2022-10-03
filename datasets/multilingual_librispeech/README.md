@@ -5,15 +5,15 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - expert-generated
-languages:
+language:
 - de
-- nl
+- es
 - fr
 - it
-- es
-- pt
+- nl
 - pl
-licenses:
+- pt
+license:
 - cc-by-4.0
 multilinguality:
 - multilingual
@@ -23,9 +23,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- speech-processing
-task_ids:
 - automatic-speech-recognition
+- audio-classification
+task_ids:
+- speaker-identification
 ---
 
 # Dataset Card for MultiLingual LibriSpeech
@@ -63,11 +64,15 @@ task_ids:
 
 ### Dataset Summary
 
+<div class="course-tip course-tip-orange bg-gradient-to-br dark:bg-gradient-to-r before:border-orange-500 dark:before:border-orange-800 from-orange-50 dark:from-gray-900 to-white dark:to-gray-950 border border-orange-50 text-orange-700 dark:text-gray-400">
+  <p><b>Deprecated:</b> This legacy dataset doesn't support streaming and is not updated. Use "facebook/multilingual_librispeech" instead.</p>
+</div>
+
 Multilingual LibriSpeech (MLS) dataset is a large multilingual corpus suitable for speech research. The dataset is derived from read audiobooks from LibriVox and consists of 8 languages - English, German, Dutch, Spanish, French, Italian, Portuguese, Polish.
 
 ### Supported Tasks and Leaderboards
 
-- `automatic-speech-recognition`, `speaker-identification`: The dataset can be used to train a model for Automatic Speech Recognition (ASR). The model is presented with an audio file and asked to transcribe the audio file to written text. The most common evaluation metric is the word error rate (WER). The task has an active leaderboard which can be found at https://paperswithcode.com/dataset/multilingual-librispeech and ranks models based on their WER.
+- `automatic-speech-recognition`, `audio-speaker-identification`: The dataset can be used to train a model for Automatic Speech Recognition (ASR). The model is presented with an audio file and asked to transcribe the audio file to written text. The most common evaluation metric is the word error rate (WER). The task has an active leaderboard which can be found at https://paperswithcode.com/dataset/multilingual-librispeech and ranks models based on their WER.
 
 ### Languages
 

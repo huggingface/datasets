@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - ur
-licenses:
+license:
 - cc-by-nc-sa-4.0
 multilinguality:
 - monolingual
@@ -15,8 +15,8 @@ source_datasets:
 - original
 task_categories:
 - text-classification
-- text-scoring
 task_ids:
+- text-scoring
 - semantic-similarity-scoring
 - topic-classification
 paperswithcode_id: counter

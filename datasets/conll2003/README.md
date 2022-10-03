@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - other
 multilinguality:
 - monolingual
@@ -14,12 +14,25 @@ size_categories:
 source_datasets:
 - extended|other-reuters-corpus
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
-- part-of-speech-tagging
+- part-of-speech
 paperswithcode_id: conll-2003
 pretty_name: CoNLL-2003
+train-eval-index:
+- config: conll2003
+  task: token-classification
+  task_id: entity_extraction
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    tokens: tokens
+    ner_tags: tags
+  metrics:
+    - type: seqeval
+      name: seqeval
 ---
 
 # Dataset Card for "conll2003"

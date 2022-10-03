@@ -1,8 +1,26 @@
 ---
-languages:
+annotations_creators:
+- no-annotation
+language_creators:
+- found
+language:
 - en
-paperswithcode_id: openwebtext
+license:
+- cc0-1.0
+multilinguality:
+- monolingual
 pretty_name: OpenWebText
+size_categories:
+- 1M<n<10M
+source_datasets:
+- original
+task_categories:
+- text-generation
+- fill-mask
+task_ids:
+- language-modeling
+- masked-language-modeling
+paperswithcode_id: openwebtext
 ---
 
 # Dataset Card for "openwebtext"
@@ -55,8 +73,6 @@ An open-source replication of the WebText dataset from OpenAI.
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### plain_text
@@ -83,9 +99,9 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-|   name   | train |
-|----------|------:|
-|plain_text|8013769|
+| name       |   train |
+|------------|--------:|
+| plain_text | 8013769 |
 
 ## Dataset Creation
 
@@ -150,9 +166,7 @@ The data fields are the same among all splits.
 	howpublished{\url{http://Skylion007.github.io/OpenWebTextCorpus}},
 	year={2019}
 }
-
 ```
-
 
 ### Contributions
 

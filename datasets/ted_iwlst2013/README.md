@@ -3,50 +3,23 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
-  ar-en:
-  - ar
-  - en
-  de-en:
-  - de
-  - en
-  en-es:
-  - en
-  - es
-  en-fa:
-  - en
-  - fa
-  en-fr:
-  - en
-  - fr
-  en-it:
-  - en
-  - it
-  en-nl:
-  - en
-  - nl
-  en-pl:
-  - en
-  - pl
-  en-pt:
-  - en
-  - pt
-  en-ro:
-  - en
-  - ro
-  en-ru:
-  - en
-  - ru
-  en-sl:
-  - en
-  - sl
-  en-tr:
-  - en
-  - tr
-  en-zh:
-  - en
-  - zh
-licenses:
+language:
+- ar
+- de
+- en
+- es
+- fa
+- fr
+- it
+- nl
+- pl
+- pt
+- ro
+- ru
+- sl
+- tr
+- zh
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -55,14 +28,28 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: null
 pretty_name: TedIwlst2013
+configs:
+- ar-en
+- de-en
+- en-es
+- en-fa
+- en-fr
+- en-it
+- en-nl
+- en-pl
+- en-pt
+- en-ro
+- en-ru
+- en-sl
+- en-tr
+- en-zh
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for TedIwlst2013
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

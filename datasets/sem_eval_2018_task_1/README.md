@@ -3,11 +3,11 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
-- en
+language:
 - ar
+- en
 - es
-licenses:
+license:
 - unknown
 multilinguality:
 - multilingual
@@ -52,11 +52,11 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage: https://competitions.codalab.org/competitions/17751**
+- **Homepage:** https://competitions.codalab.org/competitions/17751
 - **Repository:**
-- **Paper: http://saifmohammad.com/WebDocs/semeval2018-task1.pdf**
+- **Paper:** http://saifmohammad.com/WebDocs/semeval2018-task1.pdf
 - **Leaderboard:**
-- **Point of Contact: https://www.saifmohammad.com/**
+- **Point of Contact:** https://www.saifmohammad.com/
 
 ### Dataset Summary
 
@@ -128,12 +128,11 @@ Note that the test set has no labels, and therefore all labels are set to False.
 
 ### Data Splits
 
-|                            | Tain   | Dev   | Test |
-| -----                      | ------ | ----- | ---- |
-| English                    | 6,838  |  886  | 3,259|
-| Arabic                     | 2,278  |  585  | 1,518|
-| Spanish                    | 3,561  |  679  | 2,854|
-
+|         | train | validation |  test |
+|---------|------:|-----------:|------:|
+| English | 6,838 |        886 | 3,259 |
+| Arabic  | 2,278 |        585 | 1,518 |
+| Spanish | 3,561 |        679 | 2,854 |
 
 ## Dataset Creation
 

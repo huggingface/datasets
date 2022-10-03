@@ -4,9 +4,9 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -16,7 +16,8 @@ source_datasets:
 - extended|wikipedia
 task_categories:
 - question-answering
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - dialogue-modeling
 - extractive-qa
@@ -24,7 +25,7 @@ paperswithcode_id: quac
 pretty_name: Question Answering in Context
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Question Answering in Context
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

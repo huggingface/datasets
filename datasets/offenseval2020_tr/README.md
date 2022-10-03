@@ -3,10 +3,10 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - tr
-licenses:
-- found
+license:
+- cc-by-2.0
 multilinguality:
 - monolingual
 size_categories:
@@ -102,9 +102,9 @@ In our annotation, we label a post as offensive (OFF) if it contains any form of
 
 ### Data Splits
 
-| Tain  | Test  | 
-|-------| ----- | 
-| 31756 | 3528  | 
+| train | test |
+|------:|-----:|
+| 31756 | 3528 |
 
 ## Dataset Creation
 
@@ -156,7 +156,11 @@ We describe the labels above in a “flat” manner. However, the annotation pro
 
 ## Considerations for Using the Data
 
-### Discussion of Social Impact and Biases
+### Social Impact of Dataset
+
+[More Information Needed]
+
+### Discussion of Biases
 
 [More Information Needed]
 

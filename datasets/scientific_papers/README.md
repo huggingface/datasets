@@ -1,8 +1,24 @@
 ---
-languages:
+annotations_creators:
+- found
+language:
 - en
-paperswithcode_id: null
+language_creators:
+- found
+license:
+- unknown
+multilinguality:
+- monolingual
 pretty_name: ScientificPapers
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- summarization
+task_ids:
+- summarization-other-abstractive-summarization
+paperswithcode_id: null
 ---
 
 # Dataset Card for "scientific_papers"
@@ -33,9 +49,9 @@ pretty_name: ScientificPapers
 
 ## Dataset Description
 
-- **Homepage:** [https://github.com/armancohan/long-summarization](https://github.com/armancohan/long-summarization)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Homepage:**
+- **Repository:** https://github.com/armancohan/long-summarization
+- **Paper:** [A Discourse-Aware Attention Model for Abstractive Summarization of Long Documents](https://arxiv.org/abs/1804.05685)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 8591.93 MB
 - **Size of the generated dataset:** 9622.19 MB
@@ -47,9 +63,9 @@ Scientific papers datasets contains two sets of long and structured documents.
 The datasets are obtained from ArXiv and PubMed OpenAccess repositories.
 
 Both "arxiv" and "pubmed" have two features:
-  - article: the body of the document, pagragraphs seperated by "/n".
-  - abstract: the abstract of the document, pagragraphs seperated by "/n".
-  - section_names: titles of sections, seperated by "/n".
+  - article: the body of the document, paragraphs separated by "/n".
+  - abstract: the abstract of the document, paragraphs separated by "/n".
+  - section_names: titles of sections, separated by "/n".
 
 ### Supported Tasks and Leaderboards
 
@@ -60,8 +76,6 @@ Both "arxiv" and "pubmed" have two features:
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -177,7 +191,6 @@ The data fields are the same among all splits.
 ### Citation Information
 
 ```
-
 @article{Cohan_2018,
    title={A Discourse-Aware Attention Model for Abstractive Summarization of
             Long Documents},
@@ -190,9 +203,7 @@ The data fields are the same among all splits.
    author={Cohan, Arman and Dernoncourt, Franck and Kim, Doo Soon and Bui, Trung and Kim, Seokhwan and Chang, Walter and Goharian, Nazli},
    year={2018}
 }
-
 ```
-
 
 ### Contributions
 

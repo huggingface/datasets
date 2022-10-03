@@ -55,8 +55,6 @@ NLP systems on code-switching tasks.
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### lid_hineng

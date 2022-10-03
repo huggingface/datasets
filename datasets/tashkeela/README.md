@@ -3,9 +3,9 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - ar
-licenses:
+license:
 - gpl-2.0
 multilinguality:
 - monolingual
@@ -14,9 +14,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
 - other-diacritics-prediction
 paperswithcode_id: null
 pretty_name: Tashkeela

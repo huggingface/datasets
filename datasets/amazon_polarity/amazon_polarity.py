@@ -41,7 +41,7 @@ _HOMEPAGE = "https://registry.opendata.aws/"
 _LICENSE = "Apache License 2.0"
 
 _URLs = {
-    "amazon_polarity": "https://drive.google.com/u/0/uc?id=0Bz8a_Dbh9QhbaW12WVVZS2drcnM&export=download",
+    "amazon_polarity": "https://s3.amazonaws.com/fast-ai-nlp/amazon_review_polarity_csv.tgz",
 }
 
 

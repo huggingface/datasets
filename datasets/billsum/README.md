@@ -3,10 +3,10 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
-- unknown
+license:
+- cc0-1.0
 multilinguality:
 - monolingual
 size_categories:
@@ -14,11 +14,24 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
 - summarization
+task_ids:
+- summarization-other-bills-summarization
 paperswithcode_id: billsum
 pretty_name: BillSum
+train-eval-index:
+- config: default
+  task: summarization
+  task_id: summarization
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    text: text
+    summary: target
+  metrics:
+    - type: rouge
+      name: Rouge
 ---
 
 # Dataset Card for "billsum"
@@ -79,8 +92,6 @@ features for us bills. ca bills does not have.
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default
@@ -123,7 +134,7 @@ The data fields are the same among all splits.
 
 #### Initial Data Collection and Normalization
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The data consists of three parts: US training bills, US test bills and California test bills. The US bills were collected from the [Govinfo](https://github.com/unitedstates/congress) service provided by the United States Government Publishing Office (GPO) under CC0-1.0 license. The California, bills from the 2015-2016 session are available from the legislature’s [website](https://leginfo.legislature.ca.gov/).
 
 #### Who are the source language producers?
 

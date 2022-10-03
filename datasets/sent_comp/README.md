@@ -3,9 +3,9 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -49,9 +49,9 @@ pretty_name: Google Sentence Compression
 
 ## Dataset Description
 
-- **Homepage:[https://github.com/google-research-datasets/sentence-compression](https://github.com/google-research-datasets/sentence-compression)**
-- **Repository:[https://github.com/google-research-datasets/sentence-compression](https://github.com/google-research-datasets/sentence-compression)**
-- **Paper:[https://www.aclweb.org/anthology/D13-1155/](https://www.aclweb.org/anthology/D13-1155/)**
+- **Homepage:** [https://github.com/google-research-datasets/sentence-compression](https://github.com/google-research-datasets/sentence-compression)
+- **Repository:** [https://github.com/google-research-datasets/sentence-compression](https://github.com/google-research-datasets/sentence-compression)
+- **Paper:** [https://www.aclweb.org/anthology/D13-1155/](https://www.aclweb.org/anthology/D13-1155/)
 - **Leaderboard:**
 - **Point of Contact:**
 

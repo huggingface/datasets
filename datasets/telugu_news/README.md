@@ -3,9 +3,9 @@ annotations_creators:
 - machine-generated
 language_creators:
 - other
-languages:
+language:
 - te
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -14,10 +14,12 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 - text-classification
 task_ids:
 - language-modeling
+- masked-language-modeling
 - multi-class-classification
 - topic-classification
 paperswithcode_id: null
@@ -52,8 +54,8 @@ pretty_name: TeluguNews
 
 ## Dataset Description
 
-- **Homepage: https://www.kaggle.com/sudalairajkumar/telugu-nlp?select=telugu_news
-- **Repository: https://github.com/AnushaMotamarri/Telugu-Newspaper-Article-Dataset
+- **Homepage:** https://www.kaggle.com/sudalairajkumar/telugu-nlp?select=telugu_news
+- **Repository:** https://github.com/AnushaMotamarri/Telugu-Newspaper-Article-Dataset
 
 
 ### Dataset Summary
@@ -149,7 +151,13 @@ Sudalai Rajkumar, Anusha Motamarri
 
 ### Citation Information
 
-[More Information Needed]
+```
+@InProceedings{kaggle:dataset,
+title = {Telugu News - Natural Language Processing for Indian Languages},
+authors={Sudalai Rajkumar, Anusha Motamarri},
+year={2019}
+}
+```
 
 ### Contributions
 

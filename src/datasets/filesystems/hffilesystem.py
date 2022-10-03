@@ -1,4 +1,4 @@
-from pathlib import PurePath
+from pathlib import PurePosixPath
 from typing import Optional
 
 import fsspec
@@ -16,16 +16,13 @@ class HfFileSystem(AbstractFileSystem):
 
     def __init__(
         self,
-        repo_info: Optional[str] = None,
+        repo_info: Optional[DatasetInfo] = None,
         token: Optional[str] = None,
         **kwargs,
     ):
         """
-        The compressed file system can be instantiated from any compressed file.
-        It reads the contents of compressed file as a filesystem with one file inside, as if it was an archive.
-
-        The single file inside the filesystem is named after the compresssed file,
-        without the compression extension at the end of the filename.
+        The file system can be instantiated using a huggingface_hub.hf_api.DatasetInfo object,
+        and can be used to list and open files from a Hugging Face dataset repository with fsspec.
 
         Args:
             repo_info (:obj:``DatasetInfo``, `optional`):
@@ -40,10 +37,20 @@ class HfFileSystem(AbstractFileSystem):
 
     def _get_dirs(self):
         if self.dir_cache is None:
-            self.dir_cache = {
-                hf_file.rfilename: {"name": hf_file.rfilename, "size": 0 or None, "type": "file"}  # TODO(QL): add size
-                for hf_file in self.repo_info.siblings
-            }
+            self.dir_cache = {}
+            for hf_file in self.repo_info.siblings:
+                # TODO(QL): add sizes
+                self.dir_cache[hf_file.rfilename] = {
+                    "name": hf_file.rfilename,
+                    "size": None,
+                    "type": "file",
+                }
+                self.dir_cache.update(
+                    {
+                        str(d): {"name": str(d), "size": None, "type": "directory"}
+                        for d in list(PurePosixPath(hf_file.rfilename).parents)[:-1]
+                    }
+                )
 
     def _open(
         self,
@@ -70,18 +77,13 @@ class HfFileSystem(AbstractFileSystem):
 
     def ls(self, path, detail=False, **kwargs):
         self._get_dirs()
-        path = PurePath(path.strip("/"))
+        path = PurePosixPath(path.strip("/"))
         paths = {}
         for p, f in self.dir_cache.items():
-            p = PurePath(p.strip("/"))
+            p = PurePosixPath(p.strip("/"))
             root = p.parent
             if root == path:
-                # file is in directory -> return file
                 paths[str(p)] = f
-            elif path in p.parents:
-                # file is in subdirectory -> return first intermediate directory
-                ppath = str(path / p.relative_to(path).parts[0])
-                paths[ppath] = {"name": ppath + "/", "size": 0, "type": "directory"}
         out = list(paths.values())
         if detail:
             return out

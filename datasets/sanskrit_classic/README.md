@@ -3,10 +3,10 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - sa
-licenses:
-- other-Public Domain Mark 1.0
+license:
+- other
 multilinguality:
 - monolingual
 size_categories:
@@ -14,9 +14,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
 paperswithcode_id: null
 pretty_name: SanskritClassic
 ---
@@ -139,7 +141,14 @@ Sanskrit
 
 ### Citation Information
 
-[More Information Needed]
+```
+@Misc{johnsonetal2014,
+ author = {Johnson, Kyle P. and Patrick Burns and John Stewart and Todd Cook},
+ title = {CLTK: The Classical Language Toolkit},
+ url = {https://github.com/cltk/cltk},
+ year = {2014--2020},
+}
+```
 
 ### Contributions
 

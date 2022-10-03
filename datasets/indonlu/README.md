@@ -3,91 +3,47 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - id
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
 size_categories:
-  bapos:
-  - 10K<n<100K
-  casa:
-  - 1K<n<10K
-  emot:
-  - 1K<n<10K
-  facqa:
-  - 1K<n<10K
-  hoasa:
-  - 1K<n<10K
-  keps:
-  - 1K<n<10K
-  nergrit:
-  - 1K<n<10K
-  nerp:
-  - 1K<n<10K
-  posp:
-  - 1K<n<10K
-  smsa:
-  - 10K<n<100K
-  terma:
-  - 1K<n<10K
-  wrete:
-  - n<1K
+- 10K<n<100K
+- 1K<n<10K
+- n<1K
 source_datasets:
 - original
 task_categories:
-  bapos:
-  - structure-prediction
-  casa:
-  - text-classification
-  emot:
-  - text-classification
-  facqa:
-  - question-answering
-  hoasa:
-  - text-classification
-  keps:
-  - structure-prediction
-  nergrit:
-  - structure-prediction
-  nerp:
-  - structure-prediction
-  posp:
-  - structure-prediction
-  smsa:
-  - text-classification
-  terma:
-  - structure-prediction
-  wrete:
-  - text-classification
+- question-answering
+- text-classification
+- token-classification
 task_ids:
-  bapos:
-  - part-of-speech-tagging
-  casa:
-  - text-classification-other-aspect-based-sentiment-analysis
-  emot:
-  - multi-class-classification
-  facqa:
-  - closed-domain-qa
-  hoasa:
-  - text-classification-other-aspect-based-sentiment-analysis
-  keps:
-  - structure-prediction-other-keyphrase-extraction
-  nergrit:
-  - named-entity-recognition
-  nerp:
-  - named-entity-recognition
-  posp:
-  - part-of-speech-tagging
-  smsa:
-  - sentiment-classification
-  terma:
-  - structure-prediction-other-span-extraction
-  wrete:
-  - semantic-similarity-classification
+- closed-domain-qa
+- multi-class-classification
+- named-entity-recognition
+- part-of-speech
+- semantic-similarity-classification
+- sentiment-classification
+- text-classification-other-aspect-based-sentiment-analysis
+- token-classification-other-keyphrase-extraction
+- token-classification-other-span-extraction
 paperswithcode_id: indonlu-benchmark
 pretty_name: IndoNLU
+configs:
+- bapos
+- casa
+- emot
+- facqa
+- hoasa
+- keps
+- nergrit
+- nerp
+- posp
+- smsa
+- terma
+- wrete
 ---
 
 

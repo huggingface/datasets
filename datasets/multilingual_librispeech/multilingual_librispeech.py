@@ -19,6 +19,7 @@
 
 import glob
 import os
+import warnings
 
 import datasets
 from datasets.tasks import AutomaticSpeechRecognition
@@ -70,6 +71,15 @@ class MultilingualLibrispeech(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
+
+        warnings.warn(
+            """
+            This version of the Multilingual Librispeech dataset doesn't support streaming and is deprecated.
+            You can download the latest one with
+            >>> load_dataset(\"facebook/multilingual_librispeech\", \"polish\")
+            """
+        )
+
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
@@ -85,7 +95,7 @@ class MultilingualLibrispeech(datasets.GeneratorBasedBuilder):
             supervised_keys=("file", "text"),
             homepage=_URL,
             citation=_CITATION,
-            task_templates=[AutomaticSpeechRecognition(audio_file_path_column="file", transcription_column="text")],
+            task_templates=[AutomaticSpeechRecognition(audio_column="audio", transcription_column="text")],
         )
 
     def _split_generators(self, dl_manager):

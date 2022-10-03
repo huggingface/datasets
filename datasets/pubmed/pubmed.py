@@ -12,11 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""TODO: Add a description here."""
+"""MEDLINE/PubMed data."""
 
 
 import copy
-import xml.etree.ElementTree as etree
+import xml.etree.ElementTree as ET
 
 import datasets
 
@@ -24,11 +24,10 @@ import datasets
 logger = datasets.logging.get_logger(__name__)
 
 
-# Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
+Courtesy of the U.S. National Library of Medicine.
 """
 
-# You can copy an official description
 _DESCRIPTION = """\
 NLM produces a baseline set of MEDLINE/PubMed citation records in XML format for download on an annual basis. The annual baseline is released in December of each year. Each day, NLM produces update files that include new, revised and deleted citations. See our documentation page for more information.
 """
@@ -37,10 +36,10 @@ _HOMEPAGE = "https://www.nlm.nih.gov/databases/download/pubmed_medline.html"
 
 _LICENSE = ""
 
-# TODO: Add link to the official dataset URLs here
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URLs = [f"ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline/pubmed21n{i:04d}.xml.gz" for i in range(1, 1063)]
+# Note these URLs here are used by MockDownloadManager.create_dummy_data_list
+_URLs = [f"https://ftp.ncbi.nlm.nih.gov/pubmed/baseline/pubmed22n{i:04d}.xml.gz" for i in range(1, 1115)]
 
 
 # Copyright Ferry Boender, released under the MIT license.
@@ -147,7 +146,7 @@ class Pubmed(datasets.GeneratorBasedBuilder):
     """Pubmed citations records"""
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="2021", description="The 2021 annual record", version=datasets.Version("1.0.0")),
+        datasets.BuilderConfig(name="2022", description="The 2022 annual record", version=datasets.Version("2.0.0")),
     ]
 
     # FILLED automatically from features
@@ -171,7 +170,7 @@ class Pubmed(datasets.GeneratorBasedBuilder):
             # XXX
             # Very special case, it will contain html leading to having very odd structure
             tag = parentElement.tag
-            string = etree.tostring(parentElement).decode("utf-8").strip()
+            string = ET.tostring(parentElement).decode("utf-8").strip()
             inner_string = string[len(f"<{tag}>") : -len(f"</{tag}>")]
             return {parentElement.tag: inner_string}
 
@@ -307,19 +306,10 @@ class Pubmed(datasets.GeneratorBasedBuilder):
         )
         self.fill_keys_from_features(features)
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # This defines the different columns of the dataset and their types
-            features=features,  # Here we define them above because they are different between the two configurations
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
-            supervised_keys=None,
-            # Homepage of the dataset for documentation
+            features=features,
             homepage=_HOMEPAGE,
-            # License for the dataset if available
             license=_LICENSE,
-            # Citation for the dataset
             citation=_CITATION,
         )
 
@@ -329,7 +319,6 @@ class Pubmed(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filenames": dl_dir},
             ),
         ]
@@ -370,10 +359,10 @@ class Pubmed(datasets.GeneratorBasedBuilder):
         id_ = 0
         for filename in filenames:
             try:
-                tree = etree.parse(filename)
+                tree = ET.parse(filename)
                 root = tree.getroot()
                 xmldict = self.xml_to_dictionnary(root)
-            except etree.ParseError:
+            except ET.ParseError:
                 logger.warning(f"Ignoring file {filename}, it is malformed")
                 continue
 

@@ -29,7 +29,9 @@ else:
 HUB_CANONICAL_WHOAMI = HUB_ENDPOINT + "/api/whoami-v2"
 HUB_CANONICAL_CREATE_URL = HUB_ENDPOINT + "/api/repos/create"
 HUB_CANONICAL_INFO_URL = HUB_ENDPOINT + "/api/datasets/{dataset_name}"
-HUB_CANONICAL_DATASET_GIT_URL = HUB_ENDPOINT.replace("https://", "https://user:{token}@") + "/datasets/{dataset_name}.git"
+HUB_CANONICAL_DATASET_GIT_URL = (
+    HUB_ENDPOINT.replace("https://", "https://user:{token}@") + "/datasets/{dataset_name}.git"
+)
 HUB_API_GH_TO_HF = HUB_ENDPOINT + "/api/gh-to-hf/{github_username}"
 DATASETS_LIB_CATALOG_DIR_NAME = "datasets"
 DATASETS_LIB_COMMIT_URL = "https://github.com/huggingface/datasets/commit/{hexsha}"
@@ -102,17 +104,6 @@ def check_authorizations(user_info: dict):
         )
 
 
-def apply_hacks_for_moon_landing(dataset_repo_path: Path):
-    if (dataset_repo_path / "README.md").is_file():
-        with (dataset_repo_path / "README.md").open() as f:
-            readme_content = f.read()
-        if readme_content.count("---\n") > 1:
-            _, tags, content = readme_content.split("---\n", 2)
-            tags = tags.replace("\nlicense:", "\nlicenses:").replace(".", "-").replace("$", "%")
-            with (dataset_repo_path / "README.md").open("w") as f:
-                f.write("---\n".join(["", tags, content]))
-
-
 class update_main:
     def __init__(
         self,
@@ -136,7 +127,8 @@ class update_main:
                 logger.warning(f"[{dataset_name}] " + repr(e))
         if not canonical_dataset_path(dataset_name).is_dir():
             repo = Repo.clone_from(
-                canonical_dataset_git_url(dataset_name, self.token), to_path=canonical_dataset_path(dataset_name)
+                canonical_dataset_git_url(dataset_name, token=self.token),
+                to_path=canonical_dataset_path(dataset_name),
             )
         else:
             repo = Repo(canonical_dataset_path(dataset_name))
@@ -145,7 +137,11 @@ class update_main:
         logs.append(repo.git.reset("--hard"))
         logs.append(repo.git.clean("-f", "-d"))
         logs.append(repo.git.checkout(CANONICAL_DATASET_REPO_MAIN_BRANCH))
-        logs.append(repo.remote().pull())
+        try:
+            logs.append(repo.remote().pull())
+        except Exception as e:
+            logs.append("pull failed !")
+            logs.append(repr(e))
         # Copy the changes and commit
         distutils.dir_util.copy_tree(
             str(src_canonical_dataset_path(datasets_lib_path, dataset_name)), str(canonical_dataset_path(dataset_name))
@@ -155,7 +151,6 @@ class update_main:
                 (canonical_dataset_path(dataset_name) / filepath_to_delete).unlink()
             except Exception as e:
                 logger.warning(f"[{dataset_name}] Couldn't delete file at {filepath_to_delete}: {repr(e)}")
-        apply_hacks_for_moon_landing(canonical_dataset_path(dataset_name))
         logs.append(repo.git.add("."))
         if "Changes to be committed:" in repo.git.status():
             logs.append(repo.git.commit(*self.commit_args))
@@ -168,6 +163,7 @@ class update_main:
                 logs.append(repo.git.tag(self.tag_name, f"-m Add tag from datasets {self.tag_name}"))
                 logs.append(repo.git.push("--tags"))
         except Exception as e:
+            logs.append("push failed !")
             logs.append(repr(e))
         if "Your branch is up to date with" not in repo.git.status():
             logs.append(repo.git.status())
@@ -198,43 +194,36 @@ if __name__ == "__main__":
     commit_args += (f"-m Commit from {DATASETS_LIB_COMMIT_URL.format(hexsha=current_commit.hexsha)}",)
     commit_args += (f"--author={author_name} <{author_email}>",)
 
-    for _tag in datasets_lib_repo.tags:
-        # Add a new tag if this is a `datasets` release
-        if _tag.commit == current_commit and re.match(r"^[0-9]+\.[0-9]+\.[0-9]+$", _tag.name):
-            new_tag = _tag
-            break
-    else:
-        new_tag = None
+    # we don't add a new tag as we used to when there's a release
+    new_tag = None
 
     changed_files_since_last_commit = [
         path
         for diff in datasets_lib_repo.index.diff(prev_commit)
         for path in [diff.a_path, diff.b_path]
-        if path.startswith(DATASETS_LIB_CATALOG_DIR_NAME)
-        and path.count("/") > 2
+        if path.startswith(DATASETS_LIB_CATALOG_DIR_NAME) and path.count("/") >= 2
     ]
 
     changed_datasets_names_since_last_commit = {path.split("/")[1] for path in changed_files_since_last_commit}
     # ignore json, csv etc.
     changed_datasets_names_since_last_commit = {
-        dataset_name for dataset_name in changed_datasets_names_since_last_commit
+        dataset_name
+        for dataset_name in changed_datasets_names_since_last_commit
         if (datasets_lib_path / DATASETS_LIB_CATALOG_DIR_NAME / dataset_name / (dataset_name + ".py")).is_file()
     }
 
     deleted_files = {dataset_name: set() for dataset_name in changed_datasets_names_since_last_commit}
     for path in changed_files_since_last_commit:
         _, dataset_name, rel_path = path.split("/", 2)
-        if (
-            dataset_name in changed_datasets_names_since_last_commit
-            and not (datasets_lib_path / path).is_file()
-        ):
+        if dataset_name in changed_datasets_names_since_last_commit and not (datasets_lib_path / path).is_file():
             deleted_files[dataset_name].add(rel_path)
 
     dataset_names = sys.argv[1:]
     if dataset_names:
         if dataset_names[0] == "--all":
             dataset_names = sorted(
-                d.name for d in (datasets_lib_path / DATASETS_LIB_CATALOG_DIR_NAME).glob("*")
+                d.name
+                for d in (datasets_lib_path / DATASETS_LIB_CATALOG_DIR_NAME).glob("*")
                 if d.is_dir() and (d / (d.name + ".py")).is_file()  # ignore json, csv etc.
             )
         if dataset_names[0] == "--auto":
@@ -245,7 +234,8 @@ if __name__ == "__main__":
                 )
                 dataset_names = sorted(d.name for d in (ROOT / HUB_DIR_NAME).glob("*") if d.is_dir())
                 dataset_names = sorted(
-                    d.name for d in (datasets_lib_path / DATASETS_LIB_CATALOG_DIR_NAME).glob("*")
+                    d.name
+                    for d in (datasets_lib_path / DATASETS_LIB_CATALOG_DIR_NAME).glob("*")
                     if d.is_dir() and (d / (d.name + ".py")).is_file()  # ignore json, csv etc.
                 )
             else:
@@ -268,7 +258,9 @@ if __name__ == "__main__":
                 ),
                 dataset_names,
             )
-            datasets_with_errors = [dataset_name for success, dataset_name in zip(successes, dataset_names) if not success]
+            datasets_with_errors = [
+                dataset_name for success, dataset_name in zip(successes, dataset_names) if not success
+            ]
             if datasets_with_errors:
                 raise UpdateFailed(
                     f"Those datasets couldn't be updated: {' '.join(datasets_with_errors)}\n"

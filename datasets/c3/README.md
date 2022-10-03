@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - zh
-licenses:
-- other-non-commercial-research
+license:
+- other
 multilinguality:
 - monolingual
 size_categories:
@@ -20,7 +20,7 @@ task_ids:
 paperswithcode_id: c3
 pretty_name: C3
 ---
-# Dataset Card Creation Guide
+# Dataset Card for C3
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

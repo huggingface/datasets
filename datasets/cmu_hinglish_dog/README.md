@@ -3,12 +3,12 @@ annotations_creators:
 - machine-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
 - hi
-licenses:
+license:
 - cc-by-sa-3.0
-- gfdl-1.3-or-later
+- gfdl
 multilinguality:
 - multilingual
 - translation
@@ -18,9 +18,8 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 ---
 
 # Dataset Card for CMU Document Grounded Conversations

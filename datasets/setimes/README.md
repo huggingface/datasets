@@ -4,7 +4,7 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - bg
 - bs
 - el
@@ -15,7 +15,7 @@ languages:
 - sq
 - sr
 - tr
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - multilingual
@@ -24,13 +24,12 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 paperswithcode_id: null
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for SETimes – A Parallel Corpus of English and South-East European Languages
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

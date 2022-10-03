@@ -18,7 +18,7 @@
 from typing import Dict, List, Optional
 
 from .. import config
-from ..utils.logging import get_logger
+from ..utils import logging
 from .formatting import (
     ArrowFormatter,
     CustomFormatter,
@@ -31,7 +31,7 @@ from .formatting import (
 )
 
 
-logger = get_logger(__name__)
+logger = logging.get_logger(__name__)
 
 _FORMAT_TYPES: Dict[Optional[str], type] = {}
 _FORMAT_TYPES_ALIASES: Dict[Optional[str], str] = {}

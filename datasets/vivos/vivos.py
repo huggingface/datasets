@@ -16,13 +16,18 @@
 import datasets
 
 
-# Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
-@InProceedings{vivos:2016,
-Address = {Ho Chi Minh, Vietnam}
-title = {VIVOS: 15 hours of recording speech prepared for Vietnamese Automatic Speech Recognition},
-author={Prof. Vu Hai Quan},
-year={2016}
+@inproceedings{luong-vu-2016-non,
+    title = "A non-expert {K}aldi recipe for {V}ietnamese Speech Recognition System",
+    author = "Luong, Hieu-Thi  and
+      Vu, Hai-Quan",
+    booktitle = "Proceedings of the Third International Workshop on Worldwide Language Service Infrastructure and Second Workshop on Open Infrastructures and Analysis Frameworks for Human Language Technologies ({WLSI}/{OIAF}4{HLT}2016)",
+    month = dec,
+    year = "2016",
+    address = "Osaka, Japan",
+    publisher = "The COLING 2016 Organizing Committee",
+    url = "https://aclanthology.org/W16-5207",
+    pages = "51--55",
 }
 """
 
@@ -33,11 +38,11 @@ The corpus was prepared by AILAB, a computer science lab of VNUHCM - University 
 We publish this corpus in hope to attract more scientists to solve Vietnamese speech recognition problems.
 """
 
-_HOMEPAGE = "https://ailab.hcmus.edu.vn/vivos"
+_HOMEPAGE = "https://doi.org/10.5281/zenodo.7068130"
 
-_LICENSE = "cc-by-sa-4.0"
+_LICENSE = "CC BY-NC-SA 4.0"
 
-_DATA_URL = "https://ailab.hcmus.edu.vn/assets/vivos.tar.gz"
+_DATA_URL = "https://zenodo.org/record/7068130/files/vivos.tar.gz"
 
 _PROMPTS_URLS = {
     "train": "https://s3.amazonaws.com/datasets.huggingface.co/vivos/train/prompts.txt",

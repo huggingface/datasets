@@ -74,7 +74,7 @@ class SplitBase(metaclass=abc.ABCMeta):
     """Abstract base class for Split compositionality.
 
     See the
-    [guide on splits](https://github.com/huggingface/datasets/blob/master/docs/source/splits.rst)
+    [guide on splits](/docs/datasets/loading#slice-splits)
     for more information.
 
     There are three parts to the composition:
@@ -137,7 +137,7 @@ class SplitBase(metaclass=abc.ABCMeta):
         dataset with `datasets.percent`), and `weighted` (get subsplits with proportions
         specified by `weighted`).
 
-        Examples:
+        Example::
 
         ```
         # 50% train, 50% test
@@ -252,7 +252,7 @@ class PercentSlice(metaclass=PercentSliceMeta):
     """Syntactic sugar for defining slice subsplits: `datasets.percent[75:-5]`.
 
     See the
-    [guide on splits](https://github.com/huggingface/datasets/blob/master/docs/source/splits.rst)
+    [guide on splits](/docs/datasets/loading#slice-splits)
     for more information.
     """
     # pylint: enable=line-too-long
@@ -303,7 +303,7 @@ class _SubSplit(SplitBase):
 class NamedSplit(SplitBase):
     """Descriptor corresponding to a named split (train, test, ...).
 
-    Examples:
+    Example::
         Each descriptor can be composed with other using addition or slice. Ex::
 
             split = datasets.Split.TRAIN.subsplit(datasets.percent[0:25]) + datasets.Split.TEST
@@ -362,6 +362,9 @@ class NamedSplit(SplitBase):
         else:
             raise ValueError(f"Equality not supported between split {self} and {other}")
 
+    def __lt__(self, other):
+        return self._name < other._name  # pylint: disable=protected-access
+
     def __hash__(self):
         return hash(self._name)
 
@@ -402,6 +405,23 @@ class Split:
     Note: All splits, including compositions inherit from `datasets.SplitBase`
 
     See the :doc:`guide on splits </loading>` for more information.
+
+    Example:
+
+    ```py
+    >>> datasets.SplitGenerator(
+    ...     name=datasets.Split.TRAIN,
+    ...     gen_kwargs={"split_key": "train", "files": dl_manager.download_and extract(url)},
+    ... ),
+    ... datasets.SplitGenerator(
+    ...     name=datasets.Split.VALIDATION,
+    ...     gen_kwargs={"split_key": "validation", "files": dl_manager.download_and extract(url)},
+    ... ),
+    ... datasets.SplitGenerator(
+    ...     name=datasets.Split.TEST,
+    ...     gen_kwargs={"split_key": "test", "files": dl_manager.download_and extract(url)},
+    ... )
+    ```
     """
     # pylint: enable=line-too-long
     TRAIN = NamedSplit("train")
@@ -559,6 +579,15 @@ class SplitGenerator:
             create the examples.
         **gen_kwargs: Keyword arguments to forward to the :meth:`DatasetBuilder._generate_examples` method
             of the builder.
+
+    Example:
+
+    ```py
+    >>> datasets.SplitGenerator(
+    ...     name=datasets.Split.TRAIN,
+    ...     gen_kwargs={"split_key": "train", "files": dl_manager.download_and_extract(url)},
+    ... )
+    ```
     """
 
     name: str

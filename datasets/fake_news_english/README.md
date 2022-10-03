@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -48,11 +48,11 @@ pretty_name: Fake News English
   - [Contributions](#contributions)
 
 ## Dataset Description
-- **Homepage: https://dl.acm.org/doi/10.1145/3201064.3201100** 
-- **Repository: https://github.com/jgolbeck/fakenews/**
-- **Paper: https://doi.org/10.1145/3201064.3201100**
+- **Homepage:** https://dl.acm.org/doi/10.1145/3201064.3201100**
+- **Repository:** https://github.com/jgolbeck/fakenews/
+- **Paper:** https://doi.org/10.1145/3201064.3201100
 - **Leaderboard:**
-- **Point of Contact: Jennifer Golbeck (http://www.jengolbeck.com)**
+- **Point of Contact:** Jennifer Golbeck (http://www.jengolbeck.com)
 
 ### Dataset Summary
 This dataset contains URLs of news articles classified as either fake or satire. The articles classified as fake also have the URL of a rebutting article.

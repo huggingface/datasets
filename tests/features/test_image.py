@@ -6,8 +6,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
-from datasets import Dataset, Features, Image, Sequence, Value, load_dataset
-from datasets.arrow_dataset import concatenate_datasets
+from datasets import Dataset, Features, Image, Sequence, Value, concatenate_datasets, load_dataset
 from datasets.features.image import image_to_bytes
 
 from ..utils import require_pil
@@ -219,6 +218,40 @@ def test_dataset_with_image_feature_tar_jpg(tar_jpg_path):
     assert column[0].format == "JPEG"
     assert column[0].size == (640, 480)
     assert column[0].mode == "RGB"
+
+
+@require_pil
+def test_dataset_with_image_feature_with_none():
+    data = {"image": [None]}
+    features = Features({"image": Image()})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"image"}
+    assert item["image"] is None
+    batch = dset[:1]
+    assert len(batch) == 1
+    assert batch.keys() == {"image"}
+    assert isinstance(batch["image"], list) and all(item is None for item in batch["image"])
+    column = dset["image"]
+    assert len(column) == 1
+    assert isinstance(column, list) and all(item is None for item in column)
+
+    # nested tests
+
+    data = {"images": [[None]]}
+    features = Features({"images": Sequence(Image())})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"images"}
+    assert all(i is None for i in item["images"])
+
+    data = {"nested": [{"image": None}]}
+    features = Features({"nested": {"image": Image()}})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"nested"}
+    assert item["nested"].keys() == {"image"}
+    assert item["nested"]["image"] is None
 
 
 @require_pil

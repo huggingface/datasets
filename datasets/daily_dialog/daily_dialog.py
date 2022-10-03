@@ -82,69 +82,41 @@ class DailyDialog(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager: datasets.DownloadManager):
-        """Returns SplitGenerators."""
-        # dl_manager is a datasets.download.DownloadManager that can be used to
-        # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
         data_dir = os.path.join(dl_dir, "ijcnlp_dailydialog")
-
-        # The splits are nested inside the zip
-        for name in ("train", "validation", "test"):
-            zip_fpath = os.path.join(data_dir, f"{name}.zip")
-            with ZipFile(zip_fpath) as zip_file:
-                zip_file.extractall(path=data_dir)
-                zip_file.close()
-
+        splits = [datasets.Split.TRAIN, datasets.Split.VALIDATION, datasets.Split.TEST]
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
+                name=split,
                 gen_kwargs={
-                    "file_path": os.path.join(data_dir, "train", "dialogues_train.txt"),
-                    "act_path": os.path.join(data_dir, "train", "dialogues_act_train.txt"),
-                    "emotion_path": os.path.join(data_dir, "train", "dialogues_emotion_train.txt"),
-                    "split": "train",
+                    "data_zip": os.path.join(data_dir, f"{split}.zip"),
+                    "dialog_path": f"{split}/dialogues_{split}.txt",
+                    "act_path": f"{split}/dialogues_act_{split}.txt",
+                    "emotion_path": f"{split}/dialogues_emotion_{split}.txt",
                 },
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "file_path": os.path.join(data_dir, "test", "dialogues_test.txt"),
-                    "act_path": os.path.join(data_dir, "test", "dialogues_act_test.txt"),
-                    "emotion_path": os.path.join(data_dir, "test", "dialogues_emotion_test.txt"),
-                    "split": "test",
-                },
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "file_path": os.path.join(data_dir, "validation", "dialogues_validation.txt"),
-                    "act_path": os.path.join(data_dir, "validation", "dialogues_act_validation.txt"),
-                    "emotion_path": os.path.join(data_dir, "validation", "dialogues_emotion_validation.txt"),
-                    "split": "dev",
-                },
-            ),
+            )
+            for split in splits
         ]
 
-    def _generate_examples(self, file_path, act_path, emotion_path, split):
-        """Yields examples."""
-        # Yields (key, example) tuples from the dataset
-        with open(file_path, "r", encoding="utf-8") as f, open(act_path, "r", encoding="utf-8") as act, open(
-            emotion_path, "r", encoding="utf-8"
-        ) as emotion:
-            for i, (line_f, line_act, line_emotion) in enumerate(zip(f, act, emotion)):
-                if len(line_f.strip()) == 0:
-                    break
-                dialog = line_f.split(self.__EOU__)[:-1]
-                act = line_act.split(" ")[:-1]
-                emotion = line_emotion.split(" ")[:-1]
-
-                assert len(dialog) == len(act) == len(emotion), "Different turns btw dialogue & emotion & action"
-
-                yield f"{split}-{i}", {
-                    "dialog": dialog,
-                    "act": [act_label[x] for x in act],
-                    "emotion": [emotion_label[x] for x in emotion],
-                }
+    def _generate_examples(self, data_zip, dialog_path, act_path, emotion_path):
+        with open(data_zip, "rb") as data_file:
+            with ZipFile(data_file) as zip_file:
+                with zip_file.open(dialog_path) as dialog_file, zip_file.open(act_path) as act_file, zip_file.open(
+                    emotion_path
+                ) as emotion_file:
+                    for idx, (dialog_line, act_line, emotion_line) in enumerate(
+                        zip(dialog_file, act_file, emotion_file)
+                    ):
+                        if not dialog_line.strip():
+                            break
+                        dialog = dialog_line.decode().split(self.__EOU__)[:-1]
+                        act = act_line.decode().split(" ")[:-1]
+                        emotion = emotion_line.decode().split(" ")[:-1]
+                        assert (
+                            len(dialog) == len(act) == len(emotion)
+                        ), "Different turns btw dialogue & emotion & action"
+                        yield idx, {
+                            "dialog": dialog,
+                            "act": [act_label[x] for x in act],
+                            "emotion": [emotion_label[x] for x in emotion],
+                        }

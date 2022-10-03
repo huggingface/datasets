@@ -4,9 +4,9 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - monolingual
@@ -16,7 +16,7 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - parsing
 ---

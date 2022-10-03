@@ -3,29 +3,29 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-3.0
 multilinguality:
 - monolingual
 size_categories:
-  task1_qa:
-  - 100K<n<1M
-  task2_recs:
-  - 1M<n<10M
-  task3_qarecs:
-  - 100K<n<1M
-  task4_reddit:
-  - 100K<n<1M
+- 100K<n<1M
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - dialogue-modeling
 paperswithcode_id: mdd
 pretty_name: Movie Dialog dataset (MDD)
+configs:
+- task1_qa
+- task2_recs
+- task3_qarecs
+- task4_reddit
 ---
 
 # Dataset Card for MDD

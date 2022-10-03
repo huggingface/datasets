@@ -5,9 +5,9 @@ annotations_creators:
 language_creators:
 - crowdsourced
 - expert-generated
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -17,9 +17,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
+- text2text-generation
 task_ids:
-- conditional-text-generation-other-code-generation
+- text2text-generation-other-code-generation
 ---
 
 # Dataset Card for Mostly Basic Python Problems (mbpp)
@@ -55,8 +55,8 @@ task_ids:
     - [Contributions](#contributions)
 
 ## Dataset Description
-- **Repository: https://github.com/google-research/google-research/tree/master/mbpp**
-- **Paper: [Program Synthesis with Large Language Models](https://arxiv.org/abs/2108.07732)**
+- **Repository:** https://github.com/google-research/google-research/tree/master/mbpp
+- **Paper:** [Program Synthesis with Large Language Models](https://arxiv.org/abs/2108.07732)
 
 ### Dataset Summary
 The benchmark consists of around 1,000 crowd-sourced Python programming problems, designed to be solvable by entry level programmers, covering programming fundamentals, standard library functionality, and so on. Each problem consists of a task description, code solution and 3 automated test cases. As described in the paper, a subset of the data has been hand-verified by us. 
@@ -130,7 +130,14 @@ DatasetDict({
 - `challenge_test_list`: list of more challenging test to further probe solution
 
 ### Data Splits
-There are two version of the dataset (full and sanitized) which only one split each (test).
+There are two version of the dataset (full and sanitized), each with four splits:
+- train
+- evaluation
+- test
+- prompt
+
+The `prompt` split corresponds to samples used for few-shot prompting and not for training.
+
 ## Dataset Creation
 See section 2.1 of original [paper](https://arxiv.org/abs/2108.07732).
 

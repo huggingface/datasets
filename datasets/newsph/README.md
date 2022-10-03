@@ -3,10 +3,10 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - fil
 - tl
-licenses:
+license:
 - gpl-3.0
 multilinguality:
 - monolingual
@@ -15,9 +15,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
 paperswithcode_id: newsph-nli
 pretty_name: NewsPH-NLI
 ---
@@ -51,7 +53,7 @@ pretty_name: NewsPH-NLI
 ## Dataset Description
 
 - **Homepage:** [Filipino Text Benchmarks](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks)
-- **Repository: **
+- **Repository:**
 - **Paper:** [Investigating the True Performance of Transformers in Low-Resource Languages: A Case Study in Automatic Corpus Creation](https://arxiv.org/abs/2010.11574)
 - **Leaderboard:**
 - **Point of Contact:** [Jan Christian Blaise Cruz](jan_christian_cruz@dlsu.edu.ph)

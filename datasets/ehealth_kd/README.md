@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - es
-licenses:
+license:
 - cc-by-nc-sa-4.0
 multilinguality:
 - monolingual
@@ -14,10 +14,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
-- structure-prediction-other-relation-prediction
+- token-classification-other-relation-prediction
 paperswithcode_id: null
 pretty_name: eHealth-KD
 ---

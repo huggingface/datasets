@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-4.0
 multilinguality:
 - monolingual
@@ -14,10 +14,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- other
+- image-to-text
 task_ids:
-- other-other-image-classification
-- other-other-image-captioning
+- image-captioning
 paperswithcode_id: redcaps
 pretty_name: RedCaps
 ---
@@ -52,11 +51,11 @@ pretty_name: RedCaps
 
 ## Dataset Description
 
-- **Homepage:** https://redcaps.xyz/
-- **Repository:**
-- **Paper:** https://arxiv.org/abs/2111.11431
+- **Homepage:** [RedCaps homepage](https://redcaps.xyz/)
+- **Repository:** [RedCaps repository](https://github.com/redcaps-dataset/redcaps-downloader)
+- **Paper:** [RedCaps: web-curated image-text data created by the people, for the people](https://arxiv.org/abs/2111.11431)
 - **Leaderboard:**
-- **Point of Contact:** kdexd@umich.edu
+- **Point of Contact:** [Karan Desai](mailto:kdexd@umich.edu)
 
 ### Dataset Summary
 
@@ -74,35 +73,127 @@ unrelated images through a common semantic meaning (r/perfectfit).
 This dataset doesn't download the images locally by default. Instead, it exposes URLs to the images. To fetch the images, use the following code:
 
 ```python
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial
+import io
+import urllib
+
+import PIL.Image
+
 from datasets import load_dataset
 from datasets.utils.file_utils import get_datasets_user_agent
 
-def fetch_images(batch, timeout):
-    import PIL.Image
-    import requests
 
-    images = []
-    for image_url in batch["image_url"]:
+USER_AGENT = get_datasets_user_agent()
+
+
+def fetch_single_image(image_url, timeout=None, retries=0):
+    for _ in range(retries + 1):
         try:
-            image = PIL.Image.open(
-                requests.get(
-                    image_url,
-                    stream=True,
-                    headers={"user-agent": get_datasets_user_agent()},
-                    timeout=timeout,
-                ).raw
-              )
-        except requests.exceptions.ConnectionError:
+            request = urllib.request.Request(
+                image_url,
+                data=None,
+                headers={"user-agent": USER_AGENT},
+            )
+            with urllib.request.urlopen(request, timeout=timeout) as req:
+                image = PIL.Image.open(io.BytesIO(req.read()))
+            break
+        except Exception:
             image = None
-        images.append(image)
-    batch["image"] = images
+    return image
+
+
+def fetch_images(batch, num_threads, timeout=None, retries=0):
+    fetch_single_image_with_args = partial(fetch_single_image, timeout=timeout, retries=retries)
+    with ThreadPoolExecutor(max_workers=num_threads) as executor:
+        batch["image"] = list(executor.map(fetch_single_image_with_args, batch["image_url"]))
     return batch
 
-timeout = None
-num_proc = 4
+
+num_threads = 20
 dset = load_dataset("red_caps", "rabbits_2017")
-dset = dset.map(fetch_images, batched=True, batch_size=100, fn_kwargs={"timeout": timeout}, num_proc=num_proc)
+dset = dset.map(fetch_images, batched=True, batch_size=100, fn_kwargs={"num_threads": num_threads})
 ```
+
+Some image links point to more than one image. You can process and downloaded those as follows:
+
+```python
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial
+import io
+import os
+import re
+import urllib
+
+import PIL.Image
+
+import datasets
+from datasets import load_dataset
+from datasets.utils.file_utils import get_datasets_user_agent
+
+
+USER_AGENT = get_datasets_user_agent()
+
+
+def fetch_single_image(image_url, timeout=None, retries=0):
+    for _ in range(retries + 1):
+        try:
+            request = urllib.request.Request(
+                image_url,
+                data=None,
+                headers={"user-agent": USER_AGENT},
+            )
+            with urllib.request.urlopen(request, timeout=timeout) as req:
+                image = PIL.Image.open(io.BytesIO(req.read()))
+            break
+        except Exception:
+            image = None
+    return image
+
+
+def fetch_images(batch, num_threads, timeout=None, retries=0):
+    fetch_single_image_with_args = partial(fetch_single_image, timeout=timeout, retries=retries)
+    with ThreadPoolExecutor(max_workers=num_threads) as executor:
+        batch["image"] = list(executor.map(lambda image_urls: [fetch_single_image_with_args(image_url) for image_url in image_urls], batch["image_url"]))
+    return batch
+
+
+def process_image_urls(batch):
+    processed_batch_image_urls = []
+    for image_url in batch["image_url"]:
+        processed_example_image_urls = []
+        image_url_splits = re.findall(r"http\S+", image_url)
+        for image_url_split in image_url_splits:
+            if "imgur" in image_url_split and "," in image_url_split:
+                for image_url_part in image_url_split.split(","):
+                    if not image_url_part:
+                        continue
+                    image_url_part = image_url_part.strip()
+                    root, ext = os.path.splitext(image_url_part)
+                    if not root.startswith("http"):
+                      root = "http://i.imgur.com/" + root
+                    root = root.split("#")[0]
+                    if not ext:
+                      ext = ".jpg"
+                    ext = re.split(r"[?%]", ext)[0]
+                    image_url_part = root + ext
+                    processed_example_image_urls.append(image_url_part)
+            else:
+                processed_example_image_urls.append(image_url_split)
+        processed_batch_image_urls.append(processed_example_image_urls)
+    batch["image_url"] = processed_batch_image_urls
+    return batch
+
+
+dset = load_dataset("red_caps", "rabbits_2017")
+dset = dset.map(process_image_urls, batched=True, num_proc=4)
+features = dset["train"].features.copy()
+features["image"] = datasets.Sequence(datasets.Image())
+num_threads = 20
+dset = dset.map(fetch_images, batched=True, batch_size=100, features=features, fn_kwargs={"num_threads": num_threads})
+```
+
+Note that in the above code, we use the `datasets.Sequence` feature to represent a list of images for the multi-image links.
 
 ### Supported Tasks and Leaderboards
 
@@ -369,7 +460,7 @@ From the paper:
 
 ### Citation Information
 
-```
+```bibtex
 @misc{desai2021redcaps,
       title={RedCaps: web-curated image-text data created by the people, for the people},
       author={Karan Desai and Gaurav Kaul and Zubin Aysola and Justin Johnson},

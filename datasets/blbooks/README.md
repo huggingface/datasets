@@ -3,14 +3,14 @@ annotations_creators:
 - no-annotation
 language_creators:
 - machine-generated
-languages:
-- en
-- fr
+language:
 - de
+- en
 - es
+- fr
 - it
 - nl
-licenses:
+license:
 - cc0-1.0
 multilinguality:
 - multilingual
@@ -20,10 +20,12 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 - other
 task_ids:
 - language-modeling
+- masked-language-modeling
 - other-other-digital-humanities-research
 ---
 

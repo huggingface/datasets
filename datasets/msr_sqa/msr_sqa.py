@@ -162,12 +162,10 @@ class MsrSQA(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, data_dir):
         """Yields examples."""
-
         with open(filepath, encoding="utf-8") as f:
             reader = csv.DictReader(f, delimiter="\t")
             question_and_history = []
-            for i, row in enumerate(reader):
-                item = dict(row)
+            for idx, item in enumerate(reader):
                 item["answer_text"] = _parse_answer_text(item["answer_text"])
                 item["answer_coordinates"] = _parse_answer_coordinates(item["answer_coordinates"])
                 header, table_data = _load_table_data(os.path.join(data_dir, item["table_file"]))
@@ -177,4 +175,4 @@ class MsrSQA(datasets.GeneratorBasedBuilder):
                     question_and_history = []  # reset history
                 question_and_history.append(item["question"])
                 item["question_and_history"] = question_and_history
-                yield i, item
+                yield idx, item

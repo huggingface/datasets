@@ -3,7 +3,7 @@ annotations_creators:
 - expert-generated
 language_creators:
 - expert-generated
-languages:
+language:
 - af
 - nr
 - nso
@@ -13,7 +13,7 @@ languages:
 - ve
 - xh
 - zu
-licenses:
+license:
 - cc-by-2.5
 multilinguality:
 - multilingual
@@ -22,7 +22,7 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
 paperswithcode_id: null

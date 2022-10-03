@@ -18,7 +18,6 @@
 
 
 import json
-import os
 import textwrap
 
 import datasets
@@ -75,15 +74,15 @@ _LANGUAGES = {
 
 _PATHS = {
     "mlqa": {
-        "train": os.path.join("squad1.1", "train-v1.1.json"),
-        "dev": os.path.join("MLQA_V1", "dev", "dev-context-{0}-question-{0}.json"),
-        "test": os.path.join("MLQA_V1", "test", "test-context-{0}-question-{0}.json"),
+        "train": "squad1.1/train-v1.1.json",
+        "dev": "MLQA_V1/dev/dev-context-{0}-question-{0}.json",
+        "test": "MLQA_V1/test/test-context-{0}-question-{0}.json",
     },
     "xnli": {"train": "multinli.train.en.tsv", "dev": "{}.dev", "test": "{}.test"},
     "paws-x": {
-        "train": os.path.join("en", "train.tsv"),
-        "dev": os.path.join("{}", "dev_2k.tsv"),
-        "test": os.path.join("{}", "test_2k.tsv"),
+        "train": "en/train.tsv",
+        "dev": "{}/dev_2k.tsv",
+        "test": "{}/test_2k.tsv",
     },
 }
 for name in ["ner", "pos"]:
@@ -473,8 +472,8 @@ Portuguese. BLEU-4 score should be used as the metric.
         )
 
     def _split_generators(self, dl_manager):
-        all_data_folder = dl_manager.download_and_extract(_XGLUE_ALL_DATA)
-        data_folder = os.path.join(all_data_folder, "xglue_full_dataset", self.config.data_dir)
+        archive = dl_manager.download(_XGLUE_ALL_DATA)
+        data_folder = f"xglue_full_dataset/{self.config.data_dir}"
         name = self.config.name
 
         languages = _LANGUAGES[name]
@@ -482,14 +481,19 @@ Portuguese. BLEU-4 score should be used as the metric.
             [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={"data_file": os.path.join(data_folder, _PATHS[name]["train"]), "split": "train"},
+                    gen_kwargs={
+                        "archive": dl_manager.iter_archive(archive),
+                        "data_path": f"{data_folder}/{_PATHS[name]['train']}",
+                        "split": "train",
+                    },
                 ),
             ]
             + [
                 datasets.SplitGenerator(
                     name=datasets.Split(f"validation.{lang}"),
                     gen_kwargs={
-                        "data_file": os.path.join(data_folder, _PATHS[name]["dev"].format(lang)),
+                        "archive": dl_manager.iter_archive(archive),
+                        "data_path": f"{data_folder}/{_PATHS[name]['dev'].format(lang)}",
                         "split": "dev",
                     },
                 )
@@ -499,7 +503,8 @@ Portuguese. BLEU-4 score should be used as the metric.
                 datasets.SplitGenerator(
                     name=datasets.Split(f"test.{lang}"),
                     gen_kwargs={
-                        "data_file": os.path.join(data_folder, _PATHS[name]["test"].format(lang)),
+                        "archive": dl_manager.iter_archive(archive),
+                        "data_path": f"{data_folder}/{_PATHS[name]['test'].format(lang)}",
                         "split": "test",
                     },
                 )
@@ -507,68 +512,73 @@ Portuguese. BLEU-4 score should be used as the metric.
             ]
         )
 
-    def _generate_examples(self, data_file, split=None):
+    def _generate_examples(self, archive, data_path, split=None):
         keys = list(self._info().features.keys())
+        src_f = tgt_f = None
+        for path, file in archive:
+            if self.config.name == "mlqa":
+                if path == data_path:
+                    data = json.load(file)
+                    for examples in data["data"]:
+                        for example in examples["paragraphs"]:
+                            context = example["context"]
+                            for qa in example["qas"]:
+                                question = qa["question"]
+                                id_ = qa["id"]
+                                answers = qa["answers"]
+                                answers_start = [answer["answer_start"] for answer in answers]
+                                answers_text = [answer["text"] for answer in answers]
+                                yield id_, {
+                                    "context": context,
+                                    "question": question,
+                                    "answers": {"answer_start": answers_start, "text": answers_text},
+                                }
+            elif self.config.name in ["ner", "pos"]:
+                if path == data_path:
+                    words = []
+                    result = []
+                    idx = -1
+                    for line in file:
+                        line = line.decode("utf-8")
+                        if line.strip() == "":
+                            if len(words) > 0:
+                                out_dict = {keys[0]: words, keys[1]: result}
+                                words = []
+                                result = []
+                                idx += 1
+                                yield idx, out_dict
+                        else:
+                            splits = line.strip().split(" ")
+                            words.append(splits[0])
+                            result.append(splits[1])
+            elif self.config.name in ["ntg", "qg"]:
+                if path == data_path + ".src." + split:
+                    src_f = [line.decode("utf-8") for line in file]
+                elif path == data_path + ".tgt." + split:
+                    tgt_f = [line.decode("utf-8") for line in file]
+                if src_f and tgt_f:
+                    for idx, (src_line, tgt_line) in enumerate(zip(src_f, tgt_f)):
+                        yield idx, {keys[0]: src_line.strip(), keys[1]: tgt_line.strip()}
+            else:
+                _process_dict = {
+                    "paws-x": {"0": "different", "1": "same"},
+                    "xnli": {"contradictory": "contradiction"},
+                    "qam": {"0": "False", "1": "True"},
+                    "wpr": {"0": "Bad", "1": "Fair", "2": "Good", "3": "Excellent", "4": "Perfect"},
+                }
 
-        if self.config.name == "mlqa":
-            with open(data_file, encoding="utf-8") as f:
-                data = json.load(f)
-            for examples in data["data"]:
-                for example in examples["paragraphs"]:
-                    context = example["context"]
-                    for qa in example["qas"]:
-                        question = qa["question"]
-                        id_ = qa["id"]
-                        answers = qa["answers"]
-                        answers_start = [answer["answer_start"] for answer in answers]
-                        answers_text = [answer["text"] for answer in answers]
-                        yield id_, {
-                            "context": context,
-                            "question": question,
-                            "answers": {"answer_start": answers_start, "text": answers_text},
+                def _process(value):
+                    if self.config.name in _process_dict and value in _process_dict[self.config.name]:
+                        return _process_dict[self.config.name][value]
+                    return value
+
+                if path == data_path:
+                    for idx, line in enumerate(file):
+                        line = line.decode("utf-8")
+                        if data_path.split(".")[-1] == "tsv" and idx == 0:
+                            continue
+                        items = line.strip().split("\t")
+                        yield idx, {
+                            key: _process(value)
+                            for key, value in zip(keys, items[1:] if self.config.name == "paws-x" else items)
                         }
-        elif self.config.name in ["ner", "pos"]:
-            words = []
-            result = []
-            idx = -1
-            with open(data_file, encoding="utf-8") as f:
-                for line in f:
-                    if line.strip() == "":
-                        if len(words) > 0:
-                            out_dict = {keys[0]: words, keys[1]: result}
-                            words = []
-                            result = []
-                            idx += 1
-                            yield idx, out_dict
-                    else:
-                        splits = line.strip().split(" ")
-                        words.append(splits[0])
-                        result.append(splits[1])
-        elif self.config.name in ["ntg", "qg"]:
-            with open(data_file + ".src." + split, encoding="utf-8") as src_f, open(
-                data_file + ".tgt." + split, encoding="utf-8"
-            ) as tgt_f:
-                for idx, (src_line, tgt_line) in enumerate(zip(src_f, tgt_f)):
-                    yield idx, {keys[0]: src_line.strip(), keys[1]: tgt_line.strip()}
-        else:
-            _process_dict = {
-                "paws-x": {"0": "different", "1": "same"},
-                "xnli": {"contradictory": "contradiction"},
-                "qam": {"0": "False", "1": "True"},
-                "wpr": {"0": "Bad", "1": "Fair", "2": "Good", "3": "Excellent", "4": "Perfect"},
-            }
-
-            def _process(value):
-                if self.config.name in _process_dict and value in _process_dict[self.config.name]:
-                    return _process_dict[self.config.name][value]
-                return value
-
-            with open(data_file, encoding="utf-8") as f:
-                for idx, line in enumerate(f):
-                    if data_file.split(".")[-1] == "tsv" and idx == 0:
-                        continue
-                    items = line.strip().split("\t")
-                    yield idx, {
-                        key: _process(value)
-                        for key, value in zip(keys, items[1:] if self.config.name == "paws-x" else items)
-                    }

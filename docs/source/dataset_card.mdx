@@ -1,0 +1,27 @@
+# Create a dataset card
+
+Each dataset should have a dataset card to promote responsible usage and inform users of any potential biases within the dataset.
+This idea was inspired by the Model Cards proposed by [Mitchell, 2018](https://arxiv.org/abs/1810.03993).
+Dataset cards help users understand a dataset's contents, the context for using the dataset, how it was created, and any other considerations a user should be aware of.
+
+This guide shows you how to create a dataset card.
+
+1. Create a new dataset card by copying this [template](https://raw.githubusercontent.com/huggingface/datasets/main/templates/README.md) to a `README.md` file in your repository.
+
+2. Generate structured tags to help users discover your dataset on the Hub. Create the tags with the [online Datasets Tagging app](https://huggingface.co/spaces/huggingface/datasets-tagging).
+
+3. Select the appropriate tags for your dataset from the dropdown menus.
+
+4. Copy the YAML tags under **Finalized tag set** and paste the tags at the top of your `README.md` file.
+
+5. Fill out the dataset card sections to the best of your ability. Take a look at the [Dataset Card Creation Guide](https://github.com/huggingface/datasets/blob/main/templates/README_guide.md) for more detailed information about what to include in each section of the card. For fields you are unable to complete, you can write **[More Information Needed]**.
+
+6. Once you're done filling out the dataset card, commit the changes to the `README.md` file and you should see the completed dataset card on your repository.
+
+Feel free to take a look at these dataset card examples to help you get started:
+
+- [SNLI](https://huggingface.co/datasets/snli)
+- [CNN / DailyMail](https://huggingface.co/datasets/cnn_dailymail)
+- [Allociné](https://huggingface.co/datasets/allocine)
+
+You can also check out the (similar) documentation about [dataset cards on the Hub side](https://huggingface.co/docs/hub/datasets-cards).

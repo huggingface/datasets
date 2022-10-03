@@ -1,8 +1,73 @@
 ---
 pretty_name: IMDB
-languages:
+annotations_creators:
+- expert-generated
+language_creators:
+- expert-generated
+language:
 - en
+license:
+- other
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- sentiment-classification
 paperswithcode_id: imdb-movie-reviews
+train-eval-index:
+- config: plain_text
+  task: text-classification
+  task_id: binary_classification
+  splits:
+    train_split: train
+    eval_split: test
+  col_mapping:
+    text: text
+    label: target
+  metrics:
+  - type: accuracy
+  - name: Accuracy
+  - type: f1
+    name: F1 macro
+    args:
+      average: macro
+  - type: f1
+    name: F1 micro
+    args:
+      average: micro  
+  - type: f1
+    name: F1 weighted
+    args:
+      average: weighted
+  - type: precision
+    name: Precision macro
+    args:
+      average: macro  
+  - type: precision
+    name: Precision micro
+    args:
+      average: micro  
+  - type: precision
+    name: Precision weighted
+    args:
+      average: weighted  
+  - type: recall
+    name: Recall macro
+    args:
+      average: macro  
+  - type: recall
+    name: Recall micro
+    args:
+      average: micro  
+  - type: recall
+    name: Recall weighted
+    args:
+      average: weighted 
 ---
 
 # Dataset Card for "imdb"
@@ -55,8 +120,6 @@ This is a dataset for binary sentiment classification containing substantially m
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

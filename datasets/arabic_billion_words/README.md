@@ -3,41 +3,37 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - ar
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
 size_categories:
-  Alittihad:
-  - 100K<n<1M
-  Almasryalyoum:
-  - 100K<n<1M
-  Almustaqbal:
-  - 100K<n<1M
-  Alqabas:
-  - 100K<n<1M
-  Echoroukonline:
-  - 100K<n<1M
-  Ryiadh:
-  - 100K<n<1M
-  Sabanews:
-  - 10K<n<100K
-  SaudiYoum:
-  - 100K<n<1M
-  Techreen:
-  - 100K<n<1M
-  Youm7:
-  - 1M<n<10M
+- 100K<n<1M
+- 10K<n<100K
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-generation
+- fill-mask
 task_ids:
 - language-modeling
+- masked-language-modeling
 paperswithcode_id: null
 pretty_name: Arabic Billion Words
+configs:
+- Alittihad
+- Almasryalyoum
+- Almustaqbal
+- Alqabas
+- Echoroukonline
+- Ryiadh
+- Sabanews
+- SaudiYoum
+- Techreen
+- Youm7
 ---
 
 # Dataset Card for Arabic Billion Words Corpus

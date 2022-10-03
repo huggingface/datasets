@@ -56,8 +56,6 @@ URL http://sports.sohu.com is categorized as a sport class.
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
 
 #### default

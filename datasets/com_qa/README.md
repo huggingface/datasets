@@ -1,5 +1,5 @@
 ---
-languages:
+language:
 - en
 paperswithcode_id: comqa
 pretty_name: ComQA
@@ -63,8 +63,6 @@ temporal or measurable quantities, TIMEX3 and the International System of Units 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 

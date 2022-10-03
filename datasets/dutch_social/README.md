@@ -3,10 +3,10 @@ annotations_creators:
 - machine-generated
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
 - nl
-licenses:
+license:
 - cc-by-nc-4.0
 multilinguality:
 - multilingual
@@ -51,11 +51,11 @@ pretty_name: Dutch Social Media Collection
 
 ## Dataset Description
 
-- **Homepage:[Dutch Social Media Collection](http://datasets.coronawhy.org/dataset.xhtml?persistentId=doi:10.5072/FK2/MTPTL7)**
-- **Repository: **
-- **Paper:*(in-progress)* https://doi.org/10.5072/FK2/MTPTL7**
+- **Homepage:** [Dutch Social Media Collection](http://datasets.coronawhy.org/dataset.xhtml?persistentId=doi:10.5072/FK2/MTPTL7)
+- **Repository:**
+- **Paper:** *(in-progress)* https://doi.org/10.5072/FK2/MTPTL7
 - **Leaderboard:**
-- **Point of Contact: [Aakash Gupta](mailto:aakashg80@gmail.com)**
+- **Point of Contact:** [Aakash Gupta](mailto:aakashg80@gmail.com)
 
 ### Dataset Summary
 

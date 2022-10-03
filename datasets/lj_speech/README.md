@@ -3,10 +3,10 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
-- other-public-domain
+license:
+- unlicense
 multilinguality:
 - monolingual
 paperswithcode_id: ljspeech
@@ -16,9 +16,22 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- speech-processing
-task_ids:
 - automatic-speech-recognition
+task_ids: []
+train-eval-index:
+- config: main
+  task: automatic-speech-recognition
+  task_id: speech_recognition
+  splits:
+    train_split: train
+  col_mapping:
+    file: path
+    text: text
+  metrics:
+    - type: wer
+      name: WER
+    - type: cer
+      name: CER
 ---
 
 # Dataset Card for lj_speech
@@ -63,33 +76,33 @@ The texts were published between 1884 and 1964, and are in the public domain. Th
 
 ### Supported Tasks and Leaderboards
 
-The dataset can be used to train a model for Automatic Speech Recognition (ASR) or Text-to-Speech (TTS). 
-- `other:automatic-speech-recognition`: An ASR model is presented with an audio file and asked to transcribe the audio file to written text. 
-The most common ASR evaluation metric is the word error rate (WER). 
-- `other:text-to-speech`: A TTS model is given a written text in natural language and asked to generate a speech audio file. 
-A reasonable evaluation metric is the mean opinion score (MOS) of audio quality. 
+The dataset can be used to train a model for Automatic Speech Recognition (ASR) or Text-to-Speech (TTS).
+- `other:automatic-speech-recognition`: An ASR model is presented with an audio file and asked to transcribe the audio file to written text.
+The most common ASR evaluation metric is the word error rate (WER).
+- `other:text-to-speech`: A TTS model is given a written text in natural language and asked to generate a speech audio file.
+A reasonable evaluation metric is the mean opinion score (MOS) of audio quality.
 The dataset has an active leaderboard which can be found at https://paperswithcode.com/sota/text-to-speech-synthesis-on-ljspeech
 
 ### Languages
 
-The transcriptions and audio are in English. 
+The transcriptions and audio are in English.
 
 ## Dataset Structure
 
 ### Data Instances
 
-A data point comprises the path to the audio file, called `file` and its transcription, called `text`. 
+A data point comprises the path to the audio file, called `file` and its transcription, called `text`.
 A normalized version of the text is also provided.
 
 ```
 {
-    'id': 'LJ002-0026', 
-    'file': '/datasets/downloads/extracted/05bfe561f096e4c52667e3639af495226afe4e5d08763f2d76d069e7a453c543/LJSpeech-1.1/wavs/LJ002-0026.wav', 
+    'id': 'LJ002-0026',
+    'file': '/datasets/downloads/extracted/05bfe561f096e4c52667e3639af495226afe4e5d08763f2d76d069e7a453c543/LJSpeech-1.1/wavs/LJ002-0026.wav',
 	'audio': {'path': '/datasets/downloads/extracted/05bfe561f096e4c52667e3639af495226afe4e5d08763f2d76d069e7a453c543/LJSpeech-1.1/wavs/LJ002-0026.wav',
 	  'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346,
 			  0.00091553,  0.00085449], dtype=float32),
 	  'sampling_rate': 22050},
-    'text': 'in the three years between 1813 and 1816,' 
+    'text': 'in the three years between 1813 and 1816,'
     'normalized_text': 'in the three years between eighteen thirteen and eighteen sixteen,',
 }
 ```
@@ -183,7 +196,7 @@ Some details about normalization:
 
 #### Who are the annotators?
 
-Recordings by Linda Johnson from LibriVox. Alignment and annotation by Keith Ito. 
+Recordings by Linda Johnson from LibriVox. Alignment and annotation by Keith Ito.
 
 ### Personal and Sensitive Information
 

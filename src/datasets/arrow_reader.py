@@ -26,11 +26,11 @@ from typing import TYPE_CHECKING, List, Optional, Union
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from datasets.utils.file_utils import DownloadConfig
-
+from .download.download_config import DownloadConfig
 from .naming import _split_re, filename_for_dataset_split
 from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables
-from .utils import cached_path, logging
+from .utils import logging
+from .utils.file_utils import cached_path
 
 
 if TYPE_CHECKING:
@@ -95,7 +95,7 @@ def make_file_instructions(name, split_infos, instruction, filetype_suffix=None)
         name: Name of the dataset.
         split_infos: `List[SplitInfo]`, Dataset splits information
         instruction: `ReadInstruction` or `str`
-        filetype_suffix: `Optional[str]` suffix of dataset files, e.g. 'arrow' or 'parquet'
+        filetype_suffix: :obj:`str`, optional suffix of dataset files, e.g. 'arrow' or 'parquet'
 
     Returns:
         file_intructions: FileInstructions instance
@@ -457,9 +457,7 @@ def _rel_to_abs_instr(rel_instr, name2len):
 class ReadInstruction:
     """Reading instruction for a dataset.
 
-    Examples of usage:
-
-    .. code:: python
+    Examples::
 
       # The following lines are equivalent:
       ds = datasets.load_dataset('mnist', split='test[:33%]')

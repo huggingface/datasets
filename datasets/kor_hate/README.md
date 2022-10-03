@@ -4,9 +4,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - ko
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
@@ -50,10 +50,10 @@ pretty_name: Korean HateSpeech Dataset
 
 ## Dataset Description
 
-- **Homepage: [Korean HateSpeech Dataset](https://github.com/kocohub/korean-hate-speech)**
-- **Repository: [Korean HateSpeech Dataset](https://github.com/kocohub/korean-hate-speech)**
-- **Paper: [BEEP! Korean Corpus of Online News Comments for Toxic Speech Detection](https://arxiv.org/abs/2005.12503)**
-- **Point of Contact: [Steven Liu](stevhliu@gmail.com)**
+- **Homepage:** [Korean HateSpeech Dataset](https://github.com/kocohub/korean-hate-speech)
+- **Repository:** [Korean HateSpeech Dataset](https://github.com/kocohub/korean-hate-speech)
+- **Paper:** [BEEP! Korean Corpus of Online News Comments for Toxic Speech Detection](https://arxiv.org/abs/2005.12503)
+- **Point of Contact:** [Steven Liu](stevhliu@gmail.com)
 
 ### Dataset Summary
 

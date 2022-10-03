@@ -1,5 +1,28 @@
 ---
-pretty_name: qa4mre
+annotations_creators:
+- other
+language:
+- ar
+- bg
+- en
+- es
+- ro
+language_creators:
+- found
+license:
+- unknown
+multilinguality:
+- multilingual
+pretty_name: "QA4MRE: Question Answering for Machine Reading Evaluation"
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- multiple-choice
+task_ids:
+- multiple-choice-qa
+paperswithcode_id: null
 ---
 
 # Dataset Card for "qa4mre"
@@ -30,9 +53,9 @@ pretty_name: qa4mre
 
 ## Dataset Description
 
-- **Homepage:** [http://nlp.uned.es/clef-qa/repository/pastCampaigns.php](http://nlp.uned.es/clef-qa/repository/pastCampaigns.php)
+- **Homepage:** http://nlp.uned.es/clef-qa/repository/qa4mre.php
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Paper:** [QA4MRE 2011-2013: Overview of Question Answering for Machine Reading Evaluation](https://link.springer.com/chapter/10.1007/978-3-642-40802-1_29)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 5.24 MB
 - **Size of the generated dataset:** 46.11 MB
@@ -57,8 +80,6 @@ alzheimers data, and the other on entrance exams data.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Structure
-
-We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
@@ -258,7 +279,6 @@ The data fields are the same among all splits.
 ### Citation Information
 
 ```
-
 @InProceedings{10.1007/978-3-642-40802-1_29,
 author="Pe{\~{n}}as, Anselmo
 and Hovy, Eduard
@@ -277,12 +297,9 @@ year="2013",
 publisher="Springer Berlin Heidelberg",
 address="Berlin, Heidelberg",
 pages="303--320",
-abstract="This paper describes the methodology for testing the performance of Machine Reading systems through Question Answering and Reading Comprehension Tests. This was the attempt of the QA4MRE challenge which was run as a Lab at CLEF 2011--2013. The traditional QA task was replaced by a new Machine Reading task, whose intention was to ask questions that required a deep knowledge of individual short texts and in which systems were required to choose one answer, by analysing the corresponding test document in conjunction with background text collections provided by the organization. Four different tasks have been organized during these years: Main Task, Processing Modality and Negation for Machine Reading, Machine Reading of Biomedical Texts about Alzheimer's disease, and Entrance Exams. This paper describes their motivation, their goals, their methodology for preparing the data sets, their background collections, their metrics used for the evaluation, and the lessons learned along these three years.",
 isbn="978-3-642-40802-1"
 }
-
 ```
-
 
 ### Contributions
 

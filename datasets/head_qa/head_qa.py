@@ -50,7 +50,8 @@ _HOMEPAGE = "https://aghie.github.io/head-qa/"
 
 _LICENSE = "MIT License"
 
-_URL = "https://drive.google.com/u/0/uc?export=download&id=1a_95N5zQQoUCq8IBNVZgziHbeM-QxG2t"
+_REPO = "https://huggingface.co/datasets/head_qa/resolve/main/data"
+_URL = f"{_REPO}/head-qa-es-en-pdfs.zip"
 
 _DIRS = {"es": "HEAD", "en": "HEAD_EN"}
 

@@ -4,9 +4,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-3.0
 multilinguality:
 - monolingual
@@ -50,9 +50,9 @@ paperswithcode_id: wikimovies
 
 ## Dataset Description
 
-- **Homepage: [WikiMovies Homepage](https://research.fb.com/downloads/babi/)**
+- **Homepage:** [WikiMovies Homepage](https://research.fb.com/downloads/babi/)
 - **Repository:**
-- **Paper: [Key-Value Memory Networks for Directly Reading Documents](https://arxiv.org/pdf/1606.03126.pdf)**
+- **Paper:** [Key-Value Memory Networks for Directly Reading Documents](https://arxiv.org/pdf/1606.03126.pdf)
 - **Leaderboard:**
 - **Point of Contact:**
 
@@ -156,7 +156,15 @@ WikiMovies was built with the following goals in mind: (i) machine learning tech
 
 ### Citation Information
 
-[More Information Needed]
+```
+@misc{miller2016keyvalue,
+      title={Key-Value Memory Networks for Directly Reading Documents},
+      author={Alexander Miller and Adam Fisch and Jesse Dodge and Amir-Hossein Karimi and Antoine Bordes and Jason Weston},
+      year={2016},
+      eprint={1606.03126},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+```
 
 ### Contributions
 

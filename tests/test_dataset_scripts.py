@@ -2,7 +2,10 @@ import re
 from pathlib import Path
 from unittest import TestCase
 
+import pytest
 
+
+@pytest.mark.integration
 class TestDatasetScripts(TestCase):
     def _no_encoding_on_file_open(self, filepath: str):
         r"""Find all instances where a non-binary file is opened without UTF-8 encoding.

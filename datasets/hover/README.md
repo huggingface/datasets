@@ -4,9 +4,9 @@ annotations_creators:
 language_creators:
 - expert-generated
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
@@ -22,7 +22,7 @@ paperswithcode_id: hover
 pretty_name: HoVer
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for HoVer
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

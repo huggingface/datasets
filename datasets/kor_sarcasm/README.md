@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - ko
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -49,9 +49,9 @@ pretty_name: Korean Sarcasm Detection
 
 ## Dataset Description
 
-- **Homepage: [Korean Sarcasm Detection](https://github.com/SpellOnYou/korean-sarcasm)**
-- **Repository: [Korean Sarcasm Detection](https://github.com/SpellOnYou/korean-sarcasm)**
-- **Point of Contact: [Dionne Kim](jiwon.kim.096@gmail.com)**
+- **Homepage:** [Korean Sarcasm Detection](https://github.com/SpellOnYou/korean-sarcasm)
+- **Repository:** [Korean Sarcasm Detection](https://github.com/SpellOnYou/korean-sarcasm)
+- **Point of Contact:** [Dionne Kim](jiwon.kim.096@gmail.com)
 
 ### Dataset Summary
 
@@ -143,7 +143,7 @@ This dataset is licensed under the MIT License.
 
 ### Citation Information
 
-[More Information Needed]
+Unknown citation information: https://github.com/SpellOnYou/korean-sarcasm
 
 ### Contributions
 

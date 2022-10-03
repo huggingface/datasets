@@ -3,278 +3,18 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
-  az-ba: 
-  - az
-  - ba
-  az-en: 
-  - az
-  - en
-  az-kaa: 
-  - az
-  - kaa
-  az-kk: 
-  - az
-  - kk
-  az-ky: 
-  - az
-  - ky
-  az-ru: 
-  - az
-  - ru
-  az-sah: 
-  - az
-  - sah
-  az-tr: 
-  - az
-  - tr
-  az-uz: 
-  - az
-  - uz
-  ba-az: 
-  - ba
-  - az
-  ba-en: 
-  - ba
-  - en
-  ba-kaa: 
-  - ba
-  - kaa
-  ba-kk: 
-  - ba
-  - kk
-  ba-ky: 
-  - ba
-  - ky
-  ba-ru: 
-  - ba
-  - ru
-  ba-sah: 
-  - ba
-  - sah
-  ba-tr: 
-  - ba
-  - tr
-  ba-uz: 
-  - ba
-  - uz
-  en-az: 
-  - en
-  - az
-  en-ba: 
-  - en
-  - ba
-  en-kaa: 
-  - en
-  - kaa
-  en-kk: 
-  - en
-  - kk
-  en-ky: 
-  - en
-  - ky
-  en-ru: 
-  - en
-  - ru
-  en-sah: 
-  - en
-  - sah
-  en-tr: 
-  - en
-  - tr
-  en-uz: 
-  - en
-  - uz
-  kaa-az: 
-  - kaa
-  - az
-  kaa-ba: 
-  - kaa
-  - ba
-  kaa-en: 
-  - kaa
-  - en
-  kaa-kk: 
-  - kaa
-  - kk
-  kaa-ky: 
-  - kaa
-  - ky
-  kaa-ru: 
-  - kaa
-  - ru
-  kaa-sah: 
-  - kaa
-  - sah
-  kaa-tr: 
-  - kaa
-  - tr
-  kaa-uz: 
-  - kaa
-  - uz
-  kk-az: 
-  - kk
-  - az
-  kk-ba: 
-  - kk
-  - ba
-  kk-en: 
-  - kk
-  - en
-  kk-kaa: 
-  - kk
-  - kaa
-  kk-ky: 
-  - kk
-  - ky
-  kk-ru: 
-  - kk
-  - ru
-  kk-sah: 
-  - kk
-  - sah
-  kk-tr: 
-  - kk
-  - tr
-  kk-uz: 
-  - kk
-  - uz
-  ky-az: 
-  - ky
-  - az
-  ky-ba: 
-  - ky
-  - ba
-  ky-en: 
-  - ky
-  - en
-  ky-kaa: 
-  - ky
-  - kaa
-  ky-kk: 
-  - ky
-  - kk
-  ky-ru: 
-  - ky
-  - ru
-  ky-sah: 
-  - ky
-  - sah
-  ky-tr: 
-  - ky
-  - tr
-  ky-uz: 
-  - ky
-  - uz
-  ru-az: 
-  - ru
-  - az
-  ru-ba: 
-  - ru
-  - ba
-  ru-en: 
-  - ru
-  - en
-  ru-kaa: 
-  - ru
-  - kaa
-  ru-kk: 
-  - ru
-  - kk
-  ru-ky: 
-  - ru
-  - ky
-  ru-sah: 
-  - ru
-  - sah
-  ru-tr: 
-  - ru
-  - tr
-  ru-uz: 
-  - ru
-  - uz
-  sah-az: 
-  - sah
-  - az
-  sah-ba: 
-  - sah
-  - ba
-  sah-en: 
-  - sah
-  - en
-  sah-kaa: 
-  - sah
-  - kaa
-  sah-kk: 
-  - sah
-  - kk
-  sah-ky: 
-  - sah
-  - ky
-  sah-ru: 
-  - sah
-  - ru
-  sah-tr: 
-  - sah
-  - tr
-  sah-uz: 
-  - sah
-  - uz
-  tr-az: 
-  - tr
-  - az
-  tr-ba: 
-  - tr
-  - ba
-  tr-en: 
-  - tr
-  - en
-  tr-kaa: 
-  - tr
-  - kaa
-  tr-kk: 
-  - tr
-  - kk
-  tr-ky: 
-  - tr
-  - ky
-  tr-ru: 
-  - tr
-  - ru
-  tr-sah: 
-  - tr
-  - sah
-  tr-uz: 
-  - tr
-  - uz
-  uz-az: 
-  - uz
-  - az
-  uz-ba: 
-  - uz
-  - ba
-  uz-en: 
-  - uz
-  - en
-  uz-kaa: 
-  - uz
-  - kaa
-  uz-kk: 
-  - uz
-  - kk
-  uz-ky: 
-  - uz
-  - ky
-  uz-ru: 
-  - uz
-  - ru
-  uz-sah: 
-  - uz
-  - sah
-  uz-tr: 
-  - uz
-  - tr
-licenses:
+language:
+- az
+- ba
+- en
+- kaa
+- kk
+- ky
+- ru
+- sah
+- tr
+- uz
+license:
 - mit
 multilinguality:
 - translation
@@ -282,11 +22,101 @@ pretty_name: turkic_xwmt
 size_categories:
 - n<1K
 task_categories:
-- conditional-text-generation
-task_ids:
-- machine-translation
+- translation
+task_ids: []
 source_datasets:
 - extended|WMT 2020 News Translation Task
+configs:
+- az-ba
+- az-en
+- az-kaa
+- az-kk
+- az-ky
+- az-ru
+- az-sah
+- az-tr
+- az-uz
+- ba-az
+- ba-en
+- ba-kaa
+- ba-kk
+- ba-ky
+- ba-ru
+- ba-sah
+- ba-tr
+- ba-uz
+- en-az
+- en-ba
+- en-kaa
+- en-kk
+- en-ky
+- en-ru
+- en-sah
+- en-tr
+- en-uz
+- kaa-az
+- kaa-ba
+- kaa-en
+- kaa-kk
+- kaa-ky
+- kaa-ru
+- kaa-sah
+- kaa-tr
+- kaa-uz
+- kk-az
+- kk-ba
+- kk-en
+- kk-kaa
+- kk-ky
+- kk-ru
+- kk-sah
+- kk-tr
+- kk-uz
+- ky-az
+- ky-ba
+- ky-en
+- ky-kaa
+- ky-kk
+- ky-ru
+- ky-sah
+- ky-tr
+- ky-uz
+- ru-az
+- ru-ba
+- ru-en
+- ru-kaa
+- ru-kk
+- ru-ky
+- ru-sah
+- ru-tr
+- ru-uz
+- sah-az
+- sah-ba
+- sah-en
+- sah-kaa
+- sah-kk
+- sah-ky
+- sah-ru
+- sah-tr
+- sah-uz
+- tr-az
+- tr-ba
+- tr-en
+- tr-kaa
+- tr-kk
+- tr-ky
+- tr-ru
+- tr-sah
+- tr-uz
+- uz-az
+- uz-ba
+- uz-en
+- uz-kaa
+- uz-kk
+- uz-ky
+- uz-ru
+- uz-sah
+- uz-tr
 ---
 
 # Dataset Card for turkic_xwmt

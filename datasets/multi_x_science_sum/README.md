@@ -3,9 +3,9 @@ annotations_creators:
 - found
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -14,9 +14,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-task_ids:
 - summarization
+task_ids:
+- summarization-other-paper-abstract-generation
 paperswithcode_id: multi-xscience
 pretty_name: Multi-XScience
 ---
@@ -54,7 +54,7 @@ pretty_name: Multi-XScience
 
 ### Dataset Summary
 
-Multi-XScience, a large-scale multi-document summarization dataset created from scientific articles. Multi-XScience introduces a challenging multi-document summarization task: writing therelated-work section of a paper based on itsabstract and the articles it references.
+Multi-XScience, a large-scale multi-document summarization dataset created from scientific articles. Multi-XScience introduces a challenging multi-document summarization task: writing the related-work section of a paper based on its abstract and the articles it references.
 
 ### Supported Tasks and Leaderboards
 
@@ -95,9 +95,9 @@ The text in the dataset is in English
 
 The data is split into a training, validation and test.
 
-| Tain   | Valid | Test |
-| ------ | ----- | ---- |
-| 30369  |  5066 | 5093 |
+| train | validation | test |
+|------:|-----------:|-----:|
+| 30369 |       5066 | 5093 |
 
 
 ## Dataset Creation
@@ -156,7 +156,14 @@ The data is split into a training, validation and test.
 
 ### Citation Information
 
-[More Information Needed]
+```
+@article{lu2020multi,
+  title={Multi-XScience: A Large-scale Dataset for Extreme Multi-document Summarization of Scientific Articles},
+  author={Lu, Yao and Dong, Yue and Charlin, Laurent},
+  journal={arXiv preprint arXiv:2010.14235},
+  year={2020}
+}
+```
 
 ### Contributions
 

@@ -51,7 +51,7 @@ https://github.com/google-research/google-research/tree/master/rouge
 _KWARGS_DESCRIPTION = """
 Calculates average rouge scores for a list of hypotheses and references
 Args:
-    predictions: list of predictions to score. Each predictions
+    predictions: list of predictions to score. Each prediction
         should be a string with tokens separated by spaces.
     references: list of reference for each prediction. Each
         reference should be a string with tokens separated by spaces.
@@ -62,7 +62,7 @@ Args:
         `"rougeLSum"`: rougeLsum splits text using `"\n"`.
         See details in https://github.com/huggingface/datasets/issues/617
     use_stemmer: Bool indicating whether Porter stemmer should be used to strip word suffixes.
-    use_agregator: Return aggregates if this is set to True
+    use_aggregator: Return aggregates if this is set to True
 Returns:
     rouge1: rouge_1 (precision, recall, f1),
     rouge2: rouge_2 (precision, recall, f1),
@@ -103,24 +103,24 @@ class Rouge(datasets.Metric):
             ],
         )
 
-    def _compute(self, predictions, references, rouge_types=None, use_agregator=True, use_stemmer=False):
+    def _compute(self, predictions, references, rouge_types=None, use_aggregator=True, use_stemmer=False):
         if rouge_types is None:
             rouge_types = ["rouge1", "rouge2", "rougeL", "rougeLsum"]
 
         scorer = rouge_scorer.RougeScorer(rouge_types=rouge_types, use_stemmer=use_stemmer)
-        if use_agregator:
+        if use_aggregator:
             aggregator = scoring.BootstrapAggregator()
         else:
             scores = []
 
         for ref, pred in zip(references, predictions):
             score = scorer.score(ref, pred)
-            if use_agregator:
+            if use_aggregator:
                 aggregator.add_scores(score)
             else:
                 scores.append(score)
 
-        if use_agregator:
+        if use_aggregator:
             result = aggregator.aggregate()
         else:
             result = {}

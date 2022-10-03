@@ -65,26 +65,87 @@ _KWARGS_DESCRIPTION = """
 Produces TER scores alongside the number of edits and reference length.
 
 Args:
-    predictions: The system stream (a sequence of segments).
-    references: A list of one or more reference streams (each a sequence of segments).
-    normalized: Whether to apply basic tokenization to sentences.
-    no_punct: Whether to remove punctuations from sentences.
-    asian_support: Whether to support Asian character processing.
-    case_sensitive: Whether to disable lowercasing.
+    predictions (list of str): The system stream (a sequence of segments).
+    references (list of list of str): A list of one or more reference streams (each a sequence of segments).
+    normalized (boolean): If `True`, applies basic tokenization and normalization to sentences. Defaults to `False`.
+    ignore_punct (boolean): If `True`, applies basic tokenization and normalization to sentences. Defaults to `False`.
+    support_zh_ja_chars (boolean): If `True`, tokenization/normalization supports processing of Chinese characters,
+                                    as well as Japanese Kanji, Hiragana, Katakana, and Phonetic Extensions of Katakana.
+                                    Only applies if `normalized = True`. Defaults to `False`.
+    case_sensitive (boolean): If `False`, makes all predictions and references lowercase to ignore differences in case. Defaults to `False`.
 
 Returns:
-    'score': TER score (num_edits / sum_ref_lengths * 100),
-    'num_edits': The cumulative number of edits,
-    'ref_length': The cumulative average reference length.
+    'score' (float): TER score (num_edits / sum_ref_lengths * 100)
+    'num_edits' (int): The cumulative number of edits
+    'ref_length' (float): The cumulative average reference length
 
 Examples:
+    Example 1:
+        >>> predictions = ["does this sentence match??",
+        ...                     "what about this sentence?",
+        ...                     "What did the TER metric user say to the developer?"]
+        >>> references = [["does this sentence match", "does this sentence match!?!"],
+        ...             ["wHaT aBoUt ThIs SeNtEnCe?", "wHaT aBoUt ThIs SeNtEnCe?"],
+        ...             ["Your jokes are...", "...TERrible"]]
+        >>> ter = datasets.load_metric("ter")
+        >>> results = ter.compute(predictions=predictions,
+        ...                         references=references,
+        ...                         case_sensitive=True)
+        >>> print(results)
+        {'score': 150.0, 'num_edits': 15, 'ref_length': 10.0}
 
-    >>> predictions = ["hello there general kenobi", "foo bar foobar"]
-    >>> references = [["hello there general kenobi", "hello there !"], ["foo bar foobar", "foo bar foobar"]]
-    >>> ter = datasets.load_metric("ter")
-    >>> results = ter.compute(predictions=predictions, references=references)
-    >>> print(results)
-    {'score': 0.0, 'num_edits': 0, 'ref_length': 6.5}
+    Example 2:
+        >>> predictions = ["does this sentence match??",
+        ...                     "what about this sentence?"]
+        >>> references = [["does this sentence match", "does this sentence match!?!"],
+        ...             ["wHaT aBoUt ThIs SeNtEnCe?", "wHaT aBoUt ThIs SeNtEnCe?"]]
+        >>> ter = datasets.load_metric("ter")
+        >>> results = ter.compute(predictions=predictions,
+        ...                         references=references,
+        ...                         case_sensitive=True)
+        >>> print(results)
+        {'score': 62.5, 'num_edits': 5, 'ref_length': 8.0}
+
+    Example 3:
+        >>> predictions = ["does this sentence match??",
+        ...                     "what about this sentence?"]
+        >>> references = [["does this sentence match", "does this sentence match!?!"],
+        ...             ["wHaT aBoUt ThIs SeNtEnCe?", "wHaT aBoUt ThIs SeNtEnCe?"]]
+        >>> ter = datasets.load_metric("ter")
+        >>> results = ter.compute(predictions=predictions,
+        ...                         references=references,
+        ...                         normalized=True,
+        ...                         case_sensitive=True)
+        >>> print(results)
+        {'score': 57.14285714285714, 'num_edits': 6, 'ref_length': 10.5}
+
+    Example 4:
+        >>> predictions = ["does this sentence match??",
+        ...                     "what about this sentence?"]
+        >>> references = [["does this sentence match", "does this sentence match!?!"],
+        ...             ["wHaT aBoUt ThIs SeNtEnCe?", "wHaT aBoUt ThIs SeNtEnCe?"]]
+        >>> ter = datasets.load_metric("ter")
+        >>> results = ter.compute(predictions=predictions,
+        ...                         references=references,
+        ...                         ignore_punct=True,
+        ...                         case_sensitive=False)
+        >>> print(results)
+        {'score': 0.0, 'num_edits': 0, 'ref_length': 8.0}
+
+    Example 5:
+        >>> predictions = ["does this sentence match??",
+        ...                    "what about this sentence?",
+        ...                    "What did the TER metric user say to the developer?"]
+        >>> references = [["does this sentence match", "does this sentence match!?!"],
+        ...             ["wHaT aBoUt ThIs SeNtEnCe?", "wHaT aBoUt ThIs SeNtEnCe?"],
+        ...             ["Your jokes are...", "...TERrible"]]
+        >>> ter = datasets.load_metric("ter")
+        >>> results = ter.compute(predictions=predictions,
+        ...                         references=references,
+        ...                         ignore_punct=True,
+        ...                         case_sensitive=False)
+        >>> print(results)
+        {'score': 100.0, 'num_edits': 10, 'ref_length': 10.0}
 """
 
 
@@ -118,8 +179,8 @@ class Ter(datasets.Metric):
         predictions,
         references,
         normalized: bool = False,
-        no_punct: bool = False,
-        asian_support: bool = False,
+        ignore_punct: bool = False,
+        support_zh_ja_chars: bool = False,
         case_sensitive: bool = False,
     ):
         references_per_prediction = len(references[0])
@@ -127,7 +188,12 @@ class Ter(datasets.Metric):
             raise ValueError("Sacrebleu requires the same number of references for each prediction")
         transformed_references = [[refs[i] for refs in references] for i in range(references_per_prediction)]
 
-        sb_ter = TER(normalized, no_punct, asian_support, case_sensitive)
+        sb_ter = TER(
+            normalized=normalized,
+            no_punct=ignore_punct,
+            asian_support=support_zh_ja_chars,
+            case_sensitive=case_sensitive,
+        )
         output = sb_ter.corpus_score(predictions, transformed_references)
 
         return {"score": output.score, "num_edits": output.num_edits, "ref_length": output.ref_length}

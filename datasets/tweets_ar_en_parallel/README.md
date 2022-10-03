@@ -4,10 +4,10 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages:
+language:
 - ar
 - en
-licenses:
+license:
 - apache-2.0
 multilinguality:
 - translation
@@ -16,9 +16,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- other
+- translation
 task_ids:
-- other-other-machine-translation
+- translation-other-tweets-translation
 paperswithcode_id: bilingual-corpus-of-arabic-english-parallel
 pretty_name: Bilingual Corpus of Arabic-English Parallel Tweets
 ---

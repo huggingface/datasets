@@ -3,9 +3,9 @@ annotations_creators:
 - expert-generated
 language_creators:
 - found
-languages:
+language:
 - da
-licenses:
+license:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
@@ -14,10 +14,10 @@ size_categories:
 source_datasets:
 - extended|other-Danish-Universal-Dependencies-treebank
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - named-entity-recognition
-- part-of-speech-tagging
+- part-of-speech
 paperswithcode_id: dane
 pretty_name: DaNE
 ---
@@ -110,10 +110,10 @@ Data Fields:
 
 ### Data Splits
 
-|             |  Tain  |   Dev  |  Test  |
-|-------------|-------:|-------:|-------:|
-| # sentences |   4383 |    564 |    565 |
-| # tokens    | 80 378 | 10 322 | 10 023 |
+|             |  train | validation |   test |
+|-------------|-------:|-----------:|-------:|
+| # sentences |   4383 |        564 |    565 |
+| # tokens    | 80 378 |     10 322 | 10 023 |
 
 ## Dataset Creation
 

@@ -3,9 +3,9 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - found
-languages:
+language:
 - zh
-licenses:
+license:
 - mit
 multilinguality:
 - monolingual
@@ -14,7 +14,7 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- token-classification
 task_ids:
 - parsing
 paperswithcode_id: null

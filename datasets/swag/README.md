@@ -4,9 +4,9 @@ annotations_creators:
 - machine-generated
 language_creators:
 - found
-languages:
+language:
 - en
-licenses:
+license:
 - unknown
 multilinguality:
 - monolingual
@@ -22,7 +22,7 @@ paperswithcode_id: swag
 pretty_name: Situations With Adversarial Generations
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Situations With Adversarial Generations
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
