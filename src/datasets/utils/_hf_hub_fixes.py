@@ -62,9 +62,8 @@ def create_repo(
 
 def delete_repo(
     hf_api: HfApi,
-    name: str,
+    repo_id: str,
     token: Optional[str] = None,
-    organization: Optional[str] = None,
     repo_type: Optional[str] = None,
 ) -> str:
     """
@@ -73,10 +72,8 @@ def delete_repo(
 
     Args:
         hf_api (`huggingface_hub.HfApi`): Hub client
-        name (`str`): name of the repository (without the namespace)
+        repo_id (`str`): A namespace (user or an organization) and a repo name separated by a `/`.
         token (`str`, *optional*): user or organization token. Defaults to None.
-        organization (`str`, *optional*): namespace for the repository: the username or organization name.
-            By default it uses the namespace associated to the token used.
         repo_type (`str`, *optional*):
             Set to `"dataset"` or `"space"` if uploading to a dataset or
             space, `None` or `"model"` if uploading to a model. Default is
@@ -86,15 +83,16 @@ def delete_repo(
         `str`: URL to the newly created repo.
     """
     if version.parse(huggingface_hub.__version__) < version.parse("0.5.0"):
+        name, *organization = repo_id.split("/")
         return hf_api.delete_repo(
             name=name,
-            organization=organization,
+            organization=organization or None,
             token=token,
             repo_type=repo_type,
         )
     else:  # the `organization` parameter is deprecated in huggingface_hub>=0.5.0
         return hf_api.delete_repo(
-            repo_id=f"{organization}/{name}",
+            repo_id=repo_id,
             token=token,
             repo_type=repo_type,
         )
