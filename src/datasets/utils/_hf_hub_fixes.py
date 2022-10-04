@@ -8,9 +8,8 @@ from packaging import version
 
 def create_repo(
     hf_api: HfApi,
-    name: str,
+    repo_id: str,
     token: Optional[str] = None,
-    organization: Optional[str] = None,
     private: Optional[bool] = None,
     repo_type: Optional[str] = None,
     exist_ok: Optional[bool] = False,
@@ -22,10 +21,8 @@ def create_repo(
 
     Args:
         hf_api (`huggingface_hub.HfApi`): Hub client
-        name (`str`): name of the repository (without the namespace)
+        repo_id (`str`): A namespace (user or an organization) and a repo name separated by a `/`.
         token (`str`, *optional*): user or organization token. Defaults to None.
-        organization (`str`, *optional*): namespace for the repository: the username or organization name.
-            By default it uses the namespace associated to the token used.
         private (`bool`, *optional*):
             Whether the model repo should be private.
         repo_type (`str`, *optional*):
@@ -42,9 +39,10 @@ def create_repo(
         `str`: URL to the newly created repo.
     """
     if version.parse(huggingface_hub.__version__) < version.parse("0.5.0"):
+        name, *organization = repo_id.split("/")
         return hf_api.create_repo(
             name=name,
-            organization=organization,
+            organization=organization or None,
             token=token,
             private=private,
             repo_type=repo_type,
@@ -53,7 +51,7 @@ def create_repo(
         )
     else:  # the `organization` parameter is deprecated in huggingface_hub>=0.5.0
         return hf_api.create_repo(
-            repo_id=f"{organization}/{name}",
+            repo_id=repo_id,
             token=token,
             private=private,
             repo_type=repo_type,
