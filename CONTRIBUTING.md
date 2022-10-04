@@ -3,12 +3,12 @@
 
 Datasets is an open source project, so all contributions and suggestions are welcome.
 
-You can contribute in many different ways: giving ideas, answering questions, reporting bugs, proposing enhancements, 
+You can contribute in many different ways: giving ideas, answering questions, reporting bugs, proposing enhancements,
 improving the documentation, fixing bugs,...
 
 Many thanks in advance to every contributor.
 
-In order to facilitate healthy, constructive behavior in an open and inclusive community, we all respect and abide by 
+In order to facilitate healthy, constructive behavior in an open and inclusive community, we all respect and abide by
 our [code of conduct](CODE_OF_CONDUCT.md).
 
 ## How to work on an open Issue?
@@ -83,7 +83,7 @@ If you want to add a dataset see specific instructions in the section [*How to a
    ```bash
    git push -u origin a-descriptive-name-for-my-changes
    ```
-   
+
    Go the webpage of your fork on GitHub. Click on "Pull request" to send your to the project maintainers for review.
 
 ## How to add a dataset
