@@ -82,7 +82,7 @@ jobs:
         run: |
           python -m pytest -rfExX -m torchaudio_latest -n 2 --dist loadfile -sv ./tests/features/test_audio.py
 
-  test_py3.10:
+  test_py310:
     needs: check_code_quality
     strategy:
       matrix:
