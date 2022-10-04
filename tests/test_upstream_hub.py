@@ -418,7 +418,7 @@ class TestPushToHub:
                 mock_hf_api.reset_mock()
 
                 # Remove a data file
-                files = list_repo_files(self._api, ds_name, repo_type="dataset", token=self._token)
+                files = list_repo_files(self._api, ds_name, repo_type="dataset", use_auth_token=self._token)
                 data_files = [f for f in files if f.startswith("data/")]
                 assert len(data_files) > 1
                 self._api.delete_file(data_files[0], repo_id=ds_name, repo_type="dataset", token=self._token)
