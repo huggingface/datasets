@@ -13,13 +13,13 @@ from huggingface_hub import HfApi
 from datasets import Audio, ClassLabel, Dataset, DatasetDict, Features, Image, Value, load_dataset
 from datasets.utils._hf_hub_fixes import list_repo_files
 from tests.fixtures.hub import CI_HUB_ENDPOINT, CI_HUB_USER, CI_HUB_USER_TOKEN
-from tests.utils import for_all_test_methods, require_pil, require_sndfile, xfail_if_500_http_error
+from tests.utils import for_all_test_methods, require_pil, require_sndfile, xfail_if_500_502_http_error
 
 
 pytestmark = pytest.mark.integration
 
 
-@for_all_test_methods(xfail_if_500_http_error)
+@for_all_test_methods(xfail_if_500_502_http_error)
 @pytest.mark.usefixtures("set_ci_hub_access_token")
 class TestPushToHub:
     _api = HfApi(endpoint=CI_HUB_ENDPOINT)
