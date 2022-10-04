@@ -39,10 +39,10 @@ def create_repo(
         `str`: URL to the newly created repo.
     """
     if version.parse(huggingface_hub.__version__) < version.parse("0.5.0"):
-        name, *organization = repo_id.split("/")
+        name, organization = repo_id.split("/")
         return hf_api.create_repo(
             name=name,
-            organization=organization or None,
+            organization=organization,
             token=token,
             private=private,
             repo_type=repo_type,
@@ -83,10 +83,10 @@ def delete_repo(
         `str`: URL to the newly created repo.
     """
     if version.parse(huggingface_hub.__version__) < version.parse("0.5.0"):
-        name, *organization = repo_id.split("/")
+        name, organization = repo_id.split("/")
         return hf_api.delete_repo(
             name=name,
-            organization=organization or None,
+            organization=organization,
             token=token,
             repo_type=repo_type,
         )
