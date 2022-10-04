@@ -161,7 +161,7 @@ def list_repo_files(
     repo_id: str,
     revision: Optional[str] = None,
     repo_type: Optional[str] = None,
-    use_auth_token: Optional[str] = None,
+    use_auth_token: Optional[Union[bool, str]] = None,
     timeout: Optional[float] = None,
 ) -> List[str]:
     """
