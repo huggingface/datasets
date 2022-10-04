@@ -358,7 +358,7 @@ class DatasetBuilder:
         # Set download manager
         self.dl_manager = None
 
-        # Record infos even if verify_infos=False; used by "datasets-cli test" to generate dataset_infos.json
+        # Record infos even if verify_infos=False; used by "datasets-cli test" to generate file checksums for (deprecated) dataset_infos.json
         self._record_infos = False
 
         # Enable streaming (e.g. it patches "open" to work with remote files)
@@ -383,7 +383,7 @@ class DatasetBuilder:
         return None
 
     @classmethod
-    def get_all_exported_dataset_infos(cls) -> dict:
+    def get_all_exported_dataset_infos(cls) -> DatasetInfosDict:
         """Empty dict if doesn't exist
 
         Example:
@@ -395,10 +395,7 @@ class DatasetBuilder:
         {'default': DatasetInfo(description="Movie Review Dataset.\nThis is a dataset of containing 5,331 positive and 5,331 negative processed\nsentences from Rotten Tomatoes movie reviews. This data was first used in Bo\nPang and Lillian Lee, ``Seeing stars: Exploiting class relationships for\nsentiment categorization with respect to rating scales.'', Proceedings of the\nACL, 2005.\n", citation='@InProceedings{Pang+Lee:05a,\n  author =       {Bo Pang and Lillian Lee},\n  title =        {Seeing stars: Exploiting class relationships for sentiment\n                  categorization with respect to rating scales},\n  booktitle =    {Proceedings of the ACL},\n  year =         2005\n}\n', homepage='http://www.cs.cornell.edu/people/pabo/movie-review-data/', license='', features={'text': Value(dtype='string', id=None), 'label': ClassLabel(num_classes=2, names=['neg', 'pos'], id=None)}, post_processed=None, supervised_keys=SupervisedKeysData(input='', output=''), task_templates=[TextClassification(task='text-classification', text_column='text', label_column='label')], builder_name='rotten_tomatoes_movie_review', config_name='default', version=1.0.0, splits={'train': SplitInfo(name='train', num_bytes=1074810, num_examples=8530, dataset_name='rotten_tomatoes_movie_review'), 'validation': SplitInfo(name='validation', num_bytes=134679, num_examples=1066, dataset_name='rotten_tomatoes_movie_review'), 'test': SplitInfo(name='test', num_bytes=135972, num_examples=1066, dataset_name='rotten_tomatoes_movie_review')}, download_checksums={'https://storage.googleapis.com/seldon-datasets/sentence_polarity_v1/rt-polaritydata.tar.gz': {'num_bytes': 487770, 'checksum': 'a05befe52aafda71d458d188a1c54506a998b1308613ba76bbda2e5029409ce9'}}, download_size=487770, post_processing_size=None, dataset_size=1345461, size_in_bytes=1833231)}
         ```
         """
-        dset_infos_file_path = os.path.join(cls.get_imported_module_dir(), config.DATASETDICT_INFOS_FILENAME)
-        if os.path.exists(dset_infos_file_path):
-            return DatasetInfosDict.from_directory(cls.get_imported_module_dir())
-        return {}
+        return DatasetInfosDict.from_directory(cls.get_imported_module_dir())
 
     def get_exported_dataset_info(self) -> DatasetInfo:
         """Empty DatasetInfo if doesn't exist
@@ -468,11 +465,14 @@ class DatasetBuilder:
             config_kwargs,
             custom_features=custom_features,
         )
-        is_custom = config_id not in self.builder_configs
+        is_custom = (config_id not in self.builder_configs) and config_id != "default"
         if is_custom:
             logger.warning(f"Using custom data configuration {config_id}")
         else:
-            if builder_config != self.builder_configs[builder_config.name]:
+            if (
+                builder_config.name in self.builder_configs
+                and builder_config != self.builder_configs[builder_config.name]
+            ):
                 raise ValueError(
                     "Cannot name a custom BuilderConfig the same as an available "
                     f"BuilderConfig. Change the name. Available BuilderConfigs: {list(self.builder_configs.keys())}"

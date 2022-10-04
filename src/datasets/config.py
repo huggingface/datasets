@@ -125,6 +125,9 @@ else:
     logger.info("Disabling Apache Beam because USE_BEAM is set to False")
 
 
+# Optional tools for data loading
+SQLALCHEMY_AVAILABLE = importlib.util.find_spec("sqlalchemy") is not None
+
 # Optional tools for feature decoding
 PIL_AVAILABLE = importlib.util.find_spec("PIL") is not None
 
@@ -167,6 +170,9 @@ HF_UPDATE_DOWNLOAD_COUNTS = (
 # Batch size constants. For more info, see:
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
 DEFAULT_MAX_BATCH_SIZE = 10_000
+
+# Size of the preloaded record batch in `Dataset.__iter__`
+ARROW_READER_BATCH_SIZE_IN_DATASET_ITER = 10
 
 # Pickling tables works only for small tables (<4GiB)
 # For big tables, we write them on disk instead

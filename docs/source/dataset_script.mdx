@@ -274,17 +274,17 @@ def _generate_examples(self, filepath):
                     }
 ```
 
-## Generate dataset metadata
+## (Optional) Generate dataset metadata
 
-Adding dataset metadata is a great way to include information about your dataset. The metadata is stored in a `dataset_infos.json` file. It includes information like data file checksums, the number of examples required to confirm the dataset was correctly generated, and information about the dataset like its `features`.
+Adding dataset metadata is a great way to include information about your dataset. The metadata is stored in the dataset card `README.md` in YAML. It includes information like the number of examples required to confirm the dataset was correctly generated, and information about the dataset like its `features`.
 
-Run the following command to generate your dataset metadata in `dataset_infos.json` and make sure your new dataset loading script works correctly:
+Run the following command to generate your dataset metadata in `README.md` and make sure your new dataset loading script works correctly:
 
 ```
-datasets-cli test path/to/<your-dataset-loading-script> --save_infos --all_configs
+datasets-cli test path/to/<your-dataset-loading-script> --save_info --all_configs
 ```
 
-If your dataset loading script passed the test, you should now have a `dataset_infos.json` file in your dataset folder.
+If your dataset loading script passed the test, you should now have a `README.md` file in your dataset folder containing a `dataset_info` field with some metadata.
 
 ## Upload to the Hub
 

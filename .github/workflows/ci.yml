@@ -9,7 +9,6 @@ on:
       - main
 
 env:
-  HF_SCRIPTS_VERSION: main
   HF_ALLOW_CODE_EVAL: 1
 
 jobs:
@@ -28,9 +27,9 @@ jobs:
           pip install .[quality]
       - name: Check quality
         run: |
-          black --check --line-length 119 --target-version py36 tests src benchmarks datasets metrics
-          isort --check-only tests src benchmarks datasets metrics
-          flake8 tests src benchmarks datasets metrics
+          black --check --line-length 119 --target-version py36 tests src benchmarks metrics
+          isort --check-only tests src benchmarks metrics
+          flake8 tests src benchmarks metrics
 
   test:
     needs: check_code_quality
@@ -38,7 +37,7 @@ jobs:
       matrix:
         test: ['unit', 'integration']
         os: [ubuntu-latest, windows-latest]
-        pyarrow_version: [latest, 6.0.1]
+        deps_versions: [latest, minimum]
     continue-on-error: ${{ matrix.test == 'integration' }}
     runs-on: ${{ matrix.os }}
     steps:
@@ -63,12 +62,12 @@ jobs:
         run: |
           pip install .[tests]
           pip install -r additional-tests-requirements.txt --no-deps
-      - name: Install latest PyArrow
-        if: ${{ matrix.pyarrow_version == 'latest' }}
-        run: pip install pyarrow --upgrade
-      - name: Install PyArrow ${{ matrix.pyarrow_version }}
-        if: ${{ matrix.pyarrow_version != 'latest' }}
-        run: pip install pyarrow==${{ matrix.pyarrow_version }}
+      - name: Install dependencies (latest versions)
+        if: ${{ matrix.deps_versions == 'latest' }}
+        run: pip install --upgrade pyarrow huggingface-hub
+      - name: Install depencencies (minimum versions)
+        if: ${{ matrix.deps_versions != 'latest' }}
+        run: pip install pyarrow==6.0.1 huggingface-hub==0.2.0 transformers
       - name: Test with pytest
         run: |
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/

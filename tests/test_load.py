@@ -4,6 +4,7 @@ import shutil
 import tempfile
 import time
 from hashlib import sha256
+from multiprocessing import Pool
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
@@ -486,10 +487,7 @@ class ModuleFactoryTest(TestCase):
     ],
 )
 def test_module_factories(factory_class):
-    if issubclass(factory_class, (HubDatasetModuleFactoryWithoutScript, HubDatasetModuleFactoryWithScript)):
-        name = "dummy_org/dummy_name"
-    else:
-        name = "dummy_name"
+    name = "dummy_name"
     factory = factory_class(name)
     assert factory.name == name
 
@@ -572,7 +570,7 @@ class LoadTest(TestCase):
                 self.assertNotEqual(dataset_module_1.module_path, dataset_module_3.module_path)
                 self.assertIn("Using the latest cached version of the module", self._caplog.text)
 
-    def test_load_dataset_from_github(self):
+    def test_load_dataset_from_hub(self):
         with self.assertRaises(FileNotFoundError) as context:
             datasets.load_dataset("_dummy")
         self.assertIn(
@@ -582,7 +580,11 @@ class LoadTest(TestCase):
         with self.assertRaises(FileNotFoundError) as context:
             datasets.load_dataset("_dummy", revision="0.0.0")
         self.assertIn(
-            "Dataset '_dummy' doesn't exist on the Hub at revision '0.0.0'",
+            "Dataset '_dummy' doesn't exist on the Hub",
+            str(context.exception),
+        )
+        self.assertIn(
+            "at revision '0.0.0'",
             str(context.exception),
         )
         for offline_simulation_mode in list(OfflineSimulationMode):
@@ -756,18 +758,6 @@ def test_load_dataset_streaming_csv(path_extension, streaming, csv_path, bz2_csv
     assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
 
 
-@require_pil
-@pytest.mark.integration
-@pytest.mark.parametrize("streaming", [False, True])
-def test_load_dataset_private_zipped_images(hf_private_dataset_repo_zipped_img_data, hf_token, streaming):
-    ds = load_dataset(
-        hf_private_dataset_repo_zipped_img_data, split="train", streaming=streaming, use_auth_token=hf_token
-    )
-    assert isinstance(ds, IterableDataset if streaming else Dataset)
-    ds_items = list(ds)
-    assert len(ds_items) == 2
-
-
 @pytest.mark.parametrize("streaming", [False, True])
 @pytest.mark.parametrize("data_file", ["zip_csv_path", "zip_csv_with_dir_path", "csv_path"])
 def test_load_dataset_zip_csv(data_file, streaming, zip_csv_path, zip_csv_with_dir_path, csv_path):
@@ -876,18 +866,30 @@ def test_loading_from_the_datasets_hub_with_use_auth_token():
 
 @pytest.mark.integration
 def test_load_streaming_private_dataset(hf_token, hf_private_dataset_repo_txt_data):
-    with pytest.raises(FileNotFoundError):
-        load_dataset(hf_private_dataset_repo_txt_data, streaming=True)
-    ds = load_dataset(hf_private_dataset_repo_txt_data, streaming=True, use_auth_token=hf_token)
+    ds = load_dataset(hf_private_dataset_repo_txt_data, streaming=True)
     assert next(iter(ds)) is not None
 
 
 @pytest.mark.integration
 def test_load_streaming_private_dataset_with_zipped_data(hf_token, hf_private_dataset_repo_zipped_txt_data):
-    with pytest.raises(FileNotFoundError):
-        load_dataset(hf_private_dataset_repo_zipped_txt_data, streaming=True)
-    ds = load_dataset(hf_private_dataset_repo_zipped_txt_data, streaming=True, use_auth_token=hf_token)
+    ds = load_dataset(hf_private_dataset_repo_zipped_txt_data, streaming=True)
     assert next(iter(ds)) is not None
+
+
+@require_pil
+@pytest.mark.integration
+@pytest.mark.parametrize("implicit_token", [False, True])
+@pytest.mark.parametrize("streaming", [False, True])
+def test_load_dataset_private_zipped_images(
+    hf_private_dataset_repo_zipped_img_data, hf_token, streaming, implicit_token
+):
+    use_auth_token = None if implicit_token else hf_token
+    ds = load_dataset(
+        hf_private_dataset_repo_zipped_img_data, split="train", streaming=streaming, use_auth_token=use_auth_token
+    )
+    assert isinstance(ds, IterableDataset if streaming else Dataset)
+    ds_items = list(ds)
+    assert len(ds_items) == 2
 
 
 def test_load_dataset_then_move_then_reload(dataset_loading_script_dir, data_dir, tmp_path, caplog):
@@ -981,3 +983,20 @@ def test_load_dataset_deletes_extracted_files(deleted, jsonl_gz_path, tmp_path):
         ds = load_dataset("json", split="train", data_files=data_files, cache_dir=cache_dir)
     assert ds[0] == {"col_1": "0", "col_2": 0, "col_3": 0.0}
     assert (sorted((cache_dir / "downloads" / "extracted").iterdir()) == []) is deleted
+
+
+def distributed_load_dataset(args):
+    data_name, tmp_dir, datafiles = args
+    dataset = load_dataset(data_name, cache_dir=tmp_dir, data_files=datafiles)
+    return dataset
+
+
+def test_load_dataset_distributed(tmp_path, csv_path):
+    num_workers = 5
+    args = "csv", str(tmp_path), csv_path
+    with Pool(processes=num_workers) as pool:  # start num_workers processes
+        datasets = pool.map(distributed_load_dataset, [args] * num_workers)
+        assert len(datasets) == num_workers
+        assert all(len(dataset) == len(datasets[0]) > 0 for dataset in datasets)
+        assert len(datasets[0].cache_files) > 0
+        assert all(dataset.cache_files == datasets[0].cache_files for dataset in datasets)

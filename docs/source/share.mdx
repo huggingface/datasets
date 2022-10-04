@@ -81,8 +81,6 @@ Here the `namespace` is either your username or your organization name.
 
 - `your_dataset_name.py` is your dataset loading script (optional if your data files are already in the supported formats csv/jsonl/json/parquet/txt). To create a dataset script, see the [dataset script](dataset_script) page.
 
-- `dataset_infos.json` contains metadata about the dataset (required only if you have a dataset script, or if you want to specify custom feature types).
-
 ### Upload your files
 
 You can directly upload your files from your repository on the Hugging Face Hub, but this guide will show you how to upload the files from the terminal.
@@ -97,10 +95,10 @@ git add *.json
 git commit -m "add json files"
 ```
 
-6. Add the dataset loading script and metadata file:
+6. Add the dataset loading script and dataset card:
 
 ```
-cp /somewhere/data/dataset_infos.json .
+cp /somewhere/data/README.md .
 cp /somewhere/data/load_script.py .
 git add --all
 ```

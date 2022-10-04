@@ -16,6 +16,10 @@ To create the package for pypi.
    - Create an account in (and join the 'datasets' project):
      - PyPI: https://pypi.org/
      - Test PyPI: https://test.pypi.org/
+   - Don't break `transformers`
+     - Run the `transformers` CI using the `main` branch and make sure it's green.
+       In `transformers`, use "datasets @ git+https://github.com/huggingface/datasets@main#egg=datasets"
+       in both setup.py and src/transformers/dependency_versions_table.py and then run the CI
 
 1. Change the version in:
    - __init__.py
@@ -85,10 +89,13 @@ REQUIRED_PKGS = [
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface-hub>=0.1.0,<1.0.0",
+    # minimum 0.2.0 for set_access_token
+    "huggingface-hub>=0.2.0,<1.0.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     "responses<0.19",
+    # To parse YAML metadata from dataset cards
+    "pyyaml>=5.1",
 ]
 
 AUDIO_REQUIRE = [
@@ -122,6 +129,7 @@ TESTS_REQUIRE = [
     "fsspec[s3]",
     "lz4",
     "moto[s3,server]==2.0.4",
+    "py7zr",
     "rarfile>=4.0",
     "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1
     "tensorflow>=2.3,!=2.6.0,!=2.6.1",
@@ -129,32 +137,21 @@ TESTS_REQUIRE = [
     "torchaudio<0.12.0",
     "soundfile",
     "transformers",
-    # datasets dependencies
-    "bs4",
-    "conllu",
-    "h5py",
-    "lxml",
-    "mwparserfromhell",
-    "openpyxl",
-    "py7zr",
     "zstandard",
-    "bigbench @ https://storage.googleapis.com/public_research_data/bigbench/bigbench-0.0.1.tar.gz",
-    "sentencepiece",  # bigbench requires t5 which requires seqio which requires sentencepiece
-    "rouge_score",  # required by bigbench: bigbench.api.util.bb_utils > t5.evaluation.metrics > rouge_score
-    "sacremoses",
     # metrics dependencies
     "bert_score>=0.3.6",
     "jiwer",
     "langdetect",
     "mauve-text",
     "nltk",
-    # "rouge_score",  # also required by bigbench
+    "rouge_score",
     "sacrebleu",
     "sacremoses",
     "scikit-learn",
     "scipy",
     "sentencepiece",  # for bleurt
     "seqeval",
+    "sqlalchemy",
     "tldextract",
     # to speed up pip backtracking
     "toml>=0.10.1",
@@ -197,7 +194,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.4.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.5.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

@@ -1,3 +1,4 @@
+import contextlib
 import copy
 import itertools
 import json
@@ -53,6 +54,7 @@ from .utils import (
     require_jax,
     require_pil,
     require_s3,
+    require_sqlalchemy,
     require_tf,
     require_torch,
     require_transformers,
@@ -1476,6 +1478,15 @@ class BaseDatasetTest(TestCase):
                     with dset.filter(lambda x: [i < 2 for i in x["col"]], batched=True) as dset:
                         self.assertListEqual(dset["col"], [1])
 
+    def test_filter_input_columns(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = Dataset.from_dict({"col_1": [0, 1, 2], "col_2": ["a", "b", "c"]})
+            with self._to(in_memory, tmp_dir, dset) as dset:
+                with dset.filter(lambda x: x > 0, input_columns=["col_1"]) as filtered_dset:
+                    self.assertListEqual(filtered_dset.column_names, dset.column_names)
+                    self.assertListEqual(filtered_dset["col_1"], [1, 2])
+                    self.assertListEqual(filtered_dset["col_2"], ["b", "c"])
+
     def test_filter_fn_kwargs(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict({"id": range(10)}) as dset:
@@ -2049,6 +2060,68 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(parquet_dset.shape, dset.shape)
                 self.assertListEqual(list(parquet_dset.columns), list(dset.column_names))
 
+    @require_sqlalchemy
+    def test_to_sql(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            # Destionation specified as database URI string
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                file_path = os.path.join(tmp_dir, "test_path.sqlite")
+                _ = dset.to_sql("data", "sqlite:///" + file_path, index=False)
+
+                self.assertTrue(os.path.isfile(file_path))
+                sql_dset = pd.read_sql("data", "sqlite:///" + file_path)
+
+                self.assertEqual(sql_dset.shape, dset.shape)
+                self.assertListEqual(list(sql_dset.columns), list(dset.column_names))
+
+            # Destionation specified as sqlite3 connection
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                import sqlite3
+
+                file_path = os.path.join(tmp_dir, "test_path.sqlite")
+                with contextlib.closing(sqlite3.connect(file_path)) as con:
+                    _ = dset.to_sql("data", con, index=False, if_exists="replace")
+
+                self.assertTrue(os.path.isfile(file_path))
+                sql_dset = pd.read_sql("data", "sqlite:///" + file_path)
+
+                self.assertEqual(sql_dset.shape, dset.shape)
+                self.assertListEqual(list(sql_dset.columns), list(dset.column_names))
+
+            # Test writing to a database in chunks
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                file_path = os.path.join(tmp_dir, "test_path.sqlite")
+                _ = dset.to_sql("data", "sqlite:///" + file_path, batch_size=1, index=False, if_exists="replace")
+
+                self.assertTrue(os.path.isfile(file_path))
+                sql_dset = pd.read_sql("data", "sqlite:///" + file_path)
+
+                self.assertEqual(sql_dset.shape, dset.shape)
+                self.assertListEqual(list(sql_dset.columns), list(dset.column_names))
+
+            # After a select/shuffle transform
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                dset = dset.select(range(0, len(dset), 2)).shuffle()
+                file_path = os.path.join(tmp_dir, "test_path.sqlite")
+                _ = dset.to_sql("data", "sqlite:///" + file_path, index=False, if_exists="replace")
+
+                self.assertTrue(os.path.isfile(file_path))
+                sql_dset = pd.read_sql("data", "sqlite:///" + file_path)
+
+                self.assertEqual(sql_dset.shape, dset.shape)
+                self.assertListEqual(list(sql_dset.columns), list(dset.column_names))
+
+            # With array features
+            with self._create_dummy_dataset(in_memory, tmp_dir, array_features=True) as dset:
+                file_path = os.path.join(tmp_dir, "test_path.sqlite")
+                _ = dset.to_sql("data", "sqlite:///" + file_path, index=False, if_exists="replace")
+
+                self.assertTrue(os.path.isfile(file_path))
+                sql_dset = pd.read_sql("data", "sqlite:///" + file_path)
+
+                self.assertEqual(sql_dset.shape, dset.shape)
+                self.assertListEqual(list(sql_dset.columns), list(dset.column_names))
+
     def test_train_test_split(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
@@ -2158,20 +2231,45 @@ class BaseDatasetTest(TestCase):
     def test_flatten_indices(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                self.assertEqual(dset._indices, None)
+                self.assertIsNone(dset._indices)
 
                 tmp_file = os.path.join(tmp_dir, "test.arrow")
                 with dset.select(range(0, 10, 2), indices_cache_file_name=tmp_file) as dset:
                     self.assertEqual(len(dset), 5)
 
-                    self.assertNotEqual(dset._indices, None)
+                    self.assertIsNotNone(dset._indices)
 
                     tmp_file_2 = os.path.join(tmp_dir, "test_2.arrow")
                     fingerprint = dset._fingerprint
                     dset.set_format("numpy")
                     with dset.flatten_indices(cache_file_name=tmp_file_2) as dset:
                         self.assertEqual(len(dset), 5)
-                        self.assertEqual(dset._indices, None)
+                        self.assertEqual(len(dset.data), len(dset))
+                        self.assertIsNone(dset._indices)
+                        self.assertNotEqual(dset._fingerprint, fingerprint)
+                        self.assertEqual(dset.format["type"], "numpy")
+                        # Test unique works
+                        dset.unique(dset.column_names[0])
+                        assert_arrow_metadata_are_synced_with_dataset_features(dset)
+
+        # Empty indices mapping
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                self.assertIsNone(dset._indices, None)
+
+                tmp_file = os.path.join(tmp_dir, "test.arrow")
+                with dset.filter(lambda _: False, cache_file_name=tmp_file) as dset:
+                    self.assertEqual(len(dset), 0)
+
+                    self.assertIsNotNone(dset._indices, None)
+
+                    tmp_file_2 = os.path.join(tmp_dir, "test_2.arrow")
+                    fingerprint = dset._fingerprint
+                    dset.set_format("numpy")
+                    with dset.flatten_indices(cache_file_name=tmp_file_2) as dset:
+                        self.assertEqual(len(dset), 0)
+                        self.assertEqual(len(dset.data), len(dset))
+                        self.assertIsNone(dset._indices, None)
                         self.assertNotEqual(dset._fingerprint, fingerprint)
                         self.assertEqual(dset.format["type"], "numpy")
                         # Test unique works
@@ -3247,6 +3345,49 @@ def test_dataset_from_generator_features(features, data_generator, tmp_path):
     )
     dataset = Dataset.from_generator(data_generator, features=features, cache_dir=cache_dir)
     _check_generator_dataset(dataset, expected_features)
+
+
+def _check_sql_dataset(dataset, expected_features):
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == 4
+    assert dataset.num_columns == 3
+    assert dataset.column_names == ["col_1", "col_2", "col_3"]
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
+
+
+@require_sqlalchemy
+@pytest.mark.parametrize(
+    "features",
+    [
+        None,
+        {"col_1": "string", "col_2": "int64", "col_3": "float64"},
+        {"col_1": "string", "col_2": "string", "col_3": "string"},
+        {"col_1": "int32", "col_2": "int32", "col_3": "int32"},
+        {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
+    ],
+)
+def test_dataset_from_sql_features(features, sqlite_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    expected_features = features.copy() if features else default_expected_features
+    features = (
+        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+    )
+    dataset = Dataset.from_sql("dataset", "sqlite:///" + sqlite_path, features=features, cache_dir=cache_dir)
+    _check_sql_dataset(dataset, expected_features)
+
+
+@require_sqlalchemy
+@pytest.mark.parametrize("keep_in_memory", [False, True])
+def test_dataset_from_sql_keep_in_memory(keep_in_memory, sqlite_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = Dataset.from_sql(
+            "dataset", "sqlite:///" + sqlite_path, cache_dir=cache_dir, keep_in_memory=keep_in_memory
+        )
+    _check_sql_dataset(dataset, expected_features)
 
 
 def test_dataset_to_json(dataset, tmp_path):
