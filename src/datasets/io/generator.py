@@ -12,10 +12,13 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,
+        streaming: bool = False,
         gen_kwargs: Optional[dict] = None,
         **kwargs,
     ):
-        super().__init__(features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs)
+        super().__init__(
+            features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, streaming=streaming, **kwargs
+        )
         self.builder = Generator(
             cache_dir=cache_dir,
             features=features,
@@ -24,28 +27,26 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
             **kwargs,
         )
 
-    def read(self, streaming: bool = False):
-        download_config = None
-        download_mode = None
-        ignore_verifications = False
-        use_auth_token = None
-        base_path = None
-
-        self.builder.download_and_prepare(
-            download_config=download_config,
-            download_mode=download_mode,
-            ignore_verifications=ignore_verifications,
-            # try_from_hf_gcs=try_from_hf_gcs,
-            base_path=base_path,
-            use_auth_token=use_auth_token,
-        )
-
+    def read(self):
         # Build iterable dataset
-        if streaming:
+        if self.streaming:
             dataset = self.builder.as_streaming_dataset(split="train")
-
-        # Build dataset for splits
+        # Build regular (map-style) dataset
         else:
+            download_config = None
+            download_mode = None
+            ignore_verifications = False
+            use_auth_token = None
+            base_path = None
+
+            self.builder.download_and_prepare(
+                download_config=download_config,
+                download_mode=download_mode,
+                ignore_verifications=ignore_verifications,
+                # try_from_hf_gcs=try_from_hf_gcs,
+                base_path=base_path,
+                use_auth_token=use_auth_token,
+            )
             dataset = self.builder.as_dataset(
                 split="train", ignore_verifications=ignore_verifications, in_memory=self.keep_in_memory
             )
