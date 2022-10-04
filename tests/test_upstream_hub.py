@@ -97,7 +97,7 @@ class TestPushToHub:
             assert local_ds["train"].features == hub_ds["train"].features
 
             # Ensure that there is a single file on the repository that has the correct name
-            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", token=self._token))
+            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", use_auth_token=self._token))
             assert all(
                 fnmatch.fnmatch(file, expected_file)
                 for file, expected_file in zip(
@@ -119,7 +119,7 @@ class TestPushToHub:
             assert local_ds["train"].features == hub_ds["train"].features
 
             # Ensure that there is a single file on the repository that has the correct name
-            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", token=self._token))
+            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", use_auth_token=self._token))
             assert all(
                 fnmatch.fnmatch(file, expected_file)
                 for file, expected_file in zip(
@@ -142,7 +142,7 @@ class TestPushToHub:
             assert local_ds["train"].features == hub_ds["train"].features
 
             # Ensure that there are two files on the repository that have the correct name
-            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", token=self._token))
+            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", use_auth_token=self._token))
             assert all(
                 fnmatch.fnmatch(file, expected_file)
                 for file, expected_file in zip(
@@ -170,7 +170,7 @@ class TestPushToHub:
             assert local_ds["train"].features == hub_ds["train"].features
 
             # Ensure that there are two files on the repository that have the correct name
-            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", token=self._token))
+            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", use_auth_token=self._token))
             assert all(
                 fnmatch.fnmatch(file, expected_file)
                 for file, expected_file in zip(
@@ -214,7 +214,7 @@ class TestPushToHub:
             local_ds.push_to_hub(ds_name, token=self._token, max_shard_size=500 << 5)
 
             # Ensure that there are two files on the repository that have the correct name
-            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", token=self._token))
+            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", use_auth_token=self._token))
 
             assert all(
                 fnmatch.fnmatch(file, expected_file)
@@ -261,7 +261,7 @@ class TestPushToHub:
             local_ds.push_to_hub(ds_name, token=self._token)
 
             # Ensure that there are two files on the repository that have the correct name
-            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", token=self._token))
+            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", use_auth_token=self._token))
 
             assert all(
                 fnmatch.fnmatch(file, expected_file)

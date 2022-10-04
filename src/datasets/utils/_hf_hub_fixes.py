@@ -161,7 +161,7 @@ def list_repo_files(
     repo_id: str,
     revision: Optional[str] = None,
     repo_type: Optional[str] = None,
-    token: Optional[str] = None,
+    use_auth_token: Optional[str] = None,
     timeout: Optional[float] = None,
 ) -> List[str]:
     """
@@ -169,8 +169,10 @@ def list_repo_files(
     This function checks the huggingface_hub version to call the right parameters.
     """
     if version.parse(huggingface_hub.__version__) < version.parse("0.10.0"):
-        return hf_api.list_repo_files(repo_id, revision=revision, repo_type=repo_type, token=token, timeout=timeout)
+        return hf_api.list_repo_files(
+            repo_id, revision=revision, repo_type=repo_type, token=use_auth_token, timeout=timeout
+        )
     else:  # the `token` parameter is deprecated in huggingface_hub>=0.10.0
         return hf_api.list_repo_files(
-            repo_id, revision=revision, repo_type=repo_type, use_auth_token=token, timeout=timeout
+            repo_id, revision=revision, repo_type=repo_type, use_auth_token=use_auth_token, timeout=timeout
         )

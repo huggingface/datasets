@@ -1375,7 +1375,7 @@ class DatasetDict(dict):
         info_to_dump.size_in_bytes = total_uploaded_size + total_dataset_nbytes
 
         api = HfApi(endpoint=config.HF_ENDPOINT)
-        repo_files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, token=token)
+        repo_files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, use_auth_token=token)
 
         # push to the deprecated dataset_infos.json
         if config.DATASETDICT_INFOS_FILENAME in repo_files:
