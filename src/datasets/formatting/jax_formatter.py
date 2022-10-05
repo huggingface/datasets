@@ -38,14 +38,10 @@ class JaxFormatter(Formatter[dict, "jnp.ndarray", dict]):
         import jax
         import jax.numpy as jnp
 
-        if config.PIL_AVAILABLE and "PIL" in sys.modules:
-            import PIL.Image
-
-            if isinstance(value, PIL.Image.Image):
-                value = np.asarray(value)
-
-        if isinstance(value, str):
+        if isinstance(value, (str, bytes)):
             return value
+        elif isinstance(value, (np.character, np.ndarray)) and np.issubdtype(value.dtype, np.character):
+            return value.tolist()
 
         default_dtype = {}
 
@@ -58,6 +54,11 @@ class JaxFormatter(Formatter[dict, "jnp.ndarray", dict]):
                 default_dtype = {"dtype": jnp.int32}
         elif isinstance(value, (np.number, np.ndarray)) and np.issubdtype(value.dtype, np.floating):
             default_dtype = {"dtype": jnp.float32}
+        elif config.PIL_AVAILABLE and "PIL" in sys.modules:
+            import PIL.Image
+
+            if isinstance(value, PIL.Image.Image):
+                value = np.asarray(value)
 
         # calling jnp.array on a np.ndarray does copy the data
         # see https://github.com/google/jax/issues/4486
