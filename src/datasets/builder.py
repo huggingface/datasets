@@ -301,7 +301,7 @@ class DatasetBuilder:
         if data_dir is not None:
             config_kwargs["data_dir"] = data_dir
         self.config, self.config_id = self._create_builder_config(
-            config_name,
+            config_name=config_name,
             custom_features=features,
             **config_kwargs,
         )
@@ -411,7 +411,9 @@ class DatasetBuilder:
         """
         return self.get_all_exported_dataset_infos().get(self.config.name, DatasetInfo())
 
-    def _create_builder_config(self, name=None, custom_features=None, **config_kwargs) -> Tuple[BuilderConfig, str]:
+    def _create_builder_config(
+        self, config_name=None, custom_features=None, **config_kwargs
+    ) -> Tuple[BuilderConfig, str]:
         """Create and validate BuilderConfig object as well as a unique config id for this config.
         Raises ValueError if there are multiple builder configs and config_name and DEFAULT_CONFIG_NAME are None.
         config_kwargs override the defaults kwargs in config
@@ -419,7 +421,7 @@ class DatasetBuilder:
         builder_config = None
 
         # try default config
-        if name is None and self.BUILDER_CONFIGS and not config_kwargs:
+        if config_name is None and self.BUILDER_CONFIGS and not config_kwargs:
             if self.DEFAULT_CONFIG_NAME is not None:
                 builder_config = self.builder_configs.get(self.DEFAULT_CONFIG_NAME)
                 logger.warning(f"No config specified, defaulting to: {self.name}/{builder_config.name}")
@@ -435,15 +437,17 @@ class DatasetBuilder:
                 logger.info(f"No config specified, defaulting to the single config: {self.name}/{builder_config.name}")
 
         # try to get config by name
-        if isinstance(name, str):
-            builder_config = self.builder_configs.get(name)
+        if isinstance(config_name, str):
+            builder_config = self.builder_configs.get(config_name)
             if builder_config is None and self.BUILDER_CONFIGS:
-                raise ValueError(f"BuilderConfig {name} not found. Available: {list(self.builder_configs.keys())}")
+                raise ValueError(
+                    f"BuilderConfig {config_name} not found. Available: {list(self.builder_configs.keys())}"
+                )
 
         # if not using an existing config, then create a new config on the fly
         if not builder_config:
-            if name is not None:
-                config_kwargs["name"] = name
+            if config_name is not None:
+                config_kwargs["name"] = config_name
             elif self.DEFAULT_CONFIG_NAME and not config_kwargs:
                 # Use DEFAULT_CONFIG_NAME only if no config_kwargs are passed
                 config_kwargs["name"] = self.DEFAULT_CONFIG_NAME
