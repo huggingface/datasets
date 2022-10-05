@@ -1,10 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Union
 
-from datasets.iterable_dataset import IterableDataset
-
-from .. import DatasetDict, Features, NamedSplit
-from ..arrow_dataset import Dataset
+from .. import Dataset, DatasetDict, Features, IterableDataset, IterableDatasetDict, NamedSplit
 from ..utils.typing import NestedDataStructureLike, PathLike
 
 
@@ -28,7 +25,7 @@ class AbstractDatasetReader(ABC):
         self.kwargs = kwargs
 
     @abstractmethod
-    def read(self) -> Union[Dataset, DatasetDict, IterableDataset, IterableDataset]:
+    def read(self) -> Union[Dataset, DatasetDict, IterableDataset, IterableDatasetDict]:
         pass
 
 
