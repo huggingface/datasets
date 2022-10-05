@@ -38,7 +38,7 @@ class JaxFormatter(Formatter[dict, "jnp.ndarray", dict]):
         import jax
         import jax.numpy as jnp
 
-        if isinstance(value, (str, bytes)):
+        if isinstance(value, (str, bytes, type(None))):
             return value
         elif isinstance(value, (np.character, np.ndarray)) and np.issubdtype(value.dtype, np.character):
             return value.tolist()

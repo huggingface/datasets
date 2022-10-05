@@ -37,7 +37,7 @@ class TorchFormatter(Formatter[dict, "torch.Tensor", dict]):
     def _tensorize(self, value):
         import torch
 
-        if isinstance(value, (str, bytes)):
+        if isinstance(value, (str, bytes, type(None))):
             return value
         elif isinstance(value, (np.character, np.ndarray)) and np.issubdtype(value.dtype, np.character):
             return value.tolist()

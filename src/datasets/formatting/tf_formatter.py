@@ -37,6 +37,9 @@ class TFFormatter(Formatter[dict, "tf.Tensor", dict]):
     def _tensorize(self, value):
         import tensorflow as tf
 
+        if value is None:
+            return value
+
         default_dtype = {}
 
         if isinstance(value, (np.number, np.ndarray)) and np.issubdtype(value.dtype, np.integer):
