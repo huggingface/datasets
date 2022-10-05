@@ -1,6 +1,6 @@
 import itertools
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import pandas as pd
 import pyarrow as pa
@@ -33,6 +33,7 @@ class CsvConfig(datasets.BuilderConfig):
     prefix: Optional[str] = None
     mangle_dupe_cols: bool = True
     engine: Optional[str] = None
+    converters: Dict[Union[int, str], Callable[[Any], Any]] = None
     true_values: Optional[list] = None
     false_values: Optional[list] = None
     skipinitialspace: bool = False
@@ -80,6 +81,7 @@ class CsvConfig(datasets.BuilderConfig):
             prefix=self.prefix,
             mangle_dupe_cols=self.mangle_dupe_cols,
             engine=self.engine,
+            converters=self.converters,
             true_values=self.true_values,
             false_values=self.false_values,
             skipinitialspace=self.skipinitialspace,
