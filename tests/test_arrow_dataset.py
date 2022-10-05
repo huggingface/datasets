@@ -373,9 +373,17 @@ class BaseDatasetTest(TestCase):
                 self.assertIsInstance(dset[0]["col_2"], str)
                 self.assertEqual(dset[0]["col_2"], "a")
 
-                dset.set_format(type="torch", columns=["col_1", "col_2"])
-                with self.assertRaises(TypeError):
-                    dset[0]
+                dset.set_format(type="torch")
+                self.assertEqual(len(dset[0]), 3)
+                self.assertIsInstance(dset[0]["col_1"], torch.Tensor)
+                self.assertIsInstance(dset["col_1"], torch.Tensor)
+                self.assertListEqual(list(dset[0]["col_1"].shape), [])
+                self.assertEqual(dset[0]["col_1"].item(), 3)
+                self.assertIsInstance(dset[0]["col_2"], str)
+                self.assertEqual(dset[0]["col_2"], "a")
+                self.assertIsInstance(dset[0]["col_3"], torch.Tensor)
+                self.assertIsInstance(dset["col_3"], torch.Tensor)
+                self.assertListEqual(list(dset[0]["col_3"].shape), [])
 
     @require_tf
     def test_set_format_tf(self, in_memory):
