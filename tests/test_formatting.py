@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest import TestCase
 
 import numpy as np
@@ -5,6 +6,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
+from datasets import Audio, Features, Image
 from datasets.formatting import NumpyFormatter, PandasFormatter, PythonFormatter, query_table
 from datasets.formatting.formatting import NumpyArrowExtractor, PandasArrowExtractor, PythonArrowExtractor
 from datasets.table import InMemoryTable
@@ -17,6 +19,9 @@ _COL_B = ["foo", "bar", "foobar"]
 _COL_C = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
 
 _INDICES = [1, 0]
+
+IMAGE_PATH_1 = Path(__file__).parent / "features" / "data" / "test_image_rgb.jpg"
+AUDIO_PATH_1 = Path(__file__).parent / "features" / "data" / "test_audio_44100.wav"
 
 
 class ArrowExtractorTest(TestCase):
@@ -106,6 +111,26 @@ class FormatterTest(TestCase):
         self.assertEqual(batch["a"].dtype, np.dtype(np.float16))
         self.assertEqual(batch["c"].dtype, np.dtype(np.float16))
 
+    def test_numpy_formatter_image(self):
+        pa_table = pa.table({"image": [{"bytes": None, "path": str(IMAGE_PATH_1)}]})
+        formatter = NumpyFormatter(features=Features({"image": Image()}))
+        row = formatter.format_row(pa_table)
+        self.assertEqual(row["image"].dtype, np.dtype(np.uint8))
+        col = formatter.format_column(pa_table)
+        self.assertEqual(col[0].dtype, np.uint8)
+        batch = formatter.format_batch(pa_table)
+        self.assertEqual(batch["image"][0].dtype, np.dtype(np.uint8))
+
+    def test_numpy_formatter_audio(self):
+        pa_table = pa.table({"audio": [{"bytes": None, "path": str(AUDIO_PATH_1)}]})
+        formatter = NumpyFormatter(features=Features({"audio": Audio()}))
+        row = formatter.format_row(pa_table)
+        self.assertEqual(row["audio"]["array"].dtype, np.dtype(np.float32))
+        col = formatter.format_column(pa_table)
+        self.assertEqual(col[0]["array"].dtype, np.float32)
+        batch = formatter.format_batch(pa_table)
+        self.assertEqual(batch["audio"][0]["array"].dtype, np.dtype(np.float32))
+
     def test_pandas_formatter(self):
         pa_table = self._create_dummy_table()
         formatter = PandasFormatter()
@@ -128,19 +153,21 @@ class FormatterTest(TestCase):
 
         from datasets.formatting import TorchFormatter
 
-        pa_table = self._create_dummy_table().drop(["b"])
+        pa_table = self._create_dummy_table()
         formatter = TorchFormatter()
         row = formatter.format_row(pa_table)
-        torch.testing.assert_allclose(row["a"], torch.tensor(_COL_A, dtype=torch.int64)[0])
-        torch.testing.assert_allclose(row["c"], torch.tensor(_COL_C, dtype=torch.float32)[0])
+        torch.testing.assert_close(row["a"], torch.tensor(_COL_A, dtype=torch.int64)[0])
+        assert row["b"] == _COL_B[0]
+        torch.testing.assert_close(row["c"], torch.tensor(_COL_C, dtype=torch.float32)[0])
         col = formatter.format_column(pa_table)
-        torch.testing.assert_allclose(col, torch.tensor(_COL_A, dtype=torch.int64))
+        torch.testing.assert_close(col, torch.tensor(_COL_A, dtype=torch.int64))
         batch = formatter.format_batch(pa_table)
-        torch.testing.assert_allclose(batch["a"], torch.tensor(_COL_A, dtype=torch.int64))
-        torch.testing.assert_allclose(batch["c"], torch.tensor(_COL_C, dtype=torch.float32))
+        torch.testing.assert_close(batch["a"], torch.tensor(_COL_A, dtype=torch.int64))
+        assert batch["b"] == _COL_B
+        torch.testing.assert_close(batch["c"], torch.tensor(_COL_C, dtype=torch.float32))
 
     @require_torch
-    def test_torch_formatter_np_array_kwargs(self):
+    def test_torch_formatter_torch_tensor_kwargs(self):
         import torch
 
         from datasets.formatting import TorchFormatter
@@ -154,6 +181,36 @@ class FormatterTest(TestCase):
         batch = formatter.format_batch(pa_table)
         self.assertEqual(batch["a"].dtype, torch.float16)
         self.assertEqual(batch["c"].dtype, torch.float16)
+
+    @require_torch
+    def test_torch_formatter_image(self):
+        import torch
+
+        from datasets.formatting import TorchFormatter
+
+        pa_table = pa.table({"image": [{"bytes": None, "path": str(IMAGE_PATH_1)}]})
+        formatter = TorchFormatter(features=Features({"image": Image()}))
+        row = formatter.format_row(pa_table)
+        self.assertEqual(row["image"].dtype, torch.uint8)
+        col = formatter.format_column(pa_table)
+        self.assertEqual(col[0].dtype, torch.uint8)
+        batch = formatter.format_batch(pa_table)
+        self.assertEqual(batch["image"][0].dtype, torch.uint8)
+
+    @require_torch
+    def test_torch_formatter_audio(self):
+        import torch
+
+        from datasets.formatting import TorchFormatter
+
+        pa_table = pa.table({"audio": [{"bytes": None, "path": str(AUDIO_PATH_1)}]})
+        formatter = TorchFormatter(features=Features({"audio": Audio()}))
+        row = formatter.format_row(pa_table)
+        self.assertEqual(row["audio"]["array"].dtype, torch.float32)
+        col = formatter.format_column(pa_table)
+        self.assertEqual(col[0]["array"].dtype, torch.float32)
+        batch = formatter.format_batch(pa_table)
+        self.assertEqual(batch["audio"][0]["array"].dtype, torch.float32)
 
     @require_tf
     def test_tf_formatter(self):
@@ -180,7 +237,7 @@ class FormatterTest(TestCase):
         tf.debugging.assert_equal(tf.convert_to_tensor(batch["c"]), tf.convert_to_tensor(_COL_C, dtype=tf.float32))
 
     @require_tf
-    def test_tf_formatter_np_array_kwargs(self):
+    def test_tf_formatter_tf_tensor_kwargs(self):
         import tensorflow as tf
 
         from datasets.formatting import TFFormatter
@@ -195,25 +252,57 @@ class FormatterTest(TestCase):
         self.assertEqual(batch["a"].dtype, tf.float16)
         self.assertEqual(batch["c"].dtype, tf.float16)
 
+    @require_tf
+    def test_tf_formatter_image(self):
+        import tensorflow as tf
+
+        from datasets.formatting import TFFormatter
+
+        pa_table = pa.table({"image": [{"bytes": None, "path": str(IMAGE_PATH_1)}]})
+        formatter = TFFormatter(features=Features({"image": Image()}))
+        row = formatter.format_row(pa_table)
+        self.assertEqual(row["image"].dtype, tf.uint8)
+        col = formatter.format_column(pa_table)
+        self.assertEqual(col[0].dtype, tf.uint8)
+        batch = formatter.format_batch(pa_table)
+        self.assertEqual(batch["image"][0].dtype, tf.uint8)
+
+    @require_tf
+    def test_tf_formatter_audio(self):
+        import tensorflow as tf
+
+        from datasets.formatting import TFFormatter
+
+        pa_table = pa.table({"audio": [{"bytes": None, "path": str(AUDIO_PATH_1)}]})
+        formatter = TFFormatter(features=Features({"audio": Audio()}))
+        row = formatter.format_row(pa_table)
+        self.assertEqual(row["audio"]["array"].dtype, tf.float32)
+        col = formatter.format_column(pa_table)
+        self.assertEqual(col[0]["array"].dtype, tf.float32)
+        batch = formatter.format_batch(pa_table)
+        self.assertEqual(batch["audio"][0]["array"].dtype, tf.float32)
+
     @require_jax
     def test_jax_formatter(self):
         import jax.numpy as jnp
 
         from datasets.formatting import JaxFormatter
 
-        pa_table = self._create_dummy_table().drop(["b"])
+        pa_table = self._create_dummy_table()
         formatter = JaxFormatter()
         row = formatter.format_row(pa_table)
         jnp.allclose(row["a"], jnp.array(_COL_A, dtype=jnp.int64)[0])
+        assert row["b"] == _COL_B[0]
         jnp.allclose(row["c"], jnp.array(_COL_C, dtype=jnp.float32)[0])
         col = formatter.format_column(pa_table)
         jnp.allclose(col, jnp.array(_COL_A, dtype=jnp.int64))
         batch = formatter.format_batch(pa_table)
         jnp.allclose(batch["a"], jnp.array(_COL_A, dtype=jnp.int64))
+        assert batch["b"] == _COL_B
         jnp.allclose(batch["c"], jnp.array(_COL_C, dtype=jnp.float32))
 
     @require_jax
-    def test_jax_formatter_np_array_kwargs(self):
+    def test_jax_formatter_jnp_array_kwargs(self):
         import jax.numpy as jnp
 
         from datasets.formatting import JaxFormatter
@@ -227,6 +316,36 @@ class FormatterTest(TestCase):
         batch = formatter.format_batch(pa_table)
         self.assertEqual(batch["a"].dtype, jnp.float16)
         self.assertEqual(batch["c"].dtype, jnp.float16)
+
+    @require_jax
+    def test_jax_formatter_image(self):
+        import jax.numpy as jnp
+
+        from datasets.formatting import JaxFormatter
+
+        pa_table = pa.table({"image": [{"bytes": None, "path": str(IMAGE_PATH_1)}]})
+        formatter = JaxFormatter(features=Features({"image": Image()}))
+        row = formatter.format_row(pa_table)
+        self.assertEqual(row["image"].dtype, jnp.uint8)
+        col = formatter.format_column(pa_table)
+        self.assertEqual(col[0].dtype, jnp.uint8)
+        batch = formatter.format_batch(pa_table)
+        self.assertEqual(batch["image"][0].dtype, jnp.uint8)
+
+    @require_jax
+    def test_jax_formatter_audio(self):
+        import jax.numpy as jnp
+
+        from datasets.formatting import JaxFormatter
+
+        pa_table = pa.table({"audio": [{"bytes": None, "path": str(AUDIO_PATH_1)}]})
+        formatter = JaxFormatter(features=Features({"audio": Audio()}))
+        row = formatter.format_row(pa_table)
+        self.assertEqual(row["audio"]["array"].dtype, jnp.float32)
+        col = formatter.format_column(pa_table)
+        self.assertEqual(col[0]["array"].dtype, jnp.float32)
+        batch = formatter.format_batch(pa_table)
+        self.assertEqual(batch["audio"][0]["array"].dtype, jnp.float32)
 
 
 class QueryTest(TestCase):
@@ -553,12 +672,12 @@ def test_torch_formatter_sets_default_dtypes(cast_schema, arrow_table):
     formatter = TorchFormatter()
 
     row = formatter.format_row(arrow_table)
-    torch.testing.assert_allclose(row["col_int"], torch.tensor(list_int, dtype=torch.int64)[0])
-    torch.testing.assert_allclose(row["col_float"], torch.tensor(list_float, dtype=torch.float32)[0])
+    torch.testing.assert_close(row["col_int"], torch.tensor(list_int, dtype=torch.int64)[0])
+    torch.testing.assert_close(row["col_float"], torch.tensor(list_float, dtype=torch.float32)[0])
 
     col = formatter.format_column(arrow_table)
-    torch.testing.assert_allclose(col, torch.tensor(list_int, dtype=torch.int64))
+    torch.testing.assert_close(col, torch.tensor(list_int, dtype=torch.int64))
 
     batch = formatter.format_batch(arrow_table)
-    torch.testing.assert_allclose(batch["col_int"], torch.tensor(list_int, dtype=torch.int64))
-    torch.testing.assert_allclose(batch["col_float"], torch.tensor(list_float, dtype=torch.float32))
+    torch.testing.assert_close(batch["col_int"], torch.tensor(list_int, dtype=torch.int64))
+    torch.testing.assert_close(batch["col_float"], torch.tensor(list_float, dtype=torch.float32))
