@@ -37,8 +37,10 @@ class TorchFormatter(Formatter[dict, "torch.Tensor", dict]):
     def _tensorize(self, value):
         import torch
 
-        if isinstance(value, str):
+        if isinstance(value, (str, bytes)):
             return value
+        elif isinstance(value, (np.character, np.ndarray)) and np.issubdtype(value.dtype, np.character):
+            return value.tolist()
 
         default_dtype = {}
 
@@ -51,7 +53,6 @@ class TorchFormatter(Formatter[dict, "torch.Tensor", dict]):
 
             if isinstance(value, PIL.Image.Image):
                 value = np.asarray(value)
-
         return torch.tensor(value, **{**default_dtype, **self.torch_tensor_kwargs})
 
     def _recursive_tensorize(self, data_struct: dict):
