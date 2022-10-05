@@ -576,6 +576,22 @@ def test_iterable_dataset_factory():
     assert dataset._ex_iterable is ex_iterable
 
 
+def test_iterable_dataset_from_generator():
+    data = [
+        {"col_1": "0", "col_2": 0, "col_3": 0.0},
+        {"col_1": "1", "col_2": 1, "col_3": 1.0},
+        {"col_1": "2", "col_2": 2, "col_3": 2.0},
+        {"col_1": "3", "col_2": 3, "col_3": 3.0},
+    ]
+
+    def gen():
+        yield from data
+
+    dataset = IterableDataset.from_generator(gen)
+    assert isinstance(dataset, IterableDataset)
+    assert list(dataset) == data
+
+
 @require_torch
 def test_iterable_dataset_factory_torch_integration():
     import torch
