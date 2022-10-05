@@ -810,7 +810,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         try:
             dataset_infos_path = cached_path(
                 hf_hub_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=self.revision),
-                download_config=self.download_config,
+                download_config=download_config,
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
                 dataset_infos: DatasetInfosDict = json.load(f)
@@ -825,7 +825,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         try:
             dataset_readme_path = cached_path(
                 hf_hub_url(self.name, "README.md", revision=self.revision),
-                download_config=self.download_config,
+                download_config=download_config,
             )
             dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
             if isinstance(dataset_metadata.get("dataset_info"), list) and dataset_metadata["dataset_info"]:
