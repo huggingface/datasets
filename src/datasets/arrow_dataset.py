@@ -4303,7 +4303,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         token = token if token is not None else HfFolder.get_token()
 
         if token is None:
-            raise OSError(
+            raise EnvironmentError(
                 "You need to provide a `token` or be logged in to Hugging Face with `huggingface-cli login`."
             )
 
