@@ -2362,9 +2362,9 @@ class BaseDatasetTest(TestCase):
             self.assertIsNotNone(dset[0])
             self.assertIsNotNone(dset[:2])
             for col in columns:
-                self.assertIsInstance(dset[0][col], (tf.Tensor, tf.RaggedTensor))
-                self.assertIsInstance(dset[:2][col], (tf.Tensor, tf.RaggedTensor))
-                self.assertIsInstance(dset[col], (tf.Tensor, tf.RaggedTensor))
+                self.assertIsInstance(dset[0][col], tf.Tensor)
+                self.assertIsInstance(dset[:2][col], tf.RaggedTensor if col == "vec" else tf.Tensor)
+                self.assertIsInstance(dset[col], tf.RaggedTensor if col == "vec" else tf.Tensor)
             # dim is None for ragged vectors in tensorflow
             self.assertListEqual(dset[:2]["vec"].shape.as_list(), [2, None])
             self.assertListEqual(dset["vec"][:2].shape.as_list(), [2, None])
@@ -2376,22 +2376,26 @@ class BaseDatasetTest(TestCase):
             self.assertIsInstance(dset[:2]["filename"], np.ndarray)
             self.assertIsInstance(dset["filename"], np.ndarray)
             self.assertIsInstance(dset[0]["vec"], np.ndarray)
-            self.assertIsInstance(dset[:2]["vec"], np.ndarray)
-            self.assertIsInstance(dset["vec"], np.ndarray)
-            # array is flat for ragged vectors in numpy
-            self.assertTupleEqual(dset[:2]["vec"].shape, (2,))
-            self.assertTupleEqual(dset["vec"][:2].shape, (2,))
+            # numpy doesn't support ragged tensors, so we should have lists
+            self.assertIsInstance(dset[:2]["vec"], list)
+            self.assertIsInstance(dset[:2]["vec"][0], np.ndarray)
+            self.assertIsInstance(dset["vec"], list)
+            self.assertIsInstance(dset["vec"][0], np.ndarray)
 
-            dset.set_format("torch", columns=["vec"])
+            dset.set_format("torch")
             self.assertIsNotNone(dset[0])
             self.assertIsNotNone(dset[:2])
-            # torch.Tensor is only for numerical columns
+            self.assertIsInstance(dset[0]["filename"], str)
+            self.assertIsInstance(dset[:2]["filename"], list)
+            self.assertIsInstance(dset["filename"], list)
             self.assertIsInstance(dset[0]["vec"], torch.Tensor)
             self.assertIsInstance(dset[:2]["vec"][0], torch.Tensor)
             self.assertIsInstance(dset["vec"][0], torch.Tensor)
             # pytorch doesn't support ragged tensors, so we should have lists
             self.assertIsInstance(dset[:2]["vec"], list)
+            self.assertIsInstance(dset[:2]["vec"][0], torch.Tensor)
             self.assertIsInstance(dset["vec"][:2], list)
+            self.assertIsInstance(dset["vec"][0], torch.Tensor)
 
     @require_tf
     @require_torch
