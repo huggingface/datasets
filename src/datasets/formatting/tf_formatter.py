@@ -42,7 +42,11 @@ class TFFormatter(Formatter[dict, "tf.Tensor", dict]):
                 isinstance(x, tf.Tensor) and x.shape == column[0].shape and x.dtype == column[0].dtype for x in column
             ):
                 return tf.stack(column)
-            elif all(isinstance(x, (tf.Tensor, tf.RaggedTensor)) and x.dtype == column[0].dtype for x in column):
+            elif all(
+                isinstance(x, (tf.Tensor, tf.RaggedTensor)) and x.ndim == 1 and x.dtype == column[0].dtype
+                for x in column
+            ):
+                # only rag 1-D tensors, otherwise some dimensions become ragged even though they were consolidated
                 return tf.ragged.stack(column)
 
         return column
