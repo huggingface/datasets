@@ -27,12 +27,14 @@ class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
             return value
         elif isinstance(value, (np.character, np.ndarray)) and np.issubdtype(value.dtype, np.character):
             return value
+        elif isinstance(value, np.number):
+            return value
 
         default_dtype = {}
 
-        if isinstance(value, (np.number, np.ndarray)) and np.issubdtype(value.dtype, np.integer):
+        if isinstance(value, np.ndarray) and np.issubdtype(value.dtype, np.integer):
             default_dtype = {"dtype": np.int64}
-        elif isinstance(value, (np.number, np.ndarray)) and np.issubdtype(value.dtype, np.floating):
+        elif isinstance(value, np.ndarray) and np.issubdtype(value.dtype, np.floating):
             default_dtype = {"dtype": np.float32}
         elif config.PIL_AVAILABLE and "PIL" in sys.modules:
             import PIL.Image
