@@ -21,6 +21,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 
+from ..features import Features
 from ..features.features import _ArrayXDExtensionType, _is_zero_copy_only, decode_nested_example, pandas_types_mapper
 from ..table import Table
 from ..utils.py_utils import no_op_if_value_is_null
@@ -198,8 +199,8 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
                 or (isinstance(x, float) and np.isnan(x))
                 for x in array
             ):
-                return np.array(array, copy=False, **{**self.np_array_kwargs, "dtype": object})
-        return np.array(array, copy=False, **self.np_array_kwargs)
+                return np.array(array, copy=False, dtype=object)
+        return np.array(array, copy=False)
 
 
 class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFrame]):
@@ -214,7 +215,7 @@ class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFr
 
 
 class PythonFeaturesDecoder:
-    def __init__(self, features):
+    def __init__(self, features: Features):
         self.features = features
 
     def decode_row(self, row: dict) -> dict:
@@ -228,7 +229,7 @@ class PythonFeaturesDecoder:
 
 
 class PandasFeaturesDecoder:
-    def __init__(self, features):
+    def __init__(self, features: Features):
         self.features = features
 
     def decode_row(self, row: pd.DataFrame) -> pd.DataFrame:
