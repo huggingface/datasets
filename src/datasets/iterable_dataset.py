@@ -743,7 +743,7 @@ class IterableDataset(DatasetInfoMixin):
         return {
             "type": self._format_type,
             "format_kwargs": self._format_kwargs,
-            "columns": self.column_names if self._format_columns is None else self._format_columns,
+            "columns": self._format_columns,
             "output_all_columns": self._output_all_columns,
         }
 
