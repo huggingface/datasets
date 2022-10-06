@@ -780,25 +780,18 @@ class IterableDataset(DatasetInfoMixin):
         yield from ex_iterable.shard_data_sources(shard_idx)
 
     def __iter__(self):
-        format_type = self._format_type
-        format_columns = self._format_columns
-        output_all_columns = self._output_all_columns
-        format_kwargs = self._format_kwargs
-        format_kwargs = format_kwargs if format_kwargs is not None else {}
+        format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
         features = self._resolve_features().features
-        formatter = get_formatter(format_type, features=features, **format_kwargs)
+        formatter = get_formatter(self._format_type, features=features, **format_kwargs)
         for key, example in self._iter():
-            if self.features:
-                # we encode the example for ClassLabel feature types for example
-                # this also adds the missing columns
-                example = self.features.encode_example(example)
+            example = features.encode_example(example)
             formatted_example = formatter.format_example(
                 {
                     column_name: example[column_name]
-                    for column_name in (example if format_columns is None else format_columns)
+                    for column_name in (example if self._format_columns is None else self._format_columns)
                 }
             )
-            if output_all_columns:
+            if self._output_all_columns:
                 for column_name in example:
                     if column_name not in formatted_example:
                         formatted_example[column_name] = example[column_name]
