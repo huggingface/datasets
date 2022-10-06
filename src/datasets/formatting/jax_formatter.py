@@ -34,6 +34,17 @@ class JaxFormatter(Formatter[dict, "jnp.ndarray", dict]):
         self.jnp_array_kwargs = jnp_array_kwargs
         import jax.numpy as jnp  # noqa import jax at initialization
 
+    def _consolidate(self, column):
+        import jax.numpy as jnp
+
+        if isinstance(column, list) and column:
+            if all(
+                isinstance(x, jnp.ndarray) and x.shape == column[0].shape and x.dtype == column[0].dtype
+                for x in column
+            ):
+                return jnp.array(column, **self.jnp_array_kwargs)
+        return column
+
     def _tensorize(self, value):
         import jax
         import jax.numpy as jnp
@@ -84,10 +95,15 @@ class JaxFormatter(Formatter[dict, "jnp.ndarray", dict]):
         column = self.numpy_arrow_extractor().extract_column(pa_table)
         if self.decoded:
             column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
-        return self.recursive_tensorize(column)
+        column = self.recursive_tensorize(column)
+        column = self._consolidate(column)
+        return column
 
     def format_batch(self, pa_table: pa.Table) -> dict:
         batch = self.numpy_arrow_extractor().extract_batch(pa_table)
         if self.decoded:
             batch = self.python_features_decoder.decode_batch(batch)
-        return self.recursive_tensorize(batch)
+        batch = self.recursive_tensorize(batch)
+        for column_name in batch:
+            batch[column_name] = self._consolidate(batch[column_name])
+        return batch
