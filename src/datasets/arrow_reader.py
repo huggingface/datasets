@@ -211,7 +211,7 @@ class BaseReader:
         files = self.get_file_instructions(name, instructions, split_infos)
         if not files:
             msg = f'Instruction "{instructions}" corresponds to no data!'
-            raise AssertionError(msg)
+            raise FileNotFoundError(msg)
         return self.read_files(files=files, original_instructions=instructions, in_memory=in_memory)
 
     def read_files(
@@ -381,11 +381,11 @@ class _RelativeInstruction:
         if self.rounding is not None and self.rounding not in ["closest", "pct1_dropremainder"]:
             raise ValueError("rounding must be either closest or pct1_dropremainder")
         if self.unit != "%" and self.rounding is not None:
-            raise AssertionError("It is forbidden to specify rounding if not using percent slicing.")
+            raise ValueError("It is forbidden to specify rounding if not using percent slicing.")
         if self.unit == "%" and self.from_ is not None and abs(self.from_) > 100:
-            raise AssertionError("Percent slice boundaries must be > -100 and < 100.")
+            raise ValueError("Percent slice boundaries must be > -100 and < 100.")
         if self.unit == "%" and self.to is not None and abs(self.to) > 100:
-            raise AssertionError("Percent slice boundaries must be > -100 and < 100.")
+            raise ValueError("Percent slice boundaries must be > -100 and < 100.")
         # Update via __dict__ due to instance being "frozen"
         self.__dict__["rounding"] = "closest" if self.rounding is None and self.unit == "%" else self.rounding
 
@@ -394,7 +394,7 @@ def _str_to_read_instruction(spec):
     """Returns ReadInstruction for given string."""
     res = _SUB_SPEC_RE.match(spec)
     if not res:
-        raise AssertionError(f"Unrecognized instruction format: {spec}")
+        raise ValueError(f"Unrecognized instruction format: {spec}")
     unit = "%" if res.group("from_pct") or res.group("to_pct") else "abs"
     return ReadInstruction(
         split_name=res.group("split"),
@@ -412,7 +412,7 @@ def _pct_to_abs_pct1(boundary, num_examples):
             'Using "pct1_dropremainder" rounding on a split with less than 100 '
             "elements is forbidden: it always results in an empty dataset."
         )
-        raise AssertionError(msg)
+        raise ValueError(msg)
     return boundary * math.trunc(num_examples / 100.0)
 
 
@@ -442,7 +442,7 @@ def _rel_to_abs_instr(rel_instr, name2len):
         to = num_examples if to is None else to
     if abs(from_) > num_examples or abs(to) > num_examples:
         msg = f'Requested slice [{from_ or ""}:{to or ""}] incompatible with {num_examples} examples.'
-        raise AssertionError(msg)
+        raise ValueError(msg)
     if from_ < 0:
         from_ = num_examples + from_
     elif from_ == 0:
@@ -557,7 +557,7 @@ class ReadInstruction:
         spec = str(spec)  # Need to convert to str in case of NamedSplit instance.
         subs = _ADDITION_SEP_RE.split(spec)
         if not subs:
-            raise AssertionError(f"No instructions could be built out of {spec}")
+            raise ValueError(f"No instructions could be built out of {spec}")
         instruction = _str_to_read_instruction(subs[0])
         return sum((_str_to_read_instruction(sub) for sub in subs[1:]), instruction)
 
@@ -585,7 +585,7 @@ class ReadInstruction:
         """Returns a new ReadInstruction obj, result of appending other to self."""
         if not isinstance(other, ReadInstruction):
             msg = "ReadInstruction can only be added to another ReadInstruction obj."
-            raise AssertionError(msg)
+            raise TypeError(msg)
         self_ris = self._relative_instructions
         other_ris = other._relative_instructions  # pylint: disable=protected-access
         if (
@@ -593,7 +593,7 @@ class ReadInstruction:
             and other_ris[0].unit != "abs"
             and self._relative_instructions[0].rounding != other_ris[0].rounding
         ):
-            raise AssertionError("It is forbidden to sum ReadInstruction instances with different rounding values.")
+            raise ValueError("It is forbidden to sum ReadInstruction instances with different rounding values.")
         return self._read_instruction_from_relative_instructions(self_ris + other_ris)
 
     def __str__(self):
