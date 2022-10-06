@@ -450,12 +450,12 @@ def test_formatted_dataset_with_image_feature(shared_datadir):
         batch = dset[:1]
         assert batch.keys() == {"image"}
         assert len(batch) == 1
-        assert isinstance(batch["image"], list) and all(isinstance(item, np.ndarray) for item in batch["image"])
-        assert batch["image"][0].shape == (480, 640, 3)
+        assert isinstance(batch["image"], np.ndarray)
+        assert batch["image"].shape == (1, 480, 640, 3)
         column = dset["image"]
         assert len(column) == 2
-        assert isinstance(column, list) and all(isinstance(item, np.ndarray) for item in column)
-        assert column[0].shape == (480, 640, 3)
+        assert isinstance(column, np.ndarray)
+        assert column.shape == (2, 480, 640, 3)
 
     with dset.formatted_as("pandas"):
         item = dset[0]
