@@ -3978,9 +3978,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             """Returns an int64_list from a list of bool / enum / int / uint."""
             return tf.train.Feature(int64_list=tf.train.Int64List(value=values))
 
-        def _feature(values: Union[float, int, str, np.ndarray]) -> "tf.train.Feature":
+        def _feature(values: Union[float, int, str, np.ndarray, list]) -> "tf.train.Feature":
             """Typechecks `values` and returns the corresponding tf.train.Feature."""
-            if isinstance(values, np.ndarray):
+            if isinstance(values, list):
+                if values and isinstance(values[0], str):
+                    return _bytes_feature([v.encode() for v in values])
+                else:
+                    raise ValueError(f"values={values} is empty or contains items that cannot be serialized")
+            elif isinstance(values, np.ndarray):
                 if values.dtype == np.dtype(float):
                     return _float_feature(values)
                 elif values.dtype == np.int64:
@@ -3991,9 +3996,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     return _bytes_feature([v.encode() for v in values])
                 else:
                     raise ValueError(
-                        f"values={values} is an np.ndarray with items of dtype {values[0].dtype}, which cannot be serialized"
+                        f"values={values} is empty or is an np.ndarray with items of dtype {values[0].dtype}, which cannot be serialized"
                     )
-            if hasattr(values, "dtype"):
+            elif hasattr(values, "dtype"):
                 if np.issubdtype(values.dtype, np.floating):
                     return _float_feature([values.item()])
                 elif np.issubdtype(values.dtype, np.integer):
@@ -4003,7 +4008,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 else:
                     raise ValueError(f"values={values} has dtype {values.dtype}, which cannot be serialized")
             else:
-                raise ValueError(f"values={values} are not numpy objects, and so cannot be serialized")
+                raise ValueError(f"values={values} are not numpy objects or strings, and so cannot be serialized")
 
         def serialize_example(ex):
             feature = {key: _feature(value) for key, value in ex.items()}
