@@ -211,7 +211,7 @@ class BaseReader:
         files = self.get_file_instructions(name, instructions, split_infos)
         if not files:
             msg = f'Instruction "{instructions}" corresponds to no data!'
-            raise FileNotFoundError(msg)
+            raise ValueError(msg)
         return self.read_files(files=files, original_instructions=instructions, in_memory=in_memory)
 
     def read_files(
