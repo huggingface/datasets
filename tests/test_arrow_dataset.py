@@ -1800,7 +1800,7 @@ class BaseDatasetTest(TestCase):
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 tmp_file = os.path.join(tmp_dir, "test.arrow")
                 fingerprint = dset._fingerprint
-                
+
                 with dset.shuffle(seed=1234, keep_in_memory=True) as dset_shuffled:
                     self.assertEqual(len(dset_shuffled), 30)
                     self.assertEqual(dset_shuffled[0]["filename"], "my_name-train_28")
@@ -1808,7 +1808,7 @@ class BaseDatasetTest(TestCase):
                     self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                     self.assertDictEqual(dset_shuffled.features, Features({"filename": Value("string")}))
                     self.assertNotEqual(dset_shuffled._fingerprint, fingerprint)
-                            
+
                 with dset.shuffle(seed=1234, indices_cache_file_name=tmp_file) as dset_shuffled:
                     self.assertEqual(len(dset_shuffled), 30)
                     self.assertEqual(dset_shuffled[0]["filename"], "my_name-train_28")
