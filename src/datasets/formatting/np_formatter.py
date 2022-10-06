@@ -16,8 +16,7 @@ class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
     def _consolidate(self, column):
         if isinstance(column, list) and column:
             if all(
-                isinstance(x, (np.number, np.ndarray)) and x.shape == column[0].shape and x.dtype == column[0].dtype
-                for x in column
+                isinstance(x, np.ndarray) and x.shape == column[0].shape and x.dtype == column[0].dtype for x in column
             ):
                 return np.stack(column)
         return column
