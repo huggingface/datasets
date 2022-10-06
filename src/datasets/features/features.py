@@ -1163,6 +1163,8 @@ def encode_nested_example(schema, obj, level=0):
     if isinstance(schema, dict):
         if level == 0 and obj is None:
             raise ValueError("Got None but expected a dictionary instead")
+        if obj is not None and len(schema) != len(obj):
+            obj = {k: obj.get(k) for k in schema}
         return (
             {
                 k: encode_nested_example(sub_schema, sub_obj, level=level + 1)

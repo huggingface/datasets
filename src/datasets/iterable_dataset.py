@@ -12,7 +12,7 @@ import pyarrow as pa
 from .arrow_dataset import DatasetInfoMixin
 from .features import Features
 from .features.features import FeatureType, _align_features, _check_if_features_can_be_aligned
-from .formatting import PythonFormatter
+from .formatting import PythonFormatter, get_format_type_from_alias, get_formatter
 from .info import DatasetInfo
 from .splits import NamedSplit
 from .table import table_cast
@@ -242,7 +242,6 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
     We use `IterableDataset._resolve_features` to obtain the features of all the datasets to concatenate.
 
     Then for each example, `IterableDataset` and `TypedExamplesIterable` automatically fill missing columns with None.
-    This is done with `_apply_feature_types`.
     """
 
     def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
@@ -294,7 +293,6 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
     We use `IterableDataset._resolve_features` to obtain the features of all the datasets to concatenate.
 
     Then for each example, `IterableDataset` and `TypedExamplesIterable` automatically fill missing columns with None.
-    This is done with `_apply_feature_types`.
     """
 
     def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
@@ -656,21 +654,6 @@ class TakeExamplesIterable(_BaseExamplesIterable):
         return self.ex_iterable.n_shards
 
 
-def _apply_feature_types(
-    example: dict, features: Features, token_per_repo_id: Dict[str, Union[str, bool, None]]
-) -> dict:
-    example = dict(example)
-    # add missing columns
-    for column_name in features:
-        if column_name not in example:
-            example[column_name] = None
-    # we encode the example for ClassLabel feature types for example
-    encoded_example = features.encode_example(example)
-    # Decode example for Audio feature, e.g.
-    decoded_example = features.decode_example(encoded_example, token_per_repo_id=token_per_repo_id)
-    return decoded_example
-
-
 class TypedExamplesIterable(_BaseExamplesIterable):
     def __init__(
         self,
@@ -684,9 +667,13 @@ class TypedExamplesIterable(_BaseExamplesIterable):
 
     def __iter__(self):
         # Then for each example, `TypedExamplesIterable` automatically fills missing columns with None.
-        # This is done with `_apply_feature_types`.
         for key, example in self.ex_iterable:
-            yield key, _apply_feature_types(example, self.features, token_per_repo_id=self.token_per_repo_id)
+            # we encode the example for ClassLabel feature types for example
+            # this also adds the missing columns
+            example = self.features.encode_example(example)
+            # Decode example for Audio feature, e.g.
+            example = self.features.decode_example(example, token_per_repo_id=self.token_per_repo_id)
+            yield key, example
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "TypedExamplesIterable":
         """Shuffle the wrapped examples iterable."""
@@ -733,7 +720,7 @@ class IterableDataset(DatasetInfoMixin):
         ex_iterable: _BaseExamplesIterable,
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
-        format_type: Optional[str] = None,
+        format: Optional[dict] = None,
         shuffling: Optional[ShufflingConfig] = None,
         token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None,
     ):
@@ -741,10 +728,24 @@ class IterableDataset(DatasetInfoMixin):
         DatasetInfoMixin.__init__(self, info=info, split=split)
 
         self._ex_iterable = ex_iterable
-        self._format_type = format_type
         self._shuffling = shuffling
         self._epoch = 0
         self._token_per_repo_id: Dict[str, Union[str, bool, None]] = token_per_repo_id or {}
+
+        format = format or {}
+        self._format_type: Optional[str] = format.get("type")
+        self._format_kwargs: dict = format.get("format_kwargs", {})
+        self._format_columns: Optional[list] = format.get("columns")
+        self._output_all_columns: bool = format.get("output_all_columns", False)
+
+    @property
+    def format(self):
+        return {
+            "type": self._format_type,
+            "format_kwargs": self._format_kwargs,
+            "columns": self.column_names if self._format_columns is None else self._format_columns,
+            "output_all_columns": self._output_all_columns,
+        }
 
     def _head(self, n=5):
         return _examples_to_batch([x for key, x in islice(self._iter(), n)])
@@ -779,17 +780,36 @@ class IterableDataset(DatasetInfoMixin):
         yield from ex_iterable.shard_data_sources(shard_idx)
 
     def __iter__(self):
+        format_type = self._format_type
+        format_columns = self._format_columns
+        output_all_columns = self._output_all_columns
+        format_kwargs = self._format_kwargs
+        format_kwargs = format_kwargs if format_kwargs is not None else {}
+        features = self._resolve_features().features
+        formatter = get_formatter(format_type, features=features, **format_kwargs)
         for key, example in self._iter():
             if self.features:
-                # `IterableDataset` automatically fills missing columns with None.
-                # This is done with `_apply_feature_types`.
-                yield _apply_feature_types(example, self.features, token_per_repo_id=self._token_per_repo_id)
-            else:
-                yield example
+                # we encode the example for ClassLabel feature types for example
+                # this also adds the missing columns
+                example = self.features.encode_example(example)
+            formatted_example = formatter.format_example(
+                {
+                    column_name: example[column_name]
+                    for column_name in (example if format_columns is None else format_columns)
+                }
+            )
+            if output_all_columns:
+                for column_name in example:
+                    if column_name not in formatted_example:
+                        formatted_example[column_name] = example[column_name]
+            yield formatted_example
 
     def with_format(
         self,
         type: Optional[str] = None,
+        columns: Optional[List] = None,
+        output_all_columns: bool = False,
+        **format_kwargs,
     ) -> "IterableDataset":
         """
         Return a dataset with the specified format.
@@ -797,18 +817,29 @@ class IterableDataset(DatasetInfoMixin):
 
         Args:
 
-            type (:obj:`str`, optional, default None): if set to "torch", the returned dataset
+            type (:obj:`str`, optional):
+                Either output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow'].
                 will be a subclass of torch.utils.data.IterableDataset to be used in a DataLoader
+            columns (:obj:`List[str]`, optional): columns to format in the output
+                None means __getitem__ returns all columns (default)
+            output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
+            **format_kwargs (additional keyword arguments): keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
+
         """
-        # TODO(QL): add examples formatting to get tensors when using the "torch" format
-        # TODO(QL): add format_kwargs
-        # TODO(QL): add format_columns and return_all_columns
-        # TODO(QL): add pandas, numpy and tf formats
+        # Check that the format_type and format_kwargs are valid and make it possible to have a Formatter
+        type = get_format_type_from_alias(type)
+        _ = get_formatter(type, features=self.features, **format_kwargs)
+
         return iterable_dataset(
             ex_iterable=self._ex_iterable,
             info=self._info.copy(),
             split=self._split,
-            format_type=type,
+            format={
+                "type": type,
+                "columns": columns,
+                "output_all_columns": output_all_columns,
+                "format_kwargs": format_kwargs,
+            },
             shuffling=copy.deepcopy(self._shuffling),
             token_per_repo_id=self._token_per_repo_id,
         )
@@ -907,7 +938,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable=ex_iterable,
             info=info,
             split=self._split,
-            format_type=self._format_type,
+            format=self.format,
             shuffling=copy.deepcopy(self._shuffling),
             token_per_repo_id=self._token_per_repo_id,
         )
@@ -974,7 +1005,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable=ex_iterable,
             info=info,
             split=self._split,
-            format_type=self._format_type,
+            format=self.format,
             shuffling=copy.deepcopy(self._shuffling),
             token_per_repo_id=self._token_per_repo_id,
         )
@@ -1037,7 +1068,7 @@ class IterableDataset(DatasetInfoMixin):
             ).shuffle_data_sources(generator),
             info=self._info.copy(),
             split=self._split,
-            format_type=self._format_type,
+            format=self.format,
             shuffling=shuffling,
             token_per_repo_id=self._token_per_repo_id,
         )
@@ -1077,7 +1108,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable=ex_iterable,
             info=self._info.copy(),
             split=self._split,
-            format_type=self._format_type,
+            format=self.format,
             shuffling=copy.deepcopy(self._shuffling),
             token_per_repo_id=self._token_per_repo_id,
         )
@@ -1107,7 +1138,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable=ex_iterable,
             info=self._info.copy(),
             split=self._split,
-            format_type=self._format_type,
+            format=self.format,
             shuffling=copy.deepcopy(self._shuffling),
             token_per_repo_id=self._token_per_repo_id,
         )
@@ -1267,7 +1298,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable=self._ex_iterable,
             info=info,
             split=self._split,
-            format_type=self._format_type,
+            format=self.format,
             shuffling=copy.deepcopy(self._shuffling),
             token_per_repo_id=self._token_per_repo_id,
         )
@@ -1316,7 +1347,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable=self._ex_iterable,
             info=info,
             split=self._split,
-            format_type=self._format_type,
+            format=self.format,
             shuffling=copy.deepcopy(self._shuffling),
             token_per_repo_id=self._token_per_repo_id,
         )
@@ -1334,7 +1365,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable=self._ex_iterable,
             info=info,
             split=self._split,
-            format_type=self._format_type,
+            format=self.format,
             shuffling=copy.deepcopy(self._shuffling),
             token_per_repo_id=self._token_per_repo_id,
         )
@@ -1344,11 +1375,11 @@ def iterable_dataset(
     ex_iterable: Iterable,
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
-    format_type: Optional[str] = None,
+    format: Optional[dict] = None,
     shuffling: Optional[ShufflingConfig] = None,
     token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None,
 ):
-    if format_type is not None and format_type == "torch":
+    if format and format.get("type") == "torch":
         from .formatting.dataset_wrappers.torch_iterable_dataset import TorchIterableDataset
 
         cls = TorchIterableDataset
@@ -1358,7 +1389,7 @@ def iterable_dataset(
         ex_iterable=ex_iterable,
         info=info,
         split=split,
-        format_type=format_type,
+        format=format,
         shuffling=shuffling,
         token_per_repo_id=token_per_repo_id,
     )

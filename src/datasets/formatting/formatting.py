@@ -23,7 +23,7 @@ import pyarrow as pa
 
 from ..features import Features
 from ..features.features import _ArrayXDExtensionType, _is_zero_copy_only, decode_nested_example, pandas_types_mapper
-from ..table import Table
+from ..table import InMemoryTable, Table
 from ..utils.py_utils import no_op_if_value_is_null
 
 
@@ -271,7 +271,7 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     numpy_arrow_extractor = NumpyArrowExtractor
     pandas_arrow_extractor = PandasArrowExtractor
 
-    def __init__(self, features=None, decoded=True):
+    def __init__(self, features: Optional[Features] = None, decoded=True):
         self.features = features
         self.decoded = decoded
         self.python_features_decoder = PythonFeaturesDecoder(self.features)
@@ -293,6 +293,11 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
 
     def format_batch(self, pa_table: pa.Table) -> BatchFormat:
         raise NotImplementedError
+
+    def format_example(self, encoded_example: dict) -> dict:
+        # TODO(QL): optimize this to convert directly to the right format without using Arrow
+        pa_table = InMemoryTable.from_pylist([encoded_example])
+        return self.format_row(pa_table)
 
 
 class ArrowFormatter(Formatter[pa.Table, pa.Array, pa.Table]):
@@ -324,6 +329,14 @@ class PythonFormatter(Formatter[dict, list, dict]):
         if self.decoded:
             batch = self.python_features_decoder.decode_batch(batch)
         return batch
+
+    def format_example(self, encoded_example: dict) -> dict:
+        if self.features is None:
+            return super().format_example(encoded_example)
+        elif self.decoded:
+            return self.features.decode_example(encoded_example)
+        else:
+            return encoded_example
 
 
 class PandasFormatter(Formatter):
