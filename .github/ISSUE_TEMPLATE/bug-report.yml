@@ -1,4 +1,4 @@
-name: Bug Report
+name: Bug report
 description: Create a report to help reproduce and fix the bug
 body:
   - type: textarea
@@ -38,7 +38,7 @@ body:
   - type: textarea
     id: environment-info
     attributes:
-      label: Environment Info
+      label: Environment info
       description: Please share your environemnt info with us. You can run the command `datasets-cli env` and copy-paste its output below.
       placeholder: datasets version, platform, python version, ...
     validations:
