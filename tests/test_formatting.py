@@ -21,6 +21,7 @@ _COL_C = [[[1.0, 0.0, 0.0]] * 2, [[0.0, 1.0, 0.0]] * 2, [[0.0, 0.0, 1.0]] * 2]
 _INDICES = [1, 0]
 
 IMAGE_PATH_1 = Path(__file__).parent / "features" / "data" / "test_image_rgb.jpg"
+IMAGE_PATH_2 = Path(__file__).parent / "features" / "data" / "test_image_rgba.png"
 AUDIO_PATH_1 = Path(__file__).parent / "features" / "data" / "test_audio_44100.wav"
 
 
@@ -117,6 +118,7 @@ class FormatterTest(TestCase):
         self.assertEqual(batch["c"].dtype, np.dtype(np.float16))
 
     def test_numpy_formatter_image(self):
+        # same dimensions
         pa_table = pa.table({"image": [{"bytes": None, "path": str(IMAGE_PATH_1)}] * 2})
         formatter = NumpyFormatter(features=Features({"image": Image()}))
         row = formatter.format_row(pa_table)
@@ -128,6 +130,23 @@ class FormatterTest(TestCase):
         batch = formatter.format_batch(pa_table)
         self.assertEqual(batch["image"].dtype, np.uint8)
         self.assertEqual(batch["image"].shape, (2, 480, 640, 3))
+
+        # different dimensions
+        pa_table = pa.table(
+            {"image": [{"bytes": None, "path": str(IMAGE_PATH_1)}, {"bytes": None, "path": str(IMAGE_PATH_2)}]}
+        )
+        formatter = NumpyFormatter(features=Features({"image": Image()}))
+        row = formatter.format_row(pa_table)
+        self.assertEqual(row["image"].dtype, np.uint8)
+        self.assertEqual(row["image"].shape, (480, 640, 3))
+        col = formatter.format_column(pa_table)
+        self.assertIsInstance(col, list)
+        self.assertEqual(col[0].dtype, np.uint8)
+        self.assertEqual(col[0].shape, (480, 640, 3))
+        batch = formatter.format_batch(pa_table)
+        self.assertIsInstance(batch["image"], list)
+        self.assertEqual(batch["image"][0].dtype, np.uint8)
+        self.assertEqual(batch["image"][0].shape, (480, 640, 3))
 
     def test_numpy_formatter_audio(self):
         pa_table = pa.table({"audio": [{"bytes": None, "path": str(AUDIO_PATH_1)}]})
@@ -197,6 +216,7 @@ class FormatterTest(TestCase):
 
         from datasets.formatting import TorchFormatter
 
+        # same dimensions
         pa_table = pa.table({"image": [{"bytes": None, "path": str(IMAGE_PATH_1)}] * 2})
         formatter = TorchFormatter(features=Features({"image": Image()}))
         row = formatter.format_row(pa_table)
@@ -208,6 +228,23 @@ class FormatterTest(TestCase):
         batch = formatter.format_batch(pa_table)
         self.assertEqual(batch["image"].dtype, torch.uint8)
         self.assertEqual(batch["image"].shape, (2, 480, 640, 3))
+
+        # different dimensions
+        pa_table = pa.table(
+            {"image": [{"bytes": None, "path": str(IMAGE_PATH_1)}, {"bytes": None, "path": str(IMAGE_PATH_2)}]}
+        )
+        formatter = TorchFormatter(features=Features({"image": Image()}))
+        row = formatter.format_row(pa_table)
+        self.assertEqual(row["image"].dtype, torch.uint8)
+        self.assertEqual(row["image"].shape, (480, 640, 3))
+        col = formatter.format_column(pa_table)
+        self.assertIsInstance(col, list)
+        self.assertEqual(col[0].dtype, torch.uint8)
+        self.assertEqual(col[0].shape, (480, 640, 3))
+        batch = formatter.format_batch(pa_table)
+        self.assertIsInstance(batch["image"], list)
+        self.assertEqual(batch["image"][0].dtype, torch.uint8)
+        self.assertEqual(batch["image"][0].shape, (480, 640, 3))
 
     @require_torch
     def test_torch_formatter_audio(self):
@@ -270,6 +307,7 @@ class FormatterTest(TestCase):
 
         from datasets.formatting import TFFormatter
 
+        # same dimensions
         pa_table = pa.table({"image": [{"bytes": None, "path": str(IMAGE_PATH_1)}] * 2})
         formatter = TFFormatter(features=Features({"image": Image()}))
         row = formatter.format_row(pa_table)
@@ -281,6 +319,23 @@ class FormatterTest(TestCase):
         batch = formatter.format_batch(pa_table)
         self.assertEqual(batch["image"][0].dtype, tf.uint8)
         self.assertEqual(batch["image"].shape, (2, 480, 640, 3))
+
+        # different dimensions
+        pa_table = pa.table(
+            {"image": [{"bytes": None, "path": str(IMAGE_PATH_1)}, {"bytes": None, "path": str(IMAGE_PATH_2)}]}
+        )
+        formatter = TFFormatter(features=Features({"image": Image()}))
+        row = formatter.format_row(pa_table)
+        self.assertEqual(row["image"].dtype, tf.uint8)
+        self.assertEqual(row["image"].shape, (480, 640, 3))
+        col = formatter.format_column(pa_table)
+        self.assertIsInstance(col, list)
+        self.assertEqual(col[0].dtype, tf.uint8)
+        self.assertEqual(col[0].shape, (480, 640, 3))
+        batch = formatter.format_batch(pa_table)
+        self.assertIsInstance(batch["image"], list)
+        self.assertEqual(batch["image"][0].dtype, tf.uint8)
+        self.assertEqual(batch["image"][0].shape, (480, 640, 3))
 
     @require_tf
     def test_tf_formatter_audio(self):
@@ -299,6 +354,7 @@ class FormatterTest(TestCase):
 
     @require_jax
     def test_jax_formatter(self):
+        import jax
         import jax.numpy as jnp
 
         from datasets.formatting import JaxFormatter
@@ -306,13 +362,13 @@ class FormatterTest(TestCase):
         pa_table = self._create_dummy_table()
         formatter = JaxFormatter()
         row = formatter.format_row(pa_table)
-        jnp.allclose(row["a"], jnp.array(_COL_A, dtype=jnp.int64)[0])
+        jnp.allclose(row["a"], jnp.array(_COL_A, dtype=jnp.int64 if jax.config.jax_enable_x64 else jnp.int32)[0])
         assert row["b"] == _COL_B[0]
         jnp.allclose(row["c"], jnp.array(_COL_C, dtype=jnp.float32)[0])
         col = formatter.format_column(pa_table)
-        jnp.allclose(col, jnp.array(_COL_A, dtype=jnp.int64))
+        jnp.allclose(col, jnp.array(_COL_A, dtype=jnp.int64 if jax.config.jax_enable_x64 else jnp.int32))
         batch = formatter.format_batch(pa_table)
-        jnp.allclose(batch["a"], jnp.array(_COL_A, dtype=jnp.int64))
+        jnp.allclose(batch["a"], jnp.array(_COL_A, dtype=jnp.int64 if jax.config.jax_enable_x64 else jnp.int32))
         assert batch["b"] == _COL_B
         jnp.allclose(batch["c"], jnp.array(_COL_C, dtype=jnp.float32))
         assert batch["c"].shape == np.array(_COL_C).shape
@@ -339,6 +395,7 @@ class FormatterTest(TestCase):
 
         from datasets.formatting import JaxFormatter
 
+        # same dimensions
         pa_table = pa.table({"image": [{"bytes": None, "path": str(IMAGE_PATH_1)}] * 2})
         formatter = JaxFormatter(features=Features({"image": Image()}))
         row = formatter.format_row(pa_table)
@@ -350,6 +407,23 @@ class FormatterTest(TestCase):
         batch = formatter.format_batch(pa_table)
         self.assertEqual(batch["image"].dtype, jnp.uint8)
         self.assertEqual(batch["image"].shape, (2, 480, 640, 3))
+
+        # different dimensions
+        pa_table = pa.table(
+            {"image": [{"bytes": None, "path": str(IMAGE_PATH_1)}, {"bytes": None, "path": str(IMAGE_PATH_2)}]}
+        )
+        formatter = JaxFormatter(features=Features({"image": Image()}))
+        row = formatter.format_row(pa_table)
+        self.assertEqual(row["image"].dtype, jnp.uint8)
+        self.assertEqual(row["image"].shape, (480, 640, 3))
+        col = formatter.format_column(pa_table)
+        self.assertIsInstance(col, list)
+        self.assertEqual(col[0].dtype, jnp.uint8)
+        self.assertEqual(col[0].shape, (480, 640, 3))
+        batch = formatter.format_batch(pa_table)
+        self.assertIsInstance(batch["image"], list)
+        self.assertEqual(batch["image"][0].dtype, jnp.uint8)
+        self.assertEqual(batch["image"][0].shape, (480, 640, 3))
 
     @require_jax
     def test_jax_formatter_audio(self):
