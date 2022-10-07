@@ -3571,6 +3571,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if len(self) == 0:
             return self
 
+        if keep_in_memory and indices_cache_file_name is not None:
+            raise ValueError("Please use either `keep_in_memory` or `indices_cache_file_name` but not both.")
+
         if seed is not None and generator is not None:
             raise ValueError("Both `seed` and `generator` were provided. Please specify just one of them.")
 
@@ -3600,7 +3603,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return self.select(
             indices=permutation,
             keep_in_memory=keep_in_memory,
-            indices_cache_file_name=indices_cache_file_name,
+            indices_cache_file_name=indices_cache_file_name if not keep_in_memory else None,
             writer_batch_size=writer_batch_size,
             new_fingerprint=new_fingerprint,
         )

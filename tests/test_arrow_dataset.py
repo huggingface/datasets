@@ -1800,6 +1800,15 @@ class BaseDatasetTest(TestCase):
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 tmp_file = os.path.join(tmp_dir, "test.arrow")
                 fingerprint = dset._fingerprint
+
+                with dset.shuffle(seed=1234, keep_in_memory=True) as dset_shuffled:
+                    self.assertEqual(len(dset_shuffled), 30)
+                    self.assertEqual(dset_shuffled[0]["filename"], "my_name-train_28")
+                    self.assertEqual(dset_shuffled[2]["filename"], "my_name-train_10")
+                    self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                    self.assertDictEqual(dset_shuffled.features, Features({"filename": Value("string")}))
+                    self.assertNotEqual(dset_shuffled._fingerprint, fingerprint)
+
                 with dset.shuffle(seed=1234, indices_cache_file_name=tmp_file) as dset_shuffled:
                     self.assertEqual(len(dset_shuffled), 30)
                     self.assertEqual(dset_shuffled[0]["filename"], "my_name-train_28")
@@ -1813,13 +1822,13 @@ class BaseDatasetTest(TestCase):
                     with dset.shuffle(seed=1234, indices_cache_file_name=tmp_file) as dset_shuffled_2:
                         self.assertListEqual(dset_shuffled["filename"], dset_shuffled_2["filename"])
 
-                    # Compatible with temp_seed
-                    with temp_seed(42), dset.shuffle() as d1:
-                        with temp_seed(42), dset.shuffle() as d2, dset.shuffle() as d3:
-                            self.assertListEqual(d1["filename"], d2["filename"])
-                            self.assertEqual(d1._fingerprint, d2._fingerprint)
-                            self.assertNotEqual(d3["filename"], d2["filename"])
-                            self.assertNotEqual(d3._fingerprint, d2._fingerprint)
+                # Compatible with temp_seed
+                with temp_seed(42), dset.shuffle() as d1:
+                    with temp_seed(42), dset.shuffle() as d2, dset.shuffle() as d3:
+                        self.assertListEqual(d1["filename"], d2["filename"])
+                        self.assertEqual(d1._fingerprint, d2._fingerprint)
+                        self.assertNotEqual(d3["filename"], d2["filename"])
+                        self.assertNotEqual(d3._fingerprint, d2._fingerprint)
 
     def test_sort(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
