@@ -2376,11 +2376,11 @@ class BaseDatasetTest(TestCase):
             self.assertIsInstance(dset[:2]["filename"], np.ndarray)
             self.assertIsInstance(dset["filename"], np.ndarray)
             self.assertIsInstance(dset[0]["vec"], np.ndarray)
-            # numpy doesn't support ragged tensors, so we should have lists
-            self.assertIsInstance(dset[:2]["vec"], list)
-            self.assertIsInstance(dset[:2]["vec"][0], np.ndarray)
-            self.assertIsInstance(dset["vec"], list)
-            self.assertIsInstance(dset["vec"][0], np.ndarray)
+            self.assertIsInstance(dset[:2]["vec"], np.ndarray)
+            self.assertIsInstance(dset["vec"], np.ndarray)
+            # array is flat for ragged vectors in numpy
+            self.assertTupleEqual(dset[:2]["vec"].shape, (2,))
+            self.assertTupleEqual(dset["vec"][:2].shape, (2,))
 
             dset.set_format("torch")
             self.assertIsNotNone(dset[0])
