@@ -3358,7 +3358,7 @@ def _check_sql_dataset(dataset, expected_features):
 
 @require_sqlalchemy
 @pytest.mark.parametrize("con_type", ["string", "engine"])
-def test_dataset_from_sql_con_type(con_type, sqlite_path, tmp_path):
+def test_dataset_from_sql_con_type(con_type, sqlite_path, tmp_path, caplog):
     cache_dir = tmp_path / "cache"
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     if con_type == "string":
@@ -3367,6 +3367,17 @@ def test_dataset_from_sql_con_type(con_type, sqlite_path, tmp_path):
         import sqlalchemy
 
         con = sqlalchemy.create_engine("sqlite:///" + sqlite_path)
+    # # https://github.com/huggingface/datasets/issues/2832 needs to be fixed first for this to work
+    # with caplog.at_level(INFO):
+    #     dataset = Dataset.from_sql(
+    #         "dataset",
+    #         con,
+    #         cache_dir=cache_dir,
+    #     )
+    # if con_type == "string":
+    #     assert "couldn't be hashed properly" not in caplog.text
+    # elif con_type == "engine":
+    #     assert "couldn't be hashed properly" in caplog.text
     dataset = Dataset.from_sql(
         "dataset",
         con,
