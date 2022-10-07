@@ -210,9 +210,18 @@ For example, a table from a SQLite file can be loaded with:
 Use a query for a more precise read:
 
 ```py
+>>> from sqlite3 import connect
+>>> con = connect(":memory")
+>>> # db writes ...
 >>> from datasets import Dataset
->>> dataset = Dataset.from_sql("SELECT text FROM data_table WHERE length(text) > 100 LIMIT 10", "sqlite:///sqlite_file.db")
+>>> dataset = Dataset.from_sql("SELECT text FROM table WHERE length(text) > 100 LIMIT 10", con)
 ```
+
+<Tip>
+
+To cache the read, specify [`Dataset.from_sql#con`] as a [URI string](https://docs.sqlalchemy.org/en/13/core/engines.html#database-urls).
+
+</Tip>
 
 ## In-memory data
 
