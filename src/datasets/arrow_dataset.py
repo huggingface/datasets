@@ -4394,7 +4394,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
             shards = shards_with_embedded_external_files(shards)
 
-        files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, token=token)
+        files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, use_auth_token=token)
         data_files = [file for file in files if file.startswith("data/")]
 
         def path_in_repo(_index, shard):
