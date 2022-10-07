@@ -2491,7 +2491,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # If the array is empty we do nothing (but we make sure to handle an empty indices mapping and remove the requested columns anyway)
         if len(self) == 0:
-            if self._indices is not None:  # empty incides mapping
+            if self._indices is not None:  # empty indices mapping
                 self = Dataset(
                     self.data.slice(0, 0),
                     info=self.info.copy(),
@@ -3083,6 +3083,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if function is None:
             function = lambda x: True  # noqa: E731
+
+        if len(self) == 0:
+            return self
 
         indices = self.map(
             function=partial(

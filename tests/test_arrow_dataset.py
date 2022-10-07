@@ -1469,6 +1469,21 @@ class BaseDatasetTest(TestCase):
                     with dset.filter(lambda x: x["col"] < 2) as dset:
                         self.assertListEqual(dset["col"], [1])
 
+    def test_filter_empty(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                self.assertIsNone(dset._indices, None)
+
+                tmp_file = os.path.join(tmp_dir, "test.arrow")
+                with dset.filter(lambda _: False, cache_file_name=tmp_file) as dset:
+                    self.assertEqual(len(dset), 0)
+                    self.assertIsNotNone(dset._indices, None)
+
+                    tmp_file_2 = os.path.join(tmp_dir, "test_2.arrow")
+                    with dset.filter(lambda _: False, cache_file_name=tmp_file_2) as dset2:
+                        self.assertEqual(len(dset2), 0)
+                        self.assertEqual(dset._indices, dset2._indices)
+
     def test_filter_batched(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = Dataset.from_dict({"col": [0, 1, 2]})
