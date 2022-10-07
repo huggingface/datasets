@@ -998,7 +998,7 @@ class DatasetBuilder:
         if not is_local:
             raise NotImplementedError(f"Loading a dataset cached in a {type(self._fs).__name__} is not supported.")
         if not os.path.exists(self._output_dir):
-            raise AssertionError(
+            raise FileNotFoundError(
                 f"Dataset {self.name}: could not find data in {self._output_dir}. Please make sure to call "
                 "builder.download_and_prepare(), or use "
                 "datasets.load_dataset() before trying to access the Dataset object."

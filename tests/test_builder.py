@@ -560,7 +560,7 @@ class BuilderTest(TestCase):
                 try_from_hf_gcs=False,
                 download_mode=DownloadMode.FORCE_REDOWNLOAD,
             )
-            self.assertRaises(AssertionError, builder.as_dataset)
+            self.assertRaises(FileNotFoundError, builder.as_dataset)
 
     def test_generator_based_download_and_prepare(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
