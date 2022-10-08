@@ -318,6 +318,17 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(dset[0]["filename"], "my_name-train_0")
                 self.assertEqual(dset["filename"][0], "my_name-train_0")
 
+    def test_restore_saved_format(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                dset.set_format(type="numpy", columns=["col_1"], output_all_columns=True)
+                dataset_path = os.path.join(tmp_dir, "my_dataset")
+                dset.save_to_disk(dataset_path)
+
+                with load_from_disk(dataset_path) as loaded_dset:
+                    self.assertEqual(dset.format, loaded_dset.format)
+
     def test_set_format_numpy_multiple_columns(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
