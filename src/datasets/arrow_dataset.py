@@ -665,6 +665,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         self._format_type: Optional[str] = None
         self._format_kwargs: dict = {}
         self._format_columns: Optional[list] = None
+        self._format_decoded: bool = True
         self._output_all_columns: bool = False
         self._fingerprint: str = fingerprint
 
@@ -1231,6 +1232,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 "_format_columns",
                 "_format_kwargs",
                 "_format_type",
+                "_format_decoded",
                 "_indexes",
                 "_output_all_columns",
             ]
@@ -1913,7 +1915,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         return self.num_rows
 
-    def _iter_batches(self, batch_size: int, decoded: bool = True):
+    def _iter_batches(self, batch_size: int):
         """Iterate through the batches of size `batch_size`.
 
         If a formatting is set with :meth:`Dataset.set_format` rows will be returned with the
@@ -1923,7 +1925,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # Fast iteration
             # Benchmark: https://gist.github.com/mariosasko/0248288a2e3a7556873969717c1fe52b (fast_iter_batch)
             format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
-            formatter = get_formatter(self._format_type, features=self.features, decoded=decoded, **format_kwargs)
+            formatter = get_formatter(
+                self._format_type, features=self.features, decoded=self._format_decoded, **format_kwargs
+            )
             for batch in self.data.to_reader(max_chunksize=batch_size):
                 pa_subtable = pa.Table.from_batches([batch])
                 formatted_output = format_table(
@@ -1938,10 +1942,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             for i in range(0, self.num_rows, batch_size):
                 yield self._getitem(
                     slice(i, i + batch_size),
-                    decoded=decoded,
                 )
 
-    def _iter(self, decoded: bool = True):
+    def _iter(self):
         """Iterate through the examples.
 
         If a formatting is set with :meth:`Dataset.set_format` rows will be returned with the
@@ -1951,7 +1954,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # Fast iteration
             # Benchmark: https://gist.github.com/mariosasko/0248288a2e3a7556873969717c1fe52b (fast_iter_batch)
             format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
-            formatter = get_formatter(self._format_type, features=self.features, decoded=decoded, **format_kwargs)
+            formatter = get_formatter(
+                self._format_type, features=self.features, decoded=self._format_decoded, **format_kwargs
+            )
             batch_size = config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER
             for batch in self.data.to_reader(max_chunksize=batch_size):
                 for i in range(batch.num_rows):
@@ -1969,7 +1974,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             for i in range(self.num_rows):
                 yield self._getitem(
                     i,
-                    decoded=decoded,
                 )
 
     def __iter__(self):
@@ -1989,6 +1993,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             "type": self._format_type,
             "format_kwargs": self._format_kwargs,
             "columns": self.column_names if self._format_columns is None else self._format_columns,
+            "decoded": self._format_decoded,
             "output_all_columns": self._output_all_columns,
         }
 
@@ -1997,6 +2002,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         self,
         type: Optional[str] = None,
         columns: Optional[List] = None,
+        decoded: bool = True,
         output_all_columns: bool = False,
         **format_kwargs,
     ):
@@ -2007,24 +2013,30 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 None means ``__getitem__`` returns python objects (default)
             columns (:obj:`List[str]`, optional): columns to format in the output
                 None means ``__getitem__`` returns all columns (default)
+            decoded (:obj: `bool`, default to True):
+                Whether to decode the columns or return them in the format in which they are stored in the Arrow table.
             output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
             **format_kwargs (additional keyword arguments): keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
         """
         old_format_type = self._format_type
         old_format_kwargs = self._format_kwargs
         old_format_columns = self._format_columns
+        old_format_decoded = self._format_decoded
         old_output_all_columns = self._output_all_columns
         try:
-            self.set_format(type, columns, output_all_columns, **format_kwargs)
+            self.set_format(type, columns, output_all_columns, decoded, **format_kwargs)
             yield
         finally:
-            self.set_format(old_format_type, old_format_columns, old_output_all_columns, **old_format_kwargs)
+            self.set_format(
+                old_format_type, old_format_columns, old_output_all_columns, old_format_decoded, **old_format_kwargs
+            )
 
     @fingerprint_transform(inplace=True)
     def set_format(
         self,
         type: Optional[str] = None,
         columns: Optional[List] = None,
+        decoded: bool = True,
         output_all_columns: bool = False,
         **format_kwargs,
     ):
@@ -2038,6 +2050,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 None means __getitem__ returns python objects (default)
             columns (:obj:`List[str]`, optional): columns to format in the output.
                 None means __getitem__ returns all columns (default).
+            decoded (:obj: `bool`, default to True):
+                Whether to decode the columns or return them in the format in which they are stored in the Arrow table.
             output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
             **format_kwargs (additional keyword arguments): keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
 
@@ -2059,6 +2073,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         {'columns': ['input_ids', 'token_type_ids', 'attention_mask', 'label'],
          'format_kwargs': {},
          'output_all_columns': False,
+         'decoded': True,
          'type': 'numpy'}
         ```
         """
@@ -2083,12 +2098,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         self._format_type = type
         self._format_kwargs = format_kwargs
         self._format_columns = columns
+        self._format_decoded = decoded
         self._output_all_columns = output_all_columns
         logger.debug(
-            "Set __getitem__(key) output type to %s for %s columns "
+            "Set __getitem__(key) output type to %s (%s) for %s columns "
             " (when key is int or slice) and %s output other (un-formatted) columns.",
             "python objects" if type is None else type,
-            "no" if columns is None else str(columns),
+            decoded,
+            "no" if columns == [] else str(columns),
             "do" if output_all_columns else "don't",
         )
 
@@ -2110,12 +2127,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         {'columns': ['input_ids', 'token_type_ids', 'attention_mask', 'label'],
          'format_kwargs': {},
          'output_all_columns': False,
+         'decoded': True,
          'type': 'numpy'}
         >>> ds.reset_format()
         >>> ds.format
         {'columns': ['text', 'label', 'input_ids', 'token_type_ids', 'attention_mask'],
          'format_kwargs': {},
          'output_all_columns': False,
+         'decoded': True,
          'type': None}
         ```
         """
@@ -2125,6 +2144,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         self,
         transform: Optional[Callable],
         columns: Optional[List] = None,
+        decoded: bool = True,
         output_all_columns: bool = False,
     ):
         """Set __getitem__ return format using this transform. The transform is applied on-the-fly on batches when __getitem__ is called.
@@ -2136,6 +2156,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 This function is applied right before returning the objects in __getitem__.
             columns (:obj:`List[str]`, optional): columns to format in the output
                 If specified, then the input batch of the transform only contains those columns.
+            decoded (:obj: `bool`, default to True):
+                Whether to decode the columns or return them in the format in which they are stored in the Arrow table.
             output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
                 If set to True, then the other un-formatted columns are kept with the output of the transform.
 
@@ -2159,12 +2181,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                  0, 0])}
         ```
         """
-        self.set_format("custom", columns=columns, output_all_columns=output_all_columns, transform=transform)
+        self.set_format(
+            "custom", columns=columns, output_all_columns=output_all_columns, decoded=decoded, transform=transform
+        )
 
     def with_format(
         self,
         type: Optional[str] = None,
         columns: Optional[List] = None,
+        decoded: bool = True,
         output_all_columns: bool = False,
         **format_kwargs,
     ):
@@ -2181,6 +2206,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 None means __getitem__ returns python objects (default)
             columns (:obj:`List[str]`, optional): columns to format in the output
                 None means __getitem__ returns all columns (default)
+            decoded (:obj: `bool`, default to True):
+                Whether to decode the columns or return them in the format in which they are stored in the Arrow table.
             output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
             **format_kwargs (additional keyword arguments): keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
 
@@ -2206,13 +2233,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         """
         dataset = copy.deepcopy(self)
-        dataset.set_format(type=type, columns=columns, output_all_columns=output_all_columns, **format_kwargs)
+        dataset.set_format(
+            type=type, columns=columns, output_all_columns=output_all_columns, decoded=decoded, **format_kwargs
+        )
         return dataset
 
     def with_transform(
         self,
         transform: Optional[Callable],
         columns: Optional[List] = None,
+        decoded: bool = True,
         output_all_columns: bool = False,
     ):
         """Set __getitem__ return format using this transform. The transform is applied on-the-fly on batches when __getitem__ is called.
@@ -2227,6 +2257,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 This function is applied right before returning the objects in __getitem__.
             columns (:obj:`List[str]`, optional): columns to format in the output
                 If specified, then the input batch of the transform only contains those columns.
+            decoded (:obj: `bool`, default to True):
+                Whether to decode the columns or return them in the format in which they are stored in the Arrow table.
             output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
                 If set to True, then the other un-formatted columns are kept with the output of the transform.
 
@@ -2251,7 +2283,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         """
         dataset = copy.deepcopy(self)
-        dataset.set_transform(transform=transform, columns=columns, output_all_columns=output_all_columns)
+        dataset.set_transform(
+            transform=transform, columns=columns, output_all_columns=output_all_columns, decoded=decoded
+        )
         return dataset
 
     def prepare_for_task(self, task: Union[str, TaskTemplate], id: int = 0) -> "Dataset":
@@ -2302,7 +2336,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset = dataset.cast(features=template.features)
         return dataset
 
-    def _getitem(self, key: Union[int, slice, str], decoded: bool = True, **kwargs) -> Union[Dict, List]:
+    def _getitem(self, key: Union[int, slice, str], **kwargs) -> Union[Dict, List]:
         """
         Can be used to index columns (by string names) or rows (by integer index, slices, or iter of indices or bools)
         """
@@ -2313,7 +2347,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
         format_kwargs = kwargs["format_kwargs"] if "format_kwargs" in kwargs else self._format_kwargs
         format_kwargs = format_kwargs if format_kwargs is not None else {}
-        formatter = get_formatter(format_type, features=self.features, decoded=decoded, **format_kwargs)
+        format_decoded = kwargs["format_decoded"] if "format_decoded" in kwargs else self._format_decoded
+        formatter = get_formatter(format_type, features=self.features, decoded=format_decoded, **format_kwargs)
         pa_subtable = query_table(self._data, key, indices=self._indices if self._indices is not None else None)
         formatted_output = format_table(
             pa_subtable, key, formatter=formatter, format_columns=format_columns, output_all_columns=output_all_columns
