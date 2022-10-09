@@ -1104,7 +1104,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @staticmethod
     def from_sql(
         sql: Union[str, "sqlalchemy.sql.Selectable"],
-        con: str,
+        con: Union[str, "sqlalchemy.engine.Connection", "sqlalchemy.engine.Engine", "sqlite3.Connection"],
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,
@@ -1114,7 +1114,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             sql (`str` or :obj:`sqlalchemy.sql.Selectable`): SQL query to be executed or a table name.
-            con (`str`): A connection URI string used to instantiate a database connection.
+            con (`str` or :obj:`sqlite3.Connection` or :obj:`sqlalchemy.engine.Connection` or :obj:`sqlalchemy.engine.Connection`):
+                A [URI string](https://docs.sqlalchemy.org/en/13/core/engines.html#database-urls) used to instantiate a database connection or a SQLite3/SQLAlchemy connection object.
             features (:class:`Features`, optional): Dataset features.
             cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
             keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
@@ -1137,7 +1138,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
 
         <Tip {warning=true}>
-        `sqlalchemy` needs to be installed to use this function.
+        The returned dataset can only be cached if `con` is specified as URI string.
         </Tip>
         """
         from .io.sql import SqlDatasetReader
@@ -4224,8 +4225,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             name (`str`): Name of SQL table.
-            con (`str` or `sqlite3.Connection` or `sqlalchemy.engine.Connection` or `sqlalchemy.engine.Connection`):
-                A database connection URI string or an existing SQLite3/SQLAlchemy connection used to write to a database.
+            con (`str` or :obj:`sqlite3.Connection` or :obj:`sqlalchemy.engine.Connection` or :obj:`sqlalchemy.engine.Connection`):
+                A [URI string](https://docs.sqlalchemy.org/en/13/core/engines.html#database-urls) or a SQLite3/SQLAlchemy connection object used to write to a database.
             batch_size (:obj:`int`, optional): Size of the batch to load in memory and write at once.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
             **sql_writer_kwargs (additional keyword arguments): Parameters to pass to pandas's :function:`Dataframe.to_sql`
