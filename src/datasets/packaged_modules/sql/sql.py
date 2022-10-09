@@ -70,7 +70,7 @@ class SqlConfig(datasets.BuilderConfig):
         if not isinstance(con, str):
             config_kwargs["con"] = id(con)
             logger.info(
-                f"'con' of type {type(con)} couldn't be hashed properly. To enable hashing, specify 'con' as URI string instead."
+                f"SQL connection 'con' of type {type(con)} couldn't be hashed properly. To enable hashing, specify 'con' as URI string instead."
             )
 
         return super().create_config_id(config_kwargs, custom_features=custom_features)
