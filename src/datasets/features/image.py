@@ -1,5 +1,6 @@
 import os
-from dataclasses import dataclass, field
+import warnings
+from dataclasses import InitVar, dataclass, field
 from io import BytesIO
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Union
 
@@ -39,8 +40,8 @@ class Image:
     - A :obj:`PIL.Image.Image`: PIL image object.
 
     Args:
-        decode (:obj:`bool`, default ``True``): Whether to decode the image data. If `False`,
-            returns the underlying dictionary in the format {"path": image_path, "bytes": image_bytes}.
+        decode (:obj:`bool`, default ``True``):
+            Deprecated: 'decode' was deprecated in version 2.5.3 and will be removed in 2.8.0. Use `dataset.set_format(decoded=True)` instead.
 
     Examples:
 
@@ -51,18 +52,26 @@ class Image:
     Image(decode=True, id=None)
     >>> ds[0]["image"]
     <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=500x500 at 0x15E52E7F0>
-    >>> ds = ds.cast_column('image', Image(decode=False))
+    >>> ds.set_format(decoded=False)
+    >>> ds[0]["image"]
     {'bytes': None,
      'path': '/root/.cache/huggingface/datasets/downloads/extracted/b0a21163f78769a2cf11f58dfc767fb458fc7cea5c05dccc0144a2c0f0bc1292/train/healthy/healthy_train.85.jpg'}
     ```
     """
 
-    decode: bool = True
+    decode: InitVar[bool] = "deprecated"
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "PIL.Image.Image"
     pa_type: ClassVar[Any] = pa.struct({"bytes": pa.binary(), "path": pa.string()})
     _type: str = field(default="Image", init=False, repr=False)
+
+    def __post_init__(self, decode: bool):
+        if decode != "deprecated":
+            warnings.warn(
+                "Parameter 'decode' was deprecated in version 2.5.3 and will be removed in 2.8.0. Use `dataset.set_format(decoded=True)` instead.",
+                FutureWarning,
+            )
 
     def __call__(self):
         return self.pa_type
@@ -120,9 +129,6 @@ class Image:
         Returns:
             :obj:`PIL.Image.Image`
         """
-        if not self.decode:
-            raise RuntimeError("Decoding is disabled for this feature. Please use Image(decode=True) instead.")
-
         if config.PIL_AVAILABLE:
             import PIL.Image
         else:

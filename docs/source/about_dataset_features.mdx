@@ -92,10 +92,11 @@ Index into an audio dataset using the row index first and then the `audio` colum
 
 </Tip>
 
-With `decode=False`, the [`Audio`] type simply gives you the path or the bytes of the audio file, without decoding it into an `array`, 
+When decoding is disabled by passing `decoded=False` to [`~Dataset.set_format`], the [`Audio`] type simply gives you the path or the bytes of the audio file, without decoding it into an `array`: 
 
 ```py
->>> dataset = load_dataset("PolyAI/minds14", "en-US", split="train").cast_column("audio", Audio(decode=False))
+>>> dataset = load_dataset("PolyAI/minds14", "en-US", split="train")
+>>> dataset.set_format(decoded=False)
 >>> dataset[0]
 {'audio': {'bytes': None,
   'path': '/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-US~JOINT_ACCOUNT/602ba55abb1e6d0fbce92065.wav'},

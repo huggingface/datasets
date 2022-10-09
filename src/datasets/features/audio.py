@@ -1,6 +1,6 @@
 import os
 import warnings
-from dataclasses import dataclass, field
+from dataclasses import InitVar, dataclass, field
 from io import BytesIO
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Union
 
@@ -43,8 +43,8 @@ class Audio:
         sampling_rate (:obj:`int`, optional): Target sampling rate. If `None`, the native sampling rate is used.
         mono (:obj:`bool`, default ``True``): Whether to convert the audio signal to mono by averaging samples across
             channels.
-        decode (:obj:`bool`, default ``True``): Whether to decode the audio data. If `False`,
-            returns the underlying dictionary in the format {"path": audio_path, "bytes": audio_bytes}.
+        decode (:obj:`bool`, default ``True``):
+            Deprecated: 'decode' was deprecated in version 2.5.3 and will be removed in 2.8.0. Use `dataset.set_format(decoded=True)` instead.
 
     Example:
 
@@ -62,12 +62,19 @@ class Audio:
 
     sampling_rate: Optional[int] = None
     mono: bool = True
-    decode: bool = True
+    decode: InitVar[bool] = "deprecated"
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
     pa_type: ClassVar[Any] = pa.struct({"bytes": pa.binary(), "path": pa.string()})
     _type: str = field(default="Audio", init=False, repr=False)
+
+    def __post_init__(self, decode: bool):
+        if decode != "deprecated":
+            warnings.warn(
+                "Parameter 'decode' was deprecated in version 2.5.3 and will be removed in 2.8.0. Use `dataset.set_format(decoded=True)` instead.",
+                FutureWarning,
+            )
 
     def __call__(self):
         return self.pa_type

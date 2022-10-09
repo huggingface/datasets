@@ -1286,6 +1286,9 @@ def generate_from_dict(obj: Any):
         return Sequence(feature=generate_from_dict(obj["feature"]), length=obj.get("length", -1))
 
     field_names = {f.name for f in fields(class_type)}
+    # Ignore deprecated fields
+    if class_type in [Audio, Image] and "decode" in field_names:
+        field_names.remove("decode")
     return class_type(**{k: v for k, v in obj.items() if k in field_names})
 
 

@@ -36,10 +36,11 @@ You can load a dataset from the image path. Use the [`~Dataset.cast_column`] fun
 <PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1200x215 at 0x15E6D7160>]
 ```
 
-If you only want to load the underlying path to the image dataset without decoding the image object, set `decode=False` in the [`Image`] feature:
+If you only want to load the underlying path to the image dataset without decoding the image object, pass `decoded=False` to [`~Dataset.set_format`] before indexing the dataset:
 
 ```py
->>> dataset = load_dataset("beans", split="train").cast_column("image", Image(decode=False))
+>>> dataset = load_dataset("beans", split="train")
+>>> dataset.set_format(decoded=False)
 >>> dataset[0]["image"]
 {'bytes': None,
  'path': '/root/.cache/huggingface/datasets/downloads/extracted/b0a21163f78769a2cf11f58dfc767fb458fc7cea5c05dccc0144a2c0f0bc1292/train/bean_rust/bean_rust_train.29.jpg'}
