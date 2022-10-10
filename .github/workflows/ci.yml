@@ -60,7 +60,7 @@ jobs:
         run: echo "installing pinned version of setuptools-scm to fix seqeval installation on 3.7" && pip install "setuptools-scm==6.4.2"
       - name: Install dependencies
         run: |
-          pip install .[tests]
+          pip install .[tests,metrics_tests]
           pip install -r additional-tests-requirements.txt --no-deps
       - name: Install dependencies (latest versions)
         if: ${{ matrix.deps_versions == 'deps-latest' }}

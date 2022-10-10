@@ -102,7 +102,7 @@ AUDIO_REQUIRE = [
     "librosa",
 ]
 
-VISION_REQURE = [
+VISION_REQUIRE = [
     "Pillow>=6.2.1",
 ]
 
@@ -138,6 +138,9 @@ TESTS_REQUIRE = [
     "soundfile",
     "transformers",
     "zstandard",
+]
+
+METRICS_TESTS_REQUIRE = [
     # metrics dependencies
     "bert_score>=0.3.6",
     "jiwer",
@@ -162,7 +165,7 @@ TESTS_REQUIRE = [
     "six~=1.15.0",
 ]
 
-TESTS_REQUIRE.extend(VISION_REQURE)
+TESTS_REQUIRE.extend(VISION_REQUIRE)
 TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
 QUALITY_REQUIRE = ["black~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
@@ -170,7 +173,7 @@ QUALITY_REQUIRE = ["black~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.
 
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
-    "vision": VISION_REQURE,
+    "vision": VISION_REQUIRE,
     "apache-beam": ["apache-beam>=2.26.0"],
     "tensorflow": ["tensorflow>=2.2.0,!=2.6.0,!=2.6.1"],
     "tensorflow_gpu": ["tensorflow-gpu>=2.2.0,!=2.6.0,!=2.6.1"],
@@ -184,6 +187,7 @@ EXTRAS_REQUIRE = {
     "streaming": [],  # for backward compatibility
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE,
     "tests": TESTS_REQUIRE,
+    "metrics_tests": METRICS_TESTS_REQUIRE,
     "quality": QUALITY_REQUIRE,
     "benchmarks": BENCHMARKS_REQUIRE,
     "docs": [
