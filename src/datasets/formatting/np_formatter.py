@@ -20,7 +20,12 @@ class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
             ):
                 return np.stack(column)
             else:
-                return np.array(column, dtype=object)
+                # don't use np.array(column, dtype=object)
+                # since it fails in certain cases
+                # see https://stackoverflow.com/q/51005699
+                out = np.empty(len(column), dtype=object)
+                out[:] = column
+                return out
         return column
 
     def _tensorize(self, value):
