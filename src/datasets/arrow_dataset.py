@@ -2257,7 +2257,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     def prepare_for_task(self, task: Union[str, TaskTemplate], id: int = 0) -> "Dataset":
         """
-        Prepare a dataset for the given task by casting the dataset's [`Features`] to standardized column names and types as detailed in [datasets.tasks](/docs/datasets/package_reference/task_templates).
+        Prepare a dataset for the given task by casting the dataset's [`Features`] to standardized column names and types as detailed in [`datasets.tasks`](./package_reference/task_templates).
 
         Casts [`datasets.DatasetInfo.features`] according to a task-specific schema. Intended for single-use only, so all task templates are removed from [`datasets.DatasetInfo.task_templates`] after casting.
 
@@ -2267,7 +2267,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 - `"text-classification"`
                 - `"question-answering"`
 
-                If [`TaskTemplate`], must be one of the task templates in [`datasets.tasks`](/docs/datasets/package_reference/task_templates).
+                If [`TaskTemplate`], must be one of the task templates in [`datasets.tasks`](./package_reference/task_templates).
             id (`int`, defaults to 0): The id required to unambiguously identify the task template when multiple task templates of the same type are supported.
         """
         # TODO(lewtun): Add support for casting nested features like answers.text and answers.answer_start in SQuAD
