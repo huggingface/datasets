@@ -373,9 +373,17 @@ class BaseDatasetTest(TestCase):
                 self.assertIsInstance(dset[0]["col_2"], str)
                 self.assertEqual(dset[0]["col_2"], "a")
 
-                dset.set_format(type="torch", columns=["col_1", "col_2"])
-                with self.assertRaises(TypeError):
-                    dset[0]
+                dset.set_format(type="torch")
+                self.assertEqual(len(dset[0]), 3)
+                self.assertIsInstance(dset[0]["col_1"], torch.Tensor)
+                self.assertIsInstance(dset["col_1"], torch.Tensor)
+                self.assertListEqual(list(dset[0]["col_1"].shape), [])
+                self.assertEqual(dset[0]["col_1"].item(), 3)
+                self.assertIsInstance(dset[0]["col_2"], str)
+                self.assertEqual(dset[0]["col_2"], "a")
+                self.assertIsInstance(dset[0]["col_3"], torch.Tensor)
+                self.assertIsInstance(dset["col_3"], torch.Tensor)
+                self.assertListEqual(list(dset[0]["col_3"].shape), [])
 
     @require_tf
     def test_set_format_tf(self, in_memory):
@@ -2378,9 +2386,9 @@ class BaseDatasetTest(TestCase):
             self.assertIsNotNone(dset[0])
             self.assertIsNotNone(dset[:2])
             for col in columns:
-                self.assertIsInstance(dset[0][col], (tf.Tensor, tf.RaggedTensor))
-                self.assertIsInstance(dset[:2][col], (tf.Tensor, tf.RaggedTensor))
-                self.assertIsInstance(dset[col], (tf.Tensor, tf.RaggedTensor))
+                self.assertIsInstance(dset[0][col], tf.Tensor)
+                self.assertIsInstance(dset[:2][col], tf.RaggedTensor if col == "vec" else tf.Tensor)
+                self.assertIsInstance(dset[col], tf.RaggedTensor if col == "vec" else tf.Tensor)
             # dim is None for ragged vectors in tensorflow
             self.assertListEqual(dset[:2]["vec"].shape.as_list(), [2, None])
             self.assertListEqual(dset["vec"][:2].shape.as_list(), [2, None])
@@ -2398,16 +2406,20 @@ class BaseDatasetTest(TestCase):
             self.assertTupleEqual(dset[:2]["vec"].shape, (2,))
             self.assertTupleEqual(dset["vec"][:2].shape, (2,))
 
-            dset.set_format("torch", columns=["vec"])
+            dset.set_format("torch")
             self.assertIsNotNone(dset[0])
             self.assertIsNotNone(dset[:2])
-            # torch.Tensor is only for numerical columns
+            self.assertIsInstance(dset[0]["filename"], str)
+            self.assertIsInstance(dset[:2]["filename"], list)
+            self.assertIsInstance(dset["filename"], list)
             self.assertIsInstance(dset[0]["vec"], torch.Tensor)
             self.assertIsInstance(dset[:2]["vec"][0], torch.Tensor)
             self.assertIsInstance(dset["vec"][0], torch.Tensor)
             # pytorch doesn't support ragged tensors, so we should have lists
             self.assertIsInstance(dset[:2]["vec"], list)
+            self.assertIsInstance(dset[:2]["vec"][0], torch.Tensor)
             self.assertIsInstance(dset["vec"][:2], list)
+            self.assertIsInstance(dset["vec"][0], torch.Tensor)
 
     @require_tf
     @require_torch

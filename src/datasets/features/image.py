@@ -81,6 +81,9 @@ class Image:
         else:
             raise ImportError("To support encoding images, please install 'Pillow'.")
 
+        if isinstance(value, list):
+            value = np.array(value)
+
         if isinstance(value, str):
             return {"path": value, "bytes": None}
         elif isinstance(value, np.ndarray):
