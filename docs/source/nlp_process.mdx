@@ -34,7 +34,7 @@ Set the `batched` parameter to `True` in the [`~Dataset.map`] function to apply 
 The [`~Dataset.map`] function converts the returned values to a PyArrow-supported format. But explicitly returning the tensors as NumPy arrays is faster because it is a natively supported PyArrow format. Set `return_tensors="np"` when you tokenize your text:
 
 ```py
->>> dataset = dataset.map(lambda examples: tokenizer(examples["text"]), batched=True, return_tensors="np")
+>>> dataset = dataset.map(lambda examples: tokenizer(examples["text"], return_tensors="np"), batched=True)
 ```
 
 ## Align
