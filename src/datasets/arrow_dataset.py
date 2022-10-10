@@ -1352,9 +1352,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             split=split,
             fingerprint=state["_fingerprint"],
         )
-        dataset.set_format(
-            state["_format_type"], state["_format_columns"], state["_output_all_columns"], **state["_format_kwargs"]
-        )
+
+        format = {
+            "type": state["_format_type"],
+            "format_kwargs": state["_format_kwargs"],
+            "columns": state["_format_columns"],
+            "output_all_columns": state["_output_all_columns"],
+        }
+        dataset = dataset.with_format(**format)
 
         return dataset
 
