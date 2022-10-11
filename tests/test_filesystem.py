@@ -1,9 +1,7 @@
 import os
 
-import boto3
 import fsspec
 import pytest
-from moto import mock_s3
 
 from datasets.filesystems import (
     COMPRESSION_FILESYSTEMS,
@@ -28,6 +26,9 @@ def aws_credentials():
 
 @pytest.fixture(scope="function")
 def s3(aws_credentials):
+    import boto3
+    from moto import mock_s3
+
     with mock_s3():
         yield boto3.client("s3", region_name="us-east-1")
 

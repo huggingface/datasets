@@ -83,8 +83,8 @@ def require_beam(test_case):
     These tests are skipped when Apache Beam isn't installed.
 
     """
-    if not config.TORCH_AVAILABLE:
-        test_case = unittest.skip("test requires PyTorch")(test_case)
+    if not config.BEAM_AVAILABLE:
+        test_case = unittest.skip("test requires apache-beam")(test_case)
     return test_case
 
 

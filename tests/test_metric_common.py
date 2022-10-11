@@ -152,6 +152,7 @@ class LocalMetricTest(parameterized.TestCase):
 # --------------------------------
 
 
+@pytest.mark.integration
 @LocalMetricTest.register_intensive_calls_patcher("bleurt")
 def patch_bleurt(module_name):
     import tensorflow.compat.v1 as tf
@@ -170,6 +171,7 @@ def patch_bleurt(module_name):
         yield
 
 
+@pytest.mark.integration
 @LocalMetricTest.register_intensive_calls_patcher("bertscore")
 def patch_bertscore(module_name):
     import torch
@@ -186,6 +188,7 @@ def patch_bertscore(module_name):
         yield
 
 
+@pytest.mark.integration
 @LocalMetricTest.register_intensive_calls_patcher("comet")
 def patch_comet(module_name):
     def load_from_checkpoint(model_path):
@@ -206,6 +209,7 @@ def patch_comet(module_name):
             yield
 
 
+@pytest.mark.integration
 def test_seqeval_raises_when_incorrect_scheme():
     metric = load_metric(os.path.join("metrics", "seqeval"))
     wrong_scheme = "ERROR"
