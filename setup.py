@@ -152,7 +152,7 @@ TEST_PY37_ONLY = [
 
 for i, dep_name in enumerate(TESTS_REQUIRE):
     if dep_name.split("<>=! [", 1)[0] in TEST_PY37_ONLY:
-        TESTS_REQUIRE[i] += ";python_version<'3.8'"
+        TESTS_REQUIRE[i] = dep_name + ";python_version<'3.8'"
 
 
 METRICS_TESTS_REQUIRE = [
