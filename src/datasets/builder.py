@@ -72,7 +72,6 @@ from .utils.py_utils import (
     temporary_assignment,
 )
 
-
 logger = logging.get_logger(__name__)
 
 
@@ -128,9 +127,9 @@ class BuilderConfig:
         return all((k, getattr(self, k)) == (k, getattr(o, k)) for k in self.__dict__.keys())
 
     def create_config_id(
-        self,
-        config_kwargs: dict,
-        custom_features: Optional[Features] = None,
+            self,
+            config_kwargs: dict,
+            custom_features: Optional[Features] = None,
     ) -> str:
         """
         The config id is used to build the cache directory.
@@ -261,19 +260,19 @@ class DatasetBuilder:
     SKIP_CHECKSUM_COMPUTATION_BY_DEFAULT = False
 
     def __init__(
-        self,
-        cache_dir: Optional[str] = None,
-        config_name: Optional[str] = None,
-        hash: Optional[str] = None,
-        base_path: Optional[str] = None,
-        info: Optional[DatasetInfo] = None,
-        features: Optional[Features] = None,
-        use_auth_token: Optional[Union[bool, str]] = None,
-        repo_id: Optional[str] = None,
-        data_files: Optional[Union[str, list, dict, DataFilesDict]] = None,
-        data_dir: Optional[str] = None,
-        name="deprecated",
-        **config_kwargs,
+            self,
+            cache_dir: Optional[str] = None,
+            config_name: Optional[str] = None,
+            hash: Optional[str] = None,
+            base_path: Optional[str] = None,
+            info: Optional[DatasetInfo] = None,
+            features: Optional[Features] = None,
+            use_auth_token: Optional[Union[bool, str]] = None,
+            repo_id: Optional[str] = None,
+            data_files: Optional[Union[str, list, dict, DataFilesDict]] = None,
+            data_dir: Optional[str] = None,
+            name="deprecated",
+            **config_kwargs,
     ):
         if name != "deprecated":
             warnings.warn(
@@ -412,7 +411,7 @@ class DatasetBuilder:
         return self.get_all_exported_dataset_infos().get(self.config.name, DatasetInfo())
 
     def _create_builder_config(
-        self, config_name=None, custom_features=None, **config_kwargs
+            self, config_name=None, custom_features=None, **config_kwargs
     ) -> Tuple[BuilderConfig, str]:
         """Create and validate BuilderConfig object as well as a unique config id for this config.
         Raises ValueError if there are multiple builder configs and config_name and DEFAULT_CONFIG_NAME are None.
@@ -477,8 +476,8 @@ class DatasetBuilder:
             logger.warning(f"Using custom data configuration {config_id}")
         else:
             if (
-                builder_config.name in self.builder_configs
-                and builder_config != self.builder_configs[builder_config.name]
+                    builder_config.name in self.builder_configs
+                    and builder_config != self.builder_configs[builder_config.name]
             ):
                 raise ValueError(
                     "Cannot name a custom BuilderConfig the same as an available "
@@ -594,19 +593,20 @@ class DatasetBuilder:
             self._fs.mv(src, dst, recursive=True)
 
     def download_and_prepare(
-        self,
-        output_dir: Optional[str] = None,
-        download_config: Optional[DownloadConfig] = None,
-        download_mode: Optional[DownloadMode] = None,
-        ignore_verifications: bool = False,
-        try_from_hf_gcs: bool = True,
-        dl_manager: Optional[DownloadManager] = None,
-        base_path: Optional[str] = None,
-        use_auth_token: Optional[Union[bool, str]] = None,
-        file_format: str = "arrow",
-        max_shard_size: Optional[Union[int, str]] = None,
-        storage_options: Optional[dict] = None,
-        **download_and_prepare_kwargs,
+            self,
+            output_dir: Optional[str] = None,
+            download_config: Optional[DownloadConfig] = None,
+            download_mode: Optional[DownloadMode] = None,
+            ignore_verifications: bool = False,
+            try_from_hf_gcs: bool = True,
+            dl_manager: Optional[DownloadManager] = None,
+            base_path: Optional[str] = None,
+            use_auth_token: Optional[Union[bool, str]] = None,
+            file_format: str = "arrow",
+            max_shard_size: Optional[Union[int, str]] = None,
+            num_proc=None,
+            storage_options: Optional[dict] = None,
+            **download_and_prepare_kwargs,
     ):
         """Downloads and prepares dataset for reading.
 
@@ -680,11 +680,6 @@ class DatasetBuilder:
         if file_format is not None and file_format not in ["arrow", "parquet"]:
             raise ValueError(f"Unsupported file_format: {file_format}. Expected 'arrow' or 'parquet'")
 
-        if file_format == "arrow" and max_shard_size is not None:
-            raise NotImplementedError(
-                "Writing sharded arrow files is not supported. Please don't use max_shard_size or use file_format='parquet'."
-            )
-
         if self._fs._strip_protocol(self._output_dir) == "":
             # We don't support the root directory, because it has no dirname,
             # and we need a dirname to use a <dirname>.incomplete directory
@@ -715,10 +710,10 @@ class DatasetBuilder:
             )
 
         if (
-            isinstance(dl_manager, MockDownloadManager)
-            or not is_local
-            or file_format != "arrow"
-            or max_shard_size is not None
+                isinstance(dl_manager, MockDownloadManager)
+                or not is_local
+                or file_format != "arrow"
+                or max_shard_size is not None
         ):
             try_from_hf_gcs = False
         self.dl_manager = dl_manager
@@ -746,7 +741,7 @@ class DatasetBuilder:
             logger.info(f"Generating dataset {self.name} ({self._output_dir})")
             if is_local:  # if cache dir is local, check for available space
                 if not has_sufficient_disk_space(
-                    self.info.size_in_bytes or 0, directory=Path(self._output_dir).parent
+                        self.info.size_in_bytes or 0, directory=Path(self._output_dir).parent
                 ):
                     raise OSError(
                         f"Not enough disk space. Needed: {size_str(self.info.size_in_bytes or 0)} (download: {size_str(self.info.download_size or 0)}, generated: {size_str(self.info.dataset_size or 0)}, post-processed: {size_str(self.info.post_processing_size or 0)})"
@@ -809,6 +804,7 @@ class DatasetBuilder:
                         prepare_split_kwargs = {
                             "file_format": file_format,
                             "max_shard_size": max_shard_size,
+                            "num_proc": num_proc,
                             **download_and_prepare_kwargs,
                         }
                         self._download_and_prepare(
@@ -865,7 +861,7 @@ class DatasetBuilder:
                     logger.info(f"Couldn't download resourse file {resource_file_name} from Hf google storage.")
         logger.info("Dataset downloaded from Hf google storage.")
 
-    def _download_and_prepare(self, dl_manager, verify_infos, **prepare_split_kwargs):
+    def _download_and_prepare(self, dl_manager, verify_infos, num_proc=None, **prepare_split_kwargs):
         """Downloads and prepares dataset for reading.
 
         This is the internal implementation to overwrite called when user calls
@@ -902,7 +898,7 @@ class DatasetBuilder:
 
             try:
                 # Prepare split will record examples associated to the split
-                self._prepare_split(split_generator, **prepare_split_kwargs)
+                self._prepare_split(split_generator, num_proc=num_proc, **prepare_split_kwargs)
             except OSError as e:
                 raise OSError(
                     "Cannot find data file. "
@@ -965,7 +961,7 @@ class DatasetBuilder:
         return {}
 
     def as_dataset(
-        self, split: Optional[Split] = None, run_post_process=True, ignore_verifications=False, in_memory=False
+            self, split: Optional[Split] = None, run_post_process=True, ignore_verifications=False, in_memory=False
     ) -> Union[Dataset, DatasetDict]:
         """Return a Dataset for the specified split.
 
@@ -1027,11 +1023,11 @@ class DatasetBuilder:
         return datasets
 
     def _build_single_dataset(
-        self,
-        split: Union[str, ReadInstruction, Split],
-        run_post_process: bool,
-        ignore_verifications: bool,
-        in_memory: bool = False,
+            self,
+            split: Union[str, ReadInstruction, Split],
+            run_post_process: bool,
+            ignore_verifications: bool,
+            in_memory: bool = False,
     ):
         """as_dataset for a single split."""
         verify_infos = not ignore_verifications
@@ -1080,7 +1076,7 @@ class DatasetBuilder:
                 )
                 if self.info.dataset_size is not None and self.info.download_size is not None:
                     self.info.size_in_bytes = (
-                        self.info.dataset_size + self.info.download_size + self.info.post_processing_size
+                            self.info.dataset_size + self.info.download_size + self.info.post_processing_size
                     )
                 self._save_info()
                 ds._info.post_processed = self.info.post_processed
@@ -1129,9 +1125,9 @@ class DatasetBuilder:
         return fingerprint
 
     def as_streaming_dataset(
-        self,
-        split: Optional[str] = None,
-        base_path: Optional[str] = None,
+            self,
+            split: Optional[str] = None,
+            base_path: Optional[str] = None,
     ) -> Union[Dict[str, IterableDataset], IterableDataset]:
         if not isinstance(self, (GeneratorBasedBuilder, ArrowBasedBuilder)):
             raise ValueError(f"Builder {self.name} is not streamable.")
@@ -1169,8 +1165,8 @@ class DatasetBuilder:
         return datasets
 
     def _as_streaming_dataset_single(
-        self,
-        splits_generator,
+            self,
+            splits_generator,
     ) -> IterableDataset:
         ex_iterable = self._get_examples_iterable_for_split(splits_generator)
         # add auth to be able to access and decode audio/image files from private repositories.
@@ -1188,7 +1184,7 @@ class DatasetBuilder:
         return {}
 
     def _download_post_processing_resources(
-        self, split: str, resource_name: str, dl_manager: DownloadManager
+            self, split: str, resource_name: str, dl_manager: DownloadManager
     ) -> Optional[str]:
         """Download the resource using the download manager and return the downloaded path."""
         return None
@@ -1241,11 +1237,12 @@ class DatasetBuilder:
 
     @abc.abstractmethod
     def _prepare_split(
-        self,
-        split_generator: SplitGenerator,
-        file_format: str = "arrow",
-        max_shard_size: Optional[Union[str, int]] = None,
-        **kwargs,
+            self,
+            split_generator: SplitGenerator,
+            file_format: str = "arrow",
+            max_shard_size: Optional[Union[str, int]] = None,
+            num_proc=None,
+            **kwargs,
     ):
         """Generate the examples and record them on disk.
 
@@ -1327,57 +1324,90 @@ class GeneratorBasedBuilder(DatasetBuilder):
         raise NotImplementedError()
 
     def _prepare_split(
-        self,
-        split_generator: SplitGenerator,
-        check_duplicate_keys: bool,
-        file_format="arrow",
-        max_shard_size: Optional[Union[int, str]] = None,
+            self,
+            split_generator: SplitGenerator,
+            check_duplicate_keys: bool,
+            file_format="arrow",
+            num_proc=None,
+            max_shard_size: Optional[Union[int, str]] = None,
     ):
+
+        max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
-
-        if file_format == "arrow":
-            if max_shard_size is not None:
-                raise NotImplementedError(
-                    "Writing sharded arrow files is not supported. Please don't use max_shard_size or use file_format='parquet'."
-                )
-        else:
-            max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
 
         if self.info.splits is not None:
             split_info = self.info.splits[split_generator.name]
         else:
             split_info = split_generator.split_info
 
-        suffix = "-SSSSS-of-NNNNN" if file_format == "parquet" else ""
+        suffix = "-RRRRR-SSSSS-of-NNNNN"
         fname = f"{self.name}-{split_generator.name}{suffix}.{file_format}"
         fpath = path_join(self._output_dir, fname)
 
-        generator = self._generate_examples(**split_generator.gen_kwargs)
+        if num_proc is None or num_proc == 1:
+            generator = self._generate_examples(**split_generator.gen_kwargs)
+            results = self._prepare_generator_single(
+                generator,
+                fpath=fpath,
+                file_format=file_format,
+                max_shard_size=max_shard_size,
+                split_info=split_info,
+                check_duplicate_keys=check_duplicate_keys
+            )
+            # wrapping everything into lists for consistency with the multiprocessed code path
+            examples_per_rank, bytes_per_rank, features_per_rank, shards_per_rank = [[item] for item in results]
+        else:
+            raise NotImplementedError
+
+        total_shards = sum(shards_per_rank)
+        total_num_examples = sum(examples_per_rank)
+        total_num_bytes = sum(bytes_per_rank)
+        features = features_per_rank[0]
+        # should rename everything at the end, scheme still TBD
+        def _rename_shard(shard_id_and_rank: Tuple[int]):
+            shard_id, rank = shard_id_and_rank
+            global_shard_id = sum(shards_per_rank[:rank]) + shard_id
+            self._rename(
+                fpath.replace("SSSSS", f"{shard_id:05d}").replace("RRRRR", f"{rank:05d}"),
+                fpath.replace("RRRRR-SSSSS", f"{global_shard_id:05d}").replace("NNNNN", f"{total_shards:05d}"),
+            )
+
+        logger.debug(f"Renaming {total_shards} shards.")
+        shard_ids_and_ranks = [(shard_id, rank) for rank, num_shards in enumerate(shards_per_rank) for shard_id in range(num_shards)]
+        thread_map(_rename_shard, shard_ids_and_ranks, disable=True, max_workers=64)
+
+        split_generator.split_info.num_examples = total_num_examples
+        split_generator.split_info.num_bytes = total_num_bytes
+
+        if self.info.features is None:
+            self.info.features = features
+
+    def _prepare_generator_single(self, generator, fpath, file_format, max_shard_size, split_info, check_duplicate_keys, rank=0):
 
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"
+        total_num_examples, total_num_bytes = 0, 0
 
         shard_id = 0
         # TODO: embed the images/audio files inside parquet files.
         writer = writer_class(
             features=self.info.features,
-            path=fpath.replace("SSSSS", f"{shard_id:05d}"),
+            path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("RRRRR", f"{rank:05d}"),
             writer_batch_size=self._writer_batch_size,
             hash_salt=split_info.name,
             check_duplicates=check_duplicate_keys,
             storage_options=self._fs.storage_options,
             embed_local_files=embed_local_files,
         )
-        total_num_examples, total_num_bytes = 0, 0
         try:
             for key, record in logging.tqdm(
-                generator,
-                unit=" examples",
-                total=split_info.num_examples,
-                leave=False,
-                disable=not logging.is_progress_bar_enabled(),
-                desc=f"Generating {split_info.name} split",
+                    generator,
+                    unit=" examples",
+                    total=split_info.num_examples,
+                    leave=False,
+                    disable=not logging.is_progress_bar_enabled(),
+                    desc=f"Generating {split_info.name} split",
             ):
                 if max_shard_size is not None and writer._num_bytes > max_shard_size:
                     num_examples, num_bytes = writer.finalize()
@@ -1403,21 +1433,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
             total_num_examples += num_examples
             total_num_bytes += num_bytes
 
-        if file_format == "parquet":
-
-            def _rename_shard(shard_id: int):
-                self._rename(
-                    fpath.replace("SSSSS", f"{shard_id:05d}"),
-                    fpath.replace("SSSSS", f"{shard_id:05d}").replace("NNNNN", f"{num_shards:05d}"),
-                )
-
-            logger.debug(f"Renaming {num_shards} shards.")
-            thread_map(_rename_shard, range(num_shards), disable=True, max_workers=64)
-
-        split_generator.split_info.num_examples = total_num_examples
-        split_generator.split_info.num_bytes = total_num_bytes
-        if self.info.features is None:
-            self.info.features = writer._features
+        return total_num_examples, total_num_bytes, writer._features, num_shards
 
     def _download_and_prepare(self, dl_manager, verify_infos, **prepare_splits_kwargs):
         super()._download_and_prepare(
@@ -1464,10 +1480,11 @@ class ArrowBasedBuilder(DatasetBuilder):
         raise NotImplementedError()
 
     def _prepare_split(
-        self,
-        split_generator: SplitGenerator,
-        file_format: str = "arrow",
-        max_shard_size: Optional[Union[str, int]] = None,
+            self,
+            split_generator: SplitGenerator,
+            file_format: str = "arrow",
+            num_proc=None,
+            max_shard_size: Optional[Union[str, int]] = None,
     ):
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
@@ -1500,10 +1517,10 @@ class ArrowBasedBuilder(DatasetBuilder):
         total_num_examples, total_num_bytes = 0, 0
         try:
             for key, table in logging.tqdm(
-                generator,
-                unit=" tables",
-                leave=False,
-                disable=not logging.is_progress_bar_enabled(),
+                    generator,
+                    unit=" tables",
+                    leave=False,
+                    disable=not logging.is_progress_bar_enabled(),
             ):
                 if max_shard_size is not None and writer._num_bytes > max_shard_size:
                     num_examples, num_bytes = writer.finalize()
@@ -1526,7 +1543,6 @@ class ArrowBasedBuilder(DatasetBuilder):
             total_num_bytes += num_bytes
 
         if file_format == "parquet":
-
             def _rename_shard(shard_id: int):
                 self._rename(
                     fpath.replace("SSSSS", f"{shard_id:05d}"),
@@ -1672,7 +1688,7 @@ class BeamBasedBuilder(DatasetBuilder):
                 self.info._dump_license(f)
 
     def _prepare_split(
-        self, split_generator, pipeline, file_format="arrow", max_shard_size: Optional[Union[str, int]] = None
+            self, split_generator, pipeline, file_format="arrow", max_shard_size: Optional[Union[str, int]] = None
     ):
         import apache_beam as beam
 
