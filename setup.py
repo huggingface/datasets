@@ -140,6 +140,21 @@ TESTS_REQUIRE = [
     "zstandard",
 ]
 
+TEST_PY37_ONLY = [
+    "apache-beam",  # constrains the dill version, which constrains the multiprocess version too much (incompatible with py3.10)
+    "aiobotocore",  # TODO: support the S3 tests on py3.10
+    "boto3",
+    "botocore",
+    "moto",
+    "s3fs"
+]
+
+
+for i, dep_name in enumerate(TESTS_REQUIRE):
+    if dep_name.split("<>=! [", 1)[0] in TEST_PY37_ONLY:
+        TESTS_REQUIRE[i] += ";python_version<'3.8'"
+
+
 METRICS_TESTS_REQUIRE = [
     # metrics dependencies
     "bert_score>=0.3.6",
