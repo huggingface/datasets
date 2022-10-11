@@ -1347,12 +1347,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         split = state["_split"]
         split = Split(split) if split is not None else split
 
-        return Dataset(
+        dataset = Dataset(
             arrow_table=arrow_table,
             info=dataset_info,
             split=split,
             fingerprint=state["_fingerprint"],
         )
+
+        format = {
+            "type": state["_format_type"],
+            "format_kwargs": state["_format_kwargs"],
+            "columns": state["_format_columns"],
+            "output_all_columns": state["_output_all_columns"],
+        }
+        dataset = dataset.with_format(**format)
+
+        return dataset
 
     @property
     def data(self) -> Table:
