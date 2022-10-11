@@ -59,6 +59,7 @@ To create the package for pypi.
    Then push the change with a message 'set dev version'
 """
 
+import re
 
 from setuptools import find_packages, setup
 
@@ -150,9 +151,9 @@ TEST_PY37_ONLY = [
 ]
 
 
-for i, dep_name in enumerate(TESTS_REQUIRE):
-    if dep_name.split("<>=! [", 1)[0] in TEST_PY37_ONLY:
-        TESTS_REQUIRE[i] = dep_name + ";python_version<'3.8'"
+for i, dependency in enumerate(TESTS_REQUIRE):
+    if re.match(r"[\w-]+", dependency).group() in TEST_PY37_ONLY:
+        TESTS_REQUIRE[i] = dependency + ";python_version<'3.8'"
 
 
 METRICS_TESTS_REQUIRE = [
