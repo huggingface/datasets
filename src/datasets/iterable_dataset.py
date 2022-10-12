@@ -148,7 +148,10 @@ def _all_shard_kwargs(kwargs: dict) -> list:
                 + "and use tuples otherwise. In the end there should only be one single list, or several lists with the same length."
             )
         )
-    return [{key: [value[shard_idx]] if isinstance(value, list) else value for key, value in kwargs.items()} for shard_idx in range(max(lists_lengths.values(), default=0))]
+    return [
+        {key: [value[shard_idx]] if isinstance(value, list) else value for key, value in kwargs.items()}
+        for shard_idx in range(max(lists_lengths.values(), default=0))
+    ]
 
 
 def _shard_number(kwargs: dict) -> int:

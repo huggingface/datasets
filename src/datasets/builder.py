@@ -27,11 +27,11 @@ import urllib
 import warnings
 from dataclasses import dataclass
 from functools import partial
-from multiprocess import Pool
 from pathlib import Path
 from typing import Dict, Mapping, Optional, Tuple, Union
 
 import fsspec
+from multiprocess import Pool
 from tqdm.contrib.concurrent import thread_map
 
 from . import config, utils
@@ -54,8 +54,13 @@ from .features import Features
 from .filesystems import is_remote_filesystem
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
-from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper, \
-    _all_shard_kwargs, _shard_number
+from .iterable_dataset import (
+    ExamplesIterable,
+    IterableDataset,
+    _all_shard_kwargs,
+    _generate_examples_from_tables_wrapper,
+    _shard_number,
+)
 from .keyhash import DuplicatedKeysError
 from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH, camelcase_to_snakecase
 from .splits import Split, SplitDict, SplitGenerator
@@ -73,6 +78,7 @@ from .utils.py_utils import (
     size_str,
     temporary_assignment,
 )
+
 
 logger = logging.get_logger(__name__)
 
@@ -129,9 +135,9 @@ class BuilderConfig:
         return all((k, getattr(self, k)) == (k, getattr(o, k)) for k in self.__dict__.keys())
 
     def create_config_id(
-            self,
-            config_kwargs: dict,
-            custom_features: Optional[Features] = None,
+        self,
+        config_kwargs: dict,
+        custom_features: Optional[Features] = None,
     ) -> str:
         """
         The config id is used to build the cache directory.
@@ -262,19 +268,19 @@ class DatasetBuilder:
     SKIP_CHECKSUM_COMPUTATION_BY_DEFAULT = False
 
     def __init__(
-            self,
-            cache_dir: Optional[str] = None,
-            config_name: Optional[str] = None,
-            hash: Optional[str] = None,
-            base_path: Optional[str] = None,
-            info: Optional[DatasetInfo] = None,
-            features: Optional[Features] = None,
-            use_auth_token: Optional[Union[bool, str]] = None,
-            repo_id: Optional[str] = None,
-            data_files: Optional[Union[str, list, dict, DataFilesDict]] = None,
-            data_dir: Optional[str] = None,
-            name="deprecated",
-            **config_kwargs,
+        self,
+        cache_dir: Optional[str] = None,
+        config_name: Optional[str] = None,
+        hash: Optional[str] = None,
+        base_path: Optional[str] = None,
+        info: Optional[DatasetInfo] = None,
+        features: Optional[Features] = None,
+        use_auth_token: Optional[Union[bool, str]] = None,
+        repo_id: Optional[str] = None,
+        data_files: Optional[Union[str, list, dict, DataFilesDict]] = None,
+        data_dir: Optional[str] = None,
+        name="deprecated",
+        **config_kwargs,
     ):
         if name != "deprecated":
             warnings.warn(
@@ -413,7 +419,7 @@ class DatasetBuilder:
         return self.get_all_exported_dataset_infos().get(self.config.name, DatasetInfo())
 
     def _create_builder_config(
-            self, config_name=None, custom_features=None, **config_kwargs
+        self, config_name=None, custom_features=None, **config_kwargs
     ) -> Tuple[BuilderConfig, str]:
         """Create and validate BuilderConfig object as well as a unique config id for this config.
         Raises ValueError if there are multiple builder configs and config_name and DEFAULT_CONFIG_NAME are None.
@@ -478,8 +484,8 @@ class DatasetBuilder:
             logger.warning(f"Using custom data configuration {config_id}")
         else:
             if (
-                    builder_config.name in self.builder_configs
-                    and builder_config != self.builder_configs[builder_config.name]
+                builder_config.name in self.builder_configs
+                and builder_config != self.builder_configs[builder_config.name]
             ):
                 raise ValueError(
                     "Cannot name a custom BuilderConfig the same as an available "
@@ -595,20 +601,20 @@ class DatasetBuilder:
             self._fs.mv(src, dst, recursive=True)
 
     def download_and_prepare(
-            self,
-            output_dir: Optional[str] = None,
-            download_config: Optional[DownloadConfig] = None,
-            download_mode: Optional[DownloadMode] = None,
-            ignore_verifications: bool = False,
-            try_from_hf_gcs: bool = True,
-            dl_manager: Optional[DownloadManager] = None,
-            base_path: Optional[str] = None,
-            use_auth_token: Optional[Union[bool, str]] = None,
-            file_format: str = "arrow",
-            max_shard_size: Optional[Union[int, str]] = None,
-            num_proc=None,
-            storage_options: Optional[dict] = None,
-            **download_and_prepare_kwargs,
+        self,
+        output_dir: Optional[str] = None,
+        download_config: Optional[DownloadConfig] = None,
+        download_mode: Optional[DownloadMode] = None,
+        ignore_verifications: bool = False,
+        try_from_hf_gcs: bool = True,
+        dl_manager: Optional[DownloadManager] = None,
+        base_path: Optional[str] = None,
+        use_auth_token: Optional[Union[bool, str]] = None,
+        file_format: str = "arrow",
+        max_shard_size: Optional[Union[int, str]] = None,
+        num_proc=None,
+        storage_options: Optional[dict] = None,
+        **download_and_prepare_kwargs,
     ):
         """Downloads and prepares dataset for reading.
 
@@ -712,10 +718,10 @@ class DatasetBuilder:
             )
 
         if (
-                isinstance(dl_manager, MockDownloadManager)
-                or not is_local
-                or file_format != "arrow"
-                or max_shard_size is not None
+            isinstance(dl_manager, MockDownloadManager)
+            or not is_local
+            or file_format != "arrow"
+            or max_shard_size is not None
         ):
             try_from_hf_gcs = False
         self.dl_manager = dl_manager
@@ -743,7 +749,7 @@ class DatasetBuilder:
             logger.info(f"Generating dataset {self.name} ({self._output_dir})")
             if is_local:  # if cache dir is local, check for available space
                 if not has_sufficient_disk_space(
-                        self.info.size_in_bytes or 0, directory=Path(self._output_dir).parent
+                    self.info.size_in_bytes or 0, directory=Path(self._output_dir).parent
                 ):
                     raise OSError(
                         f"Not enough disk space. Needed: {size_str(self.info.size_in_bytes or 0)} (download: {size_str(self.info.download_size or 0)}, generated: {size_str(self.info.dataset_size or 0)}, post-processed: {size_str(self.info.post_processing_size or 0)})"
@@ -963,7 +969,7 @@ class DatasetBuilder:
         return {}
 
     def as_dataset(
-            self, split: Optional[Split] = None, run_post_process=True, ignore_verifications=False, in_memory=False
+        self, split: Optional[Split] = None, run_post_process=True, ignore_verifications=False, in_memory=False
     ) -> Union[Dataset, DatasetDict]:
         """Return a Dataset for the specified split.
 
@@ -1025,11 +1031,11 @@ class DatasetBuilder:
         return datasets
 
     def _build_single_dataset(
-            self,
-            split: Union[str, ReadInstruction, Split],
-            run_post_process: bool,
-            ignore_verifications: bool,
-            in_memory: bool = False,
+        self,
+        split: Union[str, ReadInstruction, Split],
+        run_post_process: bool,
+        ignore_verifications: bool,
+        in_memory: bool = False,
     ):
         """as_dataset for a single split."""
         verify_infos = not ignore_verifications
@@ -1078,7 +1084,7 @@ class DatasetBuilder:
                 )
                 if self.info.dataset_size is not None and self.info.download_size is not None:
                     self.info.size_in_bytes = (
-                            self.info.dataset_size + self.info.download_size + self.info.post_processing_size
+                        self.info.dataset_size + self.info.download_size + self.info.post_processing_size
                     )
                 self._save_info()
                 ds._info.post_processed = self.info.post_processed
@@ -1127,9 +1133,9 @@ class DatasetBuilder:
         return fingerprint
 
     def as_streaming_dataset(
-            self,
-            split: Optional[str] = None,
-            base_path: Optional[str] = None,
+        self,
+        split: Optional[str] = None,
+        base_path: Optional[str] = None,
     ) -> Union[Dict[str, IterableDataset], IterableDataset]:
         if not isinstance(self, (GeneratorBasedBuilder, ArrowBasedBuilder)):
             raise ValueError(f"Builder {self.name} is not streamable.")
@@ -1167,8 +1173,8 @@ class DatasetBuilder:
         return datasets
 
     def _as_streaming_dataset_single(
-            self,
-            splits_generator,
+        self,
+        splits_generator,
     ) -> IterableDataset:
         ex_iterable = self._get_examples_iterable_for_split(splits_generator)
         # add auth to be able to access and decode audio/image files from private repositories.
@@ -1186,7 +1192,7 @@ class DatasetBuilder:
         return {}
 
     def _download_post_processing_resources(
-            self, split: str, resource_name: str, dl_manager: DownloadManager
+        self, split: str, resource_name: str, dl_manager: DownloadManager
     ) -> Optional[str]:
         """Download the resource using the download manager and return the downloaded path."""
         return None
@@ -1239,12 +1245,12 @@ class DatasetBuilder:
 
     @abc.abstractmethod
     def _prepare_split(
-            self,
-            split_generator: SplitGenerator,
-            file_format: str = "arrow",
-            max_shard_size: Optional[Union[str, int]] = None,
-            num_proc=None,
-            **kwargs,
+        self,
+        split_generator: SplitGenerator,
+        file_format: str = "arrow",
+        max_shard_size: Optional[Union[str, int]] = None,
+        num_proc=None,
+        **kwargs,
     ):
         """Generate the examples and record them on disk.
 
@@ -1326,12 +1332,12 @@ class GeneratorBasedBuilder(DatasetBuilder):
         raise NotImplementedError()
 
     def _prepare_split(
-            self,
-            split_generator: SplitGenerator,
-            check_duplicate_keys: bool,
-            file_format="arrow",
-            num_proc=None,
-            max_shard_size: Optional[Union[int, str]] = None,
+        self,
+        split_generator: SplitGenerator,
+        check_duplicate_keys: bool,
+        file_format="arrow",
+        num_proc=None,
+        max_shard_size: Optional[Union[int, str]] = None,
     ):
 
         max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
@@ -1353,7 +1359,8 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
         if _shard_number(split_generator.gen_kwargs) <= 1 and num_proc is not None:
             logger.warning(
-                f"Setting num_proc from {num_proc} back to 1 to disable multiprocessing as dataset is not shardable")
+                f"Setting num_proc from {num_proc} back to 1 to disable multiprocessing as dataset is not shardable"
+            )
             num_proc = None
 
         if num_proc is None or num_proc == 1:
@@ -1363,7 +1370,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
                 file_format=file_format,
                 max_shard_size=max_shard_size,
                 split_info=split_info,
-                check_duplicate_keys=check_duplicate_keys
+                check_duplicate_keys=check_duplicate_keys,
             )
             # wrapping everything into lists for consistency with the multiprocessed code path
             examples_per_rank, bytes_per_rank, features_per_rank, shards_per_rank = [[item] for item in result]
@@ -1387,13 +1394,17 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
             with Pool(num_proc) as pool:
                 results = {
-                    rank: pool.apply_async(self._prepare_split_single, args=args, kwds={"rank": rank}) for rank, args in
-                    enumerate(args_per_shard)
+                    rank: pool.apply_async(self._prepare_split_single, args=args, kwds={"rank": rank})
+                    for rank, args in enumerate(args_per_shard)
                 }
                 for index, async_result in results.items():
                     result = async_result.get()
-                    examples_per_rank[index], bytes_per_rank[index], features_per_rank[index], shards_per_rank[
-                        index] = result
+                    (
+                        examples_per_rank[index],
+                        bytes_per_rank[index],
+                        features_per_rank[index],
+                        shards_per_rank[index],
+                    ) = result
 
             assert None not in examples_per_rank, f"result list {examples_per_rank} still contains None"
             # wrapping everything into lists for consistency with the multiprocessed code path
@@ -1413,8 +1424,9 @@ class GeneratorBasedBuilder(DatasetBuilder):
             )
 
         logger.debug(f"Renaming {total_shards} shards.")
-        shard_ids_and_ranks = [(shard_id, rank) for rank, num_shards in enumerate(shards_per_rank) for shard_id in
-                               range(num_shards)]
+        shard_ids_and_ranks = [
+            (shard_id, rank) for rank, num_shards in enumerate(shards_per_rank) for shard_id in range(num_shards)
+        ]
         thread_map(_rename_shard, shard_ids_and_ranks, disable=True, max_workers=64)
 
         split_generator.split_info.num_examples = total_num_examples
@@ -1423,8 +1435,9 @@ class GeneratorBasedBuilder(DatasetBuilder):
         if self.info.features is None:
             self.info.features = features
 
-    def _prepare_split_single(self, shard_kwargs, fpath, file_format, max_shard_size, split_info, check_duplicate_keys,
-                              rank=0):
+    def _prepare_split_single(
+        self, shard_kwargs, fpath, file_format, max_shard_size, split_info, check_duplicate_keys, rank=0
+    ):
 
         generator = self._generate_examples(**shard_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
@@ -1444,12 +1457,12 @@ class GeneratorBasedBuilder(DatasetBuilder):
         )
         try:
             for key, record in logging.tqdm(
-                    generator,
-                    unit=" examples",
-                    total=split_info.num_examples,
-                    leave=False,
-                    disable=not logging.is_progress_bar_enabled(),
-                    desc=f"Generating {split_info.name} split",
+                generator,
+                unit=" examples",
+                total=split_info.num_examples,
+                leave=False,
+                disable=not logging.is_progress_bar_enabled(),
+                desc=f"Generating {split_info.name} split",
             ):
                 if max_shard_size is not None and writer._num_bytes > max_shard_size:
                     num_examples, num_bytes = writer.finalize()
@@ -1522,11 +1535,11 @@ class ArrowBasedBuilder(DatasetBuilder):
         raise NotImplementedError()
 
     def _prepare_split(
-            self,
-            split_generator: SplitGenerator,
-            file_format: str = "arrow",
-            num_proc=None,
-            max_shard_size: Optional[Union[str, int]] = None,
+        self,
+        split_generator: SplitGenerator,
+        file_format: str = "arrow",
+        num_proc=None,
+        max_shard_size: Optional[Union[str, int]] = None,
     ):
 
         max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
@@ -1548,7 +1561,8 @@ class ArrowBasedBuilder(DatasetBuilder):
 
         if _shard_number(split_generator.gen_kwargs) <= 1 and num_proc is not None:
             logger.warning(
-                f"Setting num_proc from {num_proc} back to 1 to disable multiprocessing as dataset is not shardable")
+                f"Setting num_proc from {num_proc} back to 1 to disable multiprocessing as dataset is not shardable"
+            )
             num_proc = None
 
         if num_proc is None or num_proc == 1:
@@ -1580,13 +1594,17 @@ class ArrowBasedBuilder(DatasetBuilder):
 
             with Pool(num_proc) as pool:
                 results = {
-                    rank: pool.apply_async(self._prepare_split_single, args=args, kwds={"rank": rank}) for rank, args in
-                    enumerate(args_per_shard)
+                    rank: pool.apply_async(self._prepare_split_single, args=args, kwds={"rank": rank})
+                    for rank, args in enumerate(args_per_shard)
                 }
                 for index, async_result in results.items():
                     result = async_result.get()
-                    examples_per_rank[index], bytes_per_rank[index], features_per_rank[index], shards_per_rank[
-                        index] = result
+                    (
+                        examples_per_rank[index],
+                        bytes_per_rank[index],
+                        features_per_rank[index],
+                        shards_per_rank[index],
+                    ) = result
 
             assert None not in examples_per_rank, f"result list {examples_per_rank} still contains None"
             # wrapping everything into lists for consistency with the multiprocessed code path
@@ -1606,8 +1624,9 @@ class ArrowBasedBuilder(DatasetBuilder):
             )
 
         logger.debug(f"Renaming {total_shards} shards.")
-        shard_ids_and_ranks = [(shard_id, rank) for rank, num_shards in enumerate(shards_per_rank) for shard_id in
-                               range(num_shards)]
+        shard_ids_and_ranks = [
+            (shard_id, rank) for rank, num_shards in enumerate(shards_per_rank) for shard_id in range(num_shards)
+        ]
         thread_map(_rename_shard, shard_ids_and_ranks, disable=True, max_workers=64)
 
         split_generator.split_info.num_examples = total_num_examples
@@ -1633,11 +1652,11 @@ class ArrowBasedBuilder(DatasetBuilder):
         )
         try:
             for key, table in logging.tqdm(
-                    generator,
-                    unit=" tables",
-                    leave=False,
-                    disable=not logging.is_progress_bar_enabled(),
-                    desc=f"Generating {split_info.name} split",
+                generator,
+                unit=" tables",
+                leave=False,
+                disable=not logging.is_progress_bar_enabled(),
+                desc=f"Generating {split_info.name} split",
             ):
                 if max_shard_size is not None and writer._num_bytes > max_shard_size:
                     num_examples, num_bytes = writer.finalize()
@@ -1792,7 +1811,7 @@ class BeamBasedBuilder(DatasetBuilder):
                 self.info._dump_license(f)
 
     def _prepare_split(
-            self, split_generator, pipeline, file_format="arrow", max_shard_size: Optional[Union[str, int]] = None
+        self, split_generator, pipeline, file_format="arrow", max_shard_size: Optional[Union[str, int]] = None
     ):
         import apache_beam as beam
 
