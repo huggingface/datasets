@@ -1,5 +1,5 @@
 import copy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import ClassVar, Dict
 
 from ..features import ClassLabel, Features, Image
@@ -8,7 +8,7 @@ from .base import TaskTemplate
 
 @dataclass(frozen=True)
 class ImageClassification(TaskTemplate):
-    task: str = "image-classification"
+    task: str = field(default="image-classification", metadata={"include_in_asdict_even_if_is_default": True})
     input_schema: ClassVar[Features] = Features({"image": Image()})
     label_schema: ClassVar[Features] = Features({"labels": ClassLabel})
     image_column: str = "image"
