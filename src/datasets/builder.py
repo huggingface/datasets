@@ -27,6 +27,7 @@ import urllib
 import warnings
 from dataclasses import dataclass
 from functools import partial
+from multiprocess import Pool
 from pathlib import Path
 from typing import Dict, Mapping, Optional, Tuple, Union
 
@@ -53,7 +54,8 @@ from .features import Features
 from .filesystems import is_remote_filesystem
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
-from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
+from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper, \
+    _all_shard_kwargs, _shard_number
 from .keyhash import DuplicatedKeysError
 from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH, camelcase_to_snakecase
 from .splits import Split, SplitDict, SplitGenerator
@@ -1345,10 +1347,18 @@ class GeneratorBasedBuilder(DatasetBuilder):
         fname = f"{self.name}-{split_generator.name}{suffix}.{file_format}"
         fpath = path_join(self._output_dir, fname)
 
+        # Default to using 16-way parallelism for preparation if the number of files is higher than 16.
+        if num_proc is None and len(_all_shard_kwargs(split_generator.gen_kwargs)) >= 16:
+            num_proc = 16
+
+        if _shard_number(split_generator.gen_kwargs) <= 1 and num_proc is not None:
+            logger.warning(
+                f"Setting num_proc from {num_proc} back to 1 to disable multiprocessing as dataset is not shardable")
+            num_proc = None
+
         if num_proc is None or num_proc == 1:
-            generator = self._generate_examples(**split_generator.gen_kwargs)
-            results = self._prepare_generator_single(
-                generator,
+            result = self._prepare_split_single(
+                split_generator.gen_kwargs,
                 fpath=fpath,
                 file_format=file_format,
                 max_shard_size=max_shard_size,
@@ -1356,14 +1366,43 @@ class GeneratorBasedBuilder(DatasetBuilder):
                 check_duplicate_keys=check_duplicate_keys
             )
             # wrapping everything into lists for consistency with the multiprocessed code path
-            examples_per_rank, bytes_per_rank, features_per_rank, shards_per_rank = [[item] for item in results]
+            examples_per_rank, bytes_per_rank, features_per_rank, shards_per_rank = [[item] for item in result]
         else:
-            raise NotImplementedError
+            args_per_shard = [
+                (
+                    shard_kwargs,
+                    fpath,
+                    file_format,
+                    max_shard_size,
+                    split_info,
+                    check_duplicate_keys,
+                )
+                for shard_kwargs in _all_shard_kwargs(split_generator.gen_kwargs)
+            ]
+
+            examples_per_rank = [None] * len(args_per_shard)
+            bytes_per_rank = [None] * len(args_per_shard)
+            features_per_rank = [None] * len(args_per_shard)
+            shards_per_rank = [None] * len(args_per_shard)
+
+            with Pool(num_proc) as pool:
+                results = {
+                    rank: pool.apply_async(self._prepare_split_single, args=args, kwds={"rank": rank}) for rank, args in
+                    enumerate(args_per_shard)
+                }
+                for index, async_result in results.items():
+                    result = async_result.get()
+                    examples_per_rank[index], bytes_per_rank[index], features_per_rank[index], shards_per_rank[
+                        index] = result
+
+            assert None not in examples_per_rank, f"result list {examples_per_rank} still contains None"
+            # wrapping everything into lists for consistency with the multiprocessed code path
 
         total_shards = sum(shards_per_rank)
         total_num_examples = sum(examples_per_rank)
         total_num_bytes = sum(bytes_per_rank)
         features = features_per_rank[0]
+
         # should rename everything at the end, scheme still TBD
         def _rename_shard(shard_id_and_rank: Tuple[int]):
             shard_id, rank = shard_id_and_rank
@@ -1374,7 +1413,8 @@ class GeneratorBasedBuilder(DatasetBuilder):
             )
 
         logger.debug(f"Renaming {total_shards} shards.")
-        shard_ids_and_ranks = [(shard_id, rank) for rank, num_shards in enumerate(shards_per_rank) for shard_id in range(num_shards)]
+        shard_ids_and_ranks = [(shard_id, rank) for rank, num_shards in enumerate(shards_per_rank) for shard_id in
+                               range(num_shards)]
         thread_map(_rename_shard, shard_ids_and_ranks, disable=True, max_workers=64)
 
         split_generator.split_info.num_examples = total_num_examples
@@ -1383,8 +1423,10 @@ class GeneratorBasedBuilder(DatasetBuilder):
         if self.info.features is None:
             self.info.features = features
 
-    def _prepare_generator_single(self, generator, fpath, file_format, max_shard_size, split_info, check_duplicate_keys, rank=0):
+    def _prepare_split_single(self, shard_kwargs, fpath, file_format, max_shard_size, split_info, check_duplicate_keys,
+                              rank=0):
 
+        generator = self._generate_examples(**shard_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"
         total_num_examples, total_num_bytes = 0, 0
