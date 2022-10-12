@@ -257,7 +257,7 @@ Create a dataset from a Python generator with [`~Dataset.from_generator`]:
 ...     for i in range(1, 4):
 ...         yield {"a": i}
 ...
->>> dataset = Dataset.from_generator(my_dict)
+>>> dataset = Dataset.from_generator(my_gen)
 ```
 
 This approach supports loading data larger than available memory.
