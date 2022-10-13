@@ -2409,6 +2409,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         features: Optional[Features] = None,
         disable_nullable: bool = False,
         fn_kwargs: Optional[dict] = None,
+        tqdm_kwargs: Optional[dict] = None, 
         num_proc: Optional[int] = None,
         suffix_template: str = "_{rank:05d}_of_{num_proc:05d}",
         new_fingerprint: Optional[str] = None,
@@ -2465,6 +2466,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 instead of the automatically generated one.
             disable_nullable (:obj:`bool`, default `False`): Disallow null values in the table.
             fn_kwargs (:obj:`Dict`, optional, default `None`): Keyword arguments to be passed to `function`.
+            tqdm_kwargs (`Optional[Dict]`, default `None`): Keyword arguments to be passed to tqdm progress bar.
             num_proc (:obj:`int`, optional, default `None`): Max number of processes when generating cache. Already cached shards are loaded sequentially
             suffix_template (:obj:`str`):
                 If cache_file_name is specified, then this suffix
@@ -2561,6 +2563,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if fn_kwargs is None:
             fn_kwargs = {}
 
+        if tqdm_kwargs is None:
+            tqdm_kwargs = {}
+
         if num_proc is not None and num_proc > len(self):
             num_proc = len(self)
             logger.warning(
@@ -2586,6 +2591,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 features=features,
                 disable_nullable=disable_nullable,
                 fn_kwargs=fn_kwargs,
+                tqdm_kwargs=tqdm_kwargs, 
                 new_fingerprint=new_fingerprint,
                 disable_tqdm=disable_tqdm,
                 desc=desc,
@@ -2644,6 +2650,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     features=features.copy() if features is not None else None,
                     disable_nullable=disable_nullable,
                     fn_kwargs=fn_kwargs,
+                    tqdm_kwargs=tqdm_kwargs, 
                     rank=rank,
                     offset=sum(len(s) for s in shards[:rank]),
                     disable_tqdm=disable_tqdm,
@@ -2717,6 +2724,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         features: Optional[Features] = None,
         disable_nullable: bool = False,
         fn_kwargs: Optional[dict] = None,
+        tqdm_kwargs: Optional[dict] = None, 
         new_fingerprint: Optional[str] = None,
         rank: Optional[int] = None,
         offset: int = 0,
@@ -2761,6 +2769,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 instead of the automatically generated one.
             disable_nullable (:obj:`bool`, defaults to `False`): Disallow null values in the table.
             fn_kwargs (:obj:`Dict`, optional, defaults to `None`): Keyword arguments to be passed to `function`
+            tqdm_kwargs (`Optional[Dict]`, default to `None`): Keyword arguments to be passed to tqdm progress bar.
             new_fingerprint (:obj:`str`, optional, defaults to `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
             rank: (:obj:`int`, optional, defaults to `None`): If specified, this is the process rank when doing multiprocessing
@@ -2779,6 +2788,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if fn_kwargs is None:
             fn_kwargs = {}
+
+        if tqdm_kwargs is None:
+            tqdm_kwargs = {}
 
         # If we do batch computation but no batch size is provided, default to the full dataset
         if batched and (batch_size is None or batch_size <= 0):
@@ -2850,7 +2862,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 additional_args += (effective_indices,)
             if with_rank:
                 additional_args += (rank,)
-            processed_inputs = function(*fn_args, *additional_args, **fn_kwargs)
+            processed_inputs = function(*fn_args, *additional_args, **fn_kwargs, **tqdm_kwargs)
             if update_data is None:
                 # Check if the function returns updated examples
                 update_data = isinstance(processed_inputs, (Mapping, pa.Table))
@@ -3031,6 +3043,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
+        tqdm_kwargs: Optional[dict] = None, 
         num_proc: Optional[int] = None,
         suffix_template: str = "_{rank:05d}_of_{num_proc:05d}",
         new_fingerprint: Optional[str] = None,
@@ -3064,6 +3077,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 This value is a good trade-off between memory usage during the processing, and processing speed.
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
             fn_kwargs (:obj:`dict`, optional): Keyword arguments to be passed to `function`
+            tqdm_kwargs (`Optional[Dict]`, default to `None`): Keyword arguments to be passed to tqdm progress bar.
             num_proc (:obj:`int`, optional): Number of processes for multiprocessing. By default it doesn't
                 use multiprocessing.
             suffix_template (:obj:`str`):
@@ -3112,6 +3126,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             cache_file_name=cache_file_name,
             writer_batch_size=writer_batch_size,
             fn_kwargs=fn_kwargs,
+            tqdm_kwargs=tqdm_kwargs, 
             num_proc=num_proc,
             suffix_template=suffix_template,
             new_fingerprint=new_fingerprint,
@@ -5235,14 +5250,15 @@ def get_indices_from_mask_function(
     indices_mapping: Optional[Table] = None,
     *args,
     **fn_kwargs,
+    **tqdm_kwargs, 
 ):
     if batched:
         # we extract indices from args
         *inputs, indices = args
         if with_indices:
-            mask = function(*inputs, indices, **fn_kwargs)
+            mask = function(*inputs, indices, **fn_kwargs, **tqdm_kwargs)
         else:
-            mask = function(*inputs, **fn_kwargs)
+            mask = function(*inputs, **fn_kwargs, **tqdm_kwargs)
     else:
         # we get batched data (to do less look-ups) but `function` only accepts one example
         # therefore we need to call `function` on each example of the batch to get the mask
@@ -5255,7 +5271,8 @@ def get_indices_from_mask_function(
             for i in range(num_examples):
                 example = {key: batch[key][i] for key in batch}
                 mask.append(
-                    function(example, indices[i], **fn_kwargs) if with_indices else function(example, **fn_kwargs)
+                    function(example, indices[i], **fn_kwargs, **tqdm_kwargs) 
+                    if with_indices else function(example, **fn_kwargs, **tqdm_kwargs)
                 )
         else:
             # inputs is a list of columns
@@ -5264,7 +5281,8 @@ def get_indices_from_mask_function(
             for i in range(num_examples):
                 input = [column[i] for column in columns]
                 mask.append(
-                    function(*input, indices[i], **fn_kwargs) if with_indices else function(*input, **fn_kwargs)
+                    function(*input, indices[i], **fn_kwargs, **tqdm_kwargs) 
+                    if with_indices else function(*input, **fn_kwargs, **tqdm_kwargs)
                 )
     indices_array = [i for i, to_keep in zip(indices, mask) if to_keep]
     if indices_mapping is not None:
