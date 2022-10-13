@@ -105,7 +105,6 @@ IN_MEMORY_PARAMETERS = [
 
 @parameterized.named_parameters(IN_MEMORY_PARAMETERS)
 class BaseDatasetTest(TestCase):
-
     @pytest.fixture(autouse=True)
     def inject_fixtures(self, caplog):
         self._caplog = caplog
@@ -1234,8 +1233,7 @@ class BaseDatasetTest(TestCase):
                     with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test2:
                         self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
                         self.assertTrue(
-                            (len(re.findall("Loading cached processed dataset", self._caplog.text)) == 2)
-                            ^ in_memory
+                            (len(re.findall("Loading cached processed dataset", self._caplog.text)) == 2) ^ in_memory
                         )
 
         with tempfile.TemporaryDirectory() as tmp_dir:
