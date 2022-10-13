@@ -105,13 +105,6 @@ IN_MEMORY_PARAMETERS = [
 
 @parameterized.named_parameters(IN_MEMORY_PARAMETERS)
 class BaseDatasetTest(TestCase):
-    def setUp(self):
-        # google colab doesn't allow to pickle loggers
-        # so we want to make sure each tests passes without pickling the logger
-        def reduce_ex(self):
-            raise pickle.PicklingError()
-
-        datasets.arrow_dataset.logger.__reduce_ex__ = reduce_ex
 
     @pytest.fixture(autouse=True)
     def inject_fixtures(self, caplog):
@@ -1236,17 +1229,14 @@ class BaseDatasetTest(TestCase):
             self._caplog.clear()
             with self._caplog.at_level(WARNING):
                 with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                    with patch("datasets.arrow_dataset.Pool", side_effect=datasets.arrow_dataset.Pool) as mock_pool:
-                        with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test1:
-                            dset_test1_data_files = list(dset_test1.cache_files)
-                        self.assertEqual(mock_pool.call_count, 1)
-                        with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test2:
-                            self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
-                            self.assertTrue(
-                                (len(re.findall("Loading cached processed dataset", self._caplog.text)) == 2)
-                                ^ in_memory
-                            )
-                        self.assertEqual(mock_pool.call_count, 2 if in_memory else 1)
+                    with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test1:
+                        dset_test1_data_files = list(dset_test1.cache_files)
+                    with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test2:
+                        self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
+                        self.assertTrue(
+                            (len(re.findall("Loading cached processed dataset", self._caplog.text)) == 2)
+                            ^ in_memory
+                        )
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             self._caplog.clear()
