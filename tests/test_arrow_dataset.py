@@ -9,7 +9,6 @@ import tempfile
 from functools import partial
 from pathlib import Path
 from unittest import TestCase
-from unittest.mock import patch
 
 import numpy as np
 import numpy.testing as npt
