@@ -150,6 +150,9 @@ def test_cycling_multi_sources_examples_iterable():
     ex_iterable = CyclingMultiSourcesExamplesIterable([ex_iterable1, ex_iterable2])
     expected = list(chain(*zip(generate_examples_fn(text="foo"), generate_examples_fn(text="bar"))))
 
+    # The cycling stops as soon as one iterable is out of examples (here ex_iterable1), so the last sample from ex_iterable2 is unecessary
+    expected = expected[:-1]
+
     assert next(iter(ex_iterable)) == expected[0]
     assert list(ex_iterable) == expected
     assert all((x["id"], x["text"]) == (i // 2, "bar" if i % 2 else "foo") for i, (_, x) in enumerate(ex_iterable))
@@ -172,9 +175,13 @@ def test_randomly_cycling_multi_sources_examples_iterable(probabilities):
         rng, len(iterators), p=probabilities
     )
     expected = []
+    lengths = [len(list(ex_iterable1)), len(list(ex_iterable2))]
     for i in indices_iterator:
+        if lengths[0] == 0 or lengths[1] == 0:
+            break
         for key, example in iterators[i]:
             expected.append((key, example))
+            lengths[i] -= 1
             break
         else:
             break
@@ -567,6 +574,22 @@ def test_iterable_dataset_factory():
     dataset = iterable_dataset(ex_iterable)
     assert isinstance(dataset, IterableDataset)
     assert dataset._ex_iterable is ex_iterable
+
+
+def test_iterable_dataset_from_generator():
+    data = [
+        {"col_1": "0", "col_2": 0, "col_3": 0.0},
+        {"col_1": "1", "col_2": 1, "col_3": 1.0},
+        {"col_1": "2", "col_2": 2, "col_3": 2.0},
+        {"col_1": "3", "col_2": 3, "col_3": 3.0},
+    ]
+
+    def gen():
+        yield from data
+
+    dataset = IterableDataset.from_generator(gen)
+    assert isinstance(dataset, IterableDataset)
+    assert list(dataset) == data
 
 
 @require_torch
@@ -995,22 +1018,29 @@ def test_concatenate_datasets_axis_1_with_different_lengths():
 
 
 @pytest.mark.parametrize(
-    "probas, seed, expected_length",
+    "probas, seed, expected_length, stopping_strategy",
     [
-        (None, None, 3 * DEFAULT_N_EXAMPLES),
-        ([1, 0, 0], None, DEFAULT_N_EXAMPLES),
-        ([0, 1, 0], None, DEFAULT_N_EXAMPLES),
-        ([0.2, 0.5, 0.3], 42, None),
-        ([0.1, 0.1, 0.8], 1337, None),
-        ([0.5, 0.2, 0.3], 101010, None),
+        (None, None, 3 * (DEFAULT_N_EXAMPLES - 1) + 1, "first_exhausted"),
+        ([1, 0, 0], None, DEFAULT_N_EXAMPLES, "first_exhausted"),
+        ([0, 1, 0], None, DEFAULT_N_EXAMPLES, "first_exhausted"),
+        ([0.2, 0.5, 0.3], 42, None, "first_exhausted"),
+        ([0.1, 0.1, 0.8], 1337, None, "first_exhausted"),
+        ([0.5, 0.2, 0.3], 101010, None, "first_exhausted"),
+        (None, None, 3 * DEFAULT_N_EXAMPLES, "all_exhausted"),
+        ([0.2, 0.5, 0.3], 42, None, "all_exhausted"),
+        ([0.1, 0.1, 0.8], 1337, None, "all_exhausted"),
+        ([0.5, 0.2, 0.3], 101010, None, "all_exhausted"),
     ],
 )
-def test_interleave_datasets(dataset: IterableDataset, probas, seed, expected_length):
+def test_interleave_datasets(dataset: IterableDataset, probas, seed, expected_length, stopping_strategy):
     d1 = dataset
     d2 = dataset.map(lambda x: {"id+1": x["id"] + 1, **x})
     d3 = dataset.with_format("python")
     datasets = [d1, d2, d3]
-    merged_dataset = interleave_datasets(datasets, probabilities=probas, seed=seed)
+
+    merged_dataset = interleave_datasets(
+        datasets, probabilities=probas, seed=seed, stopping_strategy=stopping_strategy
+    )
 
     def fill_default(example):
         return {"id": None, "id+1": None, **example}
@@ -1021,7 +1051,9 @@ def test_interleave_datasets(dataset: IterableDataset, probas, seed, expected_le
     )
     # Check that it is deterministic
     if seed is not None:
-        merged_dataset2 = interleave_datasets([d1, d2, d3], probabilities=probas, seed=seed)
+        merged_dataset2 = interleave_datasets(
+            [d1, d2, d3], probabilities=probas, seed=seed, stopping_strategy=stopping_strategy
+        )
         assert list(merged_dataset) == list(merged_dataset2)
     # Check features
     assert merged_dataset.features == Features({"id": Value("int64"), "id+1": Value("int64")})
@@ -1035,13 +1067,14 @@ def test_interleave_datasets(dataset: IterableDataset, probas, seed, expected_le
     # Compute length it case it's random
     if expected_length is None:
         expected_length = 0
-        counts = [len(list(d)) for d in datasets]
+        counts = np.array([len(list(d)) for d in datasets])
+        bool_strategy_func = np.all if stopping_strategy == "all_exhausted" else np.any
         rng = np.random.default_rng(seed)
         for i in RandomlyCyclingMultiSourcesExamplesIterable._iter_random_indices(rng, len(datasets), p=probas):
-            if counts[i] == 0:
-                break
             counts[i] -= 1
             expected_length += 1
+            if bool_strategy_func(counts <= 0):
+                break
     # Check length
     assert len(list(merged_dataset)) == expected_length
 
@@ -1060,3 +1093,27 @@ def test_interleave_datasets_with_features(
 
     merged_dataset = interleave_datasets([dataset, dataset_with_features])
     assert merged_dataset.features == features
+
+
+def test_interleave_datasets_with_oversampling():
+    # Test hardcoded results
+    d1 = IterableDataset(ExamplesIterable((lambda: (yield from [(i, {"a": i}) for i in [0, 1, 2]])), {}))
+    d2 = IterableDataset(ExamplesIterable((lambda: (yield from [(i, {"a": i}) for i in [10, 11, 12, 13]])), {}))
+    d3 = IterableDataset(ExamplesIterable((lambda: (yield from [(i, {"a": i}) for i in [20, 21, 22, 23, 24]])), {}))
+
+    expected_values = [0, 10, 20, 1, 11, 21, 2, 12, 22, 0, 13, 23, 1, 10, 24]
+
+    # Check oversampling strategy without probabilities
+    assert [x["a"] for x in interleave_datasets([d1, d2, d3], stopping_strategy="all_exhausted")] == expected_values
+
+    # Check oversampling strategy with probabilities
+    expected_values = [20, 0, 21, 10, 1, 22, 23, 24, 2, 0, 1, 20, 11, 21, 2, 0, 12, 1, 22, 13]
+
+    values = [
+        x["a"]
+        for x in interleave_datasets(
+            [d1, d2, d3], probabilities=[0.5, 0.2, 0.3], seed=42, stopping_strategy="all_exhausted"
+        )
+    ]
+
+    assert values == expected_values

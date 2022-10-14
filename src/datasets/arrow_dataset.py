@@ -88,7 +88,7 @@ from .formatting.formatting import _is_range_contiguous
 from .info import DatasetInfo, DatasetInfosDict
 from .naming import _split_re
 from .search import IndexableMixin
-from .splits import NamedSplit, Split, SplitInfo
+from .splits import NamedSplit, Split, SplitDict, SplitInfo
 from .table import (
     InMemoryTable,
     MemoryMappedTable,
@@ -97,13 +97,16 @@ from .table import (
     embed_table_storage,
     list_table_cache_files,
     table_cast,
+    table_iter,
     table_visitor,
 )
 from .tasks import TaskTemplate
 from .utils import logging
 from .utils._hf_hub_fixes import create_repo
+from .utils._hf_hub_fixes import list_repo_files as hf_api_list_repo_files
 from .utils.file_utils import _retry, cached_path, estimate_dataset_size, hf_hub_url
 from .utils.info_utils import is_small_dataset
+from .utils.metadata import DatasetMetadata
 from .utils.py_utils import asdict, convert_file_size_to_int, unique_values
 from .utils.stratify import stratified_shuffle_split_generate_indices
 from .utils.tf_utils import minimal_tf_collate_fn
@@ -111,6 +114,10 @@ from .utils.typing import PathLike
 
 
 if TYPE_CHECKING:
+    import sqlite3
+
+    import sqlalchemy
+
     from .dataset_dict import DatasetDict
 
 logger = logging.get_logger(__name__)
@@ -936,6 +943,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         cache_dir: str = None,
         keep_in_memory: bool = False,
         gen_kwargs: Optional[dict] = None,
+        **kwargs,
     ):
         """Create a Dataset from a generator.
 
@@ -945,6 +953,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
             keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
             gen_kwargs(:obj:`dict`, optional): Keyword arguments to be passed to the `generator` callable.
+            **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`GeneratorConfig`.
 
         Returns:
             :class:`Dataset`
@@ -967,6 +976,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             cache_dir=cache_dir,
             keep_in_memory=keep_in_memory,
             gen_kwargs=gen_kwargs,
+            **kwargs,
         ).read()
 
     @staticmethod
@@ -1090,6 +1100,57 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         return TextDatasetReader(
             path_or_paths, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+        ).read()
+
+    @staticmethod
+    def from_sql(
+        sql: Union[str, "sqlalchemy.sql.Selectable"],
+        con: Union[str, "sqlalchemy.engine.Connection", "sqlalchemy.engine.Engine", "sqlite3.Connection"],
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        **kwargs,
+    ):
+        """Create Dataset from SQL query or database table.
+
+        Args:
+            sql (`str` or :obj:`sqlalchemy.sql.Selectable`): SQL query to be executed or a table name.
+            con (`str` or :obj:`sqlite3.Connection` or :obj:`sqlalchemy.engine.Connection` or :obj:`sqlalchemy.engine.Connection`):
+                A [URI string](https://docs.sqlalchemy.org/en/13/core/engines.html#database-urls) used to instantiate a database connection or a SQLite3/SQLAlchemy connection object.
+            features (:class:`Features`, optional): Dataset features.
+            cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
+            keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
+            **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`SqlConfig`.
+
+        Returns:
+            :class:`Dataset`
+
+        Example:
+
+        ```py
+        >>> # Fetch a database table
+        >>> ds = Dataset.from_sql("test_data", "postgres:///db_name")
+        >>> # Execute a SQL query on the table
+        >>> ds = Dataset.from_sql("SELECT sentence FROM test_data", "postgres:///db_name")
+        >>> # Use a Selectable object to specify the query
+        >>> from sqlalchemy import select, text
+        >>> stmt = select([text("sentence")]).select_from(text("test_data"))
+        >>> ds = Dataset.from_sql(stmt, "postgres:///db_name")
+        ```
+
+        <Tip {warning=true}>
+        The returned dataset can only be cached if `con` is specified as URI string.
+        </Tip>
+        """
+        from .io.sql import SqlDatasetReader
+
+        return SqlDatasetReader(
+            sql,
+            con,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            **kwargs,
         ).read()
 
     def __del__(self):
@@ -1287,12 +1348,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         split = state["_split"]
         split = Split(split) if split is not None else split
 
-        return Dataset(
+        dataset = Dataset(
             arrow_table=arrow_table,
             info=dataset_info,
             split=split,
             fingerprint=state["_fingerprint"],
         )
+
+        format = {
+            "type": state["_format_type"],
+            "format_kwargs": state["_format_kwargs"],
+            "columns": state["_format_columns"],
+            "output_all_columns": state["_output_all_columns"],
+        }
+        dataset = dataset.with_format(**format)
+
+        return dataset
 
     @property
     def data(self) -> Table:
@@ -1854,17 +1925,62 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         return self.num_rows
 
+    def _iter_batches(self, batch_size: int, decoded: bool = True, drop_last_batch: bool = False):
+        """Iterate through the batches of size `batch_size`.
+
+        If a formatting is set with :meth:`Dataset.set_format` rows will be returned with the
+        selected format.
+        """
+        if self._indices is None and config.PYARROW_VERSION.major >= 8:
+            # Fast iteration
+            # Benchmark: https://gist.github.com/mariosasko/0248288a2e3a7556873969717c1fe52b (fast_iter_batch)
+            format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
+            formatter = get_formatter(self._format_type, features=self.features, decoded=decoded, **format_kwargs)
+            for pa_subtable in table_iter(self.data, batch_size=batch_size, drop_last_batch=drop_last_batch):
+                formatted_batch = format_table(
+                    pa_subtable,
+                    range(pa_subtable.num_rows),
+                    formatter=formatter,
+                    format_columns=self._format_columns,
+                    output_all_columns=self._output_all_columns,
+                )
+                yield formatted_batch
+        else:
+            for i in range(0, self.num_rows, batch_size):
+                yield self._getitem(
+                    slice(i, i + batch_size),
+                    decoded=decoded,
+                )
+
     def _iter(self, decoded: bool = True):
         """Iterate through the examples.
 
         If a formatting is set with :meth:`Dataset.set_format` rows will be returned with the
         selected format.
         """
-        for index in range(self.num_rows):
-            yield self._getitem(
-                index,
-                decoded=decoded,
-            )
+        if self._indices is None and config.PYARROW_VERSION.major >= 8:
+            # Fast iteration
+            # Benchmark: https://gist.github.com/mariosasko/0248288a2e3a7556873969717c1fe52b (fast_iter_batch)
+            format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
+            formatter = get_formatter(self._format_type, features=self.features, decoded=decoded, **format_kwargs)
+            batch_size = config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER
+            for pa_subtable in table_iter(self.data, batch_size=batch_size):
+                for i in range(pa_subtable.num_rows):
+                    pa_subtable_ex = pa_subtable.slice(i, 1)
+                    formatted_output = format_table(
+                        pa_subtable_ex,
+                        0,
+                        formatter=formatter,
+                        format_columns=self._format_columns,
+                        output_all_columns=self._output_all_columns,
+                    )
+                    yield formatted_output
+        else:
+            for i in range(self.num_rows):
+                yield self._getitem(
+                    i,
+                    decoded=decoded,
+                )
 
     def __iter__(self):
         """Iterate through the examples.
@@ -2150,7 +2266,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     def prepare_for_task(self, task: Union[str, TaskTemplate], id: int = 0) -> "Dataset":
         """
-        Prepare a dataset for the given task by casting the dataset's [`Features`] to standardized column names and types as detailed in [datasets.tasks](/docs/datasets/package_reference/task_templates).
+        Prepare a dataset for the given task by casting the dataset's [`Features`] to standardized column names and types as detailed in [`datasets.tasks`](./package_reference/task_templates).
 
         Casts [`datasets.DatasetInfo.features`] according to a task-specific schema. Intended for single-use only, so all task templates are removed from [`datasets.DatasetInfo.task_templates`] after casting.
 
@@ -2160,7 +2276,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 - `"text-classification"`
                 - `"question-answering"`
 
-                If [`TaskTemplate`], must be one of the task templates in [`datasets.tasks`](/docs/datasets/package_reference/task_templates).
+                If [`TaskTemplate`], must be one of the task templates in [`datasets.tasks`](./package_reference/task_templates).
             id (`int`, defaults to 0): The id required to unambiguously identify the task template when multiple task templates of the same type are supported.
         """
         # TODO(lewtun): Add support for casting nested features like answers.text and answers.answer_start in SQuAD
@@ -2383,8 +2499,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if num_proc is not None and num_proc <= 0:
             raise ValueError("num_proc must be an integer > 0.")
 
-        # If the array is empty we do nothing (but we make sure to remove the requested columns anyway)
+        # If the array is empty we do nothing (but we make sure to handle an empty indices mapping and remove the requested columns anyway)
         if len(self) == 0:
+            if self._indices is not None:  # empty indices mapping
+                self = Dataset(
+                    self.data.slice(0, 0),
+                    info=self.info.copy(),
+                    split=self.split,
+                    fingerprint=new_fingerprint,
+                )
             if remove_columns:
                 return self.remove_columns(remove_columns)
             else:
@@ -2805,14 +2928,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
                 # Loop over single examples or batches and write to buffer/file if examples are to be updated
                 if not batched:
-                    pbar_iterable = input_dataset._iter(decoded=False)
                     pbar_total = len(input_dataset)
+                    pbar_iterable = input_dataset._iter(decoded=False)
                 else:
                     num_rows = (
                         len(input_dataset) if not drop_last_batch else len(input_dataset) // batch_size * batch_size
                     )
-                    pbar_iterable = range(0, num_rows, batch_size)
                     pbar_total = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
+                    pbar_iterable = input_dataset._iter_batches(
+                        batch_size, decoded=False, drop_last_batch=drop_last_batch
+                    )
                 pbar_unit = "ex" if not batched else "ba"
                 pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
                 pbar = logging.tqdm(
@@ -2835,11 +2960,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             else:
                                 writer.write(example)
                 else:
-                    for i in pbar:
-                        batch = input_dataset._getitem(
-                            slice(i, i + batch_size),
-                            decoded=False,
-                        )
+                    for i, batch in zip(range(0, num_rows, batch_size), pbar):
                         indices = list(
                             range(*(slice(i, i + batch_size).indices(input_dataset.num_rows)))
                         )  # Something simpler?
@@ -2972,6 +3093,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if function is None:
             function = lambda x: True  # noqa: E731
+
+        if len(self) == 0:
+            return self
 
         indices = self.map(
             function=partial(
@@ -3460,6 +3584,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if len(self) == 0:
             return self
 
+        if keep_in_memory and indices_cache_file_name is not None:
+            raise ValueError("Please use either `keep_in_memory` or `indices_cache_file_name` but not both.")
+
         if seed is not None and generator is not None:
             raise ValueError("Both `seed` and `generator` were provided. Please specify just one of them.")
 
@@ -3489,7 +3616,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return self.select(
             indices=permutation,
             keep_in_memory=keep_in_memory,
-            indices_cache_file_name=indices_cache_file_name,
+            indices_cache_file_name=indices_cache_file_name if not keep_in_memory else None,
             writer_batch_size=writer_batch_size,
             new_fingerprint=new_fingerprint,
         )
@@ -3867,9 +3994,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             """Returns an int64_list from a list of bool / enum / int / uint."""
             return tf.train.Feature(int64_list=tf.train.Int64List(value=values))
 
-        def _feature(values: Union[float, int, str, np.ndarray]) -> "tf.train.Feature":
+        def _feature(values: Union[float, int, str, np.ndarray, list]) -> "tf.train.Feature":
             """Typechecks `values` and returns the corresponding tf.train.Feature."""
-            if isinstance(values, np.ndarray):
+            if isinstance(values, list):
+                if values and isinstance(values[0], str):
+                    return _bytes_feature([v.encode() for v in values])
+                else:
+                    raise ValueError(f"values={values} is empty or contains items that cannot be serialized")
+            elif isinstance(values, np.ndarray):
                 if values.dtype == np.dtype(float):
                     return _float_feature(values)
                 elif values.dtype == np.int64:
@@ -3880,9 +4012,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     return _bytes_feature([v.encode() for v in values])
                 else:
                     raise ValueError(
-                        f"values={values} is an np.ndarray with items of dtype {values[0].dtype}, which cannot be serialized"
+                        f"values={values} is empty or is an np.ndarray with items of dtype {values[0].dtype}, which cannot be serialized"
                     )
-            if hasattr(values, "dtype"):
+            elif hasattr(values, "dtype"):
                 if np.issubdtype(values.dtype, np.floating):
                     return _float_feature([values.item()])
                 elif np.issubdtype(values.dtype, np.integer):
@@ -3892,7 +4024,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 else:
                     raise ValueError(f"values={values} has dtype {values.dtype}, which cannot be serialized")
             else:
-                raise ValueError(f"values={values} are not numpy objects, and so cannot be serialized")
+                raise ValueError(f"values={values} are not numpy objects or strings, and so cannot be serialized")
 
         def serialize_example(ex):
             feature = {key: _feature(value) for key, value in ex.items()}
@@ -4096,6 +4228,43 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         return ParquetDatasetWriter(self, path_or_buf, batch_size=batch_size, **parquet_writer_kwargs).write()
 
+    def to_sql(
+        self,
+        name: str,
+        con: Union[str, "sqlalchemy.engine.Connection", "sqlalchemy.engine.Engine", "sqlite3.Connection"],
+        batch_size: Optional[int] = None,
+        **sql_writer_kwargs,
+    ) -> int:
+        """Exports the dataset to a SQL database.
+
+        Args:
+            name (`str`): Name of SQL table.
+            con (`str` or :obj:`sqlite3.Connection` or :obj:`sqlalchemy.engine.Connection` or :obj:`sqlalchemy.engine.Connection`):
+                A [URI string](https://docs.sqlalchemy.org/en/13/core/engines.html#database-urls) or a SQLite3/SQLAlchemy connection object used to write to a database.
+            batch_size (:obj:`int`, optional): Size of the batch to load in memory and write at once.
+                Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            **sql_writer_kwargs (additional keyword arguments): Parameters to pass to pandas's :function:`Dataframe.to_sql`
+
+        Returns:
+            int: The number of records written.
+
+        Example:
+
+        ```py
+        >>> # con provided as a connection URI string
+        >>> ds.to_sql("data", "sqlite:///my_own_db.sql")
+        >>> # con provided as a sqlite3 connection object
+        >>> import sqlite3
+        >>> con = sqlite3.connect("my_own_db.sql")
+        >>> with con:
+        ...     ds.to_sql("data", con)
+        ```
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.sql import SqlDatasetWriter
+
+        return SqlDatasetWriter(self, name, con, batch_size=batch_size, **sql_writer_kwargs).write()
+
     def _push_parquet_shards_to_hub(
         self,
         repo_id: str,
@@ -4155,7 +4324,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         token = token if token is not None else HfFolder.get_token()
 
         if token is None:
-            raise OSError(
+            raise EnvironmentError(
                 "You need to provide a `token` or be logged in to Hugging Face with `huggingface-cli login`."
             )
 
@@ -4172,17 +4341,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"The identifier should be in the format <repo_id> or <namespace>/<repo_id>. It is {identifier}, "
                 "which doesn't conform to either format."
             )
-        elif len(identifier) == 2:
-            organization_or_username, dataset_name = identifier
         elif len(identifier) == 1:
             dataset_name = identifier[0]
             organization_or_username = api.whoami(token)["name"]
             repo_id = f"{organization_or_username}/{dataset_name}"
 
         create_repo(
-            hf_api=api,
-            name=dataset_name,
-            organization=organization_or_username,
+            api,
+            repo_id,
             token=token,
             repo_type="dataset",
             private=private,
@@ -4243,7 +4409,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
             shards = shards_with_embedded_external_files(shards)
 
-        files = api.list_repo_files(repo_id, repo_type="dataset", revision=branch, token=token)
+        files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, use_auth_token=token)
         data_files = [file for file in files if file.startswith("data/")]
 
         def path_in_repo(_index, shard):
@@ -4387,13 +4553,25 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         info_to_dump.download_size = uploaded_size
         info_to_dump.dataset_size = dataset_nbytes
         info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes
-        info_to_dump.splits = {
-            split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name)
-        }
-        if config.DATASETDICT_INFOS_FILENAME in repo_files:
+        info_to_dump.splits = SplitDict(
+            {split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name)}
+        )
+        # get the info from the README to update them
+        if "README.md" in repo_files:
             download_config = DownloadConfig()
             download_config.download_desc = "Downloading metadata"
-            download_config.use_auth_token = token if token is not None else HfFolder.get_token()
+            dataset_readme_path = cached_path(
+                hf_hub_url(repo_id, "README.md"),
+                download_config=download_config,
+            )
+            dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
+            dataset_infos: DatasetInfosDict = DatasetInfosDict.from_metadata(dataset_metadata)
+            repo_info = dataset_infos[next(iter(dataset_infos))]
+        # get the deprecated dataset_infos.json to uodate them
+        elif config.DATASETDICT_INFOS_FILENAME in repo_files:
+            dataset_metadata = DatasetMetadata()
+            download_config = DownloadConfig()
+            download_config.download_desc = "Downloading metadata"
             dataset_infos_path = cached_path(
                 hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME),
                 download_config=download_config,
@@ -4401,8 +4579,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             with open(dataset_infos_path, encoding="utf-8") as f:
                 dataset_infos: DatasetInfosDict = json.load(f)
                 repo_info = DatasetInfo.from_dict(dataset_infos[next(iter(dataset_infos))])
+        else:
+            dataset_metadata = DatasetMetadata()
+            repo_info = None
+        # update the total info to dump from existing info
+        if repo_info is not None:
             logger.warning("Updating downloaded metadata with the new split.")
-
             if repo_info.splits and list(repo_info.splits) != [split]:
                 if self.features != repo_info.features:
                     raise ValueError(
@@ -4411,23 +4593,40 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
                 if split in repo_info.splits:
                     repo_info.download_size -= deleted_size
-                    repo_info.dataset_size -= repo_info.splits[split].num_bytes
+                    repo_info.dataset_size -= repo_info.splits.get(split, SplitInfo()).num_bytes or 0
 
                 repo_info.download_checksums = None
-                repo_info.download_size += uploaded_size
-                repo_info.dataset_size += dataset_nbytes
+                repo_info.download_size = (repo_info.download_size or 0) + uploaded_size
+                repo_info.dataset_size = (repo_info.dataset_size or 0) + dataset_nbytes
                 repo_info.size_in_bytes = repo_info.download_size + repo_info.dataset_size
                 repo_info.splits[split] = SplitInfo(
                     split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name
                 )
                 info_to_dump = repo_info
-        buffer = BytesIO()
-        buffer.write(f'{{"{organization}--{dataset_name}": '.encode())
-        info_to_dump._dump_info(buffer, pretty_print=True)
-        buffer.write(b"}")
+        # push to the deprecated dataset_infos.json
+        if config.DATASETDICT_INFOS_FILENAME in repo_files:
+            buffer = BytesIO()
+            buffer.write(b'{"default": ')
+            info_to_dump._dump_info(buffer, pretty_print=True)
+            buffer.write(b"}")
+            HfApi(endpoint=config.HF_ENDPOINT).upload_file(
+                path_or_fileobj=buffer.getvalue(),
+                path_in_repo=config.DATASETDICT_INFOS_FILENAME,
+                repo_id=repo_id,
+                token=token,
+                repo_type="dataset",
+                revision=branch,
+            )
+        # push to README
+        DatasetInfosDict({"default": info_to_dump}).to_metadata(dataset_metadata)
+        if "README.md" in repo_files:
+            with open(dataset_readme_path, encoding="utf-8") as readme_file:
+                readme_content = readme_file.read()
+        else:
+            readme_content = f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
         HfApi(endpoint=config.HF_ENDPOINT).upload_file(
-            path_or_fileobj=buffer.getvalue(),
-            path_in_repo=config.DATASETDICT_INFOS_FILENAME,
+            path_or_fileobj=dataset_metadata._to_readme(readme_content).encode(),
+            path_in_repo="README.md",
             repo_id=repo_id,
             token=token,
             repo_type="dataset",
@@ -4505,7 +4704,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 This is passed to the index factory of Faiss to create the index.
                 Default index class is ``IndexFlat``.
             metric_type (Optional :obj:`int`):
-                Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
+                Type of metric. Ex: faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
             custom_index (Optional :obj:`faiss.Index`):
                 Custom Faiss index that you already have instantiated and configured for your needs.
             batch_size (Optional :obj:`int`): Size of the batch to use while adding vectors to the FaissIndex. Default value is 1000.

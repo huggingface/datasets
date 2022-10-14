@@ -29,7 +29,7 @@ from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Type, Union
 
 import fsspec
 import requests
-from huggingface_hub import HfApi, HfFolder
+from huggingface_hub import HfApi
 
 from . import config
 from .arrow_dataset import Dataset
@@ -62,6 +62,7 @@ from .packaged_modules import (
 )
 from .splits import Split
 from .tasks import TaskTemplate
+from .utils._hf_hub_fixes import dataset_info as hf_api_dataset_info
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import (
     OfflineModeIsEnabled,
@@ -78,6 +79,7 @@ from .utils.file_utils import (
 from .utils.filelock import FileLock
 from .utils.info_utils import is_small_dataset
 from .utils.logging import get_logger
+from .utils.metadata import DatasetMetadata
 from .utils.py_utils import get_imports
 from .utils.version import Version
 
@@ -468,7 +470,7 @@ class GithubMetricModuleFactory(_MetricModuleFactory):
             local_path = self.download_loading_script(revision)
             revision = self.revision
         except FileNotFoundError:
-            if revision is not None or os.getenv("HF_SCRIPTS_VERSION", None) is not None:
+            if revision is not None:
                 raise
             else:
                 revision = "main"
@@ -568,6 +570,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
     def get_module(self) -> DatasetModule:
         # get script and other files
         dataset_infos_path = Path(self.path).parent / config.DATASETDICT_INFOS_FILENAME
+        dataset_readme_path = Path(self.path).parent / "README.md"
         imports = get_imports(self.path)
         local_imports = _download_additional_modules(
             name=self.name,
@@ -575,9 +578,11 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
             imports=imports,
             download_config=self.download_config,
         )
-        additional_files = (
-            [(config.DATASETDICT_INFOS_FILENAME, str(dataset_infos_path))] if dataset_infos_path.is_file() else []
-        )
+        additional_files = []
+        if dataset_infos_path.is_file():
+            additional_files.append((config.DATASETDICT_INFOS_FILENAME, str(dataset_infos_path)))
+        if dataset_readme_path.is_file():
+            additional_files.append(("README.md", dataset_readme_path))
         # copy the script and the files in an importable directory
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
         module_path, hash = _create_importable_file(
@@ -657,8 +662,21 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         if os.path.isfile(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME)):
             with open(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
                 dataset_infos: DatasetInfosDict = json.load(f)
-            builder_kwargs["config_name"] = next(iter(dataset_infos))
-            builder_kwargs["info"] = DatasetInfo.from_dict(dataset_infos[builder_kwargs["config_name"]])
+            if dataset_infos:
+                builder_kwargs["config_name"] = next(iter(dataset_infos))
+                builder_kwargs["info"] = DatasetInfo.from_dict(next(iter(dataset_infos.values())))
+        if os.path.isfile(os.path.join(self.path, "README.md")):
+            dataset_metadata = DatasetMetadata.from_readme(Path(self.path) / "README.md")
+            if isinstance(dataset_metadata.get("dataset_info"), list) and dataset_metadata["dataset_info"]:
+                dataset_info_dict = dataset_metadata["dataset_info"][0]
+                builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
+                if "config_name" in dataset_info_dict:
+                    builder_kwargs["config_name"] = dataset_info_dict["config_name"]
+            elif isinstance(dataset_metadata.get("dataset_info"), dict) and dataset_metadata["dataset_info"]:
+                dataset_info_dict = dataset_metadata["dataset_info"]
+                builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
+                if "config_name" in dataset_info_dict:
+                    builder_kwargs["config_name"] = dataset_info_dict["config_name"]
         return DatasetModule(module_path, hash, builder_kwargs)
 
 
@@ -732,18 +750,14 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self.data_dir = data_dir
         self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
-        assert self.name.count("/") == 1
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
-        if isinstance(self.download_config.use_auth_token, bool):
-            token = HfFolder.get_token() if self.download_config.use_auth_token else None
-        else:
-            token = self.download_config.use_auth_token
-        hfh_dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
+        hfh_dataset_info = hf_api_dataset_info(
+            HfApi(config.HF_ENDPOINT),
             self.name,
             revision=self.revision,
-            token=token if token else "no-token",
+            use_auth_token=self.download_config.use_auth_token,
             timeout=100.0,
         )
         patterns = (
@@ -796,12 +810,35 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         try:
             dataset_infos_path = cached_path(
                 hf_hub_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=self.revision),
-                download_config=self.download_config,
+                download_config=download_config,
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
                 dataset_infos: DatasetInfosDict = json.load(f)
-            builder_kwargs["config_name"] = next(iter(dataset_infos))
-            builder_kwargs["info"] = DatasetInfo.from_dict(dataset_infos[builder_kwargs["config_name"]])
+            if dataset_infos:
+                builder_kwargs["config_name"] = next(iter(dataset_infos))
+                builder_kwargs["info"] = DatasetInfo.from_dict(next(iter(dataset_infos.values())))
+        except FileNotFoundError:
+            pass
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading readme"
+        try:
+            dataset_readme_path = cached_path(
+                hf_hub_url(self.name, "README.md", revision=self.revision),
+                download_config=download_config,
+            )
+            dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
+            if isinstance(dataset_metadata.get("dataset_info"), list) and dataset_metadata["dataset_info"]:
+                dataset_info_dict = dataset_metadata["dataset_info"][0]
+                builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
+                if "config_name" in dataset_info_dict:
+                    builder_kwargs["config_name"] = dataset_info_dict["config_name"]
+            elif isinstance(dataset_metadata.get("dataset_info"), dict) and dataset_metadata["dataset_info"]:
+                dataset_info_dict = dataset_metadata["dataset_info"]
+                builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
+                if "config_name" in dataset_info_dict:
+                    builder_kwargs["config_name"] = dataset_info_dict["config_name"]
+
         except FileNotFoundError:
             pass
         return DatasetModule(module_path, hash, builder_kwargs)
@@ -846,10 +883,25 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         except (FileNotFoundError, ConnectionError):
             return None
 
+    def download_dataset_readme_file(self) -> str:
+        readme_url = hf_hub_url(repo_id=self.name, path="README.md", revision=self.revision)
+        # Download the dataset infos file if available
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading readme"
+        try:
+            return cached_path(
+                readme_url,
+                download_config=download_config,
+            )
+        except (FileNotFoundError, ConnectionError):
+            return None
+
     def get_module(self) -> DatasetModule:
         # get script and other files
         local_path = self.download_loading_script()
         dataset_infos_path = self.download_dataset_infos_file()
+        dataset_readme_path = self.download_dataset_readme_file()
         imports = get_imports(local_path)
         local_imports = _download_additional_modules(
             name=self.name,
@@ -857,7 +909,11 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
             imports=imports,
             download_config=self.download_config,
         )
-        additional_files = [(config.DATASETDICT_INFOS_FILENAME, dataset_infos_path)] if dataset_infos_path else []
+        additional_files = []
+        if dataset_infos_path:
+            additional_files.append((config.DATASETDICT_INFOS_FILENAME, dataset_infos_path))
+        if dataset_readme_path:
+            additional_files.append(("README.md", dataset_readme_path))
         # copy the script and the files in an importable directory
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
         module_path, hash = _create_importable_file(
@@ -1104,14 +1160,11 @@ def dataset_module_factory(
             _raise_if_offline_mode_is_enabled()
             hf_api = HfApi(config.HF_ENDPOINT)
             try:
-                if isinstance(download_config.use_auth_token, bool):
-                    token = HfFolder.get_token() if download_config.use_auth_token else None
-                else:
-                    token = download_config.use_auth_token
-                dataset_info = hf_api.dataset_info(
+                dataset_info = hf_api_dataset_info(
+                    hf_api,
                     repo_id=path,
                     revision=revision,
-                    token=token if token else "no-token",
+                    use_auth_token=download_config.use_auth_token,
                     timeout=100.0,
                 )
             except Exception as e:  # noqa: catch any exception of hf_hub and consider that the dataset doesn't exist
@@ -1521,7 +1574,6 @@ def load_dataset(
             Dataset scripts are small python scripts that define dataset builders. They define the citation, info and format of the dataset,
             contain the path or URL to the original data files and the code to load examples from the original data files.
 
-            You can find some scripts here: https://github.com/huggingface/datasets/tree/main/datasets
             You can find the complete list of datasets in the Datasets Hub at https://huggingface.co/datasets
 
         2. Run the dataset script which will:

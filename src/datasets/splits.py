@@ -18,13 +18,15 @@
 
 import abc
 import collections
+import copy
+import dataclasses
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict, List, Optional, Union
 
 from .arrow_reader import FileInstructions, make_file_instructions
 from .naming import _split_re
-from .utils.py_utils import NonMutableDict
+from .utils.py_utils import NonMutableDict, asdict
 
 
 @dataclass
@@ -32,7 +34,14 @@ class SplitInfo:
     name: str = ""
     num_bytes: int = 0
     num_examples: int = 0
-    dataset_name: Optional[str] = None
+
+    # Deprecated
+    # For backward compatibility, this field needs to always be included in files like
+    # dataset_infos.json and dataset_info.json files
+    # To do so, we always include it in the output of datasets.utils.py_utils.asdict(split_info)
+    dataset_name: Optional[str] = dataclasses.field(
+        default=None, metadata={"include_in_asdict_even_if_is_default": True}
+    )
 
     @property
     def file_instructions(self):
@@ -74,7 +83,7 @@ class SplitBase(metaclass=abc.ABCMeta):
     """Abstract base class for Split compositionality.
 
     See the
-    [guide on splits](/docs/datasets/loading#slice-splits)
+    [guide on splits](./loading#slice-splits)
     for more information.
 
     There are three parts to the composition:
@@ -252,7 +261,7 @@ class PercentSlice(metaclass=PercentSliceMeta):
     """Syntactic sugar for defining slice subsplits: `datasets.percent[75:-5]`.
 
     See the
-    [guide on splits](/docs/datasets/loading#slice-splits)
+    [guide on splits](./loading#slice-splits)
     for more information.
     """
     # pylint: enable=line-too-long
@@ -545,7 +554,7 @@ class SplitDict(dict):
             split_infos = list(split_infos.values())
 
         if dataset_name is None:
-            dataset_name = split_infos[0]["dataset_name"] if split_infos else None
+            dataset_name = split_infos[0].get("dataset_name") if split_infos else None
 
         split_dict = cls(dataset_name=dataset_name)
 
@@ -559,10 +568,26 @@ class SplitDict(dict):
     def to_split_dict(self):
         """Returns a list of SplitInfo protos that we have."""
         # Return the SplitInfo, sorted by name
-        return sorted((s for s in self.values()), key=lambda s: s.name)
+        out = []
+        for split_name, split_info in sorted(self.items()):
+            split_info = copy.deepcopy(split_info)
+            split_info.name = split_name
+            out.append(split_info)
+        return out
 
     def copy(self):
         return SplitDict.from_split_dict(self.to_split_dict(), self.dataset_name)
+
+    def _to_yaml_list(self) -> list:
+        out = [asdict(s) for s in self.to_split_dict()]
+        # we don't need the dataset_name attribute that is deprecated
+        for split_info_dict in out:
+            split_info_dict.pop("dataset_name", None)
+        return out
+
+    @classmethod
+    def _from_yaml_list(cls, yaml_data: list) -> "SplitDict":
+        return cls.from_split_dict(yaml_data)
 
 
 @dataclass
@@ -591,8 +616,8 @@ class SplitGenerator:
     """
 
     name: str
-    gen_kwargs: Dict = field(default_factory=dict)
-    split_info: SplitInfo = field(init=False)
+    gen_kwargs: Dict = dataclasses.field(default_factory=dict)
+    split_info: SplitInfo = dataclasses.field(init=False)
 
     def __post_init__(self):
         self.name = str(self.name)  # Make sure we convert NamedSplits in strings

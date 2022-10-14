@@ -106,10 +106,14 @@ class DatasetDictTest(TestCase):
             self.assertIsInstance(dset_split[0]["col_2"], str)
             self.assertEqual(dset_split[0]["col_2"], "a")
 
-        dset.set_format(type="torch", columns=["col_1", "col_2"])
+        dset.set_format(type="torch")
         for dset_split in dset.values():
-            with self.assertRaises(TypeError):
-                dset_split[0]
+            self.assertEqual(len(dset_split[0]), 2)
+            self.assertIsInstance(dset_split[0]["col_1"], torch.Tensor)
+            self.assertListEqual(list(dset_split[0]["col_1"].shape), [])
+            self.assertEqual(dset_split[0]["col_1"].item(), 3)
+            self.assertIsInstance(dset_split[0]["col_2"], str)
+            self.assertEqual(dset_split[0]["col_2"], "a")
         del dset
 
     @require_tf

@@ -52,9 +52,7 @@ class TestDatasetOnHfGcp(TestCase):
     def test_dataset_info_available(self, dataset, config_name):
 
         with TemporaryDirectory() as tmp_dir:
-            dataset_module = dataset_module_factory(
-                os.path.join("datasets", dataset), cache_dir=tmp_dir, local_files_only=True
-            )
+            dataset_module = dataset_module_factory(dataset, cache_dir=tmp_dir)
 
             builder_cls = import_main_class(dataset_module.module_path, dataset=True)
 

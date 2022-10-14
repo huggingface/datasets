@@ -69,12 +69,12 @@ class Version:
             return Version(other)
         elif isinstance(other, Version):
             return other
-        raise AssertionError(f"{other} (type {type(other)}) cannot be compared to version.")
+        raise TypeError(f"{other} (type {type(other)}) cannot be compared to version.")
 
     def __eq__(self, other):
         try:
             other = self._validate_operand(other)
-        except (AssertionError, ValueError):
+        except (TypeError, ValueError):
             return False
         else:
             return self.tuple == other.tuple
@@ -112,6 +112,9 @@ class Version:
     def from_dict(cls, dic):
         field_names = {f.name for f in dataclasses.fields(cls)}
         return cls(**{k: v for k, v in dic.items() if k in field_names})
+
+    def _to_yaml_string(self) -> str:
+        return self.version_str
 
 
 def _str_to_version(version_str, allow_wildcard=False):

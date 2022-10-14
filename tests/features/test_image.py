@@ -445,26 +445,17 @@ def test_formatted_dataset_with_image_feature(shared_datadir):
     with dset.formatted_as("numpy"):
         item = dset[0]
         assert item.keys() == {"image"}
-        assert isinstance(item["image"], PIL.Image.Image)
-        assert os.path.samefile(item["image"].filename, image_path)
-        assert item["image"].format == "JPEG"
-        assert item["image"].size == (640, 480)
-        assert item["image"].mode == "RGB"
+        assert isinstance(item["image"], np.ndarray)
+        assert item["image"].shape == (480, 640, 3)
         batch = dset[:1]
         assert batch.keys() == {"image"}
         assert len(batch) == 1
-        assert isinstance(batch["image"], list) and all(isinstance(item, PIL.Image.Image) for item in batch["image"])
-        assert os.path.samefile(batch["image"][0].filename, image_path)
-        assert batch["image"][0].format == "JPEG"
-        assert batch["image"][0].size == (640, 480)
-        assert batch["image"][0].mode == "RGB"
+        assert isinstance(batch["image"], np.ndarray)
+        assert batch["image"].shape == (1, 480, 640, 3)
         column = dset["image"]
         assert len(column) == 2
-        assert isinstance(column, list) and all(isinstance(item, PIL.Image.Image) for item in column)
-        assert os.path.samefile(column[0].filename, image_path)
-        assert column[0].format == "JPEG"
-        assert column[0].size == (640, 480)
-        assert column[0].mode == "RGB"
+        assert isinstance(column, np.ndarray)
+        assert column.shape == (2, 480, 640, 3)
 
     with dset.formatted_as("pandas"):
         item = dset[0]

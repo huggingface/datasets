@@ -12,7 +12,7 @@ class HfFileSystem(AbstractFileSystem):
     """Interface to files in a Hugging face repository"""
 
     root_marker = ""
-    protocol = "hf"
+    protocol = "hf-legacy"  # "hf://"" is reserved for hffs
 
     def __init__(
         self,

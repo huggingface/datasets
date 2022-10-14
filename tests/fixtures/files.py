@@ -1,6 +1,8 @@
+import contextlib
 import csv
 import json
 import os
+import sqlite3
 import tarfile
 import textwrap
 import zipfile
@@ -235,6 +237,18 @@ def arrow_path(tmp_path_factory):
     dataset = datasets.Dataset.from_dict(DATA_DICT_OF_LISTS)
     path = str(tmp_path_factory.mktemp("data") / "dataset.arrow")
     dataset.map(cache_file_name=path)
+    return path
+
+
+@pytest.fixture(scope="session")
+def sqlite_path(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("data") / "dataset.sqlite")
+    with contextlib.closing(sqlite3.connect(path)) as con:
+        cur = con.cursor()
+        cur.execute("CREATE TABLE dataset(col_1 text, col_2 int, col_3 real)")
+        for item in DATA:
+            cur.execute("INSERT INTO dataset(col_1, col_2, col_3) VALUES (?, ?, ?)", tuple(item.values()))
+        con.commit()
     return path
 
 

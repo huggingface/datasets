@@ -6,6 +6,7 @@ import numpy as np
 import pyarrow as pa
 import pytest
 
+import datasets
 from datasets import Sequence, Value
 from datasets.features.features import ClassLabel, Features, Image
 from datasets.table import (
@@ -24,6 +25,7 @@ from datasets.table import (
     embed_table_storage,
     inject_arrow_table_documentation,
     table_cast,
+    table_iter,
 )
 
 from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, slow
@@ -1118,3 +1120,29 @@ def test_embed_table_storage(image_file):
     embedded_images_table = embed_table_storage(table)
     assert embedded_images_table.to_pydict()["image"][0]["path"] is None
     assert isinstance(embedded_images_table.to_pydict()["image"][0]["bytes"], bytes)
+
+
+@pytest.mark.skipif(datasets.config.PYARROW_VERSION.major < 8, reason="only available on pyarrow>=8")
+@pytest.mark.parametrize(
+    "pa_table",
+    [
+        pa.table({"foo": range(10)}),
+        pa.concat_tables([pa.table({"foo": range(0, 5)}), pa.table({"foo": range(5, 10)})]),
+        pa.concat_tables([pa.table({"foo": [i]}) for i in range(10)]),
+    ],
+)
+@pytest.mark.parametrize("batch_size", [1, 2, 3, 9, 10, 11, 20])
+@pytest.mark.parametrize("drop_last_batch", [False, True])
+def test_table_iter(pa_table, batch_size, drop_last_batch):
+    num_rows = len(pa_table) if not drop_last_batch else len(pa_table) // batch_size * batch_size
+    num_batches = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
+    subtables = list(table_iter(pa_table, batch_size=batch_size, drop_last_batch=drop_last_batch))
+    assert len(subtables) == num_batches
+    if drop_last_batch:
+        assert all(len(subtable) == batch_size for subtable in subtables)
+    else:
+        assert all(len(subtable) == batch_size for subtable in subtables[:-1])
+        assert len(subtables[-1]) <= batch_size
+    if num_rows > 0:
+        reloaded = pa.concat_tables(subtables)
+        assert pa_table.slice(0, num_rows).to_pydict() == reloaded.to_pydict()

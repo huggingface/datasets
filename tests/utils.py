@@ -130,6 +130,20 @@ def require_elasticsearch(test_case):
     return test_case
 
 
+def require_sqlalchemy(test_case):
+    """
+    Decorator marking a test that requires SQLAlchemy.
+
+    These tests are skipped when SQLAlchemy isn't installed.
+
+    """
+    try:
+        import sqlalchemy  # noqa
+    except ImportError:
+        test_case = unittest.skip("test requires sqlalchemy")(test_case)
+    return test_case
+
+
 def require_torch(test_case):
     """
     Decorator marking a test that requires PyTorch.
@@ -369,7 +383,7 @@ def is_rng_equal(rng1, rng2):
     return deepcopy(rng1).integers(0, 100, 10).tolist() == deepcopy(rng2).integers(0, 100, 10).tolist()
 
 
-def xfail_if_500_http_error(func):
+def xfail_if_500_502_http_error(func):
     import decorator
     from requests.exceptions import HTTPError
 
@@ -377,7 +391,7 @@ def xfail_if_500_http_error(func):
         try:
             return func(*args, **kwargs)
         except HTTPError as err:
-            if str(err).startswith("500"):
+            if str(err).startswith("500") or str(err).startswith("502"):
                 pytest.xfail(str(err))
             raise err
 
