@@ -3081,6 +3081,12 @@ def test_dataset_add_item_introduce_feature_type():
     assert dataset[:] == {"col_1": [None, None, None, "a"]}
 
 
+def test_dataset_filter_indices():
+    ds = Dataset.from_dict({"num": [0, 1, 2, 3]})
+    ds = ds.filter(lambda num: num % 2 == 0, input_columns="num", batch_size=2)
+    assert all(item["num"] % 2 == 0 for item in ds)
+
+
 @pytest.mark.parametrize("in_memory", [False, True])
 def test_dataset_from_file(in_memory, dataset, arrow_file):
     filename = arrow_file
