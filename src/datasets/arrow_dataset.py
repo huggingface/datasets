@@ -97,7 +97,7 @@ from .table import (
     embed_table_storage,
     list_table_cache_files,
     table_cast,
-    table_iter_batches,
+    table_iter,
     table_visitor,
 )
 from .tasks import TaskTemplate
@@ -1936,7 +1936,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # Benchmark: https://gist.github.com/mariosasko/0248288a2e3a7556873969717c1fe52b (fast_iter_batch)
             format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
             formatter = get_formatter(self._format_type, features=self.features, decoded=decoded, **format_kwargs)
-            for pa_subtable in table_iter_batches(self.data, batch_size=batch_size, drop_last_batch=drop_last_batch):
+            for pa_subtable in table_iter(self.data, batch_size=batch_size, drop_last_batch=drop_last_batch):
                 formatted_batch = format_table(
                     pa_subtable,
                     range(pa_subtable.num_rows),
@@ -1964,7 +1964,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
             formatter = get_formatter(self._format_type, features=self.features, decoded=decoded, **format_kwargs)
             batch_size = config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER
-            for pa_subtable in table_iter_batches(self.data, batch_size=batch_size):
+            for pa_subtable in table_iter(self.data, batch_size=batch_size):
                 for i in range(pa_subtable.num_rows):
                     pa_subtable_ex = pa_subtable.slice(i, 1)
                     formatted_output = format_table(

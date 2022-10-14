@@ -2150,11 +2150,11 @@ def table_visitor(table: pa.Table, function: Callable[[pa.Array], None]):
         _visit(table[name], feature)
 
 
-def table_iter_batches(pa_table: pa.Table, batch_size: int, drop_last_batch=False):
+def table_iter(pa_table: pa.Table, batch_size: int, drop_last_batch=False):
     """Iterate ober sub-tables of size `batch_size`.
 
     Args:
-        table (:obj:`pyarrow.Table`): PyArrow table to visit
+        table (:obj:`pyarrow.Table`): PyArrow table to iterate over
         batch_size (:obj:`int`): size of each sub-table to yield
         drop_last_batch (:obj:`bool`, default `False`): Drop the last batch  if it is smaller than `batch_size`
     """
