@@ -2961,7 +2961,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             else:
                                 writer.write(example)
                 else:
-                    for i, batch in enumerate(pbar):
+                    for i, batch in zip(range(0, num_rows, batch_size), pbar):
                         indices = list(
                             range(*(slice(i, i + batch_size).indices(input_dataset.num_rows)))
                         )  # Something simpler?
