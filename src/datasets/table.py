@@ -2158,6 +2158,8 @@ def table_iter(pa_table: pa.Table, batch_size: int, drop_last_batch=False):
         batch_size (:obj:`int`): size of each sub-table to yield
         drop_last_batch (:obj:`bool`, default `False`): Drop the last batch  if it is smaller than `batch_size`
     """
+    if config.PYARROW_VERSION.major < 8:
+        raise RuntimeError(f"pyarrow>=8.0.0 is needed to use table_iter but you have {config.PYARROW_VERSION}")
     chunks_buffer = []
     chunks_buffer_size = 0
     for chunk in pa_table.to_reader(max_chunksize=batch_size):
