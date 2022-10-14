@@ -95,9 +95,9 @@ from .table import (
     Table,
     concat_tables,
     embed_table_storage,
-    table_iter_batches,
     list_table_cache_files,
     table_cast,
+    table_iter_batches,
     table_visitor,
 )
 from .tasks import TaskTemplate
