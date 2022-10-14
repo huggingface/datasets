@@ -2151,7 +2151,7 @@ def table_visitor(table: pa.Table, function: Callable[[pa.Array], None]):
 
 
 def table_iter(pa_table: pa.Table, batch_size: int, drop_last_batch=False):
-    """Iterate ober sub-tables of size `batch_size`.
+    """Iterate over sub-tables of size `batch_size`.
 
     Requires pyarrow>=8.0.0
 
