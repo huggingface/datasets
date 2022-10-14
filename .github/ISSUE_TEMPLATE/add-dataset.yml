@@ -24,7 +24,7 @@ body:
     validations:
       required: true
   
-  - type: input
+  - type: textarea
     id: motivation
     attributes:
       label: Motivation
