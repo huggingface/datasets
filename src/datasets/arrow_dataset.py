@@ -97,6 +97,7 @@ from .table import (
     embed_table_storage,
     list_table_cache_files,
     table_cast,
+    table_iter,
     table_visitor,
 )
 from .tasks import TaskTemplate
@@ -1924,7 +1925,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         return self.num_rows
 
-    def _iter_batches(self, batch_size: int, decoded: bool = True):
+    def _iter_batches(self, batch_size: int, decoded: bool = True, drop_last_batch: bool = False):
         """Iterate through the batches of size `batch_size`.
 
         If a formatting is set with :meth:`Dataset.set_format` rows will be returned with the
@@ -1935,16 +1936,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # Benchmark: https://gist.github.com/mariosasko/0248288a2e3a7556873969717c1fe52b (fast_iter_batch)
             format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
             formatter = get_formatter(self._format_type, features=self.features, decoded=decoded, **format_kwargs)
-            for batch in self.data.to_reader(max_chunksize=batch_size):
-                pa_subtable = pa.Table.from_batches([batch])
-                formatted_output = format_table(
+            for pa_subtable in table_iter(self.data, batch_size=batch_size, drop_last_batch=drop_last_batch):
+                formatted_batch = format_table(
                     pa_subtable,
                     range(pa_subtable.num_rows),
                     formatter=formatter,
                     format_columns=self._format_columns,
                     output_all_columns=self._output_all_columns,
                 )
-                yield formatted_output
+                yield formatted_batch
         else:
             for i in range(0, self.num_rows, batch_size):
                 yield self._getitem(
@@ -1964,12 +1964,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
             formatter = get_formatter(self._format_type, features=self.features, decoded=decoded, **format_kwargs)
             batch_size = config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER
-            for batch in self.data.to_reader(max_chunksize=batch_size):
-                for i in range(batch.num_rows):
-                    batch_ex = batch.slice(i, 1)
-                    pa_subtable = pa.Table.from_batches([batch_ex])
+            for pa_subtable in table_iter(self.data, batch_size=batch_size):
+                for i in range(pa_subtable.num_rows):
+                    pa_subtable_ex = pa_subtable.slice(i, 1)
                     formatted_output = format_table(
-                        pa_subtable,
+                        pa_subtable_ex,
                         0,
                         formatter=formatter,
                         format_columns=self._format_columns,
@@ -2936,8 +2935,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         len(input_dataset) if not drop_last_batch else len(input_dataset) // batch_size * batch_size
                     )
                     pbar_total = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
-                    pbar_iterable = itertools.islice(
-                        input_dataset._iter_batches(batch_size, decoded=False), pbar_total
+                    pbar_iterable = input_dataset._iter_batches(
+                        batch_size, decoded=False, drop_last_batch=drop_last_batch
                     )
                 pbar_unit = "ex" if not batched else "ba"
                 pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc

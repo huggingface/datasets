@@ -2148,3 +2148,39 @@ def table_visitor(table: pa.Table, function: Callable[[pa.Array], None]):
 
     for name, feature in features.items():
         _visit(table[name], feature)
+
+
+def table_iter(pa_table: pa.Table, batch_size: int, drop_last_batch=False):
+    """Iterate over sub-tables of size `batch_size`.
+
+    Requires pyarrow>=8.0.0
+
+    Args:
+        table (:obj:`pyarrow.Table`): PyArrow table to iterate over
+        batch_size (:obj:`int`): size of each sub-table to yield
+        drop_last_batch (:obj:`bool`, default `False`): Drop the last batch  if it is smaller than `batch_size`
+    """
+    if config.PYARROW_VERSION.major < 8:
+        raise RuntimeError(f"pyarrow>=8.0.0 is needed to use table_iter but you have {config.PYARROW_VERSION}")
+    chunks_buffer = []
+    chunks_buffer_size = 0
+    for chunk in pa_table.to_reader(max_chunksize=batch_size):
+        if len(chunk) == 0:
+            continue
+        elif chunks_buffer_size + len(chunk) < batch_size:
+            chunks_buffer.append(chunk)
+            chunks_buffer_size += len(chunk)
+            continue
+        elif chunks_buffer_size + len(chunk) == batch_size:
+            chunks_buffer.append(chunk)
+            yield pa.Table.from_batches(chunks_buffer)
+            chunks_buffer = []
+            chunks_buffer_size = 0
+        else:
+            cropped_chunk_length = batch_size - chunks_buffer_size
+            chunks_buffer.append(chunk.slice(0, cropped_chunk_length))
+            yield pa.Table.from_batches(chunks_buffer)
+            chunks_buffer = [chunk.slice(cropped_chunk_length, len(chunk) - cropped_chunk_length)]
+            chunks_buffer_size = len(chunk) - cropped_chunk_length
+    if not drop_last_batch and chunks_buffer:
+        yield pa.Table.from_batches(chunks_buffer)
