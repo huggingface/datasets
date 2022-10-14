@@ -2148,3 +2148,26 @@ def table_visitor(table: pa.Table, function: Callable[[pa.Array], None]):
 
     for name, feature in features.items():
         _visit(table[name], feature)
+
+
+def table_iter_batches(pa_table: pa.Table, batch_size: int, drop_last_batch=False):
+    chunks_buffer = []
+    chunks_buffer_size = 0
+    for chunk in pa_table.to_reader(max_chunksize=batch_size):
+        if chunks_buffer_size + len(chunk) < batch_size:
+            chunks_buffer.append(chunk)
+            chunks_buffer_size += len(chunk)
+            continue
+        elif chunks_buffer_size + len(chunk) == batch_size:
+            chunks_buffer.append(chunk)
+            yield pa.Table.from_batches(chunks_buffer)
+            chunks_buffer = []
+            chunks_buffer_size = 0
+        else:
+            cropped_chunk_length = batch_size - chunks_buffer_size
+            chunks_buffer.append(chunk.slice(0, cropped_chunk_length))
+            yield pa.Table.from_batches(chunks_buffer)
+            chunks_buffer = [chunk.slice(cropped_chunk_length, len(chunk) - cropped_chunk_length)]
+            chunks_buffer_size = cropped_chunk_length
+    if not drop_last_batch:
+        yield pa.Table.from_batches(chunks_buffer)
