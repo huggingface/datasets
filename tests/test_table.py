@@ -6,6 +6,7 @@ import numpy as np
 import pyarrow as pa
 import pytest
 
+import datasets
 from datasets import Sequence, Value
 from datasets.features.features import ClassLabel, Features, Image
 from datasets.table import (
@@ -1121,6 +1122,7 @@ def test_embed_table_storage(image_file):
     assert isinstance(embedded_images_table.to_pydict()["image"][0]["bytes"], bytes)
 
 
+@pytest.mark.skipif(datasets.config.PYARROW_VERSION.major < 8, reason="only available on pyarrow>=8")
 @pytest.mark.parametrize(
     "pa_table",
     [
