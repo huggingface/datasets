@@ -1,5 +1,5 @@
 name: Add dataset
-description: Request the addition of a specific dataset to the library
+description: Request the addition of a specific dataset to the Hub
 labels: ["dataset request"]
 body:
   - type: input
