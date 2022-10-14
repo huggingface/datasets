@@ -1137,8 +1137,6 @@ def test_table_iter(pa_table, batch_size, drop_last_batch):
     subtables = list(table_iter(pa_table, batch_size=batch_size, drop_last_batch=drop_last_batch))
     assert len(subtables) == num_batches
     if drop_last_batch:
-        if not all(len(subtable) == batch_size for subtable in subtables):
-            raise ArithmeticError([len(subtable) for subtable in subtables])
         assert all(len(subtable) == batch_size for subtable in subtables)
     else:
         assert all(len(subtable) == batch_size for subtable in subtables[:-1])
