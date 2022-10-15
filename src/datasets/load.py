@@ -1552,6 +1552,7 @@ def load_dataset(
     use_auth_token: Optional[Union[bool, str]] = None,
     task: Optional[Union[str, TaskTemplate]] = None,
     streaming: bool = False,
+    num_proc: int = None,
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset, IterableDatasetDict, IterableDataset]:
     """Load a dataset from the Hugging Face Hub, or a local dataset.
@@ -1644,6 +1645,7 @@ def load_dataset(
             Note that streaming works for datasets that use data formats that support being iterated over like txt, csv, jsonl for example.
             Json files may be downloaded completely. Also streaming from remote zip or gzip files is supported but other compressed formats
             like rar and xz are not yet supported. The tgz format doesn't allow streaming.
+        num_proc (:obj:`int`, optional, default `None`): Number of processes when building and loading the dataset.
         **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the :class:`BuilderConfig`
             and used in the :class:`DatasetBuilder`.
 
@@ -1745,6 +1747,7 @@ def load_dataset(
         ignore_verifications=ignore_verifications,
         try_from_hf_gcs=try_from_hf_gcs,
         use_auth_token=use_auth_token,
+        num_proc=num_proc,
     )
 
     # Build dataset for splits

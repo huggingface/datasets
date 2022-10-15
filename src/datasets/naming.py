@@ -14,7 +14,7 @@
 
 # Lint as: python3
 """Utilities for file names."""
-
+import glob
 import itertools
 import os
 import re
@@ -72,6 +72,13 @@ def filename_for_dataset_split(dataset_name, split, filetype_suffix=None):
     if filetype_suffix:
         prefix += f".{filetype_suffix}"
     return prefix
+
+
+def filenames_for_dataset_split(path, dataset_name, split, filetype_suffix=None):
+    prefix = filename_prefix_for_split(dataset_name, split)
+    prefix = os.path.join(path, prefix)
+    suffix = filetype_suffix if filetype_suffix is not None else ""
+    return glob.glob(f"{prefix}-[0-9]*-of-[0-9]*{suffix}")
 
 
 def filepath_for_dataset_split(dataset_name, split, data_dir, filetype_suffix=None):

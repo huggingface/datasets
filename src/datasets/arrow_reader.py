@@ -27,7 +27,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 
 from .download.download_config import DownloadConfig
-from .naming import _split_re, filename_for_dataset_split
+from .naming import _split_re, filename_for_dataset_split, filenames_for_dataset_split
 from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables
 from .utils import logging
 from .utils.file_utils import cached_path
@@ -88,7 +88,7 @@ class FileInstructions:
     file_instructions: List[dict]
 
 
-def make_file_instructions(name, split_infos, instruction, filetype_suffix=None):
+def make_file_instructions(name, split_infos, instruction, filetype_suffix=None, prefix_path=None):
     """Returns instructions of the split dict.
 
     Args:
@@ -107,25 +107,32 @@ def make_file_instructions(name, split_infos, instruction, filetype_suffix=None)
     absolute_instructions = instruction.to_absolute(name2len)
 
     return _make_file_instructions_from_absolutes(
-        name=name, name2len=name2len, absolute_instructions=absolute_instructions, filetype_suffix=filetype_suffix
+        name=name,
+        name2len=name2len,
+        absolute_instructions=absolute_instructions,
+        filetype_suffix=filetype_suffix,
+        prefix_path=prefix_path,
     )
 
 
-def _make_file_instructions_from_absolutes(name, name2len, absolute_instructions, filetype_suffix=None):
+def _make_file_instructions_from_absolutes(
+    name, name2len, absolute_instructions, filetype_suffix=None, prefix_path=None
+):
     """Returns the files instructions from the absolute instructions list."""
     # For each split, return the files instruction (skip/take)
     file_instructions = []
     num_examples = 0
     for abs_instr in absolute_instructions:
         length = name2len[abs_instr.splitname]
-        filename = filename_for_dataset_split(
-            dataset_name=name, split=abs_instr.splitname, filetype_suffix=filetype_suffix
+        filenames = filenames_for_dataset_split(
+            path=prefix_path, dataset_name=name, split=abs_instr.splitname, filetype_suffix=filetype_suffix
         )
-        from_ = 0 if abs_instr.from_ is None else abs_instr.from_
-        to = length if abs_instr.to is None else abs_instr.to
-        num_examples += to - from_
-        single_file_instructions = [{"filename": filename, "skip": from_, "take": to - from_}]
-        file_instructions.extend(single_file_instructions)
+        for filename in filenames:
+            from_ = 0 if abs_instr.from_ is None else abs_instr.from_
+            to = length if abs_instr.to is None else abs_instr.to
+            num_examples += to - from_
+            single_file_instructions = [{"filename": filename, "skip": from_, "take": to - from_}]
+            file_instructions.extend(single_file_instructions)
     return FileInstructions(
         num_examples=num_examples,
         file_instructions=file_instructions,
@@ -182,7 +189,7 @@ class BaseReader:
     def get_file_instructions(self, name, instruction, split_infos):
         """Return list of dict {'filename': str, 'skip': int, 'take': int}"""
         file_instructions = make_file_instructions(
-            name, split_infos, instruction, filetype_suffix=self._filetype_suffix
+            name, split_infos, instruction, filetype_suffix=self._filetype_suffix, prefix_path=self._path
         )
         files = file_instructions.file_instructions
         return files
