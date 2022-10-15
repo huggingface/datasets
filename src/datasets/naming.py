@@ -75,10 +75,19 @@ def filename_for_dataset_split(dataset_name, split, filetype_suffix=None):
 
 
 def filenames_for_dataset_split(path, dataset_name, split, filetype_suffix=None):
+
+    NUM_DIGITS = 5
+    counting_pattern = "[0-9]" * NUM_DIGITS
+
     prefix = filename_prefix_for_split(dataset_name, split)
     prefix = os.path.join(path, prefix)
-    suffix = filetype_suffix if filetype_suffix is not None else ""
-    return glob.glob(f"{prefix}-[0-9]*-of-[0-9]*{suffix}")
+    filetype_suffix = filetype_suffix if filetype_suffix is not None else ""
+
+    single_file_path = f"{prefix}.{filetype_suffix}"
+    if os.path.isfile(single_file_path):
+        return [single_file_path]
+
+    return glob.glob(f"{prefix}-{counting_pattern}-of-{counting_pattern}.{filetype_suffix}")
 
 
 def filepath_for_dataset_split(dataset_name, split, data_dir, filetype_suffix=None):
