@@ -2941,7 +2941,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 pbar_unit = "ex" if not batched else "ba"
                 pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
                 pbar = logging.tqdm(
-                    pbar_iterable,
+                    zip(range(0, num_rows, batch_size), pbar_iterable),
                     total=pbar_total,
                     disable=disable_tqdm,
                     position=rank,
@@ -2960,7 +2960,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             else:
                                 writer.write(example)
                 else:
-                    for i, batch in zip(range(0, num_rows, batch_size), pbar):
+                    for i, batch in pbar:
                         indices = list(
                             range(*(slice(i, i + batch_size).indices(input_dataset.num_rows)))
                         )  # Something simpler?
