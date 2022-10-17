@@ -1319,6 +1319,46 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
         raise ValueError(f"Cannot convert {pa_type} to a Feature type.")
 
 
+def _get_webdataset_extension(key: str, feature: FeatureType) -> str:
+    JSON_SERIALIZABLE = ["id", "txt", "json"]
+    if isinstance(feature, Value):
+        out = {
+            "int": "id",
+            "uint": "id",
+            "float": "json",
+            "string": "txt",
+            "large_string": "txt",
+        }.get(feature.dtype.split("[")[0].strip("1234567890"))
+        # TODO: support other Value dtypes
+        if out:
+            return out
+    if isinstance(feature, ClassLabel):
+        return "cls"
+    elif isinstance(feature, (Array2D, Array3D, Array4D, Array5D)):
+        return "npy"
+    elif isinstance(feature, (list, tuple)):
+        subencoder = _get_webdataset_extension(key, feature[0])
+        if subencoder in JSON_SERIALIZABLE:
+            return "json"
+    elif isinstance(feature, dict):
+        for subkey, subfeature in feature.items():
+            subencoder = _get_webdataset_extension(f"{key}.{subkey}", subfeature)
+            if subencoder not in JSON_SERIALIZABLE:
+                raise NotImplementedError(f"Exporting {key}.{subkey}: {subfeature} to WebDataset is not implemented")
+        else:
+            return "json"
+    elif isinstance(feature, Sequence):
+        subencoder = _get_webdataset_extension(key, feature.feature)
+        if subencoder in JSON_SERIALIZABLE:
+            return "json"
+    elif isinstance(feature, (Translation, TranslationVariableLanguages)):
+        return "json"
+    elif isinstance(feature, Image):
+        return "jpg"
+    # TODO: support Audio (webdataset is missing an audio handler at the time of implementing this function)
+    raise NotImplementedError(f"Exporting {key}: {feature} to WebDataset is not implemented")
+
+
 def numpy_to_pyarrow_listarray(arr: np.ndarray, type: pa.DataType = None) -> pa.ListArray:
     """Build a PyArrow ListArray from a multidimensional NumPy array"""
     arr = np.array(arr)
