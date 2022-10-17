@@ -2935,13 +2935,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         len(input_dataset) if not drop_last_batch else len(input_dataset) // batch_size * batch_size
                     )
                     pbar_total = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
-                    pbar_iterable = input_dataset._iter_batches(
+                    pbar_iterable = zip(range(0, num_rows, batch_size), input_dataset._iter_batches(
                         batch_size, decoded=False, drop_last_batch=drop_last_batch
-                    )
+                    ))
                 pbar_unit = "ex" if not batched else "ba"
                 pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
                 pbar = logging.tqdm(
-                    zip(range(0, num_rows, batch_size), pbar_iterable),
+                    pbar_iterable,
                     total=pbar_total,
                     disable=disable_tqdm,
                     position=rank,
