@@ -127,6 +127,7 @@ else:
 
 # Optional tools for data loading
 SQLALCHEMY_AVAILABLE = importlib.util.find_spec("sqlalchemy") is not None
+WEBDATASET_AVAILABLE = importlib.util.find_spec("webdataset") is not None
 
 # Optional tools for feature decoding
 PIL_AVAILABLE = importlib.util.find_spec("PIL") is not None

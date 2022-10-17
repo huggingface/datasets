@@ -1,5 +1,6 @@
 import copy
 import itertools
+import os
 from collections import Counter
 from copy import deepcopy
 from dataclasses import dataclass
@@ -9,13 +10,32 @@ from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Unio
 import numpy as np
 import pyarrow as pa
 
+from . import config
 from .arrow_dataset import DatasetInfoMixin
-from .features import Features
-from .features.features import FeatureType, _align_features, _check_if_features_can_be_aligned
+from .features import (
+    Array2D,
+    Array3D,
+    Array4D,
+    Array5D,
+    ClassLabel,
+    Features,
+    Image,
+    Sequence,
+    Translation,
+    TranslationVariableLanguages,
+    Value,
+)
+from .features.features import (
+    FeatureType,
+    _align_features,
+    _check_if_features_can_be_aligned,
+    _get_webdataset_extension,
+)
 from .formatting import PythonFormatter
 from .info import DatasetInfo
 from .splits import NamedSplit
 from .table import table_cast
+from .utils.py_utils import convert_file_size_to_int
 
 
 def _infer_features_from_batch(batch: Dict[str, list], try_features: Optional[Features] = None) -> Features:
@@ -1373,6 +1393,68 @@ class IterableDataset(DatasetInfoMixin):
             shuffling=copy.deepcopy(self._shuffling),
             token_per_repo_id=self._token_per_repo_id,
         )
+
+    def to_wds(
+        self, output_dir: str, max_shard_size: Optional[Union[str, int]] = None, compress: Optional[bool] = None
+    ):
+        """
+        Save to the dataset to the WebDataset format.
+        Supports image and text datasets, but audio datasets are not supported yet.
+
+        Args:
+            output_dir (:obj:`str`, optional): output directory for the dataset.
+            max_shard_size (:obj:`Union[str, int]`, optional): Maximum number of bytes written per shard.
+                The default is "500MB". The size is based on uncompressed data size,
+                so in practice your shard files may be smaller than `max_shard_size` thanks to compression.
+            compress (:obj:`bool`, optional): Whether to compress the dataset using tar.gz, default to false.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> ds.to_wds("output_dir", compress=True)
+        >>> import webdataset as wds
+        >>> ds = wds.WebDataset("output_dir/rotten_tomatoes-train-000000.tar.gz").decode()
+        >>> next(iter(ds))
+        {'__key__': '0',
+        '__url__': 'output_dir/rotten_tomatoes-train-000000.tar.gz',
+        'label.cls': 1,
+        'text.txt': 'the rock is destined to be the 21st century\'s new ..., jean-claud van damme or steven segal .'}
+        ```
+        """
+        if config.WEBDATASET_AVAILABLE:
+            import webdataset as wds
+        else:
+            raise ImportError("To support exporting to WebDataset, please install 'webdataset'.")
+
+        # Get the webdataset extensions e.g. jpg or json
+        # WebDataset automatically encodes python objects like PIL.Image or python dictionaries according to the extension
+        ds = self._resolve_features()
+        extensions = {key: _get_webdataset_extension(key, feature) for key, feature in ds.features.items()}
+
+        os.makedirs(output_dir, exist_ok=True)
+        tar_extension = "tar.gz" if compress else "tar"
+        fname = f"{ds.info.builder_name or 'data'}-{ds._split or 'train'}-SSSSSS.{tar_extension}"
+        fpath = os.path.join(output_dir, fname)
+
+        max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
+        shard_id, bytes_in_current_shard, total_bytes = 0, 0, 0
+        writer = wds.TarWriter(fpath.replace("SSSSSS", f"{shard_id:06d}"))
+        # This is single processed for now, but we could parallelize on the IterableDataset shards
+        for i, example in enumerate(ds):
+            # Create a new shard if the current shard siwe is greater than max_shard_size
+            if bytes_in_current_shard > max_shard_size:
+                writer.close()
+                shard_id += 1
+                total_bytes += bytes_in_current_shard
+                bytes_in_current_shard = 0
+                writer = wds.TarWriter(fpath.replace("SSSSSS", f"{shard_id:06d}"))
+            obj = {f"{key}.{extensions[key]}": example[key] for key in extensions}
+            obj["__key__"] = str(i)
+            bytes_in_current_shard += writer.write(obj)
+        writer.close()
+        return total_bytes
 
 
 def iterable_dataset(
