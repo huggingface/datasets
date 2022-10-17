@@ -1472,7 +1472,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
                     shard_id += 1
                     writer = writer_class(
                         features=writer._features,
-                        path=fpath.replace("SSSSS", f"{shard_id:05d}"),
+                        path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("RRRRR", f"{rank:05d}"),
                         writer_batch_size=self._writer_batch_size,
                         hash_salt=split_info.name,
                         check_duplicates=check_duplicate_keys,
@@ -1666,7 +1666,7 @@ class ArrowBasedBuilder(DatasetBuilder):
                     shard_id += 1
                     writer = writer_class(
                         features=writer._features,
-                        path=fpath.replace("SSSSS", f"{shard_id:05d}"),
+                        path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("RRRRR", f"{rank:05d}"),
                         storage_options=self._fs.storage_options,
                         embed_local_files=embed_local_files,
                     )
