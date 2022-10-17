@@ -12,20 +12,8 @@ import pyarrow as pa
 
 from . import config
 from .arrow_dataset import DatasetInfoMixin
-from .features import (
-    Array2D,
-    Array3D,
-    Array4D,
-    Array5D,
-    ClassLabel,
-    Features,
-    Image,
-    Sequence,
-    Translation,
-    TranslationVariableLanguages,
-    Value,
-)
 from .features.features import (
+    Features,
     FeatureType,
     _align_features,
     _check_if_features_can_be_aligned,
