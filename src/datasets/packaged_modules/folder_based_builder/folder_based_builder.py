@@ -316,7 +316,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                                 pa_metadata_table = pa_metadata_table.drop(["file_name"])
                                 metadata_dir = os.path.dirname(metadata_file)
                                 metadata_dict = {
-                                    file_name: sample_metadata
+                                    os.path.normpath(file_name): sample_metadata
                                     for file_name, sample_metadata in zip(
                                         pa_file_name_array.to_pylist(), pa_table_to_pylist(pa_metadata_table)
                                     )
@@ -385,7 +385,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                                     pa_metadata_table = pa_metadata_table.drop(["file_name"])
                                     metadata_dir = os.path.dirname(downloaded_metadata_file)
                                     metadata_dict = {
-                                        file_name: sample_metadata
+                                        os.path.normpath(file_name): sample_metadata
                                         for file_name, sample_metadata in zip(
                                             pa_file_name_array.to_pylist(), pa_table_to_pylist(pa_metadata_table)
                                         )
