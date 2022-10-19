@@ -6,7 +6,6 @@ from typing import List, Optional, Tuple
 
 import pandas as pd
 import pyarrow as pa
-import pyarrow.compute as pc
 import pyarrow.json as paj
 
 import datasets
