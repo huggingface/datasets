@@ -31,7 +31,3 @@ body:
       description: What are some good reasons to have this dataset
     validations:
       required: true
-
-  - type: markdown
-    attributes:
-      value: Instructions to add a new dataset can be found [here](https://github.com/huggingface/datasets/blob/main/ADD_NEW_DATASET.md).
