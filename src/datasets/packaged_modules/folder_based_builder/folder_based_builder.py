@@ -310,9 +310,6 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                                 )
                                 pa_metadata_table = self._read_metadata(downloaded_metadata_file)
                                 pa_file_name_array = pa_metadata_table["file_name"]
-                                pa_file_name_array = pc.replace_substring(
-                                    pa_file_name_array, pattern="\\", replacement="/"
-                                )
                                 pa_metadata_table = pa_metadata_table.drop(["file_name"])
                                 metadata_dir = os.path.dirname(metadata_file)
                                 metadata_dict = {
@@ -379,13 +376,10 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                                     )
                                     pa_metadata_table = self._read_metadata(downloaded_metadata_file)
                                     pa_file_name_array = pa_metadata_table["file_name"]
-                                    pa_file_name_array = pc.replace_substring(
-                                        pa_file_name_array, pattern="\\", replacement="/"
-                                    )
                                     pa_metadata_table = pa_metadata_table.drop(["file_name"])
                                     metadata_dir = os.path.dirname(downloaded_metadata_file)
                                     metadata_dict = {
-                                        os.path.normpath(file_name): sample_metadata
+                                        os.path.normpath(file_name).replace("\\", "/"): sample_metadata
                                         for file_name, sample_metadata in zip(
                                             pa_file_name_array.to_pylist(), pa_table_to_pylist(pa_metadata_table)
                                         )
