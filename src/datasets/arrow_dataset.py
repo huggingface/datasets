@@ -1559,15 +1559,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             ]
             return batch
 
+        new_features = dset.features.copy()
+        new_features[column] = dst_feat
+
         dset = dset.map(
             cast_to_class_labels,
             batched=True,
+            features=new_features,
             desc="Casting to class labels",
         )
-
-        new_features = dset.features.copy()
-        new_features[column] = dst_feat
-        dset = dset.cast(new_features)
 
         return dset
 
