@@ -1436,8 +1436,16 @@ class GeneratorBasedBuilder(DatasetBuilder):
             self.info.features = features
 
     def _prepare_split_single(
-        self, shard_kwargs, fpath, file_format, max_shard_size, split_info, check_duplicate_keys, rank=0
+        self, shard_kwargs, fpath, file_format, max_shard_size, split_info, check_duplicate_keys, rank=None
     ):
+
+        if rank is None:
+            # in single mode there will be only one rank
+            tqdm_length = split_info.num_examples
+            rank = 0
+        else:
+            # in multiprocessed mode we can't know how many lines there are per shard
+            tqdm_length = None
 
         generator = self._generate_examples(**shard_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
@@ -1459,7 +1467,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
             for key, record in logging.tqdm(
                 generator,
                 unit=" examples",
-                total=split_info.num_examples,
+                total=tqdm_length,
                 leave=False,
                 disable=not logging.is_progress_bar_enabled(),
                 desc=f"Generating {split_info.name} split",
