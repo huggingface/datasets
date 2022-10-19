@@ -299,7 +299,7 @@ def _copy_script_and_other_resources_in_importable_dir(
                 if not os.path.exists(full_path_local_import):
                     shutil.copytree(import_path, full_path_local_import)
             else:
-                raise OSError(f"Error with local import at {import_path}")
+                raise ImportError(f"Error with local import at {import_path}")
 
         # Copy additional files like dataset_infos.json file if needed
         for file_name, original_path in additional_files:
