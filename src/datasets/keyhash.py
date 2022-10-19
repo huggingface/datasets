@@ -15,7 +15,7 @@
 # Lint as: python3
 
 """
-Hashing function for dataset keys using `hashlib.md5`
+Hashing function for dataset keys using `hashlib.sha256`
 
 Requirements for the hash function:
 
@@ -24,7 +24,7 @@ Requirements for the hash function:
 - Working with multiple input types (in this case, `str`, `int` or `bytes`)
 - Should be platform independent (generates same hash on different OS and systems)
 
-The hashing function provides a unique 128-bit integer hash of the key provided.
+The hashing function provides a unique 256-bit integer hash of the key provided.
 
 The split name is being used here as the hash salt to avoid having same hashes
 in different splits due to same keys
@@ -84,20 +84,20 @@ class DuplicatedKeysError(Exception):
 
 
 class KeyHasher:
-    """KeyHasher class for providing hash using md5"""
+    """KeyHasher class for providing hash using sha256"""
 
     def __init__(self, hash_salt: str):
-        self._split_md5 = hashlib.md5(_as_bytes(hash_salt))
+        self._split_sha = hashlib.sha256(_as_bytes(hash_salt))
 
     def hash(self, key: Union[str, int, bytes]) -> int:
-        """Returns 128-bits unique hash of input key
+        """Returns 256-bits unique hash of input key
 
         Args:
         key: the input key to be hashed (should be str, int or bytes)
 
-        Returns: 128-bit int hash key"""
-        md5 = self._split_md5.copy()
+        Returns: 256-bit int hash key"""
+        sha = self._split_sha.copy()
         byte_key = _as_bytes(key)
-        md5.update(byte_key)
+        sha.update(byte_key)
         # Convert to integer with hexadecimal conversion
-        return int(md5.hexdigest(), 16)
+        return int(sha.hexdigest(), 16)
