@@ -87,7 +87,7 @@ def filenames_for_dataset_split(path, dataset_name, split, filetype_suffix=None)
     if os.path.isfile(single_file_path):
         return [single_file_path]
 
-    return glob.glob(f"{prefix}-{counting_pattern}-of-{counting_pattern}.{filetype_suffix}")
+    return sorted(glob.glob(f"{prefix}-{counting_pattern}-of-{counting_pattern}.{filetype_suffix}"))
 
 
 def filepath_for_dataset_split(dataset_name, split, data_dir, filetype_suffix=None):
