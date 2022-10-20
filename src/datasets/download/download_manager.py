@@ -377,7 +377,7 @@ class DownloadManager:
         """
         return FilesIterable.from_paths(paths)
 
-    def extract(self, path_or_paths, num_proc=None):
+    def extract(self, path_or_paths):
         """Extract given path(s).
 
         Args:
@@ -402,10 +402,12 @@ class DownloadManager:
         # Extract downloads the file first if it is not already downloaded
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading data"
+        if download_config.num_proc is None:
+            download_config.num_proc = 16
         extracted_paths = map_nested(
             partial(cached_path, download_config=download_config),
             path_or_paths,
-            num_proc=num_proc,
+            num_proc=download_config.num_proc,
             disable_tqdm=not is_progress_bar_enabled(),
             desc="Extracting data files",
         )
