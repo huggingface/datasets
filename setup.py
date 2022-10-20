@@ -132,7 +132,8 @@ TESTS_REQUIRE = [
     "py7zr",
     "rarfile>=4.0",
     "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1
-    "tensorflow>=2.3,!=2.6.0,!=2.6.1",
+    "tensorflow>=2.3,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
+    "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
     "torch",
     "torchaudio<0.12.0",
     "soundfile",
@@ -172,7 +173,10 @@ EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
     "vision": VISION_REQURE,
     "apache-beam": ["apache-beam>=2.26.0"],
-    "tensorflow": ["tensorflow>=2.2.0,!=2.6.0,!=2.6.1"],
+    "tensorflow": [
+        "tensorflow>=2.2.0,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
+        "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
+    ],
     "tensorflow_gpu": ["tensorflow-gpu>=2.2.0,!=2.6.0,!=2.6.1"],
     "torch": ["torch"],
     "s3": [
