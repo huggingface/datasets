@@ -1421,7 +1421,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
                 f"Setting num_proc from {num_proc} back to 1 to disable multiprocessing as the dataset only contains one shard."
             )
             num_proc = 1
-        elif num_input_shards < num_proc:
+        elif num_proc is not None and 0 < num_input_shards < num_proc:
             logger.info(
                 f"Setting num_proc from {num_proc} to {num_input_shards} as the dataset only contains {num_input_shards} shards."
             )
