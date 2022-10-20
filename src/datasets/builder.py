@@ -28,7 +28,7 @@ import warnings
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import Dict, Mapping, Optional, Tuple, Union
+from typing import Dict, List, Mapping, Optional, Tuple, Union
 
 import fsspec
 from multiprocess import Pool
@@ -1275,6 +1275,64 @@ class DatasetBuilder:
         raise NotImplementedError()
 
 
+def _distribute_shards(num_shards: int, max_num_groups: int) -> List[range]:
+    """
+    Get the range of shard indices per group.
+    If num_shards<max_num_groups, then each group is range of one shard.
+    The shards indices order is preserved: e.g. all the first shards are in the first group.
+    Moreover all the groups have approximately the same number of shards.
+
+    Example:
+
+    ```python
+    >>> _distribute_shards(2, max_num_groups=4)
+    [range(0, 1), range(1, 2)]
+    >>> _distribute_shards(10, max_num_groups=3)
+    [range(0, 4), range(4, 7), range(7, 10)]
+    ```
+    """
+    shards_indices_per_group = []
+    for group_idx in range(max_num_groups):
+        num_shards_to_add = num_shards // max_num_groups + (group_idx < (num_shards % max_num_groups))
+        if num_shards_to_add == 0:
+            break
+        start = shards_indices_per_group[-1].stop if shards_indices_per_group else 0
+        shard_indices = range(start, start + num_shards_to_add)
+        shards_indices_per_group.append(shard_indices)
+    return shards_indices_per_group
+
+
+def _split_gen_kwargs(kwargs: dict, max_num_groups: int) -> List[dict]:
+    """Split the gen_kwargs into `max_num_groups` gen_kwargs"""
+    # Having lists of different sizes makes sharding ambigious, raise an error in this case
+    lists_lengths = {key: len(value) for key, value in kwargs.items() if isinstance(value, list)}
+    if len(set(lists_lengths.values())) > 1:
+        raise RuntimeError(
+            (
+                "Sharding is ambiguous for this dataset: "
+                + "we found several data sources lists of different lengths, and we don't know over which list we should parallelize:\n"
+                + "\n".join(f"\t- key {key} has length {length}" for key, length in lists_lengths.items())
+                + "\nTo fix this, check the dataset script 'gen_kwargs' and make sure to use lists only for data sources, "
+                + "and use tuples otherwise. In the end there should only be one single list, or several lists with the same length."
+            )
+        )
+    elif not lists_lengths:
+        # not sharded - return one single group
+        return [dict(kwargs)]
+    else:
+        num_shards = next(iter(lists_lengths.values()))
+        shard_indices_per_group = _distribute_shards(num_shards=num_shards, max_num_groups=max_num_groups)
+        return [
+            {
+                key: [value[shard_idx] for shard_idx in shard_indices_per_group[group_idx]]
+                if isinstance(value, list)
+                else value
+                for key, value in kwargs.items()
+            }
+            for group_idx in range(len(shard_indices_per_group))
+        ]
+
+
 class GeneratorBasedBuilder(DatasetBuilder):
     """Base class for datasets with data generation based on dict generators.
 
@@ -1357,11 +1415,17 @@ class GeneratorBasedBuilder(DatasetBuilder):
         if num_proc is None and len(_all_shard_kwargs(split_generator.gen_kwargs)) >= 16:
             num_proc = 16
 
-        if _shard_number(split_generator.gen_kwargs) <= 1 and num_proc is not None:
+        num_input_shards = _shard_number(split_generator.gen_kwargs)
+        if num_input_shards <= 1 and num_proc is not None:
             logger.warning(
-                f"Setting num_proc from {num_proc} back to 1 to disable multiprocessing as dataset is not shardable"
+                f"Setting num_proc from {num_proc} back to 1 to disable multiprocessing as the dataset only contains one shard."
             )
-            num_proc = None
+            num_proc = 1
+        elif num_input_shards < num_proc:
+            logger.info(
+                f"Setting num_proc from {num_proc} to {num_input_shards} as the dataset only contains {num_input_shards} shards."
+            )
+            num_proc = num_input_shards
 
         if num_proc is None or num_proc == 1:
             result = self._prepare_split_single(
@@ -1373,29 +1437,32 @@ class GeneratorBasedBuilder(DatasetBuilder):
                 check_duplicate_keys=check_duplicate_keys,
             )
             # wrapping everything into lists for consistency with the multiprocessed code path
-            examples_per_rank, bytes_per_rank, features_per_rank, shards_per_rank = [[item] for item in result]
+            examples_per_rank, bytes_per_rank, features_per_rank, shards_per_rank, shard_lengths_per_rank = [
+                [item] for item in result
+            ]
         else:
-            args_per_shard = [
+            args_per_proc = [
                 (
-                    shard_kwargs,
+                    gen_kwargs,
                     fpath,
                     file_format,
                     max_shard_size,
                     split_info,
                     check_duplicate_keys,
                 )
-                for shard_kwargs in _all_shard_kwargs(split_generator.gen_kwargs)
+                for gen_kwargs in _split_gen_kwargs(split_generator.gen_kwargs)
             ]
 
-            examples_per_rank = [None] * len(args_per_shard)
-            bytes_per_rank = [None] * len(args_per_shard)
-            features_per_rank = [None] * len(args_per_shard)
-            shards_per_rank = [None] * len(args_per_shard)
+            examples_per_rank = [None] * num_proc
+            bytes_per_rank = [None] * num_proc
+            features_per_rank = [None] * num_proc
+            shards_per_rank = [None] * num_proc
+            shard_lengths_per_rank = [None] * num_proc
 
             with Pool(num_proc) as pool:
                 results = {
                     rank: pool.apply_async(self._prepare_split_single, args=args, kwds={"rank": rank})
-                    for rank, args in enumerate(args_per_shard)
+                    for rank, args in enumerate(args_per_proc)
                 }
                 for index, async_result in results.items():
                     result = async_result.get()
@@ -1404,6 +1471,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
                         bytes_per_rank[index],
                         features_per_rank[index],
                         shards_per_rank[index],
+                        shard_lengths_per_rank[index],
                     ) = result
 
             assert None not in examples_per_rank, f"result list {examples_per_rank} still contains None"
@@ -1414,7 +1482,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
         total_num_bytes = sum(bytes_per_rank)
         features = features_per_rank[0]
 
-        # should rename everything at the end, scheme still TBD
+        # should rename everything at the end
         def _rename_shard(shard_id_and_rank: Tuple[int]):
             shard_id, rank = shard_id_and_rank
             global_shard_id = sum(shards_per_rank[:rank]) + shard_id
@@ -1431,12 +1499,15 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
         split_generator.split_info.num_examples = total_num_examples
         split_generator.split_info.num_bytes = total_num_bytes
+        split_generator.split_info.shard_lengths = [
+            shard_length for shard_lengths in shard_lengths_per_rank for shard_length in shard_lengths
+        ]
 
         if self.info.features is None:
             self.info.features = features
 
     def _prepare_split_single(
-        self, shard_kwargs, fpath, file_format, max_shard_size, split_info, check_duplicate_keys, rank=None
+        self, gen_kwargs, fpath, file_format, max_shard_size, split_info, check_duplicate_keys, rank=None
     ):
 
         if rank is None:
@@ -1447,13 +1518,13 @@ class GeneratorBasedBuilder(DatasetBuilder):
             # in multiprocessed mode we can't know how many lines there are per shard
             tqdm_length = None
 
-        generator = self._generate_examples(**shard_kwargs)
+        generator = self._generate_examples(**gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"
+        shard_lengths = []
         total_num_examples, total_num_bytes = 0, 0
 
         shard_id = 0
-        # TODO: embed the images/audio files inside parquet files.
         writer = writer_class(
             features=self.info.features,
             path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("RRRRR", f"{rank:05d}"),
@@ -1475,6 +1546,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
                 if max_shard_size is not None and writer._num_bytes > max_shard_size:
                     num_examples, num_bytes = writer.finalize()
                     writer.close()
+                    shard_lengths.append(num_examples)
                     total_num_examples += num_examples
                     total_num_bytes += num_bytes
                     shard_id += 1
@@ -1493,10 +1565,11 @@ class GeneratorBasedBuilder(DatasetBuilder):
             num_shards = shard_id + 1
             num_examples, num_bytes = writer.finalize()
             writer.close()
+            shard_lengths.append(num_examples)
             total_num_examples += num_examples
             total_num_bytes += num_bytes
 
-        return total_num_examples, total_num_bytes, writer._features, num_shards
+        return total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths
 
     def _download_and_prepare(self, dl_manager, verify_infos, **prepare_splits_kwargs):
         super()._download_and_prepare(
@@ -1567,11 +1640,17 @@ class ArrowBasedBuilder(DatasetBuilder):
         if num_proc is None and len(_all_shard_kwargs(split_generator.gen_kwargs)) >= 16:
             num_proc = 16
 
-        if _shard_number(split_generator.gen_kwargs) <= 1 and num_proc is not None:
+        num_input_shards = _shard_number(split_generator.gen_kwargs)
+        if num_input_shards <= 1 and num_proc is not None:
             logger.warning(
-                f"Setting num_proc from {num_proc} back to 1 to disable multiprocessing as dataset is not shardable"
+                f"Setting num_proc from {num_proc} back to 1 to disable multiprocessing as the dataset only contains one shard."
             )
-            num_proc = None
+            num_proc = 1
+        elif num_input_shards < num_proc:
+            logger.info(
+                f"Setting num_proc from {num_proc} to {num_input_shards} as the dataset only contains {num_input_shards} shards."
+            )
+            num_proc = num_input_shards
 
         if num_proc is None or num_proc == 1:
             result = self._prepare_split_single(
@@ -1582,28 +1661,31 @@ class ArrowBasedBuilder(DatasetBuilder):
                 split_info=split_info,
             )
             # wrapping everything into lists for consistency with the multiprocessed code path
-            examples_per_rank, bytes_per_rank, features_per_rank, shards_per_rank = [[item] for item in result]
+            examples_per_rank, bytes_per_rank, features_per_rank, shards_per_rank, shard_lengths_per_rank = [
+                [item] for item in result
+            ]
         else:
-            args_per_shard = [
+            args_per_proc = [
                 (
-                    shard_kwargs,
+                    gen_kwargs,
                     fpath,
                     file_format,
                     max_shard_size,
                     split_info,
                 )
-                for shard_kwargs in _all_shard_kwargs(split_generator.gen_kwargs)
+                for gen_kwargs in _split_gen_kwargs(split_generator.gen_kwargs, max_num_groups=num_proc)
             ]
 
-            examples_per_rank = [None] * len(args_per_shard)
-            bytes_per_rank = [None] * len(args_per_shard)
-            features_per_rank = [None] * len(args_per_shard)
-            shards_per_rank = [None] * len(args_per_shard)
+            examples_per_rank = [None] * num_proc
+            bytes_per_rank = [None] * num_proc
+            features_per_rank = [None] * num_proc
+            shards_per_rank = [None] * num_proc
+            shard_lengths_per_rank = [None] * num_proc
 
             with Pool(num_proc) as pool:
                 results = {
                     rank: pool.apply_async(self._prepare_split_single, args=args, kwds={"rank": rank})
-                    for rank, args in enumerate(args_per_shard)
+                    for rank, args in enumerate(args_per_proc)
                 }
                 for index, async_result in results.items():
                     result = async_result.get()
@@ -1612,6 +1694,7 @@ class ArrowBasedBuilder(DatasetBuilder):
                         bytes_per_rank[index],
                         features_per_rank[index],
                         shards_per_rank[index],
+                        shard_lengths_per_rank[index],
                     ) = result
 
             assert None not in examples_per_rank, f"result list {examples_per_rank} still contains None"
@@ -1622,7 +1705,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         total_num_bytes = sum(bytes_per_rank)
         features = features_per_rank[0]
 
-        # should rename everything at the end, scheme still TBD
+        # should rename everything at the end
         def _rename_shard(shard_id_and_rank: Tuple[int]):
             shard_id, rank = shard_id_and_rank
             global_shard_id = sum(shards_per_rank[:rank]) + shard_id
@@ -1639,19 +1722,22 @@ class ArrowBasedBuilder(DatasetBuilder):
 
         split_generator.split_info.num_examples = total_num_examples
         split_generator.split_info.num_bytes = total_num_bytes
+        split_generator.split_info.shard_lengths = [
+            shard_length for shard_lengths in shard_lengths_per_rank for shard_length in shard_lengths
+        ]
 
         if self.info.features is None:
             self.info.features = features
 
-    def _prepare_split_single(self, shard_kwargs, fpath, file_format, max_shard_size, split_info, rank=0):
+    def _prepare_split_single(self, gen_kwargs, fpath, file_format, max_shard_size, split_info, rank=0):
 
-        generator = self._generate_tables(**shard_kwargs)
+        generator = self._generate_tables(**gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"
+        shard_lengths = []
         total_num_examples, total_num_bytes = 0, 0
 
         shard_id = 0
-        # TODO: embed the images/audio files inside parquet files.
         writer = writer_class(
             features=self.info.features,
             path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("RRRRR", f"{rank:05d}"),
@@ -1669,6 +1755,7 @@ class ArrowBasedBuilder(DatasetBuilder):
                 if max_shard_size is not None and writer._num_bytes > max_shard_size:
                     num_examples, num_bytes = writer.finalize()
                     writer.close()
+                    shard_lengths.append(num_examples)
                     total_num_examples += num_examples
                     total_num_bytes += num_bytes
                     shard_id += 1
@@ -1683,10 +1770,11 @@ class ArrowBasedBuilder(DatasetBuilder):
             num_shards = shard_id + 1
             num_examples, num_bytes = writer.finalize()
             writer.close()
+            shard_lengths.append(num_examples)
             total_num_examples += num_examples
             total_num_bytes += num_bytes
 
-        return total_num_examples, total_num_bytes, writer._features, num_shards
+        return total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths
 
     def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
         return ExamplesIterable(

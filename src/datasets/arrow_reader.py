@@ -35,7 +35,7 @@ from .utils.file_utils import cached_path
 
 if TYPE_CHECKING:
     from .info import DatasetInfo  # noqa: F401
-    from .splits import Split  # noqa: F401
+    from .splits import Split, SplitInfo  # noqa: F401
 
 
 logger = logging.get_logger(__name__)
@@ -88,7 +88,13 @@ class FileInstructions:
     file_instructions: List[dict]
 
 
-def make_file_instructions(name, split_infos, instruction, filetype_suffix=None, prefix_path=None):
+def make_file_instructions(
+    name: str,
+    split_infos: List["SplitInfo"],
+    instruction: Union[str, "ReadInstruction"],
+    filetype_suffix: Optional[str] = None,
+    prefix_path: Optional[str] = None,
+):
     """Returns instructions of the split dict.
 
     Args:
@@ -101,38 +107,44 @@ def make_file_instructions(name, split_infos, instruction, filetype_suffix=None,
         file_intructions: FileInstructions instance
     """
     name2len = {info.name: info.num_examples for info in split_infos}
+    name2shard_lengths = {info.name: info.shard_lengths for info in split_infos}
+    name2filenames = {
+        info.name: filenames_for_dataset_split(
+            path=prefix_path, dataset_name=name, split=info.name, filetype_suffix=filetype_suffix
+        )
+        for info in split_infos
+    }
     if not isinstance(instruction, ReadInstruction):
         instruction = ReadInstruction.from_spec(instruction)
     # Create the absolute instruction (per split)
     absolute_instructions = instruction.to_absolute(name2len)
 
-    return _make_file_instructions_from_absolutes(
-        name=name,
-        name2len=name2len,
-        absolute_instructions=absolute_instructions,
-        filetype_suffix=filetype_suffix,
-        prefix_path=prefix_path,
-    )
-
-
-def _make_file_instructions_from_absolutes(
-    name, name2len, absolute_instructions, filetype_suffix=None, prefix_path=None
-):
-    """Returns the files instructions from the absolute instructions list."""
     # For each split, return the files instruction (skip/take)
     file_instructions = []
     num_examples = 0
     for abs_instr in absolute_instructions:
-        length = name2len[abs_instr.splitname]
-        filenames = filenames_for_dataset_split(
-            path=prefix_path, dataset_name=name, split=abs_instr.splitname, filetype_suffix=filetype_suffix
-        )
-        for filename in filenames:
-            from_ = 0 if abs_instr.from_ is None else abs_instr.from_
-            to = length if abs_instr.to is None else abs_instr.to
-            num_examples += to - from_
-            single_file_instructions = [{"filename": filename, "skip": from_, "take": to - from_}]
-            file_instructions.extend(single_file_instructions)
+        split_length = name2len[abs_instr.splitname]
+        filenames = name2filenames[abs_instr.splitname]
+        shard_lengths = name2shard_lengths[abs_instr.splitname]
+        from_ = 0 if abs_instr.from_ is None else abs_instr.from_
+        to = split_length if abs_instr.to is None else abs_instr.to
+        if shard_lengths is None:  # not sharded
+            for filename in filenames:
+                num_examples += to - from_
+                file_instructions.append({"filename": filename, "skip": from_, "take": to - from_})
+        else:  # sharded
+            index_start = 0  # Beginning (included) of moving window.
+            index_end = 0  # End (excluded) of moving window.
+            for filename, shard_length in zip(filenames, shard_lengths):
+                index_end += shard_length
+                if from_ < index_end and to > index_start:  # There is something to take.
+                    skip = from_ - index_start if from_ > index_start else 0
+                    take = to - index_start - skip if to < index_end else -1
+                    if take == 0:
+                        continue
+                    file_instructions.append({"filename": filename, "skip": skip, "take": take})
+                    num_examples += shard_length - skip if take == -1 else take
+                index_start += shard_length
     return FileInstructions(
         num_examples=num_examples,
         file_instructions=file_instructions,
@@ -311,6 +323,8 @@ class ArrowReader(BaseReader):
             filename_skip_take["take"] if "take" in filename_skip_take else None,
         )
         table = ArrowReader.read_table(filename, in_memory=in_memory)
+        if take == -1:
+            take = len(table) - skip
         # here we don't want to slice an empty table, or it may segfault
         if skip is not None and take is not None and not (skip == 0 and take == len(table)):
             table = table.slice(skip, take)
