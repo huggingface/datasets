@@ -404,10 +404,10 @@ class DownloadManager:
         ```
         """
         if num_proc != "deprecated":
-        warnings.warn(
-            "'num_proc' was deprecated in version 2.6.2 and will be removed in 3.0.0. Pass `DownloadConfig(num_proc=<num_proc>)` to the initializer instead.",
-            FutureWarning,
-        )
+            warnings.warn(
+                "'num_proc' was deprecated in version 2.6.2 and will be removed in 3.0.0. Pass `DownloadConfig(num_proc=<num_proc>)` to the initializer instead.",
+                FutureWarning,
+            )
         download_config = self.download_config.copy()
         download_config.extract_compressed_file = True
         # Extract downloads the file first if it is not already downloaded
