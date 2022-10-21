@@ -110,7 +110,11 @@ def make_file_instructions(
     name2shard_lengths = {info.name: info.shard_lengths for info in split_infos}
     name2filenames = {
         info.name: filenames_for_dataset_split(
-            path=prefix_path, dataset_name=name, split=info.name, filetype_suffix=filetype_suffix
+            path=prefix_path,
+            dataset_name=name,
+            split=info.name,
+            filetype_suffix=filetype_suffix,
+            sharded=name2shard_lengths[info.name] is not None,
         )
         for info in split_infos
     }

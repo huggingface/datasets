@@ -67,34 +67,20 @@ def filepattern_for_dataset_split(dataset_name, split, data_dir, filetype_suffix
     return f"{filepath}*"
 
 
-def filename_for_dataset_split(dataset_name, split, filetype_suffix=None):
-    prefix = filename_prefix_for_split(dataset_name, split)
-    if filetype_suffix:
-        prefix += f".{filetype_suffix}"
-    return prefix
-
-
-def filenames_for_dataset_split(path, dataset_name, split, filetype_suffix=None):
+def filenames_for_dataset_split(path, dataset_name, split, filetype_suffix=None, sharded=False):
 
     NUM_DIGITS = 5
     counting_pattern = "[0-9]" * NUM_DIGITS
 
     prefix = filename_prefix_for_split(dataset_name, split)
     prefix = os.path.join(path, prefix)
-    filetype_suffix = filetype_suffix if filetype_suffix is not None else ""
 
-    single_file_path = f"{prefix}.{filetype_suffix}"
-    if os.path.isfile(single_file_path):
-        return [single_file_path]
-
-    return sorted(glob.glob(f"{prefix}-{counting_pattern}-of-{counting_pattern}.{filetype_suffix}"))
-
-
-def filepath_for_dataset_split(dataset_name, split, data_dir, filetype_suffix=None):
-    filename = filename_for_dataset_split(
-        dataset_name=dataset_name,
-        split=split,
-        filetype_suffix=filetype_suffix,
-    )
-    filepath = os.path.join(data_dir, filename)
-    return filepath
+    if sharded:
+        glob_pattern = f"{prefix}-{counting_pattern}-of-{counting_pattern}"
+        if filetype_suffix:
+            glob_pattern += f".{filetype_suffix}"
+        return sorted(glob.glob(glob_pattern))
+    else:
+        if filetype_suffix:
+            prefix += f".{filetype_suffix}"
+        return [prefix]

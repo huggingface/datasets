@@ -612,7 +612,7 @@ class DatasetBuilder:
         use_auth_token: Optional[Union[bool, str]] = None,
         file_format: str = "arrow",
         max_shard_size: Optional[Union[int, str]] = None,
-        num_proc=None,
+        num_proc: Optional[int] = None,
         storage_options: Optional[dict] = None,
         **download_and_prepare_kwargs,
     ):
@@ -809,12 +809,11 @@ class DatasetBuilder:
                         except ConnectionError:
                             logger.warning("HF google storage unreachable. Downloading and preparing it from source")
                     if not downloaded_from_gcs:
-                        prepare_split_kwargs = {
-                            "file_format": file_format,
-                            "max_shard_size": max_shard_size,
-                            "num_proc": num_proc,
-                            **download_and_prepare_kwargs,
-                        }
+                        prepare_split_kwargs = {"file_format": file_format}
+                        if max_shard_size is not None:
+                            prepare_split_kwargs["max_shard_size"] = max_shard_size
+                        if num_proc is not None:
+                            prepare_split_kwargs["num_proc"] = num_proc
                         self._download_and_prepare(
                             dl_manager=dl_manager,
                             verify_infos=verify_infos,
@@ -869,7 +868,7 @@ class DatasetBuilder:
                     logger.info(f"Couldn't download resourse file {resource_file_name} from Hf google storage.")
         logger.info("Dataset downloaded from Hf google storage.")
 
-    def _download_and_prepare(self, dl_manager, verify_infos, num_proc=None, **prepare_split_kwargs):
+    def _download_and_prepare(self, dl_manager, verify_infos, **prepare_split_kwargs):
         """Downloads and prepares dataset for reading.
 
         This is the internal implementation to overwrite called when user calls
@@ -906,7 +905,7 @@ class DatasetBuilder:
 
             try:
                 # Prepare split will record examples associated to the split
-                self._prepare_split(split_generator, num_proc=num_proc, **prepare_split_kwargs)
+                self._prepare_split(split_generator, **prepare_split_kwargs)
             except OSError as e:
                 raise OSError(
                     "Cannot find data file. "
@@ -1407,8 +1406,8 @@ class GeneratorBasedBuilder(DatasetBuilder):
         else:
             split_info = split_generator.split_info
 
-        suffix = "-RRRRR-SSSSS-of-NNNNN"
-        fname = f"{self.name}-{split_generator.name}{suffix}.{file_format}"
+        SUFFIX = "-RRRRR-SSSSS-of-NNNNN"
+        fname = f"{self.name}-{split_generator.name}{SUFFIX}.{file_format}"
         fpath = path_join(self._output_dir, fname)
 
         # Default to using 16-way parallelism for preparation if the number of files is higher than 16.
@@ -1482,26 +1481,37 @@ class GeneratorBasedBuilder(DatasetBuilder):
         total_num_bytes = sum(bytes_per_rank)
         features = features_per_rank[0]
 
-        # should rename everything at the end
-        def _rename_shard(shard_id_and_rank: Tuple[int]):
-            shard_id, rank = shard_id_and_rank
-            global_shard_id = sum(shards_per_rank[:rank]) + shard_id
-            self._rename(
-                fpath.replace("SSSSS", f"{shard_id:05d}").replace("RRRRR", f"{rank:05d}"),
-                fpath.replace("RRRRR-SSSSS", f"{global_shard_id:05d}").replace("NNNNN", f"{total_shards:05d}"),
-            )
-
-        logger.debug(f"Renaming {total_shards} shards.")
-        shard_ids_and_ranks = [
-            (shard_id, rank) for rank, num_shards in enumerate(shards_per_rank) for shard_id in range(num_shards)
-        ]
-        thread_map(_rename_shard, shard_ids_and_ranks, disable=True, max_workers=64)
-
         split_generator.split_info.num_examples = total_num_examples
         split_generator.split_info.num_bytes = total_num_bytes
-        split_generator.split_info.shard_lengths = [
-            shard_length for shard_lengths in shard_lengths_per_rank for shard_length in shard_lengths
-        ]
+
+        # should rename everything at the end
+        logger.debug(f"Renaming {total_shards} shards.")
+        if total_shards > 1:
+            # use the -SSSSS-of-NNNNN pattern
+
+            def _rename_shard(shard_id_and_rank: Tuple[int]):
+                shard_id, rank = shard_id_and_rank
+                global_shard_id = sum(shards_per_rank[:rank]) + shard_id
+                self._rename(
+                    fpath.replace("SSSSS", f"{shard_id:05d}").replace("RRRRR", f"{rank:05d}"),
+                    fpath.replace("RRRRR-SSSSS", f"{global_shard_id:05d}").replace("NNNNN", f"{total_shards:05d}"),
+                )
+
+            shard_ids_and_ranks = [
+                (shard_id, rank) for rank, num_shards in enumerate(shards_per_rank) for shard_id in range(num_shards)
+            ]
+            thread_map(_rename_shard, shard_ids_and_ranks, disable=True, max_workers=64)
+
+            split_generator.split_info.shard_lengths = [
+                shard_length for shard_lengths in shard_lengths_per_rank for shard_length in shard_lengths
+            ]
+        else:
+            # don't use any pattern
+            shard_id, rank = 0, 0
+            self._rename(
+                fpath.replace("SSSSS", f"{shard_id:05d}").replace("RRRRR", f"{rank:05d}"),
+                fpath.replace(SUFFIX, ""),
+            )
 
         if self.info.features is None:
             self.info.features = features
@@ -1632,8 +1642,8 @@ class ArrowBasedBuilder(DatasetBuilder):
         else:
             split_info = split_generator.split_info
 
-        suffix = "-RRRRR-SSSSS-of-NNNNN"
-        fname = f"{self.name}-{split_generator.name}{suffix}.{file_format}"
+        SUFFIX = "-RRRRR-SSSSS-of-NNNNN"
+        fname = f"{self.name}-{split_generator.name}{SUFFIX}.{file_format}"
         fpath = path_join(self._output_dir, fname)
 
         # Default to using 16-way parallelism for preparation if the number of files is higher than 16.
@@ -1705,26 +1715,37 @@ class ArrowBasedBuilder(DatasetBuilder):
         total_num_bytes = sum(bytes_per_rank)
         features = features_per_rank[0]
 
-        # should rename everything at the end
-        def _rename_shard(shard_id_and_rank: Tuple[int]):
-            shard_id, rank = shard_id_and_rank
-            global_shard_id = sum(shards_per_rank[:rank]) + shard_id
-            self._rename(
-                fpath.replace("SSSSS", f"{shard_id:05d}").replace("RRRRR", f"{rank:05d}"),
-                fpath.replace("RRRRR-SSSSS", f"{global_shard_id:05d}").replace("NNNNN", f"{total_shards:05d}"),
-            )
-
-        logger.debug(f"Renaming {total_shards} shards.")
-        shard_ids_and_ranks = [
-            (shard_id, rank) for rank, num_shards in enumerate(shards_per_rank) for shard_id in range(num_shards)
-        ]
-        thread_map(_rename_shard, shard_ids_and_ranks, disable=True, max_workers=64)
-
         split_generator.split_info.num_examples = total_num_examples
         split_generator.split_info.num_bytes = total_num_bytes
-        split_generator.split_info.shard_lengths = [
-            shard_length for shard_lengths in shard_lengths_per_rank for shard_length in shard_lengths
-        ]
+
+        # should rename everything at the end
+        logger.debug(f"Renaming {total_shards} shards.")
+        if total_shards > 1:
+            # use the -SSSSS-of-NNNNN pattern
+
+            def _rename_shard(shard_id_and_rank: Tuple[int]):
+                shard_id, rank = shard_id_and_rank
+                global_shard_id = sum(shards_per_rank[:rank]) + shard_id
+                self._rename(
+                    fpath.replace("SSSSS", f"{shard_id:05d}").replace("RRRRR", f"{rank:05d}"),
+                    fpath.replace("RRRRR-SSSSS", f"{global_shard_id:05d}").replace("NNNNN", f"{total_shards:05d}"),
+                )
+
+            shard_ids_and_ranks = [
+                (shard_id, rank) for rank, num_shards in enumerate(shards_per_rank) for shard_id in range(num_shards)
+            ]
+            thread_map(_rename_shard, shard_ids_and_ranks, disable=True, max_workers=64)
+
+            split_generator.split_info.shard_lengths = [
+                shard_length for shard_lengths in shard_lengths_per_rank for shard_length in shard_lengths
+            ]
+        else:
+            # don't use any pattern
+            shard_id, rank = 0, 0
+            self._rename(
+                fpath.replace("SSSSS", f"{shard_id:05d}").replace("RRRRR", f"{rank:05d}"),
+                fpath.replace(SUFFIX, ""),
+            )
 
         if self.info.features is None:
             self.info.features = features
@@ -1869,11 +1890,18 @@ class BeamBasedBuilder(DatasetBuilder):
                 f"\n\t`{usage_example}`"
             )
 
-        beam_options = beam_options or beam.options.pipeline_options.PipelineOptions()
         # Beam type checking assumes transforms multiple outputs are of same type,
         # which is not our case. Plus it doesn't handle correctly all types, so we
         # are better without it.
-        beam_options.view_as(beam.options.pipeline_options.TypeOptions).pipeline_type_check = False
+        pipeline_options = {"pipeline_type_check": False}
+        if "num_proc" in prepare_splits_kwargs:
+            num_workers = prepare_splits_kwargs.pop("num_proc")
+            pipeline_options["direct_num_workers"] = num_workers
+            pipeline_options["num_workers"] = num_workers
+            pipeline_options["direct_running_mode"] = "multi_processing"
+            # TODO: Fix ModuleNotFoundError: No module named 'datasets_modules' when running multiprocessed DirectRunner
+            raise NotImplementedError("Using a DirectRunner with `num_proc` for multiprocessing it not supported yet.")
+        beam_options = beam_options or beam.options.pipeline_options.PipelineOptions.from_dictionary(pipeline_options)
         # Use a single pipeline for all splits
         pipeline = beam_utils.BeamPipeline(
             runner=beam_runner,
@@ -1894,6 +1922,18 @@ class BeamBasedBuilder(DatasetBuilder):
             split_info = split_dict[split_name]
             split_info.num_examples = num_examples
             split_info.num_bytes = num_bytes
+            if hasattr(beam_writer, "_shard_lengths") and len(beam_writer._shard_lengths) > 1:
+                # keep the -SSSSS-of-NNNNN pattern
+                split_info.shard_lengths = beam_writer._shard_lengths
+            else:
+                # don't use any pattern
+                file_format = prepare_splits_kwargs.get("file_format", "arrow")
+                src_fname = f"{self.name}-{split_name}-00000-of-00001.{file_format}"
+                dst_fname = f"{self.name}-{split_name}.{file_format}"
+                path_join = os.path.join if not is_remote_filesystem(self._fs) else posixpath.join
+                src_fpath = path_join(self._output_dir, src_fname)
+                dst_fpath = path_join(self._output_dir, dst_fname)
+                self._rename(src_fpath, dst_fpath)
 
     def _save_info(self):
         import apache_beam as beam
@@ -1940,4 +1980,4 @@ class BeamBasedBuilder(DatasetBuilder):
             return beam_writer.write_from_pcollection(pcoll_examples)
 
         # Add the PCollection to the pipeline
-        _ = pipeline | split_name >> _build_pcollection()  # pylint: disable=no-value-for-parameter
+        _ = pipeline | split_name >> _build_pcollection()  # pylint: disable=no-value-for-parameter max_bytes_per_shard

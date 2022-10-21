@@ -978,9 +978,7 @@ def test_generator_based_builder_download_and_prepare_as_parquet(tmp_path):
     builder = DummyGeneratorBasedBuilder(cache_dir=tmp_path)
     builder.download_and_prepare(file_format="parquet")
     assert builder.info.splits["train"].num_examples, 100
-    parquet_path = os.path.join(
-        tmp_path, builder.name, "default", "0.0.0", f"{builder.name}-train-00000-of-00001.parquet"
-    )
+    parquet_path = os.path.join(tmp_path, builder.name, "default", "0.0.0", f"{builder.name}-train.parquet")
     assert os.path.exists(parquet_path)
     assert pq.ParquetFile(parquet_path) is not None
 
@@ -1026,9 +1024,7 @@ def test_arrow_based_builder_download_and_prepare_as_parquet(tmp_path):
     builder = DummyArrowBasedBuilder(cache_dir=tmp_path)
     builder.download_and_prepare(file_format="parquet")
     assert builder.info.splits["train"].num_examples, 100
-    parquet_path = os.path.join(
-        tmp_path, builder.name, "default", "0.0.0", f"{builder.name}-train-00000-of-00001.parquet"
-    )
+    parquet_path = os.path.join(tmp_path, builder.name, "default", "0.0.0", f"{builder.name}-train.parquet")
     assert os.path.exists(parquet_path)
     assert pq.ParquetFile(parquet_path) is not None
 
@@ -1072,8 +1068,6 @@ def test_beam_based_builder_download_and_prepare_as_parquet(tmp_path):
     builder = DummyBeamBasedBuilder(cache_dir=tmp_path, beam_runner="DirectRunner")
     builder.download_and_prepare(file_format="parquet")
     assert builder.info.splits["train"].num_examples, 100
-    parquet_path = os.path.join(
-        tmp_path, builder.name, "default", "0.0.0", f"{builder.name}-train-00000-of-00001.parquet"
-    )
+    parquet_path = os.path.join(tmp_path, builder.name, "default", "0.0.0", f"{builder.name}-train.parquet")
     assert os.path.exists(parquet_path)
     assert pq.ParquetFile(parquet_path) is not None
