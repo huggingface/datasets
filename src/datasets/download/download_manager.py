@@ -377,7 +377,7 @@ class DownloadManager:
         """
         return FilesIterable.from_paths(paths)
 
-    def extract(self, path_or_paths):
+    def extract(self, path_or_paths, num_proc="deprecated"):
         """Extract given path(s).
 
         Args:
@@ -385,6 +385,12 @@ class DownloadManager:
                 path is a `str`.
             num_proc: Use multi-processing if `num_proc` > 1 and the length of
                 `path_or_paths` is larger than `num_proc`
+                
+                <Deprecated version="2.6.2">
+
+                Pass `DownloadConfig(num_proc=<num_proc>)` to the initializer instead.
+
+                </Deprecated>
 
         Returns:
             extracted_path(s): `str`, The extracted paths matching the given input
@@ -397,6 +403,11 @@ class DownloadManager:
         >>> extracted_files = dl_manager.extract(downloaded_files)
         ```
         """
+        if num_proc != "deprecated":
+        warnings.warn(
+            "'num_proc' was deprecated in version 2.6.2 and will be removed in 3.0.0. Pass `DownloadConfig(num_proc=<num_proc>)` to the initializer instead.",
+            FutureWarning,
+        )
         download_config = self.download_config.copy()
         download_config.extract_compressed_file = True
         # Extract downloads the file first if it is not already downloaded
