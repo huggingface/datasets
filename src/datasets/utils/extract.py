@@ -177,7 +177,7 @@ class RarExtractor(BaseExtractor):
     @staticmethod
     def extract(input_path: Union["pathlib.Path", str], output_path: Union["pathlib.Path", str]) -> None:
         if not config.RARFILE_AVAILABLE:
-            raise OSError("Please pip install rarfile")
+            raise ImportError("Please pip install rarfile")
         import rarfile
 
         os.makedirs(output_path, exist_ok=True)
@@ -192,7 +192,7 @@ class ZstdExtractor(MagicNumberBaseExtractor):
     @staticmethod
     def extract(input_path: Union["pathlib.Path", str], output_path: Union["pathlib.Path", str]) -> None:
         if not config.ZSTANDARD_AVAILABLE:
-            raise OSError("Please pip install zstandard")
+            raise ImportError("Please pip install zstandard")
         import zstandard as zstd
 
         dctx = zstd.ZstdDecompressor()
@@ -216,7 +216,7 @@ class SevenZipExtractor(MagicNumberBaseExtractor):
     @staticmethod
     def extract(input_path: Union["pathlib.Path", str], output_path: Union["pathlib.Path", str]) -> None:
         if not config.PY7ZR_AVAILABLE:
-            raise OSError("Please pip install py7zr")
+            raise ImportError("Please pip install py7zr")
         import py7zr
 
         os.makedirs(output_path, exist_ok=True)
@@ -230,7 +230,7 @@ class Lz4Extractor(MagicNumberBaseExtractor):
     @staticmethod
     def extract(input_path: Union["pathlib.Path", str], output_path: Union["pathlib.Path", str]) -> None:
         if not config.LZ4_AVAILABLE:
-            raise OSError("Please pip install lz4")
+            raise ImportError("Please pip install lz4")
         import lz4.frame
 
         with lz4.frame.open(input_path, "rb") as compressed_file:
