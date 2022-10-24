@@ -64,7 +64,7 @@ jobs:
           pip install -r additional-tests-requirements.txt --no-deps
       - name: Install dependencies (latest versions)
         if: ${{ matrix.deps_versions == 'latest' }}
-        run: pip install --upgrade pyarrow huggingface-hub
+        run: pip install --upgrade pyarrow huggingface-hub fsspec
       - name: Install depencencies (minimum versions)
         if: ${{ matrix.deps_versions != 'latest' }}
         run: pip install pyarrow==6.0.1 huggingface-hub==0.2.0 transformers
