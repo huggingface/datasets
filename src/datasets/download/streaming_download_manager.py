@@ -835,11 +835,11 @@ class FilesIterable(_IterableFromGenerator):
                     # skipping hidden directories; prune the search
                     # [:] for the in-place list modification required by os.walk
                     # (only works for local paths as fsspec's walk doesn't support the in-place modification)
-                    dirnames[:] = [dirname for dirname in dirnames if not dirname.startswith((".", "__"))]
+                    dirnames[:] = sorted([dirname for dirname in dirnames if not dirname.startswith((".", "__"))])
                     if xbasename(dirpath).startswith((".", "__")):
                         # skipping hidden directories
                         continue
-                    for filename in filenames:
+                    for filename in sorted(filenames):
                         if filename.startswith((".", "__")):
                             # skipping hidden files
                             continue

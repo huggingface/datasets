@@ -130,11 +130,11 @@ class FilesIterable(_IterableFromGenerator):
                 for dirpath, dirnames, filenames in os.walk(urlpath):
                     # skipping hidden directories; prune the search
                     # [:] for the in-place list modification required by os.walk
-                    dirnames[:] = [dirname for dirname in dirnames if not dirname.startswith((".", "__"))]
+                    dirnames[:] = sorted([dirname for dirname in dirnames if not dirname.startswith((".", "__"))])
                     if os.path.basename(dirpath).startswith((".", "__")):
                         # skipping hidden directories
                         continue
-                    for filename in filenames:
+                    for filename in sorted(filenames):
                         if filename.startswith((".", "__")):
                             # skipping hidden files
                             continue
