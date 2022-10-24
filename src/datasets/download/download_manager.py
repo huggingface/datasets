@@ -386,7 +386,7 @@ class DownloadManager:
                 path is a `str`.
             num_proc: Use multi-processing if `num_proc` > 1 and the length of
                 `path_or_paths` is larger than `num_proc`
-                
+
                 <Deprecated version="2.6.2">
 
                 Pass `DownloadConfig(num_proc=<num_proc>)` to the initializer instead.
