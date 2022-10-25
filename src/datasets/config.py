@@ -169,7 +169,7 @@ HF_UPDATE_DOWNLOAD_COUNTS = (
 
 # Batch size constants. For more info, see:
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
-DEFAULT_MAX_BATCH_SIZE = 10_000
+DEFAULT_MAX_BATCH_SIZE = 1000
 
 # Size of the preloaded record batch in `Dataset.__iter__`
 ARROW_READER_BATCH_SIZE_IN_DATASET_ITER = 10
