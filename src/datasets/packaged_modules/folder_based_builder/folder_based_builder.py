@@ -84,8 +84,8 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
 
         # Do an early pass if:
-        # * `drop_labels` is None (default) or False, to infer the class labels
-        # * `drop_metadata` is None (default) or False, to find the metadata files
+        # * `drop_labels` is None or False, to infer the class labels
+        # * `drop_metadata` is None or False, to find the metadata files
         do_analyze = not self.config.drop_labels or not self.config.drop_metadata
         labels = set()
         metadata_files = collections.defaultdict(set)

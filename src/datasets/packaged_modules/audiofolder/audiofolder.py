@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import List
 
 import datasets
@@ -9,10 +10,11 @@ from ..folder_based_builder import folder_based_builder
 logger = datasets.utils.logging.get_logger(__name__)
 
 
+@dataclass
 class AudioFolderConfig(folder_based_builder.FolderBasedBuilderConfig):
     """Builder Config for AudioFolder."""
 
-    drop_labels: bool = None
+    drop_labels: bool = True
     drop_metadata: bool = None
 
 
