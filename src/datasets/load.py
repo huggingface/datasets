@@ -1645,7 +1645,9 @@ def load_dataset(
             Note that streaming works for datasets that use data formats that support being iterated over like txt, csv, jsonl for example.
             Json files may be downloaded completely. Also streaming from remote zip or gzip files is supported but other compressed formats
             like rar and xz are not yet supported. The tgz format doesn't allow streaming.
-        num_proc (:obj:`int`, optional, default `None`): Number of processes when building and loading the dataset.
+        num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
+        
+                <Added version="2.7.0"/>
         **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the :class:`BuilderConfig`
             and used in the :class:`DatasetBuilder`.
 
@@ -1712,6 +1714,12 @@ def load_dataset(
         raise ValueError(
             "You are trying to load a dataset that was saved using `save_to_disk`. "
             "Please use `load_from_disk` instead."
+        )
+
+    if streaming and num_proc is not None:
+        raise NotImplementedError(
+            "Loading a streaming dataset in parallel with `num_proc` is not implemented. "
+            "To parallelize streaming, you can wrap the dataset with a PyTorch DataLoader using `num_workers` > 1 instead."
         )
 
     download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)

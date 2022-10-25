@@ -646,7 +646,7 @@ class BeamWriter:
 
         # Convert to arrow
         if self._path.endswith(".arrow"):
-            logger.info(f"Converting parquet file {self._parquet_path} to arrow {self._path}")
+            logger.info(f"Converting parquet files {self._parquet_path} to arrow {self._path}")
             shards = [
                 metadata.path
                 for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[
@@ -690,10 +690,10 @@ class BeamWriter:
         return self._num_examples, self._num_bytes
 
 
-def get_parquet_lengths(sources) -> List[str]:
+def get_parquet_lengths(sources) -> List[int]:
     shard_lengths = []
     disable = not logging.is_progress_bar_enabled()
-    for source in logging.tqdm(sources, unit="sources", disable=disable):
+    for source in logging.tqdm(sources, unit="parquet files", disable=disable):
         parquet_file = pa.parquet.ParquetFile(source)
         shard_lengths.append(parquet_file.metadata.num_rows)
     return shard_lengths
