@@ -20,16 +20,19 @@
 import copy
 import functools
 import itertools
+import multiprocessing.pool
 import os
+import queue
 import re
 import types
 from contextlib import contextmanager
 from dataclasses import fields, is_dataclass
 from io import BytesIO as StringIO
-from multiprocessing import Pool, RLock
+from multiprocessing import Manager, Pool, RLock
+from queue import Empty
 from shutil import disk_usage
 from types import CodeType, FunctionType
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, TypeVar, Union
 from urllib.parse import urlparse
 
 import dill
@@ -964,3 +967,31 @@ try:
 
 except ImportError:
     pass
+
+
+T = TypeVar("T")
+O = TypeVar("O")
+
+
+def _write_generator_to_queue(queue: queue.Queue, func: Callable[[T], Iterable], arg: T) -> int:
+    for i, result in enumerate(func(arg)):
+        queue.put(result)
+    return i
+
+
+def iflatmap_unordered(
+    pool: multiprocessing.pool.Pool, func: Callable[[T], Iterable[O]], iterable: Iterable[T]
+) -> Iterable[O]:
+    with Manager() as manager:
+        queue = manager.Queue()
+        async_results = [pool.apply_async(_write_generator_to_queue, (queue, func, arg)) for arg in iterable]
+        pool.close()
+        while True:
+            try:
+                yield queue.get(timeout=0.05)
+            except Empty:
+                if all(async_result.ready() for async_result in async_results) and queue.empty():
+                    break
+        pool.join()
+        # we get the result in case there's an error to raise
+        [async_result.get() for async_result in async_results]
