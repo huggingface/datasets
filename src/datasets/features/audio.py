@@ -296,10 +296,10 @@ class Audio:
                 array, sampling_rate = self._decode_mp3_torchaudio(path_or_file)
             except RuntimeError:
                 warnings.warn(
-                    "\nTo support 'mp3' decoding with `torchaudio>=0.12.0`, please install `ffmpeg4` system package: "
-                    "`add-apt-repository -y ppa:jonathonf/ffmpeg-4 && apt update && apt install -y ffmpeg` "
-                    "and restart your runtime. Alternatively, you can downgrade `torchaudio`: "
-                    "`pip install \"torchaudio<0.12\"`. Otherwise 'mp3' files will be decoded with `librosa`."
+                    "\nTo support 'mp3' decoding with `torchaudio>=0.12.0`, please install `ffmpeg4` system package. On Google Colab you can run:\n\n"
+                    "\t!add-apt-repository -y ppa:jonathonf/ffmpeg-4 && apt update && apt install -y ffmpeg\n\n"
+                    "and restart your runtime. Alternatively, you can downgrade `torchaudio`:\n\n"
+                    "\tpip install \"torchaudio<0.12\"`.\n\nOtherwise 'mp3' files will be decoded with `librosa`."
                 )
                 try:
                     # flake8: noqa
