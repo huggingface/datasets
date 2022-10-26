@@ -20,6 +20,7 @@ import io
 import os
 import posixpath
 import tarfile
+import warnings
 from datetime import datetime
 from functools import partial
 from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
@@ -377,7 +378,7 @@ class DownloadManager:
         """
         return FilesIterable.from_paths(paths)
 
-    def extract(self, path_or_paths, num_proc=None):
+    def extract(self, path_or_paths, num_proc="deprecated"):
         """Extract given path(s).
 
         Args:
@@ -385,6 +386,12 @@ class DownloadManager:
                 path is a `str`.
             num_proc: Use multi-processing if `num_proc` > 1 and the length of
                 `path_or_paths` is larger than `num_proc`
+
+                <Deprecated version="2.6.2">
+
+                Pass `DownloadConfig(num_proc=<num_proc>)` to the initializer instead.
+
+                </Deprecated>
 
         Returns:
             extracted_path(s): `str`, The extracted paths matching the given input
@@ -397,15 +404,22 @@ class DownloadManager:
         >>> extracted_files = dl_manager.extract(downloaded_files)
         ```
         """
+        if num_proc != "deprecated":
+            warnings.warn(
+                "'num_proc' was deprecated in version 2.6.2 and will be removed in 3.0.0. Pass `DownloadConfig(num_proc=<num_proc>)` to the initializer instead.",
+                FutureWarning,
+            )
         download_config = self.download_config.copy()
         download_config.extract_compressed_file = True
         # Extract downloads the file first if it is not already downloaded
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading data"
+        if download_config.num_proc is None:
+            download_config.num_proc = 16
         extracted_paths = map_nested(
             partial(cached_path, download_config=download_config),
             path_or_paths,
-            num_proc=num_proc,
+            num_proc=download_config.num_proc,
             disable_tqdm=not is_progress_bar_enabled(),
             desc="Extracting data files",
         )
