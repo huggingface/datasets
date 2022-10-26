@@ -296,12 +296,12 @@ class Audio:
                 array, sampling_rate = self._decode_mp3_torchaudio(path_or_file)
             except RuntimeError:
                 warnings.warn(
-                    "Your version of `torchaudio` (>=0.12.0) doesn't support decoding 'mp3' files on your machine. "
-                    "To support 'mp3' decoding with `torchaudio>=0.12.0`, please install `ffmpeg4` system package: "
-                    "`add-apt-repository -y ppa:jonathonf/ffmpeg-4 && apt update && apt install -y ffmpeg` "
-                    " "
-                    'Or downgrade `torchaudio` to <0.12: `pip install "torchaudio<0.12"`. '
-                    "Otherwise it will be decoded with `librosa`"
+                    "Your version of `torchaudio` (>=0.12.0) doesn't support decoding 'mp3' files on your machine.\n"
+                    "To support 'mp3' decoding with `torchaudio>=0.12.0`, please install `ffmpeg4` system package:\n"
+                    "`add-apt-repository -y ppa:jonathonf/ffmpeg-4 && apt update && apt install -y ffmpeg`\n"
+                    "\n"
+                    'Or downgrade `torchaudio` to <0.12: `pip install "torchaudio<0.12"`.\n'
+                    "Otherwise it will be decoded with `librosa`."
                 )
                 try:
                     # flake8: noqa
