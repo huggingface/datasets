@@ -75,17 +75,8 @@ require_torchaudio_latest = pytest.mark.skipif(
     reason="test requires torchaudio>=0.12",
 )
 
-
-def require_beam(test_case):
-    """
-    Decorator marking a test that requires Apache Beam.
-
-    These tests are skipped when Apache Beam isn't installed.
-
-    """
-    if not config.BEAM_AVAILABLE:
-        test_case = unittest.skip("test requires apache-beam")(test_case)
-    return test_case
+# Beam
+require_beam = pytest.mark.skipif(not config.BEAM_AVAILABLE, reason="test requires apache-beam")
 
 
 def require_faiss(test_case):
