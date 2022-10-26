@@ -298,9 +298,9 @@ class Audio:
                 warnings.warn(
                     "\nYour version of `torchaudio` (>=0.12.0) doesn't support decoding 'mp3' files on your machine. "
                     "To support 'mp3' decoding with `torchaudio>=0.12.0`, please install `ffmpeg4` system package: "
-                    "`add-apt-repository -y ppa:jonathonf/ffmpeg-4 && apt update && apt install -y ffmpeg`, "
-                    'or downgrade `torchaudio` to <0.12: `pip install "torchaudio<0.12"`. '
-                    "Otherwise 'mp3' files will be decoded with `librosa`."
+                    "`add-apt-repository -y ppa:jonathonf/ffmpeg-4 && apt update && apt install -y ffmpeg` "
+                    "and restart your runtime. Alternatively, you can downgrade `torchaudio`: "
+                    "`pip install \"torchaudio<0.12\"`. Otherwise 'mp3' files will be decoded with `librosa`."
                 )
                 try:
                     # flake8: noqa
@@ -310,8 +310,9 @@ class Audio:
                         "Your version of `torchaudio` (>=0.12.0) doesn't support decoding 'mp3' files on your machine. "
                         "To support 'mp3' decoding with `torchaudio>=0.12.0`, please install `ffmpeg4` system package: "
                         "`add-apt-repository -y ppa:jonathonf/ffmpeg-4 && apt update && apt install -y ffmpeg`, "
-                        'or downgrade `torchaudio` to <0.12: `pip install "torchaudio<0.12"`. '
-                        "To support decoding 'mp3' audio files without `torchaudio`, please install `librosa`: "
+                        "and restart your runtime. Alternatively, you can downgrade `torchaudio`: "
+                        '`pip install "torchaudio<0.12"`. '
+                        "To support decoding of 'mp3' audio files without `torchaudio`, please install `librosa`: "
                         "`pip install librosa`. Note that decoding will be extremely slow in that case."
                     ) from err
                 # try to decode with librosa for torchaudio>=0.12.0 as a workaround
