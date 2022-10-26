@@ -23,12 +23,13 @@ import os
 import posixpath
 import shutil
 import textwrap
+import time
 import urllib
 import warnings
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import Dict, List, Mapping, Optional, Tuple, Union
+from typing import Dict, Iterable, List, Mapping, Optional, Tuple, Union
 
 import fsspec
 from multiprocess import Pool
@@ -54,16 +55,10 @@ from .features import Features
 from .filesystems import is_remote_filesystem
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
-from .iterable_dataset import (
-    ExamplesIterable,
-    IterableDataset,
-    _all_shard_kwargs,
-    _generate_examples_from_tables_wrapper,
-    _shard_number,
-)
+from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
 from .keyhash import DuplicatedKeysError
 from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH, camelcase_to_snakecase
-from .splits import Split, SplitDict, SplitGenerator
+from .splits import Split, SplitDict, SplitGenerator, SplitInfo
 from .streaming import extend_dataset_builder_for_streaming
 from .utils import logging
 from .utils.file_utils import cached_path, is_remote_url
@@ -73,6 +68,7 @@ from .utils.py_utils import (
     classproperty,
     convert_file_size_to_int,
     has_sufficient_disk_space,
+    iflatmap_unordered,
     map_nested,
     memoize,
     size_str,
@@ -643,7 +639,7 @@ class DatasetBuilder:
 
                 <Added version="2.5.0"/>
             num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
-        
+
                 <Added version="2.7.0"/>
             storage_options (:obj:`dict`, *optional*): Key/value pairs to be passed on to the caching file-system backend, if any.
 
@@ -1277,25 +1273,43 @@ class DatasetBuilder:
         raise NotImplementedError()
 
 
-def _distribute_shards(num_shards: int, max_num_groups: int) -> List[range]:
+def _number_of_shards(gen_kwargs: dict) -> int:
+    """Return the number of possible shards according to the input kwargs"""
+    # Having lists of different sizes makes sharding ambigious, raise an error in this case
+    # until we decide how to define sharding without ambiguity for users
+    lists_lengths = {key: len(value) for key, value in gen_kwargs.items() if isinstance(value, list)}
+    if len(set(lists_lengths.values())) > 1:
+        raise RuntimeError(
+            (
+                "Sharding is ambiguous for this dataset: "
+                + "we found several data sources lists of different lengths, and we don't know over which list we should parallelize:\n"
+                + "\n".join(f"\t- key {key} has length {length}" for key, length in lists_lengths.items())
+                + "\nTo fix this, check the dataset script 'gen_kwargs' and make sure to use lists only for data sources, "
+                + "and use tuples otherwise. In the end there should only be one single list, or several lists with the same length."
+            )
+        )
+    return max(lists_lengths.values(), default=0)
+
+
+def _distribute_shards(num_shards: int, max_num_jobs: int) -> List[range]:
     """
     Get the range of shard indices per group.
-    If num_shards<max_num_groups, then each group is range of one shard.
+    If num_shards<max_num_jobs, then each group is range of one shard.
     The shards indices order is preserved: e.g. all the first shards are in the first group.
     Moreover all the groups have approximately the same number of shards.
 
     Example:
 
     ```python
-    >>> _distribute_shards(2, max_num_groups=4)
+    >>> _distribute_shards(2, max_num_jobs=4)
     [range(0, 1), range(1, 2)]
-    >>> _distribute_shards(10, max_num_groups=3)
+    >>> _distribute_shards(10, max_num_jobs=3)
     [range(0, 4), range(4, 7), range(7, 10)]
     ```
     """
     shards_indices_per_group = []
-    for group_idx in range(max_num_groups):
-        num_shards_to_add = num_shards // max_num_groups + (group_idx < (num_shards % max_num_groups))
+    for group_idx in range(max_num_jobs):
+        num_shards_to_add = num_shards // max_num_jobs + (group_idx < (num_shards % max_num_jobs))
         if num_shards_to_add == 0:
             break
         start = shards_indices_per_group[-1].stop if shards_indices_per_group else 0
@@ -1304,8 +1318,8 @@ def _distribute_shards(num_shards: int, max_num_groups: int) -> List[range]:
     return shards_indices_per_group
 
 
-def _split_gen_kwargs(kwargs: dict, max_num_groups: int) -> List[dict]:
-    """Split the gen_kwargs into `max_num_groups` gen_kwargs"""
+def _split_gen_kwargs(kwargs: dict, max_num_jobs: int) -> List[dict]:
+    """Split the gen_kwargs into `max_num_job` gen_kwargs"""
     # Having lists of different sizes makes sharding ambigious, raise an error in this case
     lists_lengths = {key: len(value) for key, value in kwargs.items() if isinstance(value, list)}
     if len(set(lists_lengths.values())) > 1:
@@ -1323,7 +1337,7 @@ def _split_gen_kwargs(kwargs: dict, max_num_groups: int) -> List[dict]:
         return [dict(kwargs)]
     else:
         num_shards = next(iter(lists_lengths.values()))
-        shard_indices_per_group = _distribute_shards(num_shards=num_shards, max_num_groups=max_num_groups)
+        shard_indices_per_group = _distribute_shards(num_shards=num_shards, max_num_jobs=max_num_jobs)
         return [
             {
                 key: [value[shard_idx] for shard_idx in shard_indices_per_group[group_idx]]
@@ -1409,80 +1423,95 @@ class GeneratorBasedBuilder(DatasetBuilder):
         else:
             split_info = split_generator.split_info
 
-        SUFFIX = "-RRRRR-SSSSS-of-NNNNN"
+        SUFFIX = "-JJJJJ-SSSSS-of-NNNNN"
         fname = f"{self.name}-{split_generator.name}{SUFFIX}.{file_format}"
         fpath = path_join(self._output_dir, fname)
 
         # Default to using 16-way parallelism for preparation if the number of files is higher than 16.
-        if num_proc is None and len(_all_shard_kwargs(split_generator.gen_kwargs)) >= 16:
+        num_input_shards = _number_of_shards(split_generator.gen_kwargs)
+        if num_proc is None and num_input_shards >= 16:
             num_proc = 16
 
-        num_input_shards = _shard_number(split_generator.gen_kwargs)
         if num_input_shards <= 1 and num_proc is not None:
             logger.warning(
-                f"Setting num_proc from {num_proc} back to 1 to disable multiprocessing as the dataset only contains one shard."
+                f"Setting num_proc from {num_proc} back to 1 for the {split_info.name} split to disable multiprocessing as it only contains one shard."
             )
             num_proc = 1
         elif num_proc is not None and 0 < num_input_shards < num_proc:
             logger.info(
-                f"Setting num_proc from {num_proc} to {num_input_shards} as the dataset only contains {num_input_shards} shards."
+                f"Setting num_proc from {num_proc} to {num_input_shards} for the {split_info.name} split as it only contains {num_input_shards} shards."
             )
             num_proc = num_input_shards
 
+        pbar = logging.tqdm(
+            unit=" examples",
+            total=split_info.num_examples,
+            leave=False,
+            desc=f"Generating {split_info.name} split",
+        )
+
+        _prepare_split_args = {
+            "fpath": fpath,
+            "file_format": file_format,
+            "max_shard_size": max_shard_size,
+            "split_info": split_info,
+            "check_duplicate_keys": check_duplicate_keys,
+        }
+
         if num_proc is None or num_proc == 1:
-            result = self._prepare_split_single(
-                split_generator.gen_kwargs,
-                fpath=fpath,
-                file_format=file_format,
-                max_shard_size=max_shard_size,
-                split_info=split_info,
-                check_duplicate_keys=check_duplicate_keys,
-            )
+            result = None
+            gen_kwargs = split_generator.gen_kwargs
+            job_id = 0
+            for job_id, done, content in self._prepare_split_single(
+                {"gen_kwargs": gen_kwargs, "job_id": job_id, **_prepare_split_args}
+            ):
+                if done:
+                    result = content
+                else:
+                    pbar.update(content)
             # wrapping everything into lists for consistency with the multiprocessed code path
-            examples_per_rank, bytes_per_rank, features_per_rank, shards_per_rank, shard_lengths_per_rank = [
+            assert result is not None, f"Failed to retrieve results from prepare_split"
+            examples_per_job, bytes_per_job, features_per_job, shards_per_job, shard_lengths_per_job = [
                 [item] for item in result
             ]
         else:
-            args_per_proc = [
-                (
-                    gen_kwargs,
-                    fpath,
-                    file_format,
-                    max_shard_size,
-                    split_info,
-                    check_duplicate_keys,
+            args_per_job = [
+                {"gen_kwargs": gen_kwargs, "job_id": job_id, **_prepare_split_args}
+                for job_id, gen_kwargs in enumerate(
+                    _split_gen_kwargs(split_generator.gen_kwargs, max_num_jobs=num_proc)
                 )
-                for gen_kwargs in _split_gen_kwargs(split_generator.gen_kwargs)
             ]
+            num_jobs = len(args_per_job)
 
-            examples_per_rank = [None] * num_proc
-            bytes_per_rank = [None] * num_proc
-            features_per_rank = [None] * num_proc
-            shards_per_rank = [None] * num_proc
-            shard_lengths_per_rank = [None] * num_proc
+            examples_per_job = [None] * num_jobs
+            bytes_per_job = [None] * num_jobs
+            features_per_job = [None] * num_jobs
+            shards_per_job = [None] * num_jobs
+            shard_lengths_per_job = [None] * num_jobs
 
             with Pool(num_proc) as pool:
-                results = {
-                    rank: pool.apply_async(self._prepare_split_single, args=args, kwds={"rank": rank})
-                    for rank, args in enumerate(args_per_proc)
-                }
-                for index, async_result in results.items():
-                    result = async_result.get()
-                    (
-                        examples_per_rank[index],
-                        bytes_per_rank[index],
-                        features_per_rank[index],
-                        shards_per_rank[index],
-                        shard_lengths_per_rank[index],
-                    ) = result
+                for job_id, done, content in iflatmap_unordered(pool, self._prepare_split_single, args_per_job):
+                    if done:
+                        # the content is the result of the job
+                        (
+                            examples_per_job[job_id],
+                            bytes_per_job[job_id],
+                            features_per_job[job_id],
+                            shards_per_job[job_id],
+                            shard_lengths_per_job[job_id],
+                        ) = content
+                    else:
+                        # the content is the number of examples progress update
+                        pbar.update(content)
 
-            assert None not in examples_per_rank, f"result list {examples_per_rank} still contains None"
-            # wrapping everything into lists for consistency with the multiprocessed code path
+            assert (
+                None not in examples_per_job
+            ), f"Failed to retrieve results from prepare_split: result list {examples_per_job} still contains None - at least one worker failed to return its results"
 
-        total_shards = sum(shards_per_rank)
-        total_num_examples = sum(examples_per_rank)
-        total_num_bytes = sum(bytes_per_rank)
-        features = features_per_rank[0]
+        total_shards = sum(shards_per_job)
+        total_num_examples = sum(examples_per_job)
+        total_num_bytes = sum(bytes_per_job)
+        features = features_per_job[0]
 
         split_generator.split_info.num_examples = total_num_examples
         split_generator.split_info.num_bytes = total_num_bytes
@@ -1492,44 +1521,44 @@ class GeneratorBasedBuilder(DatasetBuilder):
         if total_shards > 1:
             # use the -SSSSS-of-NNNNN pattern
 
-            def _rename_shard(shard_id_and_rank: Tuple[int]):
-                shard_id, rank = shard_id_and_rank
-                global_shard_id = sum(shards_per_rank[:rank]) + shard_id
+            def _rename_shard(shard_and_job: Tuple[int]):
+                shard_id, job_id = shard_and_job
+                global_shard_id = sum(shards_per_job[:job_id]) + shard_id
                 self._rename(
-                    fpath.replace("SSSSS", f"{shard_id:05d}").replace("RRRRR", f"{rank:05d}"),
-                    fpath.replace("RRRRR-SSSSS", f"{global_shard_id:05d}").replace("NNNNN", f"{total_shards:05d}"),
+                    fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                    fpath.replace("JJJJJ-SSSSS", f"{global_shard_id:05d}").replace("NNNNN", f"{total_shards:05d}"),
                 )
 
-            shard_ids_and_ranks = [
-                (shard_id, rank) for rank, num_shards in enumerate(shards_per_rank) for shard_id in range(num_shards)
+            shards_and_jobs = [
+                (shard_id, job_id)
+                for job_id, num_shards in enumerate(shards_per_job)
+                for shard_id in range(num_shards)
             ]
-            thread_map(_rename_shard, shard_ids_and_ranks, disable=True, max_workers=64)
+            thread_map(_rename_shard, shards_and_jobs, disable=True, max_workers=64)
 
             split_generator.split_info.shard_lengths = [
-                shard_length for shard_lengths in shard_lengths_per_rank for shard_length in shard_lengths
+                shard_length for shard_lengths in shard_lengths_per_job for shard_length in shard_lengths
             ]
         else:
             # don't use any pattern
-            shard_id, rank = 0, 0
+            shard_id, job_id = 0, 0
             self._rename(
-                fpath.replace("SSSSS", f"{shard_id:05d}").replace("RRRRR", f"{rank:05d}"),
+                fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
                 fpath.replace(SUFFIX, ""),
             )
 
         if self.info.features is None:
             self.info.features = features
 
-    def _prepare_split_single(
-        self, gen_kwargs, fpath, file_format, max_shard_size, split_info, check_duplicate_keys, rank=None
-    ):
-
-        if rank is None:
-            # in single mode there will be only one rank
-            tqdm_length = split_info.num_examples
-            rank = 0
-        else:
-            # in multiprocessed mode we can't know how many lines there are per shard
-            tqdm_length = None
+    def _prepare_split_single(self, arg: dict) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
+        gen_kwargs: dict = arg["gen_kwargs"]
+        fpath: str = arg["fpath"]
+        file_format: str = arg["file_format"]
+        max_shard_size: int = arg["max_shard_size"]
+        split_info: SplitInfo = arg["split_info"]
+        check_duplicate_keys: bool = arg["check_duplicate_keys"]
+        job_id: int = arg["job_id"]
+        refresh_rate = 0.05  # 20 progress updates per sec
 
         generator = self._generate_examples(**gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
@@ -1538,9 +1567,10 @@ class GeneratorBasedBuilder(DatasetBuilder):
         total_num_examples, total_num_bytes = 0, 0
 
         shard_id = 0
+        num_examples_progress_update = 0
         writer = writer_class(
             features=self.info.features,
-            path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("RRRRR", f"{rank:05d}"),
+            path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
             writer_batch_size=self._writer_batch_size,
             hash_salt=split_info.name,
             check_duplicates=check_duplicate_keys,
@@ -1548,14 +1578,8 @@ class GeneratorBasedBuilder(DatasetBuilder):
             embed_local_files=embed_local_files,
         )
         try:
-            for key, record in logging.tqdm(
-                generator,
-                unit=" examples",
-                total=tqdm_length,
-                leave=False,
-                disable=not logging.is_progress_bar_enabled(),
-                desc=f"Generating {split_info.name} split",
-            ):
+            _time = time.time()
+            for key, record in generator:
                 if max_shard_size is not None and writer._num_bytes > max_shard_size:
                     num_examples, num_bytes = writer.finalize()
                     writer.close()
@@ -1565,7 +1589,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
                     shard_id += 1
                     writer = writer_class(
                         features=writer._features,
-                        path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("RRRRR", f"{rank:05d}"),
+                        path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
                         writer_batch_size=self._writer_batch_size,
                         hash_salt=split_info.name,
                         check_duplicates=check_duplicate_keys,
@@ -1574,7 +1598,13 @@ class GeneratorBasedBuilder(DatasetBuilder):
                     )
                 example = self.info.features.encode_example(record) if self.info.features is not None else record
                 writer.write(example, key)
+                num_examples_progress_update += 1
+                if time.time() > _time + refresh_rate:
+                    _time = time.time()
+                    yield job_id, False, num_examples_progress_update
+                    num_examples_progress_update = 0
         finally:
+            yield job_id, False, num_examples_progress_update
             num_shards = shard_id + 1
             num_examples, num_bytes = writer.finalize()
             writer.close()
@@ -1582,7 +1612,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
             total_num_examples += num_examples
             total_num_bytes += num_bytes
 
-        return total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths
+        yield job_id, True, (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths)
 
     def _download_and_prepare(self, dl_manager, verify_infos, **prepare_splits_kwargs):
         super()._download_and_prepare(
@@ -1645,78 +1675,94 @@ class ArrowBasedBuilder(DatasetBuilder):
         else:
             split_info = split_generator.split_info
 
-        SUFFIX = "-RRRRR-SSSSS-of-NNNNN"
+        SUFFIX = "-JJJJJ-SSSSS-of-NNNNN"
         fname = f"{self.name}-{split_generator.name}{SUFFIX}.{file_format}"
         fpath = path_join(self._output_dir, fname)
 
         # Default to using 16-way parallelism for preparation if the number of files is higher than 16.
-        if num_proc is None and len(_all_shard_kwargs(split_generator.gen_kwargs)) >= 16:
+        num_input_shards = _number_of_shards(split_generator.gen_kwargs)
+        if num_proc is None and num_input_shards >= 16:
             num_proc = 16
 
-        num_input_shards = _shard_number(split_generator.gen_kwargs)
         if num_input_shards <= 1 and num_proc is not None:
             logger.warning(
-                f"Setting num_proc from {num_proc} back to 1 to disable multiprocessing as the dataset only contains one shard."
+                f"Setting num_proc from {num_proc} back to 1 for the {split_info.name} split to disable multiprocessing as it only contains one shard."
             )
             num_proc = 1
         elif num_proc is not None and 0 < num_input_shards < num_proc:
             logger.info(
-                f"Setting num_proc from {num_proc} to {num_input_shards} as the dataset only contains {num_input_shards} shards."
+                f"Setting num_proc from {num_proc} to {num_input_shards} for the {split_info.name} split as it only contains {num_input_shards} shards."
             )
             num_proc = num_input_shards
 
+        pbar = logging.tqdm(
+            unit=" examples",
+            total=split_info.num_examples,
+            leave=False,
+            desc=f"Generating {split_info.name} split",
+        )
+
+        _prepare_split_args = {
+            "fpath": fpath,
+            "file_format": file_format,
+            "max_shard_size": max_shard_size,
+            "split_info": split_info,
+        }
+
         if num_proc is None or num_proc == 1:
-            result = self._prepare_split_single(
-                split_generator.gen_kwargs,
-                fpath=fpath,
-                file_format=file_format,
-                max_shard_size=max_shard_size,
-                split_info=split_info,
-            )
+            result = None
+            gen_kwargs = split_generator.gen_kwargs
+            job_id = 0
+            for job_id, done, content in self._prepare_split_single(
+                {"gen_kwargs": gen_kwargs, "job_id": job_id, **_prepare_split_args}
+            ):
+                if done:
+                    result = content
+                else:
+                    pbar.update(content)
             # wrapping everything into lists for consistency with the multiprocessed code path
-            examples_per_rank, bytes_per_rank, features_per_rank, shards_per_rank, shard_lengths_per_rank = [
+            assert result is not None, f"Failed to retrieve results from prepare_split"
+            examples_per_job, bytes_per_job, features_per_job, shards_per_job, shard_lengths_per_job = [
                 [item] for item in result
             ]
         else:
-            args_per_proc = [
-                (
-                    gen_kwargs,
-                    fpath,
-                    file_format,
-                    max_shard_size,
-                    split_info,
+            args_per_job = [
+                {"gen_kwargs": gen_kwargs, "job_id": job_id, **_prepare_split_args}
+                for job_id, gen_kwargs in enumerate(
+                    _split_gen_kwargs(split_generator.gen_kwargs, max_num_jobs=num_proc)
                 )
-                for gen_kwargs in _split_gen_kwargs(split_generator.gen_kwargs, max_num_groups=num_proc)
             ]
+            num_jobs = len(args_per_job)
 
-            examples_per_rank = [None] * num_proc
-            bytes_per_rank = [None] * num_proc
-            features_per_rank = [None] * num_proc
-            shards_per_rank = [None] * num_proc
-            shard_lengths_per_rank = [None] * num_proc
+            examples_per_job = [None] * num_jobs
+            bytes_per_job = [None] * num_jobs
+            features_per_job = [None] * num_jobs
+            shards_per_job = [None] * num_jobs
+            shard_lengths_per_job = [None] * num_jobs
 
             with Pool(num_proc) as pool:
-                results = {
-                    rank: pool.apply_async(self._prepare_split_single, args=args, kwds={"rank": rank})
-                    for rank, args in enumerate(args_per_proc)
-                }
-                for index, async_result in results.items():
-                    result = async_result.get()
-                    (
-                        examples_per_rank[index],
-                        bytes_per_rank[index],
-                        features_per_rank[index],
-                        shards_per_rank[index],
-                        shard_lengths_per_rank[index],
-                    ) = result
+                for job_id, done, content in iflatmap_unordered(pool, self._prepare_split_single, args_per_job):
+                    if done:
+                        # the content is the result of the job
+                        (
+                            examples_per_job[job_id],
+                            bytes_per_job[job_id],
+                            features_per_job[job_id],
+                            shards_per_job[job_id],
+                            shard_lengths_per_job[job_id],
+                        ) = content
+                    else:
+                        # the content is the number of examples progress update
+                        pbar.update(content)
 
-            assert None not in examples_per_rank, f"result list {examples_per_rank} still contains None"
-            # wrapping everything into lists for consistency with the multiprocessed code path
+            assert (
+                None not in examples_per_job
+            ), f"Failed to retrieve results from prepare_split: result list {examples_per_job} still contains None - at least one worker failed to return its results"
 
-        total_shards = sum(shards_per_rank)
-        total_num_examples = sum(examples_per_rank)
-        total_num_bytes = sum(bytes_per_rank)
-        features = features_per_rank[0]
+        total_shards = sum(shards_per_job)
+        total_num_examples = sum(examples_per_job)
+        total_num_bytes = sum(bytes_per_job)
+        features = features_per_job[0]
 
         split_generator.split_info.num_examples = total_num_examples
         split_generator.split_info.num_bytes = total_num_bytes
@@ -1728,32 +1774,39 @@ class ArrowBasedBuilder(DatasetBuilder):
 
             def _rename_shard(shard_id_and_rank: Tuple[int]):
                 shard_id, rank = shard_id_and_rank
-                global_shard_id = sum(shards_per_rank[:rank]) + shard_id
+                global_shard_id = sum(shards_per_job[:rank]) + shard_id
                 self._rename(
-                    fpath.replace("SSSSS", f"{shard_id:05d}").replace("RRRRR", f"{rank:05d}"),
-                    fpath.replace("RRRRR-SSSSS", f"{global_shard_id:05d}").replace("NNNNN", f"{total_shards:05d}"),
+                    fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{rank:05d}"),
+                    fpath.replace("JJJJJ-SSSSS", f"{global_shard_id:05d}").replace("NNNNN", f"{total_shards:05d}"),
                 )
 
             shard_ids_and_ranks = [
-                (shard_id, rank) for rank, num_shards in enumerate(shards_per_rank) for shard_id in range(num_shards)
+                (shard_id, rank) for rank, num_shards in enumerate(shards_per_job) for shard_id in range(num_shards)
             ]
             thread_map(_rename_shard, shard_ids_and_ranks, disable=True, max_workers=64)
 
             split_generator.split_info.shard_lengths = [
-                shard_length for shard_lengths in shard_lengths_per_rank for shard_length in shard_lengths
+                shard_length for shard_lengths in shard_lengths_per_job for shard_length in shard_lengths
             ]
         else:
             # don't use any pattern
-            shard_id, rank = 0, 0
+            shard_id, job_id = 0, 0
             self._rename(
-                fpath.replace("SSSSS", f"{shard_id:05d}").replace("RRRRR", f"{rank:05d}"),
+                fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
                 fpath.replace(SUFFIX, ""),
             )
 
         if self.info.features is None:
             self.info.features = features
 
-    def _prepare_split_single(self, gen_kwargs, fpath, file_format, max_shard_size, split_info, rank=0):
+    def _prepare_split_single(self, arg: dict) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
+        gen_kwargs: dict = arg["gen_kwargs"]
+        fpath: str = arg["fpath"]
+        file_format: str = arg["file_format"]
+        max_shard_size: int = arg["max_shard_size"]
+        split_info: SplitInfo = arg["split_info"]
+        job_id: int = arg["job_id"]
+        refresh_rate = 0.05  # 20 progress updates per sec
 
         generator = self._generate_tables(**gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
@@ -1762,13 +1815,15 @@ class ArrowBasedBuilder(DatasetBuilder):
         total_num_examples, total_num_bytes = 0, 0
 
         shard_id = 0
+        num_examples_progress_update = 0
         writer = writer_class(
             features=self.info.features,
-            path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("RRRRR", f"{rank:05d}"),
+            path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
             storage_options=self._fs.storage_options,
             embed_local_files=embed_local_files,
         )
         try:
+            _time = time.time()
             for key, table in logging.tqdm(
                 generator,
                 unit=" tables",
@@ -1785,12 +1840,18 @@ class ArrowBasedBuilder(DatasetBuilder):
                     shard_id += 1
                     writer = writer_class(
                         features=writer._features,
-                        path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("RRRRR", f"{rank:05d}"),
+                        path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
                         storage_options=self._fs.storage_options,
                         embed_local_files=embed_local_files,
                     )
                 writer.write_table(table)
+                num_examples_progress_update += len(table)
+                if time.time() > _time + refresh_rate:
+                    _time = time.time()
+                    yield job_id, False, num_examples_progress_update
+                    num_examples_progress_update = 0
         finally:
+            yield job_id, False, num_examples_progress_update
             num_shards = shard_id + 1
             num_examples, num_bytes = writer.finalize()
             writer.close()
@@ -1798,7 +1859,7 @@ class ArrowBasedBuilder(DatasetBuilder):
             total_num_examples += num_examples
             total_num_bytes += num_bytes
 
-        return total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths
+        yield job_id, True, (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths)
 
     def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
         return ExamplesIterable(
