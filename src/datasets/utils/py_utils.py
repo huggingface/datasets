@@ -634,35 +634,193 @@ def pklregister(t):
     return proxy
 
 
-@pklregister(CodeType)
-def _save_code(pickler, obj):
-    """
-    From dill._dill.save_code
-    This is a modified version that removes the origin (filename + line no.)
-    of functions created in notebooks or shells for example.
-    """
-    dill._dill.log.info(f"Co: {obj}")
-    # The filename of a function is the .py file where it is defined.
-    # Filenames of functions created in notebooks or shells start with '<'
-    # ex: <ipython-input-13-9ed2afe61d25> for ipython, and <stdin> for shell
-    # Moreover lambda functions have a special name: '<lambda>'
-    # ex: (lambda x: x).__code__.co_name == "<lambda>"  # True
-    #
-    # For the hashing mechanism we ignore where the function has been defined
-    # More specifically:
-    # - we ignore the filename of special functions (filename starts with '<')
-    # - we always ignore the line number
-    # - we only use the base name of the file instead of the whole path,
-    # to be robust in case a script is moved for example.
-    #
-    # Only those two lines are different from the original implementation:
-    co_filename = (
-        "" if obj.co_filename.startswith("<") or obj.co_name == "<lambda>" else os.path.basename(obj.co_filename)
-    )
-    co_firstlineno = 1
-    # The rest is the same as in the original dill implementation
-    if dill._dill.PY3:
-        if hasattr(obj, "co_posonlyargcount"):
+if config.DILL_VERSION < version.parse("0.3.6"):
+
+    @pklregister(CodeType)
+    def _save_code(pickler, obj):
+        """
+        From dill._dill.save_code
+        This is a modified version that removes the origin (filename + line no.)
+        of functions created in notebooks or shells for example.
+        """
+        dill._dill.log.info(f"Co: {obj}")
+        # The filename of a function is the .py file where it is defined.
+        # Filenames of functions created in notebooks or shells start with '<'
+        # ex: <ipython-input-13-9ed2afe61d25> for ipython, and <stdin> for shell
+        # Moreover lambda functions have a special name: '<lambda>'
+        # ex: (lambda x: x).__code__.co_name == "<lambda>"  # True
+        #
+        # For the hashing mechanism we ignore where the function has been defined
+        # More specifically:
+        # - we ignore the filename of special functions (filename starts with '<')
+        # - we always ignore the line number
+        # - we only use the base name of the file instead of the whole path,
+        # to be robust in case a script is moved for example.
+        #
+        # Only those two lines are different from the original implementation:
+        co_filename = (
+            "" if obj.co_filename.startswith("<") or obj.co_name == "<lambda>" else os.path.basename(obj.co_filename)
+        )
+        co_firstlineno = 1
+        # The rest is the same as in the original dill implementation
+        if dill._dill.PY3:
+            if hasattr(obj, "co_posonlyargcount"):
+                args = (
+                    obj.co_argcount,
+                    obj.co_posonlyargcount,
+                    obj.co_kwonlyargcount,
+                    obj.co_nlocals,
+                    obj.co_stacksize,
+                    obj.co_flags,
+                    obj.co_code,
+                    obj.co_consts,
+                    obj.co_names,
+                    obj.co_varnames,
+                    co_filename,
+                    obj.co_name,
+                    co_firstlineno,
+                    obj.co_lnotab,
+                    obj.co_freevars,
+                    obj.co_cellvars,
+                )
+            else:
+                args = (
+                    obj.co_argcount,
+                    obj.co_kwonlyargcount,
+                    obj.co_nlocals,
+                    obj.co_stacksize,
+                    obj.co_flags,
+                    obj.co_code,
+                    obj.co_consts,
+                    obj.co_names,
+                    obj.co_varnames,
+                    co_filename,
+                    obj.co_name,
+                    co_firstlineno,
+                    obj.co_lnotab,
+                    obj.co_freevars,
+                    obj.co_cellvars,
+                )
+        else:
+            args = (
+                obj.co_argcount,
+                obj.co_nlocals,
+                obj.co_stacksize,
+                obj.co_flags,
+                obj.co_code,
+                obj.co_consts,
+                obj.co_names,
+                obj.co_varnames,
+                co_filename,
+                obj.co_name,
+                co_firstlineno,
+                obj.co_lnotab,
+                obj.co_freevars,
+                obj.co_cellvars,
+            )
+        pickler.save_reduce(CodeType, args, obj=obj)
+        dill._dill.log.info("# Co")
+        return
+
+elif config.DILL_VERSION.release[:3] == version.parse("0.3.6").release:
+
+    # From: https://github.com/uqfoundation/dill/blob/dill-0.3.6/dill/_dill.py#L1104
+    @pklregister(CodeType)
+    def save_code(pickler, obj):
+        dill._dill.logger.trace(pickler, "Co: %s", obj)
+
+        ############################################################################################################
+        # Modification here for huggingface/datasets
+        # The filename of a function is the .py file where it is defined.
+        # Filenames of functions created in notebooks or shells start with '<'
+        # ex: <ipython-input-13-9ed2afe61d25> for ipython, and <stdin> for shell
+        # Moreover lambda functions have a special name: '<lambda>'
+        # ex: (lambda x: x).__code__.co_name == "<lambda>"  # True
+        #
+        # For the hashing mechanism we ignore where the function has been defined
+        # More specifically:
+        # - we ignore the filename of special functions (filename starts with '<')
+        # - we always ignore the line number
+        # - we only use the base name of the file instead of the whole path,
+        # to be robust in case a script is moved for example.
+        #
+        # Only those two lines are different from the original implementation:
+        co_filename = (
+            "" if obj.co_filename.startswith("<") or obj.co_name == "<lambda>" else os.path.basename(obj.co_filename)
+        )
+        co_firstlineno = 1
+        # The rest is the same as in the original dill implementation, except for the replacements:
+        # - obj.co_filename => co_filename
+        # - obj.co_firstlineno => co_firstlineno
+        ############################################################################################################
+
+        if hasattr(obj, "co_endlinetable"):  # python 3.11a (20 args)
+            args = (
+                obj.co_lnotab,  # for < python 3.10 [not counted in args]
+                obj.co_argcount,
+                obj.co_posonlyargcount,
+                obj.co_kwonlyargcount,
+                obj.co_nlocals,
+                obj.co_stacksize,
+                obj.co_flags,
+                obj.co_code,
+                obj.co_consts,
+                obj.co_names,
+                obj.co_varnames,
+                co_filename,  # Modification for huggingface/datasets ############################################
+                obj.co_name,
+                obj.co_qualname,
+                co_firstlineno,  # Modification for huggingface/datasets #########################################
+                obj.co_linetable,
+                obj.co_endlinetable,
+                obj.co_columntable,
+                obj.co_exceptiontable,
+                obj.co_freevars,
+                obj.co_cellvars,
+            )
+        elif hasattr(obj, "co_exceptiontable"):  # python 3.11 (18 args)
+            args = (
+                obj.co_lnotab,  # for < python 3.10 [not counted in args]
+                obj.co_argcount,
+                obj.co_posonlyargcount,
+                obj.co_kwonlyargcount,
+                obj.co_nlocals,
+                obj.co_stacksize,
+                obj.co_flags,
+                obj.co_code,
+                obj.co_consts,
+                obj.co_names,
+                obj.co_varnames,
+                co_filename,  # Modification for huggingface/datasets ############################################
+                obj.co_name,
+                obj.co_qualname,
+                co_firstlineno,  # Modification for huggingface/datasets #########################################
+                obj.co_linetable,
+                obj.co_exceptiontable,
+                obj.co_freevars,
+                obj.co_cellvars,
+            )
+        elif hasattr(obj, "co_linetable"):  # python 3.10 (16 args)
+            args = (
+                obj.co_lnotab,  # for < python 3.10 [not counted in args]
+                obj.co_argcount,
+                obj.co_posonlyargcount,
+                obj.co_kwonlyargcount,
+                obj.co_nlocals,
+                obj.co_stacksize,
+                obj.co_flags,
+                obj.co_code,
+                obj.co_consts,
+                obj.co_names,
+                obj.co_varnames,
+                co_filename,  # Modification for huggingface/datasets ############################################
+                obj.co_name,
+                co_firstlineno,  # Modification for huggingface/datasets #########################################
+                obj.co_linetable,
+                obj.co_freevars,
+                obj.co_cellvars,
+            )
+        elif hasattr(obj, "co_posonlyargcount"):  # python 3.8 (16 args)
             args = (
                 obj.co_argcount,
                 obj.co_posonlyargcount,
@@ -674,14 +832,14 @@ def _save_code(pickler, obj):
                 obj.co_consts,
                 obj.co_names,
                 obj.co_varnames,
-                co_filename,
+                co_filename,  # Modification for huggingface/datasets ############################################
                 obj.co_name,
-                co_firstlineno,
+                co_firstlineno,  # Modification for huggingface/datasets #########################################
                 obj.co_lnotab,
                 obj.co_freevars,
                 obj.co_cellvars,
             )
-        else:
+        else:  # python 3.7 (15 args)
             args = (
                 obj.co_argcount,
                 obj.co_kwonlyargcount,
@@ -692,33 +850,17 @@ def _save_code(pickler, obj):
                 obj.co_consts,
                 obj.co_names,
                 obj.co_varnames,
-                co_filename,
+                co_filename,  # Modification for huggingface/datasets ############################################
                 obj.co_name,
-                co_firstlineno,
+                co_firstlineno,  # Modification for huggingface/datasets #########################################
                 obj.co_lnotab,
                 obj.co_freevars,
                 obj.co_cellvars,
             )
-    else:
-        args = (
-            obj.co_argcount,
-            obj.co_nlocals,
-            obj.co_stacksize,
-            obj.co_flags,
-            obj.co_code,
-            obj.co_consts,
-            obj.co_names,
-            obj.co_varnames,
-            co_filename,
-            obj.co_name,
-            co_firstlineno,
-            obj.co_lnotab,
-            obj.co_freevars,
-            obj.co_cellvars,
-        )
-    pickler.save_reduce(CodeType, args, obj=obj)
-    dill._dill.log.info("# Co")
-    return
+
+        pickler.save_reduce(dill._dill._create_code, args, obj=obj)
+        dill._dill.logger.trace(pickler, "# Co")
+        return
 
 
 if config.DILL_VERSION < version.parse("0.3.5"):
