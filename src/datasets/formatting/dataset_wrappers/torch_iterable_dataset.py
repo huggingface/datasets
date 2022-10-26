@@ -1,5 +1,6 @@
-import fsspec.asyn
 import threading
+
+import fsspec.asyn
 import torch
 
 from ...iterable_dataset import IterableDataset, _apply_feature_types
