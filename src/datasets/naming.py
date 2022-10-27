@@ -67,20 +67,19 @@ def filepattern_for_dataset_split(dataset_name, split, data_dir, filetype_suffix
     return f"{filepath}*"
 
 
-def filenames_for_dataset_split(path, dataset_name, split, filetype_suffix=None, sharded=False):
-
-    NUM_DIGITS = 5
-    counting_pattern = "[0-9]" * NUM_DIGITS
+def filenames_for_dataset_split(path, dataset_name, split, filetype_suffix=None, shard_lengths=None):
 
     prefix = filename_prefix_for_split(dataset_name, split)
     prefix = os.path.join(path, prefix)
 
-    if sharded:
-        glob_pattern = f"{prefix}-{counting_pattern}-of-{counting_pattern}"
+    if shard_lengths:
+        num_shards = len(shard_lengths)
+        filenames = [f"{prefix}-{shard_id:05d}-of-{num_shards:05d}" for shard_id in range(num_shards)]
         if filetype_suffix:
-            glob_pattern += f".{filetype_suffix}"
-        return sorted(glob.glob(glob_pattern))
+            filenames = [filename + f".{filetype_suffix}" for filename in filenames]
+        return filenames
     else:
+        filename = prefix
         if filetype_suffix:
-            prefix += f".{filetype_suffix}"
-        return [prefix]
+            filename += f".{filetype_suffix}"
+        return [filename]

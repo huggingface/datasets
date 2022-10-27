@@ -114,7 +114,7 @@ def make_file_instructions(
             dataset_name=name,
             split=info.name,
             filetype_suffix=filetype_suffix,
-            sharded=name2shard_lengths[info.name] is not None,
+            shard_lengths=name2shard_lengths[info.name],
         )
         for info in split_infos
     }
