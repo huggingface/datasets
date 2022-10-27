@@ -657,7 +657,9 @@ def _save_code(pickler, obj):
     #
     # Only those two lines are different from the original implementation:
     co_filename = (
-        "" if obj.co_filename.startswith("<") or obj.co_name == "<lambda>" else os.path.basename(obj.co_filename)
+        ""
+        if obj.co_filename.startswith("<") or "ipykernel" in obj.co_filename or obj.co_name == "<lambda>"
+        else os.path.basename(obj.co_filename)
     )
     co_firstlineno = 1
     # The rest is the same as in the original dill implementation
