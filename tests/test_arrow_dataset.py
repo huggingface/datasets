@@ -105,14 +105,6 @@ IN_MEMORY_PARAMETERS = [
 
 @parameterized.named_parameters(IN_MEMORY_PARAMETERS)
 class BaseDatasetTest(TestCase):
-    def setUp(self):
-        # google colab doesn't allow to pickle loggers
-        # so we want to make sure each tests passes without pickling the logger
-        def reduce_ex(self):
-            raise pickle.PicklingError()
-
-        datasets.arrow_dataset.logger.__reduce_ex__ = reduce_ex
-
     @pytest.fixture(autouse=True)
     def inject_fixtures(self, caplog):
         self._caplog = caplog
