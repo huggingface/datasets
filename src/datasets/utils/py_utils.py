@@ -1091,29 +1091,29 @@ elif config.DILL_VERSION.release[:3] == version.parse("0.3.6").release:
             if type(obj.__code__) is not CodeType:
                 # Some PyPy builtin functions have no module name, and thus are not
                 # able to be located
-                module_name = getattr(obj, '__module__', None)
+                module_name = getattr(obj, "__module__", None)
                 if module_name is None:
                     module_name = dill._dill.__builtin__.__name__
                 module = dill._dill._import_module(module_name, safe=True)
                 _pypy_builtin = False
                 try:
                     found, _ = dill._dill._getattribute(module, obj.__qualname__)
-                    if getattr(found, '__func__', None) is obj:
+                    if getattr(found, "__func__", None) is obj:
                         _pypy_builtin = True
                 except AttributeError:
                     pass
 
                 if _pypy_builtin:
                     dill._dill.logger.trace(pickler, "F3: %s", obj)
-                    pickler.save_reduce(getattr, (found, '__func__'), obj=obj)
+                    pickler.save_reduce(getattr, (found, "__func__"), obj=obj)
                     dill._dill.logger.trace(pickler, "# F3")
                     return
 
             dill._dill.logger.trace(pickler, "F1: %s", obj)
-            _recurse = getattr(pickler, '_recurse', None)
-            _postproc = getattr(pickler, '_postproc', None)
-            _main_modified = getattr(pickler, '_main_modified', None)
-            _original_main = getattr(pickler, '_original_main', dill._dill.__builtin__)  # 'None'
+            _recurse = getattr(pickler, "_recurse", None)
+            _postproc = getattr(pickler, "_postproc", None)
+            _main_modified = getattr(pickler, "_main_modified", None)
+            _original_main = getattr(pickler, "_original_main", dill._dill.__builtin__)  # 'None'
             postproc_list = []
             if _recurse:
                 # recurse to get all globals referred to by obj
