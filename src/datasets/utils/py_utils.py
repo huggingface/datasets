@@ -1233,16 +1233,31 @@ def copyfunc(func):
 try:
     import regex
 
-    @pklregister(type(regex.Regex("", 0)))
-    def _save_regex(pickler, obj):
-        dill._dill.log.info(f"Re: {obj}")
-        args = (
-            obj.pattern,
-            obj.flags,
-        )
-        pickler.save_reduce(regex.compile, args, obj=obj)
-        dill._dill.log.info("# Re")
-        return
+    if config.DILL_VERSION < version.parse("0.3.6"):
+
+        @pklregister(type(regex.Regex("", 0)))
+        def _save_regex(pickler, obj):
+            dill._dill.log.info(f"Re: {obj}")
+            args = (
+                obj.pattern,
+                obj.flags,
+            )
+            pickler.save_reduce(regex.compile, args, obj=obj)
+            dill._dill.log.info("# Re")
+            return
+
+    elif config.DILL_VERSION.release[:3] == version.parse("0.3.6").release:
+
+        @pklregister(type(regex.Regex("", 0)))
+        def _save_regex(pickler, obj):
+            dill._dill.logger.trace(f"Re: {obj}")
+            args = (
+                obj.pattern,
+                obj.flags,
+            )
+            pickler.save_reduce(regex.compile, args, obj=obj)
+            dill._dill.logger.trace("# Re")
+            return
 
 except ImportError:
     pass
