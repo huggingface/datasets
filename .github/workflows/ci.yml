@@ -65,7 +65,7 @@ jobs:
       - name: Install dependencies (latest versions)
         if: ${{ matrix.deps_versions == 'latest' }}
         run: |
-          pip uninstall apache-beam
+          pip uninstall -y apache-beam
           pip install --upgrade pyarrow huggingface-hub dill
       - name: Install dependencies (minimum versions)
         if: ${{ matrix.deps_versions != 'latest' }}
