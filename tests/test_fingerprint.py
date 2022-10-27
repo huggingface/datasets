@@ -1,6 +1,7 @@
 import json
 import pickle
 import subprocess
+import os
 from hashlib import md5
 from pathlib import Path
 from tempfile import tempdir
@@ -207,11 +208,11 @@ class RecurseDumpTest(TestCase):
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)
 
-        co_filename, returned_obj = f"{tempdir}/ipykernel_12345/321456789.py", [0]
+        co_filename, returned_obj = os.path.sep.join([f"{tempdir}", "ipykernel_12345", "321456789.py"]), [0]
         hash4 = md5(datasets.utils.py_utils.dumps(create_ipython_func(co_filename, returned_obj))).hexdigest()
-        co_filename, returned_obj = f"{tempdir}/ipykernel_12345/321456789.py", [1]
+        co_filename, returned_obj = os.path.sep.join([f"{tempdir}", "ipykernel_12345", "321456789.py"]), [1]
         hash5 = md5(datasets.utils.py_utils.dumps(create_ipython_func(co_filename, returned_obj))).hexdigest()
-        co_filename, returned_obj = f"{tempdir}/ipykernel_12345/654123987.py", [0]
+        co_filename, returned_obj = os.path.sep.join([f"{tempdir}", "ipykernel_12345", "654123987.py"]), [0]
         hash6 = md5(datasets.utils.py_utils.dumps(create_ipython_func(co_filename, returned_obj))).hexdigest()
         self.assertEqual(hash4, hash6)
         self.assertNotEqual(hash4, hash5)
