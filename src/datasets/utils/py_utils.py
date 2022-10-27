@@ -23,7 +23,6 @@ import itertools
 import os
 import re
 import types
-from tempfile import tempdir
 from contextlib import contextmanager
 from dataclasses import fields, is_dataclass
 from io import BytesIO as StringIO
@@ -646,8 +645,8 @@ def _save_code(pickler, obj):
     # The filename of a function is the .py file where it is defined.
     # Filenames of functions created in notebooks or shells start with '<'
     # ex: <ipython-input-13-9ed2afe61d25> for ipython, and <stdin> for shell
-    # within jupyter it looks like the filename is of the form
-    # ex: f"{tempfile.tempdir}/ipykernel_{id1}/{id2}.py"
+    # within jupyter the filename is approximately of the form:
+    # f"{tempfile.tempdir}/ipykernel_{id1}/{id2}.py"
     # Moreover lambda functions have a special name: '<lambda>'
     # ex: (lambda x: x).__code__.co_name == "<lambda>"  # True
     #
@@ -661,7 +660,9 @@ def _save_code(pickler, obj):
     # Only those two lines are different from the original implementation:
     co_filename = (
         ""
-        if obj.co_filename.startswith("<") or (tempdir in obj.co_filename and "ipykernel" in obj.co_filename) or obj.co_name == "<lambda>"
+        if obj.co_filename.startswith("<")
+        or obj.co_filename.split(os.path.sep)[-2].startswith("ipykernel_")
+        or obj.co_name == "<lambda>"
         else os.path.basename(obj.co_filename)
     )
     co_firstlineno = 1
