@@ -9,7 +9,7 @@ import tempfile
 from functools import partial
 from pathlib import Path
 from unittest import TestCase
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import numpy.testing as npt
@@ -60,6 +60,11 @@ from .utils import (
     require_transformers,
     set_current_working_directory_to_temp_dir,
 )
+
+
+class PickableMagicMock(MagicMock):
+    def __reduce__(self):
+        return (MagicMock, ())
 
 
 class Unpicklable:
@@ -1247,7 +1252,11 @@ class BaseDatasetTest(TestCase):
             self._caplog.clear()
             with self._caplog.at_level(WARNING):
                 with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                    with patch("datasets.arrow_dataset.Pool", side_effect=datasets.arrow_dataset.Pool) as mock_pool:
+                    with patch(
+                        "datasets.arrow_dataset.Pool",
+                        new_callable=PickableMagicMock,
+                        side_effect=datasets.arrow_dataset.Pool,
+                    ) as mock_pool:
                         with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test1:
                             dset_test1_data_files = list(dset_test1.cache_files)
                         self.assertEqual(mock_pool.call_count, 1)
