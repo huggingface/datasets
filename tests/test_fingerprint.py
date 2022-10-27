@@ -216,69 +216,6 @@ class RecurseDumpTest(TestCase):
         hash6 = md5(datasets.utils.py_utils.dumps(create_ipython_func(co_filename, returned_obj))).hexdigest()
         self.assertEqual(hash4, hash6)
         self.assertNotEqual(hash4, hash5)
-        
-        
-    def test_dump_jupyter_function(self):
-
-        code_args = (
-            "co_argcount",
-            "co_kwonlyargcount",
-            "co_nlocals",
-            "co_stacksize",
-            "co_flags",
-            "co_code",
-            "co_consts",
-            "co_names",
-            "co_varnames",
-            "co_filename",
-            "co_name",
-            "co_firstlineno",
-            "co_lnotab",
-            "co_freevars",
-            "co_cellvars",
-        )
-
-        def _create_code(*args):
-            """Create CodeType for any python 3 version. From dill._dill._create_code"""
-            if hasattr(args[-3], "encode"):
-                args = list(args)
-                args[-3] = args[-3].encode()  # co_lnotab
-                args[-10] = args[-10].encode()  # co_code
-            if hasattr(CodeType, "co_posonlyargcount"):
-                if len(args) == 16:
-                    return CodeType(*args)
-                elif len(args) == 15:
-                    return CodeType(args[0], 0, *args[1:])
-                return CodeType(args[0], 0, 0, *args[1:])
-            elif hasattr(CodeType, "co_kwonlyargcount"):
-                if len(args) == 16:
-                    return CodeType(args[0], *args[2:])
-                elif len(args) == 15:
-                    return CodeType(*args)
-                return CodeType(args[0], 0, *args[1:])
-            if len(args) == 16:
-                return CodeType(args[0], *args[3:])
-            elif len(args) == 15:
-                return CodeType(args[0], *args[2:])
-            return CodeType(*args)
-
-        def create_ipython_func(co_filename, returned_obj):
-            def func():
-                return returned_obj
-
-            code = func.__code__
-            # Use _create_code from dill in order to make it work for different python versions
-            code = _create_code(*[getattr(code, k) if k != "co_filename" else co_filename for k in code_args])
-            return FunctionType(code, func.__globals__, func.__name__, func.__defaults__, func.__closure__)
-
-        co_filename, returned_obj = "<ipython-input-2-e0383a102aae>", [0]
-        hash1 = md5(datasets.utils.py_utils.dumps(create_ipython_func(co_filename, returned_obj))).hexdigest()
-        co_filename, returned_obj = "<ipython-input-2-e0383a102aae>", [1]
-        hash2 = md5(datasets.utils.py_utils.dumps(create_ipython_func(co_filename, returned_obj))).hexdigest()
-        co_filename, returned_obj = "<ipython-input-5-713f6613acf3>", [0]
-        hash3 = md5(datasets.utils.py_utils.dumps(create_ipython_func(co_filename, returned_obj))).hexdigest()
-        self.assertEqual(hash1, hash3)
-        self.assertNotEqual(hash1, hash2)
 
     def test_recurse_dump_for_function_with_shuffled_globals(self):
         foo, bar = [0], [1]
