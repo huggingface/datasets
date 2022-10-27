@@ -306,12 +306,11 @@ class Audio:
                     import librosa
                 except ImportError as err:
                     raise ImportError(
-                        "To support 'mp3' decoding with `torchaudio>=0.12.0`, please install `ffmpeg4` system package: "
-                        "`add-apt-repository -y ppa:jonathonf/ffmpeg-4 && apt update && apt install -y ffmpeg`, "
-                        "and restart your runtime. Alternatively, you can downgrade `torchaudio`: "
-                        '`pip install "torchaudio<0.12"`. '
-                        "To support decoding of 'mp3' audio files without `torchaudio`, please install `librosa`: "
-                        "`pip install librosa`. Note that decoding will be extremely slow in that case."
+                        "To support 'mp3' decoding with `torchaudio>=0.12.0`, please install `ffmpeg4` system package. On Google Colab you can run:\n\n"
+                        "\t!add-apt-repository -y ppa:jonathonf/ffmpeg-4 && apt update && apt install -y ffmpeg\n\n"
+                        "and restart your runtime. Alternatively, you can downgrade `torchaudio`:\n\n"
+                        "\tpip install \"torchaudio<0.12\"`.\n\nOtherwise 'mp3' files will be decoded with `librosa`:\n\n"
+                        "\tpip install librosa\n\nNote that decoding will be extremely slow in that case."
                     ) from err
                 # try to decode with librosa for torchaudio>=0.12.0 as a workaround
                 warnings.warn("Decoding mp3 with `librosa` instead of `torchaudio`, decoding is slow.")
