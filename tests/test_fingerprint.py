@@ -1,7 +1,6 @@
 import json
 import pickle
 import subprocess
-import tempfile
 from hashlib import md5
 from pathlib import Path
 from tempfile import tempdir
