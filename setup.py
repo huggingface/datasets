@@ -70,7 +70,7 @@ REQUIRED_PKGS = [
     # Minimum 6.0.0 to support wrap_array which is needed for ArrayND features
     "pyarrow>=6.0.0",
     # For smart caching dataset processing
-    "dill",
+    "dill<0.3.7",  # tmp pin until next 0.3.7 release: see https://github.com/huggingface/datasets/pull/5166
     # For performance gains with apache arrow
     "pandas",
     # for downloading datasets over HTTPS
