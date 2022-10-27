@@ -306,7 +306,7 @@ class Audio:
                         "and restart your runtime. Alternatively, you can downgrade `torchaudio`:\n\n"
                         "\tpip install \"torchaudio<0.12\"`.\n\nOtherwise 'mp3' files will be decoded with `librosa`."
                     )
-                    _ffmpeg_warned = False
+                    _ffmpeg_warned = True
                 try:
                     # flake8: noqa
                     import librosa
@@ -315,7 +315,7 @@ class Audio:
                         "To support 'mp3' decoding with `torchaudio>=0.12.0`, please install `ffmpeg4` system package. On Google Colab you can run:\n\n"
                         "\t!add-apt-repository -y ppa:jonathonf/ffmpeg-4 && apt update && apt install -y ffmpeg\n\n"
                         "and restart your runtime. Alternatively, you can downgrade `torchaudio`:\n\n"
-                        "\tpip install \"torchaudio<0.12\"`.\n\nOtherwise 'mp3' files will be decoded with `librosa`:\n\n"
+                        "\tpip install \"torchaudio<0.12\".\n\nTo decode 'mp3' files without torchaudio, please install `librosa`:\n\n"
                         "\tpip install librosa\n\nNote that decoding will be extremely slow in that case."
                     ) from err
                 # try to decode with librosa for torchaudio>=0.12.0 as a workaround
