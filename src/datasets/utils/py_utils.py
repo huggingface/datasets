@@ -1250,13 +1250,13 @@ try:
 
         @pklregister(type(regex.Regex("", 0)))
         def _save_regex(pickler, obj):
-            dill._dill.logger.trace(f"Re: {obj}")
+            dill._dill.logger.trace(pickler, "Re: %s", obj)
             args = (
                 obj.pattern,
                 obj.flags,
             )
             pickler.save_reduce(regex.compile, args, obj=obj)
-            dill._dill.logger.trace("# Re")
+            dill._dill.logger.trace(pickler, "# Re")
             return
 
 except ImportError:
