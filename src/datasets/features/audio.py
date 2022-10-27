@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from .features import FeatureType
 
 
-_ffmpeg_warned, _librosa_warned = True, True
+_ffmpeg_warned, _librosa_warned = False, False
 
 
 @dataclass
