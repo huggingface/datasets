@@ -1,11 +1,21 @@
+import time
 from dataclasses import dataclass
+from multiprocessing import Pool
 from unittest import TestCase
 from unittest.mock import patch
 
 import numpy as np
 import pytest
 
-from datasets.utils.py_utils import NestedDataStructure, asdict, map_nested, temp_seed, temporary_assignment, zip_dict
+from datasets.utils.py_utils import (
+    NestedDataStructure,
+    asdict,
+    iflatmap_unordered,
+    map_nested,
+    temp_seed,
+    temporary_assignment,
+    zip_dict,
+)
 
 from .utils import require_tf, require_torch
 
@@ -227,3 +237,40 @@ def test_asdict():
 
     with pytest.raises(TypeError):
         asdict([1, A(x=10, y="foo")])
+
+
+def _2seconds_generator_of_10items(x):
+    yield x
+    time.sleep(2)
+    yield from [x] * 9
+
+
+def test_iflatmap_unordered():
+
+    with Pool(2) as pool:
+        out = list(iflatmap_unordered(pool, str.split, ["hello there"] * 10))
+        assert out.count("hello") == 10
+        assert out.count("there") == 10
+        assert len(out) == 20
+
+    with Pool(2) as pool:
+        counter = {}
+        out = []
+        _start = time.time()
+        for x in iflatmap_unordered(pool, _2seconds_generator_of_10items, ["a", "b"]):
+            out.append(x)
+            if x in counter:
+                counter[x] += 1
+            else:
+                counter[x] = 1
+                assert (
+                    time.time() < _start + 0.5
+                ), "Getting the first element of each generator should be almost instantaneous"
+        assert (
+            time.time() < _start + 2.5
+        ), "Running 2 jobs of 2 seconds in parallel shoudn't take more than 2.5 seconds"
+        assert "a" in counter
+        assert counter["a"] == 10
+        assert "b" in counter
+        assert counter["b"] == 10
+        assert out != ["a"] * 10 + ["b"] * 10  # unordered
