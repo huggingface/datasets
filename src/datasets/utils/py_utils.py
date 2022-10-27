@@ -969,19 +969,19 @@ except ImportError:
     pass
 
 
-T = TypeVar("T")
-O = TypeVar("O")
+X = TypeVar("X")
+Y = TypeVar("Y")
 
 
-def _write_generator_to_queue(queue: queue.Queue, func: Callable[[T], Iterable], arg: T) -> int:
+def _write_generator_to_queue(queue: queue.Queue, func: Callable[[X], Iterable[Y]], arg: X) -> int:
     for i, result in enumerate(func(arg)):
         queue.put(result)
     return i
 
 
 def iflatmap_unordered(
-    pool: multiprocessing.pool.Pool, func: Callable[[T], Iterable[O]], iterable: Iterable[T]
-) -> Iterable[O]:
+    pool: multiprocessing.pool.Pool, func: Callable[[X], Iterable[Y]], iterable: Iterable[X]
+) -> Iterable[Y]:
     with Manager() as manager:
         queue = manager.Queue()
         async_results = [pool.apply_async(_write_generator_to_queue, (queue, func, arg)) for arg in iterable]

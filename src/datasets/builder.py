@@ -1470,7 +1470,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
                 else:
                     pbar.update(content)
             # wrapping everything into lists for consistency with the multiprocessed code path
-            assert result is not None, f"Failed to retrieve results from prepare_split"
+            assert result is not None, "Failed to retrieve results from prepare_split"
             examples_per_job, bytes_per_job, features_per_job, shards_per_job, shard_lengths_per_job = [
                 [item] for item in result
             ]
@@ -1721,7 +1721,7 @@ class ArrowBasedBuilder(DatasetBuilder):
                 else:
                     pbar.update(content)
             # wrapping everything into lists for consistency with the multiprocessed code path
-            assert result is not None, f"Failed to retrieve results from prepare_split"
+            assert result is not None, "Failed to retrieve results from prepare_split"
             examples_per_job, bytes_per_job, features_per_job, shards_per_job, shard_lengths_per_job = [
                 [item] for item in result
             ]
