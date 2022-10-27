@@ -64,7 +64,7 @@ from .utils import (
 
 class PickableMagicMock(MagicMock):
     def __reduce__(self):
-        return (MagicMock, ())
+        return MagicMock, ()
 
 
 class Unpicklable:
