@@ -18,6 +18,9 @@ if TYPE_CHECKING:
     from .features import FeatureType
 
 
+_ffmpeg_warned, _librosa_warned = True, True
+
+
 @dataclass
 class Audio:
     """Audio Feature to extract audio data from an audio file.
@@ -295,12 +298,15 @@ class Audio:
             try:  # try torchaudio anyway because sometimes it works (depending on the os and os packages installed)
                 array, sampling_rate = self._decode_mp3_torchaudio(path_or_file)
             except RuntimeError:
-                warnings.warn(
-                    "\nTo support 'mp3' decoding with `torchaudio>=0.12.0`, please install `ffmpeg4` system package. On Google Colab you can run:\n\n"
-                    "\t!add-apt-repository -y ppa:jonathonf/ffmpeg-4 && apt update && apt install -y ffmpeg\n\n"
-                    "and restart your runtime. Alternatively, you can downgrade `torchaudio`:\n\n"
-                    "\tpip install \"torchaudio<0.12\"`.\n\nOtherwise 'mp3' files will be decoded with `librosa`."
-                )
+                global _ffmpeg_warned
+                if _ffmpeg_warned == 0:
+                    warnings.warn(
+                        "\nTo support 'mp3' decoding with `torchaudio>=0.12.0`, please install `ffmpeg4` system package. On Google Colab you can run:\n\n"
+                        "\t!add-apt-repository -y ppa:jonathonf/ffmpeg-4 && apt update && apt install -y ffmpeg\n\n"
+                        "and restart your runtime. Alternatively, you can downgrade `torchaudio`:\n\n"
+                        "\tpip install \"torchaudio<0.12\"`.\n\nOtherwise 'mp3' files will be decoded with `librosa`."
+                    )
+                    _ffmpeg_warned += 1
                 try:
                     # flake8: noqa
                     import librosa
@@ -313,7 +319,10 @@ class Audio:
                         "\tpip install librosa\n\nNote that decoding will be extremely slow in that case."
                     ) from err
                 # try to decode with librosa for torchaudio>=0.12.0 as a workaround
-                warnings.warn("Decoding mp3 with `librosa` instead of `torchaudio`, decoding is slow.")
+                global _librosa_warned
+                if not _librosa_warned:
+                    warnings.warn("Decoding mp3 with `librosa` instead of `torchaudio`, decoding is slow.")
+                    _librosa_warned = True
                 try:
                     array, sampling_rate = self._decode_mp3_librosa(path_or_file)
                 except RuntimeError as err:
