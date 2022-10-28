@@ -322,7 +322,7 @@ class Audio:
                 global _librosa_warned
                 if not _librosa_warned:
                     warnings.warn(
-                        "Decoding mp3 with `librosa` and `audioread` instead of `torchaudio`, decoding is slow."
+                        "Decoding mp3 with `librosa` instead of `torchaudio`, decoding is slow."
                     )
                     _librosa_warned = True
                 try:
@@ -354,7 +354,10 @@ class Audio:
         import librosa
 
         with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", "PySoundFile.+?", UserWarning, module=librosa.__name__)
+            if _audioread_warned:
+                warnings.filterwarnings("ignore", "PySoundFile.+?", UserWarning, module=librosa.__name__)
+            else:
+                _audioread_warned = True
             array, sampling_rate = librosa.load(path_or_file, mono=self.mono, sr=self.sampling_rate)
 
         return array, sampling_rate
