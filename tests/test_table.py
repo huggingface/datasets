@@ -1,5 +1,6 @@
 import copy
 import pickle
+import warnings
 from typing import List, Union
 
 import numpy as np
@@ -1077,12 +1078,19 @@ def test_cast_array_to_features_nested_with_null_values():
 
     # different type
     arr = pa.array([{"foo": [None, [0]]}], pa.struct({"foo": pa.list_(pa.list_(pa.int64()))}))
-    with pytest.warns(UserWarning, match="None values are converted to empty lists.+"):
-        casted_array = cast_array_to_feature(arr, {"foo": [[Value("int32")]]})
-    assert casted_array.type == pa.struct({"foo": pa.list_(pa.list_(pa.int32()))})
-    assert casted_array.to_pylist() == [
-        {"foo": [[], [0]]}
-    ]  # empty list because of https://github.com/huggingface/datasets/issues/3676
+    if datasets.config.PYARROW_VERSION.major < 10:
+        with pytest.warns(UserWarning, match="None values are converted to empty lists.+"):
+            casted_array = cast_array_to_feature(arr, {"foo": [[Value("int32")]]})
+        assert casted_array.type == pa.struct({"foo": pa.list_(pa.list_(pa.int32()))})
+        assert casted_array.to_pylist() == [
+            {"foo": [[], [0]]}
+        ]  # empty list because of https://github.com/huggingface/datasets/issues/3676
+    else:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            casted_array = cast_array_to_feature(arr, {"foo": [[Value("int32")]]})
+        assert casted_array.type == pa.struct({"foo": pa.list_(pa.list_(pa.int32()))})
+        assert casted_array.to_pylist() == [{"foo": [None, [0]]}]
 
 
 def test_cast_array_to_features_to_null_type():
