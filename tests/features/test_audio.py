@@ -150,9 +150,7 @@ def test_audio_decode_example_mp3_torchaudio_latest(shared_datadir, torchaudio_f
     audio_path = str(shared_datadir / "test_audio_44100.mp3")
     audio = Audio()
 
-    with patch("torchaudio.load") if torchaudio_failed else nullcontext() as load_mock, pytest.warns(
-        UserWarning, match=r"Decoding mp3 with `librosa` instead of `torchaudio`.+?"
-    ) if torchaudio_failed else nullcontext():
+    with patch("torchaudio.load") if torchaudio_failed else nullcontext() as load_mock:
 
         if torchaudio_failed:
             load_mock.side_effect = RuntimeError()
@@ -215,9 +213,7 @@ def test_audio_resampling_mp3_different_sampling_rates_torchaudio_latest(shared_
     audio = Audio(sampling_rate=48000)
 
     # if torchaudio>=0.12 failed, mp3 must be decoded anyway (with librosa)
-    with patch("torchaudio.load") if torchaudio_failed else nullcontext() as load_mock, pytest.warns(
-        UserWarning, match=r"Decoding mp3 with `librosa` instead of `torchaudio`.+?"
-    ) if torchaudio_failed else nullcontext():
+    with patch("torchaudio.load") if torchaudio_failed else nullcontext() as load_mock:
         if torchaudio_failed:
             load_mock.side_effect = RuntimeError()
 
@@ -453,9 +449,7 @@ def test_resampling_at_loading_dataset_with_audio_feature_mp3_torchaudio_latest(
     dset = Dataset.from_dict(data, features=features)
 
     # if torchaudio>=0.12 failed, mp3 must be decoded anyway (with librosa)
-    with patch("torchaudio.load") if torchaudio_failed else nullcontext() as load_mock, pytest.warns(
-        UserWarning, match=r"Decoding mp3 with `librosa` instead of `torchaudio`.+?"
-    ) if torchaudio_failed else nullcontext():
+    with patch("torchaudio.load") if torchaudio_failed else nullcontext() as load_mock:
         if torchaudio_failed:
             load_mock.side_effect = RuntimeError()
 
@@ -551,9 +545,7 @@ def test_resampling_after_loading_dataset_with_audio_feature_mp3_torchaudio_late
     dset = Dataset.from_dict(data, features=features)
 
     # if torchaudio>=0.12 failed, mp3 must be decoded anyway (with librosa)
-    with patch("torchaudio.load") if torchaudio_failed else nullcontext() as load_mock, pytest.warns(
-        UserWarning, match=r"Decoding mp3 with `librosa` instead of `torchaudio`.+?"
-    ) if torchaudio_failed else nullcontext():
+    with patch("torchaudio.load") if torchaudio_failed else nullcontext() as load_mock:
         if torchaudio_failed:
             load_mock.side_effect = RuntimeError()
 
