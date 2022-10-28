@@ -254,23 +254,14 @@ def test_iflatmap_unordered():
         assert len(out) == 20
 
     with Pool(2) as pool:
-        counter = {}
         out = []
-        _start = time.time()
         for x in iflatmap_unordered(pool, _2seconds_generator_of_10items, ["a", "b"]):
+            if not out:
+                _start = time.time()
             out.append(x)
-            if x in counter:
-                counter[x] += 1
-            else:
-                counter[x] = 1
-                assert (
-                    time.time() < _start + 0.5
-                ), "Getting the first element of each generator should be almost instantaneous"
         assert (
             time.time() < _start + 2.5
         ), "Running 2 jobs of 2 seconds in parallel shoudn't take more than 2.5 seconds"
-        assert "a" in counter
-        assert counter["a"] == 10
-        assert "b" in counter
-        assert counter["b"] == 10
+        assert out.count("a") == 10
+        assert out.count("b") == 10
         assert out != ["a"] * 10 + ["b"] * 10  # unordered
