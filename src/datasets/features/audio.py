@@ -354,7 +354,7 @@ class Audio:
         global _audioread_warned
 
         with warnings.catch_warnings():
-            if not _audioread_warned:
+            if _audioread_warned:
                 warnings.filterwarnings("ignore", "pysoundfile failed.+?", UserWarning, module=librosa.__name__)
             else:
                 _audioread_warned = True
