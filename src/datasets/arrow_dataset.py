@@ -1617,11 +1617,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def cast(
         self,
         features: Features,
-        batch_size: Optional[int] = 10_000,
+        batch_size: Optional[int] = 1000,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
         cache_file_name: Optional[str] = None,
-        writer_batch_size: Optional[int] = 10_000,
+        writer_batch_size: Optional[int] = 1000,
         num_proc: Optional[int] = None,
     ) -> "Dataset":
         """
