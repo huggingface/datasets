@@ -14,7 +14,6 @@
 
 # Lint as: python3
 """Utilities for file names."""
-import glob
 import itertools
 import os
 import re
