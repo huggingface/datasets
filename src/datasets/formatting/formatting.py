@@ -21,6 +21,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 
+from ..features import Features
 from ..features.features import _ArrayXDExtensionType, _is_zero_copy_only, decode_nested_example, pandas_types_mapper
 from ..table import Table
 from ..utils.py_utils import no_op_if_value_is_null
@@ -198,8 +199,8 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
                 or (isinstance(x, float) and np.isnan(x))
                 for x in array
             ):
-                return np.array(array, copy=False, **{**self.np_array_kwargs, "dtype": object})
-        return np.array(array, copy=False, **self.np_array_kwargs)
+                return np.array(array, copy=False, dtype=object)
+        return np.array(array, copy=False)
 
 
 class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFrame]):
@@ -214,7 +215,7 @@ class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFr
 
 
 class PythonFeaturesDecoder:
-    def __init__(self, features):
+    def __init__(self, features: Features):
         self.features = features
 
     def decode_row(self, row: dict) -> dict:
@@ -228,7 +229,7 @@ class PythonFeaturesDecoder:
 
 
 class PandasFeaturesDecoder:
-    def __init__(self, features):
+    def __init__(self, features: Features):
         self.features = features
 
     def decode_row(self, row: pd.DataFrame) -> pd.DataFrame:
@@ -320,30 +321,6 @@ class PythonFormatter(Formatter[dict, list, dict]):
 
     def format_batch(self, pa_table: pa.Table) -> dict:
         batch = self.python_arrow_extractor().extract_batch(pa_table)
-        if self.decoded:
-            batch = self.python_features_decoder.decode_batch(batch)
-        return batch
-
-
-class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
-    def __init__(self, features=None, decoded=True, **np_array_kwargs):
-        super().__init__(features=features, decoded=decoded)
-        self.np_array_kwargs = np_array_kwargs
-
-    def format_row(self, pa_table: pa.Table) -> dict:
-        row = self.numpy_arrow_extractor(**self.np_array_kwargs).extract_row(pa_table)
-        if self.decoded:
-            row = self.python_features_decoder.decode_row(row)
-        return row
-
-    def format_column(self, pa_table: pa.Table) -> np.ndarray:
-        column = self.numpy_arrow_extractor(**self.np_array_kwargs).extract_column(pa_table)
-        if self.decoded:
-            column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
-        return column
-
-    def format_batch(self, pa_table: pa.Table) -> dict:
-        batch = self.numpy_arrow_extractor(**self.np_array_kwargs).extract_batch(pa_table)
         if self.decoded:
             batch = self.python_features_decoder.decode_batch(batch)
         return batch

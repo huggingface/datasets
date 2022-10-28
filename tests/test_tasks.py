@@ -1,6 +1,8 @@
 from copy import deepcopy
 from unittest.case import TestCase
 
+import pytest
+
 from datasets.arrow_dataset import Dataset
 from datasets.features import Audio, ClassLabel, Features, Image, Sequence, Value
 from datasets.info import DatasetInfo
@@ -12,7 +14,9 @@ from datasets.tasks import (
     QuestionAnsweringExtractive,
     Summarization,
     TextClassification,
+    task_template_from_dict,
 )
+from datasets.utils.py_utils import asdict
 
 
 SAMPLE_QUESTION_ANSWERING_EXTRACTIVE = {
@@ -22,6 +26,25 @@ SAMPLE_QUESTION_ANSWERING_EXTRACTIVE = {
     "question": "To whom did the Virgin Mary allegedly appear in 1858 in Lourdes France?",
     "answers": {"text": ["Saint Bernadette Soubirous"], "answer_start": [515]},
 }
+
+
+@pytest.mark.parametrize(
+    "task_cls",
+    [
+        AudioClassification,
+        AutomaticSpeechRecognition,
+        ImageClassification,
+        LanguageModeling,
+        QuestionAnsweringExtractive,
+        Summarization,
+        TextClassification,
+    ],
+)
+def test_reload_task_from_dict(task_cls):
+    task = task_cls()
+    task_dict = asdict(task)
+    reloaded = task_template_from_dict(task_dict)
+    assert task == reloaded
 
 
 class TestLanguageModeling:

@@ -1,5 +1,5 @@
 import copy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import ClassVar, Dict
 
 from ..features import Audio, ClassLabel, Features
@@ -8,7 +8,7 @@ from .base import TaskTemplate
 
 @dataclass(frozen=True)
 class AudioClassification(TaskTemplate):
-    task: str = "audio-classification"
+    task: str = field(default="audio-classification", metadata={"include_in_asdict_even_if_is_default": True})
     input_schema: ClassVar[Features] = Features({"audio": Audio()})
     label_schema: ClassVar[Features] = Features({"labels": ClassLabel})
     audio_column: str = "audio"

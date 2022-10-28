@@ -60,8 +60,7 @@ def hf_token(hf_api: HfApi):
 @pytest.fixture
 def cleanup_repo(hf_api):
     def _cleanup_repo(repo_id):
-        organization, name = repo_id.split("/")
-        delete_repo(hf_api=hf_api, name=name, organization=organization, token=CI_HUB_USER_TOKEN, repo_type="dataset")
+        delete_repo(hf_api, repo_id, token=CI_HUB_USER_TOKEN, repo_type="dataset")
 
     return _cleanup_repo
 
@@ -81,8 +80,8 @@ def temporary_repo(cleanup_repo):
 @pytest.fixture(scope="session")
 def hf_private_dataset_repo_txt_data_(hf_api: HfApi, hf_token, text_file):
     repo_name = f"repo_txt_data-{int(time.time() * 10e3)}"
-    create_repo(hf_api, repo_name, token=hf_token, organization=CI_HUB_USER, repo_type="dataset", private=True)
     repo_id = f"{CI_HUB_USER}/{repo_name}"
+    create_repo(hf_api, repo_id, token=hf_token, repo_type="dataset", private=True)
     hf_api.upload_file(
         token=hf_token,
         path_or_fileobj=str(text_file),
@@ -92,7 +91,7 @@ def hf_private_dataset_repo_txt_data_(hf_api: HfApi, hf_token, text_file):
     )
     yield repo_id
     try:
-        delete_repo(hf_api, repo_name, token=hf_token, organization=CI_HUB_USER, repo_type="dataset")
+        delete_repo(hf_api, repo_id, token=hf_token, repo_type="dataset")
     except (requests.exceptions.HTTPError, ValueError):  # catch http error and token invalid error
         pass
 
@@ -107,8 +106,8 @@ def hf_private_dataset_repo_txt_data(hf_private_dataset_repo_txt_data_):
 @pytest.fixture(scope="session")
 def hf_private_dataset_repo_zipped_txt_data_(hf_api: HfApi, hf_token, zip_csv_with_dir_path):
     repo_name = f"repo_zipped_txt_data-{int(time.time() * 10e3)}"
-    create_repo(hf_api, repo_name, token=hf_token, organization=CI_HUB_USER, repo_type="dataset", private=True)
     repo_id = f"{CI_HUB_USER}/{repo_name}"
+    create_repo(hf_api, repo_id, token=hf_token, repo_type="dataset", private=True)
     hf_api.upload_file(
         token=hf_token,
         path_or_fileobj=str(zip_csv_with_dir_path),
@@ -118,7 +117,7 @@ def hf_private_dataset_repo_zipped_txt_data_(hf_api: HfApi, hf_token, zip_csv_wi
     )
     yield repo_id
     try:
-        delete_repo(hf_api, repo_name, token=hf_token, organization=CI_HUB_USER, repo_type="dataset")
+        delete_repo(hf_api, repo_id, token=hf_token, repo_type="dataset")
     except (requests.exceptions.HTTPError, ValueError):  # catch http error and token invalid error
         pass
 
@@ -133,8 +132,8 @@ def hf_private_dataset_repo_zipped_txt_data(hf_private_dataset_repo_zipped_txt_d
 @pytest.fixture(scope="session")
 def hf_private_dataset_repo_zipped_img_data_(hf_api: HfApi, hf_token, zip_image_path):
     repo_name = f"repo_zipped_img_data-{int(time.time() * 10e3)}"
-    create_repo(hf_api, repo_name, token=hf_token, organization=CI_HUB_USER, repo_type="dataset", private=True)
     repo_id = f"{CI_HUB_USER}/{repo_name}"
+    create_repo(hf_api, repo_id, token=hf_token, repo_type="dataset", private=True)
     hf_api.upload_file(
         token=hf_token,
         path_or_fileobj=str(zip_image_path),
@@ -144,7 +143,7 @@ def hf_private_dataset_repo_zipped_img_data_(hf_api: HfApi, hf_token, zip_image_
     )
     yield repo_id
     try:
-        delete_repo(hf_api, repo_name, token=hf_token, organization=CI_HUB_USER, repo_type="dataset")
+        delete_repo(hf_api, repo_id, token=hf_token, repo_type="dataset")
     except (requests.exceptions.HTTPError, ValueError):  # catch http error and token invalid error
         pass
 

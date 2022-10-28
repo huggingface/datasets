@@ -70,7 +70,7 @@ REQUIRED_PKGS = [
     # Minimum 6.0.0 to support wrap_array which is needed for ArrayND features
     "pyarrow>=6.0.0",
     # For smart caching dataset processing
-    "dill<0.3.6",  # tmp pin until 0.3.6 release: see https://github.com/huggingface/datasets/pull/4397
+    "dill<0.3.7",  # tmp pin until next 0.3.7 release: see https://github.com/huggingface/datasets/pull/5166
     # For performance gains with apache arrow
     "pandas",
     # for downloading datasets over HTTPS
@@ -132,7 +132,8 @@ TESTS_REQUIRE = [
     "py7zr",
     "rarfile>=4.0",
     "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1
-    "tensorflow>=2.3,!=2.6.0,!=2.6.1",
+    "tensorflow>=2.3,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
+    "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
     "torch",
     "torchaudio<0.12.0",
     "soundfile",
@@ -172,7 +173,10 @@ EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
     "vision": VISION_REQURE,
     "apache-beam": ["apache-beam>=2.26.0"],
-    "tensorflow": ["tensorflow>=2.2.0,!=2.6.0,!=2.6.1"],
+    "tensorflow": [
+        "tensorflow>=2.2.0,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
+        "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
+    ],
     "tensorflow_gpu": ["tensorflow-gpu>=2.2.0,!=2.6.0,!=2.6.1"],
     "torch": ["torch"],
     "s3": [
@@ -194,7 +198,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.5.3.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.6.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

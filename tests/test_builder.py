@@ -1139,6 +1139,7 @@ def test_arrow_based_builder_download_and_prepare_with_num_proc(tmp_path):
     }
 
 
+@require_beam
 def test_beam_based_builder_download_and_prepare_as_parquet(tmp_path):
     builder = DummyBeamBasedBuilder(cache_dir=tmp_path, beam_runner="DirectRunner")
     builder.download_and_prepare(file_format="parquet")

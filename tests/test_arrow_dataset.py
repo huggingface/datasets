@@ -9,7 +9,7 @@ import tempfile
 from functools import partial
 from pathlib import Path
 from unittest import TestCase
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import numpy.testing as npt
@@ -62,6 +62,11 @@ from .utils import (
 )
 
 
+class PickableMagicMock(MagicMock):
+    def __reduce__(self):
+        return MagicMock, ()
+
+
 class Unpicklable:
     def __getstate__(self):
         raise pickle.PicklingError()
@@ -105,14 +110,6 @@ IN_MEMORY_PARAMETERS = [
 
 @parameterized.named_parameters(IN_MEMORY_PARAMETERS)
 class BaseDatasetTest(TestCase):
-    def setUp(self):
-        # google colab doesn't allow to pickle loggers
-        # so we want to make sure each tests passes without pickling the logger
-        def reduce_ex(self):
-            raise pickle.PicklingError()
-
-        datasets.arrow_dataset.logger.__reduce_ex__ = reduce_ex
-
     @pytest.fixture(autouse=True)
     def inject_fixtures(self, caplog):
         self._caplog = caplog
@@ -318,6 +315,17 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(dset[0]["filename"], "my_name-train_0")
                 self.assertEqual(dset["filename"][0], "my_name-train_0")
 
+    def test_restore_saved_format(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                dset.set_format(type="numpy", columns=["col_1"], output_all_columns=True)
+                dataset_path = os.path.join(tmp_dir, "my_dataset")
+                dset.save_to_disk(dataset_path)
+
+                with load_from_disk(dataset_path) as loaded_dset:
+                    self.assertEqual(dset.format, loaded_dset.format)
+
     def test_set_format_numpy_multiple_columns(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
@@ -373,9 +381,17 @@ class BaseDatasetTest(TestCase):
                 self.assertIsInstance(dset[0]["col_2"], str)
                 self.assertEqual(dset[0]["col_2"], "a")
 
-                dset.set_format(type="torch", columns=["col_1", "col_2"])
-                with self.assertRaises(TypeError):
-                    dset[0]
+                dset.set_format(type="torch")
+                self.assertEqual(len(dset[0]), 3)
+                self.assertIsInstance(dset[0]["col_1"], torch.Tensor)
+                self.assertIsInstance(dset["col_1"], torch.Tensor)
+                self.assertListEqual(list(dset[0]["col_1"].shape), [])
+                self.assertEqual(dset[0]["col_1"].item(), 3)
+                self.assertIsInstance(dset[0]["col_2"], str)
+                self.assertEqual(dset[0]["col_2"], "a")
+                self.assertIsInstance(dset[0]["col_3"], torch.Tensor)
+                self.assertIsInstance(dset["col_3"], torch.Tensor)
+                self.assertListEqual(list(dset[0]["col_3"].shape), [])
 
     @require_tf
     def test_set_format_tf(self, in_memory):
@@ -1236,7 +1252,11 @@ class BaseDatasetTest(TestCase):
             self._caplog.clear()
             with self._caplog.at_level(WARNING):
                 with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                    with patch("datasets.arrow_dataset.Pool", side_effect=datasets.arrow_dataset.Pool) as mock_pool:
+                    with patch(
+                        "datasets.arrow_dataset.Pool",
+                        new_callable=PickableMagicMock,
+                        side_effect=datasets.arrow_dataset.Pool,
+                    ) as mock_pool:
                         with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test1:
                             dset_test1_data_files = list(dset_test1.cache_files)
                         self.assertEqual(mock_pool.call_count, 1)
@@ -1468,6 +1488,21 @@ class BaseDatasetTest(TestCase):
                     self.assertListEqual(dset["col"], [1, 2])
                     with dset.filter(lambda x: x["col"] < 2) as dset:
                         self.assertListEqual(dset["col"], [1])
+
+    def test_filter_empty(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                self.assertIsNone(dset._indices, None)
+
+                tmp_file = os.path.join(tmp_dir, "test.arrow")
+                with dset.filter(lambda _: False, cache_file_name=tmp_file) as dset:
+                    self.assertEqual(len(dset), 0)
+                    self.assertIsNotNone(dset._indices, None)
+
+                    tmp_file_2 = os.path.join(tmp_dir, "test_2.arrow")
+                    with dset.filter(lambda _: False, cache_file_name=tmp_file_2) as dset2:
+                        self.assertEqual(len(dset2), 0)
+                        self.assertEqual(dset._indices, dset2._indices)
 
     def test_filter_batched(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -2363,9 +2398,9 @@ class BaseDatasetTest(TestCase):
             self.assertIsNotNone(dset[0])
             self.assertIsNotNone(dset[:2])
             for col in columns:
-                self.assertIsInstance(dset[0][col], (tf.Tensor, tf.RaggedTensor))
-                self.assertIsInstance(dset[:2][col], (tf.Tensor, tf.RaggedTensor))
-                self.assertIsInstance(dset[col], (tf.Tensor, tf.RaggedTensor))
+                self.assertIsInstance(dset[0][col], tf.Tensor)
+                self.assertIsInstance(dset[:2][col], tf.RaggedTensor if col == "vec" else tf.Tensor)
+                self.assertIsInstance(dset[col], tf.RaggedTensor if col == "vec" else tf.Tensor)
             # dim is None for ragged vectors in tensorflow
             self.assertListEqual(dset[:2]["vec"].shape.as_list(), [2, None])
             self.assertListEqual(dset["vec"][:2].shape.as_list(), [2, None])
@@ -2383,16 +2418,20 @@ class BaseDatasetTest(TestCase):
             self.assertTupleEqual(dset[:2]["vec"].shape, (2,))
             self.assertTupleEqual(dset["vec"][:2].shape, (2,))
 
-            dset.set_format("torch", columns=["vec"])
+            dset.set_format("torch")
             self.assertIsNotNone(dset[0])
             self.assertIsNotNone(dset[:2])
-            # torch.Tensor is only for numerical columns
+            self.assertIsInstance(dset[0]["filename"], str)
+            self.assertIsInstance(dset[:2]["filename"], list)
+            self.assertIsInstance(dset["filename"], list)
             self.assertIsInstance(dset[0]["vec"], torch.Tensor)
             self.assertIsInstance(dset[:2]["vec"][0], torch.Tensor)
             self.assertIsInstance(dset["vec"][0], torch.Tensor)
             # pytorch doesn't support ragged tensors, so we should have lists
             self.assertIsInstance(dset[:2]["vec"], list)
+            self.assertIsInstance(dset[:2]["vec"][0], torch.Tensor)
             self.assertIsInstance(dset["vec"][:2], list)
+            self.assertIsInstance(dset["vec"][0], torch.Tensor)
 
     @require_tf
     @require_torch
@@ -3043,6 +3082,12 @@ def test_dataset_add_item_introduce_feature_type():
     assert dataset[:] == {"col_1": [None, None, None, "a"]}
 
 
+def test_dataset_filter_batched_indices():
+    ds = Dataset.from_dict({"num": [0, 1, 2, 3]})
+    ds = ds.filter(lambda num: num % 2 == 0, input_columns="num", batch_size=2)
+    assert all(item["num"] % 2 == 0 for item in ds)
+
+
 @pytest.mark.parametrize("in_memory", [False, True])
 def test_dataset_from_file(in_memory, dataset, arrow_file):
     filename = arrow_file
@@ -3363,6 +3408,36 @@ def _check_sql_dataset(dataset, expected_features):
     assert dataset.column_names == ["col_1", "col_2", "col_3"]
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
+
+
+@require_sqlalchemy
+@pytest.mark.parametrize("con_type", ["string", "engine"])
+def test_dataset_from_sql_con_type(con_type, sqlite_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    if con_type == "string":
+        con = "sqlite:///" + sqlite_path
+    elif con_type == "engine":
+        import sqlalchemy
+
+        con = sqlalchemy.create_engine("sqlite:///" + sqlite_path)
+    # # https://github.com/huggingface/datasets/issues/2832 needs to be fixed first for this to work
+    # with caplog.at_level(INFO):
+    #     dataset = Dataset.from_sql(
+    #         "dataset",
+    #         con,
+    #         cache_dir=cache_dir,
+    #     )
+    # if con_type == "string":
+    #     assert "couldn't be hashed properly" not in caplog.text
+    # elif con_type == "engine":
+    #     assert "couldn't be hashed properly" in caplog.text
+    dataset = Dataset.from_sql(
+        "dataset",
+        con,
+        cache_dir=cache_dir,
+    )
+    _check_sql_dataset(dataset, expected_features)
 
 
 @require_sqlalchemy

@@ -210,9 +210,18 @@ For example, a table from a SQLite file can be loaded with:
 Use a query for a more precise read:
 
 ```py
+>>> from sqlite3 import connect
+>>> con = connect(":memory")
+>>> # db writes ...
 >>> from datasets import Dataset
->>> dataset = Dataset.from_sql("SELECT text FROM data_table WHERE length(text) > 100 LIMIT 10", "sqlite:///sqlite_file.db")
+>>> dataset = Dataset.from_sql("SELECT text FROM table WHERE length(text) > 100 LIMIT 10", con)
 ```
+
+<Tip>
+
+You can specify [`Dataset.from_sql#con`] as a [URI string](https://docs.sqlalchemy.org/en/13/core/engines.html#database-urls) for the 🤗 Datasets caching to work across sessions.
+
+</Tip>
 
 ## In-memory data
 
@@ -248,7 +257,7 @@ Create a dataset from a Python generator with [`~Dataset.from_generator`]:
 ...     for i in range(1, 4):
 ...         yield {"a": i}
 ...
->>> dataset = Dataset.from_generator(my_dict)
+>>> dataset = Dataset.from_generator(my_gen)
 ```
 
 This approach supports loading data larger than available memory.
@@ -272,7 +281,7 @@ An object data type in [pandas.Series](https://pandas.pydata.org/docs/reference/
 
 ## Offline
 
-Even if you don't have an internet connection, it is still possible to load a dataset. As long as you've downloaded a dataset from the Hub or 🤗 Datasets GitHub repository before, it should be cached. This means you can reload the dataset from the cache and use it offline.
+Even if you don't have an internet connection, it is still possible to load a dataset. As long as you've downloaded a dataset from the Hub repository before, it should be cached. This means you can reload the dataset from the cache and use it offline.
 
 If you know you won't have internet access, you can run 🤗 Datasets in full offline mode. This saves time because instead of waiting for the Dataset builder download to time out, 🤗 Datasets will look directly in the cache. Set the environment variable `HF_DATASETS_OFFLINE` to `1` to enable full offline mode.
 

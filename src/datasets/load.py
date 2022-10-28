@@ -299,7 +299,7 @@ def _copy_script_and_other_resources_in_importable_dir(
                 if not os.path.exists(full_path_local_import):
                     shutil.copytree(import_path, full_path_local_import)
             else:
-                raise OSError(f"Error with local import at {import_path}")
+                raise ImportError(f"Error with local import at {import_path}")
 
         # Copy additional files like dataset_infos.json file if needed
         for file_name, original_path in additional_files:
@@ -1079,12 +1079,9 @@ def dataset_module_factory(
               -> load the dataset builder from the dataset script in the dataset repository
               e.g. ``glue``, ``squad``, ``'username/dataset_name'``, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
 
-        revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
-
-            - For datasets in the `huggingface/datasets` library on GitHub like "squad", the default version of the module is the local version of the lib.
-              You can specify a different version from your local version of the lib (e.g. "main" or "1.2.0") but it might cause compatibility issues.
-            - For community datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
-              You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
+        revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load.
+            As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
+            You can specify a different version than the default "main" by using a commit SHA or a git tag of the dataset repository.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
@@ -1121,9 +1118,6 @@ def dataset_module_factory(
     # - if path is a local directory (but no python file)
     #   -> use a packaged module (csv, text etc.) based on content of the directory
     #
-    # - if path has no "/" and is a module on GitHub (in /datasets)
-    #   -> use the module from the python file on GitHub
-    #   Note that this case will be removed in favor of loading from the HF Hub instead eventually
     # - if path has one "/" and is dataset repository on the HF hub with a python file
     #   -> the module from the python file in the dataset repository
     # - if path has one "/" and is dataset repository on the HF hub without a python file
@@ -1459,12 +1453,9 @@ def load_dataset_builder(
         features (:class:`Features`, optional): Set the features type to use for this dataset.
         download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
-        revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
-
-            - For datasets in the `huggingface/datasets` library on GitHub like "squad", the default version of the module is the local version of the lib.
-              You can specify a different version from your local version of the lib (e.g. "main" or "1.2.0") but it might cause compatibility issues.
-            - For community datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
-              You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
+        revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load.
+            As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
+            You can specify a different version than the default "main" by using a commit SHA or a git tag of the dataset repository.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `"~/.huggingface"`.
         **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the :class:`BuilderConfig`
@@ -1630,12 +1621,9 @@ def load_dataset(
             will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
             nonzero. See more details in the :ref:`load_dataset_enhancing_performance` section.
         save_infos (:obj:`bool`, default ``False``): Save the dataset information (checksums/size/splits/...).
-        revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
-
-            - For datasets in the `huggingface/datasets` library on GitHub like "squad", the default version of the module is the local version of the lib.
-              You can specify a different version from your local version of the lib (e.g. "main" or "1.2.0") but it might cause compatibility issues.
-            - For community datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
-              You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
+        revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load.
+            As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
+            You can specify a different version than the default "main" by using a commit SHA or a git tag of the dataset repository.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `"~/.huggingface"`.
         task (``str``): The task to prepare the dataset for during training and evaluation. Casts the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.

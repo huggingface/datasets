@@ -18,7 +18,7 @@ class SqlDatasetReader(AbstractDatasetInputStream):
     def __init__(
         self,
         sql: Union[str, "sqlalchemy.sql.Selectable"],
-        con: str,
+        con: Union[str, "sqlalchemy.engine.Connection", "sqlalchemy.engine.Engine", "sqlite3.Connection"],
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,

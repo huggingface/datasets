@@ -32,7 +32,7 @@
 
 [🎓 **Documentation**](https://huggingface.co/docs/datasets/) [🕹 **Colab tutorial**](https://colab.research.google.com/github/huggingface/datasets/blob/main/notebooks/Overview.ipynb)
 
-[🔎 **Find a dataset in the Hub**](https://huggingface.co/datasets) [🌟 **Add a new dataset to the Hub**](https://github.com/huggingface/datasets/blob/main/ADD_NEW_DATASET.md)
+[🔎 **Find a dataset in the Hub**](https://huggingface.co/datasets) [🌟 **Add a new dataset to the Hub**](https://huggingface.co/docs/datasets/share.html)
 
 <h3 align="center">
     <a href="https://hf.co/course"><img src="https://raw.githubusercontent.com/huggingface/datasets/main/docs/source/imgs/course_banner.png"></a>
@@ -126,8 +126,6 @@ Another introduction to 🤗 Datasets is the tutorial on Google Colab here:
 We have a very detailed step-by-step guide to add a new dataset to the ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) datasets already provided on the [HuggingFace Datasets Hub](https://huggingface.co/datasets).
 
 You will find [the step-by-step guide here](https://huggingface.co/docs/datasets/share.html) to add a dataset on the Hub.
-
-However if you prefer to add your dataset in this repository, you can find the guide [here](https://github.com/huggingface/datasets/blob/main/ADD_NEW_DATASET.md).
 
 # Main differences between 🤗 Datasets and `tfds`
 

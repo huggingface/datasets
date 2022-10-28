@@ -141,5 +141,5 @@ def test_iter_archive_file(tar_nested_jsonl_path):
 def test_iter_files(data_dir_with_hidden_files):
     dl_manager = DownloadManager()
     for num_file, file in enumerate(dl_manager.iter_files(data_dir_with_hidden_files), start=1):
-        pass
+        assert os.path.basename(file) == ("test.txt" if num_file == 1 else "train.txt")
     assert num_file == 2
