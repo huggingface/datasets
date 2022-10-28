@@ -661,7 +661,10 @@ def _save_code(pickler, obj):
     co_filename = (
         ""
         if obj.co_filename.startswith("<")
-        or obj.co_filename.split(os.path.sep)[-2].startswith("ipykernel_")
+        or (
+            len(obj.co_filename.split(os.path.sep)) > 1
+            and obj.co_filename.split(os.path.sep)[-2].startswith("ipykernel_")
+        )
         or obj.co_name == "<lambda>"
         else os.path.basename(obj.co_filename)
     )
