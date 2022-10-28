@@ -1274,7 +1274,7 @@ class DatasetBuilder:
 
 
 def _number_of_shards(gen_kwargs: dict) -> int:
-    """Return the number of possible shards according to the input kwargs"""
+    """Return the number of possible shards according to the input gen_kwargs"""
     # Having lists of different sizes makes sharding ambigious, raise an error in this case
     # until we decide how to define sharding without ambiguity for users
     lists_lengths = {key: len(value) for key, value in gen_kwargs.items() if isinstance(value, list)}
@@ -1288,15 +1288,16 @@ def _number_of_shards(gen_kwargs: dict) -> int:
                 + "and use tuples otherwise. In the end there should only be one single list, or several lists with the same length."
             )
         )
-    return max(lists_lengths.values(), default=0)
+    max_length = max(lists_lengths.values(), default=0)
+    return max(1, max_length)
 
 
 def _distribute_shards(num_shards: int, max_num_jobs: int) -> List[range]:
     """
-    Get the range of shard indices per group.
-    If num_shards<max_num_jobs, then each group is range of one shard.
-    The shards indices order is preserved: e.g. all the first shards are in the first group.
-    Moreover all the groups have approximately the same number of shards.
+    Get the range of shard indices per job.
+    If num_shards<max_num_jobs, then num_shards jobs are given a range of one shard.
+    The shards indices order is preserved: e.g. all the first shards are given the first job.
+    Moreover all the jobs are given approximately the same number of shards.
 
     Example:
 
@@ -1318,10 +1319,10 @@ def _distribute_shards(num_shards: int, max_num_jobs: int) -> List[range]:
     return shards_indices_per_group
 
 
-def _split_gen_kwargs(kwargs: dict, max_num_jobs: int) -> List[dict]:
+def _split_gen_kwargs(gen_kwargs: dict, max_num_jobs: int) -> List[dict]:
     """Split the gen_kwargs into `max_num_job` gen_kwargs"""
     # Having lists of different sizes makes sharding ambigious, raise an error in this case
-    lists_lengths = {key: len(value) for key, value in kwargs.items() if isinstance(value, list)}
+    lists_lengths = {key: len(value) for key, value in gen_kwargs.items() if isinstance(value, list)}
     if len(set(lists_lengths.values())) > 1:
         raise RuntimeError(
             (
@@ -1334,7 +1335,7 @@ def _split_gen_kwargs(kwargs: dict, max_num_jobs: int) -> List[dict]:
         )
     elif not lists_lengths:
         # not sharded - return one single group
-        return [dict(kwargs)]
+        return [dict(gen_kwargs)]
     else:
         num_shards = next(iter(lists_lengths.values()))
         shard_indices_per_group = _distribute_shards(num_shards=num_shards, max_num_jobs=max_num_jobs)
@@ -1343,7 +1344,7 @@ def _split_gen_kwargs(kwargs: dict, max_num_jobs: int) -> List[dict]:
                 key: [value[shard_idx] for shard_idx in shard_indices_per_group[group_idx]]
                 if isinstance(value, list)
                 else value
-                for key, value in kwargs.items()
+                for key, value in gen_kwargs.items()
             }
             for group_idx in range(len(shard_indices_per_group))
         ]
@@ -1437,7 +1438,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
                 f"Setting num_proc from {num_proc} back to 1 for the {split_info.name} split to disable multiprocessing as it only contains one shard."
             )
             num_proc = 1
-        elif num_proc is not None and 0 < num_input_shards < num_proc:
+        elif num_proc is not None and num_input_shards < num_proc:
             logger.info(
                 f"Setting num_proc from {num_proc} to {num_input_shards} for the {split_info.name} split as it only contains {num_input_shards} shards."
             )
@@ -1689,7 +1690,7 @@ class ArrowBasedBuilder(DatasetBuilder):
                 f"Setting num_proc from {num_proc} back to 1 for the {split_info.name} split to disable multiprocessing as it only contains one shard."
             )
             num_proc = 1
-        elif num_proc is not None and 0 < num_input_shards < num_proc:
+        elif num_proc is not None and num_input_shards < num_proc:
             logger.info(
                 f"Setting num_proc from {num_proc} to {num_input_shards} for the {split_info.name} split as it only contains {num_input_shards} shards."
             )
