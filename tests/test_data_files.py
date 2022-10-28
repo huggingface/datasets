@@ -46,11 +46,13 @@ _TEST_URL = "https://raw.githubusercontent.com/huggingface/datasets/9675a5a1e7b9
 def complex_data_dir(tmp_path):
     data_dir = tmp_path / "complex_data_dir"
     data_dir.mkdir()
+
     (data_dir / "data").mkdir()
     with open(data_dir / "data" / "train.txt", "w") as f:
         f.write("foo\n" * 10)
     with open(data_dir / "data" / "test.txt", "w") as f:
         f.write("bar\n" * 10)
+
     with open(data_dir / "README.md", "w") as f:
         f.write("This is a readme")
     with open(data_dir / ".dummy", "w") as f:
@@ -100,7 +102,7 @@ def pattern_results(complex_data_dir):
 
     return {
         pattern: sorted(
-            str(Path(path).resolve())
+            str(Path(os.path.abspath(path)))
             for path in fsspec.filesystem("file").glob(os.path.join(complex_data_dir, pattern))
             if Path(path).name not in _FILES_TO_IGNORE
             and not any(
@@ -266,6 +268,14 @@ def test_resolve_patterns_locally_or_by_urls_with_extensions(complex_data_dir, p
 def test_fail_resolve_patterns_locally_or_by_urls(complex_data_dir):
     with pytest.raises(FileNotFoundError):
         resolve_patterns_locally_or_by_urls(complex_data_dir, ["blablabla"])
+
+
+@pytest.mark.skipif(os.name == "nt", reason="Windows does not support symlinks in the default mode")
+def test_resolve_patterns_locally_or_by_urls_does_not_resolve_symbolic_links(tmp_path, complex_data_dir):
+    (tmp_path / "train_data_symlink.txt").symlink_to(os.path.join(complex_data_dir, "data", "train.txt"))
+    resolved_data_files = resolve_patterns_locally_or_by_urls(str(tmp_path), ["train_data_symlink.txt"])
+    assert len(resolved_data_files) == 1
+    assert resolved_data_files[0] == tmp_path / "train_data_symlink.txt"
 
 
 def test_resolve_patterns_locally_or_by_urls_sorted_files(tmp_path_factory):
