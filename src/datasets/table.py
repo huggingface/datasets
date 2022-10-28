@@ -1792,7 +1792,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
             if array.null_count > 0:
                 if config.PYARROW_VERSION.major < 10:
                     warnings.warn(
-                        f"None values are converted to empty lists in `pyarrow<10.0.0` when converting array to {pa_type}. Install `pyarrow>=10.0.0` to avoid this warning. More info: https://github.com/huggingface/datasets/issues/3676."
+                        f"None values are converted to empty lists in `pyarrow<10.0.0` when converting array to {pa_type}. Install `pyarrow>=10.0.0` to avoid this behavior. More info: https://github.com/huggingface/datasets/issues/3676."
                     )
                 else:
                     return pa.ListArray.from_arrays(
@@ -1810,7 +1810,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
             if array.null_count > 0:
                 if config.PYARROW_VERSION.major < 10:
                     warnings.warn(
-                        f"None values are converted to empty lists in `pyarrow<10.0.0` when converting array to {pa_type}. Install `pyarrow>=10.0.0` to avoid this warning. More info: https://github.com/huggingface/datasets/issues/3676."
+                        f"None values are converted to empty lists in `pyarrow<10.0.0` when converting array to {pa_type}. Install `pyarrow>=10.0.0` to avoid this behavior. More info: https://github.com/huggingface/datasets/issues/3676."
                     )
                 else:
                     return pa.ListArray.from_arrays(
@@ -1881,7 +1881,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
                 if array.null_count > 0:
                     if config.PYARROW_VERSION.major < 10:
                         warnings.warn(
-                            f"None values are converted to empty lists in `pyarrow<10.0.0` when converting array to {feature}. Install `pyarrow>=10.0.0` to avoid this warning. More info: https://github.com/huggingface/datasets/issues/3676."
+                            f"None values are converted to empty lists in `pyarrow<10.0.0` when converting array to {feature}. Install `pyarrow>=10.0.0` to avoid this behavior. More info: https://github.com/huggingface/datasets/issues/3676."
                         )
                     else:
                         return pa.ListArray.from_arrays(array.offsets, casted_values, mask=array.is_null())
@@ -1898,7 +1898,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
                     if array.null_count > 0:
                         if config.PYARROW_VERSION.major < 10:
                             warnings.warn(
-                                f"None values are converted to empty lists in `pyarrow<10.0.0` when converting array to {feature}. Install `pyarrow>=10.0.0` to avoid this warning. More info: https://github.com/huggingface/datasets/issues/3676."
+                                f"None values are converted to empty lists in `pyarrow<10.0.0` when converting array to {feature}. Install `pyarrow>=10.0.0` to avoid this behavior. More info: https://github.com/huggingface/datasets/issues/3676."
                             )
                         else:
                             return pa.ListArray.from_arrays(
@@ -1911,7 +1911,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
             if array.null_count > 0:
                 if config.PYARROW_VERSION.major < 10:
                     warnings.warn(
-                        f"None values are converted to empty lists when converting array to {feature}. Install `pyarrow>=10.0.0` to avoid this warning. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
+                        f"None values are converted to empty lists when converting array to {feature}. Install `pyarrow>=10.0.0` to avoid this behavior. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
                     )
                 else:
                     return pa.ListArray.from_arrays(array.offsets, _c(array.values, feature[0]), mask=array.is_null())
@@ -1925,7 +1925,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
                 if array.null_count > 0:
                     if config.PYARROW_VERSION.major < 10:
                         warnings.warn(
-                            f"None values are converted to empty lists when converting array to {feature}. Install `pyarrow>=10.0.0` to avoid this warning. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
+                            f"None values are converted to empty lists when converting array to {feature}. Install `pyarrow>=10.0.0` to avoid this behavior. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
                         )
                     else:
                         return pa.ListArray.from_arrays(
@@ -1982,7 +1982,7 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
             if array.null_count > 0:
                 if config.PYARROW_VERSION.major < 10:
                     warnings.warn(
-                        f"None values are converted to empty lists when embedding array storage with {feature}. Install `pyarrow>=10.0.0` to avoid this warning. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
+                        f"None values are converted to empty lists when embedding array storage with {feature}. Install `pyarrow>=10.0.0` to avoid this behavior. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
                     )
                 else:
                     return pa.ListArray.from_arrays(array.offsets, _e(array.values, feature[0]), mask=array.is_null())
@@ -1999,7 +1999,7 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
                     if array.null_count > 0:
                         if config.PYARROW_VERSION.major < 10:
                             warnings.warn(
-                                f"None values are converted to empty lists when embedding array storage with {feature}. Install `pyarrow>=10.0.0` to avoid this warning. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
+                                f"None values are converted to empty lists when embedding array storage with {feature}. Install `pyarrow>=10.0.0` to avoid this behavior. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
                             )
                         else:
                             return pa.ListArray.from_arrays(
@@ -2012,7 +2012,7 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
             if array.null_count > 0:
                 if config.PYARROW_VERSION.major < 10:
                     warnings.warn(
-                        f"None values are converted to empty lists when embedding array storage with {feature}. Install `pyarrow>=10.0.0` to avoid this warning. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
+                        f"None values are converted to empty lists when embedding array storage with {feature}. Install `pyarrow>=10.0.0` to avoid this behavior. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
                     )
                 else:
                     return pa.ListArray.from_arrays(array.offsets, _e(array.values, feature[0]), mask=array.is_null())
@@ -2026,7 +2026,7 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
                 if array.null_count > 0:
                     if config.PYARROW_VERSION.major < 10:
                         warnings.warn(
-                            f"None values are converted to empty lists when embedding array storage with {feature}. Install `pyarrow>=10.0.0` to avoid this warning. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
+                            f"None values are converted to empty lists when embedding array storage with {feature}. Install `pyarrow>=10.0.0` to avoid this behavior. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
                         )
                     else:
                         return pa.ListArray.from_arrays(
