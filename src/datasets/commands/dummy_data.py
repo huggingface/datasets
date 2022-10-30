@@ -14,6 +14,7 @@ from datasets.download.download_config import DownloadConfig
 from datasets.download.download_manager import DownloadManager
 from datasets.download.mock_download_manager import MockDownloadManager
 from datasets.load import dataset_module_factory, import_main_class
+from datasets.utils.deprecation_utils import deprecated
 from datasets.utils.logging import get_logger, set_verbosity_warning
 from datasets.utils.py_utils import map_nested
 
@@ -23,6 +24,9 @@ logger = get_logger(__name__)
 DEFAULT_ENCODING = "utf-8"
 
 
+@deprecated(
+    "The `datasets` repository does not host the dataset scripts anymore. Therefore, dummy data is no longer needed to test their loading with CI."
+)
 def dummy_data_command_factory(args):
     return DummyDataCommand(
         args.path_to_dataset,

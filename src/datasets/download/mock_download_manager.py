@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Callable, List, Optional, Union
 from zipfile import ZipFile
 
+from ..utils.deprecation_utils import deprecated
 from ..utils.file_utils import cached_path, hf_github_url
 from ..utils.logging import get_logger
 from ..utils.version import Version
@@ -35,6 +36,9 @@ class MockDownloadManager:
     datasets_scripts_dir = "datasets"
     is_streaming = False
 
+    @deprecated(
+        "The `datasets` repository does not host the dataset scripts anymore. Therefore, dummy data is no longer needed to test their loading with CI."
+    )
     def __init__(
         self,
         dataset_name: str,
