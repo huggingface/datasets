@@ -657,6 +657,8 @@ if config.DILL_VERSION < version.parse("0.3.6"):
         # The filename of a function is the .py file where it is defined.
         # Filenames of functions created in notebooks or shells start with '<'
         # ex: <ipython-input-13-9ed2afe61d25> for ipython, and <stdin> for shell
+        # Filenames of functions created in ipykernel the filename
+        # look like f"{tempdir}/ipykernel_{id1}/{id2}.py"
         # Moreover lambda functions have a special name: '<lambda>'
         # ex: (lambda x: x).__code__.co_name == "<lambda>"  # True
         #
@@ -669,7 +671,14 @@ if config.DILL_VERSION < version.parse("0.3.6"):
         #
         # Only those two lines are different from the original implementation:
         co_filename = (
-            "" if obj.co_filename.startswith("<") or obj.co_name == "<lambda>" else os.path.basename(obj.co_filename)
+            ""
+            if obj.co_filename.startswith("<")
+            or (
+                len(obj.co_filename.split(os.path.sep)) > 1
+                and obj.co_filename.split(os.path.sep)[-2].startswith("ipykernel_")
+            )
+            or obj.co_name == "<lambda>"
+            else os.path.basename(obj.co_filename)
         )
         co_firstlineno = 1
         # The rest is the same as in the original dill implementation
