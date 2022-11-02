@@ -639,6 +639,7 @@ class DatasetBuilder:
 
                 <Added version="2.5.0"/>
             num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
+                Multiprocessing is disabled by default.
 
                 <Added version="2.7.0"/>
             storage_options (:obj:`dict`, *optional*): Key/value pairs to be passed on to the caching file-system backend, if any.
@@ -1247,7 +1248,7 @@ class DatasetBuilder:
         split_generator: SplitGenerator,
         file_format: str = "arrow",
         max_shard_size: Optional[Union[str, int]] = None,
-        num_proc=None,
+        num_proc: Optional[int] = None,
         **kwargs,
     ):
         """Generate the examples and record them on disk.
@@ -1259,6 +1260,10 @@ class DatasetBuilder:
             max_shard_size (:obj:`Union[str, int]`, optional): Approximate maximum number of bytes written per shard.
                 Only available for the "parquet" format with a default of "500MB". The size is based on uncompressed data size,
                 so in practice your shard files may be smaller than `max_shard_size` thanks to Parquet compression.
+            num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
+                Multiprocessing is disabled by default.
+
+                <Added version="2.7.0"/>
             **kwargs: Additional kwargs forwarded from _download_and_prepare (ex:
                 beam pipeline)
         """
@@ -1411,7 +1416,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
         split_generator: SplitGenerator,
         check_duplicate_keys: bool,
         file_format="arrow",
-        num_proc=None,
+        num_proc: Optional[int] = None,
         max_shard_size: Optional[Union[int, str]] = None,
     ):
 
@@ -1430,9 +1435,6 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
         # Default to using 16-way parallelism for preparation if the number of files is higher than 16.
         num_input_shards = _number_of_shards(split_generator.gen_kwargs)
-        if num_proc is None and num_input_shards >= 16:
-            num_proc = 16
-
         if num_input_shards <= 1 and num_proc is not None:
             logger.warning(
                 f"Setting num_proc from {num_proc} back to 1 for the {split_info.name} split to disable multiprocessing as it only contains one shard."
@@ -1663,7 +1665,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         self,
         split_generator: SplitGenerator,
         file_format: str = "arrow",
-        num_proc=None,
+        num_proc: Optional[int] = None,
         max_shard_size: Optional[Union[str, int]] = None,
     ):
 
