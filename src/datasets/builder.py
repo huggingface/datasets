@@ -1680,11 +1680,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         fname = f"{self.name}-{split_generator.name}{SUFFIX}.{file_format}"
         fpath = path_join(self._output_dir, fname)
 
-        # Default to using 16-way parallelism for preparation if the number of files is higher than 16.
         num_input_shards = _number_of_shards(split_generator.gen_kwargs)
-        if num_proc is None and num_input_shards >= 16:
-            num_proc = 16
-
         if num_input_shards <= 1 and num_proc is not None:
             logger.warning(
                 f"Setting num_proc from {num_proc} back to 1 for the {split_info.name} split to disable multiprocessing as it only contains one shard."
