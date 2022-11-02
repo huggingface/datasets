@@ -353,7 +353,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                             )
                     else:
                         sample_metadata = {}
-                    if "label" in self.info.features:
+                    if add_labels:
                         sample_label = {"label": os.path.basename(os.path.dirname(original_file))}
                     else:
                         sample_label = {}
@@ -419,7 +419,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                                 )
                         else:
                             sample_metadata = {}
-                        if "label" in self.info.features:
+                        if add_labels:
                             sample_label = {"label": os.path.basename(os.path.dirname(downloaded_dir_file))}
                         else:
                             sample_label = {}
