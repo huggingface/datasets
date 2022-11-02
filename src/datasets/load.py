@@ -1634,6 +1634,7 @@ def load_dataset(
             Json files may be downloaded completely. Also streaming from remote zip or gzip files is supported but other compressed formats
             like rar and xz are not yet supported. The tgz format doesn't allow streaming.
         num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
+                Multiprocessing is disabled by default.
 
                 <Added version="2.7.0"/>
         **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the :class:`BuilderConfig`
