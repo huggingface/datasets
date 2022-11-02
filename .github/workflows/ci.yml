@@ -62,6 +62,8 @@ jobs:
         run: |
           pip install .[tests]
           pip install -r additional-tests-requirements.txt --no-deps
+          python -m spacy download en_core_web_sm
+          python -m spacy download fr_core_news_sm
       - name: Install dependencies (latest versions)
         if: ${{ matrix.deps_versions == 'latest' }}
         run: |

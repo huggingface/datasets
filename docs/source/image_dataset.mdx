@@ -101,6 +101,19 @@ Load the dataset with `ImageFolder`, and it will create a `objects` column with 
 {"bbox": [[302.0, 109.0, 73.0, 52.0]], "categories": [0]}
 ```
 
+### Upload dataset to the Hub
+
+Once you've created a dataset, you can share it to the Hub with the [`~datasets.DatasetDict.push_to_hub`] method. Make sure you have the [huggingface_hub](https://huggingface.co/docs/huggingface_hub/index) library installed and you're logged in to your Hugging Face account (see the [Upload with Python tutorial](upload_dataset#upload-with-python) for more details).
+
+Upload your dataset with [`~datasets.DatasetDict.push_to_hub`]:
+
+```py
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("imagefolder", data_dir="/path/to/folder", split="train")
+>>> dataset.push_to_hub("stevhliu/my-image-captioning-dataset")
+```
+
 ## Loading script
 
 Write a dataset loading script to share a dataset. It defines a dataset's splits and configurations, and handles downloading and generating a dataset. The script is located in the same folder or repository as the dataset. 
