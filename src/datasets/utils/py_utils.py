@@ -601,19 +601,18 @@ class Pickler(dill.Pickler):
 
     def save(self, obj, save_persistent_id=True):
         # lazy registration of reduction functions
-
-        if config.DILL_VERSION < version.parse("0.3.6"):
-
-            def dill_log(pickler, msg):
-                dill._dill.log.info(msg)
-
-        elif config.DILL_VERSION.release[:3] == version.parse("0.3.6").release:
-
-            def dill_log(pickler, msg):
-                dill._dill.logger.trace(pickler, msg)
-
         obj_type = type(obj)
         if obj_type not in Pickler.dispatch:
+            if config.DILL_VERSION < version.parse("0.3.6"):
+
+                def dill_log(pickler, msg):
+                    dill._dill.log.info(msg)
+
+            elif config.DILL_VERSION.release[:3] == version.parse("0.3.6").release:
+
+                def dill_log(pickler, msg):
+                    dill._dill.logger.trace(pickler, msg)
+
             if (obj_type.__module__, obj_type.__name__) == ("_regex", "Pattern"):
                 try:
                     import regex
