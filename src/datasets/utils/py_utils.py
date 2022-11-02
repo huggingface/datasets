@@ -1292,13 +1292,11 @@ def iflatmap_unordered(
     with Manager() as manager:
         queue = manager.Queue()
         async_results = [pool.apply_async(_write_generator_to_queue, (queue, func, arg)) for arg in iterable]
-        pool.close()
         while True:
             try:
                 yield queue.get(timeout=0.05)
             except Empty:
                 if all(async_result.ready() for async_result in async_results) and queue.empty():
                     break
-        pool.join()
         # we get the result in case there's an error to raise
         [async_result.get() for async_result in async_results]
