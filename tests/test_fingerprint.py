@@ -214,9 +214,7 @@ class RecurseDumpTest(TestCase):
         hash5 = md5(datasets.utils.py_utils.dumps(create_ipython_func(co_filename5, returned_obj))).hexdigest()
         co_filename6, returned_obj = os.path.join(gettempdir(), "ipykernel_12345", "654123987.py"), [0]
         hash6 = md5(datasets.utils.py_utils.dumps(create_ipython_func(co_filename6, returned_obj))).hexdigest()
-        self.assertEqual(co_filename4, co_filename6)
         self.assertEqual(hash4, hash6)
-        self.assertNotEqual(co_filename4, co_filename5)
         self.assertNotEqual(hash4, hash5)
 
     def test_recurse_dump_for_function_with_shuffled_globals(self):
