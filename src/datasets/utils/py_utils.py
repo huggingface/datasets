@@ -599,6 +599,78 @@ class Pickler(dill.Pickler):
 
     dispatch = dill._dill.MetaCatchingDict(dill.Pickler.dispatch.copy())
 
+    def save(self, obj, save_persistent_id=True):
+        # lazy registration of reduction functions
+        obj_type = type(obj)
+        if obj_type not in Pickler.dispatch:
+            if config.DILL_VERSION < version.parse("0.3.6"):
+
+                def dill_log(pickler, msg):
+                    dill._dill.log.info(msg)
+
+            elif config.DILL_VERSION.release[:3] == version.parse("0.3.6").release:
+
+                def dill_log(pickler, msg):
+                    dill._dill.logger.trace(pickler, msg)
+
+            if (obj_type.__module__, obj_type.__name__) == ("_regex", "Pattern"):
+                try:
+                    import regex
+
+                    @pklregister(obj_type)
+                    def _save_regex(pickler, obj):
+                        dill_log(pickler, f"Re: {obj}")
+                        args = (
+                            obj.pattern,
+                            obj.flags,
+                        )
+                        pickler.save_reduce(regex.compile, args, obj=obj)
+                        dill_log(pickler, "# Re")
+                        return
+
+                except ImportError:
+                    pass
+            elif (obj_type.__module__, obj_type.__name__) == ("torch", "Tensor"):
+                try:
+                    import torch
+
+                    @pklregister(obj_type)
+                    def _save_tensor(pickler, obj):
+                        dill_log(pickler, f"To: {obj}")
+                        if obj.requires_grad:
+                            args = (obj.detach().cpu().numpy(),)
+                        else:
+                            args = (obj.cpu().numpy(),)
+                        pickler.save_reduce(torch.from_numpy, args, obj=obj)
+                        dill_log(pickler, "# To")
+                        return
+
+                except ImportError:
+                    pass
+            elif obj_type.__module__.startswith("spacy.lang") and any(
+                (cls.__module__, cls.__name__) == ("spacy.language", "Language") for cls in obj_type.__mro__
+            ):
+                try:
+                    import spacy
+
+                    @pklregister(obj_type)
+                    def _save_lang(pickler, obj):
+                        def _create_lang(config, bytes_data):
+                            lang_cls = spacy.util.get_lang_class(config["nlp"]["lang"])
+                            nlp = lang_cls.from_config(config)
+                            return nlp.from_bytes(bytes_data)
+
+                        dill_log(pickler, f"Sp: {obj}")
+                        args = (obj.config, obj.to_bytes())
+                        pickler.save_reduce(_create_lang, args, obj=obj)
+                        dill_log(pickler, "# Sp")
+                        return
+
+                except ImportError:
+                    pass
+
+        dill.Pickler.save(self, obj, save_persistent_id=save_persistent_id)
+
     def memoize(self, obj):
         # don't memoize strings since two identical strings can have different python ids
         if type(obj) != str:
@@ -1256,36 +1328,3 @@ def copyfunc(func):
     result = types.FunctionType(func.__code__, func.__globals__, func.__name__, func.__defaults__, func.__closure__)
     result.__kwdefaults__ = func.__kwdefaults__
     return result
-
-
-try:
-    import regex
-
-    if config.DILL_VERSION < version.parse("0.3.6"):
-
-        @pklregister(type(regex.Regex("", 0)))
-        def _save_regex(pickler, obj):
-            dill._dill.log.info(f"Re: {obj}")
-            args = (
-                obj.pattern,
-                obj.flags,
-            )
-            pickler.save_reduce(regex.compile, args, obj=obj)
-            dill._dill.log.info("# Re")
-            return
-
-    elif config.DILL_VERSION.release[:3] == version.parse("0.3.6").release:
-
-        @pklregister(type(regex.Regex("", 0)))
-        def _save_regex(pickler, obj):
-            dill._dill.logger.trace(pickler, "Re: %s", obj)
-            args = (
-                obj.pattern,
-                obj.flags,
-            )
-            pickler.save_reduce(regex.compile, args, obj=obj)
-            dill._dill.logger.trace(pickler, "# Re")
-            return
-
-except ImportError:
-    pass

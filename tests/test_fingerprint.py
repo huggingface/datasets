@@ -17,7 +17,7 @@ import datasets
 from datasets.fingerprint import Hasher, fingerprint_transform
 from datasets.table import InMemoryTable
 
-from .utils import require_regex, require_transformers
+from .utils import require_regex, require_spacy, require_spacy_model, require_torch, require_transformers
 
 
 class Foo:
@@ -291,6 +291,35 @@ class HashingTest(TestCase):
         hash3 = Hasher.hash(obj3)
         self.assertEqual(hash1, hash2)
         self.assertEqual(hash1, hash3)
+
+    @require_torch
+    def test_hash_torch_tensor(self):
+        import torch
+
+        t = torch.tensor([1.0])
+        hash1 = md5(datasets.utils.py_utils.dumps(t)).hexdigest()
+        t = torch.tensor([2.0])
+        hash2 = md5(datasets.utils.py_utils.dumps(t)).hexdigest()
+        t = torch.tensor([1.0])
+        hash3 = md5(datasets.utils.py_utils.dumps(t)).hexdigest()
+        self.assertEqual(hash1, hash3)
+        self.assertNotEqual(hash1, hash2)
+
+    @require_spacy
+    @require_spacy_model("en_core_web_sm")
+    @require_spacy_model("fr_core_news_sm")
+    @pytest.mark.integration
+    def test_hash_spacy_model(self):
+        import spacy
+
+        nlp = spacy.load("en_core_web_sm")
+        hash1 = md5(datasets.utils.py_utils.dumps(nlp)).hexdigest()
+        nlp = spacy.load("fr_core_news_sm")
+        hash2 = md5(datasets.utils.py_utils.dumps(nlp)).hexdigest()
+        nlp = spacy.load("en_core_web_sm")
+        hash3 = md5(datasets.utils.py_utils.dumps(nlp)).hexdigest()
+        self.assertEqual(hash1, hash3)
+        self.assertNotEqual(hash1, hash2)
 
 
 @pytest.mark.integration
