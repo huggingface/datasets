@@ -38,8 +38,7 @@ def data_files_with_labels_no_metadata(tmp_path, auto_text_file):
     data_dir.mkdir(parents=True, exist_ok=True)
     subdir_class_0 = data_dir / "class0"
     subdir_class_0.mkdir(parents=True, exist_ok=True)
-    # data dirs can be nested but FolderBasedBuilder should care only about the last part of the path:
-    subdir_class_1 = data_dir / "subdir" / "class1"
+    subdir_class_1 = data_dir / "class1"
     subdir_class_1.mkdir(parents=True, exist_ok=True)
 
     filename = subdir_class_0 / "file0.txt"
@@ -284,14 +283,16 @@ def test_prepare_generate_examples_duplicated_label_key(
 
 @pytest.mark.parametrize("drop_metadata", [None, True, False])
 @pytest.mark.parametrize("drop_labels", [None, True, False])
-def test_prepare_generate_examples_drop_labels(auto_text_file, drop_metadata, drop_labels):
+def test_prepare_generate_examples_drop_labels(
+    data_files_with_labels_no_metadata, auto_text_file, drop_metadata, drop_labels
+):
     autofolder = DummyFolderBasedBuilder(
-        data_files={"train": [auto_text_file]},
+        data_files=data_files_with_labels_no_metadata,
         drop_metadata=drop_metadata,
         drop_labels=drop_labels,
     )
     gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
-    # removing the labels explicitly requires drop_labels=True
+    # removing labels explicitly requires drop_labels=True
     assert gen_kwargs["add_labels"] is not bool(drop_labels)
     assert gen_kwargs["add_metadata"] is False
     generator = autofolder._generate_examples(**gen_kwargs)
