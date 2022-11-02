@@ -239,10 +239,10 @@ def test_asdict():
         asdict([1, A(x=10, y="foo")])
 
 
-def _2seconds_generator_of_10items(x):
-    yield x
+def _2seconds_generator_of_2items_with_timing(content):
+    yield (time.time(), content)
     time.sleep(2)
-    yield from [x] * 9
+    yield (time.time(), content)
 
 
 def test_iflatmap_unordered():
@@ -255,13 +255,9 @@ def test_iflatmap_unordered():
 
     with Pool(2) as pool:
         out = []
-        for x in iflatmap_unordered(pool, _2seconds_generator_of_10items, ["a", "b"]):
-            if not out:
-                _start = time.time()
-            out.append(x)
-        assert (
-            time.time() < _start + 2.5
-        ), "Running 2 jobs of 2 seconds in parallel shoudn't take more than 2.5 seconds"
-        assert out.count("a") == 10
-        assert out.count("b") == 10
-        assert out != ["a"] * 10 + ["b"] * 10  # unordered
+        for yield_time, content in iflatmap_unordered(pool, _2seconds_generator_of_2items_with_timing, ["a", "b"]):
+            assert yield_time < time.time() + 0.1, "we should each item directly after it was yielded"
+            out.append(content)
+        assert out.count("a") == 2
+        assert out.count("b") == 2
+        assert len(out) == 4
