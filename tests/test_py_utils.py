@@ -4,6 +4,7 @@ from multiprocessing import Pool
 from unittest import TestCase
 from unittest.mock import patch
 
+import multiprocess
 import numpy as np
 import pytest
 
@@ -253,6 +254,14 @@ def test_iflatmap_unordered():
         assert out.count("there") == 10
         assert len(out) == 20
 
+    # check multiprocess from pathos (uses dill for pickling)
+    with multiprocess.Pool(2) as pool:
+        out = list(iflatmap_unordered(pool, str.split, ["hello there"] * 10))
+        assert out.count("hello") == 10
+        assert out.count("there") == 10
+        assert len(out) == 20
+
+    # check that we get items as fast as possible
     with Pool(2) as pool:
         out = []
         for yield_time, content in iflatmap_unordered(pool, _2seconds_generator_of_2items_with_timing, ["a", "b"]):
