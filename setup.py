@@ -154,8 +154,6 @@ TESTS_REQUIRE = [
     "seqeval",
     "sqlalchemy",
     "spacy>=3.0.0",
-    "en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.4.0/en_core_web_sm-3.4.0-py3-none-any.whl",
-    "fr_core_news_sm @ https://github.com/explosion/spacy-models/releases/download/fr_core_news_sm-3.4.0/en_core_web_sm-3.4.0-py3-none-any.whl",
     "tldextract",
     # to speed up pip backtracking
     "toml>=0.10.1",
