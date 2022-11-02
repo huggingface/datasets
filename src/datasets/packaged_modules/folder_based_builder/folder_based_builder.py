@@ -11,6 +11,7 @@ import pyarrow.json as paj
 import datasets
 from datasets.features.features import FeatureType
 from datasets.tasks.base import TaskTemplate
+from datasets.utils.file_utils import is_remote_url
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -102,7 +103,11 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     if original_file_ext.lower() in self.EXTENSIONS:
                         if not self.config.drop_labels:
                             labels.add(os.path.basename(os.path.dirname(original_file)))
-                            path_depth = original_file.count(os.sep)
+                            path_depth = (
+                                original_file.count(os.sep)
+                                if not is_remote_url(original_file)
+                                else original_file.count("/")
+                            )
                             path_depths.add(path_depth)
                     elif os.path.basename(original_file) in self.METADATA_FILENAMES:
                         metadata_files[split].add((original_file, downloaded_file))
@@ -120,7 +125,11 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                         if downloaded_dir_file_ext in self.EXTENSIONS:
                             if not self.config.drop_labels:
                                 labels.add(os.path.basename(os.path.dirname(downloaded_dir_file)))
-                                path_depth = downloaded_dir_file.count(os.sep)
+                                path_depth = (
+                                    downloaded_dir_file.count(os.sep)
+                                    if not is_remote_url(downloaded_dir_file)
+                                    else downloaded_dir_file.count("/")
+                                )
                                 path_depths.add(path_depth)
                         elif os.path.basename(downloaded_dir_file) in self.METADATA_FILENAMES:
                             metadata_files[split].add((None, downloaded_dir_file))
