@@ -1068,6 +1068,7 @@ def test_arrow_based_builder_download_and_prepare_as_sharded_parquet_with_max_sh
     assert sum(parquet_file.metadata.num_rows for parquet_file in parquet_files) == 100
 
 
+@require_beam
 def test_beam_based_builder_download_and_prepare_as_parquet(tmp_path):
     builder = DummyBeamBasedBuilder(cache_dir=tmp_path, beam_runner="DirectRunner")
     builder.download_and_prepare(file_format="parquet")
