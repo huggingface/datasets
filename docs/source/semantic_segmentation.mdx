@@ -18,14 +18,14 @@ detection, segmentation, and keypoint estimation.
 This guide uses the [Scene Parsing](https://huggingface.co/datasets/scene_parse_150) dataset for segmenting
 and parsing an image into different image regions associated with semantic categories, such as sky, road, person, and bed.
 
-Load the dataset and take a look at an example:
+Load the `train` split of the dataset and take a look at an example:
 
 ```py
 >>> from datasets import load_dataset
 
->>> dataset = load_dataset("scene_parse_150")
+>>> dataset = load_dataset("scene_parse_150", split="train")
 >>> index = 10
->>> dataset["train"][index]
+>>> dataset[index]
 {'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=683x512 at 0x7FB37B0EC810>,
  'annotation': <PIL.PngImagePlugin.PngImageFile image mode=L size=683x512 at 0x7FB37B0EC9D0>,
  'scene_category': 927}
@@ -40,7 +40,7 @@ The dataset has three fields:
 Next, check out an image with:
 
 ```py
->>> dataset["train"][index]["image"]
+>>> dataset[index]["image"]
 ```
 
 <div class="flex justify-center">
@@ -50,7 +50,7 @@ Next, check out an image with:
 Similarly, you can check out the respective segmentation mask:
 
 ```py
->>> dataset["train"][index]["annotation"]
+>>> dataset[index]["annotation"]
 ```
 
 <div class="flex justify-center">
@@ -82,8 +82,8 @@ After defining the color palette, you should be ready to visualize some overlays
 
 
 >>> visualize_seg_mask(
-...     np.array(dataset["train"][index]["image"]),
-...     np.array(dataset["train"][index]["annotation"])
+...     np.array(dataset[index]["image"]),
+...     np.array(dataset[index]["annotation"])
 ... )
 ```
 
@@ -130,8 +130,8 @@ Use the [`~Dataset.set_transform`] function to apply the transformation on-the-f
 You can verify the transformation worked by indexing into the `pixel_values` and `label` of an example:
 
 ```py
->>> image = np.array(dataset["train"][index]["pixel_values"])
->>> mask = np.array(dataset["train"][index]["label"])
+>>> image = np.array(dataset[index]["pixel_values"])
+>>> mask = np.array(dataset[index]["label"])
 
 >>> visualize_seg_mask(image, mask)
 ```
@@ -158,8 +158,8 @@ In this guide, you have used `albumentations` for augmenting the dataset. It's a
 
 >>> dataset.set_transform(train_transforms)
 
->>> image = np.array(dataset["train"][index]["pixel_values"])
->>> mask = np.array(dataset["train"][index]["label"])
+>>> image = np.array(dataset[index]["pixel_values"])
+>>> mask = np.array(dataset[index]["label"])
 
 >>> visualize_seg_mask(image, mask)
 ```
