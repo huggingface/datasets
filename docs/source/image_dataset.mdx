@@ -101,6 +101,19 @@ Load the dataset with `ImageFolder`, and it will create a `objects` column with 
 {"bbox": [[302.0, 109.0, 73.0, 52.0]], "categories": [0]}
 ```
 
+### Upload dataset to the Hub
+
+Once you've created a dataset, you can share it to the Hub with the [`~datasets.DatasetDict.push_to_hub`] method. Make sure you have the [huggingface_hub](https://huggingface.co/docs/huggingface_hub/index) library installed and you're logged in to your Hugging Face account (see the [Upload with Python tutorial](upload_dataset#upload-with-python) for more details).
+
+Upload your dataset with [`~datasets.DatasetDict.push_to_hub`]:
+
+```py
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("imagefolder", data_dir="/path/to/folder", split="train")
+>>> dataset.push_to_hub("stevhliu/my-image-captioning-dataset")
+```
+
 ## Loading script
 
 Write a dataset loading script to share a dataset. It defines a dataset's splits and configurations, and handles downloading and generating a dataset. The script is located in the same folder or repository as the dataset. 
@@ -334,15 +347,15 @@ def _generate_examples(self, images, metadata_path):
 
 ### Generate the dataset metadata (optional)
 
-The dataset metadata you added earlier now needs to be generated and stored in a file called `datasets_infos.json`. In addition to information about a datasets features and description, this file also contains data file checksums to ensure integrity.
+The dataset metadata can be generated and stored in the dataset card (`README.md` file).
 
-Run the following command to generate your dataset metadata in `dataset_infos.json` and make sure your new loading script works correctly:
+Run the following command to generate your dataset metadata in `README.md` and make sure your new loading script works correctly:
 
 ```bash
 datasets-cli test path/to/<your-dataset-loading-script> --save_info --all_configs
 ```
 
-If your loading script passed the test, you should now have a `dataset_infos.json` file in your dataset folder.
+If your loading script passed the test, you should now have the `dataset_info` YAML fields in the header of the `README.md` file in your dataset folder.
 
 ### Upload the dataset to the Hub
 
