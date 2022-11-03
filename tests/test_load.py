@@ -865,13 +865,15 @@ def test_loading_from_the_datasets_hub_with_use_auth_token():
 
 
 @pytest.mark.integration
-def test_load_streaming_private_dataset(hf_token, hf_private_dataset_repo_txt_data):
+def test_load_streaming_private_dataset(hf_token, hf_private_dataset_repo_txt_data, ci_hf_hub_url):
     ds = load_dataset(hf_private_dataset_repo_txt_data, streaming=True)
     assert next(iter(ds)) is not None
 
 
 @pytest.mark.integration
-def test_load_streaming_private_dataset_with_zipped_data(hf_token, hf_private_dataset_repo_zipped_txt_data):
+def test_load_streaming_private_dataset_with_zipped_data(
+    hf_token, hf_private_dataset_repo_zipped_txt_data, ci_hf_hub_url
+):
     ds = load_dataset(hf_private_dataset_repo_zipped_txt_data, streaming=True)
     assert next(iter(ds)) is not None
 
@@ -881,7 +883,7 @@ def test_load_streaming_private_dataset_with_zipped_data(hf_token, hf_private_da
 @pytest.mark.parametrize("implicit_token", [False, True])
 @pytest.mark.parametrize("streaming", [False, True])
 def test_load_dataset_private_zipped_images(
-    hf_private_dataset_repo_zipped_img_data, hf_token, streaming, implicit_token
+    hf_private_dataset_repo_zipped_img_data, hf_token, ci_hf_hub_url, streaming, implicit_token
 ):
     use_auth_token = None if implicit_token else hf_token
     ds = load_dataset(
