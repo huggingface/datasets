@@ -195,7 +195,7 @@ class ZstdExtractor(MagicNumberBaseExtractor):
             raise ImportError("Please pip install zstandard")
         import zstandard as zstd
 
-        dctx = zstd.ZstdDecompressor()
+        dctx = zstd.ZstdDecompressor(max_window_size=2**zstd.WINDOWLOG_MAX)
         with open(input_path, "rb") as ifh, open(output_path, "wb") as ofh:
             dctx.copy_stream(ifh, ofh)
 
