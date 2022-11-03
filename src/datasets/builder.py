@@ -1780,7 +1780,9 @@ class ArrowBasedBuilder(DatasetBuilder):
                 )
 
             shard_ids_and_jobs = [
-                (shard_id, job_id) for job_id, num_shards in enumerate(shards_per_job) for shard_id in range(num_shards)
+                (shard_id, job_id)
+                for job_id, num_shards in enumerate(shards_per_job)
+                for shard_id in range(num_shards)
             ]
             thread_map(_rename_shard, shard_ids_and_jobs, disable=True, max_workers=64)
 
