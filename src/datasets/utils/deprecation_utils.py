@@ -19,14 +19,14 @@ def deprecated(help_message: Optional[str] = None):
             switch to non-deprecated usage of the library.
     """
 
-    def decorator(deprecated_obj: Callable):
+    def decorator(deprecated_class_or_function: Callable):
         global _emitted_deprecation_warnings
 
-        if inspect.isclass(deprecated_obj):
-            deprecated_function = deprecated_obj.__init__
-            name = deprecated_obj.__name__
+        if inspect.isclass(deprecated_class_or_function):
+            deprecated_function = deprecated_class_or_function.__init__
+            name = deprecated_class_or_function.__name__
         else:
-            deprecated_function = deprecated_obj
+            deprecated_function = deprecated_class_or_function
             name = deprecated_function.__name__
             # Support deprecating __init__ class method: class name instead
             name = name if name != "__init__" else deprecated_function.__qualname__.split(".")[-2]
@@ -47,9 +47,9 @@ def deprecated(help_message: Optional[str] = None):
 
         wrapper._decorator_name_ = "deprecated"
 
-        if inspect.isclass(deprecated_obj):
-            deprecated_obj.__init__ = wrapper
-            return deprecated_obj
+        if inspect.isclass(deprecated_class_or_function):
+            deprecated_class_or_function.__init__ = wrapper
+            return deprecated_class_or_function
         else:
             return wrapper
 
