@@ -1,4 +1,4 @@
-# Image classification
+# Semantic segmentation
 
 Semantic segmentation datasets are used to train a model to classify every pixel in an image. There are
 a wide variety of applications enabled by these datasets such as background removal from images, stylizing
@@ -10,6 +10,10 @@ Before you start, make sure you have up-to-date versions of `albumentations` and
 ```bash
 pip install -U albumentations opencv-python
 ```
+
+[Albumentations](https://albumentations.ai/) is a Python library for performing data augmentation
+for computer vision. It supports various computer vision tasks such as image classification, object
+detection, segmentation, and keypoint estimation.
 
 This guide uses the [Scene Parsing](https://huggingface.co/datasets/scene_parse_150) dataset for segmenting
 and parsing an image into different image regions associated with semantic categories, such as sky, road, person, and bed.
@@ -33,21 +37,28 @@ The dataset has three fields:
 * `annotation`: segmentation mask of the image.
 * `scene_category`: the label or scene category of the image (like “kitchen” or “office”).
 
-Next, check out an image with `dataset["train"][index]["image"]`:
+Next, check out an image with:
+
+```py
+>>> dataset["train"][index]["image"]
+```
 
 <div class="flex justify-center">
     <img src="https://i.ibb.co/NKYHp5v/download.png">
 </div>
 
-Similarly, you can check out the respective segmentation mask (`dataset["train"][index]["annotation"]`):  
+Similarly, you can check out the respective segmentation mask:
+
+```py
+>>> dataset["train"][index]["annotation"]
+```
 
 <div class="flex justify-center">
     <img src="https://i.imgur.com/qhTK2at.png">
 </div>
 
-We can also overlay the segmentation mask on top of the original image as is commonly done
-when visualizing segmentation datasets. For that, we first need to define
-a [color palette](https://github.com/tensorflow/models/blob/3f1ca33afe3c1631b733ea7e40c294273b9e406d/research/deeplab/utils/get_dataset_colormap.py#L51):
+We can also add a [color palette](https://github.com/tensorflow/models/blob/3f1ca33afe3c1631b733ea7e40c294273b9e406d/research/deeplab/utils/get_dataset_colormap.py#L51) on the
+segmentation mask and overlay it on top of the original image to visualize the dataset:
 
 After defining the color palette, you should be ready to visualize some overlays. 
 
@@ -116,7 +127,7 @@ Use the [`~Dataset.set_transform`] function to apply the transformation on-the-f
 >>> dataset.set_transform(transforms)
 ```
 
-You can verify the transformation worked by indexing into the `pixel_values` and `label` of the `index`th example:
+You can verify the transformation worked by indexing into the `pixel_values` and `label` of an example:
 
 ```py
 >>> image = np.array(dataset["train"][index]["pixel_values"])
@@ -129,7 +140,7 @@ You can verify the transformation worked by indexing into the `pixel_values` and
     <img src="https://i.imgur.com/xCU11KU.png">
 </div>
 
-In this guide, you have used `albumentations` for augmenting the dataset. It's also possible to use `torchvision` for that purpose. 
+In this guide, you have used `albumentations` for augmenting the dataset. It's also possible to use `torchvision` to apply some similar transforms. 
 
 ```py 
 >>> from torchvision.transforms import Resize, ColorJitter, Compose
@@ -157,5 +168,6 @@ In this guide, you have used `albumentations` for augmenting the dataset. It's a
     <img src="https://i.imgur.com/9Jwn0mN.png">
 </div>
 
-You can follow [this resource](https://huggingface.co/docs/transformers/tasks/semantic_segmentation)
-to learn how to train a semantic segmentation model using the techniques shown in this guide. 
+Now that you know how to process a dataset for semantic segmentation, learn
+[how to train a semantic segmentation model](https://huggingface.co/docs/transformers/tasks/semantic_segmentation)
+and use it for inference.
