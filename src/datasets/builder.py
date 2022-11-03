@@ -1771,18 +1771,18 @@ class ArrowBasedBuilder(DatasetBuilder):
         if total_shards > 1:
             # use the -SSSSS-of-NNNNN pattern
 
-            def _rename_shard(shard_id_and_rank: Tuple[int]):
-                shard_id, rank = shard_id_and_rank
-                global_shard_id = sum(shards_per_job[:rank]) + shard_id
+            def _rename_shard(shard_id_and_job: Tuple[int]):
+                shard_id, job_id = shard_id_and_job
+                global_shard_id = sum(shards_per_job[:job_id]) + shard_id
                 self._rename(
-                    fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{rank:05d}"),
+                    fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
                     fpath.replace("JJJJJ-SSSSS", f"{global_shard_id:05d}").replace("NNNNN", f"{total_shards:05d}"),
                 )
 
-            shard_ids_and_ranks = [
-                (shard_id, rank) for rank, num_shards in enumerate(shards_per_job) for shard_id in range(num_shards)
+            shard_ids_and_jobs = [
+                (shard_id, job_id) for job_id, num_shards in enumerate(shards_per_job) for shard_id in range(num_shards)
             ]
-            thread_map(_rename_shard, shard_ids_and_ranks, disable=True, max_workers=64)
+            thread_map(_rename_shard, shard_ids_and_jobs, disable=True, max_workers=64)
 
             split_generator.split_info.shard_lengths = [
                 shard_length for shard_lengths in shard_lengths_per_job for shard_length in shard_lengths
