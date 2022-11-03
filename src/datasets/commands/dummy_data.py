@@ -24,9 +24,6 @@ logger = get_logger(__name__)
 DEFAULT_ENCODING = "utf-8"
 
 
-@deprecated(
-    "The `datasets` repository does not host the dataset scripts anymore. Therefore, dummy data is no longer needed to test their loading with CI."
-)
 def dummy_data_command_factory(args):
     return DummyDataCommand(
         args.path_to_dataset,
@@ -216,6 +213,9 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
         shutil.rmtree(base_name)
 
 
+@deprecated(
+    "The `datasets` repository does not host the dataset scripts anymore. Therefore, dummy data is no longer needed to test their loading with CI."
+)
 class DummyDataCommand(BaseDatasetsCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
