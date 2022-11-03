@@ -44,7 +44,7 @@ Next, check out an image with:
 ```
 
 <div class="flex justify-center">
-    <img src="https://i.ibb.co/NKYHp5v/download.png">
+    <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/image_seg.png">
 </div>
 
 Similarly, you can check out the respective segmentation mask:
@@ -54,7 +54,7 @@ Similarly, you can check out the respective segmentation mask:
 ```
 
 <div class="flex justify-center">
-    <img src="https://i.imgur.com/qhTK2at.png">
+    <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/seg_mask.png">
 </div>
 
 We can also add a [color palette](https://github.com/tensorflow/models/blob/3f1ca33afe3c1631b733ea7e40c294273b9e406d/research/deeplab/utils/get_dataset_colormap.py#L51) on the
@@ -88,7 +88,7 @@ After defining the color palette, you should be ready to visualize some overlays
 ```
 
 <div class="flex justify-center">
-    <img src="https://i.imgur.com/QoQ9R0f.png">
+    <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/seg_overlay.png">
 </div>
 
 Now apply some augmentations with `albumentations`. You’ll first resize the image and adjust its brightness.
@@ -137,7 +137,7 @@ You can verify the transformation worked by indexing into the `pixel_values` and
 ```
 
 <div class="flex justify-center">
-    <img src="https://i.imgur.com/xCU11KU.png">
+    <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/albumentations_seg.png">
 </div>
 
 In this guide, you have used `albumentations` for augmenting the dataset. It's also possible to use `torchvision` to apply some similar transforms. 
@@ -165,7 +165,7 @@ In this guide, you have used `albumentations` for augmenting the dataset. It's a
 ```
 
 <div class="flex justify-center">
-    <img src="https://i.imgur.com/9Jwn0mN.png">
+    <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/torchvision_seg.png">
 </div>
 
 Now that you know how to process a dataset for semantic segmentation, learn
