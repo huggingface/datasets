@@ -104,7 +104,8 @@ from .tasks import TaskTemplate
 from .utils import logging
 from .utils._hf_hub_fixes import create_repo
 from .utils._hf_hub_fixes import list_repo_files as hf_api_list_repo_files
-from .utils.file_utils import _retry, cached_path, estimate_dataset_size, hf_hub_url
+from .utils.file_utils import _retry, cached_path, estimate_dataset_size
+from .utils.hub import hf_hub_url
 from .utils.info_utils import is_small_dataset
 from .utils.metadata import DatasetMetadata
 from .utils.py_utils import asdict, convert_file_size_to_int, unique_values
