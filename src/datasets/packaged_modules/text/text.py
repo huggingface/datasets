@@ -19,7 +19,7 @@ class TextConfig(datasets.BuilderConfig):
 
     features: Optional[datasets.Features] = None
     encoding: str = "utf-8"
-    errors: str = "strict"
+    errors: Optional[str] = None
     chunksize: int = 10 << 20  # 10MB
     keep_linebreaks: bool = False
     sample_by: str = "line"
