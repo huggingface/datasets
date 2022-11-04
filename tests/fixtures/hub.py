@@ -22,9 +22,7 @@ CI_HUB_TOKEN_PATH = Path("~/.huggingface/hub_ci_token").expanduser()
 
 @pytest.fixture
 def ci_hf_hub_url(monkeypatch):
-    monkeypatch.setattr(
-        "datasets.utils.hub.huggingface_hub.file_download.HUGGINGFACE_CO_URL_TEMPLATE", CI_HUGGINGFACE_CO_URL_TEMPLATE
-    )
+    monkeypatch.setattr("huggingface_hub.file_download.HUGGINGFACE_CO_URL_TEMPLATE", CI_HUGGINGFACE_CO_URL_TEMPLATE)
 
 
 @pytest.fixture
