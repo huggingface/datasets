@@ -101,7 +101,7 @@ If you see that a dataset card is missing information that you are in a position
 
 * a [template](https://github.com/huggingface/datasets/blob/main/templates/README.md)
 * a [guide](https://github.com/huggingface/datasets/blob/main/templates/README_guide.md) describing what information should go into each of the paragraphs
-* and if you need inspiration, we recommend looking through a [completed example](https://github.com/huggingface/datasets/blob/main/datasets/eli5/README.md)
+* and if you need inspiration, we recommend looking through a [completed example](https://huggingface.co/datasets/eli5/blob/main/README.md)
 
 If you are a **dataset author**... you know what to do, it is your dataset after all ;) ! We would especially appreciate if you could help us fill in information about the process of creating the dataset, and take a moment to reflect on its social impact and possible limitations if you haven't already done so in the dataset paper or in another data statement.
 
