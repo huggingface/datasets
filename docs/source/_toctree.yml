@@ -62,6 +62,8 @@
       title: Create an image dataset
     - local: image_classification
       title: Image classification
+    - local: semantic_segmentation
+      title: Semantic segmentation
     - local: object_detection
       title: Object detection
     title: "Vision"
