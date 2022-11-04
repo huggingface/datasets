@@ -567,7 +567,6 @@ class SplitDict(dict):
 
     def to_split_dict(self):
         """Returns a list of SplitInfo protos that we have."""
-        # Return the SplitInfo, sorted by name
         out = []
         for split_name, split_info in self.items():
             split_info = copy.deepcopy(split_info)
