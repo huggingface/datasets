@@ -87,7 +87,7 @@ def test_get_dataset_info(path, expected_configs, expected_splits_in_first_confi
     assert expected_config in infos
     info = infos[expected_config]
     assert info.config_name == expected_config
-    assert sorted(info.splits.keys()) == sorted(expected_splits_in_first_config)
+    assert list(info.splits.keys()) == expected_splits_in_first_config
 
 
 @pytest.mark.parametrize(
@@ -103,7 +103,7 @@ def test_get_dataset_split_names(path, expected_config, expected_splits):
     assert expected_config in infos
     info = infos[expected_config]
     assert info.config_name == expected_config
-    assert sorted(info.splits.keys()) == sorted(expected_splits)
+    assert list(info.splits.keys()) == expected_splits
 
 
 @pytest.mark.parametrize(
