@@ -505,7 +505,7 @@ class SplitReadInstruction:
         return split_instruction
 
     def get_list_sliced_split_info(self):
-        return self._splits.values()
+        return list(self._splits.values())
 
 
 class SplitDict(dict):
