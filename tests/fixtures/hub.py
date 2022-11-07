@@ -155,7 +155,7 @@ def hf_private_dataset_repo_zipped_img_data_(hf_api: HfApi, hf_token, zip_image_
 
 
 @pytest.fixture()
-def hf_private_dataset_repo_zipped_img_data(hf_private_dataset_repo_zipped_img_data_):
+def hf_private_dataset_repo_zipped_img_data(hf_private_dataset_repo_zipped_img_data_, ci_hf_hub_url):
     with patch("datasets.config.HF_ENDPOINT", CI_HUB_ENDPOINT):
         with patch("datasets.config.HUB_DATASETS_URL", CI_HUB_DATASETS_URL):
             yield hf_private_dataset_repo_zipped_img_data_
