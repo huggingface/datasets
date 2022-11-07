@@ -12,4 +12,5 @@ from .py_utils import temporary_assignment
 )
 def hf_hub_url(repo_id: str, path: str, revision: Optional[str] = None) -> str:
     revision = revision or config.HUB_DEFAULT_VERSION
-    return hfh.hf_hub_url(repo_id, quote(path), repo_type="dataset", revision=revision)
+    # As config.HUB_DATASETS_URL contains "/datasets/", no need to pass repo_type="dataset"
+    return hfh.hf_hub_url(repo_id, quote(path), revision=revision)
