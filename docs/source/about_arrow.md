@@ -39,8 +39,8 @@ Iterating over a memory-mapped dataset using Arrow is fast. Iterating over Wikip
 
 ```python
 >>> s = """batch_size = 1000
-... for i in range(0, len(wiki), batch_size):
-...     batch = wiki[i:i + batch_size]
+... for batch in wiki.iter(batch_size):
+...     ...
 ... """
 
 >>> time = timeit.timeit(stmt=s, number=1, globals=globals())

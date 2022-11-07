@@ -1813,11 +1813,14 @@ class Features(dict):
             else column
         )
 
-    def decode_batch(self, batch: dict):
+    def decode_batch(self, batch: dict, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None):
         """Decode batch with custom feature decoding.
 
         Args:
             batch (:obj:`dict[str, list[Any]]`): Dataset batch data.
+            token_per_repo_id (:obj:`dict`, optional): To access and decode
+                audio or image files from private repositories on the Hub, you can pass
+                a dictionary repo_id (str) -> token (bool or str)
 
         Returns:
             :obj:`dict[str, list[Any]]`
@@ -1825,7 +1828,12 @@ class Features(dict):
         decoded_batch = {}
         for column_name, column in batch.items():
             decoded_batch[column_name] = (
-                [decode_nested_example(self[column_name], value) if value is not None else None for value in column]
+                [
+                    decode_nested_example(self[column_name], value, token_per_repo_id=token_per_repo_id)
+                    if value is not None
+                    else None
+                    for value in column
+                ]
                 if self._column_requires_decoding[column_name]
                 else column
             )
