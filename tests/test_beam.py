@@ -8,10 +8,6 @@ import datasets.config
 from .utils import require_beam
 
 
-if datasets.config.BEAM_AVAILABLE:
-    import apache_beam as beam
-
-
 class DummyBeamDataset(datasets.BeamBasedBuilder):
     """Dummy beam dataset."""
 
@@ -26,6 +22,8 @@ class DummyBeamDataset(datasets.BeamBasedBuilder):
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"examples": get_test_dummy_examples()})]
 
     def _build_pcollection(self, pipeline, examples):
+        import apache_beam as beam
+
         return pipeline | "Load Examples" >> beam.Create(examples)
 
 
@@ -45,6 +43,8 @@ class NestedBeamDataset(datasets.BeamBasedBuilder):
         ]
 
     def _build_pcollection(self, pipeline, examples):
+        import apache_beam as beam
+
         return pipeline | "Load Examples" >> beam.Create(examples)
 
 
