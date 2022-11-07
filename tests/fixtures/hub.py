@@ -16,7 +16,7 @@ CI_HUB_USER_TOKEN = "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"
 
 CI_HUB_ENDPOINT = "https://hub-ci.huggingface.co"
 CI_HUB_DATASETS_URL = CI_HUB_ENDPOINT + "/datasets/{repo_id}/resolve/{revision}/{path}"
-CI_HUGGINGFACE_CO_URL_TEMPLATE = CI_HUB_ENDPOINT + "/{repo_id}/resolve/{revision}/{filename}"
+CI_HUGGINGFACE_CO_URL_TEMPLATE = CI_HUB_DATASETS_URL.replace("{path}", "{filename}")
 CI_HUB_TOKEN_PATH = Path("~/.huggingface/hub_ci_token").expanduser()
 
 
