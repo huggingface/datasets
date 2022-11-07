@@ -47,6 +47,7 @@
 - Lightweight and fast with a transparent and pythonic API (multi-processing/caching/memory-mapping).
 - Built-in interoperability with NumPy, pandas, PyTorch, Tensorflow 2 and JAX.
 - Native support for audio and image data
+- Stream datasets without downloading them completely
 
 🤗 Datasets originated from a fork of the awesome [TensorFlow Datasets](https://github.com/tensorflow/datasets) and the HuggingFace team want to deeply thank the TensorFlow Datasets team for building this amazing library. More details on the differences between 🤗 Datasets and `tfds` can be found in the section [Main differences between 🤗 Datasets and `tfds`](#main-differences-between--datasets-and-tfds).
 
@@ -109,14 +110,24 @@ tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
 tokenized_dataset = squad_dataset.map(lambda x: tokenizer(x['context']), batched=True)
 ```
 
+If your dataset is bigger than your disk or if you don't want to wait to download the data, you can use streaming:
+
+```python
+# If you want to efficiently download the data as you iterate over the dataset
+image_dataset = load_dataset('cifar100', streaming=True)
+for example in image_dataset["train"]:
+    break
+```
+
 For more details on using the library, check the quick start page in the documentation: https://huggingface.co/docs/datasets/quickstart.html and the specific pages on:
 
-- Loading a dataset https://huggingface.co/docs/datasets/loading
+- Loading a dataset: https://huggingface.co/docs/datasets/loading
 - What's in a Dataset: https://huggingface.co/docs/datasets/access
 - Processing data with 🤗 Datasets: https://huggingface.co/docs/datasets/process
     - Processing audio data: https://huggingface.co/docs/datasets/audio_process
     - Processing image data: https://huggingface.co/docs/datasets/image_process
     - Processing text data: https://huggingface.co/docs/datasets/nlp_process
+- Streaming a dataset: https://huggingface.co/docs/datasets/stream
 - Writing your own dataset loading script: https://huggingface.co/docs/datasets/dataset_script
 - etc.
 
