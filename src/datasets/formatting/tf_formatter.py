@@ -29,8 +29,8 @@ if TYPE_CHECKING:
 
 
 class TFFormatter(Formatter[dict, "tf.Tensor", dict]):
-    def __init__(self, features=None, decoded=True, **tf_tensor_kwargs):
-        super().__init__(features=features, decoded=decoded)
+    def __init__(self, features=None, **tf_tensor_kwargs):
+        super().__init__(features=features)
         self.tf_tensor_kwargs = tf_tensor_kwargs
         import tensorflow as tf  # noqa: import tf at initialization
 
@@ -83,22 +83,19 @@ class TFFormatter(Formatter[dict, "tf.Tensor", dict]):
 
     def format_row(self, pa_table: pa.Table) -> dict:
         row = self.numpy_arrow_extractor().extract_row(pa_table)
-        if self.decoded:
-            row = self.python_features_decoder.decode_row(row)
+        row = self.python_features_decoder.decode_row(row)
         return self.recursive_tensorize(row)
 
     def format_column(self, pa_table: pa.Table) -> "tf.Tensor":
         column = self.numpy_arrow_extractor().extract_column(pa_table)
-        if self.decoded:
-            column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
+        column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
         column = self.recursive_tensorize(column)
         column = self._consolidate(column)
         return column
 
     def format_batch(self, pa_table: pa.Table) -> dict:
         batch = self.numpy_arrow_extractor().extract_batch(pa_table)
-        if self.decoded:
-            batch = self.python_features_decoder.decode_batch(batch)
+        batch = self.python_features_decoder.decode_batch(batch)
         batch = self.recursive_tensorize(batch)
         for column_name in batch:
             batch[column_name] = self._consolidate(batch[column_name])

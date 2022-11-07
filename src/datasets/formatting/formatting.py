@@ -271,9 +271,8 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     numpy_arrow_extractor = NumpyArrowExtractor
     pandas_arrow_extractor = PandasArrowExtractor
 
-    def __init__(self, features=None, decoded=True):
+    def __init__(self, features=None):
         self.features = features
-        self.decoded = decoded
         self.python_features_decoder = PythonFeaturesDecoder(self.features)
         self.pandas_features_decoder = PandasFeaturesDecoder(self.features)
 
@@ -309,40 +308,34 @@ class ArrowFormatter(Formatter[pa.Table, pa.Array, pa.Table]):
 class PythonFormatter(Formatter[dict, list, dict]):
     def format_row(self, pa_table: pa.Table) -> dict:
         row = self.python_arrow_extractor().extract_row(pa_table)
-        if self.decoded:
-            row = self.python_features_decoder.decode_row(row)
+        row = self.python_features_decoder.decode_row(row)
         return row
 
     def format_column(self, pa_table: pa.Table) -> list:
         column = self.python_arrow_extractor().extract_column(pa_table)
-        if self.decoded:
-            column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
+        column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
         return column
 
     def format_batch(self, pa_table: pa.Table) -> dict:
         batch = self.python_arrow_extractor().extract_batch(pa_table)
-        if self.decoded:
-            batch = self.python_features_decoder.decode_batch(batch)
+        batch = self.python_features_decoder.decode_batch(batch)
         return batch
 
 
 class PandasFormatter(Formatter):
     def format_row(self, pa_table: pa.Table) -> pd.DataFrame:
         row = self.pandas_arrow_extractor().extract_row(pa_table)
-        if self.decoded:
-            row = self.pandas_features_decoder.decode_row(row)
+        row = self.pandas_features_decoder.decode_row(row)
         return row
 
     def format_column(self, pa_table: pa.Table) -> pd.Series:
         column = self.pandas_arrow_extractor().extract_column(pa_table)
-        if self.decoded:
-            column = self.pandas_features_decoder.decode_column(column, pa_table.column_names[0])
+        column = self.pandas_features_decoder.decode_column(column, pa_table.column_names[0])
         return column
 
     def format_batch(self, pa_table: pa.Table) -> pd.DataFrame:
         row = self.pandas_arrow_extractor().extract_batch(pa_table)
-        if self.decoded:
-            row = self.pandas_features_decoder.decode_batch(row)
+        row = self.pandas_features_decoder.decode_batch(row)
         return row
 
 
@@ -356,8 +349,8 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
     to return.
     """
 
-    def __init__(self, transform: Callable[[dict], dict], features=None, decoded=True, **kwargs):
-        super().__init__(features=features, decoded=decoded)
+    def __init__(self, transform: Callable[[dict], dict], features=None, **kwargs):
+        super().__init__(features=features)
         self.transform = transform
 
     def format_row(self, pa_table: pa.Table) -> dict:
@@ -390,8 +383,7 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
 
     def format_batch(self, pa_table: pa.Table) -> dict:
         batch = self.python_arrow_extractor().extract_batch(pa_table)
-        if self.decoded:
-            batch = self.python_features_decoder.decode_batch(batch)
+        batch = self.python_features_decoder.decode_batch(batch)
         return self.transform(batch)
 
 
