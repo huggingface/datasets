@@ -21,7 +21,7 @@ CI_HUB_TOKEN_PATH = Path("~/.huggingface/hub_ci_token").expanduser()
 
 
 @pytest.fixture
-def ci_hf_hub_url(monkeypatch):
+def ci_hfh_hf_hub_url(monkeypatch):
     monkeypatch.setattr(
         "huggingface_hub.file_download.HUGGINGFACE_CO_URL_TEMPLATE", CI_HFH_HUGGINGFACE_CO_URL_TEMPLATE
     )
@@ -105,7 +105,7 @@ def hf_private_dataset_repo_txt_data_(hf_api: HfApi, hf_token, text_file):
 
 
 @pytest.fixture()
-def hf_private_dataset_repo_txt_data(hf_private_dataset_repo_txt_data_, ci_hf_hub_url):
+def hf_private_dataset_repo_txt_data(hf_private_dataset_repo_txt_data_, ci_hfh_hf_hub_url):
     with patch("datasets.config.HF_ENDPOINT", CI_HUB_ENDPOINT):
         with patch("datasets.config.HUB_DATASETS_URL", CI_HUB_DATASETS_URL):
             yield hf_private_dataset_repo_txt_data_
@@ -131,7 +131,7 @@ def hf_private_dataset_repo_zipped_txt_data_(hf_api: HfApi, hf_token, zip_csv_wi
 
 
 @pytest.fixture()
-def hf_private_dataset_repo_zipped_txt_data(hf_private_dataset_repo_zipped_txt_data_, ci_hf_hub_url):
+def hf_private_dataset_repo_zipped_txt_data(hf_private_dataset_repo_zipped_txt_data_, ci_hfh_hf_hub_url):
     with patch("datasets.config.HF_ENDPOINT", CI_HUB_ENDPOINT):
         with patch("datasets.config.HUB_DATASETS_URL", CI_HUB_DATASETS_URL):
             yield hf_private_dataset_repo_zipped_txt_data_
@@ -157,7 +157,7 @@ def hf_private_dataset_repo_zipped_img_data_(hf_api: HfApi, hf_token, zip_image_
 
 
 @pytest.fixture()
-def hf_private_dataset_repo_zipped_img_data(hf_private_dataset_repo_zipped_img_data_, ci_hf_hub_url):
+def hf_private_dataset_repo_zipped_img_data(hf_private_dataset_repo_zipped_img_data_, ci_hfh_hf_hub_url):
     with patch("datasets.config.HF_ENDPOINT", CI_HUB_ENDPOINT):
         with patch("datasets.config.HUB_DATASETS_URL", CI_HUB_DATASETS_URL):
             yield hf_private_dataset_repo_zipped_img_data_
