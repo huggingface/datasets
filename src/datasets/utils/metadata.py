@@ -107,6 +107,48 @@ class DatasetMetadata(dict):
         ).decode("utf-8")
 
 
+# DEPRECATED - just here to support old versions of evaluate like 0.2.2
+known_task_ids = {
+    "image-classification": [],
+    "translation": [],
+    "image-segmentation": [],
+    "fill-mask": [],
+    "automatic-speech-recognition": [],
+    "token-classification": [],
+    "sentence-similarity": [],
+    "audio-classification": [],
+    "question-answering": [],
+    "summarization": [],
+    "zero-shot-classification": [],
+    "table-to-text": [],
+    "feature-extraction": [],
+    "other": [],
+    "multiple-choice": [],
+    "text-classification": [],
+    "text-to-image": [],
+    "text2text-generation": [],
+    "zero-shot-image-classification": [],
+    "tabular-classification": [],
+    "tabular-regression": [],
+    "image-to-image": [],
+    "tabular-to-text": [],
+    "unconditional-image-generation": [],
+    "text-retrieval": [],
+    "text-to-speech": [],
+    "object-detection": [],
+    "audio-to-audio": [],
+    "text-generation": [],
+    "conversational": [],
+    "table-question-answering": [],
+    "visual-question-answering": [],
+    "image-to-text": [],
+    "reinforcement-learning": [],
+    "voice-activity-detection": [],
+    "time-series-forecasting": [],
+    "document-question-answering": [],
+}
+
+
 if __name__ == "__main__":
     from argparse import ArgumentParser
 

@@ -102,12 +102,12 @@ To ensure a dataset is complete, [`load_dataset`] will perform a series of tests
 If the dataset doesn't pass the verifications, it is likely that the original host of the dataset made some changes in the data files.
 In this case, an error is raised to alert that the dataset has changed.
 To ignore the error, one needs to specify `ignore_verifications=True` in [`load_dataset`].
-Anytime you see a verification error, feel free to [open an issue on GitHub](https://github.com/huggingface/datasets/issues) so that we can update the integrity checks for this dataset.
+Anytime you see a verification error, feel free to open a discussion or pull request in the corresponding dataset "Community" tab, so that the integrity checks for that dataset are updated.
 
 ## Security
 
 The dataset repositories on the Hub are scanned for malware, see more information [here](https://huggingface.co/docs/hub/security#malware-scanning).
 
-Moreover the datasets that were constributed on our GitHub repository have all been reviewed by our maintainers.
+Moreover the datasets without a namespace (originally contributed on our GitHub repository) have all been reviewed by our maintainers.
 The code of these datasets is considered **safe**.
 It concerns datasets that are not under a namespace, e.g. "squad" or "glue", unlike the other datasets that are named "username/dataset_name" or "org/dataset_name".

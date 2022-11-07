@@ -692,6 +692,16 @@ class xPath(type(Path())):
         return self.joinpath(p)
 
 
+def xgzip_open(filepath_or_buffer, *args, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
+    import gzip
+
+    if hasattr(filepath_or_buffer, "read"):
+        return gzip.open(filepath_or_buffer, *args, **kwargs)
+    else:
+        filepath_or_buffer = str(filepath_or_buffer)
+        return gzip.open(xopen(filepath_or_buffer, "rb", use_auth_token=use_auth_token), *args, **kwargs)
+
+
 def xpandas_read_csv(filepath_or_buffer, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
     import pandas as pd
 
@@ -825,11 +835,11 @@ class FilesIterable(_IterableFromGenerator):
                     # skipping hidden directories; prune the search
                     # [:] for the in-place list modification required by os.walk
                     # (only works for local paths as fsspec's walk doesn't support the in-place modification)
-                    dirnames[:] = [dirname for dirname in dirnames if not dirname.startswith((".", "__"))]
+                    dirnames[:] = sorted([dirname for dirname in dirnames if not dirname.startswith((".", "__"))])
                     if xbasename(dirpath).startswith((".", "__")):
                         # skipping hidden directories
                         continue
-                    for filename in filenames:
+                    for filename in sorted(filenames):
                         if filename.startswith((".", "__")):
                             # skipping hidden files
                             continue

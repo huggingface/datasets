@@ -132,7 +132,7 @@ def data_files_with_one_split_and_metadata(tmp_path, auto_text_file):
         """\
         {"file_name": "file.txt", "additional_feature": "Dummy file"}
         {"file_name": "file2.txt", "additional_feature": "Second dummy file"}
-        {"file_name": "subdir/file3.txt", "additional_feature": "Third dummy file"}
+        {"file_name": "./subdir/file3.txt", "additional_feature": "Third dummy file"}
         """
     )
     with open(metadata_filename, "w", encoding="utf-8") as f:

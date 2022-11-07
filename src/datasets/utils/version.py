@@ -69,12 +69,12 @@ class Version:
             return Version(other)
         elif isinstance(other, Version):
             return other
-        raise AssertionError(f"{other} (type {type(other)}) cannot be compared to version.")
+        raise TypeError(f"{other} (type {type(other)}) cannot be compared to version.")
 
     def __eq__(self, other):
         try:
             other = self._validate_operand(other)
-        except (AssertionError, ValueError):
+        except (TypeError, ValueError):
             return False
         else:
             return self.tuple == other.tuple

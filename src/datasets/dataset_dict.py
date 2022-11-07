@@ -1375,7 +1375,7 @@ class DatasetDict(dict):
         info_to_dump.size_in_bytes = total_uploaded_size + total_dataset_nbytes
 
         api = HfApi(endpoint=config.HF_ENDPOINT)
-        repo_files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, token=token)
+        repo_files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, use_auth_token=token)
 
         # push to the deprecated dataset_infos.json
         if config.DATASETDICT_INFOS_FILENAME in repo_files:
@@ -1395,6 +1395,7 @@ class DatasetDict(dict):
         if "README.md" in repo_files:
             download_config = DownloadConfig()
             download_config.download_desc = "Downloading metadata"
+            download_config.use_auth_token = token
             dataset_readme_path = cached_path(
                 hf_hub_url(repo_id, "README.md"),
                 download_config=download_config,

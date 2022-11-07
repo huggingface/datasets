@@ -13,13 +13,13 @@ from huggingface_hub import HfApi
 from datasets import Audio, ClassLabel, Dataset, DatasetDict, Features, Image, Value, load_dataset
 from datasets.utils._hf_hub_fixes import list_repo_files
 from tests.fixtures.hub import CI_HUB_ENDPOINT, CI_HUB_USER, CI_HUB_USER_TOKEN
-from tests.utils import for_all_test_methods, require_pil, require_sndfile, xfail_if_500_http_error
+from tests.utils import for_all_test_methods, require_pil, require_sndfile, xfail_if_500_502_http_error
 
 
 pytestmark = pytest.mark.integration
 
 
-@for_all_test_methods(xfail_if_500_http_error)
+@for_all_test_methods(xfail_if_500_502_http_error)
 @pytest.mark.usefixtures("set_ci_hub_access_token")
 class TestPushToHub:
     _api = HfApi(endpoint=CI_HUB_ENDPOINT)
@@ -97,7 +97,7 @@ class TestPushToHub:
             assert local_ds["train"].features == hub_ds["train"].features
 
             # Ensure that there is a single file on the repository that has the correct name
-            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", token=self._token))
+            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", use_auth_token=self._token))
             assert all(
                 fnmatch.fnmatch(file, expected_file)
                 for file, expected_file in zip(
@@ -119,7 +119,7 @@ class TestPushToHub:
             assert local_ds["train"].features == hub_ds["train"].features
 
             # Ensure that there is a single file on the repository that has the correct name
-            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", token=self._token))
+            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", use_auth_token=self._token))
             assert all(
                 fnmatch.fnmatch(file, expected_file)
                 for file, expected_file in zip(
@@ -142,7 +142,7 @@ class TestPushToHub:
             assert local_ds["train"].features == hub_ds["train"].features
 
             # Ensure that there are two files on the repository that have the correct name
-            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", token=self._token))
+            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", use_auth_token=self._token))
             assert all(
                 fnmatch.fnmatch(file, expected_file)
                 for file, expected_file in zip(
@@ -170,7 +170,7 @@ class TestPushToHub:
             assert local_ds["train"].features == hub_ds["train"].features
 
             # Ensure that there are two files on the repository that have the correct name
-            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", token=self._token))
+            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", use_auth_token=self._token))
             assert all(
                 fnmatch.fnmatch(file, expected_file)
                 for file, expected_file in zip(
@@ -214,7 +214,7 @@ class TestPushToHub:
             local_ds.push_to_hub(ds_name, token=self._token, max_shard_size=500 << 5)
 
             # Ensure that there are two files on the repository that have the correct name
-            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", token=self._token))
+            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", use_auth_token=self._token))
 
             assert all(
                 fnmatch.fnmatch(file, expected_file)
@@ -261,7 +261,7 @@ class TestPushToHub:
             local_ds.push_to_hub(ds_name, token=self._token)
 
             # Ensure that there are two files on the repository that have the correct name
-            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", token=self._token))
+            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", use_auth_token=self._token))
 
             assert all(
                 fnmatch.fnmatch(file, expected_file)
@@ -418,7 +418,7 @@ class TestPushToHub:
                 mock_hf_api.reset_mock()
 
                 # Remove a data file
-                files = self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token)
+                files = list_repo_files(self._api, ds_name, repo_type="dataset", use_auth_token=self._token)
                 data_files = [f for f in files if f.startswith("data/")]
                 assert len(data_files) > 1
                 self._api.delete_file(data_files[0], repo_id=ds_name, repo_type="dataset", token=self._token)

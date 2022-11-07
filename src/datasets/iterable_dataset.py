@@ -787,6 +787,41 @@ class IterableDataset(DatasetInfoMixin):
             else:
                 yield example
 
+    @staticmethod
+    def from_generator(
+        generator: Callable,
+        features: Optional[Features] = None,
+        gen_kwargs: Optional[dict] = None,
+    ):
+        """Create an Iterable Dataset from a generator.
+
+        Args:
+            generator (:obj:`Callable`): A generator function that `yields` examples.
+            features (:class:`Features`, optional): Dataset features.
+            gen_kwargs(:obj:`dict`, optional): Keyword arguments to be passed to the `generator` callable.
+
+        Returns:
+            :class:`IterableDataset`
+
+        Example:
+
+        ```py
+        >>> def gen():
+        ...     yield {"text": "Good", "label": 0}
+        ...     yield {"text": "Bad", "label": 1}
+        ...
+        >>> ds = IterableDataset.from_generator(gen)
+        ```
+        """
+        from .io.generator import GeneratorDatasetInputStream
+
+        return GeneratorDatasetInputStream(
+            generator=generator,
+            features=features,
+            gen_kwargs=gen_kwargs,
+            streaming=True,
+        ).read()
+
     def with_format(
         self,
         type: Optional[str] = None,

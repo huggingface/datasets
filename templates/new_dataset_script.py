@@ -54,7 +54,7 @@ _URLS = {
 }
 
 
-# TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
+# TODO: Name of the dataset usually matches the script name with CamelCase instead of snake_case
 class NewDataset(datasets.GeneratorBasedBuilder):
     """TODO: Short description of my dataset."""
 

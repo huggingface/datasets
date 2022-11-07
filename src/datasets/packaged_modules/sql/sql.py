@@ -12,7 +12,12 @@ from datasets.table import table_cast
 
 
 if TYPE_CHECKING:
+    import sqlite3
+
     import sqlalchemy
+
+
+logger = datasets.utils.logging.get_logger(__name__)
 
 
 @dataclass
@@ -20,7 +25,7 @@ class SqlConfig(datasets.BuilderConfig):
     """BuilderConfig for SQL."""
 
     sql: Union[str, "sqlalchemy.sql.Selectable"] = None
-    con: str = None
+    con: Union[str, "sqlalchemy.engine.Connection", "sqlalchemy.engine.Engine", "sqlite3.Connection"] = None
     index_col: Optional[Union[str, List[str]]] = None
     coerce_float: bool = True
     params: Optional[Union[List, Tuple, Dict]] = None
@@ -34,14 +39,13 @@ class SqlConfig(datasets.BuilderConfig):
             raise ValueError("sql must be specified")
         if self.con is None:
             raise ValueError("con must be specified")
-        if not isinstance(self.con, str):
-            raise ValueError(f"con must be a database URI string, but got {self.con} with type {type(self.con)}.")
 
     def create_config_id(
         self,
         config_kwargs: dict,
         custom_features: Optional[datasets.Features] = None,
     ) -> str:
+        config_kwargs = config_kwargs.copy()
         # We need to stringify the Selectable object to make its hash deterministic
 
         # The process of stringifying is explained here: http://docs.sqlalchemy.org/en/latest/faq/sqlexpressions.html
@@ -51,7 +55,6 @@ class SqlConfig(datasets.BuilderConfig):
                 import sqlalchemy
 
                 if isinstance(sql, sqlalchemy.sql.Selectable):
-                    config_kwargs = config_kwargs.copy()
                     engine = sqlalchemy.create_engine(config_kwargs["con"].split("://")[0] + "://")
                     sql_str = str(sql.compile(dialect=engine.dialect))
                     config_kwargs["sql"] = sql_str
@@ -63,6 +66,13 @@ class SqlConfig(datasets.BuilderConfig):
                 raise TypeError(
                     f"Supported types for 'sql' are string and sqlalchemy.sql.Selectable but got {type(sql)}: {sql}"
                 )
+        con = config_kwargs["con"]
+        if not isinstance(con, str):
+            config_kwargs["con"] = id(con)
+            logger.info(
+                f"SQL connection 'con' of type {type(con)} couldn't be hashed properly. To enable hashing, specify 'con' as URI string instead."
+            )
+
         return super().create_config_id(config_kwargs, custom_features=custom_features)
 
     @property

@@ -81,15 +81,15 @@ To get a single tensor, you must explicitly use the Array feature type and speci
 
 ```py
 >>> from datasets import Dataset, Features, ClassLabel
->>> data = [0, 0, 1]
->>> features = Features({"data": ClassLabel(names=["negative", "positive"])})
->>> ds = Dataset.from_dict({"data": data}, features=features) 
+>>> labels = [0, 0, 1]
+>>> features = Features({"label": ClassLabel(names=["negative", "positive"])})
+>>> ds = Dataset.from_dict({"label": labels}, features=features) 
 >>> ds = ds.with_format("tf")  
 >>> ds[:3]
-{'data': <tf.Tensor: shape=(3,), dtype=int64, numpy=array([0, 0, 1])>
+{'label': <tf.Tensor: shape=(3,), dtype=int64, numpy=array([0, 0, 1])>}
 ```
 
-Strings are also supported:
+Strings and binary objects are also supported:
 
 ```py
 >>> from datasets import Dataset, Features 
@@ -111,7 +111,45 @@ You can also explicitly format certain columns and leave the other columns unfor
  'text': ['foo', 'bar']}
 ```
 
-The [`Image`] and [`Audio`] feature types are not supported yet.
+String and binary objects are unchanged, since PyTorch only supports numbers.
+
+The [`Image`] and [`Audio`] feature types are also supported:
+
+```py
+>>> from datasets import Dataset, Features, Audio, Image
+>>> images = ["path/to/image.png"] * 10
+>>> features = Features({"image": Image()})
+>>> ds = Dataset.from_dict({"image": images}, features=features) 
+>>> ds = ds.with_format("tf")  
+>>> ds[0]
+{'image': <tf.Tensor: shape=(512, 512, 4), dtype=uint8, numpy=
+ array([[[255, 215, 106, 255],
+         [255, 215, 106, 255],
+         ...,
+         [255, 255, 255, 255],
+         [255, 255, 255, 255]]], dtype=uint8)>}
+>>> ds[:2]
+{'image': <tf.Tensor: shape=(2, 512, 512, 4), dtype=uint8, numpy=
+ array([[[[255, 215, 106, 255],
+          [255, 215, 106, 255],
+          ...,
+          [255, 255, 255, 255],
+          [255, 255, 255, 255]]]], dtype=uint8)>}
+```
+
+```py
+>>> from datasets import Dataset, Features, Audio, Image
+>>> audio = ["path/to/audio.wav"] * 10
+>>> features = Features({"audio": Audio()})
+>>> ds = Dataset.from_dict({"audio": audio}, features=features) 
+>>> ds = ds.with_format("tf")  
+>>> ds[0]["audio"]["array"]
+<tf.Tensor: shape=(202311,), dtype=float32, numpy=
+array([ 6.1035156e-05,  1.5258789e-05,  1.6784668e-04, ...,
+       -1.5258789e-05, -1.5258789e-05,  1.5258789e-05], dtype=float32)>
+>>> ds[0]["audio"]["sampling_rate"]
+<tf.Tensor: shape=(), dtype=int32, numpy=44100>
+```
 
 ## Data loading
 
