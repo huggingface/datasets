@@ -871,9 +871,7 @@ def test_load_streaming_private_dataset(hf_token, hf_private_dataset_repo_txt_da
 
 
 @pytest.mark.integration
-def test_load_streaming_private_dataset_with_zipped_data(
-    hf_token, hf_private_dataset_repo_zipped_txt_data, ci_hf_hub_url
-):
+def test_load_streaming_private_dataset_with_zipped_data(hf_token, hf_private_dataset_repo_zipped_txt_data):
     ds = load_dataset(hf_private_dataset_repo_zipped_txt_data, streaming=True)
     assert next(iter(ds)) is not None
 

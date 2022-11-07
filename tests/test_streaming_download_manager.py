@@ -298,7 +298,7 @@ def test_xlistdir(input_path, expected_paths, tmp_path, mock_fsspec):
 
 
 @pytest.mark.integration
-def test_xlistdir_private(hf_private_dataset_repo_zipped_txt_data, hf_token, ci_hf_hub_url):
+def test_xlistdir_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
     root_url = hf_hub_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
     assert len(xlistdir("zip://::" + root_url, use_auth_token=hf_token)) == 1
     assert len(xlistdir("zip://main_dir::" + root_url, use_auth_token=hf_token)) == 2
@@ -326,7 +326,7 @@ def test_xisdir(input_path, isdir, tmp_path, mock_fsspec):
 
 
 @pytest.mark.integration
-def test_xisdir_private(hf_private_dataset_repo_zipped_txt_data, hf_token, ci_hf_hub_url):
+def test_xisdir_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
     root_url = hf_hub_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
     assert xisdir("zip://::" + root_url, use_auth_token=hf_token) is True
     assert xisdir("zip://main_dir::" + root_url, use_auth_token=hf_token) is True
@@ -418,7 +418,7 @@ def test_xglob(input_path, expected_paths, tmp_path, mock_fsspec):
 
 
 @pytest.mark.integration
-def test_xglob_private(hf_private_dataset_repo_zipped_txt_data, hf_token, ci_hf_hub_url):
+def test_xglob_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
     root_url = hf_hub_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
     assert len(xglob("zip://**::" + root_url, use_auth_token=hf_token)) == 3
     assert len(xglob("zip://qwertyuiop/*::" + root_url, use_auth_token=hf_token)) == 0
@@ -456,7 +456,7 @@ def test_xwalk(input_path, expected_outputs, tmp_path, mock_fsspec):
 
 
 @pytest.mark.integration
-def test_xwalk_private(hf_private_dataset_repo_zipped_txt_data, hf_token, ci_hf_hub_url):
+def test_xwalk_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
     root_url = hf_hub_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
     assert len(list(xwalk("zip://::" + root_url, use_auth_token=hf_token))) == 2
     assert len(list(xwalk("zip://main_dir::" + root_url, use_auth_token=hf_token))) == 1
