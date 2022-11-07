@@ -865,7 +865,7 @@ def test_loading_from_the_datasets_hub_with_use_auth_token():
 
 
 @pytest.mark.integration
-def test_load_streaming_private_dataset(hf_token, hf_private_dataset_repo_txt_data, ci_hf_hub_url):
+def test_load_streaming_private_dataset(hf_token, hf_private_dataset_repo_txt_data):
     ds = load_dataset(hf_private_dataset_repo_txt_data, streaming=True)
     assert next(iter(ds)) is not None
 

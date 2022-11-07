@@ -352,7 +352,7 @@ def test_xisfile(input_path, isfile, tmp_path, mock_fsspec):
 
 
 @pytest.mark.integration
-def test_xisfile_private(hf_private_dataset_repo_txt_data, hf_token, ci_hf_hub_url):
+def test_xisfile_private(hf_private_dataset_repo_txt_data, hf_token):
     root_url = hf_hub_url(hf_private_dataset_repo_txt_data, "")
     assert xisfile(root_url + "data/text_data.txt", use_auth_token=hf_token) is True
     assert xisfile(root_url + "qwertyuiop", use_auth_token=hf_token) is False
@@ -375,7 +375,7 @@ def test_xgetsize(input_path, size, tmp_path, mock_fsspec):
 
 
 @pytest.mark.integration
-def test_xgetsize_private(hf_private_dataset_repo_txt_data, hf_token, ci_hf_hub_url):
+def test_xgetsize_private(hf_private_dataset_repo_txt_data, hf_token):
     root_url = hf_hub_url(hf_private_dataset_repo_txt_data, "")
     assert xgetsize(root_url + "data/text_data.txt", use_auth_token=hf_token) == 39
     with pytest.raises(FileNotFoundError):

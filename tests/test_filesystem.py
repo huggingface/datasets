@@ -93,7 +93,7 @@ def test_fs_isfile(protocol, zip_jsonl_path, jsonl_gz_path):
 
 
 @pytest.mark.integration
-def test_hf_filesystem(hf_token, hf_api, hf_private_dataset_repo_txt_data, text_file, ci_hf_hub_url):
+def test_hf_filesystem(hf_token, hf_api, hf_private_dataset_repo_txt_data, text_file):
     repo_info = hf_api_dataset_info(hf_api, hf_private_dataset_repo_txt_data, use_auth_token=hf_token)
     hffs = HfFileSystem(repo_info=repo_info, token=hf_token)
     assert sorted(hffs.glob("*")) == [".gitattributes", "data"]
