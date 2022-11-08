@@ -4269,6 +4269,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def _push_parquet_shards_to_hub(
         self,
         repo_id: str,
+        config_name: Optional[str] = None,
         split: Optional[str] = None,
         private: Optional[bool] = False,
         token: Optional[str] = None,
@@ -4414,7 +4415,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         data_files = [file for file in files if file.startswith("data/")]
 
         def path_in_repo(_index, shard):
-            return f"data/{split}-{_index:05d}-of-{num_shards:05d}-{shard._fingerprint}.parquet"
+            config_str = f"{config_name}/" if config_name else ""
+            return f"data/{config_str}{split}-{_index:05d}-of-{num_shards:05d}-{shard._fingerprint}.parquet"
 
         shards_iter = iter(shards)
         first_shard = next(shards_iter)
@@ -4477,12 +4479,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 delete_file(data_file)
 
         repo_files = list(set(files) - set(data_files_to_delete))
+        # TODO: config_name="default" ?
 
-        return repo_id, split, uploaded_size, dataset_nbytes, repo_files, deleted_size
+        return repo_id, config_name, split, uploaded_size, dataset_nbytes, repo_files, deleted_size
 
     def push_to_hub(
         self,
         repo_id: str,
+        config_name: Optional[str] = None,
         split: Optional[str] = None,
         private: Optional[bool] = False,
         token: Optional[str] = None,
@@ -4539,8 +4543,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
             max_shard_size = shard_size
 
-        repo_id, split, uploaded_size, dataset_nbytes, repo_files, deleted_size = self._push_parquet_shards_to_hub(
+        (
+            repo_id,
+            config_name,
+            split,
+            uploaded_size,
+            dataset_nbytes,
+            repo_files,
+            deleted_size,
+        ) = self._push_parquet_shards_to_hub(
             repo_id=repo_id,
+            config_name=config_name,
             split=split,
             private=private,
             token=token,

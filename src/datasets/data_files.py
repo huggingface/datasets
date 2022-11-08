@@ -28,7 +28,7 @@ class EmptyDatasetError(FileNotFoundError):
     pass
 
 
-SPLIT_PATTERN_SHARDED = "data/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"
+SPLIT_PATTERN_SHARDED = "data/{config_name}/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"
 
 TRAIN_KEYWORDS = ["train", "training"]
 TEST_KEYWORDS = ["test", "testing", "eval", "evaluation"]
@@ -104,7 +104,7 @@ def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[
     The default split is "train".
 
     Returns:
-        patterns: dictionary of split_name -> list_of _atterns
+        patterns: dictionary of split_name -> list_of patterns
     """
     if isinstance(patterns, dict):
         return {str(key): value if isinstance(value, list) else [value] for key, value in patterns.items()}
@@ -211,7 +211,9 @@ def _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(matched_rel_
     return len(hidden_directories_in_path) != len(hidden_directories_in_pattern)
 
 
-def _get_data_files_patterns(pattern_resolver: Callable[[str], List[PurePath]]) -> Dict[str, List[str]]:
+def _get_data_files_patterns(
+    pattern_resolver: Callable[[str], List[PurePath]], config_name=None
+) -> Dict[str, List[str]]:
     """
     Get the default pattern from a directory or repository by testing all the supported patterns.
     The first patterns to return a non-empty list of data files is returned.
@@ -220,12 +222,15 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], List[PurePath]]) 
     """
     # first check the split patterns like data/{split}-00000-of-00001.parquet
     for split_pattern in ALL_SPLIT_PATTERNS:
-        pattern = split_pattern.replace("{split}", "*")
+        pattern = split_pattern.replace("{split}", "*").replace("{config_name}", config_name if config_name else "**")
         data_files = pattern_resolver(pattern)
         if len(data_files) > 0:
             data_files = [p.as_posix() for p in data_files]
             splits: Set[str] = {string_to_dict(p, split_pattern)["split"] for p in data_files}
-            return {split: [split_pattern.format(split=split)] for split in splits}
+            return {
+                split: [split_pattern.format(split=split, config_name=config_name if config_name else "**")]
+                for split in splits
+            }
     # then check the default patterns based on train/valid/test splits
     for patterns_dict in ALL_DEFAULT_PATTERNS:
         non_empty_splits = []
@@ -369,7 +374,7 @@ def resolve_patterns_locally_or_by_urls(
     return data_files
 
 
-def get_data_patterns_locally(base_path: str) -> Dict[str, List[str]]:
+def get_data_patterns_locally(base_path: str, config_name: str = None) -> Dict[str, List[str]]:
     """
     Get the default pattern from a directory testing all the supported patterns.
     The first patterns to return a non-empty list of data files is returned.
@@ -455,7 +460,7 @@ def get_data_patterns_locally(base_path: str) -> Dict[str, List[str]]:
     """
     resolver = partial(_resolve_single_pattern_locally, base_path)
     try:
-        return _get_data_files_patterns(resolver)
+        return _get_data_files_patterns(resolver, config_name=config_name)
     except FileNotFoundError:
         raise EmptyDatasetError(f"The directory at {base_path} doesn't contain any data files") from None
 
@@ -584,7 +589,7 @@ def resolve_patterns_in_dataset_repository(
 
 
 def get_data_patterns_in_dataset_repository(
-    dataset_info: huggingface_hub.hf_api.DatasetInfo, base_path: str
+    dataset_info: huggingface_hub.hf_api.DatasetInfo, base_path: str, config_name: str = None
 ) -> Dict[str, List[str]]:
     """
     Get the default pattern from a repository by testing all the supported patterns.
@@ -671,7 +676,7 @@ def get_data_patterns_in_dataset_repository(
     """
     resolver = partial(_resolve_single_pattern_in_dataset_repository, dataset_info, base_path=base_path)
     try:
-        return _get_data_files_patterns(resolver)
+        return _get_data_files_patterns(resolver, config_name=config_name)
     except FileNotFoundError:
         raise EmptyDatasetError(
             f"The dataset repository at '{dataset_info.id}' doesn't contain any data files"

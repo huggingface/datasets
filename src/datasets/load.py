@@ -562,7 +562,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         dynamic_modules_path: Optional[str] = None,
     ):
         self.path = path
-        self.name = Path(path).stem
+        self.name = Path(path).stem  # what's here?
         self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
@@ -737,6 +737,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
     def __init__(
         self,
         name: str,
+        config_name: str = None,
         revision: Optional[Union[str, Version]] = None,
         data_dir: Optional[str] = None,
         data_files: Optional[Union[str, List, Dict]] = None,
@@ -745,6 +746,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
     ):
 
         self.name = name
+        self.config_name = config_name
         self.revision = revision
         self.data_files = data_files
         self.data_dir = data_dir
@@ -763,7 +765,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         patterns = (
             sanitize_patterns(self.data_files)
             if self.data_files is not None
-            else get_data_patterns_in_dataset_repository(hfh_dataset_info, self.data_dir)
+            else get_data_patterns_in_dataset_repository(hfh_dataset_info, self.data_dir, self.config_name)
         )
         data_files = DataFilesDict.from_hf_repo(
             patterns,
@@ -799,7 +801,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
-            "config_name": self.name.replace("/", "--"),
+            "config_name": self.name.replace("/", "--") + str(self.config_name),  # TODO eto nado?
             "base_path": hf_hub_url(self.name, "", revision=self.revision),
             "repo_id": self.name,
             **builder_kwargs,
@@ -827,9 +829,14 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 hf_hub_url(self.name, "README.md", revision=self.revision),
                 download_config=download_config,
             )
-            dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
+            dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))  # TODO:
             if isinstance(dataset_metadata.get("dataset_info"), list) and dataset_metadata["dataset_info"]:
-                dataset_info_dict = dataset_metadata["dataset_info"][0]
+                if self.config_name:
+                    dataset_info_dict = [
+                        info for info in dataset_metadata["dataset_info"] if info["config_name"] == self.config_name
+                    ][0]
+                else:
+                    dataset_info_dict = dataset_metadata["dataset_info"][0]
                 builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
                 if "config_name" in dataset_info_dict:
                     builder_kwargs["config_name"] = dataset_info_dict["config_name"]
@@ -1043,6 +1050,7 @@ class CachedMetricModuleFactory(_MetricModuleFactory):
 
 def dataset_module_factory(
     path: str,
+    config_name: str = None,
     revision: Optional[Union[str, Version]] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[DownloadMode] = None,
@@ -1194,6 +1202,7 @@ def dataset_module_factory(
             else:
                 return HubDatasetModuleFactoryWithoutScript(
                     path,
+                    config_name=config_name,
                     revision=revision,
                     data_dir=data_dir,
                     data_files=data_files,
@@ -1487,6 +1496,7 @@ def load_dataset_builder(
         download_config.use_auth_token = use_auth_token
     dataset_module = dataset_module_factory(
         path,
+        config_name=name,
         revision=revision,
         download_config=download_config,
         download_mode=download_mode,
