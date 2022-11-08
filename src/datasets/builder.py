@@ -29,7 +29,7 @@ import warnings
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import Dict, Iterable, List, Mapping, Optional, Tuple, Union
+from typing import Dict, Iterable, Mapping, Optional, Tuple, Union
 
 import fsspec
 from multiprocess import Pool
@@ -74,6 +74,7 @@ from .utils.py_utils import (
     size_str,
     temporary_assignment,
 )
+from .utils.sharding import _distribute_shards, _number_of_shards_in_gen_kwargs, _split_gen_kwargs
 
 
 logger = logging.get_logger(__name__)
@@ -1278,83 +1279,6 @@ class DatasetBuilder:
         raise NotImplementedError()
 
 
-def _number_of_shards(gen_kwargs: dict) -> int:
-    """Return the number of possible shards according to the input gen_kwargs"""
-    # Having lists of different sizes makes sharding ambigious, raise an error in this case
-    # until we decide how to define sharding without ambiguity for users
-    lists_lengths = {key: len(value) for key, value in gen_kwargs.items() if isinstance(value, list)}
-    if len(set(lists_lengths.values())) > 1:
-        raise RuntimeError(
-            (
-                "Sharding is ambiguous for this dataset: "
-                + "we found several data sources lists of different lengths, and we don't know over which list we should parallelize:\n"
-                + "\n".join(f"\t- key {key} has length {length}" for key, length in lists_lengths.items())
-                + "\nTo fix this, check the dataset script 'gen_kwargs' and make sure to use lists only for data sources, "
-                + "and use tuples otherwise. In the end there should only be one single list, or several lists with the same length."
-            )
-        )
-    max_length = max(lists_lengths.values(), default=0)
-    return max(1, max_length)
-
-
-def _distribute_shards(num_shards: int, max_num_jobs: int) -> List[range]:
-    """
-    Get the range of shard indices per job.
-    If num_shards<max_num_jobs, then num_shards jobs are given a range of one shard.
-    The shards indices order is preserved: e.g. all the first shards are given the first job.
-    Moreover all the jobs are given approximately the same number of shards.
-
-    Example:
-
-    ```python
-    >>> _distribute_shards(2, max_num_jobs=4)
-    [range(0, 1), range(1, 2)]
-    >>> _distribute_shards(10, max_num_jobs=3)
-    [range(0, 4), range(4, 7), range(7, 10)]
-    ```
-    """
-    shards_indices_per_group = []
-    for group_idx in range(max_num_jobs):
-        num_shards_to_add = num_shards // max_num_jobs + (group_idx < (num_shards % max_num_jobs))
-        if num_shards_to_add == 0:
-            break
-        start = shards_indices_per_group[-1].stop if shards_indices_per_group else 0
-        shard_indices = range(start, start + num_shards_to_add)
-        shards_indices_per_group.append(shard_indices)
-    return shards_indices_per_group
-
-
-def _split_gen_kwargs(gen_kwargs: dict, max_num_jobs: int) -> List[dict]:
-    """Split the gen_kwargs into `max_num_job` gen_kwargs"""
-    # Having lists of different sizes makes sharding ambigious, raise an error in this case
-    lists_lengths = {key: len(value) for key, value in gen_kwargs.items() if isinstance(value, list)}
-    if len(set(lists_lengths.values())) > 1:
-        raise RuntimeError(
-            (
-                "Sharding is ambiguous for this dataset: "
-                + "we found several data sources lists of different lengths, and we don't know over which list we should parallelize:\n"
-                + "\n".join(f"\t- key {key} has length {length}" for key, length in lists_lengths.items())
-                + "\nTo fix this, check the dataset script 'gen_kwargs' and make sure to use lists only for data sources, "
-                + "and use tuples otherwise. In the end there should only be one single list, or several lists with the same length."
-            )
-        )
-    elif not lists_lengths:
-        # not sharded - return one single group
-        return [dict(gen_kwargs)]
-    else:
-        num_shards = next(iter(lists_lengths.values()))
-        shard_indices_per_group = _distribute_shards(num_shards=num_shards, max_num_jobs=max_num_jobs)
-        return [
-            {
-                key: [value[shard_idx] for shard_idx in shard_indices_per_group[group_idx]]
-                if isinstance(value, list)
-                else value
-                for key, value in gen_kwargs.items()
-            }
-            for group_idx in range(len(shard_indices_per_group))
-        ]
-
-
 class GeneratorBasedBuilder(DatasetBuilder):
     """Base class for datasets with data generation based on dict generators.
 
@@ -1433,7 +1357,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
         fname = f"{self.name}-{split_generator.name}{SUFFIX}.{file_format}"
         fpath = path_join(self._output_dir, fname)
 
-        num_input_shards = _number_of_shards(split_generator.gen_kwargs)
+        num_input_shards = _number_of_shards_in_gen_kwargs(split_generator.gen_kwargs)
         if num_input_shards <= 1 and num_proc is not None:
             logger.warning(
                 f"Setting num_proc from {num_proc} back to 1 for the {split_info.name} split to disable multiprocessing as it only contains one shard."
@@ -1682,7 +1606,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         fname = f"{self.name}-{split_generator.name}{SUFFIX}.{file_format}"
         fpath = path_join(self._output_dir, fname)
 
-        num_input_shards = _number_of_shards(split_generator.gen_kwargs)
+        num_input_shards = _number_of_shards_in_gen_kwargs(split_generator.gen_kwargs)
         if num_input_shards <= 1 and num_proc is not None:
             logger.warning(
                 f"Setting num_proc from {num_proc} back to 1 for the {split_info.name} split to disable multiprocessing as it only contains one shard."
@@ -1806,7 +1730,6 @@ class ArrowBasedBuilder(DatasetBuilder):
         fpath: str = arg["fpath"]
         file_format: str = arg["file_format"]
         max_shard_size: int = arg["max_shard_size"]
-        split_info: SplitInfo = arg["split_info"]
         job_id: int = arg["job_id"]
         refresh_rate = 0.05  # 20 progress updates per sec
 
@@ -1826,13 +1749,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         )
         try:
             _time = time.time()
-            for key, table in logging.tqdm(
-                generator,
-                unit=" tables",
-                leave=False,
-                disable=not logging.is_progress_bar_enabled(),
-                desc=f"Generating {split_info.name} split",
-            ):
+            for _, table in generator:
                 if max_shard_size is not None and writer._num_bytes > max_shard_size:
                     num_examples, num_bytes = writer.finalize()
                     writer.close()
