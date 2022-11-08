@@ -74,7 +74,7 @@ from .utils.py_utils import (
     size_str,
     temporary_assignment,
 )
-from .utils.sharding import _distribute_shards, _number_of_shards_in_gen_kwargs, _split_gen_kwargs
+from .utils.sharding import _number_of_shards_in_gen_kwargs, _split_gen_kwargs
 
 
 logger = logging.get_logger(__name__)
