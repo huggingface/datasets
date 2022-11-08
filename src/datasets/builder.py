@@ -1433,7 +1433,6 @@ class GeneratorBasedBuilder(DatasetBuilder):
         fname = f"{self.name}-{split_generator.name}{SUFFIX}.{file_format}"
         fpath = path_join(self._output_dir, fname)
 
-        # Default to using 16-way parallelism for preparation if the number of files is higher than 16.
         num_input_shards = _number_of_shards(split_generator.gen_kwargs)
         if num_input_shards <= 1 and num_proc is not None:
             logger.warning(
@@ -1447,6 +1446,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
             num_proc = num_input_shards
 
         pbar = logging.tqdm(
+            disable=not logging.is_progress_bar_enabled(),
             unit=" examples",
             total=split_info.num_examples,
             leave=False,
@@ -1695,6 +1695,7 @@ class ArrowBasedBuilder(DatasetBuilder):
             num_proc = num_input_shards
 
         pbar = logging.tqdm(
+            disable=not logging.is_progress_bar_enabled(),
             unit=" examples",
             total=split_info.num_examples,
             leave=False,
