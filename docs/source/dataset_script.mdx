@@ -301,11 +301,11 @@ Congratulations, you can now load your dataset from the Hub! 🥳
 
 ### Sharding
 
-If your dataset is made of many big files, 🤗 Datasets runs automatically your script in parallel to make it super fast !
+If your dataset is made of many big files, 🤗 Datasets automatically runs your script in parallel to make it super fast!
 It can help if you have hundreds or thousands of TAR archives, or JSONL files like [oscar](https://huggingface.co/datasets/oscar/blob/main/oscar.py) for example.
 
 To make it work, we consider lists of files in `gen_kwargs` to be shards.
-Therefore 🤗 Datasets can automatically spawns several workers to run `_generate_examples` in parallel, and each worker is given a subset of shards to process.
+Therefore 🤗 Datasets can automatically spawn several workers to run `_generate_examples` in parallel, and each worker is given a subset of shards to process.
 
 
 ```python
@@ -331,14 +331,14 @@ Users can also specify `num_proc=` in `load_dataset()` to specify the number of 
 
 For some datasets it can be much faster to yield batches of data rather than examples one by one.
 You can speed up the dataset generation by yielding Arrow tables directly, instead of examples.
-This is especially useful if your data comes from pandas dataframes for examples, since the conversion from pandas to arrow is as simple as
+This is especially useful if your data comes from Pandas DataFrames for example, since the conversion from Pandas to Arrow is as simple as:
 
 ```python
 import pyarrow as pa
 pa_table = pa.Table.from_pandas(df)
 ```
 
-To yield arrow tables instead of single examples, make your dataset builder inherit from [`ArrowBasedBuilder`] instead of [`GeneratorBasedBuilder`], and use `_generate_tables` instead of `_generate_examples`:
+To yield Arrow tables instead of single examples, make your dataset builder inherit from [`ArrowBasedBuilder`] instead of [`GeneratorBasedBuilder`], and use `_generate_tables` instead of `_generate_examples`:
 
 ```python
 class MySuperFastDataset(datasets.ArrowBasedBuilder):
