@@ -12,7 +12,7 @@ Write a dataset script to load and share your own datasets. It is a Python file 
 
 The script can download data files from any website, or from the same dataset repository.
 
-Any dataset script, for example `my_dataset.py`, can be placed in a folder or a repository named `my_dataset` and be loaded with:
+A dataset loading script should have the same name as a dataset repository or directory. For example, a repository named `my_dataset` should contain `my_dataset.py` script. This way it can be loaded with:
 
 ```
 my_dataset/
@@ -99,7 +99,7 @@ def _info(self):
 
 In some cases, your dataset may have multiple configurations. For example, the [SuperGLUE](https://huggingface.co/datasets/super_glue) dataset is a collection of 5 datasets designed to evaluate language understanding tasks. 🤗 Datasets provides [`BuilderConfig`] which allows you to create different configurations for the user to select from.
 
-Let's study the [SuperGLUE loading script](https://github.com/huggingface/datasets/blob/main/datasets/super_glue/super_glue.py) to see how you can define several configurations.
+Let's study the [SuperGLUE loading script](https://huggingface.co/datasets/super_glue/blob/main/super_glue.py) to see how you can define several configurations.
 
 1. Create a [`BuilderConfig`] subclass with attributes about your dataset. These attributes can be the features of your dataset, label classes, and a URL to the data files.
 
