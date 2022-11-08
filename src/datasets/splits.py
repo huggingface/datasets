@@ -505,7 +505,7 @@ class SplitReadInstruction:
         return split_instruction
 
     def get_list_sliced_split_info(self):
-        return list(sorted(self._splits.values(), key=lambda x: x.split_info.name))
+        return list(self._splits.values())
 
 
 class SplitDict(dict):
@@ -567,9 +567,8 @@ class SplitDict(dict):
 
     def to_split_dict(self):
         """Returns a list of SplitInfo protos that we have."""
-        # Return the SplitInfo, sorted by name
         out = []
-        for split_name, split_info in sorted(self.items()):
+        for split_name, split_info in self.items():
             split_info = copy.deepcopy(split_info)
             split_info.name = split_name
             out.append(split_info)
