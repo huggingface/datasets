@@ -1,9 +1,6 @@
-from datasets.utils.sharding import (
-    _distribute_shards,
-    _number_of_shards_in_gen_kwargs,
-    _split_gen_kwargs,
-)
 import pytest
+
+from datasets.utils.sharding import _distribute_shards, _number_of_shards_in_gen_kwargs, _split_gen_kwargs
 
 
 @pytest.mark.parametrize(
