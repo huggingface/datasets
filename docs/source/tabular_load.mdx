@@ -26,8 +26,6 @@ Start by creating a quick SQLite database with this [Covid-19 data](https://gith
 
 This creates a `states` table in the `us_covid_data.db` database which you can now load into a dataset.
 
-### Entire table
-
 To connect to the database, you'll need the [URI string](https://docs.sqlalchemy.org/en/13/core/engines.html#database-urls) that identifies your database. The URI string differs for each database dialect, so be sure to check the [Database URLs](https://docs.sqlalchemy.org/en/13/core/engines.html#database-urls) for whichever database you're using.
 
 For SQLite, it is:
@@ -54,8 +52,6 @@ Then you can use all of 🤗 Datasets process features like [`~datasets.Dataset.
 ```py
 >>> ds.filter(lambda x: x["state"] == "California")
 ```
-
-### SQL query
 
 You can also load a dataset from a SQL query instead of an entire table, which is useful for querying and joining multiple tables. 
 
@@ -122,8 +118,6 @@ Then you can load the [Air Quality Data Set](https://archive.ics.uci.edu/ml/data
 !PGPASSWORD=$POSTGRES_DB_PASS psql -q -h $POSTGRES_DB_HOST -p $POSTGRES_DB_PORT -U $POSTGRES_DB_USER -d $POSTGRES_DB_NAME -f AirQualityUCI.sql
 ```
 
-### Entire table
-
 To connect to the database, you'll need the [URI string](https://docs.sqlalchemy.org/en/13/core/engines.html#database-urls) that identifies your database. The URI string differs for each database dialect, so be sure to check the [Database URLs](https://docs.sqlalchemy.org/en/13/core/engines.html#database-urls) for whichever database you're using.
 
 For PostgreSQL, it is:
@@ -184,8 +178,6 @@ Then you can use all of 🤗 Datasets process features like [`~datasets.Dataset.
 ```py
 >>> ds.filter(lambda x: x["co"] > 3)
 ```
-
-### SQL query
 
 You can also load a dataset from a SQL query instead of an entire table, which is useful for querying and joining multiple tables. 
 
