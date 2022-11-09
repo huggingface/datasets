@@ -70,13 +70,13 @@ from .utils.file_utils import (
     cached_path,
     head_hf_s3,
     hf_github_url,
-    hf_hub_url,
     init_hf_modules,
     is_relative_path,
     relative_to_absolute_path,
     url_or_path_join,
 )
 from .utils.filelock import FileLock
+from .utils.hub import hf_hub_url
 from .utils.info_utils import is_small_dataset
 from .utils.logging import get_logger
 from .utils.metadata import DatasetMetadata
