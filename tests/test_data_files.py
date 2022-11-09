@@ -20,7 +20,7 @@ from datasets.data_files import (
     resolve_patterns_locally_or_by_urls,
 )
 from datasets.fingerprint import Hasher
-from datasets.utils.file_utils import hf_hub_url
+from datasets.utils.hub import hf_hub_url
 
 
 _TEST_PATTERNS = ["*", "**", "**/*", "*.txt", "data/*", "**/*.txt", "**/train.txt"]

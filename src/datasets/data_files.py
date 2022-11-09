@@ -10,7 +10,8 @@ from tqdm.contrib.concurrent import thread_map
 from .filesystems.hffilesystem import HfFileSystem
 from .splits import Split
 from .utils import logging
-from .utils.file_utils import hf_hub_url, is_relative_path, is_remote_url, request_etag
+from .utils.file_utils import is_relative_path, is_remote_url, request_etag
+from .utils.hub import hf_hub_url
 from .utils.py_utils import string_to_dict
 
 
