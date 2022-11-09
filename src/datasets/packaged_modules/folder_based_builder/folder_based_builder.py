@@ -31,17 +31,8 @@ else:
 
 
 def count_path_segments(path):
-    cnt = 0
-    while True:
-        parts = os.path.split(path)
-        if parts[0] == path:
-            break
-        elif parts[1] == path:
-            break
-        else:
-            path = parts[0]
-            cnt += 1
-    return cnt
+    sep = "/" if is_remote_url(path) else os.sep
+    return os.path.normpath(path).count(sep)
 
 
 @dataclass
@@ -103,12 +94,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     if original_file_ext.lower() in self.EXTENSIONS:
                         if not self.config.drop_labels:
                             labels.add(os.path.basename(os.path.dirname(original_file)))
-                            path_depth = (
-                                original_file.count(os.sep)
-                                if not is_remote_url(original_file)
-                                else original_file.count("/")
-                            )
-                            path_depths.add(path_depth)
+                            path_depths.add(count_path_segments(original_file))
                     elif os.path.basename(original_file) in self.METADATA_FILENAMES:
                         metadata_files[split].add((original_file, downloaded_file))
                     else:
@@ -125,12 +111,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                         if downloaded_dir_file_ext in self.EXTENSIONS:
                             if not self.config.drop_labels:
                                 labels.add(os.path.basename(os.path.dirname(downloaded_dir_file)))
-                                path_depth = (
-                                    downloaded_dir_file.count(os.sep)
-                                    if not is_remote_url(downloaded_dir_file)
-                                    else downloaded_dir_file.count("/")
-                                )
-                                path_depths.add(path_depth)
+                                path_depths.add(count_path_segments(downloaded_dir_file))
                         elif os.path.basename(downloaded_dir_file) in self.METADATA_FILENAMES:
                             metadata_files[split].add((None, downloaded_dir_file))
                         else:
