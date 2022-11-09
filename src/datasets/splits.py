@@ -34,6 +34,7 @@ class SplitInfo:
     name: str = ""
     num_bytes: int = 0
     num_examples: int = 0
+    shard_lengths: Optional[List[int]] = None
 
     # Deprecated
     # For backward compatibility, this field needs to always be included in files like
@@ -579,6 +580,9 @@ class SplitDict(dict):
 
     def _to_yaml_list(self) -> list:
         out = [asdict(s) for s in self.to_split_dict()]
+        # we don't need the shard lengths in YAML, since it depends on max_shard_size and num_proc
+        for split_info_dict in out:
+            split_info_dict.pop("shard_lengths", None)
         # we don't need the dataset_name attribute that is deprecated
         for split_info_dict in out:
             split_info_dict.pop("dataset_name", None)
