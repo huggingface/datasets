@@ -28,7 +28,8 @@ from .tasks import TaskTemplate
 from .utils import logging
 from .utils._hf_hub_fixes import list_repo_files as hf_api_list_repo_files
 from .utils.doc_utils import is_documented_by
-from .utils.file_utils import cached_path, hf_hub_url
+from .utils.file_utils import cached_path
+from .utils.hub import hf_hub_url
 from .utils.typing import PathLike
 
 
