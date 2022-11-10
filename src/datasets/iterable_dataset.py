@@ -16,6 +16,7 @@ from .formatting import PythonFormatter
 from .info import DatasetInfo
 from .splits import NamedSplit
 from .table import table_cast
+from .utils.sharding import _number_of_shards_in_gen_kwargs, _shuffle_gen_kwargs, _split_gen_kwargs
 
 
 def _infer_features_from_batch(batch: Dict[str, list], try_features: Optional[Features] = None) -> Features:
@@ -96,43 +97,6 @@ class _BaseExamplesIterable:
         raise NotImplementedError(f"{type(self)} doesn't implement n_shards yet")
 
 
-def _shuffle_kwargs(rng: np.random.Generator, kwargs: dict) -> dict:
-    """Return a shuffled copy of the input kwargs"""
-    # We must shuffle all the lists, and lists of the same size must have the same shuffling.
-    # This way entangled lists of (shard, shard_metadata) are still in the right order.
-
-    # First, let's generate the shuffled indices per list size
-    list_sizes = set(len(value) for value in kwargs.values() if isinstance(value, list))
-    indices_per_size = {}
-    for size in list_sizes:
-        indices_per_size[size] = list(range(size))
-        rng.shuffle(indices_per_size[size])
-    # Now let's copy the kwargs and shuffle the lists based on their sizes
-    shuffled_kwargs = dict(kwargs)
-    for key, value in shuffled_kwargs.items():
-        if isinstance(value, list):
-            shuffled_kwargs[key] = [value[i] for i in indices_per_size[len(value)]]
-    return shuffled_kwargs
-
-
-def _shard_kwargs(shard_idx: int, kwargs: dict) -> dict:
-    """Return a copy of the input kwargs but with only one shard"""
-    # Having lists of different sizes makes sharding ambigious, raise an error in this case
-    # until we decide how to define sharding without ambiguity for users
-    lists_lengths = {key: len(value) for key, value in kwargs.items() if isinstance(value, list)}
-    if len(set(lists_lengths.values())) > 1:
-        raise RuntimeError(
-            (
-                "Sharding is ambiguous for this dataset: "
-                + "we found several data sources lists of different lengths, and we don't know over which list we should parallelize:\n"
-                + "\n".join(f"\t- key {key} has length {length}" for key, length in lists_lengths.items())
-                + "\nTo fix this, check the dataset script 'gen_kwargs' and make sure to use lists only for data sources, "
-                + "and use tuples otherwise. In the end there should only be one single list, or several lists with the same length."
-            )
-        )
-    return {key: [value[shard_idx]] if isinstance(value, list) else value for key, value in kwargs.items()}
-
-
 class ExamplesIterable(_BaseExamplesIterable):
     def __init__(self, generate_examples_fn: Callable, kwargs: dict):
         self.generate_examples_fn = generate_examples_fn
@@ -146,13 +110,12 @@ class ExamplesIterable(_BaseExamplesIterable):
 
     def shard_data_sources(self, shard_idx: int) -> "MappedExamplesIterable":
         """Keep only the requested shard."""
-        kwargs_with_requested_data_source = _shard_kwargs(shard_idx, self.kwargs)
+        kwargs_with_requested_data_source = _split_gen_kwargs(self.kwargs, max_num_jobs=self.n_shards)[shard_idx]
         yield from self.generate_examples_fn(**kwargs_with_requested_data_source)
 
     @property
     def n_shards(self) -> int:
-        max_length = max((len(value) for value in self.kwargs.values() if isinstance(value, list)), default=0)
-        return max(1, max_length)
+        return _number_of_shards_in_gen_kwargs(self.kwargs)
 
 
 class ShardShuffledExamplesIterable(ExamplesIterable):
@@ -163,14 +126,16 @@ class ShardShuffledExamplesIterable(ExamplesIterable):
     def __iter__(self):
         """Shuffle the kwargs order to shuffle shards"""
         rng = deepcopy(self.generator)
-        kwargs_with_shuffled_shards = _shuffle_kwargs(rng, self.kwargs)
+        kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
         yield from self.generate_examples_fn(**kwargs_with_shuffled_shards)
 
     def shard_data_sources(self, shard_idx: int) -> "MappedExamplesIterable":
         """Keep only the requested shard."""
         rng = deepcopy(self.generator)
-        kwargs_with_shuffled_shards = _shuffle_kwargs(rng, self.kwargs)
-        kwargs_with_requested_data_source = _shard_kwargs(shard_idx, kwargs_with_shuffled_shards)
+        kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
+        kwargs_with_requested_data_source = _split_gen_kwargs(kwargs_with_shuffled_shards, max_num_jobs=self.n_shards)[
+            shard_idx
+        ]
         return ExamplesIterable(self.generate_examples_fn, kwargs_with_requested_data_source)
 
 
