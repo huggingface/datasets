@@ -21,8 +21,8 @@ class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
             value = self.formatter.recursive_tensorize(value)
             return self.formatter.consolidate(value)
 
-    lazy_row_type = None
-    lazy_batch_type = None
+    lazy_row_type = LazyExample
+    lazy_batch_type = LazyBatch
 
     def __init__(self, features=None, lazy=False, **np_array_kwargs):
         super().__init__(features=features, lazy=lazy)
