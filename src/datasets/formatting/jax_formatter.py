@@ -22,6 +22,7 @@ import pyarrow as pa
 from .. import config
 from ..utils.py_utils import map_nested
 from .formatting import Formatter
+from .np_formatter import NumpyFormatter
 
 
 if TYPE_CHECKING:
@@ -29,8 +30,11 @@ if TYPE_CHECKING:
 
 
 class JaxFormatter(Formatter[dict, "jnp.ndarray", dict]):
-    def __init__(self, features=None, **jnp_array_kwargs):
-        super().__init__(features=features)
+    lazy_row_type = NumpyFormatter.lazy_row_type
+    lazy_column_type = NumpyFormatter.lazy_batch_type
+
+    def __init__(self, features=None, lazy=False, **jnp_array_kwargs):
+        super().__init__(features=features, lazy=lazy)
         self.jnp_array_kwargs = jnp_array_kwargs
         import jax.numpy as jnp  # noqa import jax at initialization
 

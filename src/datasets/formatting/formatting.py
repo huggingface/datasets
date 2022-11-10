@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections import UserDict
 from functools import partial
 
 # Lint as: python3
@@ -260,6 +261,32 @@ class PandasFeaturesDecoder:
         return self.decode_row(batch)
 
 
+class LazyDict(UserDict):
+    def __init__(self, data: dict, formatter: "Formatter"):
+        self.data = data
+        self.formatter = formatter
+        self.features = (
+            {
+                key: feature
+                for key, feature in self.formatter.features.items()
+                if self.formatter.features._column_requires_decoding[key]
+            }
+            if self.formatter.features
+            else {}
+        )
+
+    def __getitem__(self, key):
+        value = super().__getitem__(key)
+        if self.features and key in self.features:
+            value = self.decode(self.features[key], value)
+            self[key] = value
+            del self.features[key]
+        return value
+
+    def decode(self, feature, value):
+        raise NotImplementedError
+
+
 class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     """
     A formatter is an object that extracts and formats data from pyarrow tables.
@@ -271,8 +298,12 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     numpy_arrow_extractor = NumpyArrowExtractor
     pandas_arrow_extractor = PandasArrowExtractor
 
-    def __init__(self, features=None):
+    lazy_row_type = LazyDict
+    lazy_batch_type = LazyDict
+
+    def __init__(self, features=None, lazy=False):
         self.features = features
+        self.lazy = lazy
         self.python_features_decoder = PythonFeaturesDecoder(self.features)
         self.pandas_features_decoder = PandasFeaturesDecoder(self.features)
 
@@ -306,9 +337,23 @@ class ArrowFormatter(Formatter[pa.Table, pa.Array, pa.Table]):
 
 
 class PythonFormatter(Formatter[dict, list, dict]):
+    class LazyExample(LazyDict):
+        def decode(self, feature, value):
+            return decode_nested_example(feature, value) if value is not None else None
+
+    class LazyBatch(LazyDict):
+        def decode(self, feature, value):
+            return [decode_nested_example(feature, v) if value is not None else None for v in value]
+
+    lazy_row_type = LazyExample
+    lazy_batch_type = LazyBatch
+
+    def __init__(self, features=None, lazy=False):
+        super().__init__(features=features, lazy=lazy)
+
     def format_row(self, pa_table: pa.Table) -> dict:
         row = self.python_arrow_extractor().extract_row(pa_table)
-        row = self.python_features_decoder.decode_row(row)
+        row = self.python_features_decoder.decode_row(row) if self.lazy else self.lazy_row_type(row, self)
         return row
 
     def format_column(self, pa_table: pa.Table) -> list:
@@ -318,7 +363,7 @@ class PythonFormatter(Formatter[dict, list, dict]):
 
     def format_batch(self, pa_table: pa.Table) -> dict:
         batch = self.python_arrow_extractor().extract_batch(pa_table)
-        batch = self.python_features_decoder.decode_batch(batch)
+        batch = self.python_features_decoder.decode_batch(batch) if self.lazy else self.lazy_batch_type(batch, self)
         return batch
 
 

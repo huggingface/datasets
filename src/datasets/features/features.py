@@ -354,7 +354,7 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         return obj.to_pydatetime(), True
     elif isinstance(obj, pd.Timedelta):
         return obj.to_pytimedelta(), True
-    elif isinstance(obj, Mapping):  # check for dict-like to handle nested LazyDict objects
+    elif isinstance(obj, Mapping):
         has_changed = not isinstance(obj, dict)
         output = {}
         for k, v in obj.items():

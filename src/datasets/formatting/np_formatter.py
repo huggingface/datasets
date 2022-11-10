@@ -4,13 +4,28 @@ import numpy as np
 import pyarrow as pa
 
 from .. import config
+from ..features.features import decode_nested_example
 from ..utils.py_utils import map_nested
-from .formatting import Formatter
+from .formatting import Formatter, LazyDict
 
 
 class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
-    def __init__(self, features=None, **np_array_kwargs):
-        super().__init__(features=features)
+    class LazyExample(LazyDict):
+        def decode(self, feature, value):
+            value = decode_nested_example(feature, value) if value is not None else None
+            return self.formatter.recursive_tensorize(value)
+
+    class LazyBatch(LazyDict):
+        def decode(self, feature, value):
+            value = [decode_nested_example(feature, v) if value is not None else None for v in value]
+            value = self.formatter.recursive_tensorize(value)
+            return self.formatter.consolidate(value)
+
+    lazy_row_type = None
+    lazy_batch_type = None
+
+    def __init__(self, features=None, lazy=False, **np_array_kwargs):
+        super().__init__(features=features, lazy=lazy)
         self.np_array_kwargs = np_array_kwargs
 
     def _consolidate(self, column):
@@ -63,6 +78,8 @@ class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
 
     def format_row(self, pa_table: pa.Table) -> dict:
         row = self.numpy_arrow_extractor().extract_row(pa_table)
+        if self.lazy:
+            return self.lazy_row_type(row, self)
         row = self.python_features_decoder.decode_row(row)
         return self.recursive_tensorize(row)
 
@@ -75,6 +92,8 @@ class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
 
     def format_batch(self, pa_table: pa.Table) -> dict:
         batch = self.numpy_arrow_extractor().extract_batch(pa_table)
+        if self.lazy:
+            return self.lazy_batch_type(batch, self)
         batch = self.python_features_decoder.decode_batch(batch)
         batch = self.recursive_tensorize(batch)
         for column_name in batch:

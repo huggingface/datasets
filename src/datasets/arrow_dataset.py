@@ -26,7 +26,7 @@ import sys
 import tempfile
 import warnings
 import weakref
-from collections import Counter, UserDict
+from collections import Counter
 from collections.abc import Mapping
 from copy import deepcopy
 from functools import partial, wraps
@@ -69,7 +69,6 @@ from .features.features import (
     FeatureType,
     _align_features,
     _check_if_features_can_be_aligned,
-    decode_nested_example,
     pandas_types_mapper,
     require_decoding,
 )
@@ -83,8 +82,8 @@ from .fingerprint import (
     maybe_register_dataset_for_temp_dir_deletion,
     update_fingerprint,
 )
-from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
-from .formatting.formatting import _is_range_contiguous
+from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table, supports_lazy_formatting
+from .formatting.formatting import PythonArrowExtractor, _is_range_contiguous
 from .info import DatasetInfo, DatasetInfosDict
 from .naming import _split_re
 from .search import IndexableMixin
@@ -121,38 +120,6 @@ if TYPE_CHECKING:
     from .dataset_dict import DatasetDict
 
 logger = logging.get_logger(__name__)
-
-
-class LazyDict(UserDict):
-    def __init__(self, data, features=None):
-        self.data = data
-        self.features = (
-            {key: feature for key, feature in features.items() if features._column_requires_decoding[key]}
-            if features
-            else {}
-        )
-
-
-class Example(LazyDict):
-    def __getitem__(self, key):
-        value = super().__getitem__(key)
-        if self.features and key in self.features:
-            value = decode_nested_example(self.features[key], value) if value is not None else None
-            self[key] = value
-            del self.features[key]
-        return value
-
-
-class Batch(LazyDict):
-    def __getitem__(self, key):
-        values = super().__getitem__(key)
-        if self.features and key in self.features:
-            values = [
-                decode_nested_example(self.features[key], value) if value is not None else None for value in values
-            ]
-            self[key] = values
-            del self.features[key]
-        return values
 
 
 class DatasetInfoMixin:
@@ -2511,27 +2478,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if function is None:
             function = lambda x: x  # noqa: E731
 
-        def decorate(f):
-            """
-            Decorate the mapped function, so that its first argument is wrapped with a LazyDict to be used internally
-            but a standard dictionary is returned at the end of the mapping.
-            """
-
-            @wraps(f)
-            def decorated(item, *args, **kwargs):
-                # Decorate first arg with LazyDict (either Example or Batch)
-                decorated_item = (
-                    Example(item, features=self.features) if not batched else Batch(item, features=self.features)
-                )
-                # Use the LazyDict internally, while mapping the function
-                result = f(decorated_item, *args, **kwargs)
-                # Return a standard dict
-                return result.data if isinstance(result, LazyDict) else result
-
-            return decorated
-
-        function = decorate(function) if not self._format_type and not input_columns else function
-
         if isinstance(input_columns, str):
             input_columns = [input_columns]
 
@@ -2800,6 +2746,49 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # If set to False, no new arrow table will be created
         update_data = None
 
+        lazy_formatting = not input_columns and supports_lazy_formatting(self._format_type)
+        input_formatter = get_formatter(
+            self._format_type, features=self.features, lazy=lazy_formatting, **self._format_kwargs
+        )
+        if lazy_formatting:
+            # Save undecoded data (to preserve exact image/audio format for instance) after processing unless decoded data is modified in the `function`
+            lazy_type_to_extend = input_formatter.lazy_row_type if not batched else input_formatter.lazy_batch_type
+
+            class DictWithDecodableDataToRestore(lazy_type_to_extend):
+                def __init__(self, *args, **kwargs):
+                    super().__init__(*args, **kwargs)
+                    self.decodable_data_to_restore = {}
+
+                def __getitem__(self, key):
+                    col_requires_decoding = self.formatter.features._column_requires_decoding.get(key)
+                    if key not in self.decodable_data_to_restore and col_requires_decoding:
+                        self.decodable_data_to_restore[key] = self.data[key]
+                    return super().__getitem__(key)
+
+                def __setitem__(self, key, value):
+                    if key in self.decodable_data_to_restore:
+                        del self.decodable_data_to_restore[key]
+                    super().__setitem__(key, value)
+
+                def __delitem__(self, key):
+                    if key in self.decodable_data_to_restore:
+                        del self.decodable_data_to_restore[key]
+                    super().__delitem__(key)
+
+            if not batched:
+                input_formatter.row_return_type = DictWithDecodableDataToRestore
+            else:
+                input_formatter.batch_return_type = DictWithDecodableDataToRestore
+
+        else:
+
+            class DictWithDecodableDataToRestore:
+                pass
+
+        convert_pa_table_to_dict = (
+            PythonArrowExtractor().extract_row if not batched else PythonArrowExtractor().extract_batch
+        )
+
         class NumExamplesMismatchError(Exception):
             pass
 
@@ -2831,10 +2820,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         f"Provided `function` which is applied to all elements of table returns a `dict` of types {[type(x) for x in processed_inputs.values()]}. When using `batched=True`, make sure provided `function` returns a `dict` of types like `{allowed_batch_return_types}`."
                     )
 
-        def apply_function_on_filtered_inputs(inputs, indices, check_same_num_examples=False, offset=0):
+        def apply_function_on_filtered_inputs(pa_inputs, indices, check_same_num_examples=False, offset=0):
             """Utility to apply the function on a selection of columns."""
             nonlocal update_data
-            fn_args = [inputs] if input_columns is None else [inputs[col] for col in input_columns]
+            inputs = format_table(
+                pa_inputs,
+                0 if not batched else range(pa_inputs.num_rows),
+                format_columns=input_columns,
+                formatter=input_formatter,
+            )
+            inputs_to_merge = inputs.data if lazy_formatting else inputs
+            fn_args = [inputs] if input_columns is None else [inputs[col] for col in inputs]
             if offset == 0:
                 effective_indices = indices
             else:
@@ -2845,6 +2841,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if with_rank:
                 additional_args += (rank,)
             processed_inputs = function(*fn_args, *additional_args, **fn_kwargs)
+            processed_inputs = (
+                {**processed_inputs.data, **processed_inputs.decodable_data_to_restore}
+                if isinstance(processed_inputs, DictWithDecodableDataToRestore)
+                else processed_inputs
+            )
             if update_data is None:
                 # Check if the function returns updated examples
                 update_data = isinstance(processed_inputs, (Mapping, pa.Table))
@@ -2852,25 +2853,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if not update_data:
                 return None  # Nothing to update, let's move on
             if self._format_type or input_columns:
-                inputs = self._getitem(
-                    key=(indices if isinstance(indices, int) else slice(indices[0], indices[-1] + 1)),
-                    format_type=None,
-                    format_columns=None,
-                    format_kwargs=None,
-                    decoded=False,
-                )
+                inputs_to_merge = convert_pa_table_to_dict(pa_inputs)
             if remove_columns is not None:
                 for column in remove_columns:
                     # `function` can modify input in-place causing column to be already removed.
-                    if column in inputs:
-                        inputs.pop(column)
+                    if column in inputs_to_merge:
+                        inputs_to_merge.pop(column)
             if check_same_num_examples:
-                input_num_examples = len(inputs[next(iter(inputs.keys()))])
+                input_num_examples = len(inputs[next(iter(inputs_to_merge.keys()))])
                 processed_inputs_num_examples = len(processed_inputs[next(iter(processed_inputs.keys()))])
                 if input_num_examples != processed_inputs_num_examples:
                     raise NumExamplesMismatchError()
-            if isinstance(inputs, dict) and isinstance(processed_inputs, Mapping):
-                return {**inputs, **processed_inputs}
+            if isinstance(inputs_to_merge, dict) and isinstance(processed_inputs, Mapping):
+                return {**inputs_to_merge, **processed_inputs}
             else:
                 return processed_inputs
 
@@ -2913,13 +2908,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Optionally initialize the writer as a context manager
         with contextlib.ExitStack() as stack:
             try:
-                # Only load the columns we actually need
-                if input_columns:
-                    input_dataset = self.with_format(
-                        self._format_type, columns=input_columns, output_all_columns=False, **self._format_kwargs
-                    )
-                else:
-                    input_dataset = self
+                input_dataset = self.with_format("arrow")
 
                 # Loop over single examples or batches and write to buffer/file if examples are to be updated
                 if not batched:

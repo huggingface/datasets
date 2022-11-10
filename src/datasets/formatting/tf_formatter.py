@@ -22,6 +22,7 @@ import pyarrow as pa
 from .. import config
 from ..utils.py_utils import map_nested
 from .formatting import Formatter
+from .np_formatter import NumpyFormatter
 
 
 if TYPE_CHECKING:
@@ -29,8 +30,8 @@ if TYPE_CHECKING:
 
 
 class TFFormatter(Formatter[dict, "tf.Tensor", dict]):
-    def __init__(self, features=None, **tf_tensor_kwargs):
-        super().__init__(features=features)
+    def __init__(self, features=None, lazy=False, **tf_tensor_kwargs):
+        super().__init__(features=features, lazy=lazy)
         self.tf_tensor_kwargs = tf_tensor_kwargs
         import tensorflow as tf  # noqa: import tf at initialization
 
@@ -83,6 +84,8 @@ class TFFormatter(Formatter[dict, "tf.Tensor", dict]):
 
     def format_row(self, pa_table: pa.Table) -> dict:
         row = self.numpy_arrow_extractor().extract_row(pa_table)
+        if self.lazy:
+            return self.lazy_row_type(row, self)
         row = self.python_features_decoder.decode_row(row)
         return self.recursive_tensorize(row)
 
@@ -95,8 +98,13 @@ class TFFormatter(Formatter[dict, "tf.Tensor", dict]):
 
     def format_batch(self, pa_table: pa.Table) -> dict:
         batch = self.numpy_arrow_extractor().extract_batch(pa_table)
+        if self.lazy:
+            return self.lazy_batch_type(batch, self)
         batch = self.python_features_decoder.decode_batch(batch)
         batch = self.recursive_tensorize(batch)
         for column_name in batch:
             batch[column_name] = self._consolidate(batch[column_name])
         return batch
+
+    lazy_row_type = NumpyFormatter.lazy_row_type
+    lazy_batch_type = NumpyFormatter.lazy_batch_type
