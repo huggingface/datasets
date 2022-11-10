@@ -4415,9 +4415,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, use_auth_token=token)
         data_files = [file for file in files if file.startswith("data/")]
 
+        config_in_path = f"{config_name}/" if config_name else ""
+
         def path_in_repo(_index, shard):
-            config_str = f"{config_name}/" if config_name else ""
-            return f"data/{config_str}{split}-{_index:05d}-of-{num_shards:05d}-{shard._fingerprint}.parquet"
+            return f"data/{config_in_path}{split}-{_index:05d}-of-{num_shards:05d}-{shard._fingerprint}.parquet"
 
         shards_iter = iter(shards)
         first_shard = next(shards_iter)
@@ -4461,7 +4462,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         data_files_to_delete = [
             data_file
             for data_file in data_files
-            if data_file.startswith(f"data/{split}-") and data_file not in shards_path_in_repo
+            if data_file.startswith(f"data/{config_in_path}{split}-") and data_file not in shards_path_in_repo
         ]
         deleted_size = sum(
             xgetsize(hf_hub_url(repo_id, data_file), use_auth_token=token) for data_file in data_files_to_delete
@@ -4480,7 +4481,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 delete_file(data_file)
 
         repo_files = list(set(files) - set(data_files_to_delete))
-        # TODO: config_name="default" ?
+        # TODO: config_name="default" if not config_name?
 
         return repo_id, config_name, split, uploaded_size, dataset_nbytes, repo_files, deleted_size
 

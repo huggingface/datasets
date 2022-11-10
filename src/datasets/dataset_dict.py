@@ -1350,6 +1350,7 @@ class DatasetDict(dict):
         total_uploaded_size = 0
         total_dataset_nbytes = 0
         info_to_dump: DatasetInfo = next(iter(self.values())).info.copy()
+        info_to_dump.config_name = config_name if config_name else "default"
         info_to_dump.splits = SplitDict()
 
         for split in self.keys():
@@ -1359,6 +1360,7 @@ class DatasetDict(dict):
         for split in self.keys():
             logger.warning(f"Pushing split {split} to the Hub.")
             # The split=key needs to be removed before merging
+            # TODO: no need to return config_name here?
             repo_id, config_name, split, uploaded_size, dataset_nbytes, _, _ = self[split]._push_parquet_shards_to_hub(
                 repo_id,
                 config_name=config_name,
@@ -1380,10 +1382,10 @@ class DatasetDict(dict):
         api = HfApi(endpoint=config.HF_ENDPOINT)
         repo_files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, use_auth_token=token)
 
-        # push to the deprecated dataset_infos.json
+        # push to the deprecated dataset_infos.json  # TODO
         if config.DATASETDICT_INFOS_FILENAME in repo_files:
             buffer = BytesIO()
-            buffer.write(b'{"default": ')
+            buffer.write(b'{"default": ')  # TODO
             info_to_dump._dump_info(buffer, pretty_print=True)
             buffer.write(b"}")
             HfApi(endpoint=config.HF_ENDPOINT).upload_file(
@@ -1409,7 +1411,8 @@ class DatasetDict(dict):
         else:
             dataset_metadata = DatasetMetadata()
             readme_content = f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
-        DatasetInfosDict({"default": info_to_dump}).to_metadata(dataset_metadata)
+        infos_dict = DatasetInfosDict({config_name: info_to_dump})
+        infos_dict.to_metadata(dataset_metadata)
         HfApi(endpoint=config.HF_ENDPOINT).upload_file(
             path_or_fileobj=dataset_metadata._to_readme(readme_content).encode(),
             path_in_repo="README.md",

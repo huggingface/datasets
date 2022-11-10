@@ -401,18 +401,33 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
 
     def to_metadata(self, dataset_metadata: DatasetMetadata) -> None:
         if self:
-            total_dataset_infos = {config_name: dset_info._to_yaml_dict() for config_name, dset_info in self.items()}
+            if "dataset_info" in dataset_metadata:
+                dataset_metadata_infos = {
+                    config_data["config_name"]: config_data for config_data in dataset_metadata["dataset_info"]
+                }
+            else:
+                dataset_metadata_infos = {}
+            total_dataset_infos = {
+                **dataset_metadata_infos,
+                **{config_name: dset_info._to_yaml_dict() for config_name, dset_info in self.items()},
+            }
             # the config_name from the dataset_infos_dict takes over the config_name of the DatasetInfo
             for config_name, dset_info_yaml_dict in total_dataset_infos.items():
                 dset_info_yaml_dict["config_name"] = config_name
-            if len(total_dataset_infos) == 1:
+            if (
+                len(total_dataset_infos) == 1 and list(total_dataset_infos.values())[0]["config_name"] == "default"
+            ):  # and not dataset_metadata:
                 # use a struct instead of a list of configurations, since there's only one
                 dataset_metadata["dataset_info"] = next(iter(total_dataset_infos.values()))
                 # no need to include the configuration name when there's only one configuration and it's called "default"
                 if dataset_metadata["dataset_info"].get("config_name") == "default":
                     dataset_metadata["dataset_info"].pop("config_name", None)
             else:
-                dataset_metadata["dataset_info"] = []
+                dataset_metadata[
+                    "dataset_info"
+                ] = (
+                    []
+                )  # {'dataset_info': [{'config_name': 'v1', 'features': [{'name': 'x', 'dtype': 'int64'}, {'name': 'y', 'dtype': 'string'}], 'splits': [{'name': 'train', 'num_bytes': 116, 'num_examples': 8}, {'name': 'test', 'num_bytes': 46, 'num_examples': 3}], 'download_size': 1703, 'dataset_size': 162}]}
                 for config_name, dataset_info_yaml_dict in total_dataset_infos.items():
                     # add the config_name field in first position
                     dataset_info_yaml_dict.pop("config_name", None)
