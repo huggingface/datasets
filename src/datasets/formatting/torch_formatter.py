@@ -14,6 +14,7 @@
 
 # Lint as: python3
 import sys
+from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -29,7 +30,7 @@ if TYPE_CHECKING:
     import torch
 
 
-class TorchFormatter(Formatter[dict, "torch.Tensor", dict]):
+class TorchFormatter(Formatter[Mapping, "torch.Tensor", Mapping]):
     lazy_row_type = NumpyFormatter.lazy_row_type
     lazy_batch_type = NumpyFormatter.lazy_batch_type
 
@@ -80,7 +81,7 @@ class TorchFormatter(Formatter[dict, "torch.Tensor", dict]):
     def recursive_tensorize(self, data_struct: dict):
         return map_nested(self._recursive_tensorize, data_struct)
 
-    def format_row(self, pa_table: pa.Table) -> dict:
+    def format_row(self, pa_table: pa.Table) -> Mapping:
         row = self.numpy_arrow_extractor().extract_row(pa_table)
         if self.lazy:
             return self.lazy_row_type(row, self)
@@ -94,7 +95,7 @@ class TorchFormatter(Formatter[dict, "torch.Tensor", dict]):
         column = self._consolidate(column)
         return column
 
-    def format_batch(self, pa_table: pa.Table) -> dict:
+    def format_batch(self, pa_table: pa.Table) -> Mapping:
         batch = self.numpy_arrow_extractor().extract_batch(pa_table)
         if self.lazy:
             return self.lazy_batch_type(batch, self)

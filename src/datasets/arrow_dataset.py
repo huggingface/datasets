@@ -2747,6 +2747,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         update_data = None
 
         lazy_formatting = not input_columns and supports_lazy_formatting(self._format_type)
+        print(lazy_formatting)
         input_formatter = get_formatter(
             self._format_type, features=self.features, lazy=lazy_formatting, **self._format_kwargs
         )

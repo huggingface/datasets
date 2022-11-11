@@ -1,4 +1,5 @@
 import sys
+from collections.abc import Mapping
 
 import numpy as np
 import pyarrow as pa
@@ -9,7 +10,7 @@ from ..utils.py_utils import map_nested
 from .formatting import Formatter, LazyDict
 
 
-class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
+class NumpyFormatter(Formatter[Mapping, np.ndarray, Mapping]):
     class LazyExample(LazyDict):
         def decode(self, feature, value):
             value = decode_nested_example(feature, value) if value is not None else None
@@ -76,7 +77,7 @@ class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
     def recursive_tensorize(self, data_struct: dict):
         return map_nested(self._recursive_tensorize, data_struct)
 
-    def format_row(self, pa_table: pa.Table) -> dict:
+    def format_row(self, pa_table: pa.Table) -> Mapping:
         row = self.numpy_arrow_extractor().extract_row(pa_table)
         if self.lazy:
             return self.lazy_row_type(row, self)
@@ -90,7 +91,7 @@ class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
         column = self._consolidate(column)
         return column
 
-    def format_batch(self, pa_table: pa.Table) -> dict:
+    def format_batch(self, pa_table: pa.Table) -> Mapping:
         batch = self.numpy_arrow_extractor().extract_batch(pa_table)
         if self.lazy:
             return self.lazy_batch_type(batch, self)

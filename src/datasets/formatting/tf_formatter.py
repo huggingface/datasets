@@ -14,6 +14,7 @@
 
 # Lint as: python3
 import sys
+from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -29,7 +30,10 @@ if TYPE_CHECKING:
     import tensorflow as tf
 
 
-class TFFormatter(Formatter[dict, "tf.Tensor", dict]):
+class TFFormatter(Formatter[Mapping, "tf.Tensor", Mapping]):
+    lazy_row_type = NumpyFormatter.lazy_row_type
+    lazy_batch_type = NumpyFormatter.lazy_batch_type
+
     def __init__(self, features=None, lazy=False, **tf_tensor_kwargs):
         super().__init__(features=features, lazy=lazy)
         self.tf_tensor_kwargs = tf_tensor_kwargs
@@ -82,7 +86,7 @@ class TFFormatter(Formatter[dict, "tf.Tensor", dict]):
     def recursive_tensorize(self, data_struct: dict):
         return map_nested(self._recursive_tensorize, data_struct)
 
-    def format_row(self, pa_table: pa.Table) -> dict:
+    def format_row(self, pa_table: pa.Table) -> Mapping:
         row = self.numpy_arrow_extractor().extract_row(pa_table)
         if self.lazy:
             return self.lazy_row_type(row, self)
@@ -96,7 +100,7 @@ class TFFormatter(Formatter[dict, "tf.Tensor", dict]):
         column = self._consolidate(column)
         return column
 
-    def format_batch(self, pa_table: pa.Table) -> dict:
+    def format_batch(self, pa_table: pa.Table) -> Mapping:
         batch = self.numpy_arrow_extractor().extract_batch(pa_table)
         if self.lazy:
             return self.lazy_batch_type(batch, self)
@@ -105,6 +109,3 @@ class TFFormatter(Formatter[dict, "tf.Tensor", dict]):
         for column_name in batch:
             batch[column_name] = self._consolidate(batch[column_name])
         return batch
-
-    lazy_row_type = NumpyFormatter.lazy_row_type
-    lazy_batch_type = NumpyFormatter.lazy_batch_type

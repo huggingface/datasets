@@ -36,7 +36,7 @@ logger = logging.get_logger(__name__)
 _FORMAT_TYPES: Dict[Optional[str], type] = {}
 _FORMAT_TYPES_ALIASES: Dict[Optional[str], str] = {}
 _FORMAT_TYPES_ALIASES_UNAVAILABLE: Dict[Optional[str], Exception] = {}
-_FORMAT_SUPPORTS_LAZY_FORMATTING = Dict[Optional[str], bool] = {}
+_FORMAT_SUPPORTS_LAZY_FORMATTING: Dict[Optional[str], bool] = {}
 
 
 def _register_formatter(

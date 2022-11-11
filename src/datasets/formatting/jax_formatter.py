@@ -14,6 +14,7 @@
 
 # Lint as: python3
 import sys
+from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -29,7 +30,7 @@ if TYPE_CHECKING:
     import jax.numpy as jnp
 
 
-class JaxFormatter(Formatter[dict, "jnp.ndarray", dict]):
+class JaxFormatter(Formatter[Mapping, "jnp.ndarray", Mapping]):
     lazy_row_type = NumpyFormatter.lazy_row_type
     lazy_column_type = NumpyFormatter.lazy_batch_type
 
@@ -89,8 +90,10 @@ class JaxFormatter(Formatter[dict, "jnp.ndarray", dict]):
     def recursive_tensorize(self, data_struct: dict):
         return map_nested(self._recursive_tensorize, data_struct)
 
-    def format_row(self, pa_table: pa.Table) -> dict:
+    def format_row(self, pa_table: pa.Table) -> Mapping:
         row = self.numpy_arrow_extractor().extract_row(pa_table)
+        if self.lazy:
+            return self.lazy_row_type(row, self)
         row = self.python_features_decoder.decode_row(row)
         return self.recursive_tensorize(row)
 
@@ -101,8 +104,10 @@ class JaxFormatter(Formatter[dict, "jnp.ndarray", dict]):
         column = self._consolidate(column)
         return column
 
-    def format_batch(self, pa_table: pa.Table) -> dict:
+    def format_batch(self, pa_table: pa.Table) -> Mapping:
         batch = self.numpy_arrow_extractor().extract_batch(pa_table)
+        if self.lazy:
+            return self.lazy_row_type(batch, self)
         batch = self.python_features_decoder.decode_batch(batch)
         batch = self.recursive_tensorize(batch)
         for column_name in batch:

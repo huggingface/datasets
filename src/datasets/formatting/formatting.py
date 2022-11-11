@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from collections import UserDict
+from collections.abc import Mapping
 from functools import partial
 
 # Lint as: python3
@@ -336,7 +337,7 @@ class ArrowFormatter(Formatter[pa.Table, pa.Array, pa.Table]):
         return self.simple_arrow_extractor().extract_batch(pa_table)
 
 
-class PythonFormatter(Formatter[dict, list, dict]):
+class PythonFormatter(Formatter[Mapping, list, Mapping]):
     class LazyExample(LazyDict):
         def decode(self, feature, value):
             return decode_nested_example(feature, value) if value is not None else None
@@ -348,12 +349,9 @@ class PythonFormatter(Formatter[dict, list, dict]):
     lazy_row_type = LazyExample
     lazy_batch_type = LazyBatch
 
-    def __init__(self, features=None, lazy=False):
-        super().__init__(features=features, lazy=lazy)
-
-    def format_row(self, pa_table: pa.Table) -> dict:
+    def format_row(self, pa_table: pa.Table) -> Mapping:
         row = self.python_arrow_extractor().extract_row(pa_table)
-        row = self.python_features_decoder.decode_row(row) if self.lazy else self.lazy_row_type(row, self)
+        row = self.python_features_decoder.decode_row(row) if not self.lazy else self.lazy_row_type(row, self)
         return row
 
     def format_column(self, pa_table: pa.Table) -> list:
@@ -361,13 +359,15 @@ class PythonFormatter(Formatter[dict, list, dict]):
         column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
         return column
 
-    def format_batch(self, pa_table: pa.Table) -> dict:
+    def format_batch(self, pa_table: pa.Table) -> Mapping:
         batch = self.python_arrow_extractor().extract_batch(pa_table)
-        batch = self.python_features_decoder.decode_batch(batch) if self.lazy else self.lazy_batch_type(batch, self)
+        batch = (
+            self.python_features_decoder.decode_batch(batch) if not self.lazy else self.lazy_batch_type(batch, self)
+        )
         return batch
 
 
-class PandasFormatter(Formatter):
+class PandasFormatter(Formatter[pd.DataFrame, pd.Series, pd.DataFrame]):
     def format_row(self, pa_table: pa.Table) -> pd.DataFrame:
         row = self.pandas_arrow_extractor().extract_row(pa_table)
         row = self.pandas_features_decoder.decode_row(row)
