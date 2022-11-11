@@ -211,61 +211,6 @@ class BaseDatasetTest(TestCase):
                     self.assertListEqual(dset_subset[-1:]["filename"], ["my_name-train_1"])
                     self.assertListEqual(dset_subset["filename"][-1:], ["my_name-train_1"])
 
-    def test_dataset_iter_batch(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            n = 25
-            dset = Dataset.from_dict({"i": list(range(n))})
-            with self._to(in_memory, tmp_dir, dset):
-                all_examples = list(range(n))
-
-                batch_size = 4
-                drop_last_batch = False
-                batches = []
-                for i, batch in enumerate(dset.iter(batch_size, drop_last_batch=drop_last_batch)):
-                    self.assertEqual(batch, {"i": all_examples[i * batch_size : (i + 1) * batch_size]})
-                    batches.append(batch)
-                if drop_last_batch:
-                    self.assertTrue(all(len(batch["i"]) == batch_size for batch in batches))
-                else:
-                    self.assertTrue(all(len(batch["i"]) == batch_size for batch in batches[:-1]))
-                    self.assertLessEqual(len(batches[-1]["i"]), batch_size)
-
-                batch_size = 5
-                drop_last_batch = False
-                batches = []
-                for i, batch in enumerate(dset.iter(batch_size, drop_last_batch=drop_last_batch)):
-                    self.assertEqual(batch, {"i": all_examples[i * batch_size : (i + 1) * batch_size]})
-                    batches.append(batch)
-                if drop_last_batch:
-                    self.assertTrue(all(len(batch["i"]) == batch_size for batch in batches))
-                else:
-                    self.assertTrue(all(len(batch["i"]) == batch_size for batch in batches[:-1]))
-                    self.assertLessEqual(len(batches[-1]["i"]), batch_size)
-
-                batch_size = 4
-                drop_last_batch = True
-                batches = []
-                for i, batch in enumerate(dset.iter(batch_size, drop_last_batch=drop_last_batch)):
-                    self.assertEqual(batch, {"i": all_examples[i * batch_size : (i + 1) * batch_size]})
-                    batches.append(batch)
-                if drop_last_batch:
-                    self.assertTrue(all(len(batch["i"]) == batch_size for batch in batches))
-                else:
-                    self.assertTrue(all(len(batch["i"]) == batch_size for batch in batches[:-1]))
-                    self.assertLessEqual(len(batches[-1]["i"]), batch_size)
-
-                batch_size = 5
-                drop_last_batch = True
-                batches = []
-                for i, batch in enumerate(dset.iter(batch_size, drop_last_batch=drop_last_batch)):
-                    self.assertEqual(batch, {"i": all_examples[i * batch_size : (i + 1) * batch_size]})
-                    batches.append(batch)
-                if drop_last_batch:
-                    self.assertTrue(all(len(batch["i"]) == batch_size for batch in batches))
-                else:
-                    self.assertTrue(all(len(batch["i"]) == batch_size for batch in batches[:-1]))
-                    self.assertLessEqual(len(batches[-1]["i"]), batch_size)
-
     def test_dummy_dataset_deepcopy(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir).select(range(10)) as dset:
@@ -3019,6 +2964,23 @@ def test_interleave_datasets_probabilities_oversampling_strategy():
             [d1, d2, d3], stopping_strategy="all_exhausted", probabilities=probabilities, seed=seed
         )._fingerprint
     )
+
+
+@pytest.mark.parametrize("batch_size", [4, 5])
+@pytest.mark.parametrize("drop_last_batch", [False, True])
+def test_dataset_iter_batch(batch_size, drop_last_batch):
+    n = 25
+    dset = Dataset.from_dict({"i": list(range(n))})
+    all_col_values = list(range(n))
+    batches = []
+    for i, batch in enumerate(dset.iter(batch_size, drop_last_batch=drop_last_batch)):
+        assert batch == {"i": all_col_values[i * batch_size : (i + 1) * batch_size]}
+        batches.append(batch)
+    if drop_last_batch:
+        assert all(len(batch["i"]) == batch_size for batch in batches)
+    else:
+        assert all(len(batch["i"]) == batch_size for batch in batches[:-1])
+        assert len(batches[-1]["i"]) <= batch_size
 
 
 @pytest.mark.parametrize(
