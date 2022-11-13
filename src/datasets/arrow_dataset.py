@@ -2747,7 +2747,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         update_data = None
 
         lazy_formatting = not input_columns and supports_lazy_formatting(self._format_type)
-        print(lazy_formatting)
         input_formatter = get_formatter(
             self._format_type, features=self.features, lazy=lazy_formatting, **self._format_kwargs
         )
@@ -2761,8 +2760,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     self.decodable_data_to_restore = {}
 
                 def __getitem__(self, key):
-                    col_requires_decoding = self.formatter.features._column_requires_decoding.get(key)
-                    if key not in self.decodable_data_to_restore and col_requires_decoding:
+                    if (
+                        key in self.cols_to_decode
+                        and self.formatter.features._column_requires_decoding[key]
+                        and key not in self.decodable_data_to_restore
+                    ):
                         self.decodable_data_to_restore[key] = self.data[key]
                     return super().__getitem__(key)
 
@@ -2777,9 +2779,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     super().__delitem__(key)
 
             if not batched:
-                input_formatter.row_return_type = DictWithDecodableDataToRestore
+                input_formatter.lazy_row_type = DictWithDecodableDataToRestore
             else:
-                input_formatter.batch_return_type = DictWithDecodableDataToRestore
+                input_formatter.lazy_batch_type = DictWithDecodableDataToRestore
 
         else:
 
@@ -2842,10 +2844,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if with_rank:
                 additional_args += (rank,)
             processed_inputs = function(*fn_args, *additional_args, **fn_kwargs)
-            processed_inputs = (
-                {**processed_inputs.data, **processed_inputs.decodable_data_to_restore}
+            # Merging these two dicts here would break the ds.map(lambda x: x, remove_columns=["ds_col"]) case
+            processed_inputs, inputs_to_restore = (
+                (processed_inputs.data, processed_inputs.decodable_data_to_restore)
                 if isinstance(processed_inputs, DictWithDecodableDataToRestore)
-                else processed_inputs
+                else (processed_inputs, {})
             )
             if update_data is None:
                 # Check if the function returns updated examples
@@ -2866,7 +2869,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 if input_num_examples != processed_inputs_num_examples:
                     raise NumExamplesMismatchError()
             if isinstance(inputs_to_merge, dict) and isinstance(processed_inputs, Mapping):
-                return {**inputs_to_merge, **processed_inputs}
+                return {**inputs_to_merge, **processed_inputs, **inputs_to_restore}
             else:
                 return processed_inputs
 

@@ -366,8 +366,6 @@ def test_dataset_with_image_feature_map(shared_datadir):
 
 @require_pil
 def test_formatted_dataset_with_image_feature_map(shared_datadir):
-    import PIL.Image
-
     image_path = str(shared_datadir / "test_image_rgb.jpg")
     data = {"image": [image_path], "caption": ["cats sleeping"]}
     features = Features({"image": Image(), "caption": Value("string")})

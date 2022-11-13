@@ -1259,7 +1259,8 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Uni
     # Object with special decoding:
     elif isinstance(schema, (Audio, Image)):
         # we pass the token to read and decode files from private repositories in streaming mode
-        return schema.decode_example(obj, token_per_repo_id=token_per_repo_id) if obj is not None else None
+        if obj is not None and schema.decode:
+            return schema.decode_example(obj, token_per_repo_id=token_per_repo_id)
     return obj
 
 

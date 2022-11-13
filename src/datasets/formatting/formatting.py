@@ -266,25 +266,27 @@ class LazyDict(UserDict):
     def __init__(self, data: dict, formatter: "Formatter"):
         self.data = data
         self.formatter = formatter
-        self.features = (
-            {
-                key: feature
-                for key, feature in self.formatter.features.items()
-                if self.formatter.features._column_requires_decoding[key]
-            }
-            if self.formatter.features
-            else {}
-        )
+        self.cols_to_decode = set(data.keys())
 
     def __getitem__(self, key):
         value = super().__getitem__(key)
-        if self.features and key in self.features:
-            value = self.decode(self.features[key], value)
-            self[key] = value
-            del self.features[key]
+        if key in self.cols_to_decode:
+            value = self.decode(value, self.formatter.features[key], key)
+            self.data[key] = value
+            self.cols_to_decode.remove(key)
         return value
 
-    def decode(self, feature, value):
+    def __setitem__(self, key, value):
+        if key in self.cols_to_decode:
+            self.cols_to_decode.remove(key)
+        super().__setitem__(key, value)
+
+    def __delitem__(self, key) -> None:
+        if key in self.cols_to_decode:
+            self.cols_to_decode.remove(key)
+        super().__delitem__(key)
+
+    def decode(self, value, feature, key):
         raise NotImplementedError
 
 
@@ -339,12 +341,20 @@ class ArrowFormatter(Formatter[pa.Table, pa.Array, pa.Table]):
 
 class PythonFormatter(Formatter[Mapping, list, Mapping]):
     class LazyExample(LazyDict):
-        def decode(self, feature, value):
-            return decode_nested_example(feature, value) if value is not None else None
+        def decode(self, value, feature, key):
+            return (
+                (decode_nested_example(feature, value) if value is not None else None)
+                if self.formatter.features._column_requires_decoding[key]
+                else value
+            )
 
     class LazyBatch(LazyDict):
-        def decode(self, feature, value):
-            return [decode_nested_example(feature, v) if value is not None else None for v in value]
+        def decode(self, value, feature, key):
+            return (
+                [decode_nested_example(feature, v) if value is not None else None for v in value]
+                if self.formatter.features._column_requires_decoding[key]
+                else value
+            )
 
     lazy_row_type = LazyExample
     lazy_batch_type = LazyBatch

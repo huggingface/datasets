@@ -12,15 +12,23 @@ from .formatting import Formatter, LazyDict
 
 class NumpyFormatter(Formatter[Mapping, np.ndarray, Mapping]):
     class LazyExample(LazyDict):
-        def decode(self, feature, value):
-            value = decode_nested_example(feature, value) if value is not None else None
+        def decode(self, value, feature, key):
+            value = (
+                (decode_nested_example(feature, value) if value is not None else None)
+                if self.formatter.features._column_requires_decoding[key]
+                else value
+            )
             return self.formatter.recursive_tensorize(value)
 
     class LazyBatch(LazyDict):
-        def decode(self, feature, value):
-            value = [decode_nested_example(feature, v) if value is not None else None for v in value]
+        def decode(self, value, feature, key):
+            value = (
+                [decode_nested_example(feature, v) if value is not None else None for v in value]
+                if self.formatter.features._column_requires_decoding[key]
+                else value
+            )
             value = self.formatter.recursive_tensorize(value)
-            return self.formatter.consolidate(value)
+            return self.formatter._consolidate(value)
 
     lazy_row_type = LazyExample
     lazy_batch_type = LazyBatch
