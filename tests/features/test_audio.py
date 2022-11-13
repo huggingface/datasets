@@ -637,7 +637,7 @@ def test_dataset_with_audio_feature_map_is_not_decoded(shared_datadir):
     dset = Dataset.from_dict(data, features=features)
 
     expected_audio = features.encode_batch(data)["audio"][0]
-    for item in dset._iter(decoded=False):
+    for item in dset.cast_column("audio", Audio(decode=False)):
         assert item.keys() == {"audio", "text"}
         assert item == {"audio": expected_audio, "text": "Hello"}
 
@@ -646,7 +646,7 @@ def test_dataset_with_audio_feature_map_is_not_decoded(shared_datadir):
         return example
 
     processed_dset = dset.map(process_text)
-    for item in processed_dset._iter(decoded=False):
+    for item in processed_dset.cast_column("audio", Audio(decode=False)):
         assert item.keys() == {"audio", "text"}
         assert item == {"audio": expected_audio, "text": "Hello World!"}
 
@@ -663,7 +663,7 @@ def test_dataset_with_audio_feature_map_is_decoded(shared_datadir):
         return example
 
     decoded_dset = dset.map(process_audio_sampling_rate_by_example)
-    for item in decoded_dset._iter(decoded=False):
+    for item in decoded_dset.cast_column("audio", Audio(decode=False)):
         assert item.keys() == {"audio", "text", "double_sampling_rate"}
         assert item["double_sampling_rate"] == 88200
 
@@ -675,7 +675,7 @@ def test_dataset_with_audio_feature_map_is_decoded(shared_datadir):
         return batch
 
     decoded_dset = dset.map(process_audio_sampling_rate_by_batch, batched=True)
-    for item in decoded_dset._iter(decoded=False):
+    for item in decoded_dset.cast_column("audio", Audio(decode=False)):
         assert item.keys() == {"audio", "text", "double_sampling_rate"}
         assert item["double_sampling_rate"] == 88200
 
