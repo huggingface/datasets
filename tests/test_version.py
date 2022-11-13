@@ -16,7 +16,8 @@ from datasets.utils.version import Version
         (None, False),
     ],
 )
-def test_version_equalities(other, expected_equality):
+def test_version_equality_and_hash(other, expected_equality):
     version = Version("1.0.0")
     assert (version == other) is expected_equality
     assert (version != other) is not expected_equality
+    assert (hash(version) == hash(other)) is expected_equality
