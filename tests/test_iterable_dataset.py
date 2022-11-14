@@ -592,6 +592,19 @@ def test_iterable_dataset_from_generator():
     assert list(dataset) == data
 
 
+def test_iterable_dataset_from_generator_with_shards():
+
+    def gen(shard_names):
+        for shard_name in shard_names:
+            for i in range(10):
+                yield {"shard_name": shard_name, "i": i}
+
+    shard_names = [f"data{shard_idx}.txt" for shard_idx in range(4)]
+    dataset = IterableDataset.from_generator(gen, gen_kwargs={"shard_names": shard_names})
+    assert isinstance(dataset, IterableDataset)
+    assert dataset.n_shards == len(shard_names)
+
+
 @require_torch
 def test_iterable_dataset_factory_torch_integration():
     import torch
