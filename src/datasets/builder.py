@@ -92,6 +92,10 @@ class ManualDownloadError(DatasetBuildError):
     pass
 
 
+class DatasetGenerationError(DatasetBuildError):
+    pass
+
+
 @dataclass
 class BuilderConfig:
     """Base class for :class:`DatasetBuilder` data configuration.
@@ -1495,19 +1499,22 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
         shard_id = 0
         num_examples_progress_update = 0
-        writer = writer_class(
-            features=self.info.features,
-            path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
-            writer_batch_size=self._writer_batch_size,
-            hash_salt=split_info.name,
-            check_duplicates=check_duplicate_keys,
-            storage_options=self._fs.storage_options,
-            embed_local_files=embed_local_files,
-        )
+        writer = None
         try:
             _time = time.time()
             for key, record in generator:
-                if max_shard_size is not None and writer._num_bytes > max_shard_size:
+                # Only initialize the writer when we have the first record (to avoid having to do the clean-up if an error occurs before that)
+                if writer is None:
+                    writer = writer_class(
+                        features=self.info.features,
+                        path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                        writer_batch_size=self._writer_batch_size,
+                        hash_salt=split_info.name,
+                        check_duplicates=check_duplicate_keys,
+                        storage_options=self._fs.storage_options,
+                        embed_local_files=embed_local_files,
+                    )
+                elif max_shard_size is not None and writer._num_bytes > max_shard_size:
                     num_examples, num_bytes = writer.finalize()
                     writer.close()
                     shard_lengths.append(num_examples)
@@ -1530,14 +1537,19 @@ class GeneratorBasedBuilder(DatasetBuilder):
                     _time = time.time()
                     yield job_id, False, num_examples_progress_update
                     num_examples_progress_update = 0
+        except Exception as e:
+            raise DatasetGenerationError(
+                f"An error occured while generating the dataset: {type(e).__name__}: {e}"
+            ) from None
         finally:
             yield job_id, False, num_examples_progress_update
             num_shards = shard_id + 1
-            num_examples, num_bytes = writer.finalize()
-            writer.close()
-            shard_lengths.append(num_examples)
-            total_num_examples += num_examples
-            total_num_bytes += num_bytes
+            if writer is not None:
+                num_examples, num_bytes = writer.finalize()
+                writer.close()
+                shard_lengths.append(num_examples)
+                total_num_examples += num_examples
+                total_num_bytes += num_bytes
 
         yield job_id, True, (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths)
 
@@ -1741,16 +1753,19 @@ class ArrowBasedBuilder(DatasetBuilder):
 
         shard_id = 0
         num_examples_progress_update = 0
-        writer = writer_class(
-            features=self.info.features,
-            path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
-            storage_options=self._fs.storage_options,
-            embed_local_files=embed_local_files,
-        )
+        writer = None
         try:
             _time = time.time()
             for _, table in generator:
-                if max_shard_size is not None and writer._num_bytes > max_shard_size:
+                # Only initialize the writer when we have the first record (to avoid having to do the clean-up if an error occurs before that)
+                if writer is None:
+                    writer = writer_class(
+                        features=self.info.features,
+                        path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                        storage_options=self._fs.storage_options,
+                        embed_local_files=embed_local_files,
+                    )
+                elif max_shard_size is not None and writer._num_bytes > max_shard_size:
                     num_examples, num_bytes = writer.finalize()
                     writer.close()
                     shard_lengths.append(num_examples)
@@ -1769,14 +1784,19 @@ class ArrowBasedBuilder(DatasetBuilder):
                     _time = time.time()
                     yield job_id, False, num_examples_progress_update
                     num_examples_progress_update = 0
+        except Exception as e:
+            raise DatasetGenerationError(
+                f"An error occured while generating the dataset: {type(e).__name__}: {e}"
+            ) from None
         finally:
             yield job_id, False, num_examples_progress_update
             num_shards = shard_id + 1
-            num_examples, num_bytes = writer.finalize()
-            writer.close()
-            shard_lengths.append(num_examples)
-            total_num_examples += num_examples
-            total_num_bytes += num_bytes
+            if writer is not None:
+                num_examples, num_bytes = writer.finalize()
+                writer.close()
+                shard_lengths.append(num_examples)
+                total_num_examples += num_examples
+                total_num_bytes += num_bytes
 
         yield job_id, True, (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths)
 
