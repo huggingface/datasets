@@ -277,6 +277,22 @@ Create a dataset from a Python generator with [`~Dataset.from_generator`]:
 
 This approach supports loading data larger than available memory.
 
+You can also define a sharded dataset by passing lists to `gen_kwargs`:
+
+```py
+>>> def gen(shards):
+...     for shard in shards:
+...         with open(shard) as f:
+...             for line in f:
+...                 yield {"line": line}
+...
+>>> shards = [f"data{i}.txt" for i in range(32)]
+>>> ds = Dataset.from_generator(gen, gen_kwargs={"shards": shards})
+>>> ds = ds.shuffle(seed=42, buffer_size=10_000)  # shuffles the shards order + uses a shuffle buffer
+>>> from torch.utils.data import DataLoader
+>>> dataloader = .DataLoader(ds.with_format("torch"), num_workers=4)  # give each worker a subset of 32/4=8 shards
+```
+
 ### Pandas DataFrame
 
 Load Pandas DataFrames with [`~Dataset.from_pandas`]:
