@@ -423,11 +423,7 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
                 if dataset_metadata["dataset_info"].get("config_name") == "default":
                     dataset_metadata["dataset_info"].pop("config_name", None)
             else:
-                dataset_metadata[
-                    "dataset_info"
-                ] = (
-                    []
-                )  # {'dataset_info': [{'config_name': 'v1', 'features': [{'name': 'x', 'dtype': 'int64'}, {'name': 'y', 'dtype': 'string'}], 'splits': [{'name': 'train', 'num_bytes': 116, 'num_examples': 8}, {'name': 'test', 'num_bytes': 46, 'num_examples': 3}], 'download_size': 1703, 'dataset_size': 162}]}
+                dataset_metadata["dataset_info"] = []
                 for config_name, dataset_info_yaml_dict in total_dataset_infos.items():
                     # add the config_name field in first position
                     dataset_info_yaml_dict.pop("config_name", None)
