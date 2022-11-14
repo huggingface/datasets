@@ -27,7 +27,7 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
             **kwargs,
         )
 
-    def read(self):
+    def read(self, num_proc: Optional[int] = None):
         # Build iterable dataset
         if self.streaming:
             dataset = self.builder.as_streaming_dataset(split="train")
@@ -46,6 +46,7 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
                 # try_from_hf_gcs=try_from_hf_gcs,
                 base_path=base_path,
                 use_auth_token=use_auth_token,
+                num_proc=num_proc,
             )
             dataset = self.builder.as_dataset(
                 split="train", ignore_verifications=ignore_verifications, in_memory=self.keep_in_memory
