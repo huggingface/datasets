@@ -791,7 +791,7 @@ class IterableDataset(DatasetInfoMixin):
         >>> ds = IterableDataset.from_generator(gen, gen_kwargs={"shards": shards})
         >>> ds = ds.shuffle(seed=42, buffer_size=10_000)  # shuffles the shards order + uses a shuffle buffer
         >>> from torch.utils.data import DataLoader
-        >>> dataloader = .DataLoader(ds.with_format("torch"), num_workers=4)  # give each worker a subset of 32/4=8 shards
+        >>> dataloader = DataLoader(ds.with_format("torch"), num_workers=4)  # give each worker a subset of 32/4=8 shards
         ```
         """
         from .io.generator import GeneratorDatasetInputStream
