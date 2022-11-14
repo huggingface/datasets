@@ -593,7 +593,6 @@ def test_iterable_dataset_from_generator():
 
 
 def test_iterable_dataset_from_generator_with_shards():
-
     def gen(shard_names):
         for shard_name in shard_names:
             for i in range(10):
