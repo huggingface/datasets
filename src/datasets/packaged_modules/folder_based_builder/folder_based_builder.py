@@ -32,7 +32,7 @@ else:
 
 def count_path_segments(path):
     sep = "/" if is_remote_url(path) else os.sep
-    return os.path.normpath(path).count(sep)
+    return path.count(sep)
 
 
 @dataclass
