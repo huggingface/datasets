@@ -20,19 +20,24 @@
 import copy
 import functools
 import itertools
+import multiprocessing.pool
 import os
+import queue
 import re
 import types
 from contextlib import contextmanager
 from dataclasses import fields, is_dataclass
 from io import BytesIO as StringIO
-from multiprocessing import Pool, RLock
+from multiprocessing import Manager, Pool, RLock
+from queue import Empty
 from shutil import disk_usage
 from types import CodeType, FunctionType
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, TypeVar, Union
 from urllib.parse import urlparse
 
 import dill
+import multiprocess
+import multiprocess.pool
 import numpy as np
 from packaging import version
 from tqdm.auto import tqdm
@@ -1328,3 +1333,32 @@ def copyfunc(func):
     result = types.FunctionType(func.__code__, func.__globals__, func.__name__, func.__defaults__, func.__closure__)
     result.__kwdefaults__ = func.__kwdefaults__
     return result
+
+
+X = TypeVar("X")
+Y = TypeVar("Y")
+
+
+def _write_generator_to_queue(queue: queue.Queue, func: Callable[[X], Iterable[Y]], arg: X) -> int:
+    for i, result in enumerate(func(arg)):
+        queue.put(result)
+    return i
+
+
+def iflatmap_unordered(
+    pool: Union[multiprocessing.pool.Pool, multiprocess.pool.Pool],
+    func: Callable[[X], Iterable[Y]],
+    iterable: Iterable[X],
+) -> Iterable[Y]:
+    manager_cls = Manager if isinstance(pool, multiprocessing.pool.Pool) else multiprocess.Manager
+    with manager_cls() as manager:
+        queue = manager.Queue()
+        async_results = [pool.apply_async(_write_generator_to_queue, (queue, func, arg)) for arg in iterable]
+        while True:
+            try:
+                yield queue.get(timeout=0.05)
+            except Empty:
+                if all(async_result.ready() for async_result in async_results) and queue.empty():
+                    break
+        # we get the result in case there's an error to raise
+        [async_result.get() for async_result in async_results]

@@ -223,6 +223,21 @@ You can specify [`Dataset.from_sql#con`] as a [URI string](https://docs.sqlalche
 
 </Tip>
 
+## Multiprocessing
+
+When a dataset is made of several files (that we call "shards"), it is possible to significantly speed up the dataset downloading and preparation step.
+
+You can choose how many processes you'd like to use to prepare a dataset in parallel using `num_proc`.
+In this case, each process is given a subset of shards to prepare:
+
+```python
+from datasets import load_dataset
+
+oscar_afrikaans = load_dataset("oscar-corpus/OSCAR-2201", "af", num_proc=8)
+imagenet = load_dataset("imagenet-1k", num_proc=8)
+ml_librispeech_spanish = load_dataset("facebook/multilingual_librispeech", "spanish", num_proc=8)
+```
+
 ## In-memory data
 
 🤗 Datasets will also allow you to create a [`Dataset`] directly from in-memory data structures like Python dictionaries and Pandas DataFrames.
