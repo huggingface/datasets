@@ -62,6 +62,7 @@ jobs:
         run: |
           pip install .[tests]
           pip install -r additional-tests-requirements.txt --no-deps
+          pip uninstall -y typer && pip install typer==0.4.2
           python -m spacy download en_core_web_sm
           python -m spacy download fr_core_news_sm
       - name: Install dependencies (latest versions)
@@ -72,9 +73,6 @@ jobs:
       - name: Install dependencies (minimum versions)
         if: ${{ matrix.deps_versions != 'latest' }}
         run: pip install pyarrow==6.0.1 huggingface-hub==0.2.0 transformers dill==0.3.1.1
-      - name: Reinstall typer
-        if: ${{ matrix.os == 'windows-latest' }}
-        run: pip uninstall -y typer && pip install typer==0.4.2
       - name: Test with pytest
         run: |
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
