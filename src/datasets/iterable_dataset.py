@@ -764,6 +764,8 @@ class IterableDataset(DatasetInfoMixin):
             generator (:obj:`Callable`): A generator function that `yields` examples.
             features (:class:`Features`, optional): Dataset features.
             gen_kwargs(:obj:`dict`, optional): Keyword arguments to be passed to the `generator` callable.
+                You can define a sharded iterable dataset by passing the list of shards in `gen_kwargs`.
+                This can be used to improve shuffling and when iterating over the dataset with multiple workers.
 
         Returns:
             :class:`IterableDataset`
@@ -776,6 +778,20 @@ class IterableDataset(DatasetInfoMixin):
         ...     yield {"text": "Bad", "label": 1}
         ...
         >>> ds = IterableDataset.from_generator(gen)
+        ```
+
+        ```py
+        >>> def gen(shards):
+        ...     for shard in shards:
+        ...         with open(shard) as f:
+        ...             for line in f:
+        ...                 yield {"line": line}
+        ...
+        >>> shards = [f"data{i}.txt" for i in range(32)]
+        >>> ds = IterableDataset.from_generator(gen, gen_kwargs={"shards": shards})
+        >>> ds = ds.shuffle(seed=42, buffer_size=10_000)  # shuffles the shards order + uses a shuffle buffer
+        >>> from torch.utils.data import DataLoader
+        >>> dataloader = .DataLoader(ds.with_format("torch"), num_workers=4)  # give each worker a subset of 32/4=8 shards
         ```
         """
         from .io.generator import GeneratorDatasetInputStream
