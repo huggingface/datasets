@@ -199,7 +199,15 @@ class TypedSequence:
                 # We only do it if trying_type is False - since this is what the user asks for.
                 out = cast_array_to_feature(out, type, allow_number_to_str=not self.trying_type)
             return out
-        except (TypeError, pa.lib.ArrowInvalid) as e:  # handle type errors and overflows
+        except (
+            TypeError,
+            pa.lib.ArrowInvalid,
+            pa.lib.ArrowNotImplementedError,
+        ) as e:  # handle type errors and overflows
+            # Ignore ArrowNotImplementedError caused by trying type, otherwise re-raise
+            if not self.trying_type and isinstance(e, pa.lib.ArrowNotImplementedError):
+                raise
+
             if self.trying_type:
                 try:  # second chance
                     if isinstance(data, np.ndarray):
@@ -636,9 +644,17 @@ class BeamWriter:
 
         from .utils import beam_utils
 
+        shards_metadata = [
+            metadata
+            for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[0].metadata_list
+        ]
+        shards = [metadata.path for metadata in shards_metadata]
+        num_bytes = sum([metadata.size_in_bytes for metadata in shards_metadata])
+        shard_lengths = get_parquet_lengths(shards)
+
         # Convert to arrow
         if self._path.endswith(".arrow"):
-            logger.info(f"Converting parquet file {self._parquet_path} to arrow {self._path}")
+            logger.info(f"Converting parquet files {self._parquet_path} to arrow {self._path}")
             shards = [
                 metadata.path
                 for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[
@@ -646,9 +662,15 @@ class BeamWriter:
                 ].metadata_list
             ]
             try:  # stream conversion
-                sources = [beam.io.filesystems.FileSystems.open(shard) for shard in shards]
-                with beam.io.filesystems.FileSystems.create(self._path) as dest:
-                    parquet_to_arrow(sources, dest)
+                disable = not logging.is_progress_bar_enabled()
+                num_bytes = 0
+                for shard in logging.tqdm(shards, unit="shards", disable=disable):
+                    with beam.io.filesystems.FileSystems.open(shard) as source:
+                        with beam.io.filesystems.FileSystems.create(
+                            shard.replace(".parquet", ".arrow")
+                        ) as destination:
+                            shard_num_bytes, _ = parquet_to_arrow(source, destination)
+                            num_bytes += shard_num_bytes
             except OSError as e:  # broken pipe can happen if the connection is unstable, do local conversion instead
                 if e.errno != errno.EPIPE:  # not a broken pipe
                     raise
@@ -657,41 +679,41 @@ class BeamWriter:
                 )
                 local_convert_dir = os.path.join(self._cache_dir, "beam_convert")
                 os.makedirs(local_convert_dir, exist_ok=True)
-                local_arrow_path = os.path.join(local_convert_dir, hash_url_to_filename(self._parquet_path) + ".arrow")
-                local_shards = []
-                for shard in shards:
+                disable = not logging.is_progress_bar_enabled()
+                num_bytes = 0
+                for shard in logging.tqdm(shards, unit="shards", disable=disable):
                     local_parquet_path = os.path.join(local_convert_dir, hash_url_to_filename(shard) + ".parquet")
-                    local_shards.append(local_parquet_path)
                     beam_utils.download_remote_to_local(shard, local_parquet_path)
-                parquet_to_arrow(local_shards, local_arrow_path)
-                beam_utils.upload_local_to_remote(local_arrow_path, self._path)
-            output_file_metadata = beam.io.filesystems.FileSystems.match([self._path], limits=[1])[0].metadata_list[0]
-            num_bytes = output_file_metadata.size_in_bytes
-        else:
-            num_bytes = sum(
-                [
-                    metadata.size_in_bytes
-                    for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[
-                        0
-                    ].metadata_list
-                ]
-            )
+                    local_arrow_path = local_parquet_path.replace(".parquet", ".arrow")
+                    shard_num_bytes, _ = parquet_to_arrow(local_parquet_path, local_arrow_path)
+                    num_bytes += shard_num_bytes
+                    remote_arrow_path = shard.replace(".parquet", ".arrow")
+                    beam_utils.upload_local_to_remote(local_arrow_path, remote_arrow_path)
 
         # Save metrics
         counters_dict = {metric.key.metric.name: metric.result for metric in metrics_query_result["counters"]}
         self._num_examples = counters_dict["num_examples"]
         self._num_bytes = num_bytes
+        self._shard_lengths = shard_lengths
         return self._num_examples, self._num_bytes
 
 
-def parquet_to_arrow(sources, destination):
-    """Convert parquet files to arrow file. Inputs can be str paths or file-like objects"""
-    stream = None if isinstance(destination, str) else destination
+def get_parquet_lengths(sources) -> List[int]:
+    shard_lengths = []
     disable = not logging.is_progress_bar_enabled()
+    for source in logging.tqdm(sources, unit="parquet files", disable=disable):
+        parquet_file = pa.parquet.ParquetFile(source)
+        shard_lengths.append(parquet_file.metadata.num_rows)
+    return shard_lengths
+
+
+def parquet_to_arrow(source, destination) -> List[int]:
+    """Convert parquet file to arrow file. Inputs can be str paths or file-like objects"""
+    stream = None if isinstance(destination, str) else destination
     with ArrowWriter(path=destination, stream=stream) as writer:
-        for source in logging.tqdm(sources, unit="sources", disable=disable):
-            parquet_file = pa.parquet.ParquetFile(source)
-            for record_batch in parquet_file.iter_batches():
-                pa_table = pa.Table.from_batches([record_batch])
-                writer.write_table(pa_table)
-    return destination
+        parquet_file = pa.parquet.ParquetFile(source)
+        for record_batch in parquet_file.iter_batches():
+            pa_table = pa.Table.from_batches([record_batch])
+            writer.write_table(pa_table)
+        num_bytes, num_examples = writer.finalize()
+    return num_bytes, num_examples

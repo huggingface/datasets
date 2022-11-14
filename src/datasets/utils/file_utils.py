@@ -20,7 +20,7 @@ from functools import partial
 from hashlib import sha256
 from pathlib import Path
 from typing import List, Optional, Type, TypeVar, Union
-from urllib.parse import quote, urljoin, urlparse
+from urllib.parse import urljoin, urlparse
 
 import huggingface_hub
 import requests
@@ -107,11 +107,6 @@ def hf_github_url(path: str, name: str, dataset=True, revision: Optional[str] = 
         return config.REPO_DATASETS_URL.format(revision=revision, path=path, name=name)
     else:
         return config.REPO_METRICS_URL.format(revision=revision, path=path, name=name)
-
-
-def hf_hub_url(repo_id: str, path: str, revision: Optional[str] = None) -> str:
-    revision = revision or config.HUB_DEFAULT_VERSION
-    return config.HUB_DATASETS_URL.format(repo_id=repo_id, path=quote(path), revision=quote(revision))
 
 
 def url_or_path_join(base_name: str, *pathnames: str) -> str:
