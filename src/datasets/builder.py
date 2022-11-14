@@ -25,7 +25,6 @@ import shutil
 import textwrap
 import time
 import urllib
-import sys
 import warnings
 from dataclasses import dataclass
 from functools import partial
@@ -1539,9 +1538,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
                     yield job_id, False, num_examples_progress_update
                     num_examples_progress_update = 0
         except Exception as e:
-            raise DatasetGenerationError(
-                f"An error occured while generating the dataset"
-            ) from e
+            raise DatasetGenerationError("An error occured while generating the dataset") from e
         finally:
             yield job_id, False, num_examples_progress_update
             num_shards = shard_id + 1
@@ -1786,9 +1783,7 @@ class ArrowBasedBuilder(DatasetBuilder):
                     yield job_id, False, num_examples_progress_update
                     num_examples_progress_update = 0
         except Exception as e:
-            raise DatasetGenerationError(
-                f"An error occured while generating the dataset"
-            ) from e
+            raise DatasetGenerationError("An error occured while generating the dataset") from e
         finally:
             yield job_id, False, num_examples_progress_update
             num_shards = shard_id + 1
