@@ -14,7 +14,6 @@
 
 # Lint as: python3
 """Utilities for file names."""
-
 import itertools
 import os
 import re
@@ -67,18 +66,19 @@ def filepattern_for_dataset_split(dataset_name, split, data_dir, filetype_suffix
     return f"{filepath}*"
 
 
-def filename_for_dataset_split(dataset_name, split, filetype_suffix=None):
+def filenames_for_dataset_split(path, dataset_name, split, filetype_suffix=None, shard_lengths=None):
+
     prefix = filename_prefix_for_split(dataset_name, split)
-    if filetype_suffix:
-        prefix += f".{filetype_suffix}"
-    return prefix
+    prefix = os.path.join(path, prefix)
 
-
-def filepath_for_dataset_split(dataset_name, split, data_dir, filetype_suffix=None):
-    filename = filename_for_dataset_split(
-        dataset_name=dataset_name,
-        split=split,
-        filetype_suffix=filetype_suffix,
-    )
-    filepath = os.path.join(data_dir, filename)
-    return filepath
+    if shard_lengths:
+        num_shards = len(shard_lengths)
+        filenames = [f"{prefix}-{shard_id:05d}-of-{num_shards:05d}" for shard_id in range(num_shards)]
+        if filetype_suffix:
+            filenames = [filename + f".{filetype_suffix}" for filename in filenames]
+        return filenames
+    else:
+        filename = prefix
+        if filetype_suffix:
+            filename += f".{filetype_suffix}"
+        return [filename]
