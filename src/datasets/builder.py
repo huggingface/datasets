@@ -1538,7 +1538,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
                     yield job_id, False, num_examples_progress_update
                     num_examples_progress_update = 0
         except Exception as e:
-            raise DatasetGenerationError("An error occured while generating the dataset") from e
+            raise DatasetGenerationError("An error occurred while generating the dataset") from e
         finally:
             yield job_id, False, num_examples_progress_update
             num_shards = shard_id + 1
@@ -1783,7 +1783,7 @@ class ArrowBasedBuilder(DatasetBuilder):
                     yield job_id, False, num_examples_progress_update
                     num_examples_progress_update = 0
         except Exception as e:
-            raise DatasetGenerationError("An error occured while generating the dataset") from e
+            raise DatasetGenerationError("An error occurred while generating the dataset") from e
         finally:
             yield job_id, False, num_examples_progress_update
             num_shards = shard_id + 1
