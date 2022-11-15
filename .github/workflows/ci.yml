@@ -62,7 +62,6 @@ jobs:
         run: |
           pip install .[tests]
           pip install -r additional-tests-requirements.txt --no-deps
-          pip uninstall -y typer && pip install typer==0.4.2
           python -m spacy download en_core_web_sm
           python -m spacy download fr_core_news_sm
       - name: Install dependencies (latest versions)
