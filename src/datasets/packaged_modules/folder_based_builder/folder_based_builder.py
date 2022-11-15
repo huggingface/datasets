@@ -11,7 +11,6 @@ import pyarrow.json as paj
 import datasets
 from datasets.features.features import FeatureType
 from datasets.tasks.base import TaskTemplate
-from datasets.utils.file_utils import is_remote_url
 
 
 logger = datasets.utils.logging.get_logger(__name__)
