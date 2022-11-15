@@ -157,7 +157,7 @@ TESTS_REQUIRE = [
     "tldextract",
     # to speed up pip backtracking
     "toml>=0.10.1",
-    "typer<0.5.0",  # pined to work with Spacy==3.4.3 on Windows: see https://github.com/tiangolo/typer/issues/427
+    "typer<0.5.0",  # pinned to work with Spacy==3.4.3 on Windows: see https://github.com/tiangolo/typer/issues/427
     "requests_file>=1.5.1",
     "tldextract>=3.1.0",
     "texttable>=1.6.3",
