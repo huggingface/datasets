@@ -31,9 +31,7 @@ else:
 
 
 def count_path_segments(path):
-    if is_remote_url(path):
-        return path.count("/")
-    return os.path.normpath(path).count(os.sep)
+    return path.replace("\\", "/").count("/")
 
 
 @dataclass
