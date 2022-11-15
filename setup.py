@@ -157,6 +157,7 @@ TESTS_REQUIRE = [
     "tldextract",
     # to speed up pip backtracking
     "toml>=0.10.1",
+    "typer<0.5.0",  # pined to work with Spacy==3.4.3 on Windows: see https://github.com/tiangolo/typer/issues/427
     "requests_file>=1.5.1",
     "tldextract>=3.1.0",
     "texttable>=1.6.3",
@@ -210,7 +211,10 @@ setup(
     license="Apache 2.0",
     package_dir={"": "src"},
     packages=find_packages("src"),
-    package_data={"datasets": ["py.typed", "scripts/templates/*"], "datasets.utils.resources": ["*.json", "*.yaml", "*.tsv"]},
+    package_data={
+        "datasets": ["py.typed", "scripts/templates/*"],
+        "datasets.utils.resources": ["*.json", "*.yaml", "*.tsv"],
+    },
     entry_points={"console_scripts": ["datasets-cli=datasets.commands.datasets_cli:main"]},
     python_requires=">=3.7.0",
     install_requires=REQUIRED_PKGS,
