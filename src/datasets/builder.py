@@ -44,7 +44,7 @@ from .arrow_reader import (
     MissingFilesOnHfGcsError,
     ReadInstruction,
 )
-from .arrow_writer import ArrowWriter, BeamWriter, ParquetWriter
+from .arrow_writer import ArrowWriter, BeamWriter, ParquetWriter, SchemaInferenceError
 from .data_files import DataFilesDict, sanitize_patterns
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download.download_config import DownloadConfig
@@ -1499,55 +1499,55 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
         shard_id = 0
         num_examples_progress_update = 0
-        writer = None
         try:
-            _time = time.time()
-            for key, record in generator:
-                # Only initialize the writer when we have the first record (to avoid having to do the clean-up if an error occurs before that)
-                if writer is None:
-                    writer = writer_class(
-                        features=self.info.features,
-                        path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
-                        writer_batch_size=self._writer_batch_size,
-                        hash_salt=split_info.name,
-                        check_duplicates=check_duplicate_keys,
-                        storage_options=self._fs.storage_options,
-                        embed_local_files=embed_local_files,
-                    )
-                elif max_shard_size is not None and writer._num_bytes > max_shard_size:
-                    num_examples, num_bytes = writer.finalize()
-                    writer.close()
-                    shard_lengths.append(num_examples)
-                    total_num_examples += num_examples
-                    total_num_bytes += num_bytes
-                    shard_id += 1
-                    writer = writer_class(
-                        features=writer._features,
-                        path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
-                        writer_batch_size=self._writer_batch_size,
-                        hash_salt=split_info.name,
-                        check_duplicates=check_duplicate_keys,
-                        storage_options=self._fs.storage_options,
-                        embed_local_files=embed_local_files,
-                    )
-                example = self.info.features.encode_example(record) if self.info.features is not None else record
-                writer.write(example, key)
-                num_examples_progress_update += 1
-                if time.time() > _time + refresh_rate:
-                    _time = time.time()
-                    yield job_id, False, num_examples_progress_update
-                    num_examples_progress_update = 0
-        except Exception as e:
-            raise DatasetGenerationError("An error occurred while generating the dataset") from e
-        finally:
-            yield job_id, False, num_examples_progress_update
-            num_shards = shard_id + 1
-            if writer is not None:
+            writer = writer_class(
+                features=self.info.features,
+                path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                writer_batch_size=self._writer_batch_size,
+                hash_salt=split_info.name,
+                check_duplicates=check_duplicate_keys,
+                storage_options=self._fs.storage_options,
+                embed_local_files=embed_local_files,
+            )
+            try:
+                _time = time.time()
+                for key, record in generator:
+                    if max_shard_size is not None and writer._num_bytes > max_shard_size:
+                        num_examples, num_bytes = writer.finalize()
+                        writer.close()
+                        shard_lengths.append(num_examples)
+                        total_num_examples += num_examples
+                        total_num_bytes += num_bytes
+                        shard_id += 1
+                        writer = writer_class(
+                            features=writer._features,
+                            path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                            writer_batch_size=self._writer_batch_size,
+                            hash_salt=split_info.name,
+                            check_duplicates=check_duplicate_keys,
+                            storage_options=self._fs.storage_options,
+                            embed_local_files=embed_local_files,
+                        )
+                    example = self.info.features.encode_example(record) if self.info.features is not None else record
+                    writer.write(example, key)
+                    num_examples_progress_update += 1
+                    if time.time() > _time + refresh_rate:
+                        _time = time.time()
+                        yield job_id, False, num_examples_progress_update
+                        num_examples_progress_update = 0
+            finally:
+                yield job_id, False, num_examples_progress_update
+                num_shards = shard_id + 1
                 num_examples, num_bytes = writer.finalize()
                 writer.close()
                 shard_lengths.append(num_examples)
                 total_num_examples += num_examples
                 total_num_bytes += num_bytes
+        except Exception as e:
+            # Ignore the writer's error for no examples written to the file if this error was caused by the error in _generate_examples before the first example was yielded
+            if isinstance(e, SchemaInferenceError) and e.__context__ is not None:
+                e = e.__context__
+            raise DatasetGenerationError("An error occurred while generating the dataset") from e
 
         yield job_id, True, (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths)
 
@@ -1751,48 +1751,48 @@ class ArrowBasedBuilder(DatasetBuilder):
 
         shard_id = 0
         num_examples_progress_update = 0
-        writer = None
         try:
-            _time = time.time()
-            for _, table in generator:
-                # Only initialize the writer when we have the first record (to avoid having to do the clean-up if an error occurs before that)
-                if writer is None:
-                    writer = writer_class(
-                        features=self.info.features,
-                        path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
-                        storage_options=self._fs.storage_options,
-                        embed_local_files=embed_local_files,
-                    )
-                elif max_shard_size is not None and writer._num_bytes > max_shard_size:
-                    num_examples, num_bytes = writer.finalize()
-                    writer.close()
-                    shard_lengths.append(num_examples)
-                    total_num_examples += num_examples
-                    total_num_bytes += num_bytes
-                    shard_id += 1
-                    writer = writer_class(
-                        features=writer._features,
-                        path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
-                        storage_options=self._fs.storage_options,
-                        embed_local_files=embed_local_files,
-                    )
-                writer.write_table(table)
-                num_examples_progress_update += len(table)
-                if time.time() > _time + refresh_rate:
-                    _time = time.time()
-                    yield job_id, False, num_examples_progress_update
-                    num_examples_progress_update = 0
-        except Exception as e:
-            raise DatasetGenerationError("An error occurred while generating the dataset") from e
-        finally:
-            yield job_id, False, num_examples_progress_update
-            num_shards = shard_id + 1
-            if writer is not None:
+            writer = writer_class(
+                features=self.info.features,
+                path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                storage_options=self._fs.storage_options,
+                embed_local_files=embed_local_files,
+            )
+            try:
+                _time = time.time()
+                for _, table in generator:
+                    if max_shard_size is not None and writer._num_bytes > max_shard_size:
+                        num_examples, num_bytes = writer.finalize()
+                        writer.close()
+                        shard_lengths.append(num_examples)
+                        total_num_examples += num_examples
+                        total_num_bytes += num_bytes
+                        shard_id += 1
+                        writer = writer_class(
+                            features=writer._features,
+                            path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                            storage_options=self._fs.storage_options,
+                            embed_local_files=embed_local_files,
+                        )
+                    writer.write_table(table)
+                    num_examples_progress_update += len(table)
+                    if time.time() > _time + refresh_rate:
+                        _time = time.time()
+                        yield job_id, False, num_examples_progress_update
+                        num_examples_progress_update = 0
+            finally:
+                yield job_id, False, num_examples_progress_update
+                num_shards = shard_id + 1
                 num_examples, num_bytes = writer.finalize()
                 writer.close()
                 shard_lengths.append(num_examples)
                 total_num_examples += num_examples
                 total_num_bytes += num_bytes
+        except Exception as e:
+            # Ignore the writer's error for no examples written to the file if this error was caused by the error in _generate_examples before the first example was yielded
+            if isinstance(e, SchemaInferenceError) and e.__context__ is not None:
+                e = e.__context__
+            raise DatasetGenerationError("An error occurred while generating the dataset") from e
 
         yield job_id, True, (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths)
 
