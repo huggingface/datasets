@@ -86,6 +86,7 @@ Steps to make a release:
        ```
        git checkout main
        git pull upstream main
+       git branch -D dev-version
        git checkout -b dev-version
        ```
    - Change the version to X.X.X+1.dev0 (e.g. VERSION=1.18.3 -> 1.18.4.dev0) in:
