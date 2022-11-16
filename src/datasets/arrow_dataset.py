@@ -954,6 +954,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
             keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
             gen_kwargs(:obj:`dict`, optional): Keyword arguments to be passed to the `generator` callable.
+                You can define a sharded dataset by passing the list of shards in `gen_kwargs`.
             **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`GeneratorConfig`.
 
         Returns:
@@ -967,6 +968,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ...     yield {"text": "Bad", "label": 1}
         ...
         >>> ds = Dataset.from_generator(gen)
+        ```
+
+        ```py
+        >>> def gen(shards):
+        ...     for shard in shards:
+        ...         with open(shard) as f:
+        ...             for line in f:
+        ...                 yield {"line": line}
+        ...
+        >>> shards = [f"data{i}.txt" for i in range(32)]
+        >>> ds = Dataset.from_generator(gen, gen_kwargs={"shards": shards})
         ```
         """
         from .io.generator import GeneratorDatasetInputStream
