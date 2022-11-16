@@ -1960,7 +1960,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
                 yield formatted_batch
         else:
-            for i in range(0, self.num_rows, batch_size):
+            num_rows = self.num_rows if not drop_last_batch else self.num_rows // batch_size * batch_size
+            for i in range(0, num_rows, batch_size):
                 yield self._getitem(
                     slice(i, i + batch_size),
                 )
