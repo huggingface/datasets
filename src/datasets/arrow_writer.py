@@ -49,6 +49,10 @@ logger = logging.get_logger(__name__)
 type_ = type  # keep python's type function
 
 
+class SchemaInferenceError(ValueError):
+    pass
+
+
 class TypedSequence:
     """
     This data container generalizes the typing when instantiating pyarrow arrays, tables or batches.
@@ -564,7 +568,7 @@ class ArrowWriter:
             if self.schema:
                 self._build_writer(self.schema)
             else:
-                raise ValueError("Please pass `features` or at least one example when writing data")
+                raise SchemaInferenceError("Please pass `features` or at least one example when writing data")
         self.pa_writer.close()
         self.pa_writer = None
         if close_stream:
