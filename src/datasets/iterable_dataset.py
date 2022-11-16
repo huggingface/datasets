@@ -1166,7 +1166,7 @@ class IterableDataset(DatasetInfoMixin):
         >>> next(iter(ds))
         {'label': 1,
          'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
-        >>> ds.rename_column("text", "movie_review")
+        >>> ds = ds.rename_column("text", "movie_review")
         >>> next(iter(ds))
         {'label': 1,
          'movie_review': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
