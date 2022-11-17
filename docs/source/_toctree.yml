@@ -74,6 +74,10 @@
       title: Process text data
     title: "Text"
   - sections:
+    - local: tabular_load
+      title: Load tabular data
+    title: "Tabular"
+  - sections:
     - local: share
       title: Share
     - local: dataset_script

@@ -157,7 +157,7 @@ TESTS_REQUIRE = [
     "tldextract",
     # to speed up pip backtracking
     "toml>=0.10.1",
-    "typer<0.5.0",  # pined to work with Spacy==3.4.3 on Windows: see https://github.com/tiangolo/typer/issues/427
+    "typer<0.5.0",  # pinned to work with Spacy==3.4.3 on Windows: see https://github.com/tiangolo/typer/issues/427
     "requests_file>=1.5.1",
     "tldextract>=3.1.0",
     "texttable>=1.6.3",
@@ -200,7 +200,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.6.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.7.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
