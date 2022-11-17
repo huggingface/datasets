@@ -31,6 +31,8 @@ if TYPE_CHECKING:
 
 
 class JaxFormatter(Formatter[Mapping, "jnp.ndarray", Mapping]):
+    supports_lazy_formatting = True
+
     lazy_row_type = NumpyFormatter.lazy_row_type
     lazy_column_type = NumpyFormatter.lazy_batch_type
 

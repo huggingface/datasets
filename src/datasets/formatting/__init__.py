@@ -15,7 +15,7 @@
 # flake8: noqa
 # Lint as: python3
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Type
 
 from .. import config
 from ..utils import logging
@@ -33,17 +33,15 @@ from .np_formatter import NumpyFormatter
 
 logger = logging.get_logger(__name__)
 
-_FORMAT_TYPES: Dict[Optional[str], type] = {}
+_FORMAT_TYPES: Dict[Optional[str], Type[Formatter]] = {}
 _FORMAT_TYPES_ALIASES: Dict[Optional[str], str] = {}
 _FORMAT_TYPES_ALIASES_UNAVAILABLE: Dict[Optional[str], Exception] = {}
-_FORMAT_SUPPORTS_LAZY_FORMATTING: Dict[Optional[str], bool] = {}
 
 
 def _register_formatter(
     formatter_cls: type,
     format_type: Optional[str],
     aliases: Optional[List[str]] = None,
-    supports_lazy_formatting: bool = False,
 ):
     """
     Register a Formatter object using a name and optional aliases.
@@ -55,7 +53,6 @@ def _register_formatter(
             f"Overwriting format type '{format_type}' ({_FORMAT_TYPES[format_type].__name__} -> {formatter_cls.__name__})"
         )
     _FORMAT_TYPES[format_type] = formatter_cls
-    _FORMAT_SUPPORTS_LAZY_FORMATTING[format_type] = supports_lazy_formatting
     for alias in set(aliases + [format_type]):
         if alias in _FORMAT_TYPES_ALIASES:
             logger.warning(
@@ -77,16 +74,16 @@ def _register_unavailable_formatter(
 
 
 # Here we define all the available formatting functions that can be used by `Dataset.set_format`
-_register_formatter(PythonFormatter, None, aliases=["python"], supports_lazy_formatting=True)
+_register_formatter(PythonFormatter, None, aliases=["python"])
 _register_formatter(ArrowFormatter, "arrow", aliases=["pa", "pyarrow"])
-_register_formatter(NumpyFormatter, "numpy", aliases=["np"], supports_lazy_formatting=True)
+_register_formatter(NumpyFormatter, "numpy", aliases=["np"])
 _register_formatter(PandasFormatter, "pandas", aliases=["pd"])
 _register_formatter(CustomFormatter, "custom")
 
 if config.TORCH_AVAILABLE:
     from .torch_formatter import TorchFormatter
 
-    _register_formatter(TorchFormatter, "torch", aliases=["pt", "pytorch"], supports_lazy_formatting=True)
+    _register_formatter(TorchFormatter, "torch", aliases=["pt", "pytorch"])
 else:
     _torch_error = ValueError("PyTorch needs to be installed to be able to return PyTorch tensors.")
     _register_unavailable_formatter(_torch_error, "torch", aliases=["pt", "pytorch"])
@@ -94,7 +91,7 @@ else:
 if config.TF_AVAILABLE:
     from .tf_formatter import TFFormatter
 
-    _register_formatter(TFFormatter, "tensorflow", aliases=["tf"], supports_lazy_formatting=True)
+    _register_formatter(TFFormatter, "tensorflow", aliases=["tf"])
 else:
     _tf_error = ValueError("Tensorflow needs to be installed to be able to return Tensorflow tensors.")
     _register_unavailable_formatter(_tf_error, "tensorflow", aliases=["tf"])
@@ -102,7 +99,7 @@ else:
 if config.JAX_AVAILABLE:
     from .jax_formatter import JaxFormatter
 
-    _register_formatter(JaxFormatter, "jax", aliases=[], supports_lazy_formatting=True)
+    _register_formatter(JaxFormatter, "jax", aliases=[])
 else:
     _jax_error = ValueError("JAX needs to be installed to be able to return JAX arrays.")
     _register_unavailable_formatter(_jax_error, "jax", aliases=[])
@@ -138,7 +135,7 @@ def supports_lazy_formatting(format_type: Optional[str]) -> bool:
     """Return whether the given format supports lazy formatting of columns."""
     format_type = get_format_type_from_alias(format_type)
     if format_type in _FORMAT_TYPES:
-        return _FORMAT_SUPPORTS_LAZY_FORMATTING[format_type]
+        return _FORMAT_TYPES[format_type].supports_lazy_formatting
     if format_type in _FORMAT_TYPES_ALIASES_UNAVAILABLE:
         raise _FORMAT_TYPES_ALIASES_UNAVAILABLE[format_type]
     else:

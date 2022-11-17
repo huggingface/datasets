@@ -31,6 +31,8 @@ if TYPE_CHECKING:
 
 
 class TFFormatter(Formatter[Mapping, "tf.Tensor", Mapping]):
+    supports_lazy_formatting = True
+
     lazy_row_type = NumpyFormatter.lazy_row_type
     lazy_batch_type = NumpyFormatter.lazy_batch_type
 

@@ -304,7 +304,12 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     lazy_row_type = LazyDict
     lazy_batch_type = LazyDict
 
+    supports_lazy_formatting = False
+
     def __init__(self, features=None, lazy=False):
+        if not self.supports_lazy_formatting and lazy:
+            raise ValueError("Lazy formatting is not supported by this formatter.")
+
         self.features = features
         self.lazy = lazy
         self.python_features_decoder = PythonFeaturesDecoder(self.features)
@@ -340,6 +345,8 @@ class ArrowFormatter(Formatter[pa.Table, pa.Array, pa.Table]):
 
 
 class PythonFormatter(Formatter[Mapping, list, Mapping]):
+    supports_lazy_formatting = True
+
     class LazyExample(LazyDict):
         def decode(self, value, feature, key):
             return (

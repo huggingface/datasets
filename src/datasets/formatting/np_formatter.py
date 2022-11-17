@@ -11,6 +11,8 @@ from .formatting import Formatter, LazyDict
 
 
 class NumpyFormatter(Formatter[Mapping, np.ndarray, Mapping]):
+    supports_lazy_formatting = True
+
     class LazyExample(LazyDict):
         def decode(self, value, feature, key):
             value = (
