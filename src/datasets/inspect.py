@@ -29,8 +29,10 @@ from .download.streaming_download_manager import StreamingDownloadManager
 from .info import DatasetInfo
 from .load import dataset_module_factory, import_main_class, load_dataset_builder, metric_module_factory
 from .utils.deprecation_utils import deprecated
-from .utils.file_utils import relative_to_absolute_path
+from .utils.file_utils import cached_path, relative_to_absolute_path
+from .utils.hub import hf_hub_url
 from .utils.logging import get_logger
+from .utils.metadata import DatasetMetadata
 from .utils.version import Version
 
 
@@ -253,6 +255,24 @@ def get_dataset_infos(
     }
 
 
+def get_dataset_metadata_from_readme(path, revision=None, download_config=None):
+    from pathlib import Path
+
+    if download_config:
+        download_config = download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading readme"
+    try:
+        dataset_readme_path = cached_path(
+            hf_hub_url(path, "README.md", revision=revision),
+            download_config=download_config,
+        )
+        return DatasetMetadata.from_readme(Path(dataset_readme_path))
+
+    except FileNotFoundError:
+        pass
+
+
 def get_dataset_config_names(
     path: str,
     revision: Optional[Union[str, Version]] = None,
@@ -315,7 +335,18 @@ def get_dataset_config_names(
         **download_kwargs,
     )
     builder_cls = import_main_class(dataset_module.module_path)
-    return list(builder_cls.builder_configs.keys()) or [dataset_module.builder_kwargs.get("config_name", "default")]
+    dataset_metadata = get_dataset_metadata_from_readme(path, revision=revision, download_config=download_config)
+    configs_in_meta = (
+        [info["config_name"] for info in dataset_metadata["dataset_info"]]
+        if isinstance(dataset_metadata.get("dataset_info"), list) and dataset_metadata["dataset_info"]
+        else None
+    )
+
+    return (
+        list(builder_cls.builder_configs.keys())
+        or configs_in_meta
+        or [dataset_module.builder_kwargs.get("config_name", "default")]
+    )
 
 
 def get_dataset_config_info(
