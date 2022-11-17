@@ -643,7 +643,7 @@ class DatasetBuilder:
                 Multiprocessing is disabled by default.
 
                 <Added version="2.7.0"/>
-            storage_options (:obj:`dict`, *optional*): Key/value pairs to be passed on to the caching file-system backend, if any.
+            storage_options (:obj:`dict`, *optional*): Key/value pairs to be passed on to the file-system backend, if any.
 
                 <Added version="2.5.0"/>
             **download_and_prepare_kwargs (additional keyword arguments): Keyword arguments.
