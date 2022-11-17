@@ -156,6 +156,13 @@ Load the dataset with `AudioFolder`, and it will create a `label` column from th
 }
 ```
 
+<Tip warning={true}>
+
+If all audio files are contained in a single directory or if they are not on the same level of directory structure, `label` column won't be added automatically. If you need it, set `drop_labels=False` explicitly.
+
+</Tip>
+
+
 <Tip>
 
 Some audio datasets, like those found in [Kaggle competitions](https://www.kaggle.com/competitions/kaggle-pog-series-s01e02/overview), have separate metadata files for each split. Provided the metadata features are the same for each split, `audiofolder` can be used to load all splits at once. If the metadata features differ across each split, you should load them with separate `load_dataset()` calls.
