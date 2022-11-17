@@ -29,7 +29,7 @@ class EmptyDatasetError(FileNotFoundError):
     pass
 
 
-SPLIT_PATTERN_SHARDED = "data/{config_name}/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"
+SPLIT_PATTERN_SHARDED = "data/{config_name}{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"
 
 TRAIN_KEYWORDS = ["train", "training"]
 TEST_KEYWORDS = ["test", "testing", "eval", "evaluation"]
@@ -223,15 +223,16 @@ def _get_data_files_patterns(
     """
     # first check the split patterns like data/{split}-00000-of-00001.parquet
     for split_pattern in ALL_SPLIT_PATTERNS:
-        pattern = split_pattern.replace("{split}", "*").replace("{config_name}", config_name if config_name else "**")
+        # pattern = split_pattern.replace("{split}", "*").replace("{config_name}", config_name if config_name else "")
+        # SPLIT_PATTERN_SHARDED = "data/{config_name}{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"
+        config_name = f"{config_name}/" if config_name else ""
+        split_pattern = split_pattern.replace("{config_name}", config_name)
+        pattern = split_pattern.replace("{split}", "*").replace("{config_name}", config_name)
         data_files = pattern_resolver(pattern)
         if len(data_files) > 0:
             data_files = [p.as_posix() for p in data_files]
             splits: Set[str] = {string_to_dict(p, split_pattern)["split"] for p in data_files}
-            return {
-                split: [split_pattern.format(split=split, config_name=config_name if config_name else "**")]
-                for split in splits
-            }
+            return {split: [split_pattern.format(split=split)] for split in splits}
     # then check the default patterns based on train/valid/test splits
     for patterns_dict in ALL_DEFAULT_PATTERNS:
         non_empty_splits = []
@@ -245,7 +246,9 @@ def _get_data_files_patterns(
             except FileNotFoundError:
                 pass
         if non_empty_splits:
-            return {split: patterns_dict[split] for split in non_empty_splits}
+            return {
+                split: patterns_dict[split] for split in non_empty_splits
+            }  # TODO: why we add all patterns not only found?
     raise FileNotFoundError(f"Couldn't resolve pattern {pattern} with resolver {pattern_resolver}")
 
 

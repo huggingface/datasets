@@ -798,10 +798,11 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                         data_files[key].origin_metadata + metadata_files.origin_metadata,
                     )
         module_path, hash = _PACKAGED_DATASETS_MODULES[module_name]
+        builder_config_name = f"-{self.config_name}" if self.config_name else ""  # or else "default"?
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
-            "config_name": self.name.replace("/", "--") + str(self.config_name),  # TODO eto nado?
+            "config_name": f'{self.name.replace("/", "--")}{builder_config_name}',  # TODO fix name?
             "base_path": hf_hub_url(self.name, "", revision=self.revision),
             "repo_id": self.name,
             **builder_kwargs,
@@ -836,6 +837,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                         info for info in dataset_metadata["dataset_info"] if info["config_name"] == self.config_name
                     ][0]
                 else:
+                    # TODO HERE first config is found but it should be "default" ? but why is it list then.
                     dataset_info_dict = dataset_metadata["dataset_info"][0]
                 builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
                 if "config_name" in dataset_info_dict:
@@ -1200,7 +1202,8 @@ def dataset_module_factory(
                     dynamic_modules_path=dynamic_modules_path,
                 ).get_module()
             else:
-                return HubDatasetModuleFactoryWithoutScript(
+                # TODO: this is just to debug don't forget to roll back after
+                factory = HubDatasetModuleFactoryWithoutScript(
                     path,
                     config_name=config_name,
                     revision=revision,
@@ -1208,7 +1211,9 @@ def dataset_module_factory(
                     data_files=data_files,
                     download_config=download_config,
                     download_mode=download_mode,
-                ).get_module()
+                )
+                module = factory.get_module()
+                return module
         except Exception as e1:  # noqa: all the attempts failed, before raising the error we should check if the module is already cached.
             try:
                 return CachedDatasetModuleFactory(path, dynamic_modules_path=dynamic_modules_path).get_module()
