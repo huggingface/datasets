@@ -12,12 +12,7 @@ from datasets.dataset_dict import DatasetDict
 from datasets.features import ClassLabel, Features, Sequence, Value
 from datasets.splits import NamedSplit
 
-from .utils import (
-    assert_arrow_memory_doesnt_increase,
-    assert_arrow_memory_increases,
-    require_tf,
-    require_torch,
-)
+from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, require_tf, require_torch
 
 
 class DatasetDictTest(TestCase):

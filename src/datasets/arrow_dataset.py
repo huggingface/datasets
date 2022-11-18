@@ -1314,9 +1314,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         shard_lengths[job_id], shard_sizes[job_id] = content
                     else:
                         pbar.update(content)
-        with fs.open(
-            path_join(dataset_path, config.DATASET_STATE_JSON_FILENAME), "w", encoding="utf-8"
-        ) as state_file:
+        with fs.open(path_join(dataset_path, config.DATASET_STATE_JSON_FILENAME), "w", encoding="utf-8") as state_file:
             json.dump(state, state_file, indent=2, sort_keys=True)
         with fs.open(
             path_join(dataset_path, config.DATASET_INFO_FILENAME), "w", encoding="utf-8"

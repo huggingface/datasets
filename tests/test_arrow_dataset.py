@@ -3560,7 +3560,7 @@ def test_dummy_dataset_serialize_fs(dataset, mock_fsspec, tmp_path_factory):
     dataset_path = "mock://my_dataset"
     storage_options = {
         "local_root_dir": tmp_path_factory.mktemp("test_dummy_dataset_serialize_fs"),
-        "auto_mkdir": True
+        "auto_mkdir": True,
     }
     dataset.save_to_disk(dataset_path, storage_options=storage_options)
     reloaded = dataset.load_from_disk(dataset_path, storage_options=storage_options)
