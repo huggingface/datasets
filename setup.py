@@ -121,7 +121,7 @@ TESTS_REQUIRE = [
     "pytest-xdist",
     # optional dependencies
     "apache-beam>=2.26.0",
-    "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElastictSearch()
+    "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch()
     "aiobotocore>=2.0.1",  # required by s3fs>=2021.11.1
     "boto3>=1.19.8",  # to be compatible with aiobotocore>=2.0.1 - both have strong dependencies on botocore
     "botocore>=1.22.8",  # to be compatible with aiobotocore and boto3
@@ -157,6 +157,7 @@ TESTS_REQUIRE = [
     "tldextract",
     # to speed up pip backtracking
     "toml>=0.10.1",
+    "typer<0.5.0",  # pinned to work with Spacy==3.4.3 on Windows: see https://github.com/tiangolo/typer/issues/427
     "requests_file>=1.5.1",
     "tldextract>=3.1.0",
     "texttable>=1.6.3",
@@ -199,7 +200,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.6.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.7.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
@@ -210,7 +211,10 @@ setup(
     license="Apache 2.0",
     package_dir={"": "src"},
     packages=find_packages("src"),
-    package_data={"datasets": ["py.typed", "scripts/templates/*"], "datasets.utils.resources": ["*.json", "*.yaml", "*.tsv"]},
+    package_data={
+        "datasets": ["py.typed", "scripts/templates/*"],
+        "datasets.utils.resources": ["*.json", "*.yaml", "*.tsv"],
+    },
     entry_points={"console_scripts": ["datasets-cli=datasets.commands.datasets_cli:main"]},
     python_requires=">=3.7.0",
     install_requires=REQUIRED_PKGS,

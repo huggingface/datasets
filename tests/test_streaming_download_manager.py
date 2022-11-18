@@ -26,7 +26,7 @@ from datasets.download.streaming_download_manager import (
     xwalk,
 )
 from datasets.filesystems import COMPRESSION_FILESYSTEMS
-from datasets.utils.file_utils import hf_hub_url
+from datasets.utils.hub import hf_hub_url
 
 from .utils import require_lz4, require_zstandard, slow
 

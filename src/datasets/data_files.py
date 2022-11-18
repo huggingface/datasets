@@ -10,7 +10,8 @@ from tqdm.contrib.concurrent import thread_map
 from .filesystems.hffilesystem import HfFileSystem
 from .splits import Split
 from .utils import logging
-from .utils.file_utils import hf_hub_url, is_relative_path, is_remote_url, request_etag
+from .utils.file_utils import is_relative_path, is_remote_url, request_etag
+from .utils.hub import hf_hub_url
 from .utils.py_utils import string_to_dict
 
 
@@ -275,7 +276,7 @@ def _resolve_single_pattern_locally(
     fs = LocalFileSystem()
     glob_iter = [PurePath(filepath) for filepath in fs.glob(pattern) if fs.isfile(filepath)]
     matched_paths = [
-        Path(filepath).resolve()
+        Path(os.path.abspath(filepath))
         for filepath in glob_iter
         if (filepath.name not in FILES_TO_IGNORE or PurePath(pattern).name == filepath.name)
         and not _is_inside_unrequested_special_dir(

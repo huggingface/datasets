@@ -76,7 +76,10 @@ require_torchaudio_latest = pytest.mark.skipif(
 )
 
 # Beam
-require_beam = pytest.mark.skipif(not config.BEAM_AVAILABLE, reason="test requires apache-beam")
+require_beam = pytest.mark.skipif(
+    not config.BEAM_AVAILABLE or config.DILL_VERSION >= version.parse("0.3.2"),
+    reason="test requires apache-beam and a compatible dill version",
+)
 
 
 def require_faiss(test_case):

@@ -28,7 +28,8 @@ from .tasks import TaskTemplate
 from .utils import logging
 from .utils._hf_hub_fixes import list_repo_files as hf_api_list_repo_files
 from .utils.doc_utils import is_documented_by
-from .utils.file_utils import cached_path, hf_hub_url
+from .utils.file_utils import cached_path
+from .utils.hub import hf_hub_url
 from .utils.typing import PathLike
 
 
@@ -1395,6 +1396,7 @@ class DatasetDict(dict):
         if "README.md" in repo_files:
             download_config = DownloadConfig()
             download_config.download_desc = "Downloading metadata"
+            download_config.use_auth_token = token
             dataset_readme_path = cached_path(
                 hf_hub_url(repo_id, "README.md"),
                 download_config=download_config,

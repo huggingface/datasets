@@ -42,6 +42,13 @@ folder/test/dog/german_shepherd.png
 folder/test/cat/bengal.png
 ```
 
+<Tip warning={true}>
+
+If all image files are contained in a single directory or if they are not on the same level of directory structure, `label` column won't be added automatically. If you need it, set `drop_labels=False` explicitly.
+
+</Tip>
+
+
 If there is additional information you'd like to include about your dataset, like text captions or bounding boxes, add it as a `metadata.jsonl` file in your folder. This lets you quickly create datasets for different computer vision tasks like text captioning or object detection.
 
 ```

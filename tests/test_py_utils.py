@@ -1,11 +1,22 @@
+import time
 from dataclasses import dataclass
+from multiprocessing import Pool
 from unittest import TestCase
 from unittest.mock import patch
 
+import multiprocess
 import numpy as np
 import pytest
 
-from datasets.utils.py_utils import NestedDataStructure, asdict, map_nested, temp_seed, temporary_assignment, zip_dict
+from datasets.utils.py_utils import (
+    NestedDataStructure,
+    asdict,
+    iflatmap_unordered,
+    map_nested,
+    temp_seed,
+    temporary_assignment,
+    zip_dict,
+)
 
 from .utils import require_tf, require_torch
 
@@ -227,3 +238,35 @@ def test_asdict():
 
     with pytest.raises(TypeError):
         asdict([1, A(x=10, y="foo")])
+
+
+def _2seconds_generator_of_2items_with_timing(content):
+    yield (time.time(), content)
+    time.sleep(2)
+    yield (time.time(), content)
+
+
+def test_iflatmap_unordered():
+
+    with Pool(2) as pool:
+        out = list(iflatmap_unordered(pool, str.split, ["hello there"] * 10))
+        assert out.count("hello") == 10
+        assert out.count("there") == 10
+        assert len(out) == 20
+
+    # check multiprocess from pathos (uses dill for pickling)
+    with multiprocess.Pool(2) as pool:
+        out = list(iflatmap_unordered(pool, str.split, ["hello there"] * 10))
+        assert out.count("hello") == 10
+        assert out.count("there") == 10
+        assert len(out) == 20
+
+    # check that we get items as fast as possible
+    with Pool(2) as pool:
+        out = []
+        for yield_time, content in iflatmap_unordered(pool, _2seconds_generator_of_2items_with_timing, ["a", "b"]):
+            assert yield_time < time.time() + 0.1, "we should each item directly after it was yielded"
+            out.append(content)
+        assert out.count("a") == 2
+        assert out.count("b") == 2
+        assert len(out) == 4

@@ -104,7 +104,8 @@ from .tasks import TaskTemplate
 from .utils import logging
 from .utils._hf_hub_fixes import create_repo
 from .utils._hf_hub_fixes import list_repo_files as hf_api_list_repo_files
-from .utils.file_utils import _retry, cached_path, estimate_dataset_size, hf_hub_url
+from .utils.file_utils import _retry, cached_path, estimate_dataset_size
+from .utils.hub import hf_hub_url
 from .utils.info_utils import is_small_dataset
 from .utils.metadata import DatasetMetadata
 from .utils.py_utils import asdict, convert_file_size_to_int, unique_values
@@ -953,6 +954,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
             keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
             gen_kwargs(:obj:`dict`, optional): Keyword arguments to be passed to the `generator` callable.
+                You can define a sharded dataset by passing the list of shards in `gen_kwargs`.
             **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`GeneratorConfig`.
 
         Returns:
@@ -966,6 +968,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ...     yield {"text": "Bad", "label": 1}
         ...
         >>> ds = Dataset.from_generator(gen)
+        ```
+
+        ```py
+        >>> def gen(shards):
+        ...     for shard in shards:
+        ...         with open(shard) as f:
+        ...             for line in f:
+        ...                 yield {"line": line}
+        ...
+        >>> shards = [f"data{i}.txt" for i in range(32)]
+        >>> ds = Dataset.from_generator(gen, gen_kwargs={"shards": shards})
         ```
         """
         from .io.generator import GeneratorDatasetInputStream
@@ -4561,6 +4574,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if "README.md" in repo_files:
             download_config = DownloadConfig()
             download_config.download_desc = "Downloading metadata"
+            download_config.use_auth_token = token
             dataset_readme_path = cached_path(
                 hf_hub_url(repo_id, "README.md"),
                 download_config=download_config,
@@ -4573,6 +4587,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dataset_metadata = DatasetMetadata()
             download_config = DownloadConfig()
             download_config.download_desc = "Downloading metadata"
+            download_config.use_auth_token = token
             dataset_infos_path = cached_path(
                 hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME),
                 download_config=download_config,
