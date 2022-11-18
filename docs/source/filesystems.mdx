@@ -140,7 +140,7 @@ Use your own data files (see [how to load local and remote files](./loading#loca
 It is highly recommended to save the files as compressed Parquet files to optimize I/O by specifying `file_format="parquet"`.
 Otherwise the dataset is saved as an uncompressed Arrow file.
 
-You can also specify the size of the Parquet shard using `max_shard_size` (default is 500MB):
+You can also specify the size of the shards using `max_shard_size` (default is 500MB):
 
 ```py
 >>> builder.download_and_prepare(output_dir, storage_options=storage_options, file_format="parquet", max_shard_size="1GB")
