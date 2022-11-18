@@ -15,7 +15,6 @@ from datasets.splits import NamedSplit
 from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
-    require_s3,
     require_tf,
     require_torch,
 )
@@ -665,24 +664,3 @@ def test_datasetdict_from_text_split(split, text_path, tmp_path):
     dataset = DatasetDict.from_text(path, cache_dir=cache_dir)
     _check_text_datasetdict(dataset, expected_features, splits=list(path.keys()))
     assert all(dataset[split].split == split for split in path.keys())
-
-
-@pytest.mark.skipif(
-    os.name in ["nt", "posix"] and (os.getenv("CIRCLECI") == "true" or os.getenv("GITHUB_ACTIONS") == "true"),
-    reason='On Windows CircleCI or GitHub Actions, it raises botocore.exceptions.EndpointConnectionError: Could not connect to the endpoint URL: "http://127.0.0.1:5555/test"',
-)  # TODO: find what's wrong with CircleCI / GitHub Actions
-@require_s3
-@pytest.mark.integration
-def test_dummy_dataset_serialize_s3(s3, dataset, s3_test_bucket_name):
-    dsets = DatasetDict({"train": dataset, "test": dataset.select(range(2))})
-    mock_bucket = s3_test_bucket_name
-    dataset_path = f"s3://{mock_bucket}/datasets/dict"
-    column_names = dsets["train"].column_names
-    lengths = [len(dset) for dset in dsets.values()]
-    dataset.save_to_disk(dataset_path, s3)
-    dataset = dataset.load_from_disk(dataset_path, s3)
-
-    assert sorted(dsets) == ["test", "train"]
-    assert [len(dset) for dset in dsets.values()] == lengths
-    assert dsets["train"].column_names == column_names
-    assert dsets["test"].column_names == column_names

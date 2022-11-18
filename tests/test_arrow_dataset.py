@@ -53,7 +53,6 @@ from .utils import (
     assert_arrow_memory_increases,
     require_jax,
     require_pil,
-    require_s3,
     require_sqlalchemy,
     require_tf,
     require_torch,
@@ -266,6 +265,7 @@ class BaseDatasetTest(TestCase):
                     self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                     self.assertEqual(dset[0]["filename"], "my_name-train_0")
                     self.assertEqual(dset["filename"][0], "my_name-train_0")
+                    expected = dset.to_dict()
 
             with self._create_dummy_dataset(in_memory, tmp_dir).select(range(10)) as dset:
                 dataset_path = os.path.join(tmp_dir, "my_dataset")  # abs path
@@ -301,6 +301,36 @@ class BaseDatasetTest(TestCase):
                 )
                 self.assertDictEqual(dset[0]["nested"], {"a": 1, "c": 100, "x": 10})
                 self.assertDictEqual(dset["nested"][0], {"a": 1, "c": 100, "x": 10})
+
+            with self._create_dummy_dataset(in_memory, tmp_dir).select(range(10)) as dset:
+                with assert_arrow_memory_doesnt_increase():
+                    dset.save_to_disk(dataset_path, num_shards=4)
+
+            with Dataset.load_from_disk(dataset_path) as dset:
+                self.assertEqual(len(dset), 10)
+                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                self.assertDictEqual(dset.to_dict(), expected)
+                self.assertEqual(len(dset.cache_files), 4)
+
+            with self._create_dummy_dataset(in_memory, tmp_dir).select(range(10)) as dset:
+                with assert_arrow_memory_doesnt_increase():
+                    dset.save_to_disk(dataset_path, num_proc=2)
+
+            with Dataset.load_from_disk(dataset_path) as dset:
+                self.assertEqual(len(dset), 10)
+                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                self.assertDictEqual(dset.to_dict(), expected)
+                self.assertEqual(len(dset.cache_files), 2)
+
+            with self._create_dummy_dataset(in_memory, tmp_dir).select(range(10)) as dset:
+                with assert_arrow_memory_doesnt_increase():
+                    dset.save_to_disk(dataset_path, num_shards=7, num_proc=2)
+
+            with Dataset.load_from_disk(dataset_path) as dset:
+                self.assertEqual(len(dset), 10)
+                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                self.assertDictEqual(dset.to_dict(), expected)
+                self.assertEqual(len(dset.cache_files), 7)
 
     def test_dummy_dataset_load_from_disk(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -3526,25 +3556,18 @@ def test_pickle_dataset_after_transforming_the_table(in_memory, method_and_param
         assert dataset._data.table == reloaded_dataset._data.table
 
 
-@pytest.mark.skipif(
-    os.name in ["nt", "posix"] and (os.getenv("CIRCLECI") == "true" or os.getenv("GITHUB_ACTIONS") == "true"),
-    reason='On Windows CircleCI or GitHub Actions, it raises botocore.exceptions.EndpointConnectionError: Could not connect to the endpoint URL: "http://127.0.0.1:5555/test"',
-)  # TODO: find what's wrong with CircleCI / GitHub Actions
-@require_s3
-@pytest.mark.integration
-def test_dummy_dataset_serialize_s3(s3, dataset, s3_test_bucket_name):
-    mock_bucket = s3_test_bucket_name
-    dataset_path = f"s3://{mock_bucket}/my_dataset"
-    features = dataset.features
-    dataset.save_to_disk(dataset_path, s3)
-    dataset = dataset.load_from_disk(dataset_path, s3)
-    assert os.path.isfile(dataset.cache_files[0]["filename"])
-
-    assert len(dataset) == 10
-    assert len(dataset.shuffle()) == 10
-    assert dataset.features == features
-    assert dataset[0]["id"] == 0
-    assert dataset["id"][0] == 0
+def test_dummy_dataset_serialize_fs(dataset, mock_fsspec, tmp_path_factory):
+    dataset_path = "mock://my_dataset"
+    storage_options = {
+        "local_root_dir": tmp_path_factory.mktemp("test_dummy_dataset_serialize_fs"),
+        "auto_mkdir": True
+    }
+    dataset.save_to_disk(dataset_path, storage_options=storage_options)
+    reloaded = dataset.load_from_disk(dataset_path, storage_options=storage_options)
+    assert os.path.isfile(reloaded.cache_files[0]["filename"])
+    assert len(reloaded) == len(dataset)
+    assert reloaded.features == dataset.features
+    assert reloaded.to_dict() == dataset.to_dict()
 
 
 @pytest.mark.parametrize(
