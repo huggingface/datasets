@@ -63,7 +63,7 @@ from tqdm.auto import tqdm
 
 from . import config
 from .arrow_reader import ArrowReader
-from .arrow_writer import ArrowWriter, OptimizedTypedSequence, ParquetWriter
+from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .download.download_config import DownloadConfig
 from .download.streaming_download_manager import xgetsize
 from .features import Audio, ClassLabel, Features, Image, Sequence, Value
