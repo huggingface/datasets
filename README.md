@@ -155,7 +155,7 @@ Similar to TensorFlow Datasets, 🤗 Datasets is a utility library that download
 
 Moreover 🤗 Datasets may run python code defined by the dataset authors to parse certain data formats or structures. For security reasons, we ask users to check the dataset scripts they're going to run beforehand and pin the `revision` of the repositories they use.
 
-If you're a dataset owner and wish to update any part of it (description, citation, etc.), or do not want your dataset to be included in this library, please get in touch through a [GitHub issue](https://github.com/huggingface/datasets/issues/new). Thanks for your contribution to the ML community!
+If you're a dataset owner and wish to update any part of it (description, citation, etc.), or do not want your dataset to be included in the Hugging Face Hub, please get in touch by opening a discussion or a pull request in the Community tab of the dataset page. Thanks for your contribution to the ML community!
 
 ## BibTeX
 
