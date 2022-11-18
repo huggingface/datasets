@@ -255,7 +255,7 @@ def get_dataset_infos(
     }
 
 
-def get_dataset_metadata_from_readme(path, revision=None, download_config=None):
+def get_dataset_metadata_from_readme(path, revision=None, download_config=None) -> Union[DatasetMetadata, None]:
     from pathlib import Path
 
     if download_config:
@@ -270,7 +270,7 @@ def get_dataset_metadata_from_readme(path, revision=None, download_config=None):
         return DatasetMetadata.from_readme(Path(dataset_readme_path))
 
     except FileNotFoundError:
-        pass
+        return
 
 
 def get_dataset_config_names(
@@ -338,7 +338,9 @@ def get_dataset_config_names(
     dataset_metadata = get_dataset_metadata_from_readme(path, revision=revision, download_config=download_config)
     configs_in_meta = (
         [info["config_name"] for info in dataset_metadata["dataset_info"]]
-        if isinstance(dataset_metadata.get("dataset_info"), list) and dataset_metadata["dataset_info"]
+        if dataset_metadata
+        and isinstance(dataset_metadata.get("dataset_info"), list)
+        and dataset_metadata["dataset_info"]
         else None
     )
 

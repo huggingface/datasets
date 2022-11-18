@@ -686,6 +686,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
     def __init__(
         self,
         name: str,
+        config_name: str = None,
         data_dir: Optional[str] = None,
         data_files: Optional[Union[str, List, Dict]] = None,
         download_config: Optional[DownloadConfig] = None,
@@ -693,6 +694,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
     ):
 
         self.name = name
+        self.config_name = config_name
         self.data_files = data_files
         self.data_dir = data_dir
         self.download_config = download_config
@@ -702,7 +704,11 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
     def get_module(self) -> DatasetModule:
         base_path = str(Path(self.data_dir).resolve()) if self.data_dir is not None else str(Path().resolve())
         patterns = (
-            sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns_locally(base_path)
+            sanitize_patterns(self.data_files)
+            if self.data_files is not None
+            else get_data_patterns_locally(
+                base_path,
+            )
         )
         data_files = DataFilesDict.from_local_or_remote(
             patterns,
@@ -1137,6 +1143,7 @@ def dataset_module_factory(
     if path in _PACKAGED_DATASETS_MODULES:
         return PackagedDatasetModuleFactory(
             path,
+            config_name=config_name,
             data_dir=data_dir,
             data_files=data_files,
             download_config=download_config,

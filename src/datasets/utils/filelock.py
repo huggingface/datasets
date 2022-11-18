@@ -420,7 +420,7 @@ class UnixFileLock(BaseFileLock):
         self._lock_file_fd = None
         fcntl.flock(fd, fcntl.LOCK_UN)
         os.close(fd)
-        return None
+        return None  # TODO: just curious - why return None?
 
 
 # Soft lock

@@ -4289,7 +4289,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         branch: Optional[str] = None,
         max_shard_size: Optional[Union[int, str]] = None,
         embed_external_files: bool = True,
-    ) -> Tuple[str, str, int, int]:
+    ) -> Tuple[str, str, int, int, List[str], int]:
         """Pushes the dataset to the hub.
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
 
@@ -4427,6 +4427,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, use_auth_token=token)
         data_files = [file for file in files if file.startswith("data/")]
 
+        # single_config_repo_pattern = "data/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"
+        # data_files_default = [file for file in files if re.match(file, single_config_repo_pattern)]
+        # if config_name and data_files_default:
+        # there are files right next to data/ dir
+
         config_in_path = f"{config_name}/" if config_name else ""
 
         def path_in_repo(_index, shard):
@@ -4495,7 +4500,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         repo_files = list(set(files) - set(data_files_to_delete))
         # TODO: config_name="default" if not config_name?
 
-        return repo_id, config_name, split, uploaded_size, dataset_nbytes, repo_files, deleted_size
+        return repo_id, split, uploaded_size, dataset_nbytes, repo_files, deleted_size
 
     def push_to_hub(
         self,
@@ -4559,7 +4564,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         (
             repo_id,
-            config_name,
+            # config_name,  # TODO - do I need it
             split,
             uploaded_size,
             dataset_nbytes,

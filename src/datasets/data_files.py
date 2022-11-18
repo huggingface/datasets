@@ -95,7 +95,7 @@ FILES_TO_IGNORE = ["README.md", "config.json", "dataset_infos.json", "dummy_data
 
 
 def contains_wildcards(pattern: str) -> bool:
-    return any(wilcard_character in pattern for wilcard_character in WILDCARD_CHARACTERS)
+    return any(wildcard_character in pattern for wildcard_character in WILDCARD_CHARACTERS)
 
 
 def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[str], "DataFilesList"]]:
@@ -222,12 +222,10 @@ def _get_data_files_patterns(
     In order, it first tests if SPLIT_PATTERN_SHARDED works, otherwise it tests the patterns in ALL_DEFAULT_PATTERNS.
     """
     # first check the split patterns like data/{split}-00000-of-00001.parquet
+    config_name = f"{config_name}/" if config_name else ""  # config_name is a directory is exists
     for split_pattern in ALL_SPLIT_PATTERNS:
-        # pattern = split_pattern.replace("{split}", "*").replace("{config_name}", config_name if config_name else "")
-        # SPLIT_PATTERN_SHARDED = "data/{config_name}{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"
-        config_name = f"{config_name}/" if config_name else ""
         split_pattern = split_pattern.replace("{config_name}", config_name)
-        pattern = split_pattern.replace("{split}", "*").replace("{config_name}", config_name)
+        pattern = split_pattern.replace("{split}", "*")
         data_files = pattern_resolver(pattern)
         if len(data_files) > 0:
             data_files = [p.as_posix() for p in data_files]
@@ -239,6 +237,7 @@ def _get_data_files_patterns(
         for split, patterns in patterns_dict.items():
             try:
                 for pattern in patterns:
+                    # split_pattern = pattern.replace("{config_name}", config_name)
                     data_files = pattern_resolver(pattern)
                     if len(data_files) > 0:
                         non_empty_splits.append(split)
@@ -247,8 +246,9 @@ def _get_data_files_patterns(
                 pass
         if non_empty_splits:
             return {
-                split: patterns_dict[split] for split in non_empty_splits
-            }  # TODO: why we add all patterns not only found?
+                split: [pattern.replace("{config_name}", config_name) for pattern in patterns_dict[split]]
+                for split in non_empty_splits
+            }  # TODO:  add only patterns that are found, not the whole list?
     raise FileNotFoundError(f"Couldn't resolve pattern {pattern} with resolver {pattern_resolver}")
 
 
