@@ -81,4 +81,4 @@ def mock_fsspec(monkeypatch):
 @pytest.fixture
 def mockfs(tmp_path_factory, mock_fsspec):
     local_fs_dir = tmp_path_factory.mktemp("mockfs")
-    return MockFileSystem(local_root_dir=local_fs_dir)
+    return MockFileSystem(local_root_dir=local_fs_dir, auto_mkdir=True)

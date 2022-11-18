@@ -201,22 +201,6 @@ def require_transformers(test_case):
         return test_case
 
 
-def require_s3(test_case):
-    """
-    Decorator marking a test that requires s3fs and moto to mock s3.
-
-    These tests are skipped when they aren't installed.
-
-    """
-    try:
-        import moto  # noqa F401
-        import s3fs  # noqa F401
-    except ImportError:
-        return unittest.skip("test requires s3fs and moto")(test_case)
-    else:
-        return test_case
-
-
 def require_spacy(test_case):
     """
     Decorator marking a test that requires spacy.
