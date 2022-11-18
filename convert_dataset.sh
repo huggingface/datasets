@@ -40,7 +40,7 @@ else
 	exit
 fi
 
-echo "Conversion succesful!"
+echo "Conversion successful!"
 
 # STEP 2
 
