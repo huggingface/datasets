@@ -192,6 +192,7 @@ EXTRAS_REQUIRE = {
     "tests": TESTS_REQUIRE,
     "quality": QUALITY_REQUIRE,
     "benchmarks": BENCHMARKS_REQUIRE,
+    "completion": ["shtab"],
     "docs": [
         # Might need to add doc-builder and some specific deps in the future
         "s3fs",

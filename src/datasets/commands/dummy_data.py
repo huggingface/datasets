@@ -19,6 +19,12 @@ from datasets.utils.logging import get_logger, set_verbosity_warning
 from datasets.utils.py_utils import map_nested
 
 
+try:
+    import shtab
+except ImportError:
+    from datasets import _shtab as shtab
+
+
 logger = get_logger(__name__)
 
 DEFAULT_ENCODING = "utf-8"
@@ -252,7 +258,7 @@ class DummyDataCommand(BaseDatasetsCLICommand):
             type=str,
             default=None,
             help="Cache directory to download and cache files when auto-generating dummy data",
-        )
+        ).complete = shtab.DIR
         test_parser.add_argument(
             "--encoding",
             type=str,

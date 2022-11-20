@@ -7,6 +7,12 @@ from datasets.commands import BaseDatasetsCLICommand
 from datasets.utils.logging import get_logger
 
 
+try:
+    import shtab
+except ImportError:
+    from datasets import _shtab as shtab
+
+
 HIGHLIGHT_MESSAGE_PRE = """<<<<<<< This should probably be modified because it mentions: """
 
 HIGHLIGHT_MESSAGE_POST = """=======
@@ -66,10 +72,10 @@ class ConvertCommand(BaseDatasetsCLICommand):
             type=str,
             required=True,
             help="Path to a TensorFlow Datasets folder to convert or a single tfds file to convert.",
-        )
+        ).complete = shtab.DIR
         train_parser.add_argument(
             "--datasets_directory", type=str, required=True, help="Path to the HuggingFace Datasets folder."
-        )
+        ).complete = shtab.DIR
         train_parser.set_defaults(func=convert_command_factory)
 
     def __init__(self, tfds_path: str, datasets_directory: str, *args):
