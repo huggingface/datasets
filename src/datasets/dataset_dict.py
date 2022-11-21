@@ -1051,7 +1051,7 @@ class DatasetDict(dict):
         If you want to store paths or urls, please use the Value("string") type.
 
         Args:
-            dataset_dict_path (``PathLike``): Path (e.g. `path/to/dataset/`) or remote URI
+            dataset_dict_path (``PathLike``): Path (e.g. `path/to/dataset`) or remote URI
                 (e.g. `s3://my-bucket/dataset/train`) of the dataset dict directory where the dataset dict will be
                 saved to.
             num_shards (:obj:`Dict[str, int]`, optional): Number of shards to write.
@@ -1104,21 +1104,27 @@ class DatasetDict(dict):
             )
 
     @staticmethod
-    def load_from_disk(dataset_dict_path: PathLike, fs=None, keep_in_memory: Optional[bool] = None) -> "DatasetDict":
+    def load_from_disk(
+        dataset_dict_path: PathLike,
+        fs="deprecated",
+        keep_in_memory: Optional[bool] = None,
+        storage_options: Optional[dict] = None,
+    ) -> "DatasetDict":
         """
         Load a dataset that was previously saved using :meth:`save_to_disk` from a filesystem using either
         :class:`~filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_dict_path (:obj:`str`): Path (e.g. ``"dataset/train"``) or remote URI (e.g.
+            dataset_dict_path (``PathLike``): Path (e.g. ``"path/to/dataset"``) or remote URI (e.g.
                 ``"s3//my-bucket/dataset/train"``) of the dataset dict directory where the dataset dict will be loaded
                 from.
-            fs (:class:`~filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``, optional, default ``None``):
-                Instance of the remote filesystem used to download the files from.
             keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
                 dataset will not be copied in-memory unless explicitly enabled by setting
                 `datasets.config.IN_MEMORY_MAX_SIZE` to nonzero. See more details in the
                 :ref:`load_dataset_enhancing_performance` section.
+            storage_options (:obj:`dict`, *optional*): Key/value pairs to be passed on to the file-system backend, if any.
+
+                <Added version="2.8.0"/>
 
         Returns:
             :class:`DatasetDict`
@@ -1129,6 +1135,17 @@ class DatasetDict(dict):
         >>> ds = load_from_disk('path/to/dataset/directory')
         ```
         """
+        if fs != "deprecated":
+            warnings.warn(
+                "'fs' was is deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
+                "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
+                FutureWarning,
+            )
+            storage_options = fs.storage_options
+
+        fs_token_paths = fsspec.get_fs_token_paths(dataset_dict_path, storage_options=storage_options)
+        fs: fsspec.AbstractFileSystem = fs_token_paths[0]
+
         dataset_dict = DatasetDict()
         if is_remote_filesystem(fs):
             dest_dataset_dict_path = extract_path_from_uri(dataset_dict_path)
@@ -1147,7 +1164,9 @@ class DatasetDict(dict):
                 if is_remote_filesystem(fs)
                 else Path(dest_dataset_dict_path, k).as_posix()
             )
-            dataset_dict[k] = Dataset.load_from_disk(dataset_dict_split_path, fs, keep_in_memory=keep_in_memory)
+            dataset_dict[k] = Dataset.load_from_disk(
+                dataset_dict_split_path, keep_in_memory=keep_in_memory, storage_options=storage_options
+            )
         return dataset_dict
 
     @staticmethod
