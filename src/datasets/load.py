@@ -562,7 +562,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         dynamic_modules_path: Optional[str] = None,
     ):
         self.path = path
-        self.name = Path(path).stem  # what's here?
+        self.name = Path(path).stem
         self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path

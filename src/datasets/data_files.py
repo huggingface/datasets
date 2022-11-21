@@ -222,7 +222,7 @@ def _get_data_files_patterns(
     In order, it first tests if SPLIT_PATTERN_SHARDED works, otherwise it tests the patterns in ALL_DEFAULT_PATTERNS.
     """
     # first check the split patterns like data/{split}-00000-of-00001.parquet
-    config_name = f"{config_name}/" if config_name else ""  # config_name is a directory is exists
+    config_name = f"{config_name}/" if config_name else ""  # config_name is a directory if exists
     for split_pattern in ALL_SPLIT_PATTERNS:
         split_pattern = split_pattern.replace("{config_name}", config_name)
         pattern = split_pattern.replace("{split}", "*")

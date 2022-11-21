@@ -10,7 +10,7 @@ logger = get_logger(__name__)
 
 
 class DatasetUploadError(Exception):
-    """Attempt of pushing dataset with config to a dataset pushed without configs."""
+    """Exceptions during pushing datasets."""
 
 
 class ChecksumVerificationException(Exception):
