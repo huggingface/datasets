@@ -3556,15 +3556,12 @@ def test_pickle_dataset_after_transforming_the_table(in_memory, method_and_param
         assert dataset._data.table == reloaded_dataset._data.table
 
 
-def test_dummy_dataset_serialize_fs(dataset, mock_fsspec, tmp_path_factory):
+def test_dummy_dataset_serialize_fs(dataset, mockfs):
     dataset_path = "mock://my_dataset"
-    storage_options = {
-        "local_root_dir": tmp_path_factory.mktemp("test_dummy_dataset_serialize_fs"),
-        "auto_mkdir": True,
-    }
-    dataset.save_to_disk(dataset_path, storage_options=storage_options)
-    reloaded = dataset.load_from_disk(dataset_path, storage_options=storage_options)
-    assert os.path.isfile(reloaded.cache_files[0]["filename"])
+    dataset.save_to_disk(dataset_path, storage_options=mockfs.storage_options)
+    assert mockfs.isdir(dataset_path)
+    assert mockfs.glob(dataset_path + "/*")
+    reloaded = dataset.load_from_disk(dataset_path, storage_options=mockfs.storage_options)
     assert len(reloaded) == len(dataset)
     assert reloaded.features == dataset.features
     assert reloaded.to_dict() == dataset.to_dict()
