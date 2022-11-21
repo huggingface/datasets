@@ -388,6 +388,30 @@ class DatasetDictTest(TestCase):
             self.assertListEqual(reloaded_dsets["train"].column_names, ["filename"])
             del dsets, reloaded_dsets
 
+            dsets = self._create_dummy_dataset_dict()
+            dsets.save_to_disk(tmp_dir, num_shards={"train": 3, "test": 2})
+            reloaded_dsets = DatasetDict.load_from_disk(tmp_dir)
+            self.assertListEqual(sorted(reloaded_dsets), ["test", "train"])
+            self.assertEqual(len(reloaded_dsets["train"]), 30)
+            self.assertListEqual(reloaded_dsets["train"].column_names, ["filename"])
+            self.assertEqual(len(reloaded_dsets["train"].cache_files), 3)
+            self.assertEqual(len(reloaded_dsets["test"]), 30)
+            self.assertListEqual(reloaded_dsets["test"].column_names, ["filename"])
+            self.assertEqual(len(reloaded_dsets["test"].cache_files), 2)
+            del reloaded_dsets
+
+            dsets = self._create_dummy_dataset_dict()
+            dsets.save_to_disk(tmp_dir, num_proc=2)
+            reloaded_dsets = DatasetDict.load_from_disk(tmp_dir)
+            self.assertListEqual(sorted(reloaded_dsets), ["test", "train"])
+            self.assertEqual(len(reloaded_dsets["train"]), 30)
+            self.assertListEqual(reloaded_dsets["train"].column_names, ["filename"])
+            self.assertEqual(len(reloaded_dsets["train"].cache_files), 2)
+            self.assertEqual(len(reloaded_dsets["test"]), 30)
+            self.assertListEqual(reloaded_dsets["test"].column_names, ["filename"])
+            self.assertEqual(len(reloaded_dsets["test"].cache_files), 2)
+            del reloaded_dsets
+
     def test_load_from_disk(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dsets = self._create_dummy_dataset_dict()
@@ -439,6 +463,24 @@ class DatasetDictTest(TestCase):
         ]
         self.assertListEqual(train_expected_label_names, train_aligned_label_names)
         self.assertListEqual(test_expected_label_names, test_aligned_label_names)
+
+
+def test_dummy_datasetdict_serialize_fs(mockfs):
+    dataset_dict = DatasetDict(
+        {
+            "train": Dataset.from_dict({"a": range(30)}),
+            "test": Dataset.from_dict({"a": range(10)}),
+        }
+    )
+    dataset_path = "mock://my_dataset"
+    dataset_dict.save_to_disk(dataset_path, storage_options=mockfs.storage_options)
+    assert mockfs.isdir(dataset_path)
+    assert mockfs.glob(dataset_path + "/*")
+    reloaded = dataset_dict.load_from_disk(dataset_path, storage_options=mockfs.storage_options)
+    assert list(reloaded) == list(dataset_dict)
+    for k in dataset_dict:
+        assert reloaded[k].features == dataset_dict[k].features
+        assert reloaded[k].to_dict() == dataset_dict[k].to_dict()
 
 
 def _check_csv_datasetdict(dataset_dict, expected_features, splits=("train",)):
