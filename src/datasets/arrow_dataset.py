@@ -4372,6 +4372,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         config_in_path = f"{config_name}/" if config_name else ""
         files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, use_auth_token=token)
+        data_files = [file for file in files if file.startswith(f"data/{config_in_path}")]
+        config_pattern = "data/([a-zA-Z0-9_-]+)/[a-z]+?-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]-*.*"
+        configs_from_data_files = set(
+            re.match(config_pattern, file).group(1) for file in data_files if re.match(config_pattern, file)
+        )
 
         if config_name:
             data_files_no_config = [file for file in files if file.startswith(f"data/{split}")]
@@ -4380,6 +4385,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     f"Repository {repo_id} already has data pushed without `config_name`. "
                     f"To push dataset with a `config_name`, please, push to a new repository to avoid conflicts. "
                 )
+        else:
+            if len(configs_from_data_files) > 0:
+                raise DatasetUploadError(
+                    f"Repository {repo_id} has configs: {configs_from_data_files}. "
+                    f"Please push your dataset as a config with a `config_name` parameter. "
+                )
+            # TODO: also compare with configs in metadata["dataset_info"] and warn if they don't match?
 
         # Find decodable columns, because if there are any, we need to:
         # (1) adjust the dataset size computation (needed for sharding) to account for possible external files
@@ -4434,8 +4446,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     yield shard
 
             shards = shards_with_embedded_external_files(shards)
-
-        data_files = [file for file in files if file.startswith(f"data/{config_in_path}")]
 
         def path_in_repo(_index, shard):
             return f"data/{config_in_path}{split}-{_index:05d}-of-{num_shards:05d}-{shard._fingerprint}.parquet"
