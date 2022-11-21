@@ -9,6 +9,10 @@ from .logging import get_logger
 logger = get_logger(__name__)
 
 
+class DatasetUploadError(Exception):
+    """Attempt of pushing dataset with config to a dataset pushed without configs."""
+
+
 class ChecksumVerificationException(Exception):
     """Exceptions during checksums verifications of downloaded files."""
 

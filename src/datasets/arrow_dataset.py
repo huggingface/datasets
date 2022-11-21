@@ -106,7 +106,7 @@ from .utils._hf_hub_fixes import create_repo
 from .utils._hf_hub_fixes import list_repo_files as hf_api_list_repo_files
 from .utils.file_utils import _retry, cached_path, estimate_dataset_size
 from .utils.hub import hf_hub_url
-from .utils.info_utils import is_small_dataset
+from .utils.info_utils import DatasetUploadError, is_small_dataset
 from .utils.metadata import DatasetMetadata
 from .utils.py_utils import asdict, convert_file_size_to_int, unique_values
 from .utils.stratify import stratified_shuffle_split_generate_indices
@@ -4370,6 +4370,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             exist_ok=True,
         )
 
+        config_in_path = f"{config_name}/" if config_name else ""
+        files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, use_auth_token=token)
+
+        if config_name:
+            data_files_no_config = [file for file in files if file.startswith(f"data/{split}")]
+            if data_files_no_config:
+                raise DatasetUploadError(
+                    f"Repository {repo_id} already has data pushed without `config_name`. "
+                    f"To push dataset with a `config_name`, please, push to a new repository to avoid conflicts. "
+                )
+
         # Find decodable columns, because if there are any, we need to:
         # (1) adjust the dataset size computation (needed for sharding) to account for possible external files
         # (2) embed the bytes from the files in the shards
@@ -4424,15 +4435,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
             shards = shards_with_embedded_external_files(shards)
 
-        files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, use_auth_token=token)
-        data_files = [file for file in files if file.startswith("data/")]
-
-        # single_config_repo_pattern = "data/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"
-        # data_files_default = [file for file in files if re.match(file, single_config_repo_pattern)]
-        # if config_name and data_files_default:
-        # there are files right next to data/ dir
-
-        config_in_path = f"{config_name}/" if config_name else ""
+        data_files = [file for file in files if file.startswith(f"data/{config_in_path}")]
 
         def path_in_repo(_index, shard):
             return f"data/{config_in_path}{split}-{_index:05d}-of-{num_shards:05d}-{shard._fingerprint}.parquet"
@@ -4500,7 +4503,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         repo_files = list(set(files) - set(data_files_to_delete))
         # TODO: config_name="default" if not config_name?
 
-        return repo_id, split, uploaded_size, dataset_nbytes, repo_files, deleted_size
+        return repo_id, config_name, split, uploaded_size, dataset_nbytes, repo_files, deleted_size
 
     def push_to_hub(
         self,
