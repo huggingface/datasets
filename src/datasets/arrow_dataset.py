@@ -1401,7 +1401,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_path (:obj:`str`): Path (e.g. `"dataset/train"`) or remote URI (e.g.
+            dataset_path (:obj:`str`): Path (e.g. `"path/to/dataset/train"`) or remote URI (e.g.
                 `"s3//my-bucket/dataset/train"`) of the dataset directory where the dataset will be loaded from.
             keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
                 dataset will not be copied in-memory unless explicitly enabled by setting
