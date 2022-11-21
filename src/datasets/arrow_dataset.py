@@ -1183,7 +1183,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     def save_to_disk(
         self,
-        dataset_path: str,
+        dataset_path: PathLike,
         fs="deprecated",
         num_shards: Optional[int] = None,
         num_proc: Optional[int] = None,
@@ -1199,9 +1199,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         If you want to store paths or urls, please use the Value("string") type.
 
         Args:
-            dataset_path (:obj:`str`): Path (e.g. `dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`)
+            dataset_path (``PathLike``): Path (e.g. `path/to/dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`)
                 of the dataset directory where the dataset will be saved to.
-            num_shards (:obj:`Union[str, int]`, optional): Number of shards to write.
+            num_shards (:obj:`int`, optional): Number of shards to write.
                 Default to the same value as `num_proc` if specified.
 
                 <Added version="2.8.0"/>

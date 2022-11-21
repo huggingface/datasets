@@ -2,6 +2,7 @@ import contextlib
 import copy
 import json
 import os
+import posixpath
 import re
 import warnings
 from io import BytesIO
@@ -1032,56 +1033,78 @@ class DatasetDict(dict):
             }
         )
 
-    def save_to_disk(self, dataset_dict_path: str, fs=None):
+    def save_to_disk(
+        self,
+        dataset_dict_path: PathLike,
+        fs="deprecated",
+        num_shards: Optional[Dict[str, int]] = None,
+        num_proc: Optional[int] = None,
+        storage_options: Optional[dict] = None,
+    ):
         """
         Saves a dataset dict to a filesystem using either :class:`~filesystems.S3FileSystem` or
         ``fsspec.spec.AbstractFileSystem``.
 
         For :class:`Image` and :class:`Audio` data:
 
-        If your images and audio files are local files, then the resulting arrow file will store paths to these files.
-        If you want to include the bytes or your images or audio files instead, you must `read()` those files first.
-        This can be done by storing the "bytes" instead of the "path" of the images or audio files:
-
-        ```python
-        >>> def read_image_file(example):
-        ...     with open(example["image"].filename, "rb") as f:
-        ...         return {"image": {"bytes": f.read()}}
-        >>> ds = ds.map(read_image_file)
-        >>> ds.save_to_disk("path/to/dataset/dir")
-        ```
-
-        ```python
-        >>> def read_audio_file(example):
-        ...     with open(example["audio"]["path"], "rb") as f:
-        ...         return {"audio": {"bytes": f.read()}}
-        >>> ds = ds.map(read_audio_file)
-        >>> ds.save_to_disk("path/to/dataset/dir")
-        ```
+        All the Image() and Audio() data are stored in the arrow files.
+        If you want to store paths or urls, please use the Value("string") type.
 
         Args:
-            dataset_dict_path (``str``): Path (e.g. `dataset/train`) or remote URI
+            dataset_dict_path (``PathLike``): Path (e.g. `path/to/dataset/`) or remote URI
                 (e.g. `s3://my-bucket/dataset/train`) of the dataset dict directory where the dataset dict will be
                 saved to.
-            fs (:class:`~filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``):
-                Instance of the remote filesystem used to download the files from.
+            num_shards (:obj:`Dict[str, int]`, optional): Number of shards to write.
+                You need to provide the number of shards for each dataset in the dataset dictionary.
+                Default to the same value as `num_proc` if specified.
+
+                <Added version="2.8.0"/>
+            num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
+                Multiprocessing is disabled by default.
+
+                <Added version="2.8.0"/>
+            storage_options (:obj:`dict`, *optional*): Key/value pairs to be passed on to the file-system backend, if any.
+
+                <Added version="2.8.0"/>
+
         """
-        if is_remote_filesystem(fs):
-            dest_dataset_dict_path = extract_path_from_uri(dataset_dict_path)
-        else:
-            fs = fsspec.filesystem("file")
-            dest_dataset_dict_path = dataset_dict_path
-            os.makedirs(dest_dataset_dict_path, exist_ok=True)
+        if fs != "deprecated":
+            warnings.warn(
+                "'fs' was is deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
+                "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
+                FutureWarning,
+            )
+            storage_options = fs.storage_options
+
+        fs_token_paths = fsspec.get_fs_token_paths(dataset_dict_path, storage_options=storage_options)
+        fs: fsspec.AbstractFileSystem = fs_token_paths[0]
+        is_local = not is_remote_filesystem(fs)
+        path_join = os.path.join if is_local else posixpath.join
+
+        if num_shards is None:
+            num_shards = {k: None for k in self}
+        elif not isinstance(num_shards, dict):
+            raise ValueError(
+                "Please provide one `num_shards` per dataset in the dataset dictionary, e.g. {{'train': 128, 'test': 4}}"
+            )
+
+        if is_local:
+            Path(dataset_dict_path).resolve().mkdir(parents=True, exist_ok=True)
 
         json.dump(
             {"splits": list(self)},
-            fs.open(Path(dest_dataset_dict_path, config.DATASETDICT_JSON_FILENAME).as_posix(), "w", encoding="utf-8"),
+            fs.open(path_join(dataset_dict_path, config.DATASETDICT_JSON_FILENAME), "w", encoding="utf-8"),
         )
         for k, dataset in self.items():
-            dataset.save_to_disk(Path(dest_dataset_dict_path, k).as_posix(), fs)
+            dataset.save_to_disk(
+                path_join(dataset_dict_path, k),
+                num_shards=num_shards.get(k),
+                num_proc=num_proc,
+                storage_options=storage_options,
+            )
 
     @staticmethod
-    def load_from_disk(dataset_dict_path: str, fs=None, keep_in_memory: Optional[bool] = None) -> "DatasetDict":
+    def load_from_disk(dataset_dict_path: PathLike, fs=None, keep_in_memory: Optional[bool] = None) -> "DatasetDict":
         """
         Load a dataset that was previously saved using :meth:`save_to_disk` from a filesystem using either
         :class:`~filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
