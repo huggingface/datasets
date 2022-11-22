@@ -1347,23 +1347,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
         try:
             _time = time.time()
-            if config.PYARROW_VERSION.major >= 8:
-                for pa_table in table_iter(shard.data.table, batch_size=batch_size):
-                    writer.write_table(pa_table)
-                    num_examples_progress_update += len(pa_table)
-                    if time.time() > _time + refresh_rate:
-                        _time = time.time()
-                        yield job_id, False, num_examples_progress_update
-                        num_examples_progress_update = 0
-            else:
-                for i in range(0, shard.num_rows, batch_size):
-                    pa_table = shard.data.slice(i, batch_size)
-                    writer.write_table(pa_table)
-                    num_examples_progress_update += len(pa_table)
-                    if time.time() > _time + refresh_rate:
-                        _time = time.time()
-                        yield job_id, False, num_examples_progress_update
-                        num_examples_progress_update = 0
+            for pa_table in table_iter(shard.data, batch_size=batch_size):
+                writer.write_table(pa_table)
+                num_examples_progress_update += len(pa_table)
+                if time.time() > _time + refresh_rate:
+                    _time = time.time()
+                    yield job_id, False, num_examples_progress_update
+                    num_examples_progress_update = 0
         finally:
             yield job_id, False, num_examples_progress_update
             num_examples, num_bytes = writer.finalize()
@@ -2046,7 +2036,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         If a formatting is set with :meth:`Dataset.set_format` rows will be returned with the
         selected format.
         """
-        if self._indices is None and config.PYARROW_VERSION.major >= 8:
+        if self._indices is None:
             # Fast iteration
             # Benchmark: https://gist.github.com/mariosasko/0248288a2e3a7556873969717c1fe52b (fast_iter_batch)
             format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
@@ -2073,7 +2063,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         If a formatting is set with :meth:`Dataset.set_format` rows will be returned with the
         selected format.
         """
-        if self._indices is None and config.PYARROW_VERSION.major >= 8:
+        if self._indices:
             # Fast iteration
             # Benchmark: https://gist.github.com/mariosasko/0248288a2e3a7556873969717c1fe52b (fast_iter_batch)
             format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
