@@ -20,6 +20,7 @@ import io
 import os
 import posixpath
 import tarfile
+import time
 import warnings
 from datetime import datetime
 from functools import partial
@@ -29,7 +30,7 @@ from .. import config
 from ..utils.deprecation_utils import DeprecatedEnum
 from ..utils.file_utils import cached_path, get_from_cache, hash_url_to_filename, is_relative_path, url_or_path_join
 from ..utils.info_utils import get_size_checksum_dict
-from ..utils.logging import get_logger, is_progress_bar_enabled
+from ..utils.logging import get_logger, is_progress_bar_enabled, tqdm
 from ..utils.py_utils import NestedDataStructure, map_nested, size_str
 from .download_config import DownloadConfig
 
@@ -225,11 +226,25 @@ class DownloadManager:
 
     def _record_sizes_checksums(self, url_or_urls: NestedDataStructure, downloaded_path_or_paths: NestedDataStructure):
         """Record size/checksum of downloaded files."""
-        for url, path in zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten()):
+        _time = time.time()
+        warn_about_checksums = self.record_checksums
+        delay = 5
+        for url, path in tqdm(
+            list(zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten())),
+            delay=delay,
+            desc="Verifying checksums",
+            disable=not is_progress_bar_enabled() and not warn_about_checksums
+        ):
             # call str to support PathLike objects
             self._recorded_sizes_checksums[str(url)] = get_size_checksum_dict(
                 path, record_checksum=self.record_checksums
             )
+            if warn_about_checksums and _time + delay < time.time():
+                warn_about_checksums = False
+                logger.warning(
+                    "Verifying checksums of downloaded files for integrity. "
+                    "You can disable this by passing ignore_verifications=True to load_dataset"
+                )
 
     def download_custom(self, url_or_urls, custom_download):
         """
