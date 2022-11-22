@@ -27,7 +27,7 @@ Steps to make a release:
      ```
      git checkout main
      git pull upstream main
-     git checkout -b vVERSION-release
+     git checkout -b release-VERSION
      ```
 
 2. Change the version to the release VERSION in:
@@ -38,7 +38,7 @@ Steps to make a release:
      ```
      git add -u
      git commit -m "Release: VERSION"
-     git push upstream vVERSION-release
+     git push upstream release-VERSION
      ```
    - Go to: https://github.com/huggingface/datasets/pull/new/release
    - Create pull request
