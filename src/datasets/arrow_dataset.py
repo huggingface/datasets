@@ -2063,7 +2063,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         If a formatting is set with :meth:`Dataset.set_format` rows will be returned with the
         selected format.
         """
-        if self._indices:
+        if self._indices is None:
             # Fast iteration
             # Benchmark: https://gist.github.com/mariosasko/0248288a2e3a7556873969717c1fe52b (fast_iter_batch)
             format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
