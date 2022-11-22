@@ -1708,7 +1708,7 @@ class Features(dict):
                 label_ids = sorted(feature["class_label"]["names"])
                 if label_ids and [int(label_id) for label_id in label_ids] != list(range(int(label_ids[-1]) + 1)):
                     raise ValueError(
-                        f"ClassLabel expected a value for all label ids [0:{label_ids[-1] + 1}] but some ids are missing."
+                        f"ClassLabel expected a value for all label ids [0:{int(label_ids[-1]) + 1}] but some ids are missing."
                     )
                 feature["class_label"]["names"] = [feature["class_label"]["names"][label_id] for label_id in label_ids]
             return feature
