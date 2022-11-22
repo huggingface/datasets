@@ -233,7 +233,7 @@ class DownloadManager:
             list(zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten())),
             delay=delay,
             desc="Verifying checksums",
-            disable=not is_progress_bar_enabled() and not warn_about_checksums
+            disable=not is_progress_bar_enabled() and not warn_about_checksums,
         ):
             # call str to support PathLike objects
             self._recorded_sizes_checksums[str(url)] = get_size_checksum_dict(
