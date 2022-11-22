@@ -1705,7 +1705,7 @@ class Features(dict):
             #     '1': positive              ->               - positive
             #
             if isinstance(feature.get("class_label"), dict) and isinstance(feature["class_label"].get("names"), dict):
-                label_ids = sorted(feature["class_label"]["names"])
+                label_ids = sorted(feature["class_label"]["names"], key=int)
                 if label_ids and [int(label_id) for label_id in label_ids] != list(range(int(label_ids[-1]) + 1)):
                     raise ValueError(
                         f"ClassLabel expected a value for all label ids [0:{int(label_ids[-1]) + 1}] but some ids are missing."
