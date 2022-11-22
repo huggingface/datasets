@@ -335,18 +335,19 @@ def get_dataset_config_names(
         **download_kwargs,
     )
     builder_cls = import_main_class(dataset_module.module_path)
-    dataset_metadata = get_dataset_metadata_from_readme(path, revision=revision, download_config=download_config)
-    configs_in_meta = (
-        [info["config_name"] for info in dataset_metadata["dataset_info"]]
-        if dataset_metadata
-        and isinstance(dataset_metadata.get("dataset_info"), list)
-        and dataset_metadata["dataset_info"]
-        else None
-    )
+    # TODO: parse config from datafiles depending on module?
+    # dataset_metadata = get_dataset_metadata_from_readme(path, revision=revision, download_config=download_config)
+    # configs_in_meta = (
+    #     [info["config_name"] for info in dataset_metadata["dataset_info"]]
+    #     if dataset_metadata
+    #     and isinstance(dataset_metadata.get("dataset_info"), list)
+    #     and dataset_metadata["dataset_info"]
+    #     else None
+    # )
 
     return (
         list(builder_cls.builder_configs.keys())
-        or configs_in_meta
+        # or configs_in_meta
         or [dataset_module.builder_kwargs.get("config_name", "default")]
     )
 
