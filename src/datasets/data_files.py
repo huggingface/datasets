@@ -30,6 +30,7 @@ class EmptyDatasetError(FileNotFoundError):
 
 
 SPLIT_PATTERN_SHARDED = "data/{config_name}{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"
+CONFIG_PATTERN = "data/([a-zA-Z0-9_-]+)/[a-z]+?-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]-*.*"
 
 TRAIN_KEYWORDS = ["train", "training"]
 TEST_KEYWORDS = ["test", "testing", "eval", "evaluation"]
@@ -115,6 +116,32 @@ def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[
         return {SANITIZED_DEFAULT_SPLIT: patterns}
     else:
         return {SANITIZED_DEFAULT_SPLIT: list(patterns)}
+
+
+def validate_config(dataset_info, base_path, config_name):
+    import re
+
+    fs = HfFileSystem(repo_info=dataset_info)
+    files_in_dirs_pattern = "data/*/*-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]-*.*"
+    if base_path:
+        files_in_dirs_pattern = f"{base_path}/{files_in_dirs_pattern}"
+    files_in_dirs = [
+        filepath for filepath in fs.glob(PurePath(files_in_dirs_pattern).as_posix()) if fs.isfile(filepath)
+    ]
+    if files_in_dirs:
+        configs_from_data_files = set(
+            re.match(CONFIG_PATTERN, filepath).group(1)
+            for filepath in files_in_dirs
+            if re.match(CONFIG_PATTERN, filepath)
+        )
+        if not config_name:
+            raise ValueError(
+                f"Config name is missing. " f"Please pick one among the available configs: {configs_from_data_files}. "
+            )
+        if config_name not in configs_from_data_files:
+            raise ValueError(
+                f"Invalid config name. " f"Please pick one among the available configs: {configs_from_data_files}. "
+            )
 
 
 def _is_inside_unrequested_special_dir(matched_rel_path: str, pattern: str) -> bool:
@@ -222,6 +249,7 @@ def _get_data_files_patterns(
     In order, it first tests if SPLIT_PATTERN_SHARDED works, otherwise it tests the patterns in ALL_DEFAULT_PATTERNS.
     """
     # first check the split patterns like data/{split}-00000-of-00001.parquet
+
     config_name = f"{config_name}/" if config_name else ""  # config_name is a directory if exists
     for split_pattern in ALL_SPLIT_PATTERNS:
         split_pattern = split_pattern.replace("{config_name}", config_name)
@@ -484,13 +512,18 @@ def _resolve_single_pattern_in_dataset_repository(
     dataset_info: huggingface_hub.hf_api.DatasetInfo,
     pattern: str,
     base_path: Optional[str] = None,
+    config_name: Optional[str] = None,
     allowed_extensions: Optional[list] = None,
 ) -> List[PurePath]:
     fs = HfFileSystem(repo_info=dataset_info)
+    # _validate_config(fs, base_path, config_name)
+
     if base_path:
         pattern = f"{base_path}/{pattern}"
+        # config_pattern = f"{base_path}/{config_pattern}"
     else:
         base_path = "/"
+
     glob_iter = [PurePath(filepath) for filepath in fs.glob(PurePath(pattern).as_posix()) if fs.isfile(filepath)]
     matched_paths = [
         filepath
@@ -581,7 +614,7 @@ def resolve_patterns_in_dataset_repository(
     data_files_urls: List[Url] = []
     for pattern in patterns:
         for rel_path in _resolve_single_pattern_in_dataset_repository(
-            dataset_info, pattern, base_path, allowed_extensions
+            dataset_info, pattern, base_path=base_path, allowed_extensions=allowed_extensions
         ):
             data_files_urls.append(Url(hf_hub_url(dataset_info.id, rel_path.as_posix(), revision=dataset_info.sha)))
     if not data_files_urls:
@@ -678,9 +711,11 @@ def get_data_patterns_in_dataset_repository(
 
     In order, it first tests if SPLIT_PATTERN_SHARDED works, otherwise it tests the patterns in ALL_DEFAULT_PATTERNS.
     """
-    resolver = partial(_resolve_single_pattern_in_dataset_repository, dataset_info, base_path=base_path)
+    resolver = partial(
+        _resolve_single_pattern_in_dataset_repository, dataset_info, base_path=base_path, config_name=config_name
+    )
     try:
-        return _get_data_files_patterns(resolver, config_name=config_name)
+        return _get_data_files_patterns(resolver)
     except FileNotFoundError:
         raise EmptyDatasetError(
             f"The dataset repository at '{dataset_info.id}' doesn't contain any data files"
@@ -756,7 +791,9 @@ class DataFilesList(List[Union[Path, Url]]):
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
     ) -> "DataFilesList":
-        data_files = resolve_patterns_in_dataset_repository(dataset_info, patterns, base_path, allowed_extensions)
+        data_files = resolve_patterns_in_dataset_repository(
+            dataset_info, patterns, base_path=base_path, allowed_extensions=allowed_extensions
+        )
         origin_metadata = [(dataset_info.id, dataset_info.sha) for _ in patterns]
         return cls(data_files, origin_metadata)
 

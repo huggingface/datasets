@@ -44,6 +44,7 @@ from .data_files import (
     get_metadata_patterns_in_dataset_repository,
     get_metadata_patterns_locally,
     sanitize_patterns,
+    validate_config,
 )
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download.download_config import DownloadConfig
@@ -768,6 +769,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             use_auth_token=self.download_config.use_auth_token,
             timeout=100.0,
         )
+        validate_config(dataset_info=hfh_dataset_info, base_path=self.data_dir, config_name=self.config_name)
         patterns = (
             sanitize_patterns(self.data_files)
             if self.data_files is not None
@@ -804,11 +806,10 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                         data_files[key].origin_metadata + metadata_files.origin_metadata,
                     )
         module_path, hash = _PACKAGED_DATASETS_MODULES[module_name]
-        builder_config_name = f"-{self.config_name}" if self.config_name else ""  # or else "default"?
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
-            "config_name": f'{self.name.replace("/", "--")}{builder_config_name}',  # TODO fix name?
+            "config_name": self.name.replace("/", "--"),  # TODO ?
             "base_path": hf_hub_url(self.name, "", revision=self.revision),
             "repo_id": self.name,
             **builder_kwargs,
@@ -843,7 +844,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                         info for info in dataset_metadata["dataset_info"] if info["config_name"] == self.config_name
                     ][0]
                 else:
-                    # TODO HERE first config is found but it should be "default" ? but why is it list then.
+                    # TODO HERE should be "default" ? but in what cases is it list then.
                     dataset_info_dict = dataset_metadata["dataset_info"][0]
                 builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
                 if "config_name" in dataset_info_dict:
