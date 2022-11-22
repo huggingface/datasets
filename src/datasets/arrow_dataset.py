@@ -4513,7 +4513,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         repo_files = list(set(files) - set(data_files_to_delete))
         # TODO: config_name="default" if not config_name?
 
-        return repo_id, config_name, split, uploaded_size, dataset_nbytes, repo_files, deleted_size
+        return repo_id, split, uploaded_size, dataset_nbytes, repo_files, deleted_size
 
     def push_to_hub(
         self,
@@ -4577,7 +4577,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         (
             repo_id,
-            # config_name,  # TODO - do I need it
+            # config_name,  # TODO ?
             split,
             uploaded_size,
             dataset_nbytes,
