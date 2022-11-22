@@ -715,7 +715,7 @@ def get_data_patterns_in_dataset_repository(
         _resolve_single_pattern_in_dataset_repository, dataset_info, base_path=base_path, config_name=config_name
     )
     try:
-        return _get_data_files_patterns(resolver)
+        return _get_data_files_patterns(resolver, config_name=config_name)
     except FileNotFoundError:
         raise EmptyDatasetError(
             f"The dataset repository at '{dataset_info.id}' doesn't contain any data files"
