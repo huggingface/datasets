@@ -1184,7 +1184,7 @@ class IterableDataset(DatasetInfoMixin):
                 )
             return {new_column_name: example[original_column_name]}
 
-        original_features = self._info.features.copy()
+        original_features = self._info.features.copy() if self._info.features else None
         ds_iterable = self.map(rename_column_fn, remove_columns=[original_column_name])
         if original_features is None:
             ds_iterable._info.features = _infer_features_from_batch(self._head())
@@ -1223,7 +1223,7 @@ class IterableDataset(DatasetInfoMixin):
                 for original_column_name, new_column_name in column_mapping.items()
             }
 
-        original_features = self._info.features.copy()
+        original_features = self._info.features.copy() if self._info.features else None
         ds_iterable = self.map(rename_columns_fn, remove_columns=list(column_mapping))
         if original_features is None:
             ds_iterable._info.features = _infer_features_from_batch(self._head())
