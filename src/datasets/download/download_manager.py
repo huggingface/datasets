@@ -242,7 +242,7 @@ class DownloadManager:
             if warn_about_checksums and _time + delay < time.time():
                 warn_about_checksums = False
                 logger.warning(
-                    "Verifying checksums of downloaded files for integrity. "
+                    "Computing checksums of downloaded files. They can be used for integrity verification. "
                     "You can disable this by passing ignore_verifications=True to load_dataset"
                 )
 
