@@ -638,9 +638,9 @@ class DatasetBuilder:
                 If the format is "parquet", then image and audio data are embedded into the Parquet files instead of pointing to local files.
 
                 <Added version="2.5.0"/>
-            max_shard_size (:obj:`Union[str, int]`, optional): Maximum number of bytes written per shard.
-                Only available for the "parquet" format with a default of "500MB". The size is based on uncompressed data size,
-                so in practice your shard files may be smaller than `max_shard_size` thanks to Parquet compression.
+            max_shard_size (:obj:`Union[str, int]`, optional): Maximum number of bytes written per shard, default is "500MB".
+                The size is based on uncompressed data size, so in practice your shard files may be smaller than
+                `max_shard_size` thanks to Parquet compression for example.
 
                 <Added version="2.5.0"/>
             num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
@@ -1262,9 +1262,9 @@ class DatasetBuilder:
             split_generator: `SplitGenerator`, Split generator to process
             file_format (:obj:`str`, optional): format of the data files in which the dataset will be written.
                 Supported formats: "arrow", "parquet". Default to "arrow" format.
-            max_shard_size (:obj:`Union[str, int]`, optional): Approximate maximum number of bytes written per shard.
-                Only available for the "parquet" format with a default of "500MB". The size is based on uncompressed data size,
-                so in practice your shard files may be smaller than `max_shard_size` thanks to Parquet compression.
+            max_shard_size (:obj:`Union[str, int]`, optional): Maximum number of bytes written per shard, default is "500MB".
+                The size is based on uncompressed data size, so in practice your shard files may be smaller than
+                `max_shard_size` thanks to Parquet compression for example.
             num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
                 Multiprocessing is disabled by default.
 
