@@ -887,6 +887,7 @@ def test_iterable_dataset_rename_column(dataset_with_several_columns):
     assert list(new_dataset) == [
         {("new_id" if k == "id" else k): v for k, v in example.items()} for example in dataset_with_several_columns
     ]
+    assert new_dataset.features is not None
 
 
 def test_iterable_dataset_rename_columns(dataset_with_several_columns):
@@ -895,6 +896,7 @@ def test_iterable_dataset_rename_columns(dataset_with_several_columns):
     assert list(new_dataset) == [
         {column_mapping.get(k, k): v for k, v in example.items()} for example in dataset_with_several_columns
     ]
+    assert new_dataset.features is not None
 
 
 def test_iterable_dataset_remove_columns(dataset_with_several_columns):
