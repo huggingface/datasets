@@ -336,7 +336,7 @@ class TestPushToHub:
                 hub_ds = hub_ds.cast_column("x", Audio(decode=False))
                 elem = hub_ds[0]["x"]
                 path, bytes_ = elem["path"], elem["bytes"]
-                assert bool(path) == (not embed_external_files)
+                assert isinstance(path, str)
                 assert bool(bytes_) == embed_external_files
 
     @require_pil
@@ -358,7 +358,7 @@ class TestPushToHub:
                 hub_ds = hub_ds.cast_column("x", Image(decode=False))
                 elem = hub_ds[0]["x"]
                 path, bytes_ = elem["path"], elem["bytes"]
-                assert bool(path) == (not embed_external_files)
+                assert isinstance(path, str)
                 assert bool(bytes_) == embed_external_files
 
     @require_pil
@@ -380,7 +380,7 @@ class TestPushToHub:
                 hub_ds = hub_ds.cast_column("x", [Image(decode=False)])
                 elem = hub_ds[0]["x"][0]
                 path, bytes_ = elem["path"], elem["bytes"]
-                assert bool(path) == (not embed_external_files)
+                assert isinstance(path, str)
                 assert bool(bytes_) == embed_external_files
 
     def test_push_dataset_dict_to_hub_custom_features(self, temporary_repo):
