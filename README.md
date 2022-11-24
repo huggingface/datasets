@@ -47,7 +47,7 @@
 - Lightweight and fast with a transparent and pythonic API (multi-processing/caching/memory-mapping).
 - Built-in interoperability with NumPy, pandas, PyTorch, Tensorflow 2 and JAX.
 - Native support for audio and image data
-- Stream datasets without downloading them completely
+- Enable streaming mode to save disk space and start iterating over the dataset immediatly.
 
 🤗 Datasets originated from a fork of the awesome [TensorFlow Datasets](https://github.com/tensorflow/datasets) and the HuggingFace team want to deeply thank the TensorFlow Datasets team for building this amazing library. More details on the differences between 🤗 Datasets and `tfds` can be found in the section [Main differences between 🤗 Datasets and `tfds`](#main-differences-between--datasets-and-tfds).
 
@@ -113,7 +113,7 @@ tokenized_dataset = squad_dataset.map(lambda x: tokenizer(x['context']), batched
 If your dataset is bigger than your disk or if you don't want to wait to download the data, you can use streaming:
 
 ```python
-# If you want to efficiently download the data as you iterate over the dataset
+# If you want to use the dataset immediatly and efficiently stream the data as you iterate over the dataset
 image_dataset = load_dataset('cifar100', streaming=True)
 for example in image_dataset["train"]:
     break
