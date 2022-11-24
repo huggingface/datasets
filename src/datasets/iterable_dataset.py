@@ -1260,7 +1260,16 @@ class IterableDataset(DatasetInfoMixin):
         {'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
         ```
         """
-        return self.map(remove_columns=column_names)
+        original_features = self._info.features.copy() if self._info.features else None
+        ds_iterable = self.map(remove_columns=column_names)
+        if original_features is None:
+            ds_iterable._info.features = _infer_features_from_batch(ds_iterable._head())
+        else:
+            ds_iterable._info.features = original_features.copy()
+            for col, _ in original_features.items():
+                if col in column_names:
+                    del ds_iterable._info.features[col]
+        return ds_iterable
 
     def cast_column(self, column: str, feature: FeatureType) -> "IterableDataset":
         """Cast column to feature for decoding.
