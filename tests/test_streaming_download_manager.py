@@ -640,6 +640,18 @@ def test_xpathsuffix(input_path, expected):
     assert xPath(input_path).suffix == expected
 
 
+@pytest.mark.parametrize(
+    "input_path, suffix, expected",
+    [
+        ("zip://file.txt::https://host.com/archive.zip", ".ann", "zip://file.ann::https://host.com/archive.zip"),
+        ("file.txt", ".ann", "file.ann"),
+        ((Path().resolve() / "file.txt").as_posix(), ".ann", (Path().resolve() / "file.ann").as_posix()),
+    ],
+)
+def test_xpath_with_suffix(input_path, suffix, expected):
+    assert xPath(input_path).with_suffix(suffix) == xPath(expected)
+
+
 @pytest.mark.parametrize("urlpath", [r"C:\\foo\bar.txt", "/foo/bar.txt", "https://f.oo/bar.txt"])
 def test_streaming_dl_manager_download_dummy_path(urlpath):
     dl_manager = StreamingDownloadManager()
