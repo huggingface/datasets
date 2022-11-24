@@ -337,6 +337,7 @@ class TestPushToHub:
                 elem = hub_ds[0]["x"]
                 path, bytes_ = elem["path"], elem["bytes"]
                 assert isinstance(path, str)
+                assert os.path.basename(path) == "test_audio_44100.wav"
                 assert bool(bytes_) == embed_external_files
 
     @require_pil

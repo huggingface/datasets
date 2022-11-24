@@ -1108,6 +1108,7 @@ def test_embed_array_storage(image_file):
     array = pa.array([{"bytes": None, "path": image_file}], type=Image.pa_type)
     embedded_images_array = embed_array_storage(array, Image())
     assert isinstance(embedded_images_array.to_pylist()[0]["path"], str)
+    assert embedded_images_array.to_pylist()[0]["path"] == "test_image_rgb.jpg"
     assert isinstance(embedded_images_array.to_pylist()[0]["bytes"], bytes)
 
 
