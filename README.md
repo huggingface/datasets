@@ -28,7 +28,7 @@
 🤗 Datasets is a lightweight library providing **two** main features:
 
 - **one-line dataloaders for many public datasets**: one-liners to download and pre-process any of the ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) major public datasets (image datasets, audio datasets, text datasets in 467 languages and dialects, etc.) provided on the [HuggingFace Datasets Hub](https://huggingface.co/datasets). With a simple command like `squad_dataset = load_dataset("squad")`, get any of these datasets ready to use in a dataloader for training/evaluating a ML model (Numpy/Pandas/PyTorch/TensorFlow/JAX),
-- **efficient data pre-processing**: simple, fast and reproducible data pre-processing for the above public datasets as well as your own local datasets in CSV/JSON/text/PNG/JPEG/WAV/MP3/Parquet/etc. With simple commands like `processed_dataset = dataset.map(process_example)`, efficiently prepare the dataset for inspection and ML model evaluation and training.
+- **efficient data pre-processing**: simple, fast and reproducible data pre-processing for the public datasets as well as your own local datasets in CSV, JSON, text, PNG, JPEG, WAV, MP3, Parquet, etc. With simple commands like `processed_dataset = dataset.map(process_example)`, efficiently prepare the dataset for inspection and ML model evaluation and training.
 
 [🎓 **Documentation**](https://huggingface.co/docs/datasets/) [🕹 **Colab tutorial**](https://colab.research.google.com/github/huggingface/datasets/blob/main/notebooks/Overview.ipynb)
 
@@ -138,7 +138,9 @@ Another introduction to 🤗 Datasets is the tutorial on Google Colab here:
 
 We have a very detailed step-by-step guide to add a new dataset to the ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) datasets already provided on the [HuggingFace Datasets Hub](https://huggingface.co/datasets).
 
-You will find [the step-by-step guide here](https://huggingface.co/docs/datasets/upload_dataset) to upload a dataset on the Hub, and also [how to do it using git](https://huggingface.co/docs/datasets/share).
+You can find:
+- [how to upload a dataset to the Hub using your web browser or Python](https://huggingface.co/docs/datasets/upload_dataset) and also
+- [how to upload it using Git](https://huggingface.co/docs/datasets/share).
 
 # Main differences between 🤗 Datasets and `tfds`
 
@@ -153,9 +155,11 @@ If you are familiar with the great TensorFlow Datasets, here are the main differ
 
 Similar to TensorFlow Datasets, 🤗 Datasets is a utility library that downloads and prepares public datasets. We do not host or distribute most of these datasets, vouch for their quality or fairness, or claim that you have license to use them. It is your responsibility to determine whether you have permission to use the dataset under the dataset's license.
 
-Moreover 🤗 Datasets may run python code defined by the dataset authors to parse certain data formats or structures. For security reasons, we ask users to check the dataset scripts they're going to run beforehand and pin the `revision` of the repositories they use.
+Moreover 🤗 Datasets may run Python code defined by the dataset authors to parse certain data formats or structures. For security reasons, we ask users to:
+- check the dataset scripts they're going to run beforehand and
+- pin the `revision` of the repositories they use.
 
-If you're a dataset owner and wish to update any part of it (description, citation, etc.), or do not want your dataset to be included in the Hugging Face Hub, please get in touch by opening a discussion or a pull request in the Community tab of the dataset page. Thanks for your contribution to the ML community!
+If you're a dataset owner and wish to update any part of it (description, citation, license, etc.), or do not want your dataset to be included in the Hugging Face Hub, please get in touch by opening a discussion or a pull request in the Community tab of the dataset page. Thanks for your contribution to the ML community!
 
 ## BibTeX
 
