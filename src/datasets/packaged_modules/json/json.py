@@ -128,6 +128,13 @@ class Json(datasets.ArrowBasedBuilder):
                                     pa_table = paj.read_json(
                                         io.BytesIO(batch), read_options=paj.ReadOptions(block_size=block_size)
                                     )
+                                    feature_columns = set(self.config.features.arrow_schema.names)
+                                    pa_columns = set(pa_table.column_names)
+                                    missing_columns = feature_columns - pa_columns
+                                    if missing_columns:  # some columns are missing
+                                        num_rows = len(pa_table)
+                                        for column_name in missing_columns:
+                                            pa_table = pa_table.append_column(column_name, pa.nulls(num_rows))
                                     break
                                 except (pa.ArrowInvalid, pa.ArrowNotImplementedError) as e:
                                     if (
