@@ -113,7 +113,7 @@ tokenized_dataset = squad_dataset.map(lambda x: tokenizer(x['context']), batched
 If your dataset is bigger than your disk or if you don't want to wait to download the data, you can use streaming:
 
 ```python
-# If you want to use the dataset immediatly and efficiently stream the data as you iterate over the dataset
+# If you want to use the dataset immediately and efficiently stream the data as you iterate over the dataset
 image_dataset = load_dataset('cifar100', streaming=True)
 for example in image_dataset["train"]:
     break
