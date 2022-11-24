@@ -204,12 +204,11 @@ class Audio:
             storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=storage.is_null())
         return array_cast(storage, self.pa_type)
 
-    def embed_storage(self, storage: pa.StructArray, drop_paths: bool = True) -> pa.StructArray:
+    def embed_storage(self, storage: pa.StructArray) -> pa.StructArray:
         """Embed audio files into the Arrow array.
 
         Args:
             storage (pa.StructArray): PyArrow array to embed.
-            drop_paths (bool, default ``True``): If True, the paths are set to None.
 
         Returns:
             pa.StructArray: Array in the Audio arrow storage type, that is
@@ -229,7 +228,10 @@ class Audio:
             ],
             type=pa.binary(),
         )
-        path_array = pa.array([None] * len(storage), type=pa.string()) if drop_paths else storage.field("path")
+        path_array = pa.array(
+            [os.path.basename(path) if path is not None else None for path in storage.field("path").to_pylist()],
+            type=pa.string(),
+        )
         storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=bytes_array.is_null())
         return array_cast(storage, self.pa_type)
 
