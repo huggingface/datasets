@@ -83,7 +83,7 @@ from .fingerprint import (
     update_fingerprint,
 )
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table, supports_lazy_formatting
-from .formatting.formatting import PythonArrowExtractor, _is_range_contiguous
+from .formatting.formatting import PythonLazyRow, PythonLazyBatch, _is_range_contiguous
 from .info import DatasetInfo, DatasetInfosDict
 from .naming import _split_re
 from .search import IndexableMixin
@@ -2766,16 +2766,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
         if lazy_formatting:
             # Save undecoded data (to preserve exact image/audio format for instance) after processing unless decoded data is modified in the `function`
-            lazy_type_to_extend = input_formatter.lazy_row_type if not batched else input_formatter.lazy_batch_type
-
-            class DictWithDecodableDataToRestore(lazy_type_to_extend):
-                def __init__(self, *args, **kwargs):
-                    super().__init__(*args, **kwargs)
+            class DictWithDecodableDataToRestore(LazyPythonRow if not batched else LazyPythonBatch):
+                def _init(self):
                     self.decodable_data_to_restore = {}
 
                 def __getitem__(self, key):
                     if (
-                        key in self.cols_to_decode
+                        key in self.keys_to_format
                         and self.formatter.features._column_requires_decoding[key]
                         and key not in self.decodable_data_to_restore
                     ):
@@ -2792,19 +2789,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         del self.decodable_data_to_restore[key]
                     super().__delitem__(key)
 
-            if not batched:
-                input_formatter.lazy_row_type = DictWithDecodableDataToRestore
-            else:
-                input_formatter.lazy_batch_type = DictWithDecodableDataToRestore
-
         else:
 
             class DictWithDecodableDataToRestore:
                 pass
-
-        convert_pa_table_to_dict = (
-            PythonArrowExtractor().extract_row if not batched else PythonArrowExtractor().extract_batch
-        )
 
         class NumExamplesMismatchError(Exception):
             pass
@@ -2846,8 +2834,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 format_columns=input_columns,
                 formatter=input_formatter,
             )
-            inputs_to_merge = inputs.data if lazy_formatting else inputs
-            fn_args = [inputs] if input_columns is None else [inputs[col] for col in inputs]
+            fn_args = [inputs] if input_columns is None else [inputs[col] for col in input_columns]
             if offset == 0:
                 effective_indices = indices
             else:
@@ -2859,10 +2846,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 additional_args += (rank,)
             processed_inputs = function(*fn_args, *additional_args, **fn_kwargs)
             # Merging these two dicts here would break the ds.map(lambda x: x, remove_columns=["ds_col"]) case
-            processed_inputs, inputs_to_restore = (
-                (processed_inputs.data, processed_inputs.decodable_data_to_restore)
+            processed_inputs, pa_inputs_to_merge = (
+                (processed_inputs.data, processed_inputs.pa_data)
                 if isinstance(processed_inputs, DictWithDecodableDataToRestore)
-                else (processed_inputs, {})
+                else (processed_inputs, pa_inputs)
             )
             if update_data is None:
                 # Check if the function returns updated examples
@@ -2870,20 +2857,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 validate_function_output(processed_inputs, indices)
             if not update_data:
                 return None  # Nothing to update, let's move on
-            if self._format_type or input_columns:
-                inputs_to_merge = convert_pa_table_to_dict(pa_inputs)
             if remove_columns is not None:
-                for column in remove_columns:
+                for i, column in enumerate(pa_inputs_to_merge):
                     # `function` can modify input in-place causing column to be already removed.
-                    if column in inputs_to_merge:
-                        inputs_to_merge.pop(column)
+                    if column in remove_columns:
+                        pa_inputs_to_merge = pa_inputs_to_merge.drop(column)
             if check_same_num_examples:
-                input_num_examples = len(inputs[next(iter(inputs_to_merge.keys()))])
+                input_num_examples = len(pa_inputs_to_merge)
                 processed_inputs_num_examples = len(processed_inputs[next(iter(processed_inputs.keys()))])
                 if input_num_examples != processed_inputs_num_examples:
                     raise NumExamplesMismatchError()
-            if isinstance(inputs_to_merge, dict) and isinstance(processed_inputs, Mapping):
-                return {**inputs_to_merge, **processed_inputs, **inputs_to_restore}
+            if check_same_num_examples is not None and isinstance(processed_inputs, Mapping):
+                # TODO: handle decoded values and return pa.Table directly?
+                return {**pa_inputs_to_merge.to_dict(), **processed_inputs}
             else:
                 return processed_inputs
 

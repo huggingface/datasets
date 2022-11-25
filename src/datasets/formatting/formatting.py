@@ -12,17 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections import UserDict
-from collections.abc import Mapping
+from collections.abc import Mapping, MutableMapping
 from functools import partial
 
 # Lint as: python3
-from typing import Any, Callable, Dict, Generic, Iterable, List, MutableMapping, Optional, TypeVar, Union
+from typing import Any, Callable, Dict, Generic, Iterable, List, Optional, TypeVar, Union
 
 import numpy as np
 import pandas as pd
 import pyarrow as pa
+from packaging import version
 
+from .. import config
 from ..features import Features
 from ..features.features import _ArrayXDExtensionType, _is_zero_copy_only, decode_nested_example, pandas_types_mapper
 from ..table import Table
@@ -68,7 +69,7 @@ def _query_table_with_indices_mapping(
         else:
             pass  # treat as an iterable
     if isinstance(key, str):
-        table = table.drop([column for column in table.column_names if column != key])
+        table = table.select([key])
         return _query_table(table, indices.column(0).to_pylist())
     if isinstance(key, Iterable):
         return _query_table(table, [indices.fast_slice(i, 1).column(0)[0].as_py() for i in key])
@@ -262,32 +263,123 @@ class PandasFeaturesDecoder:
         return self.decode_row(batch)
 
 
-class LazyDict(UserDict):
-    def __init__(self, data: dict, formatter: "Formatter"):
-        self.data = data
+class LazyDict(MutableMapping):
+    def __init__(self, pa_table: pa.Table, formatter: "Formatter"):
+        self.pa_table = pa_table
         self.formatter = formatter
-        self.cols_to_decode = set(data.keys())
+
+        self.data = {key: None for key in pa_table.column_names}
+        self.keys_to_format = set(self.data.keys())
+
+    def __len__(self):
+        return len(self.data)
 
     def __getitem__(self, key):
-        value = super().__getitem__(key)
-        if key in self.cols_to_decode:
-            value = self.decode(value, self.formatter.features[key], key)
+        value = self.data[key]
+        if key in self.keys_to_format:
+            value = self.format(key)
             self.data[key] = value
-            self.cols_to_decode.remove(key)
+            self.keys_to_format.remove(key)
         return value
 
     def __setitem__(self, key, value):
-        if key in self.cols_to_decode:
-            self.cols_to_decode.remove(key)
-        super().__setitem__(key, value)
+        if key in self.keys_to_format:
+            self.keys_to_format.remove(key)
+        self.data[key] = value
 
     def __delitem__(self, key) -> None:
-        if key in self.cols_to_decode:
-            self.cols_to_decode.remove(key)
-        super().__delitem__(key)
+        if key in self.keys_to_format:
+            self.keys_to_format.remove(key)
+        del self.data[key]
 
-    def decode(self, value, feature, key):
+    def __iter__(self):
+        self._format_all()
+        return iter(self.data)
+
+    def __contains__(self, key):
+        return key in self.data
+
+    def __repr__(self):
+        self._format_all()
+        return repr(self.data)
+
+    if config.PY_VERSION >= version.parse("3.9"):
+
+        def __or__(self, other):
+            if isinstance(other, LazyDict):
+                inst = self.copy()
+                other = other.copy()
+                other._format_all()
+                inst.keys_to_format -= other.data.keys()
+                inst.data = inst.data | other.data
+                return inst
+            if isinstance(other, dict):
+                inst = self.copy()
+                inst.keys_to_format -= other.keys()
+                inst.data = inst.data | other
+                return inst
+            return NotImplemented
+
+        def __ror__(self, other):
+            if isinstance(other, LazyDict):
+                inst = self.copy()
+                other = other.copy()
+                other._format_all()
+                inst.keys_to_format -= other.data.keys()
+                inst.data = other.data | inst.data
+                return inst
+            if isinstance(other, dict):
+                inst = self.copy()
+                inst.keys_to_format -= other.keys()
+                inst.data = other | inst.data
+                return inst
+            return NotImplemented
+
+        def __ior__(self, other):
+            if isinstance(other, LazyDict):
+                other = other.copy()
+                other._format_all()
+                self.keys_to_format -= other.data.keys()
+                self.data |= other.data
+            else:
+                self.keys_to_format -= other.keys()
+                self.data |= other
+            return self
+
+    def __copy__(self):
+        # Identical to `UserDict.__copy__`
+        inst = self.__class__.__new__(self.__class__)
+        inst.__dict__.update(self.__dict__)
+        # Create a copy and avoid triggering descriptors
+        inst.__dict__["data"] = self.__dict__["data"].copy()
+        return inst
+
+    def copy(self):
+        import copy
+
+        return copy.copy(self)
+
+    @classmethod
+    def fromkeys(cls, iterable, value=None):
         raise NotImplementedError
+
+    def format(self, key):
+        raise NotImplementedError
+
+    def _format_all(self):
+        for key in self.keys_to_format:
+            self.data[key] = self.format(key)
+        self.keys_to_format.clear()
+
+
+class PythonLazyRow(LazyDict):
+    def format(self, key):
+        return self.formatter.format_column(self.pa_table.select([key]))[0]
+
+
+class PythonLazyBatch(LazyDict):
+    def format(self, key):
+        return self.formatter.format_column(self.pa_table.select([key]))
 
 
 class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
@@ -300,9 +392,6 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     python_arrow_extractor = PythonArrowExtractor
     numpy_arrow_extractor = NumpyArrowExtractor
     pandas_arrow_extractor = PandasArrowExtractor
-
-    lazy_row_type = LazyDict
-    lazy_batch_type = LazyDict
 
     supports_lazy_formatting = False
 
@@ -347,28 +436,11 @@ class ArrowFormatter(Formatter[pa.Table, pa.Array, pa.Table]):
 class PythonFormatter(Formatter[Mapping, list, Mapping]):
     supports_lazy_formatting = True
 
-    class LazyExample(LazyDict):
-        def decode(self, value, feature, key):
-            return (
-                (decode_nested_example(feature, value) if value is not None else None)
-                if self.formatter.features._column_requires_decoding[key]
-                else value
-            )
-
-    class LazyBatch(LazyDict):
-        def decode(self, value, feature, key):
-            return (
-                [decode_nested_example(feature, v) if value is not None else None for v in value]
-                if self.formatter.features._column_requires_decoding[key]
-                else value
-            )
-
-    lazy_row_type = LazyExample
-    lazy_batch_type = LazyBatch
-
     def format_row(self, pa_table: pa.Table) -> Mapping:
+        if self.lazy:
+            return PythonLazyRow(pa_table, self)
         row = self.python_arrow_extractor().extract_row(pa_table)
-        row = self.python_features_decoder.decode_row(row) if not self.lazy else self.lazy_row_type(row, self)
+        row = self.python_features_decoder.decode_row(row)
         return row
 
     def format_column(self, pa_table: pa.Table) -> list:
@@ -377,10 +449,10 @@ class PythonFormatter(Formatter[Mapping, list, Mapping]):
         return column
 
     def format_batch(self, pa_table: pa.Table) -> Mapping:
+        if self.lazy:
+            return PythonLazyBatch(pa_table, self)
         batch = self.python_arrow_extractor().extract_batch(pa_table)
-        batch = (
-            self.python_features_decoder.decode_batch(batch) if not self.lazy else self.lazy_batch_type(batch, self)
-        )
+        batch = self.python_features_decoder.decode_batch(batch)
         return batch
 
 

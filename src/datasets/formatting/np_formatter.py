@@ -5,35 +5,12 @@ import numpy as np
 import pyarrow as pa
 
 from .. import config
-from ..features.features import decode_nested_example
 from ..utils.py_utils import map_nested
-from .formatting import Formatter, LazyDict
+from .formatting import Formatter, PythonLazyRow, PythonLazyBatch
 
 
 class NumpyFormatter(Formatter[Mapping, np.ndarray, Mapping]):
     supports_lazy_formatting = True
-
-    class LazyExample(LazyDict):
-        def decode(self, value, feature, key):
-            value = (
-                (decode_nested_example(feature, value) if value is not None else None)
-                if self.formatter.features._column_requires_decoding[key]
-                else value
-            )
-            return self.formatter.recursive_tensorize(value)
-
-    class LazyBatch(LazyDict):
-        def decode(self, value, feature, key):
-            value = (
-                [decode_nested_example(feature, v) if value is not None else None for v in value]
-                if self.formatter.features._column_requires_decoding[key]
-                else value
-            )
-            value = self.formatter.recursive_tensorize(value)
-            return self.formatter._consolidate(value)
-
-    lazy_row_type = LazyExample
-    lazy_batch_type = LazyBatch
 
     def __init__(self, features=None, lazy=False, **np_array_kwargs):
         super().__init__(features=features, lazy=lazy)
@@ -88,9 +65,9 @@ class NumpyFormatter(Formatter[Mapping, np.ndarray, Mapping]):
         return map_nested(self._recursive_tensorize, data_struct)
 
     def format_row(self, pa_table: pa.Table) -> Mapping:
-        row = self.numpy_arrow_extractor().extract_row(pa_table)
         if self.lazy:
-            return self.lazy_row_type(row, self)
+            return PythonLazyRow(pa_table, self)
+        row = self.numpy_arrow_extractor().extract_row(pa_table)
         row = self.python_features_decoder.decode_row(row)
         return self.recursive_tensorize(row)
 
@@ -102,9 +79,9 @@ class NumpyFormatter(Formatter[Mapping, np.ndarray, Mapping]):
         return column
 
     def format_batch(self, pa_table: pa.Table) -> Mapping:
-        batch = self.numpy_arrow_extractor().extract_batch(pa_table)
         if self.lazy:
-            return self.lazy_batch_type(batch, self)
+            return PythonLazyBatch(pa_table, self)
+        batch = self.numpy_arrow_extractor().extract_batch(pa_table)
         batch = self.python_features_decoder.decode_batch(batch)
         batch = self.recursive_tensorize(batch)
         for column_name in batch:

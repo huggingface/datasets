@@ -642,17 +642,20 @@ class Table(IndexedTableMixin):
         """
         raise NotImplementedError()
 
-    # Additional methods that are based on the PyArrow Table methods
+    def select(self, *args, **kwargs):
+        """
+        Select columns of the table.
 
-    def select_columns(self, columns: List[int]) -> "Table":
-        """Return the table by keeping only the requested columns
+        Returns a new table with the specified columns, and metadata preserved.
+
+        Args:
+            columns (:obj:`Union[List[str], List[int]]`):
+                The column names or integer indices to select.
 
         Returns:
-            :class:`datasets.table.Table`: table with only a subset of the columns
+            :class:`datasets.table.Table`: New table with the specified columns, and metadata preserved.
         """
-        for column_to_remove in set(range(len(self.column_names))) - set(columns):
-            self = self.remove_column(column_to_remove)
-        return self
+        raise NotImplementedError()
 
 
 class TableBlock(Table):
@@ -1000,6 +1003,21 @@ class InMemoryTable(TableBlock):
         """
         return InMemoryTable(self.table.drop(*args, **kwargs))
 
+    def select(self, *args, **kwargs):
+        """
+        Select columns of the table.
+
+        Returns a new table with the specified columns, and metadata preserved.
+
+        Args:
+            columns (:obj:`Union[List[str], List[int]]`):
+                The column names or integer indices to select.
+
+        Returns:
+            :class:`datasets.table.Table`: New table with the specified columns, and metadata preserved.
+        """
+        return InMemoryTable(self.table.select(*args, **kwargs))
+
 
 # The MemoryMappedTable needs replays to properly reload tables from the disk
 Replay = Tuple[str, tuple, dict]
@@ -1263,6 +1281,23 @@ class MemoryMappedTable(TableBlock):
         replay = ("drop", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
         return MemoryMappedTable(self.table.drop(*args, **kwargs), self.path, replays)
+
+    def select(self, *args, **kwargs):
+        """
+        Select columns of the table.
+
+        Returns a new table with the specified columns, and metadata preserved.
+
+        Args:
+            columns (:obj:`Union[List[str], List[int]]`):
+                The column names or integer indices to select.
+
+        Returns:
+            :class:`datasets.table.Table`: New table with the specified columns, and metadata preserved.
+        """
+        replay = ("select", copy.deepcopy(args), copy.deepcopy(kwargs))
+        replays = self._append_replay(replay)
+        return MemoryMappedTable(self.table.select(*args, **kwargs), self.path, replays)
 
 
 # A ConcatenationTable is the concatenation of several tables.
@@ -1682,10 +1717,29 @@ class ConcatenationTable(Table):
             :class:`datasets.table.Table`:
                 New table without the columns.
         """
-        table = self.table.drop(columns)
+        table = self.table.drop(columns, *args, **kwargs)
         blocks = []
         for tables in self.blocks:
             blocks.append([t.drop([c for c in columns if c in t.column_names], *args, **kwargs) for t in tables])
+        return ConcatenationTable(table, blocks)
+
+    def select(self, columns, *args, **kwargs):
+        """
+        Select columns of the table.
+
+        Returns a new table with the specified columns, and metadata preserved.
+
+        Args:
+            columns (:obj:`Union[List[str], List[int]]`):
+                The column names or integer indices to select.
+
+        Returns:
+            :class:`datasets.table.Table`: New table with the specified columns, and metadata preserved.
+        """
+        table = self.table.select(columns, *args, **kwargs)
+        blocks = []
+        for tables in self.blocks:
+            blocks.append([t.select([c for c in columns if c in t.column_names], *args, **kwargs) for t in tables])
         return ConcatenationTable(table, blocks)
 
 
