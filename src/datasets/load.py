@@ -1536,7 +1536,7 @@ def load_dataset(
     features: Optional[Features] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[DownloadMode] = None,
-    ignore_verifications: bool = False,
+    ignore_verifications: bool = True,
     keep_in_memory: Optional[bool] = None,
     save_infos: bool = False,
     revision: Optional[Union[str, Version]] = None,
@@ -1616,7 +1616,7 @@ def load_dataset(
         features (:class:`Features`, optional): Set the features type to use for this dataset.
         download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
-        ignore_verifications (:obj:`bool`, default ``False``): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...).
+        ignore_verifications (:obj:`bool`, default ``True``): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...).
         keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the dataset
             will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
             nonzero. See more details in the :ref:`load_dataset_enhancing_performance` section.

@@ -265,9 +265,6 @@ class DatasetBuilder:
     # Optional default config name to be used when name is None
     DEFAULT_CONFIG_NAME = None
 
-    # Whether to skip checksum computation of the downloaded data files.
-    SKIP_CHECKSUM_COMPUTATION_BY_DEFAULT = False
-
     def __init__(
         self,
         cache_dir: Optional[str] = None,
@@ -606,7 +603,7 @@ class DatasetBuilder:
         output_dir: Optional[str] = None,
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[DownloadMode] = None,
-        ignore_verifications: bool = False,
+        ignore_verifications: bool = True,
         try_from_hf_gcs: bool = True,
         dl_manager: Optional[DownloadManager] = None,
         base_path: Optional[str] = None,
@@ -626,14 +623,14 @@ class DatasetBuilder:
                 <Added version="2.5.0"/>
             download_config (:class:`DownloadConfig`, optional): specific download configuration parameters.
             download_mode (:class:`DownloadMode`, optional): select the download/generate mode - Default to ``REUSE_DATASET_IF_EXISTS``
-            ignore_verifications (:obj:`bool`): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
+            ignore_verifications (:obj:`bool`, default ``True``): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
             try_from_hf_gcs (:obj:`bool`): If True, it will try to download the already prepared dataset from the Hf google cloud storage
             dl_manager (:class:`DownloadManager`, optional): specific Download Manger to use
             base_path (:obj:`str`, optional): base path for relative paths that are used to download files. This can be a remote url.
                 If not specified, the value of the `base_path` attribute (`self.base_path`) will be used instead.
             use_auth_token (:obj:`Union[str, bool]`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
                 If True, will get token from ~/.huggingface.
-            file_format (:obj:`str`, optional): format of the data files in which the dataset will be written.
+            file_format (:obj:`str`, default ``"arrow"``): format of the data files in which the dataset will be written.
                 Supported formats: "arrow", "parquet". Default to "arrow" format.
                 If the format is "parquet", then image and audio data are embedded into the Parquet files instead of pointing to local files.
 
@@ -717,9 +714,7 @@ class DatasetBuilder:
                 download_config=download_config,
                 data_dir=self.config.data_dir,
                 base_path=base_path,
-                record_checksums=(self._record_infos or verify_infos)
-                if not self.SKIP_CHECKSUM_COMPUTATION_BY_DEFAULT
-                else False,
+                record_checksums=(self._record_infos or verify_infos),
             )
 
         if (
@@ -973,7 +968,7 @@ class DatasetBuilder:
         return {}
 
     def as_dataset(
-        self, split: Optional[Split] = None, run_post_process=True, ignore_verifications=False, in_memory=False
+        self, split: Optional[Split] = None, run_post_process=True, ignore_verifications=True, in_memory=False
     ) -> Union[Dataset, DatasetDict]:
         """Return a Dataset for the specified split.
 
