@@ -190,11 +190,6 @@ def test_as_posix(input_path, expected_path):
             ("file.txt",),
             str((Path().resolve() / "file.txt")),
         ),
-        (
-            Path().resolve().as_posix(),
-            ("file.txt",),
-            (Path().resolve() / "file.txt").as_posix(),
-        ),
     ],
 )
 def test_xjoin(input_path, paths_to_join, expected_path):
