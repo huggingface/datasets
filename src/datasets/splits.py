@@ -31,17 +31,17 @@ from .utils.py_utils import NonMutableDict, asdict
 
 @dataclass
 class SplitInfo:
-    name: str = ""
-    num_bytes: int = 0
-    num_examples: int = 0
-    shard_lengths: Optional[List[int]] = None
+    name: str
+    num_bytes: Optional[int] = None
+    num_examples: Optional[int] = None
+    shard_lengths: Optional[List[int]] = dataclasses.field(default=None, repr=False)
 
     # Deprecated
     # For backward compatibility, this field needs to always be included in files like
     # dataset_infos.json and dataset_info.json files
     # To do so, we always include it in the output of datasets.utils.py_utils.asdict(split_info)
     dataset_name: Optional[str] = dataclasses.field(
-        default=None, metadata={"include_in_asdict_even_if_is_default": True}
+        default=None, metadata={"include_in_asdict_even_if_is_default": True}, repr=False
     )
 
     @property
@@ -509,7 +509,7 @@ class SplitReadInstruction:
         return list(self._splits.values())
 
 
-class SplitDict(dict):
+class SplitDict(Dict[Union[SplitBase, str], SplitInfo]):
     """Split info object."""
 
     def __init__(self, *args, dataset_name=None, **kwargs):

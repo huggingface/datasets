@@ -46,7 +46,6 @@ from .arrow_reader import (
 )
 from .arrow_writer import ArrowWriter, BeamWriter, ParquetWriter, SchemaInferenceError
 from .data_files import DataFilesDict, sanitize_patterns
-from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadManager, DownloadMode
 from .download.mock_download_manager import MockDownloadManager
@@ -55,7 +54,12 @@ from .features import Features
 from .filesystems import is_remote_filesystem
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
-from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
+from .iterable_dataset import (
+    ExamplesIterable,
+    IterableDataset,
+    SplitsExamplesIterable,
+    _generate_examples_from_tables_wrapper,
+)
 from .keyhash import DuplicatedKeysError
 from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH, camelcase_to_snakecase
 from .splits import Split, SplitDict, SplitGenerator, SplitInfo
@@ -974,7 +978,7 @@ class DatasetBuilder:
 
     def as_dataset(
         self, split: Optional[Split] = None, run_post_process=True, ignore_verifications=False, in_memory=False
-    ) -> Union[Dataset, DatasetDict]:
+    ) -> Dataset:
         """Return a Dataset for the specified split.
 
         Args:
@@ -1031,7 +1035,7 @@ class DatasetBuilder:
             disable_tqdm=not logging.is_progress_bar_enabled(),
         )
         if isinstance(datasets, dict):
-            datasets = DatasetDict(datasets)
+            datasets = Dataset.from_splits(datasets)
         return datasets
 
     def _build_single_dataset(
@@ -1149,7 +1153,6 @@ class DatasetBuilder:
             raise NotImplementedError(
                 f"Loading a streaming dataset cached in a {type(self._fs).__name__} is not supported yet."
             )
-
         dl_manager = StreamingDownloadManager(
             base_path=base_path or self.base_path,
             download_config=DownloadConfig(use_auth_token=self.use_auth_token),
@@ -1173,7 +1176,7 @@ class DatasetBuilder:
             map_tuple=True,
         )
         if isinstance(datasets, dict):
-            datasets = IterableDatasetDict(datasets)
+            datasets = IterableDataset.from_splits(datasets)
         return datasets
 
     def _as_streaming_dataset_single(
@@ -1183,8 +1186,14 @@ class DatasetBuilder:
         ex_iterable = self._get_examples_iterable_for_split(splits_generator)
         # add auth to be able to access and decode audio/image files from private repositories.
         token_per_repo_id = {self.repo_id: self.use_auth_token} if self.repo_id else {}
+        info = self.info.copy()
+        info.splits = SplitDict()
+        info.splits[splits_generator.name] = SplitInfo(name=splits_generator.name, num_bytes=None, num_examples=None)
+        if self.info.splits and splits_generator.name in self.info.splits:
+            info.splits[splits_generator.name].num_bytes = self.info.splits[splits_generator.name].num_bytes
+            info.splits[splits_generator.name].num_examples = self.info.splits[splits_generator.name].num_examples
         return IterableDataset(
-            ex_iterable, info=self.info, split=splits_generator.name, token_per_repo_id=token_per_repo_id
+            ex_iterable, info=info, split=splits_generator.name, token_per_repo_id=token_per_repo_id
         )
 
     def _post_process(self, dataset: Dataset, resources_paths: Mapping[str, str]) -> Optional[Dataset]:
@@ -1557,7 +1566,8 @@ class GeneratorBasedBuilder(DatasetBuilder):
         )
 
     def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
-        return ExamplesIterable(self._generate_examples, split_generator.gen_kwargs)
+        ex_iterable = ExamplesIterable(self._generate_examples, split_generator.gen_kwargs)
+        return SplitsExamplesIterable({split_generator.name: ex_iterable})
 
 
 class ArrowBasedBuilder(DatasetBuilder):

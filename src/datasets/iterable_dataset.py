@@ -14,7 +14,7 @@ from .features import Features
 from .features.features import FeatureType, _align_features, _check_if_features_can_be_aligned
 from .formatting import PythonFormatter
 from .info import DatasetInfo
-from .splits import NamedSplit
+from .splits import NamedSplit, SplitDict, SplitInfo
 from .table import table_cast
 from .utils.sharding import _number_of_shards_in_gen_kwargs, _shuffle_gen_kwargs, _split_gen_kwargs
 
@@ -92,6 +92,10 @@ class _BaseExamplesIterable:
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
         raise NotImplementedError(f"{type(self)} doesn't implement shard_data_sources yet")
 
+    def split_data_sources(self, split_name: str) -> "_BaseExamplesIterable":
+        """Either keep only the requested split, or propagate the request to the underlying iterable."""
+        raise NotImplementedError(f"{type(self)} doesn't implement shard_data_sources yet")
+
     @property
     def n_shards(self) -> int:
         raise NotImplementedError(f"{type(self)} doesn't implement n_shards yet")
@@ -116,6 +120,9 @@ class ExamplesIterable(_BaseExamplesIterable):
     @property
     def n_shards(self) -> int:
         return _number_of_shards_in_gen_kwargs(self.kwargs)
+
+    def split_data_sources(self, split_name: str) -> "_BaseExamplesIterable":
+        raise ValueError("The examples iterabe doesn't have splits.")
 
 
 class ShardShuffledExamplesIterable(ExamplesIterable):
@@ -195,6 +202,49 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
     def shard_data_sources(self, shard_idx: int) -> "CyclingMultiSourcesExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
         raise NotImplementedError("Sharding a CyclingMultiSourcesExamplesIterable is not implemented")
+
+
+class SplitsExamplesIterable(_BaseExamplesIterable):
+    """
+    SplitsExamplesIterable simply chains the input split iterables.
+    It doesn't require the examples iterables to always yield the same columns.
+    Instead, this is handled by the `IterableDataset` class or `TypedExamplesIterable`.
+
+    For information, `IterableDataset` merges the features of all the datasets to concatenate into one.
+    We use `IterableDataset._resolve_features` to obtain the features of all the datasets to concatenate.
+
+    Then for each example, `IterableDataset` and `TypedExamplesIterable` automatically fill missing columns with None.
+    This is done with `_apply_feature_types`.
+    """
+
+    def __init__(self, ex_iterables: Dict[str, _BaseExamplesIterable]):
+        self.ex_iterables = ex_iterables
+
+    def __iter__(self):
+        for ex_iterable in self.ex_iterables.values():
+            yield from ex_iterable
+
+    def shuffle_data_sources(
+        self, generator: np.random.Generator
+    ) -> "VerticallyConcatenatedMultiSourcesExamplesIterable":
+        """Shuffle the list of examples iterable, as well as each underlying examples iterable."""
+        rng = deepcopy(generator)
+        ex_iterables = list(self.ex_iterables.values())
+        rng.shuffle(ex_iterables)
+        ex_iterables = [ex_iterable.shuffle_data_sources(generator) for ex_iterable in ex_iterables]
+        return VerticallyConcatenatedMultiSourcesExamplesIterable(ex_iterables)
+
+    @property
+    def n_shards(self) -> int:
+        return sum(ex_iterable.n_shards for ex_iterable in self.ex_iterables.values())
+
+    def shard_data_sources(self, shard_idx: int) -> "VerticallyConcatenatedMultiSourcesExamplesIterable":
+        """Either keep only the requested shard, or propagate the request to the underlying iterable."""
+        raise NotImplementedError("Sharding a SplitsExamplesIterable is not implemented")
+
+    def split_data_sources(self, split_name: str) -> "_BaseExamplesIterable":
+        """Either keep only the requested split, or propagate the request to the underlying iterable."""
+        return self.ex_iterables[split_name]
 
 
 class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
@@ -673,6 +723,9 @@ class TypedExamplesIterable(_BaseExamplesIterable):
     def n_shards(self) -> int:
         return self.ex_iterable.n_shards
 
+    def split_data_sources(self, split_name: str) -> "_BaseExamplesIterable":
+        return self.ex_iterable.split_data_sources(split_name)
+
 
 def _generate_examples_from_tables_wrapper(generate_tables_fn):
     def wrapper(**kwargs):
@@ -703,7 +756,34 @@ class IterableDataset(DatasetInfoMixin):
         token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None,
     ):
         info = info.copy() if info is not None else DatasetInfo()
-        DatasetInfoMixin.__init__(self, info=info, split=split)
+
+        if info.splits is not None:
+            if not info.splits:
+                info.splits = None
+            elif not isinstance(info.splits, SplitDict):
+                raise ValueError(
+                    f"Expected a SplitDict but got info.splits={info.splits} of type {type(info.splits)}."
+                )
+        if split is not None:
+            num_bytes = None
+            num_examples = None
+            if info.splits:
+                if all(split_info.num_bytes is not None for split_info in info.splits.values()):
+                    num_bytes = sum(split_info.num_bytes for split_info in info.splits.values())
+                if all(split_info.num_examples is not None for split_info in info.splits.values()):
+                    num_examples = sum(split_info.num_examples for split_info in info.splits.values())
+            info.splits = SplitDict()
+            info.splits[split] = SplitInfo(name=split, num_bytes=num_bytes, num_examples=num_examples)
+        if info.splits:
+            for split_name in info.splits:
+                try:
+                    ex_iterable.split_data_sources(split_name)
+                except (KeyError, ValueError, NotImplementedError):
+                    raise ValueError(
+                        f"The split '{split_name}' specified in the dataset info doesn't exist in the examples iterable. "
+                        "Please make sure to use a 'SplitExamplesIterable' or an iterable wrapper that supports '.split_data_sources()'."
+                    ) from None
+        DatasetInfoMixin.__init__(self, info=info)
 
         self._ex_iterable = ex_iterable
         self._format_type = format_type
@@ -729,6 +809,25 @@ class IterableDataset(DatasetInfoMixin):
     def n_shards(self) -> int:
         return self._ex_iterable.n_shards
 
+    @property
+    def splits(self) -> Optional[dict]:
+        if self.info.splits is None:
+            return None
+        else:
+            splits = {}
+            for split_name in self.info.splits:
+                ex_iterable = self._ex_iterable.split_data_sources(split_name)
+                info = self._info.copy()
+                info.splits = None  # here we may lose some info like num_examples
+                splits[split_name] = iterable_dataset(
+                    ex_iterable,
+                    info=info,
+                    format_type=self._format_type,
+                    token_per_repo_id=self._token_per_repo_id,
+                    shuffling=self._shuffling,
+                )
+            return splits
+
     def _iter(self):
         if self._shuffling:
             ex_iterable = self._ex_iterable.shuffle_data_sources(self._effective_generator())
@@ -751,6 +850,30 @@ class IterableDataset(DatasetInfoMixin):
                 yield _apply_feature_types(example, self.features, token_per_repo_id=self._token_per_repo_id)
             else:
                 yield example
+
+    def __getitem__(self, key: Union[str, NamedSplit]) -> "IterableDataset":
+        """Can be used to index columns (by string names) or rows (by integer index or iterable of indices or bools)."""
+        if isinstance(key, (str, NamedSplit)):
+            if self._info.splits and key in self.info.splits:
+                return self.splits[key]
+            else:
+                raise KeyError(
+                    f"Split '{key}' not in the dataset. Available splits in the dataset are {[str(name) for name in self.info.splits or []]}. "
+                )
+        else:
+            raise KeyError(
+                "Iterable datasets don't support row indexing, please iterate over the dataset to access the rows (e.g. using a for loop)."
+            )
+
+    def __repr__(self):
+        # TODO: add a field in SplitInfo to track the number of rows when possible
+        return (
+            f"IterableDataset({{\n"
+            f"    features: {list(self.features.keys()) if self.features is not None else 'None'},\n"
+            f"    num_rows: None,\n"
+            f"    splits: {[str(name) for name in self.info.splits] if self.info.splits is not None else None}\n"
+            "})"
+        )
 
     @staticmethod
     def from_generator(
@@ -802,6 +925,32 @@ class IterableDataset(DatasetInfoMixin):
             gen_kwargs=gen_kwargs,
             streaming=True,
         ).read()
+
+    @staticmethod
+    def from_splits(splits: Dict[str, "IterableDataset"]) -> "IterableDataset":
+        splits = {name: split._resolve_features() for name, split in splits.items()}
+        info = DatasetInfo.from_merge([split.info for split in splits.values()])
+        info.features = Features(
+            {
+                k: v
+                for features in _align_features([split.features for split in splits.values()])
+                for k, v in features.items()
+            }
+        )
+        info.splits = SplitDict()
+        for name, split in splits.items():
+            if split._info.splits:
+                num_bytes = sum(split_info.num_bytes for split_info in split._info.splits.values())
+                num_examples = sum(split_info.num_examples for split_info in split._info.splits.values())
+            else:
+                num_bytes = None
+                num_examples = None
+            info.splits[name] = SplitInfo(name=name, num_bytes=num_bytes, num_examples=num_examples)
+        token_per_repo_id = {
+            repo_id: token for split in splits.values() for repo_id, token in split._token_per_repo_id.items()
+        }
+        ex_iterable = SplitsExamplesIterable({name: split._ex_iterable for name, split in splits.items()})
+        return iterable_dataset(ex_iterable, info=info, token_per_repo_id=token_per_repo_id)
 
     def with_format(
         self,
@@ -906,6 +1055,11 @@ class IterableDataset(DatasetInfoMixin):
             fn_kwargs = {}
         info = self._info.copy()
         info.features = None
+        if info.splits and batched:
+            # when batched, it's possible to change the number of rows
+            for split_info in info.splits.values():
+                split_info.num_bytes = None
+                split_info.num_examples = None
         ex_iterable = MappedExamplesIterable(
             TypedExamplesIterable(self._ex_iterable, self._info.features, token_per_repo_id=self._token_per_repo_id)
             if self._info.features is not None
@@ -974,6 +1128,7 @@ class IterableDataset(DatasetInfoMixin):
         # TODO(QL): keep the features (right now if we keep it it would call decode_example again on an already decoded example)
         info = copy.deepcopy(self._info)
         info.features = None
+        info.splits = None
 
         # We need the examples to be decoded for certain feature types like Image or Audio, so we use TypedExamplesIterable here
         ex_iterable = FilteredExamplesIterable(
@@ -1047,11 +1202,13 @@ class IterableDataset(DatasetInfoMixin):
         else:
             generator = deepcopy(generator)
         shuffling = ShufflingConfig(generator=generator)
+        info = self._info.copy()
+        info.splits = None
         return iterable_dataset(
             ex_iterable=BufferShuffledExamplesIterable(
                 self._ex_iterable, buffer_size=buffer_size, generator=generator
             ).shuffle_data_sources(generator),
-            info=self._info.copy(),
+            info=info,
             split=self._split,
             format_type=self._format_type,
             shuffling=shuffling,
@@ -1089,9 +1246,11 @@ class IterableDataset(DatasetInfoMixin):
         ```
         """
         ex_iterable = SkipExamplesIterable(self._ex_iterable, n)
+        info = self._info.copy()
+        info.splits = None
         return iterable_dataset(
             ex_iterable=ex_iterable,
-            info=self._info.copy(),
+            info=info,
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
@@ -1119,9 +1278,11 @@ class IterableDataset(DatasetInfoMixin):
         ```
         """
         ex_iterable = TakeExamplesIterable(self._ex_iterable, n)
+        info = self._info.copy()
+        info.splits = None
         return iterable_dataset(
             ex_iterable=ex_iterable,
-            info=self._info.copy(),
+            info=info,
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),

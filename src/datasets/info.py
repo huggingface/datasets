@@ -134,7 +134,7 @@ class DatasetInfo:
     config_name: Optional[str] = None
     version: Optional[Union[str, Version]] = None
     # Set later by `download_and_prepare`
-    splits: Optional[dict] = None
+    splits: Optional[SplitDict] = None
     download_checksums: Optional[dict] = None
     download_size: Optional[int] = None
     post_processing_size: Optional[int] = None

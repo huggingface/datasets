@@ -161,9 +161,8 @@ class DatasetInfoMixin:
     at the base level of the Dataset for easy access.
     """
 
-    def __init__(self, info: DatasetInfo, split: Optional[NamedSplit]):
+    def __init__(self, info: DatasetInfo):
         self._info = info
-        self._split = split
 
     @property
     def info(self):
@@ -173,7 +172,14 @@ class DatasetInfoMixin:
     @property
     def split(self):
         """:class:`datasets.NamedSplit` object corresponding to a named dataset split."""
-        return self._split
+        if not self._info.splits:  # for backward compatbility
+            return None
+        elif len(self._info.splits) == 1:  # for backward compatbility
+            return next(iter(self._info.splits))
+        else:
+            raise ValueError(
+                f"The dataset is made of multiple splits: {list(self._info.splits)}. Please use `my_dataset.info.splits` instead."
+            )
 
     @property
     def builder_name(self) -> str:
@@ -656,13 +662,31 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         indices_table: Optional[Table] = None,
         fingerprint: Optional[str] = None,
     ):
-        info = info.copy() if info is not None else DatasetInfo()
-        DatasetInfoMixin.__init__(self, info=info, split=split)
-        IndexableMixin.__init__(self)
-
         self._data: Table = _check_table(arrow_table)
         self._indices: Optional[Table] = _check_table(indices_table) if indices_table is not None else None
         maybe_register_dataset_for_temp_dir_deletion(self)
+
+        info = info.copy() if info is not None else DatasetInfo()
+
+        if info.splits is not None:
+            if not info.splits:
+                info.splits = None
+            elif not isinstance(info.splits, SplitDict):
+                raise ValueError(
+                    f"Expected a SplitDict but got info.splits={info.splits} of type {type(info.splits)}."
+                )
+        if split is not None:
+            info.splits = SplitDict()
+            info.splits[split] = SplitInfo(name=split, num_bytes=self.data.nbytes, num_examples=len(self))
+        if info.splits is not None:
+            sum_of_split_sizes = sum(split_info.num_examples for split_info in info.splits.values())
+            if len(self) != sum_of_split_sizes:
+                raise ValueError(
+                    f"Expected the length of the dataset to match the sum of the split sizes, but got {len(self)} != {sum_of_split_sizes}."
+                )
+
+        DatasetInfoMixin.__init__(self, info=info)
+        IndexableMixin.__init__(self)
 
         self._format_type: Optional[str] = None
         self._format_kwargs: dict = {}
@@ -1165,6 +1189,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             keep_in_memory=keep_in_memory,
             **kwargs,
         ).read()
+
+    @staticmethod
+    def from_splits(splits: Dict[str, "Dataset"]) -> "Dataset":
+        info = DatasetInfo()
+        info.splits = SplitDict(
+            {
+                name: SplitInfo(name=name, num_bytes=split.data.nbytes, num_examples=len(split))
+                for name, split in splits.items()
+            }
+        )
+        return _concatenate_map_style_datasets(list(splits.values()), info=info)
 
     def __del__(self):
         if hasattr(self, "_data"):
@@ -2004,7 +2039,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return self._iter()
 
     def __repr__(self):
-        return f"Dataset({{\n    features: {list(self.features.keys())},\n    num_rows: {self.num_rows}\n}})"
+        return (
+            f"Dataset({{\n"
+            f"    features: {list(self.features.keys())},\n"
+            f"    num_rows: {self.num_rows},\n"
+            f"    splits: {[str(name) for name in self.info.splits] if self.info.splits is not None else None}\n"
+            "})"
+        )
 
     @property
     def format(self):
@@ -2325,6 +2366,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset = dataset.cast(features=template.features)
         return dataset
 
+    @property
+    def splits(self) -> Optional[dict]:
+        if self.info.splits is None:
+            return None
+        else:
+            splits = {}
+            offset = 0
+            for split_name, split_info in self.info.splits.items():
+                splits[str(split_name)] = self.select(range(offset, offset + split_info.num_examples))
+                offset += split_info.num_examples
+            return splits
+
     def _getitem(self, key: Union[int, slice, str], decoded: bool = True, **kwargs) -> Union[Dict, List]:
         """
         Can be used to index columns (by string names) or rows (by integer index, slices, or iter of indices or bools)
@@ -2348,14 +2401,24 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ...
 
     @overload
-    def __getitem__(self, key: str) -> List:  # noqa: F811
+    def __getitem__(self, key: str) -> Union[List, "Dataset"]:  # noqa: F811
+        ...
+
+    @overload
+    def __getitem__(self, key: NamedSplit) -> "Dataset":  # noqa: F811
         ...
 
     def __getitem__(self, key):  # noqa: F811
         """Can be used to index columns (by string names) or rows (by integer index or iterable of indices or bools)."""
-        return self._getitem(
-            key,
-        )
+        if isinstance(key, (str, NamedSplit)):
+            if self.info.splits and key in self.info.splits:
+                return self.splits[key]
+            elif key not in self.column_names:
+                raise KeyError(
+                    f"Split '{key}' not in the dataset. Available splits in the dataset are {[str(name) for name in self.info.splits or []]}. "
+                    f"It doesn't correspond to a column either. Available columns are {self.column_names}"
+                )
+        return self._getitem(key)
 
     def cleanup_cache_files(self) -> int:
         """Clean up all cache files in the dataset cache directory, excepted the currently used cache file if there is
@@ -2518,13 +2581,49 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 self = Dataset(
                     self.data.slice(0, 0),
                     info=self.info.copy(),
-                    split=self.split,
                     fingerprint=new_fingerprint,
                 )
             if remove_columns:
                 return self.remove_columns(remove_columns)
             else:
                 return self
+
+        if self.info.splits:
+            splits = {}
+
+            def cache_file_name_for_split(cache_file_name: str, split_name: str) -> str:
+                sep = cache_file_name.rindex(".")
+                base_name, extension = cache_file_name[:sep], cache_file_name[sep:]
+                cache_file_name = base_name + f"-{split_name}" + extension
+                return cache_file_name
+
+            for split_name in self.info.splits:
+                splits[split_name] = self[split_name].map(
+                    function,
+                    with_indices=with_indices,
+                    with_rank=with_rank,
+                    input_columns=input_columns,
+                    batched=batched,
+                    batch_size=batch_size,
+                    drop_last_batch=drop_last_batch,
+                    remove_columns=remove_columns,
+                    keep_in_memory=keep_in_memory,
+                    load_from_cache_file=load_from_cache_file,
+                    cache_file_name=cache_file_name_for_split(cache_file_name, split_name)
+                    if cache_file_name is not None
+                    else None,
+                    writer_batch_size=writer_batch_size,
+                    features=features,
+                    disable_nullable=disable_nullable,
+                    fn_kwargs=fn_kwargs,
+                    num_proc=num_proc,
+                    suffix_template=suffix_template,
+                    new_fingerprint=new_fingerprint + f"-{split_name}",
+                    desc=desc + f" ({split_name})" if desc is not None else None,
+                )
+            out = Dataset.from_splits(splits)
+            out._fingerprint = new_fingerprint
+            return out
 
         if function is None:
             function = lambda x: x  # noqa: E731
@@ -3131,10 +3230,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             input_columns=input_columns,
             desc=desc,
         )
-        new_dataset = copy.deepcopy(self)
-        new_dataset._indices = indices.data
-        new_dataset._fingerprint = new_fingerprint
-        return new_dataset
+        return Dataset(self.data, info=indices.info, indices_table=indices.data, fingerprint=new_fingerprint)
 
     @transmit_format
     @fingerprint_transform(inplace=False, ignore_kwargs=["cache_file_name"])
@@ -3195,12 +3291,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         else:
             indices_table = InMemoryTable.from_buffer(indices_buffer)
 
+        info = self.info.copy()
+        info.splits = None
+
         # Return new Dataset object
         # don't forget to copy the objects
         return Dataset(
             self._data,
-            info=self.info.copy(),
-            split=self.split,
+            info=info,
             indices_table=indices_table,
             fingerprint=fingerprint,
         )
@@ -3325,18 +3423,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         _check_valid_indices_value(start, len(self))
         _check_valid_indices_value(start + length - 1, len(self))
+
+        info = self.info.copy()
+        if start != 0 or length != len(self):
+            info.splits = None
+
         if self._indices is None or length == 0:
             return Dataset(
                 self.data.slice(start, length),
-                info=self.info.copy(),
-                split=self.split,
+                info=info,
                 fingerprint=new_fingerprint,
             )
         else:
             return Dataset(
                 self.data,
-                info=self.info.copy(),
-                split=self.split,
+                info=info,
                 indices_table=self._indices.slice(start, length),
                 fingerprint=new_fingerprint,
             )
@@ -3639,7 +3740,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @fingerprint_transform(
         inplace=False,
         randomized_function=True,
-        fingerprint_names=["train_new_fingerprint", "test_new_fingerprint"],
         ignore_kwargs=["load_from_cache_file", "train_indices_cache_file_name", "test_indices_cache_file_name"],
     )
     def train_test_split(
@@ -3655,10 +3755,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         train_indices_cache_file_name: Optional[str] = None,
         test_indices_cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
-        train_new_fingerprint: Optional[str] = None,
-        test_new_fingerprint: Optional[str] = None,
-    ) -> "DatasetDict":
-        """Return a dictionary (:obj:`datasets.DatasetDict`) with two random train and test subsets (`train` and `test` ``Dataset`` splits).
+        train_new_fingerprint: Optional[str] = "unsupported",
+        test_new_fingerprint: Optional[str] = "unsupported",
+        new_fingerprint: Optional[str] = None,
+    ) -> "Dataset":
+        """Return a dictionary (:obj:`datasets.Dataset`) with two random train and test subsets (`train` and `test` ``Dataset`` splits).
         Splits are created from the dataset according to `test_size`, `train_size` and `shuffle`.
 
         This method is similar to scikit-learn `train_test_split`.
@@ -3690,9 +3791,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
                 This value is a good trade-off between memory usage during the processing, and processing speed.
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
-            train_new_fingerprint (:obj:`str`, optional, defaults to `None`): the new fingerprint of the train set after transform.
-                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
-            test_new_fingerprint (:obj:`str`, optional, defaults to `None`): the new fingerprint of the test set after transform.
+            new_fingerprint (:obj:`str`, optional, default `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
 
         Example:
@@ -3734,18 +3833,24 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         })
         ```
         """
-        from .dataset_dict import DatasetDict  # import here because of circular dependency
-
+        # TODO: update examples in docs (it doesn't output a DatasetDict anymore)
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
                 "Using `.train_test_split` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
             )
         # If the array is empty we do nothing
         if len(self) == 0:
-            return DatasetDict({"train": self, "test": self})
+            out = Dataset.from_splits({"train": self, "test": self})
+            out._fingerprint = new_fingerprint
+            return out
 
         if test_size is None and train_size is None:
             test_size = 0.25
+
+        if train_new_fingerprint != "unsupported" or test_new_fingerprint != "unsupported":
+            raise ValueError(
+                "Unfortunately train_new_fingerprint and test_new_fingerprint are no longer supported, please use an older version of `datasets`"
+            )
 
         # Safety checks similar to scikit-learn's ones.
         # (adapted from https://github.com/scikit-learn/scikit-learn/blob/fd237278e895b42abe8d8d09105cbb82dc2cbba7/sklearn/model_selection/_split.py#L1750)
@@ -3828,9 +3933,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 # we create a unique hash from the function, current dataset file and the mapping args
 
                 if train_indices_cache_file_name is None:
-                    train_indices_cache_file_name = self._get_cache_file_path(train_new_fingerprint)
+                    train_indices_cache_file_name = self._get_cache_file_path(new_fingerprint + "-train")
                 if test_indices_cache_file_name is None:
-                    test_indices_cache_file_name = self._get_cache_file_path(test_new_fingerprint)
+                    test_indices_cache_file_name = self._get_cache_file_path(new_fingerprint + "-test")
             if (
                 os.path.exists(train_indices_cache_file_name)
                 and os.path.exists(test_indices_cache_file_name)
@@ -3839,16 +3944,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 logger.warning(
                     f"Loading cached split indices for dataset at {train_indices_cache_file_name} and {test_indices_cache_file_name}"
                 )
-                return DatasetDict(
+                out = Dataset.from_splits(
                     {
-                        "train": self._new_dataset_with_indices(
-                            fingerprint=train_new_fingerprint, indices_cache_file_name=train_indices_cache_file_name
-                        ),
-                        "test": self._new_dataset_with_indices(
-                            fingerprint=test_new_fingerprint, indices_cache_file_name=test_indices_cache_file_name
-                        ),
+                        "train": self._new_dataset_with_indices(indices_cache_file_name=train_indices_cache_file_name),
+                        "test": self._new_dataset_with_indices(indices_cache_file_name=test_indices_cache_file_name),
                     }
                 )
+                out._fingerprint = new_fingerprint
+                return out
         if not shuffle:
             if stratify_by_column is not None:
                 raise ValueError("Stratified train/test split is not implemented for `shuffle=False`")
@@ -3891,17 +3994,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             keep_in_memory=keep_in_memory,
             indices_cache_file_name=train_indices_cache_file_name,
             writer_batch_size=writer_batch_size,
-            new_fingerprint=train_new_fingerprint,
         )
         test_split = self.select(
             indices=test_indices,
             keep_in_memory=keep_in_memory,
             indices_cache_file_name=test_indices_cache_file_name,
             writer_batch_size=writer_batch_size,
-            new_fingerprint=test_new_fingerprint,
         )
 
-        return DatasetDict({"train": train_split, "test": test_split})
+        out = Dataset.from_splits({"train": train_split, "test": test_split})
+        out._fingerprint = new_fingerprint
+        return out
 
     def shard(
         self,
@@ -4343,7 +4446,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
 
         if split is None:
-            split = str(self.split) if self.split is not None else "train"
+            if self.split is None:
+                # In the future we could support pushing a dataset with no splits instead of using 'train' by default.
+                split = "train"
+            else:
+                split = str(self.split)
 
         if not re.match(_split_re, split):
             raise ValueError(f"Split name should match '{_split_re}' but got '{split}'.")
@@ -4517,7 +4624,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 `<org>/<dataset_name>`. Also accepts `<dataset_name>`, which will default to the namespace
                 of the logged-in user.
             split (Optional, :obj:`str`):
-                The name of the split that will be given to that dataset. Defaults to `self.split`.
+                The name of the split that will be given to that dataset. Defaults to `self.split` or 'train'.
             private (Optional :obj:`bool`, defaults to :obj:`False`):
                 Whether the dataset repository should be set to private or not. Only affects repository creation:
                 a repository that already exists will not be affected by that parameter.
@@ -4552,6 +4659,95 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
             max_shard_size = shard_size
 
+        if split is not None and self.info.splits:
+            self = Dataset(
+                self.data,
+                info=self.info.copy(),
+                indices_table=self._indices,
+                fingerprint=self._fingerprint,
+                split=split,
+            )
+
+        # Upload multiple splits (and overwrite the dataset_info for backward compatibility with the old DatasetDict)
+        if split is None and self.info.splits and len(self.info.splits) > 1:
+            splits = self.splits
+            total_uploaded_size = 0
+            total_dataset_nbytes = 0
+            info_to_dump = self.info.copy()
+            info_to_dump.splits = SplitDict()
+
+            for split in splits.keys():
+                if not re.match(_split_re, split):
+                    raise ValueError(f"Split name should match '{_split_re}' but got '{split}'.")
+
+            for split in splits.keys():
+                logger.warning(f"Pushing split {split} to the Hub.")
+                # The split=key needs to be removed before merging
+                repo_id, split, uploaded_size, dataset_nbytes, _, _ = splits[split]._push_parquet_shards_to_hub(
+                    repo_id,
+                    split=split,
+                    private=private,
+                    token=token,
+                    branch=branch,
+                    max_shard_size=max_shard_size,
+                    embed_external_files=embed_external_files,
+                )
+                total_uploaded_size += uploaded_size
+                total_dataset_nbytes += dataset_nbytes
+                info_to_dump.splits[split] = SplitInfo(
+                    str(split), num_bytes=dataset_nbytes, num_examples=len(splits[split])
+                )
+            info_to_dump.download_checksums = None
+            info_to_dump.download_size = total_uploaded_size
+            info_to_dump.dataset_size = total_dataset_nbytes
+            info_to_dump.size_in_bytes = total_uploaded_size + total_dataset_nbytes
+
+            api = HfApi(endpoint=config.HF_ENDPOINT)
+            repo_files = hf_api_list_repo_files(
+                api, repo_id, repo_type="dataset", revision=branch, use_auth_token=token
+            )
+
+            # push to the deprecated dataset_infos.json
+            if config.DATASETDICT_INFOS_FILENAME in repo_files:
+                buffer = BytesIO()
+                buffer.write(b'{"default": ')
+                info_to_dump._dump_info(buffer, pretty_print=True)
+                buffer.write(b"}")
+                HfApi(endpoint=config.HF_ENDPOINT).upload_file(
+                    path_or_fileobj=buffer.getvalue(),
+                    path_in_repo=config.DATASETDICT_INFOS_FILENAME,
+                    repo_id=repo_id,
+                    token=token,
+                    repo_type="dataset",
+                    revision=branch,
+                )
+            # push to README
+            if "README.md" in repo_files:
+                download_config = DownloadConfig()
+                download_config.download_desc = "Downloading metadata"
+                download_config.use_auth_token = token
+                dataset_readme_path = cached_path(
+                    hf_hub_url(repo_id, "README.md"),
+                    download_config=download_config,
+                )
+                dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
+                with open(dataset_readme_path, encoding="utf-8") as readme_file:
+                    readme_content = readme_file.read()
+            else:
+                dataset_metadata = DatasetMetadata()
+                readme_content = f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
+            DatasetInfosDict({"default": info_to_dump}).to_metadata(dataset_metadata)
+            HfApi(endpoint=config.HF_ENDPOINT).upload_file(
+                path_or_fileobj=dataset_metadata._to_readme(readme_content).encode(),
+                path_in_repo="README.md",
+                repo_id=repo_id,
+                token=token,
+                repo_type="dataset",
+                revision=branch,
+            )
+            return
+
+        # Upload one split (and append to the existing dataset_info to be able to push multiple splits in a row)
         repo_id, split, uploaded_size, dataset_nbytes, repo_files, deleted_size = self._push_parquet_shards_to_hub(
             repo_id=repo_id,
             split=split,
@@ -4685,7 +4881,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         info = dataset.info.copy()
         info.features.update(Features.from_arrow_schema(column_table.schema))
         table = update_metadata_with_features(table, info.features)
-        return Dataset(table, info=info, split=self.split, indices_table=None, fingerprint=new_fingerprint)
+        return Dataset(table, info=info, indices_table=None, fingerprint=new_fingerprint)
 
     def add_faiss_index(
         self,
@@ -4932,11 +5128,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             indices_table = concat_tables([self._indices, item_indices_table])
         info = self.info.copy()
         info.features.update(item_features)
+        info.splits = None
         table = update_metadata_with_features(table, info.features)
         return Dataset(
             table,
             info=info,
-            split=self.split,
             indices_table=indices_table,
             fingerprint=new_fingerprint,
         )
