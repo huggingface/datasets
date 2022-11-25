@@ -104,10 +104,10 @@ def xjoin(a, *p):
     """
     a, *b = str(a).split("::")
     if is_local_path(a):
-        a = Path(a, *p).as_posix()
+        return os.path.join(a, *p)
     else:
         a = posixpath.join(a, *p)
-    return "::".join([a] + b)
+        return "::".join([a] + b)
 
 
 def xdirname(a):
