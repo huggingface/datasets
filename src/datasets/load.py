@@ -45,7 +45,7 @@ from .data_files import (
     get_metadata_patterns_locally,
     sanitize_patterns,
 )
-from .dataset_dict import DatasetDict, IterableDatasetDict
+from .dataset_dict import DatasetDict
 from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadMode
 from .download.streaming_download_manager import StreamingDownloadManager, xglob, xjoin
