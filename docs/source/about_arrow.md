@@ -48,5 +48,3 @@ Iterating over a memory-mapped dataset using Arrow is fast. Iterating over Wikip
 ...       f"ie. {float(wiki.dataset_size >> 27)/time:.1f} Gb/s")
 Time to iterate over the 18 GB dataset: 70.5 sec, ie. 2.1 Gb/s
 ```
-
-You can obtain the best performance by accessing slices of data (or "batches"), in order to reduce the amount of lookups on disk.
