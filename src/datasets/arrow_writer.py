@@ -49,6 +49,10 @@ logger = logging.get_logger(__name__)
 type_ = type  # keep python's type function
 
 
+class SchemaInferenceError(ValueError):
+    pass
+
+
 class TypedSequence:
     """
     This data container generalizes the typing when instantiating pyarrow arrays, tables or batches.
@@ -199,7 +203,15 @@ class TypedSequence:
                 # We only do it if trying_type is False - since this is what the user asks for.
                 out = cast_array_to_feature(out, type, allow_number_to_str=not self.trying_type)
             return out
-        except (TypeError, pa.lib.ArrowInvalid) as e:  # handle type errors and overflows
+        except (
+            TypeError,
+            pa.lib.ArrowInvalid,
+            pa.lib.ArrowNotImplementedError,
+        ) as e:  # handle type errors and overflows
+            # Ignore ArrowNotImplementedError caused by trying type, otherwise re-raise
+            if not self.trying_type and isinstance(e, pa.lib.ArrowNotImplementedError):
+                raise
+
             if self.trying_type:
                 try:  # second chance
                     if isinstance(data, np.ndarray):
@@ -556,7 +568,7 @@ class ArrowWriter:
             if self.schema:
                 self._build_writer(self.schema)
             else:
-                raise ValueError("Please pass `features` or at least one example when writing data")
+                raise SchemaInferenceError("Please pass `features` or at least one example when writing data")
         self.pa_writer.close()
         self.pa_writer = None
         if close_stream:
