@@ -9,7 +9,7 @@ import xml.dom.minidom
 from asyncio import TimeoutError
 from io import BytesIO
 from itertools import chain
-from pathlib import Path, PurePath, PurePosixPath
+from pathlib import Path, PurePosixPath
 from typing import Callable, Generator, Iterable, List, Optional, Tuple, Union
 from xml.etree import ElementTree as ET
 
