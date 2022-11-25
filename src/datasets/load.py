@@ -1545,7 +1545,7 @@ def load_dataset(
     streaming: bool = False,
     num_proc: int = None,
     **config_kwargs,
-) -> Union[DatasetDict, Dataset, IterableDatasetDict, IterableDataset]:
+) -> Union[Dataset, IterableDataset]:
     """Load a dataset from the Hugging Face Hub, or a local dataset.
 
     You can find the list of datasets on the Hub at https://huggingface.co/datasets or with ``datasets.list_datasets()``.
