@@ -165,8 +165,11 @@ def test_as_posix(input_path, expected_path):
 @pytest.mark.parametrize(
     "input_path, paths_to_join, expected_path",
     [
-        (str(Path(__file__).resolve().parent), (Path(__file__).name,), str(Path(__file__).resolve())),
-        ("https://host.com/archive.zip", ("file.txt",), "https://host.com/archive.zip/file.txt"),
+        (
+            "https://host.com/archive.zip",
+            ("file.txt",),
+            "https://host.com/archive.zip/file.txt",
+        ),
         (
             "zip://::https://host.com/archive.zip",
             ("file.txt",),
@@ -180,7 +183,12 @@ def test_as_posix(input_path, expected_path):
         (
             ".",
             ("file.txt",),
-            "file.txt",
+            os.path.join(".", "file.txt"),
+        ),
+        (
+            str(Path().resolve()),
+            ("file.txt",),
+            str((Path().resolve() / "file.txt")),
         ),
         (
             Path().resolve().as_posix(),
@@ -191,8 +199,7 @@ def test_as_posix(input_path, expected_path):
 )
 def test_xjoin(input_path, paths_to_join, expected_path):
     output_path = xjoin(input_path, *paths_to_join)
-    output_path = _readd_double_slash_removed_by_path(Path(output_path).as_posix())
-    assert output_path == _readd_double_slash_removed_by_path(Path(expected_path).as_posix())
+    assert output_path == expected_path
     output_path = xPath(input_path).joinpath(*paths_to_join)
     assert output_path == xPath(expected_path)
 
