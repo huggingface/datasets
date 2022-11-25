@@ -17,7 +17,6 @@ from datasets import config, load_dataset, load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.builder import DatasetBuilder
 from datasets.data_files import DataFilesDict
-from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.download.download_config import DownloadConfig
 from datasets.features import Features, Value
 from datasets.iterable_dataset import IterableDataset
@@ -692,8 +691,8 @@ def test_load_dataset_builder_fail():
 def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory, caplog):
     with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
         dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, keep_in_memory=keep_in_memory)
-    assert isinstance(dataset, DatasetDict)
-    assert all(isinstance(d, Dataset) for d in dataset.values())
+    assert isinstance(dataset, Dataset)
+    assert all(isinstance(d, Dataset) for d in dataset.splits.values())
     assert len(dataset) == 2
     assert isinstance(next(iter(dataset["train"])), dict)
     for offline_simulation_mode in list(OfflineSimulationMode):
@@ -711,8 +710,8 @@ def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory
 
 def test_load_dataset_streaming(dataset_loading_script_dir, data_dir):
     dataset = load_dataset(dataset_loading_script_dir, streaming=True, data_dir=data_dir)
-    assert isinstance(dataset, IterableDatasetDict)
-    assert all(isinstance(d, IterableDataset) for d in dataset.values())
+    assert isinstance(dataset, IterableDataset)
+    assert all(isinstance(d, IterableDataset) for d in dataset.splits.values())
     assert len(dataset) == 2
     assert isinstance(next(iter(dataset["train"])), dict)
 

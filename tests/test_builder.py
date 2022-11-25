@@ -16,7 +16,6 @@ from multiprocess.pool import Pool
 from datasets.arrow_dataset import Dataset
 from datasets.arrow_writer import ArrowWriter
 from datasets.builder import ArrowBasedBuilder, BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
-from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.download.download_manager import DownloadMode
 from datasets.features import Features, Value
 from datasets.info import DatasetInfo, PostProcessedInfo
@@ -330,8 +329,8 @@ class BuilderTest(TestCase):
                     writer.finalize()
 
             dsets = builder.as_dataset()
-            self.assertIsInstance(dsets, DatasetDict)
-            self.assertListEqual(list(dsets.keys()), ["train", "test"])
+            self.assertIsInstance(dsets, Dataset)
+            self.assertListEqual(list(dsets.splits.keys()), ["train", "test"])
             self.assertEqual(len(dsets["train"]), 10)
             self.assertEqual(len(dsets["test"]), 10)
             self.assertDictEqual(
@@ -400,8 +399,8 @@ class BuilderTest(TestCase):
                     writer.finalize()
 
             dsets = builder.as_dataset()
-            self.assertIsInstance(dsets, DatasetDict)
-            self.assertListEqual(list(dsets.keys()), ["train", "test"])
+            self.assertIsInstance(dsets, Dataset)
+            self.assertListEqual(list(dsets.splits.keys()), ["train", "test"])
             self.assertEqual(len(dsets["train"]), 2)
             self.assertEqual(len(dsets["test"]), 2)
             self.assertDictEqual(dsets["train"].features, Features({"text": Value("string")}))
@@ -468,8 +467,8 @@ class BuilderTest(TestCase):
                     writer.finalize()
 
             dsets = builder.as_dataset()
-            self.assertIsInstance(dsets, DatasetDict)
-            self.assertListEqual(list(dsets.keys()), ["train", "test"])
+            self.assertIsInstance(dsets, Dataset)
+            self.assertListEqual(list(dsets.splits.keys()), ["train", "test"])
             self.assertEqual(len(dsets["train"]), 10)
             self.assertEqual(len(dsets["test"]), 10)
             self.assertDictEqual(dsets["train"].features, Features({"text": Value("string")}))
@@ -804,15 +803,15 @@ def test_beam_based_as_dataset(tmp_path):
 
 
 @pytest.mark.parametrize(
-    "split, expected_dataset_class, expected_dataset_length",
+    "split, expected_dataset_length",
     [
-        (None, DatasetDict, 10),
-        ("train", Dataset, 10),
-        ("train+test[:30%]", Dataset, 13),
+        (None, 10),
+        ("train", 10),
+        ("train+test[:30%]", 13),
     ],
 )
 @pytest.mark.parametrize("in_memory", [False, True])
-def test_builder_as_dataset(split, expected_dataset_class, expected_dataset_length, in_memory, tmp_path):
+def test_builder_as_dataset(split, expected_dataset_length, in_memory, tmp_path):
     cache_dir = str(tmp_path)
     builder = DummyBuilder(cache_dir=cache_dir)
     os.makedirs(builder.cache_dir)
@@ -831,10 +830,10 @@ def test_builder_as_dataset(split, expected_dataset_class, expected_dataset_leng
 
     with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
         dataset = builder.as_dataset(split=split, in_memory=in_memory)
-    assert isinstance(dataset, expected_dataset_class)
-    if isinstance(dataset, DatasetDict):
-        assert list(dataset.keys()) == ["train", "test"]
-        datasets = dataset.values()
+    assert isinstance(dataset, Dataset)
+    if isinstance(dataset, Dataset):
+        assert list(dataset.splits.keys()) == ["train", "test"]
+        datasets = dataset.splits.values()
         expected_splits = ["train", "test"]
     elif isinstance(dataset, Dataset):
         datasets = [dataset]
@@ -876,7 +875,7 @@ def test_builder_as_streaming_dataset(tmp_path):
     dummy_builder = DummyGeneratorBasedBuilder(cache_dir=str(tmp_path))
     check_streaming(dummy_builder)
     dsets = dummy_builder.as_streaming_dataset()
-    assert isinstance(dsets, IterableDatasetDict)
+    assert isinstance(dsets, IterableDataset)
     assert isinstance(dsets["train"], IterableDataset)
     assert len(list(dsets["train"])) == 100
     dset = dummy_builder.as_streaming_dataset(split="train")

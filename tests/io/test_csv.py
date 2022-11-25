@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-from datasets import Dataset, DatasetDict, Features, NamedSplit, Value
+from datasets import Dataset, Features, NamedSplit, Value
 from datasets.io.csv import CsvDatasetReader, CsvDatasetWriter
 
 from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
@@ -70,10 +70,10 @@ def test_dataset_from_csv_path_type(path_type, csv_path, tmp_path):
     _check_csv_dataset(dataset, expected_features)
 
 
-def _check_csv_datasetdict(dataset_dict, expected_features, splits=("train",)):
-    assert isinstance(dataset_dict, DatasetDict)
+def _check_csv_dataset_splits(dataset_splits, expected_features, splits=("train",)):
+    assert isinstance(dataset_splits, Dataset)
     for split in splits:
-        dataset = dataset_dict[split]
+        dataset = dataset_splits[split]
         assert dataset.num_rows == 4
         assert dataset.num_columns == 3
         assert dataset.column_names == ["col_1", "col_2", "col_3"]
@@ -82,12 +82,12 @@ def _check_csv_datasetdict(dataset_dict, expected_features, splits=("train",)):
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
-def test_csv_datasetdict_reader_keep_in_memory(keep_in_memory, csv_path, tmp_path):
+def test_csv_dataset_splits_reader_keep_in_memory(keep_in_memory, csv_path, tmp_path):
     cache_dir = tmp_path / "cache"
     expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
     with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
         dataset = CsvDatasetReader({"train": csv_path}, cache_dir=cache_dir, keep_in_memory=keep_in_memory).read()
-    _check_csv_datasetdict(dataset, expected_features)
+    _check_csv_dataset_splits(dataset, expected_features)
 
 
 @pytest.mark.parametrize(
@@ -100,7 +100,7 @@ def test_csv_datasetdict_reader_keep_in_memory(keep_in_memory, csv_path, tmp_pat
         {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
     ],
 )
-def test_csv_datasetdict_reader_features(features, csv_path, tmp_path):
+def test_csv_dataset_splits_reader_features(features, csv_path, tmp_path):
     cache_dir = tmp_path / "cache"
     # CSV file loses col_1 string dtype information: default now is "int64" instead of "string"
     default_expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
@@ -109,11 +109,11 @@ def test_csv_datasetdict_reader_features(features, csv_path, tmp_path):
         Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
     )
     dataset = CsvDatasetReader({"train": csv_path}, features=features, cache_dir=cache_dir).read()
-    _check_csv_datasetdict(dataset, expected_features)
+    _check_csv_dataset_splits(dataset, expected_features)
 
 
 @pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
-def test_csv_datasetdict_reader_split(split, csv_path, tmp_path):
+def test_csv_dataset_splits_reader_split(split, csv_path, tmp_path):
     if split:
         path = {split: csv_path}
     else:
@@ -122,7 +122,7 @@ def test_csv_datasetdict_reader_split(split, csv_path, tmp_path):
     cache_dir = tmp_path / "cache"
     expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
     dataset = CsvDatasetReader(path, cache_dir=cache_dir).read()
-    _check_csv_datasetdict(dataset, expected_features, splits=list(path.keys()))
+    _check_csv_dataset_splits(dataset, expected_features, splits=list(path.keys()))
     assert all(dataset[split].split == split for split in path.keys())
 
 

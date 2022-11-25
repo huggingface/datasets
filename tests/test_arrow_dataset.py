@@ -21,7 +21,6 @@ from absl.testing import parameterized
 import datasets.arrow_dataset
 from datasets import concatenate_datasets, interleave_datasets, load_from_disk
 from datasets.arrow_dataset import Dataset, transmit_format, update_metadata_with_features
-from datasets.dataset_dict import DatasetDict
 from datasets.features import (
     Array2D,
     Array3D,
@@ -2170,10 +2169,10 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 fingerprint = dset._fingerprint
-                dset_dict = dset.train_test_split(test_size=10, shuffle=False)
-                self.assertListEqual(list(dset_dict.keys()), ["train", "test"])
-                dset_train = dset_dict["train"]
-                dset_test = dset_dict["test"]
+                dset_splits = dset.train_test_split(test_size=10, shuffle=False)
+                self.assertListEqual(list(dset_splits.splits.keys()), ["train", "test"])
+                dset_train = dset_splits["train"]
+                dset_test = dset_splits["test"]
 
                 self.assertEqual(len(dset_train), 20)
                 self.assertEqual(len(dset_test), 10)
@@ -2188,10 +2187,10 @@ class BaseDatasetTest(TestCase):
                 self.assertNotEqual(dset_test._fingerprint, fingerprint)
                 self.assertNotEqual(dset_train._fingerprint, dset_test._fingerprint)
 
-                dset_dict = dset.train_test_split(test_size=0.5, shuffle=False)
-                self.assertListEqual(list(dset_dict.keys()), ["train", "test"])
-                dset_train = dset_dict["train"]
-                dset_test = dset_dict["test"]
+                dset_splits = dset.train_test_split(test_size=0.5, shuffle=False)
+                self.assertListEqual(list(dset_splits.splits.keys()), ["train", "test"])
+                dset_train = dset_splits["train"]
+                dset_test = dset_splits["test"]
 
                 self.assertEqual(len(dset_train), 15)
                 self.assertEqual(len(dset_test), 15)
@@ -2203,10 +2202,10 @@ class BaseDatasetTest(TestCase):
                 self.assertDictEqual(dset_train.features, Features({"filename": Value("string")}))
                 self.assertDictEqual(dset_test.features, Features({"filename": Value("string")}))
 
-                dset_dict = dset.train_test_split(train_size=10, shuffle=False)
-                self.assertListEqual(list(dset_dict.keys()), ["train", "test"])
-                dset_train = dset_dict["train"]
-                dset_test = dset_dict["test"]
+                dset_splits = dset.train_test_split(train_size=10, shuffle=False)
+                self.assertListEqual(list(dset_splits.splits.keys()), ["train", "test"])
+                dset_train = dset_splits["train"]
+                dset_test = dset_splits["test"]
 
                 self.assertEqual(len(dset_train), 10)
                 self.assertEqual(len(dset_test), 20)
@@ -2219,10 +2218,10 @@ class BaseDatasetTest(TestCase):
                 self.assertDictEqual(dset_test.features, Features({"filename": Value("string")}))
 
                 dset.set_format("numpy")
-                dset_dict = dset.train_test_split(train_size=10, seed=42)
-                self.assertListEqual(list(dset_dict.keys()), ["train", "test"])
-                dset_train = dset_dict["train"]
-                dset_test = dset_dict["test"]
+                dset_splits = dset.train_test_split(train_size=10, seed=42)
+                self.assertListEqual(list(dset_splits.splits.keys()), ["train", "test"])
+                dset_train = dset_splits["train"]
+                dset_test = dset_splits["test"]
 
                 self.assertEqual(len(dset_train), 10)
                 self.assertEqual(len(dset_test), 20)
@@ -2235,7 +2234,7 @@ class BaseDatasetTest(TestCase):
                 self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                 self.assertDictEqual(dset_train.features, Features({"filename": Value("string")}))
                 self.assertDictEqual(dset_test.features, Features({"filename": Value("string")}))
-                del dset_test, dset_train, dset_dict  # DatasetDict
+                del dset_test, dset_train, dset_splits
 
     def test_shard(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir, self._create_dummy_dataset(in_memory, tmp_dir) as dset:
@@ -2496,7 +2495,7 @@ class BaseDatasetTest(TestCase):
     def test_transmit_format_dict(self, in_memory):
         @transmit_format
         def my_split_transform(self, return_factory, *args, **kwargs):
-            return DatasetDict({"train": return_factory()})
+            return Dataset.from_splits({"train": return_factory()})
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             return_factory = partial(
@@ -2508,7 +2507,7 @@ class BaseDatasetTest(TestCase):
                 transformed_dset = my_split_transform(dset, return_factory)["train"]
                 self.assertDictEqual(transformed_dset.format, prev_format)
 
-                del transformed_dset  # DatasetDict
+                del transformed_dset
 
     def test_with_format(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:

@@ -10,7 +10,7 @@ import numpy as np
 import pytest
 from huggingface_hub import HfApi
 
-from datasets import Audio, ClassLabel, Dataset, DatasetDict, Features, Image, Value, load_dataset
+from datasets import Audio, ClassLabel, Dataset, Features, Image, Value, load_dataset
 from datasets.utils._hf_hub_fixes import list_repo_files
 from tests.fixtures.hub import CI_HUB_ENDPOINT, CI_HUB_USER, CI_HUB_USER_TOKEN
 from tests.utils import for_all_test_methods, require_pil, require_sndfile, xfail_if_500_502_http_error
@@ -25,10 +25,10 @@ class TestPushToHub:
     _api = HfApi(endpoint=CI_HUB_ENDPOINT)
     _token = CI_HUB_USER_TOKEN
 
-    def test_push_dataset_dict_to_hub_no_token(self, temporary_repo):
+    def test_push_dataset_splits_to_hub_no_token(self, temporary_repo):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
 
-        local_ds = DatasetDict({"train": ds})
+        local_ds = Dataset.from_splits({"train": ds})
 
         with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
             local_ds.push_to_hub(ds_name)
@@ -47,10 +47,10 @@ class TestPushToHub:
                 )
             )
 
-    def test_push_dataset_dict_to_hub_name_without_namespace(self, temporary_repo):
+    def test_push_dataset_splits_to_hub_name_without_namespace(self, temporary_repo):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
 
-        local_ds = DatasetDict({"train": ds})
+        local_ds = Dataset.from_splits({"train": ds})
 
         with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
             local_ds.push_to_hub(ds_name.split("/")[-1], token=self._token)
@@ -69,11 +69,11 @@ class TestPushToHub:
                 )
             )
 
-    def test_push_dataset_dict_to_hub_datasets_with_different_features(self, cleanup_repo):
+    def test_push_dataset_splits_to_hub_datasets_with_different_features(self, cleanup_repo):
         ds_train = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
         ds_test = Dataset.from_dict({"x": [True, False, True], "y": ["a", "b", "c"]})
 
-        local_ds = DatasetDict({"train": ds_train, "test": ds_test})
+        local_ds = Dataset.from_splits({"train": ds_train, "test": ds_test})
 
         ds_name = f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}"
         try:
@@ -83,10 +83,10 @@ class TestPushToHub:
             cleanup_repo(ds_name)
             raise
 
-    def test_push_dataset_dict_to_hub_private(self, temporary_repo):
+    def test_push_dataset_splits_to_hub_private(self, temporary_repo):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
 
-        local_ds = DatasetDict({"train": ds})
+        local_ds = Dataset.from_splits({"train": ds})
 
         with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
             local_ds.push_to_hub(ds_name, token=self._token, private=True)
@@ -105,10 +105,10 @@ class TestPushToHub:
                 )
             )
 
-    def test_push_dataset_dict_to_hub(self, temporary_repo):
+    def test_push_dataset_splits_to_hub(self, temporary_repo):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
 
-        local_ds = DatasetDict({"train": ds})
+        local_ds = Dataset.from_splits({"train": ds})
 
         with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
             local_ds.push_to_hub(ds_name, token=self._token)
@@ -127,10 +127,10 @@ class TestPushToHub:
                 )
             )
 
-    def test_push_dataset_dict_to_hub_multiple_files(self, temporary_repo):
+    def test_push_dataset_splits_to_hub_multiple_files(self, temporary_repo):
         ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
 
-        local_ds = DatasetDict({"train": ds})
+        local_ds = Dataset.from_splits({"train": ds})
 
         with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
             with patch("datasets.config.MAX_SHARD_SIZE", "16KB"):
@@ -156,10 +156,10 @@ class TestPushToHub:
                 )
             )
 
-    def test_push_dataset_dict_to_hub_multiple_files_with_max_shard_size(self, temporary_repo):
+    def test_push_dataset_splits_to_hub_multiple_files_with_max_shard_size(self, temporary_repo):
         ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
 
-        local_ds = DatasetDict({"train": ds})
+        local_ds = Dataset.from_splits({"train": ds})
 
         with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
             local_ds.push_to_hub(ds_name, token=self._token, max_shard_size="16KB")
@@ -184,11 +184,11 @@ class TestPushToHub:
                 )
             )
 
-    def test_push_dataset_dict_to_hub_overwrite_files(self, temporary_repo):
+    def test_push_dataset_splits_to_hub_overwrite_files(self, temporary_repo):
         ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
         ds2 = Dataset.from_dict({"x": list(range(100)), "y": list(range(100))})
 
-        local_ds = DatasetDict({"train": ds, "random": ds2})
+        local_ds = Dataset.from_splits({"train": ds, "random": ds2})
 
         ds_name = f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}"
 
@@ -291,14 +291,14 @@ class TestPushToHub:
 
         with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
             local_ds.push_to_hub(ds_name, split="train", token=self._token)
-            local_ds_dict = {"train": local_ds}
-            hub_ds_dict = load_dataset(ds_name, download_mode="force_redownload")
+            local_ds_splits = {"train": local_ds}
+            hub_ds_splits = load_dataset(ds_name, download_mode="force_redownload")
 
-            assert list(local_ds_dict.keys()) == list(hub_ds_dict.keys())
+            assert list(local_ds_splits.splits.keys()) == list(hub_ds_splits.splits.keys())
 
-            for ds_split_name in local_ds_dict.keys():
-                local_ds = local_ds_dict[ds_split_name]
-                hub_ds = hub_ds_dict[ds_split_name]
+            for ds_split_name in local_ds_splits.splits.keys():
+                local_ds = local_ds_splits[ds_split_name]
+                hub_ds = hub_ds_splits[ds_split_name]
                 assert local_ds.column_names == hub_ds.column_names
                 assert list(local_ds.features.keys()) == list(hub_ds.features.keys())
                 assert local_ds.features == hub_ds.features
@@ -383,11 +383,11 @@ class TestPushToHub:
                 assert bool(path) == (not embed_external_files)
                 assert bool(bytes_) == embed_external_files
 
-    def test_push_dataset_dict_to_hub_custom_features(self, temporary_repo):
+    def test_push_dataset_splits_to_hub_custom_features(self, temporary_repo):
         features = Features({"x": Value("int64"), "y": ClassLabel(names=["neg", "pos"])})
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [0, 0, 1]}, features=features)
 
-        local_ds = DatasetDict({"test": ds})
+        local_ds = Dataset.from_splits({"test": ds})
 
         with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
             local_ds.push_to_hub(ds_name, token=self._token)
@@ -444,10 +444,10 @@ class TestPushToHub:
             assert list(ds.features.keys()) == list(hub_ds["train"].features.keys())
             assert ds.features == hub_ds["train"].features
 
-    def test_push_dataset_dict_to_hub_custom_splits(self, temporary_repo):
+    def test_push_dataset_splits_to_hub_custom_splits(self, temporary_repo):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
 
-        local_ds = DatasetDict({"random": ds})
+        local_ds = Dataset.from_splits({"random": ds})
 
         with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
             local_ds.push_to_hub(ds_name, token=self._token)
@@ -458,9 +458,9 @@ class TestPushToHub:
             assert local_ds["random"].features == hub_ds["random"].features
 
     @unittest.skip("This test cannot pass until iterable datasets have push to hub")
-    def test_push_streaming_dataset_dict_to_hub(self, temporary_repo):
+    def test_push_streaming_dataset_splits_to_hub(self, temporary_repo):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
-        local_ds = DatasetDict({"train": ds})
+        local_ds = Dataset.from_splits({"train": ds})
         with tempfile.TemporaryDirectory() as tmp:
             local_ds.save_to_disk(tmp)
             local_ds = load_dataset(tmp, streaming=True)
