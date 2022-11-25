@@ -27,7 +27,7 @@ class DownloadConfig:
         num_proc (:obj:`int`, optional): The number of processes to launch to download the files in parallel.
         max_retries (:obj:`int`, default ``1``): The number of times to retry an HTTP request if it fails.
         use_auth_token (:obj:`str` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token
-            for remote files on the Datasets Hub. If True, will get token from ~/.huggingface.
+            for remote files on the Datasets Hub. If True, or not specified, will get token from ~/.huggingface.
         ignore_url_params (:obj:`bool`, default ``False``): Whether to strip all query parameters and #fragments from
             the download URL before using it for caching the file.
         download_desc (:obj:`str`, optional): A description to be displayed alongside with the progress bar while downloading the files.

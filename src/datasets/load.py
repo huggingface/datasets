@@ -1457,19 +1457,12 @@ def load_dataset_builder(
             As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
             You can specify a different version than the default "main" by using a commit SHA or a git tag of the dataset repository.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-            If True, will get token from `"~/.huggingface"`.
+            If True, or not specified, will get token from `"~/.huggingface"`.
         **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the :class:`BuilderConfig`
             and used in the :class:`DatasetBuilder`.
 
     Returns:
         :class:`DatasetBuilder`
-
-    <Tip>
-
-    Passing `use_auth_token=True` is required when you want to access a private dataset.
-
-    </Tip>
-
 
     Example:
 
@@ -1625,7 +1618,7 @@ def load_dataset(
             As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
             You can specify a different version than the default "main" by using a commit SHA or a git tag of the dataset repository.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-            If True, will get token from `"~/.huggingface"`.
+            If True, or not specified, will get token from `"~/.huggingface"`.
         task (``str``): The task to prepare the dataset for during training and evaluation. Casts the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
         streaming (:obj:`bool`, default ``False``): If set to True, don't download the data files. Instead, it streams the data progressively while
             iterating on the dataset. An IterableDataset or IterableDatasetDict is returned instead in this case.
@@ -1649,12 +1642,6 @@ def load_dataset(
 
         - if `split` is not None: the dataset requested,
         - if `split` is None, a ``datasets.streaming.IterableDatasetDict`` with each split.
-
-    <Tip>
-
-    Passing `use_auth_token=True` is required when you want to access a private dataset.
-
-    </Tip>
 
     Example:
 
@@ -1743,7 +1730,6 @@ def load_dataset(
         download_mode=download_mode,
         ignore_verifications=ignore_verifications,
         try_from_hf_gcs=try_from_hf_gcs,
-        use_auth_token=use_auth_token,
         num_proc=num_proc,
     )
 

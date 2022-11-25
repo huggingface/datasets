@@ -610,7 +610,7 @@ class DatasetBuilder:
         try_from_hf_gcs: bool = True,
         dl_manager: Optional[DownloadManager] = None,
         base_path: Optional[str] = None,
-        use_auth_token: Optional[Union[bool, str]] = None,
+        use_auth_token="deprecated",
         file_format: str = "arrow",
         max_shard_size: Optional[Union[int, str]] = None,
         num_proc: Optional[int] = None,
@@ -632,7 +632,13 @@ class DatasetBuilder:
             base_path (:obj:`str`, optional): base path for relative paths that are used to download files. This can be a remote url.
                 If not specified, the value of the `base_path` attribute (`self.base_path`) will be used instead.
             use_auth_token (:obj:`Union[str, bool]`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-                If True, will get token from ~/.huggingface.
+                If True, or not specified, will get token from ~/.huggingface.
+
+                <Deprecated version="2.7.1">
+
+                Pass `use_auth_token` to the initializer/`load_dataset_builder` instead.
+
+                </Deprecated>
             file_format (:obj:`str`, optional): format of the data files in which the dataset will be written.
                 Supported formats: "arrow", "parquet". Default to "arrow" format.
                 If the format is "parquet", then image and audio data are embedded into the Parquet files instead of pointing to local files.
@@ -679,6 +685,12 @@ class DatasetBuilder:
         >>> ds = builder.download_and_prepare("s3://my-bucket/my_rotten_tomatoes", storage_options=storage_options, file_format="parquet")
         ```
         """
+        if use_auth_token != "deprecated":
+            warnings.warn(
+                "'use_auth_token' was deprecated in version 2.7.1 and will be removed in 3.0.0. Pass `use_auth_token` to the initializer/`load_dataset_builder` instead.",
+                FutureWarning,
+            )
+
         output_dir = output_dir if output_dir is not None else self._cache_dir
         # output_dir can be a remote bucket on GCS or S3 (when using BeamBasedBuilder for distributed data processing)
         fs_token_paths = fsspec.get_fs_token_paths(output_dir, storage_options=storage_options)
@@ -709,7 +721,7 @@ class DatasetBuilder:
                     force_download=bool(download_mode == DownloadMode.FORCE_REDOWNLOAD),
                     force_extract=bool(download_mode == DownloadMode.FORCE_REDOWNLOAD),
                     use_etag=False,
-                    use_auth_token=use_auth_token,
+                    use_auth_token=self.use_auth_token,
                 )  # We don't use etag for data files to speed up the process
 
             dl_manager = DownloadManager(
