@@ -8,7 +8,7 @@ import pytest
 
 from datasets import Audio, Features, Image
 from datasets.formatting import NumpyFormatter, PandasFormatter, PythonFormatter, query_table
-from datasets.formatting.formatting import NumpyArrowExtractor, PandasArrowExtractor, PythonArrowExtractor
+from datasets.formatting.formatting import NumpyArrowExtractor, PandasArrowExtractor, PythonArrowExtractor, PythonLazyBatch, PythonLazyRow
 from datasets.table import InMemoryTable
 
 from .utils import require_jax, require_tf, require_torch
@@ -81,6 +81,23 @@ class ArrowExtractorTest(TestCase):
         pd.testing.assert_series_equal(batch["c"], pd.Series(_COL_C, name="c"))
 
 
+# class LazyDictTest(TestCase):
+#     def _create_dummy_table(self):
+#         return pa.Table.from_pydict({"a": _COL_A, "b": _COL_B, "c": _COL_C})
+
+#     def _create_dummy_formatter(self):
+#         return PythonFormatter()
+
+#     def test_python_lazy_row_len(self):
+#         pa_table = self._create_dummy_table()
+#         formatter = self._create_dummy_formatter()
+#         PythonLazyRow = formatter._get_lazy_row_class()
+#         lazy_dict = PythonFormatter(pa_table)
+#         lazy_dict_copy = lazy_dict.copy()
+#         self.assertEqual(lazy_dict, lazy_dict_copy)
+#         self.assertIsNot(lazy_dict, lazy_dict_copy)
+
+
 class FormatterTest(TestCase):
     def _create_dummy_table(self):
         return pa.Table.from_pydict({"a": _COL_A, "b": _COL_B, "c": _COL_C})
@@ -95,6 +112,20 @@ class FormatterTest(TestCase):
         batch = formatter.format_batch(pa_table)
         self.assertEqual(batch, {"a": _COL_A, "b": _COL_B, "c": _COL_C})
 
+    def test_python_formatter_lazy(self):
+        pa_table = self._create_dummy_table()
+        formatter = PythonFormatter(lazy=True)
+        row = formatter.format_row(pa_table)
+        self.assertIsInstance(row, PythonLazyRow)
+        self.assertEqual(row["a"], _COL_A[0])
+        self.assertEqual(row["b"], _COL_B[0])
+        self.assertEqual(row["c"], _COL_C[0])
+        batch = formatter.format_batch(pa_table)
+        self.assertIsInstance(batch, PythonLazyBatch)
+        self.assertEqual(batch["a"], _COL_A)
+        self.assertEqual(batch["b"], _COL_B)
+        self.assertEqual(batch["c"], _COL_C)
+
     def test_numpy_formatter(self):
         pa_table = self._create_dummy_table()
         formatter = NumpyFormatter()
@@ -104,6 +135,21 @@ class FormatterTest(TestCase):
         np.testing.assert_equal(col, np.array(_COL_A))
         batch = formatter.format_batch(pa_table)
         np.testing.assert_equal(batch, {"a": np.array(_COL_A), "b": np.array(_COL_B), "c": np.array(_COL_C)})
+        assert batch["c"].shape == np.array(_COL_C).shape
+
+    def test_numpy_formatter_lazy(self):
+        pa_table = self._create_dummy_table()
+        formatter = NumpyFormatter(lazy=True)
+        row = formatter.format_row(pa_table)
+        self.assertIsInstance(row, PythonLazyRow)
+        np.testing.assert_equal(row["a"], _COL_A[0])
+        np.testing.assert_equal(row["b"], _COL_B[0])
+        np.testing.assert_equal(row["c"], np.array(_COL_C[0]))
+        batch = formatter.format_batch(pa_table)
+        self.assertIsInstance(batch, PythonLazyBatch)
+        np.testing.assert_equal(batch["a"], np.array(_COL_A))
+        np.testing.assert_equal(batch["b"], np.array(_COL_B))
+        np.testing.assert_equal(batch["c"], np.array(_COL_C))
         assert batch["c"].shape == np.array(_COL_C).shape
 
     def test_numpy_formatter_np_array_kwargs(self):
