@@ -3230,7 +3230,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             input_columns=input_columns,
             desc=desc,
         )
-        return Dataset(self.data, info=indices.info, indices_table=indices.data, fingerprint=new_fingerprint)
+        info = self.info.copy()
+        if info.splits:
+            for split_name, split_info in info.splits.items():
+                split_info.num_examples = indices.info.splits[split_name].num_examples
+                split_info.num_bytes = None
+        return Dataset(self.data, info=info, indices_table=indices.data, fingerprint=new_fingerprint)
 
     @transmit_format
     @fingerprint_transform(inplace=False, ignore_kwargs=["cache_file_name"])
