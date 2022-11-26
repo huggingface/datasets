@@ -904,10 +904,14 @@ def test_iterable_dataset_remove_columns(dataset_with_several_columns):
     assert list(new_dataset) == [
         {k: v for k, v in example.items() if k != "id"} for example in dataset_with_several_columns
     ]
+    assert new_dataset.features is not None
+    assert "id" not in new_dataset.features
     new_dataset = dataset_with_several_columns.remove_columns(["id", "filepath"])
     assert list(new_dataset) == [
         {k: v for k, v in example.items() if k != "id" and k != "filepath"} for example in dataset_with_several_columns
     ]
+    assert new_dataset.features is not None
+    assert all(c not in new_dataset.features for c in ["id", "filepath"])
 
 
 def test_iterable_dataset_cast_column():
