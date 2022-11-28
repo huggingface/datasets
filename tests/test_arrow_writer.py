@@ -345,7 +345,7 @@ def test_writer_embed_local_files(tmp_path, embed_local_files):
     pa_table: pa.Table = pq.read_table(stream)
     out = pa_table.to_pydict()
     if embed_local_files:
-        assert out["image"][0]["path"] is None
+        assert isinstance(out["image"][0]["path"], str)
         with open(image_path, "rb") as f:
             assert out["image"][0]["bytes"] == f.read()
     else:
