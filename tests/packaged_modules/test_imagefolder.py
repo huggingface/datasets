@@ -391,7 +391,7 @@ def test_data_files_with_metadata_and_single_split(streaming, cache_dir, data_fi
     datasets = imagefolder.as_streaming_dataset() if streaming else imagefolder.as_dataset()
     for split, data_files in data_files.items():
         expected_num_of_images = len(data_files) - 1  # don't count the metadata file
-        assert split in datasets
+        assert split in datasets.splits
         dataset = list(datasets[split])
         assert len(dataset) == expected_num_of_images
         # make sure each sample has its own image and metadata
@@ -409,7 +409,7 @@ def test_data_files_with_metadata_and_multiple_splits(streaming, cache_dir, data
     datasets = imagefolder.as_streaming_dataset() if streaming else imagefolder.as_dataset()
     for split, data_files in data_files.items():
         expected_num_of_images = len(data_files) - 1  # don't count the metadata file
-        assert split in datasets
+        assert split in datasets.splits
         dataset = list(datasets[split])
         assert len(dataset) == expected_num_of_images
         # make sure each sample has its own image and metadata
@@ -427,7 +427,7 @@ def test_data_files_with_metadata_and_archives(streaming, cache_dir, data_files_
     for split, data_files in data_files_with_zip_archives.items():
         num_of_archives = len(data_files)  # the metadata file is inside the archive
         expected_num_of_images = 2 * num_of_archives
-        assert split in datasets
+        assert split in datasets.splits
         dataset = list(datasets[split])
         assert len(dataset) == expected_num_of_images
         # make sure each sample has its own image and metadata
