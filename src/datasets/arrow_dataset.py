@@ -161,8 +161,9 @@ class DatasetInfoMixin:
     at the base level of the Dataset for easy access.
     """
 
-    def __init__(self, info: DatasetInfo):
+    def __init__(self, info: DatasetInfo, split: Optional[NamedSplit]):
         self._info = info
+        self._split = split
 
     @property
     def info(self):
@@ -172,14 +173,7 @@ class DatasetInfoMixin:
     @property
     def split(self):
         """:class:`datasets.NamedSplit` object corresponding to a named dataset split."""
-        if not self._info.splits:  # for backward compatbility
-            return None
-        elif len(self._info.splits) == 1:  # for backward compatbility
-            return next(iter(self._info.splits))
-        else:
-            raise ValueError(
-                f"The dataset is made of multiple splits: {list(self._info.splits)}. Please use `my_dataset.info.splits` instead."
-            )
+        return self._split
 
     @property
     def builder_name(self) -> str:
@@ -676,8 +670,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     f"Expected a SplitDict but got info.splits={info.splits} of type {type(info.splits)}."
                 )
         if split is not None:
-            info.splits = SplitDict()
-            info.splits[split] = SplitInfo(name=split, num_bytes=self.data.nbytes, num_examples=len(self))
+            split = NamedSplit(str(split))
+            info.splits = None
         if info.splits is not None:
             sum_of_split_sizes = sum(split_info.num_examples for split_info in info.splits.values())
             if len(self) != sum_of_split_sizes:
@@ -685,7 +679,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     f"Expected the length of the dataset to match the sum of the split sizes, but got {len(self)} != {sum_of_split_sizes}."
                 )
 
-        DatasetInfoMixin.__init__(self, info=info)
+        DatasetInfoMixin.__init__(self, info=info, split=split)
         IndexableMixin.__init__(self)
 
         self._format_type: Optional[str] = None
@@ -1192,6 +1186,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_splits(splits: Dict[str, "Dataset"]) -> "Dataset":
+        splits = {str(name): split for name, split in splits.items()}
         info = DatasetInfo()
         info.splits = SplitDict(
             {
@@ -2375,6 +2370,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             offset = 0
             for split_name, split_info in self.info.splits.items():
                 splits[str(split_name)] = self.select(range(offset, offset + split_info.num_examples))
+                splits[str(split_name)]._split = split_name
                 offset += split_info.num_examples
             return splits
 
@@ -2581,6 +2577,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 self = Dataset(
                     self.data.slice(0, 0),
                     info=self.info.copy(),
+                    split=self.split,
                     fingerprint=new_fingerprint,
                 )
             if remove_columns:
@@ -3235,7 +3232,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             for split_name, split_info in info.splits.items():
                 split_info.num_examples = indices.info.splits[split_name].num_examples
                 split_info.num_bytes = None
-        return Dataset(self.data, info=info, indices_table=indices.data, fingerprint=new_fingerprint)
+        return Dataset(self.data, info=info, split=self.split, indices_table=indices.data, fingerprint=new_fingerprint)
 
     @transmit_format
     @fingerprint_transform(inplace=False, ignore_kwargs=["cache_file_name"])
@@ -3304,6 +3301,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return Dataset(
             self._data,
             info=info,
+            split=self.split,
             indices_table=indices_table,
             fingerprint=fingerprint,
         )
@@ -3437,12 +3435,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             return Dataset(
                 self.data.slice(start, length),
                 info=info,
+                split=self.split,
                 fingerprint=new_fingerprint,
             )
         else:
             return Dataset(
                 self.data,
                 info=info,
+                split=self.split,
                 indices_table=self._indices.slice(start, length),
                 fingerprint=new_fingerprint,
             )
@@ -4456,6 +4456,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 split = "train"
             else:
                 split = str(self.split)
+        else:
+            split = str(split)
 
         if not re.match(_split_re, split):
             raise ValueError(f"Split name should match '{_split_re}' but got '{split}'.")
@@ -4664,17 +4666,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
             max_shard_size = shard_size
 
-        if split is not None and self.info.splits:
-            self = Dataset(
-                self.data,
-                info=self.info.copy(),
-                indices_table=self._indices,
-                fingerprint=self._fingerprint,
-                split=split,
-            )
+        split = str(split) if split is not None else (str(self.split) if self.split is not None else None)
 
         # Upload multiple splits (and overwrite the dataset_info for backward compatibility with the old DatasetDict)
-        if split is None and self.info.splits and len(self.info.splits) > 1:
+        if not split and self.info.splits:
             splits = self.splits
             total_uploaded_size = 0
             total_dataset_nbytes = 0
@@ -4699,7 +4694,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
                 total_uploaded_size += uploaded_size
                 total_dataset_nbytes += dataset_nbytes
-                info_to_dump.splits[split] = SplitInfo(
+                info_to_dump.splits[str(split)] = SplitInfo(
                     str(split), num_bytes=dataset_nbytes, num_examples=len(splits[split])
                 )
             info_to_dump.download_checksums = None
@@ -4886,7 +4881,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         info = dataset.info.copy()
         info.features.update(Features.from_arrow_schema(column_table.schema))
         table = update_metadata_with_features(table, info.features)
-        return Dataset(table, info=info, indices_table=None, fingerprint=new_fingerprint)
+        return Dataset(table, info=info, split=self.split, indices_table=None, fingerprint=new_fingerprint)
 
     def add_faiss_index(
         self,
@@ -5138,6 +5133,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return Dataset(
             table,
             info=info,
+            split=self.split,
             indices_table=indices_table,
             fingerprint=new_fingerprint,
         )
