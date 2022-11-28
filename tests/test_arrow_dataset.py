@@ -4089,3 +4089,11 @@ class StratifiedTest(TestCase):
             assert len(d1["train"]["text"]) + len(d1["test"]["text"]) == y.size
             assert len(d1["train"]["text"]) == train_size
             assert len(d1["test"]["text"]) == test_size
+
+
+def test_dataset_from_splits_with_different_features():
+    ds_train = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+    ds_test = Dataset.from_dict({"x": [True, False, True], "y": ["a", "b", "c"]})
+
+    with pytest.raises(ValueError):
+        Dataset.from_splits({"train": ds_train, "test": ds_test})
