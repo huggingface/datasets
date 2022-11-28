@@ -693,14 +693,14 @@ def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory
         dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, keep_in_memory=keep_in_memory)
     assert isinstance(dataset, Dataset)
     assert all(isinstance(d, Dataset) for d in dataset.splits.values())
-    assert len(dataset) == 2
+    assert len(dataset.splits) == 2
     assert isinstance(next(iter(dataset["train"])), dict)
     for offline_simulation_mode in list(OfflineSimulationMode):
         with offline(offline_simulation_mode):
             caplog.clear()
             # Load dataset from cache
             dataset = datasets.load_dataset(DATASET_LOADING_SCRIPT_NAME, data_dir=data_dir)
-            assert len(dataset) == 2
+            assert len(dataset.splits) == 2
             assert "Using the latest cached version of the module" in caplog.text
     with pytest.raises(FileNotFoundError) as exc_info:
         datasets.load_dataset(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST)
@@ -712,7 +712,7 @@ def test_load_dataset_streaming(dataset_loading_script_dir, data_dir):
     dataset = load_dataset(dataset_loading_script_dir, streaming=True, data_dir=data_dir)
     assert isinstance(dataset, IterableDataset)
     assert all(isinstance(d, IterableDataset) for d in dataset.splits.values())
-    assert len(dataset) == 2
+    assert len(dataset.splits) == 2
     assert isinstance(next(iter(dataset["train"])), dict)
 
 
@@ -933,7 +933,7 @@ def test_load_dataset_local_with_default_in_memory(
 
     with assert_arrow_memory_increases() if expected_in_memory else assert_arrow_memory_doesnt_increase():
         dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir)
-    assert (dataset["train"].dataset_size < max_in_memory_dataset_size) is expected_in_memory
+    assert (dataset.data.nbytes < max_in_memory_dataset_size) is expected_in_memory
 
 
 @pytest.mark.parametrize("max_in_memory_dataset_size", ["default", 0, 100, 1000])
