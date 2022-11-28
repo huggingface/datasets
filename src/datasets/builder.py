@@ -54,12 +54,7 @@ from .features import Features
 from .filesystems import is_remote_filesystem
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
-from .iterable_dataset import (
-    ExamplesIterable,
-    IterableDataset,
-    SplitsExamplesIterable,
-    _generate_examples_from_tables_wrapper,
-)
+from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
 from .keyhash import DuplicatedKeysError
 from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH, camelcase_to_snakecase
 from .splits import Split, SplitDict, SplitGenerator, SplitInfo
@@ -1177,23 +1172,26 @@ class DatasetBuilder:
         )
         if isinstance(datasets, dict):
             datasets = IterableDataset.from_splits(datasets)
+            datasets._info = self.info.copy()
+            datasets._info.splits = SplitDict()
+            for split_name in splits_generator:
+                datasets._info.splits[split_name] = SplitInfo(name=split_name, num_bytes=None, num_examples=None)
+                if self.info.splits and split_name in self.info.splits:
+                    datasets._info.splits[split_name].num_bytes = self.info.splits[split_name].num_bytes
+                    datasets._info.splits[split_name].num_examples = self.info.splits[split_name].num_examples
         return datasets
 
     def _as_streaming_dataset_single(
         self,
-        splits_generator,
+        splits_generator: SplitGenerator,
     ) -> IterableDataset:
         ex_iterable = self._get_examples_iterable_for_split(splits_generator)
         # add auth to be able to access and decode audio/image files from private repositories.
         token_per_repo_id = {self.repo_id: self.use_auth_token} if self.repo_id else {}
         info = self.info.copy()
-        info.splits = SplitDict()
-        info.splits[splits_generator.name] = SplitInfo(name=splits_generator.name, num_bytes=None, num_examples=None)
-        if self.info.splits and splits_generator.name in self.info.splits:
-            info.splits[splits_generator.name].num_bytes = self.info.splits[splits_generator.name].num_bytes
-            info.splits[splits_generator.name].num_examples = self.info.splits[splits_generator.name].num_examples
+        info.splits = None
         return IterableDataset(
-            ex_iterable, info=info, split=splits_generator.name, token_per_repo_id=token_per_repo_id
+            ex_iterable, info=info, token_per_repo_id=token_per_repo_id, split=splits_generator.name
         )
 
     def _post_process(self, dataset: Dataset, resources_paths: Mapping[str, str]) -> Optional[Dataset]:
@@ -1566,8 +1564,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
         )
 
     def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
-        ex_iterable = ExamplesIterable(self._generate_examples, split_generator.gen_kwargs)
-        return SplitsExamplesIterable({split_generator.name: ex_iterable})
+        return ExamplesIterable(self._generate_examples, split_generator.gen_kwargs)
 
 
 class ArrowBasedBuilder(DatasetBuilder):
