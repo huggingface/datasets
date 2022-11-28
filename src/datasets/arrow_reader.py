@@ -264,7 +264,12 @@ class BaseReader:
             split = Split(str(original_instructions))
         else:
             split = None
-        dataset_kwargs = dict(arrow_table=pa_table, info=self._info, split=split)
+        if self._info:
+            info = self._info.copy()
+            info.splits = None
+        else:
+            info = None
+        dataset_kwargs = dict(arrow_table=pa_table, info=info, split=split)
         return dataset_kwargs
 
     def download_from_hf_gcs(self, download_config: DownloadConfig, relative_data_dir):
