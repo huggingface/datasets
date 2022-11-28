@@ -763,10 +763,10 @@ def test_iterable_dataset_map_complex_features(
 
 @pytest.mark.parametrize("seed", [42, 1337, 101010, 123456])
 @pytest.mark.parametrize("epoch", [None, 0, 1])
-def test_iterable_dataset_shuffle(dataset: IterableDataset, seed, epoch):
+def test_iterable_dataset_shuffle(seed, epoch):
     buffer_size = 3
-    dataset = deepcopy(dataset)
-    dataset._ex_iterable.kwargs["filepaths"] = ["0.txt", "1.txt"]
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": ["0.txt", "1.txt"]})
+    dataset = IterableDataset(ex_iterable)
     dataset = dataset.shuffle(seed, buffer_size=buffer_size)
     assert isinstance(dataset._shuffling, ShufflingConfig)
     assert isinstance(dataset._shuffling.generator, np.random.Generator)
