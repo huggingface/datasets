@@ -765,15 +765,8 @@ class IterableDataset(DatasetInfoMixin):
                     f"Expected a SplitDict but got info.splits={info.splits} of type {type(info.splits)}."
                 )
         if split is not None:
-            num_bytes = None
-            num_examples = None
-            if info.splits:
-                if all(split_info.num_bytes is not None for split_info in info.splits.values()):
-                    num_bytes = sum(split_info.num_bytes for split_info in info.splits.values())
-                if all(split_info.num_examples is not None for split_info in info.splits.values()):
-                    num_examples = sum(split_info.num_examples for split_info in info.splits.values())
-            info.splits = SplitDict()
-            info.splits[split] = SplitInfo(name=split, num_bytes=num_bytes, num_examples=num_examples)
+            split = NamedSplit(str(split))
+            info.splits = None
         if info.splits:
             for split_name in info.splits:
                 try:
@@ -783,7 +776,7 @@ class IterableDataset(DatasetInfoMixin):
                         f"The split '{split_name}' specified in the dataset info doesn't exist in the examples iterable. "
                         "Please make sure to use a 'SplitExamplesIterable' or an iterable wrapper that supports '.split_data_sources()'."
                     ) from None
-        DatasetInfoMixin.__init__(self, info=info)
+        DatasetInfoMixin.__init__(self, info=info, split=split)
 
         self._ex_iterable = ex_iterable
         self._format_type = format_type
@@ -928,15 +921,18 @@ class IterableDataset(DatasetInfoMixin):
 
     @staticmethod
     def from_splits(splits: Dict[str, "IterableDataset"]) -> "IterableDataset":
-        splits = {name: split._resolve_features() for name, split in splits.items()}
+        splits = {str(name): split for name, split in splits.items()}
         info = DatasetInfo.from_merge([split.info for split in splits.values()])
-        info.features = Features(
-            {
-                k: v
-                for features in _align_features([split.features for split in splits.values()])
-                for k, v in features.items()
-            }
-        )
+        if any(split.features is not None for split in splits.values()):
+            info.features = Features(
+                {
+                    k: v
+                    for features in _align_features(
+                        [split.features for split in splits.values() if split.features is not None]
+                    )
+                    for k, v in features.items()
+                }
+            )
         info.splits = SplitDict()
         for name, split in splits.items():
             if split._info.splits:
@@ -1045,6 +1041,21 @@ class IterableDataset(DatasetInfoMixin):
          {'label': 1, 'text': 'Review: effective but too-tepid biopic'}]
         ```
         """
+        if self.info.splits:
+            splits = {}
+            for split_name in self.info.splits:
+                splits[split_name] = self[split_name].map(
+                    function,
+                    with_indices=with_indices,
+                    input_columns=input_columns,
+                    batched=batched,
+                    batch_size=batch_size,
+                    drop_last_batch=drop_last_batch,
+                    remove_columns=remove_columns,
+                    fn_kwargs=fn_kwargs,
+                )
+            return IterableDataset.from_splits(splits)
+
         if isinstance(input_columns, str):
             input_columns = [input_columns]
         if isinstance(remove_columns, str):
