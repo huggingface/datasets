@@ -69,20 +69,6 @@ class TestPushToHub:
                 )
             )
 
-    def test_push_dataset_splits_to_hub_datasets_with_different_features(self, cleanup_repo):
-        ds_train = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
-        ds_test = Dataset.from_dict({"x": [True, False, True], "y": ["a", "b", "c"]})
-
-        local_ds = Dataset.from_splits({"train": ds_train, "test": ds_test})
-
-        ds_name = f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}"
-        try:
-            with pytest.raises(ValueError):
-                local_ds.push_to_hub(ds_name.split("/")[-1], token=self._token)
-        except AssertionError:
-            cleanup_repo(ds_name)
-            raise
-
     def test_push_dataset_splits_to_hub_private(self, temporary_repo):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
 
@@ -291,7 +277,7 @@ class TestPushToHub:
 
         with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
             local_ds.push_to_hub(ds_name, split="train", token=self._token)
-            local_ds_splits = {"train": local_ds}
+            local_ds_splits = Dataset.from_splits({"train": local_ds})
             hub_ds_splits = load_dataset(ds_name, download_mode="force_redownload")
 
             assert list(local_ds_splits.splits.keys()) == list(hub_ds_splits.splits.keys())
@@ -440,7 +426,7 @@ class TestPushToHub:
             ds.push_to_hub(ds_name, split="train", token=self._token)
             ds.push_to_hub(ds_name, split="test", token=self._token)
             hub_ds = load_dataset(ds_name, download_mode="force_redownload")
-            assert sorted(hub_ds) == ["test", "train"]
+            assert sorted(hub_ds.splits) == ["test", "train"]
             assert ds.column_names == hub_ds["train"].column_names
             assert list(ds.features.keys()) == list(hub_ds["train"].features.keys())
             assert ds.features == hub_ds["train"].features
