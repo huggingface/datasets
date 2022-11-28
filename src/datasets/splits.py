@@ -44,6 +44,11 @@ class SplitInfo:
         default=None, metadata={"include_in_asdict_even_if_is_default": True}, repr=False
     )
 
+    def __post_init__(self):
+        if not isinstance(self.name, str):
+            # no NamedSplit allowed since we need this class to be JSON serializable for DatasetInfo
+            self.name = str(self.name)
+
     @property
     def file_instructions(self):
         """Returns the list of dict(filename, take, skip)."""
@@ -369,6 +374,8 @@ class NamedSplit(SplitBase):
             return False
         elif isinstance(other, str):  # Other should be string
             return self._name == other
+        elif other is dataclasses.MISSING:
+            return False
         else:
             raise ValueError(f"Equality not supported between split {self} and {other}")
 
@@ -509,7 +516,7 @@ class SplitReadInstruction:
         return list(self._splits.values())
 
 
-class SplitDict(Dict[Union[SplitBase, str], SplitInfo]):
+class SplitDict(Dict[str, SplitInfo]):
     """Split info object."""
 
     def __init__(self, *args, dataset_name=None, **kwargs):
@@ -529,7 +536,9 @@ class SplitDict(Dict[Union[SplitBase, str], SplitInfo]):
             )
             return SubSplitInfo(instructions)
 
-    def __setitem__(self, key: Union[SplitBase, str], value: SplitInfo):
+    def __setitem__(self, key: str, value: SplitInfo):
+        if not isinstance(key, str):
+            raise ValueError(f"The split name must be a string, but got {key} of type {type(key)}.")
         if key != value.name:
             raise ValueError(f"Cannot add elem. (key mismatch: '{key}' != '{value.name}')")
         if key in self:
