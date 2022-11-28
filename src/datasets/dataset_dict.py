@@ -1157,9 +1157,13 @@ class DatasetDict(dict):
         # Dynamic import to avoid circular dependency
         from .io.csv import CsvDatasetReader
 
-        return CsvDatasetReader(
-            path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
-        ).read()
+        return DatasetDict(
+            CsvDatasetReader(
+                path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+            )
+            .read()
+            .splits
+        )
 
     @staticmethod
     def from_json(
@@ -1191,9 +1195,13 @@ class DatasetDict(dict):
         # Dynamic import to avoid circular dependency
         from .io.json import JsonDatasetReader
 
-        return JsonDatasetReader(
-            path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
-        ).read()
+        return DatasetDict(
+            JsonDatasetReader(
+                path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+            )
+            .read()
+            .splits
+        )
 
     @staticmethod
     def from_parquet(
@@ -1229,14 +1237,18 @@ class DatasetDict(dict):
         # Dynamic import to avoid circular dependency
         from .io.parquet import ParquetDatasetReader
 
-        return ParquetDatasetReader(
-            path_or_paths,
-            features=features,
-            cache_dir=cache_dir,
-            keep_in_memory=keep_in_memory,
-            columns=columns,
-            **kwargs,
-        ).read()
+        return DatasetDict(
+            ParquetDatasetReader(
+                path_or_paths,
+                features=features,
+                cache_dir=cache_dir,
+                keep_in_memory=keep_in_memory,
+                columns=columns,
+                **kwargs,
+            )
+            .read()
+            .splits
+        )
 
     @staticmethod
     def from_text(
@@ -1268,9 +1280,13 @@ class DatasetDict(dict):
         # Dynamic import to avoid circular dependency
         from .io.text import TextDatasetReader
 
-        return TextDatasetReader(
-            path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
-        ).read()
+        return DatasetDict(
+            TextDatasetReader(
+                path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+            )
+            .read()
+            .splits
+        )
 
     @is_documented_by(Dataset.prepare_for_task)
     def prepare_for_task(self, task: Union[str, TaskTemplate], id: int = 0) -> "DatasetDict":
