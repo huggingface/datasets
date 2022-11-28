@@ -15,6 +15,7 @@ from xml.etree import ElementTree as ET
 
 import fsspec
 from aiohttp.client_exceptions import ClientError
+from packaging import version
 
 from .. import config
 from ..filesystems import COMPRESSION_FILESYSTEMS
@@ -550,38 +551,77 @@ def xglob(urlpath, *, recursive=False, use_auth_token: Optional[Union[str, bool]
         return ["::".join([f"{protocol}://{globbed_path}"] + rest_hops) for globbed_path in globbed_paths]
 
 
-def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None):
-    """Extend `os.walk` function to support remote files.
+if version.parse(fsspec.__version__) < version.parse("2022.11.0"):
+    # As of version 2022.11.0, `fsspec` supports the `topdown` parameter
 
-    Args:
-        urlpath (`str`): URL root path.
-        use_auth_token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
-            Hugging Face Hub for private remote files.
+    def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None):
+        """Extend `os.walk` function to support remote files.
 
-    Yields:
-        `tuple`: 3-tuple (dirpath, dirnames, filenames).
-    """
-    main_hop, *rest_hops = str(urlpath).split("::")
-    if is_local_path(main_hop):
-        yield from os.walk(main_hop)
-    else:
-        # walking inside a zip in a private repo requires authentication
-        if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
-            raise NotImplementedError("os.walk is not extended to support URLs in streaming mode")
-        elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
-            url = rest_hops[0]
-            url, kwargs = _prepare_http_url_kwargs(url, use_auth_token=use_auth_token)
-            storage_options = {"https": kwargs}
-            urlpath = "::".join([main_hop, url, *rest_hops[1:]])
+        Args:
+            urlpath (`str`): URL root path.
+            use_auth_token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
+                Hugging Face Hub for private remote files.
+
+        Yields:
+            `tuple`: 3-tuple (dirpath, dirnames, filenames).
+        """
+        main_hop, *rest_hops = str(urlpath).split("::")
+        if is_local_path(main_hop):
+            yield from os.walk(main_hop)
         else:
-            storage_options = None
-        fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
-        inner_path = main_hop.split("://")[1]
-        if inner_path.strip("/") and not fs.isdir(inner_path):
-            return []
-        protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[-1]
-        for dirpath, dirnames, filenames in fs.walk(inner_path):
-            yield "::".join([f"{protocol}://{dirpath}"] + rest_hops), dirnames, filenames
+            # walking inside a zip in a private repo requires authentication
+            if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
+                raise NotImplementedError("os.walk is not extended to support URLs in streaming mode")
+            elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
+                url = rest_hops[0]
+                url, kwargs = _prepare_http_url_kwargs(url, use_auth_token=use_auth_token)
+                storage_options = {"https": kwargs}
+                urlpath = "::".join([main_hop, url, *rest_hops[1:]])
+            else:
+                storage_options = None
+            fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
+            inner_path = main_hop.split("://")[1]
+            if inner_path.strip("/") and not fs.isdir(inner_path):
+                return []
+            protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[-1]
+            for dirpath, dirnames, filenames in fs.walk(inner_path):
+                yield "::".join([f"{protocol}://{dirpath}"] + rest_hops), dirnames, filenames
+
+else:
+
+    def xwalk(urlpath, topdown: bool = True, use_auth_token: Optional[Union[str, bool]] = None):
+        """Extend `os.walk` function to support remote files.
+
+        Args:
+            urlpath (`str`): URL root path.
+            topdown (`bool`, default `True`): Whether to walk the directory tree top-down or bottom-up.
+            use_auth_token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
+                Hugging Face Hub for private remote files.
+
+        Yields:
+            `tuple`: 3-tuple (dirpath, dirnames, filenames).
+        """
+        main_hop, *rest_hops = str(urlpath).split("::")
+        if is_local_path(main_hop):
+            yield from os.walk(main_hop, topdown=topdown)
+        else:
+            # walking inside a zip in a private repo requires authentication
+            if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
+                raise NotImplementedError("os.walk is not extended to support URLs in streaming mode")
+            elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
+                url = rest_hops[0]
+                url, kwargs = _prepare_http_url_kwargs(url, use_auth_token=use_auth_token)
+                storage_options = {"https": kwargs}
+                urlpath = "::".join([main_hop, url, *rest_hops[1:]])
+            else:
+                storage_options = None
+            fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
+            inner_path = main_hop.split("://")[1]
+            if inner_path.strip("/") and not fs.isdir(inner_path):
+                return []
+            protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[-1]
+            for dirpath, dirnames, filenames in fs.walk(inner_path, topdown=topdown):
+                yield "::".join([f"{protocol}://{dirpath}"] + rest_hops), dirnames, filenames
 
 
 class xPath(type(Path())):
