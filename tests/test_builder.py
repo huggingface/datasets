@@ -805,7 +805,7 @@ def test_beam_based_as_dataset(tmp_path):
 @pytest.mark.parametrize(
     "split, expected_dataset_length",
     [
-        (None, 10),
+        (None, 20),
         ("train", 10),
         ("train+test[:30%]", 13),
     ],
@@ -831,18 +831,12 @@ def test_builder_as_dataset(split, expected_dataset_length, in_memory, tmp_path)
     with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
         dataset = builder.as_dataset(split=split, in_memory=in_memory)
     assert isinstance(dataset, Dataset)
-    if isinstance(dataset, Dataset):
-        assert list(dataset.splits.keys()) == ["train", "test"]
-        datasets = dataset.splits.values()
-        expected_splits = ["train", "test"]
-    elif isinstance(dataset, Dataset):
-        datasets = [dataset]
-        expected_splits = [split]
-    for dataset, expected_split in zip(datasets, expected_splits):
-        assert dataset.split == expected_split
-        assert len(dataset) == expected_dataset_length
-        assert dataset.features == Features({"text": Value("string")})
-        dataset.column_names == ["text"]
+    if split is None:
+        assert list(dataset.splits) == ["train", "test"]
+    else:
+        dataset.splits == split
+    assert len(dataset) == expected_dataset_length
+    assert dataset.features == Features({"text": Value("string")})
 
 
 @pytest.mark.parametrize("in_memory", [False, True])
