@@ -10,7 +10,7 @@ from datasets.utils.py_utils import asdict
         SplitDict(),
         SplitDict({"train": SplitInfo(name="train", num_bytes=1337, num_examples=42, dataset_name="my_dataset")}),
         SplitDict({"train": SplitInfo(name="train", num_bytes=1337, num_examples=42)}),
-        SplitDict({"train": SplitInfo()}),
+        SplitDict({"train": SplitInfo(name="train")}),
     ],
 )
 def test_split_dict_to_yaml_list(split_dict: SplitDict):
@@ -26,7 +26,12 @@ def test_split_dict_to_yaml_list(split_dict: SplitDict):
 
 
 @pytest.mark.parametrize(
-    "split_info", [SplitInfo(), SplitInfo(dataset_name=None), SplitInfo(dataset_name="my_dataset")]
+    "split_info",
+    [
+        SplitInfo(name="train"),
+        SplitInfo(name="train", dataset_name=None),
+        SplitInfo(name="train", dataset_name="my_dataset"),
+    ],
 )
 def test_split_dict_asdict_has_dataset_name(split_info):
     # For backward compatibility, we need asdict(split_dict) to return split info dictrionaries with the "dataset_name"
