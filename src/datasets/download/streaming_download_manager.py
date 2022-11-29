@@ -691,6 +691,10 @@ class xPath(type(Path())):
     def __truediv__(self, p: str) -> "xPath":
         return self.joinpath(p)
 
+    def with_suffix(self, suffix):
+        main_hop, *rest_hops = _as_posix(self).split("::")
+        return type(self)("::".join([_as_posix(PurePosixPath(main_hop).with_suffix(suffix))] + rest_hops))
+
 
 def xgzip_open(filepath_or_buffer, *args, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
     import gzip
