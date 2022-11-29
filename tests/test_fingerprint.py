@@ -12,6 +12,7 @@ from unittest.mock import patch
 
 import pytest
 from multiprocess import Pool
+from packaging import version
 
 import datasets
 from datasets.fingerprint import Hasher, fingerprint_transform
@@ -148,7 +149,7 @@ class RecurseDumpTest(TestCase):
 
     def test_dump_ipython_function(self):
 
-        code_args = (
+        code_args_py37 = (
             "co_argcount",
             "co_kwonlyargcount",
             "co_nlocals",
@@ -166,7 +167,7 @@ class RecurseDumpTest(TestCase):
             "co_cellvars",
         )
 
-        def _create_code(*args):
+        def _create_code_py37(*args):
             """Create CodeType for any python 3 version. From dill._dill._create_code"""
             if hasattr(args[-3], "encode"):
                 args = list(args)
@@ -196,7 +197,12 @@ class RecurseDumpTest(TestCase):
 
             code = func.__code__
             # Use _create_code from dill in order to make it work for different python versions
-            code = _create_code(*[getattr(code, k) if k != "co_filename" else co_filename for k in code_args])
+            if datasets.config.PY_VERSION < version.parse("3.8"):
+                code = _create_code_py37(
+                    *[getattr(code, k) if k != "co_filename" else co_filename for k in code_args_py37]
+                )
+            else:
+                code = code.replace(co_filename=co_filename)
             return FunctionType(code, func.__globals__, func.__name__, func.__defaults__, func.__closure__)
 
         co_filename, returned_obj = "<ipython-input-2-e0383a102aae>", [0]
