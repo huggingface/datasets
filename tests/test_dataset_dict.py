@@ -8,7 +8,7 @@ import pytest
 
 from datasets import load_from_disk
 from datasets.arrow_dataset import Dataset
-from datasets.dataset_dict import DatasetDict
+from datasets.dataset_dict import DatasetDict, SplitsError
 from datasets.features import ClassLabel, Features, Sequence, Value
 from datasets.splits import NamedSplit
 
@@ -706,10 +706,8 @@ def test_datasetdict_to_pandas():
             "test": Dataset.from_dict({"foo": ["general", "kenobi"], "bar": [2, 3]}),
         }
     )
-    df = dsets.to_pandas()
-    assert df.shape == (4, 2)
-    assert list(df["foo"]) == ["hello", "there", "general", "kenobi"]
-    assert list(df["bar"]) == [0, 1, 2, 3]
+    with pytest.raises(SplitsError):
+        df = dsets.to_pandas()
 
     # batched
     dsets = DatasetDict(

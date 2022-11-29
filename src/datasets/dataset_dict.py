@@ -37,6 +37,10 @@ from .utils.typing import PathLike
 logger = logging.get_logger(__name__)
 
 
+class SplitsError(ValueError):
+    pass
+
+
 class DatasetDict(Dict[str, Dataset]):
     """A dictionary (dict of str: datasets.Dataset) with dataset transforms methods (map, filter, etc.)"""
 
@@ -1423,6 +1427,9 @@ class DatasetDict(Dict[str, Dataset]):
     ) -> Union[pd.DataFrame, Iterator[pd.DataFrame]]:
         """Returns the dataset as a :class:`pandas.DataFrame`. Can also return a generator for large datasets.
 
+        Raise an error if the dataset is made of several splits.
+        In that case you should first choose which split to use.
+
         Args:
             batched (:obj:`bool`): Set to :obj:`True` to return a generator that yields the dataset as batches
                 of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasets once)
@@ -1436,14 +1443,20 @@ class DatasetDict(Dict[str, Dataset]):
 
         ```py
         >>> df = dataset_dict.to_pandas()
+        >>> df_train = dataset_dict["train"].to_pandas()
+        >>> df_test = dataset_dict["test"].to_pandas()
         ```
         """
         self._check_values_type()
         self._check_values_features()
-        if batched:
-            return (df for ds in self.values() for df in ds.to_pandas(batch_size=batch_size, batched=batched))
+        if len(self) > 1:
+            raise SplitsError(
+                "Failed to convert to pandas: please choose which split to convert. "
+                f"Available splits: {list(self)}. For example:\n    "
+                'df = ds["test"].to_pandas()'
+            )
         else:
-            return pd.concat([ds.to_pandas() for ds in self.values()])
+            return next(iter(self.values())).to_pandas(batch_size=batch_size, batched=batched)
 
 
 class IterableDatasetDict(dict):
