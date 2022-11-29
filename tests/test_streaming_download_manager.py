@@ -481,7 +481,7 @@ def test_xrelpath(input_path, start_path, expected_path):
 
 @pytest.mark.parametrize(
     "input_path, expected_path",
-    [("zip:/test.txt::/Users/username/bar.zip", "zip://test.txt::/Users/username/bar.zip")],
+    [("zip://test.txt::/Users/username/bar.zip", "zip://test.txt::/Users/username/bar.zip")],
 )
 def test_xpath_as_posix(input_path, expected_path):
     assert xPath(input_path).as_posix() == expected_path
