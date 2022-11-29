@@ -18,14 +18,18 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
         **kwargs,
     ):
         super().__init__(
-            features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, streaming=streaming, **kwargs
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            streaming=streaming,
+            num_proc=num_proc,
+            **kwargs,
         )
         self.builder = Generator(
             cache_dir=cache_dir,
             features=features,
             generator=generator,
             gen_kwargs=gen_kwargs,
-            num_proc=num_proc,
             **kwargs,
         )
 
