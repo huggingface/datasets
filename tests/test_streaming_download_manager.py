@@ -607,7 +607,7 @@ class TestxPath:
         [
             ("zip://file.txt::https://host.com/archive.zip", "file.txt"),
             ("datasets/file.txt", "file.txt"),
-            ((Path().resolve() / "file.txt").as_posix(), "file.txt"),
+            (str(Path().resolve() / "file.txt"), "file.txt"),
         ],
     )
     def test_xpath_name(self, input_path, expected):
@@ -618,7 +618,7 @@ class TestxPath:
         [
             ("zip://file.txt::https://host.com/archive.zip", "file"),
             ("file.txt", "file"),
-            ((Path().resolve() / "file.txt").as_posix(), "file"),
+            (str(Path().resolve() / "file.txt"), "file"),
         ],
     )
     def test_xpath_stem(self, input_path, expected):
@@ -629,7 +629,7 @@ class TestxPath:
         [
             ("zip://file.txt::https://host.com/archive.zip", ".txt"),
             ("file.txt", ".txt"),
-            ((Path().resolve() / "file.txt").as_posix(), ".txt"),
+            (str(Path().resolve() / "file.txt"), ".txt"),
         ],
     )
     def test_xpath_suffix(self, input_path, expected):
