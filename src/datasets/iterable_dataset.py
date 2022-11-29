@@ -838,6 +838,7 @@ class IterableDataset(DatasetInfoMixin):
         batch_size: int = 1000,
         drop_last_batch: bool = False,
         remove_columns: Optional[Union[str, List[str]]] = None,
+        features: Optional[Features] = None,
         fn_kwargs: Optional[dict] = None,
     ) -> "IterableDataset":
         """
@@ -877,6 +878,8 @@ class IterableDataset(DatasetInfoMixin):
             remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
+            features (`Optional[datasets.Features]`, defaults to `None`): Use a specific Features to store the cache file
+                instead of the automatically generated one.
             fn_kwargs (:obj:`Dict`, optional, default `None`): Keyword arguments to be passed to `function`.
 
         Example:
@@ -918,7 +921,7 @@ class IterableDataset(DatasetInfoMixin):
             fn_kwargs=fn_kwargs,
         )
         info = self.info.copy()
-        info.features = None
+        info.features = features
         return iterable_dataset(
             ex_iterable=ex_iterable,
             info=info,
