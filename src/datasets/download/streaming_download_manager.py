@@ -9,7 +9,7 @@ import xml.dom.minidom
 from asyncio import TimeoutError
 from io import BytesIO
 from itertools import chain
-from pathlib import Path, PurePath, PurePosixPath
+from pathlib import Path, PurePosixPath
 from typing import Callable, Generator, Iterable, List, Optional, Tuple, Union
 from xml.etree import ElementTree as ET
 
@@ -449,11 +449,12 @@ def xopen(file: str, mode="r", *args, use_auth_token: Optional[Union[str, bool]]
     Returns:
         file object
     """
-    # required for `xopen(str(Path(...)))` to work
-    file = _as_posix(PurePath(file))
-    main_hop, *rest_hops = file.split("::")
+    main_hop, *rest_hops = str(file).split("::")
     if is_local_path(main_hop):
-        return open(file, mode, *args, **kwargs)
+        return open(main_hop, mode, *args, **kwargs)
+    # required for `xopen(str(Path(...)))` to work
+    file = _as_posix(Path(file))
+    main_hop, *rest_hops = file.split("::")
     # add headers and cookies for authentication on the HF Hub and for Google Drive
     if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
         file, new_kwargs = _prepare_http_url_kwargs(file, use_auth_token=use_auth_token)
