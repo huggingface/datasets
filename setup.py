@@ -103,7 +103,6 @@ Steps to make a release:
    - Merge the dev version Pull Request
 """
 
-
 from setuptools import find_packages, setup
 
 
@@ -146,7 +145,7 @@ AUDIO_REQUIRE = [
     "librosa",
 ]
 
-VISION_REQURE = [
+VISION_REQUIRE = [
     "Pillow>=6.2.1",
 ]
 
@@ -164,18 +163,18 @@ TESTS_REQUIRE = [
     "pytest-datadir",
     "pytest-xdist",
     # optional dependencies
-    "apache-beam>=2.26.0",
+    "apache-beam>=2.26.0;python_version<'3.8'",  # doesn't support recent dill versions for recent python versions
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch()
-    "aiobotocore>=2.0.1",  # required by s3fs>=2021.11.1
-    "boto3>=1.19.8",  # to be compatible with aiobotocore>=2.0.1 - both have strong dependencies on botocore
-    "botocore>=1.22.8",  # to be compatible with aiobotocore and boto3
+    "aiobotocore>=2.0.1;python_version<'3.8'",  # required by s3fs>=2021.11.1
+    "boto3>=1.19.8;python_version<'3.8'",  # to be compatible with aiobotocore>=2.0.1 - both have strong dependencies on botocore
+    "botocore>=1.22.8;python_version<'3.8'",  # to be compatible with aiobotocore and boto3
     "faiss-cpu>=1.6.4",
-    "fsspec[s3]",
+    "fsspec",
     "lz4",
-    "moto[s3,server]==2.0.4",
+    "moto[s3,server]==2.0.4;python_version<'3.8'",
     "py7zr",
     "rarfile>=4.0",
-    "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1
+    "s3fs>=2021.11.1;python_version<'3.8'",  # aligned with fsspec[http]>=2021.11.1; test only on python 3.7 for now
     "tensorflow>=2.3,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
     "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
     "torch",
@@ -183,6 +182,10 @@ TESTS_REQUIRE = [
     "soundfile",
     "transformers",
     "zstandard",
+]
+
+
+METRICS_TESTS_REQUIRE = [
     # metrics dependencies
     "bert_score>=0.3.6",
     "jiwer",
@@ -209,15 +212,19 @@ TESTS_REQUIRE = [
     "six~=1.15.0",
 ]
 
-TESTS_REQUIRE.extend(VISION_REQURE)
+TESTS_REQUIRE.extend(VISION_REQUIRE)
 TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
 QUALITY_REQUIRE = ["black~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
 
+DOCS_REQUIRE = [
+    # Might need to add doc-builder and some specific deps in the future
+    "s3fs",
+]
 
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
-    "vision": VISION_REQURE,
+    "vision": VISION_REQUIRE,
     "apache-beam": ["apache-beam>=2.26.0"],
     "tensorflow": [
         "tensorflow>=2.2.0,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
@@ -232,14 +239,12 @@ EXTRAS_REQUIRE = {
         "s3fs",
     ],
     "streaming": [],  # for backward compatibility
-    "dev": TESTS_REQUIRE + QUALITY_REQUIRE,
+    "dev": TESTS_REQUIRE + QUALITY_REQUIRE + DOCS_REQUIRE,
     "tests": TESTS_REQUIRE,
+    "metrics-tests": METRICS_TESTS_REQUIRE,
     "quality": QUALITY_REQUIRE,
     "benchmarks": BENCHMARKS_REQUIRE,
-    "docs": [
-        # Might need to add doc-builder and some specific deps in the future
-        "s3fs",
-    ],
+    "docs": DOCS_REQUIRE,
 }
 
 setup(
