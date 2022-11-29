@@ -1007,7 +1007,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             gen_kwargs=gen_kwargs,
             num_proc=num_proc,
             **kwargs,
-        )
+        ).read()
 
     @staticmethod
     def from_json(
