@@ -691,7 +691,9 @@ class xPath(type(Path())):
         return self.joinpath(p)
 
     def with_suffix(self, suffix):
-        main_hop, *rest_hops = self.as_posix().split("::")
+        main_hop, *rest_hops = str(self).split("::")
+        if is_local_path(main_hop):
+            return type(self)(str(super().with_suffix(suffix)))
         return type(self)("::".join([type(self)(PurePosixPath(main_hop).with_suffix(suffix)).as_posix()] + rest_hops))
 
 
