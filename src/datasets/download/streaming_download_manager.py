@@ -573,16 +573,12 @@ def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None):
 class xPath(type(Path())):
     """Extension of `pathlib.Path` to support both local paths and remote URLs."""
 
-    def as_posix(self):
-        """Extend :meth:`pathlib.PurePath.as_posix` to fix missing slashes after protocol.
-
-        Returns:
-            str
-        """
-        path_as_posix = super().as_posix()
-        main_hop, *rest_hops = str(self).split("::")
+    def __str__(self):
+        path_str = super().__str__()
+        main_hop, *rest_hops = path_str.split("::")
         if is_local_path(main_hop):
-            return path_as_posix
+            return main_hop
+        path_as_posix = path_str.replace("\\", "/")
         path_as_posix = SINGLE_SLASH_AFTER_PROTOCOL_PATTERN.sub("://", path_as_posix)
         path_as_posix += "//" if path_as_posix.endswith(":") else ""  # Add slashes to root of the protocol
         return path_as_posix
