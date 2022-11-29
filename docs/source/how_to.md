@@ -10,12 +10,13 @@ Interested in learning more? Take a look at [Chapter 5](https://huggingface.co/c
 
 </Tip>
 
-The guides are organized into five sections:
+The guides are organized into six sections:
 
 - <span class="underline decoration-sky-400 decoration-2 font-semibold">General usage</span>: Functions for general dataset loading and processing. The functions shown in this section are applicable across all dataset modalities.
 - <span class="underline decoration-pink-400 decoration-2 font-semibold">Audio</span>: How to load, process, and share audio datasets.
 - <span class="underline decoration-yellow-400 decoration-2 font-semibold">Vision</span>: How to load, process, and share image datasets.
 - <span class="underline decoration-green-400 decoration-2 font-semibold">Text</span>: How to load, process, and share text datasets.
+- <span class="underline decoration-orange-400 decoration-2 font-semibold">Tabular</span>: How to load, process, and share tabular datasets.
 - <span class="underline decoration-indigo-400 decoration-2 font-semibold">Dataset repository</span>: How to share and upload a dataset to the <a href="https://huggingface.co/datasets">Hub</a>.
 
 If you have any questions about 🤗 Datasets, feel free to join and ask the community on our [forum](https://discuss.huggingface.co/c/datasets/10).

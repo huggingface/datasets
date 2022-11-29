@@ -20,7 +20,7 @@ pytestmark = pytest.mark.integration
 
 
 @for_all_test_methods(xfail_if_500_502_http_error)
-@pytest.mark.usefixtures("set_ci_hub_access_token")
+@pytest.mark.usefixtures("set_ci_hub_access_token", "ci_hfh_hf_hub_url")
 class TestPushToHub:
     _api = HfApi(endpoint=CI_HUB_ENDPOINT)
     _token = CI_HUB_USER_TOKEN
@@ -336,7 +336,8 @@ class TestPushToHub:
                 hub_ds = hub_ds.cast_column("x", Audio(decode=False))
                 elem = hub_ds[0]["x"]
                 path, bytes_ = elem["path"], elem["bytes"]
-                assert bool(path) == (not embed_external_files)
+                assert isinstance(path, str)
+                assert os.path.basename(path) == "test_audio_44100.wav"
                 assert bool(bytes_) == embed_external_files
 
     @require_pil
@@ -358,7 +359,7 @@ class TestPushToHub:
                 hub_ds = hub_ds.cast_column("x", Image(decode=False))
                 elem = hub_ds[0]["x"]
                 path, bytes_ = elem["path"], elem["bytes"]
-                assert bool(path) == (not embed_external_files)
+                assert isinstance(path, str)
                 assert bool(bytes_) == embed_external_files
 
     @require_pil
@@ -380,7 +381,7 @@ class TestPushToHub:
                 hub_ds = hub_ds.cast_column("x", [Image(decode=False)])
                 elem = hub_ds[0]["x"][0]
                 path, bytes_ = elem["path"], elem["bytes"]
-                assert bool(path) == (not embed_external_files)
+                assert isinstance(path, str)
                 assert bool(bytes_) == embed_external_files
 
     def test_push_dataset_dict_to_hub_custom_features(self, temporary_repo):

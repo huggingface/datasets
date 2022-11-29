@@ -23,8 +23,7 @@ def data_files_with_labels_no_metadata(tmp_path, image_file):
     data_dir.mkdir(parents=True, exist_ok=True)
     subdir_class_0 = data_dir / "cat"
     subdir_class_0.mkdir(parents=True, exist_ok=True)
-    # data dirs can be nested but imagefolder should care only about the last part of the path:
-    subdir_class_1 = data_dir / "subdir" / "dog"
+    subdir_class_1 = data_dir / "dog"
     subdir_class_1.mkdir(parents=True, exist_ok=True)
 
     image_filename = subdir_class_0 / "image_cat.jpg"
@@ -291,8 +290,10 @@ def test_generate_examples_duplicated_label_key(
 @require_pil
 @pytest.mark.parametrize("drop_metadata", [None, True, False])
 @pytest.mark.parametrize("drop_labels", [None, True, False])
-def test_generate_examples_drop_labels(image_file, drop_metadata, drop_labels):
-    imagefolder = ImageFolder(drop_metadata=drop_metadata, drop_labels=drop_labels, data_files={"train": [image_file]})
+def test_generate_examples_drop_labels(data_files_with_labels_no_metadata, drop_metadata, drop_labels):
+    imagefolder = ImageFolder(
+        drop_metadata=drop_metadata, drop_labels=drop_labels, data_files=data_files_with_labels_no_metadata
+    )
     gen_kwargs = imagefolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
     # removing the labels explicitly requires drop_labels=True
     assert gen_kwargs["add_labels"] is not bool(drop_labels)

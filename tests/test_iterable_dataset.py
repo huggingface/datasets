@@ -592,6 +592,18 @@ def test_iterable_dataset_from_generator():
     assert list(dataset) == data
 
 
+def test_iterable_dataset_from_generator_with_shards():
+    def gen(shard_names):
+        for shard_name in shard_names:
+            for i in range(10):
+                yield {"shard_name": shard_name, "i": i}
+
+    shard_names = [f"data{shard_idx}.txt" for shard_idx in range(4)]
+    dataset = IterableDataset.from_generator(gen, gen_kwargs={"shard_names": shard_names})
+    assert isinstance(dataset, IterableDataset)
+    assert dataset.n_shards == len(shard_names)
+
+
 @require_torch
 def test_iterable_dataset_factory_torch_integration():
     import torch
@@ -875,6 +887,10 @@ def test_iterable_dataset_rename_column(dataset_with_several_columns):
     assert list(new_dataset) == [
         {("new_id" if k == "id" else k): v for k, v in example.items()} for example in dataset_with_several_columns
     ]
+    assert new_dataset.features is None
+    # rename the column if ds.features was not None
+    new_dataset = dataset_with_several_columns._resolve_features().rename_column("id", "new_id")
+    assert new_dataset.features is not None
 
 
 def test_iterable_dataset_rename_columns(dataset_with_several_columns):
@@ -883,6 +899,10 @@ def test_iterable_dataset_rename_columns(dataset_with_several_columns):
     assert list(new_dataset) == [
         {column_mapping.get(k, k): v for k, v in example.items()} for example in dataset_with_several_columns
     ]
+    assert new_dataset.features is None
+    # rename the columns if ds.features was not None
+    new_dataset = dataset_with_several_columns._resolve_features().rename_columns(column_mapping)
+    assert new_dataset.features is not None
 
 
 def test_iterable_dataset_remove_columns(dataset_with_several_columns):
@@ -890,10 +910,16 @@ def test_iterable_dataset_remove_columns(dataset_with_several_columns):
     assert list(new_dataset) == [
         {k: v for k, v in example.items() if k != "id"} for example in dataset_with_several_columns
     ]
+    assert new_dataset.features is None
     new_dataset = dataset_with_several_columns.remove_columns(["id", "filepath"])
     assert list(new_dataset) == [
         {k: v for k, v in example.items() if k != "id" and k != "filepath"} for example in dataset_with_several_columns
     ]
+    assert new_dataset.features is None
+    # remove the columns if ds.features was not None
+    new_dataset = dataset_with_several_columns._resolve_features().remove_columns(["id", "filepath"])
+    assert new_dataset.features is not None
+    assert all(c not in new_dataset.features for c in ["id", "filepath"])
 
 
 def test_iterable_dataset_cast_column():

@@ -23,14 +23,16 @@ import os
 import posixpath
 import shutil
 import textwrap
+import time
 import urllib
 import warnings
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import Dict, Mapping, Optional, Tuple, Union
+from typing import Dict, Iterable, Mapping, Optional, Tuple, Union
 
 import fsspec
+from multiprocess import Pool
 from tqdm.contrib.concurrent import thread_map
 
 from . import config, utils
@@ -42,7 +44,7 @@ from .arrow_reader import (
     MissingFilesOnHfGcsError,
     ReadInstruction,
 )
-from .arrow_writer import ArrowWriter, BeamWriter, ParquetWriter
+from .arrow_writer import ArrowWriter, BeamWriter, ParquetWriter, SchemaInferenceError
 from .data_files import DataFilesDict, sanitize_patterns
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download.download_config import DownloadConfig
@@ -56,7 +58,7 @@ from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
 from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
 from .keyhash import DuplicatedKeysError
 from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH, camelcase_to_snakecase
-from .splits import Split, SplitDict, SplitGenerator
+from .splits import Split, SplitDict, SplitGenerator, SplitInfo
 from .streaming import extend_dataset_builder_for_streaming
 from .utils import logging
 from .utils.file_utils import cached_path, is_remote_url
@@ -66,11 +68,13 @@ from .utils.py_utils import (
     classproperty,
     convert_file_size_to_int,
     has_sufficient_disk_space,
+    iflatmap_unordered,
     map_nested,
     memoize,
     size_str,
     temporary_assignment,
 )
+from .utils.sharding import _number_of_shards_in_gen_kwargs, _split_gen_kwargs
 
 
 logger = logging.get_logger(__name__)
@@ -85,6 +89,10 @@ class DatasetBuildError(Exception):
 
 
 class ManualDownloadError(DatasetBuildError):
+    pass
+
+
+class DatasetGenerationError(DatasetBuildError):
     pass
 
 
@@ -605,6 +613,7 @@ class DatasetBuilder:
         use_auth_token: Optional[Union[bool, str]] = None,
         file_format: str = "arrow",
         max_shard_size: Optional[Union[int, str]] = None,
+        num_proc: Optional[int] = None,
         storage_options: Optional[dict] = None,
         **download_and_prepare_kwargs,
     ):
@@ -629,11 +638,15 @@ class DatasetBuilder:
                 If the format is "parquet", then image and audio data are embedded into the Parquet files instead of pointing to local files.
 
                 <Added version="2.5.0"/>
-            max_shard_size (:obj:`Union[str, int]`, optional): Maximum number of bytes written per shard.
-                Only available for the "parquet" format with a default of "500MB". The size is based on uncompressed data size,
-                so in practice your shard files may be smaller than `max_shard_size` thanks to Parquet compression.
+            max_shard_size (:obj:`Union[str, int]`, optional): Maximum number of bytes written per shard, default is "500MB".
+                The size is based on uncompressed data size, so in practice your shard files may be smaller than
+                `max_shard_size` thanks to Parquet compression for example.
 
                 <Added version="2.5.0"/>
+            num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
+                Multiprocessing is disabled by default.
+
+                <Added version="2.7.0"/>
             storage_options (:obj:`dict`, *optional*): Key/value pairs to be passed on to the caching file-system backend, if any.
 
                 <Added version="2.5.0"/>
@@ -679,11 +692,6 @@ class DatasetBuilder:
 
         if file_format is not None and file_format not in ["arrow", "parquet"]:
             raise ValueError(f"Unsupported file_format: {file_format}. Expected 'arrow' or 'parquet'")
-
-        if file_format == "arrow" and max_shard_size is not None:
-            raise NotImplementedError(
-                "Writing sharded arrow files is not supported. Please don't use max_shard_size or use file_format='parquet'."
-            )
 
         if self._fs._strip_protocol(self._output_dir) == "":
             # We don't support the root directory, because it has no dirname,
@@ -806,11 +814,11 @@ class DatasetBuilder:
                         except ConnectionError:
                             logger.warning("HF google storage unreachable. Downloading and preparing it from source")
                     if not downloaded_from_gcs:
-                        prepare_split_kwargs = {
-                            "file_format": file_format,
-                            "max_shard_size": max_shard_size,
-                            **download_and_prepare_kwargs,
-                        }
+                        prepare_split_kwargs = {"file_format": file_format}
+                        if max_shard_size is not None:
+                            prepare_split_kwargs["max_shard_size"] = max_shard_size
+                        if num_proc is not None:
+                            prepare_split_kwargs["num_proc"] = num_proc
                         self._download_and_prepare(
                             dl_manager=dl_manager,
                             verify_infos=verify_infos,
@@ -1245,6 +1253,7 @@ class DatasetBuilder:
         split_generator: SplitGenerator,
         file_format: str = "arrow",
         max_shard_size: Optional[Union[str, int]] = None,
+        num_proc: Optional[int] = None,
         **kwargs,
     ):
         """Generate the examples and record them on disk.
@@ -1253,9 +1262,13 @@ class DatasetBuilder:
             split_generator: `SplitGenerator`, Split generator to process
             file_format (:obj:`str`, optional): format of the data files in which the dataset will be written.
                 Supported formats: "arrow", "parquet". Default to "arrow" format.
-            max_shard_size (:obj:`Union[str, int]`, optional): Approximate maximum number of bytes written per shard.
-                Only available for the "parquet" format with a default of "500MB". The size is based on uncompressed data size,
-                so in practice your shard files may be smaller than `max_shard_size` thanks to Parquet compression.
+            max_shard_size (:obj:`Union[str, int]`, optional): Maximum number of bytes written per shard, default is "500MB".
+                The size is based on uncompressed data size, so in practice your shard files may be smaller than
+                `max_shard_size` thanks to Parquet compression for example.
+            num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
+                Multiprocessing is disabled by default.
+
+                <Added version="2.7.0"/>
             **kwargs: Additional kwargs forwarded from _download_and_prepare (ex:
                 beam pipeline)
         """
@@ -1331,93 +1344,212 @@ class GeneratorBasedBuilder(DatasetBuilder):
         split_generator: SplitGenerator,
         check_duplicate_keys: bool,
         file_format="arrow",
+        num_proc: Optional[int] = None,
         max_shard_size: Optional[Union[int, str]] = None,
     ):
+
+        max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
-
-        if file_format == "arrow":
-            if max_shard_size is not None:
-                raise NotImplementedError(
-                    "Writing sharded arrow files is not supported. Please don't use max_shard_size or use file_format='parquet'."
-                )
-        else:
-            max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
 
         if self.info.splits is not None:
             split_info = self.info.splits[split_generator.name]
         else:
             split_info = split_generator.split_info
 
-        suffix = "-SSSSS-of-NNNNN" if file_format == "parquet" else ""
-        fname = f"{self.name}-{split_generator.name}{suffix}.{file_format}"
+        SUFFIX = "-JJJJJ-SSSSS-of-NNNNN"
+        fname = f"{self.name}-{split_generator.name}{SUFFIX}.{file_format}"
         fpath = path_join(self._output_dir, fname)
 
-        generator = self._generate_examples(**split_generator.gen_kwargs)
+        num_input_shards = _number_of_shards_in_gen_kwargs(split_generator.gen_kwargs)
+        if num_input_shards <= 1 and num_proc is not None:
+            logger.warning(
+                f"Setting num_proc from {num_proc} back to 1 for the {split_info.name} split to disable multiprocessing as it only contains one shard."
+            )
+            num_proc = 1
+        elif num_proc is not None and num_input_shards < num_proc:
+            logger.info(
+                f"Setting num_proc from {num_proc} to {num_input_shards} for the {split_info.name} split as it only contains {num_input_shards} shards."
+            )
+            num_proc = num_input_shards
 
-        writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
-        embed_local_files = file_format == "parquet"
-
-        shard_id = 0
-        # TODO: embed the images/audio files inside parquet files.
-        writer = writer_class(
-            features=self.info.features,
-            path=fpath.replace("SSSSS", f"{shard_id:05d}"),
-            writer_batch_size=self._writer_batch_size,
-            hash_salt=split_info.name,
-            check_duplicates=check_duplicate_keys,
-            storage_options=self._fs.storage_options,
-            embed_local_files=embed_local_files,
+        pbar = logging.tqdm(
+            disable=not logging.is_progress_bar_enabled(),
+            unit=" examples",
+            total=split_info.num_examples,
+            leave=False,
+            desc=f"Generating {split_info.name} split",
         )
-        total_num_examples, total_num_bytes = 0, 0
-        try:
-            for key, record in logging.tqdm(
-                generator,
-                unit=" examples",
-                total=split_info.num_examples,
-                leave=False,
-                disable=not logging.is_progress_bar_enabled(),
-                desc=f"Generating {split_info.name} split",
+
+        _prepare_split_args = {
+            "fpath": fpath,
+            "file_format": file_format,
+            "max_shard_size": max_shard_size,
+            "split_info": split_info,
+            "check_duplicate_keys": check_duplicate_keys,
+        }
+
+        if num_proc is None or num_proc == 1:
+            result = None
+            gen_kwargs = split_generator.gen_kwargs
+            job_id = 0
+            for job_id, done, content in self._prepare_split_single(
+                {"gen_kwargs": gen_kwargs, "job_id": job_id, **_prepare_split_args}
             ):
-                if max_shard_size is not None and writer._num_bytes > max_shard_size:
-                    num_examples, num_bytes = writer.finalize()
-                    writer.close()
-                    total_num_examples += num_examples
-                    total_num_bytes += num_bytes
-                    shard_id += 1
-                    writer = writer_class(
-                        features=writer._features,
-                        path=fpath.replace("SSSSS", f"{shard_id:05d}"),
-                        writer_batch_size=self._writer_batch_size,
-                        hash_salt=split_info.name,
-                        check_duplicates=check_duplicate_keys,
-                        storage_options=self._fs.storage_options,
-                        embed_local_files=embed_local_files,
-                    )
-                example = self.info.features.encode_example(record) if self.info.features is not None else record
-                writer.write(example, key)
-        finally:
-            num_shards = shard_id + 1
-            num_examples, num_bytes = writer.finalize()
-            writer.close()
-            total_num_examples += num_examples
-            total_num_bytes += num_bytes
-
-        if file_format == "parquet":
-
-            def _rename_shard(shard_id: int):
-                self._rename(
-                    fpath.replace("SSSSS", f"{shard_id:05d}"),
-                    fpath.replace("SSSSS", f"{shard_id:05d}").replace("NNNNN", f"{num_shards:05d}"),
+                if done:
+                    result = content
+                else:
+                    pbar.update(content)
+            # wrapping everything into lists for consistency with the multiprocessed code path
+            assert result is not None, "Failed to retrieve results from prepare_split"
+            examples_per_job, bytes_per_job, features_per_job, shards_per_job, shard_lengths_per_job = [
+                [item] for item in result
+            ]
+        else:
+            args_per_job = [
+                {"gen_kwargs": gen_kwargs, "job_id": job_id, **_prepare_split_args}
+                for job_id, gen_kwargs in enumerate(
+                    _split_gen_kwargs(split_generator.gen_kwargs, max_num_jobs=num_proc)
                 )
+            ]
+            num_jobs = len(args_per_job)
 
-            logger.debug(f"Renaming {num_shards} shards.")
-            thread_map(_rename_shard, range(num_shards), disable=True, max_workers=64)
+            examples_per_job = [None] * num_jobs
+            bytes_per_job = [None] * num_jobs
+            features_per_job = [None] * num_jobs
+            shards_per_job = [None] * num_jobs
+            shard_lengths_per_job = [None] * num_jobs
+
+            with Pool(num_proc) as pool:
+                for job_id, done, content in iflatmap_unordered(pool, self._prepare_split_single, args_per_job):
+                    if done:
+                        # the content is the result of the job
+                        (
+                            examples_per_job[job_id],
+                            bytes_per_job[job_id],
+                            features_per_job[job_id],
+                            shards_per_job[job_id],
+                            shard_lengths_per_job[job_id],
+                        ) = content
+                    else:
+                        # the content is the number of examples progress update
+                        pbar.update(content)
+
+            assert (
+                None not in examples_per_job
+            ), f"Failed to retrieve results from prepare_split: result list {examples_per_job} still contains None - at least one worker failed to return its results"
+
+        total_shards = sum(shards_per_job)
+        total_num_examples = sum(examples_per_job)
+        total_num_bytes = sum(bytes_per_job)
+        features = features_per_job[0]
 
         split_generator.split_info.num_examples = total_num_examples
         split_generator.split_info.num_bytes = total_num_bytes
+
+        # should rename everything at the end
+        logger.debug(f"Renaming {total_shards} shards.")
+        if total_shards > 1:
+            # use the -SSSSS-of-NNNNN pattern
+
+            def _rename_shard(shard_and_job: Tuple[int]):
+                shard_id, job_id = shard_and_job
+                global_shard_id = sum(shards_per_job[:job_id]) + shard_id
+                self._rename(
+                    fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                    fpath.replace("JJJJJ-SSSSS", f"{global_shard_id:05d}").replace("NNNNN", f"{total_shards:05d}"),
+                )
+
+            shards_and_jobs = [
+                (shard_id, job_id)
+                for job_id, num_shards in enumerate(shards_per_job)
+                for shard_id in range(num_shards)
+            ]
+            thread_map(_rename_shard, shards_and_jobs, disable=True, max_workers=64)
+
+            split_generator.split_info.shard_lengths = [
+                shard_length for shard_lengths in shard_lengths_per_job for shard_length in shard_lengths
+            ]
+        else:
+            # don't use any pattern
+            shard_id, job_id = 0, 0
+            self._rename(
+                fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                fpath.replace(SUFFIX, ""),
+            )
+
         if self.info.features is None:
-            self.info.features = writer._features
+            self.info.features = features
+
+    def _prepare_split_single(self, arg: dict) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
+        gen_kwargs: dict = arg["gen_kwargs"]
+        fpath: str = arg["fpath"]
+        file_format: str = arg["file_format"]
+        max_shard_size: int = arg["max_shard_size"]
+        split_info: SplitInfo = arg["split_info"]
+        check_duplicate_keys: bool = arg["check_duplicate_keys"]
+        job_id: int = arg["job_id"]
+        refresh_rate = 0.05  # 20 progress updates per sec
+
+        generator = self._generate_examples(**gen_kwargs)
+        writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
+        embed_local_files = file_format == "parquet"
+        shard_lengths = []
+        total_num_examples, total_num_bytes = 0, 0
+
+        shard_id = 0
+        num_examples_progress_update = 0
+        try:
+            writer = writer_class(
+                features=self.info.features,
+                path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                writer_batch_size=self._writer_batch_size,
+                hash_salt=split_info.name,
+                check_duplicates=check_duplicate_keys,
+                storage_options=self._fs.storage_options,
+                embed_local_files=embed_local_files,
+            )
+            try:
+                _time = time.time()
+                for key, record in generator:
+                    if max_shard_size is not None and writer._num_bytes > max_shard_size:
+                        num_examples, num_bytes = writer.finalize()
+                        writer.close()
+                        shard_lengths.append(num_examples)
+                        total_num_examples += num_examples
+                        total_num_bytes += num_bytes
+                        shard_id += 1
+                        writer = writer_class(
+                            features=writer._features,
+                            path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                            writer_batch_size=self._writer_batch_size,
+                            hash_salt=split_info.name,
+                            check_duplicates=check_duplicate_keys,
+                            storage_options=self._fs.storage_options,
+                            embed_local_files=embed_local_files,
+                        )
+                    example = self.info.features.encode_example(record) if self.info.features is not None else record
+                    writer.write(example, key)
+                    num_examples_progress_update += 1
+                    if time.time() > _time + refresh_rate:
+                        _time = time.time()
+                        yield job_id, False, num_examples_progress_update
+                        num_examples_progress_update = 0
+            finally:
+                yield job_id, False, num_examples_progress_update
+                num_shards = shard_id + 1
+                num_examples, num_bytes = writer.finalize()
+                writer.close()
+                shard_lengths.append(num_examples)
+                total_num_examples += num_examples
+                total_num_bytes += num_bytes
+        except Exception as e:
+            # Ignore the writer's error for no examples written to the file if this error was caused by the error in _generate_examples before the first example was yielded
+            if isinstance(e, SchemaInferenceError) and e.__context__ is not None:
+                e = e.__context__
+            raise DatasetGenerationError("An error occurred while generating the dataset") from e
+
+        yield job_id, True, (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths)
 
     def _download_and_prepare(self, dl_manager, verify_infos, **prepare_splits_kwargs):
         super()._download_and_prepare(
@@ -1467,79 +1599,202 @@ class ArrowBasedBuilder(DatasetBuilder):
         self,
         split_generator: SplitGenerator,
         file_format: str = "arrow",
+        num_proc: Optional[int] = None,
         max_shard_size: Optional[Union[str, int]] = None,
     ):
+
+        max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
 
-        if file_format == "arrow":
-            if max_shard_size is not None:
-                raise NotImplementedError(
-                    "Writing sharded arrow files is not supported. Please don't use max_shard_size or use file_format='parquet'."
-                )
+        if self.info.splits is not None:
+            split_info = self.info.splits[split_generator.name]
         else:
-            max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
+            split_info = split_generator.split_info
 
-        suffix = "-SSSSS-of-NNNNN" if file_format == "parquet" else ""
-        fname = f"{self.name}-{split_generator.name}{suffix}.{file_format}"
+        SUFFIX = "-JJJJJ-SSSSS-of-NNNNN"
+        fname = f"{self.name}-{split_generator.name}{SUFFIX}.{file_format}"
         fpath = path_join(self._output_dir, fname)
 
-        generator = self._generate_tables(**split_generator.gen_kwargs)
+        num_input_shards = _number_of_shards_in_gen_kwargs(split_generator.gen_kwargs)
+        if num_input_shards <= 1 and num_proc is not None:
+            logger.warning(
+                f"Setting num_proc from {num_proc} back to 1 for the {split_info.name} split to disable multiprocessing as it only contains one shard."
+            )
+            num_proc = 1
+        elif num_proc is not None and num_input_shards < num_proc:
+            logger.info(
+                f"Setting num_proc from {num_proc} to {num_input_shards} for the {split_info.name} split as it only contains {num_input_shards} shards."
+            )
+            num_proc = num_input_shards
 
-        writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
-        embed_local_files = file_format == "parquet"
-
-        shard_id = 0
-        # TODO: embed the images/audio files inside parquet files.
-        writer = writer_class(
-            features=self.info.features,
-            path=fpath.replace("SSSSS", f"{shard_id:05d}"),
-            storage_options=self._fs.storage_options,
-            embed_local_files=embed_local_files,
+        pbar = logging.tqdm(
+            disable=not logging.is_progress_bar_enabled(),
+            unit=" examples",
+            total=split_info.num_examples,
+            leave=False,
+            desc=f"Generating {split_info.name} split",
         )
-        total_num_examples, total_num_bytes = 0, 0
-        try:
-            for key, table in logging.tqdm(
-                generator,
-                unit=" tables",
-                leave=False,
-                disable=not logging.is_progress_bar_enabled(),
+
+        _prepare_split_args = {
+            "fpath": fpath,
+            "file_format": file_format,
+            "max_shard_size": max_shard_size,
+            "split_info": split_info,
+        }
+
+        if num_proc is None or num_proc == 1:
+            result = None
+            gen_kwargs = split_generator.gen_kwargs
+            job_id = 0
+            for job_id, done, content in self._prepare_split_single(
+                {"gen_kwargs": gen_kwargs, "job_id": job_id, **_prepare_split_args}
             ):
-                if max_shard_size is not None and writer._num_bytes > max_shard_size:
-                    num_examples, num_bytes = writer.finalize()
-                    writer.close()
-                    total_num_examples += num_examples
-                    total_num_bytes += num_bytes
-                    shard_id += 1
-                    writer = writer_class(
-                        features=writer._features,
-                        path=fpath.replace("SSSSS", f"{shard_id:05d}"),
-                        storage_options=self._fs.storage_options,
-                        embed_local_files=embed_local_files,
-                    )
-                writer.write_table(table)
-        finally:
-            num_shards = shard_id + 1
-            num_examples, num_bytes = writer.finalize()
-            writer.close()
-            total_num_examples += num_examples
-            total_num_bytes += num_bytes
-
-        if file_format == "parquet":
-
-            def _rename_shard(shard_id: int):
-                self._rename(
-                    fpath.replace("SSSSS", f"{shard_id:05d}"),
-                    fpath.replace("SSSSS", f"{shard_id:05d}").replace("NNNNN", f"{num_shards:05d}"),
+                if done:
+                    result = content
+                else:
+                    pbar.update(content)
+            # wrapping everything into lists for consistency with the multiprocessed code path
+            assert result is not None, "Failed to retrieve results from prepare_split"
+            examples_per_job, bytes_per_job, features_per_job, shards_per_job, shard_lengths_per_job = [
+                [item] for item in result
+            ]
+        else:
+            args_per_job = [
+                {"gen_kwargs": gen_kwargs, "job_id": job_id, **_prepare_split_args}
+                for job_id, gen_kwargs in enumerate(
+                    _split_gen_kwargs(split_generator.gen_kwargs, max_num_jobs=num_proc)
                 )
+            ]
+            num_jobs = len(args_per_job)
 
-            logger.debug(f"Renaming {num_shards} shards.")
-            thread_map(_rename_shard, range(num_shards), disable=True, max_workers=64)
+            examples_per_job = [None] * num_jobs
+            bytes_per_job = [None] * num_jobs
+            features_per_job = [None] * num_jobs
+            shards_per_job = [None] * num_jobs
+            shard_lengths_per_job = [None] * num_jobs
+
+            with Pool(num_proc) as pool:
+                for job_id, done, content in iflatmap_unordered(pool, self._prepare_split_single, args_per_job):
+                    if done:
+                        # the content is the result of the job
+                        (
+                            examples_per_job[job_id],
+                            bytes_per_job[job_id],
+                            features_per_job[job_id],
+                            shards_per_job[job_id],
+                            shard_lengths_per_job[job_id],
+                        ) = content
+                    else:
+                        # the content is the number of examples progress update
+                        pbar.update(content)
+
+            assert (
+                None not in examples_per_job
+            ), f"Failed to retrieve results from prepare_split: result list {examples_per_job} still contains None - at least one worker failed to return its results"
+
+        total_shards = sum(shards_per_job)
+        total_num_examples = sum(examples_per_job)
+        total_num_bytes = sum(bytes_per_job)
+        features = features_per_job[0]
 
         split_generator.split_info.num_examples = total_num_examples
         split_generator.split_info.num_bytes = total_num_bytes
+
+        # should rename everything at the end
+        logger.debug(f"Renaming {total_shards} shards.")
+        if total_shards > 1:
+            # use the -SSSSS-of-NNNNN pattern
+
+            def _rename_shard(shard_id_and_job: Tuple[int]):
+                shard_id, job_id = shard_id_and_job
+                global_shard_id = sum(shards_per_job[:job_id]) + shard_id
+                self._rename(
+                    fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                    fpath.replace("JJJJJ-SSSSS", f"{global_shard_id:05d}").replace("NNNNN", f"{total_shards:05d}"),
+                )
+
+            shard_ids_and_jobs = [
+                (shard_id, job_id)
+                for job_id, num_shards in enumerate(shards_per_job)
+                for shard_id in range(num_shards)
+            ]
+            thread_map(_rename_shard, shard_ids_and_jobs, disable=True, max_workers=64)
+
+            split_generator.split_info.shard_lengths = [
+                shard_length for shard_lengths in shard_lengths_per_job for shard_length in shard_lengths
+            ]
+        else:
+            # don't use any pattern
+            shard_id, job_id = 0, 0
+            self._rename(
+                fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                fpath.replace(SUFFIX, ""),
+            )
+
         if self.info.features is None:
-            self.info.features = writer._features
+            self.info.features = features
+
+    def _prepare_split_single(self, arg: dict) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
+        gen_kwargs: dict = arg["gen_kwargs"]
+        fpath: str = arg["fpath"]
+        file_format: str = arg["file_format"]
+        max_shard_size: int = arg["max_shard_size"]
+        job_id: int = arg["job_id"]
+        refresh_rate = 0.05  # 20 progress updates per sec
+
+        generator = self._generate_tables(**gen_kwargs)
+        writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
+        embed_local_files = file_format == "parquet"
+        shard_lengths = []
+        total_num_examples, total_num_bytes = 0, 0
+
+        shard_id = 0
+        num_examples_progress_update = 0
+        try:
+            writer = writer_class(
+                features=self.info.features,
+                path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                storage_options=self._fs.storage_options,
+                embed_local_files=embed_local_files,
+            )
+            try:
+                _time = time.time()
+                for _, table in generator:
+                    if max_shard_size is not None and writer._num_bytes > max_shard_size:
+                        num_examples, num_bytes = writer.finalize()
+                        writer.close()
+                        shard_lengths.append(num_examples)
+                        total_num_examples += num_examples
+                        total_num_bytes += num_bytes
+                        shard_id += 1
+                        writer = writer_class(
+                            features=writer._features,
+                            path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                            storage_options=self._fs.storage_options,
+                            embed_local_files=embed_local_files,
+                        )
+                    writer.write_table(table)
+                    num_examples_progress_update += len(table)
+                    if time.time() > _time + refresh_rate:
+                        _time = time.time()
+                        yield job_id, False, num_examples_progress_update
+                        num_examples_progress_update = 0
+            finally:
+                yield job_id, False, num_examples_progress_update
+                num_shards = shard_id + 1
+                num_examples, num_bytes = writer.finalize()
+                writer.close()
+                shard_lengths.append(num_examples)
+                total_num_examples += num_examples
+                total_num_bytes += num_bytes
+        except Exception as e:
+            # Ignore the writer's error for no examples written to the file if this error was caused by the error in _generate_examples before the first example was yielded
+            if isinstance(e, SchemaInferenceError) and e.__context__ is not None:
+                e = e.__context__
+            raise DatasetGenerationError("An error occurred while generating the dataset") from e
+
+        yield job_id, True, (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths)
 
     def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
         return ExamplesIterable(
@@ -1634,11 +1889,18 @@ class BeamBasedBuilder(DatasetBuilder):
                 f"\n\t`{usage_example}`"
             )
 
-        beam_options = beam_options or beam.options.pipeline_options.PipelineOptions()
         # Beam type checking assumes transforms multiple outputs are of same type,
         # which is not our case. Plus it doesn't handle correctly all types, so we
         # are better without it.
-        beam_options.view_as(beam.options.pipeline_options.TypeOptions).pipeline_type_check = False
+        pipeline_options = {"pipeline_type_check": False}
+        if "num_proc" in prepare_splits_kwargs:
+            num_workers = prepare_splits_kwargs.pop("num_proc")
+            pipeline_options["direct_num_workers"] = num_workers
+            pipeline_options["num_workers"] = num_workers
+            pipeline_options["direct_running_mode"] = "multi_processing"
+            # TODO: Fix ModuleNotFoundError: No module named 'datasets_modules' when running multiprocessed DirectRunner
+            raise NotImplementedError("Using a DirectRunner with `num_proc` for multiprocessing it not supported yet.")
+        beam_options = beam_options or beam.options.pipeline_options.PipelineOptions.from_dictionary(pipeline_options)
         # Use a single pipeline for all splits
         pipeline = beam_utils.BeamPipeline(
             runner=beam_runner,
@@ -1659,6 +1921,18 @@ class BeamBasedBuilder(DatasetBuilder):
             split_info = split_dict[split_name]
             split_info.num_examples = num_examples
             split_info.num_bytes = num_bytes
+            if hasattr(beam_writer, "_shard_lengths") and len(beam_writer._shard_lengths) > 1:
+                # keep the -SSSSS-of-NNNNN pattern
+                split_info.shard_lengths = beam_writer._shard_lengths
+            else:
+                # don't use any pattern
+                file_format = prepare_splits_kwargs.get("file_format", "arrow")
+                src_fname = f"{self.name}-{split_name}-00000-of-00001.{file_format}"
+                dst_fname = f"{self.name}-{split_name}.{file_format}"
+                path_join = os.path.join if not is_remote_filesystem(self._fs) else posixpath.join
+                src_fpath = path_join(self._output_dir, src_fname)
+                dst_fpath = path_join(self._output_dir, dst_fname)
+                self._rename(src_fpath, dst_fpath)
 
     def _save_info(self):
         import apache_beam as beam
@@ -1705,4 +1979,4 @@ class BeamBasedBuilder(DatasetBuilder):
             return beam_writer.write_from_pcollection(pcoll_examples)
 
         # Add the PCollection to the pipeline
-        _ = pipeline | split_name >> _build_pcollection()  # pylint: disable=no-value-for-parameter
+        _ = pipeline | split_name >> _build_pcollection()  # pylint: disable=no-value-for-parameter max_bytes_per_shard

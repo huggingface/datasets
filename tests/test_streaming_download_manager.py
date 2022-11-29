@@ -26,7 +26,7 @@ from datasets.download.streaming_download_manager import (
     xwalk,
 )
 from datasets.filesystems import COMPRESSION_FILESYSTEMS
-from datasets.utils.file_utils import hf_hub_url
+from datasets.utils.hub import hf_hub_url
 
 from .utils import require_lz4, require_zstandard, slow
 
@@ -165,8 +165,11 @@ def test_as_posix(input_path, expected_path):
 @pytest.mark.parametrize(
     "input_path, paths_to_join, expected_path",
     [
-        (str(Path(__file__).resolve().parent), (Path(__file__).name,), str(Path(__file__).resolve())),
-        ("https://host.com/archive.zip", ("file.txt",), "https://host.com/archive.zip/file.txt"),
+        (
+            "https://host.com/archive.zip",
+            ("file.txt",),
+            "https://host.com/archive.zip/file.txt",
+        ),
         (
             "zip://::https://host.com/archive.zip",
             ("file.txt",),
@@ -180,19 +183,18 @@ def test_as_posix(input_path, expected_path):
         (
             ".",
             ("file.txt",),
-            "file.txt",
+            os.path.join(".", "file.txt"),
         ),
         (
-            Path().resolve().as_posix(),
+            str(Path().resolve()),
             ("file.txt",),
-            (Path().resolve() / "file.txt").as_posix(),
+            str((Path().resolve() / "file.txt")),
         ),
     ],
 )
 def test_xjoin(input_path, paths_to_join, expected_path):
     output_path = xjoin(input_path, *paths_to_join)
-    output_path = _readd_double_slash_removed_by_path(Path(output_path).as_posix())
-    assert output_path == _readd_double_slash_removed_by_path(Path(expected_path).as_posix())
+    assert output_path == expected_path
     output_path = xPath(input_path).joinpath(*paths_to_join)
     assert output_path == xPath(expected_path)
 
@@ -638,6 +640,18 @@ def test_xpathstem(input_path, expected):
 )
 def test_xpathsuffix(input_path, expected):
     assert xPath(input_path).suffix == expected
+
+
+@pytest.mark.parametrize(
+    "input_path, suffix, expected",
+    [
+        ("zip://file.txt::https://host.com/archive.zip", ".ann", "zip://file.ann::https://host.com/archive.zip"),
+        ("file.txt", ".ann", "file.ann"),
+        ((Path().resolve() / "file.txt").as_posix(), ".ann", (Path().resolve() / "file.ann").as_posix()),
+    ],
+)
+def test_xpath_with_suffix(input_path, suffix, expected):
+    assert xPath(input_path).with_suffix(suffix) == xPath(expected)
 
 
 @pytest.mark.parametrize("urlpath", [r"C:\\foo\bar.txt", "/foo/bar.txt", "https://f.oo/bar.txt"])

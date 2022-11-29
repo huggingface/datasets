@@ -16,6 +16,7 @@ from .formatting import PythonFormatter
 from .info import DatasetInfo
 from .splits import NamedSplit
 from .table import table_cast
+from .utils.sharding import _number_of_shards_in_gen_kwargs, _shuffle_gen_kwargs, _split_gen_kwargs
 
 
 def _infer_features_from_batch(batch: Dict[str, list], try_features: Optional[Features] = None) -> Features:
@@ -96,43 +97,6 @@ class _BaseExamplesIterable:
         raise NotImplementedError(f"{type(self)} doesn't implement n_shards yet")
 
 
-def _shuffle_kwargs(rng: np.random.Generator, kwargs: dict) -> dict:
-    """Return a shuffled copy of the input kwargs"""
-    # We must shuffle all the lists, and lists of the same size must have the same shuffling.
-    # This way entangled lists of (shard, shard_metadata) are still in the right order.
-
-    # First, let's generate the shuffled indices per list size
-    list_sizes = set(len(value) for value in kwargs.values() if isinstance(value, list))
-    indices_per_size = {}
-    for size in list_sizes:
-        indices_per_size[size] = list(range(size))
-        rng.shuffle(indices_per_size[size])
-    # Now let's copy the kwargs and shuffle the lists based on their sizes
-    shuffled_kwargs = dict(kwargs)
-    for key, value in shuffled_kwargs.items():
-        if isinstance(value, list):
-            shuffled_kwargs[key] = [value[i] for i in indices_per_size[len(value)]]
-    return shuffled_kwargs
-
-
-def _shard_kwargs(shard_idx: int, kwargs: dict) -> dict:
-    """Return a copy of the input kwargs but with only one shard"""
-    # Having lists of different sizes makes sharding ambigious, raise an error in this case
-    # until we decide how to define sharding without ambiguity for users
-    lists_lengths = {key: len(value) for key, value in kwargs.items() if isinstance(value, list)}
-    if len(set(lists_lengths.values())) > 1:
-        raise RuntimeError(
-            (
-                "Sharding is ambiguous for this dataset: "
-                + "we found several data sources lists of different lengths, and we don't know over which list we should parallelize:\n"
-                + "\n".join(f"\t- key {key} has length {length}" for key, length in lists_lengths.items())
-                + "\nTo fix this, check the dataset script 'gen_kwargs' and make sure to use lists only for data sources, "
-                + "and use tuples otherwise. In the end there should only be one single list, or several lists with the same length."
-            )
-        )
-    return {key: [value[shard_idx]] if isinstance(value, list) else value for key, value in kwargs.items()}
-
-
 class ExamplesIterable(_BaseExamplesIterable):
     def __init__(self, generate_examples_fn: Callable, kwargs: dict):
         self.generate_examples_fn = generate_examples_fn
@@ -146,13 +110,12 @@ class ExamplesIterable(_BaseExamplesIterable):
 
     def shard_data_sources(self, shard_idx: int) -> "MappedExamplesIterable":
         """Keep only the requested shard."""
-        kwargs_with_requested_data_source = _shard_kwargs(shard_idx, self.kwargs)
+        kwargs_with_requested_data_source = _split_gen_kwargs(self.kwargs, max_num_jobs=self.n_shards)[shard_idx]
         yield from self.generate_examples_fn(**kwargs_with_requested_data_source)
 
     @property
     def n_shards(self) -> int:
-        max_length = max((len(value) for value in self.kwargs.values() if isinstance(value, list)), default=0)
-        return max(1, max_length)
+        return _number_of_shards_in_gen_kwargs(self.kwargs)
 
 
 class ShardShuffledExamplesIterable(ExamplesIterable):
@@ -163,14 +126,16 @@ class ShardShuffledExamplesIterable(ExamplesIterable):
     def __iter__(self):
         """Shuffle the kwargs order to shuffle shards"""
         rng = deepcopy(self.generator)
-        kwargs_with_shuffled_shards = _shuffle_kwargs(rng, self.kwargs)
+        kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
         yield from self.generate_examples_fn(**kwargs_with_shuffled_shards)
 
     def shard_data_sources(self, shard_idx: int) -> "MappedExamplesIterable":
         """Keep only the requested shard."""
         rng = deepcopy(self.generator)
-        kwargs_with_shuffled_shards = _shuffle_kwargs(rng, self.kwargs)
-        kwargs_with_requested_data_source = _shard_kwargs(shard_idx, kwargs_with_shuffled_shards)
+        kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
+        kwargs_with_requested_data_source = _split_gen_kwargs(kwargs_with_shuffled_shards, max_num_jobs=self.n_shards)[
+            shard_idx
+        ]
         return ExamplesIterable(self.generate_examples_fn, kwargs_with_requested_data_source)
 
 
@@ -799,6 +764,8 @@ class IterableDataset(DatasetInfoMixin):
             generator (:obj:`Callable`): A generator function that `yields` examples.
             features (:class:`Features`, optional): Dataset features.
             gen_kwargs(:obj:`dict`, optional): Keyword arguments to be passed to the `generator` callable.
+                You can define a sharded iterable dataset by passing the list of shards in `gen_kwargs`.
+                This can be used to improve shuffling and when iterating over the dataset with multiple workers.
 
         Returns:
             :class:`IterableDataset`
@@ -811,6 +778,20 @@ class IterableDataset(DatasetInfoMixin):
         ...     yield {"text": "Bad", "label": 1}
         ...
         >>> ds = IterableDataset.from_generator(gen)
+        ```
+
+        ```py
+        >>> def gen(shards):
+        ...     for shard in shards:
+        ...         with open(shard) as f:
+        ...             for line in f:
+        ...                 yield {"line": line}
+        ...
+        >>> shards = [f"data{i}.txt" for i in range(32)]
+        >>> ds = IterableDataset.from_generator(gen, gen_kwargs={"shards": shards})
+        >>> ds = ds.shuffle(seed=42, buffer_size=10_000)  # shuffles the shards order + uses a shuffle buffer
+        >>> from torch.utils.data import DataLoader
+        >>> dataloader = DataLoader(ds.with_format("torch"), num_workers=4)  # give each worker a subset of 32/4=8 shards
         ```
         """
         from .io.generator import GeneratorDatasetInputStream
@@ -923,8 +904,6 @@ class IterableDataset(DatasetInfoMixin):
             function = lambda x: x  # noqa: E731
         if fn_kwargs is None:
             fn_kwargs = {}
-        info = self._info.copy()
-        info.features = None
         ex_iterable = MappedExamplesIterable(
             TypedExamplesIterable(self._ex_iterable, self._info.features, token_per_repo_id=self._token_per_repo_id)
             if self._info.features is not None
@@ -938,6 +917,8 @@ class IterableDataset(DatasetInfoMixin):
             remove_columns=remove_columns,
             fn_kwargs=fn_kwargs,
         )
+        info = self.info.copy()
+        info.features = None
         return iterable_dataset(
             ex_iterable=ex_iterable,
             info=info,
@@ -1185,7 +1166,7 @@ class IterableDataset(DatasetInfoMixin):
         >>> next(iter(ds))
         {'label': 1,
          'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
-        >>> ds.rename_column("text", "movie_review")
+        >>> ds = ds.rename_column("text", "movie_review")
         >>> next(iter(ds))
         {'label': 1,
          'movie_review': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
@@ -1203,7 +1184,16 @@ class IterableDataset(DatasetInfoMixin):
                 )
             return {new_column_name: example[original_column_name]}
 
-        return self.map(rename_column_fn, remove_columns=[original_column_name])
+        original_features = self._info.features.copy() if self._info.features else None
+        ds_iterable = self.map(rename_column_fn, remove_columns=[original_column_name])
+        if original_features is not None:
+            ds_iterable._info.features = Features(
+                {
+                    new_column_name if col == original_column_name else col: feature
+                    for col, feature in original_features.items()
+                }
+            )
+        return ds_iterable
 
     def rename_columns(self, column_mapping: Dict[str, str]) -> "IterableDataset":
         """
@@ -1231,7 +1221,16 @@ class IterableDataset(DatasetInfoMixin):
                 for original_column_name, new_column_name in column_mapping.items()
             }
 
-        return self.map(rename_columns_fn, remove_columns=list(column_mapping))
+        original_features = self._info.features.copy() if self._info.features else None
+        ds_iterable = self.map(rename_columns_fn, remove_columns=list(column_mapping))
+        if original_features is not None:
+            ds_iterable._info.features = Features(
+                {
+                    column_mapping[col] if col in column_mapping.keys() else col: feature
+                    for col, feature in original_features.items()
+                }
+            )
+        return ds_iterable
 
     def remove_columns(self, column_names: Union[str, List[str]]) -> "IterableDataset":
         """
@@ -1257,7 +1256,14 @@ class IterableDataset(DatasetInfoMixin):
         {'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
         ```
         """
-        return self.map(remove_columns=column_names)
+        original_features = self._info.features.copy() if self._info.features else None
+        ds_iterable = self.map(remove_columns=column_names)
+        if original_features is not None:
+            ds_iterable._info.features = original_features.copy()
+            for col, _ in original_features.items():
+                if col in column_names:
+                    del ds_iterable._info.features[col]
+        return ds_iterable
 
     def cast_column(self, column: str, feature: FeatureType) -> "IterableDataset":
         """Cast column to feature for decoding.
