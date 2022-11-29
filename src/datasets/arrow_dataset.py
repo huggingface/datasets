@@ -923,7 +923,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
                     This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
 
-                    <Added version="2.7.0"/>
+                    <Added version="2.8.0"/>
             **kwargs (additional keyword arguments): Keyword arguments to be passed to :meth:`pandas.read_csv`.
 
         Returns:
@@ -939,8 +939,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         from .io.csv import CsvDatasetReader
 
         return CsvDatasetReader(
-            path_or_paths, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
-        ).read(num_proc=num_proc)
+            path_or_paths,
+            split=split,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            num_proc=num_proc,
+            **kwargs,
+        ).read()
 
     @staticmethod
     def from_generator(
@@ -999,8 +1005,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             cache_dir=cache_dir,
             keep_in_memory=keep_in_memory,
             gen_kwargs=gen_kwargs,
+            num_proc=num_proc,
             **kwargs,
-        ).read(num_proc=num_proc)
+        )
 
     @staticmethod
     def from_json(
@@ -1025,7 +1032,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
                     This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
 
-                    <Added version="2.7.0"/>
+                    <Added version="2.8.0"/>
             **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`JsonConfig`.
 
         Returns:
@@ -1047,8 +1054,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             cache_dir=cache_dir,
             keep_in_memory=keep_in_memory,
             field=field,
+            num_proc=num_proc,
             **kwargs,
-        ).read(num_proc=num_proc)
+        ).read()
 
     @staticmethod
     def from_parquet(
@@ -1075,7 +1083,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
                     This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
 
-                    <Added version="2.7.0"/>
+                    <Added version="2.8.0"/>
             **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`ParquetConfig`.
 
         Returns:
@@ -1097,8 +1105,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             cache_dir=cache_dir,
             keep_in_memory=keep_in_memory,
             columns=columns,
+            num_proc=num_proc,
             **kwargs,
-        ).read(num_proc=num_proc)
+        ).read()
 
     @staticmethod
     def from_text(
@@ -1121,7 +1130,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
                     This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
 
-                    <Added version="2.7.0"/>
+                    <Added version="2.8.0"/>
             **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`TextConfig`.
 
         Returns:
@@ -1137,8 +1146,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         from .io.text import TextDatasetReader
 
         return TextDatasetReader(
-            path_or_paths, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
-        ).read(num_proc=num_proc)
+            path_or_paths,
+            split=split,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            num_proc=num_proc,
+            **kwargs,
+        ).read()
 
     @staticmethod
     def from_sql(
