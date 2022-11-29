@@ -482,7 +482,13 @@ def test_xrelpath(input_path, start_path, expected_path):
 class TestxPath:
     @pytest.mark.parametrize(
         "input_path, expected_path",
-        [("zip://test.txt::/Users/username/bar.zip", "zip://test.txt::/Users/username/bar.zip")],
+        [
+            ("https://host.com/archive.zip", "https://host.com/archive.zip"),
+            ("zip://file.txt::https://host.com/archive.zip", "zip://file.txt::https://host.com/archive.zip"),
+            ("zip://dir/file.txt::https://host.com/archive.zip", "zip://dir/file.txt::https://host.com/archive.zip"),
+            ("file.txt", "file.txt"),
+            (str(Path().resolve() / "file.txt"), (Path().resolve() / "file.txt").as_posix()),
+        ],
     )
     def test_xpath_as_posix(self, input_path, expected_path):
         assert xPath(input_path).as_posix() == expected_path
@@ -585,28 +591,23 @@ class TestxPath:
     @pytest.mark.parametrize(
         "input_path, expected_path",
         [
-            (Path(__file__).resolve(), Path(__file__).resolve().parent),
-            (Path("https://host.com/archive.zip"), Path("https://host.com")),
-            (
-                Path("zip://file.txt::https://host.com/archive.zip"),
-                Path("zip://::https://host.com/archive.zip"),
-            ),
-            (
-                Path("zip://folder/file.txt::https://host.com/archive.zip"),
-                Path("zip://folder::https://host.com/archive.zip"),
-            ),
+            ("https://host.com/archive.zip", "https://host.com"),
+            ("zip://file.txt::https://host.com/archive.zip", "zip://::https://host.com/archive.zip"),
+            ("zip://dir/file.txt::https://host.com/archive.zip", "zip://dir::https://host.com/archive.zip"),
+            ("file.txt", ""),
+            (str(Path().resolve() / "file.txt"), str(Path().resolve())),
         ],
     )
     def test_xpath_parent(self, input_path, expected_path):
-        output_path = xPath(input_path).parent
-        output_path = _readd_double_slash_removed_by_path(output_path.as_posix())
-        assert output_path == _readd_double_slash_removed_by_path(expected_path.as_posix())
+        assert xPath(input_path).parent == xPath(expected_path)
 
     @pytest.mark.parametrize(
         "input_path, expected",
         [
+            ("https://host.com/archive.zip", "archive.zip"),
             ("zip://file.txt::https://host.com/archive.zip", "file.txt"),
-            ("datasets/file.txt", "file.txt"),
+            ("zip://dir/file.txt::https://host.com/archive.zip", "file.txt"),
+            ("file.txt", "file.txt"),
             (str(Path().resolve() / "file.txt"), "file.txt"),
         ],
     )
@@ -616,7 +617,9 @@ class TestxPath:
     @pytest.mark.parametrize(
         "input_path, expected",
         [
+            ("https://host.com/archive.zip", "archive"),
             ("zip://file.txt::https://host.com/archive.zip", "file"),
+            ("zip://dir/file.txt::https://host.com/archive.zip", "file"),
             ("file.txt", "file"),
             (str(Path().resolve() / "file.txt"), "file"),
         ],
@@ -627,7 +630,9 @@ class TestxPath:
     @pytest.mark.parametrize(
         "input_path, expected",
         [
+            ("https://host.com/archive.zip", ".zip"),
             ("zip://file.txt::https://host.com/archive.zip", ".txt"),
+            ("zip://dir/file.txt::https://host.com/archive.zip", ".txt"),
             ("file.txt", ".txt"),
             (str(Path().resolve() / "file.txt"), ".txt"),
         ],
@@ -638,7 +643,13 @@ class TestxPath:
     @pytest.mark.parametrize(
         "input_path, suffix, expected",
         [
+            ("https://host.com/archive.zip", ".ann", "https://host.com/archive.ann"),
             ("zip://file.txt::https://host.com/archive.zip", ".ann", "zip://file.ann::https://host.com/archive.zip"),
+            (
+                "zip://dir/file.txt::https://host.com/archive.zip",
+                ".ann",
+                "zip://dir/file.ann::https://host.com/archive.zip",
+            ),
             ("file.txt", ".ann", "file.ann"),
             (str(Path().resolve() / "file.txt"), ".ann", str(Path().resolve() / "file.ann")),
         ],
