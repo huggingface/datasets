@@ -9,7 +9,6 @@ from fsspec.spec import AbstractBufferedFile, AbstractFileSystem
 
 from datasets.download.streaming_download_manager import (
     StreamingDownloadManager,
-    _as_posix,
     _get_extraction_protocol,
     xbasename,
     xgetsize,
@@ -152,14 +151,6 @@ def _readd_double_slash_removed_by_path(path_as_posix: str) -> str:
         str: the url path with :// instead of :/
     """
     return re.sub("([A-z]:/)([A-z:])", r"\g<1>/\g<2>", path_as_posix)
-
-
-@pytest.mark.parametrize(
-    "input_path, expected_path",
-    [("zip:/test.txt::/Users/username/bar.zip", "zip://test.txt::/Users/username/bar.zip")],
-)
-def test_as_posix(input_path, expected_path):
-    assert _as_posix(Path(input_path)) == expected_path
 
 
 @pytest.mark.parametrize(
@@ -486,6 +477,14 @@ def test_xwalk_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
 def test_xrelpath(input_path, start_path, expected_path):
     output_path = xrelpath(input_path, start=start_path)
     assert output_path == expected_path
+
+
+@pytest.mark.parametrize(
+    "input_path, expected_path",
+    [("zip:/test.txt::/Users/username/bar.zip", "zip://test.txt::/Users/username/bar.zip")],
+)
+def test_xpath_as_posix(input_path, expected_path):
+    assert xPath(input_path).as_posix() == expected_path
 
 
 @pytest.mark.parametrize(
