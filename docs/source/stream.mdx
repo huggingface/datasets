@@ -1,6 +1,6 @@
 # Stream
 
-Dataset streaming lets you work with a dataset without downloading it. The data is streamed progressively as you iterate over the dataset. This is especially helpful when:
+Dataset streaming lets you work with a dataset without downloading it. The data is streamed as you iterate over the dataset. This is especially helpful when:
 
 - You don't want to wait for an extremely large dataset to download.
 - The dataset size exceeds the amount of disk space on your computer.
@@ -42,7 +42,7 @@ The `buffer_size` argument controls the size of the buffer to randomly sample ex
 
 <Tip>
 
-[`IterableDataset.shuffle`] will also shuffle the order of the shards if the dataset is sharded into multiple sets.
+[`IterableDataset.shuffle`] will also shuffle the order of the shards if the dataset is sharded into multiple files.
 
 </Tip>
 
