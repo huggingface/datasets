@@ -6,7 +6,6 @@ import pytest
 from datasets.filesystems import (
     COMPRESSION_FILESYSTEMS,
     HfFileSystem,
-    S3FileSystem,
     extract_path_from_uri,
     is_remote_filesystem,
 )
@@ -29,11 +28,9 @@ def test_extract_path_from_uri():
     assert dataset_path == new_dataset_path
 
 
-def test_is_remote_filesystem():
+def test_is_remote_filesystem(mockfs):
 
-    fs = S3FileSystem(key="fake_access_key", secret="fake_secret")
-
-    is_remote = is_remote_filesystem(fs)
+    is_remote = is_remote_filesystem(mockfs)
     assert is_remote is True
 
     fs = fsspec.filesystem("file")
