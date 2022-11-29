@@ -4194,7 +4194,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
-        >>> ds.to_pandas()
+        >>> df = ds.to_pandas()
         ```
         """
         if not batched:

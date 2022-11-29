@@ -686,3 +686,40 @@ def test_dummy_dataset_serialize_s3(s3, dataset, s3_test_bucket_name):
     assert [len(dset) for dset in dsets.values()] == lengths
     assert dsets["train"].column_names == column_names
     assert dsets["test"].column_names == column_names
+
+
+def test_datasetdict_to_pandas():
+    dsets = DatasetDict(
+        {
+            "train": Dataset.from_dict({"foo": ["hello", "there"], "bar": [0, 1]}),
+        }
+    )
+    df = dsets.to_pandas()
+    assert df.shape == (2, 2)
+    assert list(df["foo"]) == ["hello", "there"]
+    assert list(df["bar"]) == [0, 1]
+
+    # multiple splits
+    dsets = DatasetDict(
+        {
+            "train": Dataset.from_dict({"foo": ["hello", "there"], "bar": [0, 1]}),
+            "test": Dataset.from_dict({"foo": ["general", "kenobi"], "bar": [2, 3]}),
+        }
+    )
+    df = dsets.to_pandas()
+    assert df.shape == (4, 2)
+    assert list(df["foo"]) == ["hello", "there", "general", "kenobi"]
+    assert list(df["bar"]) == [0, 1, 2, 3]
+
+    # batched
+    dsets = DatasetDict(
+        {
+            "train": Dataset.from_dict({"foo": range(42)}),
+        }
+    )
+    for i, df in enumerate(dsets.to_pandas(batched=True, batch_size=10)):
+        if i == 4:  # last batch
+            assert df.shape == (2, 1)
+        else:  # batch size of 10
+            assert df.shape == (10, 1)
+    assert i == 4  # total of 4 batches

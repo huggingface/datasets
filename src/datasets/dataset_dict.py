@@ -6,10 +6,11 @@ import re
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, Iterator, List, Optional, Tuple, Union
 
 import fsspec
 import numpy as np
+import pandas as pd
 from huggingface_hub import HfApi
 
 from datasets.utils.metadata import DatasetMetadata
@@ -36,7 +37,7 @@ from .utils.typing import PathLike
 logger = logging.get_logger(__name__)
 
 
-class DatasetDict(dict):
+class DatasetDict(Dict[str, Dataset]):
     """A dictionary (dict of str: datasets.Dataset) with dataset transforms methods (map, filter, etc.)"""
 
     def _check_values_type(self):
@@ -1416,6 +1417,33 @@ class DatasetDict(dict):
             repo_type="dataset",
             revision=branch,
         )
+
+    def to_pandas(
+        self, batch_size: Optional[int] = None, batched: bool = False
+    ) -> Union[pd.DataFrame, Iterator[pd.DataFrame]]:
+        """Returns the dataset as a :class:`pandas.DataFrame`. Can also return a generator for large datasets.
+
+        Args:
+            batched (:obj:`bool`): Set to :obj:`True` to return a generator that yields the dataset as batches
+                of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasets once)
+            batch_size (:obj:`int`, optional): The size (number of rows) of the batches if ``batched`` is `True`.
+                Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+
+        Returns:
+            `pandas.DataFrame` or `Iterator[pandas.DataFrame]`
+
+        Example:
+
+        ```py
+        >>> df = dataset_dict.to_pandas()
+        ```
+        """
+        self._check_values_type()
+        self._check_values_features()
+        if batched:
+            return (df for ds in self.values() for df in ds.to_pandas(batch_size=batch_size, batched=batched))
+        else:
+            return pd.concat([ds.to_pandas() for ds in self.values()])
 
 
 class IterableDatasetDict(dict):
