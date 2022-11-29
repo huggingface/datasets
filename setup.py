@@ -103,8 +103,6 @@ Steps to make a release:
    - Merge the dev version Pull Request
 """
 
-import re
-
 from setuptools import find_packages, setup
 
 
@@ -165,18 +163,18 @@ TESTS_REQUIRE = [
     "pytest-datadir",
     "pytest-xdist",
     # optional dependencies
-    "apache-beam>=2.26.0",
+    "apache-beam>=2.26.0;python_version<'3.8'",  # doesn't support recent dill versions for recent python versions
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch()
-    "aiobotocore>=2.0.1",  # required by s3fs>=2021.11.1
-    "boto3>=1.19.8",  # to be compatible with aiobotocore>=2.0.1 - both have strong dependencies on botocore
-    "botocore>=1.22.8",  # to be compatible with aiobotocore and boto3
+    "aiobotocore>=2.0.1;python_version<'3.8'",  # required by s3fs>=2021.11.1
+    "boto3>=1.19.8;python_version<'3.8'",  # to be compatible with aiobotocore>=2.0.1 - both have strong dependencies on botocore
+    "botocore>=1.22.8;python_version<'3.8'",  # to be compatible with aiobotocore and boto3
     "faiss-cpu>=1.6.4",
-    "fsspec[s3]",
+    "fsspec",
     "lz4",
-    "moto[s3,server]==2.0.4",
+    "moto[s3,server]==2.0.4;python_version<'3.8'",
     "py7zr",
     "rarfile>=4.0",
-    "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1
+    "s3fs>=2021.11.1;python_version<'3.8'",  # aligned with fsspec[http]>=2021.11.1; test only on python 3.7 for now
     "tensorflow>=2.3,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
     "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
     "torch",
@@ -185,20 +183,6 @@ TESTS_REQUIRE = [
     "transformers",
     "zstandard",
 ]
-
-TEST_PY37_ONLY = [
-    "apache-beam",  # constrains the dill version, which constrains the multiprocess version too much (incompatible with py3.10)
-    "aiobotocore",  # TODO: support the S3 tests on py3.10
-    "boto3",
-    "botocore",
-    "moto",
-    "s3fs"
-]
-
-
-for i, dependency in enumerate(TESTS_REQUIRE):
-    if re.match(r"[\w-]+", dependency).group() in TEST_PY37_ONLY:
-        TESTS_REQUIRE[i] = dependency + ";python_version<'3.8'"
 
 
 METRICS_TESTS_REQUIRE = [
