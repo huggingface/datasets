@@ -2051,16 +2051,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         output_all_columns: bool = False,
         **format_kwargs,
     ):
-        """Set __getitem__ return format (type and columns). The data formatting is applied on-the-fly.
-        The format ``type`` (for example "numpy") is used to format batches when using __getitem__.
+        """Set ``__getitem__`` return format (type and columns). The data formatting is applied on-the-fly.
+        The format ``type`` (for example "numpy") is used to format batches when using ``__getitem__``.
         It's also possible to use custom transforms for formatting using :func:`datasets.Dataset.set_transform`.
 
         Args:
             type (:obj:`str`, optional):
                 Either output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow'].
-                None means __getitem__ returns python objects (default)
+                None means ``__getitem__`` returns python objects (default)
             columns (:obj:`List[str]`, optional): columns to format in the output.
-                None means __getitem__ returns all columns (default).
+                None means ``__getitem__`` returns all columns (default).
             output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
             **format_kwargs (additional keyword arguments): keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
 
