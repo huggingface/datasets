@@ -646,7 +646,7 @@ def test_xpathsuffix(input_path, expected):
     [
         ("zip://file.txt::https://host.com/archive.zip", ".ann", "zip://file.ann::https://host.com/archive.zip"),
         ("file.txt", ".ann", "file.ann"),
-        ((Path().resolve() / "file.txt").as_posix(), ".ann", (Path().resolve() / "file.ann").as_posix()),
+        (str(Path().resolve() / "file.txt"), ".ann", str(Path().resolve() / "file.ann")),
     ],
 )
 def test_xpath_with_suffix(input_path, suffix, expected):
