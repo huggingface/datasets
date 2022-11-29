@@ -3,12 +3,7 @@ import os
 import fsspec
 import pytest
 
-from datasets.filesystems import (
-    COMPRESSION_FILESYSTEMS,
-    HfFileSystem,
-    extract_path_from_uri,
-    is_remote_filesystem,
-)
+from datasets.filesystems import COMPRESSION_FILESYSTEMS, HfFileSystem, extract_path_from_uri, is_remote_filesystem
 from datasets.utils._hf_hub_fixes import dataset_info as hf_api_dataset_info
 
 from .utils import require_lz4, require_zstandard
