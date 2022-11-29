@@ -32,6 +32,10 @@ from datasets import load_metric
 from .utils import for_all_test_methods, local, slow
 
 
+# mark all tests as integration
+pytestmark = pytest.mark.integration
+
+
 REQUIRE_FAIRSEQ = {"comet"}
 _has_fairseq = importlib.util.find_spec("fairseq") is not None
 
@@ -85,7 +89,6 @@ def get_local_metric_names():
     skip_if_metric_requires_fairseq, skip_if_metric_requires_transformers, skip_on_windows_if_not_windows_compatible
 )
 @local
-@pytest.mark.integration
 class LocalMetricTest(parameterized.TestCase):
     INTENSIVE_CALLS_PATCHER = {}
     metric_name = None
@@ -152,7 +155,6 @@ class LocalMetricTest(parameterized.TestCase):
 # --------------------------------
 
 
-@pytest.mark.integration
 @LocalMetricTest.register_intensive_calls_patcher("bleurt")
 def patch_bleurt(module_name):
     import tensorflow.compat.v1 as tf
@@ -171,7 +173,6 @@ def patch_bleurt(module_name):
         yield
 
 
-@pytest.mark.integration
 @LocalMetricTest.register_intensive_calls_patcher("bertscore")
 def patch_bertscore(module_name):
     import torch
@@ -188,7 +189,6 @@ def patch_bertscore(module_name):
         yield
 
 
-@pytest.mark.integration
 @LocalMetricTest.register_intensive_calls_patcher("comet")
 def patch_comet(module_name):
     def load_from_checkpoint(model_path):
@@ -209,7 +209,6 @@ def patch_comet(module_name):
             yield
 
 
-@pytest.mark.integration
 def test_seqeval_raises_when_incorrect_scheme():
     metric = load_metric(os.path.join("metrics", "seqeval"))
     wrong_scheme = "ERROR"
