@@ -217,6 +217,10 @@ TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
 QUALITY_REQUIRE = ["black~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
 
+DOCS_REQUIRE = [
+    # Might need to add doc-builder and some specific deps in the future
+    "s3fs",
+]
 
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
@@ -235,15 +239,12 @@ EXTRAS_REQUIRE = {
         "s3fs",
     ],
     "streaming": [],  # for backward compatibility
-    "dev": TESTS_REQUIRE + QUALITY_REQUIRE,
+    "dev": TESTS_REQUIRE + QUALITY_REQUIRE + DOCS_REQUIRE,
     "tests": TESTS_REQUIRE,
     "metrics-tests": METRICS_TESTS_REQUIRE,
     "quality": QUALITY_REQUIRE,
     "benchmarks": BENCHMARKS_REQUIRE,
-    "docs": [
-        # Might need to add doc-builder and some specific deps in the future
-        "s3fs",
-    ],
+    "docs": DOCS_REQUIRE,
 }
 
 setup(
