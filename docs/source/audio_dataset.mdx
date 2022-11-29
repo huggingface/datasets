@@ -367,7 +367,7 @@ def _info(self):
 
 Now that you've added some information about your dataset, the next step is to download the dataset and define the splits.
 
-1. Use the [`~DownloadManager.download`] method to download metadata file at `_PROMPTS_URLS` and audio TAR archive at `_DATA_URL`. This method returns the path to the local file/archive. In streaming mode, it doesn't download the file(s) and returns a URL to stream the data from. This method accepts:
+1. Use the [`~DownloadManager.download`] method to download metadata file at `_PROMPTS_URLS` and audio TAR archive at `_DATA_URL`. This method returns the path to the local file/archive. In streaming mode, it doesn't download the file(s) and just returns a URL to stream the data from. This method accepts:
 
     * a relative path to a file inside a Hub dataset repository (for example, in the `data/` folder)
     * a URL to a file hosted somewhere else
