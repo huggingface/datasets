@@ -580,6 +580,9 @@ class xPath(type(Path())):
             str
         """
         path_as_posix = super().as_posix()
+        main_hop, *rest_hops = str(self).split("::")
+        if is_local_path(main_hop):
+            return path_as_posix
         path_as_posix = SINGLE_SLASH_AFTER_PROTOCOL_PATTERN.sub("://", path_as_posix)
         path_as_posix += "//" if path_as_posix.endswith(":") else ""  # Add slashes to root of the protocol
         return path_as_posix
