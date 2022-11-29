@@ -434,15 +434,14 @@ def xopen(file: str, mode="r", *args, use_auth_token: Optional[Union[str, bool]]
     Returns:
         file object
     """
-    main_hop, *rest_hops = str(file).split("::")
+    # This works as well for `xopen(str(Path(...)))`
+    file_str = _as_str(file)
+    main_hop, *rest_hops = file_str.split("::")
     if is_local_path(main_hop):
         return open(main_hop, mode, *args, **kwargs)
-    # required for `xopen(str(Path(...)))` to work
-    file = xPath(file).as_posix()
-    main_hop, *rest_hops = file.split("::")
     # add headers and cookies for authentication on the HF Hub and for Google Drive
     if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
-        file, new_kwargs = _prepare_http_url_kwargs(file, use_auth_token=use_auth_token)
+        file, new_kwargs = _prepare_http_url_kwargs(file_str, use_auth_token=use_auth_token)
     elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
         url = rest_hops[0]
         url, http_kwargs = _prepare_http_url_kwargs(url, use_auth_token=use_auth_token)
@@ -476,7 +475,7 @@ def xlistdir(path: str, use_auth_token: Optional[Union[str, bool]] = None) -> Li
     Returns:
         `list` of `str`
     """
-    main_hop, *rest_hops = str(path).split("::")
+    main_hop, *rest_hops = _as_str(path).split("::")
     if is_local_path(main_hop):
         return os.listdir(path)
     else:
@@ -511,7 +510,7 @@ def xglob(urlpath, *, recursive=False, use_auth_token: Optional[Union[str, bool]
     Returns:
         `list` of `str`
     """
-    main_hop, *rest_hops = str(urlpath).split("::")
+    main_hop, *rest_hops = _as_str(urlpath).split("::")
     if is_local_path(main_hop):
         return glob.glob(main_hop, recursive=recursive)
     else:
@@ -547,7 +546,7 @@ def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None):
     Yields:
         `tuple`: 3-tuple (dirpath, dirnames, filenames).
     """
-    main_hop, *rest_hops = str(urlpath).split("::")
+    main_hop, *rest_hops = _as_str(urlpath).split("::")
     if is_local_path(main_hop):
         yield from os.walk(main_hop)
     else:
@@ -673,7 +672,7 @@ class xPath(type(Path())):
         Returns:
             `io.FileIO`: File-like object.
         """
-        return xopen(self.as_posix(), *args, **kwargs)
+        return xopen(str(self), *args, **kwargs)
 
     def joinpath(self, *p: Tuple[str, ...]) -> "xPath":
         """Extend :func:`xjoin` to support argument of type :obj:`~pathlib.Path`.
@@ -694,6 +693,10 @@ class xPath(type(Path())):
         if is_local_path(main_hop):
             return type(self)(str(super().with_suffix(suffix)))
         return type(self)("::".join([type(self)(PurePosixPath(main_hop).with_suffix(suffix)).as_posix()] + rest_hops))
+
+
+def _as_str(path: Union[str, Path, xPath]):
+    return str(path) if isinstance(path, xPath) else str(xPath(str(path)))
 
 
 def xgzip_open(filepath_or_buffer, *args, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
