@@ -883,6 +883,7 @@ class StreamingDownloadManager:
 
     def download(self, url_or_urls):
         """Normalize url(s) of files to stream data from.
+        This is the lazy version of DownloadManager.download for streaming.
 
         Args:
             url_or_urls (`str` or `list` or `dict`): URL or URLs of files to stream data from. Each url is a `str`.
@@ -908,6 +909,7 @@ class StreamingDownloadManager:
 
     def extract(self, url_or_urls):
         """Add extraction protocol for given url(s) for streaming.
+        This is the lazy version of DownloadManager.extract for streaming.
 
         Args:
             url_or_urls (`str` or `list` or `dict`): URL or URLs of files to stream data from. Each url is a `str`.
@@ -945,6 +947,7 @@ class StreamingDownloadManager:
 
     def download_and_extract(self, url_or_urls):
         """Prepare given url_or_urls for streaming.
+        This is the lazy version of DownloadManager.download_and_extract for streaming.
 
         Is equivalent to:
 
