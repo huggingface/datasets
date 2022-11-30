@@ -12,6 +12,7 @@ import fsspec
 import numpy as np
 import pandas as pd
 from huggingface_hub import HfApi
+from typing_extensions import Literal
 
 from datasets.utils.metadata import DatasetMetadata
 
@@ -1423,7 +1424,10 @@ class DatasetDict(Dict[str, Dataset]):
         )
 
     def to_pandas(
-        self, splits: Optional[List[str]] = None, batch_size: Optional[int] = None, batched: bool = False
+        self,
+        splits: Optional[Union[Literal["all"], List[str]]] = None,
+        batch_size: Optional[int] = None,
+        batched: bool = False,
     ) -> Union[pd.DataFrame, Iterator[pd.DataFrame]]:
         """Returns the dataset as a :class:`pandas.DataFrame`. Can also return a generator for large datasets.
 
@@ -1432,6 +1436,7 @@ class DatasetDict(Dict[str, Dataset]):
         Args:
             splits (:obj:`List[str]`, optional): List of splits to convert to a DataFrame.
                 You don't need to specify the splits if there's only one.
+                Use splits="all" to convert all the splits (they will be converted in the order of the dictionary).
             batched (:obj:`bool`): Set to :obj:`True` to return a generator that yields the dataset as batches
                 of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasets once)
             batch_size (:obj:`int`, optional): The size (number of rows) of the batches if ``batched`` is `True`.
@@ -1450,6 +1455,7 @@ class DatasetDict(Dict[str, Dataset]):
         If the dataset has multiple splits:
         ```py
         >>> df_train = dataset_dict["train"].to_pandas()
+        >>> df_test = dataset_dict.to_pandas(splits="all")
         >>> df_test = dataset_dict.to_pandas(splits=["train", "test"])
         ```
         """
@@ -1462,7 +1468,7 @@ class DatasetDict(Dict[str, Dataset]):
                 '\n    df = ds["train"].to_pandas()'
                 '\n    df = ds.to_pandas(splits=["train", "test"])'
             )
-        splits = splits if splits is not None else list(self)
+        splits = splits if splits is not None and splits != "all" else list(self)
         if batched:
             return (df for split in splits for df in self[split].to_pandas(batch_size=batch_size, batched=batched))
         else:

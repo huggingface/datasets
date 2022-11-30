@@ -712,6 +712,10 @@ def test_datasetdict_to_pandas():
     assert df.shape == (4, 2)
     assert list(df["foo"]) == ["hello", "there", "general", "kenobi"]
     assert list(df["bar"]) == [0, 1, 2, 3]
+    df = dsets.to_pandas(splits="all")
+    assert df.shape == (4, 2)
+    assert list(df["foo"]) == ["hello", "there", "general", "kenobi"]
+    assert list(df["bar"]) == [0, 1, 2, 3]
 
     # batched
     dsets = DatasetDict(
