@@ -878,8 +878,7 @@ class IterableDataset(DatasetInfoMixin):
             remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
-            features (`Optional[datasets.Features]`, defaults to `None`): Use a specific Features to store the cache file
-                instead of the automatically generated one.
+            features (`Optional[datasets.Features]`, defaults to `None`): Feature types of the resulting dataset.
             fn_kwargs (:obj:`Dict`, optional, default `None`): Keyword arguments to be passed to `function`.
 
         Example:
