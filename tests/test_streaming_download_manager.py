@@ -481,6 +481,19 @@ def test_xrelpath(input_path, start_path, expected_path):
 
 class TestxPath:
     @pytest.mark.parametrize(
+        "input_path",
+        [
+            "https://host.com/archive.zip",
+            "zip://file.txt::https://host.com/archive.zip",
+            "zip://dir/file.txt::https://host.com/archive.zip",
+            "file.txt",
+            str(Path().resolve() / "file.txt"),
+        ],
+    )
+    def test_xpath_str(self, input_path):
+        assert str(xPath(input_path)) == input_path
+
+    @pytest.mark.parametrize(
         "input_path, expected_path",
         [
             ("https://host.com/archive.zip", "https://host.com/archive.zip"),
