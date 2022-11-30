@@ -708,6 +708,10 @@ def test_datasetdict_to_pandas():
     )
     with pytest.raises(SplitsError):
         df = dsets.to_pandas()
+    df = dsets.to_pandas(splits=["train", "test"])
+    assert df.shape == (4, 2)
+    assert list(df["foo"]) == ["hello", "there", "general", "kenobi"]
+    assert list(df["bar"]) == [0, 1, 2, 3]
 
     # batched
     dsets = DatasetDict(

@@ -1423,14 +1423,15 @@ class DatasetDict(Dict[str, Dataset]):
         )
 
     def to_pandas(
-        self, batch_size: Optional[int] = None, batched: bool = False
+        self, splits: Optional[List[str]] = None, batch_size: Optional[int] = None, batched: bool = False
     ) -> Union[pd.DataFrame, Iterator[pd.DataFrame]]:
         """Returns the dataset as a :class:`pandas.DataFrame`. Can also return a generator for large datasets.
 
-        Raise an error if the dataset is made of several splits.
-        In that case you should first choose which split to use.
+        You must specify which splits to convert if the dataset is made of multiple splits.
 
         Args:
+            splits (:obj:`List[str]`, optional): List of splits to convert to a DataFrame.
+                You don't need to specify the splits if there's only one.
             batched (:obj:`bool`): Set to :obj:`True` to return a generator that yields the dataset as batches
                 of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasets once)
             batch_size (:obj:`int`, optional): The size (number of rows) of the batches if ``batched`` is `True`.
@@ -1441,22 +1442,31 @@ class DatasetDict(Dict[str, Dataset]):
 
         Example:
 
+        If the dataset has one split:
         ```py
         >>> df = dataset_dict.to_pandas()
+        ```
+
+        If the dataset has multiple splits:
+        ```py
         >>> df_train = dataset_dict["train"].to_pandas()
-        >>> df_test = dataset_dict["test"].to_pandas()
+        >>> df_test = dataset_dict.to_pandas(splits=["train", "test"])
         ```
         """
         self._check_values_type()
         self._check_values_features()
-        if len(self) > 1:
+        if splits is None and len(self) > 1:
             raise SplitsError(
-                "Failed to convert to pandas: please choose which split to convert. "
-                f"Available splits: {list(self)}. For example:\n    "
-                'df = ds["test"].to_pandas()'
+                "Failed to convert to pandas: please choose which splits to convert. "
+                f"Available splits: {list(self)}. For example:"
+                '\n    df = ds["train"].to_pandas()'
+                '\n    df = ds.to_pandas(splits=["train", "test"])'
             )
+        splits = splits if splits is not None else list(self)
+        if batched:
+            return (df for split in splits for df in self[split].to_pandas(batch_size=batch_size, batched=batched))
         else:
-            return next(iter(self.values())).to_pandas(batch_size=batch_size, batched=batched)
+            return pd.concat([self[split].to_pandas() for split in splits])
 
 
 class IterableDatasetDict(dict):
