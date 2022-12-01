@@ -904,6 +904,7 @@ class DatasetBuilder:
 
             # TODO: maybe verify the splits names are the same here? before processing them all...
             # TODO: this is copied from verify_splits(), to be refactored
+            # TODO: account for names like "train[n%]"
             if len(set([split_generator.name for split_generator in split_generators]) - set(self.info.splits)) > 0:
                 raise UnexpectedSplits(
                     set([split_generator.name for split_generator in split_generators]) - set(self.info.splits)
@@ -1365,7 +1366,6 @@ class GeneratorBasedBuilder(DatasetBuilder):
         max_shard_size: Optional[Union[int, str]] = None,
         verify_infos: bool = False,
     ):
-        print("verify_infos".upper(), verify_infos)
         max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
