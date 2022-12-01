@@ -521,6 +521,7 @@ class SplitDict(dict):
         if str(key) in self:
             return super().__getitem__(str(key))
         # 2nd case: Uses instructions: `info.splits['train[50%]']`
+        # TODO: make check for this format here !
         else:
             instructions = make_file_instructions(
                 name=self.dataset_name,

@@ -63,7 +63,13 @@ from .streaming import extend_dataset_builder_for_streaming
 from .utils import logging
 from .utils.file_utils import cached_path, is_remote_url
 from .utils.filelock import FileLock
-from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
+from .utils.info_utils import (
+    ExpectedMoreSplits,
+    UnexpectedSplits,
+    get_size_checksum_dict,
+    verify_checksums,
+    verify_splits,
+)
 from .utils.py_utils import (
     classproperty,
     convert_file_size_to_int,
@@ -896,6 +902,17 @@ class DatasetBuilder:
                 self.info.download_checksums, dl_manager.get_recorded_sizes_checksums(), "dataset source files"
             )
 
+            # TODO: maybe verify the splits names are the same here? before processing them all...
+            # TODO: this is copied from verify_splits(), to be refactored
+            if len(set([split_generator.name for split_generator in split_generators]) - set(self.info.splits)) > 0:
+                raise UnexpectedSplits(
+                    set([split_generator.name for split_generator in split_generators]) - set(self.info.splits)
+                )
+            if len(set(self.info.splits) - set([split_generator.name for split_generator in split_generators])) > 0:
+                raise ExpectedMoreSplits(
+                    set(self.info.splits) - set([split_generator.name for split_generator in split_generators])
+                )
+
         # Build splits
         for split_generator in split_generators:
             if str(split_generator.split_info.name).lower() == "all":
@@ -910,7 +927,7 @@ class DatasetBuilder:
 
             try:
                 # Prepare split will record examples associated to the split
-                self._prepare_split(split_generator, **prepare_split_kwargs)
+                self._prepare_split(split_generator, **prepare_split_kwargs, verify_infos=verify_infos)
             except OSError as e:
                 raise OSError(
                     "Cannot find data file. "
@@ -1346,15 +1363,16 @@ class GeneratorBasedBuilder(DatasetBuilder):
         file_format="arrow",
         num_proc: Optional[int] = None,
         max_shard_size: Optional[Union[int, str]] = None,
+        verify_infos: bool = False,
     ):
-
+        print("verify_infos".upper(), verify_infos)
         max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
 
-        if self.info.splits is not None:
+        if self.info.splits is not None and verify_infos:
             split_info = self.info.splits[split_generator.name]
-        else:
+        else:  # if not verifying info - take info from split_generator directly, ignore metadata in preparing splits
             split_info = split_generator.split_info
 
         SUFFIX = "-JJJJJ-SSSSS-of-NNNNN"
