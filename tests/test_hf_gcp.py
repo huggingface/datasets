@@ -11,8 +11,6 @@ from datasets.builder import DatasetBuilder
 from datasets.load import dataset_module_factory, import_main_class
 from datasets.utils.file_utils import cached_path
 
-from .utils import require_beam
-
 
 DATASETS_ON_HF_GCP = [
     {"dataset": "wikipedia", "config_name": "20220301.de"},
