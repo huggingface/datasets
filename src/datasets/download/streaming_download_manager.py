@@ -891,7 +891,7 @@ class StreamingDownloadManager:
             url_or_urls (`str` or `list` or `dict`): URL(s) of files to stream data from. Each url is a `str`.
 
         Returns:
-            `str` or `list` or `dict`: URL(s) to stream data from matching the given input url_or_urls.
+            url(s): (`str` or `list` or `dict`), URL(s) to stream data from matching the given input url_or_urls.
 
         Example:
 
@@ -918,7 +918,7 @@ class StreamingDownloadManager:
             url_or_urls (`str` or `list` or `dict`): URL or URLs of files to stream data from. Each url is a `str`.
 
         Returns:
-            `str` or `list` or `dict`: URL(s) to stream data from matching the given input url_or_urls.
+            url(s): (`str` or `list` or `dict`), URL(s) to stream data from matching the given input url_or_urls.
 
         Example:
 
@@ -963,7 +963,7 @@ class StreamingDownloadManager:
             url_or_urls: url or `list`/`dict` of urls to stream from. Each url is a `str`.
 
         Returns:
-            `str` or `list` or `dict`: URL(s) to stream data from matching the given input url_or_urls.
+            url(s): (`str` or `list` or `dict`), URL(s) to stream data from matching the given input url_or_urls.
         """
         return self.extract(self.download(url_or_urls))
 
