@@ -8,7 +8,7 @@ import warnings
 import zipfile
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional, Union
+from typing import Optional, Union
 
 from .. import config
 from .filelock import FileLock
