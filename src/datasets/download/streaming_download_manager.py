@@ -949,7 +949,7 @@ class StreamingDownloadManager:
             return f"{protocol}://::{urlpath}"
 
     def download_and_extract(self, url_or_urls):
-        """Prepare given url_or_urls for streaming.
+        """Prepare given url_or_urls for streaming (add extraction protocol).
 
         This is the lazy version of `DownloadManager.download_and_extract` for streaming.
 
