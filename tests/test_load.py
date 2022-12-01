@@ -982,7 +982,9 @@ def test_load_dataset_deletes_extracted_files(deleted, jsonl_gz_path, tmp_path):
     else:  # default
         ds = load_dataset("json", split="train", data_files=data_files, cache_dir=cache_dir)
     assert ds[0] == {"col_1": "0", "col_2": 0, "col_3": 0.0}
-    assert (sorted((cache_dir / "downloads" / "extracted").iterdir()) == []) is deleted
+    assert (
+        [path for path in (cache_dir / "downloads" / "extracted").iterdir() if path.suffix != ".lock"] == []
+    ) is deleted
 
 
 def distributed_load_dataset(args):
