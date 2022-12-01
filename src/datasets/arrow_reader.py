@@ -21,6 +21,7 @@ import os
 import re
 import shutil
 from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional, Union
 
 import pyarrow as pa
@@ -294,11 +295,12 @@ class BaseReader:
                     split_infos=self._info.splits.values(),
                 )
                 for file_instruction in file_instructions:
-                    remote_prepared_filename = os.path.join(remote_cache_dir, file_instruction["filename"])
+                    file_to_download = str(Path(file_instruction["filename"]).relative_to(self._path))
+                    remote_prepared_filename = os.path.join(remote_cache_dir, file_to_download)
                     downloaded_prepared_filename = cached_path(
                         remote_prepared_filename.replace(os.sep, "/"), download_config=download_config
                     )
-                    shutil.move(downloaded_prepared_filename, os.path.join(self._path, file_instruction["filename"]))
+                    shutil.move(downloaded_prepared_filename, file_instruction["filename"])
         except FileNotFoundError as err:
             raise MissingFilesOnHfGcsError(err) from None
 
