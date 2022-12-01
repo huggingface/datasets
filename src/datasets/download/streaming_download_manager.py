@@ -884,14 +884,14 @@ class StreamingDownloadManager:
         return self._data_dir
 
     def download(self, url_or_urls):
-        """Normalize url(s) of files to stream data from.
+        """Normalize URL(s) of files to stream data from.
         This is the lazy version of DownloadManager.download for streaming.
 
         Args:
-            url_or_urls (`str` or `list` or `dict`): URL or URLs of files to stream data from. Each url is a `str`.
+            url_or_urls (`str` or `list` or `dict`): URL(s) of files to stream data from. Each url is a `str`.
 
         Returns:
-            `str`: URL(s) to stream data from matching the given input url_or_urls.
+            `str` or `list` or `dict`: URL(s) to stream data from matching the given input url_or_urls.
 
         Example:
 
@@ -918,7 +918,7 @@ class StreamingDownloadManager:
             url_or_urls (`str` or `list` or `dict`): URL or URLs of files to stream data from. Each url is a `str`.
 
         Returns:
-            `str`: URL(s) to stream data from matching the given input url_or_urls.
+            `str` or `list` or `dict`: URL(s) to stream data from matching the given input url_or_urls.
 
         Example:
 
@@ -963,7 +963,7 @@ class StreamingDownloadManager:
             url_or_urls: url or `list`/`dict` of urls to stream from. Each url is a `str`.
 
         Returns:
-            url(s): `str`, URL(s) to stream data from matching the given input url_or_urls.
+            `str` or `list` or `dict`: URL(s) to stream data from matching the given input url_or_urls.
         """
         return self.extract(self.download(url_or_urls))
 
