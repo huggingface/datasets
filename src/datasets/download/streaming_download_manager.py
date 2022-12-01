@@ -884,13 +884,14 @@ class StreamingDownloadManager:
         return self._data_dir
 
     def download(self, url_or_urls):
-        """Download given url(s).
+        """Normalize URL(s) of files to stream data from.
+        This is the lazy version of DownloadManager.download for streaming.
 
         Args:
-            url_or_urls (`str` or `list` or `dict`): URL or URLs to download and extract. Each url is a `str`.
+            url_or_urls (`str` or `list` or `dict`): URL(s) of files to stream data from. Each url is a `str`.
 
         Returns:
-            `str`: Downloaded paths matching the given input url_or_urls.
+            url(s): (`str` or `list` or `dict`), URL(s) to stream data from matching the given input url_or_urls.
 
         Example:
 
@@ -908,14 +909,16 @@ class StreamingDownloadManager:
             urlpath = url_or_path_join(self._base_path, urlpath)
         return urlpath
 
-    def extract(self, path_or_paths):
-        """Extract given path(s).
+    def extract(self, url_or_urls):
+        """Add extraction protocol for given url(s) for streaming.
+
+        This is the lazy version of `DownloadManager.extract` for streaming.
 
         Args:
-            path_or_paths (`str` or `list` or `dict`): Path or paths of file to extract. Each path is a `str`.
+            url_or_urls (`str` or `list` or `dict`): URL or URLs of files to stream data from. Each url is a `str`.
 
         Returns:
-            `str`: Extracted paths matching the given input path_or_paths.
+            url(s): (`str` or `list` or `dict`), URL(s) to stream data from matching the given input url_or_urls.
 
         Example:
 
@@ -924,7 +927,7 @@ class StreamingDownloadManager:
         >>> extracted_files = dl_manager.extract(downloaded_files)
         ```
         """
-        urlpaths = map_nested(self._extract, path_or_paths, map_tuple=True)
+        urlpaths = map_nested(self._extract, url_or_urls, map_tuple=True)
         return urlpaths
 
     def _extract(self, urlpath: str) -> str:
@@ -946,20 +949,21 @@ class StreamingDownloadManager:
             return f"{protocol}://::{urlpath}"
 
     def download_and_extract(self, url_or_urls):
-        """Download and extract given url_or_urls.
+        """Prepare given url_or_urls for streaming (add extraction protocol).
 
-        Is roughly equivalent to:
+        This is the lazy version of `DownloadManager.download_and_extract` for streaming.
+
+        Is equivalent to:
 
         ```
-        extracted_paths = dl_manager.extract(dl_manager.download(url_or_urls))
+        urls = dl_manager.extract(dl_manager.download(url_or_urls))
         ```
 
         Args:
-            url_or_urls: url or `list`/`dict` of urls to download and extract. Each
-                url is a `str`.
+            url_or_urls: url or `list`/`dict` of urls to stream from. Each url is a `str`.
 
         Returns:
-            extracted_path(s): `str`, extracted paths of given URL(s).
+            url(s): (`str` or `list` or `dict`), URL(s) to stream data from matching the given input url_or_urls.
         """
         return self.extract(self.download(url_or_urls))
 
