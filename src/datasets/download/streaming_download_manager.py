@@ -889,7 +889,7 @@ class StreamingDownloadManager:
             url_or_urls (`str` or `list` or `dict`): URL or URLs of files to stream data from. Each url is a `str`.
 
         Returns:
-            `str`: Urls to stream data from corresponding to the given input url_or_urls.
+            `str`: URL(s) to stream data from corresponding to the given input url_or_urls.
 
         Example:
 
@@ -909,13 +909,14 @@ class StreamingDownloadManager:
 
     def extract(self, url_or_urls):
         """Add extraction protocol for given url(s) for streaming.
-        This is the lazy version of DownloadManager.extract for streaming.
+
+        This is the lazy version of `DownloadManager.extract` for streaming.
 
         Args:
             url_or_urls (`str` or `list` or `dict`): URL or URLs of files to stream data from. Each url is a `str`.
 
         Returns:
-            `str`: Urls to stream data from matching the given input path_or_paths.
+            `str`: URL(s) to stream data from matching the given input path_or_paths.
 
         Example:
 
@@ -947,7 +948,8 @@ class StreamingDownloadManager:
 
     def download_and_extract(self, url_or_urls):
         """Prepare given url_or_urls for streaming.
-        This is the lazy version of DownloadManager.download_and_extract for streaming.
+
+        This is the lazy version of `DownloadManager.download_and_extract` for streaming.
 
         Is equivalent to:
 
