@@ -625,14 +625,15 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
     def get_module(self) -> DatasetModule:
         # TODO: we have to parse `configs` from metadata before finding patterns, to pass `data_dir` and `data_files`
         config_kwargs = {}
-        if os.path.isfile(os.path.join(self.path, "README.md")):
+        if self.config_name and os.path.isfile(os.path.join(self.path, "README.md")):
             dataset_metadata = DatasetMetadata.from_readme(Path(self.path) / "README.md")
-            if self.config_name and "configs" in dataset_metadata:
+            if "configs" in dataset_metadata:
                 configs_metadata = {
                     config_params["config_name"]: config_params for config_params in dataset_metadata["configs"]
                 }
                 config_kwargs = configs_metadata[self.config_name]
                 # updating data_files and data_dir
+                # TODO: raise error when having both and they aren't the same?
                 self.data_files = config_kwargs.get("data_files", None) or self.data_files
                 self.data_dir = config_kwargs.get("data_dir", None) or self.data_dir
 
@@ -701,6 +702,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
     def __init__(
         self,
         name: str,
+        config_name: Optional[str] = None,
         data_dir: Optional[str] = None,
         data_files: Optional[Union[str, List, Dict]] = None,
         download_config: Optional[DownloadConfig] = None,
@@ -708,6 +710,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
     ):
 
         self.name = name
+        self.config_name = config_name
         self.data_files = data_files
         self.data_dir = data_dir
         self.download_config = download_config
@@ -715,6 +718,19 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
+        config_kwargs = {}
+        if self.config_name and os.path.isfile(os.path.join(self.path, "README.md")):
+            dataset_metadata = DatasetMetadata.from_readme(Path(self.path) / "README.md")
+            if "configs" in dataset_metadata:
+                configs_metadata = {
+                    config_params["config_name"]: config_params for config_params in dataset_metadata["configs"]
+                }
+                config_kwargs = configs_metadata[self.config_name]
+                # updating data_files and data_dir
+                # TODO: raise error when having both and they aren't the same?
+                self.data_files = config_kwargs.get("data_files", None) or self.data_files
+                self.data_dir = config_kwargs.get("data_dir", None) or self.data_dir
+
         base_path = str(Path(self.data_dir).resolve()) if self.data_dir is not None else str(Path().resolve())
         patterns = (
             sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns_locally(base_path)
@@ -740,7 +756,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
                     )
         module_path, hash = _PACKAGED_DATASETS_MODULES[self.name]
         builder_kwargs = {"hash": hash, "data_files": data_files}
-        return DatasetModule(module_path, hash, builder_kwargs)
+        return DatasetModule(module_path, hash, {**builder_kwargs, **config_kwargs})
 
 
 class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
@@ -1505,7 +1521,7 @@ def load_dataset_builder(
         download_config.use_auth_token = use_auth_token
     dataset_module = dataset_module_factory(
         path,
-        config_name=name,
+        config_name=name if name else config_kwargs.get("config_name", None),
         revision=revision,
         download_config=download_config,
         download_mode=download_mode,
