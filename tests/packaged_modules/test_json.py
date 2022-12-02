@@ -3,6 +3,7 @@ import textwrap
 import pyarrow as pa
 import pytest
 
+from datasets import Features, Value
 from datasets.packaged_modules.json.json import Json
 
 
@@ -65,6 +66,33 @@ def json_file_with_list_of_dicts_field(tmp_path):
     ],
 )
 def test_json_generate_tables(file_fixture, config_kwargs, request):
+    json = Json(**config_kwargs)
+    generator = json._generate_tables([[request.getfixturevalue(file_fixture)]])
+    pa_table = pa.concat_tables([table for _, table in generator])
+    assert pa_table.to_pydict() == {"col_1": [1, 10], "col_2": [2, 20]}
+
+
+@pytest.mark.parametrize(
+    "file_fixture, config_kwargs",
+    [
+        (
+            "jsonl_file",
+            {"features": Features({"col_1": Value(dtype="int64", id=None), "col_2": Value(dtype="int64", id=None)})},
+        ),
+        (
+            "json_file_with_list_of_dicts",
+            {"features": Features({"col_1": Value(dtype="int64", id=None), "col_2": Value(dtype="int64", id=None)})},
+        ),
+        (
+            "json_file_with_list_of_dicts_field",
+            {
+                "field": "field3",
+                "features": Features({"col_1": Value(dtype="int64", id=None), "col_2": Value(dtype="int64", id=None)}),
+            },
+        ),
+    ],
+)
+def test_json_generate_tables_with_features(file_fixture, config_kwargs, request):
     json = Json(**config_kwargs)
     generator = json._generate_tables([[request.getfixturevalue(file_fixture)]])
     pa_table = pa.concat_tables([table for _, table in generator])

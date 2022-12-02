@@ -135,7 +135,12 @@ class Json(datasets.ArrowBasedBuilder):
                                         if missing_columns:  # some columns are missing
                                             num_rows = len(pa_table)
                                             for column_name in missing_columns:
-                                                pa_table = pa_table.append_column(column_name, pa.nulls(num_rows))
+                                                # pa_table = pa_table.append_column(column_name, pa.nulls(num_rows))
+                                                type = self.config.features.arrow_schema.field(column_name).type
+                                                pa_table = pa_table.append_column(
+                                                    column_name, pa.array([None] * num_rows, type=type)
+                                                )
+
                                     break
                                 except (pa.ArrowInvalid, pa.ArrowNotImplementedError) as e:
                                     if (
