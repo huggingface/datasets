@@ -366,7 +366,10 @@ def test_dataset_with_image_feature_map(shared_datadir):
 
 @require_pil
 def test_formatted_dataset_with_image_feature_map(shared_datadir):
+    import PIL.Image
+
     image_path = str(shared_datadir / "test_image_rgb.jpg")
+    pil_image = Image().decode_example({"path": image_path, "bytes": None})
     data = {"image": [image_path], "caption": ["cats sleeping"]}
     features = Features({"image": Image(), "caption": Value("string")})
 
@@ -375,19 +378,6 @@ def test_formatted_dataset_with_image_feature_map(shared_datadir):
         assert item.keys() == {"image", "caption"}
         assert item == {"image": {"path": image_path, "bytes": None}, "caption": "cats sleeping"}
 
-    # no decoding (format=numpy)
-
-    def process_caption(example):
-        example["caption"] = "Two " + example["caption"]
-        return example
-
-    processed_dset = dset.with_format("numpy").map(process_caption)
-    for item in processed_dset.cast_column("image", Image(decode=False)):
-        assert item.keys() == {"image", "caption"}
-        assert item == {"image": {"path": image_path, "bytes": None}, "caption": "Two cats sleeping"}
-
-    # decoding example (format=numpy)
-
     def process_image_by_example(example):
         example["num_channels"] = example["image"].shape[-1]
         return example
@@ -395,11 +385,12 @@ def test_formatted_dataset_with_image_feature_map(shared_datadir):
     decoded_dset = dset.with_format("numpy").map(process_image_by_example)
     for item in decoded_dset.cast_column("image", Image(decode=False)):
         assert item.keys() == {"image", "caption", "num_channels"}
-        assert os.path.samefile(item["image"]["path"], image_path)
+        assert item["image"] == {
+            "bytes": image_to_bytes(PIL.Image.fromarray(np.array(pil_image))),
+            "path": None,
+        }
         assert item["caption"] == "cats sleeping"
         assert item["num_channels"] == 3
-
-    # decoding batch (format=numpy)
 
     def process_image_by_batch(batch):
         batch["num_channels"] = [image.shape[-1] for image in batch["image"]]
@@ -408,7 +399,10 @@ def test_formatted_dataset_with_image_feature_map(shared_datadir):
     decoded_dset = dset.with_format("numpy").map(process_image_by_batch, batched=True)
     for item in decoded_dset.cast_column("image", Image(decode=False)):
         assert item.keys() == {"image", "caption", "num_channels"}
-        assert os.path.samefile(item["image"]["path"], image_path)
+        assert item["image"] == {
+            "bytes": image_to_bytes(PIL.Image.fromarray(np.array(pil_image))),
+            "path": None,
+        }
         assert item["caption"] == "cats sleeping"
         assert item["num_channels"] == 3
 
