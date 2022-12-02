@@ -435,7 +435,8 @@ class ArrowWriter:
             # Since current_examples contains (example, key) tuples
             if isinstance(self.current_examples[0][0][col], (pa.Array, pa.ChunkedArray)):
                 arrays = [row[0][col] for row in self.current_examples]
-                batch_examples[col] = pa.concat_arrays(
+                # use `pa.chunked_array` instead of `pa.concat_arrays`, as the latter still doesn't know how to handle extension types
+                batch_examples[col] = pa.chunked_array(
                     [arr.chunk(0) if isinstance(arr, pa.ChunkedArray) else arr for arr in arrays]
                 )
             else:
