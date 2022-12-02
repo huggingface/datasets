@@ -761,6 +761,30 @@ def test_iterable_dataset_map_complex_features(
     ]
 
 
+def test_iterable_dataset_map_with_features(dataset: IterableDataset) -> None:
+    # https://github.com/huggingface/datasets/issues/3888
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"label": "positive"})
+    features_before_map = Features(
+        {
+            "id": Value("int64"),
+            "label": Value("string"),
+        }
+    )
+    dataset = IterableDataset(ex_iterable, info=DatasetInfo(features=features_before_map))
+    assert dataset.info.features is not None
+    assert dataset.info.features == features_before_map
+    features_after_map = Features(
+        {
+            "id": Value("int64"),
+            "label": Value("string"),
+            "target": Value("string"),
+        }
+    )
+    dataset = dataset.map(lambda x: {"target": x["label"]}, features=features_after_map)
+    assert dataset.info.features is not None
+    assert dataset.info.features == features_after_map
+
+
 @pytest.mark.parametrize("seed", [42, 1337, 101010, 123456])
 @pytest.mark.parametrize("epoch", [None, 0, 1])
 def test_iterable_dataset_shuffle(dataset: IterableDataset, seed, epoch):
