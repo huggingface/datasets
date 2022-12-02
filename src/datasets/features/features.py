@@ -1646,11 +1646,14 @@ class Features(dict):
             #
             # class_label:              ->              class_label:
             #   names:                  ->                names:
-            #   - negative              ->                  0: negative
-            #   - positive              ->                  1: positive
+            #   - negative              ->                  '0': negative
+            #   - positive              ->                  '1': positive
             #
             if isinstance(feature.get("class_label"), dict) and isinstance(feature["class_label"].get("names"), list):
-                feature["class_label"]["names"] = dict(enumerate(feature["class_label"]["names"]))
+                # server-side requirement: keys must be strings
+                feature["class_label"]["names"] = {
+                    str(label_id): label_name for label_id, label_name in enumerate(feature["class_label"]["names"])
+                }
             return feature
 
         def to_yaml_inner(obj: Union[dict, list]) -> dict:
@@ -1699,14 +1702,14 @@ class Features(dict):
             #
             # class_label:              ->              class_label:
             #   names:                  ->                names:
-            #     0: negative              ->               - negative
-            #     1: positive              ->               - positive
+            #     '0': negative              ->               - negative
+            #     '1': positive              ->               - positive
             #
             if isinstance(feature.get("class_label"), dict) and isinstance(feature["class_label"].get("names"), dict):
-                label_ids = sorted(feature["class_label"]["names"])
-                if label_ids and label_ids != list(range(label_ids[-1] + 1)):
+                label_ids = sorted(feature["class_label"]["names"], key=int)
+                if label_ids and [int(label_id) for label_id in label_ids] != list(range(int(label_ids[-1]) + 1)):
                     raise ValueError(
-                        f"ClassLabel expected a value for all label ids [0:{label_ids[-1] + 1}] but some ids are missing."
+                        f"ClassLabel expected a value for all label ids [0:{int(label_ids[-1]) + 1}] but some ids are missing."
                     )
                 feature["class_label"]["names"] = [feature["class_label"]["names"][label_id] for label_id in label_ids]
             return feature

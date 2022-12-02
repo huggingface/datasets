@@ -662,3 +662,13 @@ def test_dataset_with_image_feature_map_undecoded(shared_datadir):
             assert image == {"path": image_path, "bytes": None}
 
     dset.map(assert_image_batch_undecoded, batched=True)
+
+
+@require_pil
+def test_image_embed_storage(shared_datadir):
+    image_path = str(shared_datadir / "test_image_rgb.jpg")
+    example = {"bytes": None, "path": image_path}
+    storage = pa.array([example], type=pa.struct({"bytes": pa.binary(), "path": pa.string()}))
+    embedded_storage = Image().embed_storage(storage)
+    embedded_example = embedded_storage.to_pylist()[0]
+    assert embedded_example == {"bytes": open(image_path, "rb").read(), "path": "test_image_rgb.jpg"}

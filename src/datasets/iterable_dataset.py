@@ -946,8 +946,6 @@ class IterableDataset(DatasetInfoMixin):
             function = lambda x: x  # noqa: E731
         if fn_kwargs is None:
             fn_kwargs = {}
-        info = self._info.copy()
-        info.features = None
         ex_iterable = MappedExamplesIterable(
             TypedExamplesIterable(self._ex_iterable, self._info.features, token_per_repo_id=self._token_per_repo_id)
             if self._info.features is not None
@@ -961,6 +959,8 @@ class IterableDataset(DatasetInfoMixin):
             remove_columns=remove_columns,
             fn_kwargs=fn_kwargs,
         )
+        info = self.info.copy()
+        info.features = None
         return iterable_dataset(
             ex_iterable=ex_iterable,
             info=info,
@@ -1208,7 +1208,7 @@ class IterableDataset(DatasetInfoMixin):
         >>> next(iter(ds))
         {'label': 1,
          'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
-        >>> ds.rename_column("text", "movie_review")
+        >>> ds = ds.rename_column("text", "movie_review")
         >>> next(iter(ds))
         {'label': 1,
          'movie_review': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
@@ -1226,7 +1226,16 @@ class IterableDataset(DatasetInfoMixin):
                 )
             return {new_column_name: example[original_column_name]}
 
-        return self.map(rename_column_fn, remove_columns=[original_column_name])
+        original_features = self._info.features.copy() if self._info.features else None
+        ds_iterable = self.map(rename_column_fn, remove_columns=[original_column_name])
+        if original_features is not None:
+            ds_iterable._info.features = Features(
+                {
+                    new_column_name if col == original_column_name else col: feature
+                    for col, feature in original_features.items()
+                }
+            )
+        return ds_iterable
 
     def rename_columns(self, column_mapping: Dict[str, str]) -> "IterableDataset":
         """
@@ -1254,7 +1263,16 @@ class IterableDataset(DatasetInfoMixin):
                 for original_column_name, new_column_name in column_mapping.items()
             }
 
-        return self.map(rename_columns_fn, remove_columns=list(column_mapping))
+        original_features = self._info.features.copy() if self._info.features else None
+        ds_iterable = self.map(rename_columns_fn, remove_columns=list(column_mapping))
+        if original_features is not None:
+            ds_iterable._info.features = Features(
+                {
+                    column_mapping[col] if col in column_mapping.keys() else col: feature
+                    for col, feature in original_features.items()
+                }
+            )
+        return ds_iterable
 
     def remove_columns(self, column_names: Union[str, List[str]]) -> "IterableDataset":
         """
@@ -1280,7 +1298,14 @@ class IterableDataset(DatasetInfoMixin):
         {'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
         ```
         """
-        return self.map(remove_columns=column_names)
+        original_features = self._info.features.copy() if self._info.features else None
+        ds_iterable = self.map(remove_columns=column_names)
+        if original_features is not None:
+            ds_iterable._info.features = original_features.copy()
+            for col, _ in original_features.items():
+                if col in column_names:
+                    del ds_iterable._info.features[col]
+        return ds_iterable
 
     def cast_column(self, column: str, feature: FeatureType) -> "IterableDataset":
         """Cast column to feature for decoding.
