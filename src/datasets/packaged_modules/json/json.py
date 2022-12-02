@@ -82,6 +82,10 @@ class Json(datasets.ArrowBasedBuilder):
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
         if self.config.features is not None:
+            # adding missing columns
+            for column_name in set(self.config.features) - set(pa_table.column_names):
+                type = self.config.features.arrow_schema.field(column_name).type
+                pa_table = pa_table.append_column(column_name, pa.array([None] * len(pa_table), type=type))
             # more expensive cast to support nested structures with keys in a different order
             # allows str <-> int/float or str to Audio for example
             pa_table = table_cast(pa_table, self.config.features.arrow_schema)
@@ -128,19 +132,6 @@ class Json(datasets.ArrowBasedBuilder):
                                     pa_table = paj.read_json(
                                         io.BytesIO(batch), read_options=paj.ReadOptions(block_size=block_size)
                                     )
-                                    if self.config.features is not None:
-                                        feature_columns = set(self.config.features.arrow_schema.names)
-                                        pa_columns = set(pa_table.column_names)
-                                        missing_columns = feature_columns - pa_columns
-                                        if missing_columns:  # some columns are missing
-                                            num_rows = len(pa_table)
-                                            for column_name in missing_columns:
-                                                # pa_table = pa_table.append_column(column_name, pa.nulls(num_rows))
-                                                type = self.config.features.arrow_schema.field(column_name).type
-                                                pa_table = pa_table.append_column(
-                                                    column_name, pa.array([None] * num_rows, type=type)
-                                                )
-
                                     break
                                 except (pa.ArrowInvalid, pa.ArrowNotImplementedError) as e:
                                     if (
