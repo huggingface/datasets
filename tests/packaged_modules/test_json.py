@@ -77,23 +77,25 @@ def test_json_generate_tables(file_fixture, config_kwargs, request):
     [
         (
             "jsonl_file",
-            {"features": Features({"col_1": Value(dtype="int64", id=None), "col_2": Value(dtype="int64", id=None)})},
+            {"features": Features({"col_1": Value("int64"), "col_2": Value("int64"), "missing_col": Value("string")})},
         ),
         (
             "json_file_with_list_of_dicts",
-            {"features": Features({"col_1": Value(dtype="int64", id=None), "col_2": Value(dtype="int64", id=None)})},
+            {"features": Features({"col_1": Value("int64"), "col_2": Value("int64"), "missing_col": Value("string")})},
         ),
         (
             "json_file_with_list_of_dicts_field",
             {
                 "field": "field3",
-                "features": Features({"col_1": Value(dtype="int64", id=None), "col_2": Value(dtype="int64", id=None)}),
+                "features": Features(
+                    {"col_1": Value("int64"), "col_2": Value("int64"), "missing_col": Value("string")}
+                ),
             },
         ),
     ],
 )
-def test_json_generate_tables_with_features(file_fixture, config_kwargs, request):
+def test_json_generate_tables_with_missing_features(file_fixture, config_kwargs, request):
     json = Json(**config_kwargs)
     generator = json._generate_tables([[request.getfixturevalue(file_fixture)]])
     pa_table = pa.concat_tables([table for _, table in generator])
-    assert pa_table.to_pydict() == {"col_1": [1, 10], "col_2": [2, 20]}
+    assert pa_table.to_pydict() == {"col_1": [1, 10], "col_2": [2, 20], "missing_col": [None, None]}
