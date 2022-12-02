@@ -82,8 +82,8 @@ from .fingerprint import (
     maybe_register_dataset_for_temp_dir_deletion,
     update_fingerprint,
 )
-from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table, supports_lazy_formatting
-from .formatting.formatting import PythonLazyRow, PythonLazyBatch, _is_range_contiguous
+from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
+from .formatting.formatting import LazyDict, _is_range_contiguous
 from .info import DatasetInfo, DatasetInfosDict
 from .naming import _split_re
 from .search import IndexableMixin
@@ -2758,41 +2758,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # We set this variable to True after processing the first example/batch in
         # `apply_function_on_filtered_inputs` if the map function returns a dict.
         # If set to False, no new arrow table will be created
+
         update_data = None
 
-        lazy_formatting = not input_columns and supports_lazy_formatting(self._format_type)
+        format_kwargs = self._format_kwargs.copy()
+        # Lazy formatting is only available for the default format (None/python)
+        if not input_columns and self._format_type is None:
+            format_kwargs["lazy"] = True
         input_formatter = get_formatter(
-            self._format_type, features=self.features, lazy=lazy_formatting, **self._format_kwargs
+            self._format_type,
+            features=self.features,
+            **format_kwargs,
         )
-        if lazy_formatting:
-            # Save undecoded data (to preserve exact image/audio format for instance) after processing unless decoded data is modified in the `function`
-            class DictWithDecodableDataToRestore(LazyPythonRow if not batched else LazyPythonBatch):
-                def _init(self):
-                    self.decodable_data_to_restore = {}
-
-                def __getitem__(self, key):
-                    if (
-                        key in self.keys_to_format
-                        and self.formatter.features._column_requires_decoding[key]
-                        and key not in self.decodable_data_to_restore
-                    ):
-                        self.decodable_data_to_restore[key] = self.data[key]
-                    return super().__getitem__(key)
-
-                def __setitem__(self, key, value):
-                    if key in self.decodable_data_to_restore:
-                        del self.decodable_data_to_restore[key]
-                    super().__setitem__(key, value)
-
-                def __delitem__(self, key):
-                    if key in self.decodable_data_to_restore:
-                        del self.decodable_data_to_restore[key]
-                    super().__delitem__(key)
-
-        else:
-
-            class DictWithDecodableDataToRestore:
-                pass
 
         class NumExamplesMismatchError(Exception):
             pass
@@ -2845,11 +2822,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if with_rank:
                 additional_args += (rank,)
             processed_inputs = function(*fn_args, *additional_args, **fn_kwargs)
-            # Merging these two dicts here would break the ds.map(lambda x: x, remove_columns=["ds_col"]) case
-            processed_inputs, pa_inputs_to_merge = (
-                (processed_inputs.data, processed_inputs.pa_data)
-                if isinstance(processed_inputs, DictWithDecodableDataToRestore)
-                else (processed_inputs, pa_inputs)
+            processed_inputs = (
+                {k: v for k, v in processed_inputs.data.items() if k not in processed_inputs.keys_to_format}
+                if isinstance(processed_inputs, LazyDict)
+                else processed_inputs
             )
             if update_data is None:
                 # Check if the function returns updated examples
@@ -2858,18 +2834,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if not update_data:
                 return None  # Nothing to update, let's move on
             if remove_columns is not None:
-                for i, column in enumerate(pa_inputs_to_merge):
-                    # `function` can modify input in-place causing column to be already removed.
-                    if column in remove_columns:
-                        pa_inputs_to_merge = pa_inputs_to_merge.drop(column)
+                pa_inputs = pa_inputs.select(
+                    [i for i, column in enumerate(pa_inputs.column_names) if column not in remove_columns]
+                )
+            pa_inputs_dict = {k: v for k, v in zip(pa_inputs.column_names, pa_inputs.itercolumns())}
             if check_same_num_examples:
-                input_num_examples = len(pa_inputs_to_merge)
+                input_num_examples = len(pa_inputs)
                 processed_inputs_num_examples = len(processed_inputs[next(iter(processed_inputs.keys()))])
                 if input_num_examples != processed_inputs_num_examples:
                     raise NumExamplesMismatchError()
-            if check_same_num_examples is not None and isinstance(processed_inputs, Mapping):
-                # TODO: handle decoded values and return pa.Table directly?
-                return {**pa_inputs_to_merge.to_dict(), **processed_inputs}
+            if isinstance(inputs, Mapping) and isinstance(processed_inputs, Mapping):
+                return {**pa_inputs_dict, **processed_inputs}
             else:
                 return processed_inputs
 

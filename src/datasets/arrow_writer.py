@@ -433,7 +433,13 @@ class ArrowWriter:
         batch_examples = {}
         for col in cols:
             # Since current_examples contains (example, key) tuples
-            batch_examples[col] = [row[0][col] for row in self.current_examples]
+            if isinstance(self.current_examples[0][0][col], (pa.Array, pa.ChunkedArray)):
+                arrays = [row[0][col] for row in self.current_examples]
+                batch_examples[col] = pa.concat_arrays(
+                    [arr.chunk(0) if isinstance(arr, pa.ChunkedArray) else arr for arr in arrays]
+                )
+            else:
+                batch_examples[col] = [row[0][col] for row in self.current_examples]
         self.write_batch(batch_examples=batch_examples)
         self.current_examples = []
 
@@ -530,11 +536,17 @@ class ArrowWriter:
             else batch_examples.keys()
         )
         for col in cols:
+            col_values = batch_examples[col]
             col_type = features[col] if features else None
-            col_try_type = try_features[col] if try_features is not None and col in try_features else None
-            typed_sequence = OptimizedTypedSequence(batch_examples[col], type=col_type, try_type=col_try_type, col=col)
-            arrays.append(pa.array(typed_sequence))
-            inferred_features[col] = typed_sequence.get_inferred_type()
+            if isinstance(col_values, (pa.Array, pa.ChunkedArray)):
+                array = cast_array_to_feature(col_values, col_type) if col_type is not None else col_values
+                arrays.append(array)
+                inferred_features[col] = generate_from_arrow_type(col_values.type)
+            else:
+                col_try_type = try_features[col] if try_features is not None and col in try_features else None
+                typed_sequence = OptimizedTypedSequence(col_values, type=col_type, try_type=col_try_type, col=col)
+                arrays.append(pa.array(typed_sequence))
+                inferred_features[col] = typed_sequence.get_inferred_type()
         schema = inferred_features.arrow_schema if self.pa_writer is None else self.schema
         pa_table = pa.Table.from_arrays(arrays, schema=schema)
         self.write_table(pa_table, writer_batch_size)

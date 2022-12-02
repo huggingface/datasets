@@ -6,14 +6,12 @@ import pyarrow as pa
 
 from .. import config
 from ..utils.py_utils import map_nested
-from .formatting import Formatter, PythonLazyRow, PythonLazyBatch
+from .formatting import Formatter
 
 
 class NumpyFormatter(Formatter[Mapping, np.ndarray, Mapping]):
-    supports_lazy_formatting = True
-
-    def __init__(self, features=None, lazy=False, **np_array_kwargs):
-        super().__init__(features=features, lazy=lazy)
+    def __init__(self, features=None, **np_array_kwargs):
+        super().__init__(features=features)
         self.np_array_kwargs = np_array_kwargs
 
     def _consolidate(self, column):
@@ -65,8 +63,6 @@ class NumpyFormatter(Formatter[Mapping, np.ndarray, Mapping]):
         return map_nested(self._recursive_tensorize, data_struct)
 
     def format_row(self, pa_table: pa.Table) -> Mapping:
-        if self.lazy:
-            return PythonLazyRow(pa_table, self)
         row = self.numpy_arrow_extractor().extract_row(pa_table)
         row = self.python_features_decoder.decode_row(row)
         return self.recursive_tensorize(row)
@@ -79,8 +75,6 @@ class NumpyFormatter(Formatter[Mapping, np.ndarray, Mapping]):
         return column
 
     def format_batch(self, pa_table: pa.Table) -> Mapping:
-        if self.lazy:
-            return PythonLazyBatch(pa_table, self)
         batch = self.numpy_arrow_extractor().extract_batch(pa_table)
         batch = self.python_features_decoder.decode_batch(batch)
         batch = self.recursive_tensorize(batch)

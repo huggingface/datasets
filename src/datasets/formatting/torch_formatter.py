@@ -22,7 +22,7 @@ import pyarrow as pa
 
 from .. import config
 from ..utils.py_utils import map_nested
-from .formatting import Formatter, PythonLazyRow, PythonLazyBatch
+from .formatting import Formatter
 
 
 if TYPE_CHECKING:
@@ -30,10 +30,8 @@ if TYPE_CHECKING:
 
 
 class TorchFormatter(Formatter[Mapping, "torch.Tensor", Mapping]):
-    supports_lazy_formatting = True
-
-    def __init__(self, features=None, lazy=False, **torch_tensor_kwargs):
-        super().__init__(features=features, lazy=lazy)
+    def __init__(self, features=None, **torch_tensor_kwargs):
+        super().__init__(features=features)
         self.torch_tensor_kwargs = torch_tensor_kwargs
         import torch  # noqa import torch at initialization
 
@@ -80,8 +78,6 @@ class TorchFormatter(Formatter[Mapping, "torch.Tensor", Mapping]):
         return map_nested(self._recursive_tensorize, data_struct)
 
     def format_row(self, pa_table: pa.Table) -> Mapping:
-        if self.lazy:
-            return PythonLazyRow(pa_table, self)
         row = self.numpy_arrow_extractor().extract_row(pa_table)
         row = self.python_features_decoder.decode_row(row)
         return self.recursive_tensorize(row)
@@ -94,8 +90,6 @@ class TorchFormatter(Formatter[Mapping, "torch.Tensor", Mapping]):
         return column
 
     def format_batch(self, pa_table: pa.Table) -> Mapping:
-        if self.lazy:
-            return PythonLazyBatch(pa_table, self)
         batch = self.numpy_arrow_extractor().extract_batch(pa_table)
         batch = self.python_features_decoder.decode_batch(batch)
         batch = self.recursive_tensorize(batch)

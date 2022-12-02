@@ -129,16 +129,3 @@ def get_formatter(format_type: Optional[str], **format_kwargs) -> Formatter:
         raise ValueError(
             f"Return type should be None or selected in {list(type for type in _FORMAT_TYPES.keys() if type != None)}, but got '{format_type}'"
         )
-
-
-def supports_lazy_formatting(format_type: Optional[str]) -> bool:
-    """Return whether the given format supports lazy formatting of columns."""
-    format_type = get_format_type_from_alias(format_type)
-    if format_type in _FORMAT_TYPES:
-        return _FORMAT_TYPES[format_type].supports_lazy_formatting
-    if format_type in _FORMAT_TYPES_ALIASES_UNAVAILABLE:
-        raise _FORMAT_TYPES_ALIASES_UNAVAILABLE[format_type]
-    else:
-        raise ValueError(
-            f"Return type should be None or selected in {list(type for type in _FORMAT_TYPES.keys() if type != None)}, but got '{format_type}'"
-        )

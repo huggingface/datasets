@@ -22,7 +22,7 @@ import pyarrow as pa
 
 from .. import config
 from ..utils.py_utils import map_nested
-from .formatting import Formatter, PythonLazyBatch, PythonLazyRow
+from .formatting import Formatter
 
 
 if TYPE_CHECKING:
@@ -30,10 +30,8 @@ if TYPE_CHECKING:
 
 
 class JaxFormatter(Formatter[Mapping, "jnp.ndarray", Mapping]):
-    supports_lazy_formatting = True
-
-    def __init__(self, features=None, lazy=False, **jnp_array_kwargs):
-        super().__init__(features=features, lazy=lazy)
+    def __init__(self, features=None, **jnp_array_kwargs):
+        super().__init__(features=features)
         self.jnp_array_kwargs = jnp_array_kwargs
         import jax.numpy as jnp  # noqa import jax at initialization
 
@@ -89,8 +87,6 @@ class JaxFormatter(Formatter[Mapping, "jnp.ndarray", Mapping]):
         return map_nested(self._recursive_tensorize, data_struct)
 
     def format_row(self, pa_table: pa.Table) -> Mapping:
-        if self.lazy:
-            return PythonLazyRow(pa_table, self)
         row = self.numpy_arrow_extractor().extract_row(pa_table)
         row = self.python_features_decoder.decode_row(row)
         return self.recursive_tensorize(row)
@@ -103,8 +99,6 @@ class JaxFormatter(Formatter[Mapping, "jnp.ndarray", Mapping]):
         return column
 
     def format_batch(self, pa_table: pa.Table) -> Mapping:
-        if self.lazy:
-            return PythonLazyBatch(pa_table, self)
         batch = self.numpy_arrow_extractor().extract_batch(pa_table)
         batch = self.python_features_decoder.decode_batch(batch)
         batch = self.recursive_tensorize(batch)

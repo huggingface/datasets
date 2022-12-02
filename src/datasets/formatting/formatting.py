@@ -293,7 +293,6 @@ class LazyDict(MutableMapping):
         del self.data[key]
 
     def __iter__(self):
-        self._format_all()
         return iter(self.data)
 
     def __contains__(self, key):
@@ -304,6 +303,7 @@ class LazyDict(MutableMapping):
         return repr(self.data)
 
     if config.PY_VERSION >= version.parse("3.9"):
+        # merging with the union ("|") operator is supported in Python 3.9+
 
         def __or__(self, other):
             if isinstance(other, LazyDict):
@@ -352,6 +352,7 @@ class LazyDict(MutableMapping):
         inst.__dict__.update(self.__dict__)
         # Create a copy and avoid triggering descriptors
         inst.__dict__["data"] = self.__dict__["data"].copy()
+        inst.__dict__["keys_to_format"] = self.__dict__["keys_to_format"].copy()
         return inst
 
     def copy(self):
@@ -372,12 +373,12 @@ class LazyDict(MutableMapping):
         self.keys_to_format.clear()
 
 
-class PythonLazyRow(LazyDict):
+class LazyRow(LazyDict):
     def format(self, key):
         return self.formatter.format_column(self.pa_table.select([key]))[0]
 
 
-class PythonLazyBatch(LazyDict):
+class LazyBatch(LazyDict):
     def format(self, key):
         return self.formatter.format_column(self.pa_table.select([key]))
 
@@ -393,14 +394,8 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     numpy_arrow_extractor = NumpyArrowExtractor
     pandas_arrow_extractor = PandasArrowExtractor
 
-    supports_lazy_formatting = False
-
-    def __init__(self, features=None, lazy=False):
-        if not self.supports_lazy_formatting and lazy:
-            raise ValueError("Lazy formatting is not supported by this formatter.")
-
+    def __init__(self, features=None):
         self.features = features
-        self.lazy = lazy
         self.python_features_decoder = PythonFeaturesDecoder(self.features)
         self.pandas_features_decoder = PandasFeaturesDecoder(self.features)
 
@@ -434,11 +429,13 @@ class ArrowFormatter(Formatter[pa.Table, pa.Array, pa.Table]):
 
 
 class PythonFormatter(Formatter[Mapping, list, Mapping]):
-    supports_lazy_formatting = True
+    def __init__(self, features=None, lazy=False):
+        super().__init__(features)
+        self.lazy = lazy
 
     def format_row(self, pa_table: pa.Table) -> Mapping:
         if self.lazy:
-            return PythonLazyRow(pa_table, self)
+            return LazyRow(pa_table, self)
         row = self.python_arrow_extractor().extract_row(pa_table)
         row = self.python_features_decoder.decode_row(row)
         return row
@@ -450,7 +447,7 @@ class PythonFormatter(Formatter[Mapping, list, Mapping]):
 
     def format_batch(self, pa_table: pa.Table) -> Mapping:
         if self.lazy:
-            return PythonLazyBatch(pa_table, self)
+            return LazyBatch(pa_table, self)
         batch = self.python_arrow_extractor().extract_batch(pa_table)
         batch = self.python_features_decoder.decode_batch(batch)
         return batch
