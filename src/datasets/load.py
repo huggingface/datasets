@@ -607,6 +607,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
     def __init__(
         self,
         path: str,
+        config_name: Optional[str] = None,
         data_dir: Optional[str] = None,
         data_files: Optional[Union[str, List, Dict]] = None,
         download_mode: Optional[DownloadMode] = None,
@@ -616,11 +617,25 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
 
         self.path = path
         self.name = Path(path).stem
+        self.config_name = config_name
         self.data_files = data_files
         self.data_dir = data_dir
         self.download_mode = download_mode
 
     def get_module(self) -> DatasetModule:
+        # TODO: we have to parse `configs` from metadata before finding patterns, to pass `data_dir` and `data_files`
+        config_kwargs = {}
+        if os.path.isfile(os.path.join(self.path, "README.md")):
+            dataset_metadata = DatasetMetadata.from_readme(Path(self.path) / "README.md")
+            if self.config_name and "configs" in dataset_metadata:
+                configs_metadata = {
+                    config_params["config_name"]: config_params for config_params in dataset_metadata["configs"]
+                }
+                config_kwargs = configs_metadata[self.config_name]
+                # updating data_files and data_dir
+                self.data_files = config_kwargs.get("data_files", None) or self.data_files
+                self.data_dir = config_kwargs.get("data_dir", None) or self.data_dir
+
         base_path = os.path.join(self.path, self.data_dir) if self.data_dir else self.path
         patterns = (
             sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns_locally(base_path)
@@ -655,7 +670,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
-            "config_name": os.path.basename(self.path.rstrip("/")),
+            "config_name": self.config_name,  # os.path.basename(self.path.rstrip("/")),
             "base_path": self.path,
             **builder_kwargs,
         }
@@ -663,7 +678,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             with open(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
                 dataset_infos: DatasetInfosDict = json.load(f)
             if dataset_infos:
-                builder_kwargs["config_name"] = next(iter(dataset_infos))
+                builder_kwargs["config_name"] = next(iter(dataset_infos))  # TODO
                 builder_kwargs["info"] = DatasetInfo.from_dict(next(iter(dataset_infos.values())))
         if os.path.isfile(os.path.join(self.path, "README.md")):
             dataset_metadata = DatasetMetadata.from_readme(Path(self.path) / "README.md")
@@ -677,7 +692,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
                 if "config_name" in dataset_info_dict:
                     builder_kwargs["config_name"] = dataset_info_dict["config_name"]
-        return DatasetModule(module_path, hash, builder_kwargs)
+        return DatasetModule(module_path, hash, {**builder_kwargs, **config_kwargs})
 
 
 class PackagedDatasetModuleFactory(_DatasetModuleFactory):
@@ -1043,6 +1058,7 @@ class CachedMetricModuleFactory(_MetricModuleFactory):
 
 def dataset_module_factory(
     path: str,
+    config_name: str = None,
     revision: Optional[Union[str, Version]] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[DownloadMode] = None,
@@ -1145,9 +1161,11 @@ def dataset_module_factory(
             combined_path, download_mode=download_mode, dynamic_modules_path=dynamic_modules_path
         ).get_module()
     elif os.path.isdir(path):
-        return LocalDatasetModuleFactoryWithoutScript(
-            path, data_dir=data_dir, data_files=data_files, download_mode=download_mode
-        ).get_module()
+        factory = LocalDatasetModuleFactoryWithoutScript(
+            path, config_name=config_name, data_dir=data_dir, data_files=data_files, download_mode=download_mode
+        )
+        module = factory.get_module()
+        return module
     # Try remotely
     elif is_relative_path(path) and path.count("/") <= 1:
         try:
@@ -1487,6 +1505,7 @@ def load_dataset_builder(
         download_config.use_auth_token = use_auth_token
     dataset_module = dataset_module_factory(
         path,
+        config_name=name,
         revision=revision,
         download_config=download_config,
         download_mode=download_mode,
@@ -1718,15 +1737,15 @@ def load_dataset(
     builder_instance = load_dataset_builder(
         path=path,
         name=name,
-        data_dir=data_dir,
-        data_files=data_files,
+        data_dir=data_dir,  # not config kwargs
+        data_files=data_files,  # not config kwargs
         cache_dir=cache_dir,
         features=features,
         download_config=download_config,
         download_mode=download_mode,
         revision=revision,
         use_auth_token=use_auth_token,
-        **config_kwargs,
+        **config_kwargs,  # HERE are also config_kwargs
     )
 
     # Return iterable dataset in case of streaming
