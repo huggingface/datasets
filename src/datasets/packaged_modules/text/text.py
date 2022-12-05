@@ -93,9 +93,10 @@ class Text(datasets.ArrowBasedBuilder):
                     batch_idx = 0
                     batch = ""
                     while True:
-                        batch += f.read(self.config.chunksize)
-                        if not batch:
+                        new_batch = f.read(self.config.chunksize)
+                        if not new_batch:
                             break
+                        batch += new_batch
                         batch += f.readline()  # finish current line
                         batch = batch.split("\n\n")
                         pa_table = pa.Table.from_arrays(
@@ -107,6 +108,9 @@ class Text(datasets.ArrowBasedBuilder):
                         yield (file_idx, batch_idx), self._cast_table(pa_table)
                         batch_idx += 1
                         batch = batch[-1]
+                    if batch:
+                        pa_table = pa.Table.from_arrays([pa.array([batch])], names=pa_table_names)
+                        yield (file_idx, batch_idx), self._cast_table(pa_table)
                 elif self.config.sample_by == "document":
                     text = f.read()
                     pa_table = pa.Table.from_arrays([pa.array([text])], names=pa_table_names)
