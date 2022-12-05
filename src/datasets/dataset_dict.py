@@ -1434,7 +1434,7 @@ class DatasetDict(Dict[str, Dataset]):
         You must specify which splits to convert if the dataset is made of multiple splits.
 
         Args:
-            splits (:obj:`List[str]`, optional): List of splits to convert to a DataFrame.
+            splits (:obj:`Union[Literal["all"], List[str]]`, optional): List of splits to convert to a DataFrame.
                 You don't need to specify the splits if there's only one.
                 Use splits="all" to convert all the splits (they will be converted in the order of the dictionary).
             batched (:obj:`bool`): Set to :obj:`True` to return a generator that yields the dataset as batches
@@ -1470,6 +1470,9 @@ class DatasetDict(Dict[str, Dataset]):
                 '\n    df = ds.to_pandas(splits="all")'
             )
         splits = splits if splits is not None and splits != "all" else list(self)
+        bad_splits = list(set(splits) - set(self))
+        if bad_splits:
+            raise ValueError(f"Can't convert those splits to pandas : {bad_splits}. Available splits: {list(self)}.")
         if batched:
             return (df for split in splits for df in self[split].to_pandas(batch_size=batch_size, batched=batched))
         else:
