@@ -15,7 +15,6 @@ from xml.etree import ElementTree as ET
 
 import fsspec
 from aiohttp.client_exceptions import ClientError
-from packaging import version
 
 from .. import config
 from ..filesystems import COMPRESSION_FILESYSTEMS
@@ -543,13 +542,15 @@ def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
         urlpath (`str`): URL root path.
         use_auth_token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
             Hugging Face Hub for private remote files.
+        **kwargs: Additional keyword arguments forwarded to the underlying filesystem.
+
 
     Yields:
         `tuple`: 3-tuple (dirpath, dirnames, filenames).
     """
     main_hop, *rest_hops = _as_str(urlpath).split("::")
     if is_local_path(main_hop):
-        yield from os.walk(main_hop)
+        yield from os.walk(main_hop, **kwargs)
     else:
         # walking inside a zip in a private repo requires authentication
         if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
@@ -566,8 +567,9 @@ def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
         if inner_path.strip("/") and not fs.isdir(inner_path):
             return []
         protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[-1]
-        for dirpath, dirnames, filenames in fs.walk(inner_path):
+        for dirpath, dirnames, filenames in fs.walk(inner_path, **kwargs):
             yield "::".join([f"{protocol}://{dirpath}"] + rest_hops), dirnames, filenames
+
 
 class xPath(type(Path())):
     """Extension of `pathlib.Path` to support both local paths and remote URLs."""
