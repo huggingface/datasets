@@ -198,7 +198,7 @@ class DatasetBuilder:
     `DatasetBuilder` has 3 key methods:
 
         - [`DatasetBuilder.info`]: Documents the dataset, including feature
-          names, types, and shapes, version, splits, citation, etc.
+          names, types, shapes, version, splits, citation, etc.
         - [`DatasetBuilder.download_and_prepare`]: Downloads the source data
           and writes it to disk.
         - [`DatasetBuilder.as_dataset`]: Generates a [`Dataset`].
@@ -209,8 +209,10 @@ class DatasetBuilder:
     pre-defined set of configurations in [`DatasetBuilder.builder_configs`].
 
     Args:
-        cache_dir (`str`, *optional*): Directory to cache data. Defaults to ``"~/.cache/huggingface/datasets"``.
-        config_name (`str`, *optional*): Name of the dataset configuration.
+        cache_dir (`str`, *optional*): 
+            Directory to cache data. Defaults to `"~/.cache/huggingface/datasets"`.
+        config_name (`str`, *optional*): 
+            Name of the dataset configuration.
             It affects the data generated on disk: different configurations will have their own subdirectories and
             versions.
             If not provided, the default configuration is used (if it exists).
@@ -220,24 +222,31 @@ class DatasetBuilder:
             Parameter `name` was renamed to `config_name`.
 
             </Added>
-        hash (`str`, *optional*): Hash specific to the dataset code. Used to update the caching directory when the
+        hash (`str`, *optional*): 
+            Hash specific to the dataset code. Used to update the caching directory when the
             dataset loading script code is updated (to avoid reusing old data).
-            The typical caching directory (defined in ``self._relative_data_dir``) is: ``name/version/hash/``.
-        base_path (`str`, *optional*): Base path for relative paths that are used to download files.
+            The typical caching directory (defined in `self._relative_data_dir`) is: `name/version/hash/`.
+        base_path (`str`, *optional*): 
+            Base path for relative paths that are used to download files.
             This can be a remote URL.
-        features ([`Features`], *optional*): Features types to use with this dataset.
-            It can be used to change the Features types of a dataset, for example.
-        use_auth_token (`str` or `bool`, *optional*): String or boolean to use as Bearer token for remote files on the
-            Datasets Hub. If `True`, will get token from ``"~/.huggingface"``.
-        repo_id (`str`, *optional*): ID of the dataset repository.
+        features ([`Features`], *optional*): 
+            Features types to use with this dataset.
+            It can be used to change the [`Features`] types of a dataset, for example.
+        use_auth_token (`str` or `bool`, *optional*): 
+            String or boolean to use as Bearer token for remote files on the
+            Datasets Hub. If `True`, will get token from `"~/.huggingface"`.
+        repo_id (`str`, *optional*): 
+            ID of the dataset repository.
             Used to distinguish builders with the same name but not coming from the same namespace, for example "squad"
             and "lhoestq/squad" repo IDs. In the latter, the builder name would be "lhoestq___squad".
-        data_files (`str` or `Sequence` or `Mapping`, *optional*): Path(s) to source data file(s).
+        data_files (`str` or `Sequence` or `Mapping`, *optional*): 
+            Path(s) to source data file(s).
             For builders like "csv" or "json" that need the user to specify data files. They can be either
-            local or remote files. For convenience, you can use a DataFilesDict.
-        data_dir (`str`, *optional*): Path to directory containing source data file(s).
+            local or remote files. For convenience, you can use a `DataFilesDict`.
+        data_dir (`str`, *optional*): 
+            Path to directory containing source data file(s).
             Use only if `data_files` is not passed, in which case it is equivalent to passing
-            ``os.path.join(data_dir, "**")`` as `data_files`.
+            `os.path.join(data_dir, "**")` as `data_files`.
             For builders that require manual download, it must be the path to the local directory containing the
             manually downloaded data.
         name (`str`): Configuration name for the dataset.
