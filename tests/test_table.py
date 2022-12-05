@@ -9,7 +9,7 @@ import pytest
 
 import datasets
 from datasets import Sequence, Value
-from datasets.features.features import ClassLabel, Features, Image
+from datasets.features.features import Array2DExtensionType, ClassLabel, Features, Image
 from datasets.table import (
     ConcatenationTable,
     InMemoryTable,
@@ -20,6 +20,7 @@ from datasets.table import (
     _in_memory_arrow_table_from_file,
     _interpolation_search,
     _memory_mapped_arrow_table_from_file,
+    array_concat,
     cast_array_to_feature,
     concat_tables,
     embed_array_storage,
@@ -116,13 +117,13 @@ def test_inject_arrow_table_documentation(in_memory_pa_table):
     assert "Table" in wrapped_method.__doc__
 
 
-def test__in_memory_arrow_table_from_file(arrow_file, in_memory_pa_table):
+def test_in_memory_arrow_table_from_file(arrow_file, in_memory_pa_table):
     with assert_arrow_memory_increases():
         pa_table = _in_memory_arrow_table_from_file(arrow_file)
         assert in_memory_pa_table == pa_table
 
 
-def test__in_memory_arrow_table_from_buffer(in_memory_pa_table):
+def test_in_memory_arrow_table_from_buffer(in_memory_pa_table):
     with assert_arrow_memory_increases():
         buf_writer = pa.BufferOutputStream()
         writer = pa.RecordBatchStreamWriter(buf_writer, schema=in_memory_pa_table.schema)
@@ -133,7 +134,7 @@ def test__in_memory_arrow_table_from_buffer(in_memory_pa_table):
         assert in_memory_pa_table == pa_table
 
 
-def test__memory_mapped_arrow_table_from_file(arrow_file, in_memory_pa_table):
+def test_memory_mapped_arrow_table_from_file(arrow_file, in_memory_pa_table):
     with assert_arrow_memory_doesnt_increase():
         pa_table = _memory_mapped_arrow_table_from_file(arrow_file)
         assert in_memory_pa_table == pa_table
@@ -1053,6 +1054,44 @@ def test_indexed_table_mixin():
     assert all(table._offsets.tolist() == np.cumsum([0] + [n_rows_per_chunk] * n_chunks))
     assert table.fast_slice(5) == pa_table.slice(5)
     assert table.fast_slice(2, 13) == pa_table.slice(2, 13)
+
+
+@pytest.mark.parametrize(
+    "arrays",
+    [
+        [pa.array([[1, 2, 3, 4]]), pa.array([[10, 2]])],
+        [
+            pa.array([[[1, 2], [3]]], pa.list_(pa.list_(pa.int32()), 2)),
+            pa.array([[[10, 2, 3], [2]]], pa.list_(pa.list_(pa.int32()), 2)),
+        ],
+    ],
+)
+def test_concat_arrays(arrays):
+    assert array_concat(arrays) == pa.concat_arrays(arrays)
+
+
+def test_concat_arrays_nested_with_nulls():
+    arrays = [pa.array([{"a": 21, "b": [[1, 2], [3]]}]), pa.array([{"a": 100, "b": [[1], None]}])]
+    if datasets.config.PYARROW_VERSION.major < 10:
+        arrays_with_lists = [pa.array([{"a": 21, "b": [[1, 2], [3]]}]), pa.array([{"a": 100, "b": [[1], []]}])]
+        with pytest.warns(UserWarning, match="None values are converted to empty lists.+"):
+            concatenated_arrays = array_concat(arrays)
+        assert (
+            concatenated_arrays == arrays_with_lists
+        )  # empty list because of https://github.com/huggingface/datasets/issues/3676
+    else:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            concatenated_arrays = array_concat(arrays)
+        assert concatenated_arrays == pa.concat_arrays(arrays)
+
+
+def test_concat_extension_arrays():
+    arrays = [pa.array([[[1, 2], [3, 4]]]), pa.array([[[10, 2], [3, 4]]])]
+    extension_type = Array2DExtensionType((2, 2), "int64")
+    assert array_concat([extension_type.wrap_array(array) for array in arrays]) == extension_type.wrap_array(
+        pa.concat_arrays(arrays)
+    )
 
 
 def test_cast_array_to_features():

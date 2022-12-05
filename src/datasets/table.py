@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, TypeVar, Unio
 
 import numpy as np
 import pyarrow as pa
+import pyarrow.compute as pc
 
 from . import config
 from .utils.logging import get_logger
@@ -152,7 +153,7 @@ class Table(IndexedTableMixin):
 
     It implements all the basic attributes/methods of the pyarrow Table class except
     the Table transforms: slice, filter, flatten, combine_chunks, cast, add_column,
-    append_column, remove_column, set_column, rename_columns and drop.
+    append_column, remove_column, set_column, rename_columns, select and drop.
 
     The implementation of these methods differs for the subclasses.
     """
@@ -1798,6 +1799,79 @@ def _wrap_for_chunked_arrays(func):
     return wrapper
 
 
+def array_concat(arrays: List[pa.Array]):
+    """Improved version of pa.concat_arrays
+
+    It supports concatenating pa.ExtensionArray objects by concatenating the underlying storages.
+
+    Args:
+        arrays (List[pa.Array]): List of arrays to contatenate
+
+    Raises:
+        pa.ArrowInvalid: if the arrow array concatenation fails
+        ValueError: if the list of arrays is empty
+        TypeError: if the arrays to be concatenated have different types
+
+    Returns:
+        array (:obj:`pyarrow.Array`): the concatenated array
+    """
+    arrays = list(arrays)
+    array_types = set(array.type for array in arrays)
+
+    if not array_types:
+        raise ValueError("Couldn't concatenate empty list of arrays")
+    if len(array_types) > 1:
+        array_types = list(array_types)
+        raise TypeError(f"Couldn't concatenate arrays with different types {array_types[0]} and {array_types[1]}")
+
+    def _offsets_concat(offsets):
+        offset = offsets[0]
+        concatenated_offsets = offset
+        for offset in offsets[1:]:
+            offset = pc.subtract(offset, offset[0])
+            offset = pc.add(offset[1:], concatenated_offsets[-1])
+            concatenated_offsets = pa.concat_arrays([concatenated_offsets, offset])
+        return concatenated_offsets
+
+    # breakpoint_ = arrays = [pa.array([{"a": 21, "b": [[1, 2], [3]]}]), pa.array([{"a": 100, "b": [[1], None]}])]
+
+    def _concat_arrays(arrays):
+        # if breakpoint_:
+        # breakpoint()
+        array = arrays[0]
+        if isinstance(array, pa.ExtensionArray):
+            return array.type.wrap_array(_concat_arrays([array.storage for array in arrays]))
+        elif pa.types.is_struct(array.type):
+            return pa.StructArray.from_arrays(
+                [_concat_arrays([array.field(field.name) for array in arrays]) for field in array.type],
+                fields=list(array.type),
+                mask=pa.concat_arrays([array.is_null() for array in arrays]),
+            )
+        elif pa.types.is_list(array.type):
+            if config.PYARROW_VERSION.major < 10:
+                warnings.warn(
+                    "None values are converted to empty lists in `pyarrow<10.0.0` when concatenating list arrays with None values. Install `pyarrow>=10.0.0` to avoid this behavior. More info: https://github.com/huggingface/datasets/issues/3676."
+                )
+            else:
+                return pa.ListArray.from_arrays(
+                    _offsets_concat([array.offsets for array in arrays]),
+                    _concat_arrays([array.values for array in arrays]),
+                    mask=pa.concat_arrays([array.is_null() for array in arrays]),
+                )
+            return pa.ListArray.from_arrays(
+                _offsets_concat([array.offsets for array in arrays]),
+                _concat_arrays([array.values for array in arrays]),
+            )
+        elif pa.types.is_fixed_size_list(array.type):
+            return pa.FixedSizeListArray.from_arrays(
+                _concat_arrays([array.values for array in arrays]),
+                array.type.list_size,
+            )
+        return pa.concat_arrays(arrays)
+
+    return _concat_arrays(arrays)
+
+
 @_wrap_for_chunked_arrays
 def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
     """Improved version of pa.Array.cast
@@ -1813,7 +1887,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
             Defaults to True.
 
     Raises:
-        pa.ArrowInvalidError: if the arrow data casting fails
+        pa.ArrowInvalid: if the arrow data casting fails
         TypeError: if the target type is not supported according, e.g.
 
             - if a field is missing
@@ -1899,7 +1973,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
             Defaults to True.
 
     Raises:
-        pa.ArrowInvalidError: if the arrow data casting fails
+        pa.ArrowInvalid: if the arrow data casting fails
         TypeError: if the target type is not supported according, e.g.
 
             - if a field is missing

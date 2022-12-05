@@ -38,7 +38,7 @@ from .features.features import (
 from .filesystems import is_remote_filesystem
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
-from .table import array_cast, cast_array_to_feature, embed_table_storage, table_cast
+from .table import array_cast, array_concat, cast_array_to_feature, embed_table_storage, table_cast
 from .utils import logging
 from .utils.file_utils import hash_url_to_filename
 from .utils.py_utils import asdict, first_non_null_value
@@ -435,8 +435,7 @@ class ArrowWriter:
             # Since current_examples contains (example, key) tuples
             if isinstance(self.current_examples[0][0][col], (pa.Array, pa.ChunkedArray)):
                 arrays = [row[0][col] for row in self.current_examples]
-                # use `pa.chunked_array` instead of `pa.concat_arrays`, as the latter still doesn't know how to handle extension types
-                batch_examples[col] = pa.chunked_array(
+                batch_examples[col] = array_concat(
                     [arr.chunk(0) if isinstance(arr, pa.ChunkedArray) else arr for arr in arrays]
                 )
             else:
