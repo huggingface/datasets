@@ -237,6 +237,7 @@ def get_dataset_infos(
         download_config=download_config,
         download_mode=download_mode,
         data_files=data_files,
+        use_auth_token=use_auth_token,
     )
     return {
         config_name: get_dataset_config_info(
