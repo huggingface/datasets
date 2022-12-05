@@ -1455,8 +1455,8 @@ class DatasetDict(Dict[str, Dataset]):
         If the dataset has multiple splits:
         ```py
         >>> df_train = dataset_dict["train"].to_pandas()
-        >>> df_test = dataset_dict.to_pandas(splits="all")
-        >>> df_test = dataset_dict.to_pandas(splits=["train", "test"])
+        >>> df_all = dataset_dict.to_pandas(splits="all")
+        >>> df_train_test = dataset_dict.to_pandas(splits=["train", "test"])
         ```
         """
         self._check_values_type()
@@ -1467,6 +1467,7 @@ class DatasetDict(Dict[str, Dataset]):
                 f"Available splits: {list(self)}. For example:"
                 '\n    df = ds["train"].to_pandas()'
                 '\n    df = ds.to_pandas(splits=["train", "test"])'
+                '\n    df = ds.to_pandas(splits="all")'
             )
         splits = splits if splits is not None and splits != "all" else list(self)
         if batched:
