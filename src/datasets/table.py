@@ -1833,11 +1833,8 @@ def array_concat(arrays: List[pa.Array]):
             concatenated_offsets = pa.concat_arrays([concatenated_offsets, offset])
         return concatenated_offsets
 
-    # breakpoint_ = arrays = [pa.array([{"a": 21, "b": [[1, 2], [3]]}]), pa.array([{"a": 100, "b": [[1], None]}])]
 
     def _concat_arrays(arrays):
-        # if breakpoint_:
-        # breakpoint()
         array = arrays[0]
         if isinstance(array, pa.ExtensionArray):
             return array.type.wrap_array(_concat_arrays([array.storage for array in arrays]))
