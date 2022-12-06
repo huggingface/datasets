@@ -191,18 +191,18 @@ def test_randomly_cycling_multi_sources_examples_iterable(probabilities):
 
 
 @pytest.mark.parametrize(
-    "n, func, batch_size",
+    "n, func, batched, batch_size",
     [
-        (3, lambda x: {"id+1": x["id"] + 1}, None),  # just add 1 to the id
-        (3, lambda x: {"id+1": [x["id"][0] + 1]}, 1),  # same with bs=1
-        (5, lambda x: {"id+1": [i + 1 for i in x["id"]]}, 10),  # same with bs=10
-        (25, lambda x: {"id+1": [i + 1 for i in x["id"]]}, 10),  # same with bs=10
-        (3, lambda x: {k: v * 2 for k, v in x.items()}, 1),  # make a duplicate of each example
+        (3, lambda x: {"id+1": x["id"] + 1}, False, None),  # just add 1 to the id
+        (3, lambda x: {"id+1": [x["id"][0] + 1]}, True, 1),  # same with bs=1
+        (5, lambda x: {"id+1": [i + 1 for i in x["id"]]}, True, 10),  # same with bs=10
+        (25, lambda x: {"id+1": [i + 1 for i in x["id"]]}, True, 10),  # same with bs=10
+        (3, lambda x: {k: v * 2 for k, v in x.items()}, True, 1),  # make a duplicate of each example
     ],
 )
-def test_mapped_examples_iterable(n, func, batch_size):
+def test_mapped_examples_iterable(n, func, batched, batch_size):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
-    ex_iterable = MappedExamplesIterable(base_ex_iterable, func, batched=batch_size is not None, batch_size=batch_size)
+    ex_iterable = MappedExamplesIterable(base_ex_iterable, func, batched=batched, batch_size=batch_size)
     all_examples = [x for _, x in generate_examples_fn(n=n)]
     if batch_size is None:
         expected = [{**x, **func(x)} for x in all_examples]
