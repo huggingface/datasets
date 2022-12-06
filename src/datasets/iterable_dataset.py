@@ -374,8 +374,8 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         iterator = iter(self.ex_iterable)
         current_idx = 0
         if self.batched:
-            if batch_size is None or batch_size <= 0:
-                batch_size = 1000
+            if self.batch_size is None or self.batch_size <= 0:
+                self.batch_size = 1000
             for key, example in iterator:
                 # If batched, first build the batch
                 key_examples_list = [(key, example)] + [
@@ -484,8 +484,8 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
         iterator = iter(self.ex_iterable)
         current_idx = 0
         if self.batched:
-            if batch_size is None or batch_size <= 0:
-                batch_size = 1000
+            if self.batch_size is None or self.batch_size <= 0:
+                self.batch_size = 1000
             for key, example in iterator:
                 # If batched, first build the batch
                 key_examples_list = [(key, example)] + [
