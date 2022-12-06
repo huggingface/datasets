@@ -860,9 +860,9 @@ class FilesIterable(_IterableFromGenerator):
 class StreamingDownloadManager:
     """
     Download manager that uses the "::" separator to navigate through (possibly remote) compressed archives.
-    Contrary to the regular DownloadManager, the `download` and `extract` methods don't actually download nor extract
+    Contrary to the regular `DownloadManager`, the `download` and `extract` methods don't actually download nor extract
     data, but they rather return the path or url that could be opened using the `xopen` function which extends the
-    builtin `open` function to stream data from remote files.
+    built-in `open` function to stream data from remote files.
     """
 
     is_streaming = True
@@ -885,10 +885,11 @@ class StreamingDownloadManager:
 
     def download(self, url_or_urls):
         """Normalize URL(s) of files to stream data from.
-        This is the lazy version of DownloadManager.download for streaming.
+        This is the lazy version of `DownloadManager.download` for streaming.
 
         Args:
-            url_or_urls (`str` or `list` or `dict`): URL(s) of files to stream data from. Each url is a `str`.
+            url_or_urls (`str` or `list` or `dict`):
+                URL(s) of files to stream data from. Each url is a `str`.
 
         Returns:
             url(s): (`str` or `list` or `dict`), URL(s) to stream data from matching the given input url_or_urls.
@@ -915,10 +916,11 @@ class StreamingDownloadManager:
         This is the lazy version of `DownloadManager.extract` for streaming.
 
         Args:
-            url_or_urls (`str` or `list` or `dict`): URL or URLs of files to stream data from. Each url is a `str`.
+            url_or_urls (`str` or `list` or `dict`):
+                URL(s) of files to stream data from. Each url is a `str`.
 
         Returns:
-            url(s): (`str` or `list` or `dict`), URL(s) to stream data from matching the given input url_or_urls.
+            url(s): (`str` or `list` or `dict`), URL(s) to stream data from matching the given input `url_or_urls`.
 
         Example:
 
@@ -949,7 +951,7 @@ class StreamingDownloadManager:
             return f"{protocol}://::{urlpath}"
 
     def download_and_extract(self, url_or_urls):
-        """Prepare given url_or_urls for streaming (add extraction protocol).
+        """Prepare given `url_or_urls` for streaming (add extraction protocol).
 
         This is the lazy version of `DownloadManager.download_and_extract` for streaming.
 
@@ -960,10 +962,11 @@ class StreamingDownloadManager:
         ```
 
         Args:
-            url_or_urls: url or `list`/`dict` of urls to stream from. Each url is a `str`.
+            url_or_urls (`str` or `list` or `dict`):
+                URL(s) to stream from data from. Each url is a `str`.
 
         Returns:
-            url(s): (`str` or `list` or `dict`), URL(s) to stream data from matching the given input url_or_urls.
+            url(s): (`str` or `list` or `dict`), URL(s) to stream data from matching the given input `url_or_urls`.
         """
         return self.extract(self.download(url_or_urls))
 
@@ -971,10 +974,12 @@ class StreamingDownloadManager:
         """Iterate over files within an archive.
 
         Args:
-            urlpath_or_buf (:obj:`str` or :obj:`io.BufferedReader`): Archive path or archive binary file object.
+            urlpath_or_buf (`str` or `io.BufferedReader`):
+                Archive path or archive binary file object.
 
         Yields:
-            :obj:`tuple`[:obj:`str`, :obj:`io.BufferedReader`]: 2-tuple (path_within_archive, file_object).
+            `tuple[str, io.BufferedReader]`:
+                2-tuple (path_within_archive, file_object).
                 File object is opened in binary mode.
 
         Example:
@@ -994,7 +999,8 @@ class StreamingDownloadManager:
         """Iterate over files.
 
         Args:
-            urlpaths (:obj:`str` or :obj:`list` of :obj:`str`): Root paths.
+            urlpaths (`str` or `list` of `str`):
+                Root paths.
 
         Yields:
             str: File URL path.

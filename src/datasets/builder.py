@@ -98,17 +98,18 @@ class DatasetGenerationError(DatasetBuildError):
 
 @dataclass
 class BuilderConfig:
-    """Base class for :class:`DatasetBuilder` data configuration.
+    """Base class for `DatasetBuilder` data configuration.
 
-    DatasetBuilder subclasses with data configuration options should subclass
-    :class:`BuilderConfig` and add their own properties.
+    `DatasetBuilder` subclasses with data configuration options should subclass
+    `BuilderConfig` and add their own properties.
 
     Attributes:
-        name (:obj:`str`, default ``"default"``):
-        version (:class:`Version` or :obj:`str`, optional):
-        data_dir (:obj:`str`, optional):
-        data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
-        description (:obj:`str`, optional):
+        name (`str`, defaults to `default`):
+        version (`Version` or `str`, *optional*):
+        data_dir (`str`, *optional*):
+        data_files (`str` or `Sequence` or `Mapping`, *optional*):
+            Path(s) to source data file(s).
+        description (`str`, *optional*):
     """
 
     name: str = "default"
@@ -148,6 +149,7 @@ class BuilderConfig:
         - the config kwargs that can be used to overwrite attributes
         - the custom features used to write the dataset
         - the data_files for json/text/csv/pandas datasets
+
         Therefore the config id is just the config name with an optional suffix based on these.
         """
         # Possibly add a suffix to the name to handle custom features/data_files/config_kwargs
@@ -203,7 +205,7 @@ class DatasetBuilder:
           and writes it to disk.
         - [`DatasetBuilder.as_dataset`]: Generates a [`Dataset`].
 
-    **Configuration**: Some `DatasetBuilder`s expose multiple variants of the
+    Some `DatasetBuilder`s expose multiple variants of the
     dataset by defining a [`BuilderConfig`] subclass and accepting a
     config object (or name) on construction. Configurable datasets expose a
     pre-defined set of configurations in [`DatasetBuilder.builder_configs`].
@@ -213,7 +215,7 @@ class DatasetBuilder:
             Directory to cache data. Defaults to `"~/.cache/huggingface/datasets"`.
         config_name (`str`, *optional*):
             Name of the dataset configuration.
-            It affects the data generated on disk: different configurations will have their own subdirectories and
+            It affects the data generated on disk. Different configurations will have their own subdirectories and
             versions.
             If not provided, the default configuration is used (if it exists).
 
@@ -225,7 +227,7 @@ class DatasetBuilder:
         hash (`str`, *optional*):
             Hash specific to the dataset code. Used to update the caching directory when the
             dataset loading script code is updated (to avoid reusing old data).
-            The typical caching directory (defined in `self._relative_data_dir`) is: `name/version/hash/`.
+            The typical caching directory (defined in `self._relative_data_dir`) is `name/version/hash/`.
         base_path (`str`, *optional*):
             Base path for relative paths that are used to download files.
             This can be a remote URL.
@@ -415,7 +417,7 @@ class DatasetBuilder:
         return DatasetInfosDict.from_directory(cls.get_imported_module_dir())
 
     def get_exported_dataset_info(self) -> DatasetInfo:
-        """Empty DatasetInfo if doesn't exist
+        """Empty `DatasetInfo` if doesn't exist
 
         Example:
 
@@ -629,41 +631,53 @@ class DatasetBuilder:
         """Downloads and prepares dataset for reading.
 
         Args:
-            output_dir (:obj:`str`, optional): output directory for the dataset.
-                Default to this builder's ``cache_dir``, which is inside ~/.cache/huggingface/datasets by default.
+            output_dir (`str`, *optional*):
+                Output directory for the dataset.
+                Default to this builder's `cache_dir`, which is inside `~/.cache/huggingface/datasets` by default.
 
                 <Added version="2.5.0"/>
-            download_config (:class:`DownloadConfig`, optional): specific download configuration parameters.
-            download_mode (:class:`DownloadMode`, optional): select the download/generate mode - Default to ``REUSE_DATASET_IF_EXISTS``
-            ignore_verifications (:obj:`bool`): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
-            try_from_hf_gcs (:obj:`bool`): If True, it will try to download the already prepared dataset from the Hf google cloud storage
-            dl_manager (:class:`DownloadManager`, optional): specific Download Manger to use
-            base_path (:obj:`str`, optional): base path for relative paths that are used to download files. This can be a remote url.
+            download_config (`DownloadConfig`, *optional*):
+                Specific download configuration parameters.
+            download_mode (`DownloadMode`, *optional*):
+                Select the download/generate mode, default to `REUSE_DATASET_IF_EXISTS`.
+            ignore_verifications (`bool`):
+                Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...).
+            try_from_hf_gcs (`bool`):
+                If `True`, it will try to download the already prepared dataset from the HF Google cloud storage.
+            dl_manager (`DownloadManager`, *optional*):
+                Specific `DownloadManger` to use.
+            base_path (`str`, *optional*):
+                Base path for relative paths that are used to download files. This can be a remote url.
                 If not specified, the value of the `base_path` attribute (`self.base_path`) will be used instead.
-            use_auth_token (:obj:`Union[str, bool]`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-                If True, will get token from ~/.huggingface.
-            file_format (:obj:`str`, optional): format of the data files in which the dataset will be written.
+            use_auth_token (`Union[str, bool]`, *optional*):
+                Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+                If `True`, will get token from `~/.huggingface`.
+            file_format (`str`, *optional*):
+                Format of the data files in which the dataset will be written.
                 Supported formats: "arrow", "parquet". Default to "arrow" format.
                 If the format is "parquet", then image and audio data are embedded into the Parquet files instead of pointing to local files.
 
                 <Added version="2.5.0"/>
-            max_shard_size (:obj:`Union[str, int]`, optional): Maximum number of bytes written per shard, default is "500MB".
+            max_shard_size (`Union[str, int]`, *optional*):
+                Maximum number of bytes written per shard, default is "500MB".
                 The size is based on uncompressed data size, so in practice your shard files may be smaller than
                 `max_shard_size` thanks to Parquet compression for example.
 
                 <Added version="2.5.0"/>
-            num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
+            num_proc (`int`, *optional*, defaults to `None`):
+                Number of processes when downloading and generating the dataset locally.
                 Multiprocessing is disabled by default.
 
                 <Added version="2.7.0"/>
-            storage_options (:obj:`dict`, *optional*): Key/value pairs to be passed on to the caching file-system backend, if any.
+            storage_options (`dict`, *optional*):
+                Key/value pairs to be passed on to the caching file-system backend, if any.
 
                 <Added version="2.5.0"/>
             **download_and_prepare_kwargs (additional keyword arguments): Keyword arguments.
 
         Example:
 
-        Downdload and prepare the dataset as Arrow files that can be loaded as a Dataset using `builder.as_dataset()`
+        Download and prepare the dataset as Arrow files that can be loaded as a Dataset using `builder.as_dataset()`:
 
         ```py
         >>> from datasets import load_dataset_builder
@@ -671,7 +685,7 @@ class DatasetBuilder:
         >>> ds = builder.download_and_prepare()
         ```
 
-        Downdload and prepare the dataset as sharded Parquet files locally
+        Download and prepare the dataset as sharded Parquet files locally:
 
         ```py
         >>> from datasets import load_dataset_builder
@@ -679,7 +693,7 @@ class DatasetBuilder:
         >>> ds = builder.download_and_prepare("./output_dir", file_format="parquet")
         ```
 
-        Downdload and prepare the dataset as sharded Parquet files in a cloud storage
+        Download and prepare the dataset as sharded Parquet files in a cloud storage:
 
         ```py
         >>> from datasets import load_dataset_builder
@@ -890,9 +904,11 @@ class DatasetBuilder:
         the pre-processed datasets files.
 
         Args:
-            dl_manager: (:obj:`DownloadManager`) `DownloadManager` used to download and cache data.
-            verify_infos (:obj:`bool`): if False, do not perform checksums and size tests.
-            prepare_split_kwargs: Additional options, such as file_format, max_shard_size
+            dl_manager (`DownloadManager`):
+                `DownloadManager` used to download and cache data.
+            verify_infos (`bool`):
+                if False, do not perform checksums and size tests.
+            prepare_split_kwargs: Additional options, such as `file_format`, `max_shard_size`
         """
         # Generating data for all splits
         split_dict = SplitDict(dataset_name=self.name)
@@ -987,12 +1003,16 @@ class DatasetBuilder:
         """Return a Dataset for the specified split.
 
         Args:
-            split (`datasets.Split`): Which subset of the data to return.
-            run_post_process (bool, default=True): Whether to run post-processing dataset transforms and/or add
+            split (`datasets.Split`):
+                Which subset of the data to return.
+            run_post_process (`bool`, defaults to `True`):
+                Whether to run post-processing dataset transforms and/or add
                 indexes.
-            ignore_verifications (bool, default=False): Whether to ignore the verifications of the
+            ignore_verifications (`bool`, defaults to `False`):
+                Whether to ignore the verifications of the
                 downloaded/processed dataset information (checksums/size/splits/...).
-            in_memory (bool, default=False): Whether to copy the data in-memory.
+            in_memory (`bool`, defaults to `False`):
+                Whether to copy the data in-memory.
 
         Returns:
             datasets.Dataset
@@ -1121,8 +1141,10 @@ class DatasetBuilder:
         the `Dataset` object.
 
         Args:
-            split: `datasets.Split` which subset of the data to read.
-            in_memory (bool, default False): Whether to copy the data in-memory.
+            split (`datasets.Split`):
+                which subset of the data to read.
+            in_memory (`bool`, defaults to `False`):
+                Whether to copy the data in-memory.
 
         Returns:
             `Dataset`
@@ -1217,7 +1239,7 @@ class DatasetBuilder:
         This function returns a list of `SplitGenerator`s defining how to generate
         data and what splits to use.
 
-        Example::
+        Example:
 
             return [
                     datasets.SplitGenerator(
@@ -1249,7 +1271,8 @@ class DatasetBuilder:
         distribute the relevant parts to each split with the `gen_kwargs` argument
 
         Args:
-            dl_manager: (DownloadManager) Download manager to download the data
+            dl_manager (`DownloadManager`):
+                Download manager to download the data
 
         Returns:
             `list<SplitGenerator>`.
@@ -1268,13 +1291,17 @@ class DatasetBuilder:
         """Generate the examples and record them on disk.
 
         Args:
-            split_generator: `SplitGenerator`, Split generator to process
-            file_format (:obj:`str`, optional): format of the data files in which the dataset will be written.
+            split_generator (`SplitGenerator`):
+                Split generator to process
+            file_format (`str`, *optional*):
+                format of the data files in which the dataset will be written.
                 Supported formats: "arrow", "parquet". Default to "arrow" format.
-            max_shard_size (:obj:`Union[str, int]`, optional): Maximum number of bytes written per shard, default is "500MB".
+            max_shard_size (`Union[str, int]`, *optional*):
+                Maximum number of bytes written per shard, default is "500MB".
                 The size is based on uncompressed data size, so in practice your shard files may be smaller than
                 `max_shard_size` thanks to Parquet compression for example.
-            num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
+            num_proc (`int`, *optional*, defaults to `None`):
+                Number of processes when downloading and generating the dataset locally.
                 Multiprocessing is disabled by default.
 
                 <Added version="2.7.0"/>
@@ -1287,7 +1314,8 @@ class DatasetBuilder:
         """Generate the examples on the fly.
 
         Args:
-            split_generator: `SplitGenerator`, Split generator to process
+            split_generator (`SplitGenerator`):
+                Split generator to process
         """
         raise NotImplementedError()
 
@@ -1329,7 +1357,8 @@ class GeneratorBasedBuilder(DatasetBuilder):
         disk.
 
         Args:
-            **kwargs (additional keyword arguments): Arguments forwarded from the SplitGenerator.gen_kwargs
+            **kwargs (additional keyword arguments):
+                Arguments forwarded from the SplitGenerator.gen_kwargs
 
         Yields:
             key: `str` or `int`, a unique deterministic example identification key.
@@ -1586,7 +1615,8 @@ class ArrowBasedBuilder(DatasetBuilder):
         disk.
 
         Args:
-            **kwargs (additional keyword arguments): Arguments forwarded from the SplitGenerator.gen_kwargs
+            **kwargs (additional keyword arguments):
+                Arguments forwarded from the SplitGenerator.gen_kwargs
 
         Yields:
             key: `str` or `int`, a unique deterministic example identification key.
@@ -1816,7 +1846,7 @@ class MissingBeamOptions(ValueError):
 
 
 class BeamBasedBuilder(DatasetBuilder):
-    """Beam based Builder."""
+    """Beam-based Builder."""
 
     # BeamBasedBuilder does not have dummy data for tests yet
     test_dummy_data = False
@@ -1854,8 +1884,10 @@ class BeamBasedBuilder(DatasetBuilder):
         </Tip>
 
         Args:
-            pipeline ([`utils.beam_utils.BeamPipeline`]): Apache Beam pipeline.
-            **kwargs (additional keyword arguments): Arguments forwarded from the SplitGenerator.gen_kwargs.
+            pipeline ([`utils.beam_utils.BeamPipeline`]):
+                Apache Beam pipeline.
+            **kwargs (additional keyword arguments):
+                Arguments forwarded from the SplitGenerator.gen_kwargs.
 
         Returns:
             `beam.PCollection`: Apache Beam PCollection containing the
@@ -1875,7 +1907,7 @@ class BeamBasedBuilder(DatasetBuilder):
         raise NotImplementedError()
 
     def _download_and_prepare(self, dl_manager, verify_infos, **prepare_splits_kwargs):
-        # Create the Beam pipeline and forward it to _prepare_split
+        # Create the Beam pipeline and forward it to `_prepare_split`
         import apache_beam as beam
 
         import datasets.utils.beam_utils as beam_utils
