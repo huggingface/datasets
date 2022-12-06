@@ -909,6 +909,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,
+        num_proc: Optional[int] = None,
         **kwargs,
     ):
         """Create Dataset from CSV file(s).
@@ -919,6 +920,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features (:class:`Features`, optional): Dataset features.
             cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
             keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
+            num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
+                    This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
+
+                    <Added version="2.8.0"/>
             **kwargs (additional keyword arguments): Keyword arguments to be passed to :meth:`pandas.read_csv`.
 
         Returns:
@@ -934,7 +939,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         from .io.csv import CsvDatasetReader
 
         return CsvDatasetReader(
-            path_or_paths, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+            path_or_paths,
+            split=split,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            num_proc=num_proc,
+            **kwargs,
         ).read()
 
     @staticmethod
@@ -944,6 +955,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         cache_dir: str = None,
         keep_in_memory: bool = False,
         gen_kwargs: Optional[dict] = None,
+        num_proc: Optional[int] = None,
         **kwargs,
     ):
         """Create a Dataset from a generator.
@@ -955,6 +967,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
             gen_kwargs(:obj:`dict`, optional): Keyword arguments to be passed to the `generator` callable.
                 You can define a sharded dataset by passing the list of shards in `gen_kwargs`.
+            num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
+                    This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
+
+                    <Added version="2.7.0"/>
             **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`GeneratorConfig`.
 
         Returns:
@@ -989,6 +1005,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             cache_dir=cache_dir,
             keep_in_memory=keep_in_memory,
             gen_kwargs=gen_kwargs,
+            num_proc=num_proc,
             **kwargs,
         ).read()
 
@@ -1000,6 +1017,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         cache_dir: str = None,
         keep_in_memory: bool = False,
         field: Optional[str] = None,
+        num_proc: Optional[int] = None,
         **kwargs,
     ):
         """Create Dataset from JSON or JSON Lines file(s).
@@ -1011,6 +1029,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
             keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
             field (:obj:`str`, optional): Field name of the JSON file where the dataset is contained in.
+            num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
+                    This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
+
+                    <Added version="2.8.0"/>
             **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`JsonConfig`.
 
         Returns:
@@ -1032,6 +1054,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             cache_dir=cache_dir,
             keep_in_memory=keep_in_memory,
             field=field,
+            num_proc=num_proc,
             **kwargs,
         ).read()
 
@@ -1043,6 +1066,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         cache_dir: str = None,
         keep_in_memory: bool = False,
         columns: Optional[List[str]] = None,
+        num_proc: Optional[int] = None,
         **kwargs,
     ):
         """Create Dataset from Parquet file(s).
@@ -1056,6 +1080,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             columns (:obj:`List[str]`, optional): If not None, only these columns will be read from the file.
                 A column name may be a prefix of a nested field, e.g. 'a' will select
                 'a.b', 'a.c', and 'a.d.e'.
+            num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
+                    This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
+
+                    <Added version="2.8.0"/>
             **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`ParquetConfig`.
 
         Returns:
@@ -1077,6 +1105,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             cache_dir=cache_dir,
             keep_in_memory=keep_in_memory,
             columns=columns,
+            num_proc=num_proc,
             **kwargs,
         ).read()
 
@@ -1087,6 +1116,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,
+        num_proc: Optional[int] = None,
         **kwargs,
     ):
         """Create Dataset from text file(s).
@@ -1097,6 +1127,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features (:class:`Features`, optional): Dataset features.
             cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
             keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
+            num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
+                    This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
+
+                    <Added version="2.8.0"/>
             **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`TextConfig`.
 
         Returns:
@@ -1112,7 +1146,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         from .io.text import TextDatasetReader
 
         return TextDatasetReader(
-            path_or_paths, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+            path_or_paths,
+            split=split,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            num_proc=num_proc,
+            **kwargs,
         ).read()
 
     @staticmethod
