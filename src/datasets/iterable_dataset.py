@@ -355,7 +355,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         with_indices: bool = False,
         input_columns: Optional[List[str]] = None,
         batched: bool = False,
-        batch_size: int = 1000,
+        batch_size: Union[int, None] = 1000,
         drop_last_batch: bool = False,
         remove_columns: Optional[List[str]] = None,
         fn_kwargs: Optional[dict] = None,
@@ -469,7 +469,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
         with_indices: bool = False,
         input_columns: Optional[List[str]] = None,
         batched: bool = False,
-        batch_size: int = 1000,
+        batch_size: Union[int, None] = 1000,
     ):
         self.ex_iterable = ex_iterable
         self.function = function
@@ -835,7 +835,7 @@ class IterableDataset(DatasetInfoMixin):
         with_indices: bool = False,
         input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
-        batch_size: int = 1000,
+        batch_size: Union[int, None] = 1000,
         drop_last_batch: bool = False,
         remove_columns: Optional[Union[str, List[str]]] = None,
         features: Optional[Features] = None,
@@ -936,7 +936,7 @@ class IterableDataset(DatasetInfoMixin):
         with_indices=False,
         input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
-        batch_size: Optional[int] = 1000,
+        batch_size: Union[int, None] = 1000,
     ) -> "IterableDataset":
         """Apply a filter function to all the elements so that the dataset only includes examples according to the filter function.
         The filtering is done on-the-fly when iterating over the dataset.
