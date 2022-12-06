@@ -21,6 +21,9 @@
             "dialogue-generation"
         ]
     },
+    "depth-estimation": {
+        "type": "cv"
+    },
     "feature-extraction": {
         "type": "multimodal"
     },
@@ -94,21 +97,23 @@
         "type": "nlp"
     },
     "table-to-text": {
-        "type": "nlp",
-        "subtasks": [
-            "rdf-to-text"
-        ]
+        "type": "nlp"
     },
     "tabular-classification": {
-        "type": "structured",
+        "type": "tabular",
         "subtasks": [
             "tabular-multi-class-classification",
-            "tabular-multi-label-classification",
+            "tabular-multi-label-classification"
+        ]
+    },
+    "tabular-regression": {
+        "type": "tabular",
+        "subtasks": [
             "tabular-single-column-regression"
         ]
     },
     "tabular-to-text": {
-        "type": "structured",
+        "type": "tabular",
         "subtasks": [
             "rdf-to-text"
         ]
@@ -122,6 +127,7 @@
             "intent-classification",
             "multi-class-classification",
             "multi-label-classification",
+            "multi-input-text-classification",
             "natural-language-inference",
             "semantic-similarity-classification",
             "sentiment-classification",
@@ -130,8 +136,7 @@
             "sentiment-scoring",
             "sentiment-analysis",
             "hate-speech-detection",
-            "text-scoring",
-            "multi-input-text-classification"
+            "text-scoring"
         ]
     },
     "text-generation": {
@@ -169,7 +174,7 @@
         ]
     },
     "time-series-forecasting": {
-        "type": "structured",
+        "type": "tabular",
         "subtasks": [
             "univariate-time-series-forecasting",
             "multivariate-time-series-forecasting"
@@ -190,6 +195,9 @@
         "type": "nlp"
     },
     "unconditional-image-generation": {
+        "type": "cv"
+    },
+    "video-classification": {
         "type": "cv"
     },
     "visual-question-answering": {
