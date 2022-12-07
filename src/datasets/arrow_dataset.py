@@ -64,7 +64,7 @@ from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .download.download_config import DownloadConfig
 from .download.streaming_download_manager import xgetsize
-from .features import Audio, ClassLabel, Features, Image, Sequence, Value
+from .features import Audio, ClassLabel, Features, Image, Sequence, Value, Video
 from .features.features import (
     FeatureType,
     _align_features,
@@ -315,7 +315,7 @@ class TensorflowDatasetMixin:
             else:
                 raise RuntimeError(
                     f"Unrecognized array dtype {np_arrays[0].dtype}. \n"
-                    "Nested types and image/audio types are not supported yet."
+                    "Nested types and image/audio/video types are not supported yet."
                 )
             shapes = [array.shape for array in np_arrays]
             static_shape = []
@@ -1224,11 +1224,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Saves a dataset to a dataset directory, or in a filesystem using either :class:`~filesystems.S3FileSystem` or
         any implementation of ``fsspec.spec.AbstractFileSystem``.
 
-        For :class:`Image` and :class:`Audio` data:
+        For :class:`Image`, :class:`Audio`, and :class:`Video` data:
 
-        If your images and audio files are local files, then the resulting arrow file will store paths to these files.
-        If you want to include the bytes or your images or audio files instead, you must `read()` those files first.
-        This can be done by storing the "bytes" instead of the "path" of the images or audio files:
+        If your media files (image, audio, or video) are local files, then the resulting arrow file will store paths to these files.
+        If you want to include the bytes or your media files instead, you must `read()` those files first.
+        This can be done by storing the "bytes" instead of the "path" of the media files:
 
         ```python
         >>> def read_image_file(example):
@@ -4426,7 +4426,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
             def extra_nbytes_visitor(array, feature):
                 nonlocal extra_nbytes
-                if isinstance(feature, (Audio, Image)):
+                if isinstance(feature, (Audio, Image, Video)):
                     for x in array.to_pylist():
                         if x is not None and x["bytes"] is None and x["path"] is not None:
                             size = xgetsize(x["path"])
@@ -4577,7 +4577,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Whether to embed file bytes in the shards.
                 In particular, this will do the following before the push for the fields of type:
 
-                - :class:`Audio` and class:`Image`: remove local path information and embed file content in the Parquet files.
+                - :class:`Audio`, :class:`Image`, :class:`Video`: remove local path information and embed file content in the Parquet files.
 
         Example:
 

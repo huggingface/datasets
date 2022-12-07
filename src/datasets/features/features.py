@@ -42,6 +42,7 @@ from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
 from .image import Image, encode_pil_image
 from .translation import Translation, TranslationVariableLanguages
+from .video import Video
 
 
 logger = logging.get_logger(__name__)
@@ -1218,7 +1219,7 @@ def encode_nested_example(schema, obj, level=0):
             return list(obj)
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
-    elif isinstance(schema, (Audio, Image, ClassLabel, TranslationVariableLanguages, Value, _ArrayXD)):
+    elif isinstance(schema, (Audio, Image, Video, ClassLabel, TranslationVariableLanguages, Value, _ArrayXD)):
         return schema.encode_example(obj) if obj is not None else None
     # Other object should be directly convertible to a native Arrow type (like Translation and Translation)
     return obj
@@ -1226,7 +1227,7 @@ def encode_nested_example(schema, obj, level=0):
 
 def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None):
     """Decode a nested example.
-    This is used since some features (in particular Audio and Image) have some logic during decoding.
+    This is used since some features (in particular Audio, Image, and Video) have some logic during decoding.
 
     To avoid iterating over possibly long lists, it first checks (recursively) if the first element that is not None or empty (if it is a sequence) has to be decoded.
     If the first element needs to be decoded, then all the elements of the list will be decoded, otherwise they'll stay the same.
@@ -1257,7 +1258,7 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Uni
         else:
             return decode_nested_example([schema.feature], obj)
     # Object with special decoding:
-    elif isinstance(schema, (Audio, Image)):
+    elif isinstance(schema, (Audio, Image, Video)):
         # we pass the token to read and decode files from private repositories in streaming mode
         return schema.decode_example(obj, token_per_repo_id=token_per_repo_id) if obj is not None else None
     return obj
@@ -1733,7 +1734,7 @@ class Features(dict):
                             Value(obj["dtype"])
                             return {**obj, "_type": "Value"}
                         except ValueError:
-                            # for audio and image that are Audio and Image types, not Value
+                            # for audio, image, and video that are Audio, Image, or Video types, not Value
                             return {"_type": snakecase_to_camelcase(obj["dtype"])}
                     else:
                         return from_yaml_inner(obj["dtype"])
