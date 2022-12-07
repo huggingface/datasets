@@ -1037,7 +1037,8 @@ class DatasetDict(dict):
         self,
         dataset_dict_path: PathLike,
         fs="deprecated",
-        num_shards: Optional[Dict[str, int]] = None,
+        max_shard_size: Optional[Union[str, int]] = None,
+        num_shards: Optional[Union[int, Dict[str, int]]] = None,
         num_proc: Optional[int] = None,
         storage_options: Optional[dict] = None,
     ):
@@ -1054,9 +1055,13 @@ class DatasetDict(dict):
             dataset_dict_path (``PathLike``): Path (e.g. `path/to/dataset`) or remote URI
                 (e.g. `s3://my-bucket/dataset/train`) of the dataset dict directory where the dataset dict will be
                 saved to.
+            max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
+                The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
+                (like `"50MB"`).
             num_shards (:obj:`Dict[str, int]`, optional): Number of shards to write.
                 You need to provide the number of shards for each dataset in the dataset dictionary.
                 Default to the same value as `num_proc` if specified.
+                Use a dictionary to define a different num_shards for each split.
 
                 <Added version="2.8.0"/>
             num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
@@ -1067,6 +1072,13 @@ class DatasetDict(dict):
 
                 <Added version="2.8.0"/>
 
+        Example:
+
+        ```python
+        >>> dataset_dict.save_to_disk("path/to/dataset/directory")
+        >>> dataset_dict.save_to_disk("path/to/dataset/directory", max_shard_size="1GB")
+        >>> dataset_dict.save_to_disk("path/to/dataset/directory", num_shards={"train": 1024, "test": 8})
+        ```
         """
         if fs != "deprecated":
             warnings.warn(
@@ -1099,6 +1111,7 @@ class DatasetDict(dict):
             dataset.save_to_disk(
                 path_join(dataset_dict_path, k),
                 num_shards=num_shards.get(k),
+                max_shard_size=max_shard_size,
                 num_proc=num_proc,
                 storage_options=storage_options,
             )
@@ -1336,7 +1349,8 @@ class DatasetDict(dict):
         token: Optional[str] = None,
         branch: Optional[None] = None,
         max_shard_size: Optional[Union[int, str]] = None,
-        shard_size: Optional[int] = "deprecated",
+        num_shards: Optional[int] = None,
+        shard_size: Optional[Union[int, Dict[str, int]]] = "deprecated",
         embed_external_files: bool = True,
     ):
         """Pushes the ``DatasetDict`` to the hub as a Parquet dataset.
@@ -1365,6 +1379,11 @@ class DatasetDict(dict):
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
                 (like `"500MB"` or `"1GB"`).
+            num_shards (`Union[int, Dict[str, int]]`, optional): Number of shards to write.
+                Default to the same value as `num_proc` if specified.
+                Use a dictionary to define a different num_shards for each split.
+
+                <Added version="2.8.0"/>
             shard_size (Optional :obj:`int`):
                 Deprecated: 'shard_size' was renamed to 'max_shard_size' in version 2.1.1 and will be removed in 2.4.0.
             embed_external_files (:obj:`bool`, default ``True``):
@@ -1377,6 +1396,9 @@ class DatasetDict(dict):
 
         ```python
         >>> dataset_dict.push_to_hub("<organization>/<dataset_id>")
+        >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", private=True)
+        >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", max_shard_size="1GB")
+        >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", num_shards={"train": 1024, "test": 8})
         ```
         """
         if shard_size != "deprecated":
@@ -1385,6 +1407,13 @@ class DatasetDict(dict):
                 FutureWarning,
             )
             max_shard_size = shard_size
+
+        if num_shards is None:
+            num_shards = {k: None for k in self}
+        elif not isinstance(num_shards, dict):
+            raise ValueError(
+                "Please provide one `num_shards` per dataset in the dataset dictionary, e.g. {{'train': 128, 'test': 4}}"
+            )
 
         self._check_values_type()
         self._check_values_features()
@@ -1407,6 +1436,7 @@ class DatasetDict(dict):
                 token=token,
                 branch=branch,
                 max_shard_size=max_shard_size,
+                num_shards=num_shards.get(split),
                 embed_external_files=embed_external_files,
             )
             total_uploaded_size += uploaded_size

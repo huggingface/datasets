@@ -90,7 +90,7 @@ def size_str(size_in_bytes):
 
 def convert_file_size_to_int(size: Union[int, str]) -> int:
     """
-    Converts a size expressed as a string with digits an unit (like `"5MB"`) to an integer (in bytes).
+    Converts a size expressed as a string with digits an unit (like `"50MB"`) to an integer (in bytes).
 
     Args:
         size (`int` or `str`): The size to convert. Will be directly returned if an `int`.

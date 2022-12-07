@@ -1204,7 +1204,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 of the dataset directory where the dataset will be saved to.
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
-                (like `"5MB"`).
+                (like `"50MB"`).
             num_shards (:obj:`int`, optional): Number of shards to write.
                 Default to the same value as `num_proc` if specified.
 
@@ -1220,7 +1220,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
-        >>> saved_ds = ds.save_to_disk("path/to/dataset/directory")
+        >>> ds.save_to_disk("path/to/dataset/directory")
+        >>> ds.save_to_disk("path/to/dataset/directory", max_shard_size="1GB")
+        >>> ds.save_to_disk("path/to/dataset/directory", num_shards=1024)
         ```
         """
         if max_shard_size is not None and num_shards is not None:
@@ -4452,7 +4454,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 in your repository, which defaults to `"main"`.
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
-                (like `"5MB"`).
+                (like `"50MB"`).
             num_shards (:obj:`int`, optional): Number of shards to write.
                 Default to the same value as `num_proc` if specified.
 
@@ -4659,7 +4661,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 in your repository, which defaults to `"main"`.
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
-                (like `"5MB"`).
+                (like `"50MB"`).
             num_shards (:obj:`int`, optional): Number of shards to write.
                 Default to the same value as `num_proc` if specified.
 
@@ -4675,7 +4677,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```python
-        >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
+        >>> dataset.push_to_hub("<organization>/<dataset_id>")
+        >>> dataset.push_to_hub("<organization>/<dataset_id>", split="validation")
+        >>> dataset.push_to_hub("<organization>/<dataset_id>", max_shard_size="1GB")
+        >>> dataset.push_to_hub("<organization>/<dataset_id>", num_shards=1024)
         ```
         """
         if shard_size != "deprecated":
