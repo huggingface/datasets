@@ -1185,6 +1185,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         self,
         dataset_path: PathLike,
         fs="deprecated",
+        max_shard_size: Optional[Union[str, int]] = None,
         num_shards: Optional[int] = None,
         num_proc: Optional[int] = None,
         storage_options: Optional[dict] = None,
@@ -1201,6 +1202,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Args:
             dataset_path (``PathLike``): Path (e.g. `path/to/dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`)
                 of the dataset directory where the dataset will be saved to.
+            max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
+                The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
+                (like `"5MB"`).
             num_shards (:obj:`int`, optional): Number of shards to write.
                 Default to the same value as `num_proc` if specified.
 
@@ -1219,8 +1223,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> saved_ds = ds.save_to_disk("path/to/dataset/directory")
         ```
         """
-        num_proc: int = num_proc if num_proc is not None else 1
-        num_shards: int = num_shards if num_shards is not None else num_proc
+        if max_shard_size is not None and num_shards is not None:
+            raise ValueError("Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both.")
         if fs != "deprecated":
             warnings.warn(
                 "'fs' was is deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
@@ -1228,6 +1232,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 FutureWarning,
             )
             storage_options = fs.storage_options
+
+        if num_shards is None:
+            dataset_nbytes = self._estimate_nbytes()
+            max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
+            num_shards = int(dataset_nbytes / max_shard_size) + 1
+            num_shards = max(num_shards, num_proc or 1)
+
+        num_proc = num_proc if num_proc is not None else 1
+        num_shards = num_shards if num_shards is not None else num_proc
 
         fs_token_paths = fsspec.get_fs_token_paths(dataset_path, storage_options=storage_options)
         fs: fsspec.AbstractFileSystem = fs_token_paths[0]
@@ -4374,6 +4387,38 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         return SqlDatasetWriter(self, name, con, batch_size=batch_size, **sql_writer_kwargs).write()
 
+    def _estimate_nbytes(self) -> int:
+        dataset_nbytes = self.data.nbytes
+
+        # Find decodable columns, because if there are any, we need to
+        # adjust the dataset size computation (needed for sharding) to account for possible external files
+        decodable_columns = [
+            k for k, v in self.features.items() if require_decoding(v, ignore_decode_attribute=True)
+        ]
+
+        if decodable_columns:
+            # Approximate the space needed to store the bytes from the external files by analyzing the first 1000 examples
+            extra_nbytes = 0
+
+            def extra_nbytes_visitor(array, feature):
+                nonlocal extra_nbytes
+                if isinstance(feature, (Audio, Image)):
+                    for x in array.to_pylist():
+                        if x is not None and x["bytes"] is None and x["path"] is not None:
+                            size = xgetsize(x["path"])
+                            extra_nbytes += size
+                    extra_nbytes -= array.field("path").nbytes
+
+            table = self.with_format("arrow")[:1000]
+            table_visitor(table, extra_nbytes_visitor)
+
+            extra_nbytes = extra_nbytes * len(self.data) / len(table)
+            dataset_nbytes = dataset_nbytes + extra_nbytes
+
+        if self._indices is not None:
+            dataset_nbytes = dataset_nbytes * len(self._indices) / len(self.data)
+        return dataset_nbytes
+
     def _push_parquet_shards_to_hub(
         self,
         repo_id: str,
@@ -4382,6 +4427,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         token: Optional[str] = None,
         branch: Optional[str] = None,
         max_shard_size: Optional[Union[int, str]] = None,
+        num_shards: Optional[int] = None,
         embed_external_files: bool = True,
     ) -> Tuple[str, str, int, int]:
         """Pushes the dataset to the hub.
@@ -4407,6 +4453,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
                 (like `"5MB"`).
+            num_shards (:obj:`int`, optional): Number of shards to write.
+                Default to the same value as `num_proc` if specified.
+
+                <Added version="2.8.0"/>
             embed_external_files (:obj:`bool`, default ``True``):
                 Whether to embed file bytes in the shards.
                 In particular, this will do the following before the push for the fields of type:
@@ -4427,7 +4477,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
         ```
         """
-        max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
+        if max_shard_size is not None and num_shards is not None:
+            raise ValueError("Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both.")
 
         api = HfApi(endpoint=config.HF_ENDPOINT)
         token = token if token is not None else HfFolder.get_token()
@@ -4465,40 +4516,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
 
         # Find decodable columns, because if there are any, we need to:
-        # (1) adjust the dataset size computation (needed for sharding) to account for possible external files
-        # (2) embed the bytes from the files in the shards
+        # embed the bytes from the files in the shards
         decodable_columns = (
             [k for k, v in self.features.items() if require_decoding(v, ignore_decode_attribute=True)]
             if embed_external_files
             else []
         )
 
-        dataset_nbytes = self.data.nbytes
+        dataset_nbytes = self._estimate_nbytes()
 
-        if decodable_columns:
-            # Approximate the space needed to store the bytes from the external files by analyzing the first 1000 examples
-            extra_nbytes = 0
+        if num_shards is None:
+            max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
+            num_shards = int(dataset_nbytes / max_shard_size) + 1
+            num_shards = max(num_shards, 1)
 
-            def extra_nbytes_visitor(array, feature):
-                nonlocal extra_nbytes
-                if isinstance(feature, (Audio, Image)):
-                    for x in array.to_pylist():
-                        if x is not None and x["bytes"] is None and x["path"] is not None:
-                            size = xgetsize(x["path"])
-                            extra_nbytes += size
-                    extra_nbytes -= array.field("path").nbytes
-
-            table = self.with_format("arrow")[:1000]
-            table_visitor(table, extra_nbytes_visitor)
-
-            extra_nbytes = extra_nbytes * len(self.data) / len(table)
-            dataset_nbytes = dataset_nbytes + extra_nbytes
-
-        if self._indices is not None:
-            dataset_nbytes = dataset_nbytes * len(self._indices) / len(self.data)
-
-        num_shards = int(dataset_nbytes / max_shard_size) + 1
-        num_shards = max(num_shards, 1)
         shards = (self.shard(num_shards=num_shards, index=i, contiguous=True) for i in range(num_shards))
 
         if decodable_columns:
@@ -4596,6 +4627,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         token: Optional[str] = None,
         branch: Optional[str] = None,
         max_shard_size: Optional[Union[int, str]] = None,
+        num_shards: Optional[int] = None,
         shard_size: Optional[int] = "deprecated",
         embed_external_files: bool = True,
     ):
@@ -4626,8 +4658,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
                 (like `"5MB"`).
+            num_shards (:obj:`int`, optional): Number of shards to write.
+                Default to the same value as `num_proc` if specified.
+
+                <Added version="2.8.0"/>
             shard_size (Optional :obj:`int`):
-                Deprecated: 'shard_size' was renamed to 'max_shard_size' in version 2.1.1 and will be removed in 2.4.0.
+                Deprecated: 'shard_size' was renamed to 'max_shard_size' in version 2.1.1 and will be removed in 3.0.0.
             embed_external_files (:obj:`bool`, default ``True``):
                 Whether to embed file bytes in the shards.
                 In particular, this will do the following before the push for the fields of type:
@@ -4647,6 +4683,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
             max_shard_size = shard_size
 
+        if max_shard_size is not None and num_shards is not None:
+            raise ValueError("Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both.")
+
         repo_id, split, uploaded_size, dataset_nbytes, repo_files, deleted_size = self._push_parquet_shards_to_hub(
             repo_id=repo_id,
             split=split,
@@ -4654,6 +4693,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             token=token,
             branch=branch,
             max_shard_size=max_shard_size,
+            num_shards=num_shards,
             embed_external_files=embed_external_files,
         )
         organization, dataset_name = repo_id.split("/")
