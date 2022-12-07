@@ -1224,7 +1224,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         """
         if max_shard_size is not None and num_shards is not None:
-            raise ValueError("Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both.")
+            raise ValueError(
+                "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
+            )
         if fs != "deprecated":
             warnings.warn(
                 "'fs' was is deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
@@ -4392,9 +4394,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # Find decodable columns, because if there are any, we need to
         # adjust the dataset size computation (needed for sharding) to account for possible external files
-        decodable_columns = [
-            k for k, v in self.features.items() if require_decoding(v, ignore_decode_attribute=True)
-        ]
+        decodable_columns = [k for k, v in self.features.items() if require_decoding(v, ignore_decode_attribute=True)]
 
         if decodable_columns:
             # Approximate the space needed to store the bytes from the external files by analyzing the first 1000 examples
@@ -4478,7 +4478,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         """
         if max_shard_size is not None and num_shards is not None:
-            raise ValueError("Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both.")
+            raise ValueError(
+                "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
+            )
 
         api = HfApi(endpoint=config.HF_ENDPOINT)
         token = token if token is not None else HfFolder.get_token()
@@ -4684,7 +4686,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             max_shard_size = shard_size
 
         if max_shard_size is not None and num_shards is not None:
-            raise ValueError("Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both.")
+            raise ValueError(
+                "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
+            )
 
         repo_id, split, uploaded_size, dataset_nbytes, repo_files, deleted_size = self._push_parquet_shards_to_hub(
             repo_id=repo_id,
