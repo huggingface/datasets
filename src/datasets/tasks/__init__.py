@@ -9,7 +9,7 @@ from .language_modeling import LanguageModeling
 from .question_answering import QuestionAnsweringExtractive
 from .summarization import Summarization
 from .text_classification import TextClassification
-
+from .video_classification import VideoClassification
 
 __all__ = [
     "AutomaticSpeechRecognition",
@@ -20,6 +20,7 @@ __all__ = [
     "Summarization",
     "TaskTemplate",
     "TextClassification",
+    "VideoClassification",
 ]
 
 logger = get_logger(__name__)
@@ -33,6 +34,7 @@ NAME2TEMPLATE = {
     QuestionAnsweringExtractive.task: QuestionAnsweringExtractive,
     Summarization.task: Summarization,
     TextClassification.task: TextClassification,
+    VideoClassification.task: VideoClassification,
 }
 
 

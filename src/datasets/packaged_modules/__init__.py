@@ -11,6 +11,7 @@ from .pandas import pandas
 from .parquet import parquet
 from .sql import sql  # noqa F401
 from .text import text
+from .videofolder import videofolder
 
 
 def _hash_python_lines(lines: List[str]) -> str:
@@ -35,6 +36,7 @@ _PACKAGED_DATASETS_MODULES = {
     "text": (text.__name__, _hash_python_lines(inspect.getsource(text).splitlines())),
     "imagefolder": (imagefolder.__name__, _hash_python_lines(inspect.getsource(imagefolder).splitlines())),
     "audiofolder": (audiofolder.__name__, _hash_python_lines(inspect.getsource(audiofolder).splitlines())),
+    "videofolder": (videofolder.__name__, _hash_python_lines(inspect.getsource(videofolder).splitlines())),
 }
 
 _EXTENSION_TO_MODULE = {

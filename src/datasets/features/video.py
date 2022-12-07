@@ -114,7 +114,9 @@ class Video:
         if video_bytes:
             src = video_bytes
         else:
+            # TODO - do the token_per_repo_id stuff here?
             src = path
+
         # Collect all available audio/video frames as numpy
         video_arr, audio_arr, info = read_video_pyav(src, 0, math.inf, decode_audio=self.decode_audio)
         return {"path": path, "video_array": video_arr, "audio_array": audio_arr, **info}
@@ -215,7 +217,6 @@ def _pyav_decode_stream(
     # TODO: Add support for resampling audio
     # https://pyav.org/docs/stable/api/audio.html#av.audio.resampler.AudioResampler
     """
-
     start_pts = math.ceil(start_sec / stream.time_base)
     end_pts = math.ceil(end_sec / stream.time_base)
     # NOTE:
@@ -250,6 +251,7 @@ def read_video_pyav(file_or_bytes, start_sec, end_sec, decode_audio=True, perfor
 
     # Handle video stream
     video_stream = container.streams.video[0]
+    end_sec = min(float(video_stream.duration * video_stream.time_base), end_sec)
     info = dict(video_fps=video_stream.average_rate)
     video_arr = _pyav_decode_stream(container, start_sec, end_sec, video_stream, perform_seek)
 
@@ -276,6 +278,10 @@ def write_video_pyav(
     audio_sample_rate=44100,
     audio_options=None,
 ):
+    # TODO - Look into the following lossless options
+    # video_codec = "libx264rgb"
+    # options = {"crf": "0"}
+
     try:
         import av  # av is needed to decode video files.
     except ImportError as err:
