@@ -377,13 +377,18 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             for key, example in iterator:
                 # If `batched`, first build the batch, if `batch_size` is None or <=0, then the batch is the whole dataset
                 iterator_batch = (
-                        iterator
-                        if self.batch_size is None or self.batch_size <= 0
-                        else islice(iterator, self.batch_size - 1)
-                    )
+                    iterator
+                    if self.batch_size is None or self.batch_size <= 0
+                    else islice(iterator, self.batch_size - 1)
+                )
                 key_examples_list = [(key, example)] + [(key, example) for key, example in iterator_batch]
                 keys, examples = zip(*key_examples_list)
-                if self.drop_last_batch and len(examples) < self.batch_size:  # ignore last batch
+                if (
+                    self.drop_last_batch
+                    and self.batch_size is not None
+                    and self.batch_size > 0
+                    and len(examples) < self.batch_size
+                ):  # ignore last batch
                     return
                 batch = _examples_to_batch(examples)
                 # then apply the transform
@@ -488,10 +493,10 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
             for key, example in iterator:
                 # If `batched`, first build the batch, if `batch_size` is None or <=0, then the batch is the whole dataset
                 iterator_batch = (
-                        iterator
-                        if self.batch_size is None or self.batch_size <= 0
-                        else islice(iterator, self.batch_size - 1)
-                    )
+                    iterator
+                    if self.batch_size is None or self.batch_size <= 0
+                    else islice(iterator, self.batch_size - 1)
+                )
                 key_examples_list = [(key, example)] + [(key, example) for key, example in iterator_batch]
                 keys, examples = zip(*key_examples_list)
                 batch = _examples_to_batch(examples)
