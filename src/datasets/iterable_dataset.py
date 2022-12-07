@@ -374,13 +374,14 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         iterator = iter(self.ex_iterable)
         current_idx = 0
         if self.batched:
-            if self.batch_size is None or self.batch_size <= 0:
-                self.batch_size = 1000
             for key, example in iterator:
-                # If batched, first build the batch
-                key_examples_list = [(key, example)] + [
-                    (key, example) for key, example in islice(iterator, self.batch_size - 1)
-                ]
+                # If `batched`, first build the batch, if `batch_size` is None or <=0, then the batch is the whole dataset
+                iterator_batch = (
+                        iterator
+                        if self.batch_size is None or self.batch_size <= 0
+                        else islice(iterator, self.batch_size - 1)
+                    )
+                key_examples_list = [(key, example)] + [(key, example) for key, example in iterator_batch]
                 keys, examples = zip(*key_examples_list)
                 if self.drop_last_batch and len(examples) < self.batch_size:  # ignore last batch
                     return
@@ -484,13 +485,14 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
         iterator = iter(self.ex_iterable)
         current_idx = 0
         if self.batched:
-            if self.batch_size is None or self.batch_size <= 0:
-                self.batch_size = 1000
             for key, example in iterator:
-                # If batched, first build the batch
-                key_examples_list = [(key, example)] + [
-                    (key, example) for key, example in islice(iterator, self.batch_size - 1)
-                ]
+                # If `batched`, first build the batch, if `batch_size` is None or <=0, then the batch is the whole dataset
+                iterator_batch = (
+                        iterator
+                        if self.batch_size is None or self.batch_size <= 0
+                        else islice(iterator, self.batch_size - 1)
+                    )
+                key_examples_list = [(key, example)] + [(key, example) for key, example in iterator_batch]
                 keys, examples = zip(*key_examples_list)
                 batch = _examples_to_batch(examples)
                 # then compute the mask for the batch
