@@ -3,13 +3,7 @@ import os
 import fsspec
 import pytest
 
-from datasets.filesystems import (
-    COMPRESSION_FILESYSTEMS,
-    HfFileSystem,
-    S3FileSystem,
-    extract_path_from_uri,
-    is_remote_filesystem,
-)
+from datasets.filesystems import COMPRESSION_FILESYSTEMS, HfFileSystem, extract_path_from_uri, is_remote_filesystem
 from datasets.utils._hf_hub_fixes import dataset_info as hf_api_dataset_info
 
 from .utils import require_lz4, require_zstandard
@@ -27,11 +21,9 @@ def test_extract_path_from_uri():
     assert dataset_path == new_dataset_path
 
 
-def test_is_remote_filesystem():
+def test_is_remote_filesystem(mockfs):
 
-    fs = S3FileSystem(key="fake_access_key", secret="fake_secret")
-
-    is_remote = is_remote_filesystem(fs)
+    is_remote = is_remote_filesystem(mockfs)
     assert is_remote is True
 
     fs = fsspec.filesystem("file")

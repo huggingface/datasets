@@ -832,3 +832,12 @@ def test_dataset_with_audio_feature_map_undecoded(shared_datadir):
             assert audio == {"path": audio_path, "bytes": None}
 
     dset.map(assert_audio_batch_undecoded, batched=True)
+
+
+def test_audio_embed_storage(shared_datadir):
+    audio_path = str(shared_datadir / "test_audio_44100.wav")
+    example = {"bytes": None, "path": audio_path}
+    storage = pa.array([example], type=pa.struct({"bytes": pa.binary(), "path": pa.string()}))
+    embedded_storage = Audio().embed_storage(storage)
+    embedded_example = embedded_storage.to_pylist()[0]
+    assert embedded_example == {"bytes": open(audio_path, "rb").read(), "path": "test_audio_44100.wav"}

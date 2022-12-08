@@ -1543,7 +1543,7 @@ def load_dataset(
     use_auth_token: Optional[Union[bool, str]] = None,
     task: Optional[Union[str, TaskTemplate]] = None,
     streaming: bool = False,
-    num_proc: int = None,
+    num_proc: Optional[int] = None,
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset, IterableDatasetDict, IterableDataset]:
     """Load a dataset from the Hugging Face Hub, or a local dataset.

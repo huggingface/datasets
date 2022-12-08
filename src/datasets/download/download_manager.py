@@ -20,6 +20,7 @@ import io
 import os
 import posixpath
 import tarfile
+import time
 import warnings
 from datetime import datetime
 from functools import partial
@@ -29,7 +30,7 @@ from .. import config
 from ..utils.deprecation_utils import DeprecatedEnum
 from ..utils.file_utils import cached_path, get_from_cache, hash_url_to_filename, is_relative_path, url_or_path_join
 from ..utils.info_utils import get_size_checksum_dict
-from ..utils.logging import get_logger, is_progress_bar_enabled
+from ..utils.logging import get_logger, is_progress_bar_enabled, tqdm
 from ..utils.py_utils import NestedDataStructure, map_nested, size_str
 from .download_config import DownloadConfig
 
@@ -225,11 +226,25 @@ class DownloadManager:
 
     def _record_sizes_checksums(self, url_or_urls: NestedDataStructure, downloaded_path_or_paths: NestedDataStructure):
         """Record size/checksum of downloaded files."""
-        for url, path in zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten()):
+        _time = time.time()
+        warn_about_checksums = self.record_checksums
+        delay = 5
+        for url, path in tqdm(
+            list(zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten())),
+            delay=delay,
+            desc="Computing checksums",
+            disable=not is_progress_bar_enabled() and not warn_about_checksums,
+        ):
             # call str to support PathLike objects
             self._recorded_sizes_checksums[str(url)] = get_size_checksum_dict(
                 path, record_checksum=self.record_checksums
             )
+            if warn_about_checksums and _time + delay < time.time():
+                warn_about_checksums = False
+                logger.warning(
+                    "Computing checksums of downloaded files. They can be used for integrity verification. "
+                    "You can disable this by passing ignore_verifications=True to load_dataset"
+                )
 
     def download_custom(self, url_or_urls, custom_download):
         """
@@ -281,8 +296,7 @@ class DownloadManager:
     def download(self, url_or_urls):
         """Download given URL(s).
 
-        By default, if there is more than one URL to download, multiprocessing is used with maximum `num_proc = 16`.
-        Pass customized `download_config.num_proc` to change this behavior.
+        By default, only one process is used for download. Pass customized `download_config.num_proc` to change this behavior.
 
         Args:
             url_or_urls (`str` or `list` or `dict`): URL or list/dict of URLs to download. Each URL is a `str`.
@@ -298,10 +312,6 @@ class DownloadManager:
         """
         download_config = self.download_config.copy()
         download_config.extract_compressed_file = False
-        # Default to using 16 parallel thread for downloading
-        # Note that if we have less than or equal to 16 files, multi-processing is not activated
-        if download_config.num_proc is None:
-            download_config.num_proc = 16
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading data"
 
@@ -313,7 +323,6 @@ class DownloadManager:
             url_or_urls,
             map_tuple=True,
             num_proc=download_config.num_proc,
-            parallel_min_length=16,
             disable_tqdm=not is_progress_bar_enabled(),
             desc="Downloading data files",
         )
@@ -414,8 +423,6 @@ class DownloadManager:
         # Extract downloads the file first if it is not already downloaded
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading data"
-        if download_config.num_proc is None:
-            download_config.num_proc = 16
         extracted_paths = map_nested(
             partial(cached_path, download_config=download_config),
             path_or_paths,
