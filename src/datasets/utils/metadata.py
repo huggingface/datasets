@@ -108,6 +108,8 @@ class DatasetMetadata(dict):
 
 
 # DEPRECATED - just here to support old versions of evaluate like 0.2.2
+# to support new tasks on the Hugging Face Hub, please open a PR for this file:
+# https://github.com/huggingface/hub-docs/blob/main/js/src/lib/interfaces/Types.ts
 known_task_ids = {
     "image-classification": [],
     "translation": [],
