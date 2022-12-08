@@ -133,6 +133,27 @@ def import_main_class(module_path, dataset=True) -> Optional[Union[Type[DatasetB
     return module_main_cls
 
 
+# TODO: provide meaningful `name` from dataset
+def parametrize_packaged_builder(builder_cls, metadata_configs, name="custom"):
+    # TODO: maybe should be not here
+    for meta_config in metadata_configs.values():
+        meta_config["name"] = meta_config.pop("config_name")
+
+    config_cls = builder_cls.BUILDER_CONFIG_CLASS
+    configs = [config_cls(**meta_config) for meta_config in metadata_configs.values()]
+
+    class ParametrizedBuilder(builder_cls):
+        BUILDER_CONFIGS = configs
+
+        # TODO: this would be needed for making dynamically created class picklable
+        # def __reduce__(self):
+        #     return _InitializeParameterized, (self.__class__, name, self.BUILDER_CONFIGS), self.__dict__
+
+    ParametrizedBuilder.__name__ = f"{name.capitalize()}{builder_cls.__name__}"  # TODO
+
+    return ParametrizedBuilder
+
+
 def files_to_hash(file_paths: List[str]) -> str:
     """
     Convert a list of scripts or text files provided in file_paths into a hashed filename in a repeatable way.
@@ -409,6 +430,7 @@ class DatasetModule:
     module_path: str
     hash: str
     builder_kwargs: dict
+    metadata_configs: Optional[dict] = None
 
 
 @dataclass
@@ -623,8 +645,9 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self.download_mode = download_mode
 
     def get_module(self) -> DatasetModule:
-        # TODO: we have to parse `configs` from metadata before finding patterns, to pass `data_dir` and `data_files`
-        config_kwargs = {}
+        # !! we have to parse `configs` from metadata before finding patterns, to pass `data_dir` and `data_files`
+        # TODO: remove copy paste
+        config_kwargs, configs_metadata = {}, {}
         if self.config_name and os.path.isfile(os.path.join(self.path, "README.md")):
             dataset_metadata = DatasetMetadata.from_readme(Path(self.path) / "README.md")
             if "configs" in dataset_metadata:
@@ -671,7 +694,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
-            "config_name": self.config_name,  # os.path.basename(self.path.rstrip("/")),
+            "config_name": self.config_name,  # os.path.basename(self.path.rstrip("/")),  # TODO
             "base_path": self.path,
             **builder_kwargs,
         }
@@ -693,7 +716,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
                 if "config_name" in dataset_info_dict:
                     builder_kwargs["config_name"] = dataset_info_dict["config_name"]
-        return DatasetModule(module_path, hash, {**builder_kwargs, **config_kwargs})
+        return DatasetModule(module_path, hash, {**builder_kwargs, **config_kwargs}, configs_metadata)
 
 
 class PackagedDatasetModuleFactory(_DatasetModuleFactory):
@@ -1531,7 +1554,12 @@ def load_dataset_builder(
 
     # Get dataset builder class from the processing script
     builder_cls = import_main_class(dataset_module.module_path)
+    if dataset_module.metadata_configs:
+        builder_cls = parametrize_packaged_builder(
+            builder_cls, dataset_module.metadata_configs, name=os.path.basename(path)
+        )
     builder_kwargs = dataset_module.builder_kwargs
+    data_dir = builder_kwargs.pop("data_dir", data_dir)
     data_files = builder_kwargs.pop("data_files", data_files)
     config_name = builder_kwargs.pop("config_name", name)
     hash = builder_kwargs.pop("hash")
