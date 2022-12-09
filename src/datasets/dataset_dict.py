@@ -1124,7 +1124,7 @@ class DatasetDict(dict):
         ```
 
         Args:
-            dataset_dict_path (`str`): 
+            dataset_dict_path (`str`):
                 Path (e.g. `dataset/train`) or remote URI
                 (e.g. `s3://my-bucket/dataset/train`) of the dataset dict directory where the dataset dict will be
                 saved to.
