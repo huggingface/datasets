@@ -690,6 +690,8 @@ class DatasetBuilder:
                 "'use_auth_token' was deprecated in version 2.7.1 and will be removed in 3.0.0. Pass `use_auth_token` to the initializer/`load_dataset_builder` instead.",
                 FutureWarning,
             )
+        else:
+            use_auth_token = self.use_auth_token
 
         output_dir = output_dir if output_dir is not None else self._cache_dir
         # output_dir can be a remote bucket on GCS or S3 (when using BeamBasedBuilder for distributed data processing)
