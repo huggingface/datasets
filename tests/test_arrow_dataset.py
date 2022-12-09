@@ -332,6 +332,17 @@ class BaseDatasetTest(TestCase):
                 self.assertDictEqual(dset.to_dict(), expected)
                 self.assertEqual(len(dset.cache_files), 7)
 
+            with self._create_dummy_dataset(in_memory, tmp_dir).select(range(10)) as dset:
+                with assert_arrow_memory_doesnt_increase():
+                    max_shard_size = dset._estimate_nbytes() // 2 + 1
+                    dset.save_to_disk(dataset_path, max_shard_size=max_shard_size)
+
+            with Dataset.load_from_disk(dataset_path) as dset:
+                self.assertEqual(len(dset), 10)
+                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                self.assertDictEqual(dset.to_dict(), expected)
+                self.assertEqual(len(dset.cache_files), 2)
+
     def test_dummy_dataset_load_from_disk(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
 
@@ -4110,3 +4121,20 @@ class StratifiedTest(TestCase):
             assert len(d1["train"]["text"]) + len(d1["test"]["text"]) == y.size
             assert len(d1["train"]["text"]) == train_size
             assert len(d1["test"]["text"]) == test_size
+
+
+def test_dataset_estimate_nbytes():
+    ds = Dataset.from_dict({"a": ["0" * 100] * 100})
+    assert 0.9 * ds._estimate_nbytes() < 100 * 100, "must be smaller than full dataset size"
+
+    ds = Dataset.from_dict({"a": ["0" * 100] * 100}).select([0])
+    assert 0.9 * ds._estimate_nbytes() < 100 * 100, "must be smaller than one chunk"
+
+    ds = Dataset.from_dict({"a": ["0" * 100] * 100})
+    ds = concatenate_datasets([ds] * 100)
+    assert 0.9 * ds._estimate_nbytes() < 100 * 100 * 100, "must be smaller than full dataset size"
+    assert 1.1 * ds._estimate_nbytes() > 100 * 100 * 100, "must be bigger than full dataset size"
+
+    ds = Dataset.from_dict({"a": ["0" * 100] * 100})
+    ds = concatenate_datasets([ds] * 100).select([0])
+    assert 0.9 * ds._estimate_nbytes() < 100 * 100, "must be smaller than one chunk"
