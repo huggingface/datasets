@@ -161,14 +161,19 @@ class DownloadManager:
         """Download manager constructor.
 
         Args:
-            data_dir: can be used to specify a manual directory to get the files from.
-            dataset_name: `str`, name of dataset this instance will be used for. If
+            data_dir:
+                can be used to specify a manual directory to get the files from.
+            dataset_name (`str`):
+                name of dataset this instance will be used for. If
                 provided, downloads will contain which datasets they were used for.
-            download_config: `DownloadConfig` to specify the cache directory and other
+            download_config (`DownloadConfig`):
+                to specify the cache directory and other
                 download options
-            base_path: `str`, base path that is used when relative paths are used to
+            base_path (`str`):
+                base path that is used when relative paths are used to
                 download files. This can be a remote url.
-            record_checksums (:obj:`bool`, default `True`): Whether to record the checksums of the downloaded files. If None, the value is inferred from the builder.
+            record_checksums (`bool`, defaults to `True`):
+                Whether to record the checksums of the downloaded files. If None, the value is inferred from the builder.
         """
         self._dataset_name = dataset_name
         self._data_dir = data_dir
@@ -194,9 +199,11 @@ class DownloadManager:
         """Ship the files using Beam FileSystems to the pipeline temp dir.
 
         Args:
-            downloaded_path_or_paths (`str` or `list[str]` or `dict[str, str]`): Nested structure containing the
+            downloaded_path_or_paths (`str` or `list[str]` or `dict[str, str]`):
+                Nested structure containing the
                 downloaded path(s).
-            pipeline ([`utils.beam_utils.BeamPipeline`]): Apache Beam Pipeline.
+            pipeline ([`utils.beam_utils.BeamPipeline`]):
+                Apache Beam Pipeline.
 
         Returns:
             `str` or `list[str]` or `dict[str, str]`
@@ -251,14 +258,15 @@ class DownloadManager:
         Download given urls(s) by calling `custom_download`.
 
         Args:
-            url_or_urls: url or `list`/`dict` of urls to download and extract. Each
-                url is a `str`.
-            custom_download: Callable with signature (src_url: str, dst_path: str) -> Any
-                as for example `tf.io.gfile.copy`, that lets you download from google storage
+            url_or_urls (`str` or `list` or `dict`):
+                URL or `list` or `dict` of URLs to download and extract. Each URL is a `str`.
+            custom_download (`Callable[src_url, dst_path]`):
+                The source URL and destination path. For example
+                `tf.io.gfile.copy`, that lets you download from  Google storage.
 
         Returns:
             downloaded_path(s): `str`, The downloaded paths matching the given input
-                url_or_urls.
+                `url_or_urls`.
 
         Example:
 
@@ -299,10 +307,12 @@ class DownloadManager:
         By default, only one process is used for download. Pass customized `download_config.num_proc` to change this behavior.
 
         Args:
-            url_or_urls (`str` or `list` or `dict`): URL or list/dict of URLs to download. Each URL is a `str`.
+            url_or_urls (`str` or `list` or `dict`):
+                URL or `list` or `dict` of URLs to download. Each URL is a `str`.
 
         Returns:
-            `str` or `list` or `dict`: The downloaded paths matching the given input `url_or_urls`.
+            `str` or `list` or `dict`:
+                The downloaded paths matching the given input `url_or_urls`.
 
         Example:
 
@@ -350,10 +360,12 @@ class DownloadManager:
         """Iterate over files within an archive.
 
         Args:
-            path_or_buf (:obj:`str` or :obj:`io.BufferedReader`): Archive path or archive binary file object.
+            path_or_buf (`str` or `io.BufferedReader`):
+                Archive path or archive binary file object.
 
         Yields:
-            :obj:`tuple`[:obj:`str`, :obj:`io.BufferedReader`]: 2-tuple (path_within_archive, file_object).
+            `tuple[str, io.BufferedReader]`:
+                2-tuple (path_within_archive, file_object).
                 File object is opened in binary mode.
 
         Example:
@@ -373,10 +385,11 @@ class DownloadManager:
         """Iterate over file paths.
 
         Args:
-            paths (:obj:`str` or :obj:`list` of :obj:`str`): Root paths.
+            paths (`str` or `list` of `str`):
+                Root paths.
 
         Yields:
-            str: File path.
+            `str`: File path.
 
         Example:
 
@@ -391,10 +404,11 @@ class DownloadManager:
         """Extract given path(s).
 
         Args:
-            path_or_paths: path or `list`/`dict` of path of file to extract. Each
-                path is a `str`.
-            num_proc: Use multi-processing if `num_proc` > 1 and the length of
-                `path_or_paths` is larger than `num_proc`
+            path_or_paths (path or `list` or `dict`):
+                Path of file to extract. Each path is a `str`.
+            num_proc (`int`):
+                Use multi-processing if `num_proc` > 1 and the length of
+                `path_or_paths` is larger than `num_proc`.
 
                 <Deprecated version="2.6.2">
 
@@ -404,7 +418,7 @@ class DownloadManager:
 
         Returns:
             extracted_path(s): `str`, The extracted paths matching the given input
-                path_or_paths.
+            path_or_paths.
 
         Example:
 
@@ -436,7 +450,7 @@ class DownloadManager:
         return extracted_paths.data
 
     def download_and_extract(self, url_or_urls):
-        """Download and extract given url_or_urls.
+        """Download and extract given `url_or_urls`.
 
         Is roughly equivalent to:
 
@@ -445,8 +459,8 @@ class DownloadManager:
         ```
 
         Args:
-            url_or_urls: url or `list`/`dict` of urls to download and extract. Each
-                url is a `str`.
+            url_or_urls (`str` or `list` or `dict`):
+                URL or `list` or `dict` of URLs to download and extract. Each URL is a `str`.
 
         Returns:
             extracted_path(s): `str`, extracted paths of given URL(s).
