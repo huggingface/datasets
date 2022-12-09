@@ -38,7 +38,7 @@ class DownloadConfig:
             The number of times to retry an HTTP request if it fails.
         use_auth_token (`str` or `bool`, *optional*):
             Optional string or boolean to use as Bearer token
-            for remote files on the Datasets Hub. If `True`, will get token from `~/.huggingface`.
+            for remote files on the Datasets Hub. If `True`, or not specified, will get token from `~/.huggingface`.
         ignore_url_params (`bool`, defaults to `False`):
             Whether to strip all query parameters and fragments from
             the download URL before using it for caching the file.
