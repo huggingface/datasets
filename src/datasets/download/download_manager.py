@@ -261,7 +261,7 @@ class DownloadManager:
             url_or_urls (`str` or `list` or `dict`):
                 URL or `list` or `dict` of URLs to download and extract. Each URL is a `str`.
             custom_download (`Callable[src_url, dst_path]`):
-                The source URL and destination path. Any as for example
+                The source URL and destination path. For example
                 `tf.io.gfile.copy`, that lets you download from  Google storage.
 
         Returns:
