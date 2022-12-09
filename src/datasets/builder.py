@@ -723,7 +723,7 @@ class DatasetBuilder:
                     force_download=bool(download_mode == DownloadMode.FORCE_REDOWNLOAD),
                     force_extract=bool(download_mode == DownloadMode.FORCE_REDOWNLOAD),
                     use_etag=False,
-                    use_auth_token=self.use_auth_token,
+                    use_auth_token=use_auth_token,
                 )  # We don't use etag for data files to speed up the process
 
             dl_manager = DownloadManager(
