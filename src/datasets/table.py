@@ -1028,7 +1028,7 @@ class MemoryMappedTable(TableBlock):
 
     def __init__(self, table: pa.Table, path: str, replays: Optional[List[Replay]] = None):
         super().__init__(table)
-        self.path = path
+        self.path = os.path.abspath(path)
         self.replays: List[Replay] = replays if replays is not None else []
 
     @classmethod

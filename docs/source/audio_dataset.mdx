@@ -10,11 +10,11 @@ dataset = load_dataset("<username>/my_dataset")
 
 There are several methods for creating and sharing an audio dataset:
 
-1. Create an audio dataset from local files in python with [`Dataset.push_to_hub`]. This is an easy way that requires only a few steps in python.
+* Create an audio dataset from local files in python with [`Dataset.push_to_hub`]. This is an easy way that requires only a few steps in python.
 
-1. Create an audio dataset repository with the `AudioFolder` builder. This is a no-code solution for quickly creating small dataset to experiment with.
+* Create an audio dataset repository with the `AudioFolder` builder. This is a no-code solution for quickly creating an audio dataset with several thousand audio files.
 
-1. Create an audio dataset by writing a loading script. This method is for advanced users and requires more effort and coding, but you have greater flexibility over how a dataset is defined, downloaded, and generated.
+* Create an audio dataset by writing a loading script. This method is for advanced users and requires more effort and coding, but you have greater flexibility over how a dataset is defined, downloaded, and generated which can be useful for more complex or large scale audio datasets.
 
 
 <Tip>
@@ -53,7 +53,7 @@ my_dataset/
 
 ## AudioFolder
 
-The `AudioFolder` is a dataset builder designed to quickly load an audio dataset without requiring you to write any code.
+The `AudioFolder` is a dataset builder designed to quickly load an audio dataset with several thousand audio files without requiring you to write any code.
 Any additional information about your dataset - such as transcription, speaker accent, or speaker intent - is automatically loaded by `AudioFolder` as long as you include this information in a metadata file (`metadata.csv`/`metadata.jsonl`). 
 
 Create a dataset repository on the Hugging Face Hub and upload your dataset directory following the `AudioFolder` structure:
@@ -192,9 +192,9 @@ This directory structure allows your dataset to be loaded in one line:
 ```
 
 This guide will show you how to create a dataset loading script for audio datasets, which is a bit different from <a class="underline decoration-green-400 decoration-2 font-semibold" href="./dataset_script">creating a loading script for text datasets</a>.
-Audio datasets are commonly stored in `tar.gz` archives which requires a particular approach to support streaming mode. While streaming is not required, we highly encourage enabling streaming support in your audio dataset because:
+Audio datasets are commonly stored in `tar.gz` archives which requires a particular approach to support streaming mode. While streaming is not required, we highly encourage implementing streaming support in your audio dataset because:
 
-1. Users without a lot of disk space can use your dataset without waiting for the entire dataset to be downloaded. Learn more about streaming in the [Stream](./stream) guide!
+1. Users without a lot of disk space can use your dataset without downloading it. Learn more about streaming in the [Stream](./stream) guide!
 2. Users can preview a dataset in the dataset viewer.
 
 Here is an example using TAR archives:
@@ -367,7 +367,7 @@ def _info(self):
 
 Now that you've added some information about your dataset, the next step is to download the dataset and define the splits.
 
-1. Use the [`~DownloadManager.download`] method to download metadata file at `_PROMPTS_URLS` and audio TAR archive at `_DATA_URL`. This method returns the path to the local file/archive. In streaming mode, it returns a URL to stream the data from. This method accepts:
+1. Use the [`~DownloadManager.download`] method to download metadata file at `_PROMPTS_URLS` and audio TAR archive at `_DATA_URL`. This method returns the path to the local file/archive. In streaming mode, it doesn't download the file(s) and just returns a URL to stream the data from. This method accepts:
 
     * a relative path to a file inside a Hub dataset repository (for example, in the `data/` folder)
     * a URL to a file hosted somewhere else
@@ -504,21 +504,15 @@ To explain how to do the extraction in a way that it also supports streaming, we
    local_extracted_archive = dl_manager.extract(audio_path) if not dl_manager.is_streaming else None
    ```
 
-3. Use the [`~DownloadManager.iter_archive`] method to iterate over the archive at `audio_path` after it's downloaded, just like in the Vivos example above. [`~DownloadManager.iter_archive`] doesn't provide any information about the full paths of files from the archive, even if it has been extracted. As a result, you need to pass the `local_extracted_archive` path to the next step in `gen_kwargs`, in order to preserve information about where the archive was extracted to. This is required to construct the correct paths to the local files when you generate the examples.
+3. Use the [`~DownloadManager.iter_archive`] method to iterate over the archive at `audio_path`, just like in the Vivos example above. [`~DownloadManager.iter_archive`] doesn't provide any information about the full paths of files from the archive, even if it has been extracted. As a result, you need to pass the `local_extracted_archive` path to the next step in `gen_kwargs`, in order to preserve information about where the archive was extracted to. This is required to construct the correct paths to the local files when you generate the examples.
 
-<Tip>
+<Tip warning={true}>
 
-The reason you need to use a combination of [`~DownloadManager.download`] and [`~DownloadManager.iter_archive`] is because data in TAR archives can't be accessed directly from their paths. Instead, you'll need to download it first and then sequentially iterate over the files within the archive!
-
-</Tip>
-
-4. Use the [`~DownloadManager.download_and_extract`] method to download the metadata file specified in `_METADATA_URL`. This method returns a path to a local file in non-streaming mode. In streaming mode, it opens the file at the URL remotely and returns this URL.
-
-<Tip>
-
-    You can use [`~DownloadManager.download_and_extract`] to download and extract TAR archives too, but this method, as well as [`~DownloadManager.extract`], would throw an error if you run [`~Datasets.load_dataset`] in streaming mode, i.e. with `streaming=True`. This is the reason you need to use a combination of [`~DownloadManager.download`] and [`~DownloadManager.iter_archive`]. Files in TAR archives can't be accessed directly by their paths. Instead, you have to sequentially iterate over the files within the archive to find a specific file.
+The reason you need to use a combination of [`~DownloadManager.download`] and [`~DownloadManager.iter_archive`] is because files in TAR archives can't be accessed directly by their paths. Instead, you'll need to iterate over the files within the archive! You can use [`~DownloadManager.download_and_extract`] and [`~DownloadManager.extract`] with TAR archives only in non-streaming mode, otherwise it would throw an error.
 
 </Tip>
+
+4. Use the [`~DownloadManager.download_and_extract`] method to download the metadata file specified in `_METADATA_URL`. This method returns a path to a local file in non-streaming mode. In streaming mode, it doesn't download file locally and returns the same URL.
 
 5. Now use the [`SplitGenerator`] to organize the audio files and metadata in each split. Name each split with a standard name like: `Split.TRAIN`, `Split.TEST`, and `SPLIT.Validation`.
 

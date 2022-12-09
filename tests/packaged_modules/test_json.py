@@ -3,6 +3,7 @@ import textwrap
 import pyarrow as pa
 import pytest
 
+from datasets import Features, Value
 from datasets.packaged_modules.json.json import Json
 
 
@@ -69,3 +70,32 @@ def test_json_generate_tables(file_fixture, config_kwargs, request):
     generator = json._generate_tables([[request.getfixturevalue(file_fixture)]])
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.to_pydict() == {"col_1": [1, 10], "col_2": [2, 20]}
+
+
+@pytest.mark.parametrize(
+    "file_fixture, config_kwargs",
+    [
+        (
+            "jsonl_file",
+            {"features": Features({"col_1": Value("int64"), "col_2": Value("int64"), "missing_col": Value("string")})},
+        ),
+        (
+            "json_file_with_list_of_dicts",
+            {"features": Features({"col_1": Value("int64"), "col_2": Value("int64"), "missing_col": Value("string")})},
+        ),
+        (
+            "json_file_with_list_of_dicts_field",
+            {
+                "field": "field3",
+                "features": Features(
+                    {"col_1": Value("int64"), "col_2": Value("int64"), "missing_col": Value("string")}
+                ),
+            },
+        ),
+    ],
+)
+def test_json_generate_tables_with_missing_features(file_fixture, config_kwargs, request):
+    json = Json(**config_kwargs)
+    generator = json._generate_tables([[request.getfixturevalue(file_fixture)]])
+    pa_table = pa.concat_tables([table for _, table in generator])
+    assert pa_table.to_pydict() == {"col_1": [1, 10], "col_2": [2, 20], "missing_col": [None, None]}

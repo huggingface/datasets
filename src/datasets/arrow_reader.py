@@ -21,6 +21,7 @@ import os
 import re
 import shutil
 from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional, Union
 
 import pyarrow as pa
@@ -294,11 +295,12 @@ class BaseReader:
                     split_infos=self._info.splits.values(),
                 )
                 for file_instruction in file_instructions:
-                    remote_prepared_filename = os.path.join(remote_cache_dir, file_instruction["filename"])
+                    file_to_download = str(Path(file_instruction["filename"]).relative_to(self._path))
+                    remote_prepared_filename = os.path.join(remote_cache_dir, file_to_download)
                     downloaded_prepared_filename = cached_path(
                         remote_prepared_filename.replace(os.sep, "/"), download_config=download_config
                     )
-                    shutil.move(downloaded_prepared_filename, os.path.join(self._path, file_instruction["filename"]))
+                    shutil.move(downloaded_prepared_filename, file_instruction["filename"])
         except FileNotFoundError as err:
             raise MissingFilesOnHfGcsError(err) from None
 
@@ -561,20 +563,24 @@ class ReadInstruction:
 
     @classmethod
     def from_spec(cls, spec):
-        """Creates a ReadInstruction instance out of a string spec.
+        """Creates a `ReadInstruction` instance out of a string spec.
 
         Args:
-            spec (str): split(s) + optional slice(s) to read + optional rounding
-                        if percents are used as the slicing unit. A slice can be specified,
-                        using absolute numbers (int) or percentages (int). E.g.
-                            `test`: test split.
-                            `test + validation`: test split + validation split.
-                            `test[10:]`: test split, minus its first 10 records.
-                            `test[:10%]`: first 10% records of test split.
-                            `test[:20%](pct1_dropremainder)`: first 10% records, rounded with
-                                                              the `pct1_dropremainder` rounding.
-                            `test[:-5%]+train[40%:60%]`: first 95% of test + middle 20% of
-                                                         train.
+            spec (`str`):
+                Split(s) + optional slice(s) to read + optional rounding
+                if percents are used as the slicing unit. A slice can be specified,
+                using absolute numbers (`int`) or percentages (`int`).
+
+        Examples:
+
+            ```
+            test: test split.
+            test + validation: test split + validation split.
+            test[10:]: test split, minus its first 10 records.
+            test[:10%]: first 10% records of test split.
+            test[:20%](pct1_dropremainder): first 10% records, rounded with the pct1_dropremainder rounding.
+            test[:-5%]+train[40%:60%]: first 95% of test + middle 20% of train.
+            ```
 
         Returns:
             ReadInstruction instance.
@@ -633,7 +639,8 @@ class ReadInstruction:
         Those absolute instructions are then to be added together.
 
         Args:
-            name2len: dict associating split names to number of examples.
+            name2len (`dict`):
+                Associating split names to number of examples.
 
         Returns:
             list of _AbsoluteInstruction instances (corresponds to the + in spec).
