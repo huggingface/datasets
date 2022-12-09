@@ -276,7 +276,7 @@ class Audio:
                     "Decoding .opus files requires 'libsndfile'>=1.0.30, "
                     + 'it can be installed via conda: `conda install -c conda-forge "libsndfile>=1.0.30"`'
                 )
-        array, sampling_rate = sf.read(file)
+        array, sampling_rate = sf.read(file, dtype="float32")
         array = array.T
         if self.mono:
             array = librosa.to_mono(array)
