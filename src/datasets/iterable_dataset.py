@@ -814,14 +814,17 @@ class IterableDataset(DatasetInfoMixin):
         """Create an Iterable Dataset from a generator.
 
         Args:
-            generator (:obj:`Callable`): A generator function that `yields` examples.
-            features (:class:`Features`, optional): Dataset features.
-            gen_kwargs(:obj:`dict`, optional): Keyword arguments to be passed to the `generator` callable.
+            generator (`Callable`):
+                A generator function that `yields` examples.
+            features (`Features`, *optional*):
+                Dataset features.
+            gen_kwargs(`dict`, *optional*):
+                Keyword arguments to be passed to the `generator` callable.
                 You can define a sharded iterable dataset by passing the list of shards in `gen_kwargs`.
                 This can be used to improve shuffling and when iterating over the dataset with multiple workers.
 
         Returns:
-            :class:`IterableDataset`
+            `IterableDataset`
 
         Example:
 
@@ -866,7 +869,7 @@ class IterableDataset(DatasetInfoMixin):
 
         Args:
 
-            type (:obj:`str`, optional, default None): if set to "torch", the returned dataset
+            type (`str`, optional, default None): if set to "torch", the returned dataset
                 will be a subclass of torch.utils.data.IterableDataset to be used in a DataLoader
         """
         # TODO(QL): add examples formatting to get tensors when using the "torch" format
@@ -899,18 +902,19 @@ class IterableDataset(DatasetInfoMixin):
         If your function returns a column that already exists, then it overwrites it.
         The function is applied on-the-fly on the examples when iterating over the dataset.
 
-        You can specify whether the function should be batched or not with the ``batched`` parameter:
+        You can specify whether the function should be batched or not with the `batched` parameter:
 
-        - If batched is False, then the function takes 1 example in and should return 1 example.
-          An example is a dictionary, e.g. {"text": "Hello there !"}
-        - If batched is True and batch_size is 1, then the function takes a batch of 1 example as input and can return a batch with 1 or more examples.
-          A batch is a dictionary, e.g. a batch of 1 example is {"text": ["Hello there !"]}
-        - If batched is True and batch_size is ``n`` > 1, then the function takes a batch of ``n`` examples as input and can return a batch with ``n`` examples, or with an arbitrary number of examples.
-          Note that the last batch may have less than ``n`` examples.
-          A batch is a dictionary, e.g. a batch of ``n`` examples is {"text": ["Hello there !"] * n}
+        - If batched is `False`, then the function takes 1 example in and should return 1 example.
+          An example is a dictionary, e.g. `{"text": "Hello there !"}`.
+        - If batched is `True` and `batch_size` is 1, then the function takes a batch of 1 example as input and can return a batch with 1 or more examples.
+          A batch is a dictionary, e.g. a batch of 1 example is {"text": ["Hello there !"]}.
+        - If batched is `True` and `batch_size` is `n` > 1, then the function takes a batch of `n` examples as input and can return a batch with `n` examples, or with an arbitrary number of examples.
+          Note that the last batch may have less than `n` examples.
+          A batch is a dictionary, e.g. a batch of `n` examples is `{"text": ["Hello there !"] * n}`.
 
         Args:
-            function (:obj:`Callable`, optional, default None): Function applied on-the-fly on the examples when you iterate on the dataset
+            function (`Callable`, *optional*, defaults to `None`):
+                Function applied on-the-fly on the examples when you iterate on the dataset.
                 It must have one of the following signatures:
 
                 - `function(example: Dict[str, Any]) -> Dict[str, Any]` if `batched=False` and `with_indices=False`
@@ -920,20 +924,28 @@ class IterableDataset(DatasetInfoMixin):
 
                 For advanced usage, the function can also return a `pyarrow.Table`.
                 Moreover if your function returns nothing (`None`), then `map` will run your function and return the dataset unchanged.
-                If no function is provided, default to identity function: ``lambda x: x``.
-            with_indices (:obj:`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx[, rank]): ...`.
-            input_columns (`Optional[Union[str, List[str]]]`, default `None`): The columns to be passed into `function`
+                If no function is provided, default to identity function: `lambda x: x`.
+            with_indices (`bool`, defaults to `False`):
+                Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx[, rank]): ...`.
+            input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`):
+                The columns to be passed into `function`
                 as positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
-            batched (:obj:`bool`, default `False`): Provide batch of examples to `function`.
-            batch_size (:obj:`int`, optional, default ``1000``): Number of examples per batch provided to `function` if `batched=True`.
-                `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`.
-            drop_last_batch (:obj:`bool`, default `False`): Whether a last batch smaller than the batch_size should be
+            batched (`bool`, defaults to `False`):
+                Provide batch of examples to `function`.
+            batch_size (`int`, *optional*, defaults to `1000`):
+                Number of examples per batch provided to `function` if `batched=True`.
+                `batch_size <= 0` or `batch_size == None` then provide the full dataset as a single batch to `function`.
+            drop_last_batch (`bool`, defaults to `False`):
+                Whether a last batch smaller than the batch_size should be
                 dropped instead of being processed by the function.
-            remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
+            remove_columns (`[List[str]]`, *optional*, defaults to `None`):
+                Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
-            features (`Optional[datasets.Features]`, defaults to `None`): Feature types of the resulting dataset.
-            fn_kwargs (:obj:`Dict`, optional, default `None`): Keyword arguments to be passed to `function`.
+            features (`[Features]`, *optional*, defaults to `None`):
+                Feature types of the resulting dataset.
+            fn_kwargs (`Dict`, *optional*, default `None`):
+                Keyword arguments to be passed to `function`.
 
         Example:
 
@@ -996,19 +1008,24 @@ class IterableDataset(DatasetInfoMixin):
         The filtering is done on-the-fly when iterating over the dataset.
 
         Args:
-            function (:obj:`Callable`): Callable with one of the following signatures:
+            function (`Callable`):
+                Callable with one of the following signatures:
 
-                - ``function(example: Dict[str, Any]) -> bool`` if ``with_indices=False, batched=False``
-                - ``function(example: Dict[str, Any], indices: int) -> bool`` if ``with_indices=True, batched=False``
-                - ``function(example: Dict[str, List]) -> List[bool]`` if ``with_indices=False, batched=True``
-                - ``function(example: Dict[str, List], indices: List[int]) -> List[bool]`` if ``with_indices=True, batched=True``
+                - `function(example: Dict[str, Any]) -> bool` if `with_indices=False, batched=False`
+                - `function(example: Dict[str, Any], indices: int) -> bool` if `with_indices=True, batched=False`
+                - `function(example: Dict[str, List]) -> List[bool]` if `with_indices=False, batched=True`
+                - `function(example: Dict[str, List], indices: List[int]) -> List[bool]` if `with_indices=True, batched=True`
 
-                If no function is provided, defaults to an always True function: ``lambda x: True``.
-            with_indices (:obj:`bool`, default `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
-            input_columns (:obj:`str` or `List[str]`, optional): The columns to be passed into `function` as
+                If no function is provided, defaults to an always True function: `lambda x: True`.
+            with_indices (`bool`, defaults to `False`):
+                Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
+            input_columns (`str` or `List[str]`, *optional*):
+                The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
-            batched (:obj:`bool`, defaults to `False`): Provide batch of examples to `function`
-            batch_size (:obj:`int`, optional, default ``1000``): Number of examples per batch provided to `function` if `batched=True`.
+            batched (`bool`, defaults to `False`):
+                Provide batch of examples to `function`.
+            batch_size (`int`, *optional*, default `1000`):
+                Number of examples per batch provided to `function` if `batched=True`.
 
         Example:
 
@@ -1057,25 +1074,28 @@ class IterableDataset(DatasetInfoMixin):
         """
         Randomly shuffles the elements of this dataset.
 
-        This dataset fills a buffer with buffer_size elements, then randomly samples elements from this buffer,
+        This dataset fills a buffer with `buffer_size` elements, then randomly samples elements from this buffer,
         replacing the selected elements with new elements. For perfect shuffling, a buffer size greater than or
         equal to the full size of the dataset is required.
 
-        For instance, if your dataset contains 10,000 elements but ``buffer_size`` is set to 1,000, then shuffle will
-        initially select a random element from only the first 1,000 elements in the buffer. Once an element is
+        For instance, if your dataset contains 10,000 elements but `buffer_size` is set to 1000, then `shuffle` will
+        initially select a random element from only the first 1000 elements in the buffer. Once an element is
         selected, its space in the buffer is replaced by the next (i.e. 1,001-st) element,
-        maintaining the 1,000 element buffer.
+        maintaining the 1000 element buffer.
 
         If the dataset is made of several shards, it also does shuffle the order of the shards.
-        However if the order has been fixed by using :func:`datasets.IterableDataset.skip` or :func:`datasets.IterableDataset.take`
+        However if the order has been fixed by using [`~datasets.IterableDataset.skip`] or [`~datasets.IterableDataset.take`]
         then the order of the shards is kept unchanged.
 
         Args:
-            seed (:obj:`int`, optional, default None): random seed that will be used to shuffle the dataset.
-                It is used to sample from the shuffle buffe and als oto shuffle the data shards.
-            generator (:obj:`numpy.random.Generator`, optional): Numpy random Generator to use to compute the permutation of the dataset rows.
-                If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
-            buffer_size (:obj:`int`, default 1000): size of the buffer.
+            seed (`int`, *optional*, defaults to `None`):
+                Random seed that will be used to shuffle the dataset.
+                It is used to sample from the shuffle buffe and also to shuffle the data shards.
+            generator (`numpy.random.Generator`, *optional*):
+                Numpy random Generator to use to compute the permutation of the dataset rows.
+                If `generator=None` (default), uses `np.random.default_rng` (the default BitGenerator (PCG64) of NumPy).
+            buffer_size (`int`, defaults to `1000`):
+                Size of the buffer.
 
         Example:
 
@@ -1119,10 +1139,11 @@ class IterableDataset(DatasetInfoMixin):
 
     def skip(self, n) -> "IterableDataset":
         """
-        Create a new IterableDataset that skips the first ``n`` elements.
+        Create a new [`IterableDataset`] that skips the first `n` elements.
 
         Args:
-            n (:obj:`int`): number of elements to skip.
+            n (`int`):
+                Number of elements to skip.
 
         Example:
 
@@ -1156,10 +1177,11 @@ class IterableDataset(DatasetInfoMixin):
 
     def take(self, n) -> "IterableDataset":
         """
-        Create a new IterableDataset with only the first ``n`` elements.
+        Create a new [`IterableDataset`] with only the first `n` elements.
 
         Args:
-            n (:obj:`int`): number of elements to take.
+            n (`int`):
+                Number of elements to take.
 
         Example:
 
@@ -1192,7 +1214,7 @@ class IterableDataset(DatasetInfoMixin):
             column (list or np.array): Column data to be added.
 
         Returns:
-            :class:`IterableDataset`
+            `IterableDataset`
         """
 
         def add_column_fn(example, idx):
@@ -1208,11 +1230,13 @@ class IterableDataset(DatasetInfoMixin):
         name.
 
         Args:
-            original_column_name (:obj:`str`): Name of the column to rename.
-            new_column_name (:obj:`str`): New name for the column.
+            original_column_name (`str`):
+                Name of the column to rename.
+            new_column_name (`str`):
+                New name for the column.
 
         Returns:
-            :class:`IterableDataset`: A copy of the dataset with a renamed column.
+            `IterableDataset`: A copy of the dataset with a renamed column.
 
         Example:
 
@@ -1257,10 +1281,10 @@ class IterableDataset(DatasetInfoMixin):
         the new column names.
 
         Args:
-            column_mapping (:obj:`Dict[str, str]`): A mapping of columns to rename to their new names
+            column_mapping (`Dict[str, str]`): A mapping of columns to rename to their new names
 
         Returns:
-            :class:`IterableDataset`: A copy of the dataset with renamed columns
+            `IterableDataset`: A copy of the dataset with renamed columns
         """
 
         def rename_columns_fn(example):
@@ -1295,10 +1319,11 @@ class IterableDataset(DatasetInfoMixin):
 
 
         Args:
-            column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
+            column_names (`Union[str, List[str]]`):
+                Name of the column(s) to remove.
 
         Returns:
-            :class:`IterableDataset`: A copy of the dataset object without the columns to remove.
+            `IterableDataset`: A copy of the dataset object without the columns to remove.
 
         Example:
 
@@ -1325,11 +1350,13 @@ class IterableDataset(DatasetInfoMixin):
         """Cast column to feature for decoding.
 
         Args:
-            column (:obj:`str`): Column name.
-            feature (:class:`Feature`): Target feature.
+            column (`str`):
+                Column name.
+            feature (`Feature`):
+                Target feature.
 
         Returns:
-            :class:`IterableDataset`
+            `IterableDataset`
 
         Example:
 
@@ -1377,13 +1404,14 @@ class IterableDataset(DatasetInfoMixin):
         Cast the dataset to a new set of features.
 
         Args:
-            features (:class:`datasets.Features`): New features to cast the dataset to.
+            features ([`Features`]):
+                New features to cast the dataset to.
                 The name of the fields in the features must match the current column names.
                 The type of the data must also be convertible from one type to the other.
-                For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
+                For non-trivial conversion, e.g. `string` <-> `ClassLabel` you should use [`~Dataset.map`] to update the Dataset.
 
         Returns:
-            :class:`IterableDataset`: A copy of the dataset with casted features.
+            `IterableDataset`: A copy of the dataset with casted features.
 
         Example:
 
@@ -1468,15 +1496,15 @@ def _concatenate_iterable_datasets(
     axis: int = 0,
 ) -> IterableDataset:
     """
-    Converts a list of :class:`IterableDataset` with the same schema into a single :class:`IterableDataset`.
+    Converts a list of `IterableDataset` with the same schema into a single `IterableDataset`.
     Missing data are filled with None values.
 
     <Added version="2.4.0"/>
 
     Args:
-        dsets (:obj:`List[datasets.IterableDataset]`): List of Datasets to concatenate.
-        info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
-        split (:class:`NamedSplit`, optional): Name of the dataset split.
+        dsets (`List[datasets.IterableDataset]`): List of Datasets to concatenate.
+        info (`DatasetInfo`, optional): Dataset information, like description, citation, etc.
+        split (`NamedSplit`, optional): Name of the dataset split.
         axis (``{0, 1}``, default ``0``, meaning over rows):
             Axis to concatenate over, where ``0`` means over rows (vertically) and ``1`` means over columns
             (horizontally).
@@ -1538,11 +1566,11 @@ def _interleave_iterable_datasets(
     <Added version="2.4.0"/>
 
     Args:
-        datasets (:obj:`List[IterableDataset]`): list of datasets to interleave
-        probabilities (:obj:`List[float]`, optional, default None): If specified, the new iterable dataset samples
+        datasets (`List[IterableDataset]`): list of datasets to interleave
+        probabilities (`List[float]`, optional, default None): If specified, the new iterable dataset samples
             examples from one source at a time according to these probabilities.
-        seed (:obj:`int`, optional, default None): The random seed used to choose a source for each example.
-        stopping_strategy (Optional :obj:`str`, defaults to `first_exhausted`):
+        seed (`int`, optional, default None): The random seed used to choose a source for each example.
+        stopping_strategy (Optional `str`, defaults to `first_exhausted`):
             Two strategies are proposed right now.
             By default, `first_exhausted` is an undersampling strategy, i.e the dataset construction is stopped as soon as one dataset has ran out of samples.
             If the strategy is `all_exhausted`,  we use an oversampling strategy, i.e the dataset construction is stopped as soon as every samples of every dataset has been added at least once.
@@ -1551,7 +1579,7 @@ def _interleave_iterable_datasets(
             - with given probabilities, the resulting dataset will have more samples if some datasets have really low probability of visiting.
 
     Output:
-        :class:`datasets.IterableDataset`
+        `datasets.IterableDataset`
     """
     datasets = [d._resolve_features() for d in datasets]
 
