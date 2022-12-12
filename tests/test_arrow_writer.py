@@ -9,7 +9,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 
-from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, ParquetWriter, TypedSequence
+from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, ParquetWriter, TypedSequence, _is_extension_type
 from datasets.features import Array2D, ClassLabel, Features, Image, Value
 from datasets.features.features import Array2DExtensionType, cast_to_python_objects
 from datasets.keyhash import DuplicatedKeysError, InvalidKeyError
@@ -351,3 +351,17 @@ def test_writer_embed_local_files(tmp_path, embed_local_files):
     else:
         assert out["image"][0]["path"] == image_path
         assert out["image"][0]["bytes"] is None
+
+
+@pytest.mark.parametrize(
+    "pa_type, expected",
+    [
+        (pa.int8(), False),
+        (pa.struct({"col1": pa.int8(), "col2": pa.int64()}), False),
+        (pa.struct({"col1": pa.list_(pa.int8()), "col2": Array2DExtensionType((1, 3), "int64")}), True),
+        (pa.list_(pa.int8()), False),
+        (pa.list_(Array2DExtensionType((1, 3), "int64"), 4), True),
+    ],
+)
+def test_is_extension_type(pa_type, expected):
+    assert _is_extension_type(pa_type) == expected

@@ -53,6 +53,20 @@ class SchemaInferenceError(ValueError):
     pass
 
 
+def _is_extension_type(pa_type: pa.DataType) -> bool:
+    """
+    Check (recursively) if a pyarrow type is an extension type.
+    """
+    if isinstance(pa_type, pa.StructType):
+        return any(_is_extension_type(field.type) for field in pa_type)
+    elif isinstance(pa_type, (pa.ListType, pa.FixedSizeListType, pa.LargeListType)):
+        return _is_extension_type(pa_type.value_type)
+    elif isinstance(pa_type, pa.ExtensionType):
+        return True
+    else:
+        return False
+
+
 class TypedSequence:
     """
     This data container generalizes the typing when instantiating pyarrow arrays, tables or batches.
@@ -435,8 +449,9 @@ class ArrowWriter:
             # Since current_examples contains (example, key) tuples
             if isinstance(self.current_examples[0][0][col], (pa.Array, pa.ChunkedArray)):
                 arrays = [row[0][col] for row in self.current_examples]
-                batch_examples[col] = array_concat(
-                    [arr.chunk(0) if isinstance(arr, pa.ChunkedArray) else arr for arr in arrays]
+                arrays = [arr.chunk(0) if isinstance(arr, pa.ChunkedArray) else arr for arr in arrays]
+                batch_examples[col] = (
+                    pa.concat_arrays(arrays) if not _is_extension_type(arrays[0].type) else array_concat(arrays)
                 )
             else:
                 batch_examples[col] = [row[0][col] for row in self.current_examples]
