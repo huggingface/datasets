@@ -14,6 +14,7 @@ class AbstractDatasetReader(ABC):
         cache_dir: str = None,
         keep_in_memory: bool = False,
         streaming: bool = False,
+        num_proc: Optional[int] = None,
         **kwargs,
     ):
         self.path_or_paths = path_or_paths
@@ -22,6 +23,7 @@ class AbstractDatasetReader(ABC):
         self.cache_dir = cache_dir
         self.keep_in_memory = keep_in_memory
         self.streaming = streaming
+        self.num_proc = num_proc
         self.kwargs = kwargs
 
     @abstractmethod
@@ -36,12 +38,14 @@ class AbstractDatasetInputStream(ABC):
         cache_dir: str = None,
         keep_in_memory: bool = False,
         streaming: bool = False,
+        num_proc: Optional[int] = None,
         **kwargs,
     ):
         self.features = features
         self.cache_dir = cache_dir
         self.keep_in_memory = keep_in_memory
         self.streaming = streaming
+        self.num_proc = num_proc
         self.kwargs = kwargs
 
     @abstractmethod

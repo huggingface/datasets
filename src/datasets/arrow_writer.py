@@ -593,15 +593,18 @@ class ArrowWriter:
             # Re-intializing to empty list for next batch
             self.hkey_record = []
         self.write_examples_on_file()
-        if self.pa_writer is None:
-            if self.schema:
-                self._build_writer(self.schema)
-            else:
-                raise SchemaInferenceError("Please pass `features` or at least one example when writing data")
-        self.pa_writer.close()
-        self.pa_writer = None
-        if close_stream:
-            self.stream.close()
+        # If schema is known, infer features even if no examples were written
+        if self.pa_writer is None and self.schema:
+            self._build_writer(self.schema)
+        if self.pa_writer is not None:
+            self.pa_writer.close()
+            self.pa_writer = None
+            if close_stream:
+                self.stream.close()
+        else:
+            if close_stream:
+                self.stream.close()
+            raise SchemaInferenceError("Please pass `features` or at least one example when writing data")
         logger.debug(
             f"Done writing {self._num_examples} {self.unit} in {self._num_bytes} bytes {self._path if self._path else ''}."
         )

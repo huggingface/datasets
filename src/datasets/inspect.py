@@ -220,7 +220,7 @@ def get_dataset_infos(
         download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-            If True, will get token from `"~/.huggingface"`.
+            If True, or not specified, will get token from `"~/.huggingface"`.
         **config_kwargs (additional keyword arguments): optional attributes for builder class which will override the attributes if supplied.
 
     Example:
@@ -237,6 +237,7 @@ def get_dataset_infos(
         download_config=download_config,
         download_mode=download_mode,
         data_files=data_files,
+        use_auth_token=use_auth_token,
     )
     return {
         config_name: get_dataset_config_info(
@@ -345,7 +346,7 @@ def get_dataset_config_info(
             As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
             You can specify a different version than the default "main" by using a commit SHA or a git tag of the dataset repository.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-            If True, will get token from `"~/.huggingface"`.
+            If True, or not specified, will get token from `"~/.huggingface"`.
         **config_kwargs (additional keyword arguments): optional attributes for builder class which will override the attributes if supplied.
 
     """
@@ -406,7 +407,7 @@ def get_dataset_split_names(
             As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
             You can specify a different version than the default "main" by using a commit SHA or a git tag of the dataset repository.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-            If True, will get token from `"~/.huggingface"`.
+            If True, or not specified, will get token from `"~/.huggingface"`.
         **config_kwargs (additional keyword arguments): optional attributes for builder class which will override the attributes if supplied.
 
     Example:
