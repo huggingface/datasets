@@ -2,8 +2,8 @@
 
 There are two methods for creating and sharing an image dataset. This guide will show you how to:
 
-* Create an image dataset with `ImageFolder` and some metadata. This is a no-code solution for quickly creating an image dataset. 
-* Create an image dataset by writing a loading script. This method is a bit more involved, but you have greater flexibility over how a dataset is defined, downloaded, and generated.
+* Create an image dataset with `ImageFolder` and some metadata. This is a no-code solution for quickly creating an image dataset with several thousand images.
+* Create an image dataset by writing a loading script. This method is a bit more involved, but you have greater flexibility over how a dataset is defined, downloaded, and generated which can be useful for more complex or large scale image datasets.
 
 <Tip>
 
@@ -13,7 +13,7 @@ You can control access to your dataset by requiring users to share their contact
 
 ## ImageFolder
 
-The `ImageFolder` is a dataset builder designed to quickly load an image dataset without requiring you to write any code. `ImageFolder` automatically infers the class labels of your dataset based on the directory name. Just store your dataset in a directory structure like:
+The `ImageFolder` is a dataset builder designed to quickly load an image dataset with several thousand images without requiring you to write any code. `ImageFolder` automatically infers the class labels of your dataset based on the directory name. Just store your dataset in a directory structure like:
 
 ```
 folder/train/dog/golden_retriever.png

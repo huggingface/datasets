@@ -2,6 +2,7 @@ import os
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 
+import pytest
 from absl.testing import parameterized
 
 from datasets import config
@@ -67,3 +68,23 @@ class TestDatasetOnHfGcp(TestCase):
             ).replace(os.sep, "/")
             datset_info_path = cached_path(dataset_info_url, cache_dir=tmp_dir)
             self.assertTrue(os.path.exists(datset_info_path))
+
+
+@pytest.mark.integration
+def test_wikipedia_frr(tmp_path_factory):
+    tmp_dir = tmp_path_factory.mktemp("test_hf_gcp") / "test_wikipedia_simple"
+    dataset_module = dataset_module_factory("wikipedia", cache_dir=tmp_dir)
+
+    builder_cls = import_main_class(dataset_module.module_path, dataset=True)
+
+    builder_instance: DatasetBuilder = builder_cls(
+        cache_dir=tmp_dir,
+        config_name="20220301.frr",
+        hash=dataset_module.hash,
+    )
+
+    # use the HF cloud storage, not the original download_and_prepare that uses apache-beam
+    builder_instance._download_and_prepare = None
+    builder_instance.download_and_prepare()
+    ds = builder_instance.as_dataset()
+    assert ds is not None

@@ -313,39 +313,44 @@ class _SubSplit(SplitBase):
 class NamedSplit(SplitBase):
     """Descriptor corresponding to a named split (train, test, ...).
 
-    Example::
-        Each descriptor can be composed with other using addition or slice. Ex::
+    Example:
+        Each descriptor can be composed with other using addition or slice:
 
+            ```py
             split = datasets.Split.TRAIN.subsplit(datasets.percent[0:25]) + datasets.Split.TEST
+            ```
 
         The resulting split will correspond to 25% of the train split merged with
         100% of the test split.
 
-    Warning:
-        A split cannot be added twice, so the following will fail::
+        A split cannot be added twice, so the following will fail:
 
+            ```py
             split = (
                     datasets.Split.TRAIN.subsplit(datasets.percent[:25]) +
                     datasets.Split.TRAIN.subsplit(datasets.percent[75:])
             )  # Error
             split = datasets.Split.TEST + datasets.Split.ALL  # Error
+            ```
 
-    Warning:
-        The slices can be applied only one time. So the following are valid::
+        The slices can be applied only one time. So the following are valid:
 
+            ```py
             split = (
                     datasets.Split.TRAIN.subsplit(datasets.percent[:25]) +
                     datasets.Split.TEST.subsplit(datasets.percent[:50])
             )
             split = (datasets.Split.TRAIN + datasets.Split.TEST).subsplit(datasets.percent[:50])
+            ```
 
+        But this is not valid:
 
-        But not::
-
+            ```py
             train = datasets.Split.TRAIN
             test = datasets.Split.TEST
             split = train.subsplit(datasets.percent[:25]).subsplit(datasets.percent[:25])
             split = (train.subsplit(datasets.percent[:25]) + test).subsplit(datasets.percent[:50])
+            ```
     """
 
     def __init__(self, name):
@@ -412,9 +417,9 @@ class Split:
       you do not want to use this during model iteration as you may overfit to it.
     - `ALL`: the union of all defined dataset splits.
 
-    Note: All splits, including compositions inherit from `datasets.SplitBase`
+    All splits, including compositions inherit from `datasets.SplitBase`.
 
-    See the :doc:`guide on splits </loading>` for more information.
+    See the [guide](./load_hub#splits) on splits for more information.
 
     Example:
 
@@ -598,14 +603,16 @@ class SplitGenerator:
     """Defines the split information for the generator.
 
     This should be used as returned value of
-    :meth:`GeneratorBasedBuilder._split_generators`.
-    See :meth:`GeneratorBasedBuilder._split_generators` for more info and example
+    `GeneratorBasedBuilder._split_generators`.
+    See `GeneratorBasedBuilder._split_generators` for more info and example
     of usage.
 
     Args:
-        name (str): Name of the Split for which the generator will
+        name (`str`):
+            Name of the `Split` for which the generator will
             create the examples.
-        **gen_kwargs: Keyword arguments to forward to the :meth:`DatasetBuilder._generate_examples` method
+        **gen_kwargs (additional keyword arguments):
+            Keyword arguments to forward to the `DatasetBuilder._generate_examples` method
             of the builder.
 
     Example:
