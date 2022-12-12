@@ -264,6 +264,8 @@ class PandasFeaturesDecoder:
 
 
 class LazyDict(MutableMapping):
+    """A dictionary backed by Arrow data. The values are formatted on-the-fly when accessing the dictionary."""
+
     def __init__(self, pa_table: pa.Table, formatter: "Formatter"):
         self.pa_table = pa_table
         self.formatter = formatter
