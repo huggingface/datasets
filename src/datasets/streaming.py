@@ -54,7 +54,7 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
     Args:
         module_path: Path to the module to be extended.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-            If True, will get token from `"~/.huggingface"`.
+            If True, or not specified, will get token from `"~/.huggingface"`.
     """
 
     module = importlib.import_module(module_path)
