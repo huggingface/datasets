@@ -53,20 +53,6 @@ class SchemaInferenceError(ValueError):
     pass
 
 
-def _is_extension_type(pa_type: pa.DataType) -> bool:
-    """
-    Check (recursively) if a pyarrow type is an extension type.
-    """
-    if isinstance(pa_type, pa.StructType):
-        return any(_is_extension_type(field.type) for field in pa_type)
-    elif isinstance(pa_type, (pa.ListType, pa.FixedSizeListType, pa.LargeListType)):
-        return _is_extension_type(pa_type.value_type)
-    elif isinstance(pa_type, pa.ExtensionType):
-        return True
-    else:
-        return False
-
-
 class TypedSequence:
     """
     This data container generalizes the typing when instantiating pyarrow arrays, tables or batches.
@@ -446,17 +432,17 @@ class ArrowWriter:
         )
         batch_examples = {}
         for col in cols:
-            # Since current_examples contains (example, key) tuples
-            if isinstance(self.current_examples[0][0][col], (pa.Array, pa.ChunkedArray)):
-                # The examples could be Arrow arrays of 1 element.
-                # This can happen in `.map()` when we want to re-write the same Arrow data
+            # We use row[0][col] since current_examples contains (example, key) tuples.
+            # Morever, examples could be Arrow arrays of 1 element.
+            # This can happen in `.map()` when we want to re-write the same Arrow data
+            if all(isinstance(row[0][col], (pa.Array, pa.ChunkedArray)) for row in self.current_examples):
                 arrays = [row[0][col] for row in self.current_examples]
-                arrays = [arr.chunk(0) if isinstance(arr, pa.ChunkedArray) else arr for arr in arrays]
-                batch_examples[col] = (
-                    pa.concat_arrays(arrays) if not _is_extension_type(arrays[0].type) else array_concat(arrays)
-                )
+                batch_examples[col] = array_concat(arrays)
             else:
-                batch_examples[col] = [row[0][col] for row in self.current_examples]
+                batch_examples[col] = [
+                    row[0][col].to_pylist()[0] if isinstance(row[0][col], (pa.Array, pa.ChunkedArray)) else row[0][col]
+                    for row in self.current_examples
+                ]
         self.write_batch(batch_examples=batch_examples)
         self.current_examples = []
 

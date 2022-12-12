@@ -4107,3 +4107,60 @@ class StratifiedTest(TestCase):
             assert len(d1["train"]["text"]) + len(d1["test"]["text"]) == y.size
             assert len(d1["train"]["text"]) == train_size
             assert len(d1["test"]["text"]) == test_size
+
+
+@pytest.mark.parametrize("return_lazy_dict", [True, False, "mix"])
+def test_map_cases(return_lazy_dict):
+    def f(x):
+        """May a mix of LazyDict and regular Dict"""
+        if x["a"] < 2:
+            x["a"] = -1
+            return dict(x) if return_lazy_dict is False else x
+        else:
+            return x if return_lazy_dict is True else {}
+
+    ds = Dataset.from_dict({"a": [0, 1, 2, 3]})
+    ds = ds.map(f)
+    outputs = ds[:]
+    assert outputs == {"a": [-1, -1, 2, 3]}
+
+    def f(x):
+        """May a mix of LazyDict and regular Dict, but sometimes with None values"""
+        if x["a"] < 2:
+            x["a"] = None
+            return dict(x) if return_lazy_dict is False else x
+        else:
+            return x if return_lazy_dict is True else {}
+
+    ds = Dataset.from_dict({"a": [0, 1, 2, 3]})
+    ds = ds.map(f)
+    outputs = ds[:]
+    assert outputs == {"a": [None, None, 2, 3]}
+
+    def f(x):
+        """May a mix of LazyDict and regular Dict, but using an extension type"""
+        if x["a"][0][0] < 2:
+            x["a"] = [[-1]]
+            return dict(x) if return_lazy_dict is False else x
+        else:
+            return x if return_lazy_dict is True else {}
+
+    features = Features({"a": Array2D(shape=(1, 1), dtype="int32")})
+    ds = Dataset.from_dict({"a": [[[i]] for i in [0, 1, 2, 3]]}, features=features)
+    ds = ds.map(f)
+    outputs = ds[:]
+    assert outputs == {"a": [[[i]] for i in [-1, -1, 2, 3]]}
+
+    def f(x):
+        """May a mix of LazyDict and regular Dict, but using a nested extension type"""
+        if x["a"]["nested"][0][0] < 2:
+            x["a"] = {"nested": [[-1]]}
+            return dict(x) if return_lazy_dict is False else x
+        else:
+            return x if return_lazy_dict is True else {}
+
+    features = Features({"a": {"nested": Array2D(shape=(1, 1), dtype="int64")}})
+    ds = Dataset.from_dict({"a": [{"nested": [[i]]} for i in [0, 1, 2, 3]]}, features=features)
+    ds = ds.map(f)
+    outputs = ds[:]
+    assert outputs == {"a": [{"nested": [[i]]} for i in [-1, -1, 2, 3]]}

@@ -1799,6 +1799,20 @@ def _wrap_for_chunked_arrays(func):
     return wrapper
 
 
+def _is_extension_type(pa_type: pa.DataType) -> bool:
+    """
+    Check (recursively) if a pyarrow type is an extension type.
+    """
+    if isinstance(pa_type, pa.StructType):
+        return any(_is_extension_type(field.type) for field in pa_type)
+    elif isinstance(pa_type, (pa.ListType, pa.FixedSizeListType, pa.LargeListType)):
+        return _is_extension_type(pa_type.value_type)
+    elif isinstance(pa_type, pa.ExtensionType):
+        return True
+    else:
+        return False
+
+
 def array_concat(arrays: List[pa.Array]):
     """Improved version of pa.concat_arrays
 
@@ -1824,6 +1838,12 @@ def array_concat(arrays: List[pa.Array]):
         array_types = list(array_types)
         raise TypeError(f"Couldn't concatenate arrays with different types {array_types[0]} and {array_types[1]}")
 
+    array_type = arrays[0].type
+    if not _is_extension_type(array_type):
+        return pa.concat_arrays(arrays)
+
+    arrays = [chunk for arr in arrays for chunk in (arr.chunks if isinstance(arr, pa.ChunkedArray) else (arr,))]
+
     def _offsets_concat(offsets):
         offset = offsets[0]
         concatenated_offsets = offset
@@ -1834,16 +1854,15 @@ def array_concat(arrays: List[pa.Array]):
         return concatenated_offsets
 
     def _concat_arrays(arrays):
-        array = arrays[0]
-        if isinstance(array, pa.ExtensionArray):
-            return array.type.wrap_array(_concat_arrays([array.storage for array in arrays]))
-        elif pa.types.is_struct(array.type):
+        if isinstance(array_type, pa.PyExtensionType):
+            return array_type.wrap_array(_concat_arrays([array.storage for array in arrays]))
+        elif pa.types.is_struct(array_type):
             return pa.StructArray.from_arrays(
-                [_concat_arrays([array.field(field.name) for array in arrays]) for field in array.type],
-                fields=list(array.type),
+                [_concat_arrays([array.field(field.name) for array in arrays]) for field in array_type],
+                fields=list(array_type),
                 mask=pa.concat_arrays([array.is_null() for array in arrays]),
             )
-        elif pa.types.is_list(array.type):
+        elif pa.types.is_list(array_type):
             if any(array.null_count > 0 for array in arrays):
                 if config.PYARROW_VERSION.major < 10:
                     warnings.warn(
@@ -1859,10 +1878,10 @@ def array_concat(arrays: List[pa.Array]):
                 _offsets_concat([array.offsets for array in arrays]),
                 _concat_arrays([array.values for array in arrays]),
             )
-        elif pa.types.is_fixed_size_list(array.type):
+        elif pa.types.is_fixed_size_list(array_type):
             return pa.FixedSizeListArray.from_arrays(
                 _concat_arrays([array.values for array in arrays]),
-                array.type.list_size,
+                array_type.list_size,
             )
         return pa.concat_arrays(arrays)
 
