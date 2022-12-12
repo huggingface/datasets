@@ -1839,10 +1839,10 @@ def array_concat(arrays: List[pa.Array]):
         raise TypeError(f"Couldn't concatenate arrays with different types {array_types[0]} and {array_types[1]}")
 
     array_type = arrays[0].type
+    arrays = [chunk for arr in arrays for chunk in (arr.chunks if isinstance(arr, pa.ChunkedArray) else (arr,))]
+
     if not _is_extension_type(array_type):
         return pa.concat_arrays(arrays)
-
-    arrays = [chunk for arr in arrays for chunk in (arr.chunks if isinstance(arr, pa.ChunkedArray) else (arr,))]
 
     def _offsets_concat(offsets):
         offset = offsets[0]
