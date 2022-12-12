@@ -1064,6 +1064,7 @@ def test_indexed_table_mixin():
             pa.array([[[1, 2], [3]]], pa.list_(pa.list_(pa.int32()), 2)),
             pa.array([[[10, 2, 3], [2]]], pa.list_(pa.list_(pa.int32()), 2)),
         ],
+        [pa.array([[[1, 2, 3]], [[2, 3], [20, 21]], [[4]]]).slice(1), pa.array([[[1, 2, 3]]])],
     ],
 )
 def test_concat_arrays(arrays):
