@@ -10,11 +10,11 @@ dataset = load_dataset("<username>/my_dataset")
 
 There are several methods for creating and sharing an audio dataset:
 
-1. Create an audio dataset from local files in python with [`Dataset.push_to_hub`]. This is an easy way that requires only a few steps in python.
+* Create an audio dataset from local files in python with [`Dataset.push_to_hub`]. This is an easy way that requires only a few steps in python.
 
-1. Create an audio dataset repository with the `AudioFolder` builder. This is a no-code solution for quickly creating small dataset to experiment with.
+* Create an audio dataset repository with the `AudioFolder` builder. This is a no-code solution for quickly creating an audio dataset with several thousand audio files.
 
-1. Create an audio dataset by writing a loading script. This method is for advanced users and requires more effort and coding, but you have greater flexibility over how a dataset is defined, downloaded, and generated.
+* Create an audio dataset by writing a loading script. This method is for advanced users and requires more effort and coding, but you have greater flexibility over how a dataset is defined, downloaded, and generated which can be useful for more complex or large scale audio datasets.
 
 
 <Tip>
@@ -53,7 +53,7 @@ my_dataset/
 
 ## AudioFolder
 
-The `AudioFolder` is a dataset builder designed to quickly load an audio dataset without requiring you to write any code.
+The `AudioFolder` is a dataset builder designed to quickly load an audio dataset with several thousand audio files without requiring you to write any code.
 Any additional information about your dataset - such as transcription, speaker accent, or speaker intent - is automatically loaded by `AudioFolder` as long as you include this information in a metadata file (`metadata.csv`/`metadata.jsonl`). 
 
 Create a dataset repository on the Hugging Face Hub and upload your dataset directory following the `AudioFolder` structure:
