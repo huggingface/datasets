@@ -19,6 +19,7 @@ from datasets.table import (
     _in_memory_arrow_table_from_buffer,
     _in_memory_arrow_table_from_file,
     _interpolation_search,
+    _is_extension_type,
     _memory_mapped_arrow_table_from_file,
     array_concat,
     cast_array_to_feature,
@@ -1194,3 +1195,17 @@ def test_table_iter(pa_table, batch_size, drop_last_batch):
     if num_rows > 0:
         reloaded = pa.concat_tables(subtables)
         assert pa_table.slice(0, num_rows).to_pydict() == reloaded.to_pydict()
+
+
+@pytest.mark.parametrize(
+    "pa_type, expected",
+    [
+        (pa.int8(), False),
+        (pa.struct({"col1": pa.int8(), "col2": pa.int64()}), False),
+        (pa.struct({"col1": pa.list_(pa.int8()), "col2": Array2DExtensionType((1, 3), "int64")}), True),
+        (pa.list_(pa.int8()), False),
+        (pa.list_(Array2DExtensionType((1, 3), "int64"), 4), True),
+    ],
+)
+def test_is_extension_type(pa_type, expected):
+    assert _is_extension_type(pa_type) == expected
