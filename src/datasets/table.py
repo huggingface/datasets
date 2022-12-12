@@ -1844,16 +1844,17 @@ def array_concat(arrays: List[pa.Array]):
                 mask=pa.concat_arrays([array.is_null() for array in arrays]),
             )
         elif pa.types.is_list(array.type):
-            if config.PYARROW_VERSION.major < 10:
-                warnings.warn(
-                    "None values are converted to empty lists in `pyarrow<10.0.0` when concatenating list arrays with None values. Install `pyarrow>=10.0.0` to avoid this behavior. More info: https://github.com/huggingface/datasets/issues/3676."
-                )
-            else:
-                return pa.ListArray.from_arrays(
-                    _offsets_concat([array.offsets for array in arrays]),
-                    _concat_arrays([array.values for array in arrays]),
-                    mask=pa.concat_arrays([array.is_null() for array in arrays]),
-                )
+            if any(array.null_count > 0 for array in arrays):
+                if config.PYARROW_VERSION.major < 10:
+                    warnings.warn(
+                        "None values are converted to empty lists in `pyarrow<10.0.0` when concatenating list arrays with None values. Install `pyarrow>=10.0.0` to avoid this behavior. More info: https://github.com/huggingface/datasets/issues/3676."
+                    )
+                else:
+                    return pa.ListArray.from_arrays(
+                        _offsets_concat([array.offsets for array in arrays]),
+                        _concat_arrays([array.values for array in arrays]),
+                        mask=pa.concat_arrays([array.is_null() for array in arrays]),
+                    )
             return pa.ListArray.from_arrays(
                 _offsets_concat([array.offsets for array in arrays]),
                 _concat_arrays([array.values for array in arrays]),
