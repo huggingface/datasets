@@ -1074,17 +1074,8 @@ def test_concat_arrays(arrays):
 
 def test_concat_arrays_nested_with_nulls():
     arrays = [pa.array([{"a": 21, "b": [[1, 2], [3]]}]), pa.array([{"a": 100, "b": [[1], None]}])]
-    if datasets.config.PYARROW_VERSION.major < 10:
-        with pytest.warns(UserWarning, match="None values are converted to empty lists.+"):
-            concatenated_arrays = array_concat(arrays)
-        assert concatenated_arrays == pa.array(
-            [{"a": 21, "b": [[1, 2], [3]]}, {"a": 100, "b": [[1], []]}]
-        )  # empty list because of https://github.com/huggingface/datasets/issues/3676
-    else:
-        with warnings.catch_warnings():
-            warnings.simplefilter("error")
-            concatenated_arrays = array_concat(arrays)
-        assert concatenated_arrays == pa.concat_arrays(arrays)
+    concatenated_arrays = array_concat(arrays)
+    assert concatenated_arrays == pa.array([{"a": 21, "b": [[1, 2], [3]]}, {"a": 100, "b": [[1], None]}])
 
 
 def test_concat_extension_arrays():
