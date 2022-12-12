@@ -381,8 +381,8 @@ def _get_extraction_protocol(urlpath: str, use_auth_token: Optional[Union[str, b
             f"Please use `dl_manager.iter_archive` instead.\n\n"
             f"Example usage:\n\n"
             f"\turl = dl_manager.download(url)\n"
-            f"\tarchive_iterator = dl_manager.iter_archive(url)\n\n"
-            f"\tfor filename, file in archive iterator:\n"
+            f"\ttar_archive_iterator = dl_manager.iter_archive(url)\n\n"
+            f"\tfor filename, file in tar_archive_iterator:\n"
             f"\t\t..."
         )
     elif extension in COMPRESSION_EXTENSION_TO_PROTOCOL:
