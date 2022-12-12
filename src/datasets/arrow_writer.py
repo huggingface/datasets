@@ -448,6 +448,8 @@ class ArrowWriter:
         for col in cols:
             # Since current_examples contains (example, key) tuples
             if isinstance(self.current_examples[0][0][col], (pa.Array, pa.ChunkedArray)):
+                # The examples could be Arrow arrays of 1 element.
+                # This can happen in `.map()` when we want to re-write the same Arrow data
                 arrays = [row[0][col] for row in self.current_examples]
                 arrays = [arr.chunk(0) if isinstance(arr, pa.ChunkedArray) else arr for arr in arrays]
                 batch_examples[col] = (

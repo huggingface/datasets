@@ -2844,6 +2844,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 if input_num_examples != processed_inputs_num_examples:
                     raise NumExamplesMismatchError()
             if isinstance(inputs, Mapping) and isinstance(processed_inputs, Mapping):
+                # The .map() transform *updates* the dataset:
+                # the output dictionary contains both the the input data and the output data.
+                # The output dictionary may contain Arrow values from `pa_inputs_dict` so that we can re-write them efficiently.
                 return {**pa_inputs_dict, **processed_inputs}
             else:
                 return processed_inputs
