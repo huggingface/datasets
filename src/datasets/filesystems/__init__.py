@@ -1,7 +1,9 @@
 import importlib
+import threading
 from typing import List
 
 import fsspec
+import fsspec.asyn
 
 from . import compression
 from .hffilesystem import HfFileSystem
@@ -48,3 +50,19 @@ def is_remote_filesystem(fs: fsspec.AbstractFileSystem) -> bool:
         return True
     else:
         return False
+
+
+def _reset_fsspec_lock() -> None:
+    """
+    Clear reference to the loop and thread.
+    This is necessary otherwise HTTPFileSystem hangs in the ML training loop.
+    Only required for fsspec >= 0.9.0
+    See https://github.com/fsspec/gcsfs/issues/379
+    """
+    if hasattr(fsspec.asyn, "reset_lock"):
+        # for future fsspec>2022.05.0
+        fsspec.asyn.reset_lock()
+    else:
+        fsspec.asyn.iothread[0] = None
+        fsspec.asyn.loop[0] = None
+        fsspec.asyn.lock = threading.Lock()
