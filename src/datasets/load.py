@@ -70,13 +70,13 @@ from .utils.file_utils import (
     cached_path,
     head_hf_s3,
     hf_github_url,
-    hf_hub_url,
     init_hf_modules,
     is_relative_path,
     relative_to_absolute_path,
     url_or_path_join,
 )
 from .utils.filelock import FileLock
+from .utils.hub import hf_hub_url
 from .utils.info_utils import is_small_dataset
 from .utils.logging import get_logger
 from .utils.metadata import DatasetMetadata
@@ -299,7 +299,7 @@ def _copy_script_and_other_resources_in_importable_dir(
                 if not os.path.exists(full_path_local_import):
                     shutil.copytree(import_path, full_path_local_import)
             else:
-                raise OSError(f"Error with local import at {import_path}")
+                raise ImportError(f"Error with local import at {import_path}")
 
         # Copy additional files like dataset_infos.json file if needed
         for file_name, original_path in additional_files:
@@ -810,7 +810,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         try:
             dataset_infos_path = cached_path(
                 hf_hub_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=self.revision),
-                download_config=self.download_config,
+                download_config=download_config,
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
                 dataset_infos: DatasetInfosDict = json.load(f)
@@ -825,7 +825,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         try:
             dataset_readme_path = cached_path(
                 hf_hub_url(self.name, "README.md", revision=self.revision),
-                download_config=self.download_config,
+                download_config=download_config,
             )
             dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
             if isinstance(dataset_metadata.get("dataset_info"), list) and dataset_metadata["dataset_info"]:
@@ -1079,12 +1079,9 @@ def dataset_module_factory(
               -> load the dataset builder from the dataset script in the dataset repository
               e.g. ``glue``, ``squad``, ``'username/dataset_name'``, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
 
-        revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
-
-            - For datasets in the `huggingface/datasets` library on GitHub like "squad", the default version of the module is the local version of the lib.
-              You can specify a different version from your local version of the lib (e.g. "main" or "1.2.0") but it might cause compatibility issues.
-            - For community datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
-              You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
+        revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load.
+            As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
+            You can specify a different version than the default "main" by using a commit SHA or a git tag of the dataset repository.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
@@ -1121,9 +1118,6 @@ def dataset_module_factory(
     # - if path is a local directory (but no python file)
     #   -> use a packaged module (csv, text etc.) based on content of the directory
     #
-    # - if path has no "/" and is a module on GitHub (in /datasets)
-    #   -> use the module from the python file on GitHub
-    #   Note that this case will be removed in favor of loading from the HF Hub instead eventually
     # - if path has one "/" and is dataset repository on the HF hub with a python file
     #   -> the module from the python file in the dataset repository
     # - if path has one "/" and is dataset repository on the HF hub without a python file
@@ -1419,7 +1413,7 @@ def load_dataset_builder(
     """Load a dataset builder from the Hugging Face Hub, or a local dataset. A dataset builder can be used to inspect general information that is required to build a dataset (cache directory, config, dataset info, etc.)
     without downloading the dataset itself.
 
-    You can find the list of datasets on the Hub at https://huggingface.co/datasets or with ``datasets.list_datasets()``.
+    You can find the list of datasets on the [Hub](https://huggingface.co/datasets) or with [`datasets.list_datasets`].
 
     A dataset is a directory that contains:
 
@@ -1430,55 +1424,56 @@ def load_dataset_builder(
 
     Args:
 
-        path (:obj:`str`): Path or name of the dataset.
-            Depending on ``path``, the dataset builder that is used comes from a generic dataset script (JSON, CSV, Parquet, text etc.) or from the dataset script (a python file) inside the dataset directory.
+        path (`str`):
+            Path or name of the dataset.
+            Depending on `path`, the dataset builder that is used comes from a generic dataset script (JSON, CSV, Parquet, text etc.) or from the dataset script (a python file) inside the dataset directory.
 
             For local datasets:
 
-            - if ``path`` is a local directory (containing data files only)
+            - if `path` is a local directory (containing data files only)
               -> load a generic dataset builder (csv, json, text etc.) based on the content of the directory
-              e.g. ``'./path/to/directory/with/my/csv/data'``.
-            - if ``path`` is a local dataset script or a directory containing a local dataset script (if the script has the same name as the directory):
+              e.g. `'./path/to/directory/with/my/csv/data'`.
+            - if `path` is a local dataset script or a directory containing a local dataset script (if the script has the same name as the directory)
               -> load the dataset builder from the dataset script
-              e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``.
+              e.g. `'./dataset/squad'` or `'./dataset/squad/squad.py'`.
 
-            For datasets on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
+            For datasets on the Hugging Face Hub (list all available datasets and ids with [`datasets.list_datasets`])
 
-            - if ``path`` is a dataset repository on the HF hub (containing data files only)
+            - if `path` is a dataset repository on the HF hub (containing data files only)
               -> load a generic dataset builder (csv, text etc.) based on the content of the repository
-              e.g. ``'username/dataset_name'``, a dataset repository on the HF hub containing your data files.
-            - if ``path`` is a dataset repository on the HF hub with a dataset script (if the script has the same name as the directory)
+              e.g. `'username/dataset_name'`, a dataset repository on the HF hub containing your data files.
+            - if `path` is a dataset repository on the HF hub with a dataset script (if the script has the same name as the directory)
               -> load the dataset builder from the dataset script in the dataset repository
-              e.g. ``glue``, ``squad``, ``'username/dataset_name'``, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
+              e.g. `glue`, `squad`, `'username/dataset_name'`, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
 
-        name (:obj:`str`, optional): Defining the name of the dataset configuration.
-        data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration. If specified for the generic builders (csv, text etc.) or the Hub datasets and `data_files` is None,
+        name (`str`, *optional*):
+            Defining the name of the dataset configuration.
+        data_dir (`str`, *optional*):
+            Defining the `data_dir` of the dataset configuration. If specified for the generic builders (csv, text etc.) or the Hub datasets and `data_files` is `None`,
             the behavior is equal to passing `os.path.join(data_dir, **)` as `data_files` to reference all the files in a directory.
-        data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
-        cache_dir (:obj:`str`, optional): Directory to read/write data. Defaults to "~/.cache/huggingface/datasets".
-        features (:class:`Features`, optional): Set the features type to use for this dataset.
-        download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
-        download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
-        revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
-
-            - For datasets in the `huggingface/datasets` library on GitHub like "squad", the default version of the module is the local version of the lib.
-              You can specify a different version from your local version of the lib (e.g. "main" or "1.2.0") but it might cause compatibility issues.
-            - For community datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
-              You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
-        use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-            If True, will get token from `"~/.huggingface"`.
-        **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the :class:`BuilderConfig`
-            and used in the :class:`DatasetBuilder`.
+        data_files (`str` or `Sequence` or `Mapping`, *optional*):
+            Path(s) to source data file(s).
+        cache_dir (`str`, *optional*):
+            Directory to read/write data. Defaults to `"~/.cache/huggingface/datasets"`.
+        features ([`Features`], *optional*):
+            Set the features type to use for this dataset.
+        download_config ([`DownloadConfig`], *optional*):
+            Specific download configuration parameters.
+        download_mode ([`DownloadMode`], defaults to `REUSE_DATASET_IF_EXISTS`):
+            Download/generate mode.
+        revision ([`Version`] or `str`, *optional*):
+            Version of the dataset script to load.
+            As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
+            You can specify a different version than the default "main" by using a commit SHA or a git tag of the dataset repository.
+        use_auth_token (`str` or `bool`, *optional*):
+            Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+            If `True`, or not specified, will get token from `"~/.huggingface"`.
+        **config_kwargs (additional keyword arguments):
+            Keyword arguments to be passed to the [`BuilderConfig`]
+            and used in the [`DatasetBuilder`].
 
     Returns:
-        :class:`DatasetBuilder`
-
-    <Tip>
-
-    Passing `use_auth_token=True` is required when you want to access a private dataset.
-
-    </Tip>
-
+        [`DatasetBuilder`]
 
     Example:
 
@@ -1552,29 +1547,30 @@ def load_dataset(
     use_auth_token: Optional[Union[bool, str]] = None,
     task: Optional[Union[str, TaskTemplate]] = None,
     streaming: bool = False,
+    num_proc: Optional[int] = None,
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset, IterableDatasetDict, IterableDataset]:
     """Load a dataset from the Hugging Face Hub, or a local dataset.
 
-    You can find the list of datasets on the Hub at https://huggingface.co/datasets or with ``datasets.list_datasets()``.
+    You can find the list of datasets on the [Hub](https://huggingface.co/datasets) or with [`datasets.list_datasets`].
 
     A dataset is a directory that contains:
 
-    - some data files in generic formats (JSON, CSV, Parquet, text, etc.)
+    - some data files in generic formats (JSON, CSV, Parquet, text, etc.).
     - and optionally a dataset script, if it requires some code to read the data files. This is used to load any kind of formats or structures.
 
     Note that dataset scripts can also download and read data files from anywhere - in case your data files already exist online.
 
     This function does the following under the hood:
 
-        1. Download and import in the library the dataset script from ``path`` if it's not already cached inside the library.
+        1. Download and import in the library the dataset script from `path` if it's not already cached inside the library.
 
             If the dataset has no dataset script, then a generic dataset script is imported instead (JSON, CSV, Parquet, text, etc.)
 
             Dataset scripts are small python scripts that define dataset builders. They define the citation, info and format of the dataset,
             contain the path or URL to the original data files and the code to load examples from the original data files.
 
-            You can find the complete list of datasets in the Datasets Hub at https://huggingface.co/datasets
+            You can find the complete list of datasets in the Datasets [Hub](https://huggingface.co/datasets).
 
         2. Run the dataset script which will:
 
@@ -1584,84 +1580,97 @@ def load_dataset(
                 Arrow table are arbitrarily long, typed tables which can store nested objects and be mapped to numpy/pandas/python generic types.
                 They can be directly accessed from disk, loaded in RAM or even streamed over the web.
 
-        3. Return a dataset built from the requested splits in ``split`` (default: all).
+        3. Return a dataset built from the requested splits in `split` (default: all).
 
     It also allows to load a dataset from a local directory or a dataset repository on the Hugging Face Hub without dataset script.
     In this case, it automatically loads all the data files from the directory or the dataset repository.
 
     Args:
 
-        path (:obj:`str`): Path or name of the dataset.
-            Depending on ``path``, the dataset builder that is used comes from a generic dataset script (JSON, CSV, Parquet, text etc.) or from the dataset script (a python file) inside the dataset directory.
+        path (`str`):
+            Path or name of the dataset.
+            Depending on `path`, the dataset builder that is used comes from a generic dataset script (JSON, CSV, Parquet, text etc.) or from the dataset script (a python file) inside the dataset directory.
 
             For local datasets:
 
-            - if ``path`` is a local directory (containing data files only)
+            - if `path` is a local directory (containing data files only)
               -> load a generic dataset builder (csv, json, text etc.) based on the content of the directory
-              e.g. ``'./path/to/directory/with/my/csv/data'``.
-            - if ``path`` is a local dataset script or a directory containing a local dataset script (if the script has the same name as the directory):
+              e.g. `'./path/to/directory/with/my/csv/data'`.
+            - if `path` is a local dataset script or a directory containing a local dataset script (if the script has the same name as the directory)
               -> load the dataset builder from the dataset script
-              e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``.
+              e.g. `'./dataset/squad'` or `'./dataset/squad/squad.py'`.
 
-            For datasets on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
+            For datasets on the Hugging Face Hub (list all available datasets and ids with [`datasets.list_datasets`])
 
-            - if ``path`` is a dataset repository on the HF hub (containing data files only)
+            - if `path` is a dataset repository on the HF hub (containing data files only)
               -> load a generic dataset builder (csv, text etc.) based on the content of the repository
-              e.g. ``'username/dataset_name'``, a dataset repository on the HF hub containing your data files.
-            - if ``path`` is a dataset repository on the HF hub with a dataset script (if the script has the same name as the directory)
+              e.g. `'username/dataset_name'`, a dataset repository on the HF hub containing your data files.
+            - if `path` is a dataset repository on the HF hub with a dataset script (if the script has the same name as the directory)
               -> load the dataset builder from the dataset script in the dataset repository
-              e.g. ``glue``, ``squad``, ``'username/dataset_name'``, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
+              e.g. `glue`, `squad`, `'username/dataset_name'`, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
 
-        name (:obj:`str`, optional): Defining the name of the dataset configuration.
-        data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration. If specified for the generic builders (csv, text etc.) or the Hub datasets and `data_files` is None,
+        name (`str`, *optional*):
+            Defining the name of the dataset configuration.
+        data_dir (`str`, *optional*):
+            Defining the `data_dir` of the dataset configuration. If specified for the generic builders (csv, text etc.) or the Hub datasets and `data_files` is `None`,
             the behavior is equal to passing `os.path.join(data_dir, **)` as `data_files` to reference all the files in a directory.
-        data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
-        split (:class:`Split` or :obj:`str`): Which split of the data to load.
-            If None, will return a `dict` with all splits (typically `datasets.Split.TRAIN` and `datasets.Split.TEST`).
+        data_files (`str` or `Sequence` or `Mapping`, *optional*):
+            Path(s) to source data file(s).
+        split (`Split` or `str`):
+            Which split of the data to load.
+            If `None`, will return a `dict` with all splits (typically `datasets.Split.TRAIN` and `datasets.Split.TEST`).
             If given, will return a single Dataset.
             Splits can be combined and specified like in tensorflow-datasets.
-        cache_dir (:obj:`str`, optional): Directory to read/write data. Defaults to "~/.cache/huggingface/datasets".
-        features (:class:`Features`, optional): Set the features type to use for this dataset.
-        download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
-        download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
-        ignore_verifications (:obj:`bool`, default ``False``): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...).
-        keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the dataset
+        cache_dir (`str`, *optional*):
+            Directory to read/write data. Defaults to `"~/.cache/huggingface/datasets"`.
+        features (`Features`, *optional*):
+            Set the features type to use for this dataset.
+        download_config ([`DownloadConfig`], *optional*):
+            Specific download configuration parameters.
+        download_mode ([`DownloadMode`], defaults to `REUSE_DATASET_IF_EXISTS`):
+            Download/generate mode.
+        ignore_verifications (`bool`, defaults to `False`):
+            Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...).
+        keep_in_memory (`bool`, defaults to `None`):
+            Whether to copy the dataset in-memory. If `None`, the dataset
             will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
-            nonzero. See more details in the :ref:`load_dataset_enhancing_performance` section.
-        save_infos (:obj:`bool`, default ``False``): Save the dataset information (checksums/size/splits/...).
-        revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
-
-            - For datasets in the `huggingface/datasets` library on GitHub like "squad", the default version of the module is the local version of the lib.
-              You can specify a different version from your local version of the lib (e.g. "main" or "1.2.0") but it might cause compatibility issues.
-            - For community datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
-              You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
-        use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-            If True, will get token from `"~/.huggingface"`.
-        task (``str``): The task to prepare the dataset for during training and evaluation. Casts the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
-        streaming (:obj:`bool`, default ``False``): If set to True, don't download the data files. Instead, it streams the data progressively while
-            iterating on the dataset. An IterableDataset or IterableDatasetDict is returned instead in this case.
+            nonzero. See more details in the [improve performance](./cache#improve-performance) section.
+        save_infos (`bool`, defaults to `False`):
+            Save the dataset information (checksums/size/splits/...).
+        revision ([`Version`] or `str`, *optional*):
+            Version of the dataset script to load.
+            As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
+            You can specify a different version than the default "main" by using a commit SHA or a git tag of the dataset repository.
+        use_auth_token (`str` or `bool`, *optional*):
+            Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+            If `True`, or not specified, will get token from `"~/.huggingface"`.
+        task (`str`):
+            The task to prepare the dataset for during training and evaluation. Casts the dataset's [`Features`] to standardized column names and types as detailed in `datasets.tasks`.
+        streaming (`bool`, defaults to `False`):
+            If set to `True`, don't download the data files. Instead, it streams the data progressively while
+            iterating on the dataset. An [`IterableDataset`] or [`IterableDatasetDict`] is returned instead in this case.
 
             Note that streaming works for datasets that use data formats that support being iterated over like txt, csv, jsonl for example.
             Json files may be downloaded completely. Also streaming from remote zip or gzip files is supported but other compressed formats
             like rar and xz are not yet supported. The tgz format doesn't allow streaming.
-        **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the :class:`BuilderConfig`
-            and used in the :class:`DatasetBuilder`.
+        num_proc (`int`, *optional*, defaults to `None`):
+            Number of processes when downloading and generating the dataset locally.
+                Multiprocessing is disabled by default.
+
+                <Added version="2.7.0"/>
+        **config_kwargs (additional keyword arguments):
+            Keyword arguments to be passed to the `BuilderConfig`
+            and used in the [`DatasetBuilder`].
 
     Returns:
-        :class:`Dataset` or :class:`DatasetDict`:
-        - if `split` is not None: the dataset requested,
-        - if `split` is None, a ``datasets.DatasetDict`` with each split.
+        [`Dataset`] or [`DatasetDict`]:
+        - if `split` is not `None`: the dataset requested,
+        - if `split` is `None`, a [`~datasets.DatasetDict`] with each split.
 
-        or :class:`IterableDataset` or :class:`IterableDatasetDict`: if streaming=True
+        or [`IterableDataset`] or [`IterableDatasetDict`]: if `streaming=True`
 
-        - if `split` is not None: the dataset requested,
-        - if `split` is None, a ``datasets.streaming.IterableDatasetDict`` with each split.
-
-    <Tip>
-
-    Passing `use_auth_token=True` is required when you want to access a private dataset.
-
-    </Tip>
+        - if `split` is not `None`, the dataset is requested
+        - if `split` is `None`, a [`~datasets.streaming.IterableDatasetDict`] with each split.
 
     Example:
 
@@ -1712,6 +1721,12 @@ def load_dataset(
             "Please use `load_from_disk` instead."
         )
 
+    if streaming and num_proc is not None:
+        raise NotImplementedError(
+            "Loading a streaming dataset in parallel with `num_proc` is not implemented. "
+            "To parallelize streaming, you can wrap the dataset with a PyTorch DataLoader using `num_workers` > 1 instead."
+        )
+
     download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     ignore_verifications = ignore_verifications or save_infos
 
@@ -1744,7 +1759,7 @@ def load_dataset(
         download_mode=download_mode,
         ignore_verifications=ignore_verifications,
         try_from_hf_gcs=try_from_hf_gcs,
-        use_auth_token=use_auth_token,
+        num_proc=num_proc,
     )
 
     # Build dataset for splits
@@ -1763,24 +1778,26 @@ def load_dataset(
 
 def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = None) -> Union[Dataset, DatasetDict]:
     """
-    Loads a dataset that was previously saved using :meth:`Dataset.save_to_disk` from a dataset directory, or
-    from a filesystem using either :class:`datasets.filesystems.S3FileSystem` or any implementation of
-    ``fsspec.spec.AbstractFileSystem``.
+    Loads a dataset that was previously saved using [`~Dataset.save_to_disk`] from a dataset directory, or
+    from a filesystem using either [`~datasets.filesystems.S3FileSystem`] or any implementation of
+    `fsspec.spec.AbstractFileSystem`.
 
     Args:
-        dataset_path (:obj:`str`): Path (e.g. `"dataset/train"`) or remote URI (e.g.
-            `"s3://my-bucket/dataset/train"`) of the Dataset or DatasetDict directory where the dataset will be
+        dataset_path (`str`):
+            Path (e.g. `"dataset/train"`) or remote URI (e.g.
+            `"s3://my-bucket/dataset/train"`) of the [`Dataset`] or [`DatasetDict`] directory where the dataset will be
             loaded from.
-        fs (:class:`~filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``, optional, default ``None``):
+        fs (`~filesystems.S3FileSystem` or `fsspec.spec.AbstractFileSystem`, *optional*, defaults to `None`):
             Instance of the remote filesystem used to download the files from.
-        keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the dataset
+        keep_in_memory (`bool`, defaults to `None`):
+            Whether to copy the dataset in-memory. If `None`, the dataset
             will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
-            nonzero. See more details in the :ref:`load_dataset_enhancing_performance` section.
+            nonzero. See more details in the [improve performance](./cache#improve-performance) section.
 
     Returns:
-        :class:`Dataset` or :class:`DatasetDict`:
+        [`Dataset`] or [`DatasetDict`]:
         - If `dataset_path` is a path of a dataset directory: the dataset requested.
-        - If `dataset_path` is a path of a dataset dict directory: a ``datasets.DatasetDict`` with each split.
+        - If `dataset_path` is a path of a dataset dict directory, a [`DatasetDict`] with each split.
 
     Example:
 

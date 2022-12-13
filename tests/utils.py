@@ -75,17 +75,11 @@ require_torchaudio_latest = pytest.mark.skipif(
     reason="test requires torchaudio>=0.12",
 )
 
-
-def require_beam(test_case):
-    """
-    Decorator marking a test that requires Apache Beam.
-
-    These tests are skipped when Apache Beam isn't installed.
-
-    """
-    if not config.TORCH_AVAILABLE:
-        test_case = unittest.skip("test requires PyTorch")(test_case)
-    return test_case
+# Beam
+require_beam = pytest.mark.skipif(
+    not config.BEAM_AVAILABLE or config.DILL_VERSION >= version.parse("0.3.2"),
+    reason="test requires apache-beam and a compatible dill version",
+)
 
 
 def require_faiss(test_case):
@@ -221,6 +215,43 @@ def require_s3(test_case):
         return unittest.skip("test requires s3fs and moto")(test_case)
     else:
         return test_case
+
+
+def require_spacy(test_case):
+    """
+    Decorator marking a test that requires spacy.
+
+    These tests are skipped when they aren't installed.
+
+    """
+    try:
+        import spacy  # noqa F401
+    except ImportError:
+        return unittest.skip("test requires spacy")(test_case)
+    else:
+        return test_case
+
+
+def require_spacy_model(model):
+    """
+    Decorator marking a test that requires a spacy model.
+
+    These tests are skipped when they aren't installed.
+    """
+
+    def _require_spacy_model(test_case):
+        try:
+            import spacy  # noqa F401
+
+            spacy.load(model)
+        except ImportError:
+            return unittest.skip("test requires spacy")(test_case)
+        except OSError:
+            return unittest.skip("test requires spacy model '{}'".format(model))(test_case)
+        else:
+            return test_case
+
+    return _require_spacy_model
 
 
 def slow(test_case):

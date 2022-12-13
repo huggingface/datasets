@@ -14,11 +14,18 @@ class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
         self.np_array_kwargs = np_array_kwargs
 
     def _consolidate(self, column):
-        if isinstance(column, list) and column:
-            if all(
+        if isinstance(column, list):
+            if column and all(
                 isinstance(x, np.ndarray) and x.shape == column[0].shape and x.dtype == column[0].dtype for x in column
             ):
                 return np.stack(column)
+            else:
+                # don't use np.array(column, dtype=object)
+                # since it fails in certain cases
+                # see https://stackoverflow.com/q/51005699
+                out = np.empty(len(column), dtype=object)
+                out[:] = column
+                return out
         return column
 
     def _tensorize(self, value):

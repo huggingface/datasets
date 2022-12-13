@@ -62,6 +62,8 @@
       title: Create an image dataset
     - local: image_classification
       title: Image classification
+    - local: semantic_segmentation
+      title: Semantic segmentation
     - local: object_detection
       title: Object detection
     title: "Vision"
@@ -71,6 +73,10 @@
     - local: nlp_process
       title: Process text data
     title: "Text"
+  - sections:
+    - local: tabular_load
+      title: Load tabular data
+    title: "Tabular"
   - sections:
     - local: share
       title: Share

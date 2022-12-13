@@ -9,7 +9,7 @@ import xml.dom.minidom
 from asyncio import TimeoutError
 from io import BytesIO
 from itertools import chain
-from pathlib import Path, PurePath, PurePosixPath
+from pathlib import Path, PurePosixPath
 from typing import Callable, Generator, Iterable, List, Optional, Tuple, Union
 from xml.etree import ElementTree as ET
 
@@ -104,10 +104,10 @@ def xjoin(a, *p):
     """
     a, *b = str(a).split("::")
     if is_local_path(a):
-        a = Path(a, *p).as_posix()
+        return os.path.join(a, *p)
     else:
         a = posixpath.join(a, *p)
-    return "::".join([a] + b)
+        return "::".join([a] + b)
 
 
 def xdirname(a):
@@ -332,21 +332,6 @@ def xrelpath(path, start=None):
         return posixpath.relpath(main_hop, start=str(start).split("::")[0]) if start else os.path.relpath(main_hop)
 
 
-def _as_posix(path: Path):
-    """Extend :meth:`pathlib.PurePath.as_posix` to fix missing slashes after protocol.
-
-    Args:
-        path (:obj:`~pathlib.Path`): Calling Path instance.
-
-    Returns:
-        obj:`str`
-    """
-    path_as_posix = path.as_posix()
-    path_as_posix = SINGLE_SLASH_AFTER_PROTOCOL_PATTERN.sub("://", path_as_posix)
-    path_as_posix += "//" if path_as_posix.endswith(":") else ""  # Add slashes to root of the protocol
-    return path_as_posix
-
-
 def _add_retries_to_file_obj_read_method(file_obj):
     read = file_obj.read
     max_retries = config.STREAMING_READ_MAX_RETRIES
@@ -449,14 +434,14 @@ def xopen(file: str, mode="r", *args, use_auth_token: Optional[Union[str, bool]]
     Returns:
         file object
     """
-    # required for `xopen(str(Path(...)))` to work
-    file = _as_posix(PurePath(file))
-    main_hop, *rest_hops = file.split("::")
+    # This works as well for `xopen(str(Path(...)))`
+    file_str = _as_str(file)
+    main_hop, *rest_hops = file_str.split("::")
     if is_local_path(main_hop):
-        return open(file, mode, *args, **kwargs)
+        return open(main_hop, mode, *args, **kwargs)
     # add headers and cookies for authentication on the HF Hub and for Google Drive
     if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
-        file, new_kwargs = _prepare_http_url_kwargs(file, use_auth_token=use_auth_token)
+        file, new_kwargs = _prepare_http_url_kwargs(file_str, use_auth_token=use_auth_token)
     elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
         url = rest_hops[0]
         url, http_kwargs = _prepare_http_url_kwargs(url, use_auth_token=use_auth_token)
@@ -490,7 +475,7 @@ def xlistdir(path: str, use_auth_token: Optional[Union[str, bool]] = None) -> Li
     Returns:
         `list` of `str`
     """
-    main_hop, *rest_hops = str(path).split("::")
+    main_hop, *rest_hops = _as_str(path).split("::")
     if is_local_path(main_hop):
         return os.listdir(path)
     else:
@@ -525,7 +510,7 @@ def xglob(urlpath, *, recursive=False, use_auth_token: Optional[Union[str, bool]
     Returns:
         `list` of `str`
     """
-    main_hop, *rest_hops = str(urlpath).split("::")
+    main_hop, *rest_hops = _as_str(urlpath).split("::")
     if is_local_path(main_hop):
         return glob.glob(main_hop, recursive=recursive)
     else:
@@ -550,20 +535,22 @@ def xglob(urlpath, *, recursive=False, use_auth_token: Optional[Union[str, bool]
         return ["::".join([f"{protocol}://{globbed_path}"] + rest_hops) for globbed_path in globbed_paths]
 
 
-def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None):
+def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
     """Extend `os.walk` function to support remote files.
 
     Args:
         urlpath (`str`): URL root path.
         use_auth_token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
             Hugging Face Hub for private remote files.
+        **kwargs: Additional keyword arguments forwarded to the underlying filesystem.
+
 
     Yields:
         `tuple`: 3-tuple (dirpath, dirnames, filenames).
     """
-    main_hop, *rest_hops = str(urlpath).split("::")
+    main_hop, *rest_hops = _as_str(urlpath).split("::")
     if is_local_path(main_hop):
-        yield from os.walk(main_hop)
+        yield from os.walk(main_hop, **kwargs)
     else:
         # walking inside a zip in a private repo requires authentication
         if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
@@ -580,11 +567,23 @@ def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None):
         if inner_path.strip("/") and not fs.isdir(inner_path):
             return []
         protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[-1]
-        for dirpath, dirnames, filenames in fs.walk(inner_path):
+        for dirpath, dirnames, filenames in fs.walk(inner_path, **kwargs):
             yield "::".join([f"{protocol}://{dirpath}"] + rest_hops), dirnames, filenames
 
 
 class xPath(type(Path())):
+    """Extension of `pathlib.Path` to support both local paths and remote URLs."""
+
+    def __str__(self):
+        path_str = super().__str__()
+        main_hop, *rest_hops = path_str.split("::")
+        if is_local_path(main_hop):
+            return main_hop
+        path_as_posix = path_str.replace("\\", "/")
+        path_as_posix = SINGLE_SLASH_AFTER_PROTOCOL_PATTERN.sub("://", path_as_posix)
+        path_as_posix += "//" if path_as_posix.endswith(":") else ""  # Add slashes to root of the protocol
+        return path_as_posix
+
     def glob(self, pattern, use_auth_token: Optional[Union[str, bool]] = None):
         """Glob function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
 
@@ -596,7 +595,7 @@ class xPath(type(Path())):
         Yields:
             [`xPath`]
         """
-        posix_path = _as_posix(self)
+        posix_path = self.as_posix()
         main_hop, *rest_hops = posix_path.split("::")
         if is_local_path(main_hop):
             yield from Path(main_hop).glob(pattern)
@@ -636,7 +635,7 @@ class xPath(type(Path())):
         Returns:
             [`xPath`]
         """
-        return type(self)(xdirname(_as_posix(self)))
+        return type(self)(xdirname(self.as_posix()))
 
     @property
     def name(self) -> str:
@@ -645,7 +644,7 @@ class xPath(type(Path())):
         Returns:
             `str`
         """
-        return PurePosixPath(_as_posix(self).split("::")[0]).name
+        return PurePosixPath(self.as_posix().split("::")[0]).name
 
     @property
     def stem(self) -> str:
@@ -654,7 +653,7 @@ class xPath(type(Path())):
         Returns:
             `str`
         """
-        return PurePosixPath(_as_posix(self).split("::")[0]).stem
+        return PurePosixPath(self.as_posix().split("::")[0]).stem
 
     @property
     def suffix(self) -> str:
@@ -663,7 +662,7 @@ class xPath(type(Path())):
         Returns:
             `str`
         """
-        return PurePosixPath(_as_posix(self).split("::")[0]).suffix
+        return PurePosixPath(self.as_posix().split("::")[0]).suffix
 
     def open(self, *args, **kwargs):
         """Extend :func:`xopen` to support argument of type :obj:`~pathlib.Path`.
@@ -675,7 +674,7 @@ class xPath(type(Path())):
         Returns:
             `io.FileIO`: File-like object.
         """
-        return xopen(_as_posix(self), *args, **kwargs)
+        return xopen(str(self), *args, **kwargs)
 
     def joinpath(self, *p: Tuple[str, ...]) -> "xPath":
         """Extend :func:`xjoin` to support argument of type :obj:`~pathlib.Path`.
@@ -686,10 +685,30 @@ class xPath(type(Path())):
         Returns:
             [`xPath`]
         """
-        return type(self)(xjoin(_as_posix(self), *p))
+        return type(self)(xjoin(self.as_posix(), *p))
 
     def __truediv__(self, p: str) -> "xPath":
         return self.joinpath(p)
+
+    def with_suffix(self, suffix):
+        main_hop, *rest_hops = str(self).split("::")
+        if is_local_path(main_hop):
+            return type(self)(str(super().with_suffix(suffix)))
+        return type(self)("::".join([type(self)(PurePosixPath(main_hop).with_suffix(suffix)).as_posix()] + rest_hops))
+
+
+def _as_str(path: Union[str, Path, xPath]):
+    return str(path) if isinstance(path, xPath) else str(xPath(str(path)))
+
+
+def xgzip_open(filepath_or_buffer, *args, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
+    import gzip
+
+    if hasattr(filepath_or_buffer, "read"):
+        return gzip.open(filepath_or_buffer, *args, **kwargs)
+    else:
+        filepath_or_buffer = str(filepath_or_buffer)
+        return gzip.open(xopen(filepath_or_buffer, "rb", use_auth_token=use_auth_token), *args, **kwargs)
 
 
 def xpandas_read_csv(filepath_or_buffer, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
@@ -825,11 +844,11 @@ class FilesIterable(_IterableFromGenerator):
                     # skipping hidden directories; prune the search
                     # [:] for the in-place list modification required by os.walk
                     # (only works for local paths as fsspec's walk doesn't support the in-place modification)
-                    dirnames[:] = [dirname for dirname in dirnames if not dirname.startswith((".", "__"))]
+                    dirnames[:] = sorted([dirname for dirname in dirnames if not dirname.startswith((".", "__"))])
                     if xbasename(dirpath).startswith((".", "__")):
                         # skipping hidden directories
                         continue
-                    for filename in filenames:
+                    for filename in sorted(filenames):
                         if filename.startswith((".", "__")):
                             # skipping hidden files
                             continue
@@ -843,9 +862,9 @@ class FilesIterable(_IterableFromGenerator):
 class StreamingDownloadManager:
     """
     Download manager that uses the "::" separator to navigate through (possibly remote) compressed archives.
-    Contrary to the regular DownloadManager, the `download` and `extract` methods don't actually download nor extract
+    Contrary to the regular `DownloadManager`, the `download` and `extract` methods don't actually download nor extract
     data, but they rather return the path or url that could be opened using the `xopen` function which extends the
-    builtin `open` function to stream data from remote files.
+    built-in `open` function to stream data from remote files.
     """
 
     is_streaming = True
@@ -867,13 +886,15 @@ class StreamingDownloadManager:
         return self._data_dir
 
     def download(self, url_or_urls):
-        """Download given url(s).
+        """Normalize URL(s) of files to stream data from.
+        This is the lazy version of `DownloadManager.download` for streaming.
 
         Args:
-            url_or_urls (`str` or `list` or `dict`): URL or URLs to download and extract. Each url is a `str`.
+            url_or_urls (`str` or `list` or `dict`):
+                URL(s) of files to stream data from. Each url is a `str`.
 
         Returns:
-            `str`: Downloaded paths matching the given input url_or_urls.
+            url(s): (`str` or `list` or `dict`), URL(s) to stream data from matching the given input url_or_urls.
 
         Example:
 
@@ -891,14 +912,17 @@ class StreamingDownloadManager:
             urlpath = url_or_path_join(self._base_path, urlpath)
         return urlpath
 
-    def extract(self, path_or_paths):
-        """Extract given path(s).
+    def extract(self, url_or_urls):
+        """Add extraction protocol for given url(s) for streaming.
+
+        This is the lazy version of `DownloadManager.extract` for streaming.
 
         Args:
-            path_or_paths (`str` or `list` or `dict`): Path or paths of file to extract. Each path is a `str`.
+            url_or_urls (`str` or `list` or `dict`):
+                URL(s) of files to stream data from. Each url is a `str`.
 
         Returns:
-            `str`: Extracted paths matching the given input path_or_paths.
+            url(s): (`str` or `list` or `dict`), URL(s) to stream data from matching the given input `url_or_urls`.
 
         Example:
 
@@ -907,7 +931,7 @@ class StreamingDownloadManager:
         >>> extracted_files = dl_manager.extract(downloaded_files)
         ```
         """
-        urlpaths = map_nested(self._extract, path_or_paths, map_tuple=True)
+        urlpaths = map_nested(self._extract, url_or_urls, map_tuple=True)
         return urlpaths
 
     def _extract(self, urlpath: str) -> str:
@@ -929,20 +953,22 @@ class StreamingDownloadManager:
             return f"{protocol}://::{urlpath}"
 
     def download_and_extract(self, url_or_urls):
-        """Download and extract given url_or_urls.
+        """Prepare given `url_or_urls` for streaming (add extraction protocol).
 
-        Is roughly equivalent to:
+        This is the lazy version of `DownloadManager.download_and_extract` for streaming.
+
+        Is equivalent to:
 
         ```
-        extracted_paths = dl_manager.extract(dl_manager.download(url_or_urls))
+        urls = dl_manager.extract(dl_manager.download(url_or_urls))
         ```
 
         Args:
-            url_or_urls: url or `list`/`dict` of urls to download and extract. Each
-                url is a `str`.
+            url_or_urls (`str` or `list` or `dict`):
+                URL(s) to stream from data from. Each url is a `str`.
 
         Returns:
-            extracted_path(s): `str`, extracted paths of given URL(s).
+            url(s): (`str` or `list` or `dict`), URL(s) to stream data from matching the given input `url_or_urls`.
         """
         return self.extract(self.download(url_or_urls))
 
@@ -950,10 +976,12 @@ class StreamingDownloadManager:
         """Iterate over files within an archive.
 
         Args:
-            urlpath_or_buf (:obj:`str` or :obj:`io.BufferedReader`): Archive path or archive binary file object.
+            urlpath_or_buf (`str` or `io.BufferedReader`):
+                Archive path or archive binary file object.
 
         Yields:
-            :obj:`tuple`[:obj:`str`, :obj:`io.BufferedReader`]: 2-tuple (path_within_archive, file_object).
+            `tuple[str, io.BufferedReader]`:
+                2-tuple (path_within_archive, file_object).
                 File object is opened in binary mode.
 
         Example:
@@ -973,7 +1001,8 @@ class StreamingDownloadManager:
         """Iterate over files.
 
         Args:
-            urlpaths (:obj:`str` or :obj:`list` of :obj:`str`): Root paths.
+            urlpaths (`str` or `list` of `str`):
+                Root paths.
 
         Yields:
             str: File URL path.

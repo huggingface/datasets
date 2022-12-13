@@ -2,8 +2,8 @@
 
 There are two methods for creating and sharing an image dataset. This guide will show you how to:
 
-* Create an image dataset with `ImageFolder` and some metadata. This is a no-code solution for quickly creating an image dataset. 
-* Create an image dataset by writing a loading script. This method is a bit more involved, but you have greater flexibility over how a dataset is defined, downloaded, and generated.
+* Create an image dataset with `ImageFolder` and some metadata. This is a no-code solution for quickly creating an image dataset with several thousand images.
+* Create an image dataset by writing a loading script. This method is a bit more involved, but you have greater flexibility over how a dataset is defined, downloaded, and generated which can be useful for more complex or large scale image datasets.
 
 <Tip>
 
@@ -13,7 +13,7 @@ You can control access to your dataset by requiring users to share their contact
 
 ## ImageFolder
 
-The `ImageFolder` is a dataset builder designed to quickly load an image dataset without requiring you to write any code. `ImageFolder` automatically infers the class labels of your dataset based on the directory name. Just store your dataset in a directory structure like:
+The `ImageFolder` is a dataset builder designed to quickly load an image dataset with several thousand images without requiring you to write any code. `ImageFolder` automatically infers the class labels of your dataset based on the directory name. Just store your dataset in a directory structure like:
 
 ```
 folder/train/dog/golden_retriever.png
@@ -41,6 +41,13 @@ folder/train/cat/maine_coon.png
 folder/test/dog/german_shepherd.png
 folder/test/cat/bengal.png
 ```
+
+<Tip warning={true}>
+
+If all image files are contained in a single directory or if they are not on the same level of directory structure, `label` column won't be added automatically. If you need it, set `drop_labels=False` explicitly.
+
+</Tip>
+
 
 If there is additional information you'd like to include about your dataset, like text captions or bounding boxes, add it as a `metadata.jsonl` file in your folder. This lets you quickly create datasets for different computer vision tasks like text captioning or object detection.
 
@@ -101,9 +108,22 @@ Load the dataset with `ImageFolder`, and it will create a `objects` column with 
 {"bbox": [[302.0, 109.0, 73.0, 52.0]], "categories": [0]}
 ```
 
+### Upload dataset to the Hub
+
+Once you've created a dataset, you can share it to the Hub with the [`~datasets.DatasetDict.push_to_hub`] method. Make sure you have the [huggingface_hub](https://huggingface.co/docs/huggingface_hub/index) library installed and you're logged in to your Hugging Face account (see the [Upload with Python tutorial](upload_dataset#upload-with-python) for more details).
+
+Upload your dataset with [`~datasets.DatasetDict.push_to_hub`]:
+
+```py
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("imagefolder", data_dir="/path/to/folder", split="train")
+>>> dataset.push_to_hub("stevhliu/my-image-captioning-dataset")
+```
+
 ## Loading script
 
-Write a dataset loading script to share a dataset. It defines a dataset's splits and configurations, and handles downloading and generating a dataset. The script is located in the same folder or repository as the dataset. 
+Write a dataset loading script to share a dataset. It defines a dataset's splits and configurations, and handles downloading and generating a dataset. The script is located in the same folder or repository as the dataset and should have the same name.
 
 ```
 my_dataset/
@@ -334,15 +354,15 @@ def _generate_examples(self, images, metadata_path):
 
 ### Generate the dataset metadata (optional)
 
-The dataset metadata you added earlier now needs to be generated and stored in a file called `datasets_infos.json`. In addition to information about a datasets features and description, this file also contains data file checksums to ensure integrity.
+The dataset metadata can be generated and stored in the dataset card (`README.md` file).
 
-Run the following command to generate your dataset metadata in `dataset_infos.json` and make sure your new loading script works correctly:
+Run the following command to generate your dataset metadata in `README.md` and make sure your new loading script works correctly:
 
 ```bash
 datasets-cli test path/to/<your-dataset-loading-script> --save_info --all_configs
 ```
 
-If your loading script passed the test, you should now have a `dataset_infos.json` file in your dataset folder.
+If your loading script passed the test, you should now have the `dataset_info` YAML fields in the header of the `README.md` file in your dataset folder.
 
 ### Upload the dataset to the Hub
 

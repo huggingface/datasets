@@ -6,7 +6,6 @@ from typing import List, Optional, Tuple
 
 import pandas as pd
 import pyarrow as pa
-import pyarrow.compute as pc
 import pyarrow.json as paj
 
 import datasets
@@ -31,17 +30,7 @@ else:
 
 
 def count_path_segments(path):
-    cnt = 0
-    while True:
-        parts = os.path.split(path)
-        if parts[0] == path:
-            break
-        elif parts[1] == path:
-            break
-        else:
-            path = parts[0]
-            cnt += 1
-    return cnt
+    return path.replace("\\", "/").count("/")
 
 
 @dataclass
@@ -87,7 +76,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
         # * `drop_labels` is None (default) or False, to infer the class labels
         # * `drop_metadata` is None (default) or False, to find the metadata files
         do_analyze = not self.config.drop_labels or not self.config.drop_metadata
-        labels = set()
+        labels, path_depths = set(), set()
         metadata_files = collections.defaultdict(set)
 
         def analyze(files_or_archives, downloaded_files_or_dirs, split):
@@ -103,6 +92,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     if original_file_ext.lower() in self.EXTENSIONS:
                         if not self.config.drop_labels:
                             labels.add(os.path.basename(os.path.dirname(original_file)))
+                            path_depths.add(count_path_segments(original_file))
                     elif os.path.basename(original_file) in self.METADATA_FILENAMES:
                         metadata_files[split].add((original_file, downloaded_file))
                     else:
@@ -119,6 +109,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                         if downloaded_dir_file_ext in self.EXTENSIONS:
                             if not self.config.drop_labels:
                                 labels.add(os.path.basename(os.path.dirname(downloaded_dir_file)))
+                                path_depths.add(count_path_segments(downloaded_dir_file))
                         elif os.path.basename(downloaded_dir_file) in self.METADATA_FILENAMES:
                             metadata_files[split].add((None, downloaded_dir_file))
                         else:
@@ -150,8 +141,13 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                 else:
                     # if `metadata_files` are not found, don't add metadata
                     add_metadata = False
-                    # if `metadata_files` are not found but `drop_labels` is None (default) or False, add them
-                    add_labels = not (self.config.drop_labels is True)
+                    # if `metadata_files` are not found and `drop_labels` is None (default) -
+                    # add labels if files are on the same level in directory hierarchy and there is more than one label
+                    add_labels = (
+                        (len(labels) > 1 and len(path_depths) == 1)
+                        if self.config.drop_labels is None
+                        else not self.config.drop_labels
+                    )
 
                 if add_labels:
                     logger.info("Adding the labels inferred from data directories to the dataset's features...")
@@ -310,13 +306,10 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                                 )
                                 pa_metadata_table = self._read_metadata(downloaded_metadata_file)
                                 pa_file_name_array = pa_metadata_table["file_name"]
-                                pa_file_name_array = pc.replace_substring(
-                                    pa_file_name_array, pattern="\\", replacement="/"
-                                )
                                 pa_metadata_table = pa_metadata_table.drop(["file_name"])
                                 metadata_dir = os.path.dirname(metadata_file)
                                 metadata_dict = {
-                                    file_name: sample_metadata
+                                    os.path.normpath(file_name).replace("\\", "/"): sample_metadata
                                     for file_name, sample_metadata in zip(
                                         pa_file_name_array.to_pylist(), pa_table_to_pylist(pa_metadata_table)
                                     )
@@ -379,13 +372,10 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                                     )
                                     pa_metadata_table = self._read_metadata(downloaded_metadata_file)
                                     pa_file_name_array = pa_metadata_table["file_name"]
-                                    pa_file_name_array = pc.replace_substring(
-                                        pa_file_name_array, pattern="\\", replacement="/"
-                                    )
                                     pa_metadata_table = pa_metadata_table.drop(["file_name"])
                                     metadata_dir = os.path.dirname(downloaded_metadata_file)
                                     metadata_dict = {
-                                        file_name: sample_metadata
+                                        os.path.normpath(file_name).replace("\\", "/"): sample_metadata
                                         for file_name, sample_metadata in zip(
                                             pa_file_name_array.to_pylist(), pa_table_to_pylist(pa_metadata_table)
                                         )

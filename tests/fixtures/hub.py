@@ -1,7 +1,6 @@
 import time
 from contextlib import contextmanager
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 import requests
@@ -16,7 +15,15 @@ CI_HUB_USER_TOKEN = "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"
 
 CI_HUB_ENDPOINT = "https://hub-ci.huggingface.co"
 CI_HUB_DATASETS_URL = CI_HUB_ENDPOINT + "/datasets/{repo_id}/resolve/{revision}/{path}"
+CI_HFH_HUGGINGFACE_CO_URL_TEMPLATE = CI_HUB_ENDPOINT + "/{repo_id}/resolve/{revision}/{filename}"
 CI_HUB_TOKEN_PATH = Path("~/.huggingface/hub_ci_token").expanduser()
+
+
+@pytest.fixture
+def ci_hfh_hf_hub_url(monkeypatch):
+    monkeypatch.setattr(
+        "huggingface_hub.file_download.HUGGINGFACE_CO_URL_TEMPLATE", CI_HFH_HUGGINGFACE_CO_URL_TEMPLATE
+    )
 
 
 @pytest.fixture
@@ -60,8 +67,7 @@ def hf_token(hf_api: HfApi):
 @pytest.fixture
 def cleanup_repo(hf_api):
     def _cleanup_repo(repo_id):
-        organization, name = repo_id.split("/")
-        delete_repo(hf_api=hf_api, name=name, organization=organization, token=CI_HUB_USER_TOKEN, repo_type="dataset")
+        delete_repo(hf_api, repo_id, token=CI_HUB_USER_TOKEN, repo_type="dataset")
 
     return _cleanup_repo
 
@@ -81,8 +87,8 @@ def temporary_repo(cleanup_repo):
 @pytest.fixture(scope="session")
 def hf_private_dataset_repo_txt_data_(hf_api: HfApi, hf_token, text_file):
     repo_name = f"repo_txt_data-{int(time.time() * 10e3)}"
-    create_repo(hf_api, repo_name, token=hf_token, organization=CI_HUB_USER, repo_type="dataset", private=True)
     repo_id = f"{CI_HUB_USER}/{repo_name}"
+    create_repo(hf_api, repo_id, token=hf_token, repo_type="dataset", private=True)
     hf_api.upload_file(
         token=hf_token,
         path_or_fileobj=str(text_file),
@@ -92,23 +98,21 @@ def hf_private_dataset_repo_txt_data_(hf_api: HfApi, hf_token, text_file):
     )
     yield repo_id
     try:
-        delete_repo(hf_api, repo_name, token=hf_token, organization=CI_HUB_USER, repo_type="dataset")
+        delete_repo(hf_api, repo_id, token=hf_token, repo_type="dataset")
     except (requests.exceptions.HTTPError, ValueError):  # catch http error and token invalid error
         pass
 
 
 @pytest.fixture()
-def hf_private_dataset_repo_txt_data(hf_private_dataset_repo_txt_data_):
-    with patch("datasets.config.HF_ENDPOINT", CI_HUB_ENDPOINT):
-        with patch("datasets.config.HUB_DATASETS_URL", CI_HUB_DATASETS_URL):
-            yield hf_private_dataset_repo_txt_data_
+def hf_private_dataset_repo_txt_data(hf_private_dataset_repo_txt_data_, ci_hub_config, ci_hfh_hf_hub_url):
+    return hf_private_dataset_repo_txt_data_
 
 
 @pytest.fixture(scope="session")
 def hf_private_dataset_repo_zipped_txt_data_(hf_api: HfApi, hf_token, zip_csv_with_dir_path):
     repo_name = f"repo_zipped_txt_data-{int(time.time() * 10e3)}"
-    create_repo(hf_api, repo_name, token=hf_token, organization=CI_HUB_USER, repo_type="dataset", private=True)
     repo_id = f"{CI_HUB_USER}/{repo_name}"
+    create_repo(hf_api, repo_id, token=hf_token, repo_type="dataset", private=True)
     hf_api.upload_file(
         token=hf_token,
         path_or_fileobj=str(zip_csv_with_dir_path),
@@ -118,23 +122,23 @@ def hf_private_dataset_repo_zipped_txt_data_(hf_api: HfApi, hf_token, zip_csv_wi
     )
     yield repo_id
     try:
-        delete_repo(hf_api, repo_name, token=hf_token, organization=CI_HUB_USER, repo_type="dataset")
+        delete_repo(hf_api, repo_id, token=hf_token, repo_type="dataset")
     except (requests.exceptions.HTTPError, ValueError):  # catch http error and token invalid error
         pass
 
 
 @pytest.fixture()
-def hf_private_dataset_repo_zipped_txt_data(hf_private_dataset_repo_zipped_txt_data_):
-    with patch("datasets.config.HF_ENDPOINT", CI_HUB_ENDPOINT):
-        with patch("datasets.config.HUB_DATASETS_URL", CI_HUB_DATASETS_URL):
-            yield hf_private_dataset_repo_zipped_txt_data_
+def hf_private_dataset_repo_zipped_txt_data(
+    hf_private_dataset_repo_zipped_txt_data_, ci_hub_config, ci_hfh_hf_hub_url
+):
+    return hf_private_dataset_repo_zipped_txt_data_
 
 
 @pytest.fixture(scope="session")
 def hf_private_dataset_repo_zipped_img_data_(hf_api: HfApi, hf_token, zip_image_path):
     repo_name = f"repo_zipped_img_data-{int(time.time() * 10e3)}"
-    create_repo(hf_api, repo_name, token=hf_token, organization=CI_HUB_USER, repo_type="dataset", private=True)
     repo_id = f"{CI_HUB_USER}/{repo_name}"
+    create_repo(hf_api, repo_id, token=hf_token, repo_type="dataset", private=True)
     hf_api.upload_file(
         token=hf_token,
         path_or_fileobj=str(zip_image_path),
@@ -144,13 +148,13 @@ def hf_private_dataset_repo_zipped_img_data_(hf_api: HfApi, hf_token, zip_image_
     )
     yield repo_id
     try:
-        delete_repo(hf_api, repo_name, token=hf_token, organization=CI_HUB_USER, repo_type="dataset")
+        delete_repo(hf_api, repo_id, token=hf_token, repo_type="dataset")
     except (requests.exceptions.HTTPError, ValueError):  # catch http error and token invalid error
         pass
 
 
 @pytest.fixture()
-def hf_private_dataset_repo_zipped_img_data(hf_private_dataset_repo_zipped_img_data_):
-    with patch("datasets.config.HF_ENDPOINT", CI_HUB_ENDPOINT):
-        with patch("datasets.config.HUB_DATASETS_URL", CI_HUB_DATASETS_URL):
-            yield hf_private_dataset_repo_zipped_img_data_
+def hf_private_dataset_repo_zipped_img_data(
+    hf_private_dataset_repo_zipped_img_data_, ci_hub_config, ci_hfh_hf_hub_url
+):
+    return hf_private_dataset_repo_zipped_img_data_

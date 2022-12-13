@@ -34,6 +34,7 @@ class SplitInfo:
     name: str = ""
     num_bytes: int = 0
     num_examples: int = 0
+    shard_lengths: Optional[List[int]] = None
 
     # Deprecated
     # For backward compatibility, this field needs to always be included in files like
@@ -83,7 +84,7 @@ class SplitBase(metaclass=abc.ABCMeta):
     """Abstract base class for Split compositionality.
 
     See the
-    [guide on splits](/docs/datasets/loading#slice-splits)
+    [guide on splits](./loading#slice-splits)
     for more information.
 
     There are three parts to the composition:
@@ -261,7 +262,7 @@ class PercentSlice(metaclass=PercentSliceMeta):
     """Syntactic sugar for defining slice subsplits: `datasets.percent[75:-5]`.
 
     See the
-    [guide on splits](/docs/datasets/loading#slice-splits)
+    [guide on splits](./loading#slice-splits)
     for more information.
     """
     # pylint: enable=line-too-long
@@ -312,39 +313,44 @@ class _SubSplit(SplitBase):
 class NamedSplit(SplitBase):
     """Descriptor corresponding to a named split (train, test, ...).
 
-    Example::
-        Each descriptor can be composed with other using addition or slice. Ex::
+    Example:
+        Each descriptor can be composed with other using addition or slice:
 
+            ```py
             split = datasets.Split.TRAIN.subsplit(datasets.percent[0:25]) + datasets.Split.TEST
+            ```
 
         The resulting split will correspond to 25% of the train split merged with
         100% of the test split.
 
-    Warning:
-        A split cannot be added twice, so the following will fail::
+        A split cannot be added twice, so the following will fail:
 
+            ```py
             split = (
                     datasets.Split.TRAIN.subsplit(datasets.percent[:25]) +
                     datasets.Split.TRAIN.subsplit(datasets.percent[75:])
             )  # Error
             split = datasets.Split.TEST + datasets.Split.ALL  # Error
+            ```
 
-    Warning:
-        The slices can be applied only one time. So the following are valid::
+        The slices can be applied only one time. So the following are valid:
 
+            ```py
             split = (
                     datasets.Split.TRAIN.subsplit(datasets.percent[:25]) +
                     datasets.Split.TEST.subsplit(datasets.percent[:50])
             )
             split = (datasets.Split.TRAIN + datasets.Split.TEST).subsplit(datasets.percent[:50])
+            ```
 
+        But this is not valid:
 
-        But not::
-
+            ```py
             train = datasets.Split.TRAIN
             test = datasets.Split.TEST
             split = train.subsplit(datasets.percent[:25]).subsplit(datasets.percent[:25])
             split = (train.subsplit(datasets.percent[:25]) + test).subsplit(datasets.percent[:50])
+            ```
     """
 
     def __init__(self, name):
@@ -411,9 +417,9 @@ class Split:
       you do not want to use this during model iteration as you may overfit to it.
     - `ALL`: the union of all defined dataset splits.
 
-    Note: All splits, including compositions inherit from `datasets.SplitBase`
+    All splits, including compositions inherit from `datasets.SplitBase`.
 
-    See the :doc:`guide on splits </loading>` for more information.
+    See the [guide](./load_hub#splits) on splits for more information.
 
     Example:
 
@@ -505,7 +511,7 @@ class SplitReadInstruction:
         return split_instruction
 
     def get_list_sliced_split_info(self):
-        return list(sorted(self._splits.values(), key=lambda x: x.split_info.name))
+        return list(self._splits.values())
 
 
 class SplitDict(dict):
@@ -567,9 +573,8 @@ class SplitDict(dict):
 
     def to_split_dict(self):
         """Returns a list of SplitInfo protos that we have."""
-        # Return the SplitInfo, sorted by name
         out = []
-        for split_name, split_info in sorted(self.items()):
+        for split_name, split_info in self.items():
             split_info = copy.deepcopy(split_info)
             split_info.name = split_name
             out.append(split_info)
@@ -580,6 +585,9 @@ class SplitDict(dict):
 
     def _to_yaml_list(self) -> list:
         out = [asdict(s) for s in self.to_split_dict()]
+        # we don't need the shard lengths in YAML, since it depends on max_shard_size and num_proc
+        for split_info_dict in out:
+            split_info_dict.pop("shard_lengths", None)
         # we don't need the dataset_name attribute that is deprecated
         for split_info_dict in out:
             split_info_dict.pop("dataset_name", None)
@@ -595,14 +603,16 @@ class SplitGenerator:
     """Defines the split information for the generator.
 
     This should be used as returned value of
-    :meth:`GeneratorBasedBuilder._split_generators`.
-    See :meth:`GeneratorBasedBuilder._split_generators` for more info and example
+    `GeneratorBasedBuilder._split_generators`.
+    See `GeneratorBasedBuilder._split_generators` for more info and example
     of usage.
 
     Args:
-        name (str): Name of the Split for which the generator will
+        name (`str`):
+            Name of the `Split` for which the generator will
             create the examples.
-        **gen_kwargs: Keyword arguments to forward to the :meth:`DatasetBuilder._generate_examples` method
+        **gen_kwargs (additional keyword arguments):
+            Keyword arguments to forward to the `DatasetBuilder._generate_examples` method
             of the builder.
 
     Example:

@@ -14,6 +14,14 @@ from datasets.packaged_modules.folder_based_builder.folder_based_builder import 
 from datasets.tasks import TextClassification
 
 
+remote_files = [
+    "https://huggingface.co/datasets/polinaeterna/texts/resolve/main/hallo.txt",
+    "https://huggingface.co/datasets/polinaeterna/texts/resolve/main/hello.txt",
+    "https://huggingface.co/datasets/polinaeterna/texts/resolve/main/class1/bonjour.txt",
+    "https://huggingface.co/datasets/polinaeterna/texts/resolve/main/class1/bonjour2.txt",
+]
+
+
 class DummyFolderBasedBuilder(FolderBasedBuilder):
     BASE_FEATURE = None
     BASE_COLUMN_NAME = "base"
@@ -38,8 +46,7 @@ def data_files_with_labels_no_metadata(tmp_path, auto_text_file):
     data_dir.mkdir(parents=True, exist_ok=True)
     subdir_class_0 = data_dir / "class0"
     subdir_class_0.mkdir(parents=True, exist_ok=True)
-    # data dirs can be nested but FolderBasedBuilder should care only about the last part of the path:
-    subdir_class_1 = data_dir / "subdir" / "class1"
+    subdir_class_1 = data_dir / "class1"
     subdir_class_1.mkdir(parents=True, exist_ok=True)
 
     filename = subdir_class_0 / "file0.txt"
@@ -52,6 +59,45 @@ def data_files_with_labels_no_metadata(tmp_path, auto_text_file):
     )
 
     return data_files_with_labels_no_metadata
+
+
+@pytest.fixture
+def data_files_with_different_levels_no_metadata(tmp_path, auto_text_file):
+    data_dir = tmp_path / "data_files_with_different_levels"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    subdir_class_0 = data_dir / "class0"
+    subdir_class_0.mkdir(parents=True, exist_ok=True)
+    subdir_class_1 = data_dir / "subdir" / "class1"
+    subdir_class_1.mkdir(parents=True, exist_ok=True)
+
+    filename = subdir_class_0 / "file0.txt"
+    shutil.copyfile(auto_text_file, filename)
+    filename2 = subdir_class_1 / "file1.txt"
+    shutil.copyfile(auto_text_file, filename2)
+
+    data_files_with_different_levels = DataFilesDict.from_local_or_remote(
+        get_data_patterns_locally(str(data_dir)), str(data_dir)
+    )
+
+    return data_files_with_different_levels
+
+
+@pytest.fixture
+def data_files_with_one_label_no_metadata(tmp_path, auto_text_file):
+    # only one label found = all files in a single dir/in a root dir
+    data_dir = tmp_path / "data_files_with_one_label"
+    data_dir.mkdir(parents=True, exist_ok=True)
+
+    filename = data_dir / "file0.txt"
+    shutil.copyfile(auto_text_file, filename)
+    filename2 = data_dir / "file1.txt"
+    shutil.copyfile(auto_text_file, filename2)
+
+    data_files_with_one_label = DataFilesDict.from_local_or_remote(
+        get_data_patterns_locally(str(data_dir)), str(data_dir)
+    )
+
+    return data_files_with_one_label
 
 
 @pytest.fixture
@@ -132,7 +178,7 @@ def data_files_with_one_split_and_metadata(tmp_path, auto_text_file):
         """\
         {"file_name": "file.txt", "additional_feature": "Dummy file"}
         {"file_name": "file2.txt", "additional_feature": "Second dummy file"}
-        {"file_name": "subdir/file3.txt", "additional_feature": "Third dummy file"}
+        {"file_name": "./subdir/file3.txt", "additional_feature": "Third dummy file"}
         """
     )
     with open(metadata_filename, "w", encoding="utf-8") as f:
@@ -231,7 +277,7 @@ def test_inferring_labels_from_data_dirs(data_files_with_labels_no_metadata, cac
     assert all(example["label"] in {"class0", "class1"} for _, example in generator)
 
 
-def test_default_autofolder_not_usable(data_files_with_labels_no_metadata, cache_dir):
+def test_default_folder_builder_not_usable(data_files_with_labels_no_metadata, cache_dir):
     # builder would try to access non-existing attributes of a default `BuilderConfig` class
     # as a custom one is not provided
     with pytest.raises(AttributeError):
@@ -252,7 +298,7 @@ def test_streaming_patched():
 
 @pytest.mark.parametrize("drop_metadata", [None, True, False])
 @pytest.mark.parametrize("drop_labels", [None, True, False])
-def test_prepare_generate_examples_duplicated_label_key(
+def test_generate_examples_duplicated_label_key(
     files_with_labels_and_duplicated_label_key_in_metadata, drop_metadata, drop_labels, cache_dir, caplog
 ):
     class0_file, class1_file, metadata_file = files_with_labels_and_duplicated_label_key_in_metadata
@@ -284,14 +330,17 @@ def test_prepare_generate_examples_duplicated_label_key(
 
 @pytest.mark.parametrize("drop_metadata", [None, True, False])
 @pytest.mark.parametrize("drop_labels", [None, True, False])
-def test_prepare_generate_examples_drop_labels(auto_text_file, drop_metadata, drop_labels):
+def test_generate_examples_drop_labels(
+    data_files_with_labels_no_metadata, auto_text_file, drop_metadata, drop_labels, cache_dir
+):
     autofolder = DummyFolderBasedBuilder(
-        data_files={"train": [auto_text_file]},
+        data_files=data_files_with_labels_no_metadata,
         drop_metadata=drop_metadata,
         drop_labels=drop_labels,
+        cache_dir=cache_dir,
     )
     gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
-    # removing the labels explicitly requires drop_labels=True
+    # removing labels explicitly requires drop_labels=True
     assert gen_kwargs["add_labels"] is not bool(drop_labels)
     assert gen_kwargs["add_metadata"] is False
     generator = autofolder._generate_examples(**gen_kwargs)
@@ -308,12 +357,13 @@ def test_prepare_generate_examples_drop_labels(auto_text_file, drop_metadata, dr
 
 @pytest.mark.parametrize("drop_metadata", [None, True, False])
 @pytest.mark.parametrize("drop_labels", [None, True, False])
-def test_prepare_generate_examples_drop_metadata(file_with_metadata, drop_metadata, drop_labels):
+def test_generate_examples_drop_metadata(file_with_metadata, drop_metadata, drop_labels, cache_dir):
     file, metadata_file = file_with_metadata
     autofolder = DummyFolderBasedBuilder(
         data_files=[file, metadata_file],
         drop_metadata=drop_metadata,
         drop_labels=drop_labels,
+        cache_dir=cache_dir,
     )
     gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
     # since the dataset has metadata, removing the metadata explicitly requires drop_metadata=True
@@ -334,9 +384,53 @@ def test_prepare_generate_examples_drop_metadata(file_with_metadata, drop_metada
         assert example[column] is not None
 
 
+@pytest.mark.parametrize("remote", [True, False])
+@pytest.mark.parametrize("drop_labels", [None, True, False])
+def test_data_files_with_different_levels_no_metadata(
+    data_files_with_different_levels_no_metadata, drop_labels, remote, cache_dir
+):
+    data_files = remote_files if remote else data_files_with_different_levels_no_metadata
+    autofolder = DummyFolderBasedBuilder(
+        data_files=data_files,
+        cache_dir=cache_dir,
+        drop_labels=drop_labels,
+    )
+    gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    generator = autofolder._generate_examples(**gen_kwargs)
+    if drop_labels is not False:
+        # with None (default) we should drop labels if files are on different levels in dir structure
+        assert "label" not in autofolder.info.features
+        assert all(example.keys() == {"base"} for _, example in generator)
+    else:
+        assert "label" in autofolder.info.features
+        assert isinstance(autofolder.info.features["label"], ClassLabel)
+        assert all(example.keys() == {"base", "label"} for _, example in generator)
+
+
+@pytest.mark.parametrize("remote", [False, True])
+@pytest.mark.parametrize("drop_labels", [None, True, False])
+def test_data_files_with_one_label_no_metadata(data_files_with_one_label_no_metadata, drop_labels, remote, cache_dir):
+    data_files = remote_files[:2] if remote else data_files_with_one_label_no_metadata
+    autofolder = DummyFolderBasedBuilder(
+        data_files=data_files,
+        cache_dir=cache_dir,
+        drop_labels=drop_labels,
+    )
+    gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    generator = autofolder._generate_examples(**gen_kwargs)
+    if drop_labels is not False:
+        # with None (default) we should drop labels if only one label is found (=if there is a single dir)
+        assert "label" not in autofolder.info.features
+        assert all(example.keys() == {"base"} for _, example in generator)
+    else:
+        assert "label" in autofolder.info.features
+        assert isinstance(autofolder.info.features["label"], ClassLabel)
+        assert all(example.keys() == {"base", "label"} for _, example in generator)
+
+
 @pytest.mark.parametrize("drop_metadata", [None, True, False])
-def test_prepare_generate_examples_with_metadata_that_misses_one_sample(
-    files_with_metadata_that_misses_one_sample, drop_metadata
+def test_data_files_with_metadata_that_misses_one_sample(
+    files_with_metadata_that_misses_one_sample, drop_metadata, cache_dir
 ):
     file, file2, metadata_file = files_with_metadata_that_misses_one_sample
     if not drop_metadata:
@@ -347,6 +441,7 @@ def test_prepare_generate_examples_with_metadata_that_misses_one_sample(
         data_files=[file, file2, metadata_file],
         drop_metadata=drop_metadata,
         features=features,
+        cache_dir=cache_dir,
     )
     gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
     generator = autofolder._generate_examples(**gen_kwargs)

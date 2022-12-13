@@ -109,11 +109,6 @@ def hf_github_url(path: str, name: str, dataset=True, revision: Optional[str] = 
         return config.REPO_METRICS_URL.format(revision=revision, path=path, name=name)
 
 
-def hf_hub_url(repo_id: str, path: str, revision: Optional[str] = None) -> str:
-    revision = revision or config.HUB_DEFAULT_VERSION
-    return config.HUB_DATASETS_URL.format(repo_id=repo_id, path=path, revision=revision)
-
-
 def url_or_path_join(base_name: str, *pathnames: str) -> str:
     if is_remote_url(base_name):
         return posixpath.join(base_name, *(str(pathname).replace(os.sep, "/").lstrip("/") for pathname in pathnames))

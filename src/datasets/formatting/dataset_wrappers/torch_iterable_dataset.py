@@ -1,3 +1,5 @@
+import threading
+
 import fsspec.asyn
 import torch
 
@@ -16,8 +18,13 @@ def _set_fsspec_for_multiprocess() -> None:
     Only required for fsspec >= 0.9.0
     See https://github.com/fsspec/gcsfs/issues/379
     """
-    fsspec.asyn.iothread[0] = None
-    fsspec.asyn.loop[0] = None
+    if hasattr(fsspec.asyn, "reset_lock"):
+        # for future fsspec>2022.05.0
+        fsspec.asyn.reset_lock()
+    else:
+        fsspec.asyn.iothread[0] = None
+        fsspec.asyn.loop[0] = None
+        fsspec.asyn.lock = threading.Lock()
 
 
 class TorchIterableDataset(IterableDataset, torch.utils.data.IterableDataset):

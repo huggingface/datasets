@@ -78,12 +78,12 @@ To get a single tensor, you must explicitly use the [`Array`] feature type and s
 
 ```py
 >>> from datasets import Dataset, Features, ClassLabel
->>> data = [0, 0, 1]
->>> features = Features({"data": ClassLabel(names=["negative", "positive"])})
->>> ds = Dataset.from_dict({"data": data}, features=features) 
+>>> labels = [0, 0, 1]
+>>> features = Features({"label": ClassLabel(names=["negative", "positive"])})
+>>> ds = Dataset.from_dict({"label": labels}, features=features) 
 >>> ds = ds.with_format("torch")  
 >>> ds[:3]
-{'data': tensor([0, 0, 1])}
+{'label': tensor([0, 0, 1])}
 ```
 
 String and binary objects are unchanged, since PyTorch only supports numbers.
@@ -92,28 +92,38 @@ The [`Image`] and [`Audio`] feature types are also supported:
 
 ```py
 >>> from datasets import Dataset, Features, Audio, Image
->>> data = ["path/to/image.png"]
->>> features = Features({"data": Image()})
->>> ds = Dataset.from_dict({"data": data}, features=features) 
->>> ds = ds.with_format("torch")  
+>>> images = ["path/to/image.png"] * 10
+>>> features = Features({"image": Image()})
+>>> ds = Dataset.from_dict({"image": images}, features=features) 
+>>> ds = ds.with_format("torch")
+>>> ds[0]["image"].shape
+torch.Size([512, 512, 4])
 >>> ds[0]
-{'data': tensor([[[255, 215, 106, 255],
+{'image': tensor([[[255, 215, 106, 255],
          [255, 215, 106, 255],
          ...,
          [255, 255, 255, 255],
          [255, 255, 255, 255]]], dtype=torch.uint8)}
+>>> ds[:2]["image"].shape
+torch.Size([2, 512, 512, 4])
+>>> ds[:2]
+{'image': tensor([[[[255, 215, 106, 255],
+          [255, 215, 106, 255],
+          ...,
+          [255, 255, 255, 255],
+          [255, 255, 255, 255]]]], dtype=torch.uint8)}
 ```
 
 ```py
 >>> from datasets import Dataset, Features, Audio, Image
->>> data = ["path/to/audio.wav"]
->>> features = Features({"data": Audio()})
->>> ds = Dataset.from_dict({"data": data}, features=features) 
+>>> audio = ["path/to/audio.wav"] * 10
+>>> features = Features({"audio": Audio()})
+>>> ds = Dataset.from_dict({"audio": audio}, features=features) 
 >>> ds = ds.with_format("torch")  
->>> ds[0]["data"]["array"]
+>>> ds[0]["audio"]["array"]
 tensor([ 6.1035e-05,  1.5259e-05,  1.6785e-04,  ..., -1.5259e-05,
         -1.5259e-05,  1.5259e-05])
->>> ds[0]["data"]["sampling_rate"]
+>>> ds[0]["audio"]["sampling_rate"]
 tensor(44100)
 ```
 

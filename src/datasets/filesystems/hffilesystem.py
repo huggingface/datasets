@@ -5,14 +5,15 @@ import fsspec
 from fsspec import AbstractFileSystem
 from huggingface_hub.hf_api import DatasetInfo
 
-from ..utils.file_utils import get_authentication_headers_for_url, hf_hub_url
+from ..utils.file_utils import get_authentication_headers_for_url
+from ..utils.hub import hf_hub_url
 
 
 class HfFileSystem(AbstractFileSystem):
     """Interface to files in a Hugging face repository"""
 
     root_marker = ""
-    protocol = "hf"
+    protocol = "hf-legacy"  # "hf://"" is reserved for hffs
 
     def __init__(
         self,

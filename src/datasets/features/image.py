@@ -24,23 +24,24 @@ _IMAGE_COMPRESSION_FORMATS: Optional[List[str]] = None
 
 @dataclass
 class Image:
-    """Image feature to read image data from an image file.
+    """Image [`Feature`] to read image data from an image file.
 
     Input: The Image feature accepts as input:
-    - A :obj:`str`: Absolute path to the image file (i.e. random access is allowed).
-    - A :obj:`dict` with the keys:
+    - A `str`: Absolute path to the image file (i.e. random access is allowed).
+    - A `dict` with the keys:
 
-        - path: String with relative path of the image file to the archive file.
-        - bytes: Bytes of the image file.
+        - `path`: String with relative path of the image file to the archive file.
+        - `bytes`: Bytes of the image file.
 
       This is useful for archived files with sequential access.
 
-    - An :obj:`np.ndarray`: NumPy array representing an image.
-    - A :obj:`PIL.Image.Image`: PIL image object.
+    - An `np.ndarray`: NumPy array representing an image.
+    - A `PIL.Image.Image`: PIL image object.
 
     Args:
-        decode (:obj:`bool`, default ``True``): Whether to decode the image data. If `False`,
-            returns the underlying dictionary in the format {"path": image_path, "bytes": image_bytes}.
+        decode (`bool`, defaults to `True`):
+            Whether to decode the image data. If `False`,
+            returns the underlying dictionary in the format `{"path": image_path, "bytes": image_bytes}`.
 
     Examples:
 
@@ -71,10 +72,11 @@ class Image:
         """Encode example into a format for Arrow.
 
         Args:
-            value (:obj:`str`, :obj:`np.ndarray`, :obj:`PIL.Image.Image` or :obj:`dict`): Data passed as input to Image feature.
+            value (`str`, `np.ndarray`, `PIL.Image.Image` or `dict`):
+                Data passed as input to Image feature.
 
         Returns:
-            :obj:`dict` with "path" and "bytes" fields
+            `dict` with "path" and "bytes" fields
         """
         if config.PIL_AVAILABLE:
             import PIL.Image
@@ -108,17 +110,19 @@ class Image:
         """Decode example image file into image data.
 
         Args:
-            value (obj:`str` or :obj:`dict`): a string with the absolute image file path, a dictionary with
+            value (`str` or `dict`):
+                A string with the absolute image file path, a dictionary with
                 keys:
 
-                - path: String with absolute or relative image file path.
-                - bytes: The bytes of the image file.
-            token_per_repo_id (:obj:`dict`, optional): To access and decode
+                - `path`: String with absolute or relative image file path.
+                - `bytes`: The bytes of the image file.
+            token_per_repo_id (`dict`, *optional*):
+                To access and decode
                 image files from private repositories on the Hub, you can pass
-                a dictionary repo_id (str) -> token (bool or str)
+                a dictionary repo_id (`str`) -> token (`bool` or `str`).
 
         Returns:
-            :obj:`PIL.Image.Image`
+            `PIL.Image.Image`
         """
         if not self.decode:
             raise RuntimeError("Decoding is disabled for this feature. Please use Image(decode=True) instead.")
@@ -170,18 +174,19 @@ class Image:
         """Cast an Arrow array to the Image arrow storage type.
         The Arrow types that can be converted to the Image pyarrow storage type are:
 
-        - pa.string() - it must contain the "path" data
-        - pa.struct({"bytes": pa.binary()})
-        - pa.struct({"path": pa.string()})
-        - pa.struct({"bytes": pa.binary(), "path": pa.string()})  - order doesn't matter
-        - pa.list(*) - it must contain the image array data
+        - `pa.string()` - it must contain the "path" data
+        - `pa.struct({"bytes": pa.binary()})`
+        - `pa.struct({"path": pa.string()})`
+        - `pa.struct({"bytes": pa.binary(), "path": pa.string()})`  - order doesn't matter
+        - `pa.list(*)` - it must contain the image array data
 
         Args:
-            storage (Union[pa.StringArray, pa.StructArray, pa.ListArray]): PyArrow array to cast.
+            storage (`Union[pa.StringArray, pa.StructArray, pa.ListArray]`):
+                PyArrow array to cast.
 
         Returns:
-            pa.StructArray: Array in the Image arrow storage type, that is
-                pa.struct({"bytes": pa.binary(), "path": pa.string()})
+            `pa.StructArray`: Array in the Image arrow storage type, that is
+                `pa.struct({"bytes": pa.binary(), "path": pa.string()})`.
         """
         if config.PIL_AVAILABLE:
             import PIL.Image
@@ -215,16 +220,16 @@ class Image:
             )
         return array_cast(storage, self.pa_type)
 
-    def embed_storage(self, storage: pa.StructArray, drop_paths: bool = True) -> pa.StructArray:
+    def embed_storage(self, storage: pa.StructArray) -> pa.StructArray:
         """Embed image files into the Arrow array.
 
         Args:
-            storage (pa.StructArray): PyArrow array to embed.
-            drop_paths (bool, default ``True``): If True, the paths are set to None.
+            storage (`pa.StructArray`):
+                PyArrow array to embed.
 
         Returns:
-            pa.StructArray: Array in the Image arrow storage type, that is
-                pa.struct({"bytes": pa.binary(), "path": pa.string()})
+            `pa.StructArray`: Array in the Image arrow storage type, that is
+                `pa.struct({"bytes": pa.binary(), "path": pa.string()})`.
         """
 
         @no_op_if_value_is_null
@@ -240,7 +245,10 @@ class Image:
             ],
             type=pa.binary(),
         )
-        path_array = pa.array([None] * len(storage), type=pa.string()) if drop_paths else storage.field("path")
+        path_array = pa.array(
+            [os.path.basename(path) if path is not None else None for path in storage.field("path").to_pylist()],
+            type=pa.string(),
+        )
         storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=bytes_array.is_null())
         return array_cast(storage, self.pa_type)
 
@@ -276,7 +284,7 @@ def encode_pil_image(image: "PIL.Image.Image") -> dict:
 def objects_to_list_of_image_dicts(
     objs: Union[List[str], List[dict], List[np.ndarray], List["PIL.Image.Image"]]
 ) -> List[dict]:
-    """Encode a list of objects into a format suitable for creating an extension array of type :obj:`ImageExtensionType`."""
+    """Encode a list of objects into a format suitable for creating an extension array of type `ImageExtensionType`."""
     if config.PIL_AVAILABLE:
         import PIL.Image
     else:

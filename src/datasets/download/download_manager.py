@@ -20,6 +20,8 @@ import io
 import os
 import posixpath
 import tarfile
+import time
+import warnings
 from datetime import datetime
 from functools import partial
 from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
@@ -28,7 +30,7 @@ from .. import config
 from ..utils.deprecation_utils import DeprecatedEnum
 from ..utils.file_utils import cached_path, get_from_cache, hash_url_to_filename, is_relative_path, url_or_path_join
 from ..utils.info_utils import get_size_checksum_dict
-from ..utils.logging import get_logger, is_progress_bar_enabled
+from ..utils.logging import get_logger, is_progress_bar_enabled, tqdm
 from ..utils.py_utils import NestedDataStructure, map_nested, size_str
 from .download_config import DownloadConfig
 
@@ -130,11 +132,11 @@ class FilesIterable(_IterableFromGenerator):
                 for dirpath, dirnames, filenames in os.walk(urlpath):
                     # skipping hidden directories; prune the search
                     # [:] for the in-place list modification required by os.walk
-                    dirnames[:] = [dirname for dirname in dirnames if not dirname.startswith((".", "__"))]
+                    dirnames[:] = sorted([dirname for dirname in dirnames if not dirname.startswith((".", "__"))])
                     if os.path.basename(dirpath).startswith((".", "__")):
                         # skipping hidden directories
                         continue
-                    for filename in filenames:
+                    for filename in sorted(filenames):
                         if filename.startswith((".", "__")):
                             # skipping hidden files
                             continue
@@ -159,14 +161,19 @@ class DownloadManager:
         """Download manager constructor.
 
         Args:
-            data_dir: can be used to specify a manual directory to get the files from.
-            dataset_name: `str`, name of dataset this instance will be used for. If
+            data_dir:
+                can be used to specify a manual directory to get the files from.
+            dataset_name (`str`):
+                name of dataset this instance will be used for. If
                 provided, downloads will contain which datasets they were used for.
-            download_config: `DownloadConfig` to specify the cache directory and other
+            download_config (`DownloadConfig`):
+                to specify the cache directory and other
                 download options
-            base_path: `str`, base path that is used when relative paths are used to
+            base_path (`str`):
+                base path that is used when relative paths are used to
                 download files. This can be a remote url.
-            record_checksums (:obj:`bool`, default `True`): Whether to record the checksums of the downloaded files. If None, the value is inferred from the builder.
+            record_checksums (`bool`, defaults to `True`):
+                Whether to record the checksums of the downloaded files. If None, the value is inferred from the builder.
         """
         self._dataset_name = dataset_name
         self._data_dir = data_dir
@@ -192,9 +199,11 @@ class DownloadManager:
         """Ship the files using Beam FileSystems to the pipeline temp dir.
 
         Args:
-            downloaded_path_or_paths (`str` or `list[str]` or `dict[str, str]`): Nested structure containing the
+            downloaded_path_or_paths (`str` or `list[str]` or `dict[str, str]`):
+                Nested structure containing the
                 downloaded path(s).
-            pipeline ([`utils.beam_utils.BeamPipeline`]): Apache Beam Pipeline.
+            pipeline ([`utils.beam_utils.BeamPipeline`]):
+                Apache Beam Pipeline.
 
         Returns:
             `str` or `list[str]` or `dict[str, str]`
@@ -224,25 +233,40 @@ class DownloadManager:
 
     def _record_sizes_checksums(self, url_or_urls: NestedDataStructure, downloaded_path_or_paths: NestedDataStructure):
         """Record size/checksum of downloaded files."""
-        for url, path in zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten()):
+        _time = time.time()
+        warn_about_checksums = self.record_checksums
+        delay = 5
+        for url, path in tqdm(
+            list(zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten())),
+            delay=delay,
+            desc="Computing checksums",
+            disable=not is_progress_bar_enabled() and not warn_about_checksums,
+        ):
             # call str to support PathLike objects
             self._recorded_sizes_checksums[str(url)] = get_size_checksum_dict(
                 path, record_checksum=self.record_checksums
             )
+            if warn_about_checksums and _time + delay < time.time():
+                warn_about_checksums = False
+                logger.warning(
+                    "Computing checksums of downloaded files. They can be used for integrity verification. "
+                    "You can disable this by passing ignore_verifications=True to load_dataset"
+                )
 
     def download_custom(self, url_or_urls, custom_download):
         """
         Download given urls(s) by calling `custom_download`.
 
         Args:
-            url_or_urls: url or `list`/`dict` of urls to download and extract. Each
-                url is a `str`.
-            custom_download: Callable with signature (src_url: str, dst_path: str) -> Any
-                as for example `tf.io.gfile.copy`, that lets you download from google storage
+            url_or_urls (`str` or `list` or `dict`):
+                URL or `list` or `dict` of URLs to download and extract. Each URL is a `str`.
+            custom_download (`Callable[src_url, dst_path]`):
+                The source URL and destination path. For example
+                `tf.io.gfile.copy`, that lets you download from  Google storage.
 
         Returns:
             downloaded_path(s): `str`, The downloaded paths matching the given input
-                url_or_urls.
+                `url_or_urls`.
 
         Example:
 
@@ -280,14 +304,15 @@ class DownloadManager:
     def download(self, url_or_urls):
         """Download given URL(s).
 
-        By default, if there is more than one URL to download, multiprocessing is used with maximum `num_proc = 16`.
-        Pass customized `download_config.num_proc` to change this behavior.
+        By default, only one process is used for download. Pass customized `download_config.num_proc` to change this behavior.
 
         Args:
-            url_or_urls (`str` or `list` or `dict`): URL or list/dict of URLs to download. Each URL is a `str`.
+            url_or_urls (`str` or `list` or `dict`):
+                URL or `list` or `dict` of URLs to download. Each URL is a `str`.
 
         Returns:
-            `str` or `list` or `dict`: The downloaded paths matching the given input `url_or_urls`.
+            `str` or `list` or `dict`:
+                The downloaded paths matching the given input `url_or_urls`.
 
         Example:
 
@@ -297,10 +322,6 @@ class DownloadManager:
         """
         download_config = self.download_config.copy()
         download_config.extract_compressed_file = False
-        # Default to using 16 parallel thread for downloading
-        # Note that if we have less than or equal to 16 files, multi-processing is not activated
-        if download_config.num_proc is None:
-            download_config.num_proc = 16
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading data"
 
@@ -312,7 +333,6 @@ class DownloadManager:
             url_or_urls,
             map_tuple=True,
             num_proc=download_config.num_proc,
-            parallel_min_length=16,
             disable_tqdm=not is_progress_bar_enabled(),
             desc="Downloading data files",
         )
@@ -340,10 +360,12 @@ class DownloadManager:
         """Iterate over files within an archive.
 
         Args:
-            path_or_buf (:obj:`str` or :obj:`io.BufferedReader`): Archive path or archive binary file object.
+            path_or_buf (`str` or `io.BufferedReader`):
+                Archive path or archive binary file object.
 
         Yields:
-            :obj:`tuple`[:obj:`str`, :obj:`io.BufferedReader`]: 2-tuple (path_within_archive, file_object).
+            `tuple[str, io.BufferedReader]`:
+                2-tuple (path_within_archive, file_object).
                 File object is opened in binary mode.
 
         Example:
@@ -363,10 +385,11 @@ class DownloadManager:
         """Iterate over file paths.
 
         Args:
-            paths (:obj:`str` or :obj:`list` of :obj:`str`): Root paths.
+            paths (`str` or `list` of `str`):
+                Root paths.
 
         Yields:
-            str: File path.
+            `str`: File path.
 
         Example:
 
@@ -377,18 +400,25 @@ class DownloadManager:
         """
         return FilesIterable.from_paths(paths)
 
-    def extract(self, path_or_paths, num_proc=None):
+    def extract(self, path_or_paths, num_proc="deprecated"):
         """Extract given path(s).
 
         Args:
-            path_or_paths: path or `list`/`dict` of path of file to extract. Each
-                path is a `str`.
-            num_proc: Use multi-processing if `num_proc` > 1 and the length of
-                `path_or_paths` is larger than `num_proc`
+            path_or_paths (path or `list` or `dict`):
+                Path of file to extract. Each path is a `str`.
+            num_proc (`int`):
+                Use multi-processing if `num_proc` > 1 and the length of
+                `path_or_paths` is larger than `num_proc`.
+
+                <Deprecated version="2.6.2">
+
+                Pass `DownloadConfig(num_proc=<num_proc>)` to the initializer instead.
+
+                </Deprecated>
 
         Returns:
             extracted_path(s): `str`, The extracted paths matching the given input
-                path_or_paths.
+            path_or_paths.
 
         Example:
 
@@ -397,6 +427,11 @@ class DownloadManager:
         >>> extracted_files = dl_manager.extract(downloaded_files)
         ```
         """
+        if num_proc != "deprecated":
+            warnings.warn(
+                "'num_proc' was deprecated in version 2.6.2 and will be removed in 3.0.0. Pass `DownloadConfig(num_proc=<num_proc>)` to the initializer instead.",
+                FutureWarning,
+            )
         download_config = self.download_config.copy()
         download_config.extract_compressed_file = True
         # Extract downloads the file first if it is not already downloaded
@@ -405,7 +440,7 @@ class DownloadManager:
         extracted_paths = map_nested(
             partial(cached_path, download_config=download_config),
             path_or_paths,
-            num_proc=num_proc,
+            num_proc=download_config.num_proc,
             disable_tqdm=not is_progress_bar_enabled(),
             desc="Extracting data files",
         )
@@ -415,7 +450,7 @@ class DownloadManager:
         return extracted_paths.data
 
     def download_and_extract(self, url_or_urls):
-        """Download and extract given url_or_urls.
+        """Download and extract given `url_or_urls`.
 
         Is roughly equivalent to:
 
@@ -424,8 +459,8 @@ class DownloadManager:
         ```
 
         Args:
-            url_or_urls: url or `list`/`dict` of urls to download and extract. Each
-                url is a `str`.
+            url_or_urls (`str` or `list` or `dict`):
+                URL or `list` or `dict` of URLs to download and extract. Each URL is a `str`.
 
         Returns:
             extracted_path(s): `str`, extracted paths of given URL(s).
