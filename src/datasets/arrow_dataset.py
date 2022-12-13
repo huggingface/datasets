@@ -169,12 +169,12 @@ class DatasetInfoMixin:
 
     @property
     def info(self):
-        """:class:`datasets.DatasetInfo` object containing all the metadata in the dataset."""
+        """[`~datasets.DatasetInfo`] object containing all the metadata in the dataset."""
         return self._info
 
     @property
     def split(self):
-        """:class:`datasets.NamedSplit` object corresponding to a named dataset split."""
+        """[`~datasets.NamedSplit`] object corresponding to a named dataset split."""
         return self._split
 
     @property
@@ -252,20 +252,20 @@ class TensorflowDatasetMixin:
            it out just by inspecting the dataset.
 
         Args:
-            dataset (:obj:`Dataset`): Dataset to load samples from.
-            collate_fn(:obj:`bool`): Shuffle the dataset order when loading. Recommended True for training, False for
+            dataset (`Dataset`): Dataset to load samples from.
+            collate_fn(`bool`): Shuffle the dataset order when loading. Recommended True for training, False for
                 validation/evaluation.
-            collate_fn(:obj:`Callable`): A function or callable object (such as a `DataCollator`) that will collate
+            collate_fn(`Callable`): A function or callable object (such as a `DataCollator`) that will collate
                 lists of samples into a batch.
-            collate_fn_args (:obj:`Dict`): A `dict` of keyword arguments to be passed to the
+            collate_fn_args (`Dict`): A `dict` of keyword arguments to be passed to the
                 `collate_fn`.
-            batch_size (:obj:`int`, optional): The size of batches loaded from the dataset. Used for shape inference.
+            batch_size (`int`, optional): The size of batches loaded from the dataset. Used for shape inference.
                 Can be None, which indicates that batch sizes can be variable.
-            num_test_batches (:obj:`int`): The number of batches to load from the dataset for shape inference.
+            num_test_batches (`int`): The number of batches to load from the dataset for shape inference.
 
         Returns:
-            :obj:`dict`: Dict mapping column names to tf.Tensorspec objects
-            :obj:`dict`: Dict mapping column names to np.dtype objects
+            `dict`: Dict mapping column names to tf.Tensorspec objects
+            `dict`: Dict mapping column names to np.dtype objects
         """
         if config.TF_AVAILABLE:
             import tensorflow as tf
@@ -346,32 +346,40 @@ class TensorflowDatasetMixin:
         label_cols: Optional[Union[str, List[str]]] = None,
         prefetch: bool = True,
     ):
-        """Create a tf.data.Dataset from the underlying Dataset. This tf.data.Dataset will load and collate batches from
-        the Dataset, and is suitable for passing to methods like model.fit() or model.predict(). The dataset will yield
-        dicts for both inputs and labels unless the dict would contain only a single key, in which case a raw
-        tf.Tensor is yielded instead.
+        """Create a `tf.data.Dataset` from the underlying Dataset. This `tf.data.Dataset` will load and collate batches from
+        the Dataset, and is suitable for passing to methods like `model.fit()` or `model.predict()`. The dataset will yield
+        `dicts` for both inputs and labels unless the `dict` would contain only a single key, in which case a raw
+        `tf.Tensor` is yielded instead.
 
         Args:
-            batch_size (:obj:`int`): Size of batches to load from the dataset.
-            columns (:obj:`List[str]` or :obj:`str`, optional): Dataset column(s) to load in the tf.data.Dataset. Column
-             names that are created by the `collate_fn` and that do not exist in the original dataset can be used.
-            shuffle(:obj:`bool`, default to `False`): Shuffle the dataset order when loading. Recommended True for training, False for
+            batch_size (`int`):
+                Size of batches to load from the dataset.
+            columns (`List[str]` or `str`, *optional*):
+                Dataset column(s) to load in the `tf.data.Dataset`.
+                Column names that are created by the `collate_fn` and that do not exist in the original dataset can be used.
+            shuffle(`bool`, defaults to `False`):
+                Shuffle the dataset order when loading. Recommended `True` for training, `False` for
                 validation/evaluation.
-            drop_remainder(:obj:`bool`, default ``False``): Drop the last incomplete batch when loading. Ensures
+            drop_remainder(`bool`, defaults to `False`):
+                Drop the last incomplete batch when loading. Ensures
                 that all batches yielded by the dataset will have the same length on the batch dimension.
-            collate_fn(:obj:`Callable`, optional): A function or callable object (such as a `DataCollator`) that will collate
+            collate_fn(`Callable`, *optional*):
+                A function or callable object (such as a `DataCollator`) that will collate
                 lists of samples into a batch.
-            collate_fn_args (:obj:`Dict`, optional): An optional `dict` of keyword arguments to be passed to the
+            collate_fn_args (`Dict`, *optional*):
+                An optional `dict` of keyword arguments to be passed to the
                 `collate_fn`.
-            label_cols (:obj:`List[str]` or :obj:`str`, default ``None``): Dataset column(s) to load as
-                labels. Note that many models compute loss internally rather than letting Keras do it, in which case
+            label_cols (`List[str]` or `str`, defaults to `None`):
+                Dataset column(s) to load as labels.
+                Note that many models compute loss internally rather than letting Keras do it, in which case
                 passing the labels here is optional, as long as they're in the input `columns`.
-            prefetch (:obj:`bool`, default ``True``): Whether to run the dataloader in a separate thread and maintain
+            prefetch (`bool`, defaults to `True`):
+                Whether to run the dataloader in a separate thread and maintain
                 a small buffer of batches for training. Improves performance by allowing data to be loaded in the
                 background while the model is training.
 
         Returns:
-            :class:`tf.data.Dataset`
+            `tf.data.Dataset`
 
         Example:
 
@@ -904,13 +912,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         split: Optional[NamedSplit] = None,
     ) -> "Dataset":
         """
-        Convert a list of dicts to a :obj:`pyarrow.Table` to create a :class:`Dataset`.
+        Convert a list of dicts to a `pyarrow.Table` to create a :class:`Dataset`.
 
         Note that the keys of the first entry will be used to determine the dataset columns,
         regardless of what is passed to features.
 
         Args:
-            mapping (:obj:`List[dict]`): A list of mappings of strings to row values.
+            mapping (`List[dict]`): A list of mappings of strings to row values.
             features (:class:`Features`, optional): Dataset features.
             info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
             split (:class:`NamedSplit`, optional): Name of the dataset split.
@@ -935,19 +943,26 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Create Dataset from CSV file(s).
 
         Args:
-            path_or_paths (path-like or list of path-like): Path(s) of the CSV file(s).
-            split (:class:`NamedSplit`, optional): Split name to be assigned to the dataset.
-            features (:class:`Features`, optional): Dataset features.
-            cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
-            keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
-            num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
-                    This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
+            path_or_paths (`path-like` or list of `path-like`):
+                Path(s) of the CSV file(s).
+            split ([`NamedSplit`], *optional*):
+                Split name to be assigned to the dataset.
+            features ([`Features`], *optional*):
+                Dataset features.
+            cache_dir (`str`, *optional*, defaults to `"~/.cache/huggingface/datasets"`):
+                Directory to cache data.
+            keep_in_memory (`bool`, defaults to `False`):
+                Whether to copy the data in-memory.
+            num_proc (`int`, *optional*, defaults to `None`):
+                Number of processes when downloading and generating the dataset locally.
+                This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
 
-                    <Added version="2.8.0"/>
-            **kwargs (additional keyword arguments): Keyword arguments to be passed to :meth:`pandas.read_csv`.
+                <Added version="2.8.0"/>
+            **kwargs (additional keyword arguments):
+                Keyword arguments to be passed to [`pandas.read_csv`].
 
         Returns:
-            :class:`Dataset`
+            [`Dataset`]
 
         Example:
 
@@ -1050,20 +1065,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Create Dataset from JSON or JSON Lines file(s).
 
         Args:
-            path_or_paths (path-like or list of path-like): Path(s) of the JSON or JSON Lines file(s).
-            split (:class:`NamedSplit`, optional): Split name to be assigned to the dataset.
-            features (:class:`Features`, optional): Dataset features.
-            cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
-            keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
-            field (:obj:`str`, optional): Field name of the JSON file where the dataset is contained in.
-            num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
-                    This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
+            path_or_paths (`path-like` or list of `path-like`):
+                Path(s) of the JSON or JSON Lines file(s).
+            split ([`NamedSplit`], *optional*):
+                Split name to be assigned to the dataset.
+            features ([`Features`], *optional*):
+                 Dataset features.
+            cache_dir (`str`, *optional*, defaults to `"~/.cache/huggingface/datasets"`):
+                Directory to cache data.
+            keep_in_memory (`bool`, defaults to `False`):
+                Whether to copy the data in-memory.
+            field (`str`, *optional*):
+                Field name of the JSON file where the dataset is contained in.
+            num_proc (`int`, *optional* defaults to `None`):
+                Number of processes when downloading and generating the dataset locally.
+                This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
 
-                    <Added version="2.8.0"/>
-            **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`JsonConfig`.
+                <Added version="2.8.0"/>
+            **kwargs (additional keyword arguments):
+                Keyword arguments to be passed to [`JsonConfig`].
 
         Returns:
-            :class:`Dataset`
+            [`Dataset`]
 
         Example:
 
@@ -1099,22 +1122,30 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Create Dataset from Parquet file(s).
 
         Args:
-            path_or_paths (path-like or list of path-like): Path(s) of the Parquet file(s).
-            split (:class:`NamedSplit`, optional): Split name to be assigned to the dataset.
-            features (:class:`Features`, optional): Dataset features.
-            cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
-            keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
-            columns (:obj:`List[str]`, optional): If not None, only these columns will be read from the file.
+            path_or_paths (`path-like` or list of `path-like`):
+                Path(s) of the Parquet file(s).
+            split (`NamedSplit`, *optional*):
+                Split name to be assigned to the dataset.
+            features (`Features`, *optional*):
+                Dataset features.
+            cache_dir (`str`, *optional*, defaults to `"~/.cache/huggingface/datasets"`):
+                Directory to cache data.
+            keep_in_memory (`bool`, defaults to `False`):
+                Whether to copy the data in-memory.
+            columns (`List[str]`, *optional*):
+                If not `None`, only these columns will be read from the file.
                 A column name may be a prefix of a nested field, e.g. 'a' will select
                 'a.b', 'a.c', and 'a.d.e'.
-            num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
-                    This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
+            num_proc (`int`, *optional*, defaults to `None`):
+                Number of processes when downloading and generating the dataset locally.
+                This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
 
-                    <Added version="2.8.0"/>
-            **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`ParquetConfig`.
+                <Added version="2.8.0"/>
+            **kwargs (additional keyword arguments):
+                Keyword arguments to be passed to [`ParquetConfig`].
 
         Returns:
-            :class:`Dataset`
+            [`Dataset`]
 
         Example:
 
@@ -1149,19 +1180,26 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Create Dataset from text file(s).
 
         Args:
-            path_or_paths (path-like or list of path-like): Path(s) of the text file(s).
-            split (:class:`NamedSplit`, optional): Split name to be assigned to the dataset.
-            features (:class:`Features`, optional): Dataset features.
-            cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
-            keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
-            num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
-                    This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
+            path_or_paths (`path-like` or list of `path-like`):
+                Path(s) of the text file(s).
+            split (`NamedSplit`, *optional*):
+                Split name to be assigned to the dataset.
+            features (`Features`, o*ptional*):
+                Dataset features.
+            cache_dir (`str`, *optional*, defaults to `"~/.cache/huggingface/datasets"`):
+                Directory to cache data.
+            keep_in_memory (`bool`, defaults to `False`):
+                Whether to copy the data in-memory.
+            num_proc (`int`, *optional*, defaults to `None`):
+                Number of processes when downloading and generating the dataset locally.
+                This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
 
-                    <Added version="2.8.0"/>
-            **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`TextConfig`.
+                <Added version="2.8.0"/>
+            **kwargs (additional keyword arguments):
+                Keyword arguments to be passed to [`TextConfig`].
 
         Returns:
-            :class:`Dataset`
+            [`Dataset`]
 
         Example:
 
@@ -1194,16 +1232,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Create Dataset from SQL query or database table.
 
         Args:
-            sql (`str` or :obj:`sqlalchemy.sql.Selectable`): SQL query to be executed or a table name.
-            con (`str` or :obj:`sqlite3.Connection` or :obj:`sqlalchemy.engine.Connection` or :obj:`sqlalchemy.engine.Connection`):
+            sql (`str` or `sqlalchemy.sql.Selectable`):
+                SQL query to be executed or a table name.
+            con (`str` or `sqlite3.Connection` or `sqlalchemy.engine.Connection` or `sqlalchemy.engine.Connection`):
                 A [URI string](https://docs.sqlalchemy.org/en/13/core/engines.html#database-urls) used to instantiate a database connection or a SQLite3/SQLAlchemy connection object.
-            features (:class:`Features`, optional): Dataset features.
-            cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
-            keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
-            **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`SqlConfig`.
+            features ([`Features`], *optional*):
+                Dataset features.
+            cache_dir (`str`, *optional*, defaults to `"~/.cache/huggingface/datasets"`):
+                Directory to cache data.
+            keep_in_memory (`bool`, defaults to `False`):
+                Whether to copy the data in-memory.
+            **kwargs (additional keyword arguments):
+                Keyword arguments to be passed to [`SqlConfig`].
 
         Returns:
-            :class:`Dataset`
+            [`Dataset`]
 
         Example:
 
@@ -1218,8 +1261,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds = Dataset.from_sql(stmt, "postgres:///db_name")
         ```
 
-        <Tip {warning=true}>
+        <Tip>
+
         The returned dataset can only be cached if `con` is specified as URI string.
+
         </Tip>
         """
         from .io.sql import SqlDatasetReader
@@ -1256,29 +1301,43 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         storage_options: Optional[dict] = None,
     ):
         """
-        Saves a dataset to a dataset directory, or in a filesystem using either :class:`~s3fs.S3FileSystem` or
-        any implementation of ``fsspec.spec.AbstractFileSystem``.
+        Saves a dataset to a dataset directory, or in a filesystem using either `s3fs.S3FileSystem` or
+        any implementation of `fsspec.spec.AbstractFileSystem`.
 
-        For :class:`Image` and :class:`Audio` data:
+        For [`Image`] and [`Audio`] data:
 
         All the Image() and Audio() data are stored in the arrow files.
         If you want to store paths or urls, please use the Value("string") type.
 
         Args:
-            dataset_path (``PathLike``): Path (e.g. `path/to/dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`)
+            dataset_path (`str`):
+                Path (e.g. `dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`)
                 of the dataset directory where the dataset will be saved to.
+            fs (`fsspec.spec.AbstractFileSystem`, *optional*):
+                Instance of the remote filesystem where the dataset will be saved to.
+
+                <Deprecated version="2.8.0">
+
+                `fs` was deprecated in version 2.8.0 and will be removed in 3.0.0.
+                Please use `storage_options` instead, e.g. `storage_options=fs.storage_options`
+
+                </Deprecated>
+
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
                 (like `"50MB"`).
-            num_shards (:obj:`int`, optional): Number of shards to write.
+            num_shards (`int`, *optional*):
+                Number of shards to write.
                 Default to the same value as `num_proc` if specified.
 
                 <Added version="2.8.0"/>
-            num_proc (:obj:`int`, optional, default `None`): Number of processes when downloading and generating the dataset locally.
+            num_proc (`int`, *optional*):
+                Number of processes when downloading and generating the dataset locally.
                 Multiprocessing is disabled by default.
 
                 <Added version="2.8.0"/>
-            storage_options (:obj:`dict`, *optional*): Key/value pairs to be passed on to the file-system backend, if any.
+            storage_options (`dict`, *optional*):
+                Key/value pairs to be passed on to the file-system backend, if any.
 
                 <Added version="2.8.0"/>
 
@@ -1450,7 +1509,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         path extracted from the uri) passed.
 
         Args:
-            uri_or_path (:obj:`str`): Path (e.g. `"dataset/train"`) or remote URI (e.g.
+            uri_or_path (`str`): Path (e.g. `"dataset/train"`) or remote URI (e.g.
                 `"s3://my-bucket/dataset/train"`) to concatenate.
 
         Returns:
@@ -1468,25 +1527,38 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         storage_options: Optional[dict] = None,
     ) -> "Dataset":
         """
-        Loads an Arrow dataset that was previously saved using :meth:`save_to_disk` from a dataset directory, or from a
-        filesystem using either :class:`~filesystems.S3FileSystem` or any implementation of
-        ``fsspec.spec.AbstractFileSystem``.
+        Loads a dataset that was previously saved using [`save_to_disk`] from a dataset directory, or from a
+        filesystem using either `s3fs.S3FileSystem` or any implementation of
+        `fsspec.spec.AbstractFileSystem`.
 
         Args:
-            dataset_path (:obj:`str`): Path (e.g. `"path/to/dataset/train"`) or remote URI (e.g.
-                `"s3//my-bucket/dataset/train"`) of the dataset directory where the dataset will be loaded from.
-            keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
+            dataset_path (`str`):
+                Path (e.g. `"dataset/train"`) or remote URI (e.g. `"s3//my-bucket/dataset/train"`)
+                of the dataset directory where the dataset will be loaded from.
+            fs (`fsspec.spec.AbstractFileSystem`, *optional*):
+                Instance of the remote filesystem where the dataset will be saved to.
+
+                <Deprecated version="2.8.0">
+
+                `fs` was deprecated in version 2.8.0 and will be removed in 3.0.0.
+                Please use `storage_options` instead, e.g. `storage_options=fs.storage_options`
+
+                </Deprecated>
+
+            keep_in_memory (`bool`, defaults to `None`):
+                Whether to copy the dataset in-memory. If `None`, the
                 dataset will not be copied in-memory unless explicitly enabled by setting
                 `datasets.config.IN_MEMORY_MAX_SIZE` to nonzero. See more details in the
-                :ref:`load_dataset_enhancing_performance` section.
-            storage_options (:obj:`dict`, *optional*): Key/value pairs to be passed on to the file-system backend, if any.
+                [improve performance](./cache#improve-performance) section.
+            storage_options (`dict`, *optional*):
+                Key/value pairs to be passed on to the file-system backend, if any.
 
                 <Added version="2.8.0"/>
 
         Returns:
-            :class:`Dataset` or :class:`DatasetDict`:
-            - If `dataset_path` is a path of a dataset directory: the dataset requested.
-            - If `dataset_path` is a path of a dataset dict directory: a ``datasets.DatasetDict`` with each split.
+            [`Dataset`] or [`DatasetDict`]:
+            - If `dataset_path` is a path of a dataset directory, the dataset requested.
+            - If `dataset_path` is a path of a dataset dict directory, a `datasets.DatasetDict` with each split.
 
         Example:
 
@@ -2496,13 +2568,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Casts [`datasets.DatasetInfo.features`] according to a task-specific schema. Intended for single-use only, so all task templates are removed from [`datasets.DatasetInfo.task_templates`] after casting.
 
         Args:
-            task (`Union[str, TaskTemplate]`): The task to prepare the dataset for during training and evaluation. If `str`, supported tasks include:
+            task (`Union[str, TaskTemplate]`):
+                The task to prepare the dataset for during training and evaluation. If `str`, supported tasks include:
 
                 - `"text-classification"`
                 - `"question-answering"`
 
                 If [`TaskTemplate`], must be one of the task templates in [`datasets.tasks`](./package_reference/task_templates).
-            id (`int`, defaults to 0): The id required to unambiguously identify the task template when multiple task templates of the same type are supported.
+            id (`int`, defaults to `0`):
+                The id required to unambiguously identify the task template when multiple task templates of the same type are supported.
         """
         # TODO(lewtun): Add support for casting nested features like answers.text and answers.answer_start in SQuAD
         if isinstance(task, str):
@@ -2703,7 +2777,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Disallow null values in the table.
             fn_kwargs (`Dict`, *optional*, defaults to `None`):
                 Keyword arguments to be passed to `function`.
-            num_proc (:obj:`int`, *optional*, defaults to `None`):
+            num_proc (`int`, *optional*, defaults to `None`):
                 Max number of processes when generating cache. Already cached shards are loaded sequentially.
             suffix_template (`str`):
                 If `cache_file_name` is specified, then this suffix
@@ -2969,7 +3043,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         and update the table (if function does update examples).
 
         Args:
-            function (:obj:`Callable`): with one of the following signature:
+            function (`Callable`): with one of the following signature:
                 - `function(example: Dict[str, Any]) -> Dict[str, Any]` if `batched=False` and `with_indices=False` and `with_rank=False`
                 - `function(example: Dict[str, Any], *extra_args) -> Dict[str, Any]` if `batched=False` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
                 - `function(batch: Dict[str, List]) -> Dict[str, List]` if `batched=True` and `with_indices=False` and `with_rank=False`
@@ -2978,36 +3052,36 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 For advanced usage, the function can also return a `pyarrow.Table`.
                 Moreover if your function returns nothing (`None`), then `map` will run your function and return the dataset unchanged.
                 If no function is provided, default to identity function: lambda x: x
-            with_indices (:obj:`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx[, rank]): ...`.
-            with_rank (:obj:`bool`, default `False`): Provide process rank to `function`. Note that in this case the signature of `function` should be `def function(example[, idx], rank): ...`.
+            with_indices (`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx[, rank]): ...`.
+            with_rank (`bool`, default `False`): Provide process rank to `function`. Note that in this case the signature of `function` should be `def function(example[, idx], rank): ...`.
             input_columns (`Optional[List[str]]`, defaults to `None`): The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
-            batched (:obj:`bool`, defaults to `False`): Provide batch of examples to `function`
-            batch_size (:obj:`int`, optional, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
+            batched (`bool`, defaults to `False`): Provide batch of examples to `function`
+            batch_size (`int`, optional, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
                 `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
-            drop_last_batch (:obj:`bool`, default: `False`): Whether a last batch smaller than the batch_size should be
+            drop_last_batch (`bool`, default: `False`): Whether a last batch smaller than the batch_size should be
                 dropped instead of being processed by the function.
             remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
-            keep_in_memory (:obj:`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (:obj:`bool`, defaults to `True` if caching is enabled): If a cache file storing the current computation from `function`
+            keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
+            load_from_cache_file (`bool`, defaults to `True` if caching is enabled): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            cache_file_name (:obj:`str`, optional, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
+            cache_file_name (`str`, optional, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
-            writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
+            writer_batch_size (`int`, default `1000`): Number of rows per write operation for the cache file writer.
                 This value is a good trade-off between memory usage during the processing, and processing speed.
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
             features (`Optional[datasets.Features]`, defaults to `None`): Use a specific Features to store the cache file
                 instead of the automatically generated one.
-            disable_nullable (:obj:`bool`, defaults to `False`): Disallow null values in the table.
-            fn_kwargs (:obj:`Dict`, optional, defaults to `None`): Keyword arguments to be passed to `function`
-            new_fingerprint (:obj:`str`, optional, defaults to `None`): the new fingerprint of the dataset after transform.
+            disable_nullable (`bool`, defaults to `False`): Disallow null values in the table.
+            fn_kwargs (`Dict`, optional, defaults to `None`): Keyword arguments to be passed to `function`
+            new_fingerprint (`str`, optional, defaults to `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
-            rank: (:obj:`int`, optional, defaults to `None`): If specified, this is the process rank when doing multiprocessing
-            offset: (:obj:`int`, defaults to 0): If specified, this is an offset applied to the indices passed to `function` if `with_indices=True`.
-            disable_tqdm (:obj:`bool`, defaults to `False`): Whether to silence tqdm's output.
-            desc (:obj:`str`, optional, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
+            rank: (`int`, optional, defaults to `None`): If specified, this is the process rank when doing multiprocessing
+            offset: (`int`, defaults to 0): If specified, this is an offset applied to the indices passed to `function` if `with_indices=True`.
+            disable_tqdm (`bool`, defaults to `False`): Whether to silence tqdm's output.
+            desc (`str`, optional, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
             cache_only (`bool`, defaults to `False`): Flag in order to notifiy the method will either find a cached dataset or raise `NonExistentDatasetError` exception,
         """
         # Reduce logging to keep things readable in multiprocessing with tqdm
@@ -3315,7 +3389,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `map`.
             fn_kwargs (`dict`, *optional*):
                 Keyword arguments to be passed to `function`.
-            num_proc (:obj:`int`, *optional*):
+            num_proc (`int`, *optional*):
                 Number of processes for multiprocessing. By default it doesn't
                 use multiprocessing.
             suffix_template (`str`):
@@ -3392,17 +3466,24 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Create and cache a new Dataset by flattening the indices mapping.
 
         Args:
-            keep_in_memory (:obj:`bool`, default `False`): Keep the dataset in memory instead of writing it to a cache file.
-            cache_file_name (:obj:`str`, optional, default `None`): Provide the name of a path for the cache file. It is used to store the
+            keep_in_memory (`bool`, defaults to `False`):
+                Keep the dataset in memory instead of writing it to a cache file.
+            cache_file_name (`str`, *optional*, default `None`):
+                Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
-            writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
+            writer_batch_size (`int`, defaults to `1000`):
+                Number of rows per write operation for the cache file writer.
                 This value is a good trade-off between memory usage during the processing, and processing speed.
-                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
-            features (`Optional[datasets.Features]`, default `None`): Use a specific Features to store the cache file
+                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `map`.
+            features (`Optional[datasets.Features]`, defaults to `None`):
+                Use a specific [`Features`] to store the cache file
                 instead of the automatically generated one.
-            disable_nullable (:obj:`bool`, default `False`): Allow null values in the table.
-            num_proc (:obj:`int`, optional, default `None`): Max number of processes when generating cache. Already cached shards are loaded sequentially
-            new_fingerprint (:obj:`str`, optional, default `None`): The new fingerprint of the dataset after transform.
+            disable_nullable (`bool`, defaults to `False`):
+                Allow null values in the table.
+            num_proc (`int`, optional, default `None`):
+                Max number of processes when generating cache. Already cached shards are loaded sequentially
+            new_fingerprint (`str`, *optional*, defaults to `None`):
+                The new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
         """
 
@@ -3546,9 +3627,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         The slice is defined by that start index and its length.
 
         Args:
-            start (:obj:`int`): start index.
-            length (:obj:`int`): length of the slice to select.
-            new_fingerprint (:obj:`str`, optional, default `None`): the new fingerprint of the dataset after transform.
+            start (`int`): start index.
+            length (`int`): length of the slice to select.
+            new_fingerprint (`str`, optional, default `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
 
         Example:
@@ -3605,13 +3686,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             indices (sequence, iterable, range, ndarray or Series): List or 1D-array of integer indices for indexing.
-            keep_in_memory (:obj:`bool`, default `False`): Keep the indices mapping in memory instead of writing it to a cache file.
-            indices_cache_file_name (:obj:`str`, optional, default `None`): Provide the name of a path for the cache file. It is used to store the
+            keep_in_memory (`bool`, default `False`): Keep the indices mapping in memory instead of writing it to a cache file.
+            indices_cache_file_name (`str`, optional, default `None`): Provide the name of a path for the cache file. It is used to store the
                 indices mapping instead of the automatically generated cache file name.
-            writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
+            writer_batch_size (`int`, default `1000`): Number of rows per write operation for the cache file writer.
                 This value is a good trade-off between memory usage during the processing, and processing speed.
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
-            new_fingerprint (:obj:`str`, optional, default `None`): the new fingerprint of the dataset after transform.
+            new_fingerprint (`str`, optional, default `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
 
         Example:
@@ -3716,23 +3797,31 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         This also means that the column used for sorting is fully loaded in memory (which should be fine in most cases).
 
         Args:
-            column (:obj:`str`): column name to sort by.
-            reverse (:obj:`bool`, default `False`): If True, sort by descending order rather then ascending.
-            kind (:obj:`str`, optional): Pandas algorithm for sorting selected in {‘quicksort’, ‘mergesort’, ‘heapsort’, ‘stable’},
-                The default is ‘quicksort’. Note that both ‘stable’ and ‘mergesort’ use timsort under the covers and, in general,
-                the actual implementation will vary with data type. The ‘mergesort’ option is retained for backwards compatibility.
-            null_placement (:obj:`str`, default `last`):
-                Put `None` values at the beginning if ‘first‘; ‘last‘ puts `None` values at the end.
+            column (`str`):
+                Column name to sort by.
+            reverse (`bool`, defaults to `False`):
+                If `True`, sort by descending order rather then ascending.
+            kind (`str`, *optional*):
+                Pandas algorithm for sorting selected in `{quicksort, mergesort, heapsort, stable}`,
+                The default is `quicksort`. Note that both `stable` and `mergesort` use `timsort` under the covers and, in general,
+                the actual implementation will vary with data type. The `mergesort` option is retained for backwards compatibility.
+            null_placement (`str`, defaults to `last`):
+                Put `None` values at the beginning if first; last puts `None` values at the end.
 
-                *New in version 1.14.2*
-            keep_in_memory (:obj:`bool`, default `False`): Keep the sorted indices in memory instead of writing it to a cache file.
-            load_from_cache_file (:obj:`bool`, default `True`): If a cache file storing the sorted indices
+                <Added version="1.14.2"/>
+            keep_in_memory (`bool`, defaults to `False`):
+                Keep the sorted indices in memory instead of writing it to a cache file.
+            load_from_cache_file (`bool`, defaults to `True`):
+                If a cache file storing the sorted indices
                 can be identified, use it instead of recomputing.
-            indices_cache_file_name (:obj:`str`, optional, default `None`): Provide the name of a path for the cache file. It is used to store the
+            indices_cache_file_name (`str`, *optional*, defaults to `None`):
+                Provide the name of a path for the cache file. It is used to store the
                 sorted indices instead of the automatically generated cache file name.
-            writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
+            writer_batch_size (`int`, defaults to `1000`):
+                Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory.
-            new_fingerprint (:obj:`str`, optional, default `None`): the new fingerprint of the dataset after transform.
+            new_fingerprint (`str`, *optional*, defaults to `None`):
+                The new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
 
         Example:
@@ -3809,21 +3898,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         You can either supply a NumPy BitGenerator to use, or a seed to initiate NumPy's default random generator (PCG64).
 
         Args:
-            seed (:obj:`int`, optional): A seed to initialize the default BitGenerator if ``generator=None``.
-                If None, then fresh, unpredictable entropy will be pulled from the OS.
-                If an int or array_like[ints] is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
-            generator (:obj:`numpy.random.Generator`, optional): Numpy random Generator to use to compute the permutation of the dataset rows.
-                If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
-            keep_in_memory (:obj:`bool`, default `False`): Keep the shuffled indices in memory instead of writing it to a cache file.
-            load_from_cache_file (:obj:`bool`, default `True`): If a cache file storing the shuffled indices
+            seed (`int`, *optional*):
+                A seed to initialize the default BitGenerator if `generator=None`.
+                If `None`, then fresh, unpredictable entropy will be pulled from the OS.
+                If an `int` or `array_like[ints]` is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
+            generator (`numpy.random.Generator`, *optional*):
+                Numpy random Generator to use to compute the permutation of the dataset rows.
+                If `generator=None` (default), uses `np.random.default_rng` (the default BitGenerator (PCG64) of NumPy).
+            keep_in_memory (`bool`, default `False`):
+                Keep the shuffled indices in memory instead of writing it to a cache file.
+            load_from_cache_file (`bool`, defaults to `True`):
+                If a cache file storing the shuffled indices
                 can be identified, use it instead of recomputing.
-            indices_cache_file_name (:obj:`str`, optional): Provide the name of a path for the cache file. It is used to store the
+            indices_cache_file_name (`str`, *optional*):
+                Provide the name of a path for the cache file. It is used to store the
                 shuffled indices instead of the automatically generated cache file name.
-            writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
+            writer_batch_size (`int`, defaults to `1000`):
+                Number of rows per write operation for the cache file writer.
                 This value is a good trade-off between memory usage during the processing, and processing speed.
-                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
-            new_fingerprint (:obj:`str`, optional, default `None`): the new fingerprint of the dataset after transform.
-                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
+                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `map`.
+            new_fingerprint (`str`, *optional*, defaults to `None`):
+                The new fingerprint of the dataset after transform.
+                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
 
         Example:
 
@@ -3907,41 +4003,54 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         train_new_fingerprint: Optional[str] = None,
         test_new_fingerprint: Optional[str] = None,
     ) -> "DatasetDict":
-        """Return a dictionary (:obj:`datasets.DatasetDict`) with two random train and test subsets (`train` and `test` ``Dataset`` splits).
+        """Return a dictionary ([`datasets.DatasetDict`]) with two random train and test subsets (`train` and `test` `Dataset` splits).
         Splits are created from the dataset according to `test_size`, `train_size` and `shuffle`.
 
         This method is similar to scikit-learn `train_test_split`.
 
         Args:
-            test_size (:obj:`numpy.random.Generator`, optional): Size of the test split
-                If float, should be between 0.0 and 1.0 and represent the proportion of the dataset to include in the test split.
-                If int, represents the absolute number of test samples.
-                If None, the value is set to the complement of the train size.
-                If train_size is also None, it will be set to 0.25.
-            train_size (:obj:`numpy.random.Generator`, optional): Size of the train split
-                If float, should be between 0.0 and 1.0 and represent the proportion of the dataset to include in the train split.
-                If int, represents the absolute number of train samples.
-                If None, the value is automatically set to the complement of the test size.
-            shuffle (:obj:`bool`, optional, default `True`): Whether or not to shuffle the data before splitting.
-            stratify_by_column (:obj:`str`, optional, default `None`): The column name of labels to be used to perform stratified split of data.
-            seed (:obj:`int`, optional): A seed to initialize the default BitGenerator if ``generator=None``.
-                If None, then fresh, unpredictable entropy will be pulled from the OS.
-                If an int or array_like[ints] is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
-            generator (:obj:`numpy.random.Generator`, optional): Numpy random Generator to use to compute the permutation of the dataset rows.
-                If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
-            keep_in_memory (:obj:`bool`, default `False`): Keep the splits indices in memory instead of writing it to a cache file.
-            load_from_cache_file (:obj:`bool`, default `True`): If a cache file storing the splits indices
+            test_size (`numpy.random.Generator`, *optional*):
+                Size of the test split
+                If `float`, should be between `0.0` and `1.0` and represent the proportion of the dataset to include in the test split.
+                If `int`, represents the absolute number of test samples.
+                If `None`, the value is set to the complement of the train size.
+                If `train_size` is also `None`, it will be set to `0.25`.
+            train_size (`numpy.random.Generator`, *optional*):
+                Size of the train split
+                If `float`, should be between `0.0` and `1.0` and represent the proportion of the dataset to include in the train split.
+                If `int`, represents the absolute number of train samples.
+                If `None`, the value is automatically set to the complement of the test size.
+            shuffle (`bool`, *optional*, defaults to `True`):
+                Whether or not to shuffle the data before splitting.
+            stratify_by_column (`str`, *optional*, defaults to `None`):
+                The column name of labels to be used to perform stratified split of data.
+            seed (`int`, *optional*):
+                A seed to initialize the default BitGenerator if `generator=None`.
+                If `None`, then fresh, unpredictable entropy will be pulled from the OS.
+                If an `int` or `array_like[ints]` is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
+            generator (`numpy.random.Generator`, *optional*):
+                Numpy random Generator to use to compute the permutation of the dataset rows.
+                If `generator=None` (default), uses `np.random.default_rng` (the default BitGenerator (PCG64) of NumPy).
+            keep_in_memory (`bool`, defaults to `False`):
+                Keep the splits indices in memory instead of writing it to a cache file.
+            load_from_cache_file (`bool`, defaults to `True`):
+                If a cache file storing the splits indices
                 can be identified, use it instead of recomputing.
-            train_cache_file_name (:obj:`str`, optional): Provide the name of a path for the cache file. It is used to store the
+            train_cache_file_name (`str`, *optional*):
+                Provide the name of a path for the cache file. It is used to store the
                 train split indices instead of the automatically generated cache file name.
-            test_cache_file_name (:obj:`str`, optional): Provide the name of a path for the cache file. It is used to store the
+            test_cache_file_name (`str`, *optional*):
+                Provide the name of a path for the cache file. It is used to store the
                 test split indices instead of the automatically generated cache file name.
-            writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
+            writer_batch_size (`int`, defaults to `1000`):
+                Number of rows per write operation for the cache file writer.
                 This value is a good trade-off between memory usage during the processing, and processing speed.
-                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
-            train_new_fingerprint (:obj:`str`, optional, defaults to `None`): the new fingerprint of the train set after transform.
+                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `map`.
+            train_new_fingerprint (`str`, *optional*, defaults to `None`):
+                The new fingerprint of the train set after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
-            test_new_fingerprint (:obj:`str`, optional, defaults to `None`): the new fingerprint of the test set after transform.
+            test_new_fingerprint (`str`, *optional*, defaults to `None`):
+                The new fingerprint of the test set after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
 
         Example:
@@ -4163,31 +4272,38 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     ) -> "Dataset":
         """Return the `index`-nth shard from dataset split into `num_shards` pieces.
 
-        This shards deterministically. dset.shard(n, i) will contain all elements of dset whose
-        index mod n = i.
+        This shards deterministically. `dset.shard(n, i)` will contain all elements of dset whose
+        index mod `n = i`.
 
-        dset.shard(n, i, contiguous=True) will instead split dset into contiguous chunks,
-        so it can be easily concatenated back together after processing. If n % i == l, then the
-        first l shards will have length (n // i) + 1, and the remaining shards will have length (n // i).
+        `dset.shard(n, i, contiguous=True)` will instead split dset into contiguous chunks,
+        so it can be easily concatenated back together after processing. If `n % i == l`, then the
+        first `l` shards will have length `(n // i) + 1`, and the remaining shards will have length `(n // i)`.
         `datasets.concatenate([dset.shard(n, i, contiguous=True) for i in range(n)])` will return
         a dataset with the same order as the original.
 
-        Be sure to shard before using any randomizing operator (such as shuffle).
+        Be sure to shard before using any randomizing operator (such as `shuffle`).
         It is best if the shard operator is used early in the dataset pipeline.
 
 
         Args:
-            num_shards (:obj:`int`): How many shards to split the dataset into.
-            index (:obj:`int`): Which shard to select and return.
-            contiguous: (:obj:`bool`, default `False`): Whether to select contiguous blocks of indices for shards.
-            keep_in_memory (:obj:`bool`, default `False`): Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (:obj:`bool`, default `True`): If a cache file storing the current computation from `function`
+            num_shards (`int`):
+                How many shards to split the dataset into.
+            index (`int`):
+                Which shard to select and return.
+            contiguous: (`bool`, defaults to `False`):
+                Whether to select contiguous blocks of indices for shards.
+            keep_in_memory (`bool`, defaults to `False`):
+                Keep the dataset in memory instead of writing it to a cache file.
+            load_from_cache_file (`bool`, defaults to `True`):
+                If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            indices_cache_file_name (:obj:`str`, optional): Provide the name of a path for the cache file. It is used to store the
+            indices_cache_file_name (`str`, *optional*):
+                Provide the name of a path for the cache file. It is used to store the
                 indices of each shard instead of the automatically generated cache file name.
-            writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
+            writer_batch_size (`int`, defaults to `1000`):
+                Number of rows per write operation for the cache file writer.
                 This value is a good trade-off between memory usage during the processing, and processing speed.
-                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
+                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `map`.
 
         Example:
 
@@ -4235,7 +4351,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         keys from `dataset._format_columns`.
 
         Args:
-            filename (:obj:`str`): The filename, including the `.tfrecord` extension, to write to.
+            filename (`str`): The filename, including the `.tfrecord` extension, to write to.
             format (`str`, optional, default `"tfrecord"`): The type of output file. Currently this is a no-op, as
                 TFRecords are the only option. This enables a more flexible function signature later.
         """
@@ -4323,17 +4439,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Exports the dataset to csv
 
         Args:
-            path_or_buf (``PathLike`` or ``FileOrBuffer``): Either a path to a file or a BinaryIO.
-            batch_size (:obj:`int`, optional): Size of the batch to load in memory and write at once.
-                Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
-            num_proc (:obj:`int`, optional): Number of processes for multiprocessing. By default it doesn't
-                use multiprocessing. ``batch_size`` in this case defaults to
-                :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE` but feel free to make it 5x or 10x of the default
+            path_or_buf (`PathLike` or `FileOrBuffer`):
+                Either a path to a file or a BinaryIO.
+            batch_size (`int`, *optional*):
+                Size of the batch to load in memory and write at once.
+                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            num_proc (`int`, *optional*):
+                Number of processes for multiprocessing. By default it doesn't
+                use multiprocessing. `batch_size` in this case defaults to
+                `datasets.config.DEFAULT_MAX_BATCH_SIZE` but feel free to make it 5x or 10x of the default
                 value if you have sufficient compute power.
-            **to_csv_kwargs (additional keyword arguments): Parameters to pass to pandas's :func:`pandas.DataFrame.to_csv`
+            **to_csv_kwargs (additional keyword arguments):
+                Parameters to pass to pandas's `pandas.DataFrame.to_csv`.
 
         Returns:
-            int: The number of characters or bytes written
+            `int`: The number of characters or bytes written.
 
         Example:
 
@@ -4350,10 +4470,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Returns the dataset as a Python dict. Can also return a generator for large datasets.
 
         Args:
-            batched (:obj:`bool`): Set to :obj:`True` to return a generator that yields the dataset as batches
-                of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasets once)
-            batch_size (:obj:`int`, optional): The size (number of rows) of the batches if ``batched`` is `True`.
-                Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            batched (`bool`):
+                Set to `True` to return a generator that yields the dataset as batches
+                of `batch_size` rows. Defaults to `False` (returns the whole datasets once).
+            batch_size (`int`, *optional*): The size (number of rows) of the batches if `batched` is `True`.
+                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
         Returns:
             `dict` or `Iterator[dict]`
@@ -4391,29 +4512,34 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Export the dataset to JSON Lines or JSON.
 
         Args:
-            path_or_buf (``PathLike`` or ``FileOrBuffer``): Either a path to a file or a BinaryIO.
-            batch_size (:obj:`int`, optional): Size of the batch to load in memory and write at once.
-                Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
-            num_proc (:obj:`int`, optional): Number of processes for multiprocessing. By default it doesn't
-                use multiprocessing. ``batch_size`` in this case defaults to
-                :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE` but feel free to make it 5x or 10x of the default
+            path_or_buf (`PathLike` or `FileOrBuffer`):
+                Either a path to a file or a BinaryIO.
+            batch_size (`int`, *optional*):
+                Size of the batch to load in memory and write at once.
+                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            num_proc (`int`, *optional*):
+                Number of processes for multiprocessing. By default it doesn't
+                use multiprocessing. `batch_size` in this case defaults to
+                `datasets.config.DEFAULT_MAX_BATCH_SIZE` but feel free to make it 5x or 10x of the default
                 value if you have sufficient compute power.
-            lines (:obj:`bool`, default ``True``): Whether output JSON lines format.
-                Only possible if ``orient="records"`. It will throw ValueError with ``orient`` different from
-                ``"records"``, since the others are not list-like.
-            orient (:obj:`str`, default ``"records"``): Format of the JSON:
+            lines (`bool`, defaults to `True`):
+                Whether output JSON lines format.
+                Only possible if `orient="records"`. It will throw ValueError with `orient` different from
+                `"records"`, since the others are not list-like.
+            orient (`str`, defaults to `"records"`):
+                Format of the JSON:
 
-                - ``"records"``: list like ``[{column -> value}, … , {column -> value}]``
-                - ``"split"``: dict like ``{"index" -> [index], "columns" -> [columns], "data" -> [values]}``
-                - ``"index"``: dict like ``{index -> {column -> value}}``
-                - ``"columns"``: dict like ``{column -> {index -> value}}``
-                - ``"values"``: just the values array
-                - ``"table"``: dict like ``{"schema": {schema}, "data": {data}}``
-            **to_json_kwargs (additional keyword arguments): Parameters to pass to pandas's `pandas.DataFrame.to_json
-                <https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_json.html>`_.
+                - `"records"`: list like `[{column -> value}, … , {column -> value}]`
+                - `"split"`: dict like `{"index" -> [index], "columns" -> [columns], "data" -> [values]}`
+                - `"index"`: dict like `{index -> {column -> value}}`
+                - `"columns"`: dict like `{column -> {index -> value}}`
+                - `"values"`: just the values array
+                - `"table"`: dict like `{"schema": {schema}, "data": {data}}`
+            **to_json_kwargs (additional keyword arguments):
+                Parameters to pass to pandas's [`pandas.DataFrame.to_json`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_json.html).
 
         Returns:
-            int: The number of characters or bytes written.
+            `int`: The number of characters or bytes written.
 
         Example:
 
@@ -4429,13 +4555,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def to_pandas(
         self, batch_size: Optional[int] = None, batched: bool = False
     ) -> Union[pd.DataFrame, Iterator[pd.DataFrame]]:
-        """Returns the dataset as a :class:`pandas.DataFrame`. Can also return a generator for large datasets.
+        """Returns the dataset as a `pandas.DataFrame`. Can also return a generator for large datasets.
 
         Args:
-            batched (:obj:`bool`): Set to :obj:`True` to return a generator that yields the dataset as batches
-                of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasets once)
-            batch_size (:obj:`int`, optional): The size (number of rows) of the batches if ``batched`` is `True`.
-                Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            batched (`bool`):
+                Set to `True` to return a generator that yields the dataset as batches
+                of `batch_size` rows. Defaults to `False` (returns the whole datasets once).
+            batch_size (`int`, *optional*):
+                The size (number of rows) of the batches if `batched` is `True`.
+                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
         Returns:
             `pandas.DataFrame` or `Iterator[pandas.DataFrame]`
@@ -4472,13 +4600,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Exports the dataset to parquet
 
         Args:
-            path_or_buf (``PathLike`` or ``FileOrBuffer``): Either a path to a file or a BinaryIO.
-            batch_size (:obj:`int`, optional): Size of the batch to load in memory and write at once.
-                Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
-            **parquet_writer_kwargs (additional keyword arguments): Parameters to pass to PyArrow's :class:`pyarrow.parquet.ParquetWriter`
+            path_or_buf (`PathLike` or `FileOrBuffer`):
+                Either a path to a file or a BinaryIO.
+            batch_size (`int`, *optional*):
+                Size of the batch to load in memory and write at once.
+                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            **parquet_writer_kwargs (additional keyword arguments):
+                Parameters to pass to PyArrow's `pyarrow.parquet.ParquetWriter`.
 
         Returns:
-            int: The number of characters or bytes written
+            `int`: The number of characters or bytes written.
 
         Example:
 
@@ -4501,15 +4632,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Exports the dataset to a SQL database.
 
         Args:
-            name (`str`): Name of SQL table.
-            con (`str` or :obj:`sqlite3.Connection` or :obj:`sqlalchemy.engine.Connection` or :obj:`sqlalchemy.engine.Connection`):
+            name (`str`):
+                Name of SQL table.
+            con (`str` or `sqlite3.Connection` or `sqlalchemy.engine.Connection` or `sqlalchemy.engine.Connection`):
                 A [URI string](https://docs.sqlalchemy.org/en/13/core/engines.html#database-urls) or a SQLite3/SQLAlchemy connection object used to write to a database.
-            batch_size (:obj:`int`, optional): Size of the batch to load in memory and write at once.
-                Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
-            **sql_writer_kwargs (additional keyword arguments): Parameters to pass to pandas's :function:`Dataframe.to_sql`
+            batch_size (`int`, *optional*):
+                Size of the batch to load in memory and write at once.
+                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            **sql_writer_kwargs (additional keyword arguments):
+                Parameters to pass to pandas's [`Dataframe.to_sql`].
 
         Returns:
-            int: The number of records written.
+            `int`: The number of records written.
 
         Example:
 
@@ -4573,42 +4707,43 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
 
         Args:
-            repo_id (:obj:`str`):
+            repo_id (`str`):
                 The ID of the repository to push to in the following format: `<user>/<dataset_name>` or
                 `<org>/<dataset_name>`. Also accepts `<dataset_name>`, which will default to the namespace
                 of the logged-in user.
-            split (Optional, :obj:`str`):
+            split (Optional, `str`):
                 The name of the split that will be given to that dataset. Defaults to `self.split`.
-            private (Optional :obj:`bool`, defaults to :obj:`False`):
+            private (Optional `bool`, defaults to `False`):
                 Whether the dataset repository should be set to private or not. Only affects repository creation:
                 a repository that already exists will not be affected by that parameter.
-            token (Optional :obj:`str`):
+            token (Optional `str`):
                 An optional authentication token for the Hugging Face Hub. If no token is passed, will default
                 to the token saved locally when logging in with ``huggingface-cli login``. Will raise an error
                 if no token is passed and the user is not logged-in.
-            branch (Optional :obj:`str`):
+            branch (Optional `str`):
                 The git branch on which to push the dataset. This defaults to the default branch as specified
                 in your repository, which defaults to `"main"`.
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
-                The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
-                (like `"50MB"`).
-            num_shards (:obj:`int`, optional): Number of shards to write.
+                The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a 
+                a unit (like `"5MB"`).
+            num_shards (`int`, *optional*): 
+                Number of shards to write.
                 Default to the same value as `num_proc` if specified.
 
                 <Added version="2.8.0"/>
-            embed_external_files (:obj:`bool`, default ``True``):
+            embed_external_files (`bool`, default ``True``):
                 Whether to embed file bytes in the shards.
                 In particular, this will do the following before the push for the fields of type:
 
                 - :class:`Audio` and class:`Image`: remove local path information and embed file content in the Parquet files.
 
         Returns:
-            repo_id (:obj:`str`): ID of the repository in <user>/<dataset_name>` or `<org>/<dataset_name>` format
-            split (:obj:`str`): name of the uploaded split
-            uploaded_size (:obj:`int`): number of uploaded bytes to the repository
-            dataset_nbytes (:obj:`int`): approximate size in bytes of the uploaded dataset afer uncompression
-            repo_files (:obj:`str`): list of files in the repository
-            deleted_size (:obj:`int`): number of deleted bytes in the repository
+            repo_id (`str`): ID of the repository in <user>/<dataset_name>` or `<org>/<dataset_name>` format
+            split (`str`): name of the uploaded split
+            uploaded_size (`int`): number of uploaded bytes to the repository
+            dataset_nbytes (`int`): approximate size in bytes of the uploaded dataset afer uncompression
+            repo_files (`str`): list of files in the repository
+            deleted_size (`int`): number of deleted bytes in the repository
 
         Example:
 
@@ -4775,41 +4910,47 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Pushes the dataset to the hub as a Parquet dataset.
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
 
-        The resulting Parquet files are self-contained by default: if your dataset contains :class:`Image` or :class:`Audio`
+        The resulting Parquet files are self-contained by default. If your dataset contains [`Image`] or [`Audio`]
         data, the Parquet files will store the bytes of your images or audio files.
-        You can disable this by setting `embed_external_files` to False.
+        You can disable this by setting `embed_external_files` to `False`.
 
         Args:
-            repo_id (:obj:`str`):
+            repo_id (`str`):
                 The ID of the repository to push to in the following format: `<user>/<dataset_name>` or
                 `<org>/<dataset_name>`. Also accepts `<dataset_name>`, which will default to the namespace
                 of the logged-in user.
-            split (Optional, :obj:`str`):
+            split (`str`, *optional*):
                 The name of the split that will be given to that dataset. Defaults to `self.split`.
-            private (Optional :obj:`bool`, defaults to :obj:`False`):
+            private (`bool`, *optional*, defaults to `False`):
                 Whether the dataset repository should be set to private or not. Only affects repository creation:
                 a repository that already exists will not be affected by that parameter.
-            token (Optional :obj:`str`):
+            token (`str`, *optional*):
                 An optional authentication token for the Hugging Face Hub. If no token is passed, will default
-                to the token saved locally when logging in with ``huggingface-cli login``. Will raise an error
+                to the token saved locally when logging in with `huggingface-cli login`. Will raise an error
                 if no token is passed and the user is not logged-in.
-            branch (Optional :obj:`str`):
+            branch (`str`, *optional*):
                 The git branch on which to push the dataset. This defaults to the default branch as specified
                 in your repository, which defaults to `"main"`.
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
-                The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
-                (like `"50MB"`).
-            num_shards (:obj:`int`, optional): Number of shards to write.
+                The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by
+                a unit (like `"5MB"`).
+            num_shards (`int`, *optional*): Number of shards to write.
                 Default to the same value as `num_proc` if specified.
 
                 <Added version="2.8.0"/>
-            shard_size (Optional :obj:`int`):
-                Deprecated: 'shard_size' was renamed to 'max_shard_size' in version 2.1.1 and will be removed in 3.0.0.
-            embed_external_files (:obj:`bool`, default ``True``):
+            shard_size (`int`, *optional*):
+
+                <Deprecated version="2.4.0">
+
+                `shard_size` was renamed to `max_shard_size` in version 2.1.1 and will be removed in 2.4.0.
+
+                </Deprecated>
+
+            embed_external_files (`bool`, defaults to `True`):
                 Whether to embed file bytes in the shards.
                 In particular, this will do the following before the push for the fields of type:
 
-                - :class:`Audio` and class:`Image`: remove local path information and embed file content in the Parquet files.
+                - [`Audio`] and [`Image`]: remove local path information and embed file content in the Parquet files.
 
         Example:
 
@@ -4985,35 +5126,38 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     ):
         """Add a dense index using Faiss for fast retrieval.
         By default the index is done over the vectors of the specified column.
-        You can specify :obj:`device` if you want to run it on GPU (:obj:`device` must be the GPU index).
+        You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
         You can find more information about Faiss here:
 
-        - For `string factory <https://github.com/facebookresearch/faiss/wiki/The-index-factory>`__
+        - For [string factory](https://github.com/facebookresearch/faiss/wiki/The-index-factory)
 
         Args:
-            column (:obj:`str`):
+            column (`str`):
                 The column of the vectors to add to the index.
-            index_name (Optional :obj:`str`):
-                The index_name/identifier of the index.
-                This is the index_name that is used to call :func:`datasets.Dataset.get_nearest_examples` or :func:`datasets.Dataset.search`.
+            index_name (`str`, *optional*):
+                The `index_name`/identifier of the index.
+                This is the `index_name` that is used to call [`~datasets.Dataset.get_nearest_examples`] or [`~datasets.Dataset.search`].
                 By default it corresponds to `column`.
-            device (Optional :obj:`Union[int, List[int]]`): If positive integer, this is the index of the GPU to use. If negative integer, use all GPUs.
+            device (`Union[int, List[int]]`, *optional*):
+                If positive integer, this is the index of the GPU to use. If negative integer, use all GPUs.
                 If a list of positive integers is passed in, run only on those GPUs. By default it uses the CPU.
-            string_factory (Optional :obj:`str`):
+            string_factory (`str`, *optional*):
                 This is passed to the index factory of Faiss to create the index.
-                Default index class is ``IndexFlat``.
-            metric_type (Optional :obj:`int`):
-                Type of metric. Ex: faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
-            custom_index (Optional :obj:`faiss.Index`):
+                Default index class is `IndexFlat`.
+            metric_type (`int`, *optional*):
+                Type of metric. Ex: `faiss.METRIC_INNER_PRODUCT` or `faiss.METRIC_L2`.
+            custom_index (`faiss.Index`, *optional*):
                 Custom Faiss index that you already have instantiated and configured for your needs.
-            batch_size (Optional :obj:`int`): Size of the batch to use while adding vectors to the FaissIndex. Default value is 1000.
+            batch_size (`int`):
+                Size of the batch to use while adding vectors to the `FaissIndex`. Default value is `1000`.
                 <Added version="2.4.0"/>
-            train_size (Optional :obj:`int`):
+            train_size (`int`, *optional*):
                 If the index needs a training step, specifies how many vectors will be used to train the index.
-            faiss_verbose (:obj:`bool`, defaults to False):
+            faiss_verbose (`bool`, defaults to `False`):
                 Enable the verbosity of the Faiss index.
-            dtype (data-type): The dtype of the numpy arrays that are indexed.
-                Default is ``np.float32``.
+            dtype (`data-type`):
+                The dtype of the numpy arrays that are indexed.
+                Default is `np.float32`.
 
         Example:
 
@@ -5065,31 +5209,34 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
         You can find more information about Faiss here:
 
-        - For `string factory <https://github.com/facebookresearch/faiss/wiki/The-index-factory>`__
+        - For [string factory](https://github.com/facebookresearch/faiss/wiki/The-index-factory)
 
         Args:
-            external_arrays (:obj:`np.array`):
-                If you want to use arrays from outside the lib for the index, you can set :obj:`external_arrays`.
-                It will use :obj:`external_arrays` to create the Faiss index instead of the arrays in the given :obj:`column`.
-            index_name (:obj:`str`):
-                The index_name/identifier of the index.
-                This is the index_name that is used to call :func:`datasets.Dataset.get_nearest_examples` or :func:`datasets.Dataset.search`.
-            device (Optional :obj:`Union[int, List[int]]`): If positive integer, this is the index of the GPU to use. If negative integer, use all GPUs.
+            external_arrays (`np.array`):
+                If you want to use arrays from outside the lib for the index, you can set `external_arrays`.
+                It will use `external_arrays` to create the Faiss index instead of the arrays in the given `column`.
+            index_name (`str`):
+                The `index_name`/identifier of the index.
+                This is the `index_name` that is used to call [`~datasets.Dataset.get_nearest_examples`] or [`~datasets.Dataset.search`].
+            device (Optional `Union[int, List[int]]`, *optional*):
+                If positive integer, this is the index of the GPU to use. If negative integer, use all GPUs.
                 If a list of positive integers is passed in, run only on those GPUs. By default it uses the CPU.
-            string_factory (Optional :obj:`str`):
+            string_factory (`str`, *optional*):
                 This is passed to the index factory of Faiss to create the index.
-                Default index class is ``IndexFlat``.
-            metric_type (Optional :obj:`int`):
-                Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
-            custom_index (Optional :obj:`faiss.Index`):
+                Default index class is `IndexFlat`.
+            metric_type (`int`, *optional*):
+                Type of metric. Ex: `faiss.faiss.METRIC_INNER_PRODUCT` or `faiss.METRIC_L2`.
+            custom_index (`faiss.Index`, *optional*):
                 Custom Faiss index that you already have instantiated and configured for your needs.
-            batch_size (Optional :obj:`int`): Size of the batch to use while adding vectors to the FaissIndex. Default value is 1000.
+            batch_size (`int`, *optional*):
+                Size of the batch to use while adding vectors to the FaissIndex. Default value is 1000.
                 <Added version="2.4.0"/>
-            train_size (Optional :obj:`int`):
+            train_size (`int`, *optional*):
                 If the index needs a training step, specifies how many vectors will be used to train the index.
-            faiss_verbose (:obj:`bool`, defaults to False):
+            faiss_verbose (`bool`, defaults to False):
                 Enable the verbosity of the Faiss index.
-            dtype (:obj:`numpy.dtype`): The dtype of the numpy arrays that are indexed. Default is np.float32.
+            dtype (`numpy.dtype`):
+                The dtype of the numpy arrays that are indexed. Default is np.float32.
         """
         super().add_faiss_index_from_external_arrays(
             external_arrays=external_arrays.astype(dtype),
@@ -5116,25 +5263,24 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Add a text index using ElasticSearch for fast retrieval. This is done in-place.
 
         Args:
-            column (:obj:`str`):
+            column (`str`):
                 The column of the documents to add to the index.
-            index_name (Optional :obj:`str`):
-                The index_name/identifier of the index.
-                This is the index name that is used to call :meth:`Dataset.get_nearest_examples` or :meth:`Dataset.search`.
-                By default it corresponds to :obj:`column`.
-            host (Optional :obj:`str`, defaults to localhost):
-                host of where ElasticSearch is running
-            port (Optional :obj:`str`, defaults to 9200):
-                port of where ElasticSearch is running
-            es_client (Optional :obj:`elasticsearch.Elasticsearch`):
-                The elasticsearch client used to create the index if host and port are None.
-            es_index_name (Optional :obj:`str`):
+            index_name (`str`, *optional*):
+                The `index_name`/identifier of the index.
+                This is the index name that is used to call [`~Dataset.get_nearest_examples`] or [`Dataset.search`].
+                By default it corresponds to `column`.
+            host (`str`, *optional*, defaults to `localhost`):
+                Host of where ElasticSearch is running.
+            port (`str`, *optional*, defaults to `9200`):
+                Port of where ElasticSearch is running.
+            es_client (`elasticsearch.Elasticsearch`, *optional*):
+                The elasticsearch client used to create the index if host and port are `None`.
+            es_index_name (`str`, *optional*):
                 The elasticsearch index name used to create the index.
-            es_index_config (Optional :obj:`dict`):
+            es_index_config (`dict`, *optional*):
                 The configuration of the elasticsearch index.
                 Default config is:
-                ```
-
+                    ```
                     {
                         "settings": {
                             "number_of_shards": 1,
@@ -5150,8 +5296,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             }
                         },
                     }
-                ```
-
+                    ```
         Example:
 
         ```python
@@ -5226,14 +5371,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
 
     def align_labels_with_mapping(self, label2id: Dict, label_column: str) -> "Dataset":
-        """Align the dataset's label ID and label name mapping to match an input :obj:`label2id` mapping.
+        """Align the dataset's label ID and label name mapping to match an input `label2id` mapping.
         This is useful when you want to ensure that a model's predicted labels are aligned with the dataset.
         The alignment in done using the lowercase label names.
 
         Args:
-            label2id (:obj:`dict`):
+            label2id (`dict`):
                 The label name to ID mapping to align the dataset with.
-            label_column (:obj:`str`):
+            label_column (`str`):
                 The column name of labels to align on.
 
         Example:
@@ -5314,7 +5459,7 @@ def _concatenate_map_style_datasets(
     When you concatenate on axis 0, missing data are filled with None values.
 
     Args:
-        dsets (:obj:`List[datasets.Dataset]`): List of Datasets to concatenate.
+        dsets (`List[datasets.Dataset]`): List of Datasets to concatenate.
         info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
         split (:class:`NamedSplit`, optional): Name of the dataset split.
         axis (``{0, 1}``, default ``0``, meaning over rows):
@@ -5433,13 +5578,13 @@ def _interleave_map_style_datasets(
     If `probabilities` is not `None, the new dataset is constructed by getting examples from a random source at a time according to the provided probabilities.
 
     Args:
-        datasets (:obj:`List[Dataset]`): list of datasets to interleave
-        probabilities (:obj:`List[float]`, optional, default None): If specified, the new dataset is constructed by sampling
+        datasets (`List[Dataset]`): list of datasets to interleave
+        probabilities (`List[float]`, optional, default None): If specified, the new dataset is constructed by sampling
             examples from one source at a time according to these probabilities.
-        seed (:obj:`int`, optional, default None): The random seed used to choose a source for each example.
+        seed (`int`, optional, default None): The random seed used to choose a source for each example.
         info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
         split (:class:`NamedSplit`, optional): Name of the dataset split.
-        stopping_strategy (Optional :obj:`str`, defaults to `first_exhausted`):
+        stopping_strategy (Optional `str`, defaults to `first_exhausted`):
             Two strategies are proposed right now.
             By default, `first_exhausted` is an undersampling strategy, i.e the dataset construction is stopped as soon as one dataset has ran out of samples.
             If the strategy is `all_exhausted`,  we use an oversampling strategy, i.e the dataset construction is stopped as soon as every samples of every dataset has been added at least once.
