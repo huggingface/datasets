@@ -647,6 +647,7 @@ def test_load_dataset_builder_for_absolute_data_dir(complex_data_dir):
     assert len(builder.config.data_files["test"]) > 0
 
 
+# TODO: .config.name is changed in load.py:698 to "default" for each cases where it's not provided.  ?
 def test_load_dataset_builder_for_relative_data_dir(complex_data_dir):
     with set_current_working_directory_to_temp_dir():
         relative_data_dir = "relative_data_dir"

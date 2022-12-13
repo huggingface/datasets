@@ -54,6 +54,7 @@ from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .info import DatasetInfo, DatasetInfosDict
 from .iterable_dataset import IterableDataset
 from .metric import Metric
+from .naming import snakecase_to_camelcase
 from .packaged_modules import (
     _EXTENSION_TO_MODULE,
     _MODULE_SUPPORTS_METADATA,
@@ -145,11 +146,12 @@ def parametrize_packaged_builder(builder_cls, metadata_configs, name="custom"):
     class ParametrizedBuilder(builder_cls):
         BUILDER_CONFIGS = configs
 
+        __name__ = f"{snakecase_to_camelcase(name)}{builder_cls.__name__}"
+        __module__ = builder_cls.__module__  # TODO
+
         # TODO: this would be needed for making dynamically created class picklable
         # def __reduce__(self):
         #     return _InitializeParameterized, (self.__class__, name, self.BUILDER_CONFIGS), self.__dict__
-
-    ParametrizedBuilder.__name__ = f"{name.capitalize()}{builder_cls.__name__}"  # TODO
 
     return ParametrizedBuilder
 
@@ -650,9 +652,10 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         config_kwargs, configs_metadata = {}, {}
         if self.config_name and os.path.isfile(os.path.join(self.path, "README.md")):
             dataset_metadata = DatasetMetadata.from_readme(Path(self.path) / "README.md")
-            if "configs" in dataset_metadata:
+            if config.METADATA_CONFIGS_FIELD_NAME in dataset_metadata:
                 configs_metadata = {
-                    config_params["config_name"]: config_params for config_params in dataset_metadata["configs"]
+                    config_params["config_name"]: config_params
+                    for config_params in dataset_metadata[config.METADATA_CONFIGS_FIELD_NAME]
                 }
                 config_kwargs = configs_metadata[self.config_name]
                 # updating data_files and data_dir
@@ -690,11 +693,12 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                         data_files[key] + metadata_files,
                         data_files[key].origin_metadata + metadata_files.origin_metadata,
                     )
+        # TODO: hash?
         module_path, hash = _PACKAGED_DATASETS_MODULES[module_name]
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
-            "config_name": self.config_name,  # os.path.basename(self.path.rstrip("/")),  # TODO
+            "config_name": self.config_name,  # os.path.basename(self.path.rstrip("/")),  # TODO ??
             "base_path": self.path,
             **builder_kwargs,
         }
@@ -744,15 +748,17 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         config_kwargs = {}
         if self.config_name and os.path.isfile(os.path.join(self.path, "README.md")):
             dataset_metadata = DatasetMetadata.from_readme(Path(self.path) / "README.md")
-            if "configs" in dataset_metadata:
+            if config.METADATA_CONFIGS_FIELD_NAME in dataset_metadata:
                 configs_metadata = {
-                    config_params["config_name"]: config_params for config_params in dataset_metadata["configs"]
+                    config_params["config_name"]: config_params
+                    for config_params in dataset_metadata[config.METADATA_CONFIGS_FIELD_NAME]
                 }
                 config_kwargs = configs_metadata[self.config_name]
                 # updating data_files and data_dir
                 # TODO: raise error when having both and they aren't the same?
-                self.data_files = config_kwargs.get("data_files", None) or self.data_files
-                self.data_dir = config_kwargs.get("data_dir", None) or self.data_dir
+                self.data_files = config_kwargs.pop("data_files", None) or self.data_files
+                self.data_dir = config_kwargs.pop("data_dir", None) or self.data_dir
+        # TODO: i think it's possible to have "dataset_info" in README.md yaml for PackagedModule too, no?
 
         base_path = str(Path(self.data_dir).resolve()) if self.data_dir is not None else str(Path().resolve())
         patterns = (
@@ -791,6 +797,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
     def __init__(
         self,
         name: str,
+        config_name: Optional[str] = None,
         revision: Optional[Union[str, Version]] = None,
         data_dir: Optional[str] = None,
         data_files: Optional[Union[str, List, Dict]] = None,
@@ -799,6 +806,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
     ):
 
         self.name = name
+        self.config_name = config_name
         self.revision = revision
         self.data_files = data_files
         self.data_dir = data_dir
@@ -814,6 +822,79 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             use_auth_token=self.download_config.use_auth_token,
             timeout=100.0,
         )
+        config_kwargs, builder_kwargs, metadata_configs = {}, {}, None
+
+        # this is moved here so that info from json will be rewritten by yaml is they both exist
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading metadata"
+        try:
+            dataset_infos_path = cached_path(
+                hf_hub_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=self.revision),
+                download_config=download_config,
+            )
+            with open(dataset_infos_path, encoding="utf-8") as f:
+                dataset_infos: DatasetInfosDict = json.load(f)
+            if dataset_infos:
+                builder_kwargs["config_name"] = next(iter(dataset_infos))
+                builder_kwargs["info"] = DatasetInfo.from_dict(next(iter(dataset_infos.values())))
+        except FileNotFoundError:
+            pass
+
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading readme"
+        try:
+            dataset_readme_path = cached_path(
+                hf_hub_url(self.name, "README.md", revision=self.revision),
+                download_config=download_config,
+            )
+            dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
+
+            if isinstance(dataset_metadata.get("dataset_info"), list) and dataset_metadata["dataset_info"]:
+                dataset_metadata_dict = {info["config_name"]: info for info in dataset_metadata["dataset_info"]}
+                if self.config_name and self.config_name in dataset_metadata_dict:
+                    dataset_info_dict = dataset_metadata_dict[self.config_name]
+                else:
+                    # TODO: this is weird (but it was like this because there was only one config possible)
+                    dataset_info_dict = next(iter(dataset_metadata_dict.values()))
+                # TODO: what if self.config_name is in "configs" but not in "dataset_info"?
+                # make sure that dataset_info_dict doesn't have a config_name (so it's like a general info?
+                # but why it's in a list then
+                builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
+                # aaaaaaaa
+                if "config_name" in dataset_info_dict:
+                    builder_kwargs["config_name"] = dataset_info_dict["config_name"]
+
+            elif isinstance(dataset_metadata.get("dataset_info"), dict) and dataset_metadata["dataset_info"]:
+                # only one - take it as "default"
+                dataset_info_dict = dataset_metadata["dataset_info"]
+                builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
+                # aaaaaaaa
+                if "config_name" in dataset_info_dict:
+                    builder_kwargs["config_name"] = dataset_info_dict["config_name"]
+
+            if (
+                self.config_name and config.METADATA_CONFIGS_FIELD_NAME in dataset_metadata
+            ):  # TODO: if "configs" field exists, it must be a list?
+                metadata_configs = {
+                    config_params["config_name"]: config_params
+                    for config_params in dataset_metadata[config.METADATA_CONFIGS_FIELD_NAME]
+                }
+                # TODO: raise error if config doesn't exist? might there be cases when it's possible?
+                if self.config_name not in metadata_configs:
+                    raise ValueError(
+                        f"Config {self.config_name} doesn't exist, available configs: {set(metadata_configs)}"
+                    )
+                config_kwargs = metadata_configs[self.config_name]
+                # updating data_files and data_dir
+                # TODO: raise error when having both and they aren't the same?
+                self.data_files = config_kwargs.pop("data_files", None) or self.data_files
+                self.data_dir = config_kwargs.pop("data_dir", None) or self.data_dir
+
+        except FileNotFoundError:
+            pass
+
         patterns = (
             sanitize_patterns(self.data_files)
             if self.data_files is not None
@@ -831,7 +912,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         }
         if len(set(list(zip(*module_names.values()))[0])) > 1:
             raise ValueError(f"Couldn't infer the same data file format for all splits. Got {module_names}")
-        module_name, builder_kwargs = next(iter(module_names.values()))
+        module_name, default_builder_kwargs = next(iter(module_names.values()))
         if not module_name:
             raise FileNotFoundError(f"No data files or dataset script found in {self.name}")
         # Collect metadata files if the module supports them
@@ -853,49 +934,15 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
-            "config_name": self.name.replace("/", "--"),
+            "config_name": self.config_name,  # if self.config_name else "default"? #self.name.replace("/", "--") TODO
             "base_path": hf_hub_url(self.name, "", revision=self.revision),
             "repo_id": self.name,
-            **builder_kwargs,
+            **default_builder_kwargs,  # from _EXTENSION_TO_MODULE
+            **builder_kwargs,  # from "dataset_info"
+            **config_kwargs,  # from "configs". "config_name" is still there
         }
-        download_config = self.download_config.copy()
-        if download_config.download_desc is None:
-            download_config.download_desc = "Downloading metadata"
-        try:
-            dataset_infos_path = cached_path(
-                hf_hub_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=self.revision),
-                download_config=download_config,
-            )
-            with open(dataset_infos_path, encoding="utf-8") as f:
-                dataset_infos: DatasetInfosDict = json.load(f)
-            if dataset_infos:
-                builder_kwargs["config_name"] = next(iter(dataset_infos))
-                builder_kwargs["info"] = DatasetInfo.from_dict(next(iter(dataset_infos.values())))
-        except FileNotFoundError:
-            pass
-        download_config = self.download_config.copy()
-        if download_config.download_desc is None:
-            download_config.download_desc = "Downloading readme"
-        try:
-            dataset_readme_path = cached_path(
-                hf_hub_url(self.name, "README.md", revision=self.revision),
-                download_config=download_config,
-            )
-            dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
-            if isinstance(dataset_metadata.get("dataset_info"), list) and dataset_metadata["dataset_info"]:
-                dataset_info_dict = dataset_metadata["dataset_info"][0]
-                builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
-                if "config_name" in dataset_info_dict:
-                    builder_kwargs["config_name"] = dataset_info_dict["config_name"]
-            elif isinstance(dataset_metadata.get("dataset_info"), dict) and dataset_metadata["dataset_info"]:
-                dataset_info_dict = dataset_metadata["dataset_info"]
-                builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
-                if "config_name" in dataset_info_dict:
-                    builder_kwargs["config_name"] = dataset_info_dict["config_name"]
 
-        except FileNotFoundError:
-            pass
-        return DatasetModule(module_path, hash, builder_kwargs)
+        return DatasetModule(module_path, hash, builder_kwargs, metadata_configs=metadata_configs)
 
 
 class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
@@ -1251,6 +1298,7 @@ def dataset_module_factory(
             else:
                 return HubDatasetModuleFactoryWithoutScript(
                     path,
+                    config_name=config_name,
                     revision=revision,
                     data_dir=data_dir,
                     data_files=data_files,
@@ -1587,7 +1635,6 @@ def load_dataset_builder(
         features=features,
         use_auth_token=use_auth_token,
         **builder_kwargs,
-        **config_kwargs,
     )
 
     return builder_instance
