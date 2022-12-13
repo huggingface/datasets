@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, TypeVar, Unio
 
 import numpy as np
 import pyarrow as pa
+import pyarrow.compute as pc
 
 from . import config
 from .utils.logging import get_logger
@@ -152,7 +153,7 @@ class Table(IndexedTableMixin):
 
     It implements all the basic attributes/methods of the pyarrow Table class except
     the Table transforms: slice, filter, flatten, combine_chunks, cast, add_column,
-    append_column, remove_column, set_column, rename_columns and drop.
+    append_column, remove_column, set_column, rename_columns, select and drop.
 
     The implementation of these methods differs for the subclasses.
     """
@@ -642,17 +643,20 @@ class Table(IndexedTableMixin):
         """
         raise NotImplementedError()
 
-    # Additional methods that are based on the PyArrow Table methods
+    def select(self, *args, **kwargs):
+        """
+        Select columns of the table.
 
-    def select_columns(self, columns: List[int]) -> "Table":
-        """Return the table by keeping only the requested columns
+        Returns a new table with the specified columns, and metadata preserved.
+
+        Args:
+            columns (:obj:`Union[List[str], List[int]]`):
+                The column names or integer indices to select.
 
         Returns:
-            :class:`datasets.table.Table`: table with only a subset of the columns
+            :class:`datasets.table.Table`: New table with the specified columns, and metadata preserved.
         """
-        for column_to_remove in set(range(len(self.column_names))) - set(columns):
-            self = self.remove_column(column_to_remove)
-        return self
+        raise NotImplementedError()
 
 
 class TableBlock(Table):
@@ -1000,6 +1004,21 @@ class InMemoryTable(TableBlock):
         """
         return InMemoryTable(self.table.drop(*args, **kwargs))
 
+    def select(self, *args, **kwargs):
+        """
+        Select columns of the table.
+
+        Returns a new table with the specified columns, and metadata preserved.
+
+        Args:
+            columns (:obj:`Union[List[str], List[int]]`):
+                The column names or integer indices to select.
+
+        Returns:
+            :class:`datasets.table.Table`: New table with the specified columns, and metadata preserved.
+        """
+        return InMemoryTable(self.table.select(*args, **kwargs))
+
 
 # The MemoryMappedTable needs replays to properly reload tables from the disk
 Replay = Tuple[str, tuple, dict]
@@ -1263,6 +1282,23 @@ class MemoryMappedTable(TableBlock):
         replay = ("drop", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
         return MemoryMappedTable(self.table.drop(*args, **kwargs), self.path, replays)
+
+    def select(self, *args, **kwargs):
+        """
+        Select columns of the table.
+
+        Returns a new table with the specified columns, and metadata preserved.
+
+        Args:
+            columns (:obj:`Union[List[str], List[int]]`):
+                The column names or integer indices to select.
+
+        Returns:
+            :class:`datasets.table.Table`: New table with the specified columns, and metadata preserved.
+        """
+        replay = ("select", copy.deepcopy(args), copy.deepcopy(kwargs))
+        replays = self._append_replay(replay)
+        return MemoryMappedTable(self.table.select(*args, **kwargs), self.path, replays)
 
 
 # A ConcatenationTable is the concatenation of several tables.
@@ -1682,10 +1718,29 @@ class ConcatenationTable(Table):
             :class:`datasets.table.Table`:
                 New table without the columns.
         """
-        table = self.table.drop(columns)
+        table = self.table.drop(columns, *args, **kwargs)
         blocks = []
         for tables in self.blocks:
             blocks.append([t.drop([c for c in columns if c in t.column_names], *args, **kwargs) for t in tables])
+        return ConcatenationTable(table, blocks)
+
+    def select(self, columns, *args, **kwargs):
+        """
+        Select columns of the table.
+
+        Returns a new table with the specified columns, and metadata preserved.
+
+        Args:
+            columns (:obj:`Union[List[str], List[int]]`):
+                The column names or integer indices to select.
+
+        Returns:
+            :class:`datasets.table.Table`: New table with the specified columns, and metadata preserved.
+        """
+        table = self.table.select(columns, *args, **kwargs)
+        blocks = []
+        for tables in self.blocks:
+            blocks.append([t.select([c for c in columns if c in t.column_names], *args, **kwargs) for t in tables])
         return ConcatenationTable(table, blocks)
 
 
@@ -1744,6 +1799,96 @@ def _wrap_for_chunked_arrays(func):
     return wrapper
 
 
+def _is_extension_type(pa_type: pa.DataType) -> bool:
+    """
+    Check (recursively) if a pyarrow type is an extension type.
+    """
+    if isinstance(pa_type, pa.StructType):
+        return any(_is_extension_type(field.type) for field in pa_type)
+    elif isinstance(pa_type, (pa.ListType, pa.FixedSizeListType, pa.LargeListType)):
+        return _is_extension_type(pa_type.value_type)
+    elif isinstance(pa_type, pa.ExtensionType):
+        return True
+    else:
+        return False
+
+
+def array_concat(arrays: List[pa.Array]):
+    """Improved version of pa.concat_arrays
+
+    It supports concatenating pa.ExtensionArray objects by concatenating the underlying storages.
+
+    Args:
+        arrays (List[pa.Array]): List of arrays to contatenate
+
+    Raises:
+        pa.ArrowInvalid: if the arrow array concatenation fails
+        ValueError: if the list of arrays is empty
+        TypeError: if the arrays to be concatenated have different types
+
+    Returns:
+        array (:obj:`pyarrow.Array`): the concatenated array
+    """
+    arrays = list(arrays)
+    array_types = set(array.type for array in arrays)
+
+    if not array_types:
+        raise ValueError("Couldn't concatenate empty list of arrays")
+    if len(array_types) > 1:
+        array_types = list(array_types)
+        raise TypeError(f"Couldn't concatenate arrays with different types {array_types[0]} and {array_types[1]}")
+
+    array_type = arrays[0].type
+    arrays = [chunk for arr in arrays for chunk in (arr.chunks if isinstance(arr, pa.ChunkedArray) else (arr,))]
+
+    if not _is_extension_type(array_type):
+        return pa.concat_arrays(arrays)
+
+    def _offsets_concat(offsets):
+        offset = offsets[0]
+        concatenated_offsets = offset
+        for offset in offsets[1:]:
+            offset = pc.subtract(offset, offset[0])
+            offset = pc.add(offset[1:], concatenated_offsets[-1])
+            concatenated_offsets = pa.concat_arrays([concatenated_offsets, offset])
+        return concatenated_offsets
+
+    def _concat_arrays(arrays):
+        array_type = arrays[0].type
+        if isinstance(array_type, pa.PyExtensionType):
+            return array_type.wrap_array(_concat_arrays([array.storage for array in arrays]))
+        elif pa.types.is_struct(array_type):
+            return pa.StructArray.from_arrays(
+                [_concat_arrays([array.field(field.name) for array in arrays]) for field in array_type],
+                fields=list(array_type),
+                mask=pa.concat_arrays([array.is_null() for array in arrays]),
+            )
+        elif pa.types.is_list(array_type):
+            if any(array.null_count > 0 for array in arrays):
+                if config.PYARROW_VERSION.major < 10:
+                    warnings.warn(
+                        "None values are converted to empty lists in `pyarrow<10.0.0` when concatenating list arrays with None values. Install `pyarrow>=10.0.0` to avoid this behavior. More info: https://github.com/huggingface/datasets/issues/3676."
+                    )
+                else:
+                    return pa.ListArray.from_arrays(
+                        _offsets_concat([array.offsets for array in arrays]),
+                        _concat_arrays([array.values for array in arrays]),
+                        mask=pa.concat_arrays([array.is_null() for array in arrays]),
+                    )
+            return pa.ListArray.from_arrays(
+                _offsets_concat([array.offsets for array in arrays]),
+                _concat_arrays([array.values for array in arrays]),
+            )
+        elif pa.types.is_fixed_size_list(array_type):
+            return pa.FixedSizeListArray.from_arrays(
+                _concat_arrays([array.values for array in arrays]),
+                array_type.list_size,
+            )
+        return pa.concat_arrays(arrays)
+
+    return _concat_arrays(arrays)
+
+
 @_wrap_for_chunked_arrays
 def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
     """Improved version of pa.Array.cast
@@ -1759,7 +1904,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
             Defaults to True.
 
     Raises:
-        pa.ArrowInvalidError: if the arrow data casting fails
+        pa.ArrowInvalid: if the arrow data casting fails
         TypeError: if the target type is not supported according, e.g.
 
             - if a field is missing
@@ -1845,7 +1990,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
             Defaults to True.
 
     Raises:
-        pa.ArrowInvalidError: if the arrow data casting fails
+        pa.ArrowInvalid: if the arrow data casting fails
         TypeError: if the target type is not supported according, e.g.
 
             - if a field is missing
