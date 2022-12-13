@@ -1755,11 +1755,11 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
     to disable numbers (`floats` or `ints`) to strings.
 
     Args:
-        array (pa.Array):
+        array (`pa.Array`):
             PyArrow array to cast
-        pa_type (pa.DataType):
+        pa_type (`pa.DataType`):
             Target PyArrow type
-        allow_number_to_str (bool, defaults to `True`):
+        allow_number_to_str (`bool`, defaults to `True`):
             Whether to allow casting numbers to strings.
             Defaults to `True`.
 
@@ -1844,11 +1844,11 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
     they defined to enable casting from other arrow types.
 
     Args:
-        array (pa.Array):
+        array (`pa.Array`):
             The PyArrow array to cast.
-        feature (FeatureType):
+        feature (`datasets.features.FeatureType`):
             The target feature type.
-        allow_number_to_str (bool, defaults to `True`):
+        allow_number_to_str (`bool`, defaults to `True`):
             Whether to allow casting numbers to strings.
             Defaults to `True`.
 
@@ -1956,9 +1956,9 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
     <Added version="2.4.0"/>
 
     Args:
-        array (pa.Array):
+        array (`pa.Array`):
             The PyArrow array in which to embed data.
-        feature (FeatureType):
+        feature (`datasets.features.FeatureType`):
             Array features.
 
     Raises:
@@ -2054,7 +2054,7 @@ def cast_table_to_features(table: pa.Table, features: "Features"):
     Args:
         table (`pyarrow.Table`):
             PyArrow table to cast.
-        features (Features):
+        features ([`Features`]):
             Target features.
 
     Returns:
@@ -2070,9 +2070,9 @@ def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
     """Cast a table to the arrow schema. Different from `cast_table_to_features`, this method can preserve nullability.
 
     Args:
-        table (pa.Table):
+        table (`pa.Table`):
             PyArrow table to cast.
-        features (Features):
+        features ([`Features`]):
             Target features.
 
     Returns:
@@ -2138,7 +2138,7 @@ def table_flatten(table: pa.Table):
     but updates the metadata and skips decodable features unless the `decode` attribute of these features is set to False.
 
     Args:
-        table (`Table`):
+        table (`pa.Table`):
             PyArrow table to flatten.
 
     Returns:
