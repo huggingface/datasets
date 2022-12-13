@@ -201,7 +201,7 @@ You must use a `BatchSampler` if you want the transform to be given full batches
 ### Stream data
 
 Loading a dataset in streaming mode is useful to progressively download the data you need while iterating over the dataset.
-Set the format of a streaming dataset to `torch`, and it inherits from `torch.utils.data.IterableDataset` so you can pass it to a `DataLoader`:
+An iterable dataset from `datasets` inherits from `torch.utils.data.IterableDataset` so you can pass it to a `DataLoader`:
 
 ```py
 >>> import numpy as np
@@ -209,14 +209,14 @@ Set the format of a streaming dataset to `torch`, and it inherits from `torch.ut
 >>> from torch.utils.data import DataLoader
 >>> data = np.random.rand(10_000)
 >>> Dataset.from_dict({"data": data}).push_to_hub("<username>/my_dataset")  # Upload to the Hugging Face Hub
->>> ds = load_dataset("<username>/my_dataset", streaming=True, split="train").with_format("torch")
+>>> ds = load_dataset("<username>/my_dataset", streaming=True, split="train")
 >>> dataloader = DataLoader(ds, batch_size=32)
 ```
 
 If the dataset is split in several shards (i.e. if the dataset consists of multiple data files), then you can stream in parallel using `num_workers`:
 
 ```py
->>> ds = load_dataset("c4", "en", streaming=True, split="train").with_format("torch")
+>>> ds = load_dataset("c4", "en", streaming=True, split="train")
 >>> ds.n_shards
 1024
 >>> dataloader = DataLoader(ds, batch_size=32, num_workers=4)
