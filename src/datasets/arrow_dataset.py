@@ -353,8 +353,8 @@ class TensorflowDatasetMixin:
             batch_size (`int`):
                 Size of batches to load from the dataset.
             columns (`List[str]` or `str`, *optional*):
-                Dataset column(s) to load in the `tf.data.Dataset`. Column
-                names that are created by the `collate_fn` and that do not exist in the original dataset can be used.
+                Dataset column(s) to load in the `tf.data.Dataset`.
+                Column names that are created by the `collate_fn` and that do not exist in the original dataset can be used.
             shuffle(`bool`, defaults to `False`):
                 Shuffle the dataset order when loading. Recommended `True` for training, `False` for
                 validation/evaluation.
@@ -368,8 +368,8 @@ class TensorflowDatasetMixin:
                 An optional `dict` of keyword arguments to be passed to the
                 `collate_fn`.
             label_cols (`List[str]` or `str`, defaults to `None`):
-                Dataset column(s) to load as
-                labels. Note that many models compute loss internally rather than letting Keras do it, in which case
+                Dataset column(s) to load as labels.
+                Note that many models compute loss internally rather than letting Keras do it, in which case
                 passing the labels here is optional, as long as they're in the input `columns`.
             prefetch (`bool`, defaults to `True`):
                 Whether to run the dataloader in a separate thread and maintain
