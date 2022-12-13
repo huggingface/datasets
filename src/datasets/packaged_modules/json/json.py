@@ -82,6 +82,10 @@ class Json(datasets.ArrowBasedBuilder):
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
         if self.config.features is not None:
+            # adding missing columns
+            for column_name in set(self.config.features) - set(pa_table.column_names):
+                type = self.config.features.arrow_schema.field(column_name).type
+                pa_table = pa_table.append_column(column_name, pa.array([None] * len(pa_table), type=type))
             # more expensive cast to support nested structures with keys in a different order
             # allows str <-> int/float or str to Audio for example
             pa_table = table_cast(pa_table, self.config.features.arrow_schema)

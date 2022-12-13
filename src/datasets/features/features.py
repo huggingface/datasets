@@ -418,34 +418,34 @@ def cast_to_python_objects(obj: Any, only_1d_for_numpy=False, optimize_list_cast
 @dataclass
 class Value:
     """
-    The Value dtypes are as follows:
+    The `Value` dtypes are as follows:
 
-    null
-    bool
-    int8
-    int16
-    int32
-    int64
-    uint8
-    uint16
-    uint32
-    uint64
-    float16
-    float32 (alias float)
-    float64 (alias double)
-    time32[(s|ms)]
-    time64[(us|ns)]
-    timestamp[(s|ms|us|ns)]
-    timestamp[(s|ms|us|ns), tz=(tzstring)]
-    date32
-    date64
-    duration[(s|ms|us|ns)]
-    decimal128(precision, scale)
-    decimal256(precision, scale)
-    binary
-    large_binary
-    string
-    large_string
+    - `null`
+    - `bool`
+    - `int8`
+    - `int16`
+    - `int32`
+    - `int64`
+    - `uint8`
+    - `uint16`
+    - `uint32`
+    - `uint64`
+    - `float16`
+    - `float32` (alias float)
+    - `float64` (alias double)
+    - `time32[(s|ms)]`
+    - `time64[(us|ns)]`
+    - `timestamp[(s|ms|us|ns)]`
+    - `timestamp[(s|ms|us|ns), tz=(tzstring)]`
+    - `date32`
+    - `date64`
+    - `duration[(s|ms|us|ns)]`
+    - `decimal128(precision, scale)`
+    - `decimal256(precision, scale)`
+    - `binary`
+    - `large_binary`
+    - `string`
+    - `large_string`
 
     Example:
 
@@ -505,8 +505,10 @@ class Array2D(_ArrayXD):
     """Create a two-dimensional array.
 
     Args:
-        shape (`tuple`): The size of each dimension.
-        dtype (`str`): The value of the data type.
+        shape (`tuple`):
+            The size of each dimension.
+        dtype (`str`):
+            The value of the data type.
 
     Example:
 
@@ -528,8 +530,10 @@ class Array3D(_ArrayXD):
     """Create a three-dimensional array.
 
     Args:
-        shape (`tuple`): The size of each dimension.
-        dtype (`str`): The value of the data type.
+        shape (`tuple`):
+            The size of each dimension.
+        dtype (`str`):
+            The value of the data type.
 
     Example:
 
@@ -551,8 +555,10 @@ class Array4D(_ArrayXD):
     """Create a four-dimensional array.
 
     Args:
-        shape (`tuple`): The size of each dimension.
-        dtype (`str`): The value of the data type.
+        shape (`tuple`):
+            The size of each dimension.
+        dtype (`str`):
+            The value of the data type.
 
     Example:
 
@@ -574,8 +580,10 @@ class Array5D(_ArrayXD):
     """Create a five-dimensional array.
 
     Args:
-        shape (`tuple`): The size of each dimension.
-        dtype (`str`): The value of the data type.
+        shape (`tuple`):
+            The size of each dimension.
+        dtype (`str`):
+            The value of the data type.
 
     Example:
 
@@ -873,10 +881,13 @@ class ClassLabel:
     You can use negative integers to represent unknown/missing labels.
 
     Args:
-        num_classes (:obj:`int`, optional): Number of classes. All labels must be < `num_classes`.
-        names (:obj:`list` of :obj:`str`, optional): String names for the integer classes.
+        num_classes (`int`, *optional*):
+            Number of classes. All labels must be < `num_classes`.
+        names (`list` of `str`, *optional*):
+            String names for the integer classes.
             The order in which the names are provided is kept.
-        names_file (:obj:`str`, optional): Path to a file with names for the integer classes, one per line.
+        names_file (`str`, *optional*):
+            Path to a file with names for the integer classes, one per line.
 
     Example:
 
@@ -930,7 +941,7 @@ class ClassLabel:
         return self.pa_type
 
     def str2int(self, values: Union[str, Iterable]) -> Union[int, Iterable]:
-        """Conversion class name string => integer.
+        """Conversion class name `string` => `integer`.
 
         Example:
 
@@ -975,9 +986,9 @@ class ClassLabel:
         return int_value
 
     def int2str(self, values: Union[int, Iterable]) -> Union[str, Iterable]:
-        """Conversion integer => class name string.
+        """Conversion `integer` => class name `string`.
 
-        Regarding unknown/missing labels: passing negative integers raises ValueError.
+        Regarding unknown/missing labels: passing negative integers raises `ValueError`.
 
         Example:
 
@@ -1021,17 +1032,18 @@ class ClassLabel:
         return example_data
 
     def cast_storage(self, storage: Union[pa.StringArray, pa.IntegerArray]) -> pa.Int64Array:
-        """Cast an Arrow array to the ClassLabel arrow storage type.
-        The Arrow types that can be converted to the ClassLabel pyarrow storage type are:
+        """Cast an Arrow array to the `ClassLabel` arrow storage type.
+        The Arrow types that can be converted to the `ClassLabel` pyarrow storage type are:
 
-        - pa.string()
-        - pa.int()
+        - `pa.string()`
+        - `pa.int()`
 
         Args:
-            storage (Union[pa.StringArray, pa.IntegerArray]): PyArrow array to cast.
+            storage (`Union[pa.StringArray, pa.IntegerArray]`):
+                PyArrow array to cast.
 
         Returns:
-            pa.Int64Array: Array in the ClassLabel arrow storage type
+            `pa.Int64Array`: Array in the `ClassLabel` arrow storage type.
         """
         if isinstance(storage, pa.IntegerArray):
             min_max = pc.min_max(storage).as_py()
@@ -1057,8 +1069,10 @@ class Sequence:
     Mostly here for compatiblity with tfds.
 
     Args:
-        feature: A list of features of a single type or a dictionary of types.
-        length (`int`): Length of the sequence.
+        feature:
+            A list of features of a single type or a dictionary of types.
+        length (`int`):
+            Length of the sequence.
 
     Example:
 
@@ -1483,34 +1497,34 @@ def keep_features_dicts_synced(func):
 class Features(dict):
     """A special dictionary that defines the internal structure of a dataset.
 
-    Instantiated with a dictionary of type ``dict[str, FieldType]``, where keys are the desired column names,
+    Instantiated with a dictionary of type `dict[str, FieldType]`, where keys are the desired column names,
     and values are the type of that column.
 
-    ``FieldType`` can be one of the following:
-        - a :class:`datasets.Value` feature specifies a single typed value, e.g. ``int64`` or ``string``
-        - a :class:`datasets.ClassLabel` feature specifies a field with a predefined set of classes which can have labels
-          associated to them and will be stored as integers in the dataset
-        - a python :obj:`dict` which specifies that the field is a nested field containing a mapping of sub-fields to sub-fields
-          features. It's possible to have nested fields of nested fields in an arbitrary manner
-        - a python :obj:`list` or a :class:`datasets.Sequence` specifies that the field contains a list of objects. The python
-          :obj:`list` or :class:`datasets.Sequence` should be provided with a single sub-feature as an example of the feature
-          type hosted in this list
+    `FieldType` can be one of the following:
+        - a [`~datasets.Value`] feature specifies a single typed value, e.g. `int64` or `string`.
+        - a [`~datasets.ClassLabel`] feature specifies a field with a predefined set of classes which can have labels
+          associated to them and will be stored as integers in the dataset.
+        - a python `dict` which specifies that the field is a nested field containing a mapping of sub-fields to sub-fields
+          features. It's possible to have nested fields of nested fields in an arbitrary manner.
+        - a python `list` or a [`~datasets.Sequence`] specifies that the field contains a list of objects. The python
+          `list` or [`~datasets.Sequence`] should be provided with a single sub-feature as an example of the feature
+          type hosted in this list.
 
           <Tip>
 
-           A :class:`datasets.Sequence` with a internal dictionary feature will be automatically converted into a dictionary of
+           A [`~datasets.Sequence`] with a internal dictionary feature will be automatically converted into a dictionary of
            lists. This behavior is implemented to have a compatilbity layer with the TensorFlow Datasets library but may be
-           un-wanted in some cases. If you don't want this behavior, you can use a python :obj:`list` instead of the
-           :class:`datasets.Sequence`.
+           un-wanted in some cases. If you don't want this behavior, you can use a python `list` instead of the
+           [`~datasets.Sequence`].
 
           </Tip>
 
-        - a :class:`Array2D`, :class:`Array3D`, :class:`Array4D` or :class:`Array5D` feature for multidimensional arrays
-        - an :class:`Audio` feature to store the absolute path to an audio file or a dictionary with the relative path
+        - a [`Array2D`], [`Array3D`], [`Array4D`] or [`Array5D`] feature for multidimensional arrays.
+        - an [`Audio`] feature to store the absolute path to an audio file or a dictionary with the relative path
           to an audio file ("path" key) and its bytes content ("bytes" key). This feature extracts the audio data.
-        - an :class:`Image` feature to store the absolute path to an image file, an :obj:`np.ndarray` object, a :obj:`PIL.Image.Image` object
+        - an [`Image`] feature to store the absolute path to an image file, an `np.ndarray` object, a `PIL.Image.Image` object
           or a dictionary with the relative path to an image file ("path" key) and its bytes content ("bytes" key). This feature extracts the image data.
-        - :class:`datasets.Translation` and :class:`datasets.TranslationVariableLanguages`, the two features specific to Machine Translation
+        - [`~datasets.Translation`] and [`~datasets.TranslationVariableLanguages`], the two features specific to Machine Translation.
     """
 
     def __init__(self, *args, **kwargs):
@@ -1554,14 +1568,15 @@ class Features(dict):
     @classmethod
     def from_arrow_schema(cls, pa_schema: pa.Schema) -> "Features":
         """
-        Construct Features from Arrow Schema.
+        Construct [`Features`] from Arrow Schema.
         It also checks the schema metadata for Hugging Face Datasets features.
 
         Args:
-            pa_schema (:obj:`pyarrow.Schema`): Arrow Schema.
+            pa_schema (`pyarrow.Schema`):
+                Arrow Schema.
 
         Returns:
-            :class:`Features`
+            [`Features`]
         """
         # try to load features from the arrow schema metadata
         if pa_schema.metadata is not None and "huggingface".encode("utf-8") in pa_schema.metadata:
@@ -1574,23 +1589,24 @@ class Features(dict):
     @classmethod
     def from_dict(cls, dic) -> "Features":
         """
-        Construct Features from dict.
+        Construct [`Features`] from dict.
 
         Regenerate the nested feature object from a deserialized dict.
-        We use the '_type' key to infer the dataclass name of the feature FieldType.
+        We use the `_type` key to infer the dataclass name of the feature `FieldType`.
 
         It allows for a convenient constructor syntax
         to define features from deserialized JSON dictionaries. This function is used in particular when deserializing
-        a :class:`DatasetInfo` that was dumped to a JSON object. This acts as an analogue to
-        :meth:`Features.from_arrow_schema` and handles the recursive field-by-field instantiation, but doesn't require
+        a [`DatasetInfo`] that was dumped to a JSON object. This acts as an analogue to
+        [`Features.from_arrow_schema`] and handles the recursive field-by-field instantiation, but doesn't require
         any mapping to/from pyarrow, except for the fact that it takes advantage of the mapping of pyarrow primitive
-        dtypes that :class:`Value` automatically performs.
+        dtypes that [`Value`] automatically performs.
 
         Args:
-            dic (:obj:`dict[str, Any]`): Python dictionary.
+            dic (`dict[str, Any]`):
+                Python dictionary.
 
         Returns:
-            :class:`Features`
+            `Features`
 
         Example::
             >>> Features.from_dict({'_type': {'dtype': 'string', 'id': None, '_type': 'Value'}})
@@ -1752,10 +1768,11 @@ class Features(dict):
         Encode example into a format for Arrow.
 
         Args:
-            example (:obj:`dict[str, Any]`): Data in a Dataset row.
+            example (`dict[str, Any]`):
+                Data in a Dataset row.
 
         Returns:
-            :obj:`dict[str, Any]`
+            `dict[str, Any]`
         """
         example = cast_to_python_objects(example)
         return encode_nested_example(self, example)
@@ -1765,10 +1782,11 @@ class Features(dict):
         Encode batch into a format for Arrow.
 
         Args:
-            batch (:obj:`dict[str, list[Any]]`): Data in a Dataset batch.
+            batch (`dict[str, list[Any]]`):
+                Data in a Dataset batch.
 
         Returns:
-            :obj:`dict[str, list[Any]]`
+            `dict[str, list[Any]]`
         """
         encoded_batch = {}
         if set(batch) != set(self):
@@ -1782,13 +1800,15 @@ class Features(dict):
         """Decode example with custom feature decoding.
 
         Args:
-            example (:obj:`dict[str, Any]`): Dataset row data.
-            token_per_repo_id (:obj:`dict`, optional): To access and decode
+            example (`dict[str, Any]`):
+                Dataset row data.
+            token_per_repo_id (`dict`, *optional*):
+                To access and decode
                 audio or image files from private repositories on the Hub, you can pass
-                a dictionary repo_id (str) -> token (bool or str)
+                a dictionary `repo_id (str) -> token (bool or str)`.
 
         Returns:
-            :obj:`dict[str, Any]`
+            `dict[str, Any]`
         """
 
         return {
@@ -1804,11 +1824,13 @@ class Features(dict):
         """Decode column with custom feature decoding.
 
         Args:
-            column (:obj:`list[Any]`): Dataset column data.
-            column_name (:obj:`str`): Dataset column name.
+            column (`list[Any]`):
+                Dataset column data.
+            column_name (`str`):
+                Dataset column name.
 
         Returns:
-            :obj:`list[Any]`
+            `list[Any]`
         """
         return (
             [decode_nested_example(self[column_name], value) if value is not None else None for value in column]
@@ -1820,10 +1842,11 @@ class Features(dict):
         """Decode batch with custom feature decoding.
 
         Args:
-            batch (:obj:`dict[str, list[Any]]`): Dataset batch data.
+            batch (`dict[str, list[Any]]`):
+                Dataset batch data.
 
         Returns:
-            :obj:`dict[str, list[Any]]`
+            `dict[str, list[Any]]`
         """
         decoded_batch = {}
         for column_name, column in batch.items():
@@ -1836,10 +1859,10 @@ class Features(dict):
 
     def copy(self) -> "Features":
         """
-        Make a deep copy of Features.
+        Make a deep copy of [`Features`].
 
         Returns:
-            :class:`Features`
+            [`Features`]
 
         Example:
 
@@ -1856,16 +1879,17 @@ class Features(dict):
 
     def reorder_fields_as(self, other: "Features") -> "Features":
         """
-        Reorder Features fields to match the field order of other Features.
+        Reorder Features fields to match the field order of other [`Features`].
 
         The order of the fields is important since it matters for the underlying arrow data.
         Re-ordering the fields allows to make the underlying arrow data type match.
 
         Args:
-            other (:class:`Features`): The other Features to align with.
+            other ([`Features`]):
+                The other [`Features`] to align with.
 
         Returns:
-            :class:`Features`
+            [`Features`]
 
         Example::
 
@@ -1923,13 +1947,14 @@ class Features(dict):
     def flatten(self, max_depth=16) -> "Features":
         """Flatten the features. Every dictionary column is removed and is replaced by
         all the subfields it contains. The new fields are named by concatenating the
-        name of the original column and the subfield name like this: "<original>.<subfield>".
+        name of the original column and the subfield name like this: `<original>.<subfield>`.
 
         If a column contains nested dictionaries, then all the lower-level subfields names are
-        also concatenated to form new columns: "<original>.<subfield>.<subsubfield>", etc.
+        also concatenated to form new columns: `<original>.<subfield>.<subsubfield>`, etc.
 
         Returns:
-            Features: the flattened features
+            [`Features`]:
+                The flattened features.
 
         Example:
 

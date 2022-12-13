@@ -563,20 +563,24 @@ class ReadInstruction:
 
     @classmethod
     def from_spec(cls, spec):
-        """Creates a ReadInstruction instance out of a string spec.
+        """Creates a `ReadInstruction` instance out of a string spec.
 
         Args:
-            spec (str): split(s) + optional slice(s) to read + optional rounding
-                        if percents are used as the slicing unit. A slice can be specified,
-                        using absolute numbers (int) or percentages (int). E.g.
-                            `test`: test split.
-                            `test + validation`: test split + validation split.
-                            `test[10:]`: test split, minus its first 10 records.
-                            `test[:10%]`: first 10% records of test split.
-                            `test[:20%](pct1_dropremainder)`: first 10% records, rounded with
-                                                              the `pct1_dropremainder` rounding.
-                            `test[:-5%]+train[40%:60%]`: first 95% of test + middle 20% of
-                                                         train.
+            spec (`str`):
+                Split(s) + optional slice(s) to read + optional rounding
+                if percents are used as the slicing unit. A slice can be specified,
+                using absolute numbers (`int`) or percentages (`int`).
+
+        Examples:
+
+            ```
+            test: test split.
+            test + validation: test split + validation split.
+            test[10:]: test split, minus its first 10 records.
+            test[:10%]: first 10% records of test split.
+            test[:20%](pct1_dropremainder): first 10% records, rounded with the pct1_dropremainder rounding.
+            test[:-5%]+train[40%:60%]: first 95% of test + middle 20% of train.
+            ```
 
         Returns:
             ReadInstruction instance.
@@ -635,7 +639,8 @@ class ReadInstruction:
         Those absolute instructions are then to be added together.
 
         Args:
-            name2len: dict associating split names to number of examples.
+            name2len (`dict`):
+                Associating split names to number of examples.
 
         Returns:
             list of _AbsoluteInstruction instances (corresponds to the + in spec).

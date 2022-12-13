@@ -28,18 +28,16 @@ _VERSION_REG = re.compile(r"^(?P<major>\d+)" r"\.(?P<minor>\d+)" r"\.(?P<patch>\
 @total_ordering
 @dataclass
 class Version:
-    """Dataset version MAJOR.MINOR.PATCH.
+    """Dataset version `MAJOR.MINOR.PATCH`.
 
     Args:
-        version_str (:obj:`str`): Eg: "1.2.3".
-        description (:obj:`str`): A description of what is new in this version.
-
-    Attributes:
-        version_str (:obj:`str`): Eg: "1.2.3".
-        description (:obj:`str`): A description of what is new in this version.
-        major (:obj:`str`):
-        minor (:obj:`str`):
-        patch (:obj:`str`):
+        version_str (`str`):
+            The dataset version.
+        description (`str`):
+            A description of what is new in this version.
+        major (`str`):
+        minor (`str`):
+        patch (`str`):
 
     Example:
 
