@@ -4724,9 +4724,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The git branch on which to push the dataset. This defaults to the default branch as specified
                 in your repository, which defaults to `"main"`.
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
-                The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a 
+                The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a
                 a unit (like `"5MB"`).
-            num_shards (`int`, *optional*): 
+            num_shards (`int`, *optional*):
                 Number of shards to write.
                 Default to the same value as `num_proc` if specified.
 
