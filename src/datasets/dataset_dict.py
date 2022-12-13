@@ -1138,10 +1138,9 @@ class DatasetDict(dict):
             dest_dataset_dict_path = dataset_dict_path
             os.makedirs(dest_dataset_dict_path, exist_ok=True)
 
-        json.dump(
-            {"splits": list(self)},
-            fs.open(Path(dest_dataset_dict_path, config.DATASETDICT_JSON_FILENAME).as_posix(), "w", encoding="utf-8"),
-        )
+        path = Path(dest_dataset_dict_path, config.DATASETDICT_JSON_FILENAME).as_posix()
+        with fs.open(path, "w", encoding="utf-8") as f:
+            json.dump({"splits": list(self)}, f)
         for k, dataset in self.items():
             dataset.save_to_disk(Path(dest_dataset_dict_path, k).as_posix(), fs)
 
@@ -1185,13 +1184,14 @@ class DatasetDict(dict):
             raise FileNotFoundError(
                 f"No such file or directory: '{dataset_dict_json_path}'. Expected to load a DatasetDict object, but got a Dataset. Please use datasets.load_from_disk instead."
             )
-        for k in json.load(fs.open(dataset_dict_json_path, "r", encoding="utf-8"))["splits"]:
-            dataset_dict_split_path = (
-                dataset_dict_path.split("://")[0] + "://" + Path(dest_dataset_dict_path, k).as_posix()
-                if is_remote_filesystem(fs)
-                else Path(dest_dataset_dict_path, k).as_posix()
-            )
-            dataset_dict[k] = Dataset.load_from_disk(dataset_dict_split_path, fs, keep_in_memory=keep_in_memory)
+        with fs.open(dataset_dict_json_path, "r", encoding="utf-8") as f:
+            for k in json.load(f)["splits"]:
+                dataset_dict_split_path = (
+                    dataset_dict_path.split("://")[0] + "://" + Path(dest_dataset_dict_path, k).as_posix()
+                    if is_remote_filesystem(fs)
+                    else Path(dest_dataset_dict_path, k).as_posix()
+                )
+                dataset_dict[k] = Dataset.load_from_disk(dataset_dict_split_path, fs, keep_in_memory=keep_in_memory)
         return dataset_dict
 
     @staticmethod
