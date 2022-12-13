@@ -1993,15 +1993,15 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Batched
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
-                bacth_size = dset.num_rows - 1
-                to_dict_generator = dset.to_dict(batched=True, batch_size=bacth_size)
+                batch_size = dset.num_rows - 1
+                to_dict_generator = dset.to_dict(batched=True, batch_size=batch_size)
 
                 for batch in to_dict_generator:
                     self.assertIsInstance(batch, dict)
                     self.assertListEqual(sorted(batch.keys()), sorted(dset.column_names))
                     for col_name in dset.column_names:
                         self.assertIsInstance(batch[col_name], list)
-                        self.assertLessEqual(len(batch[col_name]), bacth_size)
+                        self.assertLessEqual(len(batch[col_name]), batch_size)
 
                 # Full
                 dset_to_dict = dset.to_dict()
@@ -2026,14 +2026,14 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Batched
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
-                bacth_size = dset.num_rows - 1
-                to_pandas_generator = dset.to_pandas(batched=True, batch_size=bacth_size)
+                batch_size = dset.num_rows - 1
+                to_pandas_generator = dset.to_pandas(batched=True, batch_size=batch_size)
 
                 for batch in to_pandas_generator:
                     self.assertIsInstance(batch, pd.DataFrame)
                     self.assertListEqual(sorted(batch.columns), sorted(dset.column_names))
                     for col_name in dset.column_names:
-                        self.assertLessEqual(len(batch[col_name]), bacth_size)
+                        self.assertLessEqual(len(batch[col_name]), batch_size)
 
                 # Full
                 dset_to_pandas = dset.to_pandas()
@@ -2964,6 +2964,23 @@ def test_interleave_datasets_probabilities_oversampling_strategy():
             [d1, d2, d3], stopping_strategy="all_exhausted", probabilities=probabilities, seed=seed
         )._fingerprint
     )
+
+
+@pytest.mark.parametrize("batch_size", [4, 5])
+@pytest.mark.parametrize("drop_last_batch", [False, True])
+def test_dataset_iter_batch(batch_size, drop_last_batch):
+    n = 25
+    dset = Dataset.from_dict({"i": list(range(n))})
+    all_col_values = list(range(n))
+    batches = []
+    for i, batch in enumerate(dset.iter(batch_size, drop_last_batch=drop_last_batch)):
+        assert batch == {"i": all_col_values[i * batch_size : (i + 1) * batch_size]}
+        batches.append(batch)
+    if drop_last_batch:
+        assert all(len(batch["i"]) == batch_size for batch in batches)
+    else:
+        assert all(len(batch["i"]) == batch_size for batch in batches[:-1])
+        assert len(batches[-1]["i"]) <= batch_size
 
 
 @pytest.mark.parametrize(
@@ -4090,3 +4107,60 @@ class StratifiedTest(TestCase):
             assert len(d1["train"]["text"]) + len(d1["test"]["text"]) == y.size
             assert len(d1["train"]["text"]) == train_size
             assert len(d1["test"]["text"]) == test_size
+
+
+@pytest.mark.parametrize("return_lazy_dict", [True, False, "mix"])
+def test_map_cases(return_lazy_dict):
+    def f(x):
+        """May a mix of LazyDict and regular Dict"""
+        if x["a"] < 2:
+            x["a"] = -1
+            return dict(x) if return_lazy_dict is False else x
+        else:
+            return x if return_lazy_dict is True else {}
+
+    ds = Dataset.from_dict({"a": [0, 1, 2, 3]})
+    ds = ds.map(f)
+    outputs = ds[:]
+    assert outputs == {"a": [-1, -1, 2, 3]}
+
+    def f(x):
+        """May a mix of LazyDict and regular Dict, but sometimes with None values"""
+        if x["a"] < 2:
+            x["a"] = None
+            return dict(x) if return_lazy_dict is False else x
+        else:
+            return x if return_lazy_dict is True else {}
+
+    ds = Dataset.from_dict({"a": [0, 1, 2, 3]})
+    ds = ds.map(f)
+    outputs = ds[:]
+    assert outputs == {"a": [None, None, 2, 3]}
+
+    def f(x):
+        """May a mix of LazyDict and regular Dict, but using an extension type"""
+        if x["a"][0][0] < 2:
+            x["a"] = [[-1]]
+            return dict(x) if return_lazy_dict is False else x
+        else:
+            return x if return_lazy_dict is True else {}
+
+    features = Features({"a": Array2D(shape=(1, 1), dtype="int32")})
+    ds = Dataset.from_dict({"a": [[[i]] for i in [0, 1, 2, 3]]}, features=features)
+    ds = ds.map(f)
+    outputs = ds[:]
+    assert outputs == {"a": [[[i]] for i in [-1, -1, 2, 3]]}
+
+    def f(x):
+        """May a mix of LazyDict and regular Dict, but using a nested extension type"""
+        if x["a"]["nested"][0][0] < 2:
+            x["a"] = {"nested": [[-1]]}
+            return dict(x) if return_lazy_dict is False else x
+        else:
+            return x if return_lazy_dict is True else {}
+
+    features = Features({"a": {"nested": Array2D(shape=(1, 1), dtype="int64")}})
+    ds = Dataset.from_dict({"a": [{"nested": [[i]]} for i in [0, 1, 2, 3]]}, features=features)
+    ds = ds.map(f)
+    outputs = ds[:]
+    assert outputs == {"a": [{"nested": [[i]]} for i in [-1, -1, 2, 3]]}

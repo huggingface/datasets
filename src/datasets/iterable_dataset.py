@@ -207,7 +207,7 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
     We use `IterableDataset._resolve_features` to obtain the features of all the datasets to concatenate.
 
     Then for each example, `IterableDataset` and `TypedExamplesIterable` automatically fill missing columns with None.
-    This is done with `_apply_feature_types`.
+    This is done with `_apply_feature_types_on_example`.
     """
 
     def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
@@ -259,7 +259,7 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
     We use `IterableDataset._resolve_features` to obtain the features of all the datasets to concatenate.
 
     Then for each example, `IterableDataset` and `TypedExamplesIterable` automatically fill missing columns with None.
-    This is done with `_apply_feature_types`.
+    This is done with `_apply_feature_types_on_example`.
     """
 
     def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
@@ -632,7 +632,7 @@ class TakeExamplesIterable(_BaseExamplesIterable):
         return self.ex_iterable.n_shards
 
 
-def _apply_feature_types(
+def _apply_feature_types_on_example(
     example: dict, features: Features, token_per_repo_id: Dict[str, Union[str, bool, None]]
 ) -> dict:
     example = dict(example)
@@ -645,6 +645,22 @@ def _apply_feature_types(
     # Decode example for Audio feature, e.g.
     decoded_example = features.decode_example(encoded_example, token_per_repo_id=token_per_repo_id)
     return decoded_example
+
+
+def _apply_feature_types_on_batch(
+    batch: dict, features: Features, token_per_repo_id: Dict[str, Union[str, bool, None]]
+) -> dict:
+    batch = dict(batch)
+    # add missing columns
+    n_examples = len(batch[next(iter(batch))])
+    for column_name in features:
+        if column_name not in batch:
+            batch[column_name] = [None] * n_examples
+    # we encode the batch for ClassLabel feature types for example
+    encoded_batch = features.encode_batch(batch)
+    # Decode batch for Audio feature, e.g.
+    decoded_batch = features.decode_batch(encoded_batch, token_per_repo_id=token_per_repo_id)
+    return decoded_batch
 
 
 class TypedExamplesIterable(_BaseExamplesIterable):
@@ -660,9 +676,11 @@ class TypedExamplesIterable(_BaseExamplesIterable):
 
     def __iter__(self):
         # Then for each example, `TypedExamplesIterable` automatically fills missing columns with None.
-        # This is done with `_apply_feature_types`.
+        # This is done with `_apply_feature_types_on_example`.
         for key, example in self.ex_iterable:
-            yield key, _apply_feature_types(example, self.features, token_per_repo_id=self.token_per_repo_id)
+            yield key, _apply_feature_types_on_example(
+                example, self.features, token_per_repo_id=self.token_per_repo_id
+            )
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "TypedExamplesIterable":
         """Shuffle the wrapped examples iterable."""
@@ -758,10 +776,34 @@ class IterableDataset(DatasetInfoMixin):
         for key, example in self._iter():
             if self.features:
                 # `IterableDataset` automatically fills missing columns with None.
-                # This is done with `_apply_feature_types`.
-                yield _apply_feature_types(example, self.features, token_per_repo_id=self._token_per_repo_id)
+                # This is done with `_apply_feature_types_on_example`.
+                yield _apply_feature_types_on_example(
+                    example, self.features, token_per_repo_id=self._token_per_repo_id
+                )
             else:
                 yield example
+
+    def iter(self, batch_size: int, drop_last_batch: bool = False):
+        """Iterate through the batches of size `batch_size`.
+
+        Args:
+            batch_size (:obj:`int`): size of each batch to yield.
+            drop_last_batch (:obj:`bool`, default `False`): Whether a last batch smaller than the batch_size should be
+                dropped
+        """
+        iterator = self._iter()
+        for key, example in iterator:
+            # If batched, first build the batch
+            examples = [example] + [example for key, example in islice(iterator, batch_size - 1)]
+            if drop_last_batch and len(examples) < batch_size:  # ignore last batch
+                return
+            batch = _examples_to_batch(examples)
+            if self.features:
+                # `IterableDataset` automatically fills missing columns with None.
+                # This is done with `_apply_feature_types_on_batch`.
+                yield _apply_feature_types_on_batch(batch, self.features, token_per_repo_id=self._token_per_repo_id)
+            else:
+                yield batch
 
     @staticmethod
     def from_generator(
