@@ -4,7 +4,7 @@ import tempfile
 import warnings
 from functools import partial
 from itertools import groupby
-from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, TypeVar, Union
+from typing import TYPE_CHECKING, Callable, Iterator, List, Optional, Tuple, TypeVar, Union
 
 import numpy as np
 import pyarrow as pa
@@ -101,8 +101,10 @@ def _interpolation_search(arr: List[int], x: int) -> int:
 
 class IndexedTableMixin:
     def __init__(self, table: pa.Table):
-        self._schema = table.schema
-        self._batches = [recordbatch for recordbatch in table.to_batches() if len(recordbatch) > 0]
+        self._schema: pa.Schema = table.schema
+        self._batches: List[pa.RecordBatch] = [
+            recordbatch for recordbatch in table.to_batches() if len(recordbatch) > 0
+        ]
         self._offsets: np.ndarray = np.cumsum([0] + [len(b) for b in self._batches], dtype=np.int64)
 
     def fast_gather(self, indices: Union[List[int], np.ndarray]) -> pa.Table:
@@ -144,6 +146,20 @@ class IndexedTableMixin:
             batches[-1] = batches[-1].slice(0, offset + length - self._offsets[j])
             batches[0] = batches[0].slice(offset - self._offsets[i])
         return pa.Table.from_batches(batches, schema=self._schema)
+
+
+class _RecordBatchReader:
+    def __init__(self, table: "Table", max_chunksize: Optional[int] = None):
+        self.table = table
+        self.max_chunksize = max_chunksize
+
+    def __iter__(self):
+        for batch in self.table._batches:
+            if self.max_chunksize is None or len(batch) <= self.max_chunksize:
+                yield batch
+            else:
+                for offset in range(0, len(batch), self.max_chunksize):
+                    yield batch.slice(offset, self.max_chunksize)
 
 
 class Table(IndexedTableMixin):
@@ -331,7 +347,7 @@ class Table(IndexedTableMixin):
     def to_string(self, *args, **kwargs):
         return self.table.to_string(*args, **kwargs)
 
-    def to_reader(self, *args, **kwargs):
+    def to_reader(self, max_chunksize: Optional[int] = None):
         """
         Convert the Table to a RecordBatchReader.
 
@@ -343,17 +359,11 @@ class Table(IndexedTableMixin):
                 on the chunk layout of individual columns.
 
         Returns:
-            `pyarrow.RecordBatchReader`
-
-        <Tip warning={true}>
-
-        pyarrow >= 8.0.0 needs to be installed to use this method.
-
-        </Tip>
+            `pyarrow.RecordBatchReader` if pyarrow>=8.0.0, otherwise a `pyarrow.RecordBatch` iterable
         """
         if config.PYARROW_VERSION.major < 8:
-            raise NotImplementedError("`pyarrow>=8.0.0` is required to use this method")
-        return self.table.to_reader(*args, **kwargs)
+            return _RecordBatchReader(self, max_chunksize=max_chunksize)
+        return self.table.to_reader(max_chunksize=max_chunksize)
 
     def field(self, *args, **kwargs):
         """
@@ -2357,10 +2367,8 @@ def table_visitor(table: pa.Table, function: Callable[[pa.Array], None]):
         _visit(table[name], feature)
 
 
-def table_iter(pa_table: pa.Table, batch_size: int, drop_last_batch=False):
+def table_iter(table: Table, batch_size: int, drop_last_batch=False) -> Iterator[pa.Table]:
     """Iterate over sub-tables of size `batch_size`.
-
-    Requires pyarrow>=8.0.0
 
     Args:
         table (`pyarrow.Table`):
@@ -2370,11 +2378,9 @@ def table_iter(pa_table: pa.Table, batch_size: int, drop_last_batch=False):
         drop_last_batch (`bool`, defaults to `False`):
             Drop the last batch if it is smaller than `batch_size`.
     """
-    if config.PYARROW_VERSION.major < 8:
-        raise RuntimeError(f"pyarrow>=8.0.0 is needed to use table_iter but you have {config.PYARROW_VERSION}")
     chunks_buffer = []
     chunks_buffer_size = 0
-    for chunk in pa_table.to_reader(max_chunksize=batch_size):
+    for chunk in table.to_reader(max_chunksize=batch_size):
         if len(chunk) == 0:
             continue
         elif chunks_buffer_size + len(chunk) < batch_size:

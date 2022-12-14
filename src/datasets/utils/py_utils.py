@@ -90,7 +90,7 @@ def size_str(size_in_bytes):
 
 def convert_file_size_to_int(size: Union[int, str]) -> int:
     """
-    Converts a size expressed as a string with digits an unit (like `"5MB"`) to an integer (in bytes).
+    Converts a size expressed as a string with digits an unit (like `"50MB"`) to an integer (in bytes).
 
     Args:
         size (`int` or `str`): The size to convert. Will be directly returned if an `int`.
@@ -1335,25 +1335,27 @@ def copyfunc(func):
     return result
 
 
-X = TypeVar("X")
 Y = TypeVar("Y")
 
 
-def _write_generator_to_queue(queue: queue.Queue, func: Callable[[X], Iterable[Y]], arg: X) -> int:
-    for i, result in enumerate(func(arg)):
+def _write_generator_to_queue(queue: queue.Queue, func: Callable[..., Iterable[Y]], kwargs: dict) -> int:
+    for i, result in enumerate(func(**kwargs)):
         queue.put(result)
     return i
 
 
 def iflatmap_unordered(
     pool: Union[multiprocessing.pool.Pool, multiprocess.pool.Pool],
-    func: Callable[[X], Iterable[Y]],
-    iterable: Iterable[X],
+    func: Callable[..., Iterable[Y]],
+    *,
+    kwargs_iterable: Iterable[dict],
 ) -> Iterable[Y]:
     manager_cls = Manager if isinstance(pool, multiprocessing.pool.Pool) else multiprocess.Manager
     with manager_cls() as manager:
         queue = manager.Queue()
-        async_results = [pool.apply_async(_write_generator_to_queue, (queue, func, arg)) for arg in iterable]
+        async_results = [
+            pool.apply_async(_write_generator_to_queue, (queue, func, kwargs)) for kwargs in kwargs_iterable
+        ]
         while True:
             try:
                 yield queue.get(timeout=0.05)

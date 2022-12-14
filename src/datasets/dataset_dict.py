@@ -2,6 +2,7 @@ import contextlib
 import copy
 import json
 import os
+import posixpath
 import re
 import warnings
 from io import BytesIO
@@ -1096,73 +1097,136 @@ class DatasetDict(dict):
             }
         )
 
-    def save_to_disk(self, dataset_dict_path: str, fs=None):
+    def save_to_disk(
+        self,
+        dataset_dict_path: PathLike,
+        fs="deprecated",
+        max_shard_size: Optional[Union[str, int]] = None,
+        num_shards: Optional[Dict[str, int]] = None,
+        num_proc: Optional[int] = None,
+        storage_options: Optional[dict] = None,
+    ):
         """
         Saves a dataset dict to a filesystem using either [`~filesystems.S3FileSystem`] or
         `fsspec.spec.AbstractFileSystem`.
 
         For [`Image`] and [`Audio`] data:
 
-        If your images and audio files are local files, then the resulting arrow file will store paths to these files.
-        If you want to include the bytes or your images or audio files instead, you must `read()` those files first.
-        This can be done by storing the "bytes" instead of the "path" of the images or audio files:
-
-        ```python
-        >>> def read_image_file(example):
-        ...     with open(example["image"].filename, "rb") as f:
-        ...         return {"image": {"bytes": f.read()}}
-        >>> ds = ds.map(read_image_file)
-        >>> ds.save_to_disk("path/to/dataset/dir")
-        ```
-
-        ```python
-        >>> def read_audio_file(example):
-        ...     with open(example["audio"]["path"], "rb") as f:
-        ...         return {"audio": {"bytes": f.read()}}
-        >>> ds = ds.map(read_audio_file)
-        >>> ds.save_to_disk("path/to/dataset/dir")
-        ```
+        All the Image() and Audio() data are stored in the arrow files.
+        If you want to store paths or urls, please use the Value("string") type.
 
         Args:
             dataset_dict_path (`str`):
                 Path (e.g. `dataset/train`) or remote URI
                 (e.g. `s3://my-bucket/dataset/train`) of the dataset dict directory where the dataset dict will be
                 saved to.
-            fs ([`~filesystems.S3FileSystem`], `fsspec.spec.AbstractFileSystem`, *optional*, defaults to `None`):
-                Instance of the remote filesystem used to download the files from.
+            fs (`fsspec.spec.AbstractFileSystem`, *optional*):
+                Instance of the remote filesystem where the dataset will be saved to.
+
+                <Deprecated version="2.8.0">
+
+                `fs` was deprecated in version 2.8.0 and will be removed in 3.0.0.
+                Please use `storage_options` instead, e.g. `storage_options=fs.storage_options`
+
+                </Deprecated>
+
+            max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
+                The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
+                (like `"50MB"`).
+            num_shards (`Dict[str, int]`, *optional*):
+                Number of shards to write. By default the number of shards depends on `max_shard_size`.
+                You need to provide the number of shards for each dataset in the dataset dictionary.
+                Use a dictionary to define a different num_shards for each split.
+
+                <Added version="2.8.0"/>
+            num_proc (`int`, *optional*, default `None`):
+                Number of processes when downloading and generating the dataset locally.
+                Multiprocessing is disabled by default.
+
+                <Added version="2.8.0"/>
+            storage_options (`dict`, *optional*):
+                Key/value pairs to be passed on to the file-system backend, if any.
+
+                <Added version="2.8.0"/>
+
+        Example:
+
+        ```python
+        >>> dataset_dict.save_to_disk("path/to/dataset/directory")
+        >>> dataset_dict.save_to_disk("path/to/dataset/directory", max_shard_size="1GB")
+        >>> dataset_dict.save_to_disk("path/to/dataset/directory", num_shards={"train": 1024, "test": 8})
+        ```
         """
-        if is_remote_filesystem(fs):
-            dest_dataset_dict_path = extract_path_from_uri(dataset_dict_path)
-        else:
-            fs = fsspec.filesystem("file")
-            dest_dataset_dict_path = dataset_dict_path
-            os.makedirs(dest_dataset_dict_path, exist_ok=True)
+        if fs != "deprecated":
+            warnings.warn(
+                "'fs' was is deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
+                "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
+                FutureWarning,
+            )
+            storage_options = fs.storage_options
+
+        fs_token_paths = fsspec.get_fs_token_paths(dataset_dict_path, storage_options=storage_options)
+        fs: fsspec.AbstractFileSystem = fs_token_paths[0]
+        is_local = not is_remote_filesystem(fs)
+        path_join = os.path.join if is_local else posixpath.join
+
+        if num_shards is None:
+            num_shards = {k: None for k in self}
+        elif not isinstance(num_shards, dict):
+            raise ValueError(
+                "Please provide one `num_shards` per dataset in the dataset dictionary, e.g. {{'train': 128, 'test': 4}}"
+            )
+
+        if is_local:
+            Path(dataset_dict_path).resolve().mkdir(parents=True, exist_ok=True)
 
         json.dump(
             {"splits": list(self)},
-            fs.open(Path(dest_dataset_dict_path, config.DATASETDICT_JSON_FILENAME).as_posix(), "w", encoding="utf-8"),
+            fs.open(path_join(dataset_dict_path, config.DATASETDICT_JSON_FILENAME), "w", encoding="utf-8"),
         )
         for k, dataset in self.items():
-            dataset.save_to_disk(Path(dest_dataset_dict_path, k).as_posix(), fs)
+            dataset.save_to_disk(
+                path_join(dataset_dict_path, k),
+                num_shards=num_shards.get(k),
+                max_shard_size=max_shard_size,
+                num_proc=num_proc,
+                storage_options=storage_options,
+            )
 
     @staticmethod
-    def load_from_disk(dataset_dict_path: str, fs=None, keep_in_memory: Optional[bool] = None) -> "DatasetDict":
+    def load_from_disk(
+        dataset_dict_path: PathLike,
+        fs="deprecated",
+        keep_in_memory: Optional[bool] = None,
+        storage_options: Optional[dict] = None,
+    ) -> "DatasetDict":
         """
         Load a dataset that was previously saved using [`save_to_disk`] from a filesystem using either
         [`~filesystems.S3FileSystem`] or `fsspec.spec.AbstractFileSystem`.
 
         Args:
             dataset_dict_path (`str`):
-                Path (e.g. `"dataset/train"`) or remote URI (e.g.
-                `"s3//my-bucket/dataset/train"`) of the dataset dict directory where the dataset dict will be loaded
-                from.
-            fs ([`~filesystems.S3FileSystem`] or `fsspec.spec.AbstractFileSystem`, *optional*, defaults to `None`):
-                Instance of the remote filesystem used to download the files from.
+                Path (e.g. `"dataset/train"`) or remote URI (e.g. `"s3//my-bucket/dataset/train"`)
+                of the dataset dict directory where the dataset dict will be loaded from.
+            fs (`fsspec.spec.AbstractFileSystem`, *optional*):
+                Instance of the remote filesystem where the dataset will be saved to.
+
+                <Deprecated version="2.8.0">
+
+                `fs` was deprecated in version 2.8.0 and will be removed in 3.0.0.
+                Please use `storage_options` instead, e.g. `storage_options=fs.storage_options`
+
+                </Deprecated>
+
             keep_in_memory (`bool`, defaults to `None`):
                 Whether to copy the dataset in-memory. If `None`, the
                 dataset will not be copied in-memory unless explicitly enabled by setting
                 `datasets.config.IN_MEMORY_MAX_SIZE` to nonzero. See more details in the
                 [improve performance](./cache#improve-performance) section.
+            storage_options (`dict`, *optional*):
+                Key/value pairs to be passed on to the file-system backend, if any.
+
+                <Added version="2.8.0"/>
 
         Returns:
             [`DatasetDict`]
@@ -1173,6 +1237,17 @@ class DatasetDict(dict):
         >>> ds = load_from_disk('path/to/dataset/directory')
         ```
         """
+        if fs != "deprecated":
+            warnings.warn(
+                "'fs' was is deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
+                "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
+                FutureWarning,
+            )
+            storage_options = fs.storage_options
+
+        fs_token_paths = fsspec.get_fs_token_paths(dataset_dict_path, storage_options=storage_options)
+        fs: fsspec.AbstractFileSystem = fs_token_paths[0]
+
         dataset_dict = DatasetDict()
         if is_remote_filesystem(fs):
             dest_dataset_dict_path = extract_path_from_uri(dataset_dict_path)
@@ -1191,7 +1266,9 @@ class DatasetDict(dict):
                 if is_remote_filesystem(fs)
                 else Path(dest_dataset_dict_path, k).as_posix()
             )
-            dataset_dict[k] = Dataset.load_from_disk(dataset_dict_split_path, fs, keep_in_memory=keep_in_memory)
+            dataset_dict[k] = Dataset.load_from_disk(
+                dataset_dict_split_path, keep_in_memory=keep_in_memory, storage_options=storage_options
+            )
         return dataset_dict
 
     @staticmethod
@@ -1382,7 +1459,8 @@ class DatasetDict(dict):
         token: Optional[str] = None,
         branch: Optional[None] = None,
         max_shard_size: Optional[Union[int, str]] = None,
-        shard_size: Optional[int] = "deprecated",
+        num_shards: Optional[Dict[str, int]] = None,
+        shard_size: Optional[Union[int, str]] = "deprecated",
         embed_external_files: bool = True,
     ):
         """Pushes the [`DatasetDict`] to the hub as a Parquet dataset.
@@ -1411,7 +1489,12 @@ class DatasetDict(dict):
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
                 (like `"500MB"` or `"1GB"`).
-            shard_size (`int`, *optional*):
+            num_shards (`Dict[str, int]`, *optional*):
+                Number of shards to write. By default the number of shards depends on `max_shard_size`.
+                Use a dictionary to define a different num_shards for each split.
+
+                <Added version="2.8.0"/>
+            shard_size (`int` or `str`, *optional*):
 
                 <Deprecated version="2.4.0">
 
@@ -1429,6 +1512,9 @@ class DatasetDict(dict):
 
         ```python
         >>> dataset_dict.push_to_hub("<organization>/<dataset_id>")
+        >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", private=True)
+        >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", max_shard_size="1GB")
+        >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", num_shards={"train": 1024, "test": 8})
         ```
         """
         if shard_size != "deprecated":
@@ -1437,6 +1523,13 @@ class DatasetDict(dict):
                 FutureWarning,
             )
             max_shard_size = shard_size
+
+        if num_shards is None:
+            num_shards = {k: None for k in self}
+        elif not isinstance(num_shards, dict):
+            raise ValueError(
+                "Please provide one `num_shards` per dataset in the dataset dictionary, e.g. {{'train': 128, 'test': 4}}"
+            )
 
         self._check_values_type()
         self._check_values_features()
@@ -1459,6 +1552,7 @@ class DatasetDict(dict):
                 token=token,
                 branch=branch,
                 max_shard_size=max_shard_size,
+                num_shards=num_shards.get(split),
                 embed_external_files=embed_external_files,
             )
             total_uploaded_size += uploaded_size
