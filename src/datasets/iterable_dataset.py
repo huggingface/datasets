@@ -10,6 +10,7 @@ from typing import Any, Callable, Dict, Iterator, List, Optional, Union
 import numpy as np
 import pyarrow as pa
 
+from . import config
 from .arrow_dataset import DatasetInfoMixin
 from .features import Features
 from .features.features import FeatureType, _align_features, _check_if_features_can_be_aligned
@@ -727,28 +728,15 @@ class ShufflingConfig:
 
 def _maybe_add_torch_iterable_dataset_parent_class(cls):
     """Add torch.utils.data.IterableDataset as a parent class if 'torch' is imported"""
-    if "torch" in sys.modules:
+    if config.TORCH_AVAILABLE:
         import torch.utils.data
 
         if torch.utils.data.IterableDataset not in cls.__bases__:
             cls.__bases__ += (torch.utils.data.IterableDataset,)
 
 
-class __MaybeTorchIterableDatasetClass__:
-    def __get__(self, instance, descriptor):
-        _maybe_add_torch_iterable_dataset_parent_class(descriptor)
-        return descriptor
-
-
 class IterableDataset(DatasetInfoMixin):
     """A Dataset backed by an iterable."""
-
-    # We set __class__ so that we dynamically set the class to be a torch.utils.data.IterableDataset.
-    # This way one can pass a datasets.IterableDataset to a torch DataLoader.
-    #
-    # Indeed, a torch DataLoader runs isinstance(ds, ...) to detect IterDataPipe and torch.utils.data.IterableDataset,
-    # and this calls ds.__class__ on the first isinstance() call with IterDataPipe.
-    __class__ = __MaybeTorchIterableDatasetClass__()
 
     def __init__(
         self,
@@ -767,10 +755,14 @@ class IterableDataset(DatasetInfoMixin):
         self._shuffling = shuffling
         self._epoch = 0
         self._token_per_repo_id: Dict[str, Union[str, bool, None]] = token_per_repo_id or {}
+        _maybe_add_torch_iterable_dataset_parent_class(self.__class__)
 
-        if format_type == "torch":
-            import torch  # noqa: we import it here to raise an error if it's not installed
+    def __getstate__(self):
+        return self.__dict__
 
+    def __setstate__(self, d):
+        self.__dict__ = d
+        # Re-add torch iterable dataset as parnt class, since dynamically added parent classes are not kept when pickling
         _maybe_add_torch_iterable_dataset_parent_class(self.__class__)
 
     def _head(self, n=5):

@@ -645,26 +645,26 @@ def test_iterable_dataset_from_generator_with_shards():
 
 
 @require_torch
-def test_iterable_dataset_factory_torch_integration():
-    import torch
+def test_iterable_dataset_torch_integration():
 
     ex_iterable = ExamplesIterable(generate_examples_fn, {})
-    dataset = IterableDataset(ex_iterable, format_type="torch")
-    assert isinstance(dataset, IterableDataset)
+    dataset = IterableDataset(ex_iterable)
+    import torch.utils.data
+
     assert isinstance(dataset, torch.utils.data.IterableDataset)
-    assert dataset._format_type == "torch"
+    assert isinstance(dataset, IterableDataset)
     assert dataset._ex_iterable is ex_iterable
 
 
 @require_torch
-def test_iterable_dataset_factory_torch_picklable():
+def test_iterable_dataset_torch_picklable():
     import pickle
 
     ex_iterable = ExamplesIterable(generate_examples_fn, {})
     dataset = IterableDataset(ex_iterable, format_type="torch")
     reloaded_dataset = pickle.loads(pickle.dumps(dataset))
 
-    import torch
+    import torch.utils.data
 
     assert isinstance(reloaded_dataset, IterableDataset)
     assert isinstance(reloaded_dataset, torch.utils.data.IterableDataset)
@@ -674,10 +674,10 @@ def test_iterable_dataset_factory_torch_picklable():
 
 @require_torch
 def test_iterable_dataset_with_format_torch():
+    ex_iterable = ExamplesIterable(generate_examples_fn, {})
+    dataset = IterableDataset(ex_iterable)
     from torch.utils.data import DataLoader
 
-    ex_iterable = ExamplesIterable(generate_examples_fn, {})
-    dataset = IterableDataset(ex_iterable).with_format("torch")
     dataloader = DataLoader(dataset)
     assert len(list(dataloader)) == len(list(ex_iterable))
 
