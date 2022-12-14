@@ -1407,7 +1407,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 for job_id, done, content in iflatmap_unordered(pool, Dataset._save_to_disk_single, args_per_job):
                     if done:
                         shards_done += 1
-                        pbar.set_description(f"Saving dataset ({shards_done}/{num_shards} shards)")
+                        pbar.set_description(f"Saving the dataset ({shards_done}/{num_shards} shards)")
                         logger.debug(f"Finished writing shard number {job_id} of {num_shards}.")
                         shard_lengths[job_id], shard_sizes[job_id] = content
                     else:
@@ -1417,7 +1417,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 for job_id, done, content in Dataset._save_to_disk_single(args):
                     if done:
                         shards_done += 1
-                        pbar.set_description(f"Saving dataset ({shards_done}/{num_shards} shards)")
+                        pbar.set_description(f"Saving the dataset ({shards_done}/{num_shards} shards)")
                         logger.debug(f"Finished writing shard number {job_id} of {num_shards}.")
                         shard_lengths[job_id], shard_sizes[job_id] = content
                     else:
