@@ -762,7 +762,7 @@ class IterableDataset(DatasetInfoMixin):
 
     def __setstate__(self, d):
         self.__dict__ = d
-        # Re-add torch iterable dataset as parnt class, since dynamically added parent classes are not kept when pickling
+        # Re-add torch iterable dataset as a parent class, since dynamically added parent classes are not kept when pickling
         _maybe_add_torch_iterable_dataset_parent_class(self.__class__)
 
     def _head(self, n=5):
