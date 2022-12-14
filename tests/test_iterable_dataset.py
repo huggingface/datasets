@@ -731,6 +731,21 @@ def test_iterable_dataset_from_hub_torch_dataloader_parallel(num_workers, tmp_pa
     assert len(result) == 2
 
 
+@pytest.mark.parametrize("batch_size", [4, 5])
+@pytest.mark.parametrize("drop_last_batch", [False, True])
+def test_iterable_dataset_iter_batch(batch_size, drop_last_batch):
+    n = 25
+    dataset = IterableDataset(ExamplesIterable(generate_examples_fn, {"n": n}))
+    all_examples = list(ex for _, ex in generate_examples_fn(n=n))
+    expected = []
+    for i in range(0, len(all_examples), batch_size):
+        if len(all_examples[i : i + batch_size]) < batch_size and drop_last_batch:
+            continue
+        expected.append(_examples_to_batch(all_examples[i : i + batch_size]))
+    assert next(iter(dataset.iter(batch_size, drop_last_batch=drop_last_batch))) == expected[0]
+    assert list(dataset.iter(batch_size, drop_last_batch=drop_last_batch)) == expected
+
+
 def test_iterable_dataset_info():
     info = DatasetInfo(description="desc", citation="@article{}", size_in_bytes=42)
     ex_iterable = ExamplesIterable(generate_examples_fn, {})

@@ -3,7 +3,7 @@ import threading
 import fsspec.asyn
 import torch
 
-from ...iterable_dataset import IterableDataset, _apply_feature_types
+from ...iterable_dataset import IterableDataset, _apply_feature_types_on_example
 from ...utils.logging import get_logger
 
 
@@ -54,7 +54,7 @@ class TorchIterableDataset(IterableDataset, torch.utils.data.IterableDataset):
                 for shard_idx in shards_indices:
                     for key, example in self._iter_shard(shard_idx):
                         if self.features:
-                            yield _apply_feature_types(
+                            yield _apply_feature_types_on_example(
                                 example, self.features, token_per_repo_id=self._token_per_repo_id
                             )
                         else:

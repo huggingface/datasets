@@ -298,42 +298,54 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         if not only_1d_for_numpy or obj.ndim == 1:
             return obj, False
         else:
-            return [
-                _cast_to_python_objects(
-                    x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
-                )[0]
-                for x in obj
-            ], True
+            return (
+                [
+                    _cast_to_python_objects(
+                        x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                    )[0]
+                    for x in obj
+                ],
+                True,
+            )
     elif config.TORCH_AVAILABLE and "torch" in sys.modules and isinstance(obj, torch.Tensor):
         if not only_1d_for_numpy or obj.ndim == 1:
             return obj.detach().cpu().numpy(), True
         else:
-            return [
-                _cast_to_python_objects(
-                    x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
-                )[0]
-                for x in obj.detach().cpu().numpy()
-            ], True
+            return (
+                [
+                    _cast_to_python_objects(
+                        x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                    )[0]
+                    for x in obj.detach().cpu().numpy()
+                ],
+                True,
+            )
     elif config.TF_AVAILABLE and "tensorflow" in sys.modules and isinstance(obj, tf.Tensor):
         if not only_1d_for_numpy or obj.ndim == 1:
             return obj.numpy(), True
         else:
-            return [
-                _cast_to_python_objects(
-                    x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
-                )[0]
-                for x in obj.numpy()
-            ], True
+            return (
+                [
+                    _cast_to_python_objects(
+                        x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                    )[0]
+                    for x in obj.numpy()
+                ],
+                True,
+            )
     elif config.JAX_AVAILABLE and "jax" in sys.modules and isinstance(obj, jnp.ndarray):
         if not only_1d_for_numpy or obj.ndim == 1:
             return np.asarray(obj), True
         else:
-            return [
-                _cast_to_python_objects(
-                    x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
-                )[0]
-                for x in np.asarray(obj)
-            ], True
+            return (
+                [
+                    _cast_to_python_objects(
+                        x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                    )[0]
+                    for x in np.asarray(obj)
+                ],
+                True,
+            )
     elif config.PIL_AVAILABLE and "PIL" in sys.modules and isinstance(obj, PIL.Image.Image):
         return encode_pil_image(obj), True
     elif isinstance(obj, pd.Series):
@@ -344,17 +356,20 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
             True,
         )
     elif isinstance(obj, pd.DataFrame):
-        return {
-            key: _cast_to_python_objects(
-                value, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
-            )[0]
-            for key, value in obj.to_dict("list").items()
-        }, True
+        return (
+            {
+                key: _cast_to_python_objects(
+                    value, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                )[0]
+                for key, value in obj.to_dict("list").items()
+            },
+            True,
+        )
     elif isinstance(obj, pd.Timestamp):
         return obj.to_pydatetime(), True
     elif isinstance(obj, pd.Timedelta):
         return obj.to_pytimedelta(), True
-    elif isinstance(obj, Mapping):  # check for dict-like to handle nested LazyDict objects
+    elif isinstance(obj, Mapping):
         has_changed = not isinstance(obj, dict)
         output = {}
         for k, v in obj.items():
@@ -373,12 +388,15 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
                 first_elmt, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
             )
             if has_changed_first_elmt or not optimize_list_casting:
-                return [
-                    _cast_to_python_objects(
-                        elmt, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
-                    )[0]
-                    for elmt in obj
-                ], True
+                return (
+                    [
+                        _cast_to_python_objects(
+                            elmt, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                        )[0]
+                        for elmt in obj
+                    ],
+                    True,
+                )
             else:
                 if isinstance(obj, (list, tuple)):
                     return obj, False
@@ -618,6 +636,9 @@ class _ArrayXDExtensionType(pa.PyExtensionType):
             self.shape,
             self.value_type,
         )
+
+    def __hash__(self):
+        return hash((self.__class__, self.shape, self.value_type))
 
     def __arrow_ext_class__(self):
         return ArrayExtensionArray
@@ -1273,7 +1294,8 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Uni
     # Object with special decoding:
     elif isinstance(schema, (Audio, Image)):
         # we pass the token to read and decode files from private repositories in streaming mode
-        return schema.decode_example(obj, token_per_repo_id=token_per_repo_id) if obj is not None else None
+        if obj is not None and schema.decode:
+            return schema.decode_example(obj, token_per_repo_id=token_per_repo_id)
     return obj
 
 
@@ -1803,8 +1825,7 @@ class Features(dict):
             example (`dict[str, Any]`):
                 Dataset row data.
             token_per_repo_id (`dict`, *optional*):
-                To access and decode
-                audio or image files from private repositories on the Hub, you can pass
+                To access and decode audio or image files from private repositories on the Hub, you can pass
                 a dictionary `repo_id (str) -> token (bool or str)`.
 
         Returns:
@@ -1838,12 +1859,15 @@ class Features(dict):
             else column
         )
 
-    def decode_batch(self, batch: dict):
+    def decode_batch(self, batch: dict, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None):
         """Decode batch with custom feature decoding.
 
         Args:
             batch (`dict[str, list[Any]]`):
                 Dataset batch data.
+            token_per_repo_id (`dict`, *optional*):
+                To access and decode audio or image files from private repositories on the Hub, you can pass
+                a dictionary repo_id (str) -> token (bool or str)
 
         Returns:
             `dict[str, list[Any]]`
@@ -1851,7 +1875,12 @@ class Features(dict):
         decoded_batch = {}
         for column_name, column in batch.items():
             decoded_batch[column_name] = (
-                [decode_nested_example(self[column_name], value) if value is not None else None for value in column]
+                [
+                    decode_nested_example(self[column_name], value, token_per_repo_id=token_per_repo_id)
+                    if value is not None
+                    else None
+                    for value in column
+                ]
                 if self._column_requires_decoding[column_name]
                 else column
             )
