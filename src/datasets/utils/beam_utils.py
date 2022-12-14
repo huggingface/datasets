@@ -1,21 +1,12 @@
 import os
 
 from apache_beam.io.filesystems import FileSystems
-from apache_beam.pipeline import Pipeline
 
 from .logging import get_logger
 
 
 CHUNK_SIZE = 2 << 20  # 2mb
 logger = get_logger(__name__)
-
-
-class BeamPipeline(Pipeline):
-    """Wrapper over `apache_beam.pipeline.Pipeline` for convenience"""
-
-    def is_local(self):
-        runner = self._options.get_all_options().get("runner")
-        return runner in [None, "DirectRunner", "PortableRunner"]
 
 
 def upload_local_to_remote(local_file_path, remote_file_path, force_upload=False):

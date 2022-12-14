@@ -1899,7 +1899,7 @@ class BeamBasedBuilder(DatasetBuilder):
         </Tip>
 
         Args:
-            pipeline ([`utils.beam_utils.BeamPipeline`]):
+            pipeline ([`beam.Pipeline`]):
                 Apache Beam pipeline.
             **kwargs (additional keyword arguments):
                 Arguments forwarded from the SplitGenerator.gen_kwargs.
@@ -1924,8 +1924,6 @@ class BeamBasedBuilder(DatasetBuilder):
     def _download_and_prepare(self, dl_manager, verify_infos, **prepare_splits_kwargs):
         # Create the Beam pipeline and forward it to `_prepare_split`
         import apache_beam as beam
-
-        import datasets.utils.beam_utils as beam_utils
 
         beam_runner = self._beam_runner
         beam_options = self._beam_options
@@ -1958,7 +1956,7 @@ class BeamBasedBuilder(DatasetBuilder):
             raise NotImplementedError("Using a DirectRunner with `num_proc` for multiprocessing it not supported yet.")
         beam_options = beam_options or beam.options.pipeline_options.PipelineOptions.from_dictionary(pipeline_options)
         # Use a single pipeline for all splits
-        pipeline = beam_utils.BeamPipeline(
+        pipeline = beam.Pipeline(
             runner=beam_runner,
             options=beam_options,
         )
