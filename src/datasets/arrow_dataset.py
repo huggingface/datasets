@@ -1390,7 +1390,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             leave=False,
             desc=f"Saving the dataset ({shards_done}/{num_shards} shards)",
         )
-        args_per_job = (
+        kwargs_per_job = (
             {
                 "job_id": shard_idx,
                 "shard": dataset.shard(num_shards=num_shards, index=shard_idx, contiguous=True),
@@ -1403,7 +1403,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         shard_sizes = [None] * num_shards
         if num_proc > 1:
             with Pool(num_proc) as pool:
-                for job_id, done, content in iflatmap_unordered(pool, Dataset._save_to_disk_single, args_per_job):
+                for job_id, done, content in iflatmap_unordered(
+                    pool, Dataset._save_to_disk_single, kwargs_iterable=kwargs_per_job
+                ):
                     if done:
                         shards_done += 1
                         pbar.set_description(f"Saving the dataset ({shards_done}/{num_shards} shards)")
@@ -1412,8 +1414,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     else:
                         pbar.update(content)
         else:
-            for args in args_per_job:
-                for job_id, done, content in Dataset._save_to_disk_single(args):
+            for kwargs in kwargs_per_job:
+                for job_id, done, content in Dataset._save_to_disk_single(**kwargs):
                     if done:
                         shards_done += 1
                         pbar.set_description(f"Saving the dataset ({shards_done}/{num_shards} shards)")
@@ -1431,11 +1433,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             json.dump(sorted_keys_dataset_info, dataset_info_file, indent=2)
 
     @staticmethod
-    def _save_to_disk_single(arg):
-        job_id: Dataset = arg["job_id"]
-        shard: Dataset = arg["shard"]
-        fpath: str = arg["fpath"]
-        storage_options: Optional[dict] = arg["storage_options"]
+    def _save_to_disk_single(job_id: int, shard: "Dataset", fpath: str, storage_options: Optional[dict]):
         batch_size = config.DEFAULT_MAX_BATCH_SIZE
 
         if shard._indices is not None:
