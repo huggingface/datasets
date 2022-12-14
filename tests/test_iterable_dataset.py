@@ -8,6 +8,7 @@ import pytest
 from datasets import load_dataset
 from datasets.combine import concatenate_datasets, interleave_datasets
 from datasets.features import ClassLabel, Features, Value
+from datasets.formatting import get_format_type_from_alias
 from datasets.info import DatasetInfo
 from datasets.iterable_dataset import (
     BufferShuffledExamplesIterable,
@@ -912,10 +913,12 @@ def test_iterable_dataset_features_cast_to_python():
     assert list(dataset) == [{"timestamp": pd.Timestamp(2020, 1, 1).to_pydatetime(), "array": [1] * 5, "id": 0}]
 
 
-@pytest.mark.parametrize("format_type", [None, "torch", "python", "tensorflow", "numpy", "jax"])
+@pytest.mark.parametrize(
+    "format_type", [None, "torch", "python", "tf", "tensorflow", "np", "numpy", "jax", "pd", "pandas"]
+)
 def test_iterable_dataset_with_format(dataset: IterableDataset, format_type):
     formatted_dataset = dataset.with_format(format_type)
-    assert formatted_dataset._format_type == format_type
+    assert formatted_dataset._format_type == get_format_type_from_alias(format_type)
 
 
 @require_torch
