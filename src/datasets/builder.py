@@ -1697,7 +1697,6 @@ class ArrowBasedBuilder(DatasetBuilder):
             "fpath": fpath,
             "file_format": file_format,
             "max_shard_size": max_shard_size,
-            "split_info": split_info,
         }
 
         if num_proc is None or num_proc == 1:
@@ -1705,7 +1704,7 @@ class ArrowBasedBuilder(DatasetBuilder):
             gen_kwargs = split_generator.gen_kwargs
             job_id = 0
             for job_id, done, content in self._prepare_split_single(
-                {"gen_kwargs": gen_kwargs, "job_id": job_id, **_prepare_split_args}
+                gen_kwargs=gen_kwargs, job_id=job_id, **_prepare_split_args
             ):
                 if done:
                     result = content
@@ -1717,13 +1716,13 @@ class ArrowBasedBuilder(DatasetBuilder):
                 [item] for item in result
             ]
         else:
-            args_per_job = [
+            kwargs_per_job = [
                 {"gen_kwargs": gen_kwargs, "job_id": job_id, **_prepare_split_args}
                 for job_id, gen_kwargs in enumerate(
                     _split_gen_kwargs(split_generator.gen_kwargs, max_num_jobs=num_proc)
                 )
             ]
-            num_jobs = len(args_per_job)
+            num_jobs = len(kwargs_per_job)
 
             examples_per_job = [None] * num_jobs
             bytes_per_job = [None] * num_jobs
@@ -1732,7 +1731,9 @@ class ArrowBasedBuilder(DatasetBuilder):
             shard_lengths_per_job = [None] * num_jobs
 
             with Pool(num_proc) as pool:
-                for job_id, done, content in iflatmap_unordered(pool, self._prepare_split_single, args_per_job):
+                for job_id, done, content in iflatmap_unordered(
+                    pool, self._prepare_split_single, kwargs_iterable=kwargs_per_job
+                ):
                     if done:
                         # the content is the result of the job
                         (
