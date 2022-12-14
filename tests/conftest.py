@@ -4,7 +4,7 @@ import datasets
 
 
 # Import fixture modules as plugins
-pytest_plugins = ["tests.fixtures.files", "tests.fixtures.hub", "tests.fixtures.s3", "tests.fixtures.fsspec"]
+pytest_plugins = ["tests.fixtures.files", "tests.fixtures.hub", "tests.fixtures.fsspec"]
 
 
 def pytest_collection_modifyitems(config, items):
