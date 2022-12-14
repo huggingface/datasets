@@ -1437,7 +1437,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         shard: Dataset = arg["shard"]
         fpath: str = arg["fpath"]
         storage_options: Optional[dict] = arg["storage_options"]
-        refresh_rate = 0.05  # 20 progress updates per sec
         batch_size = config.DEFAULT_MAX_BATCH_SIZE
 
         if shard._indices is not None:
@@ -1458,7 +1457,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             for pa_table in table_iter(shard.data, batch_size=batch_size):
                 writer.write_table(pa_table)
                 num_examples_progress_update += len(pa_table)
-                if time.time() > _time + refresh_rate:
+                if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
                     _time = time.time()
                     yield job_id, False, num_examples_progress_update
                     num_examples_progress_update = 0

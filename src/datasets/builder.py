@@ -1542,7 +1542,6 @@ class GeneratorBasedBuilder(DatasetBuilder):
         split_info: SplitInfo = arg["split_info"]
         check_duplicate_keys: bool = arg["check_duplicate_keys"]
         job_id: int = arg["job_id"]
-        refresh_rate = 0.05  # 20 progress updates per sec
 
         generator = self._generate_examples(**gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
@@ -1584,7 +1583,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
                     example = self.info.features.encode_example(record) if self.info.features is not None else record
                     writer.write(example, key)
                     num_examples_progress_update += 1
-                    if time.time() > _time + refresh_rate:
+                    if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
                         _time = time.time()
                         yield job_id, False, num_examples_progress_update
                         num_examples_progress_update = 0
@@ -1795,7 +1794,6 @@ class ArrowBasedBuilder(DatasetBuilder):
         file_format: str = arg["file_format"]
         max_shard_size: int = arg["max_shard_size"]
         job_id: int = arg["job_id"]
-        refresh_rate = 0.05  # 20 progress updates per sec
 
         generator = self._generate_tables(**gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
@@ -1830,7 +1828,7 @@ class ArrowBasedBuilder(DatasetBuilder):
                         )
                     writer.write_table(table)
                     num_examples_progress_update += len(table)
-                    if time.time() > _time + refresh_rate:
+                    if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
                         _time = time.time()
                         yield job_id, False, num_examples_progress_update
                         num_examples_progress_update = 0
