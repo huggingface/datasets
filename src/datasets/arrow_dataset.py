@@ -1294,8 +1294,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
                 (like `"50MB"`).
             num_shards (`int`, *optional*):
-                Number of shards to write.
-                Default to the same value as `num_proc` if specified.
+                Number of shards to write. By default the number of shards depends on `max_shard_size`.
 
                 <Added version="2.8.0"/>
             num_proc (`int`, *optional*):
@@ -4679,8 +4678,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a
                 a unit (like `"5MB"`).
             num_shards (`int`, *optional*):
-                Number of shards to write.
-                Default to the same value as `num_proc` if specified.
+                Number of shards to write. By default the number of shards depends on `max_shard_size`.
 
                 <Added version="2.8.0"/>
             embed_external_files (`bool`, default ``True``):
@@ -4886,8 +4884,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by
                 a unit (like `"5MB"`).
-            num_shards (`int`, *optional*): Number of shards to write.
-                Default to the same value as `num_proc` if specified.
+            num_shards (`int`, *optional*): Number of shards to write. By default the number of shards depends on `max_shard_size`.
 
                 <Added version="2.8.0"/>
             shard_size (`int`, *optional*):

@@ -1102,7 +1102,7 @@ class DatasetDict(dict):
         dataset_dict_path: PathLike,
         fs="deprecated",
         max_shard_size: Optional[Union[str, int]] = None,
-        num_shards: Optional[Union[int, Dict[str, int]]] = None,
+        num_shards: Optional[Dict[str, int]] = None,
         num_proc: Optional[int] = None,
         storage_options: Optional[dict] = None,
     ):
@@ -1134,9 +1134,8 @@ class DatasetDict(dict):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
                 (like `"50MB"`).
             num_shards (`Dict[str, int]`, *optional*):
-                Number of shards to write.
+                Number of shards to write. By default the number of shards depends on `max_shard_size`.
                 You need to provide the number of shards for each dataset in the dataset dictionary.
-                Default to the same value as `num_proc` if specified.
                 Use a dictionary to define a different num_shards for each split.
 
                 <Added version="2.8.0"/>
@@ -1460,8 +1459,8 @@ class DatasetDict(dict):
         token: Optional[str] = None,
         branch: Optional[None] = None,
         max_shard_size: Optional[Union[int, str]] = None,
-        num_shards: Optional[int] = None,
-        shard_size: Optional[Union[int, Dict[str, int]]] = "deprecated",
+        num_shards: Optional[Dict[str, int]] = None,
+        shard_size: Optional[Union[int, str]] = "deprecated",
         embed_external_files: bool = True,
     ):
         """Pushes the [`DatasetDict`] to the hub as a Parquet dataset.
@@ -1490,13 +1489,12 @@ class DatasetDict(dict):
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
                 (like `"500MB"` or `"1GB"`).
-            num_shards (`Union[int, Dict[str, int]]`, *optional*):
-                Number of shards to write.
-                Default to the same value as `num_proc` if specified.
+            num_shards (`Dict[str, int]`, *optional*):
+                Number of shards to write. By default the number of shards depends on `max_shard_size`.
                 Use a dictionary to define a different num_shards for each split.
 
                 <Added version="2.8.0"/>
-            shard_size (`int`, *optional*):
+            shard_size (`int` or `str`, *optional*):
 
                 <Deprecated version="2.4.0">
 
