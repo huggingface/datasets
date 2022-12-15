@@ -85,14 +85,15 @@ class WriteToArrowTransformTest(TestCase):
                     | WriteToArrow(path_root, schema, shard_name_template="-S-of-N", file_name_suffix=path_ext)
                 )
 
-            with pa.ipc.open_stream(path_root + "-0-of-1" + path_ext) as reader:
-                self.assertEqual(reader.schema, schema)
-                pa_table = reader.read_all()
-                self.assertEqual(len(pa_table), len(self.RECORDS))
-                for column_name in pa_table.column_names:
-                    self.assertEqual(
-                        pa_table[column_name].to_pylist(), [record[column_name] for record in self.RECORDS]
-                    )
+            with pa.input_stream(path_root + "-0-of-1" + path_ext) as stream:
+                with pa.ipc.open_stream(stream) as reader:
+                    self.assertEqual(reader.schema, schema)
+                    pa_table = reader.read_all()
+                    self.assertEqual(len(pa_table), len(self.RECORDS))
+                    for column_name in pa_table.column_names:
+                        self.assertEqual(
+                            pa_table[column_name].to_pylist(), [record[column_name] for record in self.RECORDS]
+                        )
 
 
 class BeamBuilderTest(TestCase):
