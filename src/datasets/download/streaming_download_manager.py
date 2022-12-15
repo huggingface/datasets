@@ -53,8 +53,6 @@ COMPRESSION_EXTENSION_TO_PROTOCOL = {
     **{fs_class.extension.lstrip("."): fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS},
     # archive compression
     "zip": "zip",
-    "tar": "tar",
-    "tgz": "tar",
 }
 SINGLE_FILE_COMPRESSION_PROTOCOLS = {fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS}
 SINGLE_SLASH_AFTER_PROTOCOL_PATTERN = re.compile(r"(?<!:):/")
@@ -377,9 +375,15 @@ def _get_extraction_protocol(urlpath: str, use_auth_token: Optional[Union[str, b
         extension = extension.split(symb)[0]
     if extension in BASE_KNOWN_EXTENSIONS:
         return None
-    elif path.endswith(".tar.gz") or path.endswith(".tgz"):
+    elif extension in ["tgz", "tar"] or path.endswith(".tar.gz"):
         raise NotImplementedError(
-            f"Extraction protocol for TAR archives like '{urlpath}' is not implemented in streaming mode. Please use `dl_manager.iter_archive` instead."
+            f"Extraction protocol for TAR archives like '{urlpath}' is not implemented in streaming mode. "
+            f"Please use `dl_manager.iter_archive` instead.\n\n"
+            f"Example usage:\n\n"
+            f"\turl = dl_manager.download(url)\n"
+            f"\ttar_archive_iterator = dl_manager.iter_archive(url)\n\n"
+            f"\tfor filename, file in tar_archive_iterator:\n"
+            f"\t\t..."
         )
     elif extension in COMPRESSION_EXTENSION_TO_PROTOCOL:
         return COMPRESSION_EXTENSION_TO_PROTOCOL[extension]
@@ -944,11 +948,7 @@ class StreamingDownloadManager:
             # there is one single file which is the uncompressed file
             inner_file = os.path.basename(urlpath.split("::")[0])
             inner_file = inner_file[: inner_file.rindex(".")] if "." in inner_file else inner_file
-            # check for tar.gz, tar.bz2 etc.
-            if inner_file.endswith(".tar"):
-                return f"tar://::{protocol}://{inner_file}::{urlpath}"
-            else:
-                return f"{protocol}://{inner_file}::{urlpath}"
+            return f"{protocol}://{inner_file}::{urlpath}"
         else:
             return f"{protocol}://::{urlpath}"
 

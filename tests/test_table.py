@@ -1162,21 +1162,20 @@ def test_embed_table_storage(image_file):
     assert isinstance(embedded_images_table.to_pydict()["image"][0]["bytes"], bytes)
 
 
-@pytest.mark.skipif(datasets.config.PYARROW_VERSION.major < 8, reason="only available on pyarrow>=8")
 @pytest.mark.parametrize(
-    "pa_table",
+    "table",
     [
-        pa.table({"foo": range(10)}),
-        pa.concat_tables([pa.table({"foo": range(0, 5)}), pa.table({"foo": range(5, 10)})]),
-        pa.concat_tables([pa.table({"foo": [i]}) for i in range(10)]),
+        InMemoryTable(pa.table({"foo": range(10)})),
+        InMemoryTable(pa.concat_tables([pa.table({"foo": range(0, 5)}), pa.table({"foo": range(5, 10)})])),
+        InMemoryTable(pa.concat_tables([pa.table({"foo": [i]}) for i in range(10)])),
     ],
 )
 @pytest.mark.parametrize("batch_size", [1, 2, 3, 9, 10, 11, 20])
 @pytest.mark.parametrize("drop_last_batch", [False, True])
-def test_table_iter(pa_table, batch_size, drop_last_batch):
-    num_rows = len(pa_table) if not drop_last_batch else len(pa_table) // batch_size * batch_size
+def test_table_iter(table, batch_size, drop_last_batch):
+    num_rows = len(table) if not drop_last_batch else len(table) // batch_size * batch_size
     num_batches = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
-    subtables = list(table_iter(pa_table, batch_size=batch_size, drop_last_batch=drop_last_batch))
+    subtables = list(table_iter(table, batch_size=batch_size, drop_last_batch=drop_last_batch))
     assert len(subtables) == num_batches
     if drop_last_batch:
         assert all(len(subtable) == batch_size for subtable in subtables)
@@ -1185,7 +1184,7 @@ def test_table_iter(pa_table, batch_size, drop_last_batch):
         assert len(subtables[-1]) <= batch_size
     if num_rows > 0:
         reloaded = pa.concat_tables(subtables)
-        assert pa_table.slice(0, num_rows).to_pydict() == reloaded.to_pydict()
+        assert table.slice(0, num_rows).to_pydict() == reloaded.to_pydict()
 
 
 @pytest.mark.parametrize(

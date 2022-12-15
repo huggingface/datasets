@@ -20,10 +20,12 @@ import copy
 import itertools
 import json
 import os
+import posixpath
 import re
 import shutil
 import sys
 import tempfile
+import time
 import warnings
 import weakref
 from collections import Counter
@@ -107,7 +109,7 @@ from .utils.file_utils import _retry, cached_path, estimate_dataset_size
 from .utils.hub import hf_hub_url
 from .utils.info_utils import is_small_dataset
 from .utils.metadata import DatasetMetadata
-from .utils.py_utils import asdict, convert_file_size_to_int, unique_values
+from .utils.py_utils import asdict, convert_file_size_to_int, iflatmap_unordered, unique_values
 from .utils.stratify import stratified_shuffle_split_generate_indices
 from .utils.tf_utils import minimal_tf_collate_fn
 from .utils.typing import PathLike
@@ -1256,64 +1258,103 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Here `del` is used to del the pyarrow tables. This properly closes the files used for memory mapped tables
         self.__del__()
 
-    def save_to_disk(self, dataset_path: str, fs=None):
+    def save_to_disk(
+        self,
+        dataset_path: PathLike,
+        fs="deprecated",
+        max_shard_size: Optional[Union[str, int]] = None,
+        num_shards: Optional[int] = None,
+        num_proc: Optional[int] = None,
+        storage_options: Optional[dict] = None,
+    ):
         """
-        Saves a dataset to a dataset directory, or in a filesystem using either `filesystems.S3FileSystem` or
+        Saves a dataset to a dataset directory, or in a filesystem using either `s3fs.S3FileSystem` or
         any implementation of `fsspec.spec.AbstractFileSystem`.
 
         For [`Image`] and [`Audio`] data:
 
-        If your images and audio files are local files, then the resulting arrow file will store paths to these files.
-        If you want to include the bytes or your images or audio files instead, you must `read()` those files first.
-        This can be done by storing the "bytes" instead of the "path" of the images or audio files:
-
-        ```python
-        >>> def read_image_file(example):
-        ...     with open(example["image"].filename, "rb") as f:
-        ...         return {"image": {"bytes": f.read()}}
-        >>> ds = ds.map(read_image_file)
-        >>> ds.save_to_disk("path/to/dataset/dir")
-        ```
-
-        ```python
-        >>> def read_audio_file(example):
-        ...     with open(example["audio"]["path"], "rb") as f:
-        ...         return {"audio": {"bytes": f.read()}}
-        >>> ds = ds.map(read_audio_file)
-        >>> ds.save_to_disk("path/to/dataset/dir")
-        ```
+        All the Image() and Audio() data are stored in the arrow files.
+        If you want to store paths or urls, please use the Value("string") type.
 
         Args:
             dataset_path (`str`):
                 Path (e.g. `dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`)
                 of the dataset directory where the dataset will be saved to.
-            fs (`filesystems.S3FileSystem`, `fsspec.spec.AbstractFileSystem`, *optional*, defaults to `None`):
-                Instance of the remote filesystem used to download the files from.
+            fs (`fsspec.spec.AbstractFileSystem`, *optional*):
+                Instance of the remote filesystem where the dataset will be saved to.
+
+                <Deprecated version="2.8.0">
+
+                `fs` was deprecated in version 2.8.0 and will be removed in 3.0.0.
+                Please use `storage_options` instead, e.g. `storage_options=fs.storage_options`
+
+                </Deprecated>
+
+            max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
+                The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
+                (like `"50MB"`).
+            num_shards (`int`, *optional*):
+                Number of shards to write. By default the number of shards depends on `max_shard_size`.
+
+                <Added version="2.8.0"/>
+            num_proc (`int`, *optional*):
+                Number of processes when downloading and generating the dataset locally.
+                Multiprocessing is disabled by default.
+
+                <Added version="2.8.0"/>
+            storage_options (`dict`, *optional*):
+                Key/value pairs to be passed on to the file-system backend, if any.
+
+                <Added version="2.8.0"/>
 
         Example:
 
         ```py
-        >>> saved_ds = ds.save_to_disk("path/to/dataset/directory")
+        >>> ds.save_to_disk("path/to/dataset/directory")
+        >>> ds.save_to_disk("path/to/dataset/directory", max_shard_size="1GB")
+        >>> ds.save_to_disk("path/to/dataset/directory", num_shards=1024)
         ```
         """
+        if max_shard_size is not None and num_shards is not None:
+            raise ValueError(
+                "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
+            )
+        if fs != "deprecated":
+            warnings.warn(
+                "'fs' was is deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
+                "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
+                FutureWarning,
+            )
+            storage_options = fs.storage_options
+
+        if num_shards is None:
+            dataset_nbytes = self._estimate_nbytes()
+            max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
+            num_shards = int(dataset_nbytes / max_shard_size) + 1
+            num_shards = max(num_shards, num_proc or 1)
+
+        num_proc = num_proc if num_proc is not None else 1
+        num_shards = num_shards if num_shards is not None else num_proc
+
+        fs_token_paths = fsspec.get_fs_token_paths(dataset_path, storage_options=storage_options)
+        fs: fsspec.AbstractFileSystem = fs_token_paths[0]
+        is_local = not is_remote_filesystem(fs)
+        path_join = os.path.join if is_local else posixpath.join
+
         if self.list_indexes():
             raise ValueError("please remove all the indexes using `dataset.drop_index` before saving a dataset")
 
-        dataset = self.flatten_indices() if self._indices is not None else self
+        dataset = self.flatten_indices(num_proc=num_proc) if self._indices is not None else self
 
-        if is_remote_filesystem(fs):
-            dataset_path = extract_path_from_uri(dataset_path)
-        else:
-            fs = fsspec.filesystem("file")
-            cache_files_paths = [Path(cache_filename["filename"]) for cache_filename in self.cache_files]
+        if is_local:
+            Path(dataset_path).resolve().mkdir(parents=True, exist_ok=True)
+            parent_cache_files_paths = set(
+                Path(cache_filename["filename"]).resolve().parent for cache_filename in self.cache_files
+            )
             # Check that the dataset doesn't overwrite iself. It can cause a permission error on Windows and a segfault on linux.
-            if Path(dataset_path, config.DATASET_ARROW_FILENAME) in cache_files_paths:
+            if Path(dataset_path).resolve() in parent_cache_files_paths:
                 raise PermissionError(
-                    f"Tried to overwrite {Path(dataset_path, config.DATASET_ARROW_FILENAME)} but a dataset can't overwrite itself."
-                )
-            if Path(dataset_path, config.DATASET_INDICES_FILENAME) in cache_files_paths:
-                raise PermissionError(
-                    f"Tried to overwrite {Path(dataset_path, config.DATASET_INDICES_FILENAME)} but a dataset can't overwrite itself."
+                    f"Tried to overwrite {Path(dataset_path).resolve()} but a dataset can't overwrite itself."
                 )
 
         # Get json serializable state
@@ -1324,15 +1365,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 "_format_columns",
                 "_format_kwargs",
                 "_format_type",
-                "_indexes",
                 "_output_all_columns",
             ]
         }
-
-        split = dataset.__dict__["_split"]
-        state["_split"] = str(split) if split is not None else split
-
-        state["_data_files"] = [{"filename": config.DATASET_ARROW_FILENAME}]
+        state["_split"] = str(dataset.split) if dataset.split is not None else dataset.split
+        state["_data_files"] = [
+            {"filename": f"data-{shard_idx:05d}-of-{num_shards:05d}.arrow"} for shard_idx in range(num_shards)
+        ]
         for k in state["_format_kwargs"].keys():
             try:
                 json.dumps(state["_format_kwargs"][k])
@@ -1340,27 +1379,91 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 raise TypeError(
                     str(e) + f"\nThe format kwargs must be JSON serializable, but key '{k}' isn't."
                 ) from None
-
         # Get json serializable dataset info
         dataset_info = asdict(dataset._info)
 
-        # Save dataset + state + info
-        fs.makedirs(dataset_path, exist_ok=True)
-        with fs.open(Path(dataset_path, config.DATASET_ARROW_FILENAME).as_posix(), "wb") as dataset_file:
-            with ArrowWriter(stream=dataset_file) as writer:
-                writer.write_table(dataset._data.table)
-                writer.finalize()
-        with fs.open(
-            Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), "w", encoding="utf-8"
-        ) as state_file:
+        shards_done = 0
+        pbar = logging.tqdm(
+            disable=not logging.is_progress_bar_enabled(),
+            unit=" examples",
+            total=len(dataset),
+            leave=False,
+            desc=f"Saving the dataset ({shards_done}/{num_shards} shards)",
+        )
+        kwargs_per_job = (
+            {
+                "job_id": shard_idx,
+                "shard": dataset.shard(num_shards=num_shards, index=shard_idx, contiguous=True),
+                "fpath": path_join(dataset_path, f"data-{shard_idx:05d}-of-{num_shards:05d}.arrow"),
+                "storage_options": storage_options,
+            }
+            for shard_idx in range(num_shards)
+        )
+        shard_lengths = [None] * num_shards
+        shard_sizes = [None] * num_shards
+        if num_proc > 1:
+            with Pool(num_proc) as pool:
+                for job_id, done, content in iflatmap_unordered(
+                    pool, Dataset._save_to_disk_single, kwargs_iterable=kwargs_per_job
+                ):
+                    if done:
+                        shards_done += 1
+                        pbar.set_description(f"Saving the dataset ({shards_done}/{num_shards} shards)")
+                        logger.debug(f"Finished writing shard number {job_id} of {num_shards}.")
+                        shard_lengths[job_id], shard_sizes[job_id] = content
+                    else:
+                        pbar.update(content)
+        else:
+            for kwargs in kwargs_per_job:
+                for job_id, done, content in Dataset._save_to_disk_single(**kwargs):
+                    if done:
+                        shards_done += 1
+                        pbar.set_description(f"Saving the dataset ({shards_done}/{num_shards} shards)")
+                        logger.debug(f"Finished writing shard number {job_id} of {num_shards}.")
+                        shard_lengths[job_id], shard_sizes[job_id] = content
+                    else:
+                        pbar.update(content)
+        with fs.open(path_join(dataset_path, config.DATASET_STATE_JSON_FILENAME), "w", encoding="utf-8") as state_file:
             json.dump(state, state_file, indent=2, sort_keys=True)
         with fs.open(
-            Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix(), "w", encoding="utf-8"
+            path_join(dataset_path, config.DATASET_INFO_FILENAME), "w", encoding="utf-8"
         ) as dataset_info_file:
             # Sort only the first level of keys, or we might shuffle fields of nested features if we use sort_keys=True
             sorted_keys_dataset_info = {key: dataset_info[key] for key in sorted(dataset_info)}
             json.dump(sorted_keys_dataset_info, dataset_info_file, indent=2)
-        logger.info(f"Dataset saved in {dataset_path}")
+
+    @staticmethod
+    def _save_to_disk_single(job_id: int, shard: "Dataset", fpath: str, storage_options: Optional[dict]):
+        batch_size = config.DEFAULT_MAX_BATCH_SIZE
+
+        if shard._indices is not None:
+            raise ValueError(
+                "`_save_to_disk_single` only support shards with flattened indices. "
+                "Please call ds.flatten_indices() before saving to disk."
+            )
+
+        num_examples_progress_update = 0
+        writer = ArrowWriter(
+            features=shard.features,
+            path=fpath,
+            storage_options=storage_options,
+            embed_local_files=True,
+        )
+        try:
+            _time = time.time()
+            for pa_table in table_iter(shard.data, batch_size=batch_size):
+                writer.write_table(pa_table)
+                num_examples_progress_update += len(pa_table)
+                if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
+                    _time = time.time()
+                    yield job_id, False, num_examples_progress_update
+                    num_examples_progress_update = 0
+        finally:
+            yield job_id, False, num_examples_progress_update
+            num_examples, num_bytes = writer.finalize()
+            writer.close()
+
+        yield job_id, True, (num_examples, num_bytes)
 
     @staticmethod
     def _build_local_temp_path(uri_or_path: str) -> Path:
@@ -1380,23 +1483,40 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return Path(tmp_dir, src_dataset_path.relative_to(src_dataset_path.anchor))
 
     @staticmethod
-    def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = None) -> "Dataset":
+    def load_from_disk(
+        dataset_path: str,
+        fs="deprecated",
+        keep_in_memory: Optional[bool] = None,
+        storage_options: Optional[dict] = None,
+    ) -> "Dataset":
         """
         Loads a dataset that was previously saved using [`save_to_disk`] from a dataset directory, or from a
-        filesystem using either [`filesystems.S3FileSystem`] or any implementation of
+        filesystem using either `s3fs.S3FileSystem` or any implementation of
         `fsspec.spec.AbstractFileSystem`.
 
         Args:
             dataset_path (`str`):
-                Path (e.g. `"dataset/train"`) or remote URI (e.g.
-                `"s3//my-bucket/dataset/train"`) of the dataset directory where the dataset will be loaded from.
-            fs ([`filesystems.S3FileSystem`], `fsspec.spec.AbstractFileSystem`, *optional*, defaults to `None`):
-                Instance of the remote filesystem used to download the files from.
+                Path (e.g. `"dataset/train"`) or remote URI (e.g. `"s3//my-bucket/dataset/train"`)
+                of the dataset directory where the dataset will be loaded from.
+            fs (`fsspec.spec.AbstractFileSystem`, *optional*):
+                Instance of the remote filesystem where the dataset will be saved to.
+
+                <Deprecated version="2.8.0">
+
+                `fs` was deprecated in version 2.8.0 and will be removed in 3.0.0.
+                Please use `storage_options` instead, e.g. `storage_options=fs.storage_options`
+
+                </Deprecated>
+
             keep_in_memory (`bool`, defaults to `None`):
                 Whether to copy the dataset in-memory. If `None`, the
                 dataset will not be copied in-memory unless explicitly enabled by setting
                 `datasets.config.IN_MEMORY_MAX_SIZE` to nonzero. See more details in the
                 [improve performance](./cache#improve-performance) section.
+            storage_options (`dict`, *optional*):
+                Key/value pairs to be passed on to the file-system backend, if any.
+
+                <Added version="2.8.0"/>
 
         Returns:
             [`Dataset`] or [`DatasetDict`]:
@@ -1409,8 +1529,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds = load_from_disk("path/to/dataset/directory")
         ```
         """
+        if fs != "deprecated":
+            warnings.warn(
+                "'fs' was is deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
+                "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
+                FutureWarning,
+            )
+            storage_options = fs.storage_options
+
+        fs_token_paths = fsspec.get_fs_token_paths(dataset_path, storage_options=storage_options)
+        fs: fsspec.AbstractFileSystem = fs_token_paths[0]
         # copies file from filesystem if it is remote filesystem to local filesystem and modifies dataset_path to temp directory containing local copies
-        fs = fsspec.filesystem("file") if fs is None else fs
         dataset_dict_json_path = Path(dataset_path, config.DATASETDICT_JSON_FILENAME).as_posix()
         dataset_info_path = Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix()
         if not fs.isfile(dataset_info_path) and fs.isfile(dataset_dict_json_path):
@@ -2044,7 +2173,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         If a formatting is set with :meth:`Dataset.set_format` rows will be returned with the
         selected format.
         """
-        if self._indices is None and config.PYARROW_VERSION.major >= 8:
+        if self._indices is None:
             # Fast iteration
             # Benchmark: https://gist.github.com/mariosasko/0248288a2e3a7556873969717c1fe52b (fast_iter_batch)
             format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
@@ -3280,6 +3409,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
         disable_nullable: bool = False,
+        num_proc: Optional[int] = None,
         new_fingerprint: Optional[str] = None,
     ) -> "Dataset":
         """Create and cache a new Dataset by flattening the indices mapping.
@@ -3299,6 +3429,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 instead of the automatically generated one.
             disable_nullable (`bool`, defaults to `False`):
                 Allow null values in the table.
+            num_proc (`int`, optional, default `None`):
+                Max number of processes when generating cache. Already cached shards are loaded sequentially
             new_fingerprint (`str`, *optional*, defaults to `None`):
                 The new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
@@ -3313,6 +3445,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             disable_nullable=disable_nullable,
             new_fingerprint=new_fingerprint,
             desc="Flattening the indices",
+            num_proc=num_proc,
         )
 
     def _new_dataset_with_indices(
@@ -4478,6 +4611,36 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         return SqlDatasetWriter(self, name, con, batch_size=batch_size, **sql_writer_kwargs).write()
 
+    def _estimate_nbytes(self) -> int:
+        dataset_nbytes = self.data.nbytes
+
+        # Find decodable columns, because if there are any, we need to
+        # adjust the dataset size computation (needed for sharding) to account for possible external files
+        decodable_columns = [k for k, v in self.features.items() if require_decoding(v, ignore_decode_attribute=True)]
+
+        if decodable_columns:
+            # Approximate the space needed to store the bytes from the external files by analyzing the first 1000 examples
+            extra_nbytes = 0
+
+            def extra_nbytes_visitor(array, feature):
+                nonlocal extra_nbytes
+                if isinstance(feature, (Audio, Image)):
+                    for x in array.to_pylist():
+                        if x is not None and x["bytes"] is None and x["path"] is not None:
+                            size = xgetsize(x["path"])
+                            extra_nbytes += size
+                    extra_nbytes -= array.field("path").nbytes
+
+            table = self.with_format("arrow")[:1000]
+            table_visitor(table, extra_nbytes_visitor)
+
+            extra_nbytes = extra_nbytes * len(self.data) / len(table)
+            dataset_nbytes = dataset_nbytes + extra_nbytes
+
+        if self._indices is not None:
+            dataset_nbytes = dataset_nbytes * len(self._indices) / len(self.data)
+        return dataset_nbytes
+
     def _push_parquet_shards_to_hub(
         self,
         repo_id: str,
@@ -4486,6 +4649,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         token: Optional[str] = None,
         branch: Optional[str] = None,
         max_shard_size: Optional[Union[int, str]] = None,
+        num_shards: Optional[int] = None,
         embed_external_files: bool = True,
     ) -> Tuple[str, str, int, int]:
         """Pushes the dataset to the hub.
@@ -4509,8 +4673,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The git branch on which to push the dataset. This defaults to the default branch as specified
                 in your repository, which defaults to `"main"`.
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
-                The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
-                (like `"5MB"`).
+                The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a
+                a unit (like `"5MB"`).
+            num_shards (`int`, *optional*):
+                Number of shards to write. By default the number of shards depends on `max_shard_size`.
+
+                <Added version="2.8.0"/>
             embed_external_files (`bool`, default ``True``):
                 Whether to embed file bytes in the shards.
                 In particular, this will do the following before the push for the fields of type:
@@ -4531,7 +4699,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
         ```
         """
-        max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
+        if max_shard_size is not None and num_shards is not None:
+            raise ValueError(
+                "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
+            )
 
         api = HfApi(endpoint=config.HF_ENDPOINT)
         token = token if token is not None else HfFolder.get_token()
@@ -4569,40 +4740,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
 
         # Find decodable columns, because if there are any, we need to:
-        # (1) adjust the dataset size computation (needed for sharding) to account for possible external files
-        # (2) embed the bytes from the files in the shards
+        # embed the bytes from the files in the shards
         decodable_columns = (
             [k for k, v in self.features.items() if require_decoding(v, ignore_decode_attribute=True)]
             if embed_external_files
             else []
         )
 
-        dataset_nbytes = self.data.nbytes
+        dataset_nbytes = self._estimate_nbytes()
 
-        if decodable_columns:
-            # Approximate the space needed to store the bytes from the external files by analyzing the first 1000 examples
-            extra_nbytes = 0
+        if num_shards is None:
+            max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
+            num_shards = int(dataset_nbytes / max_shard_size) + 1
+            num_shards = max(num_shards, 1)
 
-            def extra_nbytes_visitor(array, feature):
-                nonlocal extra_nbytes
-                if isinstance(feature, (Audio, Image)):
-                    for x in array.to_pylist():
-                        if x is not None and x["bytes"] is None and x["path"] is not None:
-                            size = xgetsize(x["path"])
-                            extra_nbytes += size
-                    extra_nbytes -= array.field("path").nbytes
-
-            table = self.with_format("arrow")[:1000]
-            table_visitor(table, extra_nbytes_visitor)
-
-            extra_nbytes = extra_nbytes * len(self.data) / len(table)
-            dataset_nbytes = dataset_nbytes + extra_nbytes
-
-        if self._indices is not None:
-            dataset_nbytes = dataset_nbytes * len(self._indices) / len(self.data)
-
-        num_shards = int(dataset_nbytes / max_shard_size) + 1
-        num_shards = max(num_shards, 1)
         shards = (self.shard(num_shards=num_shards, index=i, contiguous=True) for i in range(num_shards))
 
         if decodable_columns:
@@ -4700,6 +4851,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         token: Optional[str] = None,
         branch: Optional[str] = None,
         max_shard_size: Optional[Union[int, str]] = None,
+        num_shards: Optional[int] = None,
         shard_size: Optional[int] = "deprecated",
         embed_external_files: bool = True,
     ):
@@ -4728,8 +4880,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The git branch on which to push the dataset. This defaults to the default branch as specified
                 in your repository, which defaults to `"main"`.
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
-                The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
-                (like `"5MB"`).
+                The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by
+                a unit (like `"5MB"`).
+            num_shards (`int`, *optional*): Number of shards to write. By default the number of shards depends on `max_shard_size`.
+
+                <Added version="2.8.0"/>
             shard_size (`int`, *optional*):
 
                 <Deprecated version="2.4.0">
@@ -4747,7 +4902,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```python
-        >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
+        >>> dataset.push_to_hub("<organization>/<dataset_id>")
+        >>> dataset.push_to_hub("<organization>/<dataset_id>", split="validation")
+        >>> dataset.push_to_hub("<organization>/<dataset_id>", max_shard_size="1GB")
+        >>> dataset.push_to_hub("<organization>/<dataset_id>", num_shards=1024)
         ```
         """
         if shard_size != "deprecated":
@@ -4757,6 +4915,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
             max_shard_size = shard_size
 
+        if max_shard_size is not None and num_shards is not None:
+            raise ValueError(
+                "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
+            )
+
         repo_id, split, uploaded_size, dataset_nbytes, repo_files, deleted_size = self._push_parquet_shards_to_hub(
             repo_id=repo_id,
             split=split,
@@ -4764,6 +4927,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             token=token,
             branch=branch,
             max_shard_size=max_shard_size,
+            num_shards=num_shards,
             embed_external_files=embed_external_files,
         )
         organization, dataset_name = repo_id.split("/")

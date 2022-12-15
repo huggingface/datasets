@@ -108,10 +108,10 @@ class ExamplesIterable(_BaseExamplesIterable):
     def shuffle_data_sources(self, generator: np.random.Generator) -> "ExamplesIterable":
         return ShardShuffledExamplesIterable(self.generate_examples_fn, self.kwargs, generator)
 
-    def shard_data_sources(self, shard_idx: int) -> "MappedExamplesIterable":
+    def shard_data_sources(self, shard_idx: int) -> "ExamplesIterable":
         """Keep only the requested shard."""
         kwargs_with_requested_data_source = _split_gen_kwargs(self.kwargs, max_num_jobs=self.n_shards)[shard_idx]
-        yield from self.generate_examples_fn(**kwargs_with_requested_data_source)
+        return ExamplesIterable(self.generate_examples_fn, kwargs_with_requested_data_source)
 
     @property
     def n_shards(self) -> int:
@@ -129,7 +129,7 @@ class ShardShuffledExamplesIterable(ExamplesIterable):
         kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
         yield from self.generate_examples_fn(**kwargs_with_shuffled_shards)
 
-    def shard_data_sources(self, shard_idx: int) -> "MappedExamplesIterable":
+    def shard_data_sources(self, shard_idx: int) -> "ExamplesIterable":
         """Keep only the requested shard."""
         rng = deepcopy(self.generator)
         kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)

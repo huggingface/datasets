@@ -184,6 +184,34 @@ class TestPushToHub:
                 )
             )
 
+    def test_push_dataset_dict_to_hub_multiple_files_with_num_shards(self, temporary_repo):
+        ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
+
+        local_ds = DatasetDict({"train": ds})
+
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            local_ds.push_to_hub(ds_name, token=self._token, num_shards={"train": 2})
+            hub_ds = load_dataset(ds_name, download_mode="force_redownload")
+
+            assert local_ds.column_names == hub_ds.column_names
+            assert list(local_ds["train"].features.keys()) == list(hub_ds["train"].features.keys())
+            assert local_ds["train"].features == hub_ds["train"].features
+
+            # Ensure that there are two files on the repository that have the correct name
+            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", use_auth_token=self._token))
+            assert all(
+                fnmatch.fnmatch(file, expected_file)
+                for file, expected_file in zip(
+                    files,
+                    [
+                        ".gitattributes",
+                        "README.md",
+                        "data/train-00000-of-00002-*.parquet",
+                        "data/train-00001-of-00002-*.parquet",
+                    ],
+                )
+            )
+
     def test_push_dataset_dict_to_hub_overwrite_files(self, temporary_repo):
         ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
         ds2 = Dataset.from_dict({"x": list(range(100)), "y": list(range(100))})
