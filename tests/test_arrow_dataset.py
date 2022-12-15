@@ -4160,7 +4160,7 @@ def test_dataset_estimate_nbytes():
 @pytest.mark.parametrize("return_lazy_dict", [True, False, "mix"])
 def test_map_cases(return_lazy_dict):
     def f(x):
-        """May a mix of LazyDict and regular Dict"""
+        """May return a mix of LazyDict and regular Dict"""
         if x["a"] < 2:
             x["a"] = -1
             return dict(x) if return_lazy_dict is False else x
@@ -4173,7 +4173,7 @@ def test_map_cases(return_lazy_dict):
     assert outputs == {"a": [-1, -1, 2, 3]}
 
     def f(x):
-        """May a mix of LazyDict and regular Dict, but sometimes with None values"""
+        """May return a mix of LazyDict and regular Dict, but sometimes with None values"""
         if x["a"] < 2:
             x["a"] = None
             return dict(x) if return_lazy_dict is False else x
@@ -4186,7 +4186,35 @@ def test_map_cases(return_lazy_dict):
     assert outputs == {"a": [None, None, 2, 3]}
 
     def f(x):
-        """May a mix of LazyDict and regular Dict, but using an extension type"""
+        """Return a LazyDict, but we remove a lazy column and add a new one"""
+        if x["a"] < 2:
+            x["b"] = -1
+            return x
+        else:
+            x["b"] = x["a"]
+            return x
+
+    ds = Dataset.from_dict({"a": [0, 1, 2, 3]})
+    ds = ds.map(f, remove_columns=["a"])
+    outputs = ds[:]
+    assert outputs == {"b": [-1, -1, 2, 3]}
+
+    def f(x):
+        """May return a mix of LazyDict and regular Dict, but we replace a lazy column"""
+        if x["a"] < 2:
+            x["a"] = -1
+            return dict(x) if return_lazy_dict is False else x
+        else:
+            x["a"] = x["a"]
+            return x if return_lazy_dict is True else {"a": x["a"]}
+
+    ds = Dataset.from_dict({"a": [0, 1, 2, 3]})
+    ds = ds.map(f, remove_columns=["a"])
+    outputs = ds[:]
+    assert outputs == {"a": [-1, -1, 2, 3]}
+
+    def f(x):
+        """May return a mix of LazyDict and regular Dict, but using an extension type"""
         if x["a"][0][0] < 2:
             x["a"] = [[-1]]
             return dict(x) if return_lazy_dict is False else x
@@ -4200,7 +4228,7 @@ def test_map_cases(return_lazy_dict):
     assert outputs == {"a": [[[i]] for i in [-1, -1, 2, 3]]}
 
     def f(x):
-        """May a mix of LazyDict and regular Dict, but using a nested extension type"""
+        """May return a mix of LazyDict and regular Dict, but using a nested extension type"""
         if x["a"]["nested"][0][0] < 2:
             x["a"] = {"nested": [[-1]]}
             return dict(x) if return_lazy_dict is False else x

@@ -3122,7 +3122,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 additional_args += (rank,)
             processed_inputs = function(*fn_args, *additional_args, **fn_kwargs)
             processed_inputs = (
-                {k: v for k, v in processed_inputs.data.items() if k not in processed_inputs.keys_to_format}
+                {k: v for k, v in processed_inputs.data.items() if k in processed_inputs.keys_added_by_user}
                 if isinstance(processed_inputs, LazyDict)
                 else processed_inputs
             )
