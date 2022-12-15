@@ -610,7 +610,6 @@ class BeamWriter:
         schema: Optional[pa.Schema] = None,
         path: Optional[str] = None,
         namespace: Optional[str] = None,
-        cache_dir: Optional[str] = None,
     ):
         if features is None and schema is None:
             raise ValueError("At least one of features and schema must be provided.")
@@ -628,7 +627,6 @@ class BeamWriter:
         self._path_root, self._path_ext = os.path.splitext(path)
         self._namespace = namespace or "default"
         self._num_examples = None
-        self._cache_dir = cache_dir or config.HF_DATASETS_CACHE
 
     def write_from_pcollection(self, pcoll_examples):
         """Add the final steps of the beam pipeline: write to arrow/parquet files."""

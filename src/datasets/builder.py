@@ -2015,9 +2015,7 @@ class BeamBasedBuilder(DatasetBuilder):
         fname = f"{self.name}-{split_name}.{file_format}"
         path_join = os.path.join if not is_remote_filesystem(self._fs) else posixpath.join
         fpath = path_join(self._output_dir, fname)
-        beam_writer = BeamWriter(
-            features=self.info.features, path=fpath, namespace=split_name, cache_dir=self._output_dir
-        )
+        beam_writer = BeamWriter(features=self.info.features, path=fpath, namespace=split_name)
         self._beam_writers[split_name] = beam_writer
 
         encode_example = self.info.features.encode_example
