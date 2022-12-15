@@ -727,7 +727,7 @@ class ShufflingConfig:
 
 
 def _maybe_add_torch_iterable_dataset_parent_class(cls):
-    """Add torch.utils.data.IterableDataset as a parent class if 'torch' is imported"""
+    """Add torch.utils.data.IterableDataset as a parent class if 'torch' is available"""
     if config.TORCH_AVAILABLE:
         import torch.utils.data
 

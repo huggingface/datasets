@@ -150,7 +150,7 @@ Like `torch.utils.data.Dataset` objects, a [`Dataset`] can be passed directly to
 ### Optimize data loading
 
 There are several ways you can increase the speed your data is loaded which can save you time, especially if you are working with large datasets.
-PyTorch offers parallelized data loading, retrieving batches of indices instead of individually, and streaming to progressively download datasets.
+PyTorch offers parallelized data loading, retrieving batches of indices instead of individually, and streaming to iterate over the dataset without downloading it on disk.
 
 #### Use multiple Workers
 
@@ -200,7 +200,7 @@ You must use a `BatchSampler` if you want the transform to be given full batches
 
 ### Stream data
 
-Loading a dataset in streaming mode is useful to progressively download the data you need while iterating over the dataset.
+Loading a dataset in streaming mode allows one to iterate over the dataset without downloading it on disk.
 An iterable dataset from `datasets` inherits from `torch.utils.data.IterableDataset` so you can pass it to a `DataLoader`:
 
 ```py
