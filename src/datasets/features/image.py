@@ -90,7 +90,7 @@ class Image:
             return {"path": value, "bytes": None}
         elif isinstance(value, np.ndarray):
             # convert the image array to png bytes
-            image = PIL.Image.fromarray(value.astype(np.uint8))
+            image = PIL.Image.fromarray(value)
             return {"path": None, "bytes": image_to_bytes(image)}
         elif isinstance(value, PIL.Image.Image):
             # convert the PIL image to bytes (default format is png)
