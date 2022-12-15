@@ -12,7 +12,6 @@
 
 # Lint as: python3
 """To write records into Parquet files."""
-import errno
 import json
 import os
 import sys
@@ -40,7 +39,6 @@ from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
 from .table import array_cast, array_concat, cast_array_to_feature, embed_table_storage, table_cast
 from .utils import logging
-from .utils.file_utils import hash_url_to_filename
 from .utils.py_utils import asdict, first_non_null_value
 
 
@@ -603,8 +601,7 @@ class ParquetWriter(ArrowWriter):
 
 class BeamWriter:
     """
-    Shuffles and writes Examples to Arrow files.
-    The Arrow files are converted from Parquet files that are the output of Apache Beam pipelines.
+    Shuffles and writes Examples to Arrow/Parquet files.
     """
 
     def __init__(
@@ -628,17 +625,21 @@ class BeamWriter:
             self._features: Features = Features.from_arrow_schema(schema)
 
         self._path = path
-        self._parquet_path = os.path.splitext(path)[0]  # remove extension
+        self._path_root, self._path_ext = os.path.splitext(path)
         self._namespace = namespace or "default"
         self._num_examples = None
         self._cache_dir = cache_dir or config.HF_DATASETS_CACHE
 
     def write_from_pcollection(self, pcoll_examples):
-        """Add the final steps of the beam pipeline: write to parquet files."""
+        """Add the final steps of the beam pipeline: write to arrow/parquet files."""
         import apache_beam as beam
+
+        from .utils.beam_utils import WriteToArrow
 
         def inc_num_examples(example):
             beam.metrics.Metrics.counter(self._namespace, "num_examples").inc()
+
+        write_transform = WriteToArrow if self._path_ext == ".arrow" else beam.io.parquetio.WriteToParquet
 
         # count examples
         _ = pcoll_examples | "Count N. Examples" >> beam.Map(inc_num_examples)
@@ -647,16 +648,13 @@ class BeamWriter:
         return (
             pcoll_examples
             | "Get values" >> beam.Values()
-            | "Save to parquet"
-            >> beam.io.parquetio.WriteToParquet(
-                self._parquet_path, self._schema, shard_name_template="-SSSSS-of-NNNNN.parquet"
-            )
+            | f"Save to {self._path_ext[1:]}"
+            >> write_transform(self._path_root, self._schema, shard_name_template="-SSSSS-of-NNNNN" + self._path_ext)
         )
 
     def finalize(self, metrics_query_result: dict):
         """
         Run after the pipeline has finished.
-        It converts the resulting parquet files to arrow and it completes the info from the pipeline metrics.
 
         Args:
             metrics_query_result: `dict` obtained from pipeline_results.metrics().query(m_filter). Make sure
@@ -664,53 +662,15 @@ class BeamWriter:
         """
         import apache_beam as beam
 
-        from .utils import beam_utils
-
         shards_metadata = [
             metadata
-            for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[0].metadata_list
+            for metadata in beam.io.filesystems.FileSystems.match([self._path_root + "*" + self._path_ext])[
+                0
+            ].metadata_list
         ]
         shards = [metadata.path for metadata in shards_metadata]
         num_bytes = sum([metadata.size_in_bytes for metadata in shards_metadata])
-        shard_lengths = get_parquet_lengths(shards)
-
-        # Convert to arrow
-        if self._path.endswith(".arrow"):
-            logger.info(f"Converting parquet files {self._parquet_path} to arrow {self._path}")
-            shards = [
-                metadata.path
-                for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[
-                    0
-                ].metadata_list
-            ]
-            try:  # stream conversion
-                disable = not logging.is_progress_bar_enabled()
-                num_bytes = 0
-                for shard in logging.tqdm(shards, unit="shards", disable=disable):
-                    with beam.io.filesystems.FileSystems.open(shard) as source:
-                        with beam.io.filesystems.FileSystems.create(
-                            shard.replace(".parquet", ".arrow")
-                        ) as destination:
-                            shard_num_bytes, _ = parquet_to_arrow(source, destination)
-                            num_bytes += shard_num_bytes
-            except OSError as e:  # broken pipe can happen if the connection is unstable, do local conversion instead
-                if e.errno != errno.EPIPE:  # not a broken pipe
-                    raise
-                logger.warning(
-                    "Broken Pipe during stream conversion from parquet to arrow. Using local convert instead"
-                )
-                local_convert_dir = os.path.join(self._cache_dir, "beam_convert")
-                os.makedirs(local_convert_dir, exist_ok=True)
-                disable = not logging.is_progress_bar_enabled()
-                num_bytes = 0
-                for shard in logging.tqdm(shards, unit="shards", disable=disable):
-                    local_parquet_path = os.path.join(local_convert_dir, hash_url_to_filename(shard) + ".parquet")
-                    beam_utils.download_remote_to_local(shard, local_parquet_path)
-                    local_arrow_path = local_parquet_path.replace(".parquet", ".arrow")
-                    shard_num_bytes, _ = parquet_to_arrow(local_parquet_path, local_arrow_path)
-                    num_bytes += shard_num_bytes
-                    remote_arrow_path = shard.replace(".parquet", ".arrow")
-                    beam_utils.upload_local_to_remote(local_arrow_path, remote_arrow_path)
+        shard_lengths = self._get_shard_lengths(shards)
 
         # Save metrics
         counters_dict = {metric.key.metric.name: metric.result for metric in metrics_query_result["counters"]}
@@ -719,23 +679,19 @@ class BeamWriter:
         self._shard_lengths = shard_lengths
         return self._num_examples, self._num_bytes
 
-
-def get_parquet_lengths(sources) -> List[int]:
-    shard_lengths = []
-    disable = not logging.is_progress_bar_enabled()
-    for source in logging.tqdm(sources, unit="parquet files", disable=disable):
-        parquet_file = pa.parquet.ParquetFile(source)
-        shard_lengths.append(parquet_file.metadata.num_rows)
-    return shard_lengths
-
-
-def parquet_to_arrow(source, destination) -> List[int]:
-    """Convert parquet file to arrow file. Inputs can be str paths or file-like objects"""
-    stream = None if isinstance(destination, str) else destination
-    with ArrowWriter(path=destination, stream=stream) as writer:
-        parquet_file = pa.parquet.ParquetFile(source)
-        for record_batch in parquet_file.iter_batches():
-            pa_table = pa.Table.from_batches([record_batch])
-            writer.write_table(pa_table)
-        num_bytes, num_examples = writer.finalize()
-    return num_bytes, num_examples
+    def _get_shard_lengths(self, sources) -> List[int]:
+        shard_lengths = []
+        unit = self._path_ext[1:] + " files"
+        disable = not logging.is_progress_bar_enabled()
+        if self._path_ext == ".arrow":
+            for source in logging.tqdm(sources, unit=unit, disable=disable):
+                with pa.ipc.open_stream(source) as reader:
+                    arrow_file_length = 0
+                    for record_batch in reader:
+                        arrow_file_length += record_batch.num_rows
+                shard_lengths.append(arrow_file_length)
+        else:
+            for source in logging.tqdm(sources, unit=unit, disable=disable):
+                parquet_file = pa.parquet.ParquetFile(source)
+                shard_lengths.append(parquet_file.metadata.num_rows)
+        return shard_lengths

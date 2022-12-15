@@ -85,15 +85,13 @@ class BeamBuilderTest(TestCase):
 
     @require_beam
     def test_download_and_prepare_sharded(self):
-        import apache_beam as beam
-
-        original_write_parquet = beam.io.parquetio.WriteToParquet
+        original_write_arrow = datasets.utils.beam_utils.WriteToArrow
 
         expected_num_examples = len(get_test_dummy_examples())
         with tempfile.TemporaryDirectory() as tmp_cache_dir:
             builder = DummyBeamDataset(cache_dir=tmp_cache_dir, beam_runner="DirectRunner")
-            with patch("apache_beam.io.parquetio.WriteToParquet") as write_parquet_mock:
-                write_parquet_mock.side_effect = partial(original_write_parquet, num_shards=2)
+            with patch("datasets.utils.beam_utils.WriteToArrow") as write_arrow_mock:
+                write_arrow_mock.side_effect = partial(original_write_arrow, num_shards=2)
                 builder.download_and_prepare()
             self.assertTrue(
                 os.path.exists(
