@@ -20,7 +20,7 @@ from .info import DatasetInfo
 from .splits import NamedSplit
 from .table import table_cast
 from .utils.logging import get_logger
-from .utils.sharding import _number_of_shards_in_gen_kwargs, _shuffle_gen_kwargs, _split_gen_kwargs
+from .utils.sharding import _merge_gen_kwargs, _number_of_shards_in_gen_kwargs, _shuffle_gen_kwargs, _split_gen_kwargs
 
 
 logger = get_logger(__name__)
@@ -95,7 +95,7 @@ class _BaseExamplesIterable:
         """
         raise NotImplementedError(f"{type(self)} doesn't implement shuffle_data_sources yet")
 
-    def shard_data_sources(self, shard_idx: int) -> "_BaseExamplesIterable":
+    def shard_data_sources(self, shard_indices: List[int]) -> "_BaseExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
         raise NotImplementedError(f"{type(self)} doesn't implement shard_data_sources yet")
 
@@ -113,19 +113,20 @@ class ExamplesIterable(_BaseExamplesIterable):
         yield from self.generate_examples_fn(**self.kwargs)
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "ExamplesIterable":
-        return ShardShuffledExamplesIterable(self.generate_examples_fn, self.kwargs, generator)
+        return ShuffledDataSourcesExamplesIterable(self.generate_examples_fn, self.kwargs, generator)
 
-    def shard_data_sources(self, shard_idx: int) -> "ExamplesIterable":
+    def shard_data_sources(self, shard_indices: List[int]) -> "ExamplesIterable":
         """Keep only the requested shard."""
-        kwargs_with_requested_data_source = _split_gen_kwargs(self.kwargs, max_num_jobs=self.n_shards)[shard_idx]
-        return ExamplesIterable(self.generate_examples_fn, kwargs_with_requested_data_source)
+        gen_kwargs_list = _split_gen_kwargs(self.kwargs, max_num_jobs=self.n_shards)
+        requested_gen_kwargs = _merge_gen_kwargs([gen_kwargs_list[i] for i in shard_indices])
+        return ExamplesIterable(self.generate_examples_fn, requested_gen_kwargs)
 
     @property
     def n_shards(self) -> int:
         return _number_of_shards_in_gen_kwargs(self.kwargs)
 
 
-class ShardShuffledExamplesIterable(ExamplesIterable):
+class ShuffledDataSourcesExamplesIterable(ExamplesIterable):
     def __init__(self, generate_examples_fn: Callable, kwargs: dict, generator: np.random.Generator):
         super().__init__(generate_examples_fn, kwargs)
         self.generator = deepcopy(generator)
@@ -136,14 +137,43 @@ class ShardShuffledExamplesIterable(ExamplesIterable):
         kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
         yield from self.generate_examples_fn(**kwargs_with_shuffled_shards)
 
-    def shard_data_sources(self, shard_idx: int) -> "ExamplesIterable":
+    def shard_data_sources(self, shard_indices: List[int]) -> "ExamplesIterable":
         """Keep only the requested shard."""
         rng = deepcopy(self.generator)
         kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
-        kwargs_with_requested_data_source = _split_gen_kwargs(kwargs_with_shuffled_shards, max_num_jobs=self.n_shards)[
-            shard_idx
-        ]
-        return ExamplesIterable(self.generate_examples_fn, kwargs_with_requested_data_source)
+        return ExamplesIterable(self.generate_examples_fn, kwargs_with_shuffled_shards).shard_data_sources(
+            shard_indices
+        )
+
+
+class StepExamplesIterable(_BaseExamplesIterable):
+    def __init__(self, ex_iterable: _BaseExamplesIterable, step: int, offset: int):
+        self.ex_iterable = ex_iterable
+        self.step = step
+        self.offset = offset
+
+    def __iter__(self):
+        ex_iterator = iter(self.ex_iterable)
+        while True:
+            batch = list(islice(ex_iterator, self.step))
+            if len(batch) > self.offset:
+                yield batch[self.offset]
+            else:
+                break
+
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "StepExamplesIterable":
+        return StepExamplesIterable(
+            self.ex_iterable.shuffle_data_sources(generator), step=self.step, offset=self.offset
+        )
+
+    def shard_data_sources(self, shard_indices: List[int]) -> "StepExamplesIterable":
+        return StepExamplesIterable(
+            self.ex_iterable.shard_data_sources(shard_indices), step=self.step, offset=self.offset
+        )
+
+    @property
+    def n_shards(self) -> int:
+        return self.ex_iterable.n_shards
 
 
 class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
@@ -726,6 +756,12 @@ class ShufflingConfig:
     generator: np.random.Generator
 
 
+@dataclass
+class DistributedConfig:
+    rank: int
+    world_size: int
+
+
 def _maybe_add_torch_iterable_dataset_parent_class(cls):
     """Add torch.utils.data.IterableDataset as a parent class if 'torch' is available"""
     if config.TORCH_AVAILABLE:
@@ -745,6 +781,7 @@ class IterableDataset(DatasetInfoMixin):
         split: Optional[NamedSplit] = None,
         format_type: Optional[str] = None,
         shuffling: Optional[ShufflingConfig] = None,
+        distributed: Optional[DistributedConfig] = None,
         token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None,
     ):
         info = info.copy() if info is not None else DatasetInfo()
@@ -753,6 +790,7 @@ class IterableDataset(DatasetInfoMixin):
         self._ex_iterable = ex_iterable
         self._format_type = format_type
         self._shuffling = shuffling
+        self._distributed = distributed
         self._epoch = 0
         self._token_per_repo_id: Dict[str, Union[str, bool, None]] = token_per_repo_id or {}
         _maybe_add_torch_iterable_dataset_parent_class(self.__class__)
@@ -781,72 +819,105 @@ class IterableDataset(DatasetInfoMixin):
 
     @property
     def n_shards(self) -> int:
+        if self._distributed and self._ex_iterable.n_shards % self._distributed.world_size == 0:
+            return self._ex_iterable.n_shards // self._distributed.world_size
         return self._ex_iterable.n_shards
 
-    def _iter(self):
-        if self._shuffling:
-            ex_iterable = self._ex_iterable.shuffle_data_sources(self._effective_generator())
-        else:
-            ex_iterable = self._ex_iterable
-        yield from ex_iterable
-
-    def _iter_shard(self, shard_idx: int):
-        if self._shuffling:
-            ex_iterable = self._ex_iterable.shuffle_data_sources(self._effective_generator())
-        else:
-            ex_iterable = self._ex_iterable
-        yield from ex_iterable.shard_data_sources(shard_idx)
-
-    def _iter_pytorch(self, worker_info):
-        # fix for fsspec when using multprocess
+    def _iter_pytorch(self, ex_iterable: _BaseExamplesIterable):
+        # fix for fsspec when using multiprocess
         _reset_fsspec_lock()
-        if worker_info is None:  # single-process data loading, return the full iterator
-            yield from IterableDataset.__iter__(self)
-        else:  # in a worker process
-            # check if there aren't too many workers
-            if worker_info.id == 0 and self.n_shards < worker_info.num_workers:
-                logger.warning(
-                    f"Too many dataloader workers: {worker_info.num_workers} (max is dataset.n_shards={self.n_shards}). "
-                    f"Stopping dataloader workers [{self.n_shards}...{worker_info.num_workers -1}]."
-                )
-                logger.warning(
-                    f"To parallelize data loading, we give each process some shards (or data sources) to process. "
-                    f"Therefore it's unnecessary to have a number of workers greater than dataset.n_shards={self.n_shards}."
-                    f"To enable more parallelism, please split the dataset in more files than {self.n_shards}."
-                )
-            # split workload
-            shards_indices = list(range(worker_info.id, self.n_shards, worker_info.num_workers))
-            if shards_indices:
-                logger.debug(
-                    f"dataloader worker#{worker_info.id}, ': Starting to iterate over {len(shards_indices)}/{self.n_shards} shards."
-                )
-                for shard_idx in shards_indices:
-                    for key, example in self._iter_shard(shard_idx):
-                        if self.features:
-                            yield _apply_feature_types_on_example(
-                                example, self.features, token_per_repo_id=self._token_per_repo_id
-                            )
-                        else:
-                            yield example
-                logger.debug(
-                    f"dataloader worker#{worker_info.id}, ': Finished iterating over {len(shards_indices)}/{self.n_shards} shards."
-                )
+        # check if there aren't too many workers
+        import torch.utils.data
+
+        worker_info = torch.utils.data.get_worker_info()
+        if self._is_main_process() and ex_iterable.n_shards < worker_info.num_workers:
+            logger.warning(
+                f"Too many dataloader workers: {worker_info.num_workers} (max is dataset.n_shards={ex_iterable.n_shards}). "
+                f"Stopping {worker_info.num_workers - ex_iterable.n_shards} dataloader workers."
+            )
+            logger.warning(
+                f"To parallelize data loading, we give each process some shards (or data sources) to process. "
+                f"Therefore it's unnecessary to have a number of workers greater than dataset.n_shards={ex_iterable.n_shards}. "
+                f"To enable more parallelism, please split the dataset in more files than {ex_iterable.n_shards}."
+            )
+        # split workload
+        shards_indices = list(range(worker_info.id, ex_iterable.n_shards, worker_info.num_workers))
+        _log_prefix = f"node#{self._distributed.rank} " if self._distributed else ""
+        if shards_indices:
+            logger.debug(
+                f"{_log_prefix}dataloader worker#{worker_info.id}, ': Starting to iterate over {len(shards_indices)}/{ex_iterable.n_shards} shards."
+            )
+            for key, example in ex_iterable.shard_data_sources(shards_indices):
+                if self.features:
+                    yield _apply_feature_types_on_example(
+                        example, self.features, token_per_repo_id=self._token_per_repo_id
+                    )
+                else:
+                    yield example
+            logger.debug(
+                f"{_log_prefix}dataloader worker#{worker_info.id}, ': Finished iterating over {len(shards_indices)}/{ex_iterable.n_shards} shards."
+            )
+        else:
+            logger.debug(
+                f"{_log_prefix}dataloader worker#{worker_info.id}, ': Stopping... Number of dataset shards < num_workers ({ex_iterable.n_shards}<{worker_info.num_workers})."
+            )
+
+    def _is_main_process(self):
+        if self._distributed and self._distributed.rank > 0:
+            return False
+        if "torch" in sys.modules:
+            import torch.utils.data
+
+            worker_info = torch.utils.data.get_worker_info()
+            if worker_info is not None and worker_info.id > 0:
+                return False
+        return True
+
+    def _prepare_ex_iterable_for_iteration(self) -> _BaseExamplesIterable:
+        if self._shuffling:
+            ex_iterable = self._ex_iterable.shuffle_data_sources(self._effective_generator())
+        else:
+            ex_iterable = self._ex_iterable
+
+        if self._distributed:
+            rank = self._distributed.rank
+            world_size = self._distributed.world_size
+            if ex_iterable.n_shards % world_size == 0:
+                if self._is_main_process():
+                    n_shards_per_node = ex_iterable.n_shards // world_size
+                    plural = "s" if n_shards_per_node > 1 else ""
+                    logger.warning(
+                        f"Assigning {n_shards_per_node} shard{plural} (or data source{plural}) of the dataset to each node."
+                    )
+                shards_indices = list(range(rank, ex_iterable.n_shards, world_size))
+                ex_iterable = ex_iterable.shard_data_sources(shards_indices)
             else:
-                logger.debug(
-                    f"dataloader worker#{worker_info.id}, ': Stopping... Number of dataset shards < num_workers ({self.n_shards}<{worker_info.num_workers})."
-                )
+                if self._is_main_process():
+                    logger.warning(
+                        f"Assigning 1 out of {world_size} examples of the dataset to each node. The others are skipped during the iteration."
+                    )
+                    logger.info(
+                        f"It is more optimized to distribute the dataset shards (or data sources) across nodes. "
+                        f"You can do that by using a dataset with number of shards that is a factor of world_size={world_size}. "
+                        f"The current dataset has {ex_iterable.n_shards} which is not a factor of {world_size}"
+                    )
+                ex_iterable = StepExamplesIterable(ex_iterable, step=world_size, offset=rank)
+
+        return ex_iterable
 
     def __iter__(self):
+        ex_iterable = self._prepare_ex_iterable_for_iteration()
+
         if "torch" in sys.modules:
             import torch.utils.data
 
             worker_info = torch.utils.data.get_worker_info()
             if isinstance(self, torch.utils.data.IterableDataset) and worker_info is not None:
                 # We're a torch.utils.data.IterableDataset in a PyTorch worker process
-                yield from self._iter_pytorch(worker_info)
+                yield from self._iter_pytorch(ex_iterable)
                 return
 
-        for key, example in self._iter():
+        for key, example in ex_iterable:
             if self.features:
                 # `IterableDataset` automatically fills missing columns with None.
                 # This is done with `_apply_feature_types_on_example`.
@@ -864,7 +935,7 @@ class IterableDataset(DatasetInfoMixin):
             drop_last_batch (:obj:`bool`, default `False`): Whether a last batch smaller than the batch_size should be
                 dropped
         """
-        iterator = self._iter()
+        iterator = iter(self._prepare_ex_iterable_for_iteration())
         for key, example in iterator:
             # If batched, first build the batch
             examples = [example] + [example for key, example in islice(iterator, batch_size - 1)]
@@ -883,7 +954,7 @@ class IterableDataset(DatasetInfoMixin):
         generator: Callable,
         features: Optional[Features] = None,
         gen_kwargs: Optional[dict] = None,
-    ):
+    ) -> "IterableDataset":
         """Create an Iterable Dataset from a generator.
 
         Args:
@@ -956,6 +1027,7 @@ class IterableDataset(DatasetInfoMixin):
             split=self._split,
             format_type=type,
             shuffling=copy.deepcopy(self._shuffling),
+            distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -1067,6 +1139,7 @@ class IterableDataset(DatasetInfoMixin):
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
+            distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -1139,6 +1212,7 @@ class IterableDataset(DatasetInfoMixin):
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
+            distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -1205,6 +1279,7 @@ class IterableDataset(DatasetInfoMixin):
             split=self._split,
             format_type=self._format_type,
             shuffling=shuffling,
+            distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -1246,6 +1321,7 @@ class IterableDataset(DatasetInfoMixin):
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
+            distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -1277,6 +1353,7 @@ class IterableDataset(DatasetInfoMixin):
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
+            distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -1467,6 +1544,7 @@ class IterableDataset(DatasetInfoMixin):
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
+            distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -1517,6 +1595,19 @@ class IterableDataset(DatasetInfoMixin):
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
+            distributed=copy.deepcopy(self._distributed),
+            token_per_repo_id=self._token_per_repo_id,
+        )
+
+    def _step(self, step: int, offset: int) -> "IterableDataset":
+        ex_iterable = StepExamplesIterable(self._ex_iterable, step=step, offset=offset)
+        return IterableDataset(
+            ex_iterable=ex_iterable,
+            info=self._info.copy(),
+            split=self._split,
+            format_type=self._format_type,
+            shuffling=copy.deepcopy(self._shuffling),
+            distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -1535,6 +1626,7 @@ class IterableDataset(DatasetInfoMixin):
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
+            distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -1665,3 +1757,37 @@ def _interleave_iterable_datasets(
     }
     # Return new daset
     return IterableDataset(ex_iterable=ex_iterable, info=info, split=split, token_per_repo_id=token_per_repo_id)
+
+
+def _split_by_node_iterable_dataset(dataset: IterableDataset, rank: int, world_size: int) -> IterableDataset:
+    """
+    Split an iterable dataset for the node at rank `rank` in a pool of nodes of size `world_size`.
+
+    If the dataset has a number of shards that is a factor of `world_size` (i.e. if `dataset.n_shards % world_size == 0`),
+    then the shards are evenly assign across the nodes, which is the most optimized.
+    Otherwise, each node will keep 1 example out of `world_size`, skipping the other examples.
+
+    Args:
+        dataset ([`IterableDataset`]):
+            The iterable dataset to split by node.
+        rank (`int`):
+            Rank of the current node.
+        world_size (`int`):
+            Total number of nodes.
+
+    Returns:
+        [`IterableDataset`]: The iterable dataset to be used on the node at rank `rank`.
+    """
+    if dataset._distributed:
+        world_size = world_size * dataset._distributed.world_size
+        rank = world_size * dataset._distributed.rank + rank
+    distributed = DistributedConfig(rank=rank, world_size=world_size)
+    return IterableDataset(
+        ex_iterable=dataset._ex_iterable,
+        info=dataset._info.copy(),
+        split=dataset._split,
+        format_type=dataset._format_type,
+        shuffling=copy.deepcopy(dataset._shuffling),
+        distributed=distributed,
+        token_per_repo_id=dataset._token_per_repo_id,
+    )
