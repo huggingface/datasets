@@ -1764,8 +1764,8 @@ def _split_by_node_iterable_dataset(dataset: IterableDataset, rank: int, world_s
     Split an iterable dataset for the node at rank `rank` in a pool of nodes of size `world_size`.
 
     If the dataset has a number of shards that is a factor of `world_size` (i.e. if `dataset.n_shards % world_size == 0`),
-    then the shards are evenly assign across the nodes, which is the most optimized.
-    Otherwise, each node will keep 1 example out of `world_size`, skipping the other examples.
+    then the shards are evenly assigned across the nodes, which is the most optimized.
+    Otherwise, each node keeps 1 example out of `world_size`, skipping the other examples.
 
     Args:
         dataset ([`IterableDataset`]):
