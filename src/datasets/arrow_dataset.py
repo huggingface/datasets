@@ -3121,10 +3121,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if with_rank:
                 additional_args += (rank,)
             processed_inputs = function(*fn_args, *additional_args, **fn_kwargs)
-            processed_inputs = (
-                {k: v for k, v in processed_inputs.data.items() if k in processed_inputs.keys_added_by_user}
+            processed_inputs, returned_lazy_dict = (
+                ({k: v for k, v in processed_inputs.data.items() if k not in processed_inputs.keys_to_format}, True)
                 if isinstance(processed_inputs, LazyDict)
-                else processed_inputs
+                else (processed_inputs, False)
             )
             if update_data is None:
                 # Check if the function returns updated examples
@@ -3136,6 +3136,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 pa_inputs = pa_inputs.select(
                     [i for i, column in enumerate(pa_inputs.column_names) if column not in remove_columns]
                 )
+                if returned_lazy_dict:
+                    processed_inputs = {k: v for k, v in processed_inputs.items() if k not in remove_columns}
             pa_inputs_dict = {k: v for k, v in zip(pa_inputs.column_names, pa_inputs.itercolumns())}
             if check_same_num_examples:
                 input_num_examples = len(pa_inputs)
