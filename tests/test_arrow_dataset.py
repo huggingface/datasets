@@ -4199,6 +4199,14 @@ def test_map_cases(return_lazy_dict):
     outputs = ds[:]
     assert outputs == {"b": [-1, -1, 2, 3]}
 
+    # The formatted dataset version removes the lazy column from a different dictionary, hence it should be preserved in the output
+    ds = Dataset.from_dict({"a": [0, 1, 2, 3]})
+    ds = ds.with_format("numpy")
+    ds = ds.map(f, remove_columns=["a"])
+    ds = ds.with_format(None)
+    outputs = ds[:]
+    assert outputs == {"a": [0, 1, 2, 3], "b": [-1, -1, 2, 3]}
+
     def f(x):
         """May return a mix of LazyDict and regular Dict, but we replace a lazy column"""
         if x["a"] < 2:
