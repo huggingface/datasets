@@ -1465,7 +1465,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
             gen_kwargs = split_generator.gen_kwargs
             job_id = 0
             for job_id, done, content in self._prepare_split_single(
-                {"gen_kwargs": gen_kwargs, "job_id": job_id, **_prepare_split_args}
+                gen_kwargs=gen_kwargs, job_id=job_id, **_prepare_split_args
             ):
                 if done:
                     result = content
@@ -1477,13 +1477,13 @@ class GeneratorBasedBuilder(DatasetBuilder):
                 [item] for item in result
             ]
         else:
-            args_per_job = [
+            kwargs_per_job = [
                 {"gen_kwargs": gen_kwargs, "job_id": job_id, **_prepare_split_args}
                 for job_id, gen_kwargs in enumerate(
                     _split_gen_kwargs(split_generator.gen_kwargs, max_num_jobs=num_proc)
                 )
             ]
-            num_jobs = len(args_per_job)
+            num_jobs = len(kwargs_per_job)
 
             examples_per_job = [None] * num_jobs
             bytes_per_job = [None] * num_jobs
@@ -1492,7 +1492,9 @@ class GeneratorBasedBuilder(DatasetBuilder):
             shard_lengths_per_job = [None] * num_jobs
 
             with Pool(num_proc) as pool:
-                for job_id, done, content in iflatmap_unordered(pool, self._prepare_split_single, args_per_job):
+                for job_id, done, content in iflatmap_unordered(
+                    pool, self._prepare_split_single, kwargs_iterable=kwargs_per_job
+                ):
                     if done:
                         # the content is the result of the job
                         (
@@ -1552,15 +1554,16 @@ class GeneratorBasedBuilder(DatasetBuilder):
         if self.info.features is None:
             self.info.features = features
 
-    def _prepare_split_single(self, arg: dict) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
-        gen_kwargs: dict = arg["gen_kwargs"]
-        fpath: str = arg["fpath"]
-        file_format: str = arg["file_format"]
-        max_shard_size: int = arg["max_shard_size"]
-        split_info: SplitInfo = arg["split_info"]
-        check_duplicate_keys: bool = arg["check_duplicate_keys"]
-        job_id: int = arg["job_id"]
-        refresh_rate = 0.05  # 20 progress updates per sec
+    def _prepare_split_single(
+        self,
+        gen_kwargs: dict,
+        fpath: str,
+        file_format: str,
+        max_shard_size: int,
+        split_info: SplitInfo,
+        check_duplicate_keys: bool,
+        job_id: int,
+    ) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
 
         generator = self._generate_examples(**gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
@@ -1602,7 +1605,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
                     example = self.info.features.encode_example(record) if self.info.features is not None else record
                     writer.write(example, key)
                     num_examples_progress_update += 1
-                    if time.time() > _time + refresh_rate:
+                    if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
                         _time = time.time()
                         yield job_id, False, num_examples_progress_update
                         num_examples_progress_update = 0
@@ -1712,7 +1715,6 @@ class ArrowBasedBuilder(DatasetBuilder):
             "fpath": fpath,
             "file_format": file_format,
             "max_shard_size": max_shard_size,
-            "split_info": split_info,
         }
 
         if num_proc is None or num_proc == 1:
@@ -1720,7 +1722,7 @@ class ArrowBasedBuilder(DatasetBuilder):
             gen_kwargs = split_generator.gen_kwargs
             job_id = 0
             for job_id, done, content in self._prepare_split_single(
-                {"gen_kwargs": gen_kwargs, "job_id": job_id, **_prepare_split_args}
+                gen_kwargs=gen_kwargs, job_id=job_id, **_prepare_split_args
             ):
                 if done:
                     result = content
@@ -1732,13 +1734,13 @@ class ArrowBasedBuilder(DatasetBuilder):
                 [item] for item in result
             ]
         else:
-            args_per_job = [
+            kwargs_per_job = [
                 {"gen_kwargs": gen_kwargs, "job_id": job_id, **_prepare_split_args}
                 for job_id, gen_kwargs in enumerate(
                     _split_gen_kwargs(split_generator.gen_kwargs, max_num_jobs=num_proc)
                 )
             ]
-            num_jobs = len(args_per_job)
+            num_jobs = len(kwargs_per_job)
 
             examples_per_job = [None] * num_jobs
             bytes_per_job = [None] * num_jobs
@@ -1747,7 +1749,9 @@ class ArrowBasedBuilder(DatasetBuilder):
             shard_lengths_per_job = [None] * num_jobs
 
             with Pool(num_proc) as pool:
-                for job_id, done, content in iflatmap_unordered(pool, self._prepare_split_single, args_per_job):
+                for job_id, done, content in iflatmap_unordered(
+                    pool, self._prepare_split_single, kwargs_iterable=kwargs_per_job
+                ):
                     if done:
                         # the content is the result of the job
                         (
@@ -1807,13 +1811,9 @@ class ArrowBasedBuilder(DatasetBuilder):
         if self.info.features is None:
             self.info.features = features
 
-    def _prepare_split_single(self, arg: dict) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
-        gen_kwargs: dict = arg["gen_kwargs"]
-        fpath: str = arg["fpath"]
-        file_format: str = arg["file_format"]
-        max_shard_size: int = arg["max_shard_size"]
-        job_id: int = arg["job_id"]
-        refresh_rate = 0.05  # 20 progress updates per sec
+    def _prepare_split_single(
+        self, gen_kwargs: dict, fpath: str, file_format: str, max_shard_size: int, job_id: int
+    ) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
 
         generator = self._generate_tables(**gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
@@ -1848,7 +1848,7 @@ class ArrowBasedBuilder(DatasetBuilder):
                         )
                     writer.write_table(table)
                     num_examples_progress_update += len(table)
-                    if time.time() > _time + refresh_rate:
+                    if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
                         _time = time.time()
                         yield job_id, False, num_examples_progress_update
                         num_examples_progress_update = 0

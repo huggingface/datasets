@@ -19,6 +19,12 @@ from packaging import version
 from datasets import config
 
 
+if config.PY_VERSION < version.parse("3.8"):
+    import importlib_metadata
+else:
+    import importlib.metadata as importlib_metadata
+
+
 def parse_flag_from_env(key, default=False):
     try:
         value = os.environ[key]
@@ -66,12 +72,12 @@ require_sox = pytest.mark.skipif(
 )
 require_torchaudio = pytest.mark.skipif(
     find_spec("torchaudio") is None
-    or version.parse(import_module("torchaudio").__version__) >= version.parse("0.12.0"),
+    or version.parse(importlib_metadata.version("torchaudio")) >= version.parse("0.12.0"),
     reason="test requires torchaudio<0.12",
 )
 require_torchaudio_latest = pytest.mark.skipif(
     find_spec("torchaudio") is None
-    or version.parse(import_module("torchaudio").__version__) < version.parse("0.12.0"),
+    or version.parse(importlib_metadata.version("torchaudio")) < version.parse("0.12.0"),
     reason="test requires torchaudio>=0.12",
 )
 
@@ -197,22 +203,6 @@ def require_transformers(test_case):
         import transformers  # noqa F401
     except ImportError:
         return unittest.skip("test requires transformers")(test_case)
-    else:
-        return test_case
-
-
-def require_s3(test_case):
-    """
-    Decorator marking a test that requires s3fs and moto to mock s3.
-
-    These tests are skipped when they aren't installed.
-
-    """
-    try:
-        import moto  # noqa F401
-        import s3fs  # noqa F401
-    except ImportError:
-        return unittest.skip("test requires s3fs and moto")(test_case)
     else:
         return test_case
 

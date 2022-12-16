@@ -38,7 +38,7 @@ from .features.features import (
 from .filesystems import is_remote_filesystem
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
-from .table import array_cast, cast_array_to_feature, embed_table_storage, table_cast
+from .table import array_cast, array_concat, cast_array_to_feature, embed_table_storage, table_cast
 from .utils import logging
 from .utils.file_utils import hash_url_to_filename
 from .utils.py_utils import asdict, first_non_null_value
@@ -432,8 +432,17 @@ class ArrowWriter:
         )
         batch_examples = {}
         for col in cols:
-            # Since current_examples contains (example, key) tuples
-            batch_examples[col] = [row[0][col] for row in self.current_examples]
+            # We use row[0][col] since current_examples contains (example, key) tuples.
+            # Morever, examples could be Arrow arrays of 1 element.
+            # This can happen in `.map()` when we want to re-write the same Arrow data
+            if all(isinstance(row[0][col], (pa.Array, pa.ChunkedArray)) for row in self.current_examples):
+                arrays = [row[0][col] for row in self.current_examples]
+                batch_examples[col] = array_concat(arrays)
+            else:
+                batch_examples[col] = [
+                    row[0][col].to_pylist()[0] if isinstance(row[0][col], (pa.Array, pa.ChunkedArray)) else row[0][col]
+                    for row in self.current_examples
+                ]
         self.write_batch(batch_examples=batch_examples)
         self.current_examples = []
 
@@ -530,11 +539,17 @@ class ArrowWriter:
             else batch_examples.keys()
         )
         for col in cols:
+            col_values = batch_examples[col]
             col_type = features[col] if features else None
-            col_try_type = try_features[col] if try_features is not None and col in try_features else None
-            typed_sequence = OptimizedTypedSequence(batch_examples[col], type=col_type, try_type=col_try_type, col=col)
-            arrays.append(pa.array(typed_sequence))
-            inferred_features[col] = typed_sequence.get_inferred_type()
+            if isinstance(col_values, (pa.Array, pa.ChunkedArray)):
+                array = cast_array_to_feature(col_values, col_type) if col_type is not None else col_values
+                arrays.append(array)
+                inferred_features[col] = generate_from_arrow_type(col_values.type)
+            else:
+                col_try_type = try_features[col] if try_features is not None and col in try_features else None
+                typed_sequence = OptimizedTypedSequence(col_values, type=col_type, try_type=col_try_type, col=col)
+                arrays.append(pa.array(typed_sequence))
+                inferred_features[col] = typed_sequence.get_inferred_type()
         schema = inferred_features.arrow_schema if self.pa_writer is None else self.schema
         pa_table = pa.Table.from_arrays(arrays, schema=schema)
         self.write_table(pa_table, writer_batch_size)
