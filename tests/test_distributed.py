@@ -83,7 +83,7 @@ def test_torch_distributed_launch(streaming):
     ],
 )
 @require_torch
-@pytest.mark.skipif(os.name == 'nt')
+@pytest.mark.skipif(os.name == "nt")
 @pytest.mark.integration
 def test_torch_distributed_launch_streaming_with_num_workers(nproc_per_node, num_workers):
     streaming = True
