@@ -3132,13 +3132,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 validate_function_output(processed_inputs, indices)
             if not update_data:
                 return None  # Nothing to update, let's move on
+            if self._format_type or input_columns:
+                inputs_to_merge = {k: v for k, v in zip(pa_inputs.column_names, pa_inputs.itercolumns())}
+            elif isinstance(inputs, LazyDict):
+                inputs_to_merge = {
+                    k: (v if k not in inputs.keys_to_format else pa_inputs[k]) for k, v in inputs.data.items()
+                }
+            else:
+                inputs_to_merge = inputs
             if remove_columns is not None:
-                pa_inputs = pa_inputs.select(
-                    [i for i, column in enumerate(pa_inputs.column_names) if column not in remove_columns]
-                )
-                if returned_lazy_dict:
-                    processed_inputs = {k: v for k, v in processed_inputs.items() if k not in remove_columns}
-            pa_inputs_dict = {k: v for k, v in zip(pa_inputs.column_names, pa_inputs.itercolumns())}
+                for column in remove_columns:
+                    # `function` can modify input in-place causing column to be already removed.
+                    if column in inputs_to_merge:
+                        inputs_to_merge.pop(column)
+                    if returned_lazy_dict and column in processed_inputs:
+                        processed_inputs.pop(column)
             if check_same_num_examples:
                 input_num_examples = len(pa_inputs)
                 processed_inputs_num_examples = len(processed_inputs[next(iter(processed_inputs.keys()))])
@@ -3147,8 +3155,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if isinstance(inputs, Mapping) and isinstance(processed_inputs, Mapping):
                 # The .map() transform *updates* the dataset:
                 # the output dictionary contains both the the input data and the output data.
-                # The output dictionary may contain Arrow values from `pa_inputs_dict` so that we can re-write them efficiently.
-                return {**pa_inputs_dict, **processed_inputs}
+                # The output dictionary may contain Arrow values from `inputs_to_merge` so that we can re-write them efficiently.
+                return {**inputs_to_merge, **processed_inputs}
             else:
                 return processed_inputs
 
