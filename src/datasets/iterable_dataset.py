@@ -804,7 +804,7 @@ class IterableDataset(DatasetInfoMixin):
         _maybe_add_torch_iterable_dataset_parent_class(self.__class__)
 
     def _head(self, n=5):
-        return _examples_to_batch([x for key, x in islice(self._iter(), n)])
+        return _examples_to_batch(list(self.take(n)))
 
     def _effective_generator(self):
         if self._shuffling and self._epoch == 0:
