@@ -3133,6 +3133,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if not update_data:
                 return None  # Nothing to update, let's move on
             if self._format_type or input_columns:
+                # TODO(QL, MS): ideally the behavior should be the same even if the dataset is formatted (may require major release)
                 inputs_to_merge = {k: v for k, v in zip(pa_inputs.column_names, pa_inputs.itercolumns())}
             elif isinstance(inputs, LazyDict):
                 inputs_to_merge = {
