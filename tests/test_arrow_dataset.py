@@ -4211,7 +4211,7 @@ def test_map_cases(return_lazy_dict):
     ds = Dataset.from_dict({"a": [0, 1, 2, 3]})
     ds = ds.map(f, remove_columns=["a"])
     outputs = ds[:]
-    assert outputs == {"a": [-1, -1, 2, 3]}
+    assert outputs == ({"a": [-1, -1, 2, 3]} if return_lazy_dict is False else {})
 
     def f(x):
         """May return a mix of LazyDict and regular Dict, but using an extension type"""
