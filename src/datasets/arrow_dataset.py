@@ -3121,11 +3121,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if with_rank:
                 additional_args += (rank,)
             processed_inputs = function(*fn_args, *additional_args, **fn_kwargs)
-            processed_inputs, returned_lazy_dict = (
-                ({k: v for k, v in processed_inputs.data.items() if k not in processed_inputs.keys_to_format}, True)
-                if isinstance(processed_inputs, LazyDict)
-                else (processed_inputs, False)
-            )
+            if isinstance(processed_inputs, LazyDict):
+                processed_inputs = {
+                    k: v for k, v in processed_inputs.data.items() if k not in processed_inputs.keys_to_format
+                }
+                returned_lazy_dict = True
+            else:
+                returned_lazy_dict = False
             if update_data is None:
                 # Check if the function returns updated examples
                 update_data = isinstance(processed_inputs, (Mapping, pa.Table))
