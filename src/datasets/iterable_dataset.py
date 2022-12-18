@@ -608,10 +608,7 @@ class SkipExamplesIterable(_BaseExamplesIterable):
         self.n = n
 
     def __iter__(self):
-        ex_iterator = iter(self.ex_iterable)
-        for _ in islice(ex_iterator, self.n):
-            pass
-        yield from ex_iterator
+        yield from islice(self.ex_iterable, self.n, None)
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "SkipExamplesIterable":
         """Doesn't shuffle the wrapped examples iterable since it would skip examples from other shards instead."""
