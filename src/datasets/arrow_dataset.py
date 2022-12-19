@@ -111,7 +111,7 @@ from .utils.info_utils import is_small_dataset
 from .utils.metadata import DatasetMetadata
 from .utils.py_utils import asdict, convert_file_size_to_int, iflatmap_unordered, unique_values
 from .utils.stratify import stratified_shuffle_split_generate_indices
-from .utils.tf_utils import minimal_tf_collate_fn
+from .utils.tf_utils import dataset_to_tf, minimal_tf_collate_fn, multiprocess_dataset_to_tf
 from .utils.typing import PathLike
 
 
@@ -312,6 +312,7 @@ class TensorflowDatasetMixin:
         collate_fn_args: Optional[Dict[str, Any]] = None,
         label_cols: Optional[Union[str, List[str]]] = None,
         prefetch: bool = True,
+        num_workers: int = 0,
     ):
         """Create a `tf.data.Dataset` from the underlying Dataset. This `tf.data.Dataset` will load and collate batches from
         the Dataset, and is suitable for passing to methods like `model.fit()` or `model.predict()`. The dataset will yield
@@ -424,55 +425,31 @@ class TensorflowDatasetMixin:
             if col not in output_signature:
                 raise ValueError(f"Label column {col} not found in dataset!")
 
-        def np_get_batch(indices):
-            # Optimization - if we're loading a sequential batch, do it with slicing instead of a list of indices
-            if np.all(np.diff(indices) == 1):
-                batch = dataset[indices[0] : indices[-1] + 1]
-            else:
-                batch = dataset[indices]
-
-            if cols_to_retain is not None:
-                batch = {
-                    key: value
-                    for key, value in batch.items()
-                    if key in cols_to_retain or key in ("label", "label_ids", "labels")
-                }
-            elif cols_to_retain is not None:
-                batch = {key: value for key, value in batch.items() if key in cols_to_retain}
-
-            actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
-            # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
-            batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
-            batch = collate_fn(batch, **collate_fn_args)
-            out_batch = []
-            for col, cast_dtype in columns_to_np_types.items():
-                # In case the collate_fn returns something strange
-                array = np.array(batch[col])
-                array = array.astype(cast_dtype)
-                out_batch.append(array)
-            return out_batch
-
-        @tf.function(input_signature=[tf.TensorSpec(None, tf.int64)])
-        def fetch_function(indices):
-            output = tf.numpy_function(
-                np_get_batch,
-                inp=[indices],
-                # This works because dictionaries always output in the same order
-                Tout=[tf.dtypes.as_dtype(dtype) for dtype in columns_to_np_types.values()],
+        if num_workers <= 0:
+            tf_dataset = dataset_to_tf(
+                dataset=dataset,
+                cols_to_retain=cols_to_retain,
+                collate_fn=collate_fn,
+                collate_fn_args=collate_fn_args,
+                columns_to_np_types=columns_to_np_types,
+                output_signature=output_signature,
+                shuffle=shuffle,
+                batch_size=batch_size,
+                drop_remainder=drop_remainder,
             )
-            return {key: output[i] for i, key in enumerate(columns_to_np_types.keys())}
-
-        tf_dataset = tf.data.Dataset.from_tensor_slices(np.arange(len(dataset), dtype=np.int64))
-
-        if shuffle:
-            tf_dataset = tf_dataset.shuffle(len(dataset))
-
-        tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder).map(fetch_function)
-
-        def ensure_shapes(input_dict):
-            return {key: tf.ensure_shape(val, output_signature[key].shape) for key, val in input_dict.items()}
-
-        tf_dataset = tf_dataset.map(ensure_shapes)
+        else:
+            tf_dataset = multiprocess_dataset_to_tf(
+                dataset=dataset,
+                cols_to_retain=cols_to_retain,
+                collate_fn=collate_fn,
+                collate_fn_args=collate_fn_args,
+                columns_to_np_types=columns_to_np_types,
+                output_signature=output_signature,
+                shuffle=shuffle,
+                batch_size=batch_size,
+                drop_remainder=drop_remainder,
+                num_workers=num_workers,
+            )
 
         def split_features_and_labels(input_batch):
             # TODO(Matt, QL): deprecate returning the dict content when there's only one key
