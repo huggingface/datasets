@@ -33,6 +33,7 @@ from typing import Dict, Iterable, Mapping, Optional, Tuple, Union
 
 import fsspec
 from multiprocess import Pool
+from packaging import version
 from tqdm.contrib.concurrent import thread_map
 
 from . import config, utils
@@ -1863,13 +1864,20 @@ class MissingBeamOptions(ValueError):
 class BeamBasedBuilder(DatasetBuilder):
     """Beam-based Builder."""
 
+    # Default batch size used by the BeamWriter
+    # It defines the number of samples that are kept in memory before writing them
+    # and also the length of the arrow chunks
+    # None means that the write transform will use its default value
+    DEFAULT_WRITER_BATCH_SIZE = None
+
     # BeamBasedBuilder does not have dummy data for tests yet
     test_dummy_data = False
 
-    def __init__(self, *args, beam_runner=None, beam_options=None, **kwargs):
+    def __init__(self, *args, beam_runner=None, beam_options=None, writer_batch_size=None, **kwargs):
         self._beam_runner = beam_runner
         self._beam_options = beam_options
         self._beam_writers = {}  # {split: beam_writer} mapping.
+        self._writer_batch_size = writer_batch_size
         super().__init__(*args, **kwargs)
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
@@ -2004,18 +2012,25 @@ class BeamBasedBuilder(DatasetBuilder):
     ):
         import apache_beam as beam
 
-        if max_shard_size is not None:
-            raise NotImplementedError(
-                "max_shard_size is not supported for Beam datasets."
-                "Please set it to None to use the default Apache Beam sharding and get the best performance."
-            )
+        if max_shard_size is not None and config.BEAM_VERSION < version.parse("2.41.0"):
+            raise NotImplementedError("`apache_beam>=2.41.0` is required to use max_shard_size")
+        else:
+            max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
 
         # To write examples in filesystem:
         split_name = split_generator.split_info.name
         fname = f"{self.name}-{split_name}.{file_format}"
         path_join = os.path.join if not is_remote_filesystem(self._fs) else posixpath.join
         fpath = path_join(self._output_dir, fname)
-        beam_writer = BeamWriter(features=self.info.features, path=fpath, namespace=split_name)
+        embed_local_files = file_format == "parquet"
+        beam_writer = BeamWriter(
+            features=self.info.features,
+            path=fpath,
+            namespace=split_name,
+            writer_batch_size=self._writer_batch_size,
+            embed_local_files=embed_local_files,
+            max_bytes_per_shard=max_shard_size,
+        )
         self._beam_writers[split_name] = beam_writer
 
         encode_example = self.info.features.encode_example
@@ -2024,7 +2039,7 @@ class BeamBasedBuilder(DatasetBuilder):
         # same label names for each split
         @beam.ptransform_fn
         def _build_pcollection(pipeline):
-            """PTransformation which build a single split."""
+            """PTransform which builds a single split."""
             # Encode the PCollection
             pcoll_examples = self._build_pcollection(pipeline, **split_generator.gen_kwargs)
             pcoll_examples |= "Encode" >> beam.Map(lambda key_ex: (key_ex[0], encode_example(key_ex[1])))

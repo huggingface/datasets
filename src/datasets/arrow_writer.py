@@ -610,6 +610,10 @@ class BeamWriter:
         schema: Optional[pa.Schema] = None,
         path: Optional[str] = None,
         namespace: Optional[str] = None,
+        writer_batch_size: Optional[int] = None,
+        with_metadata: bool = True,
+        embed_local_files: bool = False,
+        max_bytes_per_shard: Optional[int] = None,
     ):
         if features is None and schema is None:
             raise ValueError("At least one of features and schema must be provided.")
@@ -627,17 +631,25 @@ class BeamWriter:
         self._path_root, self._path_ext = os.path.splitext(path)
         self._namespace = namespace or "default"
         self._num_examples = None
+        self._writer_batch_size = writer_batch_size
+        self._with_metadata = with_metadata
+        self._embed_local_files = embed_local_files
+        self._max_bytes_per_shard = max_bytes_per_shard
 
     def write_from_pcollection(self, pcoll_examples):
         """Add the final steps of the beam pipeline: write to arrow/parquet files."""
         import apache_beam as beam
 
-        from .utils.beam_utils import WriteToArrow
+        from .utils.beam_utils import WriteToArrow, WriteToParquet
 
         def inc_num_examples(example):
             beam.metrics.Metrics.counter(self._namespace, "num_examples").inc()
 
-        write_transform = WriteToArrow if self._path_ext == ".arrow" else beam.io.parquetio.WriteToParquet
+        write_transform = WriteToArrow if self._path_ext == ".arrow" else WriteToParquet
+
+        writer_batch_size_kwargs = {}
+        if self._writer_batch_size is not None:
+            writer_batch_size_kwargs = {"row_group_buffer_size": 1, "record_batch_size": self._writer_batch_size}
 
         # count examples
         _ = pcoll_examples | "Count N. Examples" >> beam.Map(inc_num_examples)
@@ -647,7 +659,15 @@ class BeamWriter:
             pcoll_examples
             | "Get values" >> beam.Values()
             | f"Save to {self._path_ext[1:]}"
-            >> write_transform(self._path_root, self._schema, shard_name_template="-SSSSS-of-NNNNN" + self._path_ext)
+            >> write_transform(
+                self._path_root,
+                self._features,
+                shard_name_template="-SSSSS-of-NNNNN" + self._path_ext,
+                with_metadata=self._with_metadata,
+                embed_local_files=self._embed_local_files,
+                max_bytes_per_shard=self._max_bytes_per_shard,
+                **writer_batch_size_kwargs,
+            )
         )
 
     def finalize(self, metrics_query_result: dict):
@@ -690,6 +710,6 @@ class BeamWriter:
                 shard_lengths.append(arrow_file_length)
         else:
             for source in logging.tqdm(sources, unit=unit, disable=disable):
-                parquet_file = pa.parquet.ParquetFile(source)
+                parquet_file = pq.ParquetFile(source)
                 shard_lengths.append(parquet_file.metadata.num_rows)
         return shard_lengths

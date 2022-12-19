@@ -5,6 +5,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 import pyarrow as pa
+import pyarrow.parquet as pq
 
 import datasets
 import datasets.config
@@ -60,7 +61,7 @@ def get_test_nested_examples():
     return [(i, {"a": {"b": [content]}}) for i, content in enumerate(["foo", "bar", "foobar"])]
 
 
-class WriteToArrowTransformTest(TestCase):
+class WriteTransformTest(TestCase):
     RECORDS = [
         {"name": "Henry", "favorite_number": 3, "favorite_color": "green"},
         {"name": "Toby", "favorite_number": 7, "favorite_color": "brown"},
@@ -78,11 +79,12 @@ class WriteToArrowTransformTest(TestCase):
             path = os.path.join(tmp_dir, "records.arrow")
             path_root, path_ext = os.path.splitext(path)
             schema = pa.schema({"name": pa.string(), "favorite_number": pa.int64(), "favorite_color": pa.string()})
+            features = datasets.Features.from_arrow_schema(schema)
             with TestPipeline() as p:
                 _ = (
                     p
                     | Create(self.RECORDS)
-                    | WriteToArrow(path_root, schema, shard_name_template="-S-of-N", file_name_suffix=path_ext)
+                    | WriteToArrow(path_root, features, shard_name_template="-S-of-N", file_name_suffix=path_ext)
                 )
 
             with pa.input_stream(path_root + "-0-of-1" + path_ext) as stream:
@@ -94,6 +96,31 @@ class WriteToArrowTransformTest(TestCase):
                         self.assertEqual(
                             pa_table[column_name].to_pylist(), [record[column_name] for record in self.RECORDS]
                         )
+
+    @require_beam
+    def test_write_to_parquet(self):
+        from apache_beam import Create
+        from apache_beam.testing.test_pipeline import TestPipeline
+
+        from datasets.utils.beam_utils import WriteToParquet
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            path = os.path.join(tmp_dir, "records.parquet")
+            path_root, path_ext = os.path.splitext(path)
+            schema = pa.schema({"name": pa.string(), "favorite_number": pa.int64(), "favorite_color": pa.string()})
+            features = datasets.Features.from_arrow_schema(schema)
+            with TestPipeline() as p:
+                _ = (
+                    p
+                    | Create(self.RECORDS)
+                    | WriteToParquet(path_root, features, shard_name_template="-S-of-N", file_name_suffix=path_ext)
+                )
+
+            pa_table = pq.read_table(path_root + "-0-of-1" + path_ext)
+            self.assertEqual(pa_table.schema, schema)
+            self.assertEqual(len(pa_table), len(self.RECORDS))
+            for column_name in pa_table.column_names:
+                self.assertEqual(pa_table[column_name].to_pylist(), [record[column_name] for record in self.RECORDS])
 
 
 class BeamBuilderTest(TestCase):
