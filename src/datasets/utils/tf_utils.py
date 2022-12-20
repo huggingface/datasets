@@ -19,6 +19,7 @@ from math import ceil
 import numpy as np
 import pyarrow as pa
 from multiprocess import get_context
+import os
 
 from .. import config
 
@@ -204,10 +205,12 @@ class NumpyMultiprocessingGenerator:
     def worker_loop(
         dataset, cols_to_retain, collate_fn, collate_fn_args, columns_to_np_types, queue, indices, extra_batch
     ):
+
         if config.TF_AVAILABLE:
             import tensorflow as tf
         else:
-            raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")  #
+            raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
+        tf.config.set_visible_devices([], 'GPU')  # Remember never to call this in the main process!
 
         def get_batch(indices):
             # Optimization - if we're loading a sequential batch, do it with slicing instead of a list of indices
