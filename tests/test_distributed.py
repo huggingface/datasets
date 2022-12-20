@@ -57,6 +57,7 @@ def test_split_dataset_by_node_iterable_sharded(shards_per_node):
 
 @pytest.mark.parametrize("streaming", [False, True])
 @require_torch
+@pytest.mark.skipif(os.name == "nt", reason="execute_subprocess_async doesn't support windows")
 @pytest.mark.integration
 def test_torch_distributed_launch(streaming):
     nproc_per_node = 2
@@ -83,7 +84,7 @@ def test_torch_distributed_launch(streaming):
     ],
 )
 @require_torch
-@pytest.mark.skipif(os.name == "nt")
+@pytest.mark.skipif(os.name == "nt", reason="execute_subprocess_async doesn't support windows")
 @pytest.mark.integration
 def test_torch_distributed_launch_streaming_with_num_workers(nproc_per_node, num_workers):
     streaming = True
