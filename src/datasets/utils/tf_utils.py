@@ -195,7 +195,7 @@ class NumpyMultiprocessingGenerator:
             for i in range(num_workers):
                 batch = worker_queues[i].get()
                 if isinstance(batch, str) and batch == "DONE":
-                    raise StopIteration
+                    return
                 yield batch
 
     def __call__(self):

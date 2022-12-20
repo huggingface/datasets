@@ -2581,7 +2581,7 @@ class BaseDatasetTest(TestCase):
             with self._create_dummy_dataset(in_memory, tmp_dir.name, array_features=True) as dset:
                 tf_dataset = dset.to_tf_dataset(columns="col_3", batch_size=2, num_workers=num_workers)
                 batch = next(iter(tf_dataset))
-                self.assertEqual(batch.shape.as_list(), [4, 4])
+                self.assertEqual(batch.shape.as_list(), [2, 4])
                 self.assertEqual(batch.dtype.name, "int64")
             with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
                 tf_dataset = dset.to_tf_dataset(columns="col_1", batch_size=2, num_workers=num_workers)
@@ -2592,8 +2592,8 @@ class BaseDatasetTest(TestCase):
                 # Check that it works with all default options (except batch_size because the dummy dataset only has 4)
                 tf_dataset = dset.to_tf_dataset(batch_size=2, num_workers=num_workers)
                 batch = next(iter(tf_dataset))
-                self.assertEqual(batch["col_1"].shape.as_list(), [4])
-                self.assertEqual(batch["col_2"].shape.as_list(), [4])
+                self.assertEqual(batch["col_1"].shape.as_list(), [2])
+                self.assertEqual(batch["col_2"].shape.as_list(), [2])
                 self.assertEqual(batch["col_1"].dtype.name, "int64")
                 self.assertEqual(batch["col_2"].dtype.name, "string")  # Assert that we're converting strings properly
             with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
@@ -2603,12 +2603,30 @@ class BaseDatasetTest(TestCase):
                 transform_dset = dset.with_transform(
                     lambda x: {"new_col": [val * 2 for val in x["col_1"]], "col_1": x["col_1"]}
                 )
-                tf_dataset = transform_dset.to_tf_dataset(columns="new_col", batch_size=4, num_workers=num_workers)
+                tf_dataset = transform_dset.to_tf_dataset(columns="new_col", batch_size=2, num_workers=num_workers)
                 batch = next(iter(tf_dataset))
-                self.assertEqual(batch.shape.as_list(), [4])
+                self.assertEqual(batch.shape.as_list(), [2])
                 self.assertEqual(batch.dtype.name, "int64")
                 del transform_dset
         del tf_dataset  # For correct cleanup
+
+    @require_tf
+    def test_tf_index_reshuffling(self, in_memory):
+        # This test checks that when we do two epochs over a tf.data.Dataset from to_tf_dataset
+        # that we get a different shuffle order each time
+        data = {"col_1": list(range(20))}
+        for num_workers in [0, 1, 2, 3]:
+            with Dataset.from_dict(data) as dset:
+                tf_dataset = dset.to_tf_dataset(batch_size=10, shuffle=True, num_workers=num_workers)
+                indices = []
+                for batch in tf_dataset:
+                    indices.append(batch['col_1'])
+                indices = np.concatenate([arr.numpy() for arr in indices])
+                second_indices = []
+                for batch in tf_dataset:
+                    second_indices.append(batch['col_1'])
+                second_indices = np.concatenate([arr.numpy() for arr in second_indices])
+                self.assertFalse(np.array_equal(indices, second_indices))
 
     @require_tf
     def test_tf_label_renaming(self, in_memory):
