@@ -15,10 +15,10 @@
 """TF-specific utils import."""
 
 from math import ceil
-from multiprocessing import get_context
 
 import numpy as np
 import pyarrow as pa
+from multiprocess import get_context
 
 from .. import config
 
@@ -180,7 +180,6 @@ class NumpyMultiprocessingGenerator:
             self.collate_fn_args,
             self.columns_to_np_types,
         ]
-
         for i in range(num_workers):
             worker_args = [*base_args, worker_queues[i], per_worker_batches[i]]
             if i == final_batch_worker:

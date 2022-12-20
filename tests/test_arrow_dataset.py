@@ -2586,7 +2586,7 @@ class BaseDatasetTest(TestCase):
             with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
                 tf_dataset = dset.to_tf_dataset(columns="col_1", batch_size=2, num_workers=num_workers)
                 batch = next(iter(tf_dataset))
-                self.assertEqual(batch.shape.as_list(), [4])
+                self.assertEqual(batch.shape.as_list(), [2])
                 self.assertEqual(batch.dtype.name, "int64")
             with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
                 # Check that it works with all default options (except batch_size because the dummy dataset only has 4)
@@ -2620,11 +2620,11 @@ class BaseDatasetTest(TestCase):
                 tf_dataset = dset.to_tf_dataset(batch_size=10, shuffle=True, num_workers=num_workers)
                 indices = []
                 for batch in tf_dataset:
-                    indices.append(batch['col_1'])
+                    indices.append(batch["col_1"])
                 indices = np.concatenate([arr.numpy() for arr in indices])
                 second_indices = []
                 for batch in tf_dataset:
-                    second_indices.append(batch['col_1'])
+                    second_indices.append(batch["col_1"])
                 second_indices = np.concatenate([arr.numpy() for arr in second_indices])
                 self.assertFalse(np.array_equal(indices, second_indices))
 
