@@ -261,6 +261,7 @@ class NumpyMultiprocessingGenerator:
             final_batches = indices[-(len(indices) % num_workers) :]
         else:
             final_batches = []
+        indices = indices[: -(len(indices) % num_workers)]
         indices = indices.reshape(-1, num_workers, batch_size)
         per_worker_indices = np.split(indices, indices.shape[1], axis=1)
         per_worker_indices = [np.squeeze(worker_indices, 1) for worker_indices in per_worker_indices]
