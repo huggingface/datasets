@@ -2577,36 +2577,37 @@ class BaseDatasetTest(TestCase):
     @require_tf
     def test_tf_dataset_conversion(self, in_memory):
         tmp_dir = tempfile.TemporaryDirectory()
-        with self._create_dummy_dataset(in_memory, tmp_dir.name, array_features=True) as dset:
-            tf_dataset = dset.to_tf_dataset(columns="col_3", batch_size=4)
-            batch = next(iter(tf_dataset))
-            self.assertEqual(batch.shape.as_list(), [4, 4])
-            self.assertEqual(batch.dtype.name, "int64")
-        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
-            tf_dataset = dset.to_tf_dataset(columns="col_1", batch_size=4)
-            batch = next(iter(tf_dataset))
-            self.assertEqual(batch.shape.as_list(), [4])
-            self.assertEqual(batch.dtype.name, "int64")
-        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
-            # Check that it works with all default options (except batch_size because the dummy dataset only has 4)
-            tf_dataset = dset.to_tf_dataset(batch_size=4)
-            batch = next(iter(tf_dataset))
-            self.assertEqual(batch["col_1"].shape.as_list(), [4])
-            self.assertEqual(batch["col_2"].shape.as_list(), [4])
-            self.assertEqual(batch["col_1"].dtype.name, "int64")
-            self.assertEqual(batch["col_2"].dtype.name, "string")  # Assert that we're converting strings properly
-        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
-            # Check that when we use a transform that creates a new column from existing column values
-            # but don't load the old columns that the new column depends on in the final dataset,
-            # that they're still kept around long enough to be used in the transform
-            transform_dset = dset.with_transform(
-                lambda x: {"new_col": [val * 2 for val in x["col_1"]], "col_1": x["col_1"]}
-            )
-            tf_dataset = transform_dset.to_tf_dataset(columns="new_col", batch_size=4)
-            batch = next(iter(tf_dataset))
-            self.assertEqual(batch.shape.as_list(), [4])
-            self.assertEqual(batch.dtype.name, "int64")
-            del transform_dset
+        for num_workers in [0, 1, 2]:
+            with self._create_dummy_dataset(in_memory, tmp_dir.name, array_features=True) as dset:
+                tf_dataset = dset.to_tf_dataset(columns="col_3", batch_size=2, num_workers=num_workers)
+                batch = next(iter(tf_dataset))
+                self.assertEqual(batch.shape.as_list(), [4, 4])
+                self.assertEqual(batch.dtype.name, "int64")
+            with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+                tf_dataset = dset.to_tf_dataset(columns="col_1", batch_size=2, num_workers=num_workers)
+                batch = next(iter(tf_dataset))
+                self.assertEqual(batch.shape.as_list(), [4])
+                self.assertEqual(batch.dtype.name, "int64")
+            with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+                # Check that it works with all default options (except batch_size because the dummy dataset only has 4)
+                tf_dataset = dset.to_tf_dataset(batch_size=2, num_workers=num_workers)
+                batch = next(iter(tf_dataset))
+                self.assertEqual(batch["col_1"].shape.as_list(), [4])
+                self.assertEqual(batch["col_2"].shape.as_list(), [4])
+                self.assertEqual(batch["col_1"].dtype.name, "int64")
+                self.assertEqual(batch["col_2"].dtype.name, "string")  # Assert that we're converting strings properly
+            with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+                # Check that when we use a transform that creates a new column from existing column values
+                # but don't load the old columns that the new column depends on in the final dataset,
+                # that they're still kept around long enough to be used in the transform
+                transform_dset = dset.with_transform(
+                    lambda x: {"new_col": [val * 2 for val in x["col_1"]], "col_1": x["col_1"]}
+                )
+                tf_dataset = transform_dset.to_tf_dataset(columns="new_col", batch_size=4, num_workers=num_workers)
+                batch = next(iter(tf_dataset))
+                self.assertEqual(batch.shape.as_list(), [4])
+                self.assertEqual(batch.dtype.name, "int64")
+                del transform_dset
         del tf_dataset  # For correct cleanup
 
     @require_tf
