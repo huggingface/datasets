@@ -287,7 +287,7 @@ def test_classlabel_init(tmp_path_factory):
         classlabel = ClassLabel(names=names, names_file=names_file)
     with pytest.raises(ValueError):
         classlabel = ClassLabel()
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         classlabel = ClassLabel(names=np.array(names))
 
 

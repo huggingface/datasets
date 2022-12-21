@@ -946,7 +946,7 @@ class ClassLabel:
             else:
                 raise ValueError("Please provide either num_classes, names or names_file.")
         elif not isinstance(self.names, SequenceABC):
-            raise ValueError(f"Please provide names as a list, is {type(self.names)}")
+            raise TypeError(f"Please provide names as a list, is {type(self.names)}")
         # Set self.num_classes
         if self.num_classes is None:
             self.num_classes = len(self.names)
