@@ -14,12 +14,14 @@
 
 """TF-specific utils import."""
 
+import logging
+import os
 from math import ceil
+from time import sleep
 
 import numpy as np
 import pyarrow as pa
-from multiprocess import get_context
-import os
+from multiprocess import Process, get_context
 
 from .. import config
 
@@ -166,35 +168,41 @@ class NumpyMultiprocessingGenerator:
 
     def __iter__(self):
         # Make sure we only spawn workers if they have work to do
-        num_workers = min(self.num_workers, ceil(len(self.dataset) / self.batch_size))
+        num_workers = min(self.num_workers, int(ceil(len(self.dataset) / self.batch_size)))
         # Do the shuffling in iter so that it's done at the start of each epoch
         per_worker_batches, final_batch, final_batch_worker = self.distribute_batches(
             self.dataset, self.batch_size, self.drop_remainder, num_workers, self.shuffle
         )
         ctx = get_context("spawn")
-        worker_queues = [ctx.Queue(maxsize=5) for _ in range(num_workers)]
+        worker_queues = []
         workers = []
-        base_args = [
+        base_args = (
             self.dataset,
             self.cols_to_retain,
             self.collate_fn,
             self.collate_fn_args,
             self.columns_to_np_types,
-        ]
+        )
         for i in range(num_workers):
-            worker_args = [*base_args, worker_queues[i], per_worker_batches[i]]
-            if i == final_batch_worker:
-                worker_args.append(final_batch)
+            queue = ctx.Queue(maxsize=3)
+            worker_indices = per_worker_batches[i]
+            if i == final_batch_worker and final_batch is not None:
+                final_batch_arg = final_batch
             else:
-                worker_args.append(None)
-            worker_args = tuple(worker_args)
-            worker = ctx.Process(target=self.worker_loop, args=worker_args, daemon=True)
+                final_batch_arg = None
+            worker_kwargs = {"queue": queue, "indices": worker_indices, "extra_batch": final_batch_arg}
+            worker = ctx.Process(target=self.worker_loop, args=base_args, kwargs=worker_kwargs, daemon=True)
             worker.start()
             workers.append(worker)
+            worker_queues.append(queue)
+
         while True:
             for i in range(num_workers):
                 batch = worker_queues[i].get()
                 if isinstance(batch, str) and batch == "DONE":
+                    for worker in workers:
+                        worker.join()
+                        worker.close()
                     return
                 yield batch
 
@@ -205,12 +213,9 @@ class NumpyMultiprocessingGenerator:
     def worker_loop(
         dataset, cols_to_retain, collate_fn, collate_fn_args, columns_to_np_types, queue, indices, extra_batch
     ):
+        import tensorflow as tf
 
-        if config.TF_AVAILABLE:
-            import tensorflow as tf
-        else:
-            raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
-        tf.config.set_visible_devices([], 'GPU')  # Remember never to call this in the main process!
+        tf.config.set_visible_devices([], "GPU")  # Make sure workers don't try to allocate GPU memory
 
         def get_batch(indices):
             # Optimization - if we're loading a sequential batch, do it with slicing instead of a list of indices
@@ -240,11 +245,10 @@ class NumpyMultiprocessingGenerator:
                 out_batch[col] = array
             return out_batch
 
-        with tf.device("/cpu:0"):
-            for batch in indices:
-                queue.put(get_batch(batch))
-            if extra_batch is not None:
-                queue.put(get_batch(extra_batch))
+        for batch in indices:
+            queue.put(get_batch(batch))
+        if extra_batch is not None:
+            queue.put(get_batch(extra_batch))
         queue.put("DONE")
 
     @staticmethod
@@ -258,13 +262,14 @@ class NumpyMultiprocessingGenerator:
             last_incomplete_batch = None
         else:
             last_incomplete_batch = [indices[len(indices) // batch_size * batch_size :]]
-        indices = indices[: len(indices) // batch_size * batch_size]
+        if len(indices) % batch_size != 0:
+            indices = indices[: -(len(indices) % batch_size)]
         indices = indices.reshape(-1, batch_size)
         if len(indices) % num_workers != 0:
             final_batches = indices[-(len(indices) % num_workers) :]
+            indices = indices[: -(len(indices) % num_workers)]
         else:
             final_batches = []
-        indices = indices[: -(len(indices) % num_workers)]
         indices = indices.reshape(-1, num_workers, batch_size)
         per_worker_indices = np.split(indices, indices.shape[1], axis=1)
         per_worker_indices = [np.squeeze(worker_indices, 1) for worker_indices in per_worker_indices]
@@ -308,4 +313,9 @@ def multiprocess_dataset_to_tf(
         num_workers,
     )
 
-    return tf.data.Dataset.from_generator(data_generator, output_signature=output_signature)
+    tf_dataset = tf.data.Dataset.from_generator(data_generator, output_signature=output_signature)
+    if drop_remainder:
+        dataset_length = int(len(dataset) // batch_size)
+    else:
+        dataset_length = int(ceil(len(dataset) / batch_size))
+    return tf_dataset.apply(tf.data.experimental.assert_cardinality(dataset_length))

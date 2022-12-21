@@ -211,7 +211,7 @@ class TensorflowDatasetMixin:
         collate_fn_args: dict,
         cols_to_retain: Optional[List[str]] = None,
         batch_size: Optional[int] = None,
-        num_test_batches: int = 200,
+        num_test_batches: int = 20,
     ):
         """Private method used by `to_tf_dataset()` to find the shapes and dtypes of samples from this dataset
            after being passed through the collate_fn. Tensorflow needs an exact signature for tf.numpy_function, so
@@ -243,7 +243,7 @@ class TensorflowDatasetMixin:
             raise ValueError("Unable to get the output signature because the dataset is empty.")
         if batch_size is not None:
             batch_size = min(len(dataset), batch_size)
-        test_batch_size = min(len(dataset), 2)
+        test_batch_size = 1
 
         if cols_to_retain is not None:
             cols_to_retain = list(set(cols_to_retain + ["label_ids", "label", "labels"]))

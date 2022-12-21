@@ -2628,6 +2628,14 @@ class BaseDatasetTest(TestCase):
                 second_indices = np.concatenate([arr.numpy() for arr in second_indices])
                 self.assertFalse(np.array_equal(indices, second_indices))
 
+                tf_dataset = dset.to_tf_dataset(batch_size=1, shuffle=False, num_workers=num_workers)
+                last_index = None
+                for batch in tf_dataset:
+                    # Assert that the unshuffled order is fully preserved even when multiprocessing
+                    if last_index is not None:
+                        self.assertEqual(last_index + 1, batch["col_1"].numpy())
+                    last_index = batch["col_1"].numpy()
+
     @require_tf
     def test_tf_label_renaming(self, in_memory):
         # Protect TF-specific imports in here
