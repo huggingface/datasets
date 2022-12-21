@@ -14,14 +14,11 @@
 
 """TF-specific utils import."""
 
-import logging
-import os
 from math import ceil
-from time import sleep
 
 import numpy as np
 import pyarrow as pa
-from multiprocess import Process, get_context
+from multiprocess import get_context
 
 from .. import config
 
