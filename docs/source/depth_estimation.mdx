@@ -1,7 +1,7 @@
 # Depth estimation
 
 Depth estimation datasets are used to train a model to approximate the relative distance of every pixel in an
-image from the camera aka depth. The applications enabled by these datasets mostly lie in areas like visual machine
+image from the camera, also known as depth. The applications enabled by these datasets primarily lie in areas like visual machine
 perception and perception in robotics. This guide will show you how to apply transformations
 to a depth estimation dataset.
 
@@ -16,8 +16,7 @@ for computer vision. It supports various computer vision tasks such as image cla
 detection, segmentation, and keypoint estimation.
 
 This guide uses the [NYU Depth V2](https://huggingface.co/datasets/sayakpaul/nyu_depth_v2) dataset which is 
-comprised of video sequences from a variety of indoor scenes as recorded by both the RGB and Depth cameras
-from the Microsoft [Kinect](http://www.xbox.com/kinect). The dataset consists of scenes from 3 cities and provides images along with
+comprised of video sequences from various indoor scenes, recorded by RGB and depth cameras. The dataset consists of scenes from 3 cities and provides images along with
 their depth maps as labels.
 
 Load the `train` split of the dataset and take a look at an example:
@@ -32,7 +31,7 @@ Load the `train` split of the dataset and take a look at an example:
  'depth_map': <PIL.PngImagePlugin.PngImageFile image mode=L size=640x480>}
 ```
 
-The dataset has three fields:
+The dataset has two fields:
 
 * `image`: a PIL image object.
 * `depth_map`: depth map of the image.
@@ -47,7 +46,7 @@ Next, check out an image with:
     <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/depth_est_sample.png">
 </div>
 
-Similarly, you can check out the respective depth map:
+Now take a look at its corresponding depth map:
 
 ```py
 >>> train_dataset[index]["depth_map"]
@@ -57,7 +56,7 @@ Similarly, you can check out the respective depth map:
     <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/depth_est_target.png">
 </div>
 
-It's all black! You need to apply some preprocessing to the depth map to properly visualize it. 
+It's all black! You'll need to add some color to the depth map to visualize it properly (the utility below is taken from the [FastDepth repository](https://github.com/dwofk/fast-depth/blob/master/utils.py)).
 
 ```py 
 >>> import numpy as np
@@ -122,7 +121,7 @@ while applying these transformations:
 >>> aug = A.Compose(transforms=transforms, additional_targets=additional_targets)
 ```
 
-This will ensure that you can pass an image and its corresponding depth map to `aug`.
+This ensures you can pass an image and its corresponding depth map to `aug`.
 
 Create a function to apply the transformation to the images as well as their depth maps:
 
@@ -146,7 +145,7 @@ Use the [`~Dataset.set_transform`] function to apply the transformation on-the-f
 >>> train_dataset.set_transform(transforms)
 ```
 
-You can verify the transformation worked by indexing into the `pixel_values` and `labels` of an example:
+You can verify the transformation worked by indexing into the `pixel_values` and `labels` of an example image:
 
 ```py
 >>> image = np.array(train_dataset[index]["pixel_values"])
