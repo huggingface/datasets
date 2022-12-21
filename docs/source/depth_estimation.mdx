@@ -2,7 +2,7 @@
 
 Depth estimation datasets are used to train a model to approximate the relative distance of every pixel in an
 image from the camera, also known as depth. The applications enabled by these datasets primarily lie in areas like visual machine
-perception and perception in robotics. This guide will show you how to apply transformations
+perception and perception in robotics. Example applications include mapping streets for self-driving cars. This guide will show you how to apply transformations
 to a depth estimation dataset.
 
 Before you start, make sure you have up-to-date versions of `albumentations` installed:
@@ -71,11 +71,7 @@ It's all black! You'll need to add some color to the depth map to visualize it p
 ...         d_max = np.max(depth)
 ...     depth_relative = (depth - d_min) / (d_max - d_min)
 ...     return 255 * cmap(depth_relative)[:,:,:3]
-```
 
-**Note** that the above utility is taken from the [FastDepth repository](https://github.com/dwofk/fast-depth/blob/master/utils.py). You can now visualize the depth map.
-
-```py 
 >>> depth_target = train_dataset[index]["depth_map"]
 >>> depth_target = np.squeeze(np.array(depth_target))
 
@@ -161,6 +157,8 @@ You can verify the transformation worked by indexing into the `pixel_values` and
 <div class="flex justify-center">
     <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/depth_est_sample_aug.png">
 </div>
+
+Visualize the same transformation on the image's corresponding depth map:
 
 ```py 
 >>> d_min = np.min(depth_map)
