@@ -20,7 +20,6 @@ import numpy as np
 import pyarrow as pa
 from multiprocess import get_context
 from multiprocess.shared_memory import SharedMemory
-from numpy.random import default_rng
 
 from .. import config
 
