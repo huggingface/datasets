@@ -19,6 +19,8 @@ from math import ceil
 import numpy as np
 import pyarrow as pa
 from multiprocess import get_context
+from multiprocess.shared_memory import SharedMemory
+from numpy.random import default_rng
 
 from .. import config
 
@@ -148,6 +150,7 @@ class NumpyMultiprocessingGenerator:
         collate_fn,
         collate_fn_args,
         columns_to_np_types,
+        output_signature,
         shuffle,
         batch_size,
         drop_remainder,
@@ -158,10 +161,12 @@ class NumpyMultiprocessingGenerator:
         self.collate_fn = collate_fn
         self.collate_fn_args = collate_fn_args
         self.columns_to_np_types = columns_to_np_types
+        self.output_signature = output_signature
         self.shuffle = shuffle
         self.batch_size = batch_size
         self.drop_remainder = drop_remainder
         self.num_workers = num_workers
+        self.columns_to_ranks = {col: int(spec.shape.rank) for col, spec in output_signature.items()}
 
     def __iter__(self):
         # Make sure we only spawn workers if they have work to do
@@ -171,50 +176,117 @@ class NumpyMultiprocessingGenerator:
             self.dataset, self.batch_size, self.drop_remainder, num_workers, self.shuffle
         )
         ctx = get_context("spawn")
-        worker_queues = []
+        names = []
+        shape_shms = []
+        shape_arrays = []
         workers = []
-        base_args = (
-            self.dataset,
-            self.cols_to_retain,
-            self.collate_fn,
-            self.collate_fn_args,
-            self.columns_to_np_types,
-        )
+        array_ready_events = [ctx.Event() for _ in range(num_workers)]
+        array_loaded_events = [ctx.Event() for _ in range(num_workers)]
+
+        base_args = {
+            "dataset": self.dataset,
+            "cols_to_retain": self.cols_to_retain,
+            "collate_fn": self.collate_fn,
+            "collate_fn_args": self.collate_fn_args,
+            "columns_to_np_types": self.columns_to_np_types,
+            "columns_to_ranks": self.columns_to_ranks,
+        }
         for i in range(num_workers):
-            queue = ctx.Queue(maxsize=3)
+            worker_name = f"datasets_tf_worker_{i}"
+            names.append(worker_name)
+
+            worker_shape_shms = {
+                col: SharedMemory(name=f"{worker_name}_{col}_shape", create=True, size=rank * 8)
+                for col, rank in self.columns_to_ranks.items()
+            }
+            worker_shape_arrays = {
+                col: np.ndarray(shape=(shape_shm.size // 8,), dtype=np.int64, buffer=shape_shm.buf)
+                for col, shape_shm in worker_shape_shms.items()
+            }
+            shape_shms.append(worker_shape_shms)
+            shape_arrays.append(worker_shape_arrays)
+
             worker_indices = per_worker_batches[i]
             if i == final_batch_worker and final_batch is not None:
                 final_batch_arg = final_batch
             else:
                 final_batch_arg = None
-            worker_kwargs = {"queue": queue, "indices": worker_indices, "extra_batch": final_batch_arg}
-            worker = ctx.Process(target=self.worker_loop, args=base_args, kwargs=worker_kwargs, daemon=True)
+            worker_kwargs = {
+                "worker_name": worker_name,
+                "indices": worker_indices,
+                "extra_batch": final_batch_arg,
+                "array_ready_event": array_ready_events[i],
+                "array_loaded_event": array_loaded_events[i],
+                **base_args,
+            }
+            worker = ctx.Process(target=self.worker_loop, kwargs=worker_kwargs, daemon=True)
             worker.start()
             workers.append(worker)
-            worker_queues.append(queue)
 
-        while True:
+        end_signal_received = False
+        while not end_signal_received:
             for i in range(num_workers):
-                batch = worker_queues[i].get()
-                if isinstance(batch, str) and batch == "DONE":
-                    for worker in workers:
-                        worker.join()
-                        worker.close()
-                    return
-                yield batch
+                array_ready_events[i].wait()
+                array_ready_events[i].clear()
+                array_shapes = shape_arrays[i]
+                array_sizes = {
+                    col: np.prod(shape) * np.dtype(self.columns_to_np_types[col]).itemsize
+                    for col, shape in array_shapes.items()
+                }
+                if any(size < 0 for size in array_sizes.values()):
+                    end_signal_received = True
+                    break
+                array_shms = {
+                    col: SharedMemory(name=f"{names[i]}_{col}", create=False, size=size)
+                    for col, size in array_sizes.items()
+                }
+                arrays = {
+                    col: np.copy(
+                        np.ndarray(shape=array_shapes[col], dtype=self.columns_to_np_types[col], buffer=shm.buf)
+                    )
+                    for col, shm in array_shms.items()
+                }
+                yield arrays
+                for shm in array_shms.values():
+                    shm.close()
+                array_loaded_events[i].set()
+        # Now we just do some cleanup
+        for worker, shape_shms in zip(workers, shape_shms):
+            worker.join()
+            for shm in shape_shms.values():
+                shm.unlink()
 
     def __call__(self):
         return self
 
     @staticmethod
     def worker_loop(
-        dataset, cols_to_retain, collate_fn, collate_fn_args, columns_to_np_types, queue, indices, extra_batch
+        dataset,
+        cols_to_retain,
+        collate_fn,
+        collate_fn_args,
+        columns_to_np_types,
+        columns_to_ranks,
+        indices,
+        extra_batch,
+        worker_name,
+        array_ready_event,
+        array_loaded_event,
     ):
         import tensorflow as tf
 
         tf.config.set_visible_devices([], "GPU")  # Make sure workers don't try to allocate GPU memory
 
-        def get_batch(indices):
+        shape_shms = {
+            col: SharedMemory(name=f"{worker_name}_{col}_shape", create=False, size=rank * 8)
+            for col, rank in columns_to_ranks.items()
+        }
+        shape_arrays = {
+            col: np.ndarray(shape=(shape_shm.size // 8,), dtype=np.int64, buffer=shape_shm.buf)
+            for col, shape_shm in shape_shms.items()
+        }
+
+        def send_batch_to_parent(indices):
             # Optimization - if we're loading a sequential batch, do it with slicing instead of a list of indices
             if np.all(np.diff(indices) == 1):
                 batch = dataset[indices[0] : indices[-1] + 1]
@@ -234,19 +306,35 @@ class NumpyMultiprocessingGenerator:
             # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
             batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
             batch = collate_fn(batch, **collate_fn_args)
-            out_batch = dict()
+            # Now begins the fun part where we start shovelling shared memory at the parent process
+            out_shms = dict()
+            out_arrays = dict()
             for col, cast_dtype in columns_to_np_types.items():
-                # In case the collate_fn returns something strange
-                array = np.array(batch[col])
-                array = array.astype(cast_dtype)
-                out_batch[col] = array
-            return out_batch
+                # Everything has to be np.array for this to work, even if the collate_fn is giving us tf.Tensor
+                array = np.array(batch[col]).astype(cast_dtype)
+                shape_arrays[col][:] = array.shape
+                out_shms[col] = SharedMemory(name=f"{worker_name}_{col}", create=True, size=array.nbytes)
+                out_arrays[col] = np.ndarray(shape=array.shape, dtype=cast_dtype, buffer=out_shms[col].buf)
+                out_arrays[col][:] = array
+
+            array_ready_event.set()
+            array_loaded_event.wait()
+            array_loaded_event.clear()
+            for shm in out_shms.values():
+                shm.close()
+                shm.unlink()
 
         for batch in indices:
-            queue.put(get_batch(batch))
+            send_batch_to_parent(batch)
         if extra_batch is not None:
-            queue.put(get_batch(extra_batch))
-        queue.put("DONE")
+            send_batch_to_parent(extra_batch)
+        # Now we send a batsignal to the parent process that we're done
+        for col, array in shape_arrays.items():
+            array[:] = -1
+        array_ready_event.set()
+        # Don't unlink them because the parent still needs to read them
+        for shm in shape_shms.values():
+            shm.close()
 
     @staticmethod
     def distribute_batches(dataset, batch_size, drop_remainder, num_workers, shuffle):
@@ -299,15 +387,16 @@ def multiprocess_dataset_to_tf(
         raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
 
     data_generator = NumpyMultiprocessingGenerator(
-        dataset,
-        cols_to_retain,
-        collate_fn,
-        collate_fn_args,
-        columns_to_np_types,
-        shuffle,
-        batch_size,
-        drop_remainder,
-        num_workers,
+        dataset=dataset,
+        cols_to_retain=cols_to_retain,
+        collate_fn=collate_fn,
+        collate_fn_args=collate_fn_args,
+        columns_to_np_types=columns_to_np_types,
+        output_signature=output_signature,
+        shuffle=shuffle,
+        batch_size=batch_size,
+        drop_remainder=drop_remainder,
+        num_workers=num_workers,
     )
 
     tf_dataset = tf.data.Dataset.from_generator(data_generator, output_signature=output_signature)
