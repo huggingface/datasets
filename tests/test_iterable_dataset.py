@@ -8,6 +8,7 @@ import pytest
 from datasets import load_dataset
 from datasets.combine import concatenate_datasets, interleave_datasets
 from datasets.features import ClassLabel, Features, Value
+from datasets.formatting import get_format_type_from_alias
 from datasets.info import DatasetInfo
 from datasets.iterable_dataset import (
     BufferShuffledExamplesIterable,
@@ -24,7 +25,6 @@ from datasets.iterable_dataset import (
     VerticallyConcatenatedMultiSourcesExamplesIterable,
     _batch_to_examples,
     _examples_to_batch,
-    iterable_dataset,
 )
 
 from .utils import is_rng_equal, require_torch
@@ -617,13 +617,6 @@ def test_iterable_dataset():
     assert list(dataset) == expected
 
 
-def test_iterable_dataset_factory():
-    ex_iterable = ExamplesIterable(generate_examples_fn, {})
-    dataset = iterable_dataset(ex_iterable)
-    assert isinstance(dataset, IterableDataset)
-    assert dataset._ex_iterable is ex_iterable
-
-
 def test_iterable_dataset_from_generator():
     data = [
         {"col_1": "0", "col_2": 0, "col_3": 0.0},
@@ -653,26 +646,26 @@ def test_iterable_dataset_from_generator_with_shards():
 
 
 @require_torch
-def test_iterable_dataset_factory_torch_integration():
-    import torch
+def test_iterable_dataset_torch_integration():
 
     ex_iterable = ExamplesIterable(generate_examples_fn, {})
-    dataset = iterable_dataset(ex_iterable, format_type="torch")
-    assert isinstance(dataset, IterableDataset)
+    dataset = IterableDataset(ex_iterable)
+    import torch.utils.data
+
     assert isinstance(dataset, torch.utils.data.IterableDataset)
-    assert dataset._format_type == "torch"
+    assert isinstance(dataset, IterableDataset)
     assert dataset._ex_iterable is ex_iterable
 
 
 @require_torch
-def test_iterable_dataset_factory_torch_picklable():
+def test_iterable_dataset_torch_picklable():
     import pickle
 
     ex_iterable = ExamplesIterable(generate_examples_fn, {})
-    dataset = iterable_dataset(ex_iterable, format_type="torch")
+    dataset = IterableDataset(ex_iterable, format_type="torch")
     reloaded_dataset = pickle.loads(pickle.dumps(dataset))
 
-    import torch
+    import torch.utils.data
 
     assert isinstance(reloaded_dataset, IterableDataset)
     assert isinstance(reloaded_dataset, torch.utils.data.IterableDataset)
@@ -682,10 +675,10 @@ def test_iterable_dataset_factory_torch_picklable():
 
 @require_torch
 def test_iterable_dataset_with_format_torch():
+    ex_iterable = ExamplesIterable(generate_examples_fn, {})
+    dataset = IterableDataset(ex_iterable)
     from torch.utils.data import DataLoader
 
-    ex_iterable = ExamplesIterable(generate_examples_fn, {})
-    dataset = iterable_dataset(ex_iterable).with_format("torch")
     dataloader = DataLoader(dataset)
     assert len(list(dataloader)) == len(list(ex_iterable))
 
@@ -695,7 +688,7 @@ def test_iterable_dataset_torch_dataloader_parallel():
     from torch.utils.data import DataLoader
 
     ex_iterable = ExamplesIterable(generate_examples_fn, {})
-    dataset = iterable_dataset(ex_iterable).with_format("torch")
+    dataset = IterableDataset(ex_iterable).with_format("torch")
     dataloader = DataLoader(dataset, num_workers=2, batch_size=None)
     result = list(dataloader)
     expected = [example for _, example in ex_iterable]
@@ -709,7 +702,7 @@ def test_sharded_iterable_dataset_torch_dataloader_parallel(n_shards, num_worker
     from torch.utils.data import DataLoader
 
     ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": [f"{i}.txt" for i in range(n_shards)]})
-    dataset = iterable_dataset(ex_iterable).with_format("torch")
+    dataset = IterableDataset(ex_iterable).with_format("torch")
     dataloader = DataLoader(dataset, batch_size=None, num_workers=num_workers)
     result = list(dataloader)
     expected = [example for _, example in ex_iterable]
@@ -920,15 +913,22 @@ def test_iterable_dataset_features_cast_to_python():
     assert list(dataset) == [{"timestamp": pd.Timestamp(2020, 1, 1).to_pydatetime(), "array": [1] * 5, "id": 0}]
 
 
-@require_torch
-@pytest.mark.parametrize("format_type", [None, "torch", "python"])
+@pytest.mark.parametrize(
+    "format_type", [None, "torch", "python", "tf", "tensorflow", "np", "numpy", "jax", "pd", "pandas"]
+)
 def test_iterable_dataset_with_format(dataset: IterableDataset, format_type):
     formatted_dataset = dataset.with_format(format_type)
-    assert formatted_dataset._format_type == format_type
-    if format_type == "torch":
-        import torch
+    assert formatted_dataset._format_type == get_format_type_from_alias(format_type)
 
-        assert isinstance(formatted_dataset, torch.utils.data.IterableDataset)
+
+@require_torch
+def test_iterable_dataset_is_torch_iterable_dataset(dataset: IterableDataset):
+    from torch.utils.data import DataLoader, _DatasetKind
+
+    dataloader = DataLoader(dataset)
+    assert dataloader._dataset_kind == _DatasetKind.Iterable
+    out = list(dataloader)
+    assert len(out) == DEFAULT_N_EXAMPLES
 
 
 @pytest.mark.parametrize("n", [0, 2, int(1e10)])

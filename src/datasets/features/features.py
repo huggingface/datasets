@@ -19,6 +19,7 @@ import json
 import re
 import sys
 from collections.abc import Iterable, Mapping
+from collections.abc import Sequence as SequenceABC
 from dataclasses import InitVar, dataclass, field, fields
 from functools import reduce, wraps
 from operator import mul
@@ -944,6 +945,8 @@ class ClassLabel:
                 self.names = [str(i) for i in range(self.num_classes)]
             else:
                 raise ValueError("Please provide either num_classes, names or names_file.")
+        elif not isinstance(self.names, SequenceABC):
+            raise TypeError(f"Please provide names as a list, is {type(self.names)}")
         # Set self.num_classes
         if self.num_classes is None:
             self.num_classes = len(self.names)
