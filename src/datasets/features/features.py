@@ -295,7 +295,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         import PIL.Image
 
     if isinstance(obj, np.ndarray):
-        if not only_1d_for_numpy or obj.ndim == 1:
+        if obj.ndim == 0:
+            return obj[()], True
+        elif not only_1d_for_numpy or obj.ndim == 1:
             return obj, False
         else:
             return (
@@ -308,7 +310,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
                 True,
             )
     elif config.TORCH_AVAILABLE and "torch" in sys.modules and isinstance(obj, torch.Tensor):
-        if not only_1d_for_numpy or obj.ndim == 1:
+        if obj.ndim == 0:
+            return obj.detach().cpu().numpy()[()], True
+        elif not only_1d_for_numpy or obj.ndim == 1:
             return obj.detach().cpu().numpy(), True
         else:
             return (
@@ -321,7 +325,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
                 True,
             )
     elif config.TF_AVAILABLE and "tensorflow" in sys.modules and isinstance(obj, tf.Tensor):
-        if not only_1d_for_numpy or obj.ndim == 1:
+        if obj.ndim == 0:
+            return obj.numpy()[()], True
+        elif not only_1d_for_numpy or obj.ndim == 1:
             return obj.numpy(), True
         else:
             return (
@@ -334,7 +340,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
                 True,
             )
     elif config.JAX_AVAILABLE and "jax" in sys.modules and isinstance(obj, jnp.ndarray):
-        if not only_1d_for_numpy or obj.ndim == 1:
+        if obj.ndim == 0:
+            return np.asarray(obj)[()], True
+        elif not only_1d_for_numpy or obj.ndim == 1:
             return np.asarray(obj), True
         else:
             return (
