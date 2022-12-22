@@ -1270,7 +1270,6 @@ class DatasetDict(dict):
             dataset_dict[k] = Dataset.load_from_disk(
                 dataset_dict_split_path, keep_in_memory=keep_in_memory, storage_options=storage_options
             )
-
         return dataset_dict
 
     @staticmethod
