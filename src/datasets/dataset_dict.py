@@ -1180,7 +1180,7 @@ class DatasetDict(dict):
         if is_local:
             Path(dataset_dict_path).resolve().mkdir(parents=True, exist_ok=True)
 
-        with fs.open(Path(dataset_dict_path, config.DATASETDICT_JSON_FILENAME), "w", encoding="utf-8") as f:
+        with fs.open(path_join(dataset_dict_path, config.DATASETDICT_JSON_FILENAME), "w", encoding="utf-8") as f:
             json.dump({"splits": list(self)}, f)
         for k, dataset in self.items():
             dataset.save_to_disk(
