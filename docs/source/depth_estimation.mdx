@@ -26,7 +26,7 @@ Load the `train` split of the dataset and take a look at an example:
 
 >>> train_dataset = load_dataset("sayakpaul/nyu_depth_v2", split="train")
 >>> index = 17
->>> dataset[index]
+>>> train_dataset[index]
 {'image': <PIL.PngImagePlugin.PngImageFile image mode=RGB size=640x480>,
  'depth_map': <PIL.PngImagePlugin.PngImageFile image mode=L size=640x480>}
 ```
@@ -72,25 +72,58 @@ It's all black! You'll need to add some color to the depth map to visualize it p
 ...     depth_relative = (depth - d_min) / (d_max - d_min)
 ...     return 255 * cmap(depth_relative)[:,:,:3]
 
->>> depth_target = train_dataset[index]["depth_map"]
->>> depth_target = np.squeeze(np.array(depth_target))
+>>> def show_depthmap(depth_map):
+...    if not isinstance(depth_map, np.ndarray):
+...        depth_map = np.array(depth_map)
+...    if depth_map.ndim == 3:
+...        depth_map = depth_map.squeeze()
 
->>> d_min = np.min(depth_target)
->>> d_max = np.max(depth_target)
->>> depth_target = colored_depthmap(depth_target, d_min, d_max)
+...    d_min = np.min(depth_map)
+...    d_max = np.max(depth_map)
+...    depth_map = colored_depthmap(depth_map, d_min, d_max)
 
->>> plt.imshow(depth_target.astype("uint8"))
->>> plt.axis("off")
->>> plt.show()
+...    plt.imshow(depth_map.astype("uint8"))
+...    plt.axis("off")
+...    plt.show()
+
+>>> show_depthmap(train_dataset[index]["depth_map"])
 ```
 
 <div class="flex justify-center">
     <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/depth_est_target_viz.png">
 </div>
 
+You can also visualize a collage of different images and the corresponding depth maps.
+
+```py
+>>> def merge_into_row(input_image, depth_target):
+...     if not isinstance(input_image, np.ndarray):
+...         input_image = np.array(input_image)
+...
+...     d_min = np.min(depth_target)
+...     d_max = np.max(depth_target)
+...     depth_target_col = colored_depthmap(depth_target, d_min, d_max)
+...     img_merge = np.hstack([input_image, depth_target_col])
+...
+...     return img_merge
+
+>>> random_indices = np.random.choice(len(train_dataset), 9).tolist()
+>>> plt.figure(figsize=(15, 6))
+>>> for i, idx in enumerate(random_indices):
+...     ax = plt.subplot(3, 3, i + 1)
+...     image_viz = merge_into_row(
+...         train_dataset[idx]["image"], train_dataset[idx]["depth_map"]
+...     )
+...     plt.imshow(image_viz.astype("uint8"))
+...     plt.axis("off")
+```
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/depth_est_collage.png">
+</div>
+
 Now apply some augmentations with `albumentations`. The augmentation transformations include:
 
-* Random horizontal flipping
 * Random cropping 
 * Random brightness and contrast 
 * Random gamma correction 
@@ -101,7 +134,6 @@ Now apply some augmentations with `albumentations`. The augmentation transformat
 
 >>> crop_size = (448, 576)
 >>> transforms = [
-...     A.HorizontalFlip(),
 ...     A.RandomCrop(crop_size[0], crop_size[1]),
 ...     A.RandomBrightnessContrast(),
 ...     A.RandomGamma(),
@@ -109,20 +141,20 @@ Now apply some augmentations with `albumentations`. The augmentation transformat
 ... ]
 ```
 
-Since these transformations (such as flipping, cropping) also impact the depth maps, you need to define a mapping
-while applying these transformations:
+Additionally, define a mapping to better reflect the target key name.
 
 ```py 
 >>> additional_targets = {"depth": "mask"}
 >>> aug = A.Compose(transforms=transforms, additional_targets=additional_targets)
 ```
 
-This ensures you can pass an image and its corresponding depth map to `aug`.
+With `additional_targets` defined, you can pass the target depth maps to the `depth` argument of `aug` instead of `mask`. You'll notice this change
+in the `apply_transforms()` function defined below.
 
 Create a function to apply the transformation to the images as well as their depth maps:
 
 ```py 
->>> def transforms(examples):
+>>> def apply_transforms(examples):
 ...     transformed_images, transformed_maps = [], []
 ...     for image, depth_map in zip(examples["image"], examples["depth_map"]):
 ...         image, depth_map = np.array(image), np.array(depth_map)
@@ -138,15 +170,10 @@ Create a function to apply the transformation to the images as well as their dep
 Use the [`~Dataset.set_transform`] function to apply the transformation on-the-fly to batches of the dataset to consume less disk space:
 
 ```py
->>> train_dataset.set_transform(transforms)
+>>> train_dataset.set_transform(apply_transforms)
 ```
 
 You can verify the transformation worked by indexing into the `pixel_values` and `labels` of an example image:
-
-```py
->>> image = np.array(train_dataset[index]["pixel_values"])
->>> depth_map = np.array(train_dataset[index]["labels"])
-```
 
 ```py
 >>> plt.imshow(image)
@@ -161,24 +188,16 @@ You can verify the transformation worked by indexing into the `pixel_values` and
 Visualize the same transformation on the image's corresponding depth map:
 
 ```py 
->>> d_min = np.min(depth_map)
->>> d_max = np.max(depth_map)
->>> depth_map = colored_depthmap(depth_map, d_min, d_max)
-
->>> plt.imshow(depth_map.astype("uint8"))
->>> plt.axis("off")
->>> plt.show()
+>>> show_depthmap(train_dataset[index]["labels"])
 ```
 
 <div class="flex justify-center">
     <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/depth_est_target_aug.png">
 </div>
 
-You can also visualize multiple training samples: 
+You can also visualize multiple training samples reusing the previous `random_indices`: 
 
 ```py 
->>> random_indices = np.random.choice(len(train_dataset), 9).tolist()
-
 >>> plt.figure(figsize=(15, 6))
 
 >>> for i, idx in enumerate(random_indices):
@@ -191,5 +210,5 @@ You can also visualize multiple training samples:
 ```
 
 <div class="flex justify-center">
-    <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/depth_est_collage.png">
+    <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/depth_est_aug_collage.png">
 </div>
