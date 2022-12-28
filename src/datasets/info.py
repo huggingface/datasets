@@ -33,11 +33,12 @@ import dataclasses
 import json
 import os
 import posixpath
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from typing import ClassVar, Dict, List, Optional, Union
 
-from fsspec.implementations.local import LocalFileSystem
+import fsspec
 
 from . import config
 from .features import Features, Value
@@ -208,7 +209,9 @@ class DatasetInfo:
                     template.align_with_features(self.features) for template in (self.task_templates)
                 ]
 
-    def write_to_directory(self, dataset_info_dir, pretty_print=False, fs=None):
+    def write_to_directory(
+        self, dataset_info_dir, pretty_print=False, fs="deprecated", storage_options: Optional[dict] = None
+    ):
         """Write `DatasetInfo` and license (if present) as JSON files to `dataset_info_dir`.
 
         Args:
@@ -216,10 +219,20 @@ class DatasetInfo:
                 Destination directory.
             pretty_print (`bool`, defaults to `False`):
                 If `True`, the JSON will be pretty-printed with the indent level of 4.
-            fs (`fsspec.spec.AbstractFileSystem`, *optional*, defaults to `None`):
+            fs (`fsspec.spec.AbstractFileSystem`, *optional*):
                 Instance of the remote filesystem used to download the files from.
 
-                <Added version="2.5.0"/>
+                <Deprecated version="2.8.0">
+
+                `fs` was deprecated in version 2.8.0 and will be removed in 3.0.0.
+                Please use `storage_options` instead, e.g. `storage_options=fs.storage_options`
+
+                </Deprecated>
+
+            storage_options (`dict`, *optional*):
+                Key/value pairs to be passed on to the file-system backend, if any.
+
+                <Added version="2.8.1"/>
 
         Example:
 
@@ -229,7 +242,17 @@ class DatasetInfo:
         >>> ds.info.write_to_directory("/path/to/directory/")
         ```
         """
-        fs = fs or LocalFileSystem()
+        if fs != "deprecated":
+            warnings.warn(
+                "'fs' was is deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
+                "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
+                FutureWarning,
+            )
+            storage_options = fs.storage_options
+
+        fs_token_paths = fsspec.get_fs_token_paths(dataset_info_dir, storage_options=storage_options)
+        fs: fsspec.AbstractFileSystem = fs_token_paths[0]
+
         is_local = not is_remote_filesystem(fs)
         path_join = os.path.join if is_local else posixpath.join
 
@@ -278,7 +301,9 @@ class DatasetInfo:
         )
 
     @classmethod
-    def from_directory(cls, dataset_info_dir: str, fs=None) -> "DatasetInfo":
+    def from_directory(
+        cls, dataset_info_dir: str, fs="deprecated", storage_options: Optional[dict] = None
+    ) -> "DatasetInfo":
         """Create [`DatasetInfo`] from the JSON file in `dataset_info_dir`.
 
         This function updates all the dynamically generated fields (num_examples,
@@ -290,10 +315,20 @@ class DatasetInfo:
             dataset_info_dir (`str`):
                 The directory containing the metadata file. This
                 should be the root directory of a specific dataset version.
-            fs (`fsspec.spec.AbstractFileSystem`, *optional*, defaults to `None`):
+            fs (`fsspec.spec.AbstractFileSystem`, *optional*):
                 Instance of the remote filesystem used to download the files from.
 
-                <Added version="2.5.0"/>
+                <Deprecated version="2.8.0">
+
+                `fs` was deprecated in version 2.8.0 and will be removed in 3.0.0.
+                Please use `storage_options` instead, e.g. `storage_options=fs.storage_options`
+
+                </Deprecated>
+
+            storage_options (`dict`, *optional*):
+                Key/value pairs to be passed on to the file-system backend, if any.
+
+                <Added version="2.8.1"/>
 
         Example:
 
@@ -302,7 +337,17 @@ class DatasetInfo:
         >>> ds_info = DatasetInfo.from_directory("/path/to/directory/")
         ```
         """
-        fs = fs or LocalFileSystem()
+        if fs != "deprecated":
+            warnings.warn(
+                "'fs' was is deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
+                "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
+                FutureWarning,
+            )
+            storage_options = fs.storage_options
+
+        fs_token_paths = fsspec.get_fs_token_paths(dataset_info_dir, storage_options=storage_options)
+        fs: fsspec.AbstractFileSystem = fs_token_paths[0]
+
         logger.info(f"Loading Dataset info from {dataset_info_dir}")
         if not dataset_info_dir:
             raise ValueError("Calling DatasetInfo.from_directory() with undefined dataset_info_dir.")
