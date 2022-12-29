@@ -1792,10 +1792,10 @@ def load_from_disk(
         fs (`~filesystems.S3FileSystem` or `fsspec.spec.AbstractFileSystem`, *optional*):
             Instance of the remote filesystem used to download the files from.
 
-            <Deprecated version="2.8.0">
+            <Deprecated version="2.9.0">
 
-            `fs` was deprecated in version 2.8.0 and will be removed in 3.0.0.
-            Please use `storage_options` instead, e.g. `storage_options=fs.storage_options`
+            `fs` was deprecated in version 2.9.0 and will be removed in 3.0.0.
+            Please use `storage_options` instead, e.g. `storage_options=fs.storage_options`.
 
             </Deprecated>
 
@@ -1807,7 +1807,7 @@ def load_from_disk(
         storage_options (`dict`, *optional*):
             Key/value pairs to be passed on to the file-system backend, if any.
 
-            <Added version="2.8.1"/>
+            <Added version="2.9.0"/>
 
     Returns:
         [`Dataset`] or [`DatasetDict`]:
@@ -1823,7 +1823,7 @@ def load_from_disk(
     """
     if fs != "deprecated":
         warnings.warn(
-            "'fs' was is deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
+            "'fs' was deprecated in favor of 'storage_options' in version 2.9.0 and will be removed in 3.0.0.\n"
             "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
             FutureWarning,
         )
