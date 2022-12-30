@@ -196,7 +196,6 @@ METRICS_TESTS_REQUIRE = [
     "seqeval",
     "sqlalchemy",
     "spacy>=3.0.0",
-    "pydantic<1.10.3",  # GH-5394: temporary pin (dependency of spacy)
     "tldextract",
     # to speed up pip backtracking
     "toml>=0.10.1",
