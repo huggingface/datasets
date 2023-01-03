@@ -118,6 +118,7 @@ from .utils.typing import PathLike
 if TYPE_CHECKING:
     import sqlite3
 
+    import pyspark
     import sqlalchemy
 
     from .dataset_dict import DatasetDict
