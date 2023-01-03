@@ -53,6 +53,7 @@ from .utils import (
     assert_arrow_memory_increases,
     require_jax,
     require_pil,
+    require_spark,
     require_sqlalchemy,
     require_tf,
     require_torch,
@@ -2788,6 +2789,47 @@ class MiscellaneousDatasetTest(TestCase):
         with Dataset.from_dict({"text": ["hello there", "foo"]}) as dset:
             dset.set_transform(transform=encode)
             self.assertEqual(str(dset[:2]), str(encode({"text": ["hello there", "foo"]})))
+
+
+@require_spark
+class TestDatasetFromToSpark:
+    @pytest.fixture
+    def data(self):
+        return {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"], "col_3": [False, True, False, True]}
+
+    @pytest.fixture(params=[False, True])
+    def dset(self, data, request, tmp_path):
+        ds = Dataset.from_dict(data)
+        in_memory = request.param
+        if not in_memory:
+            ds = ds.map(cache_file_name=str(tmp_path / "dataset.arrow"))
+        return ds
+
+    def test_from_spark(self, data):
+        import pandas as pd
+        import pyspark
+
+        spark = pyspark.sql.SparkSession.builder.config(
+            "spark.sql.execution.arrow.pyspark.enabled", "true"
+        ).getOrCreate()
+        spark_df = spark.createDataFrame(pd.DataFrame(data))
+        dset = Dataset.from_spark(spark_df)
+        assert isinstance(dset, Dataset)
+        assert sorted(dset.column_names) == sorted(spark_df.columns)
+        spark_rows = spark_df.collect()
+        assert len(dset) == len(spark_rows)
+        assert all(dset[i] == spark_rows[i].asDict() for i in range(len(dset)))
+
+    def test_to_spark(self, dset):
+        import pyspark
+
+        spark_df = dset.to_spark()
+
+        assert isinstance(spark_df, pyspark.sql.DataFrame)
+        assert sorted(spark_df.columns) == sorted(dset.column_names)
+        spark_rows = spark_df.collect()
+        assert len(spark_rows) == len(dset)
+        assert all(spark_rows[i].asDict() == dset[i] for i in range(len(dset)))
 
 
 def test_cast_with_sliced_list():
