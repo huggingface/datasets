@@ -828,6 +828,34 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return cls(table, info=info, split=split)
 
     @classmethod
+    def from_spark(
+        cls,
+        spark_df: "pyspark.sql.DataFrame",
+        features: Optional[Features] = None,
+        info: Optional[DatasetInfo] = None,
+        split: Optional[NamedSplit] = None,
+    ) -> "Dataset":
+        """
+
+        Args:
+            spark_df (`pyspark.sql.DataFrame`): Spark DataFrame to be converted to dataset.
+            features ([`Features`], *optional*): Dataset features.
+            info ([`DatasetInfo`], *optional*): Dataset information, like description, citation, etc.
+            split ([`NamedSplit`], *optional*): Name of the dataset split.
+
+        Returns:
+            [`Dataset`]
+
+         Example:
+
+        ```py
+        >>> ds = Dataset.from_spark(spark_df)
+        ```
+        """
+        spark_df.sparkSession.conf.set("spark.sql.execution.arrow.pyspark.enabled", "true")
+        return cls.from_pandas(spark_df.toPandas(), features=features, info=info, split=split)
+
+    @classmethod
     def from_dict(
         cls,
         mapping: dict,
@@ -4552,6 +4580,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 ).to_pandas(types_mapper=pandas_types_mapper)
                 for offset in range(0, len(self), batch_size)
             )
+
+    def to_spark(self, spark_session: "Optional[pyspark.sql.SparkSession]" = None) -> "pyspark.sql.DataFrame":
+        """Convert to Spark DataFrame.
+
+        Args:
+            spark_session (`pyspark.sql.SparkSession`, *optional*): Spark session to create the Spark DataFrame.
+
+        Returns:
+            `pyspark.sql.DataFrame`
+        """
+        if not spark_session:
+            from pyspark.sql import SparkSession
+
+            spark_session = SparkSession.builder.getOrCreate()
+        spark_session.conf.set("spark.sql.execution.arrow.pyspark.enabled", "true")
+        return spark_session.createDataFrame(self.to_pandas())
 
     def to_parquet(
         self,
