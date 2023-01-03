@@ -139,6 +139,36 @@ def xdirname(a):
     return "::".join([a] + b)
 
 
+def xexists(urlpath: str, use_auth_token: Optional[Union[str, bool]] = None):
+    """Extend `os.path.exists` function to support both local and remote files.
+
+    Args:
+        urlpath (`str`): URL path.
+        use_auth_token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
+            Hugging Face Hub for private remote files.
+
+    Returns:
+        `bool`
+    """
+
+    main_hop, *rest_hops = str(urlpath).split("::")
+    if is_local_path(main_hop):
+        return os.path.exists(main_hop)
+    else:
+        if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
+            main_hop, http_kwargs = _prepare_http_url_kwargs(main_hop, use_auth_token=use_auth_token)
+            storage_options = http_kwargs
+        elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
+            url = rest_hops[0]
+            url, http_kwargs = _prepare_http_url_kwargs(url, use_auth_token=use_auth_token)
+            storage_options = {"https": http_kwargs}
+            urlpath = "::".join([main_hop, url, *rest_hops[1:]])
+        else:
+            storage_options = None
+        fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
+        return fs.exists(main_hop)
+
+
 def xbasename(a):
     """
     This function extends os.path.basename to support the "::" hop separator. It supports both paths and urls.
@@ -587,6 +617,18 @@ class xPath(type(Path())):
         path_as_posix = SINGLE_SLASH_AFTER_PROTOCOL_PATTERN.sub("://", path_as_posix)
         path_as_posix += "//" if path_as_posix.endswith(":") else ""  # Add slashes to root of the protocol
         return path_as_posix
+
+    def exists(self, use_auth_token: Optional[Union[str, bool]] = None):
+        """Extend `pathlib.Path.exists` method to support both local and remote files.
+
+        Args:
+            use_auth_token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
+                Hugging Face Hub for private remote files.
+
+        Returns:
+            `bool`
+        """
+        return xexists(str(self), use_auth_token=use_auth_token)
 
     def glob(self, pattern, use_auth_token: Optional[Union[str, bool]] = None):
         """Glob function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
