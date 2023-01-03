@@ -139,6 +139,10 @@ LZ4_AVAILABLE = importlib.util.find_spec("lz4") is not None
 PY7ZR_AVAILABLE = importlib.util.find_spec("py7zr") is not None
 
 
+# Integrations
+SPARK_AVAILABLE = importlib.util.find_spec("pyspark") is not None
+
+
 # Cache location
 DEFAULT_XDG_CACHE_HOME = "~/.cache"
 XDG_CACHE_HOME = os.getenv("XDG_CACHE_HOME", DEFAULT_XDG_CACHE_HOME)
