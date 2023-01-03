@@ -11,6 +11,7 @@ from datasets.download.streaming_download_manager import (
     StreamingDownloadManager,
     _get_extraction_protocol,
     xbasename,
+    xexists,
     xgetsize,
     xglob,
     xisdir,
@@ -211,6 +212,29 @@ def test_xdirname(input_path, expected_path):
     output_path = xdirname(input_path)
     output_path = _readd_double_slash_removed_by_path(Path(output_path).as_posix())
     assert output_path == _readd_double_slash_removed_by_path(Path(expected_path).as_posix())
+
+
+@pytest.mark.parametrize(
+    "input_path, exists",
+    [
+        ("tmp_path/file.txt", True),
+        ("tmp_path/file_that_doesnt_exist.txt", False),
+        ("mock://top_level/second_level/date=2019-10-01/a.parquet", True),
+        ("mock://top_level/second_level/date=2019-10-01/file_that_doesnt_exist.parquet", False),
+    ],
+)
+def test_xexists(input_path, exists, tmp_path, mock_fsspec):
+    if input_path.startswith("tmp_path"):
+        input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
+        (tmp_path / "file.txt").touch()
+    assert xexists(input_path) is exists
+
+
+@pytest.mark.integration
+def test_xexists_private(hf_private_dataset_repo_txt_data, hf_token):
+    root_url = hf_hub_url(hf_private_dataset_repo_txt_data, "")
+    assert xexists(root_url + "data/text_data.txt", use_auth_token=hf_token)
+    assert not xexists(root_url + "file_that_doesnt_exist.txt", use_auth_token=hf_token)
 
 
 @pytest.mark.parametrize(
@@ -505,6 +529,21 @@ class TestxPath:
     )
     def test_xpath_as_posix(self, input_path, expected_path):
         assert xPath(input_path).as_posix() == expected_path
+
+    @pytest.mark.parametrize(
+        "input_path, exists",
+        [
+            ("tmp_path/file.txt", True),
+            ("tmp_path/file_that_doesnt_exist.txt", False),
+            ("mock://top_level/second_level/date=2019-10-01/a.parquet", True),
+            ("mock://top_level/second_level/date=2019-10-01/file_that_doesnt_exist.parquet", False),
+        ],
+    )
+    def test_xpath_exists(self, input_path, exists, tmp_path, mock_fsspec):
+        if input_path.startswith("tmp_path"):
+            input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
+            (tmp_path / "file.txt").touch()
+        assert xexists(input_path) is exists
 
     @pytest.mark.parametrize(
         "input_path, pattern, expected_paths",
