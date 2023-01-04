@@ -836,7 +836,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
     ) -> "Dataset":
-        """
+        """Construct Dataset from Spark DataFrame.
+
+        <Tip warning={true}>
+
+        This method should only be used if the resulting Dataset is expected to be small, as all the data is loaded
+        into the Spark driver's memory.
+
+        </Tip>
 
         Args:
             spark_df (`pyspark.sql.DataFrame`): Spark DataFrame to be converted to dataset.
