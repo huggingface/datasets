@@ -493,7 +493,7 @@ class DatasetBuilder:
         )
         is_custom = (config_id not in self.builder_configs) and config_id != "default"
         if is_custom:
-            logger.warning(f"Using custom data configuration {config_id}")
+            logger.info(f"Using custom data configuration {config_id}")
         else:
             if (
                 builder_config.name in self.builder_configs
