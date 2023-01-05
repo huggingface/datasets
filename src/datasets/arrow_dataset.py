@@ -121,6 +121,7 @@ if TYPE_CHECKING:
     import sqlalchemy
 
     from .dataset_dict import DatasetDict
+    from .iterable_dataset import IterableDataset
 
 logger = logging.get_logger(__name__)
 
@@ -4653,6 +4654,113 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if self._indices is not None:
             dataset_nbytes = dataset_nbytes * len(self._indices) / len(self.data)
         return dataset_nbytes
+
+    @staticmethod
+    def _iter_shards(shards: List["Dataset"]):
+        for shard in shards:
+            yield from shard
+
+    def to_iterable(self, num_shards: Optional[int] = None) -> "IterableDataset":
+        """Get an [`datasets.IterableDataset`] from a map-style [`datasets.Dataset`].
+        This is equivalent to loading a dataset in streaming mode with [`datasets.load_dataset`], but much faster since the data is streamed from local files.
+
+        Contrary to map-style datasets, iterable datasets are lazy and can only be iterated over (e.g. using a for loop).
+        Since they are read sequentially in training loops, iterable datasets are much faster than map-style datasets.
+        All the transformations applied to iterable datasets like filtering or processing are done on-the-fly when you start iterating over the dataset.
+
+        Still, it is possible to shuffle an iterable dataset using [`datasets.IterableDataset.shuffle`].
+        This is a fast approximate shuffling that works best if you have multiple shards and if you specify a buffer size that is big enough.
+
+        Args:
+            num_shards (`int`, *optional*):
+                Number of shards to define when creating the iterable dataset. This is especially useful for big datasets to be able to shuffle properly,
+                and also to enable fast parallel loading using a PyTorch DataLoader or in distributed setups for example.
+                Shards are defined using [`datasets.Dataset.shard`]: it simply slices the data without writing anything on disk.
+
+        Returns:
+            [`datasets.IterableDataset`]
+
+        Example:
+
+        Basic usage:
+        ```python
+        >>> ids = ds.to_iterable()
+        >>> for example in ids:
+        ...     pass
+        ```
+
+        With lazy filtering and processing:
+        ```python
+        >>> ids = ds.to_iterable()
+        >>> ids = ids.filter(filter_fn).map(process_fn)  # will filter and process on-the-fly when you start iterating over the iterable dataset
+        >>> for example in ids:
+        ...     pass
+        ```
+
+        With sharding to enable efficient shuffling:
+        ```python
+        >>> ids = ds.to_iterable(num_shards=64)  # the dataset is split into 64 shards to be iterated over
+        >>> ids = ids.shuffle(buffer_size=10_000)  # will shuffle the shards order and use a shuffle buffer for fast approximate shuffling when you start iterating
+        >>> for example in ids:
+        ...     pass
+        ```
+
+        With a PyTorch DataLoader:
+        ```python
+        >>> import torch
+        >>> ids = ds.to_iterable(num_shards=64)
+        >>> ids = ids.filter(filter_fn).map(process_fn)
+        >>> dataloader = torch.utils.data.DataLoader(ids, num_workers=4)  # will assign 64 / 4 = 16 shards to each worker to load, filter and process when you start iterating
+        >>> for example in ids:
+        ...     pass
+        ```
+
+        With a PyTorch DataLoader and shuffling:
+        ```python
+        >>> import torch
+        >>> ids = ds.to_iterable(num_shards=64)
+        >>> ids = ids.shuffle(buffer_size=10_000)  # will shuffle the shards order and use a shuffle buffer when you start iterating
+        >>> dataloader = torch.utils.data.DataLoader(ids, num_workers=4)  # will assign 64 / 4 = 16 shards from the shuffled list of shards to each worker when you start iterating
+        >>> for example in ids:
+        ...     pass
+        ```
+
+        In a distributed setup like PyTorch DDP with a PyTorch DataLoader and shuffling
+        ```python
+        >>> from datasets.distributed import split_dataset_by_node
+        >>> ids = ds.to_iterable(num_shards=512)
+        >>> ids = ids.shuffle(buffer_size=10_000)  # will shuffle the shards order and use a shuffle buffer when you start iterating
+        >>> ids = split_dataset_by_node(ds, world_size=8, rank=0)  # will keep only 512 / 8 = 64 shards from the shuffled lists of shards when you start iterating
+        >>> dataloader = torch.utils.data.DataLoader(ids, num_workers=4)  # will assign 64 / 4 = 16 shards from this node's list of shards to each worker when you start iterating
+        >>> for example in ids:
+        ...     pass
+        ```
+
+        With shuffling and multiple epochs:
+        ```python
+        >>> ids = ds.to_iterable(num_shards=64)
+        >>> ids = ids.shuffle(buffer_size=10_000, seed=42)  # will shuffle the shards order and use a shuffle buffer when you start iterating
+        >>> for epoch in range(n_epochs):
+        ...     ids.set_epoch(epoch)  # will use effective_seed = seed + epoch to shuffle the shards and for the shuffle buffer when you start iterating
+        ...     for example in ids:
+        ...         pass
+        ```
+        Feel free to also use [`IterableDataset.set_epoch`] when using a PyTorch DataLoader or in distributed setups.
+        """
+        from .iterable_dataset import IterableDataset
+
+        if self._indices is not None:
+            logger.warning(
+                "Converting an Arrow dataset to iterable but it has an indices mapping that can make it slower. You can use `ds = ds.flatten_indices()` to have optimal speed."
+            )
+        shards = (
+            [copy.deepcopy(self)]
+            if num_shards is None
+            else [
+                self.shard(num_shards=num_shards, index=shard_idx, contiguous=True) for shard_idx in range(num_shards)
+            ]
+        )
+        return IterableDataset.from_generator(Dataset._iter_shards, gen_kwargs={"shards": shards})
 
     def _push_parquet_shards_to_hub(
         self,
