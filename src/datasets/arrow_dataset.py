@@ -4555,6 +4555,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     ) -> Union[pd.DataFrame, Iterator[pd.DataFrame]]:
         """Returns the dataset as a `pandas.DataFrame`. Can also return a generator for large datasets.
 
+        <Tip warning={true}>
+
+        This method should only be used if the Dataset is small enough, since all the data is loaded into RAM.
+
+        </Tip>
+
         Args:
             batched (`bool`):
                 Set to `True` to return a generator that yields the dataset as batches
@@ -4591,6 +4597,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     def to_spark(self, spark_session: "Optional[pyspark.sql.SparkSession]" = None) -> "pyspark.sql.DataFrame":
         """Convert to Spark DataFrame.
+
+        <Tip warning={true}>
+
+        This method should only be used if the Dataset is small enough, since all the data is loaded into RAM.
+
+        </Tip>
 
         Args:
             spark_session (`pyspark.sql.SparkSession`, *optional*): Spark session to create the Spark DataFrame.
