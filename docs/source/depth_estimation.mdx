@@ -26,7 +26,8 @@ Load the `train` split of the dataset and take a look at an example:
 
 >>> train_dataset = load_dataset("sayakpaul/nyu_depth_v2", split="train")
 >>> index = 17
->>> train_dataset[index]
+>>> example = train_dataset[index]
+>>> example
 {'image': <PIL.PngImagePlugin.PngImageFile image mode=RGB size=640x480>,
  'depth_map': <PIL.PngImagePlugin.PngImageFile image mode=L size=640x480>}
 ```
@@ -39,7 +40,7 @@ The dataset has two fields:
 Next, check out an image with:
 
 ```py
->>> train_dataset[index]["image"]
+>>> example["image"]
 ```
 
 <div class="flex justify-center">
@@ -49,7 +50,7 @@ Next, check out an image with:
 Now take a look at its corresponding depth map:
 
 ```py
->>> train_dataset[index]["depth_map"]
+>>> example["depth_map"]
 ```
 
 <div class="flex justify-center">
@@ -86,7 +87,7 @@ It's all black! You'll need to add some color to the depth map to visualize it p
 ...    plt.axis("off")
 ...    plt.show()
 
->>> show_depthmap(train_dataset[index]["depth_map"])
+>>> show_depthmap(example["depth_map"])
 ```
 
 <div class="flex justify-center">
@@ -110,9 +111,10 @@ You can also visualize several different images and their corresponding depth ma
 >>> random_indices = np.random.choice(len(train_dataset), 9).tolist()
 >>> plt.figure(figsize=(15, 6))
 >>> for i, idx in enumerate(random_indices):
+...     example = train_dataset[idx]
 ...     ax = plt.subplot(3, 3, i + 1)
 ...     image_viz = merge_into_row(
-...         train_dataset[idx]["image"], train_dataset[idx]["depth_map"]
+...         example["image"], example["depth_map"]
 ...     )
 ...     plt.imshow(image_viz.astype("uint8"))
 ...     plt.axis("off")
@@ -124,6 +126,7 @@ You can also visualize several different images and their corresponding depth ma
 
 Now apply some augmentations with `albumentations`. The augmentation transformations include:
 
+* Random horizontal flipping
 * Random cropping 
 * Random brightness and contrast 
 * Random gamma correction 
@@ -134,6 +137,7 @@ Now apply some augmentations with `albumentations`. The augmentation transformat
 
 >>> crop_size = (448, 576)
 >>> transforms = [
+...     A.HorizontalFlip(p=0.5),
 ...     A.RandomCrop(crop_size[0], crop_size[1]),
 ...     A.RandomBrightnessContrast(),
 ...     A.RandomGamma(),
@@ -176,7 +180,9 @@ Use the [`~Dataset.set_transform`] function to apply the transformation on-the-f
 You can verify the transformation worked by indexing into the `pixel_values` and `labels` of an example image:
 
 ```py
->>> plt.imshow(image)
+>>> example = train_dataset[index]
+
+>>> plt.imshow(example["pixel_values"])
 >>> plt.axis("off")
 >>> plt.show()
 ```
@@ -188,7 +194,7 @@ You can verify the transformation worked by indexing into the `pixel_values` and
 Visualize the same transformation on the image's corresponding depth map:
 
 ```py 
->>> show_depthmap(train_dataset[index]["labels"])
+>>> show_depthmap(example["labels"])
 ```
 
 <div class="flex justify-center">
@@ -202,8 +208,9 @@ You can also visualize multiple training samples reusing the previous `random_in
 
 >>> for i, idx in enumerate(random_indices):
 ...     ax = plt.subplot(3, 3, i + 1)
+...     example = train_dataset[idx]
 ...     image_viz = merge_into_row(
-...         train_dataset[idx]["pixel_values"], train_dataset[idx]["labels"]
+...         example["pixel_values"], example["labels"]
 ...     )
 ...     plt.imshow(image_viz.astype("uint8"))
 ...     plt.axis("off")
