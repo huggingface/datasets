@@ -91,7 +91,7 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
     # file readers
     patch_submodule(module, "gzip.open", wrap_auth(xgzip_open)).start()
     patch_submodule(module, "pandas.read_csv", wrap_auth(xpandas_read_csv), attrs=["__version__"]).start()
-    patch_submodule(module, "pandas.read_excel", xpandas_read_excel, attrs=["__version__"]).start()
+    patch_submodule(module, "pandas.read_excel", wrap_auth(xpandas_read_excel), attrs=["__version__"]).start()
     patch_submodule(module, "scipy.io.loadmat", wrap_auth(xsio_loadmat), attrs=["__version__"]).start()
     patch_submodule(module, "xml.etree.ElementTree.parse", wrap_auth(xet_parse)).start()
     patch_submodule(module, "xml.dom.minidom.parse", wrap_auth(xxml_dom_minidom_parse)).start()
