@@ -7,6 +7,7 @@ from .download.streaming_download_manager import (
     xbasename,
     xdirname,
     xet_parse,
+    xexists,
     xgetsize,
     xglob,
     xgzip_open,
@@ -84,6 +85,7 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
     patch_submodule(module, "os.path.split", xsplit).start()
     patch_submodule(module, "os.path.splitext", xsplitext).start()
     # allow checks on paths
+    patch_submodule(module, "os.path.exists", wrap_auth(xexists)).start()
     patch_submodule(module, "os.path.isdir", wrap_auth(xisdir)).start()
     patch_submodule(module, "os.path.isfile", wrap_auth(xisfile)).start()
     patch_submodule(module, "os.path.getsize", wrap_auth(xgetsize)).start()
