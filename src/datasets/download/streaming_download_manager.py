@@ -769,10 +769,22 @@ def xpandas_read_csv(filepath_or_buffer, use_auth_token: Optional[Union[str, boo
         return pd.read_csv(xopen(filepath_or_buffer, "rb", use_auth_token=use_auth_token), **kwargs)
 
 
-def xpandas_read_excel(filepath_or_buffer, **kwargs):
+def xpandas_read_excel(filepath_or_buffer, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
     import pandas as pd
 
-    return pd.read_excel(BytesIO(filepath_or_buffer.read()), **kwargs)
+    if hasattr(filepath_or_buffer, "read"):
+        try:
+            return pd.read_excel(filepath_or_buffer, **kwargs)
+        except ValueError:  # Cannot seek streaming HTTP file
+            return pd.read_excel(BytesIO(filepath_or_buffer.read()), **kwargs)
+    else:
+        filepath_or_buffer = str(filepath_or_buffer)
+        try:
+            return pd.read_excel(xopen(filepath_or_buffer, "rb", use_auth_token=use_auth_token), **kwargs)
+        except ValueError:  # Cannot seek streaming HTTP file
+            return pd.read_excel(
+                BytesIO(xopen(filepath_or_buffer, "rb", use_auth_token=use_auth_token).read()), **kwargs
+            )
 
 
 def xsio_loadmat(filepath_or_buffer, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
