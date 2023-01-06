@@ -53,7 +53,6 @@ class ParquetDatasetReader(AbstractDatasetReader):
             download_config = None
             download_mode = None
             ignore_verifications = False
-            use_auth_token = None
             base_path = None
 
             self.builder.download_and_prepare(
@@ -62,7 +61,6 @@ class ParquetDatasetReader(AbstractDatasetReader):
                 ignore_verifications=ignore_verifications,
                 # try_from_hf_gcs=try_from_hf_gcs,
                 base_path=base_path,
-                use_auth_token=use_auth_token,
                 num_proc=self.num_proc,
             )
             dataset = self.builder.as_dataset(
