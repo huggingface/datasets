@@ -38,13 +38,13 @@ Now apply some augmentations with `albumentations`. You'll randomly crop the ima
 
 ```py
 >>> import cv2
->>> import albumentations as A
+>>> import albumentations
 >>> import numpy as np
 
->>> transform = A.Compose([
-...     A.RandomCrop(width=256, height=256),
-...     A.HorizontalFlip(p=0.5),
-...     A.RandomBrightnessContrast(p=0.2),
+>>> transform = albumentations.Compose([
+...     albumentations.RandomCrop(width=256, height=256),
+...     albumentations.HorizontalFlip(p=0.5),
+...     albumentations.RandomBrightnessContrast(p=0.2),
 ... ])
 ```
 
