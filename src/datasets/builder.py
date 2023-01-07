@@ -991,14 +991,14 @@ class DatasetBuilder:
                         shutil.move(downloaded_resource_path, resource_path)
 
     def _load_info(self) -> DatasetInfo:
-        return DatasetInfo.from_directory(self._output_dir, fs=self._fs)
+        return DatasetInfo.from_directory(self._output_dir, storage_options=self._fs.storage_options)
 
     def _save_info(self):
         is_local = not is_remote_filesystem(self._fs)
         if is_local:
             lock_path = self._output_dir + "_info.lock"
         with FileLock(lock_path) if is_local else contextlib.nullcontext():
-            self.info.write_to_directory(self._output_dir, fs=self._fs)
+            self.info.write_to_directory(self._output_dir, storage_options=self._fs.storage_options)
 
     def _save_infos(self):
         is_local = not is_remote_filesystem(self._fs)
