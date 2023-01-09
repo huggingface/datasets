@@ -1966,7 +1966,7 @@ class BeamBasedBuilder(DatasetBuilder):
             raise NotImplementedError("Using a DirectRunner with `num_proc` for multiprocessing it not supported yet.")
         beam_options = beam_options or beam.options.pipeline_options.PipelineOptions.from_dictionary(pipeline_options)
         # Use a single pipeline for all splits
-        pipeline = beam_utils.Pipeline(
+        pipeline = beam_utils.BeamPipeline(
             runner=beam_runner,
             options=beam_options,
         )
