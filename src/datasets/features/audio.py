@@ -284,6 +284,7 @@ class Audio:
                     "Decoding .opus files requires 'libsndfile'>=1.0.30, "
                     + 'it can be installed via conda: `conda install -c conda-forge "libsndfile>=1.0.30"`'
                 )
+        # Specify the float format as the default for soundfile is float64
         array, sampling_rate = sf.read(file, dtype="float32")
         array = array.T
         if self.mono:
