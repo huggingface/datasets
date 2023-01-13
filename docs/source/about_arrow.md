@@ -39,14 +39,12 @@ Iterating over a memory-mapped dataset using Arrow is fast. Iterating over Wikip
 
 ```python
 >>> s = """batch_size = 1000
-... for i in range(0, len(wiki), batch_size):
-...     batch = wiki[i:i + batch_size]
+... for batch in wiki.iter(batch_size):
+...     ...
 ... """
 
 >>> time = timeit.timeit(stmt=s, number=1, globals=globals())
 >>> print(f"Time to iterate over the {wiki.dataset_size >> 30} GB dataset: {time:.1f} sec, "
 ...       f"ie. {float(wiki.dataset_size >> 27)/time:.1f} Gb/s")
-Time to iterate over the 18 GB dataset: 70.5 sec, ie. 2.1 Gb/s
+Time to iterate over the 18 GB dataset: 31.8 sec, ie. 4.8 Gb/s
 ```
-
-You can obtain the best performance by accessing slices of data (or "batches"), in order to reduce the amount of lookups on disk.

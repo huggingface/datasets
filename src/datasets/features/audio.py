@@ -23,31 +23,34 @@ _ffmpeg_warned, _librosa_warned, _audioread_warned = False, False, False
 
 @dataclass
 class Audio:
-    """Audio Feature to extract audio data from an audio file.
+    """Audio [`Feature`] to extract audio data from an audio file.
 
     Input: The Audio feature accepts as input:
-    - A :obj:`str`: Absolute path to the audio file (i.e. random access is allowed).
-    - A :obj:`dict` with the keys:
+    - A `str`: Absolute path to the audio file (i.e. random access is allowed).
+    - A `dict` with the keys:
 
-        - path: String with relative path of the audio file to the archive file.
-        - bytes: Bytes content of the audio file.
+        - `path`: String with relative path of the audio file to the archive file.
+        - `bytes`: Bytes content of the audio file.
 
       This is useful for archived files with sequential access.
 
-    - A :obj:`dict` with the keys:
+    - A `dict` with the keys:
 
-        - path: String with relative path of the audio file to the archive file.
-        - array: Array containing the audio sample
-        - sampling_rate: Integer corresponding to the sampling rate of the audio sample.
+        - `path`: String with relative path of the audio file to the archive file.
+        - `array`: Array containing the audio sample
+        - `sampling_rate`: Integer corresponding to the sampling rate of the audio sample.
 
       This is useful for archived files with sequential access.
 
     Args:
-        sampling_rate (:obj:`int`, optional): Target sampling rate. If `None`, the native sampling rate is used.
-        mono (:obj:`bool`, default ``True``): Whether to convert the audio signal to mono by averaging samples across
+        sampling_rate (`int`, *optional*):
+            Target sampling rate. If `None`, the native sampling rate is used.
+        mono (`bool`, defaults to `True`):
+            Whether to convert the audio signal to mono by averaging samples across
             channels.
-        decode (:obj:`bool`, default ``True``): Whether to decode the audio data. If `False`,
-            returns the underlying dictionary in the format {"path": audio_path, "bytes": audio_bytes}.
+        decode (`bool`, defaults to `True`):
+            Whether to decode the audio data. If `False`,
+            returns the underlying dictionary in the format `{"path": audio_path, "bytes": audio_bytes}`.
 
     Example:
 
@@ -79,10 +82,11 @@ class Audio:
         """Encode example into a format for Arrow.
 
         Args:
-            value (:obj:`str` or :obj:`dict`): Data passed as input to Audio feature.
+            value (`str` or `dict`):
+                Data passed as input to Audio feature.
 
         Returns:
-            :obj:`dict`
+            `dict`
         """
         try:
             import soundfile as sf  # soundfile is a dependency of librosa, needed to decode audio files.
@@ -127,16 +131,18 @@ class Audio:
         """Decode example audio file into audio data.
 
         Args:
-            value (:obj:`dict`): a dictionary with keys:
+            value (`dict`):
+                A dictionary with keys:
 
-                - path: String with relative audio file path.
-                - bytes: Bytes of the audio file.
-            token_per_repo_id (:obj:`dict`, optional): To access and decode
+                - `path`: String with relative audio file path.
+                - `bytes`: Bytes of the audio file.
+            token_per_repo_id (`dict`, *optional*):
+                To access and decode
                 audio files from private repositories on the Hub, you can pass
-                a dictionary repo_id (str) -> token (bool or str)
+                a dictionary repo_id (`str`) -> token (`bool` or `str`)
 
         Returns:
-            dict
+            `dict`
         """
         if not self.decode:
             raise RuntimeError("Decoding is disabled for this feature. Please use Audio(decode=True) instead.")
@@ -175,17 +181,18 @@ class Audio:
         """Cast an Arrow array to the Audio arrow storage type.
         The Arrow types that can be converted to the Audio pyarrow storage type are:
 
-        - pa.string() - it must contain the "path" data
-        - pa.struct({"bytes": pa.binary()})
-        - pa.struct({"path": pa.string()})
-        - pa.struct({"bytes": pa.binary(), "path": pa.string()})  - order doesn't matter
+        - `pa.string()` - it must contain the "path" data
+        - `pa.struct({"bytes": pa.binary()})`
+        - `pa.struct({"path": pa.string()})`
+        - `pa.struct({"bytes": pa.binary(), "path": pa.string()})`  - order doesn't matter
 
         Args:
-            storage (Union[pa.StringArray, pa.StructArray]): PyArrow array to cast.
+            storage (`Union[pa.StringArray, pa.StructArray]`):
+                PyArrow array to cast.
 
         Returns:
-            pa.StructArray: Array in the Audio arrow storage type, that is
-                pa.struct({"bytes": pa.binary(), "path": pa.string()})
+            `pa.StructArray`: Array in the Audio arrow storage type, that is
+                `pa.struct({"bytes": pa.binary(), "path": pa.string()})`
         """
         if pa.types.is_string(storage.type):
             bytes_array = pa.array([None] * len(storage), type=pa.binary())
@@ -208,11 +215,12 @@ class Audio:
         """Embed audio files into the Arrow array.
 
         Args:
-            storage (pa.StructArray): PyArrow array to embed.
+            storage (`pa.StructArray`):
+                PyArrow array to embed.
 
         Returns:
-            pa.StructArray: Array in the Audio arrow storage type, that is
-                pa.struct({"bytes": pa.binary(), "path": pa.string()})
+            `pa.StructArray`: Array in the Audio arrow storage type, that is
+                `pa.struct({"bytes": pa.binary(), "path": pa.string()})`.
         """
 
         @no_op_if_value_is_null

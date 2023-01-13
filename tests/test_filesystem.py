@@ -11,10 +11,8 @@ from .utils import require_lz4, require_zstandard
 
 def test_extract_path_from_uri():
 
-    mock_bucket = "moto-mock-s3-bucket"
-
+    mock_bucket = "mock-s3-bucket"
     dataset_path = f"s3://{mock_bucket}"
-
     dataset_path = extract_path_from_uri(dataset_path)
     assert dataset_path.startswith("s3://") is False
 

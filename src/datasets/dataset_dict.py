@@ -2,6 +2,7 @@ import contextlib
 import copy
 import json
 import os
+import posixpath
 import re
 import warnings
 from io import BytesIO
@@ -203,11 +204,11 @@ class DatasetDict(dict):
         This is implemented in the low-level backend and as such, very fast.
 
         Args:
-            column (:obj:`str`):
-                column name (list all the column names with :func:`datasets.Dataset.column_names`)
+            column (`str`):
+                column name (list all the column names with [`~datasets.Dataset.column_names`])
 
         Returns:
-            Dict[:obj:`str`, :obj:`list`]: Dictionary of unique elements in the given column.
+            Dict[`str`, `list`]: Dictionary of unique elements in the given column.
 
         Example:
 
@@ -226,7 +227,7 @@ class DatasetDict(dict):
         Be careful when running this command that no other process is currently using other cache files.
 
         Return:
-            Dict with the number of removed files for each split
+            `Dict` with the number of removed files for each split
 
         Example:
 
@@ -250,14 +251,15 @@ class DatasetDict(dict):
         Cast the dataset to a new set of features.
         The transformation is applied to all the datasets of the dataset dictionary.
 
-        You can also remove a column using :func:`Dataset.map` with `feature` but :func:`cast_`
+        You can also remove a column using [`Dataset.map`] with `feature` but `cast`
         is in-place (doesn't copy the data to a new dataset) and is thus faster.
 
         Args:
-            features (:class:`datasets.Features`): New features to cast the dataset to.
+            features ([`Features`]):
+                New features to cast the dataset to.
                 The name and order of the fields in the features must match the current column names.
                 The type of the data must also be convertible from one type to the other.
-                For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
+                For non-trivial conversion, e.g. `string` <-> `ClassLabel` you should use [`~Dataset.map`] to update the Dataset.
 
         Example:
 
@@ -283,11 +285,13 @@ class DatasetDict(dict):
         """Cast column to feature for decoding.
 
         Args:
-            column (:obj:`str`): Column name.
-            feature (:class:`Feature`): Target feature.
+            column (`str`):
+                Column name.
+            feature ([`Feature`]):
+                Target feature.
 
         Returns:
-            :class:`DatasetDict`
+            [`DatasetDict`]
 
         Example:
 
@@ -313,11 +317,12 @@ class DatasetDict(dict):
 
         The transformation is applied to all the splits of the dataset dictionary.
 
-        You can also remove a column using :func:`Dataset.map` with `remove_columns` but the present method
+        You can also remove a column using [`Dataset.map`] with `remove_columns` but the present method
         is in-place (doesn't copy the data to a new dataset) and is thus faster.
 
         Args:
-            column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
+            column_names (`Union[str, List[str]]`):
+                Name of the column(s) to remove.
 
         Example:
 
@@ -349,13 +354,15 @@ class DatasetDict(dict):
         Rename a column in the dataset and move the features associated to the original column under the new column name.
         The transformation is applied to all the datasets of the dataset dictionary.
 
-        You can also rename a column using :func:`Dataset.map` with `remove_columns` but the present method:
+        You can also rename a column using [`~Dataset.map`] with `remove_columns` but the present method:
             - takes care of moving the original features under the new column name.
             - doesn't copy the data to a new dataset and is thus much faster.
 
         Args:
-            original_column_name (:obj:`str`): Name of the column to rename.
-            new_column_name (:obj:`str`): New name for the column.
+            original_column_name (`str`):
+                Name of the column to rename.
+            new_column_name (`str`):
+                New name for the column.
 
         Example:
 
@@ -394,10 +401,11 @@ class DatasetDict(dict):
         The transformation is applied to all the datasets of the dataset dictionary.
 
         Args:
-            column_mapping (:obj:`Dict[str, str]`): A mapping of columns to rename to their new names
+            column_mapping (`Dict[str, str]`):
+                A mapping of columns to rename to their new names.
 
         Returns:
-            :class:`DatasetDict`: A copy of the dataset with renamed columns
+            [`DatasetDict`]: A copy of the dataset with renamed columns.
 
         Example:
 
@@ -425,14 +433,15 @@ class DatasetDict(dict):
         return DatasetDict({k: dataset.rename_columns(column_mapping=column_mapping) for k, dataset in self.items()})
 
     def class_encode_column(self, column: str, include_nulls: bool = False) -> "DatasetDict":
-        """Casts the given column as :obj:``datasets.features.ClassLabel`` and updates the tables.
+        """Casts the given column as `datasets.features.ClassLabel` and updates the tables.
 
         Args:
-            column (`str`): The name of the column to cast
-            include_nulls (`bool`, default `False`):
-                Whether to include null values in the class labels. If True, the null values will be encoded as the `"None"` class label.
+            column (`str`):
+                The name of the column to cast.
+            include_nulls (`bool`, defaults to `False`):
+                Whether to include null values in the class labels. If `True`, the null values will be encoded as the `"None"` class label.
 
-                *New in version 1.14.2*
+                <Added version="1.14.2"/>
 
         Example:
 
@@ -463,16 +472,20 @@ class DatasetDict(dict):
         output_all_columns: bool = False,
         **format_kwargs,
     ):
-        """To be used in a `with` statement. Set ``__getitem__`` return format (type and columns)
+        """To be used in a `with` statement. Set `__getitem__` return format (type and columns).
         The transformation is applied to all the datasets of the dataset dictionary.
 
         Args:
-            type (:obj:`str`, optional): output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow']
-                None means ``__getitem__`` returns python objects (default)
-            columns (:obj:`List[str]`, optional): columns to format in the output
-                None means ``__getitem__`` returns all columns (default)
-            output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
-            **format_kwargs (additional keyword arguments): keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
+            type (`str`, optional):
+                Output type selected in `[None, numpy, torch, tensorflow, pandas, arrow]`.
+                `None` means `__getitem__` returns python objects (default).
+            columns (`List[str]`, *optional*):
+                Columns to format in the output.
+                `None` means `__getitem__` returns all columns (default).
+            output_all_columns (`bool`, defaults to False):
+                Keep un-formatted columns as well in the output (as python objects).
+            **format_kwargs (additional keyword arguments):
+                Keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
         """
         self._check_values_type()
         old_format_type = {k: dataset._format_type for k, dataset in self.items()}
@@ -495,21 +508,25 @@ class DatasetDict(dict):
         output_all_columns: bool = False,
         **format_kwargs,
     ):
-        """Set ``__getitem__`` return format (type and columns)
-        The format is set for every dataset in the dataset dictionary
+        """Set `__getitem__` return format (type and columns).
+        The format is set for every dataset in the dataset dictionary.
 
         Args:
-            type (:obj:`str`, optional): output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow']
-                None means ``__getitem__`` returns python objects (default)
-            columns (:obj:`List[str]`, optional): columns to format in the output.
-                None means ``__getitem__`` returns all columns (default).
-            output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
-            **format_kwargs (additional keyword arguments): keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
+            type (`str`, *optional*):
+                Output type selected in `.[None, numpy, torch, tensorflow, pandas, arrow]`.
+                `None` means `__getitem__` returns python objects (default).
+            columns (`List[str]`, *optional*):
+                Columns to format in the output.
+                `None` means `__getitem__` returns all columns (default).
+            output_all_columns (`bool`, defaults to False):
+                Keep un-formatted columns as well in the output (as python objects),
+            **format_kwargs (additional keyword arguments):
+                Keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
 
-        It is possible to call ``map`` after calling ``set_format``. Since ``map`` may add new columns, then the list of formatted columns
-        gets updated. In this case, if you apply ``map`` on a dataset to add a new column, then this column will be formatted:
+        It is possible to call `map` after calling `set_format`. Since `map` may add new columns, then the list of formatted columns
+        gets updated. In this case, if you apply `map` on a dataset to add a new column, then this column will be formatted:
 
-            new formatted columns = (all columns - previously unformatted columns)
+            `new formatted columns = (all columns - previously unformatted columns)`
 
         Example:
 
@@ -531,10 +548,10 @@ class DatasetDict(dict):
             dataset.set_format(type=type, columns=columns, output_all_columns=output_all_columns, **format_kwargs)
 
     def reset_format(self):
-        """Reset ``__getitem__`` return format to python objects and all columns.
+        """Reset `__getitem__` return format to python objects and all columns.
         The transformation is applied to all the datasets of the dataset dictionary.
 
-        Same as ``self.set_format()``
+        Same as `self.set_format()`
 
         Example:
 
@@ -573,12 +590,12 @@ class DatasetDict(dict):
         As :func:`datasets.Dataset.set_format`, this can be reset using :func:`datasets.Dataset.reset_format`
 
         Args:
-            transform (:obj:`Callable`, optional): user-defined formatting transform, replaces the format defined by :func:`datasets.Dataset.set_format`
+            transform (`Callable`, optional): user-defined formatting transform, replaces the format defined by :func:`datasets.Dataset.set_format`
                 A formatting function is a callable that takes a batch (as a dict) as input and returns a batch.
                 This function is applied right before returning the objects in ``__getitem__``.
-            columns (:obj:`List[str]`, optional): columns to format in the output
+            columns (`List[str]`, optional): columns to format in the output
                 If specified, then the input batch of the transform only contains those columns.
-            output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
+            output_all_columns (`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
                 If set to True, then the other un-formatted columns are kept with the output of the transform.
 
         """
@@ -593,22 +610,25 @@ class DatasetDict(dict):
         output_all_columns: bool = False,
         **format_kwargs,
     ) -> "DatasetDict":
-        """Set ``__getitem__`` return format (type and columns). The data formatting is applied on-the-fly.
-        The format ``type`` (for example "numpy") is used to format batches when using ``__getitem__``.
-        The format is set for every dataset in the dataset dictionary
+        """Set `__getitem__` return format (type and columns). The data formatting is applied on-the-fly.
+        The format `type` (for example "numpy") is used to format batches when using `__getitem__`.
+        The format is set for every dataset in the dataset dictionary.
 
-        It's also possible to use custom transforms for formatting using :func:`datasets.Dataset.with_transform`.
+        It's also possible to use custom transforms for formatting using [`~datasets.Dataset.with_transform`].
 
-        Contrary to :func:`datasets.DatasetDict.set_format`, ``with_format`` returns a new DatasetDict object with new Dataset objects.
+        Contrary to [`~datasets.DatasetDict.set_format`], `with_format` returns a new [`DatasetDict`] object with new [`Dataset`] objects.
 
         Args:
-            type (:obj:`str`, optional):
-                Either output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow'].
-                None means ``__getitem__`` returns python objects (default)
-            columns (:obj:`List[str]`, optional): columns to format in the output
-                None means ``__getitem__`` returns all columns (default)
-            output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
-            **format_kwargs (additional keyword arguments): keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
+            type (`str`, *optional*):
+                Either output type selected in `[None, numpy, torch, tensorflow, pandas, arrow]`.
+                `None` means `__getitem__` returns python objects (default).
+            columns (`List[str]`, *optional*):
+                Columns to format in the output.
+                `None` means `__getitem__` returns all columns (default).
+            output_all_columns (`bool`, defaults to `False`):
+                Keep un-formatted columns as well in the output (as python objects).
+            **format_kwargs (additional keyword arguments):
+                Keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
 
         Example:
 
@@ -641,21 +661,24 @@ class DatasetDict(dict):
         columns: Optional[List] = None,
         output_all_columns: bool = False,
     ) -> "DatasetDict":
-        """Set ``__getitem__`` return format using this transform. The transform is applied on-the-fly on batches when ``__getitem__`` is called.
+        """Set `__getitem__` return format using this transform. The transform is applied on-the-fly on batches when `__getitem__` is called.
         The transform is set for every dataset in the dataset dictionary
 
-        As :func:`datasets.Dataset.set_format`, this can be reset using :func:`datasets.Dataset.reset_format`.
+        As [`~datasets.Dataset.set_format`], this can be reset using [`~datasets.Dataset.reset_format`].
 
-        Contrary to :func:`datasets.DatasetDict.set_transform`, ``with_transform`` returns a new DatasetDict object with new Dataset objects.
+        Contrary to [`~datasets.DatasetDict.set_transform`], `with_transform` returns a new [`DatasetDict`] object with new [`Dataset`] objects.
 
         Args:
-            transform (:obj:`Callable`, optional): user-defined formatting transform, replaces the format defined by :func:`datasets.Dataset.set_format`
+            transform (`Callable`, *optional*):
+                User-defined formatting transform, replaces the format defined by [`~datasets.Dataset.set_format`].
                 A formatting function is a callable that takes a batch (as a dict) as input and returns a batch.
-                This function is applied right before returning the objects in ``__getitem__``.
-            columns (:obj:`List[str]`, optional): columns to format in the output
+                This function is applied right before returning the objects in `__getitem__`.
+            columns (`List[str]`, *optional*):
+                Columns to format in the output.
                 If specified, then the input batch of the transform only contains those columns.
-            output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
-                If set to True, then the other un-formatted columns are kept with the output of the transform.
+            output_all_columns (`bool`, defaults to False):
+                Keep un-formatted columns as well in the output (as python objects).
+                If set to `True`, then the other un-formatted columns are kept with the output of the transform.
 
         Example:
 
@@ -720,35 +743,51 @@ class DatasetDict(dict):
                 For advanced usage, the function can also return a `pyarrow.Table`.
                 Moreover if your function returns nothing (`None`), then `map` will run your function and return the dataset unchanged.
 
-            with_indices (`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
-            with_rank (:obj:`bool`, default `False`): Provide process rank to `function`. Note that in this case the
+            with_indices (`bool`, defaults to `False`):
+                Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
+            with_rank (`bool`, defaults to `False`):
+                Provide process rank to `function`. Note that in this case the
                 signature of `function` should be `def function(example[, idx], rank): ...`.
-            input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`): The columns to be passed into `function` as
+            input_columns (`[Union[str, List[str]]]`, *optional*, defaults to `None`):
+                The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
-            batched (`bool`, defaults to `False`): Provide batch of examples to `function`
-            batch_size (:obj:`int`, optional, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
-                `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
-            drop_last_batch (:obj:`bool`, default `False`): Whether a last batch smaller than the batch_size should be
+            batched (`bool`, defaults to `False`):
+                Provide batch of examples to `function`.
+            batch_size (`int`, *optional*, defaults to `1000`):
+                Number of examples per batch provided to `function` if `batched=True`,
+                `batch_size <= 0` or `batch_size == None` then provide the full dataset as a single batch to `function`.
+            drop_last_batch (`bool`, defaults to `False`):
+                Whether a last batch smaller than the batch_size should be
                 dropped instead of being processed by the function.
-            remove_columns (`Optional[Union[str, List[str]]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
+            remove_columns (`[Union[str, List[str]]]`, *optional*, defaults to `None`):
+                Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
-            keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
+            keep_in_memory (`bool`, defaults to `False`):
+                Keep the dataset in memory instead of writing it to a cache file.
+            load_from_cache_file (`bool`, defaults to `True`):
+                If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            cache_file_names (`Optional[Dict[str, str]]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
+            cache_file_names (`[Dict[str, str]]`, *optional*, defaults to `None`):
+                Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
-                You have to provide one :obj:`cache_file_name` per dataset in the dataset dictionary.
-            writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
+                You have to provide one `cache_file_name` per dataset in the dataset dictionary.
+            writer_batch_size (`int`, default `1000`):
+                Number of rows per write operation for the cache file writer.
                 This value is a good trade-off between memory usage during the processing, and processing speed.
-                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
-            features (`Optional[datasets.Features]`, defaults to `None`): Use a specific Features to store the cache file
+                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `map`.
+            features (`[datasets.Features]`, *optional*, defaults to `None`):
+                Use a specific [`Features`] to store the cache file
                 instead of the automatically generated one.
-            disable_nullable (`bool`, defaults to `False`): Disallow null values in the table.
-            fn_kwargs (:obj:`Dict`, optional, defaults to `None`): Keyword arguments to be passed to `function`
-            num_proc (:obj:`int`, optional, defaults to `None`): Number of processes for multiprocessing. By default it doesn't
+            disable_nullable (`bool`, defaults to `False`):
+                Disallow null values in the table.
+            fn_kwargs (`Dict`, *optional*, defaults to `None`):
+                Keyword arguments to be passed to `function`
+            num_proc (`int`, *optional*, defaults to `None`):
+                Number of processes for multiprocessing. By default it doesn't
                 use multiprocessing.
-            desc (:obj:`str`, optional, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
+            desc (`str`, *optional*, defaults to `None`):
+                Meaningful description to be displayed alongside with the progress bar while mapping examples.
 
         Example:
 
@@ -818,30 +857,42 @@ class DatasetDict(dict):
         The transformation is applied to all the datasets of the dataset dictionary.
 
         Args:
-            function (`callable`): with one of the following signature:
-                - ``function(example: Dict[str, Any]) -> bool`` if ``with_indices=False, batched=False``
-                - ``function(example: Dict[str, Any], indices: int) -> bool`` if ``with_indices=True, batched=False``
-                - ``function(example: Dict[str, List]) -> List[bool]`` if ``with_indices=False, batched=True``
-                - ``function(example: Dict[str, List], indices: List[int]) -> List[bool]`` if ``with_indices=True, batched=True``
-            with_indices (`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
-            input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`): The columns to be passed into `function` as
+            function (`callable`):
+                With one of the following signature:
+                - `function(example: Dict[str, Any]) -> bool` if `with_indices=False, batched=False`
+                - `function(example: Dict[str, Any], indices: int) -> bool` if `with_indices=True, batched=False`
+                - `function(example: Dict[str, List]) -> List[bool]` if `with_indices=False, batched=True`
+                - `function(example: Dict[str, List], indices: List[int]) -> List[bool]` if ``with_indices=True, batched=True`
+            with_indices (`bool`, defaults to `False`):
+                Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
+            input_columns (`[Union[str, List[str]]]`, *optional*, defaults to `None`):
+                The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
-            batched (`bool`, defaults to `False`): Provide batch of examples to `function`
-            batch_size (:obj:`int`, optional, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
-                `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
-            keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
+            batched (`bool`, defaults to `False`):
+                Provide batch of examples to `function`.
+            batch_size (`int`, *optional*, defaults to `1000`):
+                Number of examples per batch provided to `function` if `batched=True`
+                `batch_size <= 0` or `batch_size == None` then provide the full dataset as a single batch to `function`.
+            keep_in_memory (`bool`, defaults to `False`):
+                Keep the dataset in memory instead of writing it to a cache file.
+            load_from_cache_file (`bool`, defaults to `True`):
+                If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            cache_file_names (`Optional[Dict[str, str]]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
+            cache_file_names (`[Dict[str, str]]`, *optional*, defaults to `None`):
+                Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
-                You have to provide one :obj:`cache_file_name` per dataset in the dataset dictionary.
-            writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
+                You have to provide one `cache_file_name` per dataset in the dataset dictionary.
+            writer_batch_size (`int`, defaults to `1000`):
+                Number of rows per write operation for the cache file writer.
                 This value is a good trade-off between memory usage during the processing, and processing speed.
-                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
-            fn_kwargs (:obj:`Dict`, optional, defaults to `None`): Keyword arguments to be passed to `function`
-            num_proc (:obj:`int`, optional, defaults to `None`): Number of processes for multiprocessing. By default it doesn't
+                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `map`.
+            fn_kwargs (`Dict`, *optional*, defaults to `None`):
+                Keyword arguments to be passed to `function`
+            num_proc (`int`, *optional*, defaults to `None`):
+                Number of processes for multiprocessing. By default it doesn't
                 use multiprocessing.
-            desc (:obj:`str`, optional, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while filtering examples.
+            desc (`str`, *optional*, defaults to `None`):
+                Meaningful description to be displayed alongside with the progress bar while filtering examples.
 
         Example:
 
@@ -907,22 +958,29 @@ class DatasetDict(dict):
         This also means that the column used for sorting is fully loaded in memory (which should be fine in most cases).
 
         Args:
-            column (:obj:`str`): column name to sort by.
-            reverse (:obj:`bool`, default `False`): If True, sort by descending order rather then ascending.
-            kind (:obj:`str`, optional): Pandas algorithm for sorting selected in {‘quicksort’, ‘mergesort’, ‘heapsort’, ‘stable’},
-                The default is ‘quicksort’. Note that both ‘stable’ and ‘mergesort’ use timsort under the covers and, in general,
-                the actual implementation will vary with data type. The ‘mergesort’ option is retained for backwards compatibility.
-            null_placement (:obj:`str`, default `last`):
-                Put `None` values at the beginning if ‘first‘; ‘last‘ puts `None` values at the end.
+            column (`str`):
+                Column name to sort by.
+            reverse (`bool`, defaults to `False`):
+                If `True`, sort by descending order rather then ascending.
+            kind (`str`, *optional*):
+                Pandas algorithm for sorting selected in `{quicksort, mergesort, heapsort, stable}`,
+                The default is `quicksort`. Note that both `stable` and `mergesort` use timsort under the covers and, in general,
+                the actual implementation will vary with data type. The `mergesort` option is retained for backwards compatibility.
+            null_placement (`str`, defaults to `last`):
+                Put `None` values at the beginning if `first`; `last` puts `None` values at the end.
 
-                *New in version 1.14.2*
-            keep_in_memory (:obj:`bool`, default `False`): Keep the sorted indices in memory instead of writing it to a cache file.
-            load_from_cache_file (:obj:`bool`, default `True`): If a cache file storing the sorted indices
+                <Added version="1.14.2"/>
+            keep_in_memory (`bool`, defaults to `False`):
+                Keep the sorted indices in memory instead of writing it to a cache file.
+            load_from_cache_file (`bool`, defaults to `True`):
+                If a cache file storing the sorted indices
                 can be identified, use it instead of recomputing.
-            indices_cache_file_names (`Optional[Dict[str, str]]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
+            indices_cache_file_names (`[Dict[str, str]]`, *optional*, defaults to `None`):
+                Provide the name of a path for the cache file. It is used to store the
                 indices mapping instead of the automatically generated cache file name.
-                You have to provide one :obj:`cache_file_name` per dataset in the dataset dictionary.
-            writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
+                You have to provide one `cache_file_name` per dataset in the dataset dictionary.
+            writer_batch_size (`int`, defaults to `1000`):
+                Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory.
 
         Example:
@@ -974,23 +1032,30 @@ class DatasetDict(dict):
         You can either supply a NumPy BitGenerator to use, or a seed to initiate NumPy's default random generator (PCG64).
 
         Args:
-            seeds (`Dict[str, int]` or `int`, optional): A seed to initialize the default BitGenerator if ``generator=None``.
-                If None, then fresh, unpredictable entropy will be pulled from the OS.
-                If an int or array_like[ints] is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
-                You can provide one :obj:`seed` per dataset in the dataset dictionary.
-            seed (Optional `int`): A seed to initialize the default BitGenerator if ``generator=None``. Alias for seeds (a `ValueError` is raised if both are provided).
-            generators (Optional `Dict[str, np.random.Generator]`): Numpy random Generator to use to compute the permutation of the dataset rows.
-                If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
-                You have to provide one :obj:`generator` per dataset in the dataset dictionary.
-            keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
+            seeds (`Dict[str, int]` or `int`, *optional*):
+                A seed to initialize the default BitGenerator if `generator=None`.
+                If `None`, then fresh, unpredictable entropy will be pulled from the OS.
+                If an `int` or `array_like[ints]` is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
+                You can provide one `seed` per dataset in the dataset dictionary.
+            seed (`int`, *optional*):
+                A seed to initialize the default BitGenerator if `generator=None`. Alias for seeds (a `ValueError` is raised if both are provided).
+            generators (`Dict[str, *optional*, np.random.Generator]`):
+                Numpy random Generator to use to compute the permutation of the dataset rows.
+                If `generator=None` (default), uses `np.random.default_rng` (the default BitGenerator (PCG64) of NumPy).
+                You have to provide one `generator` per dataset in the dataset dictionary.
+            keep_in_memory (`bool`, defaults to `False`):
+                Keep the dataset in memory instead of writing it to a cache file.
+            load_from_cache_file (`bool`, defaults to `True`):
+                If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            indices_cache_file_names (`Dict[str, str]`, optional): Provide the name of a path for the cache file. It is used to store the
+            indices_cache_file_names (`Dict[str, str]`, *optional*):
+                Provide the name of a path for the cache file. It is used to store the
                 indices mappings instead of the automatically generated cache file name.
-                You have to provide one :obj:`cache_file_name` per dataset in the dataset dictionary.
-            writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
+                You have to provide one `cache_file_name` per dataset in the dataset dictionary.
+            writer_batch_size (`int`, defaults to `1000`):
+                Number of rows per write operation for the cache file writer.
                 This value is a good trade-off between memory usage during the processing, and processing speed.
-                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
+                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `map`.
 
         Example:
 
@@ -1032,73 +1097,137 @@ class DatasetDict(dict):
             }
         )
 
-    def save_to_disk(self, dataset_dict_path: str, fs=None):
+    def save_to_disk(
+        self,
+        dataset_dict_path: PathLike,
+        fs="deprecated",
+        max_shard_size: Optional[Union[str, int]] = None,
+        num_shards: Optional[Dict[str, int]] = None,
+        num_proc: Optional[int] = None,
+        storage_options: Optional[dict] = None,
+    ):
         """
-        Saves a dataset dict to a filesystem using either :class:`~filesystems.S3FileSystem` or
-        ``fsspec.spec.AbstractFileSystem``.
+        Saves a dataset dict to a filesystem using either [`~filesystems.S3FileSystem`] or
+        `fsspec.spec.AbstractFileSystem`.
 
-        For :class:`Image` and :class:`Audio` data:
+        For [`Image`] and [`Audio`] data:
 
-        If your images and audio files are local files, then the resulting arrow file will store paths to these files.
-        If you want to include the bytes or your images or audio files instead, you must `read()` those files first.
-        This can be done by storing the "bytes" instead of the "path" of the images or audio files:
-
-        ```python
-        >>> def read_image_file(example):
-        ...     with open(example["image"].filename, "rb") as f:
-        ...         return {"image": {"bytes": f.read()}}
-        >>> ds = ds.map(read_image_file)
-        >>> ds.save_to_disk("path/to/dataset/dir")
-        ```
-
-        ```python
-        >>> def read_audio_file(example):
-        ...     with open(example["audio"]["path"], "rb") as f:
-        ...         return {"audio": {"bytes": f.read()}}
-        >>> ds = ds.map(read_audio_file)
-        >>> ds.save_to_disk("path/to/dataset/dir")
-        ```
+        All the Image() and Audio() data are stored in the arrow files.
+        If you want to store paths or urls, please use the Value("string") type.
 
         Args:
-            dataset_dict_path (``str``): Path (e.g. `dataset/train`) or remote URI
+            dataset_dict_path (`str`):
+                Path (e.g. `dataset/train`) or remote URI
                 (e.g. `s3://my-bucket/dataset/train`) of the dataset dict directory where the dataset dict will be
                 saved to.
-            fs (:class:`~filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``):
-                Instance of the remote filesystem used to download the files from.
-        """
-        if is_remote_filesystem(fs):
-            dest_dataset_dict_path = extract_path_from_uri(dataset_dict_path)
-        else:
-            fs = fsspec.filesystem("file")
-            dest_dataset_dict_path = dataset_dict_path
-            os.makedirs(dest_dataset_dict_path, exist_ok=True)
+            fs (`fsspec.spec.AbstractFileSystem`, *optional*):
+                Instance of the remote filesystem where the dataset will be saved to.
 
-        json.dump(
-            {"splits": list(self)},
-            fs.open(Path(dest_dataset_dict_path, config.DATASETDICT_JSON_FILENAME).as_posix(), "w", encoding="utf-8"),
-        )
+                <Deprecated version="2.8.0">
+
+                `fs` was deprecated in version 2.8.0 and will be removed in 3.0.0.
+                Please use `storage_options` instead, e.g. `storage_options=fs.storage_options`
+
+                </Deprecated>
+
+            max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
+                The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
+                (like `"50MB"`).
+            num_shards (`Dict[str, int]`, *optional*):
+                Number of shards to write. By default the number of shards depends on `max_shard_size`.
+                You need to provide the number of shards for each dataset in the dataset dictionary.
+                Use a dictionary to define a different num_shards for each split.
+
+                <Added version="2.8.0"/>
+            num_proc (`int`, *optional*, default `None`):
+                Number of processes when downloading and generating the dataset locally.
+                Multiprocessing is disabled by default.
+
+                <Added version="2.8.0"/>
+            storage_options (`dict`, *optional*):
+                Key/value pairs to be passed on to the file-system backend, if any.
+
+                <Added version="2.8.0"/>
+
+        Example:
+
+        ```python
+        >>> dataset_dict.save_to_disk("path/to/dataset/directory")
+        >>> dataset_dict.save_to_disk("path/to/dataset/directory", max_shard_size="1GB")
+        >>> dataset_dict.save_to_disk("path/to/dataset/directory", num_shards={"train": 1024, "test": 8})
+        ```
+        """
+        if fs != "deprecated":
+            warnings.warn(
+                "'fs' was is deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
+                "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
+                FutureWarning,
+            )
+            storage_options = fs.storage_options
+
+        fs_token_paths = fsspec.get_fs_token_paths(dataset_dict_path, storage_options=storage_options)
+        fs: fsspec.AbstractFileSystem = fs_token_paths[0]
+        is_local = not is_remote_filesystem(fs)
+        path_join = os.path.join if is_local else posixpath.join
+
+        if num_shards is None:
+            num_shards = {k: None for k in self}
+        elif not isinstance(num_shards, dict):
+            raise ValueError(
+                "Please provide one `num_shards` per dataset in the dataset dictionary, e.g. {{'train': 128, 'test': 4}}"
+            )
+
+        if is_local:
+            Path(dataset_dict_path).resolve().mkdir(parents=True, exist_ok=True)
+
+        with fs.open(path_join(dataset_dict_path, config.DATASETDICT_JSON_FILENAME), "w", encoding="utf-8") as f:
+            json.dump({"splits": list(self)}, f)
         for k, dataset in self.items():
-            dataset.save_to_disk(Path(dest_dataset_dict_path, k).as_posix(), fs)
+            dataset.save_to_disk(
+                path_join(dataset_dict_path, k),
+                num_shards=num_shards.get(k),
+                max_shard_size=max_shard_size,
+                num_proc=num_proc,
+                storage_options=storage_options,
+            )
 
     @staticmethod
-    def load_from_disk(dataset_dict_path: str, fs=None, keep_in_memory: Optional[bool] = None) -> "DatasetDict":
+    def load_from_disk(
+        dataset_dict_path: PathLike,
+        fs="deprecated",
+        keep_in_memory: Optional[bool] = None,
+        storage_options: Optional[dict] = None,
+    ) -> "DatasetDict":
         """
-        Load a dataset that was previously saved using :meth:`save_to_disk` from a filesystem using either
-        :class:`~filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``.
+        Load a dataset that was previously saved using [`save_to_disk`] from a filesystem using either
+        [`~filesystems.S3FileSystem`] or `fsspec.spec.AbstractFileSystem`.
 
         Args:
-            dataset_dict_path (:obj:`str`): Path (e.g. ``"dataset/train"``) or remote URI (e.g.
-                ``"s3//my-bucket/dataset/train"``) of the dataset dict directory where the dataset dict will be loaded
-                from.
-            fs (:class:`~filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``, optional, default ``None``):
-                Instance of the remote filesystem used to download the files from.
-            keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
+            dataset_dict_path (`str`):
+                Path (e.g. `"dataset/train"`) or remote URI (e.g. `"s3//my-bucket/dataset/train"`)
+                of the dataset dict directory where the dataset dict will be loaded from.
+            fs (`fsspec.spec.AbstractFileSystem`, *optional*):
+                Instance of the remote filesystem where the dataset will be saved to.
+
+                <Deprecated version="2.8.0">
+
+                `fs` was deprecated in version 2.8.0 and will be removed in 3.0.0.
+                Please use `storage_options` instead, e.g. `storage_options=fs.storage_options`
+
+                </Deprecated>
+
+            keep_in_memory (`bool`, defaults to `None`):
+                Whether to copy the dataset in-memory. If `None`, the
                 dataset will not be copied in-memory unless explicitly enabled by setting
                 `datasets.config.IN_MEMORY_MAX_SIZE` to nonzero. See more details in the
-                :ref:`load_dataset_enhancing_performance` section.
+                [improve performance](./cache#improve-performance) section.
+            storage_options (`dict`, *optional*):
+                Key/value pairs to be passed on to the file-system backend, if any.
+
+                <Added version="2.8.0"/>
 
         Returns:
-            :class:`DatasetDict`
+            [`DatasetDict`]
 
         Example:
 
@@ -1106,6 +1235,17 @@ class DatasetDict(dict):
         >>> ds = load_from_disk('path/to/dataset/directory')
         ```
         """
+        if fs != "deprecated":
+            warnings.warn(
+                "'fs' was is deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
+                "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
+                FutureWarning,
+            )
+            storage_options = fs.storage_options
+
+        fs_token_paths = fsspec.get_fs_token_paths(dataset_dict_path, storage_options=storage_options)
+        fs: fsspec.AbstractFileSystem = fs_token_paths[0]
+
         dataset_dict = DatasetDict()
         if is_remote_filesystem(fs):
             dest_dataset_dict_path = extract_path_from_uri(dataset_dict_path)
@@ -1118,13 +1258,18 @@ class DatasetDict(dict):
             raise FileNotFoundError(
                 f"No such file or directory: '{dataset_dict_json_path}'. Expected to load a DatasetDict object, but got a Dataset. Please use datasets.load_from_disk instead."
             )
-        for k in json.load(fs.open(dataset_dict_json_path, "r", encoding="utf-8"))["splits"]:
+
+        with fs.open(dataset_dict_json_path, "r", encoding="utf-8") as f:
+            splits = json.load(f)["splits"]
+        for k in splits:
             dataset_dict_split_path = (
                 dataset_dict_path.split("://")[0] + "://" + Path(dest_dataset_dict_path, k).as_posix()
                 if is_remote_filesystem(fs)
                 else Path(dest_dataset_dict_path, k).as_posix()
             )
-            dataset_dict[k] = Dataset.load_from_disk(dataset_dict_split_path, fs, keep_in_memory=keep_in_memory)
+            dataset_dict[k] = Dataset.load_from_disk(
+                dataset_dict_split_path, keep_in_memory=keep_in_memory, storage_options=storage_options
+            )
         return dataset_dict
 
     @staticmethod
@@ -1135,17 +1280,22 @@ class DatasetDict(dict):
         keep_in_memory: bool = False,
         **kwargs,
     ) -> "DatasetDict":
-        """Create DatasetDict from CSV file(s).
+        """Create [`DatasetDict`] from CSV file(s).
 
         Args:
-            path_or_paths (dict of path-like): Path(s) of the CSV file(s).
-            features (:class:`Features`, optional): Dataset features.
-            cache_dir (str, optional, default="~/.cache/huggingface/datasets"): Directory to cache data.
-            keep_in_memory (bool, default=False): Whether to copy the data in-memory.
-            **kwargs (additional keyword arguments): Keyword arguments to be passed to :meth:`pandas.read_csv`.
+            path_or_paths (`dict` of path-like):
+                Path(s) of the CSV file(s).
+            features ([`Features`], *optional*):
+                Dataset features.
+            cache_dir (str, *optional*, defaults to `"~/.cache/huggingface/datasets"`):
+                Directory to cache data.
+            keep_in_memory (`bool`, defaults to `False`):
+                Whether to copy the data in-memory.
+            **kwargs (additional keyword arguments):
+                Keyword arguments to be passed to [`pandas.read_csv`].
 
         Returns:
-            :class:`DatasetDict`
+            [`DatasetDict`]
 
         Example:
 
@@ -1169,17 +1319,22 @@ class DatasetDict(dict):
         keep_in_memory: bool = False,
         **kwargs,
     ) -> "DatasetDict":
-        """Create DatasetDict from JSON Lines file(s).
+        """Create [`DatasetDict`] from JSON Lines file(s).
 
         Args:
-            path_or_paths (path-like or list of path-like): Path(s) of the JSON Lines file(s).
-            features (:class:`Features`, optional): Dataset features.
-            cache_dir (str, optional, default="~/.cache/huggingface/datasets"): Directory to cache data.
-            keep_in_memory (bool, default=False): Whether to copy the data in-memory.
-            **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`JsonConfig`.
+            path_or_paths (`path-like` or list of `path-like`):
+                Path(s) of the JSON Lines file(s).
+            features ([`Features`], *optional*):
+                Dataset features.
+            cache_dir (str, *optional*, defaults to `"~/.cache/huggingface/datasets"`):
+                Directory to cache data.
+            keep_in_memory (`bool`, defaults to `False`):
+                Whether to copy the data in-memory.
+            **kwargs (additional keyword arguments):
+                Keyword arguments to be passed to [`JsonConfig`].
 
         Returns:
-            :class:`DatasetDict`
+            [`DatasetDict`]
 
         Example:
 
@@ -1204,20 +1359,26 @@ class DatasetDict(dict):
         columns: Optional[List[str]] = None,
         **kwargs,
     ) -> "DatasetDict":
-        """Create DatasetDict from Parquet file(s).
+        """Create [`DatasetDict`] from Parquet file(s).
 
         Args:
-            path_or_paths (dict of path-like): Path(s) of the CSV file(s).
-            features (:class:`Features`, optional): Dataset features.
-            cache_dir (str, optional, default="~/.cache/huggingface/datasets"): Directory to cache data.
-            keep_in_memory (bool, default=False): Whether to copy the data in-memory.
-            columns (:obj:`List[str]`, optional): If not None, only these columns will be read from the file.
+            path_or_paths (`dict` of path-like):
+                Path(s) of the CSV file(s).
+            features ([`Features`], *optional*):
+                Dataset features.
+            cache_dir (`str`, *optional*, defaults to `"~/.cache/huggingface/datasets"`):
+                Directory to cache data.
+            keep_in_memory (`bool`, defaults to `False`):
+                Whether to copy the data in-memory.
+            columns (`List[str]`, *optional*):
+                If not `None`, only these columns will be read from the file.
                 A column name may be a prefix of a nested field, e.g. 'a' will select
                 'a.b', 'a.c', and 'a.d.e'.
-            **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`ParquetConfig`.
+            **kwargs (additional keyword arguments):
+                Keyword arguments to be passed to [`ParquetConfig`].
 
         Returns:
-            :class:`DatasetDict`
+            [`DatasetDict`]
 
         Example:
 
@@ -1246,17 +1407,22 @@ class DatasetDict(dict):
         keep_in_memory: bool = False,
         **kwargs,
     ) -> "DatasetDict":
-        """Create DatasetDict from text file(s).
+        """Create [`DatasetDict`] from text file(s).
 
         Args:
-            path_or_paths (dict of path-like): Path(s) of the text file(s).
-            features (:class:`Features`, optional): Dataset features.
-            cache_dir (str, optional, default="~/.cache/huggingface/datasets"): Directory to cache data.
-            keep_in_memory (bool, default=False): Whether to copy the data in-memory.
-            **kwargs (additional keyword arguments): Keyword arguments to be passed to :class:`TextConfig`.
+            path_or_paths (`dict` of path-like):
+                Path(s) of the text file(s).
+            features ([`Features`], *optional*):
+                Dataset features.
+            cache_dir (`str`, *optional*, defaults to `"~/.cache/huggingface/datasets"`):
+                Directory to cache data.
+            keep_in_memory (`bool`, defaults to `False`):
+                Whether to copy the data in-memory.
+            **kwargs (additional keyword arguments):
+                Keyword arguments to be passed to [`TextConfig`].
 
         Returns:
-            :class:`DatasetDict`
+            [`DatasetDict`]
 
         Example:
 
@@ -1294,47 +1460,62 @@ class DatasetDict(dict):
         token: Optional[str] = None,
         branch: Optional[None] = None,
         max_shard_size: Optional[Union[int, str]] = None,
-        shard_size: Optional[int] = "deprecated",
+        num_shards: Optional[Dict[str, int]] = None,
+        shard_size: Optional[Union[int, str]] = "deprecated",
         embed_external_files: bool = True,
     ):
-        """Pushes the ``DatasetDict`` to the hub as a Parquet dataset.
-        The ``DatasetDict`` is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
+        """Pushes the [`DatasetDict`] to the hub as a Parquet dataset.
+        The [`DatasetDict`] is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
 
         Each dataset split will be pushed independently. The pushed dataset will keep the original split names.
 
-        The resulting Parquet files are self-contained by default: if your dataset contains :class:`Image` or :class:`Audio`
+        The resulting Parquet files are self-contained by default: if your dataset contains [`Image`] or [`Audio`]
         data, the Parquet files will store the bytes of your images or audio files.
         You can disable this by setting `embed_external_files` to False.
 
         Args:
-            repo_id (:obj:`str`):
-                The ID of the repository to push to in the following format: ``<user>/<dataset_name>`` or
-                ``<org>/<dataset_name>``. Also accepts ``<dataset_name>``, which will default to the namespace
+            repo_id (`str`):
+                The ID of the repository to push to in the following format: `<user>/<dataset_name>` or
+                `<org>/<dataset_name>`. Also accepts `<dataset_name>`, which will default to the namespace
                 of the logged-in user.
-            private (Optional :obj:`bool`):
+            private (`bool`, *optional*):
                 Whether the dataset repository should be set to private or not. Only affects repository creation:
                 a repository that already exists will not be affected by that parameter.
-            token (Optional :obj:`str`):
+            token (`str`, *optional*):
                 An optional authentication token for the Hugging Face Hub. If no token is passed, will default
-                to the token saved locally when logging in with ``huggingface-cli login``. Will raise an error
+                to the token saved locally when logging in with `huggingface-cli login`. Will raise an error
                 if no token is passed and the user is not logged-in.
-            branch (Optional :obj:`str`):
+            branch (`str`, *optional*):
                 The git branch on which to push the dataset.
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
                 (like `"500MB"` or `"1GB"`).
-            shard_size (Optional :obj:`int`):
-                Deprecated: 'shard_size' was renamed to 'max_shard_size' in version 2.1.1 and will be removed in 2.4.0.
-            embed_external_files (:obj:`bool`, default ``True``):
+            num_shards (`Dict[str, int]`, *optional*):
+                Number of shards to write. By default the number of shards depends on `max_shard_size`.
+                Use a dictionary to define a different num_shards for each split.
+
+                <Added version="2.8.0"/>
+            shard_size (`int` or `str`, *optional*):
+
+                <Deprecated version="2.4.0">
+
+                `shard_size` was renamed to `max_shard_size` in version 2.1.1 and will be removed in 2.4.0.
+
+                </Deprecated>
+
+            embed_external_files (`bool`, defaults to `True`):
                 Whether to embed file bytes in the shards.
                 In particular, this will do the following before the push for the fields of type:
 
-                - :class:`Audio` and class:`Image`: remove local path information and embed file content in the Parquet files.
+                - [`Audio`] and [`Image`] removes local path information and embed file content in the Parquet files.
 
         Example:
 
         ```python
         >>> dataset_dict.push_to_hub("<organization>/<dataset_id>")
+        >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", private=True)
+        >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", max_shard_size="1GB")
+        >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", num_shards={"train": 1024, "test": 8})
         ```
         """
         if shard_size != "deprecated":
@@ -1343,6 +1524,13 @@ class DatasetDict(dict):
                 FutureWarning,
             )
             max_shard_size = shard_size
+
+        if num_shards is None:
+            num_shards = {k: None for k in self}
+        elif not isinstance(num_shards, dict):
+            raise ValueError(
+                "Please provide one `num_shards` per dataset in the dataset dictionary, e.g. {{'train': 128, 'test': 4}}"
+            )
 
         self._check_values_type()
         self._check_values_features()
@@ -1365,6 +1553,7 @@ class DatasetDict(dict):
                 token=token,
                 branch=branch,
                 max_shard_size=max_shard_size,
+                num_shards=num_shards.get(split),
                 embed_external_files=embed_external_files,
             )
             total_uploaded_size += uploaded_size
@@ -1429,9 +1618,9 @@ class IterableDatasetDict(dict):
         The format is set to all the datasets of the dataset dictionary.
 
         Args:
-
-            type (:obj:`str`, optional, default None): if set to "torch", the returned dataset
-                will be a subclass of torch.utils.data.IterableDataset to be used in a DataLoader
+            type (`str`, *optional*, defaults to `None`):
+                If set to "torch", the returned dataset
+                will be a subclass of `torch.utils.data.IterableDataset` to be used in a `DataLoader`.
 
         Example:
 
@@ -1464,18 +1653,19 @@ class IterableDatasetDict(dict):
         The function is applied on-the-fly on the examples when iterating over the dataset.
         The transformation is applied to all the datasets of the dataset dictionary.
 
-        You can specify whether the function should be batched or not with the ``batched`` parameter:
+        You can specify whether the function should be batched or not with the `batched` parameter:
 
-        - If batched is False, then the function takes 1 example in and should return 1 example.
-          An example is a dictionary, e.g. {"text": "Hello there !"}
-        - If batched is True and batch_size is 1, then the function takes a batch of 1 example as input and can return a batch with 1 or more examples.
-          A batch is a dictionary, e.g. a batch of 1 example is {"text": ["Hello there !"]}
-        - If batched is True and batch_size is ``n`` > 1, then the function takes a batch of ``n`` examples as input and can return a batch with ``n`` examples, or with an arbitrary number of examples.
-          Note that the last batch may have less than ``n`` examples.
-          A batch is a dictionary, e.g. a batch of ``n`` examples is {"text": ["Hello there !"] * n}
+        - If batched is `False`, then the function takes 1 example in and should return 1 example.
+          An example is a dictionary, e.g. `{"text": "Hello there !"}`.
+        - If batched is `True` and `batch_size` is 1, then the function takes a batch of 1 example as input and can return a batch with 1 or more examples.
+          A batch is a dictionary, e.g. a batch of 1 example is `{"text": ["Hello there !"]}`.
+        - If batched is `True` and `batch_size` is `n` > 1, then the function takes a batch of `n` examples as input and can return a batch with `n` examples, or with an arbitrary number of examples.
+          Note that the last batch may have less than `n` examples.
+          A batch is a dictionary, e.g. a batch of `n` examples is `{"text": ["Hello there !"] * n}`.
 
         Args:
-            function (:obj:`Callable`, optional, default None): Function applied on-the-fly on the examples when you iterate on the dataset
+            function (`Callable`, *optional*, defaults to `None`):
+                Function applied on-the-fly on the examples when you iterate on the dataset.
                 It must have one of the following signatures:
 
                 - `function(example: Dict[str, Any]) -> Dict[str, Any]` if `batched=False` and `with_indices=False`
@@ -1485,15 +1675,21 @@ class IterableDatasetDict(dict):
 
                 For advanced usage, the function can also return a `pyarrow.Table`.
                 Moreover if your function returns nothing (`None`), then `map` will run your function and return the dataset unchanged.
-                If no function is provided, default to identity function: ``lambda x: x``.
-            with_indices (:obj:`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx[, rank]): ...`.
-            input_columns (`Optional[Union[str, List[str]]]`, default `None`): The columns to be passed into `function`
+                If no function is provided, default to identity function: `lambda x: x`.
+            with_indices (`bool`, defaults to `False`):
+                Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx[, rank]): ...`.
+            input_columns (`[Union[str, List[str]]]`, *optional*, defaults to `None`):
+                The columns to be passed into `function`
                 as positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
-            batched (:obj:`bool`, default `False`): Provide batch of examples to `function`.
-            batch_size (:obj:`int`, optional, default ``1000``): Number of examples per batch provided to `function` if `batched=True`.
-            drop_last_batch (:obj:`bool`, default `False`): Whether a last batch smaller than the batch_size should be
+            batched (`bool`, defaults to `False`):
+                Provide batch of examples to `function`.
+            batch_size (`int`, *optional*, defaults to `1000`):
+                Number of examples per batch provided to `function` if `batched=True`.
+            drop_last_batch (`bool`, defaults to `False`):
+                Whether a last batch smaller than the `batch_size` should be
                 dropped instead of being processed by the function.
-            remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
+            remove_columns (`[List[str]]`, *optional*, defaults to `None`):
+                Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
 
@@ -1539,19 +1735,24 @@ class IterableDatasetDict(dict):
         The filtering is applied to all the datasets of the dataset dictionary.
 
         Args:
-            function (:obj:`Callable`): Callable with one of the following signatures:
+            function (`Callable`):
+                Callable with one of the following signatures:
 
-                - ``function(example: Dict[str, Any]) -> bool`` if ``with_indices=False, batched=False``
-                - ``function(example: Dict[str, Any], indices: int) -> bool`` if ``with_indices=True, batched=False``
-                - ``function(example: Dict[str, List]) -> List[bool]`` if ``with_indices=False, batched=True``
-                - ``function(example: Dict[str, List], indices: List[int]) -> List[bool]`` if ``with_indices=True, batched=True``
+                - `function(example: Dict[str, Any]) -> bool` if `with_indices=False, batched=False`
+                - `function(example: Dict[str, Any], indices: int) -> bool` if `with_indices=True, batched=False`
+                - `function(example: Dict[str, List]) -> List[bool]` if `with_indices=False, batched=True`
+                - `function(example: Dict[str, List], indices: List[int]) -> List[bool]` if `with_indices=True, batched=True`
 
-                If no function is provided, defaults to an always True function: ``lambda x: True``.
-            with_indices (:obj:`bool`, default `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
-            input_columns (:obj:`str` or `List[str]`, optional): The columns to be passed into `function` as
+                If no function is provided, defaults to an always True function: `lambda x: True`.
+            with_indices (`bool`, defaults to `False`):
+                Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
+            input_columns (`str` or `List[str]`, *optional*):
+                The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
-            batched (:obj:`bool`, defaults to `False`): Provide batch of examples to `function`
-            batch_size (:obj:`int`, optional, default ``1000``): Number of examples per batch provided to `function` if `batched=True`.
+            batched (`bool`, defaults to `False`):
+                Provide batch of examples to `function`
+            batch_size (`int`, *optional*, defaults to `1000`):
+                Number of examples per batch provided to `function` if `batched=True`.
 
         Example:
 
@@ -1591,21 +1792,24 @@ class IterableDatasetDict(dict):
         replacing the selected elements with new elements. For perfect shuffling, a buffer size greater than or
         equal to the full size of the dataset is required.
 
-        For instance, if your dataset contains 10,000 elements but ``buffer_size`` is set to 1,000, then shuffle will
-        initially select a random element from only the first 1,000 elements in the buffer. Once an element is
+        For instance, if your dataset contains 10,000 elements but `buffer_size` is set to 1000, then `shuffle` will
+        initially select a random element from only the first 1000 elements in the buffer. Once an element is
         selected, its space in the buffer is replaced by the next (i.e. 1,001-st) element,
-        maintaining the 1,000 element buffer.
+        maintaining the 1000 element buffer.
 
-        If the dataset is made of several shards, it also does shuffle the order of the shards.
-        However if the order has been fixed by using :func:`datasets.IterableDataset.skip` or :func:`datasets.IterableDataset.take`
+        If the dataset is made of several shards, it also does `shuffle` the order of the shards.
+        However if the order has been fixed by using [`~datasets.IterableDataset.skip`] or [`~datasets.IterableDataset.take`]
         then the order of the shards is kept unchanged.
 
         Args:
-            seed (:obj:`int`, optional, default None): random seed that will be used to shuffle the dataset.
+            seed (`int`, *optional*, defaults to `None`):
+                Random seed that will be used to shuffle the dataset.
                 It is used to sample from the shuffle buffe and als oto shuffle the data shards.
-            generator (:obj:`numpy.random.Generator`, optional): Numpy random Generator to use to compute the permutation of the dataset rows.
-                If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
-            buffer_size (:obj:`int`, default 1000): size of the buffer.
+            generator (`numpy.random.Generator`, *optional*):
+                Numpy random Generator to use to compute the permutation of the dataset rows.
+                If `generator=None` (default), uses `np.random.default_rng` (the default BitGenerator (PCG64) of NumPy).
+            buffer_size (`int`, defaults to `1000`):
+                Size of the buffer.
 
         Example:
 
@@ -1642,11 +1846,13 @@ class IterableDatasetDict(dict):
         The renaming is applied to all the datasets of the dataset dictionary.
 
         Args:
-            original_column_name (:obj:`str`): Name of the column to rename.
-            new_column_name (:obj:`str`): New name for the column.
+            original_column_name (`str`):
+                Name of the column to rename.
+            new_column_name (`str`):
+                New name for the column.
 
         Returns:
-            :class:`IterableDatasetDict`: A copy of the dataset with a renamed column.
+            [`IterableDatasetDict`]: A copy of the dataset with a renamed column.
 
         Example:
 
@@ -1673,10 +1879,11 @@ class IterableDatasetDict(dict):
         The renaming is applied to all the datasets of the dataset dictionary.
 
         Args:
-            column_mapping (:obj:`Dict[str, str]`): A mapping of columns to rename to their new names
+            column_mapping (`Dict[str, str]`):
+                A mapping of columns to rename to their new names.
 
         Returns:
-            :class:`IterableDatasetDict`: A copy of the dataset with renamed columns
+            [`IterableDatasetDict`]: A copy of the dataset with renamed columns
 
         Example:
 
@@ -1701,10 +1908,11 @@ class IterableDatasetDict(dict):
 
 
         Args:
-            column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
+            column_names (`Union[str, List[str]]`):
+                Name of the column(s) to remove.
 
         Returns:
-            :class:`IterableDatasetDict`: A copy of the dataset object without the columns to remove.
+            [`IterableDatasetDict`]: A copy of the dataset object without the columns to remove.
 
         Example:
 
@@ -1723,11 +1931,13 @@ class IterableDatasetDict(dict):
         The type casting is applied to all the datasets of the dataset dictionary.
 
         Args:
-            column (:obj:`str`): Column name.
-            feature (:class:`Feature`): Target feature.
+            column (`str`):
+                Column name.
+            feature ([`Feature`]):
+                Target feature.
 
         Returns:
-            :class:`IterableDatasetDict`
+            [`IterableDatasetDict`]
 
         Example:
 
@@ -1756,13 +1966,14 @@ class IterableDatasetDict(dict):
         The type casting is applied to all the datasets of the dataset dictionary.
 
         Args:
-            features (:class:`datasets.Features`): New features to cast the dataset to.
+            features (`Features`):
+                New features to cast the dataset to.
                 The name of the fields in the features must match the current column names.
                 The type of the data must also be convertible from one type to the other.
-                For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
+                For non-trivial conversion, e.g. `string` <-> `ClassLabel` you should use [`map`] to update the Dataset.
 
         Returns:
-            :class:`IterableDatasetDict`: A copy of the dataset with casted features.
+            [`IterableDatasetDict`]: A copy of the dataset with casted features.
 
         Example:
 

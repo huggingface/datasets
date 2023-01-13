@@ -8,10 +8,16 @@ import pytest
 
 from datasets import Audio, Features, Image
 from datasets.formatting import NumpyFormatter, PandasFormatter, PythonFormatter, query_table
-from datasets.formatting.formatting import NumpyArrowExtractor, PandasArrowExtractor, PythonArrowExtractor
+from datasets.formatting.formatting import (
+    LazyBatch,
+    LazyRow,
+    NumpyArrowExtractor,
+    PandasArrowExtractor,
+    PythonArrowExtractor,
+)
 from datasets.table import InMemoryTable
 
-from .utils import require_jax, require_tf, require_torch
+from .utils import require_jax, require_pil, require_sndfile, require_tf, require_torch
 
 
 _COL_A = [0, 1, 2]
@@ -81,6 +87,24 @@ class ArrowExtractorTest(TestCase):
         pd.testing.assert_series_equal(batch["c"], pd.Series(_COL_C, name="c"))
 
 
+class LazyDictTest(TestCase):
+    def _create_dummy_table(self):
+        return pa.Table.from_pydict({"a": _COL_A, "b": _COL_B, "c": _COL_C})
+
+    def _create_dummy_formatter(self):
+        return PythonFormatter(lazy=True)
+
+    def test_lazy_dict_copy(self):
+        pa_table = self._create_dummy_table()
+        formatter = self._create_dummy_formatter()
+        lazy_batch = formatter.format_batch(pa_table)
+        lazy_batch_copy = lazy_batch.copy()
+        self.assertEqual(type(lazy_batch), type(lazy_batch_copy))
+        self.assertEqual(lazy_batch.items(), lazy_batch_copy.items())
+        lazy_batch["d"] = [1, 2, 3]
+        self.assertNotEqual(lazy_batch.items(), lazy_batch_copy.items())
+
+
 class FormatterTest(TestCase):
     def _create_dummy_table(self):
         return pa.Table.from_pydict({"a": _COL_A, "b": _COL_B, "c": _COL_C})
@@ -94,6 +118,20 @@ class FormatterTest(TestCase):
         self.assertEqual(col, _COL_A)
         batch = formatter.format_batch(pa_table)
         self.assertEqual(batch, {"a": _COL_A, "b": _COL_B, "c": _COL_C})
+
+    def test_python_formatter_lazy(self):
+        pa_table = self._create_dummy_table()
+        formatter = PythonFormatter(lazy=True)
+        row = formatter.format_row(pa_table)
+        self.assertIsInstance(row, LazyRow)
+        self.assertEqual(row["a"], _COL_A[0])
+        self.assertEqual(row["b"], _COL_B[0])
+        self.assertEqual(row["c"], _COL_C[0])
+        batch = formatter.format_batch(pa_table)
+        self.assertIsInstance(batch, LazyBatch)
+        self.assertEqual(batch["a"], _COL_A)
+        self.assertEqual(batch["b"], _COL_B)
+        self.assertEqual(batch["c"], _COL_C)
 
     def test_numpy_formatter(self):
         pa_table = self._create_dummy_table()
@@ -117,6 +155,7 @@ class FormatterTest(TestCase):
         self.assertEqual(batch["a"].dtype, np.dtype(np.float16))
         self.assertEqual(batch["c"].dtype, np.dtype(np.float16))
 
+    @require_pil
     def test_numpy_formatter_image(self):
         # same dimensions
         pa_table = pa.table({"image": [{"bytes": None, "path": str(IMAGE_PATH_1)}] * 2})
@@ -150,6 +189,7 @@ class FormatterTest(TestCase):
         self.assertEqual(batch["image"][0].dtype, np.uint8)
         self.assertEqual(batch["image"][0].shape, (480, 640, 3))
 
+    @require_sndfile
     def test_numpy_formatter_audio(self):
         pa_table = pa.table({"audio": [{"bytes": None, "path": str(AUDIO_PATH_1)}]})
         formatter = NumpyFormatter(features=Features({"audio": Audio()}))
@@ -213,6 +253,7 @@ class FormatterTest(TestCase):
         self.assertEqual(batch["c"].dtype, torch.float16)
 
     @require_torch
+    @require_pil
     def test_torch_formatter_image(self):
         import torch
 
@@ -249,6 +290,7 @@ class FormatterTest(TestCase):
         self.assertEqual(batch["image"][0].shape, (480, 640, 3))
 
     @require_torch
+    @require_sndfile
     def test_torch_formatter_audio(self):
         import torch
 
@@ -304,6 +346,7 @@ class FormatterTest(TestCase):
         self.assertEqual(batch["c"].dtype, tf.float16)
 
     @require_tf
+    @require_pil
     def test_tf_formatter_image(self):
         import tensorflow as tf
 
@@ -340,6 +383,7 @@ class FormatterTest(TestCase):
         self.assertEqual(batch["image"][0].shape, (480, 640, 3))
 
     @require_tf
+    @require_sndfile
     def test_tf_formatter_audio(self):
         import tensorflow as tf
 
@@ -392,6 +436,7 @@ class FormatterTest(TestCase):
         self.assertEqual(batch["c"].dtype, jnp.float16)
 
     @require_jax
+    @require_pil
     def test_jax_formatter_image(self):
         import jax.numpy as jnp
 
@@ -428,6 +473,7 @@ class FormatterTest(TestCase):
         self.assertEqual(batch["image"][0].shape, (480, 640, 3))
 
     @require_jax
+    @require_sndfile
     def test_jax_formatter_audio(self):
         import jax.numpy as jnp
 
