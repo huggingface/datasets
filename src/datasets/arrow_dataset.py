@@ -5619,6 +5619,7 @@ def _split_by_node_map_style_dataset(dataset: Dataset, rank: int, world_size: in
     """
     Split a dataset for the node at rank `rank` in a pool of nodes of size `world_size`.
     Each node is assigned a chunk of data, e.g. rank 0 is given the first chunk of the dataset.
+    To maximize data loading throughput, chunks are made of contiguous data on disk if possible.
 
     Args:
         dataset ([`Dataset`]):

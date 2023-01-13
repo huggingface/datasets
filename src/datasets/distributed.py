@@ -14,6 +14,7 @@ def split_dataset_by_node(dataset: DatasetType, rank: int, world_size: int) -> D
     For map-style datasets:
 
     Each node is assigned a chunk of data, e.g. rank 0 is given the first chunk of the dataset.
+    To maximize data loading throughput, chunks are made of contiguous data on disk if possible.
 
     For iterable datasets:
 
