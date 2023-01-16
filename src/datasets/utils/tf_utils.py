@@ -20,7 +20,10 @@ from math import ceil
 import numpy as np
 import pyarrow as pa
 from multiprocess import get_context
-from multiprocess.shared_memory import SharedMemory
+try:
+    from multiprocess.shared_memory import SharedMemory
+except ImportError:
+    SharedMemory = None  # Version checks should prevent this being called on older Python versions
 
 from .. import config
 
