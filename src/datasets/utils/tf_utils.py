@@ -231,6 +231,8 @@ class NumpyMultiprocessingGenerator:
                     for col, shape in array_shapes.items()
                 }
                 if any(size < 0 for size in array_sizes.values()):
+                    # Child processes send negative array shapes to indicate
+                    # that no more data is going to be sent
                     end_signal_received = True
                     break
                 array_shms = {
