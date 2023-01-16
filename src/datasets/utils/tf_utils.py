@@ -272,7 +272,10 @@ class NumpyMultiprocessingGenerator:
         array_ready_event,
         array_loaded_event,
     ):
-        import tensorflow as tf
+        if config.TF_AVAILABLE:
+            import tensorflow as tf
+        else:
+            raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
 
         tf.config.set_visible_devices([], "GPU")  # Make sure workers don't try to allocate GPU memory
 
