@@ -103,8 +103,6 @@ def dataset_to_tf(
                 for key, value in batch.items()
                 if key in cols_to_retain or key in ("label", "label_ids", "labels")
             }
-        elif cols_to_retain is not None:
-            batch = {key: value for key, value in batch.items() if key in cols_to_retain}
 
         actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
         # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
