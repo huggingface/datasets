@@ -342,18 +342,19 @@ class NumpyMultiprocessingGenerator:
         indices = np.arange(len(dataset))
         if shuffle:
             np.random.shuffle(indices)
+        num_samples = len(indices)
         # We distribute the batches so that reading from the workers in round-robin order yields the exact
         # order specified in indices. This is only important when shuffle is False, but we do it regardless.
-        if drop_remainder or len(indices) % batch_size == 0:
+        if drop_remainder or num_samples % batch_size == 0:
             last_incomplete_batch = None
         else:
-            last_incomplete_batch = [indices[len(indices) // batch_size * batch_size :]]
-        if len(indices) % batch_size != 0:
-            indices = indices[: -(len(indices) % batch_size)]
+            last_incomplete_batch = [indices[num_samples // batch_size * batch_size :]]
+        if num_samples % batch_size != 0:
+            indices = indices[: -(num_samples % batch_size)]
         indices = indices.reshape(-1, batch_size)
-        if len(indices) % num_workers != 0:
-            final_batches = indices[-(len(indices) % num_workers) :]
-            indices = indices[: -(len(indices) % num_workers)]
+        if num_samples % num_workers != 0:
+            final_batches = indices[-(num_samples % num_workers) :]
+            indices = indices[: -(num_samples % num_workers)]
         else:
             final_batches = []
         indices = indices.reshape(-1, num_workers, batch_size)
