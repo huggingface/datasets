@@ -20,6 +20,7 @@ import numpy as np
 import pyarrow as pa
 from multiprocess import get_context
 from multiprocess.shared_memory import SharedMemory
+from functools import partial
 
 from .. import config
 
@@ -74,6 +75,33 @@ def is_numeric_feature(feature):
         return False
 
 
+def np_get_batch(indices, dataset, cols_to_retain, collate_fn, collate_fn_args, columns_to_np_types):
+    # Optimization - if we're loading a sequential batch, do it with slicing instead of a list of indices
+    if np.all(np.diff(indices) == 1):
+        batch = dataset[indices[0] : indices[-1] + 1]
+    else:
+        batch = dataset[indices]
+
+    if cols_to_retain is not None:
+        batch = {
+            key: value
+            for key, value in batch.items()
+            if key in cols_to_retain or key in ("label", "label_ids", "labels")
+        }
+
+    actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
+    # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
+    batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
+    batch = collate_fn(batch, **collate_fn_args)
+    out_batch = []
+    for col, cast_dtype in columns_to_np_types.items():
+        # In case the collate_fn returns something strange
+        array = np.array(batch[col])
+        array = array.astype(cast_dtype)
+        out_batch.append(array)
+    return out_batch
+
+
 def dataset_to_tf(
     dataset,
     cols_to_retain,
@@ -90,36 +118,19 @@ def dataset_to_tf(
     else:
         raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
 
-    def np_get_batch(indices):
-        # Optimization - if we're loading a sequential batch, do it with slicing instead of a list of indices
-        if np.all(np.diff(indices) == 1):
-            batch = dataset[indices[0] : indices[-1] + 1]
-        else:
-            batch = dataset[indices]
-
-        if cols_to_retain is not None:
-            batch = {
-                key: value
-                for key, value in batch.items()
-                if key in cols_to_retain or key in ("label", "label_ids", "labels")
-            }
-
-        actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
-        # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
-        batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
-        batch = collate_fn(batch, **collate_fn_args)
-        out_batch = []
-        for col, cast_dtype in columns_to_np_types.items():
-            # In case the collate_fn returns something strange
-            array = np.array(batch[col])
-            array = array.astype(cast_dtype)
-            out_batch.append(array)
-        return out_batch
+    getter_fn = partial(
+        np_get_batch,
+        dataset=dataset,
+        cols_to_retain=cols_to_retain,
+        collate_fn=collate_fn,
+        collate_fn_args=collate_fn_args,
+        columns_to_np_types=columns_to_np_types
+    )
 
     @tf.function(input_signature=[tf.TensorSpec(None, tf.int64)])
     def fetch_function(indices):
         output = tf.numpy_function(
-            np_get_batch,
+            getter_fn,
             inp=[indices],
             # This works because dictionaries always output in the same order
             Tout=[tf.dtypes.as_dtype(dtype) for dtype in columns_to_np_types.values()],
@@ -289,23 +300,13 @@ class NumpyMultiprocessingGenerator:
         }
 
         def send_batch_to_parent(indices):
-            # Optimization - if we're loading a sequential batch, do it with slicing instead of a list of indices
-            if np.all(np.diff(indices) == 1):
-                batch = dataset[indices[0] : indices[-1] + 1]
-            else:
-                batch = dataset[indices]
+            batch = np_get_batch(indices=indices,
+                                 dataset=dataset,
+                                 cols_to_retain=cols_to_retain,
+                                 collate_fn=collate_fn,
+                                 collate_fn_args=collate_fn_args,
+                                 columns_to_np_types=columns_to_np_types)
 
-            if cols_to_retain is not None:
-                batch = {
-                    key: value
-                    for key, value in batch.items()
-                    if key in cols_to_retain or key in ("label", "label_ids", "labels")
-                }
-
-            actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
-            # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
-            batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
-            batch = collate_fn(batch, **collate_fn_args)
             # Now begins the fun part where we start shovelling shared memory at the parent process
             out_shms = dict()
             out_arrays = dict()
