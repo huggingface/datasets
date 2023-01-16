@@ -345,6 +345,8 @@ class TensorflowDatasetMixin:
                 Whether to run the dataloader in a separate thread and maintain
                 a small buffer of batches for training. Improves performance by allowing data to be loaded in the
                 background while the model is training.
+            num_workers (`int`, defaults to `0`):
+                Number of workers to use for loading the dataset. Only supported on Python versions >= 3.8.
 
         Returns:
             `tf.data.Dataset`
@@ -372,6 +374,9 @@ class TensorflowDatasetMixin:
                 "try using a TPU VM or, if your data can fit in memory, loading it into memory as a dict of "
                 "Tensors instead of streaming with to_tf_dataset()."
             )
+
+        if num_workers > 0 and sys.version_info < (3, 8):
+            raise ValueError("Using multiple workers is only supported on Python versions >= 3.8.")
 
         if collate_fn is None:
             # Set a very simple default collator that just stacks things together

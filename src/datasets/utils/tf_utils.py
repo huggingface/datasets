@@ -14,13 +14,13 @@
 
 """TF-specific utils import."""
 
+from functools import partial
 from math import ceil
 
 import numpy as np
 import pyarrow as pa
 from multiprocess import get_context
 from multiprocess.shared_memory import SharedMemory
-from functools import partial
 
 from .. import config
 
@@ -124,7 +124,7 @@ def dataset_to_tf(
         cols_to_retain=cols_to_retain,
         collate_fn=collate_fn,
         collate_fn_args=collate_fn_args,
-        columns_to_np_types=columns_to_np_types
+        columns_to_np_types=columns_to_np_types,
     )
 
     @tf.function(input_signature=[tf.TensorSpec(None, tf.int64)])
@@ -300,12 +300,14 @@ class NumpyMultiprocessingGenerator:
         }
 
         def send_batch_to_parent(indices):
-            batch = np_get_batch(indices=indices,
-                                 dataset=dataset,
-                                 cols_to_retain=cols_to_retain,
-                                 collate_fn=collate_fn,
-                                 collate_fn_args=collate_fn_args,
-                                 columns_to_np_types=columns_to_np_types)
+            batch = np_get_batch(
+                indices=indices,
+                dataset=dataset,
+                cols_to_retain=cols_to_retain,
+                collate_fn=collate_fn,
+                collate_fn_args=collate_fn_args,
+                columns_to_np_types=columns_to_np_types,
+            )
 
             # Now begins the fun part where we start shovelling shared memory at the parent process
             out_shms = dict()
