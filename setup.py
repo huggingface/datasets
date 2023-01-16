@@ -220,7 +220,7 @@ DOCS_REQUIRE = [
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
     "vision": VISION_REQUIRE,
-    "apache-beam": ["apache-beam>=2.26.0"],
+    "apache-beam": ["apache-beam>=2.26.0,<2.44.0"],
     "tensorflow": [
         "tensorflow>=2.2.0,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
         "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
