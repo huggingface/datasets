@@ -163,7 +163,7 @@ TESTS_REQUIRE = [
     "pytest-datadir",
     "pytest-xdist",
     # optional dependencies
-    "apache-beam>=2.26.0;python_version<'3.8'",  # doesn't support recent dill versions for recent python versions
+    "apache-beam>=2.26.0,<2.44.0;python_version<'3.8'",  # doesn't support recent dill versions for recent python versions
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch()
     "faiss-cpu>=1.6.4",
     "lz4",
