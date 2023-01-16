@@ -2614,6 +2614,8 @@ class BaseDatasetTest(TestCase):
     def test_tf_index_reshuffling(self, in_memory):
         # This test checks that when we do two epochs over a tf.data.Dataset from to_tf_dataset
         # that we get a different shuffle order each time
+        # It also checks that when we aren't shuffling, that the dataset order is fully preserved
+        # even when loading is split across multiple workers
         data = {"col_1": list(range(20))}
         for num_workers in [0, 1, 2, 3]:
             with Dataset.from_dict(data) as dset:
