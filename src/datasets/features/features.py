@@ -19,6 +19,7 @@ import json
 import re
 import sys
 from collections.abc import Iterable, Mapping
+from collections.abc import Sequence as SequenceABC
 from dataclasses import InitVar, dataclass, field, fields
 from functools import reduce, wraps
 from operator import mul
@@ -295,7 +296,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         import PIL.Image
 
     if isinstance(obj, np.ndarray):
-        if not only_1d_for_numpy or obj.ndim == 1:
+        if obj.ndim == 0:
+            return obj[()], True
+        elif not only_1d_for_numpy or obj.ndim == 1:
             return obj, False
         else:
             return (
@@ -308,7 +311,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
                 True,
             )
     elif config.TORCH_AVAILABLE and "torch" in sys.modules and isinstance(obj, torch.Tensor):
-        if not only_1d_for_numpy or obj.ndim == 1:
+        if obj.ndim == 0:
+            return obj.detach().cpu().numpy()[()], True
+        elif not only_1d_for_numpy or obj.ndim == 1:
             return obj.detach().cpu().numpy(), True
         else:
             return (
@@ -321,7 +326,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
                 True,
             )
     elif config.TF_AVAILABLE and "tensorflow" in sys.modules and isinstance(obj, tf.Tensor):
-        if not only_1d_for_numpy or obj.ndim == 1:
+        if obj.ndim == 0:
+            return obj.numpy()[()], True
+        elif not only_1d_for_numpy or obj.ndim == 1:
             return obj.numpy(), True
         else:
             return (
@@ -334,7 +341,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
                 True,
             )
     elif config.JAX_AVAILABLE and "jax" in sys.modules and isinstance(obj, jnp.ndarray):
-        if not only_1d_for_numpy or obj.ndim == 1:
+        if obj.ndim == 0:
+            return np.asarray(obj)[()], True
+        elif not only_1d_for_numpy or obj.ndim == 1:
             return np.asarray(obj), True
         else:
             return (
@@ -944,6 +953,8 @@ class ClassLabel:
                 self.names = [str(i) for i in range(self.num_classes)]
             else:
                 raise ValueError("Please provide either num_classes, names or names_file.")
+        elif not isinstance(self.names, SequenceABC):
+            raise TypeError(f"Please provide names as a list, is {type(self.names)}")
         # Set self.num_classes
         if self.num_classes is None:
             self.num_classes = len(self.names)

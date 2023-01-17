@@ -272,7 +272,6 @@ class LazyDict(MutableMapping):
 
         self.data = {key: None for key in pa_table.column_names}
         self.keys_to_format = set(self.data.keys())
-        self.keys_added_by_user = set()
 
     def __len__(self):
         return len(self.data)
@@ -286,7 +285,6 @@ class LazyDict(MutableMapping):
         return value
 
     def __setitem__(self, key, value):
-        self.keys_added_by_user.add(key)
         if key in self.keys_to_format:
             self.keys_to_format.remove(key)
         self.data[key] = value

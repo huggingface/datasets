@@ -1180,10 +1180,8 @@ class DatasetDict(dict):
         if is_local:
             Path(dataset_dict_path).resolve().mkdir(parents=True, exist_ok=True)
 
-        json.dump(
-            {"splits": list(self)},
-            fs.open(path_join(dataset_dict_path, config.DATASETDICT_JSON_FILENAME), "w", encoding="utf-8"),
-        )
+        with fs.open(path_join(dataset_dict_path, config.DATASETDICT_JSON_FILENAME), "w", encoding="utf-8") as f:
+            json.dump({"splits": list(self)}, f)
         for k, dataset in self.items():
             dataset.save_to_disk(
                 path_join(dataset_dict_path, k),
@@ -1260,7 +1258,10 @@ class DatasetDict(dict):
             raise FileNotFoundError(
                 f"No such file or directory: '{dataset_dict_json_path}'. Expected to load a DatasetDict object, but got a Dataset. Please use datasets.load_from_disk instead."
             )
-        for k in json.load(fs.open(dataset_dict_json_path, "r", encoding="utf-8"))["splits"]:
+
+        with fs.open(dataset_dict_json_path, "r", encoding="utf-8") as f:
+            splits = json.load(f)["splits"]
+        for k in splits:
             dataset_dict_split_path = (
                 dataset_dict_path.split("://")[0] + "://" + Path(dest_dataset_dict_path, k).as_posix()
                 if is_remote_filesystem(fs)

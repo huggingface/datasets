@@ -68,6 +68,15 @@ def _split_gen_kwargs(gen_kwargs: dict, max_num_jobs: int) -> List[dict]:
         ]
 
 
+def _merge_gen_kwargs(gen_kwargs_list: List[dict]) -> dict:
+    return {
+        key: [value for gen_kwargs in gen_kwargs_list for value in gen_kwargs[key]]
+        if isinstance(gen_kwargs_list[0][key], list)
+        else gen_kwargs_list[0][key]
+        for key in gen_kwargs_list[0]
+    }
+
+
 def _shuffle_gen_kwargs(rng: np.random.Generator, gen_kwargs: dict) -> dict:
     """Return a shuffled copy of the input gen_kwargs"""
     # We must shuffle all the lists, and lists of the same size must have the same shuffling.

@@ -642,10 +642,7 @@ class Pickler(dill.Pickler):
                     @pklregister(obj_type)
                     def _save_tensor(pickler, obj):
                         dill_log(pickler, f"To: {obj}")
-                        if obj.requires_grad:
-                            args = (obj.detach().cpu().numpy(),)
-                        else:
-                            args = (obj.cpu().numpy(),)
+                        args = (obj.detach().cpu().numpy(),)
                         pickler.save_reduce(torch.from_numpy, args, obj=obj)
                         dill_log(pickler, "# To")
                         return
