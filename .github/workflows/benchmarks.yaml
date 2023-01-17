@@ -3,7 +3,7 @@ on: [push]
 jobs:
   run:
     runs-on: [ubuntu-latest]
-    container: docker://dvcorg/cml:latest
+    container: docker://dvcorg/cml@sha256:d38dc5c9708a5fbde4fdf2f5411c9930ed41cdf8ae3cb5ccf55c1f7a7cbe7bbe
     steps:
       - uses: actions/checkout@v2
       - name: cml_run
@@ -46,4 +46,4 @@ jobs:
           cat report.md >> final_report.md
           echo "\n</details>" >> final_report.md
 
-          cml-send-comment final_report.md
+          cml comment create final_report.md
