@@ -47,7 +47,6 @@ def minimal_tf_collate_fn(features):
             batch[k] = np.array([f[k] for f in features])
     return batch
 
-
 def minimal_tf_collate_fn_with_renaming(features):
     batch = minimal_tf_collate_fn(features)
     if "label" in batch:
@@ -164,6 +163,37 @@ def dataset_to_tf(
     return tf_dataset.map(ensure_shapes)
 
 
+class SharedMemoryContext:
+    # This is a context manager for creating shared memory that ensures cleanup happens even if a process is interrupted
+    # The process that creates shared memory is always the one responsible for unlinking it in the end
+    def __init__(self):
+        self.created_shms = []
+        self.opened_shms = []
+
+    def get_shm(self, name, size, create):
+        shm = SharedMemory(size=size, name=name, create=create)
+        if create:
+            # We only unlink the ones we created in this context
+            self.created_shms.append(shm)
+        else:
+            # If we didn't create it, we only close it when done, we don't unlink it
+            self.opened_shms.append(shm)
+        return shm
+
+    def get_array(self, name, shape, dtype, create):
+        shm = self.get_shm(name, size=np.prod(shape) * np.dtype(dtype).itemsize, create=create)
+        return np.ndarray(shape, dtype=dtype, buffer=shm.buf)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        for shm in self.created_shms:
+            shm.close()
+            shm.unlink()
+        for shm in self.opened_shms:
+            shm.close()
+
 class NumpyMultiprocessingGenerator:
     def __init__(
         self,
@@ -199,7 +229,6 @@ class NumpyMultiprocessingGenerator:
         )
         ctx = get_context("spawn")
         names = []
-        shape_shms = []
         shape_arrays = []
         workers = []
         array_ready_events = [ctx.Event() for _ in range(num_workers)]
@@ -213,72 +242,74 @@ class NumpyMultiprocessingGenerator:
             "columns_to_np_types": self.columns_to_np_types,
             "columns_to_ranks": self.columns_to_ranks,
         }
-        for i in range(num_workers):
-            worker_name = f"datasets_tf_worker_{i}"
-            names.append(worker_name)
-
-            worker_shape_shms = {
-                col: SharedMemory(name=f"{worker_name}_{col}_shape", create=True, size=rank * 8)
-                for col, rank in self.columns_to_ranks.items()
-            }
-            worker_shape_arrays = {
-                col: np.ndarray(shape=(shape_shm.size // 8,), dtype=np.int64, buffer=shape_shm.buf)
-                for col, shape_shm in worker_shape_shms.items()
-            }
-            shape_shms.append(worker_shape_shms)
-            shape_arrays.append(worker_shape_arrays)
-
-            worker_indices = per_worker_batches[i]
-            if i == final_batch_worker and final_batch is not None:
-                final_batch_arg = final_batch
-            else:
-                final_batch_arg = None
-            worker_kwargs = {
-                "worker_name": worker_name,
-                "indices": worker_indices,
-                "extra_batch": final_batch_arg,
-                "array_ready_event": array_ready_events[i],
-                "array_loaded_event": array_loaded_events[i],
-                **base_args,
-            }
-            worker = ctx.Process(target=self.worker_loop, kwargs=worker_kwargs, daemon=True)
-            worker.start()
-            workers.append(worker)
-
-        end_signal_received = False
-        while not end_signal_received:
+        with SharedMemoryContext() as shm_ctx:
             for i in range(num_workers):
-                array_ready_events[i].wait()
-                array_ready_events[i].clear()
-                array_shapes = shape_arrays[i]
-                array_sizes = {
-                    col: np.prod(shape) * np.dtype(self.columns_to_np_types[col]).itemsize
-                    for col, shape in array_shapes.items()
+                worker_name = f"datasets_tf_worker_{i}"
+                names.append(worker_name)
+
+                worker_shape_arrays = {
+                    col: shm_ctx.get_array(f"{worker_name}_{col}_shape", shape=(rank,), dtype=np.int64, create=True)
+                    for col, rank in self.columns_to_ranks.items()
                 }
-                if any(size < 0 for size in array_sizes.values()):
-                    # Child processes send negative array shapes to indicate
-                    # that no more data is going to be sent
-                    end_signal_received = True
-                    break
-                array_shms = {
-                    col: SharedMemory(name=f"{names[i]}_{col}", create=False, size=size)
-                    for col, size in array_sizes.items()
+                shape_arrays.append(worker_shape_arrays)
+
+                worker_indices = per_worker_batches[i]
+                if i == final_batch_worker and final_batch is not None:
+                    final_batch_arg = final_batch
+                else:
+                    final_batch_arg = None
+                worker_kwargs = {
+                    "worker_name": worker_name,
+                    "indices": worker_indices,
+                    "extra_batch": final_batch_arg,
+                    "array_ready_event": array_ready_events[i],
+                    "array_loaded_event": array_loaded_events[i],
+                    **base_args,
                 }
-                arrays = {
-                    col: np.copy(
-                        np.ndarray(shape=array_shapes[col], dtype=self.columns_to_np_types[col], buffer=shm.buf)
-                    )
-                    for col, shm in array_shms.items()
-                }
-                yield arrays
-                for shm in array_shms.values():
-                    shm.close()
-                array_loaded_events[i].set()
-        # Now we just do some cleanup
-        for worker, shape_shms in zip(workers, shape_shms):
-            worker.join()
-            for shm in shape_shms.values():
-                shm.unlink()
+                worker = ctx.Process(target=self.worker_loop, kwargs=worker_kwargs, daemon=True)
+                worker.start()
+                workers.append(worker)
+
+            end_signal_received = False
+            while not end_signal_received:
+                for i in range(num_workers):
+                    array_ready_events[i].wait()
+                    array_ready_events[i].clear()
+                    array_shapes = shape_arrays[i]
+                    array_sizes = {
+                        col: np.prod(shape) * np.dtype(self.columns_to_np_types[col]).itemsize
+                        for col, shape in array_shapes.items()
+                    }
+                    if any(size < 0 for size in array_sizes.values()):
+                        # Child processes send negative array shapes to indicate
+                        # that no more data is going to be sent
+                        end_signal_received = True
+                        break
+                    # Matt: Because array shapes are variable we recreate the shared memory each iteration.
+                    #       I suspect repeatedly opening lots of shared memory is the bottleneck for the parent process.
+                    #       A future optimization, at the cost of some code complexity, could be to reuse shared memory
+                    #       between iterations, but this would require knowing in advance the maximum size, or having
+                    #       a system to only create a new memory block when a new maximum size is seen.
+                    #       Another potential optimization would be to figure out which memory copies are necessary,
+                    #       or whether we can yield objects straight out of shared memory.
+                    with SharedMemoryContext() as batch_shm_ctx:
+                        # This memory context only lasts long enough to copy everything out of the batch
+                        arrays = {
+                            col: batch_shm_ctx.get_array(f"{names[i]}_{col}",
+                                                         shape=array_shapes[col],
+                                                         dtype=self.columns_to_np_types[col],
+                                                         create=False)
+                            for col, size in array_sizes.items()
+                        }
+                        # Copy everything out of shm because the memory
+                        # will be unlinked by the child process at some point
+                        arrays = {col: np.copy(arr) for col, arr in arrays.items()}
+                    yield arrays
+                    array_loaded_events[i].set()
+            # Now we just do some cleanup
+            # Shared memory is cleaned up by the context manager, so we just make sure workers finish
+            for worker in workers:
+                worker.join()
 
     def __call__(self):
         return self
@@ -304,15 +335,6 @@ class NumpyMultiprocessingGenerator:
 
         tf.config.set_visible_devices([], "GPU")  # Make sure workers don't try to allocate GPU memory
 
-        shape_shms = {
-            col: SharedMemory(name=f"{worker_name}_{col}_shape", create=False, size=rank * 8)
-            for col, rank in columns_to_ranks.items()
-        }
-        shape_arrays = {
-            col: np.ndarray(shape=(shape_shm.size // 8,), dtype=np.int64, buffer=shape_shm.buf)
-            for col, shape_shm in shape_shms.items()
-        }
-
         def send_batch_to_parent(indices):
             batch = np_get_batch(
                 indices=indices,
@@ -325,34 +347,37 @@ class NumpyMultiprocessingGenerator:
             )
 
             # Now begins the fun part where we start shovelling shared memory at the parent process
-            out_shms = dict()
             out_arrays = dict()
-            for col, cast_dtype in columns_to_np_types.items():
-                # Everything has to be np.array for this to work, even if the collate_fn is giving us tf.Tensor
-                array = np.array(batch[col]).astype(cast_dtype)
-                shape_arrays[col][:] = array.shape
-                out_shms[col] = SharedMemory(name=f"{worker_name}_{col}", create=True, size=array.nbytes)
-                out_arrays[col] = np.ndarray(shape=array.shape, dtype=cast_dtype, buffer=out_shms[col].buf)
-                out_arrays[col][:] = array
+            with SharedMemoryContext() as batch_shm_ctx:
+                # The batch shared memory context exists only as long as it takes for the parent process
+                # to read everything, after which it cleans everything up again
+                for col, cast_dtype in columns_to_np_types.items():
+                    # Everything has to be np.array for this to work, even if the collate_fn is giving us tf.Tensor
+                    array = batch[col]
+                    shape_arrays[col][:] = array.shape
+                    out_arrays[col] = batch_shm_ctx.get_array(
+                        f"{worker_name}_{col}", shape=array.shape, dtype=cast_dtype, create=True
+                    )
+                    out_arrays[col][:] = array
 
+                array_ready_event.set()
+                array_loaded_event.wait()
+                array_loaded_event.clear()
+
+        with SharedMemoryContext() as shm_ctx:
+            shape_arrays = {
+                col: shm_ctx.get_array(f"{worker_name}_{col}_shape", shape=(rank,), dtype=np.int64, create=False)
+                for col, rank in columns_to_ranks.items()
+            }
+
+            for batch in indices:
+                send_batch_to_parent(batch)
+            if extra_batch is not None:
+                send_batch_to_parent(extra_batch)
+            # Now we send a batsignal to the parent process that we're done
+            for col, array in shape_arrays.items():
+                array[:] = -1
             array_ready_event.set()
-            array_loaded_event.wait()
-            array_loaded_event.clear()
-            for shm in out_shms.values():
-                shm.close()
-                shm.unlink()
-
-        for batch in indices:
-            send_batch_to_parent(batch)
-        if extra_batch is not None:
-            send_batch_to_parent(extra_batch)
-        # Now we send a batsignal to the parent process that we're done
-        for col, array in shape_arrays.items():
-            array[:] = -1
-        array_ready_event.set()
-        # Don't unlink them because the parent still needs to read them
-        for shm in shape_shms.values():
-            shm.close()
 
     @staticmethod
     def distribute_batches(dataset, batch_size, drop_remainder, num_workers, shuffle):
