@@ -46,4 +46,4 @@ jobs:
           cat report.md >> final_report.md
           echo "\n</details>" >> final_report.md
 
-          cml-send-comment final_report.md
+          cml comment create final_report.md
