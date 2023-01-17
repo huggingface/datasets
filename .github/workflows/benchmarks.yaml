@@ -1,5 +1,5 @@
 name: benchmarks
-on: [push, pull_request]
+on: [push]
 jobs:
   run:
     runs-on: [ubuntu-latest]
