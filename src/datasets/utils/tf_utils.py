@@ -352,23 +352,22 @@ class NumpyMultiprocessingGenerator:
         num_samples = len(indices)
         # We distribute the batches so that reading from the workers in round-robin order yields the exact
         # order specified in indices. This is only important when shuffle is False, but we do it regardless.
-        if drop_remainder or num_samples % batch_size == 0:
+        incomplete_batch_cutoff = num_samples // batch_size * batch_size
+        indices, last_incomplete_batch = np.split(indices, [incomplete_batch_cutoff])
+        if drop_remainder or len(last_incomplete_batch) == 0:
             last_incomplete_batch = None
-        else:
-            last_incomplete_batch = [indices[num_samples // batch_size * batch_size :]]
-        if num_samples % batch_size != 0:
-            indices = indices[: -(num_samples % batch_size)]
+
         indices = indices.reshape(-1, batch_size)
-        if num_samples % num_workers != 0:
-            final_batches = indices[-(num_samples % num_workers) :]
-            indices = indices[: -(num_samples % num_workers)]
-        else:
-            final_batches = []
+        num_batches = len(indices)
+        final_batches_cutoff = num_batches // num_workers * num_workers
+        indices, final_batches = np.split(indices, [final_batches_cutoff])
         indices = indices.reshape(-1, num_workers, batch_size)
+
         per_worker_indices = np.split(indices, indices.shape[1], axis=1)
         per_worker_indices = [np.squeeze(worker_indices, 1) for worker_indices in per_worker_indices]
         # Distribute the final batches to the first workers
         for i in range(len(final_batches)):
+            # len(final_batches) can be zero, and is always less than num_workers
             per_worker_indices[i] = np.concatenate([per_worker_indices[i], final_batches[i].reshape(1, -1)], axis=0)
         # Add the last incomplete batch to the next worker, which might be the first worker
         if last_incomplete_batch is not None:
