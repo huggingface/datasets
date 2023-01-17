@@ -80,7 +80,7 @@ def is_numeric_feature(feature):
         return False
 
 
-def np_get_batch(indices, dataset, cols_to_retain, collate_fn, collate_fn_args, columns_to_np_types):
+def np_get_batch(indices, dataset, cols_to_retain, collate_fn, collate_fn_args, columns_to_np_types, return_dict=False):
     # Optimization - if we're loading a sequential batch, do it with slicing instead of a list of indices
     if np.all(np.diff(indices) == 1):
         batch = dataset[indices[0] : indices[-1] + 1]
@@ -98,12 +98,20 @@ def np_get_batch(indices, dataset, cols_to_retain, collate_fn, collate_fn_args, 
     # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
     batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
     batch = collate_fn(batch, **collate_fn_args)
-    out_batch = []
-    for col, cast_dtype in columns_to_np_types.items():
-        # In case the collate_fn returns something strange
-        array = np.array(batch[col])
-        array = array.astype(cast_dtype)
-        out_batch.append(array)
+    if return_dict:
+        out_batch = dict()
+        for col, cast_dtype in columns_to_np_types.items():
+            # In case the collate_fn returns something strange
+            array = np.array(batch[col])
+            array = array.astype(cast_dtype)
+            out_batch[col] = array
+    else:
+        out_batch = []
+        for col, cast_dtype in columns_to_np_types.items():
+            # In case the collate_fn returns something strange
+            array = np.array(batch[col])
+            array = array.astype(cast_dtype)
+            out_batch.append(array)
     return out_batch
 
 
@@ -130,6 +138,7 @@ def dataset_to_tf(
         collate_fn=collate_fn,
         collate_fn_args=collate_fn_args,
         columns_to_np_types=columns_to_np_types,
+        return_dict=False,  # TF expects numpy_function to return a list and will not accept a dict
     )
 
     @tf.function(input_signature=[tf.TensorSpec(None, tf.int64)])
@@ -312,6 +321,7 @@ class NumpyMultiprocessingGenerator:
                 collate_fn=collate_fn,
                 collate_fn_args=collate_fn_args,
                 columns_to_np_types=columns_to_np_types,
+                return_dict=True,
             )
 
             # Now begins the fun part where we start shovelling shared memory at the parent process
