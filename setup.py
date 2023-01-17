@@ -128,7 +128,7 @@ REQUIRED_PKGS = [
     "importlib_metadata;python_version<'3.8'",
     # to save datasets locally or on any filesystem
     # minimum 2021.11.1 so that BlockSizeError is fixed: see https://github.com/fsspec/filesystem_spec/pull/830
-    "fsspec[http]>=2021.11.1",  # aligned s3fs with this
+    "fsspec[http]>=2021.11.1",
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
@@ -163,15 +163,10 @@ TESTS_REQUIRE = [
     "pytest-datadir",
     "pytest-xdist",
     # optional dependencies
-    "apache-beam>=2.26.0;python_version<'3.8'",  # doesn't support recent dill versions for recent python versions
+    "apache-beam>=2.26.0,<2.44.0;python_version<'3.8'",  # doesn't support recent dill versions for recent python versions
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch()
-    "aiobotocore>=2.0.1;python_version<'3.8'",  # required by s3fs>=2021.11.1
-    "boto3>=1.19.8;python_version<'3.8'",  # to be compatible with aiobotocore>=2.0.1 - both have strong dependencies on botocore
-    "botocore>=1.22.8;python_version<'3.8'",  # to be compatible with aiobotocore and boto3
     "faiss-cpu>=1.6.4",
-    "fsspec",
     "lz4",
-    "moto[s3,server]==2.0.4;python_version<'3.8'",
     "py7zr",
     "rarfile>=4.0",
     "s3fs>=2021.11.1;python_version<'3.8'",  # aligned with fsspec[http]>=2021.11.1; test only on python 3.7 for now
@@ -225,19 +220,14 @@ DOCS_REQUIRE = [
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
     "vision": VISION_REQUIRE,
-    "apache-beam": ["apache-beam>=2.26.0"],
+    "apache-beam": ["apache-beam>=2.26.0,<2.44.0"],
     "tensorflow": [
         "tensorflow>=2.2.0,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
         "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
     ],
     "tensorflow_gpu": ["tensorflow-gpu>=2.2.0,!=2.6.0,!=2.6.1"],
     "torch": ["torch"],
-    "s3": [
-        "fsspec",
-        "boto3",
-        "botocore",
-        "s3fs",
-    ],
+    "s3": ["s3fs"],
     "streaming": [],  # for backward compatibility
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE + DOCS_REQUIRE,
     "tests": TESTS_REQUIRE,
@@ -249,7 +239,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.7.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.8.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
