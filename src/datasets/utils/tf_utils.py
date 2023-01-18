@@ -17,6 +17,7 @@
 import os
 from functools import partial
 from math import ceil
+from uuid import uuid4
 
 import numpy as np
 import pyarrow as pa
@@ -185,7 +186,13 @@ class SharedMemoryContext:
         return shm
 
     def get_array(self, name, shape, dtype, create):
-        shm = self.get_shm(name, size=np.prod(shape) * np.dtype(dtype).itemsize, create=create)
+        if create:
+            print(f"Making array {name} with shape {shape} and dtype {dtype} and itemsize {np.dtype(dtype).itemsize}!")
+        else:
+            print(
+                f"Opening array {name} with shape {shape} and dtype {dtype} and itemsize {np.dtype(dtype).itemsize}!"
+            )
+        shm = self.get_shm(name=name, size=np.prod(shape) * np.dtype(dtype).itemsize, create=create)
         return np.ndarray(shape, dtype=dtype, buffer=shm.buf)
 
     def __enter__(self):
@@ -217,13 +224,22 @@ class NumpyMultiprocessingGenerator:
         self.cols_to_retain = cols_to_retain
         self.collate_fn = collate_fn
         self.collate_fn_args = collate_fn_args
-        self.columns_to_np_types = columns_to_np_types
+        self.string_columns = [col for col, dtype in columns_to_np_types.items() if dtype in (np.unicode_, np.str_)]
+        # Strings will be converted to arrays of single unicode chars, so that we can have a constant itemsize
+        self.columns_to_np_types = {
+            col: dtype if col not in self.string_columns else np.dtype("U1")
+            for col, dtype in columns_to_np_types.items()
+        }
         self.output_signature = output_signature
         self.shuffle = shuffle
         self.batch_size = batch_size
         self.drop_remainder = drop_remainder
         self.num_workers = num_workers
-        self.columns_to_ranks = {col: int(spec.shape.rank) for col, spec in output_signature.items()}
+        # Because strings are converted to characters, we need to add one extra dimension to the shape
+        self.columns_to_ranks = {
+            col: int(spec.shape.rank) if col not in self.string_columns else int(spec.shape.rank) + 1
+            for col, spec in output_signature.items()
+        }
 
     def __iter__(self):
         # Make sure we only spawn workers if they have work to do
@@ -246,10 +262,12 @@ class NumpyMultiprocessingGenerator:
             "collate_fn_args": self.collate_fn_args,
             "columns_to_np_types": self.columns_to_np_types,
             "columns_to_ranks": self.columns_to_ranks,
+            "string_columns": self.string_columns,
         }
         with SharedMemoryContext() as shm_ctx:
             for i in range(num_workers):
-                worker_name = f"datasets_tf_worker_{i}"
+                worker_random_id = str(uuid4())
+                worker_name = f"datasets_tf_worker_{i}_{worker_random_id}"
                 names.append(worker_name)
 
                 worker_shape_arrays = {
@@ -278,14 +296,11 @@ class NumpyMultiprocessingGenerator:
             end_signal_received = False
             while not end_signal_received:
                 for i in range(num_workers):
-                    array_ready_events[i].wait()
+                    if not array_ready_events[i].wait(timeout=60):
+                        raise TimeoutError("Data loading worker timed out!")
                     array_ready_events[i].clear()
                     array_shapes = shape_arrays[i]
-                    array_sizes = {
-                        col: np.prod(shape) * np.dtype(self.columns_to_np_types[col]).itemsize
-                        for col, shape in array_shapes.items()
-                    }
-                    if any(size < 0 for size in array_sizes.values()):
+                    if any(np.any(shape < 0) for shape in array_shapes.values()):
                         # Child processes send negative array shapes to indicate
                         # that no more data is going to be sent
                         end_signal_received = True
@@ -302,15 +317,20 @@ class NumpyMultiprocessingGenerator:
                         arrays = {
                             col: batch_shm_ctx.get_array(
                                 f"{names[i]}_{col}",
-                                shape=array_shapes[col],
+                                shape=shape,
                                 dtype=self.columns_to_np_types[col],
                                 create=False,
                             )
-                            for col, size in array_sizes.items()
+                            for col, shape in array_shapes.items()
                         }
                         # Copy everything out of shm because the memory
                         # will be unlinked by the child process at some point
                         arrays = {col: np.copy(arr) for col, arr in arrays.items()}
+                        # Now we convert any unicode char arrays to strings
+                        for string_col in self.string_columns:
+                            arrays[string_col] = (
+                                arrays[string_col].view(f"U{arrays[string_col].shape[-1]}").squeeze(-1)
+                            )
                     yield arrays
                     array_loaded_events[i].set()
             # Now we just do some cleanup
@@ -329,6 +349,7 @@ class NumpyMultiprocessingGenerator:
         collate_fn_args,
         columns_to_np_types,
         columns_to_ranks,
+        string_columns,
         indices,
         extra_batch,
         worker_name,
@@ -363,6 +384,10 @@ class NumpyMultiprocessingGenerator:
                 for col, cast_dtype in columns_to_np_types.items():
                     # Everything has to be np.array for this to work, even if the collate_fn is giving us tf.Tensor
                     array = batch[col]
+                    if col in string_columns:
+                        # We can't send unicode arrays over shared memory, so we convert to single chars ("U1")
+                        # which have a fixed width of 4 bytes. The parent process will convert these back to strings.
+                        array = array.view("U1").reshape(array.shape + (-1,))
                     shape_arrays[col][:] = array.shape
                     out_arrays[col] = batch_shm_ctx.get_array(
                         f"{worker_name}_{col}", shape=array.shape, dtype=cast_dtype, create=True
