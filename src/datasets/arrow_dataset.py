@@ -430,7 +430,7 @@ class TensorflowDatasetMixin:
             if col not in output_signature:
                 raise ValueError(f"Label column {col} not found in dataset!")
 
-        if num_workers <= 0:
+        if num_workers == 0:
             tf_dataset = dataset_to_tf(
                 dataset=dataset,
                 cols_to_retain=cols_to_retain,
@@ -442,7 +442,7 @@ class TensorflowDatasetMixin:
                 batch_size=batch_size,
                 drop_remainder=drop_remainder,
             )
-        else:
+        elif num_workers > 0:
             tf_dataset = multiprocess_dataset_to_tf(
                 dataset=dataset,
                 cols_to_retain=cols_to_retain,
@@ -455,6 +455,8 @@ class TensorflowDatasetMixin:
                 drop_remainder=drop_remainder,
                 num_workers=num_workers,
             )
+        else:
+            raise ValueError("num_workers must be >= 0")
 
         def split_features_and_labels(input_batch):
             # TODO(Matt, QL): deprecate returning the dict content when there's only one key
