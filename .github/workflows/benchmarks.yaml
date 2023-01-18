@@ -3,12 +3,12 @@ on: [push]
 jobs:
   run:
     runs-on: [ubuntu-latest]
-    container: docker://dvcorg/cml:latest
+    container: ghcr.io/iterative/cml
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: cml_run
         env:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          CML_DRIVER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # See https://github.com/actions/checkout/issues/760
           git config --global --add safe.directory /__w/datasets/datasets
@@ -46,4 +46,4 @@ jobs:
           cat report.md >> final_report.md
           echo "\n</details>" >> final_report.md
 
-          cml-send-comment final_report.md
+          cml comment create final_report.md

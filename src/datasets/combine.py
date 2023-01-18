@@ -10,7 +10,7 @@ from .utils import logging
 logger = logging.get_logger(__name__)
 
 
-DatasetType = TypeVar("DatasetType", "Dataset", "IterableDataset")
+DatasetType = TypeVar("DatasetType", Dataset, IterableDataset)
 
 
 def interleave_datasets(
@@ -137,11 +137,11 @@ def interleave_datasets(
 
 
 def concatenate_datasets(
-    dsets: List[Dataset],
+    dsets: List[DatasetType],
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
     axis: int = 0,
-):
+) -> DatasetType:
     """
     Converts a list of [`Dataset`] with the same schema into a single [`Dataset`].
 

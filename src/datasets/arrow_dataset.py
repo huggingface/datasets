@@ -5628,6 +5628,26 @@ def _interleave_map_style_datasets(
     return concatenated_datasets.select(indices, **kwargs)
 
 
+def _split_by_node_map_style_dataset(dataset: Dataset, rank: int, world_size: int) -> Dataset:
+    """
+    Split a dataset for the node at rank `rank` in a pool of nodes of size `world_size`.
+    Each node is assigned a chunk of data, e.g. rank 0 is given the first chunk of the dataset.
+    To maximize data loading throughput, chunks are made of contiguous data on disk if possible.
+
+    Args:
+        dataset ([`Dataset`]):
+            The dataset to split by node.
+        rank (`int`):
+            Rank of the current node.
+        world_size (`int`):
+            Total number of nodes.
+
+    Returns:
+        [`Dataset`]: The dataset to be used on the node at rank `rank`.
+    """
+    return dataset.shard(num_shards=world_size, index=rank, contiguous=True)
+
+
 # This is outside Dataset.filter as it needs to be picklable for multiprocessing
 
 
