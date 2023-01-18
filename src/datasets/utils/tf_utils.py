@@ -176,7 +176,7 @@ class SharedMemoryContext:
         self.opened_shms = []
 
     def get_shm(self, name, size, create):
-        shm = SharedMemory(size=size, name=name, create=create)
+        shm = SharedMemory(size=int(size), name=name, create=create)
         if create:
             # We only unlink the ones we created in this context
             self.created_shms.append(shm)
