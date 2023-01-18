@@ -997,7 +997,7 @@ def test_builder_with_filesystem_download_and_prepare(tmp_path, mockfs):
 def test_builder_with_filesystem_download_and_prepare_reload(tmp_path, mockfs, caplog):
     builder = DummyGeneratorBasedBuilder(cache_dir=tmp_path)
     mockfs.makedirs("my_dataset")
-    DatasetInfo().write_to_directory("my_dataset", fs=mockfs)
+    DatasetInfo().write_to_directory("mock://my_dataset", storage_options=mockfs.storage_options)
     mockfs.touch(f"my_dataset/{builder.name}-train.arrow")
     caplog.clear()
     builder.download_and_prepare("mock://my_dataset", storage_options=mockfs.storage_options)
