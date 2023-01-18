@@ -60,7 +60,7 @@ class DummyGeneratorBasedBuilder(GeneratorBasedBuilder):
         return DatasetInfo(features=Features({"text": Value("string")}))
 
     def _split_generators(self, dl_manager):
-        return [SplitGenerator(name=Split.TRAIN)]
+        return [SplitGenerator(name=Split.TRAIN), SplitGenerator(name=Split.VALIDATION)]
 
     def _generate_examples(self):
         for i in range(100):
@@ -665,14 +665,14 @@ class BuilderTest(TestCase):
             builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir)
             with patch("datasets.builder.ArrowWriter", side_effect=ArrowWriter) as mock_arrow_writer:
                 builder.download_and_prepare(download_mode=DownloadMode.FORCE_REDOWNLOAD)
-                mock_arrow_writer.assert_called_once()
+                mock_arrow_writer.assert_called()
                 args, kwargs = mock_arrow_writer.call_args_list[0]
                 self.assertTrue(kwargs["check_duplicates"])
 
                 mock_arrow_writer.reset_mock()
 
                 builder.download_and_prepare(download_mode=DownloadMode.FORCE_REDOWNLOAD, ignore_verifications=True)
-                mock_arrow_writer.assert_called_once()
+                mock_arrow_writer.assert_called()
                 args, kwargs = mock_arrow_writer.call_args_list[0]
                 self.assertFalse(kwargs["check_duplicates"])
 
@@ -928,7 +928,12 @@ def test_builder_as_streaming_dataset(tmp_path):
     assert len(list(dsets["train"])) == 100
     dset = dummy_builder.as_streaming_dataset(split="train")
     assert isinstance(dset, IterableDataset)
+    assert dset.split == "train"
     assert len(list(dset)) == 100
+    dset = dummy_builder.as_streaming_dataset(split="all")
+    assert isinstance(dset, IterableDataset)
+    assert dset.split == "train+validation"
+    assert len(list(dset)) == 200
 
 
 def _run_test_builder_streaming_works_in_subprocesses(builder):
