@@ -111,7 +111,7 @@ class TarExtractor(BaseExtractor):
 
         for finfo in members:
             if badpath(finfo.name, base):
-                logger.error(f"Extraction of {finfo.name} is blocked (illegal path)")
+                logger.error(f"Extraction of {finfo.name} is blocked (illegal path: {base})")
             elif finfo.issym() and badlink(finfo, base):
                 logger.error(f"Extraction of {finfo.name} is blocked: Hard link to {finfo.linkname}")
             elif finfo.islnk() and badlink(finfo, base):
