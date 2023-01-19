@@ -1,0 +1,81 @@
+# Know your dataset
+
+When you load a dataset split, you'll get a [`Dataset`] object. You can do many things with a [`Dataset`] object, which is why it's important to learn how to manipulate and interact with the data stored inside. 
+ 
+This tutorial uses the [rotten_tomatoes](https://huggingface.co/datasets/rotten_tomatoes) dataset, but feel free to load any dataset you'd like and follow along!
+
+```py
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("rotten_tomatoes", split="train")
+```
+
+## Indexing
+
+A [`Dataset`] contains columns of data, and each column can be a different type of data. The *index*, or axis label, is used to access examples from the dataset. For example, indexing by the row returns a dictionary of an example from the dataset:
+
+```py
+# Get the first row in the dataset
+>>> dataset[0]
+{'label': 1,
+ 'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
+```
+
+Use the `-` operator to start from the end of the dataset:
+
+```py
+# Get the last row in the dataset
+>>> dataset[-1]
+{'label': 0,
+ 'text': 'things really get weird , though not particularly scary : the movie is all portent and no content .'}
+```
+
+Indexing by the column name returns a list of all the values in the column:
+
+```py
+>>> dataset["text"]
+['the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .',
+ 'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .',
+ 'effective but too-tepid biopic',
+ ...,
+ 'things really get weird , though not particularly scary : the movie is all portent and no content .']
+```
+
+You can combine row and column name indexing to return a specific value at a position:
+
+```py
+>>> dataset[0]["text"]
+'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'
+```
+
+But it is important to remember that indexing order matters, especially when working with large audio and image datasets. Indexing by the column name returns all the values in the column first, then loads the value at that position. For large datasets, it may be slower to index by the column name first.
+
+```py
+>>> with Timer():
+...    dataset[0]['text']
+Elapsed time: 0.0031 seconds
+
+>>> with Timer():
+...   dataset["text"][0]
+Elapsed time: 0.0094 seconds
+```
+
+## Slicing
+
+Slicing returns a slice - or subset - of the dataset, which is useful for viewing several rows at once. To slice a dataset, use the `:` operator to specify a range of positions. 
+
+```py
+# Get the first three rows
+>>> dataset[:3]
+{'label': [1, 1, 1],
+ 'text': ['the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .',
+  'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .',
+  'effective but too-tepid biopic']}
+
+# Get rows between three and six
+>>> dataset[3:6]
+{'label': [1, 1, 1],
+ 'text': ['if you sometimes like to go to the movies to have fun , wasabi is a good place to start .',
+  "emerges as something rare , an issue movie that's so honest and keenly observed that it doesn't feel like one .",
+  'the film provides some great insight into the neurotic mindset of all comics -- even those who have reached the absolute top of the game .']}
+```

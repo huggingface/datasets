@@ -10,10 +10,11 @@ from typing import Optional
 
 from datasets import config
 from datasets.commands import BaseDatasetsCLICommand
+from datasets.download.download_config import DownloadConfig
+from datasets.download.download_manager import DownloadManager
+from datasets.download.mock_download_manager import MockDownloadManager
 from datasets.load import dataset_module_factory, import_main_class
-from datasets.utils import MockDownloadManager
-from datasets.utils.download_manager import DownloadManager
-from datasets.utils.file_utils import DownloadConfig
+from datasets.utils.deprecation_utils import deprecated
 from datasets.utils.logging import get_logger, set_verbosity_warning
 from datasets.utils.py_utils import map_nested
 
@@ -23,7 +24,7 @@ logger = get_logger(__name__)
 DEFAULT_ENCODING = "utf-8"
 
 
-def test_command_factory(args):
+def dummy_data_command_factory(args):
     return DummyDataCommand(
         args.path_to_dataset,
         args.auto_generate,
@@ -123,7 +124,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
             # Line by line text file (txt, csv etc.)
             if is_line_by_line_text_file:
                 Path(dst_path).parent.mkdir(exist_ok=True, parents=True)
-                with open(src_path, "r", encoding=encoding) as src_file:
+                with open(src_path, encoding=encoding) as src_file:
                     with open(dst_path, "w", encoding=encoding) as dst_file:
                         first_lines = []
                         for i, line in enumerate(src_file):
@@ -134,7 +135,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                 return 1
             # json file
             elif ".json" in dst_path_extensions:
-                with open(src_path, "r", encoding=encoding) as src_file:
+                with open(src_path, encoding=encoding) as src_file:
                     json_data = json.load(src_file)
                     if json_field is not None:
                         json_data = json_data[json_field]
@@ -187,7 +188,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
     @staticmethod
     def _create_xml_dummy_data(src_path, dst_path, xml_tag, n_lines=5, encoding=DEFAULT_ENCODING):
         Path(dst_path).parent.mkdir(exist_ok=True, parents=True)
-        with open(src_path, "r", encoding=encoding) as src_file:
+        with open(src_path, encoding=encoding) as src_file:
             n_line = 0
             parents = []
             for event, elem in ET.iterparse(src_file, events=("start", "end")):
@@ -212,6 +213,9 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
         shutil.rmtree(base_name)
 
 
+@deprecated(
+    "The `datasets` repository does not host the dataset scripts anymore. Therefore, dummy data is no longer needed to test their loading with CI."
+)
 class DummyDataCommand(BaseDatasetsCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
@@ -256,7 +260,7 @@ class DummyDataCommand(BaseDatasetsCLICommand):
             help=f"Encoding to use when auto-generating dummy data. Defaults to {DEFAULT_ENCODING}",
         )
         test_parser.add_argument("path_to_dataset", type=str, help="Path to the dataset (example: ./datasets/squad)")
-        test_parser.set_defaults(func=test_command_factory)
+        test_parser.set_defaults(func=dummy_data_command_factory)
 
     def __init__(
         self,
@@ -295,14 +299,9 @@ class DummyDataCommand(BaseDatasetsCLICommand):
         auto_generate_results = []
         with tempfile.TemporaryDirectory() as tmp_dir:
             for builder_config in builder_configs:
-                if builder_config is None:
-                    name = None
-                    version = builder_cls.VERSION
-                else:
-                    version = builder_config.version
-                    name = builder_config.name
-
-                dataset_builder = builder_cls(name=name, hash=dataset_module.hash, cache_dir=tmp_dir)
+                config_name = builder_config.name if builder_config else None
+                dataset_builder = builder_cls(config_name=config_name, hash=dataset_module.hash, cache_dir=tmp_dir)
+                version = builder_config.version if builder_config else dataset_builder.config.version
                 mock_dl_manager = MockDownloadManager(
                     dataset_name=self._dataset_name,
                     config=builder_config,
@@ -358,7 +357,7 @@ class DummyDataCommand(BaseDatasetsCLICommand):
             try:
                 split_generators = dataset_builder._split_generators(mock_dl_manager)
                 for split_generator in split_generators:
-                    dataset_builder._prepare_split(split_generator)
+                    dataset_builder._prepare_split(split_generator, check_duplicate_keys=False)
                     n_examples_per_split[split_generator.name] = split_generator.split_info.num_examples
             except OSError as e:
                 logger.error(

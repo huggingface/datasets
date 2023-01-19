@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -106,11 +105,13 @@ class Meteor(datasets.Metric):
         import nltk
 
         nltk.download("wordnet")
-        if NLTK_VERSION >= version.Version("3.6.4"):
+        if NLTK_VERSION >= version.Version("3.6.5"):
             nltk.download("punkt")
+        if NLTK_VERSION >= version.Version("3.6.6"):
+            nltk.download("omw-1.4")
 
     def _compute(self, predictions, references, alpha=0.9, beta=3, gamma=0.5):
-        if NLTK_VERSION >= version.Version("3.6.4"):
+        if NLTK_VERSION >= version.Version("3.6.5"):
             scores = [
                 meteor_score.single_meteor_score(
                     word_tokenize(ref), word_tokenize(pred), alpha=alpha, beta=beta, gamma=gamma

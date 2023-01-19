@@ -7,7 +7,7 @@ import pyarrow as pa
 import pytest
 
 from datasets.arrow_dataset import Dataset
-from datasets.arrow_reader import ArrowReader, BaseReader, ReadInstruction
+from datasets.arrow_reader import ArrowReader, BaseReader, FileInstructions, ReadInstruction, make_file_instructions
 from datasets.info import DatasetInfo
 from datasets.splits import NamedSplit, Split, SplitDict, SplitInfo
 
@@ -29,6 +29,8 @@ class ReaderTest(BaseReader):
         )
         open(os.path.join(filename), "wb").close()
         pa_table = pa.Table.from_pydict({"filename": [Path(filename).name] * 100})
+        if take == -1:
+            take = len(pa_table) - skip
         if skip is not None and take is not None:
             pa_table = pa_table.slice(skip, take)
         return pa_table
@@ -58,7 +60,7 @@ class BaseReaderTest(TestCase):
             instructions2 = [Split.TRAIN, ReadInstruction.from_spec("test[:33%]")]
             for instructions in [instructions1, instructions2]:
                 datasets_kwargs = [reader.read(name, instr, split_infos) for instr in instructions]
-                train_dset, test_dset = [Dataset(**dataset_kwargs) for dataset_kwargs in datasets_kwargs]
+                train_dset, test_dset = (Dataset(**dataset_kwargs) for dataset_kwargs in datasets_kwargs)
                 self.assertEqual(train_dset["filename"][0], f"{name}-train")
                 self.assertEqual(train_dset.num_rows, 100)
                 self.assertEqual(train_dset.num_columns, 1)
@@ -70,6 +72,24 @@ class BaseReaderTest(TestCase):
                 self.assertIsInstance(test_dset.split, NamedSplit)
                 self.assertEqual(str(test_dset.split), "test[:33%]")
                 del train_dset, test_dset
+
+    def test_read_sharded(self):
+        name = "my_name"
+        train_info = SplitInfo(name="train", num_examples=1000, shard_lengths=[100] * 10)
+        split_infos = [train_info]
+        split_dict = SplitDict()
+        split_dict.add(train_info)
+        info = DatasetInfo(splits=split_dict)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            reader = ReaderTest(tmp_dir, info)
+
+            instructions = "train[:33%]"
+            dset = Dataset(**reader.read(name, instructions, split_infos))
+            self.assertEqual(dset["filename"][0], f"{name}-train-00000-of-00010")
+            self.assertEqual(dset["filename"][-1], f"{name}-train-00003-of-00010")
+            self.assertEqual(dset.num_rows, 330)
+            self.assertEqual(dset.num_columns, 1)
 
     def test_read_files(self):
         train_info = SplitInfo(name="train", num_examples=100)
@@ -108,7 +128,7 @@ def test_read_files(in_memory, dataset, arrow_file):
     reader = ArrowReader("", None)
     with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
         dataset_kwargs = reader.read_files([{"filename": filename}], in_memory=in_memory)
-    assert dataset_kwargs.keys() == set(["arrow_table", "info", "split"])
+    assert dataset_kwargs.keys() == {"arrow_table", "info", "split"}
     table = dataset_kwargs["arrow_table"]
     assert table.shape == dataset.data.shape
     assert set(table.column_names) == set(dataset.data.column_names)
@@ -136,3 +156,29 @@ def test_read_instruction_spec():
 
     spec_train_test_pct_rounding = "train[:10%](pct1_dropremainder)+test[-10%:](pct1_dropremainder)"
     assert ReadInstruction.from_spec(spec_train_test_pct_rounding).to_spec() == spec_train_test_pct_rounding
+
+
+def test_make_file_instructions():
+    name = "dummy"
+    split_infos = [SplitInfo(name="train", num_examples=100)]
+    instruction = "train[:33%]"
+    filetype_suffix = "arrow"
+    prefix_path = "prefix"
+
+    file_instructions = make_file_instructions(name, split_infos, instruction, filetype_suffix, prefix_path)
+    assert isinstance(file_instructions, FileInstructions)
+    assert file_instructions.num_examples == 33
+    assert file_instructions.file_instructions == [
+        {"filename": os.path.join(prefix_path, f"{name}-train.arrow"), "skip": 0, "take": 33}
+    ]
+
+    split_infos = [SplitInfo(name="train", num_examples=100, shard_lengths=[10] * 10)]
+    file_instructions = make_file_instructions(name, split_infos, instruction, filetype_suffix, prefix_path)
+    assert isinstance(file_instructions, FileInstructions)
+    assert file_instructions.num_examples == 33
+    assert file_instructions.file_instructions == [
+        {"filename": os.path.join(prefix_path, f"{name}-train-00000-of-00010.arrow"), "skip": 0, "take": -1},
+        {"filename": os.path.join(prefix_path, f"{name}-train-00001-of-00010.arrow"), "skip": 0, "take": -1},
+        {"filename": os.path.join(prefix_path, f"{name}-train-00002-of-00010.arrow"), "skip": 0, "take": -1},
+        {"filename": os.path.join(prefix_path, f"{name}-train-00003-of-00010.arrow"), "skip": 0, "take": 3},
+    ]

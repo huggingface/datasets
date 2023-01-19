@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2021 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,17 +33,34 @@ is also known as the phi coefficient. [source: Wikipedia]
 
 _KWARGS_DESCRIPTION = """
 Args:
-    predictions: Predicted labels, as returned by a model.
-    references: Ground truth labels.
-    sample_weight: Sample weights.
+    predictions (list of int): Predicted labels, as returned by a model.
+    references (list of int): Ground truth labels.
+    sample_weight (list of int, float, or bool): Sample weights. Defaults to `None`.
 Returns:
-    matthews_correlation: Matthews correlation.
+    matthews_correlation (dict containing float): Matthews correlation.
 Examples:
+    Example 1, a basic example with only predictions and references as inputs:
+        >>> matthews_metric = datasets.load_metric("matthews_correlation")
+        >>> results = matthews_metric.compute(references=[1, 3, 2, 0, 3, 2],
+        ...                                     predictions=[1, 2, 2, 0, 3, 3])
+        >>> print(round(results['matthews_correlation'], 2))
+        0.54
 
-    >>> matthews_metric = datasets.load_metric("matthews_correlation")
-    >>> results = matthews_metric.compute(references=[0, 1], predictions=[0, 1])
-    >>> print(results)
-    {'matthews_correlation': 1.0}
+    Example 2, the same example as above, but also including sample weights:
+        >>> matthews_metric = datasets.load_metric("matthews_correlation")
+        >>> results = matthews_metric.compute(references=[1, 3, 2, 0, 3, 2],
+        ...                                     predictions=[1, 2, 2, 0, 3, 3],
+        ...                                     sample_weight=[0.5, 3, 1, 1, 1, 2])
+        >>> print(round(results['matthews_correlation'], 2))
+        0.1
+
+    Example 3, the same example as above, but with sample weights that cause a negative correlation:
+        >>> matthews_metric = datasets.load_metric("matthews_correlation")
+        >>> results = matthews_metric.compute(references=[1, 3, 2, 0, 3, 2],
+        ...                                     predictions=[1, 2, 2, 0, 3, 3],
+        ...                                     sample_weight=[0.5, 1, 0, 0, 0, 1])
+        >>> print(round(results['matthews_correlation'], 2))
+        -0.25
 """
 
 _CITATION = """\

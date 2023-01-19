@@ -1,16 +1,15 @@
 # Overview
 
-Welcome to the 🤗 Datasets tutorial!
+Welcome to the 🤗 Datasets tutorials! These beginner-friendly tutorials will guide you through the fundamentals of working with 🤗 Datasets. You'll load and prepare a dataset for training with your machine learning framework of choice. Along the way, you'll learn how to load different dataset configurations and splits, interact with and see what's inside your dataset, preprocess, and share a dataset to the [Hub](https://huggingface.co/datasets).
 
-The goal of the tutorials are to help new users build up a basic understanding of 🤗 Datasets. You will learn to:
+The tutorials assume some basic knowledge of Python and a machine learning framework like PyTorch or TensorFlow. If you're already familiar with these, feel free to check out the [quickstart](./quickstart) to see what you can do with 🤗 Datasets.
 
-* Setup a virtual environment and install 🤗 Datasets.
-* Load a dataset.
-* Explore what's inside a Dataset object.
-* Use a dataset with PyTorch and TensorFlow.
-* Evaluate your model predictions with a metric.
-* Easily upload a dataset to the Hugging Face Hub.
+<Tip>
 
-After completing the tutorials, we hope you will have the necessary skills to start using our library in your own projects!
+The tutorials only cover the basic skills you need to use 🤗 Datasets. There are many other useful functionalities and applications that aren't discussed here. If you're interested in learning more, take a look at [Chapter 5](https://huggingface.co/course/chapter5/1?fw=pt) of the Hugging Face course.
 
-We understand that people who want to use 🤗 Datasets come from a wide and diverse range of disciplines. The tutorials are designed to be as accessible as possible to people without a developer background. If you already have some experience, take a look at our [Quick Start](../quickstart.rst) to see an end-to-end code example in context.
+</Tip>
+
+If you have any questions about 🤗 Datasets, feel free to join and ask the community on our [forum](https://discuss.huggingface.co/c/datasets/10).
+
+Let's get started! 🏁

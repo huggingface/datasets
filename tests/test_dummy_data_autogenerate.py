@@ -6,10 +6,10 @@ from unittest import TestCase
 import datasets.config
 from datasets.builder import GeneratorBasedBuilder
 from datasets.commands.dummy_data import DummyDataGeneratorDownloadManager, MockDownloadManager
+from datasets.download.download_config import DownloadConfig
 from datasets.features import Features, Value
 from datasets.info import DatasetInfo
 from datasets.splits import Split, SplitGenerator
-from datasets.utils.download_manager import DownloadConfig
 from datasets.utils.version import Version
 
 
@@ -45,7 +45,7 @@ class DummyBuilder(GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, **kwargs):
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             for i, line in enumerate(f):
                 yield i, {"text": line.strip()}
 

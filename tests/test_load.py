@@ -1,10 +1,10 @@
 import importlib
 import os
-import re
 import shutil
 import tempfile
 import time
 from hashlib import sha256
+from multiprocessing import Pool
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
@@ -13,32 +13,34 @@ import pytest
 import requests
 
 import datasets
-from datasets import SCRIPTS_VERSION, load_dataset, load_from_disk
+from datasets import config, load_dataset, load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.builder import DatasetBuilder
 from datasets.data_files import DataFilesDict
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
+from datasets.download.download_config import DownloadConfig
 from datasets.features import Features, Value
 from datasets.iterable_dataset import IterableDataset
 from datasets.load import (
     CachedDatasetModuleFactory,
     CachedMetricModuleFactory,
-    CanonicalDatasetModuleFactory,
-    CanonicalMetricModuleFactory,
-    CommunityDatasetModuleFactoryWithoutScript,
-    CommunityDatasetModuleFactoryWithScript,
+    GithubMetricModuleFactory,
+    HubDatasetModuleFactoryWithoutScript,
+    HubDatasetModuleFactoryWithScript,
     LocalDatasetModuleFactoryWithoutScript,
     LocalDatasetModuleFactoryWithScript,
     LocalMetricModuleFactory,
     PackagedDatasetModuleFactory,
+    infer_module_for_data_files,
+    infer_module_for_data_files_in_archives,
 )
-from datasets.utils.file_utils import DownloadConfig, is_remote_url
 
 from .utils import (
     OfflineSimulationMode,
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
     offline,
+    require_pil,
     set_current_working_directory_to_temp_dir,
 )
 
@@ -71,6 +73,8 @@ class __DummyDataset1__(datasets.GeneratorBasedBuilder):
 
 SAMPLE_DATASET_IDENTIFIER = "lhoestq/test"  # has dataset script
 SAMPLE_DATASET_IDENTIFIER2 = "lhoestq/test2"  # only has data files
+SAMPLE_DATASET_IDENTIFIER3 = "mariosasko/test_multi_dir_dataset"  # has multiple data directories
+SAMPLE_DATASET_IDENTIFIER4 = "mariosasko/test_imagefolder_with_metadata"  # imagefolder with a metadata file outside of the train/test directories
 SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER = "lhoestq/_dummy"
 SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST = "_dummy"
 
@@ -101,6 +105,46 @@ def data_dir(tmp_path):
     with open(data_dir / "test.txt", "w") as f:
         f.write("bar\n" * 10)
     return str(data_dir)
+
+
+@pytest.fixture
+def data_dir_with_metadata(tmp_path):
+    data_dir = tmp_path / "data_dir_with_metadata"
+    data_dir.mkdir()
+    with open(data_dir / "train.jpg", "wb") as f:
+        f.write(b"train_image_bytes")
+    with open(data_dir / "test.jpg", "wb") as f:
+        f.write(b"test_image_bytes")
+    with open(data_dir / "metadata.jsonl", "w") as f:
+        f.write(
+            """\
+        {"file_name": "train.jpg", "caption": "Cool tran image"}
+        {"file_name": "test.jpg", "caption": "Cool test image"}
+        """
+        )
+    return str(data_dir)
+
+
+@pytest.fixture
+def sub_data_dirs(tmp_path):
+    data_dir2 = tmp_path / "data_dir2"
+    relative_subdir1 = "subdir1"
+    sub_data_dir1 = data_dir2 / relative_subdir1
+    sub_data_dir1.mkdir(parents=True)
+    with open(sub_data_dir1 / "train.txt", "w") as f:
+        f.write("foo\n" * 10)
+    with open(sub_data_dir1 / "test.txt", "w") as f:
+        f.write("bar\n" * 10)
+
+    relative_subdir2 = "subdir2"
+    sub_data_dir2 = tmp_path / data_dir2 / relative_subdir2
+    sub_data_dir2.mkdir(parents=True)
+    with open(sub_data_dir2 / "train.txt", "w") as f:
+        f.write("foo\n" * 10)
+    with open(sub_data_dir2 / "test.txt", "w") as f:
+        f.write("bar\n" * 10)
+
+    return str(data_dir2), relative_subdir1
 
 
 @pytest.fixture
@@ -156,11 +200,47 @@ def metric_loading_script_dir(tmp_path):
     return str(script_dir)
 
 
+@pytest.mark.parametrize(
+    "data_files, expected_module, expected_builder_kwargs",
+    [
+        (["train.csv"], "csv", {}),
+        (["train.tsv"], "csv", {"sep": "\t"}),
+        (["train.json"], "json", {}),
+        (["train.jsonl"], "json", {}),
+        (["train.parquet"], "parquet", {}),
+        (["train.txt"], "text", {}),
+    ],
+)
+def test_infer_module_for_data_files(data_files, expected_module, expected_builder_kwargs):
+    module, builder_kwargs = infer_module_for_data_files(data_files)
+    assert module == expected_module
+    assert builder_kwargs == expected_builder_kwargs
+
+
+@pytest.mark.parametrize("data_file, expected_module", [("zip_csv_path", "csv"), ("zip_csv_with_dir_path", "csv")])
+def test_infer_module_for_data_files_in_archives(data_file, expected_module, zip_csv_path, zip_csv_with_dir_path):
+    data_file_paths = {"zip_csv_path": zip_csv_path, "zip_csv_with_dir_path": zip_csv_with_dir_path}
+    data_files = [str(data_file_paths[data_file])]
+    inferred_module, _ = infer_module_for_data_files_in_archives(data_files, False)
+    assert inferred_module == expected_module
+
+
 class ModuleFactoryTest(TestCase):
     @pytest.fixture(autouse=True)
-    def inject_fixtures(self, jsonl_path, data_dir, dataset_loading_script_dir, metric_loading_script_dir):
+    def inject_fixtures(
+        self,
+        jsonl_path,
+        data_dir,
+        data_dir_with_metadata,
+        sub_data_dirs,
+        dataset_loading_script_dir,
+        metric_loading_script_dir,
+    ):
         self._jsonl_path = jsonl_path
         self._data_dir = data_dir
+        self._data_dir_with_metadata = data_dir_with_metadata
+        self._data_dir2 = sub_data_dirs[0]
+        self._sub_data_dir = sub_data_dirs[1]
         self._dataset_loading_script_dir = dataset_loading_script_dir
         self._metric_loading_script_dir = metric_loading_script_dir
 
@@ -173,25 +253,26 @@ class ModuleFactoryTest(TestCase):
             hf_modules_cache=self.hf_modules_cache,
         )
 
-    def test_CanonicalDatasetModuleFactory(self):
+    def test_HubDatasetModuleFactoryWithScript_with_github_dataset(self):
         # "wmt_t2t" has additional imports (internal)
-        factory = CanonicalDatasetModuleFactory(
+        factory = HubDatasetModuleFactoryWithScript(
             "wmt_t2t", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
+        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
 
-    def test_CanonicalMetricModuleFactory_with_internal_import(self):
+    def test_GithubMetricModuleFactory_with_internal_import(self):
         # "squad_v2" requires additional imports (internal)
-        factory = CanonicalMetricModuleFactory(
+        factory = GithubMetricModuleFactory(
             "squad_v2", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
 
-    def test_CanonicalMetricModuleFactory_with_external_import(self):
+    def test_GithubMetricModuleFactory_with_external_import(self):
         # "bleu" requires additional imports (external from github)
-        factory = CanonicalMetricModuleFactory(
+        factory = GithubMetricModuleFactory(
             "bleu", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
         )
         module_factory_result = factory.get_module()
@@ -212,11 +293,46 @@ class ModuleFactoryTest(TestCase):
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
+        assert os.path.isdir(module_factory_result.builder_kwargs["base_path"])
 
     def test_LocalDatasetModuleFactoryWithoutScript(self):
         factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir)
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
+        assert os.path.isdir(module_factory_result.builder_kwargs["base_path"])
+
+    def test_LocalDatasetModuleFactoryWithoutScript_with_data_dir(self):
+        factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir2, data_dir=self._sub_data_dir)
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+        assert (
+            module_factory_result.builder_kwargs["data_files"] is not None
+            and len(module_factory_result.builder_kwargs["data_files"]["train"]) == 1
+            and len(module_factory_result.builder_kwargs["data_files"]["test"]) == 1
+        )
+        assert all(
+            self._sub_data_dir in Path(data_file).parts
+            for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
+            + module_factory_result.builder_kwargs["data_files"]["test"]
+        )
+
+    def test_LocalDatasetModuleFactoryWithoutScript_with_metadata(self):
+        factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir_with_metadata)
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+        assert (
+            module_factory_result.builder_kwargs["data_files"] is not None
+            and len(module_factory_result.builder_kwargs["data_files"]["train"]) > 0
+            and len(module_factory_result.builder_kwargs["data_files"]["test"]) > 0
+        )
+        assert any(
+            data_file.name == "metadata.jsonl"
+            for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
+        )
+        assert any(
+            data_file.name == "metadata.jsonl"
+            for data_file in module_factory_result.builder_kwargs["data_files"]["test"]
+        )
 
     def test_PackagedDatasetModuleFactory(self):
         factory = PackagedDatasetModuleFactory(
@@ -225,21 +341,105 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
 
-    def test_CommunityDatasetModuleFactoryWithoutScript(self):
-        factory = CommunityDatasetModuleFactoryWithoutScript(
+    def test_PackagedDatasetModuleFactory_with_data_dir(self):
+        factory = PackagedDatasetModuleFactory("json", data_dir=self._data_dir, download_config=self.download_config)
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+        assert (
+            module_factory_result.builder_kwargs["data_files"] is not None
+            and len(module_factory_result.builder_kwargs["data_files"]["train"]) > 0
+            and len(module_factory_result.builder_kwargs["data_files"]["test"]) > 0
+        )
+        assert Path(module_factory_result.builder_kwargs["data_files"]["train"][0]).parent.samefile(self._data_dir)
+        assert Path(module_factory_result.builder_kwargs["data_files"]["test"][0]).parent.samefile(self._data_dir)
+
+    def test_PackagedDatasetModuleFactory_with_data_dir_and_metadata(self):
+        factory = PackagedDatasetModuleFactory(
+            "imagefolder", data_dir=self._data_dir_with_metadata, download_config=self.download_config
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+        assert (
+            module_factory_result.builder_kwargs["data_files"] is not None
+            and len(module_factory_result.builder_kwargs["data_files"]["train"]) > 0
+            and len(module_factory_result.builder_kwargs["data_files"]["test"]) > 0
+        )
+        assert Path(module_factory_result.builder_kwargs["data_files"]["train"][0]).parent.samefile(
+            self._data_dir_with_metadata
+        )
+        assert Path(module_factory_result.builder_kwargs["data_files"]["test"][0]).parent.samefile(
+            self._data_dir_with_metadata
+        )
+        assert any(
+            data_file.name == "metadata.jsonl"
+            for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
+        )
+        assert any(
+            data_file.name == "metadata.jsonl"
+            for data_file in module_factory_result.builder_kwargs["data_files"]["test"]
+        )
+
+    @pytest.mark.integration
+    def test_HubDatasetModuleFactoryWithoutScript(self):
+        factory = HubDatasetModuleFactoryWithoutScript(
             SAMPLE_DATASET_IDENTIFIER2, download_config=self.download_config
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
+        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
 
-    def test_CommunityDatasetModuleFactoryWithScript(self):
-        factory = CommunityDatasetModuleFactoryWithScript(
+    @pytest.mark.integration
+    def test_HubDatasetModuleFactoryWithoutScript_with_data_dir(self):
+        data_dir = "data2"
+        factory = HubDatasetModuleFactoryWithoutScript(
+            SAMPLE_DATASET_IDENTIFIER3, data_dir=data_dir, download_config=self.download_config
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
+        assert (
+            module_factory_result.builder_kwargs["data_files"] is not None
+            and len(module_factory_result.builder_kwargs["data_files"]["train"]) == 1
+            and len(module_factory_result.builder_kwargs["data_files"]["test"]) == 1
+        )
+        assert all(
+            data_dir in Path(data_file).parts
+            for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
+            + module_factory_result.builder_kwargs["data_files"]["test"]
+        )
+
+    @pytest.mark.integration
+    def test_HubDatasetModuleFactoryWithoutScript_with_metadata(self):
+        factory = HubDatasetModuleFactoryWithoutScript(
+            SAMPLE_DATASET_IDENTIFIER4, download_config=self.download_config
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
+        assert (
+            module_factory_result.builder_kwargs["data_files"] is not None
+            and len(module_factory_result.builder_kwargs["data_files"]["train"]) > 0
+            and len(module_factory_result.builder_kwargs["data_files"]["test"]) > 0
+        )
+        assert any(
+            Path(data_file).name == "metadata.jsonl"
+            for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
+        )
+        assert any(
+            Path(data_file).name == "metadata.jsonl"
+            for data_file in module_factory_result.builder_kwargs["data_files"]["test"]
+        )
+
+    @pytest.mark.integration
+    def test_HubDatasetModuleFactoryWithScript(self):
+        factory = HubDatasetModuleFactoryWithScript(
             SAMPLE_DATASET_IDENTIFIER,
             download_config=self.download_config,
             dynamic_modules_path=self.dynamic_modules_path,
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
+        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
 
     def test_CachedDatasetModuleFactory(self):
         path = os.path.join(self._dataset_loading_script_dir, f"{DATASET_LOADING_SCRIPT_NAME}.py")
@@ -272,6 +472,27 @@ class ModuleFactoryTest(TestCase):
                 assert importlib.import_module(module_factory_result.module_path) is not None
 
 
+@pytest.mark.parametrize(
+    "factory_class",
+    [
+        CachedDatasetModuleFactory,
+        CachedMetricModuleFactory,
+        GithubMetricModuleFactory,
+        HubDatasetModuleFactoryWithoutScript,
+        HubDatasetModuleFactoryWithScript,
+        LocalDatasetModuleFactoryWithoutScript,
+        LocalDatasetModuleFactoryWithScript,
+        LocalMetricModuleFactory,
+        PackagedDatasetModuleFactory,
+    ],
+)
+def test_module_factories(factory_class):
+    name = "dummy_name"
+    factory = factory_class(name)
+    assert factory.name == name
+
+
+@pytest.mark.integration
 class LoadTest(TestCase):
     @pytest.fixture(autouse=True)
     def inject_fixtures(self, caplog):
@@ -349,18 +570,21 @@ class LoadTest(TestCase):
                 self.assertNotEqual(dataset_module_1.module_path, dataset_module_3.module_path)
                 self.assertIn("Using the latest cached version of the module", self._caplog.text)
 
-    def test_load_dataset_canonical(self):
-        scripts_version = os.getenv("HF_SCRIPTS_VERSION", SCRIPTS_VERSION)
+    def test_load_dataset_from_hub(self):
         with self.assertRaises(FileNotFoundError) as context:
             datasets.load_dataset("_dummy")
         self.assertIn(
-            "https://raw.githubusercontent.com/huggingface/datasets/master/datasets/_dummy/_dummy.py",
+            "Dataset '_dummy' doesn't exist on the Hub",
             str(context.exception),
         )
         with self.assertRaises(FileNotFoundError) as context:
             datasets.load_dataset("_dummy", revision="0.0.0")
         self.assertIn(
-            "https://raw.githubusercontent.com/huggingface/datasets/0.0.0/datasets/_dummy/_dummy.py",
+            "Dataset '_dummy' doesn't exist on the Hub",
+            str(context.exception),
+        )
+        self.assertIn(
+            "at revision '0.0.0'",
             str(context.exception),
         )
         for offline_simulation_mode in list(OfflineSimulationMode):
@@ -369,7 +593,7 @@ class LoadTest(TestCase):
                     datasets.load_dataset("_dummy")
                 if offline_simulation_mode != OfflineSimulationMode.HF_DATASETS_OFFLINE_SET_TO_1:
                     self.assertIn(
-                        f"https://raw.githubusercontent.com/huggingface/datasets/{scripts_version}/datasets/_dummy/_dummy.py",
+                        "Couldn't reach '_dummy' on the Hub",
                         str(context.exception),
                     )
 
@@ -436,6 +660,7 @@ def test_load_dataset_builder_for_relative_data_dir(complex_data_dir):
         assert len(builder.config.data_files["test"]) > 0
 
 
+@pytest.mark.integration
 def test_load_dataset_builder_for_community_dataset_with_script():
     builder = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER)
     assert isinstance(builder, DatasetBuilder)
@@ -444,14 +669,15 @@ def test_load_dataset_builder_for_community_dataset_with_script():
     assert builder.info.features == Features({"text": Value("string")})
     namespace = SAMPLE_DATASET_IDENTIFIER[: SAMPLE_DATASET_IDENTIFIER.index("/")]
     assert builder._relative_data_dir().startswith(namespace)
-    assert SAMPLE_DATASET_IDENTIFIER.replace("/", "___") in builder.__module__
+    assert SAMPLE_DATASET_IDENTIFIER.replace("/", "--") in builder.__module__
 
 
+@pytest.mark.integration
 def test_load_dataset_builder_for_community_dataset_without_script():
     builder = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER2)
     assert isinstance(builder, DatasetBuilder)
     assert builder.name == "text"
-    assert builder.config.name == SAMPLE_DATASET_IDENTIFIER2.replace("/", "___")
+    assert builder.config.name == SAMPLE_DATASET_IDENTIFIER2.replace("/", "--")
     assert isinstance(builder.config.data_files, DataFilesDict)
     assert len(builder.config.data_files["train"]) > 0
     assert len(builder.config.data_files["test"]) > 0
@@ -479,11 +705,7 @@ def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory
             assert "Using the latest cached version of the module" in caplog.text
     with pytest.raises(FileNotFoundError) as exc_info:
         datasets.load_dataset(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST)
-    m_combined_path = re.search(
-        fr"http\S*{re.escape(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST + '/' + SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST + '.py')}\b",
-        str(exc_info.value),
-    )
-    assert m_combined_path is not None and is_remote_url(m_combined_path.group())
+    assert f"Dataset '{SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST}' doesn't exist on the Hub" in str(exc_info.value)
     assert os.path.abspath(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST) in str(exc_info.value)
 
 
@@ -503,6 +725,7 @@ def test_load_dataset_streaming_gz_json(jsonl_gz_path):
     assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
 
 
+@pytest.mark.integration
 @pytest.mark.parametrize(
     "path", ["sample.jsonl", "sample.jsonl.gz", "sample.tar", "sample.jsonl.xz", "sample.zip", "sample.jsonl.zst"]
 )
@@ -535,14 +758,87 @@ def test_load_dataset_streaming_csv(path_extension, streaming, csv_path, bz2_csv
     assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
 
 
-def test_load_dataset_zip_csv(zip_csv_path):
-    data_files = str(zip_csv_path)
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("data_file", ["zip_csv_path", "zip_csv_with_dir_path", "csv_path"])
+def test_load_dataset_zip_csv(data_file, streaming, zip_csv_path, zip_csv_with_dir_path, csv_path):
+    data_file_paths = {
+        "zip_csv_path": zip_csv_path,
+        "zip_csv_with_dir_path": zip_csv_with_dir_path,
+        "csv_path": csv_path,
+    }
+    data_files = str(data_file_paths[data_file])
+    expected_size = 8 if data_file.startswith("zip") else 4
     features = Features({"col_1": Value("string"), "col_2": Value("int32"), "col_3": Value("float32")})
-    ds = load_dataset("csv", split="train", data_files=data_files, features=features)
-    ds_item = next(iter(ds))
-    assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
+    ds = load_dataset("csv", split="train", data_files=data_files, features=features, streaming=streaming)
+    if streaming:
+        ds_item_counter = 0
+        for ds_item in ds:
+            if ds_item_counter == 0:
+                assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
+            ds_item_counter += 1
+        assert ds_item_counter == expected_size
+    else:
+        assert ds.shape[0] == expected_size
+        ds_item = next(iter(ds))
+        assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
 
 
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("data_file", ["zip_jsonl_path", "zip_jsonl_with_dir_path", "jsonl_path"])
+def test_load_dataset_zip_jsonl(data_file, streaming, zip_jsonl_path, zip_jsonl_with_dir_path, jsonl_path):
+    data_file_paths = {
+        "zip_jsonl_path": zip_jsonl_path,
+        "zip_jsonl_with_dir_path": zip_jsonl_with_dir_path,
+        "jsonl_path": jsonl_path,
+    }
+    data_files = str(data_file_paths[data_file])
+    expected_size = 8 if data_file.startswith("zip") else 4
+    features = Features({"col_1": Value("string"), "col_2": Value("int32"), "col_3": Value("float32")})
+    ds = load_dataset("json", split="train", data_files=data_files, features=features, streaming=streaming)
+    if streaming:
+        ds_item_counter = 0
+        for ds_item in ds:
+            if ds_item_counter == 0:
+                assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
+            ds_item_counter += 1
+        assert ds_item_counter == expected_size
+    else:
+        assert ds.shape[0] == expected_size
+        ds_item = next(iter(ds))
+        assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("data_file", ["zip_text_path", "zip_text_with_dir_path", "text_path"])
+def test_load_dataset_zip_text(data_file, streaming, zip_text_path, zip_text_with_dir_path, text_path):
+    data_file_paths = {
+        "zip_text_path": zip_text_path,
+        "zip_text_with_dir_path": zip_text_with_dir_path,
+        "text_path": text_path,
+    }
+    data_files = str(data_file_paths[data_file])
+    expected_size = 8 if data_file.startswith("zip") else 4
+    ds = load_dataset("text", split="train", data_files=data_files, streaming=streaming)
+    if streaming:
+        ds_item_counter = 0
+        for ds_item in ds:
+            if ds_item_counter == 0:
+                assert ds_item == {"text": "0"}
+            ds_item_counter += 1
+        assert ds_item_counter == expected_size
+    else:
+        assert ds.shape[0] == expected_size
+        ds_item = next(iter(ds))
+        assert ds_item == {"text": "0"}
+
+
+def test_load_dataset_text_with_unicode_new_lines(text_path_with_unicode_new_lines):
+    data_files = str(text_path_with_unicode_new_lines)
+    ds = load_dataset("text", split="train", data_files=data_files)
+    assert ds.num_rows == 3
+
+
+@pytest.mark.integration
 def test_loading_from_the_datasets_hub():
     with tempfile.TemporaryDirectory() as tmp_dir:
         dataset = load_dataset(SAMPLE_DATASET_IDENTIFIER, cache_dir=tmp_dir)
@@ -551,6 +847,7 @@ def test_loading_from_the_datasets_hub():
         del dataset
 
 
+@pytest.mark.integration
 def test_loading_from_the_datasets_hub_with_use_auth_token():
     from requests import get
 
@@ -567,24 +864,32 @@ def test_loading_from_the_datasets_hub_with_use_auth_token():
         mock_head.assert_called()
 
 
-@pytest.mark.skipif(
-    os.name == "nt", reason="skip on windows because of SSL issues with moon-staging.huggingface.co:443"
-)
+@pytest.mark.integration
 def test_load_streaming_private_dataset(hf_token, hf_private_dataset_repo_txt_data):
-    with pytest.raises(FileNotFoundError):
-        load_dataset(hf_private_dataset_repo_txt_data, streaming=True)
-    ds = load_dataset(hf_private_dataset_repo_txt_data, streaming=True, use_auth_token=hf_token)
+    ds = load_dataset(hf_private_dataset_repo_txt_data, streaming=True)
     assert next(iter(ds)) is not None
 
 
-@pytest.mark.skipif(
-    os.name == "nt", reason="skip on windows because of SSL issues with moon-staging.huggingface.co:443"
-)
+@pytest.mark.integration
 def test_load_streaming_private_dataset_with_zipped_data(hf_token, hf_private_dataset_repo_zipped_txt_data):
-    with pytest.raises(FileNotFoundError):
-        load_dataset(hf_private_dataset_repo_zipped_txt_data, streaming=True)
-    ds = load_dataset(hf_private_dataset_repo_zipped_txt_data, streaming=True, use_auth_token=hf_token)
+    ds = load_dataset(hf_private_dataset_repo_zipped_txt_data, streaming=True)
     assert next(iter(ds)) is not None
+
+
+@require_pil
+@pytest.mark.integration
+@pytest.mark.parametrize("implicit_token", [False, True])
+@pytest.mark.parametrize("streaming", [False, True])
+def test_load_dataset_private_zipped_images(
+    hf_private_dataset_repo_zipped_img_data, hf_token, streaming, implicit_token
+):
+    use_auth_token = None if implicit_token else hf_token
+    ds = load_dataset(
+        hf_private_dataset_repo_zipped_img_data, split="train", streaming=streaming, use_auth_token=use_auth_token
+    )
+    assert isinstance(ds, IterableDataset if streaming else Dataset)
+    ds_items = list(ds)
+    assert len(ds_items) == 2
 
 
 def test_load_dataset_then_move_then_reload(dataset_loading_script_dir, data_dir, tmp_path, caplog):
@@ -596,7 +901,7 @@ def test_load_dataset_then_move_then_reload(dataset_loading_script_dir, data_dir
     os.rename(cache_dir1, cache_dir2)
     caplog.clear()
     dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, split="train", cache_dir=cache_dir2)
-    assert "Reusing dataset" in caplog.text
+    assert "Found cached dataset" in caplog.text
     assert dataset._fingerprint == fingerprint1, "for the caching mechanism to work, fingerprint should stay the same"
     dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, split="test", cache_dir=cache_dir2)
     assert dataset._fingerprint != fingerprint1
@@ -654,6 +959,7 @@ def test_load_from_disk_with_default_in_memory(
         _ = load_from_disk(dataset_path)
 
 
+@pytest.mark.integration
 def test_remote_data_files():
     repo_id = "albertvillanova/tests-raw-jsonl"
     filename = "wikiann-bn-validation.jsonl"
@@ -676,4 +982,23 @@ def test_load_dataset_deletes_extracted_files(deleted, jsonl_gz_path, tmp_path):
     else:  # default
         ds = load_dataset("json", split="train", data_files=data_files, cache_dir=cache_dir)
     assert ds[0] == {"col_1": "0", "col_2": 0, "col_3": 0.0}
-    assert (sorted((cache_dir / "downloads" / "extracted").iterdir()) == []) is deleted
+    assert (
+        [path for path in (cache_dir / "downloads" / "extracted").iterdir() if path.suffix != ".lock"] == []
+    ) is deleted
+
+
+def distributed_load_dataset(args):
+    data_name, tmp_dir, datafiles = args
+    dataset = load_dataset(data_name, cache_dir=tmp_dir, data_files=datafiles)
+    return dataset
+
+
+def test_load_dataset_distributed(tmp_path, csv_path):
+    num_workers = 5
+    args = "csv", str(tmp_path), csv_path
+    with Pool(processes=num_workers) as pool:  # start num_workers processes
+        datasets = pool.map(distributed_load_dataset, [args] * num_workers)
+        assert len(datasets) == num_workers
+        assert all(len(dataset) == len(datasets[0]) > 0 for dataset in datasets)
+        assert len(datasets[0].cache_files) > 0
+        assert all(dataset.cache_files == datasets[0].cache_files for dataset in datasets)

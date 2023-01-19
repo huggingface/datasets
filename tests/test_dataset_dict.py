@@ -12,14 +12,7 @@ from datasets.dataset_dict import DatasetDict
 from datasets.features import ClassLabel, Features, Sequence, Value
 from datasets.splits import NamedSplit
 
-from .conftest import s3_test_bucket_name
-from .utils import (
-    assert_arrow_memory_doesnt_increase,
-    assert_arrow_memory_increases,
-    require_s3,
-    require_tf,
-    require_torch,
-)
+from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, require_tf, require_torch
 
 
 class DatasetDictTest(TestCase):
@@ -41,20 +34,6 @@ class DatasetDictTest(TestCase):
             }
         )
 
-    def test_flatten_in_place(self):
-        dset_split = Dataset.from_dict(
-            {"a": [{"b": {"c": ["text"]}}] * 10, "foo": [1] * 10},
-            features=Features({"a": {"b": Sequence({"c": Value("string")})}, "foo": Value("int64")}),
-        )
-        dset = DatasetDict({"train": dset_split, "test": dset_split})
-        dset.flatten_()
-        self.assertDictEqual(dset.column_names, {"train": ["a.b.c", "foo"], "test": ["a.b.c", "foo"]})
-        self.assertListEqual(list(dset["train"].features.keys()), ["a.b.c", "foo"])
-        self.assertDictEqual(
-            dset["train"].features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
-        )
-        del dset
-
     def test_flatten(self):
         dset_split = Dataset.from_dict(
             {"a": [{"b": {"c": ["text"]}}] * 10, "foo": [1] * 10},
@@ -63,7 +42,7 @@ class DatasetDictTest(TestCase):
         dset = DatasetDict({"train": dset_split, "test": dset_split})
         dset = dset.flatten()
         self.assertDictEqual(dset.column_names, {"train": ["a.b.c", "foo"], "test": ["a.b.c", "foo"]})
-        self.assertListEqual(list(dset["train"].features.keys()), ["a.b.c", "foo"])
+        self.assertListEqual(sorted(dset["train"].features.keys()), ["a.b.c", "foo"])
         self.assertDictEqual(
             dset["train"].features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
         )
@@ -121,10 +100,14 @@ class DatasetDictTest(TestCase):
             self.assertIsInstance(dset_split[0]["col_2"], str)
             self.assertEqual(dset_split[0]["col_2"], "a")
 
-        dset.set_format(type="torch", columns=["col_1", "col_2"])
+        dset.set_format(type="torch")
         for dset_split in dset.values():
-            with self.assertRaises(TypeError):
-                dset_split[0]
+            self.assertEqual(len(dset_split[0]), 2)
+            self.assertIsInstance(dset_split[0]["col_1"], torch.Tensor)
+            self.assertListEqual(list(dset_split[0]["col_1"].shape), [])
+            self.assertEqual(dset_split[0]["col_1"].item(), 3)
+            self.assertIsInstance(dset_split[0]["col_2"], str)
+            self.assertEqual(dset_split[0]["col_2"], "a")
         del dset
 
     @require_tf
@@ -209,17 +192,6 @@ class DatasetDictTest(TestCase):
             self.assertDictEqual(dset_split.format, dset_split2.format)
         del dset, dset2
 
-    def test_cast_in_place(self):
-        dset = self._create_dummy_dataset_dict(multiple_columns=True)
-        features = dset["train"].features
-        features["col_1"] = Value("float64")
-        dset.cast_(features)
-        for dset_split in dset.values():
-            self.assertEqual(dset_split.num_columns, 2)
-            self.assertEqual(dset_split.features["col_1"], Value("float64"))
-            self.assertIsInstance(dset_split[0]["col_1"], float)
-        del dset
-
     def test_cast(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
         features = dset["train"].features
@@ -229,19 +201,6 @@ class DatasetDictTest(TestCase):
             self.assertEqual(dset_split.num_columns, 2)
             self.assertEqual(dset_split.features["col_1"], Value("float64"))
             self.assertIsInstance(dset_split[0]["col_1"], float)
-        del dset
-
-    def test_remove_columns_in_place(self):
-        dset = self._create_dummy_dataset_dict(multiple_columns=True)
-        dset.remove_columns_(column_names="col_1")
-        for dset_split in dset.values():
-            self.assertEqual(dset_split.num_columns, 1)
-            self.assertListEqual(list(dset_split.column_names), ["col_2"])
-
-        dset = self._create_dummy_dataset_dict(multiple_columns=True)
-        dset.remove_columns_(column_names=["col_1", "col_2"])
-        for dset_split in dset.values():
-            self.assertEqual(dset_split.num_columns, 0)
         del dset
 
     def test_remove_columns(self):
@@ -255,14 +214,15 @@ class DatasetDictTest(TestCase):
         dset = dset.remove_columns(column_names=["col_1", "col_2"])
         for dset_split in dset.values():
             self.assertEqual(dset_split.num_columns, 0)
-        del dset
 
-    def test_rename_column_in_place(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
-        dset.rename_column_(original_column_name="col_1", new_column_name="new_name")
         for dset_split in dset.values():
-            self.assertEqual(dset_split.num_columns, 2)
-            self.assertListEqual(list(dset_split.column_names), ["new_name", "col_2"])
+            dset_split._format_columns = ["col_1", "col_2"]
+        dset = dset.remove_columns(column_names=["col_1"])
+        for dset_split in dset.values():
+            self.assertListEqual(dset_split._format_columns, ["col_2"])
+            self.assertEqual(dset_split.num_columns, 1)
+            self.assertListEqual(list(dset_split.column_names), ["col_2"])
         del dset
 
     def test_rename_column(self):
@@ -309,7 +269,13 @@ class DatasetDictTest(TestCase):
             )
             self.assertListEqual(list(dsets.keys()), list(filtered_dsets_2.keys()))
             self.assertEqual(len(filtered_dsets_2["train"]), 5)
-            del dsets, filtered_dsets_1, filtered_dsets_2
+
+            filtered_dsets_3: DatasetDict = dsets.filter(
+                lambda examples: [int(ex.split("_")[-1]) < 10 for ex in examples["filename"]], batched=True
+            )
+            self.assertListEqual(list(dsets.keys()), list(filtered_dsets_3.keys()))
+            self.assertEqual(len(filtered_dsets_3["train"]), 10)
+            del dsets, filtered_dsets_1, filtered_dsets_2, filtered_dsets_3
 
     def test_sort(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -422,6 +388,30 @@ class DatasetDictTest(TestCase):
             self.assertListEqual(reloaded_dsets["train"].column_names, ["filename"])
             del dsets, reloaded_dsets
 
+            dsets = self._create_dummy_dataset_dict()
+            dsets.save_to_disk(tmp_dir, num_shards={"train": 3, "test": 2})
+            reloaded_dsets = DatasetDict.load_from_disk(tmp_dir)
+            self.assertListEqual(sorted(reloaded_dsets), ["test", "train"])
+            self.assertEqual(len(reloaded_dsets["train"]), 30)
+            self.assertListEqual(reloaded_dsets["train"].column_names, ["filename"])
+            self.assertEqual(len(reloaded_dsets["train"].cache_files), 3)
+            self.assertEqual(len(reloaded_dsets["test"]), 30)
+            self.assertListEqual(reloaded_dsets["test"].column_names, ["filename"])
+            self.assertEqual(len(reloaded_dsets["test"].cache_files), 2)
+            del reloaded_dsets
+
+            dsets = self._create_dummy_dataset_dict()
+            dsets.save_to_disk(tmp_dir, num_proc=2)
+            reloaded_dsets = DatasetDict.load_from_disk(tmp_dir)
+            self.assertListEqual(sorted(reloaded_dsets), ["test", "train"])
+            self.assertEqual(len(reloaded_dsets["train"]), 30)
+            self.assertListEqual(reloaded_dsets["train"].column_names, ["filename"])
+            self.assertEqual(len(reloaded_dsets["train"].cache_files), 2)
+            self.assertEqual(len(reloaded_dsets["test"]), 30)
+            self.assertListEqual(reloaded_dsets["test"].column_names, ["filename"])
+            self.assertEqual(len(reloaded_dsets["test"].cache_files), 2)
+            del reloaded_dsets
+
     def test_load_from_disk(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dsets = self._create_dummy_dataset_dict()
@@ -473,6 +463,24 @@ class DatasetDictTest(TestCase):
         ]
         self.assertListEqual(train_expected_label_names, train_aligned_label_names)
         self.assertListEqual(test_expected_label_names, test_aligned_label_names)
+
+
+def test_dummy_datasetdict_serialize_fs(mockfs):
+    dataset_dict = DatasetDict(
+        {
+            "train": Dataset.from_dict({"a": range(30)}),
+            "test": Dataset.from_dict({"a": range(10)}),
+        }
+    )
+    dataset_path = "mock://my_dataset"
+    dataset_dict.save_to_disk(dataset_path, storage_options=mockfs.storage_options)
+    assert mockfs.isdir(dataset_path)
+    assert mockfs.glob(dataset_path + "/*")
+    reloaded = dataset_dict.load_from_disk(dataset_path, storage_options=mockfs.storage_options)
+    assert list(reloaded) == list(dataset_dict)
+    for k in dataset_dict:
+        assert reloaded[k].features == dataset_dict[k].features
+        assert reloaded[k].to_dict() == dataset_dict[k].to_dict()
 
 
 def _check_csv_datasetdict(dataset_dict, expected_features, splits=("train",)):
@@ -693,19 +701,3 @@ def test_datasetdict_from_text_split(split, text_path, tmp_path):
     dataset = DatasetDict.from_text(path, cache_dir=cache_dir)
     _check_text_datasetdict(dataset, expected_features, splits=list(path.keys()))
     assert all(dataset[split].split == split for split in path.keys())
-
-
-@require_s3
-def test_dummy_dataset_serialize_s3(s3, dataset):
-    dsets = DatasetDict({"train": dataset, "test": dataset.select(range(2))})
-    mock_bucket = s3_test_bucket_name
-    dataset_path = f"s3://{mock_bucket}/datasets/dict"
-    column_names = dsets["train"].column_names
-    lengths = [len(dset) for dset in dsets.values()]
-    dataset.save_to_disk(dataset_path, s3)
-    dataset = dataset.load_from_disk(dataset_path, s3)
-
-    assert sorted(dsets) == ["test", "train"]
-    assert [len(dset) for dset in dsets.values()] == lengths
-    assert dsets["train"].column_names == column_names
-    assert dsets["test"].column_names == column_names

@@ -1,0 +1,95 @@
+# Load image data
+
+Image datasets are loaded from the `image` column, which contains a PIL object. 
+
+<Tip>
+
+To work with image datasets, you need to have the `vision` dependency installed. Check out the [installation](./installation#vision) guide to learn how to install it.
+
+</Tip>
+
+When you load an image dataset and call the `image` column, the [`Image`] feature automatically decodes the PIL object into an image:
+
+```py
+>>> from datasets import load_dataset, Image
+
+>>> dataset = load_dataset("beans", split="train")
+>>> dataset[0]["image"]
+```
+
+<Tip warning={true}>
+
+Index into an image dataset using the row index first and then the `image` column - `dataset[0]["image"]` - to avoid decoding and resampling all the image objects in the dataset. Otherwise, this can be a slow and time-consuming process if you have a large dataset.
+
+</Tip>
+
+For a guide on how to load any type of dataset, take a look at the <a class="underline decoration-sky-400 decoration-2 font-semibold" href="./loading">general loading guide</a>.
+
+## Local files
+
+You can load a dataset from the image path. Use the [`~Dataset.cast_column`] function to accept a column of image file paths, and decode it into a PIL image with the [`Image`] feature:
+```py
+>>> from datasets import load_dataset, Image
+
+>>> dataset = Dataset.from_dict({"image": ["path/to/image_1", "path/to/image_2", ..., "path/to/image_n"]}).cast_column("image", Image())
+>>> dataset[0]["image"]
+<PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1200x215 at 0x15E6D7160>]
+```
+
+If you only want to load the underlying path to the image dataset without decoding the image object, set `decode=False` in the [`Image`] feature:
+
+```py
+>>> dataset = load_dataset("beans", split="train").cast_column("image", Image(decode=False))
+>>> dataset[0]["image"]
+{'bytes': None,
+ 'path': '/root/.cache/huggingface/datasets/downloads/extracted/b0a21163f78769a2cf11f58dfc767fb458fc7cea5c05dccc0144a2c0f0bc1292/train/bean_rust/bean_rust_train.29.jpg'}
+```
+
+## ImageFolder
+
+You can also load a dataset with an `ImageFolder` dataset builder which does not require writing a custom dataloader. This makes `ImageFolder` ideal for quickly creating and loading image datasets with several thousand images for different vision tasks. Your image dataset structure should look like this:
+
+```
+folder/train/dog/golden_retriever.png
+folder/train/dog/german_shepherd.png
+folder/train/dog/chihuahua.png
+
+folder/train/cat/maine_coon.png
+folder/train/cat/bengal.png
+folder/train/cat/birman.png
+```
+
+Load your dataset by specifying `imagefolder` and the directory of your dataset in `data_dir`:
+
+```py
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("imagefolder", data_dir="/path/to/folder")
+>>> dataset["train"][0]
+{"image": <PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1200x215 at 0x15E6D7160>, "label": 0}
+
+>>> dataset["train"][-1]
+{"image": <PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1200x215 at 0x15E8DAD30>, "label": 1}
+```
+
+Load remote datasets from their URLs with the `data_files` parameter:
+
+```py
+>>> dataset = load_dataset("imagefolder", data_files="https://download.microsoft.com/download/3/E/1/3E1C3F21-ECDB-4869-8368-6DEBA77B919F/kagglecatsanddogs_3367a.zip", split="train")
+```
+
+Some datasets have a metadata file (`metadata.csv`/`metadata.jsonl`) associated with it, containing other information about the data like bounding boxes, text captions, and labels. The metadata is automatically loaded when you call [`load_dataset`] and specify `imagefolder`. 
+
+To ignore the information in the metadata file, set `drop_labels=False` in [`load_dataset`], and allow `ImageFolder` to automatically infer the label name from the directory name:
+
+```py
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("imagefolder", data_dir="/path/to/folder", drop_labels=False)
+```
+
+<Tip>
+
+For more information about creating your own `ImageFolder` dataset, take a look at the [Create an image dataset](./image_dataset) guide.
+
+</Tip>

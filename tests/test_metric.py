@@ -526,3 +526,56 @@ def test_safety_checks_process_vars():
 
     with pytest.raises(ValueError):
         _ = DummyMetric(num_process=2, process_id=3)
+
+
+class AccuracyWithNonStandardFeatureNames(Metric):
+    def _info(self):
+        return MetricInfo(
+            description="dummy metric for tests",
+            citation="insert citation here",
+            features=Features({"inputs": Value("int64"), "targets": Value("int64")}),
+        )
+
+    def _compute(self, inputs, targets):
+        return (
+            {
+                "accuracy": sum(i == j for i, j in zip(inputs, targets)) / len(targets),
+            }
+            if targets
+            else {}
+        )
+
+    @classmethod
+    def inputs_and_targets(cls):
+        return ([1, 2, 3, 4], [1, 2, 4, 3])
+
+    @classmethod
+    def expected_results(cls):
+        return {"accuracy": 0.5}
+
+
+def test_metric_with_non_standard_feature_names_add(tmp_path):
+    cache_dir = tmp_path / "cache"
+    inputs, targets = AccuracyWithNonStandardFeatureNames.inputs_and_targets()
+    metric = AccuracyWithNonStandardFeatureNames(cache_dir=cache_dir)
+    for input, target in zip(inputs, targets):
+        metric.add(inputs=input, targets=target)
+    results = metric.compute()
+    assert results == AccuracyWithNonStandardFeatureNames.expected_results()
+
+
+def test_metric_with_non_standard_feature_names_add_batch(tmp_path):
+    cache_dir = tmp_path / "cache"
+    inputs, targets = AccuracyWithNonStandardFeatureNames.inputs_and_targets()
+    metric = AccuracyWithNonStandardFeatureNames(cache_dir=cache_dir)
+    metric.add_batch(inputs=inputs, targets=targets)
+    results = metric.compute()
+    assert results == AccuracyWithNonStandardFeatureNames.expected_results()
+
+
+def test_metric_with_non_standard_feature_names_compute(tmp_path):
+    cache_dir = tmp_path / "cache"
+    inputs, targets = AccuracyWithNonStandardFeatureNames.inputs_and_targets()
+    metric = AccuracyWithNonStandardFeatureNames(cache_dir=cache_dir)
+    results = metric.compute(inputs=inputs, targets=targets)
+    assert results == AccuracyWithNonStandardFeatureNames.expected_results()

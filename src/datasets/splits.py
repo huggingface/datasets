@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,13 +18,15 @@
 
 import abc
 import collections
+import copy
+import dataclasses
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict, List, Optional, Union
 
 from .arrow_reader import FileInstructions, make_file_instructions
 from .naming import _split_re
-from .utils.py_utils import NonMutableDict
+from .utils.py_utils import NonMutableDict, asdict
 
 
 @dataclass
@@ -33,7 +34,15 @@ class SplitInfo:
     name: str = ""
     num_bytes: int = 0
     num_examples: int = 0
-    dataset_name: Optional[str] = None
+    shard_lengths: Optional[List[int]] = None
+
+    # Deprecated
+    # For backward compatibility, this field needs to always be included in files like
+    # dataset_infos.json and dataset_info.json files
+    # To do so, we always include it in the output of datasets.utils.py_utils.asdict(split_info)
+    dataset_name: Optional[str] = dataclasses.field(
+        default=None, metadata={"include_in_asdict_even_if_is_default": True}
+    )
 
     @property
     def file_instructions(self):
@@ -75,7 +84,7 @@ class SplitBase(metaclass=abc.ABCMeta):
     """Abstract base class for Split compositionality.
 
     See the
-    [guide on splits](https://github.com/huggingface/datasets/blob/master/docs/source/splits.rst)
+    [guide on splits](./loading#slice-splits)
     for more information.
 
     There are three parts to the composition:
@@ -138,7 +147,7 @@ class SplitBase(metaclass=abc.ABCMeta):
         dataset with `datasets.percent`), and `weighted` (get subsplits with proportions
         specified by `weighted`).
 
-        Examples:
+        Example::
 
         ```
         # 50% train, 50% test
@@ -253,7 +262,7 @@ class PercentSlice(metaclass=PercentSliceMeta):
     """Syntactic sugar for defining slice subsplits: `datasets.percent[75:-5]`.
 
     See the
-    [guide on splits](https://github.com/huggingface/datasets/blob/master/docs/source/splits.rst)
+    [guide on splits](./loading#slice-splits)
     for more information.
     """
     # pylint: enable=line-too-long
@@ -304,39 +313,44 @@ class _SubSplit(SplitBase):
 class NamedSplit(SplitBase):
     """Descriptor corresponding to a named split (train, test, ...).
 
-    Examples:
-        Each descriptor can be composed with other using addition or slice. Ex::
+    Example:
+        Each descriptor can be composed with other using addition or slice:
 
+            ```py
             split = datasets.Split.TRAIN.subsplit(datasets.percent[0:25]) + datasets.Split.TEST
+            ```
 
         The resulting split will correspond to 25% of the train split merged with
         100% of the test split.
 
-    Warning:
-        A split cannot be added twice, so the following will fail::
+        A split cannot be added twice, so the following will fail:
 
+            ```py
             split = (
                     datasets.Split.TRAIN.subsplit(datasets.percent[:25]) +
                     datasets.Split.TRAIN.subsplit(datasets.percent[75:])
             )  # Error
             split = datasets.Split.TEST + datasets.Split.ALL  # Error
+            ```
 
-    Warning:
-        The slices can be applied only one time. So the following are valid::
+        The slices can be applied only one time. So the following are valid:
 
+            ```py
             split = (
                     datasets.Split.TRAIN.subsplit(datasets.percent[:25]) +
                     datasets.Split.TEST.subsplit(datasets.percent[:50])
             )
             split = (datasets.Split.TRAIN + datasets.Split.TEST).subsplit(datasets.percent[:50])
+            ```
 
+        But this is not valid:
 
-        But not::
-
+            ```py
             train = datasets.Split.TRAIN
             test = datasets.Split.TEST
             split = train.subsplit(datasets.percent[:25]).subsplit(datasets.percent[:25])
             split = (train.subsplit(datasets.percent[:25]) + test).subsplit(datasets.percent[:50])
+            ```
     """
 
     def __init__(self, name):
@@ -363,6 +377,9 @@ class NamedSplit(SplitBase):
         else:
             raise ValueError(f"Equality not supported between split {self} and {other}")
 
+    def __lt__(self, other):
+        return self._name < other._name  # pylint: disable=protected-access
+
     def __hash__(self):
         return hash(self._name)
 
@@ -374,7 +391,7 @@ class NamedSplitAll(NamedSplit):
     """Split corresponding to the union of all defined dataset splits."""
 
     def __init__(self):
-        super(NamedSplitAll, self).__init__("all")
+        super().__init__("all")
 
     def __repr__(self):
         return "NamedSplitAll()"
@@ -400,9 +417,26 @@ class Split:
       you do not want to use this during model iteration as you may overfit to it.
     - `ALL`: the union of all defined dataset splits.
 
-    Note: All splits, including compositions inherit from `datasets.SplitBase`
+    All splits, including compositions inherit from `datasets.SplitBase`.
 
-    See the :doc:`guide on splits </loading>` for more information.
+    See the [guide](./load_hub#splits) on splits for more information.
+
+    Example:
+
+    ```py
+    >>> datasets.SplitGenerator(
+    ...     name=datasets.Split.TRAIN,
+    ...     gen_kwargs={"split_key": "train", "files": dl_manager.download_and extract(url)},
+    ... ),
+    ... datasets.SplitGenerator(
+    ...     name=datasets.Split.VALIDATION,
+    ...     gen_kwargs={"split_key": "validation", "files": dl_manager.download_and extract(url)},
+    ... ),
+    ... datasets.SplitGenerator(
+    ...     name=datasets.Split.TEST,
+    ...     gen_kwargs={"split_key": "test", "files": dl_manager.download_and extract(url)},
+    ... )
+    ```
     """
     # pylint: enable=line-too-long
     TRAIN = NamedSplit("train")
@@ -477,20 +511,20 @@ class SplitReadInstruction:
         return split_instruction
 
     def get_list_sliced_split_info(self):
-        return list(sorted(self._splits.values(), key=lambda x: x.split_info.name))
+        return list(self._splits.values())
 
 
 class SplitDict(dict):
     """Split info object."""
 
     def __init__(self, *args, dataset_name=None, **kwargs):
-        super(SplitDict, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.dataset_name = dataset_name
 
     def __getitem__(self, key: Union[SplitBase, str]):
         # 1st case: The key exists: `info.splits['train']`
         if str(key) in self:
-            return super(SplitDict, self).__getitem__(str(key))
+            return super().__getitem__(str(key))
         # 2nd case: Uses instructions: `info.splits['train[50%]']`
         else:
             instructions = make_file_instructions(
@@ -505,14 +539,14 @@ class SplitDict(dict):
             raise ValueError(f"Cannot add elem. (key mismatch: '{key}' != '{value.name}')")
         if key in self:
             raise ValueError(f"Split {key} already present")
-        super(SplitDict, self).__setitem__(key, value)
+        super().__setitem__(key, value)
 
     def add(self, split_info: SplitInfo):
         """Add the split info."""
         if split_info.name in self:
             raise ValueError(f"Split {split_info.name} already present")
         split_info.dataset_name = self.dataset_name
-        super(SplitDict, self).__setitem__(split_info.name, split_info)
+        super().__setitem__(split_info.name, split_info)
 
     @property
     def total_num_examples(self):
@@ -526,7 +560,7 @@ class SplitDict(dict):
             split_infos = list(split_infos.values())
 
         if dataset_name is None:
-            dataset_name = split_infos[0]["dataset_name"] if split_infos else None
+            dataset_name = split_infos[0].get("dataset_name") if split_infos else None
 
         split_dict = cls(dataset_name=dataset_name)
 
@@ -539,11 +573,29 @@ class SplitDict(dict):
 
     def to_split_dict(self):
         """Returns a list of SplitInfo protos that we have."""
-        # Return the SplitInfo, sorted by name
-        return sorted([s for s in self.values()], key=lambda s: s.name)
+        out = []
+        for split_name, split_info in self.items():
+            split_info = copy.deepcopy(split_info)
+            split_info.name = split_name
+            out.append(split_info)
+        return out
 
     def copy(self):
         return SplitDict.from_split_dict(self.to_split_dict(), self.dataset_name)
+
+    def _to_yaml_list(self) -> list:
+        out = [asdict(s) for s in self.to_split_dict()]
+        # we don't need the shard lengths in YAML, since it depends on max_shard_size and num_proc
+        for split_info_dict in out:
+            split_info_dict.pop("shard_lengths", None)
+        # we don't need the dataset_name attribute that is deprecated
+        for split_info_dict in out:
+            split_info_dict.pop("dataset_name", None)
+        return out
+
+    @classmethod
+    def _from_yaml_list(cls, yaml_data: list) -> "SplitDict":
+        return cls.from_split_dict(yaml_data)
 
 
 @dataclass
@@ -551,20 +603,31 @@ class SplitGenerator:
     """Defines the split information for the generator.
 
     This should be used as returned value of
-    :meth:`GeneratorBasedBuilder._split_generators`.
-    See :meth:`GeneratorBasedBuilder._split_generators` for more info and example
+    `GeneratorBasedBuilder._split_generators`.
+    See `GeneratorBasedBuilder._split_generators` for more info and example
     of usage.
 
     Args:
-        name (str): Name of the Split for which the generator will
+        name (`str`):
+            Name of the `Split` for which the generator will
             create the examples.
-        **gen_kwargs: Keyword arguments to forward to the :meth:`DatasetBuilder._generate_examples` method
+        **gen_kwargs (additional keyword arguments):
+            Keyword arguments to forward to the `DatasetBuilder._generate_examples` method
             of the builder.
+
+    Example:
+
+    ```py
+    >>> datasets.SplitGenerator(
+    ...     name=datasets.Split.TRAIN,
+    ...     gen_kwargs={"split_key": "train", "files": dl_manager.download_and_extract(url)},
+    ... )
+    ```
     """
 
     name: str
-    gen_kwargs: Dict = field(default_factory=dict)
-    split_info: SplitInfo = field(init=False)
+    gen_kwargs: Dict = dataclasses.field(default_factory=dict)
+    split_info: SplitInfo = dataclasses.field(init=False)
 
     def __post_init__(self):
         self.name = str(self.name)  # Make sure we convert NamedSplits in strings

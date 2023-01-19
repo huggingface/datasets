@@ -15,7 +15,7 @@ except ImportError:
 from . import resources
 
 
-BASE_REF_URL = "https://github.com/huggingface/datasets/tree/master/src/datasets/utils"
+BASE_REF_URL = "https://github.com/huggingface/datasets/tree/main/src/datasets/utils"
 this_url = f"{BASE_REF_URL}/{__file__}"
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ readme_structure, known_readme_structure_url = load_yaml_resource("readme_struct
 FILLER_TEXT = [
     "[Needs More Information]",
     "[More Information Needed]",
-    "(https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)",
+    "(https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)",
 ]
 
 # Dictionary representation of section/readme, error_list, warning_list
@@ -246,7 +246,7 @@ class ReadMe(Section):  # Level 0
         elif num_first_level_keys < 1:
             # If less than one, append error.
             error_list.append(
-                f"The README has no first-level headings. One heading is expected. Skipping further validation for this README."
+                "The README has no first-level headings. One heading is expected. Skipping further validation for this README."
             )
 
         else:
@@ -263,7 +263,7 @@ class ReadMe(Section):  # Level 0
             else:
                 # If not found, append error
                 error_list.append(
-                    f"No first-level heading starting with `Dataset Card for` found in README. Skipping further validation for this README."
+                    "No first-level heading starting with `Dataset Card for` found in README. Skipping further validation for this README."
                 )
         if error_list:
             # If there are errors, do not return the dictionary as it is invalid

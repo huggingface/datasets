@@ -177,7 +177,7 @@ class BaseFileLock:
         A timeout of 0 means, that there is exactly one attempt to acquire the
         file lock.
 
-        .. versionadded:: 2.0.0
+        *New in version 2.0.0*
         """
         return self._timeout
 
@@ -212,8 +212,6 @@ class BaseFileLock:
         """
         True, if the object holds the file lock.
 
-        .. versionchanged:: 2.0.0
-
             This was previously a method and is now a property.
         """
         return self._lock_file_fd is not None
@@ -222,18 +220,18 @@ class BaseFileLock:
         """
         Acquires the file lock or fails with a :exc:`Timeout` error.
 
-        .. code-block:: python
+        ```py
+        # You can use this method in the context manager (recommended)
+        with lock.acquire():
+            pass
 
-            # You can use this method in the context manager (recommended)
-            with lock.acquire():
-                pass
-
-            # Or use an equivalent try-finally construct:
-            lock.acquire()
-            try:
-                pass
-            finally:
-                lock.release()
+        # Or use an equivalent try-finally construct:
+        lock.acquire()
+        try:
+            pass
+        finally:
+            lock.release()
+        ```
 
         :arg float timeout:
             The maximum time waited for the file lock.
@@ -247,8 +245,6 @@ class BaseFileLock:
 
         :raises Timeout:
             if the lock could not be acquired in *timeout* seconds.
-
-        .. versionchanged:: 2.0.0
 
             This method returns now a *proxy* object instead of *self*,
             so that it can be used in a with statement without side effects.
@@ -369,7 +365,7 @@ class WindowsFileLock(BaseFileLock):
         else:
             try:
                 msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
-            except (IOError, OSError):
+            except OSError:
                 os.close(fd)
             else:
                 self._lock_file_fd = fd
@@ -409,7 +405,7 @@ class UnixFileLock(BaseFileLock):
 
         try:
             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except (IOError, OSError):
+        except OSError:
             os.close(fd)
         else:
             self._lock_file_fd = fd
@@ -440,7 +436,7 @@ class SoftFileLock(BaseFileLock):
         open_mode = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_TRUNC
         try:
             fd = os.open(self._lock_file, open_mode)
-        except (IOError, OSError):
+        except OSError:
             pass
         else:
             self._lock_file_fd = fd

@@ -7,16 +7,15 @@ import huggingface_hub
 from fsspec.implementations.local import LocalFileSystem
 from tqdm.contrib.concurrent import thread_map
 
-from datasets.filesystems.hffilesystem import HfFileSystem
-
+from .filesystems.hffilesystem import HfFileSystem
 from .splits import Split
 from .utils import logging
-from .utils.file_utils import hf_hub_url, is_remote_url, request_etag
+from .utils.file_utils import is_relative_path, is_remote_url, request_etag
+from .utils.hub import hf_hub_url
 from .utils.py_utils import string_to_dict
-from .utils.tqdm_utils import tqdm
 
 
-DEFAULT_SPLIT = str(Split.TRAIN)
+SANITIZED_DEFAULT_SPLIT = str(Split.TRAIN)
 
 
 logger = logging.get_logger(__name__)
@@ -26,30 +25,71 @@ class Url(str):
     pass
 
 
-SPLIT_PATTERN_SHARDED = "data/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*"
+class EmptyDatasetError(FileNotFoundError):
+    pass
+
+
+SPLIT_PATTERN_SHARDED = "data/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"
+
+TRAIN_KEYWORDS = ["train", "training"]
+TEST_KEYWORDS = ["test", "testing", "eval", "evaluation"]
+VALIDATION_KEYWORDS = ["validation", "valid", "dev", "val"]
+NON_WORDS_CHARS = "-._ 0-9"
+KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**[{sep}/]{keyword}[{sep}]*", "{keyword}[{sep}]*"]
+KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**[{sep}/]{keyword}[{sep}/]**"]
 
 DEFAULT_PATTERNS_SPLIT_IN_FILENAME = {
-    str(Split.TRAIN): ["**train*"],
-    str(Split.TEST): ["**test*", "**eval*"],
-    str(Split.VALIDATION): ["**dev*", "**valid*"],
+    Split.TRAIN: [
+        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
+        for keyword in TRAIN_KEYWORDS
+        for pattern in KEYWORDS_IN_FILENAME_BASE_PATTERNS
+    ],
+    Split.TEST: [
+        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
+        for keyword in TEST_KEYWORDS
+        for pattern in KEYWORDS_IN_FILENAME_BASE_PATTERNS
+    ],
+    Split.VALIDATION: [
+        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
+        for keyword in VALIDATION_KEYWORDS
+        for pattern in KEYWORDS_IN_FILENAME_BASE_PATTERNS
+    ],
 }
 
 DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME = {
-    str(Split.TRAIN): ["**train*/**"],
-    str(Split.TEST): ["**test*/**", "**eval*/**"],
-    str(Split.VALIDATION): ["**dev*/**", "**valid*/**"],
+    Split.TRAIN: [
+        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
+        for keyword in TRAIN_KEYWORDS
+        for pattern in KEYWORDS_IN_DIR_NAME_BASE_PATTERNS
+    ],
+    Split.TEST: [
+        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
+        for keyword in TEST_KEYWORDS
+        for pattern in KEYWORDS_IN_DIR_NAME_BASE_PATTERNS
+    ],
+    Split.VALIDATION: [
+        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
+        for keyword in VALIDATION_KEYWORDS
+        for pattern in KEYWORDS_IN_DIR_NAME_BASE_PATTERNS
+    ],
 }
 
 DEFAULT_PATTERNS_ALL = {
-    str(Split.TRAIN): ["**"],
+    Split.TRAIN: ["**"],
 }
 
 ALL_SPLIT_PATTERNS = [SPLIT_PATTERN_SHARDED]
 ALL_DEFAULT_PATTERNS = [
-    DEFAULT_PATTERNS_SPLIT_IN_FILENAME,
     DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME,
+    DEFAULT_PATTERNS_SPLIT_IN_FILENAME,
     DEFAULT_PATTERNS_ALL,
 ]
+METADATA_PATTERNS = [
+    "metadata.csv",
+    "**/metadata.csv",
+    "metadata.jsonl",
+    "**/metadata.jsonl",
+]  # metadata file for ImageFolder and AudioFolder
 WILDCARD_CHARACTERS = "*[]"
 FILES_TO_IGNORE = ["README.md", "config.json", "dataset_infos.json", "dummy_data.zip", "dataset_dict.json"]
 
@@ -70,11 +110,106 @@ def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[
     if isinstance(patterns, dict):
         return {str(key): value if isinstance(value, list) else [value] for key, value in patterns.items()}
     elif isinstance(patterns, str):
-        return {DEFAULT_SPLIT: [patterns]}
+        return {SANITIZED_DEFAULT_SPLIT: [patterns]}
     elif isinstance(patterns, list):
-        return {DEFAULT_SPLIT: patterns}
+        return {SANITIZED_DEFAULT_SPLIT: patterns}
     else:
-        return {DEFAULT_SPLIT: list(patterns)}
+        return {SANITIZED_DEFAULT_SPLIT: list(patterns)}
+
+
+def _is_inside_unrequested_special_dir(matched_rel_path: str, pattern: str) -> bool:
+    """
+    When a path matches a pattern, we additionnally check if it's inside a special directory
+    we ignore by default (if it starts with a double underscore).
+
+    Users can still explicitly request a filepath inside such a directory if "__pycache__" is
+    mentioned explicitly in the requested pattern.
+
+    Some examples:
+
+    base directory:
+
+        ./
+        └── __pycache__
+            └── b.txt
+
+    >>> _is_inside_unrequested_special_dir("__pycache__/b.txt", "**")
+    True
+    >>> _is_inside_unrequested_special_dir("__pycache__/b.txt", "*/b.txt")
+    True
+    >>> _is_inside_unrequested_special_dir("__pycache__/b.txt", "__pycache__/*")
+    False
+    >>> _is_inside_unrequested_special_dir("__pycache__/b.txt", "__*/*")
+    False
+    """
+    # We just need to check if every special directories from the path is present explicly in the pattern.
+    # Since we assume that the path matches the pattern, it's equivalent to counting that both
+    # the parent path and the parent pattern have the same number of special directories.
+    data_dirs_to_ignore_in_path = [part for part in PurePath(matched_rel_path).parent.parts if part.startswith("__")]
+    data_dirs_to_ignore_in_pattern = [part for part in PurePath(pattern).parent.parts if part.startswith("__")]
+    return len(data_dirs_to_ignore_in_path) != len(data_dirs_to_ignore_in_pattern)
+
+
+def _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(matched_rel_path: str, pattern: str) -> bool:
+    """
+    When a path matches a pattern, we additionnally check if it's a hidden file or if it's inside
+    a hidden directory we ignore by default, i.e. if the file name or a parent directory name starts with a dot.
+
+    Users can still explicitly request a filepath that is hidden or is inside a hidden directory
+    if the hidden part is mentioned explicitly in the requested pattern.
+
+    Some examples:
+
+    base directory:
+
+        ./
+        └── .hidden_file.txt
+
+    >>> _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(".hidden_file.txt", "**")
+    True
+    >>> _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(".hidden_file.txt", ".*")
+    False
+
+    base directory:
+
+        ./
+        └── .hidden_dir
+            └── a.txt
+
+    >>> _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(".hidden_dir/a.txt", "**")
+    True
+    >>> _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(".hidden_dir/a.txt", ".*/*")
+    False
+    >>> _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(".hidden_dir/a.txt", ".hidden_dir/*")
+    False
+
+    base directory:
+
+        ./
+        └── .hidden_dir
+            └── .hidden_file.txt
+
+    >>> _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(".hidden_dir/.hidden_file.txt", "**")
+    True
+    >>> _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(".hidden_dir/.hidden_file.txt", ".*/*")
+    True
+    >>> _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(".hidden_dir/.hidden_file.txt", ".*/.*")
+    False
+    >>> _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(".hidden_dir/.hidden_file.txt", ".hidden_dir/*")
+    True
+    >>> _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(".hidden_dir/.hidden_file.txt", ".hidden_dir/.*")
+    False
+    """
+    # We just need to check if every hidden part from the path is present explicly in the pattern.
+    # Since we assume that the path matches the pattern, it's equivalent to counting that both
+    # the path and the pattern have the same number of hidden parts.
+    hidden_directories_in_path = [
+        part for part in PurePath(matched_rel_path).parts if part.startswith(".") and not set(part) == {"."}
+    ]
+    hidden_directories_in_pattern = [
+        part for part in PurePath(pattern).parts if part.startswith(".") and not set(part) == {"."}
+    ]
+    return len(hidden_directories_in_path) != len(hidden_directories_in_pattern)
 
 
 def _get_data_files_patterns(pattern_resolver: Callable[[str], List[PurePath]]) -> Dict[str, List[str]]:
@@ -90,7 +225,7 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], List[PurePath]]) 
         data_files = pattern_resolver(pattern)
         if len(data_files) > 0:
             data_files = [p.as_posix() for p in data_files]
-            splits: Set[str] = set(string_to_dict(p, split_pattern)["split"] for p in data_files)
+            splits: Set[str] = {string_to_dict(p, split_pattern)["split"] for p in data_files}
             return {split: [split_pattern.format(split=split)] for split in splits}
     # then check the default patterns based on train/valid/test splits
     for patterns_dict in ALL_DEFAULT_PATTERNS:
@@ -109,6 +244,23 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], List[PurePath]]) 
     raise FileNotFoundError(f"Couldn't resolve pattern {pattern} with resolver {pattern_resolver}")
 
 
+def _get_metadata_files_patterns(pattern_resolver: Callable[[str], List[PurePath]]) -> Dict[str, List[str]]:
+    """
+    Get the supported metadata patterns from a directory or repository.
+    """
+    non_empty_patterns = []
+    for pattern in METADATA_PATTERNS:
+        try:
+            metadata_files = pattern_resolver(pattern)
+            if len(metadata_files) > 0:
+                non_empty_patterns.append(pattern)
+        except FileNotFoundError:
+            pass
+    if non_empty_patterns:
+        return non_empty_patterns
+    raise FileNotFoundError(f"Couldn't resolve pattern {pattern} with resolver {pattern_resolver}")
+
+
 def _resolve_single_pattern_locally(
     base_path: str, pattern: str, allowed_extensions: Optional[List[str]] = None
 ) -> List[Path]:
@@ -117,15 +269,23 @@ def _resolve_single_pattern_locally(
     It also supports absolute paths in patterns.
     If an URL is passed, it is returned as is.
     """
-    pattern = os.path.join(base_path, pattern)
-    data_files_ignore = FILES_TO_IGNORE
+    if is_relative_path(pattern):
+        pattern = os.path.join(base_path, pattern)
+    else:
+        base_path = os.path.splitdrive(pattern)[0] + os.sep
     fs = LocalFileSystem()
     glob_iter = [PurePath(filepath) for filepath in fs.glob(pattern) if fs.isfile(filepath)]
     matched_paths = [
-        Path(filepath).resolve()
+        Path(os.path.abspath(filepath))
         for filepath in glob_iter
-        if filepath.name not in data_files_ignore and not filepath.name.startswith(".")
-    ]
+        if (filepath.name not in FILES_TO_IGNORE or PurePath(pattern).name == filepath.name)
+        and not _is_inside_unrequested_special_dir(
+            os.path.relpath(filepath, base_path), os.path.relpath(pattern, base_path)
+        )
+        and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(
+            os.path.relpath(filepath, base_path), os.path.relpath(pattern, base_path)
+        )
+    ]  # ignore .ipynb and __pycache__, but keep /../
     if allowed_extensions is not None:
         out = [
             filepath
@@ -170,9 +330,15 @@ def resolve_patterns_locally_or_by_urls(
     - '*' matches any character except a forward-slash (to match just the file or directory name)
     - '**' matches any character including a forward-slash /
 
-    Examples:
+    Hidden files and directories (i.e. whose names start with a dot) are ignored, unless they are explicitly requested.
+    The same applies to special directories that start with a double underscore like "__pycache__".
+    You can still include one if the pattern explicilty mentions it:
+    - to include a hidden file: "*/.hidden.txt" or "*/.*"
+    - to include a hidden directory: ".hidden/*" or ".*/*"
+    - to include a special directory: "__special__/*" or "__*/*"
 
-        >>> import huggingface_hub
+    Example::
+
         >>> from datasets.data_files import resolve_patterns_locally_or_by_urls
         >>> base_path = "."
         >>> resolve_patterns_locally_or_by_urls(base_path, ["src/**/*.yaml"])
@@ -204,7 +370,7 @@ def resolve_patterns_locally_or_by_urls(
     return data_files
 
 
-def get_patterns_locally(base_path: str) -> Dict[str, List[str]]:
+def get_data_patterns_locally(base_path: str) -> Dict[str, List[str]]:
     """
     Get the default pattern from a directory testing all the supported patterns.
     The first patterns to return a non-empty list of data files is returned.
@@ -292,22 +458,43 @@ def get_patterns_locally(base_path: str) -> Dict[str, List[str]]:
     try:
         return _get_data_files_patterns(resolver)
     except FileNotFoundError:
-        raise FileNotFoundError(f"The directory at {base_path} doesn't contain any data file") from None
+        raise EmptyDatasetError(f"The directory at {base_path} doesn't contain any data files") from None
+
+
+def get_metadata_patterns_locally(base_path: str) -> List[str]:
+    """
+    Get the supported metadata patterns from a local directory.
+    """
+    resolver = partial(_resolve_single_pattern_locally, base_path)
+    try:
+        return _get_metadata_files_patterns(resolver)
+    except FileNotFoundError:
+        raise FileNotFoundError(f"The directory at {base_path} doesn't contain any metadata file") from None
 
 
 def _resolve_single_pattern_in_dataset_repository(
     dataset_info: huggingface_hub.hf_api.DatasetInfo,
     pattern: str,
+    base_path: Optional[str] = None,
     allowed_extensions: Optional[list] = None,
 ) -> List[PurePath]:
-    data_files_ignore = FILES_TO_IGNORE
     fs = HfFileSystem(repo_info=dataset_info)
-    glob_iter = [PurePath(filepath) for filepath in fs.glob(pattern) if fs.isfile(filepath)]
+    if base_path:
+        pattern = f"{base_path}/{pattern}"
+    else:
+        base_path = "/"
+    glob_iter = [PurePath(filepath) for filepath in fs.glob(PurePath(pattern).as_posix()) if fs.isfile(filepath)]
     matched_paths = [
         filepath
         for filepath in glob_iter
-        if filepath.name not in data_files_ignore and not filepath.name.startswith(".")
-    ]
+        if (filepath.name not in FILES_TO_IGNORE or PurePath(pattern).name == filepath.name)
+        and not _is_inside_unrequested_special_dir(
+            os.path.relpath(filepath, base_path), os.path.relpath(pattern, base_path)
+        )
+        and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(
+            os.path.relpath(filepath, base_path), os.path.relpath(pattern, base_path)
+        )
+    ]  # ignore .ipynb and __pycache__, but keep /../
     if allowed_extensions is not None:
         out = [
             filepath
@@ -332,6 +519,7 @@ def _resolve_single_pattern_in_dataset_repository(
 def resolve_patterns_in_dataset_repository(
     dataset_info: huggingface_hub.hf_api.DatasetInfo,
     patterns: List[str],
+    base_path: Optional[str] = None,
     allowed_extensions: Optional[list] = None,
 ) -> List[Url]:
     """
@@ -353,7 +541,14 @@ def resolve_patterns_in_dataset_repository(
     - '*' matches any character except a forward-slash (to match just the file or directory name)
     - '**' matches any character including a forward-slash /
 
-    Examples:
+    Hidden files and directories (i.e. whose names start with a dot) are ignored, unless they are explicitly requested.
+    The same applies to special directories that start with a double underscore like "__pycache__".
+    You can still include one if the pattern explicilty mentions it:
+    - to include a hidden file: "*/.hidden.txt" or "*/.*"
+    - to include a hidden directory: ".hidden/*" or ".*/*"
+    - to include a special directory: "__special__/*" or "__*/*"
+
+    Example::
 
         >>> import huggingface_hub
         >>> from datasets.data_files import resolve_patterns_in_dataset_repository
@@ -366,6 +561,9 @@ def resolve_patterns_in_dataset_repository(
         dataset_info (huggingface_hub.hf_api.DatasetInfo): dataset info obtained using the hugginggace_hub.HfApi
         patterns (List[str]): Unix patterns or paths of the files in the dataset repository.
             The paths should be relative to the root of the repository.
+        base_path (Optional[str], optional): Path inside a repo to use when resolving relative paths.
+            Defaults to None (search from a repository's root). Used if files only from a specific
+            directory should be resolved.
         allowed_extensions (Optional[list], optional): White-list of file extensions to use. Defaults to None (all extensions).
             For example: allowed_extensions=["csv", "json", "txt", "parquet"]
 
@@ -374,7 +572,9 @@ def resolve_patterns_in_dataset_repository(
     """
     data_files_urls: List[Url] = []
     for pattern in patterns:
-        for rel_path in _resolve_single_pattern_in_dataset_repository(dataset_info, pattern, allowed_extensions):
+        for rel_path in _resolve_single_pattern_in_dataset_repository(
+            dataset_info, pattern, base_path, allowed_extensions
+        ):
             data_files_urls.append(Url(hf_hub_url(dataset_info.id, rel_path.as_posix(), revision=dataset_info.sha)))
     if not data_files_urls:
         error_msg = f"Unable to resolve any data file that matches {patterns} in dataset repository {dataset_info.id}"
@@ -384,7 +584,9 @@ def resolve_patterns_in_dataset_repository(
     return data_files_urls
 
 
-def get_patterns_in_dataset_repository(dataset_info: huggingface_hub.hf_api.DatasetInfo) -> Dict[str, List[str]]:
+def get_data_patterns_in_dataset_repository(
+    dataset_info: huggingface_hub.hf_api.DatasetInfo, base_path: str
+) -> Dict[str, List[str]]:
     """
     Get the default pattern from a repository by testing all the supported patterns.
     The first patterns to return a non-empty list of data files is returned.
@@ -468,12 +670,27 @@ def get_patterns_in_dataset_repository(dataset_info: huggingface_hub.hf_api.Data
 
     In order, it first tests if SPLIT_PATTERN_SHARDED works, otherwise it tests the patterns in ALL_DEFAULT_PATTERNS.
     """
-    resolver = partial(_resolve_single_pattern_in_dataset_repository, dataset_info)
+    resolver = partial(_resolve_single_pattern_in_dataset_repository, dataset_info, base_path=base_path)
     try:
         return _get_data_files_patterns(resolver)
     except FileNotFoundError:
+        raise EmptyDatasetError(
+            f"The dataset repository at '{dataset_info.id}' doesn't contain any data files"
+        ) from None
+
+
+def get_metadata_patterns_in_dataset_repository(
+    dataset_info: huggingface_hub.hf_api.DatasetInfo, base_path: str
+) -> List[str]:
+    """
+    Get the supported metadata patterns from a remote repository.
+    """
+    resolver = partial(_resolve_single_pattern_in_dataset_repository, dataset_info, base_path=base_path)
+    try:
+        return _get_metadata_files_patterns(resolver)
+    except FileNotFoundError:
         raise FileNotFoundError(
-            f"The dataset repository at '{dataset_info.id}' doesn't contain any data file."
+            f"The dataset repository at '{dataset_info.id}' doesn't contain any metadata file."
         ) from None
 
 
@@ -495,9 +712,9 @@ def _get_origin_metadata_locally_or_by_urls(
         partial(_get_single_origin_metadata_locally_or_by_urls, use_auth_token=use_auth_token),
         data_files,
         max_workers=max_workers,
-        tqdm_class=tqdm,
+        tqdm_class=logging.tqdm,
         desc="Resolving data files",
-        disable=len(data_files) <= 16 or logging.get_verbosity() == logging.NOTSET,
+        disable=len(data_files) <= 16 or not logging.is_progress_bar_enabled(),
     )
 
 
@@ -528,9 +745,10 @@ class DataFilesList(List[Union[Path, Url]]):
         cls,
         patterns: List[str],
         dataset_info: huggingface_hub.hf_api.DatasetInfo,
+        base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
     ) -> "DataFilesList":
-        data_files = resolve_patterns_in_dataset_repository(dataset_info, patterns, allowed_extensions)
+        data_files = resolve_patterns_in_dataset_repository(dataset_info, patterns, base_path, allowed_extensions)
         origin_metadata = [(dataset_info.id, dataset_info.sha) for _ in patterns]
         return cls(data_files, origin_metadata)
 
@@ -591,13 +809,17 @@ class DataFilesDict(Dict[str, DataFilesList]):
         cls,
         patterns: Dict[str, Union[List[str], DataFilesList]],
         dataset_info: huggingface_hub.hf_api.DatasetInfo,
+        base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
     ) -> "DataFilesDict":
         out = cls()
         for key, patterns_for_key in patterns.items():
             out[key] = (
                 DataFilesList.from_hf_repo(
-                    patterns_for_key, dataset_info=dataset_info, allowed_extensions=allowed_extensions
+                    patterns_for_key,
+                    dataset_info=dataset_info,
+                    base_path=base_path,
+                    allowed_extensions=allowed_extensions,
                 )
                 if not isinstance(patterns_for_key, DataFilesList)
                 else patterns_for_key

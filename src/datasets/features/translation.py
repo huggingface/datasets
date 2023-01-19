@@ -1,7 +1,11 @@
 from dataclasses import dataclass, field
-from typing import Any, ClassVar, List, Optional
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Union
 
 import pyarrow as pa
+
+
+if TYPE_CHECKING:
+    from .features import FeatureType
 
 
 @dataclass
@@ -9,25 +13,22 @@ class Translation:
     """`FeatureConnector` for translations with fixed languages per example.
     Here for compatiblity with tfds.
 
-    Input: The Translate feature accepts a dictionary for each example mapping
-        string language codes to string translations.
+    Args:
+        languages (`dict`):
+            A dictionary for each example mapping string language codes to string translations.
 
-    Output: A dictionary mapping string language codes to translations as `Text`
-        features.
+    Example:
 
-    Example::
-
-        # At construction time:
-
-        datasets.features.Translation(languages=['en', 'fr', 'de'])
-
-        # During data generation:
-
-        yield {
-                'en': 'the cat',
-                'fr': 'le chat',
-                'de': 'die katze'
-        }
+    ```python
+    >>> # At construction time:
+    >>> datasets.features.Translation(languages=['en', 'fr', 'de'])
+    >>> # During data generation:
+    >>> yield {
+    ...         'en': 'the cat',
+    ...         'fr': 'le chat',
+    ...         'de': 'die katze'
+    ... }
+    ```
     """
 
     languages: List[str]
@@ -40,42 +41,44 @@ class Translation:
     def __call__(self):
         return pa.struct({lang: pa.string() for lang in sorted(self.languages)})
 
+    def flatten(self) -> Union["FeatureType", Dict[str, "FeatureType"]]:
+        """Flatten the Translation feature into a dictionary."""
+        from .features import Value
+
+        return {k: Value("string") for k in sorted(self.languages)}
+
 
 @dataclass
 class TranslationVariableLanguages:
     """`FeatureConnector` for translations with variable languages per example.
     Here for compatiblity with tfds.
 
-    Input: The TranslationVariableLanguages feature accepts a dictionary for each
-        example mapping string language codes to one or more string translations.
-        The languages present may vary from example to example.
+    Args:
+        languages (`dict`):
+            A dictionary for each example mapping string language codes to one or more string translations.
+            The languages present may vary from example to example.
 
-    Output:
-        language: variable-length 1D tf.Tensor of tf.string language codes, sorted
-            in ascending order.
-        translation: variable-length 1D tf.Tensor of tf.string plain text
-            translations, sorted to align with language codes.
+    Returns:
+        - `language` or `translation` (variable-length 1D `tf.Tensor` of `tf.string`):
+            Language codes sorted in ascending order or plain text translations, sorted to align with language codes.
 
-    Example::
+    Example:
 
-        # At construction time:
-
-        datasets.features.Translation(languages=['en', 'fr', 'de'])
-
-        # During data generation:
-
-        yield {
-                'en': 'the cat',
-                'fr': ['le chat', 'la chatte,']
-                'de': 'die katze'
-        }
-
-        # Tensor returned :
-
-        {
-                'language': ['en', 'de', 'fr', 'fr'],
-                'translation': ['the cat', 'die katze', 'la chatte', 'le chat'],
-        }
+    ```python
+    >>> # At construction time:
+    >>> datasets.features.TranslationVariableLanguages(languages=['en', 'fr', 'de'])
+    >>> # During data generation:
+    >>> yield {
+    ...         'en': 'the cat',
+    ...         'fr': ['le chat', 'la chatte,']
+    ...         'de': 'die katze'
+    ... }
+    >>> # Tensor returned :
+    >>> {
+    ...         'language': ['en', 'de', 'fr', 'fr'],
+    ...         'translation': ['the cat', 'die katze', 'la chatte', 'le chat'],
+    ... }
+    ```
     """
 
     languages: Optional[List] = None
@@ -113,3 +116,12 @@ class TranslationVariableLanguages:
         languages, translations = zip(*sorted(translation_tuples))
 
         return {"language": languages, "translation": translations}
+
+    def flatten(self) -> Union["FeatureType", Dict[str, "FeatureType"]]:
+        """Flatten the TranslationVariableLanguages feature into a dictionary."""
+        from .features import Sequence, Value
+
+        return {
+            "language": Sequence(Value("string")),
+            "translation": Sequence(Value("string")),
+        }

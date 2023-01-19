@@ -1,15 +1,15 @@
-# coding=utf-8
-import glob
-import os
+import itertools
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import pandas as pd
 import pyarrow as pa
-from packaging import version
 from typing_extensions import Literal
 
 import datasets
+import datasets.config
+from datasets.features.features import require_storage_cast
+from datasets.table import table_cast
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -17,16 +17,6 @@ logger = datasets.utils.logging.get_logger(__name__)
 _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS = ["names", "prefix"]
 _PANDAS_READ_CSV_DEPRECATED_PARAMETERS = ["warn_bad_lines", "error_bad_lines"]
 _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS = ["encoding_errors", "on_bad_lines"]
-
-
-def _iter_files(files):
-    for file in files:
-        if os.path.isfile(file):
-            yield file
-        else:
-            for subfile in glob.glob(os.path.join(file, "**", "*"), recursive=True):
-                if os.path.isfile(subfile):
-                    yield subfile
 
 
 @dataclass
@@ -43,6 +33,7 @@ class CsvConfig(datasets.BuilderConfig):
     prefix: Optional[str] = None
     mangle_dupe_cols: bool = True
     engine: Optional[str] = None
+    converters: Dict[Union[int, str], Callable[[Any], Any]] = None
     true_values: Optional[list] = None
     false_values: Optional[list] = None
     skipinitialspace: bool = False
@@ -80,8 +71,8 @@ class CsvConfig(datasets.BuilderConfig):
             self.names = self.column_names
 
     @property
-    def read_csv_kwargs(self):
-        read_csv_kwargs = dict(
+    def pd_read_csv_kwargs(self):
+        pd_read_csv_kwargs = dict(
             sep=self.sep,
             header=self.header,
             names=self.names,
@@ -90,6 +81,7 @@ class CsvConfig(datasets.BuilderConfig):
             prefix=self.prefix,
             mangle_dupe_cols=self.mangle_dupe_cols,
             engine=self.engine,
+            converters=self.converters,
             true_values=self.true_values,
             false_values=self.false_values,
             skipinitialspace=self.skipinitialspace,
@@ -120,19 +112,18 @@ class CsvConfig(datasets.BuilderConfig):
             on_bad_lines=self.on_bad_lines,
         )
 
-        pandas_version = version.Version(pd.__version__)
         # some kwargs must not be passed if they don't have a default value
         # some others are deprecated and we can also not pass them if they are the default value
-        for read_csv_parameter in _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS + _PANDAS_READ_CSV_DEPRECATED_PARAMETERS:
-            if read_csv_kwargs[read_csv_parameter] == getattr(CsvConfig(), read_csv_parameter):
-                del read_csv_kwargs[read_csv_parameter]
+        for pd_read_csv_parameter in _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS + _PANDAS_READ_CSV_DEPRECATED_PARAMETERS:
+            if pd_read_csv_kwargs[pd_read_csv_parameter] == getattr(CsvConfig(), pd_read_csv_parameter):
+                del pd_read_csv_kwargs[pd_read_csv_parameter]
 
         # Remove 1.3 new arguments
-        if not (pandas_version.major >= 1 and pandas_version.minor >= 3):
-            for read_csv_parameter in _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS:
-                del read_csv_kwargs[read_csv_parameter]
+        if not (datasets.config.PANDAS_VERSION.major >= 1 and datasets.config.PANDAS_VERSION.minor >= 3):
+            for pd_read_csv_parameter in _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS:
+                del pd_read_csv_kwargs[pd_read_csv_parameter]
 
-        return read_csv_kwargs
+        return pd_read_csv_kwargs
 
 
 class Csv(datasets.ArrowBasedBuilder):
@@ -150,31 +141,47 @@ class Csv(datasets.ArrowBasedBuilder):
             files = data_files
             if isinstance(files, str):
                 files = [files]
-            if any(os.path.isdir(file) for file in files):
-                files = [file for file in _iter_files(files)]
+            files = [dl_manager.iter_files(file) for file in files]
             return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": files})]
         splits = []
         for split_name, files in data_files.items():
             if isinstance(files, str):
                 files = [files]
-            if any(os.path.isdir(file) for file in files):
-                files = [file for file in _iter_files(files)]
+            files = [dl_manager.iter_files(file) for file in files]
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
 
+    def _cast_table(self, pa_table: pa.Table) -> pa.Table:
+        if self.config.features is not None:
+            schema = self.config.features.arrow_schema
+            if all(not require_storage_cast(feature) for feature in self.config.features.values()):
+                # cheaper cast
+                pa_table = pa.Table.from_arrays([pa_table[field.name] for field in schema], schema=schema)
+            else:
+                # more expensive cast; allows str <-> int/float or str to Audio for example
+                pa_table = table_cast(pa_table, schema)
+        return pa_table
+
     def _generate_tables(self, files):
-        schema = pa.schema(self.config.features.type) if self.config.features is not None else None
+        schema = self.config.features.arrow_schema if self.config.features else None
         # dtype allows reading an int column as str
-        dtype = {name: dtype.to_pandas_dtype() for name, dtype in zip(schema.names, schema.types)} if schema else None
-        for file_idx, file in enumerate(files):
-            csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **self.config.read_csv_kwargs)
+        dtype = (
+            {
+                name: dtype.to_pandas_dtype() if not require_storage_cast(feature) else object
+                for name, dtype, feature in zip(schema.names, schema.types, self.config.features.values())
+            }
+            if schema is not None
+            else None
+        )
+        for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
+            csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **self.config.pd_read_csv_kwargs)
             try:
                 for batch_idx, df in enumerate(csv_file_reader):
-                    pa_table = pa.Table.from_pandas(df, schema=schema)
+                    pa_table = pa.Table.from_pandas(df)
                     # Uncomment for debugging (will print the Arrow table size and elements)
                     # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                     # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                    yield (file_idx, batch_idx), pa_table
+                    yield (file_idx, batch_idx), self._cast_table(pa_table)
             except ValueError as e:
-                logger.error(f"Failed to read file '{csv_file_reader.f}' with error {type(e)}: {e}")
+                logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                 raise

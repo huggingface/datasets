@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -113,9 +112,9 @@ class SquadV2(datasets.Metric):
         )
 
     def _compute(self, predictions, references, no_answer_threshold=1.0):
-        no_answer_probabilities = dict((p["id"], p["no_answer_probability"]) for p in predictions)
+        no_answer_probabilities = {p["id"]: p["no_answer_probability"] for p in predictions}
         dataset = [{"paragraphs": [{"qas": references}]}]
-        predictions = dict((p["id"], p["prediction_text"]) for p in predictions)
+        predictions = {p["id"]: p["prediction_text"] for p in predictions}
 
         qid_to_has_ans = make_qid_to_has_ans(dataset)  # maps qid to True/False
         has_ans_qids = [k for k, v in qid_to_has_ans.items() if v]

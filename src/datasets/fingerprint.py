@@ -5,7 +5,6 @@ import random
 import shutil
 import tempfile
 import weakref
-from dataclasses import asdict
 from functools import wraps
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
@@ -14,11 +13,12 @@ import numpy as np
 import pyarrow as pa
 import xxhash
 
-from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table
-
 from .info import DatasetInfo
+from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH
+from .table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table
+from .utils.deprecation_utils import deprecated
 from .utils.logging import get_logger
-from .utils.py_utils import dumps
+from .utils.py_utils import asdict, dumps
 
 
 if TYPE_CHECKING:
@@ -93,6 +93,51 @@ def get_datasets_with_cache_file_in_temp_dir():
     return list(_DATASETS_WITH_TABLE_IN_TEMP_DIR) if _DATASETS_WITH_TABLE_IN_TEMP_DIR is not None else []
 
 
+def enable_caching():
+    """
+    When applying transforms on a dataset, the data are stored in cache files.
+    The caching mechanism allows to reload an existing cache file if it's already been computed.
+
+    Reloading a dataset is possible since the cache files are named using the dataset fingerprint, which is updated
+    after each transform.
+
+    If disabled, the library will no longer reload cached datasets files when applying transforms to the datasets.
+    More precisely, if the caching is disabled:
+    - cache files are always recreated
+    - cache files are written to a temporary directory that is deleted when session closes
+    - cache files are named using a random hash instead of the dataset fingerprint
+    - use [`~datasets.Dataset.save_to_disk`] to save a transformed dataset or it will be deleted when session closes
+    - caching doesn't affect [`~datasets.load_dataset`]. If you want to regenerate a dataset from scratch you should use
+    the `download_mode` parameter in [`~datasets.load_dataset`].
+    """
+    global _CACHING_ENABLED
+    _CACHING_ENABLED = True
+
+
+def disable_caching():
+    """
+    When applying transforms on a dataset, the data are stored in cache files.
+    The caching mechanism allows to reload an existing cache file if it's already been computed.
+
+    Reloading a dataset is possible since the cache files are named using the dataset fingerprint, which is updated
+    after each transform.
+
+    If disabled, the library will no longer reload cached datasets files when applying transforms to the datasets.
+    More precisely, if the caching is disabled:
+    - cache files are always recreated
+    - cache files are written to a temporary directory that is deleted when session closes
+    - cache files are named using a random hash instead of the dataset fingerprint
+    - use [`~datasets.Dataset.save_to_disk`] to save a transformed dataset or it will be deleted when session closes
+    - caching doesn't affect [`~datasets.load_dataset`]. If you want to regenerate a dataset from scratch you should use
+    the `download_mode` parameter in [`~datasets.load_dataset`].
+    """
+    global _CACHING_ENABLED
+    _CACHING_ENABLED = False
+
+
+@deprecated(
+    "Use datasets.enable_caching() or datasets.disable_caching() instead. This function will be removed in a future version of datasets."
+)
 def set_caching_enabled(boolean: bool):
     """
     When applying transforms on a dataset, the data are stored in cache files.
@@ -127,9 +172,9 @@ def is_caching_enabled() -> bool:
     - cache files are always recreated
     - cache files are written to a temporary directory that is deleted when session closes
     - cache files are named using a random hash instead of the dataset fingerprint
-    - use :func:`datasets.Dataset.save_to_disk` to save a transformed dataset or it will be deleted when session closes
-    - caching doesn't affect :func:`datasets.load_dataset`. If you want to regenerate a dataset from scratch you should use
-    the ``download_mode`` parameter in :func:`datasets.load_dataset`.
+    - use [`~datasets.Dataset.save_to_disk`]] to save a transformed dataset or it will be deleted when session closes
+    - caching doesn't affect [`~datasets.load_dataset`]. If you want to regenerate a dataset from scratch you should use
+    the `download_mode` parameter in [`~datasets.load_dataset`].
     """
     global _CACHING_ENABLED
     return bool(_CACHING_ENABLED)
@@ -299,6 +344,26 @@ def update_fingerprint(fingerprint, transform, transform_args):
     return hasher.hexdigest()
 
 
+def validate_fingerprint(fingerprint: str, max_length=64):
+    """
+    Make sure the fingerprint is a non-empty string that is not longer that max_length=64 by default,
+    so that the fingerprint can be used to name cache files without issues.
+    """
+    if not isinstance(fingerprint, str) or not fingerprint:
+        raise ValueError(f"Invalid fingerprint '{fingerprint}': it should be a non-empty string.")
+    for invalid_char in INVALID_WINDOWS_CHARACTERS_IN_PATH:
+        if invalid_char in fingerprint:
+            raise ValueError(
+                f"Invalid fingerprint. Bad characters from black list '{INVALID_WINDOWS_CHARACTERS_IN_PATH}' found in '{fingerprint}'. "
+                f"They could create issues when creating cache files."
+            )
+    if len(fingerprint) > max_length:
+        raise ValueError(
+            f"Invalid fingerprint. Maximum lenth is {max_length} but '{fingerprint}' has length {len(fingerprint)}."
+            "It could create issues when creating cache files."
+        )
+
+
 def fingerprint_transform(
     inplace: bool,
     use_kwargs: Optional[List[str]] = None,
@@ -311,24 +376,24 @@ def fingerprint_transform(
     Wrapper for dataset transforms to update the dataset fingerprint using ``update_fingerprint``
 
     Args:
-        inplace (``bool``):  If inplace is True, the fingerprint of the dataset is updated inplace.
+        inplace (:obj:`bool`):  If inplace is True, the fingerprint of the dataset is updated inplace.
             Otherwise, a parameter "new_fingerprint" is passed to the wrapped method that should take care of
             setting the fingerprint of the returned Dataset.
-        use_kwargs (Optional ``List[str]``): optional white list of argument names to take into account
+        use_kwargs (:obj:`List[str]`, optional): optional white list of argument names to take into account
             to update the fingerprint to the wrapped method that should take care of
             setting the fingerprint of the returned Dataset. By default all the arguments are used.
-        ignore_kwargs (Optional ``List[str]``): optional black list of argument names to take into account
+        ignore_kwargs (:obj:`List[str]`, optional): optional black list of argument names to take into account
             to update the fingerprint. Note that ignore_kwargs prevails on use_kwargs.
-        fingerprint_names (Optional ``List[str]``, defaults to ["new_fingerprint"]):
+        fingerprint_names (:obj:`List[str]`, optional, defaults to ["new_fingerprint"]):
             If the dataset transforms is not inplace and returns a DatasetDict, then it can require
             several fingerprints (one per dataset in the DatasetDict). By specifying fingerprint_names,
             one fingerprint named after each element of fingerprint_names is going to be passed.
-        randomized_function (``bool``, defaults to False): If the dataset transform is random and has
+        randomized_function (:obj:`bool`, defaults to False): If the dataset transform is random and has
             optional parameters "seed" and "generator", then you can set randomized_function to True.
             This way, even if users set "seed" and "generator" to None, then the fingerprint is
             going to be randomly generated depending on numpy's current state. In this case, the
             generator is set to np.random.default_rng(np.random.get_state()[1][0]).
-        version (Optional ``str``): version of the transform. The version is taken into account when
+        version (:obj:`str`, optional): version of the transform. The version is taken into account when
             computing the fingerprint. If a datase transform changes (or at least if the output data
             that are cached changes), then one should increase the version. If the version stays the
             same, then old cached data could be reused that are not compatible with the new transform.
@@ -342,7 +407,7 @@ def fingerprint_transform(
         raise ValueError(f"ignore_kwargs is supposed to be a list, not {type(use_kwargs)}")
 
     if inplace and fingerprint_names:
-        raise ValueError(f"fingerprint_names are only used when inplace is False")
+        raise ValueError("fingerprint_names are only used when inplace is False")
 
     fingerprint_names = fingerprint_names if fingerprint_names is not None else ["new_fingerprint"]
 
@@ -381,7 +446,9 @@ def fingerprint_transform(
                 kwargs_for_fingerprint = {k: v for k, v in kwargs_for_fingerprint.items() if k not in ignore_kwargs}
             if randomized_function:  # randomized functions have `seed` and `generator` parameters
                 if kwargs_for_fingerprint.get("seed") is None and kwargs_for_fingerprint.get("generator") is None:
-                    kwargs_for_fingerprint["generator"] = np.random.default_rng(np.random.get_state()[1][0])
+                    _, seed, pos, *_ = np.random.get_state()
+                    seed = seed[pos] if pos < 624 else seed[0]
+                    kwargs_for_fingerprint["generator"] = np.random.default_rng(seed)
 
             # remove kwargs that are the default values
 
@@ -405,6 +472,8 @@ def fingerprint_transform(
                         kwargs[fingerprint_name] = update_fingerprint(
                             self._fingerprint, transform, kwargs_for_fingerprint
                         )
+                    else:
+                        validate_fingerprint(kwargs[fingerprint_name])
 
             # Call actual function
 

@@ -1,15 +1,30 @@
+import asyncio
 import os
+import re
+import sys
 import tempfile
 import unittest
 from contextlib import contextmanager
+from copy import deepcopy
+from ctypes.util import find_library
 from distutils.util import strtobool
 from enum import Enum
+from importlib import import_module
+from importlib.util import find_spec
 from pathlib import Path
 from unittest.mock import patch
 
 import pyarrow as pa
+import pytest
+from packaging import version
 
 from datasets import config
+
+
+if config.PY_VERSION < version.parse("3.8"):
+    import importlib_metadata
+else:
+    import importlib.metadata as importlib_metadata
 
 
 def parse_flag_from_env(key, default=False):
@@ -33,17 +48,46 @@ _run_remote_tests = parse_flag_from_env("RUN_REMOTE", default=False)
 _run_local_tests = parse_flag_from_env("RUN_LOCAL", default=True)
 _run_packaged_tests = parse_flag_from_env("RUN_PACKAGED", default=True)
 
+# Compression
+require_lz4 = pytest.mark.skipif(not config.LZ4_AVAILABLE, reason="test requires lz4")
+require_py7zr = pytest.mark.skipif(not config.PY7ZR_AVAILABLE, reason="test requires py7zr")
+require_zstandard = pytest.mark.skipif(not config.ZSTANDARD_AVAILABLE, reason="test requires zstandard")
 
-def require_beam(test_case):
-    """
-    Decorator marking a test that requires Apache Beam.
+# Audio
+require_sndfile = pytest.mark.skipif(
+    # On Windows and OS X, soundfile installs sndfile
+    (sys.platform != "linux" and find_spec("soundfile") is None)
+    # On Linux, soundfile throws RuntimeError if sndfile OS dependency not installed with distribution package manager
+    or (sys.platform == "linux" and find_library("sndfile") is None),
+    reason="test requires sndfile: 'pip install soundfile'; "
+    "on Linux, test requires sndfile OS dependency: 'sudo apt-get install libsndfile1'",
+)
+require_libsndfile_with_opus = pytest.mark.skipif(
+    version.parse(import_module("soundfile").__libsndfile_version__) < version.parse("1.0.30")
+    if (sys.platform != "linux" and find_spec("soundfile")) or (sys.platform == "linux" and find_library("sndfile"))
+    else True,
+    reason="test requires libsndfile>=1.0.30: 'conda install -c conda-forge libsndfile>=1.0.30'",
+)
+require_sox = pytest.mark.skipif(
+    find_library("sox") is None,
+    reason="test requires sox OS dependency; only available on non-Windows: 'sudo apt-get install sox'",
+)
+require_torchaudio = pytest.mark.skipif(
+    find_spec("torchaudio") is None
+    or version.parse(importlib_metadata.version("torchaudio")) >= version.parse("0.12.0"),
+    reason="test requires torchaudio<0.12",
+)
+require_torchaudio_latest = pytest.mark.skipif(
+    find_spec("torchaudio") is None
+    or version.parse(importlib_metadata.version("torchaudio")) < version.parse("0.12.0"),
+    reason="test requires torchaudio>=0.12",
+)
 
-    These tests are skipped when Apache Beam isn't installed.
-
-    """
-    if not config.TORCH_AVAILABLE:
-        test_case = unittest.skip("test requires PyTorch")(test_case)
-    return test_case
+# Beam
+require_beam = pytest.mark.skipif(
+    not config.BEAM_AVAILABLE or config.DILL_VERSION >= version.parse("0.3.2"),
+    reason="test requires apache-beam and a compatible dill version",
+)
 
 
 def require_faiss(test_case):
@@ -88,6 +132,20 @@ def require_elasticsearch(test_case):
     return test_case
 
 
+def require_sqlalchemy(test_case):
+    """
+    Decorator marking a test that requires SQLAlchemy.
+
+    These tests are skipped when SQLAlchemy isn't installed.
+
+    """
+    try:
+        import sqlalchemy  # noqa
+    except ImportError:
+        test_case = unittest.skip("test requires sqlalchemy")(test_case)
+    return test_case
+
+
 def require_torch(test_case):
     """
     Decorator marking a test that requires PyTorch.
@@ -124,27 +182,15 @@ def require_jax(test_case):
     return test_case
 
 
-def require_zstandard(test_case):
+def require_pil(test_case):
     """
-    Decorator marking a test that requires zstandard.
+    Decorator marking a test that requires Pillow.
 
-    These tests are skipped when zstandard isn't installed.
-
-    """
-    if not config.ZSTANDARD_AVAILABLE:
-        test_case = unittest.skip("test requires zstandard")(test_case)
-    return test_case
-
-
-def require_lz4(test_case):
-    """
-    Decorator marking a test that requires lz4.
-
-    These tests are skipped when lz4 isn't installed.
+    These tests are skipped when Pillow isn't installed.
 
     """
-    if not config.LZ4_AVAILABLE:
-        test_case = unittest.skip("test requires lz4")(test_case)
+    if not config.PIL_AVAILABLE:
+        test_case = unittest.skip("test requires Pillow")(test_case)
     return test_case
 
 
@@ -163,20 +209,41 @@ def require_transformers(test_case):
         return test_case
 
 
-def require_s3(test_case):
+def require_spacy(test_case):
     """
-    Decorator marking a test that requires s3fs and moto to mock s3.
+    Decorator marking a test that requires spacy.
 
     These tests are skipped when they aren't installed.
 
     """
     try:
-        import moto  # noqa F401
-        import s3fs  # noqa F401
+        import spacy  # noqa F401
     except ImportError:
-        return unittest.skip("test requires s3fs and moto")(test_case)
+        return unittest.skip("test requires spacy")(test_case)
     else:
         return test_case
+
+
+def require_spacy_model(model):
+    """
+    Decorator marking a test that requires a spacy model.
+
+    These tests are skipped when they aren't installed.
+    """
+
+    def _require_spacy_model(test_case):
+        try:
+            import spacy  # noqa F401
+
+            spacy.load(model)
+        except ImportError:
+            return unittest.skip("test requires spacy")(test_case)
+        except OSError:
+            return unittest.skip("test requires spacy model '{}'".format(model))(test_case)
+        else:
+            return test_case
+
+    return _require_spacy_model
 
 
 def slow(test_case):
@@ -265,8 +332,6 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
     HF_DATASETS_OFFLINE_SET_TO_1: the HF_DATASETS_OFFLINE environment variable is set to 1.
         This makes the http/ftp calls of the library instantly fail and raise an OfflineModeEmabled error.
     """
-    import socket
-
     from requests import request as online_request
 
     def timeout_request(method, url, **kwargs):
@@ -288,7 +353,7 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
             raise
 
     def offline_socket(*args, **kwargs):
-        raise socket.error("Offline mode is enabled.")
+        raise OSError("Offline mode is enabled.")
 
     if mode is OfflineSimulationMode.CONNECTION_FAILS:
         # inspired from https://stackoverflow.com/a/18601897
@@ -335,3 +400,129 @@ def assert_arrow_memory_doesnt_increase():
     previous_allocated_memory = pa.total_allocated_bytes()
     yield
     assert pa.total_allocated_bytes() - previous_allocated_memory <= 0, "Arrow memory wasn't expected to increase."
+
+
+def is_rng_equal(rng1, rng2):
+    return deepcopy(rng1).integers(0, 100, 10).tolist() == deepcopy(rng2).integers(0, 100, 10).tolist()
+
+
+def xfail_if_500_502_http_error(func):
+    import decorator
+    from requests.exceptions import HTTPError
+
+    def _wrapper(func, *args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except HTTPError as err:
+            if str(err).startswith("500") or str(err).startswith("502"):
+                pytest.xfail(str(err))
+            raise err
+
+    return decorator.decorator(_wrapper, func)
+
+
+# --- distributed testing functions --- #
+
+# copied from transformers
+# originally adapted from https://stackoverflow.com/a/59041913/9201239
+
+
+class _RunOutput:
+    def __init__(self, returncode, stdout, stderr):
+        self.returncode = returncode
+        self.stdout = stdout
+        self.stderr = stderr
+
+
+async def _read_stream(stream, callback):
+    while True:
+        line = await stream.readline()
+        if line:
+            callback(line)
+        else:
+            break
+
+
+async def _stream_subprocess(cmd, env=None, stdin=None, timeout=None, quiet=False, echo=False) -> _RunOutput:
+    if echo:
+        print("\nRunning: ", " ".join(cmd))
+
+    p = await asyncio.create_subprocess_exec(
+        cmd[0],
+        *cmd[1:],
+        stdin=stdin,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+        env=env,
+    )
+
+    # note: there is a warning for a possible deadlock when using `wait` with huge amounts of data in the pipe
+    # https://docs.python.org/3/library/asyncio-subprocess.html#asyncio.asyncio.subprocess.Process.wait
+    #
+    # If it starts hanging, will need to switch to the following code. The problem is that no data
+    # will be seen until it's done and if it hangs for example there will be no debug info.
+    # out, err = await p.communicate()
+    # return _RunOutput(p.returncode, out, err)
+
+    out = []
+    err = []
+
+    def tee(line, sink, pipe, label=""):
+        line = line.decode("utf-8").rstrip()
+        sink.append(line)
+        if not quiet:
+            print(label, line, file=pipe)
+
+    # XXX: the timeout doesn't seem to make any difference here
+    await asyncio.wait(
+        [
+            _read_stream(p.stdout, lambda l: tee(l, out, sys.stdout, label="stdout:")),
+            _read_stream(p.stderr, lambda l: tee(l, err, sys.stderr, label="stderr:")),
+        ],
+        timeout=timeout,
+    )
+    return _RunOutput(await p.wait(), out, err)
+
+
+def execute_subprocess_async(cmd, env=None, stdin=None, timeout=180, quiet=False, echo=True) -> _RunOutput:
+    loop = asyncio.get_event_loop()
+    result = loop.run_until_complete(
+        _stream_subprocess(cmd, env=env, stdin=stdin, timeout=timeout, quiet=quiet, echo=echo)
+    )
+
+    cmd_str = " ".join(cmd)
+    if result.returncode > 0:
+        stderr = "\n".join(result.stderr)
+        raise RuntimeError(
+            f"'{cmd_str}' failed with returncode {result.returncode}\n\n"
+            f"The combined stderr from workers follows:\n{stderr}"
+        )
+
+    # check that the subprocess actually did run and produced some output, should the test rely on
+    # the remote side to do the testing
+    if not result.stdout and not result.stderr:
+        raise RuntimeError(f"'{cmd_str}' produced no output.")
+
+    return result
+
+
+def pytest_xdist_worker_id():
+    """
+    Returns an int value of worker's numerical id under `pytest-xdist`'s concurrent workers `pytest -n N` regime, or 0
+    if `-n 1` or `pytest-xdist` isn't being used.
+    """
+    worker = os.environ.get("PYTEST_XDIST_WORKER", "gw0")
+    worker = re.sub(r"^gw", "", worker, 0, re.M)
+    return int(worker)
+
+
+def get_torch_dist_unique_port():
+    """
+    Returns a port number that can be fed to `torch.distributed.launch`'s `--master_port` argument.
+
+    Under `pytest-xdist` it adds a delta number based on a worker id so that concurrent tests don't try to use the same
+    port at once.
+    """
+    port = 29500
+    uniq_delta = pytest_xdist_worker_id()
+    return port + uniq_delta
