@@ -132,8 +132,11 @@ class DummyTestFS(AbstractFileSystem):
 
 
 @pytest.fixture
-def mock_fsspec(monkeypatch):
-    monkeypatch.setitem(fsspec.registry.target, "mock", DummyTestFS)
+def mock_fsspec():
+    original_registry = fsspec.registry.copy()
+    fsspec.register_implementation("mock", DummyTestFS)
+    yield
+    fsspec.registry = original_registry
 
 
 def _readd_double_slash_removed_by_path(path_as_posix: str) -> str:

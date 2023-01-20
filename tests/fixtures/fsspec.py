@@ -74,8 +74,11 @@ class MockFileSystem(AbstractFileSystem):
 
 
 @pytest.fixture
-def mock_fsspec(monkeypatch):
-    monkeypatch.setitem(fsspec.registry.target, "mock", MockFileSystem)
+def mock_fsspec():
+    original_registry = fsspec.registry.copy()
+    fsspec.register_implementation("mock", MockFileSystem)
+    yield
+    fsspec.registry = original_registry
 
 
 @pytest.fixture
