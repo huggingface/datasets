@@ -32,11 +32,6 @@ from ..download.download_config import DownloadConfig
 from . import logging
 from .extract import ExtractManager
 from .filelock import FileLock
-from .streaming_download_manager import (
-    BASE_KNOWN_EXTENSIONS,
-    COMPRESSION_EXTENSION_TO_PROTOCOL,
-    _get_extraction_protocol_with_magic_number,
-)
 
 
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
