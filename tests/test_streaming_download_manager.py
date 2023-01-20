@@ -827,15 +827,9 @@ def test_streaming_dl_manager_get_extraction_protocol_gg_drive(urlpath, expected
         "https://foo.bar/train.tar",
     ],
 )
-<<<<<<< HEAD
-@pytest.mark.xfail(raises=NotImplementedError)
-def test_streaming_dl_manager__extract_throws(urlpath):
-    StreamingDownloadManager()._extract(urlpath)
-=======
-def test_streaming_dl_manager_get_extraction_protocol_throws(urlpath):
+def test_streaming_dl_manager_extract_throws(urlpath):
     with pytest.raises(NotImplementedError):
-        _ = _get_extraction_protocol(urlpath)
->>>>>>> 80eb8db74f49b7ee9c0f73a819c22177fabd61db
+        _ = StreamingDownloadManager().extract(urlpath)
 
 
 @slow  # otherwise it spams Google Drive and the CI gets banned
