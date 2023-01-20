@@ -133,7 +133,7 @@ REQUIRED_PKGS = [
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
     # minimum 0.2.0 for set_access_token
-    "huggingface-hub>=0.2.0,<1.0.0",
+    "huggingface-hub==0.12.0.rc0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     "responses<0.19",
