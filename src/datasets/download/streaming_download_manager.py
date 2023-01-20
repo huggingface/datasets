@@ -394,7 +394,7 @@ def _get_path_extension(path: str) -> str:
 
 def _get_extraction_protocol_with_magic_number(f) -> Optional[str]:
     """read the magic number from a file-like object and return the compression protocol"""
-    # Check if the file object is seekable even before reading the magic number (avoids https://bugs.python.org/issue26440)
+    # Check if the file object is seekable even before reading the magic number (to avoid https://bugs.python.org/issue26440)
     try:
         f.seek(0)
     except (AttributeError, io.UnsupportedOperation):

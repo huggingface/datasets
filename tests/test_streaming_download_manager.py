@@ -43,9 +43,6 @@ pokemon_name, type
 Charmander, fire
 Squirtle, water
 Bulbasaur, grass"""
-TEST_HOSTED_ZIPPED_URL = "https://huggingface.co/datasets/lhoestq/test_zip_txt/resolve/main/atoz.zip"
-TEST_HOSTED_FILENAME = ["atoz/test1.txt", "atoz/test2.txt", "atoz/test3/test3.txt"]
-TEST_HOSTED_CONTENT = ["Erwin is the best character", "this is test 2", "foo"]
 
 
 class DummyTestFS(AbstractFileSystem):
@@ -874,20 +871,6 @@ def _test_jsonl(path, file):
         item = json.loads(line.decode("utf-8"))
         assert item.keys() == {"col_1", "col_2", "col_3"}
     assert num_items == 4
-
-
-def test_iter_tar_archive_path(tar_jsonl_path):
-    dl_manager = StreamingDownloadManager()
-    archive_iterable = dl_manager.iter_archive(tar_jsonl_path)
-    num_jsonl = 0
-    for num_jsonl, (path, file) in enumerate(archive_iterable, start=1):
-        _test_jsonl(path, file)
-    assert num_jsonl == 2
-    # do it twice to make sure it's reset correctly
-    num_jsonl = 0
-    for num_jsonl, (path, file) in enumerate(archive_iterable, start=1):
-        _test_jsonl(path, file)
-    assert num_jsonl == 2
 
 
 @pytest.mark.parametrize("archive_jsonl", ["tar_jsonl_path", "zip_jsonl_path"])
