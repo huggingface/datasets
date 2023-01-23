@@ -35,8 +35,8 @@ Otherwise, include your `aws_access_key_id` and `aws_secret_access_key` whenever
 # or use your credentials
 >>> storage_options = {"key": aws_access_key_id, "secret": aws_secret_access_key}  # for private buckets
 # or use a botocore session
->>> import botocore
->>> s3_session = botocore.session.Session(profile="my_profile_name")
+>>> import aiobotocore.session
+>>> s3_session = aiobotocore.session.AioSession(profile="my_profile_name")
 >>> storage_options = {"session": s3_session}
 ```
 

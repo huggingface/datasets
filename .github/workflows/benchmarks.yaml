@@ -3,12 +3,12 @@ on: [push]
 jobs:
   run:
     runs-on: [ubuntu-latest]
-    container: docker://dvcorg/cml@sha256:d38dc5c9708a5fbde4fdf2f5411c9930ed41cdf8ae3cb5ccf55c1f7a7cbe7bbe
+    container: ghcr.io/iterative/cml
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: cml_run
         env:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          CML_DRIVER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # See https://github.com/actions/checkout/issues/760
           git config --global --add safe.directory /__w/datasets/datasets
