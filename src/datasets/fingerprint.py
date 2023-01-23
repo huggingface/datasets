@@ -7,7 +7,7 @@ import tempfile
 import weakref
 from functools import wraps
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 import pyarrow as pa
@@ -19,10 +19,6 @@ from .table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table
 from .utils.deprecation_utils import deprecated
 from .utils.logging import get_logger
 from .utils.py_utils import asdict, dumps
-
-
-if TYPE_CHECKING:
-    from .arrow_dataset import Dataset
 
 
 logger = get_logger(__name__)
@@ -399,7 +395,6 @@ def fingerprint_transform(
             same, then old cached data could be reused that are not compatible with the new transform.
             It should be in the format "MAJOR.MINOR.PATCH".
     """
-
     if use_kwargs is not None and not isinstance(use_kwargs, list):
         raise ValueError(f"use_kwargs is supposed to be a list, not {type(use_kwargs)}")
 
@@ -412,9 +407,12 @@ def fingerprint_transform(
     fingerprint_names = fingerprint_names if fingerprint_names is not None else ["new_fingerprint"]
 
     def _fingerprint(func):
+        is_generator_func = (
+            func._is_generator_func if hasattr(func, "_is_generator_func") else inspect.isgeneratorfunction(func)
+        )
 
         if not inplace and not all(name in func.__code__.co_varnames for name in fingerprint_names):
-            raise ValueError("function {func} is missing parameters {fingerprint_names} in signature")
+            raise ValueError(f"function {func} is missing parameters {fingerprint_names} in signature")
 
         if randomized_function:  # randomized function have seed and generator parameters
             if "seed" not in func.__code__.co_varnames:
@@ -426,17 +424,36 @@ def fingerprint_transform(
         if version is not None:
             transform += f"@{version}"
 
+        def _fingerprint_transform_func(dataset, inplace_fingerprint=None, *args, **kwargs):
+            out = func(dataset, *args, **kwargs)
+            # update after calling func so that the fingerprint doesn't change if the function fails
+            if inplace:
+                dataset._fingerprint = inplace_fingerprint
+            return out
+
+        def _fingerprint_transform_generator_func(dataset, inplace_fingerprint=None, *args, **kwargs):
+            yield from func(dataset, *args, **kwargs)
+            # update after exhausting generator func so that the fingerprint doesn't change if the generator function fails
+            if inplace:
+                dataset._fingerprint = inplace_fingerprint
+
         @wraps(func)
         def wrapper(*args, **kwargs):
+            from .arrow_dataset import Dataset
+
             kwargs_for_fingerprint = kwargs.copy()
+            func_signature = inspect.signature(func)
             if args:
-                params = [p.name for p in inspect.signature(func).parameters.values() if p != p.VAR_KEYWORD]
-                self: "Dataset" = args[0]
+                params = [p.name for p in func_signature.parameters.values() if p != p.VAR_KEYWORD]
+                dataset: Dataset = args[0]
                 args = args[1:]
                 params = params[1:]
                 kwargs_for_fingerprint.update(zip(params, args))
             else:
-                self: "Dataset" = kwargs.pop("self")
+                first_func_param = next(iter(func_signature.parameters))
+                dataset: Dataset = kwargs.pop(first_func_param)
+
+            assert isinstance(dataset, Dataset), f"First argument of {func} should be a Dataset, not {type(dataset)}"
 
             # keep the right kwargs to be hashed to generate the fingerprint
 
@@ -463,30 +480,32 @@ def fingerprint_transform(
                     kwargs_for_fingerprint.pop(default_varname)
 
             # compute new_fingerprint and add it to the args of not in-place transforms
+            new_fingerprint = None
             if inplace:
-                new_fingerprint = update_fingerprint(self._fingerprint, transform, kwargs_for_fingerprint)
+                new_fingerprint = update_fingerprint(dataset._fingerprint, transform, kwargs_for_fingerprint)
             else:
                 for fingerprint_name in fingerprint_names:  # transforms like `train_test_split` have several hashes
                     if kwargs.get(fingerprint_name) is None:
                         kwargs_for_fingerprint["fingerprint_name"] = fingerprint_name
                         kwargs[fingerprint_name] = update_fingerprint(
-                            self._fingerprint, transform, kwargs_for_fingerprint
+                            dataset._fingerprint, transform, kwargs_for_fingerprint
                         )
                     else:
                         validate_fingerprint(kwargs[fingerprint_name])
 
-            # Call actual function
-
-            out = func(self, *args, **kwargs)
-
             # Update fingerprint of in-place transforms + update in-place history of transforms
 
-            if inplace:  # update after calling func so that the fingerprint doesn't change if the function fails
-                self._fingerprint = new_fingerprint
-
-            return out
+            return (
+                _fingerprint_transform_func(dataset, new_fingerprint, *args, **kwargs)
+                if not is_generator_func
+                else _fingerprint_transform_generator_func(
+                    dataset, inplace_fingerprint=new_fingerprint, *args, **kwargs
+                )
+            )
 
         wrapper._decorator_name_ = "fingerprint"
+        # inspect.isgeneratorfunction(func) is not working for decorated functions, so we store the information in the wrapper
+        wrapper._is_generator_func = is_generator_func
         return wrapper
 
     return _fingerprint
