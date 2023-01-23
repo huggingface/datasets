@@ -161,7 +161,7 @@ def tar_file_with_sym_link(tmp_path):
     path = directory / "tar_file_with_sym_link.tar"
     os.symlink("..", directory / "subdir", target_is_directory=True)
     with tarfile.TarFile(path, "w") as f:
-        f.add(directory / "subdir", arcname="subdir")
+        f.add(str(directory / "subdir"), arcname="subdir")
     return path
 
 
