@@ -153,7 +153,7 @@ def dataset_to_tf(
 
             Returns:
                 :class:`tf.data.Dataset`
-            """
+    """
     if config.TF_AVAILABLE:
         import tensorflow as tf
     else:
