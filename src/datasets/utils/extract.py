@@ -84,7 +84,7 @@ class TarExtractor(BaseExtractor):
         return tarfile.is_tarfile(path)
 
     @staticmethod
-    def safemembers(members):
+    def safemembers(members, output_path):
         """
         Fix for CVE-2007-4559
         Desc:
@@ -107,7 +107,7 @@ class TarExtractor(BaseExtractor):
             tip = resolved(os.path.join(base, os.path.dirname(info.name)))
             return badpath(info.linkname, base=tip)
 
-        base = resolved(".")
+        base = resolved(output_path)
 
         for finfo in members:
             if badpath(finfo.name, base):
@@ -123,7 +123,7 @@ class TarExtractor(BaseExtractor):
     def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:
         os.makedirs(output_path, exist_ok=True)
         tar_file = tarfile.open(input_path)
-        tar_file.extractall(output_path, members=TarExtractor.safemembers(tar_file))
+        tar_file.extractall(output_path, members=TarExtractor.safemembers(tar_file, output_path))
         tar_file.close()
 
 
