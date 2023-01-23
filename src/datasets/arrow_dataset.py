@@ -2886,8 +2886,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             pbar_total = len(self) // num_shards // batch_size * num_shards * batch_size
         else:
             pbar_total = len(self)
+
         # Inititialize the progress bar later inside the loop to avoid the progress bar being displayed when there is no processing
         pbar = None
+
+        def init_pbar():
+            nonlocal pbar
+            pbar = logging.tqdm(
+                disable=not logging.is_progress_bar_enabled(),
+                unit=" examples",
+                total=pbar_total,
+                leave=False,
+                desc=f"Processing the dataset ({shards_done}/{num_shards} shards)" if desc is None else desc,
+            )
+
         shards_done = 0
         if num_proc is None or num_proc == 1:
             transformed_dataset = None
@@ -2912,21 +2924,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             ):
                 if done:
                     shards_done += 1
-                    if pbar is not None:
-                        pbar.set_description(f"Processing the dataset ({shards_done}/{num_shards} shards)")
-                        logger.debug(f"Finished processing shard number {rank} of {num_shards}.")
+                    if pbar is None:
+                        init_pbar()
+                    pbar.set_description(f"Processing the dataset ({shards_done}/{num_shards} shards)")
+                    logger.debug(f"Finished processing shard number {rank} of {num_shards}.")
                     (transformed_dataset,) = content
                 else:
                     if pbar is None:
-                        pbar = logging.tqdm(
-                            disable=not logging.is_progress_bar_enabled(),
-                            unit=" examples",
-                            total=pbar_total,
-                            leave=False,
-                            desc=f"Processing the dataset ({shards_done}/{num_shards} shards)"
-                            if desc is None
-                            else desc,
-                        )
+                        init_pbar()
                     pbar.update(content)
             assert transformed_dataset is not None, "Failed to retrieve the result from map"
             return transformed_dataset
@@ -3015,20 +3020,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         if done:
                             shards_done += 1
                             if pbar is not None:
-                                pbar.set_description(f"Processing the dataset ({shards_done}/{num_shards} shards)")
-                                logger.debug(f"Finished processing shard number {rank} of {num_shards}.")
+                                init_pbar()
+                            pbar.set_description(f"Processing the dataset ({shards_done}/{num_shards} shards)")
+                            logger.debug(f"Finished processing shard number {rank} of {num_shards}.")
                             (transformed_shards[rank],) = content
                         else:
                             if pbar is None:
-                                pbar = logging.tqdm(
-                                    disable=not logging.is_progress_bar_enabled(),
-                                    unit=" examples",
-                                    total=pbar_total,
-                                    leave=False,
-                                    desc=f"Processing the dataset ({shards_done}/{num_shards} shards)"
-                                    if desc is None
-                                    else desc,
-                                )
+                                init_pbar()
                             pbar.update(content)
             assert (
                 None not in transformed_shards

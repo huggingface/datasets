@@ -424,14 +424,14 @@ def fingerprint_transform(
         if version is not None:
             transform += f"@{version}"
 
-        def _fingerprint_transform_func(dataset, inplace_fingerprint=None, *args, **kwargs):
+        def _fingerprint_transform_func(dataset, *args, inplace_fingerprint=None, **kwargs):
             out = func(dataset, *args, **kwargs)
             # update after calling func so that the fingerprint doesn't change if the function fails
             if inplace:
                 dataset._fingerprint = inplace_fingerprint
             return out
 
-        def _fingerprint_transform_generator_func(dataset, inplace_fingerprint=None, *args, **kwargs):
+        def _fingerprint_transform_generator_func(dataset, *args, inplace_fingerprint=None, **kwargs):
             yield from func(dataset, *args, **kwargs)
             # update after exhausting generator func so that the fingerprint doesn't change if the generator function fails
             if inplace:
@@ -496,7 +496,7 @@ def fingerprint_transform(
             # Update fingerprint of in-place transforms + update in-place history of transforms
 
             return (
-                _fingerprint_transform_func(dataset, new_fingerprint, *args, **kwargs)
+                _fingerprint_transform_func(dataset, *args, inplace_fingerprint=new_fingerprint, **kwargs)
                 if not is_generator_func
                 else _fingerprint_transform_generator_func(
                     dataset, inplace_fingerprint=new_fingerprint, *args, **kwargs
