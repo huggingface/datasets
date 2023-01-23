@@ -3019,7 +3019,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     ):
                         if done:
                             shards_done += 1
-                            if pbar is not None:
+                            if pbar is None:
                                 init_pbar()
                             pbar.set_description(f"Processing the dataset ({shards_done}/{num_shards} shards)")
                             logger.debug(f"Finished processing shard number {rank} of {num_shards}.")
