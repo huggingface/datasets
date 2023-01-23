@@ -991,14 +991,14 @@ class DatasetBuilder:
                         shutil.move(downloaded_resource_path, resource_path)
 
     def _load_info(self) -> DatasetInfo:
-        return DatasetInfo.from_directory(self._output_dir, fs=self._fs)
+        return DatasetInfo.from_directory(self._output_dir, storage_options=self._fs.storage_options)
 
     def _save_info(self):
         is_local = not is_remote_filesystem(self._fs)
         if is_local:
             lock_path = self._output_dir + "_info.lock"
         with FileLock(lock_path) if is_local else contextlib.nullcontext():
-            self.info.write_to_directory(self._output_dir, fs=self._fs)
+            self.info.write_to_directory(self._output_dir, storage_options=self._fs.storage_options)
 
     def _save_infos(self):
         is_local = not is_remote_filesystem(self._fs)
@@ -1414,17 +1414,18 @@ class GeneratorBasedBuilder(DatasetBuilder):
         fname = f"{self.name}-{split_generator.name}{SUFFIX}.{file_format}"
         fpath = path_join(self._output_dir, fname)
 
-        num_input_shards = _number_of_shards_in_gen_kwargs(split_generator.gen_kwargs)
-        if num_input_shards <= 1 and num_proc is not None:
-            logger.warning(
-                f"Setting num_proc from {num_proc} back to 1 for the {split_info.name} split to disable multiprocessing as it only contains one shard."
-            )
-            num_proc = 1
-        elif num_proc is not None and num_input_shards < num_proc:
-            logger.info(
-                f"Setting num_proc from {num_proc} to {num_input_shards} for the {split_info.name} split as it only contains {num_input_shards} shards."
-            )
-            num_proc = num_input_shards
+        if num_proc and num_proc > 1:
+            num_input_shards = _number_of_shards_in_gen_kwargs(split_generator.gen_kwargs)
+            if num_input_shards <= 1 and num_proc is not None:
+                logger.warning(
+                    f"Setting num_proc from {num_proc} back to 1 for the {split_info.name} split to disable multiprocessing as it only contains one shard."
+                )
+                num_proc = 1
+            elif num_proc is not None and num_input_shards < num_proc:
+                logger.info(
+                    f"Setting num_proc from {num_proc} to {num_input_shards} for the {split_info.name} split as it only contains {num_input_shards} shards."
+                )
+                num_proc = num_input_shards
 
         pbar = logging.tqdm(
             disable=not logging.is_progress_bar_enabled(),
@@ -1673,17 +1674,18 @@ class ArrowBasedBuilder(DatasetBuilder):
         fname = f"{self.name}-{split_generator.name}{SUFFIX}.{file_format}"
         fpath = path_join(self._output_dir, fname)
 
-        num_input_shards = _number_of_shards_in_gen_kwargs(split_generator.gen_kwargs)
-        if num_input_shards <= 1 and num_proc is not None:
-            logger.warning(
-                f"Setting num_proc from {num_proc} back to 1 for the {split_info.name} split to disable multiprocessing as it only contains one shard."
-            )
-            num_proc = 1
-        elif num_proc is not None and num_input_shards < num_proc:
-            logger.info(
-                f"Setting num_proc from {num_proc} to {num_input_shards} for the {split_info.name} split as it only contains {num_input_shards} shards."
-            )
-            num_proc = num_input_shards
+        if num_proc and num_proc > 1:
+            num_input_shards = _number_of_shards_in_gen_kwargs(split_generator.gen_kwargs)
+            if num_input_shards <= 1 and num_proc is not None:
+                logger.warning(
+                    f"Setting num_proc from {num_proc} back to 1 for the {split_info.name} split to disable multiprocessing as it only contains one shard."
+                )
+                num_proc = 1
+            elif num_proc is not None and num_input_shards < num_proc:
+                logger.info(
+                    f"Setting num_proc from {num_proc} to {num_input_shards} for the {split_info.name} split as it only contains {num_input_shards} shards."
+                )
+                num_proc = num_input_shards
 
         pbar = logging.tqdm(
             disable=not logging.is_progress_bar_enabled(),

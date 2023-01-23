@@ -191,8 +191,8 @@ For the PyTorch `DataLoader` to query batches using a list, you can use a `Batch
 
 ```py
 >>> from torch.utils.data.sampler import BatchSampler, RandomSampler
->>> sampler = BatchSampler(RandomSampler(ds), batch_size=32, drop_last=False)
->>> dataloader = DataLoader(ds, sampler=sampler)
+>>> batch_sampler = BatchSampler(RandomSampler(ds), batch_size=32, drop_last=False)
+>>> dataloader = DataLoader(ds, batch_sampler=batch_sampler)
 ```
 
 Moreover, this is particularly useful if you used [`set_transform`] to apply a transform on-the-fly when examples are accessed.

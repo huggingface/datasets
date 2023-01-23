@@ -2,6 +2,7 @@ import importlib
 import os
 import tempfile
 import types
+from contextlib import nullcontext as does_not_raise
 from multiprocessing import Process
 from pathlib import Path
 from unittest import TestCase
@@ -187,6 +188,52 @@ class DummyGeneratorBasedBuilderWithShards(GeneratorBasedBuilder):
         return [SplitGenerator(name=Split.TRAIN, gen_kwargs={"filepaths": [f"data{i}.txt" for i in range(4)]})]
 
     def _generate_examples(self, filepaths):
+        idx = 0
+        for filepath in filepaths:
+            for i in range(100):
+                yield idx, {"id": i, "filepath": filepath}
+                idx += 1
+
+
+class DummyArrowBasedBuilderWithAmbiguousShards(ArrowBasedBuilder):
+    def _info(self):
+        return DatasetInfo(features=Features({"id": Value("int8"), "filepath": Value("string")}))
+
+    def _split_generators(self, dl_manager):
+        return [
+            SplitGenerator(
+                name=Split.TRAIN,
+                gen_kwargs={
+                    "filepaths": [f"data{i}.txt" for i in range(4)],
+                    "dummy_kwarg_with_different_length": [f"dummy_data{i}.txt" for i in range(3)],
+                },
+            )
+        ]
+
+    def _generate_tables(self, filepaths, dummy_kwarg_with_different_length):
+        idx = 0
+        for filepath in filepaths:
+            for i in range(10):
+                yield idx, pa.table({"id": range(10 * i, 10 * (i + 1)), "filepath": [filepath] * 10})
+                idx += 1
+
+
+class DummyGeneratorBasedBuilderWithAmbiguousShards(GeneratorBasedBuilder):
+    def _info(self):
+        return DatasetInfo(features=Features({"id": Value("int8"), "filepath": Value("string")}))
+
+    def _split_generators(self, dl_manager):
+        return [
+            SplitGenerator(
+                name=Split.TRAIN,
+                gen_kwargs={
+                    "filepaths": [f"data{i}.txt" for i in range(4)],
+                    "dummy_kwarg_with_different_length": [f"dummy_data{i}.txt" for i in range(3)],
+                },
+            )
+        ]
+
+    def _generate_examples(self, filepaths, dummy_kwarg_with_different_length):
         idx = 0
         for filepath in filepaths:
             for i in range(100):
@@ -997,7 +1044,7 @@ def test_builder_with_filesystem_download_and_prepare(tmp_path, mockfs):
 def test_builder_with_filesystem_download_and_prepare_reload(tmp_path, mockfs, caplog):
     builder = DummyGeneratorBasedBuilder(cache_dir=tmp_path)
     mockfs.makedirs("my_dataset")
-    DatasetInfo().write_to_directory("my_dataset", fs=mockfs)
+    DatasetInfo().write_to_directory("mock://my_dataset", storage_options=mockfs.storage_options)
     mockfs.touch(f"my_dataset/{builder.name}-train.arrow")
     caplog.clear()
     builder.download_and_prepare("mock://my_dataset", storage_options=mockfs.storage_options)
@@ -1068,6 +1115,15 @@ def test_generator_based_builder_download_and_prepare_with_num_proc(tmp_path):
     }
 
 
+@pytest.mark.parametrize(
+    "num_proc, expectation", [(None, does_not_raise()), (1, does_not_raise()), (2, pytest.raises(RuntimeError))]
+)
+def test_generator_based_builder_download_and_prepare_with_ambiguous_shards(num_proc, expectation, tmp_path):
+    builder = DummyGeneratorBasedBuilderWithAmbiguousShards(cache_dir=tmp_path)
+    with expectation:
+        builder.download_and_prepare(num_proc=num_proc)
+
+
 def test_arrow_based_builder_download_and_prepare_as_parquet(tmp_path):
     builder = DummyArrowBasedBuilder(cache_dir=tmp_path)
     builder.download_and_prepare(file_format="parquet")
@@ -1128,6 +1184,15 @@ def test_arrow_based_builder_download_and_prepare_with_num_proc(tmp_path):
         "id": [i for _ in range(4) for i in range(100)],
         "filepath": [f"data{i}.txt" for i in range(4) for _ in range(100)],
     }
+
+
+@pytest.mark.parametrize(
+    "num_proc, expectation", [(None, does_not_raise()), (1, does_not_raise()), (2, pytest.raises(RuntimeError))]
+)
+def test_arrow_based_builder_download_and_prepare_with_ambiguous_shards(num_proc, expectation, tmp_path):
+    builder = DummyArrowBasedBuilderWithAmbiguousShards(cache_dir=tmp_path)
+    with expectation:
+        builder.download_and_prepare(num_proc=num_proc)
 
 
 @require_beam
