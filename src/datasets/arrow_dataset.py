@@ -1512,7 +1512,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Whether to copy the dataset in-memory. If `None`, the
                 dataset will not be copied in-memory unless explicitly enabled by setting
                 `datasets.config.IN_MEMORY_MAX_SIZE` to nonzero. See more details in the
-                [improve performance](./cache#improve-performance) section.
+                [improve performance](../cache#improve-performance) section.
             storage_options (`dict`, *optional*):
                 Key/value pairs to be passed on to the file-system backend, if any.
 
@@ -2522,7 +2522,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     def prepare_for_task(self, task: Union[str, TaskTemplate], id: int = 0) -> "Dataset":
         """
-        Prepare a dataset for the given task by casting the dataset's [`Features`] to standardized column names and types as detailed in [`datasets.tasks`](./package_reference/task_templates).
+        Prepare a dataset for the given task by casting the dataset's [`Features`] to standardized column names and types as detailed in [`datasets.tasks`](./task_templates).
 
         Casts [`datasets.DatasetInfo.features`] according to a task-specific schema. Intended for single-use only, so all task templates are removed from [`datasets.DatasetInfo.task_templates`] after casting.
 
@@ -2533,7 +2533,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 - `"text-classification"`
                 - `"question-answering"`
 
-                If [`TaskTemplate`], must be one of the task templates in [`datasets.tasks`](./package_reference/task_templates).
+                If [`TaskTemplate`], must be one of the task templates in [`datasets.tasks`](./task_templates).
             id (`int`, defaults to `0`):
                 The id required to unambiguously identify the task template when multiple task templates of the same type are supported.
         """
