@@ -134,7 +134,7 @@ def dataset_to_tf(
     equivalent is multiprocess_dataset_to_tf.
 
             Args:
-                dataset (:obj:`ArrowDataset`): Dataset to wrap with tf.data.Dataset.
+                dataset (`Dataset`): Dataset to wrap with tf.data.Dataset.
                 cols_to_retain (:obj:`List[str]`): Dataset column(s) to load in the
                     tf.data.Dataset. It is acceptable to include column names that are created by the `collate_fn` and
                     that do not exist in the original dataset.
