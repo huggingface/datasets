@@ -147,7 +147,7 @@ def dataset_to_tf(
                     `tf.TensorSpec` objects.
                 shuffle(:obj:`bool`): Shuffle the dataset order when loading. Recommended True for training, False for
                     validation/evaluation.
-                batch_size (:obj:`int`): Size of batches to load from the dataset.
+                batch_size (`int`): Size of batches to load from the dataset.
                 drop_remainder(:obj:`bool`, default ``None``): Drop the last incomplete batch when loading. If not provided,
                     defaults to the same setting as shuffle.
 
