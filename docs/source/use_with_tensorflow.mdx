@@ -189,7 +189,7 @@ Using `to_tf_dataset()` is straightforward. Once your dataset is preprocessed an
             )
 ```
 
-The returned `tf_ds` object here is now fully ready to train on, and can be passed directly to `model.fit()`! Note
+The returned `tf_ds` object here is now fully ready to train on, and can be passed directly to `model.fit()`. Note
 that you set the batch size when creating the dataset, and so you don't need to specify it when calling `fit()`:
 
 ```py
@@ -203,6 +203,10 @@ suffice, but for more complex tasks a custom collator may be necessary. In parti
 with varying sequence lengths which will require a [data collator](https://huggingface.co/docs/transformers/main/en/main_classes/data_collator) that can pad batches correctly. You can see examples
 of this in the `transformers` NLP [examples](https://github.com/huggingface/transformers/tree/main/examples) and
 [notebooks](https://huggingface.co/docs/transformers/notebooks), where variable sequence lengths are very common.
+
+If you find that loading with `to_tf_dataset` is slow, you can also use the `num_workers` argument. This spins
+up multiple subprocesses to load data in parallel. This feature is recent and still somewhat experimental - please file
+an issue if you encounter any bugs while using it!
 
 ### When to use to_tf_dataset
 
@@ -231,4 +235,4 @@ instead:
 
 ### Caveats and limitations
 
-Right now, `to_tf_dataset()` always return a batched dataset - we will add support for unbatched datasets soon!
+Right now, `to_tf_dataset()` always returns a batched dataset - we will add support for unbatched datasets soon!
