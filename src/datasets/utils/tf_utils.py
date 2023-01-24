@@ -140,7 +140,7 @@ def dataset_to_tf(
                     that do not exist in the original dataset.
                 collate_fn(`Callable`): A function or callable object (such as a `DataCollator`) that will collate
                     lists of samples into a batch.
-                collate_fn_args (:obj:`Dict`): A  `dict` of keyword arguments to be passed to the
+                collate_fn_args (`Dict`): A  `dict` of keyword arguments to be passed to the
                     `collate_fn`. Can be empty.
                 columns_to_np_types (:obj:`Dict[str, np.dtype]`): A `dict` mapping column names to numpy dtypes.
                 output_signature (:obj:`Dict[str, tf.TensorSpec]`): A `dict` mapping column names to
