@@ -152,7 +152,7 @@ def dataset_to_tf(
                     defaults to the same setting as shuffle.
 
             Returns:
-                :class:`tf.data.Dataset`
+                `tf.data.Dataset`
     """
     if config.TF_AVAILABLE:
         import tensorflow as tf
