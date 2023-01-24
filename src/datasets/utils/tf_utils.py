@@ -135,7 +135,7 @@ def dataset_to_tf(
 
             Args:
                 dataset (`Dataset`): Dataset to wrap with tf.data.Dataset.
-                cols_to_retain (:obj:`List[str]`): Dataset column(s) to load in the
+                cols_to_retain (`List[str]`): Dataset column(s) to load in the
                     tf.data.Dataset. It is acceptable to include column names that are created by the `collate_fn` and
                     that do not exist in the original dataset.
                 collate_fn(:obj:`Callable`): A function or callable object (such as a `DataCollator`) that will collate
