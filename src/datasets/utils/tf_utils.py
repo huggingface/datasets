@@ -143,7 +143,7 @@ def dataset_to_tf(
                 collate_fn_args (`Dict`): A  `dict` of keyword arguments to be passed to the
                     `collate_fn`. Can be empty.
                 columns_to_np_types (`Dict[str, np.dtype]`): A `dict` mapping column names to numpy dtypes.
-                output_signature (:obj:`Dict[str, tf.TensorSpec]`): A `dict` mapping column names to
+                output_signature (`Dict[str, tf.TensorSpec]`): A `dict` mapping column names to
                     `tf.TensorSpec` objects.
                 shuffle(:obj:`bool`): Shuffle the dataset order when loading. Recommended True for training, False for
                     validation/evaluation.
