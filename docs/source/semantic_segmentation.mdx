@@ -94,12 +94,12 @@ After defining the color palette, you should be ready to visualize some overlays
 Now apply some augmentations with `albumentations`. You’ll first resize the image and adjust its brightness.
 
 ```py
->>> import albumentations as A
+>>> import albumentations
 
->>> transform = A.Compose(
+>>> transform = albumentations.Compose(
 ...     [
-...         A.Resize(256, 256),
-...         A.RandomBrightnessContrast(brightness_limit=0.3, contrast_limit=0.3, p=0.5),
+...         albumentations.Resize(256, 256),
+...         albumentations.RandomBrightnessContrast(brightness_limit=0.3, contrast_limit=0.3, p=0.5),
 ...     ]
 ... )
 ```

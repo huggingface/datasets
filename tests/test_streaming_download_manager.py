@@ -11,6 +11,7 @@ from datasets.download.streaming_download_manager import (
     StreamingDownloadManager,
     _get_extraction_protocol,
     xbasename,
+    xexists,
     xgetsize,
     xglob,
     xisdir,
@@ -127,8 +128,11 @@ class DummyTestFS(AbstractFileSystem):
 
 
 @pytest.fixture
-def mock_fsspec(monkeypatch):
-    monkeypatch.setitem(fsspec.registry.target, "mock", DummyTestFS)
+def mock_fsspec():
+    original_registry = fsspec.registry.copy()
+    fsspec.register_implementation("mock", DummyTestFS)
+    yield
+    fsspec.registry = original_registry
 
 
 def _readd_double_slash_removed_by_path(path_as_posix: str) -> str:
@@ -211,6 +215,29 @@ def test_xdirname(input_path, expected_path):
     output_path = xdirname(input_path)
     output_path = _readd_double_slash_removed_by_path(Path(output_path).as_posix())
     assert output_path == _readd_double_slash_removed_by_path(Path(expected_path).as_posix())
+
+
+@pytest.mark.parametrize(
+    "input_path, exists",
+    [
+        ("tmp_path/file.txt", True),
+        ("tmp_path/file_that_doesnt_exist.txt", False),
+        ("mock://top_level/second_level/date=2019-10-01/a.parquet", True),
+        ("mock://top_level/second_level/date=2019-10-01/file_that_doesnt_exist.parquet", False),
+    ],
+)
+def test_xexists(input_path, exists, tmp_path, mock_fsspec):
+    if input_path.startswith("tmp_path"):
+        input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
+        (tmp_path / "file.txt").touch()
+    assert xexists(input_path) is exists
+
+
+@pytest.mark.integration
+def test_xexists_private(hf_private_dataset_repo_txt_data, hf_token):
+    root_url = hf_hub_url(hf_private_dataset_repo_txt_data, "")
+    assert xexists(root_url + "data/text_data.txt", use_auth_token=hf_token)
+    assert not xexists(root_url + "file_that_doesnt_exist.txt", use_auth_token=hf_token)
 
 
 @pytest.mark.parametrize(
@@ -507,6 +534,21 @@ class TestxPath:
         assert xPath(input_path).as_posix() == expected_path
 
     @pytest.mark.parametrize(
+        "input_path, exists",
+        [
+            ("tmp_path/file.txt", True),
+            ("tmp_path/file_that_doesnt_exist.txt", False),
+            ("mock://top_level/second_level/date=2019-10-01/a.parquet", True),
+            ("mock://top_level/second_level/date=2019-10-01/file_that_doesnt_exist.parquet", False),
+        ],
+    )
+    def test_xpath_exists(self, input_path, exists, tmp_path, mock_fsspec):
+        if input_path.startswith("tmp_path"):
+            input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
+            (tmp_path / "file.txt").touch()
+        assert xexists(input_path) is exists
+
+    @pytest.mark.parametrize(
         "input_path, pattern, expected_paths",
         [
             ("tmp_path", "*.txt", ["file1.txt", "file2.txt"]),
@@ -757,7 +799,6 @@ def test_streaming_dl_manager_extract_all_supported_single_file_compression_type
         ("https://github.com/user/repo/blob/master/data/morph_train.tsv?raw=true", None),
         ("https://repo.org/bitstream/handle/20.500.12185/346/annotated_corpus.zip?sequence=3&isAllowed=y", "zip"),
         ("https://zenodo.org/record/2787612/files/SICK.zip?download=1", "zip"),
-        ("https://foo.bar/train.tar", "tar"),
     ],
 )
 def test_streaming_dl_manager_get_extraction_protocol(urlpath, expected_protocol):
@@ -781,11 +822,13 @@ def test_streaming_dl_manager_get_extraction_protocol_gg_drive(urlpath, expected
     [
         "zip://train-00000.tar.gz::https://foo.bar/data.zip",
         "https://foo.bar/train.tar.gz",
+        "https://foo.bar/train.tgz",
+        "https://foo.bar/train.tar",
     ],
 )
-def test_streaming_dl_manager_get_extraction_protocol_throws(urlpath):
+def test_streaming_dl_manager_extract_throws(urlpath):
     with pytest.raises(NotImplementedError):
-        _ = _get_extraction_protocol(urlpath)
+        _ = StreamingDownloadManager().extract(urlpath)
 
 
 @slow  # otherwise it spams Google Drive and the CI gets banned
@@ -830,9 +873,11 @@ def _test_jsonl(path, file):
     assert num_items == 4
 
 
-def test_iter_archive_path(tar_jsonl_path):
+@pytest.mark.parametrize("archive_jsonl", ["tar_jsonl_path", "zip_jsonl_path"])
+def test_iter_archive_path(archive_jsonl, request):
+    archive_jsonl_path = request.getfixturevalue(archive_jsonl)
     dl_manager = StreamingDownloadManager()
-    archive_iterable = dl_manager.iter_archive(tar_jsonl_path)
+    archive_iterable = dl_manager.iter_archive(archive_jsonl_path)
     num_jsonl = 0
     for num_jsonl, (path, file) in enumerate(archive_iterable, start=1):
         _test_jsonl(path, file)
@@ -844,9 +889,11 @@ def test_iter_archive_path(tar_jsonl_path):
     assert num_jsonl == 2
 
 
-def test_iter_archive_file(tar_nested_jsonl_path):
+@pytest.mark.parametrize("archive_nested_jsonl", ["tar_nested_jsonl_path", "zip_nested_jsonl_path"])
+def test_iter_archive_file(archive_nested_jsonl, request):
+    archive_nested_jsonl_path = request.getfixturevalue(archive_nested_jsonl)
     dl_manager = StreamingDownloadManager()
-    files_iterable = dl_manager.iter_archive(tar_nested_jsonl_path)
+    files_iterable = dl_manager.iter_archive(archive_nested_jsonl_path)
     num_tar, num_jsonl = 0, 0
     for num_tar, (path, file) in enumerate(files_iterable, start=1):
         for num_jsonl, (subpath, subfile) in enumerate(dl_manager.iter_archive(file), start=1):

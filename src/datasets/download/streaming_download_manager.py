@@ -6,6 +6,7 @@ import re
 import tarfile
 import time
 import xml.dom.minidom
+import zipfile
 from asyncio import TimeoutError
 from io import BytesIO
 from itertools import chain
@@ -53,8 +54,6 @@ COMPRESSION_EXTENSION_TO_PROTOCOL = {
     **{fs_class.extension.lstrip("."): fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS},
     # archive compression
     "zip": "zip",
-    "tar": "tar",
-    "tgz": "tar",
 }
 SINGLE_FILE_COMPRESSION_PROTOCOLS = {fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS}
 SINGLE_SLASH_AFTER_PROTOCOL_PATTERN = re.compile(r"(?<!:):/")
@@ -139,6 +138,36 @@ def xdirname(a):
     if a.endswith(":"):
         a += "//"
     return "::".join([a] + b)
+
+
+def xexists(urlpath: str, use_auth_token: Optional[Union[str, bool]] = None):
+    """Extend `os.path.exists` function to support both local and remote files.
+
+    Args:
+        urlpath (`str`): URL path.
+        use_auth_token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
+            Hugging Face Hub for private remote files.
+
+    Returns:
+        `bool`
+    """
+
+    main_hop, *rest_hops = _as_str(urlpath).split("::")
+    if is_local_path(main_hop):
+        return os.path.exists(main_hop)
+    else:
+        if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
+            main_hop, http_kwargs = _prepare_http_url_kwargs(main_hop, use_auth_token=use_auth_token)
+            storage_options = http_kwargs
+        elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
+            url = rest_hops[0]
+            url, http_kwargs = _prepare_http_url_kwargs(url, use_auth_token=use_auth_token)
+            storage_options = {"https": http_kwargs}
+            urlpath = "::".join([main_hop, url, *rest_hops[1:]])
+        else:
+            storage_options = None
+        fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
+        return fs.exists(main_hop)
 
 
 def xbasename(a):
@@ -353,13 +382,28 @@ def _add_retries_to_file_obj_read_method(file_obj):
     file_obj.read = read_with_retries
 
 
+def _get_path_extension(path: str) -> str:
+    # Get extension: https://foo.bar/train.json.gz -> gz
+    extension = path.split(".")[-1]
+    # Remove query params ("dl=1", "raw=true"): gz?dl=1 -> gz
+    # Remove shards infos (".txt_1", ".txt-00000-of-00100"): txt_1 -> txt
+    for symb in "?-_":
+        extension = extension.split(symb)[0]
+    return extension
+
+
 def _get_extraction_protocol_with_magic_number(f) -> Optional[str]:
     """read the magic number from a file-like object and return the compression protocol"""
+    # Check if the file object is seekable even before reading the magic number (to avoid https://bugs.python.org/issue26440)
+    try:
+        f.seek(0)
+    except (AttributeError, io.UnsupportedOperation):
+        return None
     magic_number = f.read(MAGIC_NUMBER_MAX_LENGTH)
     f.seek(0)
     for i in range(MAGIC_NUMBER_MAX_LENGTH):
         compression = MAGIC_NUMBER_TO_COMPRESSION_PROTOCOL.get(magic_number[: MAGIC_NUMBER_MAX_LENGTH - i])
-        if compression is not None:  # TODO(QL): raise an error for .tar.gz files as in _get_extraction_protocol
+        if compression is not None:
             return compression
         compression = MAGIC_NUMBER_TO_UNSUPPORTED_COMPRESSION_PROTOCOL.get(magic_number[: MAGIC_NUMBER_MAX_LENGTH - i])
         if compression is not None:
@@ -368,22 +412,17 @@ def _get_extraction_protocol_with_magic_number(f) -> Optional[str]:
 
 def _get_extraction_protocol(urlpath: str, use_auth_token: Optional[Union[str, bool]] = None) -> Optional[str]:
     # get inner file: zip://train-00000.json.gz::https://foo.bar/data.zip -> zip://train-00000.json.gz
+    urlpath = str(urlpath)
     path = urlpath.split("::")[0]
-    # Get extension: https://foo.bar/train.json.gz -> gz
-    extension = path.split(".")[-1]
-    # Remove query params ("dl=1", "raw=true"): gz?dl=1 -> gz
-    # Remove shards infos (".txt_1", ".txt-00000-of-00100"): txt_1 -> txt
-    for symb in "?-_":
-        extension = extension.split(symb)[0]
-    if extension in BASE_KNOWN_EXTENSIONS:
+    extension = _get_path_extension(path)
+    if (
+        extension in BASE_KNOWN_EXTENSIONS
+        or extension in ["tgz", "tar"]
+        or path.endswith((".tar.gz", ".tar.bz2", ".tar.xz"))
+    ):
         return None
-    elif path.endswith(".tar.gz") or path.endswith(".tgz"):
-        raise NotImplementedError(
-            f"Extraction protocol for TAR archives like '{urlpath}' is not implemented in streaming mode. Please use `dl_manager.iter_archive` instead."
-        )
     elif extension in COMPRESSION_EXTENSION_TO_PROTOCOL:
         return COMPRESSION_EXTENSION_TO_PROTOCOL[extension]
-
     if is_remote_url(urlpath):
         # get headers and cookies for authentication on the HF Hub and for Google Drive
         urlpath, kwargs = _prepare_http_url_kwargs(urlpath, use_auth_token=use_auth_token)
@@ -584,6 +623,18 @@ class xPath(type(Path())):
         path_as_posix += "//" if path_as_posix.endswith(":") else ""  # Add slashes to root of the protocol
         return path_as_posix
 
+    def exists(self, use_auth_token: Optional[Union[str, bool]] = None):
+        """Extend `pathlib.Path.exists` method to support both local and remote files.
+
+        Args:
+            use_auth_token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
+                Hugging Face Hub for private remote files.
+
+        Returns:
+            `bool`
+        """
+        return xexists(str(self), use_auth_token=use_auth_token)
+
     def glob(self, pattern, use_auth_token: Optional[Union[str, bool]] = None):
         """Glob function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
 
@@ -723,10 +774,22 @@ def xpandas_read_csv(filepath_or_buffer, use_auth_token: Optional[Union[str, boo
         return pd.read_csv(xopen(filepath_or_buffer, "rb", use_auth_token=use_auth_token), **kwargs)
 
 
-def xpandas_read_excel(filepath_or_buffer, **kwargs):
+def xpandas_read_excel(filepath_or_buffer, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
     import pandas as pd
 
-    return pd.read_excel(BytesIO(filepath_or_buffer.read()), **kwargs)
+    if hasattr(filepath_or_buffer, "read"):
+        try:
+            return pd.read_excel(filepath_or_buffer, **kwargs)
+        except ValueError:  # Cannot seek streaming HTTP file
+            return pd.read_excel(BytesIO(filepath_or_buffer.read()), **kwargs)
+    else:
+        filepath_or_buffer = str(filepath_or_buffer)
+        try:
+            return pd.read_excel(xopen(filepath_or_buffer, "rb", use_auth_token=use_auth_token), **kwargs)
+        except ValueError:  # Cannot seek streaming HTTP file
+            return pd.read_excel(
+                BytesIO(xopen(filepath_or_buffer, "rb", use_auth_token=use_auth_token).read()), **kwargs
+            )
 
 
 def xsio_loadmat(filepath_or_buffer, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
@@ -791,8 +854,8 @@ class _IterableFromGenerator(Iterable):
 class ArchiveIterable(_IterableFromGenerator):
     """An iterable of (path, fileobj) from a TAR archive, used by `iter_archive`"""
 
-    @classmethod
-    def _iter_from_fileobj(cls, f) -> Generator[Tuple, None, None]:
+    @staticmethod
+    def _iter_tar(f):
         stream = tarfile.open(fileobj=f, mode="r|*")
         for tarinfo in stream:
             file_path = tarinfo.name
@@ -808,12 +871,39 @@ class ArchiveIterable(_IterableFromGenerator):
             stream.members = []
         del stream
 
+    @staticmethod
+    def _iter_zip(f):
+        zipf = zipfile.ZipFile(f)
+        for member in zipf.infolist():
+            file_path = member.filename
+            if member.is_dir():
+                continue
+            if file_path is None:
+                continue
+            if os.path.basename(file_path).startswith((".", "__")):
+                # skipping hidden files
+                continue
+            file_obj = zipf.open(member)
+            yield file_path, file_obj
+
+    @classmethod
+    def _iter_from_fileobj(cls, f) -> Generator[Tuple, None, None]:
+        compression = _get_extraction_protocol_with_magic_number(f)
+        if compression == "zip":
+            yield from cls._iter_zip(f)
+        else:
+            yield from cls._iter_tar(f)
+
     @classmethod
     def _iter_from_urlpath(
         cls, urlpath: str, use_auth_token: Optional[Union[str, bool]] = None
     ) -> Generator[Tuple, None, None]:
+        compression = _get_extraction_protocol(urlpath, use_auth_token=use_auth_token)
         with xopen(urlpath, "rb", use_auth_token=use_auth_token) as f:
-            yield from cls._iter_from_fileobj(f)
+            if compression == "zip":
+                yield from cls._iter_zip(f)
+            else:
+                yield from cls._iter_tar(f)
 
     @classmethod
     def from_buf(cls, fileobj) -> "ArchiveIterable":
@@ -937,6 +1027,19 @@ class StreamingDownloadManager:
     def _extract(self, urlpath: str) -> str:
         urlpath = str(urlpath)
         protocol = _get_extraction_protocol(urlpath, use_auth_token=self.download_config.use_auth_token)
+        # get inner file: zip://train-00000.json.gz::https://foo.bar/data.zip -> zip://train-00000.json.gz
+        path = urlpath.split("::")[0]
+        extension = _get_path_extension(path)
+        if extension in ["tgz", "tar"] or path.endswith((".tar.gz", ".tar.bz2", ".tar.xz")):
+            raise NotImplementedError(
+                f"Extraction protocol for TAR archives like '{urlpath}' is not implemented in streaming mode. "
+                f"Please use `dl_manager.iter_archive` instead.\n\n"
+                f"Example usage:\n\n"
+                f"\turl = dl_manager.download(url)\n"
+                f"\ttar_archive_iterator = dl_manager.iter_archive(url)\n\n"
+                f"\tfor filename, file in tar_archive_iterator:\n"
+                f"\t\t..."
+            )
         if protocol is None:
             # no extraction
             return urlpath
@@ -944,11 +1047,7 @@ class StreamingDownloadManager:
             # there is one single file which is the uncompressed file
             inner_file = os.path.basename(urlpath.split("::")[0])
             inner_file = inner_file[: inner_file.rindex(".")] if "." in inner_file else inner_file
-            # check for tar.gz, tar.bz2 etc.
-            if inner_file.endswith(".tar"):
-                return f"tar://::{protocol}://{inner_file}::{urlpath}"
-            else:
-                return f"{protocol}://{inner_file}::{urlpath}"
+            return f"{protocol}://{inner_file}::{urlpath}"
         else:
             return f"{protocol}://::{urlpath}"
 

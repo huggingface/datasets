@@ -19,10 +19,10 @@ Here are examples for S3, Google Cloud Storage and Azure Blob Storage.
 
 ### Amazon S3
 
-1. Install the S3 dependency with 🤗 Datasets:
+1. Install the S3 FileSystem implementation:
 
 ```
->>> pip install datasets[s3]
+>>> pip install s3fs
 ```
 
 2. Define your credentials
@@ -35,8 +35,8 @@ Otherwise, include your `aws_access_key_id` and `aws_secret_access_key` whenever
 # or use your credentials
 >>> storage_options = {"key": aws_access_key_id, "secret": aws_secret_access_key}  # for private buckets
 # or use a botocore session
->>> import botocore
->>> s3_session = botocore.session.Session(profile="my_profile_name")
+>>> import aiobotocore.session
+>>> s3_session = aiobotocore.session.AioSession(profile="my_profile_name")
 >>> storage_options = {"session": s3_session}
 ```
 
@@ -89,7 +89,7 @@ Otherwise, include your `aws_access_key_id` and `aws_secret_access_key` whenever
 ```py
 >>> storage_options = {"anon": True}  # for anonymous connection
 # or use your credentials
->>> storage_options = {"account_name": ACCOUNT_NAME, "account_key": ACCOUNT_KEY)  # gen 2 filesystem
+>>> storage_options = {"account_name": ACCOUNT_NAME, "account_key": ACCOUNT_KEY}  # gen 2 filesystem
 # or use your credentials with the gen 1 filesystem
 >>> storage_options={"tenant_id": TENANT_ID, "client_id": CLIENT_ID, "client_secret": CLIENT_SECRET}
 ```
@@ -173,11 +173,11 @@ After you have processed your dataset, you can save it to your cloud storage wit
 
 ```py
 # saves encoded_dataset to amazon s3
->>> encoded_dataset.save_to_disk("s3://my-private-datasets/imdb/train", fs=fs)
+>>> encoded_dataset.save_to_disk("s3://my-private-datasets/imdb/train", storage_options=storage_options)
 # saves encoded_dataset to google cloud storage
->>> encoded_dataset.save_to_disk("gcs://my-private-datasets/imdb/train", fs=fs)
+>>> encoded_dataset.save_to_disk("gcs://my-private-datasets/imdb/train", storage_options=storage_options)
 # saves encoded_dataset to microsoft azure blob/datalake
->>> encoded_dataset.save_to_disk("adl://my-private-datasets/imdb/train", fs=fs)
+>>> encoded_dataset.save_to_disk("adl://my-private-datasets/imdb/train", storage_options=storage_options)
 ```
 
 <Tip>
@@ -202,7 +202,7 @@ When you are ready to use your dataset again, reload it with [`Dataset.load_from
 ```py
 >>> from datasets import load_from_disk
 # load encoded_dataset from cloud storage
->>> dataset = load_from_disk("s3://a-public-datasets/imdb/train", fs=fs)  
+>>> dataset = load_from_disk("s3://a-public-datasets/imdb/train", storage_options=storage_options)  
 >>> print(len(dataset))
 25000
 ```

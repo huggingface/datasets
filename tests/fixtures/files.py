@@ -409,6 +409,14 @@ def zip_jsonl_path(jsonl_path, jsonl2_path, tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
+def zip_nested_jsonl_path(zip_jsonl_path, jsonl_path, jsonl2_path, tmp_path_factory):
+    path = tmp_path_factory.mktemp("data") / "dataset_nested.jsonl.zip"
+    with zipfile.ZipFile(path, "w") as f:
+        f.write(zip_jsonl_path, arcname=os.path.join("nested", os.path.basename(zip_jsonl_path)))
+    return path
+
+
+@pytest.fixture(scope="session")
 def zip_jsonl_with_dir_path(jsonl_path, jsonl2_path, tmp_path_factory):
     path = tmp_path_factory.mktemp("data") / "dataset_with_dir.jsonl.zip"
     with zipfile.ZipFile(path, "w") as f:

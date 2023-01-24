@@ -74,11 +74,14 @@ class MockFileSystem(AbstractFileSystem):
 
 
 @pytest.fixture
-def mock_fsspec(monkeypatch):
-    monkeypatch.setitem(fsspec.registry.target, "mock", MockFileSystem)
+def mock_fsspec():
+    original_registry = fsspec.registry.copy()
+    fsspec.register_implementation("mock", MockFileSystem)
+    yield
+    fsspec.registry = original_registry
 
 
 @pytest.fixture
 def mockfs(tmp_path_factory, mock_fsspec):
     local_fs_dir = tmp_path_factory.mktemp("mockfs")
-    return MockFileSystem(local_root_dir=local_fs_dir)
+    return MockFileSystem(local_root_dir=local_fs_dir, auto_mkdir=True)

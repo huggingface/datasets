@@ -87,7 +87,7 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
 def get_verbosity() -> int:
     """Return the current level for the HuggingFace datasets library's root logger.
     Returns:
-        Logging level, e.g., ``datasets.logging.DEBUG`` and ``datasets.logging.INFO``.
+        Logging level, e.g., `datasets.logging.DEBUG` and `datasets.logging.INFO`.
 
     <Tip>
 
@@ -104,50 +104,50 @@ def get_verbosity() -> int:
 
 
 def set_verbosity(verbosity: int) -> None:
-    """Set the level for the HuggingFace datasets library's root logger.
+    """Set the level for the Hugging Face Datasets library's root logger.
     Args:
         verbosity:
-            Logging level, e.g., ``datasets.logging.DEBUG`` and ``datasets.logging.INFO``.
+            Logging level, e.g., `datasets.logging.DEBUG` and `datasets.logging.INFO`.
     """
     _get_library_root_logger().setLevel(verbosity)
 
 
 def set_verbosity_info():
-    """Set the level for the HuggingFace datasets library's root logger to INFO.
+    """Set the level for the Hugging Face datasets library's root logger to `INFO`.
 
     This will display most of the logging information and tqdm bars.
 
-    Shortcut to ``datasets.logging.set_verbosity(datasets.logging.INFO)``
+    Shortcut to `datasets.logging.set_verbosity(datasets.logging.INFO)`.
     """
     return set_verbosity(INFO)
 
 
 def set_verbosity_warning():
-    """Set the level for the HuggingFace datasets library's root logger to WARNING.
+    """Set the level for the Hugging Face datasets library's root logger to `WARNING`.
 
     This will display only the warning and errors logging information and tqdm bars.
 
-    Shortcut to ``datasets.logging.set_verbosity(datasets.logging.WARNING)``
+    Shortcut to `datasets.logging.set_verbosity(datasets.logging.WARNING)`.
     """
     return set_verbosity(WARNING)
 
 
 def set_verbosity_debug():
-    """Set the level for the HuggingFace datasets library's root logger to DEBUG.
+    """Set the level for the Hugging Face datasets library's root logger to `DEBUG`.
 
     This will display all the logging information and tqdm bars.
 
-    Shortcut to ``datasets.logging.set_verbosity(datasets.logging.DEBUG)``
+    Shortcut to `datasets.logging.set_verbosity(datasets.logging.DEBUG)`.
     """
     return set_verbosity(DEBUG)
 
 
 def set_verbosity_error():
-    """Set the level for the HuggingFace datasets library's root logger to ERROR.
+    """Set the level for the Hugging Face datasets library's root logger to `ERROR`.
 
     This will display only the errors logging information and tqdm bars.
 
-    Shortcut to ``datasets.logging.set_verbosity(datasets.logging.ERROR)``
+    Shortcut to `datasets.logging.set_verbosity(datasets.logging.ERROR)`.
     """
     return set_verbosity(ERROR)
 
@@ -161,7 +161,7 @@ def disable_propagation() -> None:
 
 def enable_propagation() -> None:
     """Enable propagation of the library log outputs.
-    Please disable the HuggingFace datasets library's default handler to prevent double logging if the root logger has
+    Please disable the Hugging Face datasets library's default handler to prevent double logging if the root logger has
     been configured.
     """
     _get_library_root_logger().propagate = True

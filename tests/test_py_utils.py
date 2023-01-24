@@ -240,6 +240,10 @@ def test_asdict():
         asdict([1, A(x=10, y="foo")])
 
 
+def _split_text(text: str):
+    return text.split()
+
+
 def _2seconds_generator_of_2items_with_timing(content):
     yield (time.time(), content)
     time.sleep(2)
@@ -249,14 +253,14 @@ def _2seconds_generator_of_2items_with_timing(content):
 def test_iflatmap_unordered():
 
     with Pool(2) as pool:
-        out = list(iflatmap_unordered(pool, str.split, ["hello there"] * 10))
+        out = list(iflatmap_unordered(pool, _split_text, kwargs_iterable=[{"text": "hello there"}] * 10))
         assert out.count("hello") == 10
         assert out.count("there") == 10
         assert len(out) == 20
 
     # check multiprocess from pathos (uses dill for pickling)
     with multiprocess.Pool(2) as pool:
-        out = list(iflatmap_unordered(pool, str.split, ["hello there"] * 10))
+        out = list(iflatmap_unordered(pool, _split_text, kwargs_iterable=[{"text": "hello there"}] * 10))
         assert out.count("hello") == 10
         assert out.count("there") == 10
         assert len(out) == 20
@@ -264,7 +268,9 @@ def test_iflatmap_unordered():
     # check that we get items as fast as possible
     with Pool(2) as pool:
         out = []
-        for yield_time, content in iflatmap_unordered(pool, _2seconds_generator_of_2items_with_timing, ["a", "b"]):
+        for yield_time, content in iflatmap_unordered(
+            pool, _2seconds_generator_of_2items_with_timing, kwargs_iterable=[{"content": "a"}, {"content": "b"}]
+        ):
             assert yield_time < time.time() + 0.1, "we should each item directly after it was yielded"
             out.append(content)
         assert out.count("a") == 2
