@@ -1776,7 +1776,9 @@ def load_dataset(
     return ds
 
 
-def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = None) -> Union[Dataset, DatasetDict]:
+def load_from_disk(
+    dataset_path: str, fs="deprecated", keep_in_memory: Optional[bool] = None, storage_options: Optional[dict] = None
+) -> Union[Dataset, DatasetDict]:
     """
     Loads a dataset that was previously saved using [`~Dataset.save_to_disk`] from a dataset directory, or
     from a filesystem using either [`~datasets.filesystems.S3FileSystem`] or any implementation of
@@ -1787,12 +1789,25 @@ def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = 
             Path (e.g. `"dataset/train"`) or remote URI (e.g.
             `"s3://my-bucket/dataset/train"`) of the [`Dataset`] or [`DatasetDict`] directory where the dataset will be
             loaded from.
-        fs (`~filesystems.S3FileSystem` or `fsspec.spec.AbstractFileSystem`, *optional*, defaults to `None`):
+        fs (`~filesystems.S3FileSystem` or `fsspec.spec.AbstractFileSystem`, *optional*):
             Instance of the remote filesystem used to download the files from.
+
+            <Deprecated version="2.9.0">
+
+            `fs` was deprecated in version 2.9.0 and will be removed in 3.0.0.
+            Please use `storage_options` instead, e.g. `storage_options=fs.storage_options`.
+
+            </Deprecated>
+
         keep_in_memory (`bool`, defaults to `None`):
             Whether to copy the dataset in-memory. If `None`, the dataset
             will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
             nonzero. See more details in the [improve performance](./cache#improve-performance) section.
+
+        storage_options (`dict`, *optional*):
+            Key/value pairs to be passed on to the file-system backend, if any.
+
+            <Added version="2.9.0"/>
 
     Returns:
         [`Dataset`] or [`DatasetDict`]:
@@ -1806,6 +1821,17 @@ def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = 
     >>> ds = load_from_disk('path/to/dataset/directory')
     ```
     """
+    if fs != "deprecated":
+        warnings.warn(
+            "'fs' was deprecated in favor of 'storage_options' in version 2.9.0 and will be removed in 3.0.0.\n"
+            "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
+            FutureWarning,
+        )
+        storage_options = fs.storage_options
+
+    fs_token_paths = fsspec.get_fs_token_paths(dataset_path, storage_options=storage_options)
+    fs: fsspec.AbstractFileSystem = fs_token_paths[0]
+
     # gets filesystem from dataset, either s3:// or file:// and adjusted dataset_path
     if is_remote_filesystem(fs):
         dest_dataset_path = extract_path_from_uri(dataset_path)
@@ -1816,9 +1842,9 @@ def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = 
     if not fs.exists(dest_dataset_path):
         raise FileNotFoundError(f"Directory {dataset_path} not found")
     if fs.isfile(Path(dest_dataset_path, config.DATASET_INFO_FILENAME).as_posix()):
-        return Dataset.load_from_disk(dataset_path, fs, keep_in_memory=keep_in_memory)
+        return Dataset.load_from_disk(dataset_path, keep_in_memory=keep_in_memory, storage_options=storage_options)
     elif fs.isfile(Path(dest_dataset_path, config.DATASETDICT_JSON_FILENAME).as_posix()):
-        return DatasetDict.load_from_disk(dataset_path, fs, keep_in_memory=keep_in_memory)
+        return DatasetDict.load_from_disk(dataset_path, keep_in_memory=keep_in_memory, storage_options=storage_options)
     else:
         raise FileNotFoundError(
             f"Directory {dataset_path} is neither a dataset directory nor a dataset dict directory."

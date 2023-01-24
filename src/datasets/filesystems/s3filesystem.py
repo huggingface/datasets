@@ -95,7 +95,7 @@ class S3FileSystem(s3fs.S3FileSystem):
     >>> from datasets.filesystems import S3Filesystem
 
     >>> s3 = S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key)  # doctest: +SKIP
-    >>> dataset = load_from_disk('s3://my-private-datasets/imdb/train', fs=s3)  # doctest: +SKIP
+    >>> dataset = load_from_disk('s3://my-private-datasets/imdb/train', storage_options=s3.storage_options)  # doctest: +SKIP
     >>> print(len(dataset))
     25000
     ```
@@ -108,6 +108,6 @@ class S3FileSystem(s3fs.S3FileSystem):
 
     >>> dataset = load_dataset("imdb")
     >>> s3 = S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key)  # doctest: +SKIP
-    >>> dataset.save_to_disk('s3://my-private-datasets/imdb/train', fs=s3)  # doctest: +SKIP
+    >>> dataset.save_to_disk('s3://my-private-datasets/imdb/train', storage_options=s3.storage_options)  # doctest: +SKIP
     ```
     """

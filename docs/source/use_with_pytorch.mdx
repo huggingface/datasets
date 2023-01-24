@@ -191,8 +191,8 @@ For the PyTorch `DataLoader` to query batches using a list, you can use a `Batch
 
 ```py
 >>> from torch.utils.data.sampler import BatchSampler, RandomSampler
->>> sampler = BatchSampler(RandomSampler(ds), batch_size=32, drop_last=False)
->>> dataloader = DataLoader(ds, sampler=sampler)
+>>> batch_sampler = BatchSampler(RandomSampler(ds), batch_size=32, drop_last=False)
+>>> dataloader = DataLoader(ds, batch_sampler=batch_sampler)
 ```
 
 Moreover, this is particularly useful if you used [`set_transform`] to apply a transform on-the-fly when examples are accessed.
@@ -201,7 +201,7 @@ You must use a `BatchSampler` if you want the transform to be given full batches
 ### Stream data
 
 Loading a dataset in streaming mode allows one to iterate over the dataset without downloading it on disk.
-An iterable dataset from `datasets` inherits from `torch.utils.data.IterableDataset` so you can pass it to a `DataLoader`:
+An iterable dataset from `datasets` inherits from `torch.utils.data.IterableDataset` so you can pass it to a `torch.utils.data.DataLoader`:
 
 ```py
 >>> import numpy as np
@@ -222,4 +222,30 @@ If the dataset is split in several shards (i.e. if the dataset consists of multi
 >>> dataloader = DataLoader(ds, batch_size=32, num_workers=4)
 ```
 
-In this case each worker will be given a subset of the list of shards to stream from.
+In this case each worker is given a subset of the list of shards to stream from.
+
+### Distributed
+
+To split your dataset across your training nodes, you can use [`datasets.distributed.split_dataset_by_node`]:
+
+```python
+import os
+from datasets.distributed import split_dataset_by_node
+
+ds = split_dataset_by_node(ds, rank=int(os.environ["RANK"]), world_size=int(os.environ["WORLD_SIZE"]))
+```
+
+This works for both map-style datasets and iterable datasets.
+The dataset is split for the node at rank `rank` in a pool of nodes of size `world_size`.
+
+For map-style datasets:
+
+Each node is assigned a chunk of data, e.g. rank 0 is given the first chunk of the dataset.
+
+For iterable datasets:
+
+If the dataset has a number of shards that is a factor of `world_size` (i.e. if `dataset.n_shards % world_size == 0`),
+then the shards are evenly assigned across the nodes, which is the most optimized.
+Otherwise, each node keeps 1 example out of `world_size`, skipping the other examples.
+
+This can also be combined with a `torch.utils.data.DataLoader` if you want each node to use multiple workers to load the data.

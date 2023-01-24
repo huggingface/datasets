@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from datasets.utils.extract import (
@@ -136,3 +138,48 @@ def test_extractor(
         extracted_file_content = output_path.read_text(encoding="utf-8")
     expected_file_content = text_file.read_text(encoding="utf-8")
     assert extracted_file_content == expected_file_content
+
+
+@pytest.fixture
+def tar_file_with_dot_dot(tmp_path, text_file):
+    import tarfile
+
+    directory = tmp_path / "data_dot_dot"
+    directory.mkdir()
+    path = directory / "tar_file_with_dot_dot.tar"
+    with tarfile.TarFile(path, "w") as f:
+        f.add(text_file, arcname=os.path.join("..", text_file.name))
+    return path
+
+
+@pytest.fixture
+def tar_file_with_sym_link(tmp_path):
+    import tarfile
+
+    directory = tmp_path / "data_sym_link"
+    directory.mkdir()
+    path = directory / "tar_file_with_sym_link.tar"
+    os.symlink("..", directory / "subdir", target_is_directory=True)
+    with tarfile.TarFile(path, "w") as f:
+        f.add(str(directory / "subdir"), arcname="subdir")  # str required by os.readlink on Windows and Python < 3.8
+    return path
+
+
+@pytest.mark.parametrize(
+    "insecure_tar_file, error_log",
+    [("tar_file_with_dot_dot", "illegal path"), ("tar_file_with_sym_link", "Symlink")],
+)
+def test_tar_extract_insecure_files(
+    insecure_tar_file, error_log, tar_file_with_dot_dot, tar_file_with_sym_link, tmp_path, caplog
+):
+    insecure_tar_files = {
+        "tar_file_with_dot_dot": tar_file_with_dot_dot,
+        "tar_file_with_sym_link": tar_file_with_sym_link,
+    }
+    input_path = insecure_tar_files[insecure_tar_file]
+    output_path = tmp_path / "extracted"
+    TarExtractor.extract(input_path, output_path)
+    assert caplog.text
+    for record in caplog.records:
+        assert record.levelname == "ERROR"
+        assert error_log in record.msg

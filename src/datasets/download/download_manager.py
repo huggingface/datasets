@@ -22,8 +22,10 @@ import posixpath
 import tarfile
 import time
 import warnings
+import zipfile
 from datetime import datetime
 from functools import partial
+from itertools import chain
 from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
 
 from .. import config
@@ -36,6 +38,40 @@ from .download_config import DownloadConfig
 
 
 logger = get_logger(__name__)
+
+
+BASE_KNOWN_EXTENSIONS = [
+    "txt",
+    "csv",
+    "json",
+    "jsonl",
+    "tsv",
+    "conll",
+    "conllu",
+    "orig",
+    "parquet",
+    "pkl",
+    "pickle",
+    "rel",
+    "xml",
+]
+MAGIC_NUMBER_TO_COMPRESSION_PROTOCOL = {
+    bytes.fromhex("504B0304"): "zip",
+    bytes.fromhex("504B0506"): "zip",  # empty archive
+    bytes.fromhex("504B0708"): "zip",  # spanned archive
+    bytes.fromhex("425A68"): "bz2",
+    bytes.fromhex("1F8B"): "gzip",
+    bytes.fromhex("FD377A585A00"): "xz",
+    bytes.fromhex("04224D18"): "lz4",
+    bytes.fromhex("28B52FFD"): "zstd",
+}
+MAGIC_NUMBER_TO_UNSUPPORTED_COMPRESSION_PROTOCOL = {
+    b"Rar!": "rar",
+}
+MAGIC_NUMBER_MAX_LENGTH = max(
+    len(magic_number)
+    for magic_number in chain(MAGIC_NUMBER_TO_COMPRESSION_PROTOCOL, MAGIC_NUMBER_TO_UNSUPPORTED_COMPRESSION_PROTOCOL)
+)
 
 
 class DownloadMode(enum.Enum):
@@ -69,6 +105,48 @@ class GenerateMode(DeprecatedEnum):
         return "Use 'DownloadMode' instead."
 
 
+def _get_path_extension(path: str) -> str:
+    # Get extension: train.json.gz -> gz
+    extension = path.split(".")[-1]
+    # Remove query params ("dl=1", "raw=true"): gz?dl=1 -> gz
+    # Remove shards infos (".txt_1", ".txt-00000-of-00100"): txt_1 -> txt
+    for symb in "?-_":
+        extension = extension.split(symb)[0]
+    return extension
+
+
+def _get_extraction_protocol_with_magic_number(f) -> Optional[str]:
+    """read the magic number from a file-like object and return the compression protocol"""
+    # Check if the file object is seekable even before reading the magic number (to avoid https://bugs.python.org/issue26440)
+    try:
+        f.seek(0)
+    except (AttributeError, io.UnsupportedOperation):
+        return None
+    magic_number = f.read(MAGIC_NUMBER_MAX_LENGTH)
+    f.seek(0)
+    for i in range(MAGIC_NUMBER_MAX_LENGTH):
+        compression = MAGIC_NUMBER_TO_COMPRESSION_PROTOCOL.get(magic_number[: MAGIC_NUMBER_MAX_LENGTH - i])
+        if compression is not None:
+            return compression
+        compression = MAGIC_NUMBER_TO_UNSUPPORTED_COMPRESSION_PROTOCOL.get(magic_number[: MAGIC_NUMBER_MAX_LENGTH - i])
+        if compression is not None:
+            raise NotImplementedError(f"Compression protocol '{compression}' not implemented.")
+
+
+def _get_extraction_protocol(path: str) -> Optional[str]:
+    path = str(path)
+    extension = _get_path_extension(path)
+    # TODO(mariosasko): The below check will be useful once we can preserve the original extension in the new cache layout (use the `filename` parameter of `hf_hub_download`)
+    if (
+        extension in BASE_KNOWN_EXTENSIONS
+        or extension in ["tgz", "tar"]
+        or path.endswith((".tar.gz", ".tar.bz2", ".tar.xz"))
+    ):
+        return None
+    with open(path, "rb") as f:
+        return _get_extraction_protocol_with_magic_number(f)
+
+
 class _IterableFromGenerator(Iterable):
     """Utility class to create an iterable from a generator function, in order to reset the generator when needed."""
 
@@ -84,8 +162,8 @@ class _IterableFromGenerator(Iterable):
 class ArchiveIterable(_IterableFromGenerator):
     """An iterable of (path, fileobj) from a TAR archive, used by `iter_archive`"""
 
-    @classmethod
-    def _iter_from_fileobj(cls, f) -> Generator[Tuple, None, None]:
+    @staticmethod
+    def _iter_tar(f):
         stream = tarfile.open(fileobj=f, mode="r|*")
         for tarinfo in stream:
             file_path = tarinfo.name
@@ -93,7 +171,7 @@ class ArchiveIterable(_IterableFromGenerator):
                 continue
             if file_path is None:
                 continue
-            if os.path.basename(file_path).startswith(".") or os.path.basename(file_path).startswith("__"):
+            if os.path.basename(file_path).startswith((".", "__")):
                 # skipping hidden files
                 continue
             file_obj = stream.extractfile(tarinfo)
@@ -101,10 +179,37 @@ class ArchiveIterable(_IterableFromGenerator):
             stream.members = []
         del stream
 
+    @staticmethod
+    def _iter_zip(f):
+        zipf = zipfile.ZipFile(f)
+        for member in zipf.infolist():
+            file_path = member.filename
+            if member.is_dir():
+                continue
+            if file_path is None:
+                continue
+            if os.path.basename(file_path).startswith((".", "__")):
+                # skipping hidden files
+                continue
+            file_obj = zipf.open(member)
+            yield file_path, file_obj
+
+    @classmethod
+    def _iter_from_fileobj(cls, f) -> Generator[Tuple, None, None]:
+        compression = _get_extraction_protocol_with_magic_number(f)
+        if compression == "zip":
+            yield from cls._iter_zip(f)
+        else:
+            yield from cls._iter_tar(f)
+
     @classmethod
     def _iter_from_path(cls, urlpath: str) -> Generator[Tuple, None, None]:
+        compression = _get_extraction_protocol(urlpath)
         with open(urlpath, "rb") as f:
-            yield from cls._iter_from_fileobj(f)
+            if compression == "zip":
+                yield from cls._iter_zip(f)
+            else:
+                yield from cls._iter_tar(f)
 
     @classmethod
     def from_buf(cls, fileobj) -> "ArchiveIterable":
