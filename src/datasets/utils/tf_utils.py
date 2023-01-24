@@ -138,7 +138,7 @@ def dataset_to_tf(
                 cols_to_retain (`List[str]`): Dataset column(s) to load in the
                     tf.data.Dataset. It is acceptable to include column names that are created by the `collate_fn` and
                     that do not exist in the original dataset.
-                collate_fn(:obj:`Callable`): A function or callable object (such as a `DataCollator`) that will collate
+                collate_fn(`Callable`): A function or callable object (such as a `DataCollator`) that will collate
                     lists of samples into a batch.
                 collate_fn_args (:obj:`Dict`): A  `dict` of keyword arguments to be passed to the
                     `collate_fn`. Can be empty.
