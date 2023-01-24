@@ -135,7 +135,7 @@ def import_main_class(module_path, dataset=True) -> Optional[Union[Type[DatasetB
 
 
 # TODO: provide meaningful `name` from dataset
-def parametrize_packaged_builder(builder_cls, metadata_configs, name="custom"):
+def parametrize_packaged_builder(builder_cls, metadata_configs, name):
     # TODO: maybe should be not here
     for meta_config in metadata_configs.values():
         meta_config["name"] = meta_config.pop("config_name")
@@ -735,6 +735,11 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[DownloadMode] = None,
     ):
+        if config_name and not data_dir:
+            raise ValueError(
+                "You should specify `data_dir` when providing a `config_name`, otherwise resolving is not possible"
+            )
+        # if config_name and data_files: TODO - ?
 
         self.name = name
         self.config_name = config_name
@@ -745,9 +750,9 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
-        config_kwargs = {}
-        if self.config_name and os.path.isfile(os.path.join(self.path, "README.md")):
-            dataset_metadata = DatasetMetadata.from_readme(Path(self.path) / "README.md")
+        config_kwargs, configs_metadata = {}, {}
+        if self.config_name and os.path.isfile(os.path.join(self.data_dir, "README.md")):
+            dataset_metadata = DatasetMetadata.from_readme(Path(self.data_dir) / "README.md")
             if config.METADATA_CONFIGS_FIELD_NAME in dataset_metadata:
                 configs_metadata = {
                     config_params["config_name"]: config_params
@@ -757,7 +762,11 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
                 # updating data_files and data_dir
                 # TODO: raise error when having both and they aren't the same?
                 self.data_files = config_kwargs.pop("data_files", None) or self.data_files
-                self.data_dir = config_kwargs.pop("data_dir", None) or self.data_dir
+                self.data_dir = (
+                    os.path.join(self.data_dir, config_kwargs.pop("data_dir"))
+                    if "data_dir" in config_kwargs
+                    else self.data_dir
+                )
         # TODO: i think it's possible to have "dataset_info" in README.md yaml for PackagedModule too, no?
 
         base_path = str(Path(self.data_dir).resolve()) if self.data_dir is not None else str(Path().resolve())
@@ -785,7 +794,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
                     )
         module_path, hash = _PACKAGED_DATASETS_MODULES[self.name]
         builder_kwargs = {"hash": hash, "data_files": data_files}
-        return DatasetModule(module_path, hash, {**builder_kwargs, **config_kwargs})
+        return DatasetModule(module_path, hash, {**builder_kwargs, **config_kwargs}, configs_metadata)
 
 
 class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
