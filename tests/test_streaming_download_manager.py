@@ -826,9 +826,9 @@ def test_streaming_dl_manager_get_extraction_protocol_gg_drive(urlpath, expected
         "https://foo.bar/train.tar",
     ],
 )
-def test_streaming_dl_manager_get_extraction_protocol_throws(urlpath):
+def test_streaming_dl_manager_extract_throws(urlpath):
     with pytest.raises(NotImplementedError):
-        _ = _get_extraction_protocol(urlpath)
+        _ = StreamingDownloadManager().extract(urlpath)
 
 
 @slow  # otherwise it spams Google Drive and the CI gets banned
@@ -873,9 +873,11 @@ def _test_jsonl(path, file):
     assert num_items == 4
 
 
-def test_iter_archive_path(tar_jsonl_path):
+@pytest.mark.parametrize("archive_jsonl", ["tar_jsonl_path", "zip_jsonl_path"])
+def test_iter_archive_path(archive_jsonl, request):
+    archive_jsonl_path = request.getfixturevalue(archive_jsonl)
     dl_manager = StreamingDownloadManager()
-    archive_iterable = dl_manager.iter_archive(tar_jsonl_path)
+    archive_iterable = dl_manager.iter_archive(archive_jsonl_path)
     num_jsonl = 0
     for num_jsonl, (path, file) in enumerate(archive_iterable, start=1):
         _test_jsonl(path, file)
@@ -887,9 +889,11 @@ def test_iter_archive_path(tar_jsonl_path):
     assert num_jsonl == 2
 
 
-def test_iter_archive_file(tar_nested_jsonl_path):
+@pytest.mark.parametrize("archive_nested_jsonl", ["tar_nested_jsonl_path", "zip_nested_jsonl_path"])
+def test_iter_archive_file(archive_nested_jsonl, request):
+    archive_nested_jsonl_path = request.getfixturevalue(archive_nested_jsonl)
     dl_manager = StreamingDownloadManager()
-    files_iterable = dl_manager.iter_archive(tar_nested_jsonl_path)
+    files_iterable = dl_manager.iter_archive(archive_nested_jsonl_path)
     num_tar, num_jsonl = 0, 0
     for num_tar, (path, file) in enumerate(files_iterable, start=1):
         for num_jsonl, (subpath, subfile) in enumerate(dl_manager.iter_archive(file), start=1):
