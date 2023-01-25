@@ -13,11 +13,9 @@ class Translation:
     """`FeatureConnector` for translations with fixed languages per example.
     Here for compatiblity with tfds.
 
-    Input: The Translate feature accepts a dictionary for each example mapping
-        string language codes to string translations.
-
-    Output: A dictionary mapping string language codes to translations as `Text`
-        features.
+    Args:
+        languages (`dict`):
+            A dictionary for each example mapping string language codes to string translations.
 
     Example:
 
@@ -55,15 +53,14 @@ class TranslationVariableLanguages:
     """`FeatureConnector` for translations with variable languages per example.
     Here for compatiblity with tfds.
 
-    Input: The TranslationVariableLanguages feature accepts a dictionary for each
-        example mapping string language codes to one or more string translations.
-        The languages present may vary from example to example.
+    Args:
+        languages (`dict`):
+            A dictionary for each example mapping string language codes to one or more string translations.
+            The languages present may vary from example to example.
 
-    Output:
-        language: variable-length 1D tf.Tensor of tf.string language codes, sorted
-            in ascending order.
-        translation: variable-length 1D tf.Tensor of tf.string plain text
-            translations, sorted to align with language codes.
+    Returns:
+        - `language` or `translation` (variable-length 1D `tf.Tensor` of `tf.string`):
+            Language codes sorted in ascending order or plain text translations, sorted to align with language codes.
 
     Example:
 

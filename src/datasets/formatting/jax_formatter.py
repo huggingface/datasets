@@ -14,6 +14,7 @@
 
 # Lint as: python3
 import sys
+from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -28,9 +29,9 @@ if TYPE_CHECKING:
     import jax.numpy as jnp
 
 
-class JaxFormatter(Formatter[dict, "jnp.ndarray", dict]):
-    def __init__(self, features=None, decoded=True, **jnp_array_kwargs):
-        super().__init__(features=features, decoded=decoded)
+class JaxFormatter(Formatter[Mapping, "jnp.ndarray", Mapping]):
+    def __init__(self, features=None, **jnp_array_kwargs):
+        super().__init__(features=features)
         self.jnp_array_kwargs = jnp_array_kwargs
         import jax.numpy as jnp  # noqa import jax at initialization
 
@@ -85,24 +86,21 @@ class JaxFormatter(Formatter[dict, "jnp.ndarray", dict]):
     def recursive_tensorize(self, data_struct: dict):
         return map_nested(self._recursive_tensorize, data_struct)
 
-    def format_row(self, pa_table: pa.Table) -> dict:
+    def format_row(self, pa_table: pa.Table) -> Mapping:
         row = self.numpy_arrow_extractor().extract_row(pa_table)
-        if self.decoded:
-            row = self.python_features_decoder.decode_row(row)
+        row = self.python_features_decoder.decode_row(row)
         return self.recursive_tensorize(row)
 
     def format_column(self, pa_table: pa.Table) -> "jnp.ndarray":
         column = self.numpy_arrow_extractor().extract_column(pa_table)
-        if self.decoded:
-            column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
+        column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
         column = self.recursive_tensorize(column)
         column = self._consolidate(column)
         return column
 
-    def format_batch(self, pa_table: pa.Table) -> dict:
+    def format_batch(self, pa_table: pa.Table) -> Mapping:
         batch = self.numpy_arrow_extractor().extract_batch(pa_table)
-        if self.decoded:
-            batch = self.python_features_decoder.decode_batch(batch)
+        batch = self.python_features_decoder.decode_batch(batch)
         batch = self.recursive_tensorize(batch)
         for column_name in batch:
             batch[column_name] = self._consolidate(batch[column_name])

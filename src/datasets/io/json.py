@@ -22,6 +22,7 @@ class JsonDatasetReader(AbstractDatasetReader):
         keep_in_memory: bool = False,
         streaming: bool = False,
         field: Optional[str] = None,
+        num_proc: Optional[int] = None,
         **kwargs,
     ):
         super().__init__(
@@ -31,6 +32,7 @@ class JsonDatasetReader(AbstractDatasetReader):
             cache_dir=cache_dir,
             keep_in_memory=keep_in_memory,
             streaming=streaming,
+            num_proc=num_proc,
             **kwargs,
         )
         self.field = field
@@ -52,7 +54,6 @@ class JsonDatasetReader(AbstractDatasetReader):
             download_config = None
             download_mode = None
             ignore_verifications = False
-            use_auth_token = None
             base_path = None
 
             self.builder.download_and_prepare(
@@ -61,7 +62,7 @@ class JsonDatasetReader(AbstractDatasetReader):
                 ignore_verifications=ignore_verifications,
                 # try_from_hf_gcs=try_from_hf_gcs,
                 base_path=base_path,
-                use_auth_token=use_auth_token,
+                num_proc=self.num_proc,
             )
             dataset = self.builder.as_dataset(
                 split=self.split, ignore_verifications=ignore_verifications, in_memory=self.keep_in_memory

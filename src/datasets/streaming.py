@@ -7,6 +7,7 @@ from .download.streaming_download_manager import (
     xbasename,
     xdirname,
     xet_parse,
+    xexists,
     xgetsize,
     xglob,
     xgzip_open,
@@ -54,7 +55,7 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
     Args:
         module_path: Path to the module to be extended.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-            If True, will get token from `"~/.huggingface"`.
+            If True, or not specified, will get token from `"~/.huggingface"`.
     """
 
     module = importlib.import_module(module_path)
@@ -84,6 +85,7 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
     patch_submodule(module, "os.path.split", xsplit).start()
     patch_submodule(module, "os.path.splitext", xsplitext).start()
     # allow checks on paths
+    patch_submodule(module, "os.path.exists", wrap_auth(xexists)).start()
     patch_submodule(module, "os.path.isdir", wrap_auth(xisdir)).start()
     patch_submodule(module, "os.path.isfile", wrap_auth(xisfile)).start()
     patch_submodule(module, "os.path.getsize", wrap_auth(xgetsize)).start()
@@ -91,7 +93,7 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
     # file readers
     patch_submodule(module, "gzip.open", wrap_auth(xgzip_open)).start()
     patch_submodule(module, "pandas.read_csv", wrap_auth(xpandas_read_csv), attrs=["__version__"]).start()
-    patch_submodule(module, "pandas.read_excel", xpandas_read_excel, attrs=["__version__"]).start()
+    patch_submodule(module, "pandas.read_excel", wrap_auth(xpandas_read_excel), attrs=["__version__"]).start()
     patch_submodule(module, "scipy.io.loadmat", wrap_auth(xsio_loadmat), attrs=["__version__"]).start()
     patch_submodule(module, "xml.etree.ElementTree.parse", wrap_auth(xet_parse)).start()
     patch_submodule(module, "xml.dom.minidom.parse", wrap_auth(xxml_dom_minidom_parse)).start()

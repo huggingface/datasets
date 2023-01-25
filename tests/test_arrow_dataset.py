@@ -53,7 +53,6 @@ from .utils import (
     assert_arrow_memory_increases,
     require_jax,
     require_pil,
-    require_s3,
     require_sqlalchemy,
     require_tf,
     require_torch,
@@ -266,6 +265,7 @@ class BaseDatasetTest(TestCase):
                     self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                     self.assertEqual(dset[0]["filename"], "my_name-train_0")
                     self.assertEqual(dset["filename"][0], "my_name-train_0")
+                    expected = dset.to_dict()
 
             with self._create_dummy_dataset(in_memory, tmp_dir).select(range(10)) as dset:
                 dataset_path = os.path.join(tmp_dir, "my_dataset")  # abs path
@@ -301,6 +301,47 @@ class BaseDatasetTest(TestCase):
                 )
                 self.assertDictEqual(dset[0]["nested"], {"a": 1, "c": 100, "x": 10})
                 self.assertDictEqual(dset["nested"][0], {"a": 1, "c": 100, "x": 10})
+
+            with self._create_dummy_dataset(in_memory, tmp_dir).select(range(10)) as dset:
+                with assert_arrow_memory_doesnt_increase():
+                    dset.save_to_disk(dataset_path, num_shards=4)
+
+            with Dataset.load_from_disk(dataset_path) as dset:
+                self.assertEqual(len(dset), 10)
+                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                self.assertDictEqual(dset.to_dict(), expected)
+                self.assertEqual(len(dset.cache_files), 4)
+
+            with self._create_dummy_dataset(in_memory, tmp_dir).select(range(10)) as dset:
+                with assert_arrow_memory_doesnt_increase():
+                    dset.save_to_disk(dataset_path, num_proc=2)
+
+            with Dataset.load_from_disk(dataset_path) as dset:
+                self.assertEqual(len(dset), 10)
+                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                self.assertDictEqual(dset.to_dict(), expected)
+                self.assertEqual(len(dset.cache_files), 2)
+
+            with self._create_dummy_dataset(in_memory, tmp_dir).select(range(10)) as dset:
+                with assert_arrow_memory_doesnt_increase():
+                    dset.save_to_disk(dataset_path, num_shards=7, num_proc=2)
+
+            with Dataset.load_from_disk(dataset_path) as dset:
+                self.assertEqual(len(dset), 10)
+                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                self.assertDictEqual(dset.to_dict(), expected)
+                self.assertEqual(len(dset.cache_files), 7)
+
+            with self._create_dummy_dataset(in_memory, tmp_dir).select(range(10)) as dset:
+                with assert_arrow_memory_doesnt_increase():
+                    max_shard_size = dset._estimate_nbytes() // 2 + 1
+                    dset.save_to_disk(dataset_path, max_shard_size=max_shard_size)
+
+            with Dataset.load_from_disk(dataset_path) as dset:
+                self.assertEqual(len(dset), 10)
+                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                self.assertDictEqual(dset.to_dict(), expected)
+                self.assertEqual(len(dset.cache_files), 2)
 
     def test_dummy_dataset_load_from_disk(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -1993,15 +2034,15 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Batched
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
-                bacth_size = dset.num_rows - 1
-                to_dict_generator = dset.to_dict(batched=True, batch_size=bacth_size)
+                batch_size = dset.num_rows - 1
+                to_dict_generator = dset.to_dict(batched=True, batch_size=batch_size)
 
                 for batch in to_dict_generator:
                     self.assertIsInstance(batch, dict)
                     self.assertListEqual(sorted(batch.keys()), sorted(dset.column_names))
                     for col_name in dset.column_names:
                         self.assertIsInstance(batch[col_name], list)
-                        self.assertLessEqual(len(batch[col_name]), bacth_size)
+                        self.assertLessEqual(len(batch[col_name]), batch_size)
 
                 # Full
                 dset_to_dict = dset.to_dict()
@@ -2026,14 +2067,14 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Batched
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
-                bacth_size = dset.num_rows - 1
-                to_pandas_generator = dset.to_pandas(batched=True, batch_size=bacth_size)
+                batch_size = dset.num_rows - 1
+                to_pandas_generator = dset.to_pandas(batched=True, batch_size=batch_size)
 
                 for batch in to_pandas_generator:
                     self.assertIsInstance(batch, pd.DataFrame)
                     self.assertListEqual(sorted(batch.columns), sorted(dset.column_names))
                     for col_name in dset.column_names:
-                        self.assertLessEqual(len(batch[col_name]), bacth_size)
+                        self.assertLessEqual(len(batch[col_name]), batch_size)
 
                 # Full
                 dset_to_pandas = dset.to_pandas()
@@ -2966,6 +3007,23 @@ def test_interleave_datasets_probabilities_oversampling_strategy():
     )
 
 
+@pytest.mark.parametrize("batch_size", [4, 5])
+@pytest.mark.parametrize("drop_last_batch", [False, True])
+def test_dataset_iter_batch(batch_size, drop_last_batch):
+    n = 25
+    dset = Dataset.from_dict({"i": list(range(n))})
+    all_col_values = list(range(n))
+    batches = []
+    for i, batch in enumerate(dset.iter(batch_size, drop_last_batch=drop_last_batch)):
+        assert batch == {"i": all_col_values[i * batch_size : (i + 1) * batch_size]}
+        batches.append(batch)
+    if drop_last_batch:
+        assert all(len(batch["i"]) == batch_size for batch in batches)
+    else:
+        assert all(len(batch["i"]) == batch_size for batch in batches[:-1])
+        assert len(batches[-1]["i"]) <= batch_size
+
+
 @pytest.mark.parametrize(
     "column, expected_dtype",
     [(["a", "b", "c", "d"], "string"), ([1, 2, 3, 4], "int64"), ([1.0, 2.0, 3.0, 4.0], "float64")],
@@ -3526,25 +3584,15 @@ def test_pickle_dataset_after_transforming_the_table(in_memory, method_and_param
         assert dataset._data.table == reloaded_dataset._data.table
 
 
-@pytest.mark.skipif(
-    os.name in ["nt", "posix"] and (os.getenv("CIRCLECI") == "true" or os.getenv("GITHUB_ACTIONS") == "true"),
-    reason='On Windows CircleCI or GitHub Actions, it raises botocore.exceptions.EndpointConnectionError: Could not connect to the endpoint URL: "http://127.0.0.1:5555/test"',
-)  # TODO: find what's wrong with CircleCI / GitHub Actions
-@require_s3
-@pytest.mark.integration
-def test_dummy_dataset_serialize_s3(s3, dataset, s3_test_bucket_name):
-    mock_bucket = s3_test_bucket_name
-    dataset_path = f"s3://{mock_bucket}/my_dataset"
-    features = dataset.features
-    dataset.save_to_disk(dataset_path, s3)
-    dataset = dataset.load_from_disk(dataset_path, s3)
-    assert os.path.isfile(dataset.cache_files[0]["filename"])
-
-    assert len(dataset) == 10
-    assert len(dataset.shuffle()) == 10
-    assert dataset.features == features
-    assert dataset[0]["id"] == 0
-    assert dataset["id"][0] == 0
+def test_dummy_dataset_serialize_fs(dataset, mockfs):
+    dataset_path = "mock://my_dataset"
+    dataset.save_to_disk(dataset_path, storage_options=mockfs.storage_options)
+    assert mockfs.isdir(dataset_path)
+    assert mockfs.glob(dataset_path + "/*")
+    reloaded = dataset.load_from_disk(dataset_path, storage_options=mockfs.storage_options)
+    assert len(reloaded) == len(dataset)
+    assert reloaded.features == dataset.features
+    assert reloaded.to_dict() == dataset.to_dict()
 
 
 @pytest.mark.parametrize(
@@ -4090,3 +4138,127 @@ class StratifiedTest(TestCase):
             assert len(d1["train"]["text"]) + len(d1["test"]["text"]) == y.size
             assert len(d1["train"]["text"]) == train_size
             assert len(d1["test"]["text"]) == test_size
+
+
+def test_dataset_estimate_nbytes():
+    ds = Dataset.from_dict({"a": ["0" * 100] * 100})
+    assert 0.9 * ds._estimate_nbytes() < 100 * 100, "must be smaller than full dataset size"
+
+    ds = Dataset.from_dict({"a": ["0" * 100] * 100}).select([0])
+    assert 0.9 * ds._estimate_nbytes() < 100 * 100, "must be smaller than one chunk"
+
+    ds = Dataset.from_dict({"a": ["0" * 100] * 100})
+    ds = concatenate_datasets([ds] * 100)
+    assert 0.9 * ds._estimate_nbytes() < 100 * 100 * 100, "must be smaller than full dataset size"
+    assert 1.1 * ds._estimate_nbytes() > 100 * 100 * 100, "must be bigger than full dataset size"
+
+    ds = Dataset.from_dict({"a": ["0" * 100] * 100})
+    ds = concatenate_datasets([ds] * 100).select([0])
+    assert 0.9 * ds._estimate_nbytes() < 100 * 100, "must be smaller than one chunk"
+
+
+@pytest.mark.parametrize("return_lazy_dict", [True, False, "mix"])
+def test_map_cases(return_lazy_dict):
+    def f(x):
+        """May return a mix of LazyDict and regular Dict"""
+        if x["a"] < 2:
+            x["a"] = -1
+            return dict(x) if return_lazy_dict is False else x
+        else:
+            return x if return_lazy_dict is True else {}
+
+    ds = Dataset.from_dict({"a": [0, 1, 2, 3]})
+    ds = ds.map(f)
+    outputs = ds[:]
+    assert outputs == {"a": [-1, -1, 2, 3]}
+
+    def f(x):
+        """May return a mix of LazyDict and regular Dict, but sometimes with None values"""
+        if x["a"] < 2:
+            x["a"] = None
+            return dict(x) if return_lazy_dict is False else x
+        else:
+            return x if return_lazy_dict is True else {}
+
+    ds = Dataset.from_dict({"a": [0, 1, 2, 3]})
+    ds = ds.map(f)
+    outputs = ds[:]
+    assert outputs == {"a": [None, None, 2, 3]}
+
+    def f(x):
+        """Return a LazyDict, but we remove a lazy column and add a new one"""
+        if x["a"] < 2:
+            x["b"] = -1
+            return x
+        else:
+            x["b"] = x["a"]
+            return x
+
+    ds = Dataset.from_dict({"a": [0, 1, 2, 3]})
+    ds = ds.map(f, remove_columns=["a"])
+    outputs = ds[:]
+    assert outputs == {"b": [-1, -1, 2, 3]}
+
+    # The formatted dataset version removes the lazy column from a different dictionary, hence it should be preserved in the output
+    ds = Dataset.from_dict({"a": [0, 1, 2, 3]})
+    ds = ds.with_format("numpy")
+    ds = ds.map(f, remove_columns=["a"])
+    ds = ds.with_format(None)
+    outputs = ds[:]
+    assert outputs == {"a": [0, 1, 2, 3], "b": [-1, -1, 2, 3]}
+
+    def f(x):
+        """May return a mix of LazyDict and regular Dict, but we replace a lazy column"""
+        if x["a"] < 2:
+            x["a"] = -1
+            return dict(x) if return_lazy_dict is False else x
+        else:
+            x["a"] = x["a"]
+            return x if return_lazy_dict is True else {"a": x["a"]}
+
+    ds = Dataset.from_dict({"a": [0, 1, 2, 3]})
+    ds = ds.map(f, remove_columns=["a"])
+    outputs = ds[:]
+    assert outputs == ({"a": [-1, -1, 2, 3]} if return_lazy_dict is False else {})
+
+    def f(x):
+        """May return a mix of LazyDict and regular Dict, but we modify a nested lazy column in-place"""
+        if x["a"]["b"] < 2:
+            x["a"]["c"] = -1
+            return dict(x) if return_lazy_dict is False else x
+        else:
+            x["a"]["c"] = x["a"]["b"]
+            return x if return_lazy_dict is True else {}
+
+    ds = Dataset.from_dict({"a": [{"b": 0}, {"b": 1}, {"b": 2}, {"b": 3}]})
+    ds = ds.map(f)
+    outputs = ds[:]
+    assert outputs == {"a": [{"b": 0, "c": -1}, {"b": 1, "c": -1}, {"b": 2, "c": 2}, {"b": 3, "c": 3}]}
+
+    def f(x):
+        """May return a mix of LazyDict and regular Dict, but using an extension type"""
+        if x["a"][0][0] < 2:
+            x["a"] = [[-1]]
+            return dict(x) if return_lazy_dict is False else x
+        else:
+            return x if return_lazy_dict is True else {}
+
+    features = Features({"a": Array2D(shape=(1, 1), dtype="int32")})
+    ds = Dataset.from_dict({"a": [[[i]] for i in [0, 1, 2, 3]]}, features=features)
+    ds = ds.map(f)
+    outputs = ds[:]
+    assert outputs == {"a": [[[i]] for i in [-1, -1, 2, 3]]}
+
+    def f(x):
+        """May return a mix of LazyDict and regular Dict, but using a nested extension type"""
+        if x["a"]["nested"][0][0] < 2:
+            x["a"] = {"nested": [[-1]]}
+            return dict(x) if return_lazy_dict is False else x
+        else:
+            return x if return_lazy_dict is True else {}
+
+    features = Features({"a": {"nested": Array2D(shape=(1, 1), dtype="int64")}})
+    ds = Dataset.from_dict({"a": [{"nested": [[i]]} for i in [0, 1, 2, 3]]}, features=features)
+    ds = ds.map(f)
+    outputs = ds[:]
+    assert outputs == {"a": [{"nested": [[i]]} for i in [-1, -1, 2, 3]]}

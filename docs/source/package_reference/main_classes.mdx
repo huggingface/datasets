@@ -33,6 +33,7 @@ The base class [`Dataset`] implements a Dataset backed by an Apache Arrow table.
     - class_encode_column
     - __len__
     - __iter__
+    - iter
     - formatted_as
     - set_format
     - set_transform
@@ -99,6 +100,8 @@ The base class [`Dataset`] implements a Dataset backed by an Apache Arrow table.
 
 [[autodoc]] datasets.interleave_datasets
 
+[[autodoc]] datasets.distributed.split_dataset_by_node
+
 [[autodoc]] datasets.enable_caching
 
 [[autodoc]] datasets.disable_caching
@@ -156,6 +159,7 @@ The base class [`IterableDataset`] implements an iterable Dataset backed by pyth
     - cast_column
     - cast
     - __iter__
+    - iter
     - map
     - rename_column
     - filter

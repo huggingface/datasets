@@ -23,6 +23,12 @@ A repository hosts all your dataset files, including the revision history, makin
 
 1. Once you've created a repository, navigate to the **Files and versions** tab to add a file. Select **Add file** to upload your dataset files. We currently support the following data formats: CSV, JSON, JSON lines, text, and Parquet. For this tutorial, you can use the following sample CSV files: <a href="https://huggingface.co/datasets/stevhliu/demo/raw/main/train.csv" download>train.csv</a>, <a href="https://huggingface.co/datasets/stevhliu/demo/raw/main/test.csv" download>test.csv</a>.
 
+<Tip warning={true}>
+
+For additional dataset configuration options, like defining multiple configurations or enabling streaming, you'll need to write a dataset loading script. Check out how to write a dataset loading script for <a href="https://huggingface.co/docs/datasets/dataset_script#create-a-dataset-loading-script"><span class="underline decoration-green-400 decoration-2 font-semibold">text</span></a>, <a href="https://huggingface.co/docs/datasets/audio_dataset#loading-script"><span class="underline decoration-pink-400 decoration-2 font-semibold">audio</span></a>, and <a href="https://huggingface.co/docs/datasets/image_dataset#loading-script"><span class="underline decoration-yellow-400 decoration-2 font-semibold">image</span></a> datasets.
+
+</Tip>
+
 <div class="flex justify-center">
     <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/upload_files.png"/>
 </div>
@@ -126,7 +132,7 @@ Congratulations, you've completed the tutorials! 🥳
 From here, you can go on to:
 
 - Learn more about how to use 🤗 Datasets other functions to [process your dataset](process).
-- [Stream large datasets](stream) and avoid waiting for the entire dataset to download.
+- [Stream large datasets](stream) without downloading it locally.
 - [Write a dataset loading script](dataset_script) and share your dataset with the community.
 
 If you have any questions about 🤗 Datasets, feel free to join and ask the community on our [forum](https://discuss.huggingface.co/c/datasets/10).

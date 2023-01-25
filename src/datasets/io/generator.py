@@ -14,10 +14,16 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
         keep_in_memory: bool = False,
         streaming: bool = False,
         gen_kwargs: Optional[dict] = None,
+        num_proc: Optional[int] = None,
         **kwargs,
     ):
         super().__init__(
-            features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, streaming=streaming, **kwargs
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            streaming=streaming,
+            num_proc=num_proc,
+            **kwargs,
         )
         self.builder = Generator(
             cache_dir=cache_dir,
@@ -36,7 +42,6 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
             download_config = None
             download_mode = None
             ignore_verifications = False
-            use_auth_token = None
             base_path = None
 
             self.builder.download_and_prepare(
@@ -45,7 +50,7 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
                 ignore_verifications=ignore_verifications,
                 # try_from_hf_gcs=try_from_hf_gcs,
                 base_path=base_path,
-                use_auth_token=use_auth_token,
+                num_proc=self.num_proc,
             )
             dataset = self.builder.as_dataset(
                 split="train", ignore_verifications=ignore_verifications, in_memory=self.keep_in_memory

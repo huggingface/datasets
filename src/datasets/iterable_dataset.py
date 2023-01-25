@@ -1,22 +1,29 @@
 import copy
 import itertools
+import sys
 from collections import Counter
 from copy import deepcopy
 from dataclasses import dataclass
 from itertools import cycle, islice
-from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Union
+from typing import Any, Callable, Dict, Iterator, List, Optional, Union
 
 import numpy as np
 import pyarrow as pa
 
+from . import config
 from .arrow_dataset import DatasetInfoMixin
 from .features import Features
 from .features.features import FeatureType, _align_features, _check_if_features_can_be_aligned
-from .formatting import PythonFormatter
+from .filesystems import _reset_fsspec_lock
+from .formatting import PythonFormatter, get_format_type_from_alias
 from .info import DatasetInfo
 from .splits import NamedSplit
 from .table import table_cast
-from .utils.sharding import _number_of_shards_in_gen_kwargs, _shuffle_gen_kwargs, _split_gen_kwargs
+from .utils.logging import get_logger
+from .utils.sharding import _merge_gen_kwargs, _number_of_shards_in_gen_kwargs, _shuffle_gen_kwargs, _split_gen_kwargs
+
+
+logger = get_logger(__name__)
 
 
 def _infer_features_from_batch(batch: Dict[str, list], try_features: Optional[Features] = None) -> Features:
@@ -88,7 +95,7 @@ class _BaseExamplesIterable:
         """
         raise NotImplementedError(f"{type(self)} doesn't implement shuffle_data_sources yet")
 
-    def shard_data_sources(self, shard_idx: int) -> "_BaseExamplesIterable":
+    def shard_data_sources(self, shard_indices: List[int]) -> "_BaseExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
         raise NotImplementedError(f"{type(self)} doesn't implement shard_data_sources yet")
 
@@ -106,19 +113,20 @@ class ExamplesIterable(_BaseExamplesIterable):
         yield from self.generate_examples_fn(**self.kwargs)
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "ExamplesIterable":
-        return ShardShuffledExamplesIterable(self.generate_examples_fn, self.kwargs, generator)
+        return ShuffledDataSourcesExamplesIterable(self.generate_examples_fn, self.kwargs, generator)
 
-    def shard_data_sources(self, shard_idx: int) -> "MappedExamplesIterable":
+    def shard_data_sources(self, shard_indices: List[int]) -> "ExamplesIterable":
         """Keep only the requested shard."""
-        kwargs_with_requested_data_source = _split_gen_kwargs(self.kwargs, max_num_jobs=self.n_shards)[shard_idx]
-        yield from self.generate_examples_fn(**kwargs_with_requested_data_source)
+        gen_kwargs_list = _split_gen_kwargs(self.kwargs, max_num_jobs=self.n_shards)
+        requested_gen_kwargs = _merge_gen_kwargs([gen_kwargs_list[i] for i in shard_indices])
+        return ExamplesIterable(self.generate_examples_fn, requested_gen_kwargs)
 
     @property
     def n_shards(self) -> int:
         return _number_of_shards_in_gen_kwargs(self.kwargs)
 
 
-class ShardShuffledExamplesIterable(ExamplesIterable):
+class ShuffledDataSourcesExamplesIterable(ExamplesIterable):
     def __init__(self, generate_examples_fn: Callable, kwargs: dict, generator: np.random.Generator):
         super().__init__(generate_examples_fn, kwargs)
         self.generator = deepcopy(generator)
@@ -129,14 +137,43 @@ class ShardShuffledExamplesIterable(ExamplesIterable):
         kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
         yield from self.generate_examples_fn(**kwargs_with_shuffled_shards)
 
-    def shard_data_sources(self, shard_idx: int) -> "MappedExamplesIterable":
+    def shard_data_sources(self, shard_indices: List[int]) -> "ExamplesIterable":
         """Keep only the requested shard."""
         rng = deepcopy(self.generator)
         kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
-        kwargs_with_requested_data_source = _split_gen_kwargs(kwargs_with_shuffled_shards, max_num_jobs=self.n_shards)[
-            shard_idx
-        ]
-        return ExamplesIterable(self.generate_examples_fn, kwargs_with_requested_data_source)
+        return ExamplesIterable(self.generate_examples_fn, kwargs_with_shuffled_shards).shard_data_sources(
+            shard_indices
+        )
+
+
+class StepExamplesIterable(_BaseExamplesIterable):
+    def __init__(self, ex_iterable: _BaseExamplesIterable, step: int, offset: int):
+        self.ex_iterable = ex_iterable
+        self.step = step
+        self.offset = offset
+
+    def __iter__(self):
+        ex_iterator = iter(self.ex_iterable)
+        while True:
+            batch = list(islice(ex_iterator, self.step))
+            if len(batch) > self.offset:
+                yield batch[self.offset]
+            else:
+                break
+
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "StepExamplesIterable":
+        return StepExamplesIterable(
+            self.ex_iterable.shuffle_data_sources(generator), step=self.step, offset=self.offset
+        )
+
+    def shard_data_sources(self, shard_indices: List[int]) -> "StepExamplesIterable":
+        return StepExamplesIterable(
+            self.ex_iterable.shard_data_sources(shard_indices), step=self.step, offset=self.offset
+        )
+
+    @property
+    def n_shards(self) -> int:
+        return self.ex_iterable.n_shards
 
 
 class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
@@ -207,7 +244,7 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
     We use `IterableDataset._resolve_features` to obtain the features of all the datasets to concatenate.
 
     Then for each example, `IterableDataset` and `TypedExamplesIterable` automatically fill missing columns with None.
-    This is done with `_apply_feature_types`.
+    This is done with `_apply_feature_types_on_example`.
     """
 
     def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
@@ -259,7 +296,7 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
     We use `IterableDataset._resolve_features` to obtain the features of all the datasets to concatenate.
 
     Then for each example, `IterableDataset` and `TypedExamplesIterable` automatically fill missing columns with None.
-    This is done with `_apply_feature_types`.
+    This is done with `_apply_feature_types_on_example`.
     """
 
     def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
@@ -355,7 +392,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         with_indices: bool = False,
         input_columns: Optional[List[str]] = None,
         batched: bool = False,
-        batch_size: int = 1000,
+        batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
         remove_columns: Optional[List[str]] = None,
         fn_kwargs: Optional[dict] = None,
@@ -375,12 +412,20 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         current_idx = 0
         if self.batched:
             for key, example in iterator:
-                # If batched, first build the batch
-                key_examples_list = [(key, example)] + [
-                    (key, example) for key, example in islice(iterator, self.batch_size - 1)
-                ]
+                # If `batched`, first build the batch, if `batch_size` is None or <=0, then the batch is the whole dataset
+                iterator_batch = (
+                    iterator
+                    if self.batch_size is None or self.batch_size <= 0
+                    else islice(iterator, self.batch_size - 1)
+                )
+                key_examples_list = [(key, example)] + [(key, example) for key, example in iterator_batch]
                 keys, examples = zip(*key_examples_list)
-                if self.drop_last_batch and len(examples) < self.batch_size:  # ignore last batch
+                if (
+                    self.drop_last_batch
+                    and self.batch_size is not None
+                    and self.batch_size > 0
+                    and len(examples) < self.batch_size
+                ):  # ignore last batch
                     return
                 batch = _examples_to_batch(examples)
                 # then apply the transform
@@ -469,7 +514,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
         with_indices: bool = False,
         input_columns: Optional[List[str]] = None,
         batched: bool = False,
-        batch_size: int = 1000,
+        batch_size: Optional[int] = 1000,
     ):
         self.ex_iterable = ex_iterable
         self.function = function
@@ -483,10 +528,13 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
         current_idx = 0
         if self.batched:
             for key, example in iterator:
-                # If batched, first build the batch
-                key_examples_list = [(key, example)] + [
-                    (key, example) for key, example in islice(iterator, self.batch_size - 1)
-                ]
+                # If `batched`, first build the batch, if `batch_size` is None or <=0, then the batch is the whole dataset
+                iterator_batch = (
+                    iterator
+                    if self.batch_size is None or self.batch_size <= 0
+                    else islice(iterator, self.batch_size - 1)
+                )
+                key_examples_list = [(key, example)] + [(key, example) for key, example in iterator_batch]
                 keys, examples = zip(*key_examples_list)
                 batch = _examples_to_batch(examples)
                 # then compute the mask for the batch
@@ -590,10 +638,7 @@ class SkipExamplesIterable(_BaseExamplesIterable):
         self.n = n
 
     def __iter__(self):
-        ex_iterator = iter(self.ex_iterable)
-        for _ in islice(ex_iterator, self.n):
-            pass
-        yield from ex_iterator
+        yield from islice(self.ex_iterable, self.n, None)
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "SkipExamplesIterable":
         """Doesn't shuffle the wrapped examples iterable since it would skip examples from other shards instead."""
@@ -621,7 +666,7 @@ class TakeExamplesIterable(_BaseExamplesIterable):
         return self.ex_iterable.n_shards
 
 
-def _apply_feature_types(
+def _apply_feature_types_on_example(
     example: dict, features: Features, token_per_repo_id: Dict[str, Union[str, bool, None]]
 ) -> dict:
     example = dict(example)
@@ -634,6 +679,22 @@ def _apply_feature_types(
     # Decode example for Audio feature, e.g.
     decoded_example = features.decode_example(encoded_example, token_per_repo_id=token_per_repo_id)
     return decoded_example
+
+
+def _apply_feature_types_on_batch(
+    batch: dict, features: Features, token_per_repo_id: Dict[str, Union[str, bool, None]]
+) -> dict:
+    batch = dict(batch)
+    # add missing columns
+    n_examples = len(batch[next(iter(batch))])
+    for column_name in features:
+        if column_name not in batch:
+            batch[column_name] = [None] * n_examples
+    # we encode the batch for ClassLabel feature types for example
+    encoded_batch = features.encode_batch(batch)
+    # Decode batch for Audio feature, e.g.
+    decoded_batch = features.decode_batch(encoded_batch, token_per_repo_id=token_per_repo_id)
+    return decoded_batch
 
 
 class TypedExamplesIterable(_BaseExamplesIterable):
@@ -649,9 +710,11 @@ class TypedExamplesIterable(_BaseExamplesIterable):
 
     def __iter__(self):
         # Then for each example, `TypedExamplesIterable` automatically fills missing columns with None.
-        # This is done with `_apply_feature_types`.
+        # This is done with `_apply_feature_types_on_example`.
         for key, example in self.ex_iterable:
-            yield key, _apply_feature_types(example, self.features, token_per_repo_id=self.token_per_repo_id)
+            yield key, _apply_feature_types_on_example(
+                example, self.features, token_per_repo_id=self.token_per_repo_id
+            )
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "TypedExamplesIterable":
         """Shuffle the wrapped examples iterable."""
@@ -690,6 +753,21 @@ class ShufflingConfig:
     generator: np.random.Generator
 
 
+@dataclass
+class DistributedConfig:
+    rank: int
+    world_size: int
+
+
+def _maybe_add_torch_iterable_dataset_parent_class(cls):
+    """Add torch.utils.data.IterableDataset as a parent class if 'torch' is available"""
+    if config.TORCH_AVAILABLE:
+        import torch.utils.data
+
+        if torch.utils.data.IterableDataset not in cls.__bases__:
+            cls.__bases__ += (torch.utils.data.IterableDataset,)
+
+
 class IterableDataset(DatasetInfoMixin):
     """A Dataset backed by an iterable."""
 
@@ -700,6 +778,7 @@ class IterableDataset(DatasetInfoMixin):
         split: Optional[NamedSplit] = None,
         format_type: Optional[str] = None,
         shuffling: Optional[ShufflingConfig] = None,
+        distributed: Optional[DistributedConfig] = None,
         token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None,
     ):
         info = info.copy() if info is not None else DatasetInfo()
@@ -708,11 +787,21 @@ class IterableDataset(DatasetInfoMixin):
         self._ex_iterable = ex_iterable
         self._format_type = format_type
         self._shuffling = shuffling
+        self._distributed = distributed
         self._epoch = 0
         self._token_per_repo_id: Dict[str, Union[str, bool, None]] = token_per_repo_id or {}
+        _maybe_add_torch_iterable_dataset_parent_class(self.__class__)
+
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self, d):
+        self.__dict__ = d
+        # Re-add torch iterable dataset as a parent class, since dynamically added parent classes are not kept when pickling
+        _maybe_add_torch_iterable_dataset_parent_class(self.__class__)
 
     def _head(self, n=5):
-        return _examples_to_batch([x for key, x in islice(self._iter(), n)])
+        return _examples_to_batch(list(self.take(n)))
 
     def _effective_generator(self):
         if self._shuffling and self._epoch == 0:
@@ -727,48 +816,156 @@ class IterableDataset(DatasetInfoMixin):
 
     @property
     def n_shards(self) -> int:
+        if self._distributed and self._ex_iterable.n_shards % self._distributed.world_size == 0:
+            return self._ex_iterable.n_shards // self._distributed.world_size
         return self._ex_iterable.n_shards
 
-    def _iter(self):
-        if self._shuffling:
-            ex_iterable = self._ex_iterable.shuffle_data_sources(self._effective_generator())
-        else:
-            ex_iterable = self._ex_iterable
-        yield from ex_iterable
+    def _iter_pytorch(self, ex_iterable: _BaseExamplesIterable):
+        # fix for fsspec when using multiprocess
+        _reset_fsspec_lock()
+        # check if there aren't too many workers
+        import torch.utils.data
 
-    def _iter_shard(self, shard_idx: int):
+        worker_info = torch.utils.data.get_worker_info()
+        if self._is_main_process() and ex_iterable.n_shards < worker_info.num_workers:
+            logger.warning(
+                f"Too many dataloader workers: {worker_info.num_workers} (max is dataset.n_shards={ex_iterable.n_shards}). "
+                f"Stopping {worker_info.num_workers - ex_iterable.n_shards} dataloader workers."
+            )
+            logger.warning(
+                f"To parallelize data loading, we give each process some shards (or data sources) to process. "
+                f"Therefore it's unnecessary to have a number of workers greater than dataset.n_shards={ex_iterable.n_shards}. "
+                f"To enable more parallelism, please split the dataset in more files than {ex_iterable.n_shards}."
+            )
+        # split workload
+        shards_indices = list(range(worker_info.id, ex_iterable.n_shards, worker_info.num_workers))
+        _log_prefix = f"node#{self._distributed.rank} " if self._distributed else ""
+        if shards_indices:
+            logger.debug(
+                f"{_log_prefix}dataloader worker#{worker_info.id}, ': Starting to iterate over {len(shards_indices)}/{ex_iterable.n_shards} shards."
+            )
+            for key, example in ex_iterable.shard_data_sources(shards_indices):
+                if self.features:
+                    yield _apply_feature_types_on_example(
+                        example, self.features, token_per_repo_id=self._token_per_repo_id
+                    )
+                else:
+                    yield example
+            logger.debug(
+                f"{_log_prefix}dataloader worker#{worker_info.id}, ': Finished iterating over {len(shards_indices)}/{ex_iterable.n_shards} shards."
+            )
+        else:
+            logger.debug(
+                f"{_log_prefix}dataloader worker#{worker_info.id}, ': Stopping... Number of dataset shards < num_workers ({ex_iterable.n_shards}<{worker_info.num_workers})."
+            )
+
+    def _is_main_process(self):
+        if self._distributed and self._distributed.rank > 0:
+            return False
+        if "torch" in sys.modules:
+            import torch.utils.data
+
+            worker_info = torch.utils.data.get_worker_info()
+            if worker_info is not None and worker_info.id > 0:
+                return False
+        return True
+
+    def _prepare_ex_iterable_for_iteration(self) -> _BaseExamplesIterable:
         if self._shuffling:
             ex_iterable = self._ex_iterable.shuffle_data_sources(self._effective_generator())
         else:
             ex_iterable = self._ex_iterable
-        yield from ex_iterable.shard_data_sources(shard_idx)
+
+        if self._distributed:
+            rank = self._distributed.rank
+            world_size = self._distributed.world_size
+            if ex_iterable.n_shards % world_size == 0:
+                if self._is_main_process():
+                    n_shards_per_node = ex_iterable.n_shards // world_size
+                    plural = "s" if n_shards_per_node > 1 else ""
+                    logger.warning(
+                        f"Assigning {n_shards_per_node} shard{plural} (or data source{plural}) of the dataset to each node."
+                    )
+                shards_indices = list(range(rank, ex_iterable.n_shards, world_size))
+                ex_iterable = ex_iterable.shard_data_sources(shards_indices)
+            else:
+                if self._is_main_process():
+                    logger.warning(
+                        f"Assigning 1 out of {world_size} examples of the dataset to each node. The others are skipped during the iteration."
+                    )
+                    logger.info(
+                        f"It is more optimized to distribute the dataset shards (or data sources) across nodes. "
+                        f"You can do that by using a dataset with number of shards that is a factor of world_size={world_size}. "
+                        f"The current dataset has {ex_iterable.n_shards} which is not a factor of {world_size}"
+                    )
+                ex_iterable = StepExamplesIterable(ex_iterable, step=world_size, offset=rank)
+
+        return ex_iterable
 
     def __iter__(self):
-        for key, example in self._iter():
+        ex_iterable = self._prepare_ex_iterable_for_iteration()
+
+        if "torch" in sys.modules:
+            import torch.utils.data
+
+            worker_info = torch.utils.data.get_worker_info()
+            if isinstance(self, torch.utils.data.IterableDataset) and worker_info is not None:
+                # We're a torch.utils.data.IterableDataset in a PyTorch worker process
+                yield from self._iter_pytorch(ex_iterable)
+                return
+
+        for key, example in ex_iterable:
             if self.features:
                 # `IterableDataset` automatically fills missing columns with None.
-                # This is done with `_apply_feature_types`.
-                yield _apply_feature_types(example, self.features, token_per_repo_id=self._token_per_repo_id)
+                # This is done with `_apply_feature_types_on_example`.
+                yield _apply_feature_types_on_example(
+                    example, self.features, token_per_repo_id=self._token_per_repo_id
+                )
             else:
                 yield example
+
+    def iter(self, batch_size: int, drop_last_batch: bool = False):
+        """Iterate through the batches of size `batch_size`.
+
+        Args:
+            batch_size (:obj:`int`): size of each batch to yield.
+            drop_last_batch (:obj:`bool`, default `False`): Whether a last batch smaller than the batch_size should be
+                dropped
+        """
+        iterator = iter(self._prepare_ex_iterable_for_iteration())
+        for key, example in iterator:
+            # If batched, first build the batch
+            examples = [example] + [example for key, example in islice(iterator, batch_size - 1)]
+            if drop_last_batch and len(examples) < batch_size:  # ignore last batch
+                return
+            batch = _examples_to_batch(examples)
+            if self.features:
+                # `IterableDataset` automatically fills missing columns with None.
+                # This is done with `_apply_feature_types_on_batch`.
+                yield _apply_feature_types_on_batch(batch, self.features, token_per_repo_id=self._token_per_repo_id)
+            else:
+                yield batch
 
     @staticmethod
     def from_generator(
         generator: Callable,
         features: Optional[Features] = None,
         gen_kwargs: Optional[dict] = None,
-    ):
+    ) -> "IterableDataset":
         """Create an Iterable Dataset from a generator.
 
         Args:
-            generator (:obj:`Callable`): A generator function that `yields` examples.
-            features (:class:`Features`, optional): Dataset features.
-            gen_kwargs(:obj:`dict`, optional): Keyword arguments to be passed to the `generator` callable.
+            generator (`Callable`):
+                A generator function that `yields` examples.
+            features (`Features`, *optional*):
+                Dataset features.
+            gen_kwargs(`dict`, *optional*):
+                Keyword arguments to be passed to the `generator` callable.
                 You can define a sharded iterable dataset by passing the list of shards in `gen_kwargs`.
                 This can be used to improve shuffling and when iterating over the dataset with multiple workers.
 
         Returns:
-            :class:`IterableDataset`
+            `IterableDataset`
 
         Example:
 
@@ -813,19 +1010,21 @@ class IterableDataset(DatasetInfoMixin):
 
         Args:
 
-            type (:obj:`str`, optional, default None): if set to "torch", the returned dataset
+            type (`str`, optional, default None): if set to "torch", the returned dataset
                 will be a subclass of torch.utils.data.IterableDataset to be used in a DataLoader
         """
+        type = get_format_type_from_alias(type)
         # TODO(QL): add examples formatting to get tensors when using the "torch" format
         # TODO(QL): add format_kwargs
         # TODO(QL): add format_columns and return_all_columns
         # TODO(QL): add pandas, numpy and tf formats
-        return iterable_dataset(
+        return IterableDataset(
             ex_iterable=self._ex_iterable,
             info=self._info.copy(),
             split=self._split,
             format_type=type,
             shuffling=copy.deepcopy(self._shuffling),
+            distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -835,9 +1034,10 @@ class IterableDataset(DatasetInfoMixin):
         with_indices: bool = False,
         input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
-        batch_size: int = 1000,
+        batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
         remove_columns: Optional[Union[str, List[str]]] = None,
+        features: Optional[Features] = None,
         fn_kwargs: Optional[dict] = None,
     ) -> "IterableDataset":
         """
@@ -845,18 +1045,19 @@ class IterableDataset(DatasetInfoMixin):
         If your function returns a column that already exists, then it overwrites it.
         The function is applied on-the-fly on the examples when iterating over the dataset.
 
-        You can specify whether the function should be batched or not with the ``batched`` parameter:
+        You can specify whether the function should be batched or not with the `batched` parameter:
 
-        - If batched is False, then the function takes 1 example in and should return 1 example.
-          An example is a dictionary, e.g. {"text": "Hello there !"}
-        - If batched is True and batch_size is 1, then the function takes a batch of 1 example as input and can return a batch with 1 or more examples.
-          A batch is a dictionary, e.g. a batch of 1 example is {"text": ["Hello there !"]}
-        - If batched is True and batch_size is ``n`` > 1, then the function takes a batch of ``n`` examples as input and can return a batch with ``n`` examples, or with an arbitrary number of examples.
-          Note that the last batch may have less than ``n`` examples.
-          A batch is a dictionary, e.g. a batch of ``n`` examples is {"text": ["Hello there !"] * n}
+        - If batched is `False`, then the function takes 1 example in and should return 1 example.
+          An example is a dictionary, e.g. `{"text": "Hello there !"}`.
+        - If batched is `True` and `batch_size` is 1, then the function takes a batch of 1 example as input and can return a batch with 1 or more examples.
+          A batch is a dictionary, e.g. a batch of 1 example is {"text": ["Hello there !"]}.
+        - If batched is `True` and `batch_size` is `n` > 1, then the function takes a batch of `n` examples as input and can return a batch with `n` examples, or with an arbitrary number of examples.
+          Note that the last batch may have less than `n` examples.
+          A batch is a dictionary, e.g. a batch of `n` examples is `{"text": ["Hello there !"] * n}`.
 
         Args:
-            function (:obj:`Callable`, optional, default None): Function applied on-the-fly on the examples when you iterate on the dataset
+            function (`Callable`, *optional*, defaults to `None`):
+                Function applied on-the-fly on the examples when you iterate on the dataset.
                 It must have one of the following signatures:
 
                 - `function(example: Dict[str, Any]) -> Dict[str, Any]` if `batched=False` and `with_indices=False`
@@ -866,18 +1067,28 @@ class IterableDataset(DatasetInfoMixin):
 
                 For advanced usage, the function can also return a `pyarrow.Table`.
                 Moreover if your function returns nothing (`None`), then `map` will run your function and return the dataset unchanged.
-                If no function is provided, default to identity function: ``lambda x: x``.
-            with_indices (:obj:`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx[, rank]): ...`.
-            input_columns (`Optional[Union[str, List[str]]]`, default `None`): The columns to be passed into `function`
+                If no function is provided, default to identity function: `lambda x: x`.
+            with_indices (`bool`, defaults to `False`):
+                Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx[, rank]): ...`.
+            input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`):
+                The columns to be passed into `function`
                 as positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
-            batched (:obj:`bool`, default `False`): Provide batch of examples to `function`.
-            batch_size (:obj:`int`, optional, default ``1000``): Number of examples per batch provided to `function` if `batched=True`.
-            drop_last_batch (:obj:`bool`, default `False`): Whether a last batch smaller than the batch_size should be
+            batched (`bool`, defaults to `False`):
+                Provide batch of examples to `function`.
+            batch_size (`int`, *optional*, defaults to `1000`):
+                Number of examples per batch provided to `function` if `batched=True`.
+                `batch_size <= 0` or `batch_size == None` then provide the full dataset as a single batch to `function`.
+            drop_last_batch (`bool`, defaults to `False`):
+                Whether a last batch smaller than the batch_size should be
                 dropped instead of being processed by the function.
-            remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
+            remove_columns (`[List[str]]`, *optional*, defaults to `None`):
+                Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
-            fn_kwargs (:obj:`Dict`, optional, default `None`): Keyword arguments to be passed to `function`.
+            features (`[Features]`, *optional*, defaults to `None`):
+                Feature types of the resulting dataset.
+            fn_kwargs (`Dict`, *optional*, default `None`):
+                Keyword arguments to be passed to `function`.
 
         Example:
 
@@ -904,8 +1115,6 @@ class IterableDataset(DatasetInfoMixin):
             function = lambda x: x  # noqa: E731
         if fn_kwargs is None:
             fn_kwargs = {}
-        info = self._info.copy()
-        info.features = None
         ex_iterable = MappedExamplesIterable(
             TypedExamplesIterable(self._ex_iterable, self._info.features, token_per_repo_id=self._token_per_repo_id)
             if self._info.features is not None
@@ -919,12 +1128,15 @@ class IterableDataset(DatasetInfoMixin):
             remove_columns=remove_columns,
             fn_kwargs=fn_kwargs,
         )
-        return iterable_dataset(
+        info = self.info.copy()
+        info.features = features
+        return IterableDataset(
             ex_iterable=ex_iterable,
             info=info,
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
+            distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -940,19 +1152,24 @@ class IterableDataset(DatasetInfoMixin):
         The filtering is done on-the-fly when iterating over the dataset.
 
         Args:
-            function (:obj:`Callable`): Callable with one of the following signatures:
+            function (`Callable`):
+                Callable with one of the following signatures:
 
-                - ``function(example: Dict[str, Any]) -> bool`` if ``with_indices=False, batched=False``
-                - ``function(example: Dict[str, Any], indices: int) -> bool`` if ``with_indices=True, batched=False``
-                - ``function(example: Dict[str, List]) -> List[bool]`` if ``with_indices=False, batched=True``
-                - ``function(example: Dict[str, List], indices: List[int]) -> List[bool]`` if ``with_indices=True, batched=True``
+                - `function(example: Dict[str, Any]) -> bool` if `with_indices=False, batched=False`
+                - `function(example: Dict[str, Any], indices: int) -> bool` if `with_indices=True, batched=False`
+                - `function(example: Dict[str, List]) -> List[bool]` if `with_indices=False, batched=True`
+                - `function(example: Dict[str, List], indices: List[int]) -> List[bool]` if `with_indices=True, batched=True`
 
-                If no function is provided, defaults to an always True function: ``lambda x: True``.
-            with_indices (:obj:`bool`, default `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
-            input_columns (:obj:`str` or `List[str]`, optional): The columns to be passed into `function` as
+                If no function is provided, defaults to an always True function: `lambda x: True`.
+            with_indices (`bool`, defaults to `False`):
+                Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
+            input_columns (`str` or `List[str]`, *optional*):
+                The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
-            batched (:obj:`bool`, defaults to `False`): Provide batch of examples to `function`
-            batch_size (:obj:`int`, optional, default ``1000``): Number of examples per batch provided to `function` if `batched=True`.
+            batched (`bool`, defaults to `False`):
+                Provide batch of examples to `function`.
+            batch_size (`int`, *optional*, default `1000`):
+                Number of examples per batch provided to `function` if `batched=True`.
 
         Example:
 
@@ -986,12 +1203,13 @@ class IterableDataset(DatasetInfoMixin):
             batched=batched,
             batch_size=batch_size,
         )
-        return iterable_dataset(
+        return IterableDataset(
             ex_iterable=ex_iterable,
             info=info,
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
+            distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -1001,25 +1219,28 @@ class IterableDataset(DatasetInfoMixin):
         """
         Randomly shuffles the elements of this dataset.
 
-        This dataset fills a buffer with buffer_size elements, then randomly samples elements from this buffer,
+        This dataset fills a buffer with `buffer_size` elements, then randomly samples elements from this buffer,
         replacing the selected elements with new elements. For perfect shuffling, a buffer size greater than or
         equal to the full size of the dataset is required.
 
-        For instance, if your dataset contains 10,000 elements but ``buffer_size`` is set to 1,000, then shuffle will
-        initially select a random element from only the first 1,000 elements in the buffer. Once an element is
+        For instance, if your dataset contains 10,000 elements but `buffer_size` is set to 1000, then `shuffle` will
+        initially select a random element from only the first 1000 elements in the buffer. Once an element is
         selected, its space in the buffer is replaced by the next (i.e. 1,001-st) element,
-        maintaining the 1,000 element buffer.
+        maintaining the 1000 element buffer.
 
         If the dataset is made of several shards, it also does shuffle the order of the shards.
-        However if the order has been fixed by using :func:`datasets.IterableDataset.skip` or :func:`datasets.IterableDataset.take`
+        However if the order has been fixed by using [`~datasets.IterableDataset.skip`] or [`~datasets.IterableDataset.take`]
         then the order of the shards is kept unchanged.
 
         Args:
-            seed (:obj:`int`, optional, default None): random seed that will be used to shuffle the dataset.
-                It is used to sample from the shuffle buffe and als oto shuffle the data shards.
-            generator (:obj:`numpy.random.Generator`, optional): Numpy random Generator to use to compute the permutation of the dataset rows.
-                If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
-            buffer_size (:obj:`int`, default 1000): size of the buffer.
+            seed (`int`, *optional*, defaults to `None`):
+                Random seed that will be used to shuffle the dataset.
+                It is used to sample from the shuffle buffe and also to shuffle the data shards.
+            generator (`numpy.random.Generator`, *optional*):
+                Numpy random Generator to use to compute the permutation of the dataset rows.
+                If `generator=None` (default), uses `np.random.default_rng` (the default BitGenerator (PCG64) of NumPy).
+            buffer_size (`int`, defaults to `1000`):
+                Size of the buffer.
 
         Example:
 
@@ -1047,7 +1268,7 @@ class IterableDataset(DatasetInfoMixin):
         else:
             generator = deepcopy(generator)
         shuffling = ShufflingConfig(generator=generator)
-        return iterable_dataset(
+        return IterableDataset(
             ex_iterable=BufferShuffledExamplesIterable(
                 self._ex_iterable, buffer_size=buffer_size, generator=generator
             ).shuffle_data_sources(generator),
@@ -1055,6 +1276,7 @@ class IterableDataset(DatasetInfoMixin):
             split=self._split,
             format_type=self._format_type,
             shuffling=shuffling,
+            distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -1063,10 +1285,11 @@ class IterableDataset(DatasetInfoMixin):
 
     def skip(self, n) -> "IterableDataset":
         """
-        Create a new IterableDataset that skips the first ``n`` elements.
+        Create a new [`IterableDataset`] that skips the first `n` elements.
 
         Args:
-            n (:obj:`int`): number of elements to skip.
+            n (`int`):
+                Number of elements to skip.
 
         Example:
 
@@ -1089,21 +1312,23 @@ class IterableDataset(DatasetInfoMixin):
         ```
         """
         ex_iterable = SkipExamplesIterable(self._ex_iterable, n)
-        return iterable_dataset(
+        return IterableDataset(
             ex_iterable=ex_iterable,
             info=self._info.copy(),
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
+            distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
     def take(self, n) -> "IterableDataset":
         """
-        Create a new IterableDataset with only the first ``n`` elements.
+        Create a new [`IterableDataset`] with only the first `n` elements.
 
         Args:
-            n (:obj:`int`): number of elements to take.
+            n (`int`):
+                Number of elements to take.
 
         Example:
 
@@ -1119,12 +1344,13 @@ class IterableDataset(DatasetInfoMixin):
         ```
         """
         ex_iterable = TakeExamplesIterable(self._ex_iterable, n)
-        return iterable_dataset(
+        return IterableDataset(
             ex_iterable=ex_iterable,
             info=self._info.copy(),
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
+            distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -1136,7 +1362,7 @@ class IterableDataset(DatasetInfoMixin):
             column (list or np.array): Column data to be added.
 
         Returns:
-            :class:`IterableDataset`
+            `IterableDataset`
         """
 
         def add_column_fn(example, idx):
@@ -1152,11 +1378,13 @@ class IterableDataset(DatasetInfoMixin):
         name.
 
         Args:
-            original_column_name (:obj:`str`): Name of the column to rename.
-            new_column_name (:obj:`str`): New name for the column.
+            original_column_name (`str`):
+                Name of the column to rename.
+            new_column_name (`str`):
+                New name for the column.
 
         Returns:
-            :class:`IterableDataset`: A copy of the dataset with a renamed column.
+            `IterableDataset`: A copy of the dataset with a renamed column.
 
         Example:
 
@@ -1166,7 +1394,7 @@ class IterableDataset(DatasetInfoMixin):
         >>> next(iter(ds))
         {'label': 1,
          'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
-        >>> ds.rename_column("text", "movie_review")
+        >>> ds = ds.rename_column("text", "movie_review")
         >>> next(iter(ds))
         {'label': 1,
          'movie_review': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
@@ -1184,7 +1412,16 @@ class IterableDataset(DatasetInfoMixin):
                 )
             return {new_column_name: example[original_column_name]}
 
-        return self.map(rename_column_fn, remove_columns=[original_column_name])
+        original_features = self._info.features.copy() if self._info.features else None
+        ds_iterable = self.map(rename_column_fn, remove_columns=[original_column_name])
+        if original_features is not None:
+            ds_iterable._info.features = Features(
+                {
+                    new_column_name if col == original_column_name else col: feature
+                    for col, feature in original_features.items()
+                }
+            )
+        return ds_iterable
 
     def rename_columns(self, column_mapping: Dict[str, str]) -> "IterableDataset":
         """
@@ -1192,10 +1429,10 @@ class IterableDataset(DatasetInfoMixin):
         the new column names.
 
         Args:
-            column_mapping (:obj:`Dict[str, str]`): A mapping of columns to rename to their new names
+            column_mapping (`Dict[str, str]`): A mapping of columns to rename to their new names
 
         Returns:
-            :class:`IterableDataset`: A copy of the dataset with renamed columns
+            `IterableDataset`: A copy of the dataset with renamed columns
         """
 
         def rename_columns_fn(example):
@@ -1212,7 +1449,16 @@ class IterableDataset(DatasetInfoMixin):
                 for original_column_name, new_column_name in column_mapping.items()
             }
 
-        return self.map(rename_columns_fn, remove_columns=list(column_mapping))
+        original_features = self._info.features.copy() if self._info.features else None
+        ds_iterable = self.map(rename_columns_fn, remove_columns=list(column_mapping))
+        if original_features is not None:
+            ds_iterable._info.features = Features(
+                {
+                    column_mapping[col] if col in column_mapping.keys() else col: feature
+                    for col, feature in original_features.items()
+                }
+            )
+        return ds_iterable
 
     def remove_columns(self, column_names: Union[str, List[str]]) -> "IterableDataset":
         """
@@ -1221,10 +1467,11 @@ class IterableDataset(DatasetInfoMixin):
 
 
         Args:
-            column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
+            column_names (`Union[str, List[str]]`):
+                Name of the column(s) to remove.
 
         Returns:
-            :class:`IterableDataset`: A copy of the dataset object without the columns to remove.
+            `IterableDataset`: A copy of the dataset object without the columns to remove.
 
         Example:
 
@@ -1238,17 +1485,26 @@ class IterableDataset(DatasetInfoMixin):
         {'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
         ```
         """
-        return self.map(remove_columns=column_names)
+        original_features = self._info.features.copy() if self._info.features else None
+        ds_iterable = self.map(remove_columns=column_names)
+        if original_features is not None:
+            ds_iterable._info.features = original_features.copy()
+            for col, _ in original_features.items():
+                if col in column_names:
+                    del ds_iterable._info.features[col]
+        return ds_iterable
 
     def cast_column(self, column: str, feature: FeatureType) -> "IterableDataset":
         """Cast column to feature for decoding.
 
         Args:
-            column (:obj:`str`): Column name.
-            feature (:class:`Feature`): Target feature.
+            column (`str`):
+                Column name.
+            feature (`Feature`):
+                Target feature.
 
         Returns:
-            :class:`IterableDataset`
+            `IterableDataset`
 
         Example:
 
@@ -1279,12 +1535,13 @@ class IterableDataset(DatasetInfoMixin):
             info.copy()
         except ValueError:
             info.task_templates = None
-        return iterable_dataset(
+        return IterableDataset(
             ex_iterable=self._ex_iterable,
             info=info,
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
+            distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -1296,13 +1553,14 @@ class IterableDataset(DatasetInfoMixin):
         Cast the dataset to a new set of features.
 
         Args:
-            features (:class:`datasets.Features`): New features to cast the dataset to.
+            features ([`Features`]):
+                New features to cast the dataset to.
                 The name of the fields in the features must match the current column names.
                 The type of the data must also be convertible from one type to the other.
-                For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
+                For non-trivial conversion, e.g. `string` <-> `ClassLabel` you should use [`~Dataset.map`] to update the Dataset.
 
         Returns:
-            :class:`IterableDataset`: A copy of the dataset with casted features.
+            `IterableDataset`: A copy of the dataset with casted features.
 
         Example:
 
@@ -1328,12 +1586,25 @@ class IterableDataset(DatasetInfoMixin):
             info.copy()
         except ValueError:
             info.task_templates = None
-        return iterable_dataset(
+        return IterableDataset(
             ex_iterable=self._ex_iterable,
             info=info,
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
+            distributed=copy.deepcopy(self._distributed),
+            token_per_repo_id=self._token_per_repo_id,
+        )
+
+    def _step(self, step: int, offset: int) -> "IterableDataset":
+        ex_iterable = StepExamplesIterable(self._ex_iterable, step=step, offset=offset)
+        return IterableDataset(
+            ex_iterable=ex_iterable,
+            info=self._info.copy(),
+            split=self._split,
+            format_type=self._format_type,
+            shuffling=copy.deepcopy(self._shuffling),
+            distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
 
@@ -1346,38 +1617,15 @@ class IterableDataset(DatasetInfoMixin):
             features = _infer_features_from_batch(self._head())
         info = self.info.copy()
         info.features = features
-        return iterable_dataset(
+        return IterableDataset(
             ex_iterable=self._ex_iterable,
             info=info,
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
+            distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
-
-
-def iterable_dataset(
-    ex_iterable: Iterable,
-    info: Optional[DatasetInfo] = None,
-    split: Optional[NamedSplit] = None,
-    format_type: Optional[str] = None,
-    shuffling: Optional[ShufflingConfig] = None,
-    token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None,
-):
-    if format_type is not None and format_type == "torch":
-        from .formatting.dataset_wrappers.torch_iterable_dataset import TorchIterableDataset
-
-        cls = TorchIterableDataset
-    else:
-        cls = IterableDataset
-    return cls(
-        ex_iterable=ex_iterable,
-        info=info,
-        split=split,
-        format_type=format_type,
-        shuffling=shuffling,
-        token_per_repo_id=token_per_repo_id,
-    )
 
 
 def _concatenate_iterable_datasets(
@@ -1387,15 +1635,15 @@ def _concatenate_iterable_datasets(
     axis: int = 0,
 ) -> IterableDataset:
     """
-    Converts a list of :class:`IterableDataset` with the same schema into a single :class:`IterableDataset`.
+    Converts a list of `IterableDataset` with the same schema into a single `IterableDataset`.
     Missing data are filled with None values.
 
     <Added version="2.4.0"/>
 
     Args:
-        dsets (:obj:`List[datasets.IterableDataset]`): List of Datasets to concatenate.
-        info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
-        split (:class:`NamedSplit`, optional): Name of the dataset split.
+        dsets (`List[datasets.IterableDataset]`): List of Datasets to concatenate.
+        info (`DatasetInfo`, optional): Dataset information, like description, citation, etc.
+        split (`NamedSplit`, optional): Name of the dataset split.
         axis (``{0, 1}``, default ``0``, meaning over rows):
             Axis to concatenate over, where ``0`` means over rows (vertically) and ``1`` means over columns
             (horizontally).
@@ -1437,7 +1685,7 @@ def _concatenate_iterable_datasets(
     # Get all the auth tokens per repository - in case the datasets come from different private repositories
     token_per_repo_id = {repo_id: token for dataset in dsets for repo_id, token in dataset._token_per_repo_id.items()}
     # Return new daset
-    return iterable_dataset(ex_iterable=ex_iterable, info=info, split=split, token_per_repo_id=token_per_repo_id)
+    return IterableDataset(ex_iterable=ex_iterable, info=info, split=split, token_per_repo_id=token_per_repo_id)
 
 
 def _interleave_iterable_datasets(
@@ -1457,11 +1705,11 @@ def _interleave_iterable_datasets(
     <Added version="2.4.0"/>
 
     Args:
-        datasets (:obj:`List[IterableDataset]`): list of datasets to interleave
-        probabilities (:obj:`List[float]`, optional, default None): If specified, the new iterable dataset samples
+        datasets (`List[IterableDataset]`): list of datasets to interleave
+        probabilities (`List[float]`, optional, default None): If specified, the new iterable dataset samples
             examples from one source at a time according to these probabilities.
-        seed (:obj:`int`, optional, default None): The random seed used to choose a source for each example.
-        stopping_strategy (Optional :obj:`str`, defaults to `first_exhausted`):
+        seed (`int`, optional, default None): The random seed used to choose a source for each example.
+        stopping_strategy (Optional `str`, defaults to `first_exhausted`):
             Two strategies are proposed right now.
             By default, `first_exhausted` is an undersampling strategy, i.e the dataset construction is stopped as soon as one dataset has ran out of samples.
             If the strategy is `all_exhausted`,  we use an oversampling strategy, i.e the dataset construction is stopped as soon as every samples of every dataset has been added at least once.
@@ -1470,7 +1718,7 @@ def _interleave_iterable_datasets(
             - with given probabilities, the resulting dataset will have more samples if some datasets have really low probability of visiting.
 
     Output:
-        :class:`datasets.IterableDataset`
+        `datasets.IterableDataset`
     """
     datasets = [d._resolve_features() for d in datasets]
 
@@ -1505,4 +1753,38 @@ def _interleave_iterable_datasets(
         repo_id: token for dataset in datasets for repo_id, token in dataset._token_per_repo_id.items()
     }
     # Return new daset
-    return iterable_dataset(ex_iterable=ex_iterable, info=info, split=split, token_per_repo_id=token_per_repo_id)
+    return IterableDataset(ex_iterable=ex_iterable, info=info, split=split, token_per_repo_id=token_per_repo_id)
+
+
+def _split_by_node_iterable_dataset(dataset: IterableDataset, rank: int, world_size: int) -> IterableDataset:
+    """
+    Split an iterable dataset for the node at rank `rank` in a pool of nodes of size `world_size`.
+
+    If the dataset has a number of shards that is a factor of `world_size` (i.e. if `dataset.n_shards % world_size == 0`),
+    then the shards are evenly assigned across the nodes, which is the most optimized.
+    Otherwise, each node keeps 1 example out of `world_size`, skipping the other examples.
+
+    Args:
+        dataset ([`IterableDataset`]):
+            The iterable dataset to split by node.
+        rank (`int`):
+            Rank of the current node.
+        world_size (`int`):
+            Total number of nodes.
+
+    Returns:
+        [`IterableDataset`]: The iterable dataset to be used on the node at rank `rank`.
+    """
+    if dataset._distributed:
+        world_size = world_size * dataset._distributed.world_size
+        rank = world_size * dataset._distributed.rank + rank
+    distributed = DistributedConfig(rank=rank, world_size=world_size)
+    return IterableDataset(
+        ex_iterable=dataset._ex_iterable,
+        info=dataset._info.copy(),
+        split=dataset._split,
+        format_type=dataset._format_type,
+        shuffling=copy.deepcopy(dataset._shuffling),
+        distributed=distributed,
+        token_per_repo_id=dataset._token_per_repo_id,
+    )

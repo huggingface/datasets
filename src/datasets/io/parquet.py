@@ -8,6 +8,7 @@ from .. import Dataset, Features, NamedSplit, config
 from ..formatting import query_table
 from ..packaged_modules import _PACKAGED_DATASETS_MODULES
 from ..packaged_modules.parquet.parquet import Parquet
+from ..utils import logging
 from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
 
@@ -21,6 +22,7 @@ class ParquetDatasetReader(AbstractDatasetReader):
         cache_dir: str = None,
         keep_in_memory: bool = False,
         streaming: bool = False,
+        num_proc: Optional[int] = None,
         **kwargs,
     ):
         super().__init__(
@@ -30,6 +32,7 @@ class ParquetDatasetReader(AbstractDatasetReader):
             cache_dir=cache_dir,
             keep_in_memory=keep_in_memory,
             streaming=streaming,
+            num_proc=num_proc,
             **kwargs,
         )
         path_or_paths = path_or_paths if isinstance(path_or_paths, dict) else {self.split: path_or_paths}
@@ -51,7 +54,6 @@ class ParquetDatasetReader(AbstractDatasetReader):
             download_config = None
             download_mode = None
             ignore_verifications = False
-            use_auth_token = None
             base_path = None
 
             self.builder.download_and_prepare(
@@ -60,7 +62,7 @@ class ParquetDatasetReader(AbstractDatasetReader):
                 ignore_verifications=ignore_verifications,
                 # try_from_hf_gcs=try_from_hf_gcs,
                 base_path=base_path,
-                use_auth_token=use_auth_token,
+                num_proc=self.num_proc,
             )
             dataset = self.builder.as_dataset(
                 split=self.split, ignore_verifications=ignore_verifications, in_memory=self.keep_in_memory
@@ -101,7 +103,12 @@ class ParquetDatasetWriter:
         schema = pa.schema(self.dataset.features.type)
         writer = pq.ParquetWriter(file_obj, schema=schema, **parquet_writer_kwargs)
 
-        for offset in range(0, len(self.dataset), batch_size):
+        for offset in logging.tqdm(
+            range(0, len(self.dataset), batch_size),
+            unit="ba",
+            disable=not logging.is_progress_bar_enabled(),
+            desc="Creating parquet from Arrow format",
+        ):
             batch = query_table(
                 table=self.dataset._data,
                 key=slice(offset, offset + batch_size),
