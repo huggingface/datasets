@@ -3,7 +3,6 @@
 ## Downloading and streaming
 
 When you have a regular "map-style" [`Dataset`], you can access it using `my_dataset[0]`: we have what we call "random access" to the rows.
-But one caveat is that you must have all the dataset stored on your disk or in memory, which makes it not always suitable for datasets bigger than disk.
 For example you can download ImageNet-1k like this:
 
 ```python
@@ -13,6 +12,7 @@ imagenet = load_dataset("imagenet-1k", split="train")  # downloads the full data
 print(imagenet[0])
 ```
 
+But one caveat is that you must have all the dataset stored on your disk or in memory, which makes it not always suitable for datasets bigger than disk.
 Because it can become inconvenient for big datasets, there exists another type of dataset: [`IterableDataset`].
 When you have an iterable dataset, you can access it using a `for` loop to load the data progressively as you iterate over the dataset.
 This way, only a small fraction of examples is loaded in memory, and you don't write anything on disk.
@@ -29,7 +29,7 @@ for example in imagenet:
 ```
 
 Dataset streaming can be used to read online data without writing any file on disk.
-For example you can stream datasets made out of multiple hundreds of Gigabytes like C4, OSCAR or LAION-2B.
+For example you can stream datasets made out of multiple hundreds of gigabytes like (C4)[https://huggingface.co/datasets/c4], (OSCAR)[https://huggingface.co/datasets/oscar] or (LAION-2B)[https://huggingface.co/datasets/laion/laion2B-en].
 Learn more about dataset streaming in the (Dataset Streaming Guide)[./stream]
 
 This is not the only difference.
@@ -39,7 +39,7 @@ This "lazy" behavior of iterable datasets is also present when it comes to datas
 
 You can create a [`Dataset`] using lists or dictionaries, and the data is entirely converted to Arrow so you can access the rows easily
 ```python
-my_dataset = Dataset.from_dict({"col_1": [0, 1, 2, 3]})
+my_dataset = Dataset.from_dict({"col_1": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]})
 my_dataset[0]
 ```
 
@@ -47,8 +47,8 @@ To create an iterable dataset on the other hand, you must provide a "lazy" way t
 In Python, we generally use generator functions. These functions `yield` one example at a time:
 ```python
 def my_generator(n):
-    for example_id in range(n):
-        yield {"example_id": example_id}
+    for i in range(n):
+        yield {"col_1": i}
 
 my_iterable_dataset = IterableDataset.from_generator(my_generator, gen_kwargs={"n": 10})
 for example in my_iterable_dataset:
@@ -66,7 +66,7 @@ my_dataset[0]
 ```
 
 To not have to wait for the conversion to Arrow, you can define an iterable dataset by streaming from your local files.
-This way the data is read prorgessively from your local files as you iterate over the dataset.
+This way the data is read progessively from your local files as you iterate over the dataset:
 
 ```python
 data_files = {"train": ["path/to/data.csv"]}
@@ -92,7 +92,7 @@ my_dataset[0]
 On the other hand, due to the "lazy" nature of iterable datasets, calling [`IterableDataset.map`] does not iterate over the full dataset to apply your `map` function.
 Instead, your `map` function is applied on-the-fly when you iterate over the iterable dataset.
 
-Because of that, it means you can chain multiple processing steps and they will all run at once when start iterating over the dataset:
+Because of that, it means you can chain multiple processing steps and they will all run at once when you start iterating over the dataset:
 
 ```python
 my_iterable_dataset = my_iterable_dataset.map(process_fn_1)
@@ -109,7 +109,7 @@ for example in my_iterable_dataset:
 
 When you shuffle a [`Dataset`] using [`Dataset.shuffle`], you apply an exact shuffling of the dataset.
 It works by taking a list of indices `[0, 1, 2, ... len(my_dataset) - 1]` and shuffling this list.
-Then, accessing `my_dataset[0]` will access the row and the index defined by the first element of the indices mapping that has been shuffled:
+Then, accessing `my_dataset[0]` accesses the row and the index defined by the first element of the indices mapping that has been shuffled:
 ```python
 my_dataset = my_dataset.shuffle(seed=42)
 my_dataset[0]
@@ -158,7 +158,7 @@ Thanks to memory mapping and the fact that Arrow is an in-memory format, it allo
 It also provides even faster data loading when iterating using a `for` loop by iterating on contiguous Arrow record batches.
 
 However as soon as your [`Dataset`] has an indices mapping (via [`Dataset.shuffle`] for example), the speed can become 10x slower.
-This is because there is an extra step to get the row idx to read using the indices mapping, and most importantly because you no longer read contiguous chunks of data.
+This is because there is an extra step to get the row index to read using the indices mapping, and most importantly because you no longer read contiguous chunks of data.
 To get the optimal speed back, you'd need to rewrite the entire dataset on your disk again using `Dataset.flatten_indices` which removes the indices mapping.
 This may take a lot of time depending of the size of your dataset though:
 
@@ -173,7 +173,7 @@ my_dataset[0]  # fast again
 
 In this case is it recommended to switch to an [`IterableDataset`] and leverage its fast approximate shuffling method [`IterableDataset.shuffle`].
 It only shuffles the shards order and adds a shuffle buffer to your dataset, which keeps the speed of your dataset optimal.
-It also enables to reshuffle the dataset easily:
+You can also reshuffle the dataset easily:
 
 ```python
 for example in enumerate(my_iterable_dataset):  # fast
@@ -193,7 +193,7 @@ for example in enumerate(my_iterable_dataset):  # still as fast as before
 Note if you use your dataset on multiple epochs:
 
 The effective seed to shuffle the shards order and for the shuffle buffer is `seed + epoch`.
-It makes it easy to reshuffle a dataset at each epoch:
+It makes it easy to reshuffle a dataset betwen epochs:
 ```python
 for epoch in range(n_epochs):
     my_iterable_dataset.set_epoch(epoch)
