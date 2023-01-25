@@ -49,16 +49,34 @@ If all image files are contained in a single directory or if they are not on the
 </Tip>
 
 
-If there is additional information you'd like to include about your dataset, like text captions or bounding boxes, add it as a `metadata.jsonl` file in your folder. This lets you quickly create datasets for different computer vision tasks like text captioning or object detection.
+If there is additional information you'd like to include about your dataset, like text captions or bounding boxes, add it as a `metadata.csv` file in your folder. This lets you quickly create datasets for different computer vision tasks like text captioning or object detection. You can also use a JSONL file `metadata.jsonl`.
 
 ```
-folder/train/metadata.jsonl
+folder/train/metadata.csv
 folder/train/0001.png
 folder/train/0002.png
 folder/train/0003.png
 ```
 
-Your `metadata.jsonl` file must have a `file_name` column which links image files with their metadata:
+You can also zip your images:
+
+```
+folder/metadata.csv
+folder/train.zip
+folder/test.zip
+folder/valid.zip
+```
+
+Your `metadata.csv` file must have a `file_name` column which links image files with their metadata:
+
+```csv
+file_name,additional_feature
+0001.png,This is a first value of a text feature you added to your images
+0002.png,This is a second value of a text feature you added to your images
+0003.png,This is a third value of a text feature you added to your images
+```
+
+or using `metadata.jsonl`:
 
 ```jsonl
 {"file_name": "0001.png", "additional_feature": "This is a first value of a text feature you added to your images"}
@@ -74,12 +92,13 @@ If metadata files are present, the inferred labels based on the directory name a
 
 ### Image captioning
 
-Image captioning datasets have text describing an image. An example `metadata.jsonl` may look like:
+Image captioning datasets have text describing an image. An example `metadata.csv` may look like:
 
-```jsonl
-{"file_name": "0001.png", "text": "This is a golden retriever playing with a ball"}
-{"file_name": "0002.png", "text": "A german shepherd"}
-{"file_name": "0003.png", "text": "One chihuahua"}
+```csv
+file_name,text
+0001.png,This is a golden retriever playing with a ball
+0002.png,A german shepherd
+0003.png,One chihuahua
 ```
 
 Load the dataset with `ImageFolder`, and it will create a `text` column for the image captions:
