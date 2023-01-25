@@ -4660,7 +4660,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         for shard in shards:
             yield from shard
 
-    def to_iterable(self, num_shards: Optional[int] = None) -> "IterableDataset":
+    def to_iterable(self, num_shards: Optional[int] = 1) -> "IterableDataset":
         """Get an [`datasets.IterableDataset`] from a map-style [`datasets.Dataset`].
         This is equivalent to loading a dataset in streaming mode with [`datasets.load_dataset`], but much faster since the data is streamed from local files.
 
@@ -4671,9 +4671,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Still, it is possible to shuffle an iterable dataset using [`datasets.IterableDataset.shuffle`].
         This is a fast approximate shuffling that works best if you have multiple shards and if you specify a buffer size that is big enough.
 
+        To get the best speed performance, make sure your dataset doesn't have an indices mapping.
+        Indeed if this is the case, the data are not read contiguously, which can be slow sometimes.
+        You can use `ds = ds.flatten_indices()` to write your dataset in contiguous chunks of data and have optimal speed before switching to an iterable dataset.
+
         Args:
-            num_shards (`int`, *optional*):
-                Number of shards to define when creating the iterable dataset. This is especially useful for big datasets to be able to shuffle properly,
+            num_shards (`int`, default to `1`):
+                Number of shards to define when instantiating the iterable dataset. This is especially useful for big datasets to be able to shuffle properly,
                 and also to enable fast parallel loading using a PyTorch DataLoader or in distributed setups for example.
                 Shards are defined using [`datasets.Dataset.shard`]: it simply slices the data without writing anything on disk.
 
@@ -4749,13 +4753,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         from .iterable_dataset import IterableDataset
 
+        if num_shards > len(self):
+            raise ValueError(f"Unable to shard a dataset of size {len(self)} into {num_shards} shards.")
         if self._indices is not None:
-            logger.warning(
-                "Converting an Arrow dataset to iterable but it has an indices mapping that can make it slower. You can use `ds = ds.flatten_indices()` to have optimal speed."
+            logger.info(
+                "Converting an Arrow dataset to iterable but it has an indices mapping that can make it slower. "
+                "You can use `ds = ds.flatten_indices()` to write your dataset in contiguous chunks of data and have optimal speed."
             )
         shards = (
             [copy.deepcopy(self)]
-            if num_shards is None
+            if num_shards == 1
             else [
                 self.shard(num_shards=num_shards, index=shard_idx, contiguous=True) for shard_idx in range(num_shards)
             ]
