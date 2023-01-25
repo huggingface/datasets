@@ -1994,6 +1994,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features: ['text'],
             num_rows: 1066
         })
+        >>> ds.remove_columns(column_names=ds.column_names) # Removing all the columns returns an empty dataset with the `num_rows` property set to 0
+        Dataset({
+            features: [],
+            num_rows: 0
+        })
         ```
         """
         dataset = copy.deepcopy(self)
