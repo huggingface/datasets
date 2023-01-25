@@ -29,8 +29,8 @@ for example in imagenet:
 ```
 
 Dataset streaming can be used to read online data without writing any file on disk.
-For example you can stream datasets made out of multiple hundreds of gigabytes like (C4)[https://huggingface.co/datasets/c4], (OSCAR)[https://huggingface.co/datasets/oscar] or (LAION-2B)[https://huggingface.co/datasets/laion/laion2B-en].
-Learn more about dataset streaming in the (Dataset Streaming Guide)[./stream]
+For example you can stream datasets made out of multiple hundreds of gigabytes like [C4](https://huggingface.co/datasets/c4), [OSCAR](https://huggingface.co/datasets/oscar) or [LAION-2B](https://huggingface.co/datasets/laion/laion2B-en).
+Learn more about dataset streaming in the [Dataset Streaming Guide](./stream).
 
 This is not the only difference.
 This "lazy" behavior of iterable datasets is also present when it comes to dataset creation and processing.
@@ -77,7 +77,7 @@ for example in my_iterable_dataset:
 ```
 
 Many files formats are supported like CSV, JSONL, Parquet, images, audio files etc.
-You can find more information in the corresponding guides for loading (tabular)[./tabular_load], (text)[./nlp_load], (vision)[./image_load] and (audio)[./audio_load] datasets.
+You can find more information in the corresponding guides for loading [tabular](./tabular_load), [text](./nlp_load), [vision]()./image_load) and [audio](./audio_load]) datasets.
 
 ## Eager data processing and lazy data processing
 
@@ -153,7 +153,7 @@ my_iterable_dataset.n_shards  # 1024
 ## Speed differences
 
 Regular [`Dataset`] objects are based on Arrow which provides fast random access to the rows.
-Thanks to memory mapping and the fact that Arrow is an in-memory format, it allows to read data from disk without expensive system calls and deserialization.
+Thanks to memory mapping and the fact that Arrow is an in-memory format, reading data from disk doesn't do expensive system calls and deserialization.
 
 It also provides even faster data loading when iterating using a `for` loop by iterating on contiguous Arrow record batches.
 
@@ -208,10 +208,10 @@ If you want to benefit from the "lazy" behavior of iterable datasets or their sp
 my_iterable_dataset = my_dataset.to_iterable()
 ```
 
-If you want to shuffle your dataset or (use it with a PyTorch DataLoader)[./use_with_pytorch#stream-data], it is recommended to generate a sharded iterable dataset:
+If you want to shuffle your dataset or [use it with a PyTorch DataLoader](./use_with_pytorch#stream-data), it is recommended to generate a sharded iterable dataset:
 ```python
 my_iterable_dataset = my_dataset.to_iterable(num_shards=1024)
 my_iterable_dataset.n_shards  # 1024
 ```
 
-Feel free to open a discussion on the 🤗 Datasets (forum)[https://discuss.huggingface.co/c/datasets/10] if you have questions !
+Feel free to open a discussion on the 🤗 Datasets [forum](https://discuss.huggingface.co/c/datasets/10) if you have questions !
