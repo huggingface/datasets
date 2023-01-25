@@ -40,7 +40,7 @@ This "lazy" behavior of iterable datasets is also present when it comes to datas
 You can create a [`Dataset`] using lists or dictionaries, and the data is entirely converted to Arrow so you can access the rows easily
 ```python
 my_dataset = Dataset.from_dict({"col_1": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]})
-my_dataset[0]
+print(my_dataset[0])
 ```
 
 To create an iterable dataset on the other hand, you must provide a "lazy" way to load the data.
@@ -62,7 +62,7 @@ It is possible to convert local or remote data files to an Arrow [`Dataset`] usi
 ```python
 data_files = {"train": ["path/to/data.csv"]}
 my_dataset = load_dataset("csv", data_files=data_files, split="train")
-my_dataset[0]
+print(my_dataset[0])
 ```
 
 To not have to wait for the conversion to Arrow, you can define an iterable dataset by streaming from your local files.
@@ -86,7 +86,7 @@ This is similar to how `pandas` works for example.
 
 ```python
 my_dataset = my_dataset.map(process_fn)  # process_fn is applied on all the examples of the dataset
-my_dataset[0]
+print(my_dataset[0])
 ```
 
 On the other hand, due to the "lazy" nature of iterable datasets, calling [`IterableDataset.map`] does not iterate over the full dataset to apply your `map` function.
@@ -112,7 +112,7 @@ It works by taking a list of indices `[0, 1, 2, ... len(my_dataset) - 1]` and sh
 Then, accessing `my_dataset[0]` accesses the row and the index defined by the first element of the indices mapping that has been shuffled:
 ```python
 my_dataset = my_dataset.shuffle(seed=42)
-my_dataset[0]
+print(my_dataset[0])
 ```
 
 Since we don't have random access to the rows in the case of iterable datasets, we can't use a shuffled list of indices and access a row at an arbitrary position.
