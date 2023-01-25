@@ -84,7 +84,7 @@ class SplitBase(metaclass=abc.ABCMeta):
     """Abstract base class for Split compositionality.
 
     See the
-    [guide on splits](./loading#slice-splits)
+    [guide on splits](../loading#slice-splits)
     for more information.
 
     There are three parts to the composition:
@@ -262,7 +262,7 @@ class PercentSlice(metaclass=PercentSliceMeta):
     """Syntactic sugar for defining slice subsplits: `datasets.percent[75:-5]`.
 
     See the
-    [guide on splits](./loading#slice-splits)
+    [guide on splits](../loading#slice-splits)
     for more information.
     """
     # pylint: enable=line-too-long
@@ -419,7 +419,7 @@ class Split:
 
     All splits, including compositions inherit from `datasets.SplitBase`.
 
-    See the [guide](./load_hub#splits) on splits for more information.
+    See the [guide](../load_hub#splits) on splits for more information.
 
     Example:
 

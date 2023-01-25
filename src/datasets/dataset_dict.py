@@ -1220,7 +1220,7 @@ class DatasetDict(dict):
                 Whether to copy the dataset in-memory. If `None`, the
                 dataset will not be copied in-memory unless explicitly enabled by setting
                 `datasets.config.IN_MEMORY_MAX_SIZE` to nonzero. See more details in the
-                [improve performance](./cache#improve-performance) section.
+                [improve performance](../cache#improve-performance) section.
             storage_options (`dict`, *optional*):
                 Key/value pairs to be passed on to the file-system backend, if any.
 

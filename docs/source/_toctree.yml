@@ -62,6 +62,8 @@
       title: Process image data
     - local: image_dataset
       title: Create an image dataset
+    - local: depth_estimation
+      title: Depth estimation
     - local: image_classification
       title: Image classification
     - local: semantic_segmentation
