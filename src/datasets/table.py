@@ -1469,9 +1469,10 @@ class ConcatenationTable(Table):
             we modify both to have 4 row_blocks of size 2, 1, 1 and 2:
 
                     [ x   x   x | x   x   x ]
-                +   [ x   x | x   x | x   x ]
+                +   [ y   y | y   y | y   y ]
                 -----------------------------
                 =   [ x   x | x | x | x   x ]
+                    [ y   y | y | y | y   y ]
 
             """
             result, blocks = list(result), list(blocks)
