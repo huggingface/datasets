@@ -36,6 +36,7 @@ from datasets.features import (
 )
 from datasets.filesystems import extract_path_from_uri
 from datasets.info import DatasetInfo
+from datasets.iterable_dataset import IterableDataset
 from datasets.splits import NamedSplit
 from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable
 from datasets.tasks import (
@@ -4155,6 +4156,18 @@ def test_dataset_estimate_nbytes():
     ds = Dataset.from_dict({"a": ["0" * 100] * 100})
     ds = concatenate_datasets([ds] * 100).select([0])
     assert 0.9 * ds._estimate_nbytes() < 100 * 100, "must be smaller than one chunk"
+
+
+def test_dataset_to_iterable(dataset):
+    iterable_dataset = dataset.to_iterable()
+    assert isinstance(iterable_dataset, IterableDataset)
+    assert list(iterable_dataset) == list(dataset)
+    iterable_dataset = dataset.to_iterable(num_shards=3)
+    assert isinstance(iterable_dataset, IterableDataset)
+    assert list(iterable_dataset) == list(dataset)
+    assert iterable_dataset.n_shards == 3
+    with pytest.raises(ValueError):
+        dataset.to_iterable(num_shards=len(dataset) + 1)
 
 
 @pytest.mark.parametrize("return_lazy_dict", [True, False, "mix"])
