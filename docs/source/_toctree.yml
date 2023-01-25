@@ -30,6 +30,8 @@
       title: Process
     - local: stream
       title: Stream
+    - local: dataset_vs_iterable_dataset
+      title: Choose between Dataset and IterableDataset
     - local: use_with_tensorflow
       title: Use with TensorFlow
     - local: use_with_pytorch
