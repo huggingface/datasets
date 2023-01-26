@@ -13,7 +13,7 @@ import fsspec
 import numpy as np
 from huggingface_hub import HfApi
 
-from datasets.utils.metadata import DatasetMetadata
+from datasets.utils.metadata import DatasetMetadata, MetadataConfigsDict
 
 from . import config
 from .arrow_dataset import Dataset
@@ -1573,7 +1573,7 @@ class DatasetDict(dict):
         # push to the deprecated dataset_infos.json
         if config.DATASETDICT_INFOS_FILENAME in repo_files:
             buffer = BytesIO()
-            buffer.write(b'{"default": ')
+            buffer.write(b'{"default": ')  # TODO: should we update config info here too?
             info_to_dump._dump_info(buffer, pretty_print=True)
             buffer.write(b"}")
             HfApi(endpoint=config.HF_ENDPOINT).upload_file(
@@ -1600,6 +1600,9 @@ class DatasetDict(dict):
             dataset_metadata = DatasetMetadata()
             readme_content = f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
         DatasetInfosDict({config_name: info_to_dump}).to_metadata(dataset_metadata)
+        MetadataConfigsDict({config_name: {"config_name": config_name, "data_dir": config_name}}).to_metadata(
+            dataset_metadata
+        )
         HfApi(endpoint=config.HF_ENDPOINT).upload_file(
             path_or_fileobj=dataset_metadata._to_readme(readme_content).encode(),
             path_in_repo="README.md",

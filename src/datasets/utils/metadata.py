@@ -1,6 +1,6 @@
 from collections import Counter
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import ClassVar, Dict, Optional, Tuple
 
 import yaml
 
@@ -105,6 +105,37 @@ class DatasetMetadata(dict):
             allow_unicode=True,
             encoding="utf-8",
         ).decode("utf-8")
+
+
+class MetadataConfigsDict(Dict[str, dict]):
+    """{config_name: {**config_params}}"""
+
+    _config_field_name: ClassVar[str] = "configs_kwargs"
+
+    @classmethod
+    def from_metadata(cls, dataset_metadata: DatasetMetadata):
+        if cls._config_field_name in dataset_metadata:
+            metadata_configs = dataset_metadata.get(cls._config_field_name)
+            if isinstance(metadata_configs, dict):
+                # if there is no "config_name", smth is wrong
+                return cls({metadata_configs["config_name"]: metadata_configs})
+            if isinstance(metadata_configs, list):
+                return cls({config["config_name"]: config for config in metadata_configs})
+        return cls()
+
+    def to_metadata(self, dataset_metadata: DatasetMetadata):
+        if self:
+            current_metadata = self.from_metadata(dataset_metadata)
+            total_metadata = dict(sorted({**current_metadata, **self}.items(), key=lambda x: x[0]))
+            for config_name, config_metadata in total_metadata.items():
+                config_metadata.pop("config_name", None)
+                total_metadata[config_name] = {"config_name": config_name, **config_metadata}
+            if len(total_metadata) > 1:
+                dataset_metadata[self._config_field_name] = [
+                    config_metadata for config_name, config_metadata in total_metadata.items()
+                ]
+            else:
+                dataset_metadata[self._config_field_name] = next(iter(total_metadata.values()))
 
 
 # DEPRECATED - just here to support old versions of evaluate like 0.2.2
