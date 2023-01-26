@@ -467,19 +467,36 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
 
     def to_metadata(self, dataset_metadata: DatasetMetadata) -> None:
         if self:
-            total_dataset_infos = {config_name: dset_info._to_yaml_dict() for config_name, dset_info in self.items()}
+            # first get existing metadata info
+            if "dataset_info" in dataset_metadata and isinstance(dataset_metadata["dataset_info"], dict):
+                dataset_metadata_infos = {
+                    dataset_metadata["dataset_info"].get("config_name", "default"): dataset_metadata["dataset_info"]
+                }
+            elif "dataset_info" in dataset_metadata and isinstance(dataset_metadata["dataset_info"], list):
+                dataset_metadata_infos = {
+                    config_metadata["config_name"]: config_metadata
+                    for config_metadata in dataset_metadata["dataset_info"]
+                }
+            else:
+                dataset_metadata_infos = {}
+            # update/rewrite existing metadata info with the one to dump
+            total_dataset_infos = {
+                **dataset_metadata_infos,
+                **{config_name: dset_info._to_yaml_dict() for config_name, dset_info in self.items()},
+            }
             # the config_name from the dataset_infos_dict takes over the config_name of the DatasetInfo
             for config_name, dset_info_yaml_dict in total_dataset_infos.items():
                 dset_info_yaml_dict["config_name"] = config_name
             if len(total_dataset_infos) == 1:
                 # use a struct instead of a list of configurations, since there's only one
                 dataset_metadata["dataset_info"] = next(iter(total_dataset_infos.values()))
-                # no need to include the configuration name when there's only one configuration and it's called "default"
-                if dataset_metadata["dataset_info"].get("config_name") == "default":
-                    dataset_metadata["dataset_info"].pop("config_name", None)
+                config_name = dataset_metadata["dataset_info"].pop("config_name", None)
+                if config_name != "default":
+                    # if config_name is not "default" preserve it and put at the first position
+                    dataset_metadata["dataset_info"] = {"config_name": config_name, **dataset_metadata["dataset_info"]}
             else:
                 dataset_metadata["dataset_info"] = []
-                for config_name, dataset_info_yaml_dict in total_dataset_infos.items():
+                for config_name, dataset_info_yaml_dict in sorted(total_dataset_infos.items(), key=lambda x: x[0]):
                     # add the config_name field in first position
                     dataset_info_yaml_dict.pop("config_name", None)
                     dataset_info_yaml_dict = {"config_name": config_name, **dataset_info_yaml_dict}

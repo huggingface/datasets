@@ -1853,15 +1853,15 @@ def load_dataset(
     builder_instance = load_dataset_builder(
         path=path,
         name=name,
-        data_dir=data_dir,  # not config kwargs
-        data_files=data_files,  # not config kwargs
+        data_dir=data_dir,
+        data_files=data_files,
         cache_dir=cache_dir,
         features=features,
         download_config=download_config,
         download_mode=download_mode,
         revision=revision,
         use_auth_token=use_auth_token,
-        **config_kwargs,  # HERE are also config_kwargs
+        **config_kwargs,
     )
 
     # Return iterable dataset in case of streaming

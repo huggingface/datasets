@@ -4657,6 +4657,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def _push_parquet_shards_to_hub(
         self,
         repo_id: str,
+        config_name: str = "default",
         split: Optional[str] = None,
         private: Optional[bool] = False,
         token: Optional[str] = None,
@@ -4787,10 +4788,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             shards = shards_with_embedded_external_files(shards)
 
         files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, use_auth_token=token)
-        data_files = [file for file in files if file.startswith("data/")]
+        data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
+        data_files = [file for file in files if file.startswith(data_dir)]
 
         def path_in_repo(_index, shard):
-            return f"data/{split}-{_index:05d}-of-{num_shards:05d}-{shard._fingerprint}.parquet"
+            return f"{data_dir}/{split}-{_index:05d}-of-{num_shards:05d}-{shard._fingerprint}.parquet"
 
         shards_iter = iter(shards)
         first_shard = next(shards_iter)
@@ -4834,7 +4836,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         data_files_to_delete = [
             data_file
             for data_file in data_files
-            if data_file.startswith(f"data/{split}-") and data_file not in shards_path_in_repo
+            if data_file.startswith(f"{data_dir}/{split}-") and data_file not in shards_path_in_repo
         ]
         deleted_size = sum(
             xgetsize(hf_hub_url(repo_id, data_file), use_auth_token=token) for data_file in data_files_to_delete
@@ -4859,6 +4861,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def push_to_hub(
         self,
         repo_id: str,
+        config_name: str = "default",
         split: Optional[str] = None,
         private: Optional[bool] = False,
         token: Optional[str] = None,
@@ -4935,6 +4938,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         repo_id, split, uploaded_size, dataset_nbytes, repo_files, deleted_size = self._push_parquet_shards_to_hub(
             repo_id=repo_id,
+            config_name=config_name,
             split=split,
             private=private,
             token=token,
