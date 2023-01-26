@@ -1,4 +1,6 @@
 import os
+import sys
+import warnings
 from dataclasses import dataclass, field
 from io import BytesIO
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Union
@@ -20,6 +22,24 @@ if TYPE_CHECKING:
 
 
 _IMAGE_COMPRESSION_FORMATS: Optional[List[str]] = None
+_NATIVE_BYTEORDER = "<" if sys.byteorder == "little" else ">"
+# Origin: https://github.com/python-pillow/Pillow/blob/698951e19e19972aeed56df686868f1329981c12/src/PIL/Image.py#L3126 minus "|i1" which values are not preserved correctly when saving and loading an image
+_VALID_IMAGE_ARRAY_DTPYES = [
+    np.dtype("|b1"),
+    np.dtype("|u1"),
+    np.dtype("<u2"),
+    np.dtype(">u2"),
+    np.dtype("<i2"),
+    np.dtype(">i2"),
+    np.dtype("<u4"),
+    np.dtype(">u4"),
+    np.dtype("<i4"),
+    np.dtype(">i4"),
+    np.dtype("<f4"),
+    np.dtype(">f4"),
+    np.dtype("<f8"),
+    np.dtype(">f8"),
+]
 
 
 @dataclass
@@ -89,11 +109,10 @@ class Image:
         if isinstance(value, str):
             return {"path": value, "bytes": None}
         elif isinstance(value, np.ndarray):
-            # convert the image array to png bytes
-            image = PIL.Image.fromarray(value)
-            return {"path": None, "bytes": image_to_bytes(image)}
+            # convert the image array to PNG/TIFF bytes
+            return encode_np_array(value)
         elif isinstance(value, PIL.Image.Image):
-            # convert the PIL image to bytes (default format is png)
+            # convert the PIL image to bytes (default format is PNG/TIFF)
             return encode_pil_image(value)
         elif value.get("path") is not None and os.path.isfile(value["path"]):
             # we set "bytes": None to not duplicate the data if they're already available locally
@@ -188,11 +207,6 @@ class Image:
             `pa.StructArray`: Array in the Image arrow storage type, that is
                 `pa.struct({"bytes": pa.binary(), "path": pa.string()})`.
         """
-        if config.PIL_AVAILABLE:
-            import PIL.Image
-        else:
-            raise ImportError("To support encoding images, please install 'Pillow'.")
-
         if pa.types.is_string(storage.type):
             bytes_array = pa.array([None] * len(storage), type=pa.binary())
             storage = pa.StructArray.from_arrays([bytes_array, storage], ["bytes", "path"], mask=storage.is_null())
@@ -208,10 +222,7 @@ class Image:
             storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=storage.is_null())
         elif pa.types.is_list(storage.type):
             bytes_array = pa.array(
-                [
-                    image_to_bytes(PIL.Image.fromarray(np.array(arr, np.uint8))) if arr is not None else None
-                    for arr in storage.to_pylist()
-                ],
+                [encode_np_array(np.array(arr))["bytes"] if arr is not None else None for arr in storage.to_pylist()],
                 type=pa.binary(),
             )
             path_array = pa.array([None] * len(storage), type=pa.string())
@@ -267,9 +278,12 @@ def list_image_compression_formats() -> List[str]:
 
 
 def image_to_bytes(image: "PIL.Image.Image") -> bytes:
-    """Convert a PIL Image object to bytes using native compression if possible, otherwise use PNG compression."""
+    """Convert a PIL Image object to bytes using native compression if possible, otherwise use PNG/TIFF compression."""
     buffer = BytesIO()
-    format = image.format if image.format in list_image_compression_formats() else "PNG"
+    if image.format in list_image_compression_formats():
+        format = image.format
+    else:
+        format = "PNG" if image.mode in ["1", "L", "LA", "RGB", "RGBA"] else "TIFF"
     image.save(buffer, format=format)
     return buffer.getvalue()
 
@@ -279,6 +293,49 @@ def encode_pil_image(image: "PIL.Image.Image") -> dict:
         return {"path": image.filename, "bytes": None}
     else:
         return {"path": None, "bytes": image_to_bytes(image)}
+
+
+def encode_np_array(array: np.ndarray) -> dict:
+    if config.PIL_AVAILABLE:
+        import PIL.Image
+    else:
+        raise ImportError("To support encoding images, please install 'Pillow'.")
+
+    dtype = array.dtype
+    dtype_byteorder = dtype.byteorder if dtype.byteorder != "=" else _NATIVE_BYTEORDER
+    dtype_kind = dtype.kind
+    dtype_itemsize = dtype.itemsize
+
+    dest_dtype = None
+
+    # Multi-channel array case (only np.dtype("|u1") is allowed)
+    if array.shape[2:]:
+        dest_dtype = np.dtype("|u1")
+        if dtype_kind not in ["u", "i"]:
+            raise ValueError(
+                f"Unsupported array dtype {dtype} for image encoding. Only {dest_dtype} is supported for multi-channel arrays."
+            )
+        if dtype is not dest_dtype:
+            warnings.warn(f"Downcasting array dtype {dtype} to {dest_dtype} to be compatible with 'Pillow'")
+    # Exact match
+    elif dtype in _VALID_IMAGE_ARRAY_DTPYES:
+        dest_dtype = dtype
+    else:  # Downcast the type within the kind (np.can_cast(from_type, to_type, casting="same_kind") doesn't behave as expected, so do it manually)
+        while dtype_itemsize >= 1:
+            dest_dtype_str = dtype_byteorder + dtype_kind + str(dtype_itemsize)
+            dest_dtype = np.dtype(dest_dtype_str)
+            if dest_dtype in _VALID_IMAGE_ARRAY_DTPYES:
+                warnings.warn(f"Downcasting array dtype {dtype} to {dest_dtype} to be compatible with 'Pillow'")
+                break
+            else:
+                dtype_itemsize //= 2
+
+    if dest_dtype is None:
+        raise ValueError(
+            f"Cannot convert dtype {dtype} to a valid image dtype. Valid image dtypes: {_VALID_IMAGE_ARRAY_DTPYES}"
+        )
+    image = PIL.Image.fromarray(array.astype(dest_dtype))
+    return {"path": None, "bytes": image_to_bytes(image)}
 
 
 def objects_to_list_of_image_dicts(
@@ -295,12 +352,8 @@ def objects_to_list_of_image_dicts(
         if isinstance(obj, str):
             return [{"path": obj, "bytes": None} if obj is not None else None for obj in objs]
         if isinstance(obj, np.ndarray):
-            return [
-                {"path": None, "bytes": image_to_bytes(PIL.Image.fromarray(obj.astype(np.uint8)))}
-                if obj is not None
-                else None
-                for obj in objs
-            ]
+            obj_to_image_dict_func = no_op_if_value_is_null(encode_np_array)
+            return [obj_to_image_dict_func(obj) for obj in objs]
         elif isinstance(obj, PIL.Image.Image):
             obj_to_image_dict_func = no_op_if_value_is_null(encode_pil_image)
             return [obj_to_image_dict_func(obj) for obj in objs]

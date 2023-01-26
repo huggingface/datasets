@@ -7,7 +7,7 @@ import pyarrow as pa
 import pytest
 
 from datasets import Dataset, Features, Image, Sequence, Value, concatenate_datasets, load_dataset
-from datasets.features.image import image_to_bytes
+from datasets.features.image import encode_np_array, image_to_bytes
 
 from ..utils import require_pil
 
@@ -157,16 +157,17 @@ def test_dataset_with_image_feature_from_pil_image(infer_feature, shared_datadir
 def test_dataset_with_image_feature_from_np_array():
     import PIL.Image
 
-    image_array = np.arange(640 * 480, dtype=np.uint8).reshape(480, 640)
+    image_array = np.arange(640 * 480).reshape(480, 640)
     data = {"image": [image_array]}
     features = Features({"image": Image()})
     dset = Dataset.from_dict(data, features=features)
     item = dset[0]
     assert item.keys() == {"image"}
     assert isinstance(item["image"], PIL.Image.Image)
+
     np.testing.assert_array_equal(np.array(item["image"]), image_array)
     assert item["image"].filename == ""
-    assert item["image"].format == "PNG"
+    assert item["image"].format in ["PNG", "TIFF"]
     assert item["image"].size == (640, 480)
     batch = dset[:1]
     assert len(batch) == 1
@@ -174,14 +175,14 @@ def test_dataset_with_image_feature_from_np_array():
     assert isinstance(batch["image"], list) and all(isinstance(item, PIL.Image.Image) for item in batch["image"])
     np.testing.assert_array_equal(np.array(batch["image"][0]), image_array)
     assert batch["image"][0].filename == ""
-    assert batch["image"][0].format == "PNG"
+    assert batch["image"][0].format in ["PNG", "TIFF"]
     assert batch["image"][0].size == (640, 480)
     column = dset["image"]
     assert len(column) == 1
     assert isinstance(column, list) and all(isinstance(item, PIL.Image.Image) for item in column)
     np.testing.assert_array_equal(np.array(column[0]), image_array)
     assert column[0].filename == ""
-    assert column[0].format == "PNG"
+    assert column[0].format in ["PNG", "TIFF"]
     assert column[0].size == (640, 480)
 
 
@@ -366,8 +367,6 @@ def test_dataset_with_image_feature_map(shared_datadir):
 
 @require_pil
 def test_formatted_dataset_with_image_feature_map(shared_datadir):
-    import PIL.Image
-
     image_path = str(shared_datadir / "test_image_rgb.jpg")
     pil_image = Image().decode_example({"path": image_path, "bytes": None})
     data = {"image": [image_path], "caption": ["cats sleeping"]}
@@ -385,10 +384,7 @@ def test_formatted_dataset_with_image_feature_map(shared_datadir):
     decoded_dset = dset.with_format("numpy").map(process_image_by_example)
     for item in decoded_dset.cast_column("image", Image(decode=False)):
         assert item.keys() == {"image", "caption", "num_channels"}
-        assert item["image"] == {
-            "bytes": image_to_bytes(PIL.Image.fromarray(np.array(pil_image))),
-            "path": None,
-        }
+        assert item["image"] == encode_np_array(np.array(pil_image))
         assert item["caption"] == "cats sleeping"
         assert item["num_channels"] == 3
 
@@ -399,10 +395,7 @@ def test_formatted_dataset_with_image_feature_map(shared_datadir):
     decoded_dset = dset.with_format("numpy").map(process_image_by_batch, batched=True)
     for item in decoded_dset.cast_column("image", Image(decode=False)):
         assert item.keys() == {"image", "caption", "num_channels"}
-        assert item["image"] == {
-            "bytes": image_to_bytes(PIL.Image.fromarray(np.array(pil_image))),
-            "path": None,
-        }
+        assert item["image"] == encode_np_array(np.array(pil_image))
         assert item["caption"] == "cats sleeping"
         assert item["num_channels"] == 3
 
