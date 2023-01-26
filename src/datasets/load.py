@@ -1835,15 +1835,22 @@ def load_from_disk(
     # gets filesystem from dataset, either s3:// or file:// and adjusted dataset_path
     if is_remote_filesystem(fs):
         dest_dataset_path = extract_path_from_uri(dataset_path)
+        is_local = False
     else:
         fs = fsspec.filesystem("file")
         dest_dataset_path = dataset_path
+        is_local = True
+
+    def path_join(*args):
+        if is_local:
+            return os.path.join(*args)
+        return Path(*args).as_posix()
 
     if not fs.exists(dest_dataset_path):
         raise FileNotFoundError(f"Directory {dataset_path} not found")
-    if fs.isfile(os.path.join(dest_dataset_path, config.DATASET_INFO_FILENAME)):
+    if fs.isfile(path_join(dest_dataset_path, config.DATASET_INFO_FILENAME)):
         return Dataset.load_from_disk(dataset_path, keep_in_memory=keep_in_memory, storage_options=storage_options)
-    elif fs.isfile(os.path.join(dest_dataset_path, config.DATASETDICT_JSON_FILENAME)):
+    elif fs.isfile(path_join(dest_dataset_path, config.DATASETDICT_JSON_FILENAME)):
         return DatasetDict.load_from_disk(dataset_path, keep_in_memory=keep_in_memory, storage_options=storage_options)
     else:
         raise FileNotFoundError(
