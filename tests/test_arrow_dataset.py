@@ -5,6 +5,7 @@ import json
 import os
 import pickle
 import re
+import sys
 import tempfile
 from functools import partial
 from pathlib import Path
@@ -2577,37 +2578,69 @@ class BaseDatasetTest(TestCase):
     @require_tf
     def test_tf_dataset_conversion(self, in_memory):
         tmp_dir = tempfile.TemporaryDirectory()
-        with self._create_dummy_dataset(in_memory, tmp_dir.name, array_features=True) as dset:
-            tf_dataset = dset.to_tf_dataset(columns="col_3", batch_size=4)
-            batch = next(iter(tf_dataset))
-            self.assertEqual(batch.shape.as_list(), [4, 4])
-            self.assertEqual(batch.dtype.name, "int64")
-        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
-            tf_dataset = dset.to_tf_dataset(columns="col_1", batch_size=4)
-            batch = next(iter(tf_dataset))
-            self.assertEqual(batch.shape.as_list(), [4])
-            self.assertEqual(batch.dtype.name, "int64")
-        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
-            # Check that it works with all default options (except batch_size because the dummy dataset only has 4)
-            tf_dataset = dset.to_tf_dataset(batch_size=4)
-            batch = next(iter(tf_dataset))
-            self.assertEqual(batch["col_1"].shape.as_list(), [4])
-            self.assertEqual(batch["col_2"].shape.as_list(), [4])
-            self.assertEqual(batch["col_1"].dtype.name, "int64")
-            self.assertEqual(batch["col_2"].dtype.name, "string")  # Assert that we're converting strings properly
-        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
-            # Check that when we use a transform that creates a new column from existing column values
-            # but don't load the old columns that the new column depends on in the final dataset,
-            # that they're still kept around long enough to be used in the transform
-            transform_dset = dset.with_transform(
-                lambda x: {"new_col": [val * 2 for val in x["col_1"]], "col_1": x["col_1"]}
-            )
-            tf_dataset = transform_dset.to_tf_dataset(columns="new_col", batch_size=4)
-            batch = next(iter(tf_dataset))
-            self.assertEqual(batch.shape.as_list(), [4])
-            self.assertEqual(batch.dtype.name, "int64")
-            del transform_dset
+        for num_workers in [0, 1, 2]:
+            if num_workers > 0 and sys.version_info < (3, 8):
+                continue  # Skip multiprocessing tests for Python < 3.8
+            if num_workers > 0 and sys.platform == "win32" and not in_memory:
+                continue  # This test hangs on the Py3.10 test worker, but it runs fine locally on my Windows machine
+            with self._create_dummy_dataset(in_memory, tmp_dir.name, array_features=True) as dset:
+                tf_dataset = dset.to_tf_dataset(columns="col_3", batch_size=2, num_workers=num_workers)
+                batch = next(iter(tf_dataset))
+                self.assertEqual(batch.shape.as_list(), [2, 4])
+                self.assertEqual(batch.dtype.name, "int64")
+            with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+                tf_dataset = dset.to_tf_dataset(columns="col_1", batch_size=2, num_workers=num_workers)
+                batch = next(iter(tf_dataset))
+                self.assertEqual(batch.shape.as_list(), [2])
+                self.assertEqual(batch.dtype.name, "int64")
+            with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+                # Check that it works with all default options (except batch_size because the dummy dataset only has 4)
+                tf_dataset = dset.to_tf_dataset(batch_size=2, num_workers=num_workers)
+                batch = next(iter(tf_dataset))
+                self.assertEqual(batch["col_1"].shape.as_list(), [2])
+                self.assertEqual(batch["col_2"].shape.as_list(), [2])
+                self.assertEqual(batch["col_1"].dtype.name, "int64")
+                self.assertEqual(batch["col_2"].dtype.name, "string")  # Assert that we're converting strings properly
+            with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+                # Check that when we use a transform that creates a new column from existing column values
+                # but don't load the old columns that the new column depends on in the final dataset,
+                # that they're still kept around long enough to be used in the transform
+                transform_dset = dset.with_transform(
+                    lambda x: {"new_col": [val * 2 for val in x["col_1"]], "col_1": x["col_1"]}
+                )
+                tf_dataset = transform_dset.to_tf_dataset(columns="new_col", batch_size=2, num_workers=num_workers)
+                batch = next(iter(tf_dataset))
+                self.assertEqual(batch.shape.as_list(), [2])
+                self.assertEqual(batch.dtype.name, "int64")
+                del transform_dset
         del tf_dataset  # For correct cleanup
+
+    @require_tf
+    def test_tf_index_reshuffling(self, in_memory):
+        # This test checks that when we do two epochs over a tf.data.Dataset from to_tf_dataset
+        # that we get a different shuffle order each time
+        # It also checks that when we aren't shuffling, that the dataset order is fully preserved
+        # even when loading is split across multiple workers
+        data = {"col_1": list(range(20))}
+        for num_workers in [0, 1, 2, 3]:
+            if num_workers > 0 and sys.version_info < (3, 8):
+                continue  # Skip multiprocessing tests for Python < 3.8
+            with Dataset.from_dict(data) as dset:
+                tf_dataset = dset.to_tf_dataset(batch_size=10, shuffle=True, num_workers=num_workers)
+                indices = []
+                for batch in tf_dataset:
+                    indices.append(batch["col_1"])
+                indices = np.concatenate([arr.numpy() for arr in indices])
+                second_indices = []
+                for batch in tf_dataset:
+                    second_indices.append(batch["col_1"])
+                second_indices = np.concatenate([arr.numpy() for arr in second_indices])
+                self.assertFalse(np.array_equal(indices, second_indices))
+
+                tf_dataset = dset.to_tf_dataset(batch_size=1, shuffle=False, num_workers=num_workers)
+                for i, batch in enumerate(tf_dataset):
+                    # Assert that the unshuffled order is fully preserved even when multiprocessing
+                    self.assertEqual(i, batch["col_1"].numpy())
 
     @require_tf
     def test_tf_label_renaming(self, in_memory):

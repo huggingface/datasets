@@ -111,7 +111,7 @@ from .utils.info_utils import is_small_dataset
 from .utils.metadata import DatasetMetadata
 from .utils.py_utils import asdict, convert_file_size_to_int, iflatmap_unordered, unique_values
 from .utils.stratify import stratified_shuffle_split_generate_indices
-from .utils.tf_utils import minimal_tf_collate_fn
+from .utils.tf_utils import dataset_to_tf, minimal_tf_collate_fn, multiprocess_dataset_to_tf
 from .utils.typing import PathLike
 
 
@@ -211,7 +211,7 @@ class TensorflowDatasetMixin:
         collate_fn_args: dict,
         cols_to_retain: Optional[List[str]] = None,
         batch_size: Optional[int] = None,
-        num_test_batches: int = 200,
+        num_test_batches: int = 20,
     ):
         """Private method used by `to_tf_dataset()` to find the shapes and dtypes of samples from this dataset
            after being passed through the collate_fn. Tensorflow needs an exact signature for tf.numpy_function, so
@@ -243,7 +243,7 @@ class TensorflowDatasetMixin:
             raise ValueError("Unable to get the output signature because the dataset is empty.")
         if batch_size is not None:
             batch_size = min(len(dataset), batch_size)
-        test_batch_size = min(len(dataset), 2)
+        test_batch_size = 1
 
         if cols_to_retain is not None:
             cols_to_retain = list(set(cols_to_retain + ["label_ids", "label", "labels"]))
@@ -312,6 +312,7 @@ class TensorflowDatasetMixin:
         collate_fn_args: Optional[Dict[str, Any]] = None,
         label_cols: Optional[Union[str, List[str]]] = None,
         prefetch: bool = True,
+        num_workers: int = 0,
     ):
         """Create a `tf.data.Dataset` from the underlying Dataset. This `tf.data.Dataset` will load and collate batches from
         the Dataset, and is suitable for passing to methods like `model.fit()` or `model.predict()`. The dataset will yield
@@ -344,6 +345,8 @@ class TensorflowDatasetMixin:
                 Whether to run the dataloader in a separate thread and maintain
                 a small buffer of batches for training. Improves performance by allowing data to be loaded in the
                 background while the model is training.
+            num_workers (`int`, defaults to `0`):
+                Number of workers to use for loading the dataset. Only supported on Python versions >= 3.8.
 
         Returns:
             `tf.data.Dataset`
@@ -371,6 +374,9 @@ class TensorflowDatasetMixin:
                 "try using a TPU VM or, if your data can fit in memory, loading it into memory as a dict of "
                 "Tensors instead of streaming with to_tf_dataset()."
             )
+
+        if num_workers > 0 and sys.version_info < (3, 8):
+            raise ValueError("Using multiple workers is only supported on Python versions >= 3.8.")
 
         if collate_fn is None:
             # Set a very simple default collator that just stacks things together
@@ -424,55 +430,33 @@ class TensorflowDatasetMixin:
             if col not in output_signature:
                 raise ValueError(f"Label column {col} not found in dataset!")
 
-        def np_get_batch(indices):
-            # Optimization - if we're loading a sequential batch, do it with slicing instead of a list of indices
-            if np.all(np.diff(indices) == 1):
-                batch = dataset[indices[0] : indices[-1] + 1]
-            else:
-                batch = dataset[indices]
-
-            if cols_to_retain is not None:
-                batch = {
-                    key: value
-                    for key, value in batch.items()
-                    if key in cols_to_retain or key in ("label", "label_ids", "labels")
-                }
-            elif cols_to_retain is not None:
-                batch = {key: value for key, value in batch.items() if key in cols_to_retain}
-
-            actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
-            # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
-            batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
-            batch = collate_fn(batch, **collate_fn_args)
-            out_batch = []
-            for col, cast_dtype in columns_to_np_types.items():
-                # In case the collate_fn returns something strange
-                array = np.array(batch[col])
-                array = array.astype(cast_dtype)
-                out_batch.append(array)
-            return out_batch
-
-        @tf.function(input_signature=[tf.TensorSpec(None, tf.int64)])
-        def fetch_function(indices):
-            output = tf.numpy_function(
-                np_get_batch,
-                inp=[indices],
-                # This works because dictionaries always output in the same order
-                Tout=[tf.dtypes.as_dtype(dtype) for dtype in columns_to_np_types.values()],
+        if num_workers == 0:
+            tf_dataset = dataset_to_tf(
+                dataset=dataset,
+                cols_to_retain=cols_to_retain,
+                collate_fn=collate_fn,
+                collate_fn_args=collate_fn_args,
+                columns_to_np_types=columns_to_np_types,
+                output_signature=output_signature,
+                shuffle=shuffle,
+                batch_size=batch_size,
+                drop_remainder=drop_remainder,
             )
-            return {key: output[i] for i, key in enumerate(columns_to_np_types.keys())}
-
-        tf_dataset = tf.data.Dataset.from_tensor_slices(np.arange(len(dataset), dtype=np.int64))
-
-        if shuffle:
-            tf_dataset = tf_dataset.shuffle(len(dataset))
-
-        tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder).map(fetch_function)
-
-        def ensure_shapes(input_dict):
-            return {key: tf.ensure_shape(val, output_signature[key].shape) for key, val in input_dict.items()}
-
-        tf_dataset = tf_dataset.map(ensure_shapes)
+        elif num_workers > 0:
+            tf_dataset = multiprocess_dataset_to_tf(
+                dataset=dataset,
+                cols_to_retain=cols_to_retain,
+                collate_fn=collate_fn,
+                collate_fn_args=collate_fn_args,
+                columns_to_np_types=columns_to_np_types,
+                output_signature=output_signature,
+                shuffle=shuffle,
+                batch_size=batch_size,
+                drop_remainder=drop_remainder,
+                num_workers=num_workers,
+            )
+        else:
+            raise ValueError("num_workers must be >= 0")
 
         def split_features_and_labels(input_batch):
             # TODO(Matt, QL): deprecate returning the dict content when there's only one key
@@ -1993,6 +1977,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Dataset({
             features: ['text'],
             num_rows: 1066
+        })
+        >>> ds.remove_columns(column_names=ds.column_names) # Removing all the columns returns an empty dataset with the `num_rows` property set to 0
+        Dataset({
+            features: [],
+            num_rows: 0
         })
         ```
         """
@@ -4865,7 +4854,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         branch: Optional[str] = None,
         max_shard_size: Optional[Union[int, str]] = None,
         num_shards: Optional[int] = None,
-        shard_size: Optional[int] = "deprecated",
         embed_external_files: bool = True,
     ):
         """Pushes the dataset to the hub as a Parquet dataset.
@@ -4898,14 +4886,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             num_shards (`int`, *optional*): Number of shards to write. By default the number of shards depends on `max_shard_size`.
 
                 <Added version="2.8.0"/>
-            shard_size (`int`, *optional*):
-
-                <Deprecated version="2.4.0">
-
-                `shard_size` was renamed to `max_shard_size` in version 2.1.1 and will be removed in 2.4.0.
-
-                </Deprecated>
-
             embed_external_files (`bool`, defaults to `True`):
                 Whether to embed file bytes in the shards.
                 In particular, this will do the following before the push for the fields of type:
@@ -4921,13 +4901,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> dataset.push_to_hub("<organization>/<dataset_id>", num_shards=1024)
         ```
         """
-        if shard_size != "deprecated":
-            warnings.warn(
-                "'shard_size' was renamed to 'max_shard_size' in version 2.1.1 and will be removed in 2.4.0.",
-                FutureWarning,
-            )
-            max_shard_size = shard_size
-
         if max_shard_size is not None and num_shards is not None:
             raise ValueError(
                 "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."

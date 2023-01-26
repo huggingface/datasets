@@ -366,17 +366,19 @@ def _add_retries_to_file_obj_read_method(file_obj):
     max_retries = config.STREAMING_READ_MAX_RETRIES
 
     def read_with_retries(*args, **kwargs):
+        disconnect_err = None
         for retry in range(1, max_retries + 1):
             try:
                 out = read(*args, **kwargs)
                 break
-            except (ClientError, TimeoutError):
+            except (ClientError, TimeoutError) as err:
+                disconnect_err = err
                 logger.warning(
                     f"Got disconnected from remote data host. Retrying in {config.STREAMING_READ_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
                 )
                 time.sleep(config.STREAMING_READ_RETRY_INTERVAL)
         else:
-            raise ConnectionError("Server Disconnected")
+            raise ConnectionError("Server Disconnected") from disconnect_err
         return out
 
     file_obj.read = read_with_retries

@@ -1445,7 +1445,7 @@ class ConcatenationTable(Table):
                 <Added version="1.6.0"/>
         """
 
-        def to_blocks(table):
+        def to_blocks(table: Union[pa.Table, Table]) -> List[List[TableBlock]]:
             if isinstance(table, pa.Table):
                 return [[InMemoryTable(table)]]
             elif isinstance(table, ConcatenationTable):
@@ -1453,28 +1453,58 @@ class ConcatenationTable(Table):
             else:
                 return [[table]]
 
-        def _split_like(blocks_to_split, blocks_like):
-            splits = []
-            offset = 0
-            for block_row in blocks_like:
-                length = block_row[0].num_rows
-                splits.append((offset, length))
-                offset += length
-            return [
-                [block.slice(offset=split[0], length=split[1]) for block in blocks_to_split[0]] for split in splits
-            ]
+        def _slice_row_block(row_block: List[TableBlock], length: int) -> Tuple[List[TableBlock], List[TableBlock]]:
+            sliced = [table.slice(0, length) for table in row_block]
+            remainder = [table.slice(length, len(row_block[0]) - length) for table in row_block]
+            return sliced, remainder
 
-        def _extend_blocks(result, blocks: List[List[TableBlock]], axis: int = 0):
+        def _split_both_like(
+            result: List[List[TableBlock]], blocks: List[List[TableBlock]]
+        ) -> Tuple[List[List[TableBlock]], List[List[TableBlock]]]:
+            """
+            Make sure each row_block contain the same num_rows to be able to concatenate them on axis=1.
+
+            To do so, we modify both blocks sets to have the same row_blocks boundaries.
+            For example, if `result` has 2 row_blocks of 3 rows and `blocks` has 3 row_blocks of 2 rows,
+            we modify both to have 4 row_blocks of size 2, 1, 1 and 2:
+
+                    [ x   x   x | x   x   x ]
+                +   [ y   y | y   y | y   y ]
+                -----------------------------
+                =   [ x   x | x | x | x   x ]
+                    [ y   y | y | y | y   y ]
+
+            """
+            result, blocks = list(result), list(blocks)
+            new_result, new_blocks = [], []
+            while result and blocks:
+                # we slice the longest row block to save two row blocks of same length
+                # and we replace the long row block by its remainder if necessary
+                if len(result[0][0]) > len(blocks[0][0]):
+                    new_blocks.append(blocks[0])
+                    sliced, result[0] = _slice_row_block(result[0], len(blocks.pop(0)[0]))
+                    new_result.append(sliced)
+                elif len(result[0][0]) < len(blocks[0][0]):
+                    new_result.append(result[0])
+                    sliced, blocks[0] = _slice_row_block(blocks[0], len(result.pop(0)[0]))
+                    new_blocks.append(sliced)
+                else:
+                    new_result.append(result.pop(0))
+                    new_blocks.append(blocks.pop(0))
+            if result or blocks:
+                raise ValueError("Failed to concatenate on axis=1 because tables don't have the same number of rows")
+            return new_result, new_blocks
+
+        def _extend_blocks(
+            result: List[List[TableBlock]], blocks: List[List[TableBlock]], axis: int = 0
+        ) -> List[List[TableBlock]]:
             if axis == 0:
                 result.extend(blocks)
             elif axis == 1:
-                if len(result) == 1 and len(blocks) > 1:
-                    result = _split_like(result, blocks)  # Split result
-                elif len(blocks) == 1 and len(result) > 1:
-                    blocks = _split_like(blocks, result)  # Split blocks
-                # TODO: This assumes each block_row has the same num_rows
-                for i, row_blocks in enumerate(blocks):
-                    result[i].extend(row_blocks)
+                # We make sure each row_block have the same num_rows
+                result, blocks = _split_both_like(result, blocks)
+                for i, row_block in enumerate(blocks):
+                    result[i].extend(row_block)
             return result
 
         blocks = to_blocks(tables[0])
