@@ -674,7 +674,7 @@ def test_image_embed_storage(shared_datadir):
     [
         (np.arange(16).reshape(4, 4).astype(np.uint8), "exact_match", "PNG"),
         (np.arange(16).reshape(4, 4).astype(np.uint16), "exact_match", "TIFF"),
-        (np.arange(16).reshape(4, 4), "downcast->|i4", "TIFF"),
+        (np.arange(16).reshape(4, 4).astype(np.int8), "downcast->|i4", "TIFF"),
         (np.arange(16).reshape(2, 2, 4).astype(np.uint8), "exact_match", "PNG"),
         (np.arange(16).reshape(2, 2, 4), "downcast->|u1", "PNG"),
         (np.arange(16).reshape(2, 2, 4).astype(np.float64), "error", None),
