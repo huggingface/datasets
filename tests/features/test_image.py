@@ -1,5 +1,6 @@
 import os
 import tarfile
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -7,7 +8,7 @@ import pyarrow as pa
 import pytest
 
 from datasets import Dataset, Features, Image, Sequence, Value, concatenate_datasets, load_dataset
-from datasets.features.image import image_to_bytes
+from datasets.features.image import encode_np_array, image_to_bytes
 
 from ..utils import require_pil
 
@@ -157,16 +158,17 @@ def test_dataset_with_image_feature_from_pil_image(infer_feature, shared_datadir
 def test_dataset_with_image_feature_from_np_array():
     import PIL.Image
 
-    image_array = np.arange(640 * 480, dtype=np.uint8).reshape(480, 640)
+    image_array = np.arange(640 * 480).reshape(480, 640)
     data = {"image": [image_array]}
     features = Features({"image": Image()})
     dset = Dataset.from_dict(data, features=features)
     item = dset[0]
     assert item.keys() == {"image"}
     assert isinstance(item["image"], PIL.Image.Image)
+
     np.testing.assert_array_equal(np.array(item["image"]), image_array)
     assert item["image"].filename == ""
-    assert item["image"].format == "PNG"
+    assert item["image"].format in ["PNG", "TIFF"]
     assert item["image"].size == (640, 480)
     batch = dset[:1]
     assert len(batch) == 1
@@ -174,14 +176,14 @@ def test_dataset_with_image_feature_from_np_array():
     assert isinstance(batch["image"], list) and all(isinstance(item, PIL.Image.Image) for item in batch["image"])
     np.testing.assert_array_equal(np.array(batch["image"][0]), image_array)
     assert batch["image"][0].filename == ""
-    assert batch["image"][0].format == "PNG"
+    assert batch["image"][0].format in ["PNG", "TIFF"]
     assert batch["image"][0].size == (640, 480)
     column = dset["image"]
     assert len(column) == 1
     assert isinstance(column, list) and all(isinstance(item, PIL.Image.Image) for item in column)
     np.testing.assert_array_equal(np.array(column[0]), image_array)
     assert column[0].filename == ""
-    assert column[0].format == "PNG"
+    assert column[0].format in ["PNG", "TIFF"]
     assert column[0].size == (640, 480)
 
 
@@ -366,8 +368,6 @@ def test_dataset_with_image_feature_map(shared_datadir):
 
 @require_pil
 def test_formatted_dataset_with_image_feature_map(shared_datadir):
-    import PIL.Image
-
     image_path = str(shared_datadir / "test_image_rgb.jpg")
     pil_image = Image().decode_example({"path": image_path, "bytes": None})
     data = {"image": [image_path], "caption": ["cats sleeping"]}
@@ -385,10 +385,7 @@ def test_formatted_dataset_with_image_feature_map(shared_datadir):
     decoded_dset = dset.with_format("numpy").map(process_image_by_example)
     for item in decoded_dset.cast_column("image", Image(decode=False)):
         assert item.keys() == {"image", "caption", "num_channels"}
-        assert item["image"] == {
-            "bytes": image_to_bytes(PIL.Image.fromarray(np.array(pil_image))),
-            "path": None,
-        }
+        assert item["image"] == encode_np_array(np.array(pil_image))
         assert item["caption"] == "cats sleeping"
         assert item["num_channels"] == 3
 
@@ -399,10 +396,7 @@ def test_formatted_dataset_with_image_feature_map(shared_datadir):
     decoded_dset = dset.with_format("numpy").map(process_image_by_batch, batched=True)
     for item in decoded_dset.cast_column("image", Image(decode=False)):
         assert item.keys() == {"image", "caption", "num_channels"}
-        assert item["image"] == {
-            "bytes": image_to_bytes(PIL.Image.fromarray(np.array(pil_image))),
-            "path": None,
-        }
+        assert item["image"] == encode_np_array(np.array(pil_image))
         assert item["caption"] == "cats sleeping"
         assert item["num_channels"] == 3
 
@@ -672,3 +666,39 @@ def test_image_embed_storage(shared_datadir):
     embedded_storage = Image().embed_storage(storage)
     embedded_example = embedded_storage.to_pylist()[0]
     assert embedded_example == {"bytes": open(image_path, "rb").read(), "path": "test_image_rgb.jpg"}
+
+
+@require_pil
+@pytest.mark.parametrize(
+    "array, dtype_cast, expected_image_format",
+    [
+        (np.arange(16).reshape(4, 4).astype(np.uint8), "exact_match", "PNG"),
+        (np.arange(16).reshape(4, 4).astype(np.uint16), "exact_match", "TIFF"),
+        (np.arange(16).reshape(4, 4).astype(np.int64), "downcast->|i4", "TIFF"),
+        (np.arange(16).reshape(2, 2, 4).astype(np.uint8), "exact_match", "PNG"),
+        (np.arange(16).reshape(2, 2, 4), "downcast->|u1", "PNG"),
+        (np.arange(16).reshape(2, 2, 4).astype(np.float64), "error", None),
+    ],
+)
+def test_encode_np_array(array, dtype_cast, expected_image_format):
+    if dtype_cast.startswith("downcast"):
+        _, dest_dtype = dtype_cast.split("->")
+        dest_dtype = np.dtype(dest_dtype)
+        with pytest.warns(UserWarning, match=f"Downcasting array dtype.+{dest_dtype}.+"):
+            encoded_image = Image().encode_example(array)
+    elif dtype_cast == "error":
+        with pytest.raises(TypeError):
+            Image().encode_example(array)
+        return
+    else:  # exact_match (no warnings are raised)
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            encoded_image = Image().encode_example(array)
+
+    assert isinstance(encoded_image, dict)
+    assert encoded_image.keys() == {"path", "bytes"}
+    assert encoded_image["path"] is None
+    assert encoded_image["bytes"] is not None and isinstance(encoded_image["bytes"], bytes)
+    decoded_image = Image().decode_example(encoded_image)
+    assert decoded_image.format == expected_image_format
+    np.testing.assert_array_equal(np.array(decoded_image), array)
