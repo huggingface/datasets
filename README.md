@@ -66,7 +66,7 @@ pip install datasets
 🤗 Datasets can be installed using conda as follows:
 
 ```bash
-conda install -c huggingface -c conda-forge datasets
+conda install -c huggingface datasets
 ```
 
 Follow the installation pages of TensorFlow and PyTorch to see how to install them with conda.
