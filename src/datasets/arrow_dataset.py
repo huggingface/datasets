@@ -4854,7 +4854,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         branch: Optional[str] = None,
         max_shard_size: Optional[Union[int, str]] = None,
         num_shards: Optional[int] = None,
-        shard_size: Optional[int] = "deprecated",
         embed_external_files: bool = True,
     ):
         """Pushes the dataset to the hub as a Parquet dataset.
@@ -4887,14 +4886,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             num_shards (`int`, *optional*): Number of shards to write. By default the number of shards depends on `max_shard_size`.
 
                 <Added version="2.8.0"/>
-            shard_size (`int`, *optional*):
-
-                <Deprecated version="2.4.0">
-
-                `shard_size` was renamed to `max_shard_size` in version 2.1.1 and will be removed in 2.4.0.
-
-                </Deprecated>
-
             embed_external_files (`bool`, defaults to `True`):
                 Whether to embed file bytes in the shards.
                 In particular, this will do the following before the push for the fields of type:
@@ -4910,13 +4901,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> dataset.push_to_hub("<organization>/<dataset_id>", num_shards=1024)
         ```
         """
-        if shard_size != "deprecated":
-            warnings.warn(
-                "'shard_size' was renamed to 'max_shard_size' in version 2.1.1 and will be removed in 2.4.0.",
-                FutureWarning,
-            )
-            max_shard_size = shard_size
-
         if max_shard_size is not None and num_shards is not None:
             raise ValueError(
                 "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
