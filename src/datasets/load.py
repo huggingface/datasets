@@ -1840,7 +1840,7 @@ def load_from_disk(
     else:
         fs = fsspec.filesystem("file")
         dest_dataset_path = dataset_path
-        path_join = posixpath.join
+        path_join = os.path.join
 
     if not fs.exists(dest_dataset_path):
         raise FileNotFoundError(f"Directory {dataset_path} not found")
