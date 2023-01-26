@@ -145,5 +145,5 @@ You can also define a dataset of images from numpy arrays:
 
 And in this case the numpy arrays are encoded into PNG (or TIFF if the pixels values precision is important).
 
-For multi-channels arrays like RGB or RGBA, only uint8 is supported. If you use a bigger precision, you get a warning and the array is downcasted to uint8.
-For gray-scale images you can use the integer or float precision you want as long as it is compatible with `Pillow`. A warning is shown if your image integer or float precision is too high, and in the case the array is downcated: an int64 array is downcasted to int32, and a float64 array is downcasted to float32. 
+For multi-channels arrays like RGB or RGBA, only uint8 is supported. If you use a larger precision, you get a warning and the array is downcasted to uint8.
+For gray-scale images you can use the integer or float precision you want as long as it is compatible with `Pillow`. A warning is shown if your image integer or float precision is too high, and in this case the array is downcated: an int64 array is downcasted to int32, and a float64 array is downcasted to float32. 
