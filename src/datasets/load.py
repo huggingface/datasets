@@ -1836,7 +1836,7 @@ def load_from_disk(
     # gets filesystem from dataset, either s3:// or file:// and adjusted dataset_path
     if is_remote_filesystem(fs):
         dest_dataset_path = extract_path_from_uri(dataset_path)
-        path_join = os.path.join
+        path_join = posixpath.join
     else:
         fs = fsspec.filesystem("file")
         dest_dataset_path = dataset_path
