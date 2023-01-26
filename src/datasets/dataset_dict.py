@@ -1461,7 +1461,6 @@ class DatasetDict(dict):
         branch: Optional[None] = None,
         max_shard_size: Optional[Union[int, str]] = None,
         num_shards: Optional[Dict[str, int]] = None,
-        shard_size: Optional[Union[int, str]] = "deprecated",
         embed_external_files: bool = True,
     ):
         """Pushes the [`DatasetDict`] to the hub as a Parquet dataset.
@@ -1495,14 +1494,6 @@ class DatasetDict(dict):
                 Use a dictionary to define a different num_shards for each split.
 
                 <Added version="2.8.0"/>
-            shard_size (`int` or `str`, *optional*):
-
-                <Deprecated version="2.4.0">
-
-                `shard_size` was renamed to `max_shard_size` in version 2.1.1 and will be removed in 2.4.0.
-
-                </Deprecated>
-
             embed_external_files (`bool`, defaults to `True`):
                 Whether to embed file bytes in the shards.
                 In particular, this will do the following before the push for the fields of type:
@@ -1518,12 +1509,6 @@ class DatasetDict(dict):
         >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", num_shards={"train": 1024, "test": 8})
         ```
         """
-        if shard_size != "deprecated":
-            warnings.warn(
-                "'shard_size' was renamed to 'max_shard_size' in version 2.1.1 and will be removed in 2.4.0.",
-                FutureWarning,
-            )
-            max_shard_size = shard_size
 
         if num_shards is None:
             num_shards = {k: None for k in self}
