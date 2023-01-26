@@ -108,7 +108,7 @@ With `decode=False`, the [`Audio`] type simply gives you the path or the bytes o
 
 ## Image feature
 
-Image datasets have a column with type [`Image`], which load `PIL.Image` objects from images stored as bytes:
+Image datasets have a column with type [`Image`], which loads `PIL.Image` objects from images stored as bytes:
 
 When you load an image dataset and call the image column, the [`Image`] feature automatically decodes the image file:
 
@@ -135,7 +135,7 @@ With `decode=False`, the [`Image`] type simply gives you the path or the bytes o
  'path': '/Users/username/.cache/huggingface/datasets/downloads/extracted/772e7c1fba622cff102b85dd74bcce46e8168634df4eaade7bedd3b8d91d3cd7/train/healthy/healthy_train.265.jpg'}
 ```
 
-Depending on the dataset, you may get the path to the local downloaded image, or the content of the image as bytes if the dataset was is not originally made of individual files.
+Depending on the dataset, you may get the path to the local downloaded image, or the content of the image as bytes if the dataset is not made of individual files.
 
 You can also define a dataset of images from numpy arrays:
 
