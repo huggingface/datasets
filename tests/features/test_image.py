@@ -1,5 +1,6 @@
 import os
 import tarfile
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -665,3 +666,39 @@ def test_image_embed_storage(shared_datadir):
     embedded_storage = Image().embed_storage(storage)
     embedded_example = embedded_storage.to_pylist()[0]
     assert embedded_example == {"bytes": open(image_path, "rb").read(), "path": "test_image_rgb.jpg"}
+
+
+@require_pil
+@pytest.mark.parametrize(
+    "array, dtype_cast, expected_image_format",
+    [
+        (np.arange(16).reshape(4, 4).astype(np.uint8), "exact_match", "PNG"),
+        (np.arange(16).reshape(4, 4).astype(np.uint16), "exact_match", "TIFF"),
+        (np.arange(16).reshape(4, 4), "downcast->|i4", "TIFF"),
+        (np.arange(16).reshape(2, 2, 4).astype(np.uint8), "exact_match", "PNG"),
+        (np.arange(16).reshape(2, 2, 4), "downcast->|u1", "PNG"),
+        (np.arange(16).reshape(2, 2, 4).astype(np.float64), "error", None),
+    ],
+)
+def test_encode_np_array(array, dtype_cast, expected_image_format):
+    if dtype_cast.startswith("downcast"):
+        _, dest_dtype = dtype_cast.split("->")
+        dest_dtype = np.dtype(dest_dtype)
+        with pytest.warns(UserWarning, match=f"Downcasting array dtype.+{dest_dtype}.+"):
+            encoded_image = Image().encode_example(array)
+    elif dtype_cast == "error":
+        with pytest.raises(TypeError):
+            Image().encode_example(array)
+        return
+    else:  # exact_match (no warnings are raised)
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            encoded_image = Image().encode_example(array)
+
+    assert isinstance(encoded_image, dict)
+    assert encoded_image.keys() == {"path", "bytes"}
+    assert encoded_image["path"] is None
+    assert encoded_image["bytes"] is not None and isinstance(encoded_image["bytes"], bytes)
+    decoded_image = Image().decode_example(encoded_image)
+    assert decoded_image.format == expected_image_format
+    np.testing.assert_array_equal(np.array(decoded_image), array)

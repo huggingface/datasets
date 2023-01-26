@@ -312,7 +312,7 @@ def encode_np_array(array: np.ndarray) -> dict:
     if array.shape[2:]:
         dest_dtype = np.dtype("|u1")
         if dtype_kind not in ["u", "i"]:
-            raise ValueError(
+            raise TypeError(
                 f"Unsupported array dtype {dtype} for image encoding. Only {dest_dtype} is supported for multi-channel arrays."
             )
         if dtype is not dest_dtype:
@@ -331,7 +331,7 @@ def encode_np_array(array: np.ndarray) -> dict:
                 dtype_itemsize //= 2
 
     if dest_dtype is None:
-        raise ValueError(
+        raise TypeError(
             f"Cannot convert dtype {dtype} to a valid image dtype. Valid image dtypes: {_VALID_IMAGE_ARRAY_DTPYES}"
         )
     image = PIL.Image.fromarray(array.astype(dest_dtype))
