@@ -701,6 +701,30 @@ def test_concatenation_table_from_tables(axis, in_memory_pa_table, arrow_file):
     assert isinstance(table.blocks[1][0] if axis == 0 else table.blocks[0][1], MemoryMappedTable)
 
 
+def test_concatenation_table_from_tables_axis1_misaligned_blocks(arrow_file):
+    table = MemoryMappedTable.from_file(arrow_file)
+    t1 = table.slice(0, 2)
+    t2 = table.slice(0, 3).rename_columns([col + "_1" for col in table.column_names])
+    concatenated = ConcatenationTable.from_tables(
+        [
+            ConcatenationTable.from_blocks([[t1], [t1], [t1]]),
+            ConcatenationTable.from_blocks([[t2], [t2]]),
+        ],
+        axis=1,
+    )
+    assert len(concatenated) == 6
+    assert [len(row_blocks[0]) for row_blocks in concatenated.blocks] == [2, 1, 1, 2]
+    concatenated = ConcatenationTable.from_tables(
+        [
+            ConcatenationTable.from_blocks([[t2], [t2]]),
+            ConcatenationTable.from_blocks([[t1], [t1], [t1]]),
+        ],
+        axis=1,
+    )
+    assert len(concatenated) == 6
+    assert [len(row_blocks[0]) for row_blocks in concatenated.blocks] == [2, 1, 1, 2]
+
+
 @pytest.mark.parametrize("blocks_type", ["in_memory", "memory_mapped", "mixed"])
 def test_concatenation_table_deepcopy(
     blocks_type, in_memory_blocks, memory_mapped_blocks, mixed_in_memory_and_memory_mapped_blocks
