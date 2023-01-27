@@ -194,7 +194,7 @@ METRICS_TESTS_REQUIRE = [
     "scipy",
     "sentencepiece",  # for bleurt
     "seqeval",
-    "sqlalchemy",
+    "sqlalchemy<2.0.0",
     "spacy>=3.0.0",
     "tldextract",
     # to speed up pip backtracking
@@ -239,7 +239,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.8.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.9.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
