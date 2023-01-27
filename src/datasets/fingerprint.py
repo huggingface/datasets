@@ -407,8 +407,10 @@ def fingerprint_transform(
     fingerprint_names = fingerprint_names if fingerprint_names is not None else ["new_fingerprint"]
 
     def _fingerprint(func):
-        is_generator_func = (
-            func._is_generator_func if hasattr(func, "_is_generator_func") else inspect.isgeneratorfunction(func)
+        is_wrapped_generator_func = (
+            func._is_wrapped_generator_func
+            if hasattr(func, "_is_wrapped_generator_func")
+            else inspect.isgeneratorfunction(func)
         )
 
         if not inplace and not all(name in func.__code__.co_varnames for name in fingerprint_names):
@@ -497,7 +499,7 @@ def fingerprint_transform(
 
             return (
                 _fingerprint_transform_func(dataset, *args, inplace_fingerprint=new_fingerprint, **kwargs)
-                if not is_generator_func
+                if not is_wrapped_generator_func
                 else _fingerprint_transform_generator_func(
                     dataset, inplace_fingerprint=new_fingerprint, *args, **kwargs
                 )
@@ -505,7 +507,7 @@ def fingerprint_transform(
 
         wrapper._decorator_name_ = "fingerprint"
         # inspect.isgeneratorfunction(func) is not working for decorated functions, so we store the information in the wrapper
-        wrapper._is_generator_func = is_generator_func
+        wrapper._is_wrapped_generator_func = is_wrapped_generator_func
         return wrapper
 
     return _fingerprint

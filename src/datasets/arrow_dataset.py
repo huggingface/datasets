@@ -510,8 +510,10 @@ class DatasetTransformationNotAllowedError(Exception):
 def transmit_format(func):
     """Wrapper for dataset transforms that recreate a new Dataset to transmit the format of the original dataset to the new dataset"""
 
-    is_generator_func = (
-        func._is_generator_func if hasattr(func, "_is_generator_func") else inspect.isgeneratorfunction(func)
+    is_wrapped_generator_func = (
+        func._is_wrapped_generator_func
+        if hasattr(func, "_is_wrapped_generator_func")
+        else inspect.isgeneratorfunction(func)
     )
 
     def _transmit_format(in_dataset, out_dataset):
@@ -568,21 +570,23 @@ def transmit_format(func):
 
         return (
             _transmit_format_func(input_dataset, *args, **kwargs)
-            if not is_generator_func
+            if not is_wrapped_generator_func
             else _transmit_format_generator_func(input_dataset, *args, **kwargs)
         )
 
     wrapper._decorator_name_ = "transmit_format"
     # inspect.isgeneratorfunction(func) is not working for decorated functions, so we store the information in the wrapper
-    wrapper._is_generator_func = is_generator_func
+    wrapper._is_wrapped_generator_func = is_wrapped_generator_func
     return wrapper
 
 
 def transmit_tasks(func):
     """Wrapper for dataset transforms that recreate a new Dataset to transmit the task templates of the original dataset to the new dataset"""
 
-    is_generator_func = (
-        func._is_generator_func if hasattr(func, "_is_generator_func") else inspect.isgeneratorfunction(func)
+    is_wrapped_generator_func = (
+        func._is_wrapped_generator_func
+        if hasattr(func, "_is_wrapped_generator_func")
+        else inspect.isgeneratorfunction(func)
     )
 
     def _transmit_tasks(in_dataset, out_dataset):
@@ -626,13 +630,13 @@ def transmit_tasks(func):
 
         return (
             _transmit_tasks_func(input_dataset, *args, **kwargs)
-            if not is_generator_func
+            if not is_wrapped_generator_func
             else _transmit_tasks_generator_func(input_dataset, *args, **kwargs)
         )
 
     wrapper._decorator_name_ = "transmit_tasks"
     # inspect.isgeneratorfunction(func) is not working for decorated functions, so we store the information in the wrapper
-    wrapper._is_generator_func = is_generator_func
+    wrapper._is_wrapped_generator_func = is_wrapped_generator_func
     return wrapper
 
 
