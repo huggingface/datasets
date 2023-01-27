@@ -108,7 +108,7 @@ from .utils._hf_hub_fixes import list_repo_files as hf_api_list_repo_files
 from .utils.file_utils import _retry, cached_path, estimate_dataset_size
 from .utils.hub import hf_hub_url
 from .utils.info_utils import is_small_dataset
-from .utils.metadata import DatasetMetadata
+from .utils.metadata import DatasetMetadata, MetadataConfigsDict
 from .utils.py_utils import asdict, convert_file_size_to_int, iflatmap_unordered, unique_values
 from .utils.stratify import stratified_shuffle_split_generate_indices
 from .utils.tf_utils import dataset_to_tf, minimal_tf_collate_fn, multiprocess_dataset_to_tf
@@ -4942,6 +4942,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         info_to_dump.download_size = uploaded_size
         info_to_dump.dataset_size = dataset_nbytes
         info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes
+        info_to_dump.config_name = config_name
         info_to_dump.splits = SplitDict(
             {split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name)}
         )
@@ -4956,7 +4957,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
             dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
             dataset_infos: DatasetInfosDict = DatasetInfosDict.from_metadata(dataset_metadata)
-            repo_info = dataset_infos[next(iter(dataset_infos))]
+            repo_info = dataset_infos.get(config_name, None)
         # get the deprecated dataset_infos.json to uodate them
         elif config.DATASETDICT_INFOS_FILENAME in repo_files:
             dataset_metadata = DatasetMetadata()
@@ -5009,7 +5010,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 revision=branch,
             )
         # push to README
-        DatasetInfosDict({"default": info_to_dump}).to_metadata(dataset_metadata)
+        DatasetInfosDict({config_name: info_to_dump}).to_metadata(dataset_metadata)
+        MetadataConfigsDict({config_name: {"config_name": config_name, "data_dir": config_name}}).to_metadata(
+            dataset_metadata
+        )
         if "README.md" in repo_files:
             with open(dataset_readme_path, encoding="utf-8") as readme_file:
                 readme_content = readme_file.read()
