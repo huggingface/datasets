@@ -6,6 +6,7 @@ import re
 import tarfile
 import time
 import xml.dom.minidom
+import zipfile
 from asyncio import TimeoutError
 from io import BytesIO
 from itertools import chain
@@ -151,7 +152,7 @@ def xexists(urlpath: str, use_auth_token: Optional[Union[str, bool]] = None):
         `bool`
     """
 
-    main_hop, *rest_hops = str(urlpath).split("::")
+    main_hop, *rest_hops = _as_str(urlpath).split("::")
     if is_local_path(main_hop):
         return os.path.exists(main_hop)
     else:
@@ -365,29 +366,46 @@ def _add_retries_to_file_obj_read_method(file_obj):
     max_retries = config.STREAMING_READ_MAX_RETRIES
 
     def read_with_retries(*args, **kwargs):
+        disconnect_err = None
         for retry in range(1, max_retries + 1):
             try:
                 out = read(*args, **kwargs)
                 break
-            except (ClientError, TimeoutError):
+            except (ClientError, TimeoutError) as err:
+                disconnect_err = err
                 logger.warning(
                     f"Got disconnected from remote data host. Retrying in {config.STREAMING_READ_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
                 )
                 time.sleep(config.STREAMING_READ_RETRY_INTERVAL)
         else:
-            raise ConnectionError("Server Disconnected")
+            raise ConnectionError("Server Disconnected") from disconnect_err
         return out
 
     file_obj.read = read_with_retries
 
 
+def _get_path_extension(path: str) -> str:
+    # Get extension: https://foo.bar/train.json.gz -> gz
+    extension = path.split(".")[-1]
+    # Remove query params ("dl=1", "raw=true"): gz?dl=1 -> gz
+    # Remove shards infos (".txt_1", ".txt-00000-of-00100"): txt_1 -> txt
+    for symb in "?-_":
+        extension = extension.split(symb)[0]
+    return extension
+
+
 def _get_extraction_protocol_with_magic_number(f) -> Optional[str]:
     """read the magic number from a file-like object and return the compression protocol"""
+    # Check if the file object is seekable even before reading the magic number (to avoid https://bugs.python.org/issue26440)
+    try:
+        f.seek(0)
+    except (AttributeError, io.UnsupportedOperation):
+        return None
     magic_number = f.read(MAGIC_NUMBER_MAX_LENGTH)
     f.seek(0)
     for i in range(MAGIC_NUMBER_MAX_LENGTH):
         compression = MAGIC_NUMBER_TO_COMPRESSION_PROTOCOL.get(magic_number[: MAGIC_NUMBER_MAX_LENGTH - i])
-        if compression is not None:  # TODO(QL): raise an error for .tar.gz files as in _get_extraction_protocol
+        if compression is not None:
             return compression
         compression = MAGIC_NUMBER_TO_UNSUPPORTED_COMPRESSION_PROTOCOL.get(magic_number[: MAGIC_NUMBER_MAX_LENGTH - i])
         if compression is not None:
@@ -396,28 +414,17 @@ def _get_extraction_protocol_with_magic_number(f) -> Optional[str]:
 
 def _get_extraction_protocol(urlpath: str, use_auth_token: Optional[Union[str, bool]] = None) -> Optional[str]:
     # get inner file: zip://train-00000.json.gz::https://foo.bar/data.zip -> zip://train-00000.json.gz
+    urlpath = str(urlpath)
     path = urlpath.split("::")[0]
-    # Get extension: https://foo.bar/train.json.gz -> gz
-    extension = path.split(".")[-1]
-    # Remove query params ("dl=1", "raw=true"): gz?dl=1 -> gz
-    # Remove shards infos (".txt_1", ".txt-00000-of-00100"): txt_1 -> txt
-    for symb in "?-_":
-        extension = extension.split(symb)[0]
-    if extension in BASE_KNOWN_EXTENSIONS:
+    extension = _get_path_extension(path)
+    if (
+        extension in BASE_KNOWN_EXTENSIONS
+        or extension in ["tgz", "tar"]
+        or path.endswith((".tar.gz", ".tar.bz2", ".tar.xz"))
+    ):
         return None
-    elif extension in ["tgz", "tar"] or path.endswith(".tar.gz"):
-        raise NotImplementedError(
-            f"Extraction protocol for TAR archives like '{urlpath}' is not implemented in streaming mode. "
-            f"Please use `dl_manager.iter_archive` instead.\n\n"
-            f"Example usage:\n\n"
-            f"\turl = dl_manager.download(url)\n"
-            f"\ttar_archive_iterator = dl_manager.iter_archive(url)\n\n"
-            f"\tfor filename, file in tar_archive_iterator:\n"
-            f"\t\t..."
-        )
     elif extension in COMPRESSION_EXTENSION_TO_PROTOCOL:
         return COMPRESSION_EXTENSION_TO_PROTOCOL[extension]
-
     if is_remote_url(urlpath):
         # get headers and cookies for authentication on the HF Hub and for Google Drive
         urlpath, kwargs = _prepare_http_url_kwargs(urlpath, use_auth_token=use_auth_token)
@@ -849,8 +856,8 @@ class _IterableFromGenerator(Iterable):
 class ArchiveIterable(_IterableFromGenerator):
     """An iterable of (path, fileobj) from a TAR archive, used by `iter_archive`"""
 
-    @classmethod
-    def _iter_from_fileobj(cls, f) -> Generator[Tuple, None, None]:
+    @staticmethod
+    def _iter_tar(f):
         stream = tarfile.open(fileobj=f, mode="r|*")
         for tarinfo in stream:
             file_path = tarinfo.name
@@ -866,12 +873,39 @@ class ArchiveIterable(_IterableFromGenerator):
             stream.members = []
         del stream
 
+    @staticmethod
+    def _iter_zip(f):
+        zipf = zipfile.ZipFile(f)
+        for member in zipf.infolist():
+            file_path = member.filename
+            if member.is_dir():
+                continue
+            if file_path is None:
+                continue
+            if os.path.basename(file_path).startswith((".", "__")):
+                # skipping hidden files
+                continue
+            file_obj = zipf.open(member)
+            yield file_path, file_obj
+
+    @classmethod
+    def _iter_from_fileobj(cls, f) -> Generator[Tuple, None, None]:
+        compression = _get_extraction_protocol_with_magic_number(f)
+        if compression == "zip":
+            yield from cls._iter_zip(f)
+        else:
+            yield from cls._iter_tar(f)
+
     @classmethod
     def _iter_from_urlpath(
         cls, urlpath: str, use_auth_token: Optional[Union[str, bool]] = None
     ) -> Generator[Tuple, None, None]:
+        compression = _get_extraction_protocol(urlpath, use_auth_token=use_auth_token)
         with xopen(urlpath, "rb", use_auth_token=use_auth_token) as f:
-            yield from cls._iter_from_fileobj(f)
+            if compression == "zip":
+                yield from cls._iter_zip(f)
+            else:
+                yield from cls._iter_tar(f)
 
     @classmethod
     def from_buf(cls, fileobj) -> "ArchiveIterable":
@@ -995,6 +1029,19 @@ class StreamingDownloadManager:
     def _extract(self, urlpath: str) -> str:
         urlpath = str(urlpath)
         protocol = _get_extraction_protocol(urlpath, use_auth_token=self.download_config.use_auth_token)
+        # get inner file: zip://train-00000.json.gz::https://foo.bar/data.zip -> zip://train-00000.json.gz
+        path = urlpath.split("::")[0]
+        extension = _get_path_extension(path)
+        if extension in ["tgz", "tar"] or path.endswith((".tar.gz", ".tar.bz2", ".tar.xz")):
+            raise NotImplementedError(
+                f"Extraction protocol for TAR archives like '{urlpath}' is not implemented in streaming mode. "
+                f"Please use `dl_manager.iter_archive` instead.\n\n"
+                f"Example usage:\n\n"
+                f"\turl = dl_manager.download(url)\n"
+                f"\ttar_archive_iterator = dl_manager.iter_archive(url)\n\n"
+                f"\tfor filename, file in tar_archive_iterator:\n"
+                f"\t\t..."
+            )
         if protocol is None:
             # no extraction
             return urlpath

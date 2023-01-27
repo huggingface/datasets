@@ -19,6 +19,7 @@ import importlib
 import inspect
 import json
 import os
+import posixpath
 import shutil
 import time
 import warnings
@@ -1634,7 +1635,7 @@ def load_dataset(
         keep_in_memory (`bool`, defaults to `None`):
             Whether to copy the dataset in-memory. If `None`, the dataset
             will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
-            nonzero. See more details in the [improve performance](./cache#improve-performance) section.
+            nonzero. See more details in the [improve performance](../cache#improve-performance) section.
         save_infos (`bool`, defaults to `False`):
             Save the dataset information (checksums/size/splits/...).
         revision ([`Version`] or `str`, *optional*):
@@ -1802,7 +1803,7 @@ def load_from_disk(
         keep_in_memory (`bool`, defaults to `None`):
             Whether to copy the dataset in-memory. If `None`, the dataset
             will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
-            nonzero. See more details in the [improve performance](./cache#improve-performance) section.
+            nonzero. See more details in the [improve performance](../cache#improve-performance) section.
 
         storage_options (`dict`, *optional*):
             Key/value pairs to be passed on to the file-system backend, if any.
@@ -1835,15 +1836,17 @@ def load_from_disk(
     # gets filesystem from dataset, either s3:// or file:// and adjusted dataset_path
     if is_remote_filesystem(fs):
         dest_dataset_path = extract_path_from_uri(dataset_path)
+        path_join = posixpath.join
     else:
         fs = fsspec.filesystem("file")
         dest_dataset_path = dataset_path
+        path_join = os.path.join
 
     if not fs.exists(dest_dataset_path):
         raise FileNotFoundError(f"Directory {dataset_path} not found")
-    if fs.isfile(Path(dest_dataset_path, config.DATASET_INFO_FILENAME).as_posix()):
+    if fs.isfile(path_join(dest_dataset_path, config.DATASET_INFO_FILENAME)):
         return Dataset.load_from_disk(dataset_path, keep_in_memory=keep_in_memory, storage_options=storage_options)
-    elif fs.isfile(Path(dest_dataset_path, config.DATASETDICT_JSON_FILENAME).as_posix()):
+    elif fs.isfile(path_join(dest_dataset_path, config.DATASETDICT_JSON_FILENAME)):
         return DatasetDict.load_from_disk(dataset_path, keep_in_memory=keep_in_memory, storage_options=storage_options)
     else:
         raise FileNotFoundError(

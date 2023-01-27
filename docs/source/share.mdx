@@ -75,15 +75,13 @@ Here the `namespace` is either your username or your organization name.
 
 4. Now is a good time to check your directory to ensure the only files you're uploading are:
 
-- `README.md` is a Dataset card that describes the datasets contents, creation, and usage. To write a Dataset card, see the [dataset card](dataset_card) page.
-
 - The raw data files of the dataset (optional, if they are hosted elsewhere you can specify the URLs in the dataset script). If you don't need a dataset script, you can take a look at [how to structure your dataset repository for your data files](repository_structure).
 
 - `your_dataset_name.py` is your dataset loading script (optional if your data files are already in the supported formats csv/jsonl/json/parquet/txt). To create a dataset script, see the [dataset script](dataset_script) page.
 
 ### Upload your files
 
-You can directly upload your files from your repository on the Hugging Face Hub, but this guide will show you how to upload the files from the terminal.
+You can directly upload your files to your repository on the Hugging Face Hub, but this guide will show you how to upload the files from the terminal.
 
 5. It is important to add the large data files first with `git lfs track` or else you will encounter an error later when you push your files:
 
@@ -95,10 +93,9 @@ git add *.json
 git commit -m "add json files"
 ```
 
-6. Add the dataset loading script and dataset card:
+6. Add the dataset loading script:
 
 ```
-cp /somewhere/data/README.md .
 cp /somewhere/data/load_script.py .
 git add --all
 ```
@@ -116,6 +113,8 @@ Congratulations, your dataset has now been uploaded to the Hugging Face Hub wher
 ```
 dataset = load_dataset("namespace/your_dataset_name")
 ```
+
+Finally, don't forget to create a dataset card to document your dataset and make it discoverable! Check out the [Create a dataset card](dataset_card) guide to learn more.
 
 ### Ask for a help and reviews
 

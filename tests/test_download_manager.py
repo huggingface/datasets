@@ -122,16 +122,20 @@ def _test_jsonl(path, file):
     assert num_items == 4
 
 
-def test_iter_archive_path(tar_jsonl_path):
+@pytest.mark.parametrize("archive_jsonl", ["tar_jsonl_path", "zip_jsonl_path"])
+def test_iter_archive_path(archive_jsonl, request):
+    archive_jsonl_path = request.getfixturevalue(archive_jsonl)
     dl_manager = DownloadManager()
-    for num_jsonl, (path, file) in enumerate(dl_manager.iter_archive(tar_jsonl_path), start=1):
+    for num_jsonl, (path, file) in enumerate(dl_manager.iter_archive(archive_jsonl_path), start=1):
         _test_jsonl(path, file)
     assert num_jsonl == 2
 
 
-def test_iter_archive_file(tar_nested_jsonl_path):
+@pytest.mark.parametrize("archive_nested_jsonl", ["tar_nested_jsonl_path", "zip_nested_jsonl_path"])
+def test_iter_archive_file(archive_nested_jsonl, request):
+    archive_nested_jsonl_path = request.getfixturevalue(archive_nested_jsonl)
     dl_manager = DownloadManager()
-    for num_tar, (path, file) in enumerate(dl_manager.iter_archive(tar_nested_jsonl_path), start=1):
+    for num_tar, (path, file) in enumerate(dl_manager.iter_archive(archive_nested_jsonl_path), start=1):
         for num_jsonl, (subpath, subfile) in enumerate(dl_manager.iter_archive(file), start=1):
             _test_jsonl(subpath, subfile)
     assert num_tar == 1
