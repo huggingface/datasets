@@ -1,3 +1,4 @@
+import enum
 import os
 from hashlib import sha256
 from typing import Optional
@@ -7,6 +8,28 @@ from .logging import get_logger
 
 
 logger = get_logger(__name__)
+
+
+class VerificationMode(enum.Enum):
+    """`Enum` that specifies which verification checks to run.
+
+    The default mode is `BASIC`, which will perform only rudimentary checks to avoid slowdowns
+    when generating/downloading a dataset for the first time.
+
+    The verification modes:
+
+    |                    | Verification checks                                                           |
+    |--------------------|------------------------------------------------------------------------------ |
+    | `FULL`             | Split checks, uniqueness of the keys yielded in case of the GeneratorBuilder  |
+    |                    | and the validity (number of files, checksums, etc.) of dowloaded files        |
+    | `BASIC` (default)  | The same as `FULL` but without checking downloaded files                      |
+    | `NONE`             | None                                                                          |
+
+    """
+
+    FULL = "full"
+    BASIC = "basic"
+    NONE = "none"
 
 
 class ChecksumVerificationException(Exception):
@@ -36,8 +59,11 @@ def verify_checksums(expected_checksums: Optional[dict], recorded_checksums: dic
     bad_urls = [url for url in expected_checksums if expected_checksums[url] != recorded_checksums[url]]
     for_verification_name = " for " + verification_name if verification_name is not None else ""
     if len(bad_urls) > 0:
-        error_msg = "Checksums didn't match" + for_verification_name + ":\n"
-        raise NonMatchingChecksumError(error_msg + str(bad_urls))
+        raise NonMatchingChecksumError(
+            f"Checksums didn't match{for_verification_name}:\n"
+            f"{bad_urls}\n"
+            'Set `verification_mode="none"` to ignore this error'
+        )
     logger.info("All the checksums matched successfully" + for_verification_name)
 
 

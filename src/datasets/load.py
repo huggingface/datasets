@@ -78,7 +78,7 @@ from .utils.file_utils import (
 )
 from .utils.filelock import FileLock
 from .utils.hub import hf_hub_url
-from .utils.info_utils import is_small_dataset
+from .utils.info_utils import VerificationMode, is_small_dataset
 from .utils.logging import get_logger
 from .utils.metadata import DatasetMetadata
 from .utils.py_utils import get_imports
@@ -1541,7 +1541,8 @@ def load_dataset(
     features: Optional[Features] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[DownloadMode] = None,
-    ignore_verifications: bool = True,
+    verification_mode: Optional[VerificationMode] = None,
+    ignore_verifications="deprecated",
     keep_in_memory: Optional[bool] = None,
     save_infos: bool = False,
     revision: Optional[Union[str, Version]] = None,
@@ -1630,8 +1631,19 @@ def load_dataset(
             Specific download configuration parameters.
         download_mode ([`DownloadMode`], defaults to `REUSE_DATASET_IF_EXISTS`):
             Download/generate mode.
+        verification_mode ([`VerificationMode`], defaults to `BASIC`):
+            Verification mode determining the checks to run on the downloaded/processed dataset information (checksums/size/splits/...).
+
+            <Added version="2.9.1"/>
         ignore_verifications (`bool`, defaults to `False`):
             Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...).
+
+            <Deprecated version="2.9.1">
+
+            `ignore_verifications` was deprecated in version 2.9.1 and will be removed in 3.0.0.
+            Please use `verification_mode` instead.
+
+            </Deprecated>
         keep_in_memory (`bool`, defaults to `None`):
             Whether to copy the dataset in-memory. If `None`, the dataset
             will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
@@ -1656,9 +1668,9 @@ def load_dataset(
             like rar and xz are not yet supported. The tgz format doesn't allow streaming.
         num_proc (`int`, *optional*, defaults to `None`):
             Number of processes when downloading and generating the dataset locally.
-                Multiprocessing is disabled by default.
+            Multiprocessing is disabled by default.
 
-                <Added version="2.7.0"/>
+            <Added version="2.7.0"/>
         **config_kwargs (additional keyword arguments):
             Keyword arguments to be passed to the `BuilderConfig`
             and used in the [`DatasetBuilder`].
@@ -1716,6 +1728,13 @@ def load_dataset(
     >>> ds = load_dataset('imagefolder', data_dir='/path/to/images', split='train')
     ```
     """
+    if ignore_verifications != "deprecated":
+        verification_mode = "none" if ignore_verifications else "full"
+        warnings.warn(
+            "'ignore_verifications' was deprecated in favor of 'verification' in version 2.9.1 and will be removed in 3.0.0.\n"
+            f"You can remove this warning by passing 'verification_mode={verification_mode}' instead.",
+            FutureWarning,
+        )
     if Path(path, config.DATASET_STATE_JSON_FILENAME).exists():
         raise ValueError(
             "You are trying to load a dataset that was saved using `save_to_disk`. "
@@ -1729,7 +1748,9 @@ def load_dataset(
         )
 
     download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
-    ignore_verifications = ignore_verifications or save_infos
+    verification_mode = VerificationMode(
+        (verification_mode or VerificationMode.BASIC) if not save_infos else VerificationMode.FULL
+    )
 
     # Create a dataset builder
     builder_instance = load_dataset_builder(
@@ -1758,7 +1779,7 @@ def load_dataset(
     builder_instance.download_and_prepare(
         download_config=download_config,
         download_mode=download_mode,
-        ignore_verifications=ignore_verifications,
+        verification_mode=verification_mode,
         try_from_hf_gcs=try_from_hf_gcs,
         num_proc=num_proc,
     )
@@ -1767,7 +1788,7 @@ def load_dataset(
     keep_in_memory = (
         keep_in_memory if keep_in_memory is not None else is_small_dataset(builder_instance.info.dataset_size)
     )
-    ds = builder_instance.as_dataset(split=split, ignore_verifications=ignore_verifications, in_memory=keep_in_memory)
+    ds = builder_instance.as_dataset(split=split, verification_mode=verification_mode, in_memory=keep_in_memory)
     # Rename and cast features to match task schema
     if task is not None:
         ds = ds.prepare_for_task(task)
