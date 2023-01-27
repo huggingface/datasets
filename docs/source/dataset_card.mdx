@@ -12,7 +12,7 @@ Creating a dataset card is easy and can be done in a just a few steps:
 
   <Tip>
 
-  For a more complete, but not required, set of tag options you can also use the [Dataset Tagger](https://huggingface.co/spaces/huggingface/datasets-tagging). This'll have a few more tag options like `multilinguality` and `language_creators` which are useful but not absolutely necessary.
+  For a complete, but not required, set of tag options you can also look at the [Dataset Card specifications](https://github.com/huggingface/hub-docs/blob/main/datasetcard.md?plain=1). This'll have a few more tag options like `multilinguality` and `language_creators` which are useful but not absolutely necessary.
 
   </Tip>
 
@@ -21,88 +21,3 @@ Creating a dataset card is easy and can be done in a just a few steps:
 4. Once you're done, commit the changes to the `README.md` file and you'll see the completed dataset card on your repository.
 
 Feel free to take a look at the [SNLI](https://huggingface.co/datasets/snli), [CNN/DailyMail](https://huggingface.co/datasets/cnn_dailymail), and [Allociné](https://huggingface.co/datasets/allocine) dataset cards as examples to help you get started.
-
-You can also check out the (similar) documentation about [dataset cards on the Hub](https://huggingface.co/docs/hub/datasets-cards).
-
-## More YAML tags
-
-You can use the `dataset_info` YAML fields to define additional metadata for the dataset. Here is an example for SQuAD:
-
-```YAML
-pretty_name: SQuAD
-language:
-- en
-...
-dataset_info:
-  features:
-  - name: id
-    dtype: string
-  - name: title
-    dtype: string
-  - name: context
-    dtype: string
-  - name: question
-    dtype: string
-  - name: answers
-    sequence:
-    - name: text
-      dtype: string
-    - name: answer_start
-      dtype: int32
-  splits:
-  - name: train
-    num_bytes: 79346360
-    num_examples: 87599
-  - name: validation
-    num_bytes: 10473040
-    num_examples: 10570
-  download_size: 35142551
-  dataset_size: 89819400
-```
-
-These metadata used to be included in the `dataset_infos.json` file, which is now deprecated.
-
-### Feature types
-
-Using the `features` field you can explicitly define the feature types of your dataset.
-This is especially useful when type inference is not obvious.
-For example if there's only one non-empty example in a 1TB dataset, the type inference is not able to infer the type of each column without going through the full dataset.
-In this case, specifying the `features` field makes type inference much easier.
-
-### Split sizes
-
-Specifying the split sizes with `num_examples` enables TQDM bars (otherwise it doesn't know how many examples are left).
-It also enables integrity verifications: if the dataset doesn't have the right number of `num_examples`, an error is returned.
-
-Additionally you can add `num_bytes` to specify how big each split is.
-
-### Dataset size
-
-When [`load_dataset`] is called, it first downloads the dataset raw data files, and then it prepares the dataset in Arrow format.
-
-You can specify how many bytes are required to download the raw data files with `dataset_size`, and use `dataset_size` for the size of the dataset in Arrow format.
-
-### Multiple configurations
-
-Certain datasets like `glue` have several configurations (`cola`, `sst2`, etc.) that can be loaded using `load_dataset("glue", "cola")` for example.
-
-Each configuration can have different features, splits and sizes.
-You can specify those fields per configuration using a YAML list:
-
-```YAML
-dataset_info:
-- config_name: cola
-  features:
-    ...
-  splits:
-    ...
-  download_size: ...
-  dataset_size: ...
-- config_name: sst2
-  features:
-    ...
-  splits:
-    ...
-  download_size: ...
-  dataset_size: ...
-```
