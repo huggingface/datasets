@@ -432,6 +432,45 @@ class DatasetDict(dict):
         self._check_values_type()
         return DatasetDict({k: dataset.rename_columns(column_mapping=column_mapping) for k, dataset in self.items()})
 
+    def select_columns(self, column_names: Union[str, List[str]]) -> "DatasetDict":
+        """Select one or several column(s) from each split in the dataset and
+        the features associated to the column(s).
+
+        The transformation is applied to all the splits of the dataset
+        dictionary.
+
+        Args:
+            column_names (`Union[str, List[str]]`):
+                Name of the column(s) to keep.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes")
+        >>> ds.select_columns("text")
+        DatasetDict({
+            train: Dataset({
+                features: ['text'],
+                num_rows: 8530
+            })
+            validation: Dataset({
+                features: ['text'],
+                num_rows: 1066
+            })
+            test: Dataset({
+                features: ['text'],
+                num_rows: 1066
+            })
+        })
+        ```
+        """
+        self._check_values_type()
+        return DatasetDict({
+            k: dataset.select_columns(column_names=column_names)
+            for k, dataset in self.items()
+        })
+
     def class_encode_column(self, column: str, include_nulls: bool = False) -> "DatasetDict":
         """Casts the given column as `datasets.features.ClassLabel` and updates the tables.
 
