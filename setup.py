@@ -194,7 +194,7 @@ METRICS_TESTS_REQUIRE = [
     "scipy",
     "sentencepiece",  # for bleurt
     "seqeval",
-    "sqlalchemy",
+    "sqlalchemy<2.0.0",
     "spacy>=3.0.0",
     "tldextract",
     # to speed up pip backtracking
