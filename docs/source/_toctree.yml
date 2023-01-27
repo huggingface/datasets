@@ -30,8 +30,6 @@
       title: Process
     - local: stream
       title: Stream
-    - local: dataset_vs_iterable_dataset
-      title: Choose between Dataset and IterableDataset
     - local: use_with_tensorflow
       title: Use with TensorFlow
     - local: use_with_pytorch
@@ -97,6 +95,8 @@
     title: Datasets 🤝 Arrow
   - local: about_cache
     title: The cache
+  - local: about_mapstyle_vs_iterable
+    title: Dataset or IterableDataset
   - local: about_dataset_features
     title: Dataset features
   - local: about_dataset_load

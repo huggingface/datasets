@@ -1,9 +1,10 @@
-# Choose between Dataset and IterableDataset
+# Differences between Dataset and IterableDataset
 
 ## Downloading and streaming
 
-When you have a regular "map-style" [`Dataset`], you can access it using `my_dataset[0]`: we have what we call "random access" to the rows.
-For example you can download ImageNet-1k like this:
+When you have a regular [`Dataset`], you can access it using `my_dataset[0]`: we have what we call "random access" to the rows.
+Such datasets are also called "map-style" datasets.
+For example you can download ImageNet-1k like this and access any row:
 
 ```python
 from datasets import load_dataset
@@ -65,13 +66,15 @@ my_dataset = load_dataset("csv", data_files=data_files, split="train")
 print(my_dataset[0])
 ```
 
-To not have to wait for the conversion to Arrow, you can define an iterable dataset by streaming from your local files.
-This way the data is read progessively from your local files as you iterate over the dataset:
+However here it requires a conversion step from CSV to Arrow format, which can take time and disk space if your dataset is big.
+
+To save disk space ans skip the conversion step, you can define an iterable dataset by streaming from the local files directly.
+This way the data is read progessively from the local files as you iterate over the dataset:
 
 ```python
 data_files = {"train": ["path/to/data.csv"]}
 my_iterable_dataset = load_dataset("csv", data_files=data_files, split="train", streaming=True)
-for example in my_iterable_dataset:
+for example in my_iterable_dataset:  # this reads the CSV file progressively as you iterate over the dataset
     print(example)
     break
 ```
@@ -92,7 +95,7 @@ print(my_dataset[0])
 On the other hand, due to the "lazy" nature of iterable datasets, calling [`IterableDataset.map`] does not iterate over the full dataset to apply your `map` function.
 Instead, your `map` function is applied on-the-fly when you iterate over the iterable dataset.
 
-Because of that, it means you can chain multiple processing steps and they will all run at once when you start iterating over the dataset:
+Because of that, you can chain multiple processing steps and they will all run at once when you start iterating over the dataset:
 
 ```python
 my_iterable_dataset = my_iterable_dataset.map(process_fn_1)
@@ -179,14 +182,14 @@ You can also reshuffle the dataset easily:
 for example in enumerate(my_iterable_dataset):  # fast
     pass
 
-my_iterable_dataset = my_iterable_dataset.shuffle(seed=42, buffer_size=100)
+shuffled_iterable_dataset = my_iterable_dataset.shuffle(seed=42, buffer_size=100)
 
-for example in enumerate(my_iterable_dataset):  # as fast as before
+for example in enumerate(shuffled_iterable_dataset):  # as fast as before
     pass
 
-my_iterable_dataset = my_iterable_dataset.shuffle(seed=1337, buffer_size=100)  # reshuffling using another seed is instantaneous
+shuffled_iterable_dataset = my_iterable_dataset.shuffle(seed=1337, buffer_size=100)  # reshuffling using another seed is instantaneous
 
-for example in enumerate(my_iterable_dataset):  # still as fast as before
+for example in enumerate(shuffled_iterable_dataset):  # still as fast as before
     pass
 ```
 
