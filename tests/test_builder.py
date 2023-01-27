@@ -25,6 +25,7 @@ from datasets.iterable_dataset import IterableDataset
 from datasets.splits import Split, SplitDict, SplitGenerator, SplitInfo
 from datasets.streaming import xjoin
 from datasets.utils.file_utils import is_local_path
+from datasets.utils.info_utils import VerificationMode
 
 from .utils import (
     assert_arrow_memory_doesnt_increase,
@@ -274,7 +275,9 @@ class BuilderTest(TestCase):
             )
             builder_with_verification = DummyBuilder(cache_dir=tmp_dir)
             builder_with_verification.download_and_prepare(
-                try_from_hf_gcs=False, download_mode=DownloadMode.FORCE_REDOWNLOAD, ignore_verifications=False
+                try_from_hf_gcs=False,
+                download_mode=DownloadMode.FORCE_REDOWNLOAD,
+                verification_mode=VerificationMode.FULL,
             )
             self.assertTrue(
                 all(v["checksum"] is None for _, v in builder_with_verification.info.download_checksums.items())
@@ -658,18 +661,22 @@ class BuilderTest(TestCase):
                 os.path.exists(os.path.join(tmp_dir, builder.name, "default", "0.0.0", "dataset_info.json"))
             )
 
-        # Test that duplicated keys are ignored if ignore_verifications is True
+        # Test that duplicated keys are ignored if verification_mode is "NONE"
         with tempfile.TemporaryDirectory() as tmp_dir:
             builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir)
             with patch("datasets.builder.ArrowWriter", side_effect=ArrowWriter) as mock_arrow_writer:
-                builder.download_and_prepare(download_mode=DownloadMode.FORCE_REDOWNLOAD, ignore_verifications=True)
+                builder.download_and_prepare(
+                    download_mode=DownloadMode.FORCE_REDOWNLOAD, verification_mode=VerificationMode.NONE
+                )
                 mock_arrow_writer.assert_called_once()
                 args, kwargs = mock_arrow_writer.call_args_list[0]
                 self.assertFalse(kwargs["check_duplicates"])
 
                 mock_arrow_writer.reset_mock()
 
-                builder.download_and_prepare(download_mode=DownloadMode.FORCE_REDOWNLOAD, ignore_verifications=False)
+                builder.download_and_prepare(
+                    download_mode=DownloadMode.FORCE_REDOWNLOAD, verification_mode=VerificationMode.BASIC
+                )
                 mock_arrow_writer.assert_called_once()
                 args, kwargs = mock_arrow_writer.call_args_list[0]
                 self.assertTrue(kwargs["check_duplicates"])
