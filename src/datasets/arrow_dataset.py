@@ -348,8 +348,9 @@ class TensorflowDatasetMixin:
                 background while the model is training.
             num_workers (`int`, defaults to `0`):
                 Number of workers to use for loading the dataset. Only supported on Python versions >= 3.8.
-            num_test_batches (:obj:`int`, defaults to `200`): Number of batches to use to infer the output signature of the
-                dataset. The higher this number, the more accurate the signature will be, but the longer it will take to
+            num_test_batches (`int`, defaults to `200`):
+                Number of batches to use to infer the output signature of the dataset.
+                The higher this number, the more accurate the signature will be, but the longer it will take to
                 create the dataset.
 
         Returns:
