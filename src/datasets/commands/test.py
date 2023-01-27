@@ -10,6 +10,7 @@ from datasets.commands import BaseDatasetsCLICommand
 from datasets.download.download_manager import DownloadMode
 from datasets.load import dataset_module_factory, import_main_class
 from datasets.utils.filelock import logger as fl_logger
+from datasets.utils.info_utils import VerificationMode
 from datasets.utils.logging import ERROR, get_logger
 
 
@@ -54,7 +55,9 @@ class TestCommand(BaseDatasetsCLICommand):
             "--save_info", action="store_true", help="Save the dataset infos in the dataset card (README.md)"
         )
         test_parser.add_argument(
-            "--ignore_verifications", action="store_true", help="Run the test without checksums and splits checks"
+            "--ignore_verifications",
+            action="store_true",
+            help="Run the test without checksums and splits checks. Deprecated: use --verification_mode instead.",
         )
         test_parser.add_argument("--force_redownload", action="store_true", help="Force dataset redownload")
         test_parser.add_argument(
@@ -142,7 +145,7 @@ class TestCommand(BaseDatasetsCLICommand):
                 download_mode=DownloadMode.REUSE_CACHE_IF_EXISTS
                 if not self._force_redownload
                 else DownloadMode.FORCE_REDOWNLOAD,
-                ignore_verifications=self._ignore_verifications,
+                ignore_verifications=VerificationMode.NONE if self._ignore_verifications else VerificationMode.FULL,
                 try_from_hf_gcs=False,
             )
             builder.as_dataset()
