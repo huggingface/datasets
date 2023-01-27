@@ -80,7 +80,7 @@ from .utils.filelock import FileLock
 from .utils.hub import hf_hub_url
 from .utils.info_utils import is_small_dataset
 from .utils.logging import get_logger
-from .utils.metadata import DatasetMetadata
+from .utils.metadata import DatasetMetadata, MetadataConfigsDict
 from .utils.py_utils import get_imports
 from .utils.version import Version
 
@@ -88,6 +88,8 @@ from .utils.version import Version
 logger = get_logger(__name__)
 
 ALL_ALLOWED_EXTENSIONS = list(_EXTENSION_TO_MODULE.keys()) + ["zip"]
+
+METADATA_CONFIGS_FIELD = MetadataConfigsDict._config_field_name
 
 
 def init_dynamic_modules(
@@ -647,21 +649,20 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self.download_mode = download_mode
 
     def get_module(self) -> DatasetModule:
-        # !! we have to parse `configs` from metadata before finding patterns, to pass `data_dir` and `data_files`
-        # TODO: remove copy paste
-        config_kwargs, configs_metadata = {}, {}
-        if self.config_name and os.path.isfile(os.path.join(self.path, "README.md")):
-            dataset_metadata = DatasetMetadata.from_readme(Path(self.path) / "README.md")
-            if config.METADATA_CONFIGS_FIELD_NAME in dataset_metadata:
-                configs_metadata = {
-                    config_params["config_name"]: config_params
-                    for config_params in dataset_metadata[config.METADATA_CONFIGS_FIELD_NAME]
-                }
-                config_kwargs = configs_metadata[self.config_name]
+        # we have to parse `configs_kwargs` from metadata before finding patterns
+        # to pass `data_dir` and `data_files` if they are found
+        readme_path = os.path.join(self.path, "README.md")
+        dataset_metadata = DatasetMetadata.from_readme(readme_path) if os.path.isfile(readme_path) else None
+        if self.config_name and dataset_metadata:
+            metadata_configs_dict = MetadataConfigsDict.from_metadata(dataset_metadata)
+            config_kwargs = metadata_configs_dict.get(self.config_name, {})
+            if config_kwargs:
                 # updating data_files and data_dir
                 # TODO: raise error when having both and they aren't the same?
                 self.data_files = config_kwargs.get("data_files", None) or self.data_files
                 self.data_dir = config_kwargs.get("data_dir", None) or self.data_dir
+        else:
+            config_kwargs, metadata_configs_dict = {}, {}
 
         base_path = os.path.join(self.path, self.data_dir) if self.data_dir else self.path
         patterns = (
@@ -708,10 +709,14 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             if dataset_infos:
                 builder_kwargs["config_name"] = next(iter(dataset_infos))  # TODO
                 builder_kwargs["info"] = DatasetInfo.from_dict(next(iter(dataset_infos.values())))
-        if os.path.isfile(os.path.join(self.path, "README.md")):
-            dataset_metadata = DatasetMetadata.from_readme(Path(self.path) / "README.md")
+        if dataset_metadata:
             if isinstance(dataset_metadata.get("dataset_info"), list) and dataset_metadata["dataset_info"]:
-                dataset_info_dict = dataset_metadata["dataset_info"][0]
+                dataset_info_dicts = {
+                    # if there is no "config_name" in list of configs, smth is wrong
+                    config_info["config_name"]: config_info
+                    for config_info in dataset_metadata["dataset_info"]
+                }
+                dataset_info_dict = dataset_info_dicts.get(self.config_name, {})
                 builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
                 if "config_name" in dataset_info_dict:
                     builder_kwargs["config_name"] = dataset_info_dict["config_name"]
@@ -720,7 +725,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
                 if "config_name" in dataset_info_dict:
                     builder_kwargs["config_name"] = dataset_info_dict["config_name"]
-        return DatasetModule(module_path, hash, {**builder_kwargs, **config_kwargs}, configs_metadata)
+        return DatasetModule(module_path, hash, {**builder_kwargs, **config_kwargs}, metadata_configs_dict)
 
 
 class PackagedDatasetModuleFactory(_DatasetModuleFactory):
@@ -750,23 +755,21 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
-        config_kwargs, configs_metadata = {}, {}
-        if self.config_name and os.path.isfile(os.path.join(self.data_dir, "README.md")):
-            dataset_metadata = DatasetMetadata.from_readme(Path(self.data_dir) / "README.md")
-            if config.METADATA_CONFIGS_FIELD_NAME in dataset_metadata:
-                configs_metadata = {
-                    config_params["config_name"]: config_params
-                    for config_params in dataset_metadata[config.METADATA_CONFIGS_FIELD_NAME]
-                }
-                config_kwargs = configs_metadata[self.config_name]
-                # updating data_files and data_dir
-                # TODO: raise error when having both and they aren't the same?
-                self.data_files = config_kwargs.pop("data_files", None) or self.data_files
-                self.data_dir = (
-                    os.path.join(self.data_dir, config_kwargs.pop("data_dir"))
-                    if "data_dir" in config_kwargs
-                    else self.data_dir
-                )
+        readme_path = os.path.join(self.data_dir, "README.md")
+        if self.config_name and os.path.isfile(readme_path):
+            dataset_metadata = DatasetMetadata.from_readme(readme_path)
+            metadata_configs_dict = MetadataConfigsDict.from_metadata(dataset_metadata)
+            config_kwargs = metadata_configs_dict.get(self.config_name, {})
+            # updating data_files and data_dir
+            # TODO: raise error when having both and they aren't the same?
+            self.data_files = config_kwargs.pop("data_files", None) or self.data_files
+            self.data_dir = (
+                os.path.join(self.data_dir, config_kwargs.pop("data_dir"))
+                if "data_dir" in config_kwargs
+                else self.data_dir
+            )
+        else:
+            config_kwargs, metadata_configs_dict = {}, {}
         # TODO: i think it's possible to have "dataset_info" in README.md yaml for PackagedModule too, no?
 
         base_path = str(Path(self.data_dir).resolve()) if self.data_dir is not None else str(Path().resolve())
@@ -794,7 +797,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
                     )
         module_path, hash = _PACKAGED_DATASETS_MODULES[self.name]
         builder_kwargs = {"hash": hash, "data_files": data_files}
-        return DatasetModule(module_path, hash, {**builder_kwargs, **config_kwargs}, configs_metadata)
+        return DatasetModule(module_path, hash, {**builder_kwargs, **config_kwargs}, metadata_configs_dict)
 
 
 class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
@@ -884,11 +887,11 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                     builder_kwargs["config_name"] = dataset_info_dict["config_name"]
 
             if (
-                self.config_name and config.METADATA_CONFIGS_FIELD_NAME in dataset_metadata
+                self.config_name and METADATA_CONFIGS_FIELD in dataset_metadata
             ):  # TODO: if "configs" field exists, it must be a list?
                 metadata_configs = {
                     config_params["config_name"]: config_params
-                    for config_params in dataset_metadata[config.METADATA_CONFIGS_FIELD_NAME]
+                    for config_params in dataset_metadata[METADATA_CONFIGS_FIELD]
                 }
                 # TODO: raise error if config doesn't exist? might there be cases when it's possible?
                 if self.config_name not in metadata_configs:

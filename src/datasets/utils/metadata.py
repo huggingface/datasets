@@ -1,6 +1,6 @@
 from collections import Counter
 from pathlib import Path
-from typing import ClassVar, Dict, Optional, Tuple
+from typing import ClassVar, Dict, Optional, Tuple, Union
 
 import yaml
 
@@ -36,7 +36,7 @@ class DatasetMetadata(dict):
     _FIELDS_WITH_DASHES = {"train_eval_index"}  # train-eval-index in the YAML metadata
 
     @classmethod
-    def from_readme(cls, path: Path) -> "DatasetMetadata":
+    def from_readme(cls, path: Union[Path, str]) -> "DatasetMetadata":
         """Loads and validates the dataset metadat from its dataset card (README.md)
 
         Args:
