@@ -313,7 +313,7 @@ class TensorflowDatasetMixin:
         label_cols: Optional[Union[str, List[str]]] = None,
         prefetch: bool = True,
         num_workers: int = 0,
-        num_test_batches: int = 200,
+        num_test_batches: int = 20,
     ):
         """Create a `tf.data.Dataset` from the underlying Dataset. This `tf.data.Dataset` will load and collate batches from
         the Dataset, and is suitable for passing to methods like `model.fit()` or `model.predict()`. The dataset will yield
@@ -348,7 +348,7 @@ class TensorflowDatasetMixin:
                 background while the model is training.
             num_workers (`int`, defaults to `0`):
                 Number of workers to use for loading the dataset. Only supported on Python versions >= 3.8.
-            num_test_batches (`int`, defaults to `200`):
+            num_test_batches (`int`, defaults to `20`):
                 Number of batches to use to infer the output signature of the dataset.
                 The higher this number, the more accurate the signature will be, but the longer it will take to
                 create the dataset.
