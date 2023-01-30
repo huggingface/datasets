@@ -313,6 +313,7 @@ class TensorflowDatasetMixin:
         label_cols: Optional[Union[str, List[str]]] = None,
         prefetch: bool = True,
         num_workers: int = 0,
+        num_test_batches: int = 20,
     ):
         """Create a `tf.data.Dataset` from the underlying Dataset. This `tf.data.Dataset` will load and collate batches from
         the Dataset, and is suitable for passing to methods like `model.fit()` or `model.predict()`. The dataset will yield
@@ -347,6 +348,10 @@ class TensorflowDatasetMixin:
                 background while the model is training.
             num_workers (`int`, defaults to `0`):
                 Number of workers to use for loading the dataset. Only supported on Python versions >= 3.8.
+            num_test_batches (`int`, defaults to `20`):
+                Number of batches to use to infer the output signature of the dataset.
+                The higher this number, the more accurate the signature will be, but the longer it will take to
+                create the dataset.
 
         Returns:
             `tf.data.Dataset`
@@ -414,6 +419,7 @@ class TensorflowDatasetMixin:
             collate_fn_args=collate_fn_args,
             cols_to_retain=cols_to_retain,
             batch_size=batch_size if drop_remainder else None,
+            num_test_batches=num_test_batches,
         )
 
         if "labels" in output_signature:
@@ -4857,7 +4863,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         branch: Optional[str] = None,
         max_shard_size: Optional[Union[int, str]] = None,
         num_shards: Optional[int] = None,
-        shard_size: Optional[int] = "deprecated",
         embed_external_files: bool = True,
     ):
         """Pushes the dataset to the hub as a Parquet dataset.
@@ -4890,14 +4895,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             num_shards (`int`, *optional*): Number of shards to write. By default the number of shards depends on `max_shard_size`.
 
                 <Added version="2.8.0"/>
-            shard_size (`int`, *optional*):
-
-                <Deprecated version="2.4.0">
-
-                `shard_size` was renamed to `max_shard_size` in version 2.1.1 and will be removed in 2.4.0.
-
-                </Deprecated>
-
             embed_external_files (`bool`, defaults to `True`):
                 Whether to embed file bytes in the shards.
                 In particular, this will do the following before the push for the fields of type:
@@ -4913,13 +4910,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> dataset.push_to_hub("<organization>/<dataset_id>", num_shards=1024)
         ```
         """
-        if shard_size != "deprecated":
-            warnings.warn(
-                "'shard_size' was renamed to 'max_shard_size' in version 2.1.1 and will be removed in 2.4.0.",
-                FutureWarning,
-            )
-            max_shard_size = shard_size
-
         if max_shard_size is not None and num_shards is not None:
             raise ValueError(
                 "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."

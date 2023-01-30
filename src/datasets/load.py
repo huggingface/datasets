@@ -19,6 +19,7 @@ import importlib
 import inspect
 import json
 import os
+import posixpath
 import shutil
 import time
 import warnings
@@ -1958,15 +1959,17 @@ def load_from_disk(
     # gets filesystem from dataset, either s3:// or file:// and adjusted dataset_path
     if is_remote_filesystem(fs):
         dest_dataset_path = extract_path_from_uri(dataset_path)
+        path_join = posixpath.join
     else:
         fs = fsspec.filesystem("file")
         dest_dataset_path = dataset_path
+        path_join = os.path.join
 
     if not fs.exists(dest_dataset_path):
         raise FileNotFoundError(f"Directory {dataset_path} not found")
-    if fs.isfile(Path(dest_dataset_path, config.DATASET_INFO_FILENAME).as_posix()):
+    if fs.isfile(path_join(dest_dataset_path, config.DATASET_INFO_FILENAME)):
         return Dataset.load_from_disk(dataset_path, keep_in_memory=keep_in_memory, storage_options=storage_options)
-    elif fs.isfile(Path(dest_dataset_path, config.DATASETDICT_JSON_FILENAME).as_posix()):
+    elif fs.isfile(path_join(dest_dataset_path, config.DATASETDICT_JSON_FILENAME)):
         return DatasetDict.load_from_disk(dataset_path, keep_in_memory=keep_in_memory, storage_options=storage_options)
     else:
         raise FileNotFoundError(
