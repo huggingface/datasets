@@ -12,11 +12,16 @@ from huggingface_hub import HfApi
 
 from datasets import Audio, ClassLabel, Dataset, DatasetDict, Features, Image, Value, load_dataset
 from datasets.utils._hf_hub_fixes import list_repo_files
+from datasets.utils.file_utils import cached_path
+from datasets.utils.hub import hf_hub_url
+from datasets.utils.metadata import DatasetMetadata, MetadataConfigsDict
 from tests.fixtures.hub import CI_HUB_ENDPOINT, CI_HUB_USER, CI_HUB_USER_TOKEN
 from tests.utils import for_all_test_methods, require_pil, require_sndfile, xfail_if_500_502_http_error
 
 
 pytestmark = pytest.mark.integration
+
+METADATA_CONFIGS_FIELD = MetadataConfigsDict._config_field_name
 
 
 @for_all_test_methods(xfail_if_500_502_http_error)
@@ -46,6 +51,49 @@ class TestPushToHub:
                     files, [".gitattributes", "README.md", "data/train-00000-of-00001-*.parquet"]
                 )
             )
+
+    def test_push_to_hub_custom_configs(self, temporary_repo):
+        ds_first = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+        local_ds_first = DatasetDict({"train": ds_first})
+
+        ds_second = Dataset.from_dict({"a": ["aa", "ab"], "b": ["bb", "bc"]})
+        local_ds_second = DatasetDict({"train": ds_second})
+
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            local_ds_first.push_to_hub(ds_name, "first")
+            hub_ds_first = load_dataset(ds_name, "first", download_mode="force_redownload")
+            local_ds_second.push_to_hub(ds_name, "second")
+            hub_ds_second = load_dataset(ds_name, "second", download_mode="force_redownload")
+
+            assert local_ds_first["train"].column_names == hub_ds_first["train"].column_names == ["x", "y"]
+            assert local_ds_second["train"].column_names == hub_ds_second["train"].column_names == ["a", "b"]
+            # assert hub_ds_first.column_names != hub_ds_second.column_names
+
+            assert local_ds_first["train"].features == hub_ds_first["train"].features
+            assert local_ds_second["train"].features == hub_ds_second["train"].features
+            assert hub_ds_first["train"].features != hub_ds_second["train"].features
+
+            assert local_ds_first["train"].num_rows == hub_ds_first["train"].num_rows == 3
+            assert local_ds_second["train"].num_rows == hub_ds_second["train"].num_rows == 2
+
+            files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset"))
+            expected_files = [
+                ".gitattributes",
+                "README.md",
+                "first/train-00000-of-00001-*.parquet",
+                "second/train-00000-of-00001-*.parquet",
+            ]
+            assert all(fnmatch.fnmatch(file, expected_file) for file, expected_file in zip(files, expected_files))
+
+            # check that configs args was successfully pushed to README.md
+            ds_readme_path = cached_path(hf_hub_url(ds_name, "README.md"))
+            dataset_metadata = DatasetMetadata.from_readme(Path(ds_readme_path))
+            assert METADATA_CONFIGS_FIELD in dataset_metadata
+            assert isinstance(dataset_metadata[METADATA_CONFIGS_FIELD], list)
+            assert dataset_metadata[METADATA_CONFIGS_FIELD] == [
+                {"config_name": "first", "data_dir": "first"},
+                {"config_name": "second", "data_dir": "second"},
+            ]
 
     def test_push_dataset_dict_to_hub_name_without_namespace(self, temporary_repo):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
