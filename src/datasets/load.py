@@ -758,16 +758,19 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         readme_path = os.path.join(self.data_dir, "README.md")
         if self.config_name and os.path.isfile(readme_path):
             dataset_metadata = DatasetMetadata.from_readme(readme_path)
-            metadata_configs_dict = MetadataConfigsDict.from_metadata(dataset_metadata)
-            config_kwargs = metadata_configs_dict.get(self.config_name, {})
-            # updating data_files and data_dir
-            # TODO: raise error when having both and they aren't the same?
-            self.data_files = config_kwargs.pop("data_files", None) or self.data_files
-            self.data_dir = (
-                os.path.join(self.data_dir, config_kwargs.pop("data_dir"))
-                if "data_dir" in config_kwargs
-                else self.data_dir
-            )
+            if METADATA_CONFIGS_FIELD in dataset_metadata:
+                metadata_configs_dict = MetadataConfigsDict.from_metadata(dataset_metadata)
+                config_kwargs = metadata_configs_dict.get(self.config_name, {})
+                # updating data_files and data_dir
+                # TODO: raise error when having both and they aren't the same?
+                self.data_files = config_kwargs.pop("data_files", None) or self.data_files
+                self.data_dir = (
+                    os.path.join(self.data_dir, config_kwargs.pop("data_dir"))
+                    if "data_dir" in config_kwargs
+                    else self.data_dir
+                )
+            else:
+                config_kwargs, metadata_configs_dict = {}, {}
         else:
             config_kwargs, metadata_configs_dict = {}, {}
         # TODO: i think it's possible to have "dataset_info" in README.md yaml for PackagedModule too, no?
@@ -862,14 +865,16 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 download_config=download_config,
             )
             dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
+            metadata_configs_dict = MetadataConfigsDict.from_metadata(dataset_metadata)
+            config_kwargs = metadata_configs_dict.get(self.config_name, {})
 
             if isinstance(dataset_metadata.get("dataset_info"), list) and dataset_metadata["dataset_info"]:
-                dataset_metadata_dict = {info["config_name"]: info for info in dataset_metadata["dataset_info"]}
-                if self.config_name and self.config_name in dataset_metadata_dict:
-                    dataset_info_dict = dataset_metadata_dict[self.config_name]
+                dataset_info_dicts = {info["config_name"]: info for info in dataset_metadata["dataset_info"]}
+                if self.config_name and self.config_name in dataset_info_dicts:
+                    dataset_info_dict = dataset_info_dicts[self.config_name]
                 else:
-                    # TODO: this is weird (but it was like this because there was only one config possible)
-                    dataset_info_dict = next(iter(dataset_metadata_dict.values()))
+                    # this is weird (but it was like this because there was only one config possible)
+                    dataset_info_dict = next(iter(dataset_info_dicts.values()))
                 # TODO: what if self.config_name is in "configs" but not in "dataset_info"?
                 # make sure that dataset_info_dict doesn't have a config_name (so it's like a general info?
                 # but why it's in a list then
@@ -882,23 +887,19 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 # only one - take it as "default"
                 dataset_info_dict = dataset_metadata["dataset_info"]
                 builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
-                # aaaaaaaa
                 if "config_name" in dataset_info_dict:
                     builder_kwargs["config_name"] = dataset_info_dict["config_name"]
 
-            if (
-                self.config_name and METADATA_CONFIGS_FIELD in dataset_metadata
-            ):  # TODO: if "configs" field exists, it must be a list?
-                metadata_configs = {
-                    config_params["config_name"]: config_params
-                    for config_params in dataset_metadata[METADATA_CONFIGS_FIELD]
-                }
-                # TODO: raise error if config doesn't exist? might there be cases when it's possible?
-                if self.config_name not in metadata_configs:
-                    raise ValueError(
-                        f"Config {self.config_name} doesn't exist, available configs: {set(metadata_configs)}"
-                    )
-                config_kwargs = metadata_configs[self.config_name]
+            if self.config_name and METADATA_CONFIGS_FIELD in dataset_metadata:
+                metadata_configs_dict = MetadataConfigsDict.from_metadata(dataset_metadata)
+                config_kwargs = metadata_configs_dict.get(self.config_name, {})
+
+                # # TODO: raise error if config doesn't exist? might there be cases when it's possible?
+                # if self.config_name not in metadata_configs_dict:
+                #     raise ValueError(
+                #         f"Config {self.config_name} doesn't exist, available configs: {set(metadata_configs)}"
+                #     )
+                config_kwargs = metadata_configs_dict.get(self.config_name, {})
                 # updating data_files and data_dir
                 # TODO: raise error when having both and they aren't the same?
                 self.data_files = config_kwargs.pop("data_files", None) or self.data_files
