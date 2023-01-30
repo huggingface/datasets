@@ -29,7 +29,7 @@ Load the `train` split of the dataset and take a look at an example:
 >>> example = train_dataset[index]
 >>> example
 {'image': <PIL.PngImagePlugin.PngImageFile image mode=RGB size=640x480>,
- 'depth_map': <PIL.PngImagePlugin.PngImageFile image mode=L size=640x480>}
+ 'depth_map': <PIL.TiffImagePlugin.TiffImageFile image mode=F size=640x480>}
 ```
 
 The dataset has two fields:
@@ -50,7 +50,7 @@ Next, check out an image with:
 Now take a look at its corresponding depth map:
 
 ```py
->>> example["depth_map"]
+>>> example["depth_map"].convert("RGB")
 ```
 
 <div class="flex justify-center">
