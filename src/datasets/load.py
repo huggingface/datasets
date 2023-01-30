@@ -741,9 +741,10 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[DownloadMode] = None,
     ):
-        if config_name and not data_dir:
+        if config_name and not (data_dir or data_files):
             raise ValueError(
-                "You should specify `data_dir` when providing a `config_name`, otherwise resolving is not possible"
+                "You should specify `data_dir` or `data_files` (with README.md inside) "
+                "when providing a `config_name`, otherwise resolving is not possible. "
             )
         # if config_name and data_files: TODO - ?
 
@@ -756,24 +757,39 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
-        readme_path = os.path.join(self.data_dir, "README.md")
-        if self.config_name and os.path.isfile(readme_path):
-            dataset_metadata = DatasetMetadata.from_readme(readme_path)
-            if METADATA_CONFIGS_FIELD in dataset_metadata:
-                metadata_configs_dict = MetadataConfigsDict.from_metadata(dataset_metadata)
-                config_kwargs = metadata_configs_dict.get(self.config_name, {})
-                # updating data_files and data_dir
-                # TODO: raise error when having both and they aren't the same?
-                self.data_files = config_kwargs.pop("data_files", None) or self.data_files
-                self.data_dir = (
-                    os.path.join(self.data_dir, config_kwargs.pop("data_dir"))
-                    if "data_dir" in config_kwargs
-                    else self.data_dir
-                )
-            else:
-                config_kwargs, metadata_configs_dict = {}, {}
-        else:
-            config_kwargs, metadata_configs_dict = {}, {}
+        def find_readme_in_files(files):
+            readme_candidates = [filename for filename in files if os.path.split(filename)[1] == "README.md"]
+            if len(readme_candidates) == 1:
+                return Path(readme_candidates[0]).resolve()
+            if len(readme_candidates) > 1:
+                raise ValueError
+            return None
+
+        config_kwargs, metadata_configs_dict = {}, {}
+
+        if self.config_name:
+            readme_path = (
+                find_readme_in_files(self.data_files)
+                if self.data_files
+                else None or (Path(self.data_dir) / "README.md").resolve()
+                if self.data_dir
+                else None
+            )
+            if not readme_path:
+                raise ValueError("`config_name` is provided but no README.md found.")
+            if os.path.isfile(readme_path):
+                dataset_metadata = DatasetMetadata.from_readme(readme_path)
+                if METADATA_CONFIGS_FIELD in dataset_metadata:
+                    metadata_configs_dict = MetadataConfigsDict.from_metadata(dataset_metadata)
+                    config_kwargs = metadata_configs_dict.get(self.config_name, {})
+                    # updating data_files and data_dir
+                    # TODO: raise error when having both and they aren't the same?
+                    self.data_files = config_kwargs.pop("data_files", None) or self.data_files
+                    self.data_dir = (
+                        os.path.join(self.data_dir, config_kwargs.pop("data_dir"))
+                        if "data_dir" in config_kwargs
+                        else self.data_dir
+                    )
         # TODO: i think it's possible to have "dataset_info" in README.md yaml for PackagedModule too, no?
 
         base_path = str(Path(self.data_dir).resolve()) if self.data_dir is not None else str(Path().resolve())
