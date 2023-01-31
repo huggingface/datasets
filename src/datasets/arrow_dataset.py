@@ -3275,22 +3275,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Optionally initialize the writer as a context manager
         with contextlib.ExitStack() as stack:
             try:
-                input_dataset = shard.with_format("arrow")
+                shard = shard.with_format("arrow")
 
                 # Loop over single examples or batches and write to buffer/file if examples are to be updated
                 if not batched:
-                    input_dataset_iterable = enumerate(input_dataset)
+                    shard_iterable = enumerate(shard)
                 else:
-                    num_rows = (
-                        len(input_dataset) if not drop_last_batch else len(input_dataset) // batch_size * batch_size
-                    )
-                    input_dataset_iterable = zip(
+                    num_rows = len(shard) if not drop_last_batch else len(shard) // batch_size * batch_size
+                    shard_iterable = zip(
                         range(0, num_rows, batch_size),
-                        input_dataset.iter(batch_size, drop_last_batch=drop_last_batch),
+                        shard.iter(batch_size, drop_last_batch=drop_last_batch),
                     )
                 if not batched:
                     _time = time.time()
-                    for i, example in input_dataset_iterable:
+                    for i, example in shard_iterable:
                         example = apply_function_on_filtered_inputs(example, i, offset=offset)
                         if update_data:
                             if i == 0:
@@ -3307,16 +3305,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             num_examples_progress_update = 0
                 else:
                     _time = time.time()
-                    for i, batch in input_dataset_iterable:
+                    for i, batch in shard_iterable:
                         num_examples_in_batch = len(batch)
                         indices = list(
-                            range(*(slice(i, i + batch_size).indices(input_dataset.num_rows)))
+                            range(*(slice(i, i + batch_size).indices(shard.num_rows)))
                         )  # Something simpler?
                         try:
                             batch = apply_function_on_filtered_inputs(
                                 batch,
                                 indices,
-                                check_same_num_examples=len(input_dataset.list_indexes()) > 0,
+                                check_same_num_examples=len(shard.list_indexes()) > 0,
                                 offset=offset,
                             )
                         except NumExamplesMismatchError:
