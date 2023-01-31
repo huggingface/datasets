@@ -4661,7 +4661,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         This is a fast approximate shuffling that works best if you have multiple shards and if you specify a buffer size that is big enough.
 
         To get the best speed performance, make sure your dataset doesn't have an indices mapping.
-        Indeed if this is the case, the data are not read contiguously, which can be slow sometimes.
+        If this is the case, the data are not read contiguously, which can be slow sometimes.
         You can use `ds = ds.flatten_indices()` to write your dataset in contiguous chunks of data and have optimal speed before switching to an iterable dataset.
 
         Args:

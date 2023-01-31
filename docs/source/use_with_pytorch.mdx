@@ -200,10 +200,8 @@ You must use a `BatchSampler` if you want the transform to be given full batches
 
 ### Stream data
 
-
-Loading a dataset as an [`IterableDataset`] (e.g. in streaming mode) allows one to iterate over the dataset without downloading it on disk.
-They also offer great performance to read local files progressively.
-See more in the guide on (choosing between a regular dataset or an iterable dataset)[./dataset_vs_iterable_dataset].
+Stream a dataset by loading it as an [`IterableDataset`]. This allows you to progressively iterate over a dataset without downloading it on disk as well as any local dataset files you have stored.
+Learn more about which type of dataset is best for your use case in the (choosing between a regular dataset or an iterable dataset)[./dataset_vs_iterable_dataset] guide.
 
 
 An iterable dataset from `datasets` inherits from `torch.utils.data.IterableDataset` so you can pass it to a `torch.utils.data.DataLoader`:
