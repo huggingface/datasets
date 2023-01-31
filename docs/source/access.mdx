@@ -102,16 +102,36 @@ An [`IterableDataset`] is loaded when you set the `streaming` parameter to `True
 
 An [`IterableDataset`] progressively iterates over a dataset one example at a time, so you don't have to wait for the whole dataset to download before you can use it. As you can imagine, this is quite useful for large datasets you want to use immediately!
 
-However, this means an [`IterableDataset`]'s behavior is different from a regular [`Dataset`]. You don't get random access to examples in an [`IterableDataset`]. Instead, you can call `next(iter()` to return the next item from the [`IterableDataset`]:
+However, this means an [`IterableDataset`]'s behavior is different from a regular [`Dataset`]. You don't get random access to examples in an [`IterableDataset`]. Instead, you should iterate over its elements, for example, by calling `next(iter())` or with a `for` loop to return the next item from the [`IterableDataset`]:
 
 ```py
 >>> next(iter(iterable_dataset))
 {'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=384x512 at 0x7F0681F59B50>,
  'label': 6}
+
+>>> for example in iterable_dataset:
+...     print(example)
+...     break
+{'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=384x512 at 0x7F7479DE82B0>, 'label': 6}
 ```
+
+You can return a subset of the dataset with a specific number of examples in it with [`IterableDataset.take`]:
+
+```py
+# Get first three examples
+>>> list(iterable_dataset.take(3))
+[{'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=384x512 at 0x7F7479DEE9D0>,
+  'label': 6},
+ {'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=512x512 at 0x7F7479DE8190>,
+  'label': 6},
+ {'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=512x383 at 0x7F7479DE8310>,
+  'label': 6}]
+```
+
+But unlike [slicing](access/#slicing), [`IterableDataset.take`] creates a new [`IterableDataset`]. 
 
 ## Next steps
 
-Are you curious to learn the differences between these two types of datasets? Learn more about them in the [Differences between `Dataset` and `IterableDataset`](about_mapstyle_vs_iterable) conceptual guide.
+Interested in learning more about the differences between these two types of datasets? Learn more about them in the [Differences between `Dataset` and `IterableDataset`](about_mapstyle_vs_iterable) conceptual guide.
 
-To get more hands-on with these datasets, check out the [Process](process) guide to learn how to preprocess a [`Dataset`] or the [Stream](stream) guide to learn how to preprocess an [`IterableDataset`].
+To get more hands-on with these datasets types, check out the [Process](process) guide to learn how to preprocess a [`Dataset`] or the [Stream](stream) guide to learn how to preprocess an [`IterableDataset`].
