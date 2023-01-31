@@ -1950,6 +1950,32 @@ class IterableDatasetDict(dict):
         """
         return IterableDatasetDict({k: dataset.remove_columns(column_names) for k, dataset in self.items()})
 
+    def select_columns( self, column_names: Union[str, List[str]]) -> "IterableDatasetDict":
+        """Select one or several column(s) in the dataset and the features
+        associated to them. The selection is done on-the-fly on the examples
+        when iterating over the dataset. The selection is applied to all the
+        datasets of the dataset dictionary.
+
+
+        Args:
+            column_names (`Union[str, List[str]]`):
+                Name of the column(s) to keep.
+
+        Returns:
+            [`IterableDatasetDict`]: A copy of the dataset object with only selected columns.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", streaming=True)
+        >>> ds = ds.select("text")
+        >>> next(iter(ds["train"]))
+        {'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
+        ```
+        """
+        return IterableDatasetDict({k: dataset.select_columns(column_names) for k, dataset in self.items()})
+
     def cast_column(self, column: str, feature: FeatureType) -> "IterableDatasetDict":
         """Cast column to feature for decoding.
         The type casting is applied to all the datasets of the dataset dictionary.

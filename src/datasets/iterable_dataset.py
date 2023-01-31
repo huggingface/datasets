@@ -146,6 +146,31 @@ class ShuffledDataSourcesExamplesIterable(ExamplesIterable):
         )
 
 
+class SelectColumnsIterable(_BaseExamplesIterable):
+
+    def __init__(self, ex_iterable: _BaseExamplesIterable, column_names: List[str]):
+        self.ex_iterable = ex_iterable
+        self.column_names = column_names
+
+    def __iter__(self):
+        for idx, row in self.ex_iterable:
+            yield idx, {c: row[c] for c in self.column_names}
+
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "SelectColumnsIterable":
+        return SelectColumnsIterable(
+            self.ex_iterable.shuffle_data_sources(generator),
+            self.column_names)
+
+    def shard_data_sources(self, shard_indices: List[int]) -> "SelectColumnsIterable":
+        return SelectColumnsIterable(
+            self.ex_iterable.shard_data_sources(shard_indices),
+            self.column_names)
+
+    @property
+    def n_shards(self) -> int:
+        return self.ex_iterable.n_shards
+
+
 class StepExamplesIterable(_BaseExamplesIterable):
     def __init__(self, ex_iterable: _BaseExamplesIterable, step: int, offset: int):
         self.ex_iterable = ex_iterable
@@ -1493,6 +1518,57 @@ class IterableDataset(DatasetInfoMixin):
                 if col in column_names:
                     del ds_iterable._info.features[col]
         return ds_iterable
+
+    def select_columns(self, column_names: Union[str, List[str]]) -> "IterableDataset":
+        """Select one or several column(s) in the dataset and the features
+        associated to them. The selection is done on-the-fly on the examples
+        when iterating over the dataset.
+
+
+        Args:
+            column_names (`Union[str, List[str]]`):
+                Name of the column(s) to select.
+
+        Returns:
+            `IterableDataset`: A copy of the dataset object with selected columns.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="train", streaming=True)
+        >>> next(iter(ds))
+        {'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .', 'label': 1}
+        >>> ds = ds.select_columns("text")
+        >>> next(iter(ds))
+        {'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
+        ```
+        """
+        if isinstance(column_names, str):
+            column_names = [column_names]
+
+        if self._info:
+            info = copy.deepcopy(self._info)
+        if self._info.features is not None:
+            for column_name in column_names:
+                if column_name not in self._info.features:
+                    raise ValueError(f"Column name {column_name} not in the "
+                                     "dataset. Columns in the dataset: "
+                                     f"{list(self._info.features.keys())}.")
+            info.features = Features(
+                {c: info.features[c]
+                 for c in column_names})
+        else:
+            info = None
+
+        iterable = SelectColumnsIterable(self._ex_iterable, column_names)
+        return IterableDataset(ex_iterable=iterable,
+                               info=info,
+                               split=self._split,
+                               format_type=self._format_type,
+                               shuffling=self._shuffling,
+                               distributed=self._distributed,
+                               token_per_repo_id=self._token_per_repo_id)
 
     def cast_column(self, column: str, feature: FeatureType) -> "IterableDataset":
         """Cast column to feature for decoding.
