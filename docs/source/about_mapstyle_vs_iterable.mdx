@@ -1,5 +1,10 @@
 # Differences between Dataset and IterableDataset
 
+There are two types of dataset objects, a [`Dataset`] and an [`IterableDataset`].
+Whichever type of dataset you choose to use or create depends on the size of the dataset.
+In general, an [`IterableDataset`] is ideal for big datasets (think hundreds of GBs!) due to its lazy behavior and speed advantages, while a [`Dataset`] is great for everything else.
+This page will compare the differences between a [`Dataset`] and an [`IterableDataset`] to help you pick the right dataset object for you.
+
 ## Downloading and streaming
 
 When you have a regular [`Dataset`], you can access it using `my_dataset[0]`. This provides "random access" to the rows.
@@ -156,8 +161,7 @@ my_iterable_dataset.n_shards  # 1024
 
 Regular [`Dataset`] objects are based on Arrow which provides fast random access to the rows.
 Thanks to memory mapping and the fact that Arrow is an in-memory format, reading data from disk doesn't do expensive system calls and deserialization.
-
-It also provides even faster data loading when iterating using a `for` loop by iterating on contiguous Arrow record batches.
+It provides even faster data loading when iterating using a `for` loop by iterating on contiguous Arrow record batches.
 
 However as soon as your [`Dataset`] has an indices mapping (via [`Dataset.shuffle`] for example), the speed can become 10x slower.
 This is because there is an extra step to get the row index to read using the indices mapping, and most importantly, you aren't reading contiguous chunks of data anymore.
@@ -213,5 +217,3 @@ If you want to shuffle your dataset or [use it with a PyTorch DataLoader](./use_
 my_iterable_dataset = my_dataset.to_iterable_dataset(num_shards=1024)
 my_iterable_dataset.n_shards  # 1024
 ```
-
-Feel free to open a discussion on the 🤗 Datasets [forum](https://discuss.huggingface.co/c/datasets/10) if you have questions !
