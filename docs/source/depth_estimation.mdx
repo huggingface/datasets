@@ -59,7 +59,7 @@ Before we look at the depth map, we need to first convert its data type to `uint
     <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/depth_est_target.png">
 </div>
 
-It's all black! You'll need to add some color to the depth map to visualize it properly (the utility below is taken from the [FastDepth repository](https://github.com/dwofk/fast-depth/blob/master/utils.py)).
+It's all black! You'll need to add some color to the depth map to visualize it properly. In order to do that, either we can apply color automatically during display using `plt.imshow()` or create color depth map using `plt.cm` then display it. In this example we have used the latter one, as we can save/write the colored depth map later. (the utility below is taken from the [FastDepth repository](https://github.com/dwofk/fast-depth/blob/master/utils.py)).
 
 ```py 
 >>> import numpy as np
