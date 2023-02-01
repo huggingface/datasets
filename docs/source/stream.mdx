@@ -1,9 +1,11 @@
 # Stream
 
-Dataset streaming lets you work with a dataset without downloading it. The data is streamed as you iterate over the dataset. This is especially helpful when:
+Dataset streaming lets you work with a dataset without downloading it.
+The data is streamed as you iterate over the dataset.
+This is especially helpful when:
 
 - You don't want to wait for an extremely large dataset to download.
-- The dataset size exceeds the amount of disk space on your computer.
+- The dataset size exceeds the amount of available disk space on your computer.
 - You want to quickly explore just a few samples of a dataset.
 
 <div class="flex justify-center">
@@ -11,20 +13,41 @@ Dataset streaming lets you work with a dataset without downloading it. The data 
     <img class="hidden dark:block" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/streaming-dark.gif"/>
 </div>
 
-For example, the English split of the [OSCAR](https://huggingface.co/datasets/oscar) dataset is 1.2 terabytes, but you can use it instantly with streaming. Stream a dataset by setting `streaming=True` in [`load_dataset`] as shown below:
+For example, the English split of the [oscar-corpus/OSCAR-2201](https://huggingface.co/datasets/oscar-corpus/OSCAR-2201) dataset is 1.2 terabytes, but you can use it instantly with streaming. Stream a dataset by setting `streaming=True` in [`load_dataset`] as shown below:
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset('oscar', "unshuffled_deduplicated_en", split='train', streaming=True)
+>>> dataset = load_dataset('oscar-corpus/OSCAR-2201', 'en', split='train', streaming=True)
 >>> print(next(iter(dataset)))
-{'text': 'Mtendere Village was inspired by the vision of Chief Napoleon Dzombe, which he shared with John Blanchard during his first visit to Malawi. Chief Napoleon conveyed the desperate need for a program to intervene and care for the orphans and vulnerable children (OVC) in Malawi, and John committed to help...
+{'id': 0, 'text': 'Founded in 2015, Golden Bees is a leading programmatic recruitment platform dedicated to employers, HR agencies and job boards. The company has developed unique HR-custom technologies and predictive algorithms to identify and attract the best candidates for a job opportunity.', ...
 ```
 
-Loading a dataset in streaming mode creates a new dataset type instance (instead of the classic [`Dataset`] object), known as an [`IterableDataset`]. This special type of dataset has its own set of processing methods shown below.
+Dataset streaming also lets you work with a dataset made of local files without doing any conversion.
+In this case, the data is streamed from the local files as you iterate over the dataset.
+This is especially helpful when:
+
+- You don't want to wait for an extremely large local dataset to be converted to Arrow.
+- The converted files size would exceed the amount of available disk space on your computer.
+- You want to quickly explore just a few samples of a dataset.
+
+For example, you can stream a local dataset of hundreds of ompressed JSONL files like [oscar-corpus/OSCAR-2201](https://huggingface.co/datasets/oscar-corpus/OSCAR-2201) to use it instantly:
+
+```py
+>>> from datasets import load_dataset
+>>> data_files = {'train': 'path/to/OSCAR-2201/compressed/en_meta/*.jsonl.gz'}
+>>> dataset = load_dataset('json', data_files=data_files, split='train', streaming=True)
+>>> print(next(iter(dataset)))
+{'id': 0, 'text': 'Founded in 2015, Golden Bees is a leading programmatic recruitment platform dedicated to employers, HR agencies and job boards. The company has developed unique HR-custom technologies and predictive algorithms to identify and attract the best candidates for a job opportunity.', ...
+```
+
+Loading a dataset in streaming mode creates a new dataset type instance (instead of the classic [`Dataset`] object), known as an [`IterableDataset`].
+This special type of dataset has its own set of processing methods shown below.
 
 <Tip>
 
-An [`IterableDataset`] is useful for iterative jobs like training a model. You shouldn't use a [`IterableDataset`] for jobs that require random access to examples because you have to iterate all over it using a for loop. Getting the last example in an iterable dataset would require you to iterate over all the previous examples.
+An [`IterableDataset`] is useful for iterative jobs like training a model.
+You shouldn't use a [`IterableDataset`] for jobs that require random access to examples because you have to iterate all over it using a for loop. Getting the last example in an iterable dataset would require you to iterate over all the previous examples.
+You can find more details in the [Dataset vs. IterableDataset guide](./about_mapstyle_vs_iterable).
 
 </Tip>
 
@@ -146,7 +169,7 @@ When you need to remove one or more columns, give [`IterableDataset.remove_colum
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset('glue', 'mrpc', split='train')
+>>> dataset = load_dataset('glue', 'mrpc', split='train', streaming=True)
 >>> dataset.features
 {'sentence1': Value(dtype='string', id=None),
 'sentence2': Value(dtype='string', id=None),
