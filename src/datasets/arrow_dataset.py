@@ -3848,7 +3848,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Currently shuffling uses numpy random generators.
         You can either supply a NumPy BitGenerator to use, or a seed to initiate NumPy's default random generator (PCG64).
-        
+
         Shuffling takes the list of indices `[0:len(my_dataset)]` and shuffles it to create an indices mapping.
         However as soon as your [`Dataset`] has an indices mapping, the speed can become 10x slower.
         This is because there is an extra step to get the row index to read using the indices mapping, and most importantly, you aren't reading contiguous chunks of data anymore.
