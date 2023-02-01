@@ -4771,7 +4771,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         from .iterable_dataset import IterableDataset
 
         if num_shards > len(self):
-            raise ValueError(f"Unable to shard a dataset of size {len(self)} into {num_shards} shards.")
+            raise ValueError(f"Unable to shard a dataset of size {len(self)} into {num_shards} shards (the number of shards exceeds the number of samples).")
         if self._indices is not None:
             logger.info(
                 "Converting an Arrow dataset to iterable but it has an indices mapping that can make it slower. "

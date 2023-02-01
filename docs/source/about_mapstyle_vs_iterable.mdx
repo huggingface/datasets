@@ -7,7 +7,7 @@ This page will compare the differences between a [`Dataset`] and an [`IterableDa
 
 ## Downloading and streaming
 
-When you have a regular [`Dataset`], you can access it using `my_dataset[0]`. This provides "random access" to the rows.
+When you have a regular [`Dataset`], you can access it using `my_dataset[0]`. This provides random access to the rows.
 Such datasets are also called "map-style" datasets.
 For example you can download ImageNet-1k like this and access any row:
 
@@ -23,7 +23,7 @@ Because it can become inconvenient for big datasets, there exists another type o
 When you have an `IterableDataset`, you can access it using a `for` loop to load the data progressively as you iterate over the dataset.
 This way, only a small fraction of examples is loaded in memory, and you don't write anything on disk.
 
-For example, you can stream the ImageNet-1k dataset without waiting for it to download completely:
+For example, you can stream the ImageNet-1k dataset without downloading it on disk:
 
 ```python
 from datasets import load_dataset
