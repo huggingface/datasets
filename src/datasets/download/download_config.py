@@ -16,7 +16,7 @@ class DownloadConfig:
             If `True`, re-dowload the file even if it's already cached in
             the cache dir.
         resume_download (`bool`, defaults to `False`):
-            If `True`, resume the download if an incompletly received file is
+            If `True`, resume the download if an incompletely received file is
             found.
         proxies (`dict`, *optional*):
         user_agent (`str`, *optional*):
