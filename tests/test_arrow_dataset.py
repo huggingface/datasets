@@ -4191,16 +4191,16 @@ def test_dataset_estimate_nbytes():
     assert 0.9 * ds._estimate_nbytes() < 100 * 100, "must be smaller than one chunk"
 
 
-def test_dataset_to_iterable(dataset):
-    iterable_dataset = dataset.to_iterable()
+def test_dataset_to_iterable_dataset(dataset):
+    iterable_dataset = dataset.to_iterable_dataset()
     assert isinstance(iterable_dataset, IterableDataset)
     assert list(iterable_dataset) == list(dataset)
-    iterable_dataset = dataset.to_iterable(num_shards=3)
+    iterable_dataset = dataset.to_iterable_dataset(num_shards=3)
     assert isinstance(iterable_dataset, IterableDataset)
     assert list(iterable_dataset) == list(dataset)
     assert iterable_dataset.n_shards == 3
     with pytest.raises(ValueError):
-        dataset.to_iterable(num_shards=len(dataset) + 1)
+        dataset.to_iterable_dataset(num_shards=len(dataset) + 1)
 
 
 @pytest.mark.parametrize("return_lazy_dict", [True, False, "mix"])
