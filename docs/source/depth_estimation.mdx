@@ -47,7 +47,7 @@ Next, check out an image with:
     <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/depth_est_sample.png">
 </div>
 
-Now take a look at its corresponding depth map:
+Before we look at the depth map, we need to first convert its data type to `uint8` using `.convert('RGB')` as PIL can't display `float32` images. Now take a look at its corresponding depth map:
 
 ```py
 >>> example["depth_map"].convert("RGB")
