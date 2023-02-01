@@ -34,8 +34,10 @@ Load the `train` split of the dataset and take a look at an example:
 
 The dataset has two fields:
 
-* `image`: a PIL image object.
-* `depth_map`: depth map of the image.
+* `image`: a PIL PNG image object with `uint8` data type.
+* `depth_map`: a PIL Tiff image object with `float32` data type which is the depth map of the image.
+
+It is mention-worthy that, JPEG/PNG format can only store `uint8` or `uint16` data. As depth map is `float32` data, it can't be stored using PNG/JPEG. However, we can save depth map using TIFF format as it supports a wider range of data types, including `float32` data.
 
 Next, check out an image with:
 
