@@ -3848,6 +3848,34 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Currently shuffling uses numpy random generators.
         You can either supply a NumPy BitGenerator to use, or a seed to initiate NumPy's default random generator (PCG64).
+        
+        Shuffling takes the list of indices `[0:len(my_dataset)]` and shuffles it to create an indices mapping.
+        However as soon as your [`Dataset`] has an indices mapping, the speed can become 10x slower.
+        This is because there is an extra step to get the row index to read using the indices mapping, and most importantly, you aren't reading contiguous chunks of data anymore.
+        To restore the speed, you'd need to rewrite the entire dataset on your disk again using [`Dataset.flatten_indices`], which removes the indices mapping.
+        This may take a lot of time depending of the size of your dataset though:
+
+        ```python
+        my_dataset[0]  # fast
+        my_dataset = my_dataset.shuffle(seed=42)
+        my_dataset[0]  # up to 10x slower
+        my_dataset = my_dataset.flatten_indices()  # rewrite the shuffled dataset on disk as contiguous chunks of data
+        my_dataset[0]  # fast again
+        ```
+
+        In this case, we recommend switching to an [`IterableDataset`] and leveraging its fast approximate shuffling method [`IterableDataset.shuffle`].
+        It only shuffles the shards order and adds a shuffle buffer to your dataset, which keeps the speed of your dataset optimal:
+
+        ```python
+        my_iterable_dataset = my_dataset.to_iterable_dataset(num_shards=128)
+        for example in enumerate(my_iterable_dataset):  # fast
+            pass
+
+        shuffled_iterable_dataset = my_iterable_dataset.shuffle(seed=42, buffer_size=100)
+
+        for example in enumerate(shuffled_iterable_dataset):  # as fast as before
+            pass
+        ```
 
         Args:
             seed (`int`, *optional*):
