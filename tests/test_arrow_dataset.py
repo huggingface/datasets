@@ -1988,7 +1988,7 @@ class BaseDatasetTest(TestCase):
 
                 self.assertTrue(os.path.isfile(file_path))
                 self.assertEqual(bytes_written, os.path.getsize(file_path))
-                csv_dset = pd.read_csv(file_path, header=0, index_col=0)
+                csv_dset = pd.read_csv(file_path)
 
                 self.assertEqual(csv_dset.shape, dset.shape)
                 self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
@@ -2001,7 +2001,7 @@ class BaseDatasetTest(TestCase):
 
                 self.assertTrue(os.path.isfile(file_path))
                 self.assertEqual(bytes_written, os.path.getsize(file_path))
-                csv_dset = pd.read_csv(file_path, header=0, index_col=0)
+                csv_dset = pd.read_csv(file_path)
 
                 self.assertEqual(csv_dset.shape, dset.shape)
                 self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
@@ -2014,7 +2014,7 @@ class BaseDatasetTest(TestCase):
 
                 self.assertTrue(os.path.isfile(file_path))
                 self.assertEqual(bytes_written, os.path.getsize(file_path))
-                csv_dset = pd.read_csv(file_path, header=0, index_col=0)
+                csv_dset = pd.read_csv(file_path)
 
                 self.assertEqual(csv_dset.shape, dset.shape)
                 self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
@@ -2026,7 +2026,7 @@ class BaseDatasetTest(TestCase):
 
                 self.assertTrue(os.path.isfile(file_path))
                 self.assertEqual(bytes_written, os.path.getsize(file_path))
-                csv_dset = pd.read_csv(file_path, header=0, index_col=0)
+                csv_dset = pd.read_csv(file_path)
 
                 self.assertEqual(csv_dset.shape, dset.shape)
                 self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
