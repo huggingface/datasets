@@ -4407,6 +4407,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 use multiprocessing. `batch_size` in this case defaults to
                 `datasets.config.DEFAULT_MAX_BATCH_SIZE` but feel free to make it 5x or 10x of the default
                 value if you have sufficient compute power.
+            index (`bool`, default `False`): Write row names (index).
+
+                <Changed version="2.10.0">
+
+                Now, `index` defaults to `False`.
+
+                If you would like to write the index, set it to `True` and also set a name for the index column by
+                passing `index_label`.
+
+                </Changed>
+
             **to_csv_kwargs (additional keyword arguments):
                 Parameters to pass to pandas's `pandas.DataFrame.to_csv`.
 
