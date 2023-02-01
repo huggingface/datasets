@@ -301,7 +301,6 @@ class DatasetBuilder:
             )
             config_name = name
         # DatasetBuilder name
-        # self.name = camelcase_to_snakecase(self.__class__.__name__)  # TODO
         self.name: str = camelcase_to_snakecase(self.__module__.split(".")[-1])
         self.hash: Optional[str] = hash
         self.base_path = base_path
@@ -329,11 +328,13 @@ class DatasetBuilder:
         # prepare info: DatasetInfo are a standardized dataclass across all datasets
         # Prefill datasetinfo
         if info is None:
+            # TODO FOR PACKAGED MODULES IT IMPORTS DATA FROM src/packaged_modules which doesn't make sense
+            # so it should be provided before if we read info in .get_module()
             info = self.get_exported_dataset_info()
             info.update(self._info())
-            info.builder_name = self.name
-            info.config_name = self.config.name
-            info.version = self.config.version
+        info.builder_name = self.name
+        info.config_name = self.config.name
+        info.version = self.config.version
         self.info = info
         # update info with user specified infos
         if features is not None:
@@ -515,7 +516,7 @@ class DatasetBuilder:
     @classmethod
     @memoize()
     def builder_configs(cls):
-        """Pre-defined list of configurations for this builder class."""
+        """String names of pre-defined list of configurations for this builder class."""
         configs = {config.name: config for config in cls.BUILDER_CONFIGS}
         if len(configs) != len(cls.BUILDER_CONFIGS):
             names = [config.name for config in cls.BUILDER_CONFIGS]
@@ -534,8 +535,16 @@ class DatasetBuilder:
             self.namespace___self.name/self.config.version/self.hash/
         If any of these element is missing or if ``with_version=False`` the corresponding subfolders are dropped.
         """
-        namespace = self.repo_id.split("/")[0] if self.repo_id and self.repo_id.count("/") > 0 else None
-        builder_data_dir = self.name if namespace is None else f"{namespace}___{self.name}"
+        namespace, dataset_name = (
+            self.repo_id.split("/") if self.repo_id and self.repo_id.count("/") > 0 else (None, None)
+        )
+        local_dir = Path(self.base_path).stem if self.base_path else None
+        if namespace:
+            builder_data_dir = f"{namespace}___{self.name}---{dataset_name}"
+        elif local_dir:
+            builder_data_dir = f"{self.name}---{local_dir}"
+        else:
+            builder_data_dir = self.name
         builder_config = self.config
         hash = self.hash
         path_join = os.path.join if is_local else posixpath.join
