@@ -76,12 +76,15 @@ from .features.features import (
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
+    format_kwargs_for_fingerprint,
+    format_transform_for_fingerprint,
     generate_fingerprint,
     generate_random_fingerprint,
     get_temporary_cache_files_directory,
     is_caching_enabled,
     maybe_register_dataset_for_temp_dir_deletion,
     update_fingerprint,
+    validate_fingerprint,
 )
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
 from .formatting.formatting import LazyDict, _is_range_contiguous
@@ -2810,6 +2813,35 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"num_proc must be <= {len(self)}. Reducing num_proc to {num_proc} for dataset of size {len(self)}."
             )
 
+        def load_processed_shard_from_cache(shard_kwargs):
+            """Load a processed shard from cache if it exists, otherwise throw an error."""
+            shard = shard_kwargs["shard"]
+            if shard_kwargs["new_fingerprint"] is None:
+                transform = format_transform_for_fingerprint(Dataset._map_single)
+                kwargs_for_fingerprint = format_kwargs_for_fingerprint(
+                    Dataset._map_single, (), shard_kwargs, ignore_kwargs=["cache_file_name"]
+                )
+                kwargs_for_fingerprint["fingerprint_name"] = "new_fingerprint"
+                shard_kwargs["new_fingerprint"] = update_fingerprint(
+                    shard._fingerprint, transform, kwargs_for_fingerprint
+                )
+            else:
+                validate_fingerprint(shard_kwargs["new_fingerprint"])
+
+            # Check if we've already cached this computation (indexed by a hash)
+            if shard.cache_files:
+                if shard_kwargs["cache_file_name"] is None:
+                    # we create a unique hash from the function,
+                    # current dataset file and the mapping args
+                    shard_kwargs["cache_file_name"] = shard._get_cache_file_path(shard_kwargs["new_fingerprint"])
+                if os.path.exists(shard_kwargs["cache_file_name"]) and load_from_cache_file:
+                    logger.warning(f"Loading cached processed dataset at {shard_kwargs['cache_file_name']}")
+                    info = shard.info.copy()
+                    info.features = features
+                    info.task_templates = None
+                    return Dataset.from_file(shard_kwargs["cache_file_name"], info=info, split=shard.split)
+            raise NonExistentDatasetError
+
         num_shards = num_proc if num_proc is not None else 1
         if batched and drop_last_batch:
             pbar_total = len(self) // num_shards // batch_size * num_shards * batch_size
@@ -2831,9 +2863,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         shards_done = 0
         if num_proc is None or num_proc == 1:
-            transformed_dataset = None
-            for rank, done, content in Dataset._map_single(
-                self,
+            dataset_kwargs = dict(
+                shard=self,
                 function=function,
                 with_indices=with_indices,
                 with_rank=with_rank,
@@ -2843,25 +2874,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 drop_last_batch=drop_last_batch,
                 remove_columns=remove_columns,
                 keep_in_memory=keep_in_memory,
-                load_from_cache_file=load_from_cache_file,
                 cache_file_name=cache_file_name,
                 writer_batch_size=writer_batch_size,
                 features=features,
                 disable_nullable=disable_nullable,
                 fn_kwargs=fn_kwargs,
                 new_fingerprint=new_fingerprint,
-            ):
-                if done:
-                    shards_done += 1
-                    if pbar is None:
-                        init_pbar()
-                    pbar.set_description(f"Processing the dataset ({shards_done}/{num_shards} shards)")
-                    logger.debug(f"Finished processing shard number {rank} of {num_shards}.")
-                    (transformed_dataset,) = content
-                else:
-                    if pbar is None:
-                        init_pbar()
-                    pbar.update(content)
+            )
+            try:
+                transformed_dataset = load_processed_shard_from_cache(dataset_kwargs)
+            except NonExistentDatasetError:
+                for rank, done, content in Dataset._map_single(**dataset_kwargs):
+                    if done:
+                        shards_done += 1
+                        if pbar is None:
+                            init_pbar()
+                        pbar.set_description(f"Processing the dataset ({shards_done}/{num_shards} shards)")
+                        logger.debug(f"Finished processing shard number {rank} of {num_shards}.")
+                        (transformed_dataset,) = content
+                    else:
+                        if pbar is None:
+                            init_pbar()
+                        pbar.update(content)
             assert transformed_dataset is not None, "Failed to retrieve the result from map"
             return transformed_dataset
         else:
@@ -2906,7 +2940,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     drop_last_batch=drop_last_batch,
                     remove_columns=remove_columns,
                     keep_in_memory=keep_in_memory,
-                    load_from_cache_file=load_from_cache_file,
                     cache_file_name=format_cache_file_name(cache_file_name, rank)
                     if cache_file_name is not None
                     else None,
@@ -2926,15 +2959,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             transformed_shards = [None] * num_shards
             for rank in range(num_shards):
                 try:
-                    rank, done, content = next(
-                        iter(Dataset._map_single(**{"cache_only": True, **kwargs_per_job[rank]}))
-                    )
+                    transformed_shards[rank] = load_processed_shard_from_cache(kwargs_per_job[rank])
+                    kwargs_per_job[rank] = None
                 except NonExistentDatasetError:
                     pass
-                else:
-                    # Cache file for the shard already exists
-                    (transformed_shards[rank],) = content
-                    kwargs_per_job[rank] = None
 
             kwargs_per_job = [kwargs for kwargs in kwargs_per_job if kwargs is not None]
 
@@ -2957,6 +2985,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             if pbar is None:
                                 init_pbar()
                             pbar.update(content)
+                # Avoids PermissionError on Windows
+                for kwarg in kwargs_per_job:
+                    del kwarg["shard"]
             assert (
                 None not in transformed_shards
             ), f"Failed to retrieve results from map: result list {transformed_shards} still contains None - at least one worker failed to return its results"
@@ -2967,7 +2998,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             return result
 
     @staticmethod
-    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name", "cache_only"])
     def _map_single(
         shard: "Dataset",
         function: Optional[Callable] = None,
@@ -2979,7 +3009,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         drop_last_batch: bool = False,
         remove_columns: Optional[List[str]] = None,
         keep_in_memory: bool = False,
-        load_from_cache_file: bool = None,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
@@ -2988,7 +3017,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         new_fingerprint: Optional[str] = None,
         rank: Optional[int] = None,
         offset: int = 0,
-        cache_only: bool = False,
     ) -> "Dataset":
         """Apply a function to all the elements in the table (individually or in batches)
         and update the table (if function does update examples).
@@ -3017,8 +3045,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True` if caching is enabled): If a cache file storing the current computation from `function`
-                can be identified, use it instead of recomputing.
             cache_file_name (`str`, optional, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
             writer_batch_size (`int`, default `1000`): Number of rows per write operation for the cache file writer.
@@ -3032,7 +3058,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
             rank: (`int`, optional, defaults to `None`): If specified, this is the process rank when doing multiprocessing
             offset: (`int`, defaults to 0): If specified, this is an offset applied to the indices passed to `function` if `with_indices=True`.
-            cache_only (`bool`, defaults to `False`): Flag in order to notifiy the method will either find a cached dataset or raise `NonExistentDatasetError` exception,
         """
         if fn_kwargs is None:
             fn_kwargs = {}
@@ -3040,24 +3065,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # If we do batch computation but no batch size is provided, default to the full dataset
         if batched and (batch_size is None or batch_size <= 0):
             batch_size = shard.num_rows
-
-        # Check if we've already cached this computation (indexed by a hash)
-        if shard.cache_files:
-            if cache_file_name is None:
-                # we create a unique hash from the function,
-                # current dataset file and the mapping args
-                cache_file_name = shard._get_cache_file_path(new_fingerprint)
-            if os.path.exists(cache_file_name) and load_from_cache_file:
-                logger.warning(f"Loading cached processed dataset at {cache_file_name}")
-                info = shard.info.copy()
-                info.features = features
-                info.task_templates = None
-                yield rank, True, (Dataset.from_file(cache_file_name, info=info, split=shard.split),)
-                return
-
-        # Raise an error if we were supposed to return a cached dataset and none was found
-        if cache_only:
-            raise NonExistentDatasetError
 
         # We set this variable to True after processing the first example/batch in
         # `apply_function_on_filtered_inputs` if the map function returns a dict.
