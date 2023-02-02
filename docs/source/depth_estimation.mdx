@@ -37,7 +37,7 @@ The dataset has two fields:
 * `image`: a PIL PNG image object with `uint8` data type.
 * `depth_map`: a PIL Tiff image object with `float32` data type which is the depth map of the image.
 
-It is mention-worthy that, JPEG/PNG format can only store `uint8` or `uint16` data. As depth map is `float32` data, it can't be stored using PNG/JPEG. However, we can save depth map using TIFF format as it supports a wider range of data types, including `float32` data.
+It is mention-worthy that JPEG/PNG format can only store `uint8` or `uint16` data. As the depth map is `float32` data, it can't be stored using PNG/JPEG. However, we can save the depth map using TIFF format as it supports a wider range of data types, including `float32` data.
 
 Next, check out an image with:
 
@@ -59,7 +59,7 @@ Before we look at the depth map, we need to first convert its data type to `uint
     <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/depth_est_target.png">
 </div>
 
-It's all black! You'll need to add some color to the depth map to visualize it properly. In order to do that, either we can apply color automatically during display using `plt.imshow()` or create color depth map using `plt.cm` then display it. In this example we have used the latter one, as we can save/write the colored depth map later. (the utility below is taken from the [FastDepth repository](https://github.com/dwofk/fast-depth/blob/master/utils.py)).
+It's all black! You'll need to add some color to the depth map to visualize it properly. To do that, either we can apply color automatically during display using `plt.imshow()` or create a colored depth map using `plt.cm` and then display it. In this example, we have used the latter one, as we can save/write the colored depth map later. (the utility below is taken from the [FastDepth repository](https://github.com/dwofk/fast-depth/blob/master/utils.py)).
 
 ```py 
 >>> import numpy as np
