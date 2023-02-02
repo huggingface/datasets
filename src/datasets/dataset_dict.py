@@ -466,10 +466,7 @@ class DatasetDict(dict):
         ```
         """
         self._check_values_type()
-        return DatasetDict({
-            k: dataset.select_columns(column_names=column_names)
-            for k, dataset in self.items()
-        })
+        return DatasetDict({k: dataset.select_columns(column_names=column_names) for k, dataset in self.items()})
 
     def class_encode_column(self, column: str, include_nulls: bool = False) -> "DatasetDict":
         """Casts the given column as `datasets.features.ClassLabel` and updates the tables.
@@ -1950,7 +1947,7 @@ class IterableDatasetDict(dict):
         """
         return IterableDatasetDict({k: dataset.remove_columns(column_names) for k, dataset in self.items()})
 
-    def select_columns( self, column_names: Union[str, List[str]]) -> "IterableDatasetDict":
+    def select_columns(self, column_names: Union[str, List[str]]) -> "IterableDatasetDict":
         """Select one or several column(s) in the dataset and the features
         associated to them. The selection is done on-the-fly on the examples
         when iterating over the dataset. The selection is applied to all the

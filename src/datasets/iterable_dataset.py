@@ -147,7 +147,6 @@ class ShuffledDataSourcesExamplesIterable(ExamplesIterable):
 
 
 class SelectColumnsIterable(_BaseExamplesIterable):
-
     def __init__(self, ex_iterable: _BaseExamplesIterable, column_names: List[str]):
         self.ex_iterable = ex_iterable
         self.column_names = column_names
@@ -157,14 +156,10 @@ class SelectColumnsIterable(_BaseExamplesIterable):
             yield idx, {c: row[c] for c in self.column_names}
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "SelectColumnsIterable":
-        return SelectColumnsIterable(
-            self.ex_iterable.shuffle_data_sources(generator),
-            self.column_names)
+        return SelectColumnsIterable(self.ex_iterable.shuffle_data_sources(generator), self.column_names)
 
     def shard_data_sources(self, shard_indices: List[int]) -> "SelectColumnsIterable":
-        return SelectColumnsIterable(
-            self.ex_iterable.shard_data_sources(shard_indices),
-            self.column_names)
+        return SelectColumnsIterable(self.ex_iterable.shard_data_sources(shard_indices), self.column_names)
 
     @property
     def n_shards(self) -> int:
@@ -1552,23 +1547,25 @@ class IterableDataset(DatasetInfoMixin):
         if self._info.features is not None:
             for column_name in column_names:
                 if column_name not in self._info.features:
-                    raise ValueError(f"Column name {column_name} not in the "
-                                     "dataset. Columns in the dataset: "
-                                     f"{list(self._info.features.keys())}.")
-            info.features = Features(
-                {c: info.features[c]
-                 for c in column_names})
+                    raise ValueError(
+                        f"Column name {column_name} not in the "
+                        "dataset. Columns in the dataset: "
+                        f"{list(self._info.features.keys())}."
+                    )
+            info.features = Features({c: info.features[c] for c in column_names})
         else:
             info = None
 
         iterable = SelectColumnsIterable(self._ex_iterable, column_names)
-        return IterableDataset(ex_iterable=iterable,
-                               info=info,
-                               split=self._split,
-                               format_type=self._format_type,
-                               shuffling=self._shuffling,
-                               distributed=self._distributed,
-                               token_per_repo_id=self._token_per_repo_id)
+        return IterableDataset(
+            ex_iterable=iterable,
+            info=info,
+            split=self._split,
+            format_type=self._format_type,
+            shuffling=self._shuffling,
+            distributed=self._distributed,
+            token_per_repo_id=self._token_per_repo_id,
+        )
 
     def cast_column(self, column: str, feature: FeatureType) -> "IterableDataset":
         """Cast column to feature for decoding.

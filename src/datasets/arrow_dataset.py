@@ -2180,9 +2180,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             column_names = [column_names]
         for column_name in column_names:
             if column_name not in self._data.column_names:
-                raise ValueError(f"Column name {column_name} not in the "
-                                 "dataset. Current columns in the dataset: "
-                                 f"{self._data.column_names}.")
+                raise ValueError(
+                    f"Column name {column_name} not in the "
+                    "dataset. Current columns in the dataset: "
+                    f"{self._data.column_names}."
+                )
 
         dataset_columns = frozenset(column_names)
         dataset = copy.deepcopy(self)

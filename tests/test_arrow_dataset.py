@@ -630,8 +630,7 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(new_dset.num_columns, 0)
                     self.assertListEqual(list(new_dset.column_names), [])
                     self.assertNotEqual(new_dset._fingerprint, fingerprint)
-                    assert_arrow_metadata_are_synced_with_dataset_features(
-                        new_dset)
+                    assert_arrow_metadata_are_synced_with_dataset_features(new_dset)
 
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
                 fingerprint = dset._fingerprint
