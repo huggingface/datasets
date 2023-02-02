@@ -17,7 +17,6 @@
 
 import contextlib
 import copy
-import inspect
 import itertools
 import json
 import os
@@ -494,26 +493,27 @@ class DatasetTransformationNotAllowedError(Exception):
 def transmit_format(func):
     """Wrapper for dataset transforms that recreate a new Dataset to transmit the format of the original dataset to the new dataset"""
 
-    is_wrapped_generator_func = (
-        func._is_wrapped_generator_func
-        if hasattr(func, "_is_wrapped_generator_func")
-        else inspect.isgeneratorfunction(func)
-    )
-
-    def _transmit_format(in_dataset, out_dataset):
-        # don't use in_dataset.format since it returns a list of columns for 'columns' even if in_dataset._format_columns is None
-        unformatted_columns = set(in_dataset.column_names) - set(in_dataset._format_columns or [])
-        in_format = {
-            "type": in_dataset._format_type,
-            "format_kwargs": in_dataset._format_kwargs,
-            "columns": in_dataset._format_columns,
-            "output_all_columns": in_dataset._output_all_columns,
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if args:
+            self: "Dataset" = args[0]
+            args = args[1:]
+        else:
+            self: "Dataset" = kwargs.pop("self")
+        # don't use self.format since it returns a list of columns for 'columns' even if self_format_columns is None
+        unformatted_columns = set(self.column_names) - set(self._format_columns or [])
+        self_format = {
+            "type": self._format_type,
+            "format_kwargs": self._format_kwargs,
+            "columns": self._format_columns,
+            "output_all_columns": self._output_all_columns,
         }
         # apply actual function
-        datasets: List["Dataset"] = list(out_dataset.values()) if isinstance(out_dataset, dict) else [out_dataset]
+        out: Union["Dataset", "DatasetDict"] = func(self, *args, **kwargs)
+        datasets: List["Dataset"] = list(out.values()) if isinstance(out, dict) else [out]
         # re-apply format to the output
         for dataset in datasets:
-            new_format = in_format.copy()
+            new_format = self_format.copy()
             if new_format["columns"] is not None:  # new formatted columns = (columns - previously unformatted columns)
                 # sort the columns to have a deterministic list of columns that we can compare with `out_format`
                 new_format["columns"] = sorted(set(dataset.column_names) - unformatted_columns)
@@ -525,102 +525,36 @@ def transmit_format(func):
             }
             if out_format != new_format:  # only apply if there's a change not to update the fingerprint for nothing
                 dataset.set_format(**new_format)
-        return out_dataset
-
-    def _transmit_format_func(input_dataset, *args, **kwargs):
-        return _transmit_format(input_dataset, func(input_dataset, *args, **kwargs))
-
-    def _transmit_format_generator_func(input_dataset, *args, **kwargs):
-        for job_id, done, content in func(input_dataset, *args, **kwargs):
-            if done:
-                out_dataset = content[0]
-                yield job_id, done, (_transmit_format(input_dataset, out_dataset), *content[1:])
-            else:
-                yield job_id, done, content
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        func_signature = inspect.signature(func)
-        if args:
-            input_dataset: "Dataset" = args[0]
-            args = args[1:]
-        else:
-            first_func_param = next(iter(func_signature.parameters))
-            input_dataset: "Dataset" = kwargs.pop(first_func_param)
-
-        assert isinstance(
-            input_dataset, Dataset
-        ), f"First argument of {func} should be a Dataset, not {type(input_dataset)}"
-
-        return (
-            _transmit_format_func(input_dataset, *args, **kwargs)
-            if not is_wrapped_generator_func
-            else _transmit_format_generator_func(input_dataset, *args, **kwargs)
-        )
+        return out
 
     wrapper._decorator_name_ = "transmit_format"
-    # inspect.isgeneratorfunction(func) is not working for decorated functions, so we store the information in the wrapper
-    wrapper._is_wrapped_generator_func = is_wrapped_generator_func
     return wrapper
 
 
 def transmit_tasks(func):
     """Wrapper for dataset transforms that recreate a new Dataset to transmit the task templates of the original dataset to the new dataset"""
 
-    is_wrapped_generator_func = (
-        func._is_wrapped_generator_func
-        if hasattr(func, "_is_wrapped_generator_func")
-        else inspect.isgeneratorfunction(func)
-    )
-
-    def _transmit_tasks(in_dataset, out_dataset):
-        datasets: List["Dataset"] = list(out_dataset.values()) if isinstance(out_dataset, dict) else [out_dataset]
-        for dataset in datasets:
-            # Remove task templates if a column mapping of the template is no longer valid
-            if in_dataset.info.task_templates is not None:
-                dataset.info.task_templates = [
-                    template
-                    for template in in_dataset.info.task_templates
-                    if all(
-                        dataset.features.get(k) == in_dataset.features.get(k) for k in template.column_mapping.keys()
-                    )
-                ]
-        return out_dataset
-
-    def _transmit_tasks_func(input_dataset, *args, **kwargs):
-        return _transmit_tasks(input_dataset, func(input_dataset, *args, **kwargs))
-
-    def _transmit_tasks_generator_func(input_dataset, *args, **kwargs):
-        for job_id, done, content in func(input_dataset, *args, **kwargs):
-            if done:
-                out_dataset = content[0]
-                yield job_id, done, (_transmit_tasks(input_dataset, out_dataset), *content[1:])
-            else:
-                yield job_id, done, content
-
     @wraps(func)
     def wrapper(*args, **kwargs):
-        func_signature = inspect.signature(func)
         if args:
-            input_dataset: "Dataset" = args[0]
+            self: "Dataset" = args[0]
             args = args[1:]
         else:
-            first_func_param = next(iter(func_signature.parameters))
-            input_dataset: "Dataset" = kwargs.pop(first_func_param)
-
-        assert isinstance(
-            input_dataset, Dataset
-        ), f"First argument of {func} should be a Dataset, not {type(input_dataset)}"
-
-        return (
-            _transmit_tasks_func(input_dataset, *args, **kwargs)
-            if not is_wrapped_generator_func
-            else _transmit_tasks_generator_func(input_dataset, *args, **kwargs)
-        )
+            self: "Dataset" = kwargs.pop("self")
+        # apply actual function
+        out: Union["Dataset", "DatasetDict"] = func(self, *args, **kwargs)
+        datasets: List["Dataset"] = list(out.values()) if isinstance(out, dict) else [out]
+        for dataset in datasets:
+            # Remove task templates if a column mapping of the template is no longer valid
+            if self.info.task_templates is not None:
+                dataset.info.task_templates = [
+                    template
+                    for template in self.info.task_templates
+                    if all(dataset.features.get(k) == self.features.get(k) for k in template.column_mapping.keys())
+                ]
+        return out
 
     wrapper._decorator_name_ = "transmit_tasks"
-    # inspect.isgeneratorfunction(func) is not working for decorated functions, so we store the information in the wrapper
-    wrapper._is_wrapped_generator_func = is_wrapped_generator_func
     return wrapper
 
 
@@ -2703,6 +2637,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         cache_file_path = os.path.join(cache_directory, cache_file_name)
         return cache_file_path
 
+    @transmit_tasks
+    @transmit_format
     def map(
         self,
         function: Optional[Callable] = None,
@@ -3024,7 +2960,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             assert (
                 None not in transformed_shards
             ), f"Failed to retrieve results from map: result list {transformed_shards} still contains None - at least one worker failed to return its results"
-
             logger.info(f"Concatenating {num_proc} shards")
             result = _concatenate_map_style_datasets(transformed_shards)
             if new_fingerprint is not None:
@@ -3032,8 +2967,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             return result
 
     @staticmethod
-    @transmit_tasks
-    @transmit_format
     @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name", "cache_only"])
     def _map_single(
         shard: "Dataset",
@@ -3275,16 +3208,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Optionally initialize the writer as a context manager
         with contextlib.ExitStack() as stack:
             try:
-                shard = shard.with_format("arrow")
+                arrow_formatted_shard = shard.with_format("arrow")
 
                 # Loop over single examples or batches and write to buffer/file if examples are to be updated
                 if not batched:
-                    shard_iterable = enumerate(shard)
+                    shard_iterable = enumerate(arrow_formatted_shard)
                 else:
                     num_rows = len(shard) if not drop_last_batch else len(shard) // batch_size * batch_size
                     shard_iterable = zip(
                         range(0, num_rows, batch_size),
-                        shard.iter(batch_size, drop_last_batch=drop_last_batch),
+                        arrow_formatted_shard.iter(batch_size, drop_last_batch=drop_last_batch),
                     )
                 if not batched:
                     _time = time.time()

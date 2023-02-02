@@ -1037,6 +1037,7 @@ class BaseDatasetTest(TestCase):
                     self.assertListEqual(dset_test["id"], list(range(30)))
                     self.assertNotEqual(dset_test._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
+            check_if_safe_delete(tmp_dir)
 
         with tempfile.TemporaryDirectory() as tmp_dir:  # num_proc > num rows
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
@@ -1053,6 +1054,7 @@ class BaseDatasetTest(TestCase):
                     self.assertListEqual(dset_test["id"], list(range(2)))
                     self.assertNotEqual(dset_test._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
+            check_if_safe_delete(tmp_dir)
 
         with tempfile.TemporaryDirectory() as tmp_dir:  # with_indices
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
@@ -1068,6 +1070,7 @@ class BaseDatasetTest(TestCase):
                     self.assertListEqual(dset_test["id"], list(range(30)))
                     self.assertNotEqual(dset_test._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
+            check_if_safe_delete(tmp_dir)
 
         with tempfile.TemporaryDirectory() as tmp_dir:  # with_rank
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
@@ -1083,6 +1086,7 @@ class BaseDatasetTest(TestCase):
                     self.assertListEqual(dset_test["rank"], [0] * 10 + [1] * 10 + [2] * 10)
                     self.assertNotEqual(dset_test._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
+            check_if_safe_delete(tmp_dir)
 
         with tempfile.TemporaryDirectory() as tmp_dir:  # with_indices AND with_rank
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
@@ -1101,6 +1105,7 @@ class BaseDatasetTest(TestCase):
                     self.assertListEqual(dset_test["rank"], [0] * 10 + [1] * 10 + [2] * 10)
                     self.assertNotEqual(dset_test._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
+            check_if_safe_delete(tmp_dir)
 
         with tempfile.TemporaryDirectory() as tmp_dir:  # new_fingerprint
             new_fingerprint = "foobar"
@@ -1124,6 +1129,7 @@ class BaseDatasetTest(TestCase):
                     file_names = sorted(Path(cache_file["filename"]).name for cache_file in dset_test.cache_files)
                     for i, file_name in enumerate(file_names):
                         self.assertIn(new_fingerprint + f"_{i:05d}", file_name)
+            check_if_safe_delete(tmp_dir)
 
         with tempfile.TemporaryDirectory() as tmp_dir:  # lambda (requires multiprocess from pathos)
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
@@ -1139,6 +1145,7 @@ class BaseDatasetTest(TestCase):
                     self.assertListEqual(dset_test["id"], list(range(30)))
                     self.assertNotEqual(dset_test._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
+            check_if_safe_delete(tmp_dir)
 
     def test_new_features(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -4295,3 +4302,17 @@ def test_map_cases(return_lazy_dict):
     ds = ds.map(f)
     outputs = ds[:]
     assert outputs == {"a": [{"nested": [[i]]} for i in [-1, -1, 2, 3]]}
+
+
+def check_if_safe_delete(tmp_dir):
+    import os
+    import subprocess
+
+    # import gc
+    # gc.collect()
+    for dirname, _, filenames in os.walk(tmp_dir):
+        for filename in filenames:
+            filename = os.path.join(dirname, filename)
+            result = subprocess.run(f"lsof -t {filename}", shell=True, stdout=subprocess.PIPE)
+            if result.stdout:
+                raise AssertionError(f"File {filename} is being used by another process")
