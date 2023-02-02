@@ -2986,8 +2986,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                                 init_pbar()
                             pbar.update(content)
                 # Avoids PermissionError on Windows
-                for kwarg in kwargs_per_job:
-                    del kwarg["shard"]
+                for kwargs in kwargs_per_job:
+                    del kwargs["shard"]
             assert (
                 None not in transformed_shards
             ), f"Failed to retrieve results from map: result list {transformed_shards} still contains None - at least one worker failed to return its results"
