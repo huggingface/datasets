@@ -1,3 +1,4 @@
+import datetime
 from pathlib import Path
 from unittest import TestCase
 
@@ -69,6 +70,17 @@ class ArrowExtractorTest(TestCase):
         self.assertEqual(batch["c"][0][0].dtype, np.float64)
         self.assertEqual(batch["c"][0].dtype, object)
         self.assertEqual(batch["c"].dtype, object)
+
+    def test_numpy_extractor_temporal(self):
+        _col_a = [datetime.datetime(2023, 1, 1, 0, 0, tzinfo=datetime.timezone.utc)] * 3
+        pa_table = pa.Table.from_pydict({"a": _col_a})
+        extractor = NumpyArrowExtractor()
+        row = extractor.extract_row(pa_table)
+        np.testing.assert_equal(row, {"a": np.datetime64(_col_a[0])})
+        col = extractor.extract_column(pa_table)
+        np.testing.assert_equal(col, np.array(list(map(np.datetime64, _col_a))))
+        batch = extractor.extract_batch(pa_table)
+        np.testing.assert_equal(batch, {"a": np.array(list(map(np.datetime64, _col_a)))})
 
     def test_pandas_extractor(self):
         pa_table = self._create_dummy_table()
