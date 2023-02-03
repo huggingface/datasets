@@ -3766,6 +3766,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             null_placement (`str`, defaults to `at_end`):
                 Put `None` values at the beginning if `at_start` or `first`; `at_end` or `last` puts `None`
                 values at the end.
+
+                <Added version="1.14.2"/>
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the sorted indices in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`):
@@ -3773,7 +3775,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 can be identified, use it instead of recomputing.
             indices_cache_file_name (`str`, *optional*, defaults to `None`):
                 Provide the name of a path for the cache file. It is used to store the
-                indices mapping instead of the automatically generated cache file name.
+                sorted indices instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`):
                 Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory.
