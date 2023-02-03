@@ -7,7 +7,7 @@ import re
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union, Sequence
 
 import fsspec
 import numpy as np
@@ -941,35 +941,32 @@ class DatasetDict(dict):
 
     def sort(
         self,
-        column: str,
-        reverse: bool = False,
-        kind: str = None,
-        null_placement: str = "last",
+        column_names: Union[str, Sequence[str]],
+        reverse: Union[bool, Sequence[bool]] = False,
+        null_placement: str = "at_end",
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
         indices_cache_file_names: Optional[Dict[str, Optional[str]]] = None,
         writer_batch_size: Optional[int] = 1000,
+        kind = "deprecated",
     ) -> "DatasetDict":
-        """Create a new dataset sorted according to a column.
+        """Create a new dataset sorted according to a single or multiple columns.
         The transformation is applied to all the datasets of the dataset dictionary.
 
-        Currently sorting according to a column name uses pandas sorting algorithm under the hood.
-        The column should thus be a pandas compatible type (in particular not a nested type).
+        Currently sorting according to a column name(s) uses pyarrow's sort_indices sorting algorithm under the hood.
+        The column(s) should thus be a pyarrow compatible type (in particular not a nested type).
         This also means that the column used for sorting is fully loaded in memory (which should be fine in most cases).
 
         Args:
-            column (`str`):
-                Column name to sort by.
-            reverse (`bool`, defaults to `False`):
-                If `True`, sort by descending order rather then ascending.
-            kind (`str`, *optional*):
-                Pandas algorithm for sorting selected in `{quicksort, mergesort, heapsort, stable}`,
-                The default is `quicksort`. Note that both `stable` and `mergesort` use timsort under the covers and, in general,
-                the actual implementation will vary with data type. The `mergesort` option is retained for backwards compatibility.
-            null_placement (`str`, defaults to `last`):
-                Put `None` values at the beginning if `first`; `last` puts `None` values at the end.
-
-                <Added version="1.14.2"/>
+            column_names (`Union[str, Sequence[str]]`):
+                Either a single column name or a list of unqiue column names to sort by.
+            reverse (`Union[bool, Sequence[bool]]`, defaults to `False`):
+                If `True`, sort by descending order rather than ascending. If a single bool is provided, 
+                the value is applied to the sorting of all column names. Otherwise a list of bools with the
+                same length and order as column_names must be provided.
+            null_placement (`str`, defaults to `at_end`):
+                Put `None` values at the beginning if `at_start` or `first`; `at_end` or `last` puts `None`
+                values at the end.
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the sorted indices in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`):
@@ -982,17 +979,22 @@ class DatasetDict(dict):
             writer_batch_size (`int`, defaults to `1000`):
                 Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory.
+            kind (*deprecated*):
+                Parameter is deprecated and will be removed in future releases.
 
         Example:
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes")
-        >>> ds["train"]["label"][:10]
+        >>> ds = load_dataset('rotten_tomatoes')
+        >>> ds['train']['label'][:10]
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        >>> sorted_ds = ds.sort("label")
-        >>> sorted_ds["train"]["label"][:10]
+        >>> sorted_ds = ds.sort('label')
+        >>> sorted_ds['train']['label'][:10]
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        >>> another_sorted_ds = ds.sort(['label', 'text'], reverse=[True, False])
+        >>> another_sorted_ds['train']['label'][:10]
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         ```
         """
         self._check_values_type()
@@ -1001,14 +1003,14 @@ class DatasetDict(dict):
         return DatasetDict(
             {
                 k: dataset.sort(
-                    column=column,
+                    column_names=column_names,
                     reverse=reverse,
-                    kind=kind,
                     null_placement=null_placement,
                     keep_in_memory=keep_in_memory,
                     load_from_cache_file=load_from_cache_file,
                     indices_cache_file_name=indices_cache_file_names[k],
                     writer_batch_size=writer_batch_size,
+                    kind=kind,
                 )
                 for k, dataset in self.items()
             }
