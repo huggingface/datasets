@@ -36,21 +36,9 @@ from io import BytesIO
 from math import ceil, floor
 from pathlib import Path
 from random import sample
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    BinaryIO,
-    Callable,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
-    Tuple,
-    Union,
-    overload,
-)
+from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, Iterable, Iterator, List, Optional
 from typing import Sequence as Sequence_
+from typing import Tuple, Union, overload
 
 import fsspec
 import numpy as np
@@ -3868,14 +3856,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
 
         sort_keys = [
-            (column_names[i], "ascending" if reverse[i] == False else "descending")
-            for i in range(len(column_names))
+            (column_names[i], "ascending" if reverse[i] == False else "descending") for i in range(len(column_names))
         ]
 
         indices = np.array(
-            pa.compute.sort_indices(
-                queried_dataset, sort_keys=sort_keys, null_placement=null_placement
-            )
+            pa.compute.sort_indices(queried_dataset, sort_keys=sort_keys, null_placement=null_placement)
         ).astype(np.int64)
 
         return self.select(

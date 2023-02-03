@@ -7,7 +7,7 @@ import re
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Tuple, Union, Sequence
+from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import fsspec
 import numpy as np
@@ -948,7 +948,7 @@ class DatasetDict(dict):
         load_from_cache_file: bool = True,
         indices_cache_file_names: Optional[Dict[str, Optional[str]]] = None,
         writer_batch_size: Optional[int] = 1000,
-        kind = "deprecated",
+        kind="deprecated",
     ) -> "DatasetDict":
         """Create a new dataset sorted according to a single or multiple columns.
         The transformation is applied to all the datasets of the dataset dictionary.
@@ -961,7 +961,7 @@ class DatasetDict(dict):
             column_names (`Union[str, Sequence[str]]`):
                 Either a single column name or a list of unqiue column names to sort by.
             reverse (`Union[bool, Sequence[bool]]`, defaults to `False`):
-                If `True`, sort by descending order rather than ascending. If a single bool is provided, 
+                If `True`, sort by descending order rather than ascending. If a single bool is provided,
                 the value is applied to the sorting of all column names. Otherwise a list of bools with the
                 same length and order as column_names must be provided.
             null_placement (`str`, defaults to `at_end`):
