@@ -3856,7 +3856,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
 
         sort_keys = [
-            (column_names[i], "ascending" if reverse[i] == False else "descending") for i in range(len(column_names))
+            (column_names[i], "ascending" if not reverse[i] else "descending") for i in range(len(column_names))
         ]
 
         indices = np.array(
