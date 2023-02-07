@@ -685,7 +685,7 @@ def _is_zero_copy_only(pa_type: pa.DataType, unnest: bool = False) -> bool:
     When converting a pyarrow array to a numpy array, we must know whether this could be done in zero-copy or not.
     This function returns the value of the ``zero_copy_only`` parameter to pass to ``.to_numpy()``, given the type of the pyarrow array.
 
-    # zero copy is available for all primitive types except booleans and timestamps
+    # zero copy is available for all primitive types except booleans and temporal types (date, time, timestamp or duration)
     # primitive types are types for which the physical representation in arrow and in numpy
     # https://github.com/wesm/arrow/blob/c07b9b48cf3e0bbbab493992a492ae47e5b04cad/python/pyarrow/types.pxi#L821
     # see https://arrow.apache.org/docs/python/generated/pyarrow.Array.html#pyarrow.Array.to_numpy
