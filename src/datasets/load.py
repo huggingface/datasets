@@ -1338,8 +1338,7 @@ def dataset_module_factory(
                     msg = f"Dataset '{path}' doesn't exist on the Hub"
                     msg = msg + f" at revision '{revision}'" if revision else msg
                     raise FileNotFoundError(
-                        msg
-                        + ". If the repo is private, make sure you are authenticated with `use_auth_token=True` after logging in with `huggingface-cli login`."
+                        msg + ". If the repo is private or gated, make sure to log in with `huggingface-cli login`."
                     )
                 else:
                     raise e
