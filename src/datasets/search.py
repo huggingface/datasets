@@ -1,6 +1,7 @@
 import importlib.util
 import os
 import tempfile
+import uuid
 from pathlib import PurePath
 from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Union
 
@@ -13,6 +14,10 @@ if TYPE_CHECKING:
     from .arrow_dataset import Dataset  # noqa: F401
 
     try:
+        from pymilvus import Collection, CollectionSchema, DataType, FieldSchema, connections  # noqa: F401
+    except ImportError:
+        pass
+    try:
         from elasticsearch import Elasticsearch  # noqa: F401
 
     except ImportError:
@@ -23,6 +28,7 @@ if TYPE_CHECKING:
     except ImportError:
         pass
 
+_has_milvus = importlib.util.find_spec("pymilvus") is not None
 _has_elasticsearch = importlib.util.find_spec("elasticsearch") is not None
 _has_faiss = importlib.util.find_spec("faiss") is not None
 
@@ -402,6 +408,208 @@ class FaissIndex(BaseIndex):
         return faiss_index
 
 
+class MilvusIndex(BaseIndex):
+    def __init__(
+        self,
+        collection_name: Optional[str] = None,
+        index_params: Optional[dict] = None,
+        drop_previous: bool = True,
+        connection_info: dict = {"host": "localhost", "port": 19530},
+    ):
+        """Dense index using Milvus engine for indexing vector data.
+
+        Use Milvus to create indexes on vector data using different indexing methods. Requires
+        embedded Milvus or a running Milvus server. More details on this can be found here: https://milvus.io/docs
+
+        Args:
+            collection_name (Optional[str], optional): The name for the collection to use. If not provided, a r
+                andom one will be generated. Defaults to None.
+            index_params (Optional[dict], optional): The index parameteres to use. Defaults to None.
+            drop_previous (bool, optional): Whether to drop a collection if it already exists. Defaults to True.
+            connection_info (dict, optional): Connection info to use to connect to Milvus. Defaults to
+                {'host': 'localhost', 'port': 19530}.
+
+        Raises:
+            ImportError: Missing the pymilvus python package.
+        """
+        if not _has_milvus:
+            raise ImportError(
+                "You must install Pymilvus and have a running Milvus instance to use MilvusIndex. "
+                "To do so you can run `pip install pymilvus. "
+            )
+        self.connection_info = connection_info
+        self.collection_name = collection_name
+        self.index_params = index_params
+        self.drop_previous = drop_previous
+        self.collection = None
+
+        if index_params == None:
+            # Default to HNSW index.
+            self.index_params = {
+                "index_type": "HNSW",
+                "metric_type": "L2",
+                "params": {"M": 8, "efConstruction": 64},
+            }
+
+        self.search_params = {
+            "IVF_FLAT": {"params": {"nprobe": 10}},
+            "IVF_SQ8": {"params": {"nprobe": 10}},
+            "IVF_PQ": {"params": {"nprobe": 10}},
+            "HNSW": {"params": {"ef": 10}},
+            "RHNSW_FLAT": {"params": {"ef": 10}},
+            "RHNSW_SQ": {"params": {"ef": 10}},
+            "RHNSW_PQ": {"params": {"ef": 10}},
+            "IVF_HNSW": {"params": {"nprobe": 10, "ef": 10}},
+            "ANNOY": {"params": {"search_k": 10}},
+            "DISKANN": {"K": 10, "search_list": 200},
+        }
+
+    def add_vectors(
+        self,
+        vectors: Union[list, np.ndarray, "Dataset"],
+        column: Optional[str] = None,
+        batch_size: int = 1000,
+    ):
+        """Add the vectors to Milvus and index them.
+
+        If the arrays are inside a certain column, you can specify it using the `column` argument.
+
+        Args:
+            vectors (Union[list, np.ndarray, Dataset]): The vectors to add.
+            column (Optional[str], optional): Which column to use from dataset. Defaults to None.
+            batch_size (int, optional): How large of a batch to use for inserting. Defaults to 1000.
+
+        Raises:
+            ValueError: Collection already exists.
+        """
+        from pymilvus import Collection, CollectionSchema, DataType, FieldSchema, connections, utility  # noqa: F401
+
+        # Connect to Milvus
+        connections.connect(**self.connection_info)
+
+        if self.collection == None:
+            self.collection_name = "c" + uuid.uuid4().hex if self.collection_name is None else self.collection_name
+            if utility.has_collection(self.collection_name):
+                if self.drop_previous:
+                    col = Collection(self.collection_name)
+                    col.drop()
+                else:
+                    raise ValueError("Collection already exists.")
+
+            dim = len(vectors[0]) if column is None else len(vectors[0][column])
+            self.primary_key_field = "pk"
+            self.vector_field = "vector"
+            fields = [
+                FieldSchema(self.primary_key_field, DataType.INT64, "The id-field.", is_primary=True, autoid=False),
+                FieldSchema(self.vector_field, DataType.FLOAT_VECTOR, "The vector.", dim=dim),
+            ]
+            schema = CollectionSchema(fields)
+            self.collection = Collection(self.collection_name, schema)
+
+            self.collection.create_index("vector", self.index_params)
+            self.collection.load()
+
+        logger.info(f"Adding {len(vectors)} vectors to the milvus index")
+
+        for i in logging.tqdm(range(0, len(vectors), batch_size), disable=not logging.is_progress_bar_enabled()):
+            vecs = vectors[i : i + batch_size] if column is None else vectors[i : i + batch_size][column]
+            # Currently Milvus only supports lists and pandas, need to convert np.ndarray to lists for now.
+            # Dataset should already convert ndarray to list on read.
+            if type(vecs) == np.ndarray:
+                vecs = vecs.tolist()
+            keys = [x for x in range(i, i + len(vecs))]
+            self.collection.insert([keys, vecs])
+
+    def load(self, collection_name: str):
+        """Load a milvus index.
+
+        Loads a milvus index. Assumes that it uses the schema that is the same as one generated by this class.
+
+        Args:
+            collection_name (str): The collection name,
+        """
+
+        from pymilvus import Collection, DataType  # noqa: F401
+
+        self.collection_name = collection_name
+        self.collection = Collection(collection_name)
+        self.index_params = self.collection.indexes[0].params
+
+        schema = self.collection.schema
+
+        # Grabbing the fields for the existing collection.
+        for x in schema.fields:
+            if x.is_primary:
+                self.primary_key_field = x.name
+            if x.dtype == DataType.FLOAT_VECTOR or x.dtype == DataType.BINARY_VECTOR:
+                self.vector_field = x.name
+        self.collection.load()
+
+    def search(self, query: Union[np.ndarray, list], k=10, search_params=None) -> SearchResults:
+        """Perform a search on the vectors using Milvus
+
+        Args:
+            query (Union[np.ndarray, list]): The search vector. Needs to be either ndarray.shape(1, n),
+                ndarray.shape(n), list[list[float]] or list[float]
+            k (int, optional): How many matches to return. Defaults to 10.
+            search_params (dict, optional): Parameters for searching. Defaults to None.
+
+        Returns:
+            SearchResults: The search results.
+        """
+        self.collection.load()
+        if type(query) == np.ndarray:
+            query = query.tolist()
+
+        if type(query[0]) != list:
+            query = [query]
+
+        search_params = (
+            search_params if search_params is not None else self.search_params[self.index_params["index_type"]]
+        )
+        res = self.collection.search(query, self.vector_field, search_params, k)
+        id = []
+        dist = []
+        for hit in res[0]:
+            id.append(hit.id)
+            dist.append(hit.distance)
+
+        return SearchResults(dist, id)
+
+    def search_batch(self, queries: np.array, k=10, search_params=None) -> BatchedSearchResults:
+        """Perform a search on the vectors using Milvus
+
+        Args:
+            queries (Union[np.ndarray, list]): The search vector. Needs to be either ndarray.shape(2, n) or list[list[float]]
+            k (int, optional): How many matches to return. Defaults to 10.
+            search_params (dict, optional): Parameters for searching. Defaults to None.
+
+        Returns:
+            BatchedSearchResults: The search results.
+        """
+        self.collection.load()
+        if type(queries) == np.ndarray:
+            queries = queries.tolist()
+
+        search_params = (
+            search_params if search_params is not None else self.search_params[self.index_params["index_type"]]
+        )
+        res = self.collection.search(queries, self.vector_field, search_params, k)
+        batched_id = []
+        batched_dist = []
+        for hits in res:
+            id = []
+            dist = []
+            for hit in hits:
+                id.append(hit.id)
+                dist.append(hit.distance)
+
+            batched_id.append(id)
+            batched_dist.append(dist)
+
+        return BatchedSearchResults(batched_dist, batched_id)
+
+
 class IndexableMixin:
     """Add indexing features to `datasets.Dataset`"""
 
@@ -657,6 +865,48 @@ class IndexableMixin:
         self._indexes[index_name] = ElasticSearchIndex(
             host=host, port=port, es_client=es_client, es_index_name=es_index_name, es_index_config=es_index_config
         )
+
+    def add_miluvs_index(
+        self,
+        column: str,
+        collection_name: Optional[str] = None,
+        index_params: Optional[dict] = None,
+        drop_previous: bool = True,
+        connection_info: dict = {"host": "localhost", "port": 19530},
+    ):
+        """Create a Milvus index on vector data.
+
+        More info can be found here: https://milvus.io/docs
+
+        Args:
+            column (str): The column of the dataset
+            collection_name (Optional[str], optional): The name to give the collection. Defaults to None.
+            index_params (Optional[dict], optional): Index params to use. Defaults to None.
+            drop_previous (bool, optional): Whether to drop existing collection with same name. Defaults to True.
+            connection_info (dict, optional): Connection information for milvus service. Defaults to {'host': 'localhost', 'port': 19530}.
+        """
+        collection_name = collection_name if collection_name is not None else column
+        index = MilvusIndex(collection_name, index_params, drop_previous, connection_info)
+
+        index.add_vectors(self, column)
+
+        self._indexes[collection_name] = index
+
+    def load_milvus_index(
+        self, collection_name: Optional[str] = None, connection_info: dict = {"host": "localhost", "port": 19530}
+    ):
+        """Load a milvus index.
+
+        Loads a milvus index. Assumes that it uses the schema that is the same as one generated by this class.
+
+        Args:
+            collection_name (str): The collection name.
+            connection_info (dict, optional): Connection information for milvus service. Defaults to {'host': 'localhost', 'port': 19530}.
+        """
+        index = MilvusIndex(connection_info=connection_info)
+        index.load(collection_name)
+
+        self._indexes[collection_name] = index
 
     def drop_index(self, index_name: str):
         """Drop the index with the specified column.

@@ -132,6 +132,20 @@ def require_elasticsearch(test_case):
     return test_case
 
 
+def require_milvus(test_case):
+    """
+    Decorator marking a test that requires ElasticSearch.
+
+    These tests are skipped when ElasticSearch isn't installed.
+
+    """
+    try:
+        import pymilvus  # noqa
+    except ImportError:
+        test_case = unittest.skip("test requires pymilvus")(test_case)
+    return test_case
+
+
 def require_sqlalchemy(test_case):
     """
     Decorator marking a test that requires SQLAlchemy.

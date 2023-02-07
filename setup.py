@@ -177,6 +177,7 @@ TESTS_REQUIRE = [
     "soundfile",
     "transformers",
     "zstandard",
+    "pymilvus"
 ]
 
 
