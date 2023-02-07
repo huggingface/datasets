@@ -92,7 +92,7 @@ class ArrowExtractorTest(TestCase):
         pd.testing.assert_series_equal(row["a"], pd.Series(_COL_A, name="a")[:1])
         pd.testing.assert_series_equal(row["b"], pd.Series(_COL_B, name="b")[:1])
         pd.testing.assert_series_equal(row["c"], pd.Series(_COL_C, name="c")[:1])
-        pd.testing.assert_series_equal(row["d"], pd.Series(_COL_C, name="d")[:1])
+        pd.testing.assert_series_equal(row["d"], pd.Series(_COL_D, name="d")[:1])
         col = extractor.extract_column(pa_table)
         pd.testing.assert_series_equal(col, pd.Series(_COL_A, name="a"))
         batch = extractor.extract_batch(pa_table)
@@ -100,7 +100,7 @@ class ArrowExtractorTest(TestCase):
         pd.testing.assert_series_equal(batch["a"], pd.Series(_COL_A, name="a"))
         pd.testing.assert_series_equal(batch["b"], pd.Series(_COL_B, name="b"))
         pd.testing.assert_series_equal(batch["c"], pd.Series(_COL_C, name="c"))
-        pd.testing.assert_series_equal(batch["d"], pd.Series(_COL_C, name="d"))
+        pd.testing.assert_series_equal(batch["d"], pd.Series(_COL_D, name="d"))
 
 
 class LazyDictTest(TestCase):
