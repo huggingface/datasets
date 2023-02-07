@@ -2985,7 +2985,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             if pbar is None:
                                 init_pbar()
                             pbar.update(content)
-                # Avoids PermissionError on Windows
+                # Avoids PermissionError on Windows (the error: https://github.com/huggingface/datasets/actions/runs/4026734820/jobs/6921621805)
                 for kwargs in kwargs_per_job:
                     del kwargs["shard"]
             assert (
