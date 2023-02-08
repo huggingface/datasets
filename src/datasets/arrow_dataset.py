@@ -4280,9 +4280,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Whether to select contiguous blocks of indices for shards.
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`):
-                If a cache file storing the current computation from `function`
-                can be identified, use it instead of recomputing.
             indices_cache_file_name (`str`, *optional*):
                 Provide the name of a path for the cache file. It is used to store the
                 indices of each shard instead of the automatically generated cache file name.
