@@ -2178,6 +2178,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         if isinstance(column_names, str):
             column_names = [column_names]
+
         for column_name in column_names:
             if column_name not in self._data.column_names:
                 raise ValueError(
@@ -2186,9 +2187,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     f"{self._data.column_names}."
                 )
 
-        dataset_columns = frozenset(column_names)
         dataset = copy.deepcopy(self)
-        dataset._info.features = {k: v for k, v in dataset._info.features.items() if k in dataset_columns}
+        dataset._info.features = {k: v for k, v in dataset._info.features.items() if k in column_names}
         dataset._data = dataset._data.select(column_names)
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         dataset._fingerprint = new_fingerprint
