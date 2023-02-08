@@ -2594,9 +2594,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     def __getitem__(self, key):  # noqa: F811
         """Can be used to index columns (by string names) or rows (by integer index or iterable of indices or bools)."""
-        return self._getitem(
-            key,
-        )
+        return self._getitem(key)
+
+    def __getitems__(self, keys: List) -> List:
+        """Can be used to get a batch using a list of integers indices."""
+        batch = self.__getitem__(keys)
+        n_examples = len(batch[next(iter(batch))])
+        return [{col: array[i] for col, array in batch.items()} for i in range(n_examples)]
 
     def cleanup_cache_files(self) -> int:
         """Clean up all cache files in the dataset cache directory, excepted the currently used cache file if there is

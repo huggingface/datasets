@@ -4203,6 +4203,20 @@ def test_dataset_to_iterable_dataset(dataset):
         dataset.to_iterable_dataset(num_shards=len(dataset) + 1)
 
 
+@pytest.mark.parametrize("batch_size", [1, 4])
+@require_torch
+def test_dataset_with_torch_dataloader(dataset, batch_size):
+    from torch.utils.data import DataLoader
+
+    dataloader = DataLoader(dataset, batch_size=batch_size)
+    with patch.object(dataset, "_getitem", wraps=dataset._getitem) as mock_getitem:
+        out = list(dataloader)
+        getitem_call_count = mock_getitem.call_count
+    assert len(out) == len(dataset) // batch_size + int(len(dataset) % batch_size > 0)
+    # calling dataset[list_of_indices] if much more efficient than [dataset[idx] for idx in list of indices]
+    assert getitem_call_count == len(dataset) // batch_size + int(len(dataset) % batch_size > 0)
+
+
 @pytest.mark.parametrize("return_lazy_dict", [True, False, "mix"])
 def test_map_cases(return_lazy_dict):
     def f(x):
