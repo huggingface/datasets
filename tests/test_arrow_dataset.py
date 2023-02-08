@@ -18,6 +18,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 from absl.testing import parameterized
+from packaging import version
 
 import datasets.arrow_dataset
 from datasets import concatenate_datasets, interleave_datasets, load_from_disk
@@ -4206,6 +4207,7 @@ def test_dataset_to_iterable_dataset(dataset):
 @pytest.mark.parametrize("batch_size", [1, 4])
 @require_torch
 def test_dataset_with_torch_dataloader(dataset, batch_size):
+    from datasets import config
     from torch.utils.data import DataLoader
 
     dataloader = DataLoader(dataset, batch_size=batch_size)
@@ -4214,7 +4216,8 @@ def test_dataset_with_torch_dataloader(dataset, batch_size):
         getitem_call_count = mock_getitem.call_count
     assert len(out) == len(dataset) // batch_size + int(len(dataset) % batch_size > 0)
     # calling dataset[list_of_indices] if much more efficient than [dataset[idx] for idx in list of indices]
-    assert getitem_call_count == len(dataset) // batch_size + int(len(dataset) % batch_size > 0)
+    if config.TORCH_VERSION >= version.parse("0.13.0"):
+        assert getitem_call_count == len(dataset) // batch_size + int(len(dataset) % batch_size > 0)
 
 
 @pytest.mark.parametrize("return_lazy_dict", [True, False, "mix"])
