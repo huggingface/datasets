@@ -4207,8 +4207,9 @@ def test_dataset_to_iterable_dataset(dataset):
 @pytest.mark.parametrize("batch_size", [1, 4])
 @require_torch
 def test_dataset_with_torch_dataloader(dataset, batch_size):
-    from datasets import config
     from torch.utils.data import DataLoader
+
+    from datasets import config
 
     dataloader = DataLoader(dataset, batch_size=batch_size)
     with patch.object(dataset, "_getitem", wraps=dataset._getitem) as mock_getitem:
