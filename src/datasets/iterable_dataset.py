@@ -1544,21 +1544,19 @@ class IterableDataset(DatasetInfoMixin):
 
         if self._info:
             info = copy.deepcopy(self._info)
-        if self._info.features is not None:
-            for column_name in column_names:
-                if column_name not in self._info.features:
-                    raise ValueError(
-                        f"Column name {column_name} not in the "
-                        "dataset. Columns in the dataset: "
-                        f"{list(self._info.features.keys())}."
-                    )
-            info.features = Features({c: info.features[c] for c in column_names})
-        else:
-            info = None
+            if self._info.features is not None:
+                for column_name in column_names:
+                    if column_name not in self._info.features:
+                        raise ValueError(
+                            f"Column name {column_name} not in the "
+                            "dataset. Columns in the dataset: "
+                            f"{list(self._info.features.keys())}."
+                        )
+                info.features = Features({c: info.features[c] for c in column_names})
 
-        iterable = SelectColumnsIterable(self._ex_iterable, column_names)
+        ex_iterable = SelectColumnsIterable(self._ex_iterable, column_names)
         return IterableDataset(
-            ex_iterable=iterable,
+            ex_iterable=ex_iterable,
             info=info,
             split=self._split,
             format_type=self._format_type,
