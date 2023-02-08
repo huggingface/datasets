@@ -4217,7 +4217,7 @@ def test_dataset_with_torch_dataloader(dataset, batch_size):
         getitem_call_count = mock_getitem.call_count
     assert len(out) == len(dataset) // batch_size + int(len(dataset) % batch_size > 0)
     # calling dataset[list_of_indices] if much more efficient than [dataset[idx] for idx in list of indices]
-    if config.TORCH_VERSION >= version.parse("0.13.0"):
+    if config.TORCH_VERSION >= version.parse("1.13.0"):
         assert getitem_call_count == len(dataset) // batch_size + int(len(dataset) % batch_size > 0)
 
 

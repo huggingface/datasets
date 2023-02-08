@@ -170,10 +170,10 @@ Reloading the dataset inside a worker doesn't fill up your RAM, since it simply 
 >>> dataloader = DataLoader(ds, batch_size=32, num_workers=4)
 ```
 
-#### Use a BatchSampler (torch<=0.12.1)
+#### Use a BatchSampler (torch<=1.12.1)
 
 For old versions of PyTorch, using a `BatchSampler` can speed up data loading.
-Indeed if you are using `torch<=0.12.1`, the PyTorch `DataLoader` load batches of data from a dataset one by one like this:
+Indeed if you are using `torch<=1.12.1`, the PyTorch `DataLoader` load batches of data from a dataset one by one like this:
 
 ```py
 batch = [dataset[idx] for idx in range(start, end)]
