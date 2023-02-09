@@ -1,14 +1,13 @@
-import os
 import json
+import os
 from typing import BinaryIO, Dict, Optional, Union
 
 import pyarrow as pa
 import pyarrow.parquet as pq
 
 from .. import Dataset, Features, NamedSplit, config
-from ..arrow_writer import ArrowWriter
-from ..info import DatasetInfo
 from ..formatting import query_table
+from ..info import DatasetInfo
 from ..packaged_modules import _PACKAGED_DATASETS_MODULES
 from ..packaged_modules.parquet.parquet import Parquet
 from ..utils import logging
