@@ -720,7 +720,7 @@ class DatasetDict(dict):
         drop_last_batch: bool = False,
         remove_columns: Optional[Union[str, List[str]]] = None,
         keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
+        load_from_cache_file: Optional[bool] = None,
         cache_file_names: Optional[Dict[str, Optional[str]]] = None,
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
@@ -765,7 +765,7 @@ class DatasetDict(dict):
                 columns with names in `remove_columns`, these columns will be kept.
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`):
+            load_from_cache_file (`Optional[bool]`, defaults to `True` if caching is enabled):
                 If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
             cache_file_names (`[Dict[str, str]]`, *optional*, defaults to `None`):
@@ -845,7 +845,7 @@ class DatasetDict(dict):
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
+        load_from_cache_file: Optional[bool] = None,
         cache_file_names: Optional[Dict[str, Optional[str]]] = None,
         writer_batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
@@ -875,7 +875,7 @@ class DatasetDict(dict):
                 `batch_size <= 0` or `batch_size == None` then provide the full dataset as a single batch to `function`.
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`):
+            load_from_cache_file (`Optional[bool]`, defaults to `True` if chaching is enabled):
                 If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
             cache_file_names (`[Dict[str, str]]`, *optional*, defaults to `None`):
@@ -946,7 +946,7 @@ class DatasetDict(dict):
         kind: str = None,
         null_placement: str = "last",
         keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
+        load_from_cache_file: Optional[bool] = None,
         indices_cache_file_names: Optional[Dict[str, Optional[str]]] = None,
         writer_batch_size: Optional[int] = 1000,
     ) -> "DatasetDict":
@@ -972,7 +972,7 @@ class DatasetDict(dict):
                 <Added version="1.14.2"/>
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the sorted indices in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`):
+            load_from_cache_file (`Optional[bool]`, defaults to `True` if caching is enabled):
                 If a cache file storing the sorted indices
                 can be identified, use it instead of recomputing.
             indices_cache_file_names (`[Dict[str, str]]`, *optional*, defaults to `None`):
@@ -1020,7 +1020,7 @@ class DatasetDict(dict):
         seed: Optional[int] = None,
         generators: Optional[Dict[str, np.random.Generator]] = None,
         keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
+        load_from_cache_file: Optional[bool] = None,
         indices_cache_file_names: Optional[Dict[str, Optional[str]]] = None,
         writer_batch_size: Optional[int] = 1000,
     ) -> "DatasetDict":
@@ -1045,7 +1045,7 @@ class DatasetDict(dict):
                 You have to provide one `generator` per dataset in the dataset dictionary.
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`):
+            load_from_cache_file (`Optional[bool]`, defaults to `True` if caching is enabled):
                 If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
             indices_cache_file_names (`Dict[str, str]`, *optional*):
