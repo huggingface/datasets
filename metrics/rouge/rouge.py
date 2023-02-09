@@ -14,6 +14,10 @@
 """ ROUGE metric from Google Research github repo. """
 
 # The dependencies in https://github.com/google-research/google-research/blob/master/rouge/requirements.txt
+import absl  # noqa: F401 # Here to have a nice missing dependency error message early on
+import nltk  # noqa: F401 # Here to have a nice missing dependency error message early on
+import numpy  # noqa: F401 # Here to have a nice missing dependency error message early on
+import six  # noqa: F401 # Here to have a nice missing dependency error message early on
 from rouge_score import rouge_scorer, scoring
 
 import datasets

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ CoVal metric. """
+import coval  # From: git+https://github.com/ns-moosavi/coval.git # noqa: F401
 from coval.conll import reader, util
 from coval.eval import evaluator
 
