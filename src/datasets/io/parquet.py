@@ -1,7 +1,6 @@
 import os
 from typing import BinaryIO, Optional, Union
 
-import pyarrow as pa
 import pyarrow.parquet as pq
 
 from .. import Dataset, Features, NamedSplit, config
