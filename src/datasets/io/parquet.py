@@ -1,14 +1,18 @@
 import os
-from typing import BinaryIO, Optional, Union
+import json
+from typing import BinaryIO, Dict, Optional, Union
 
 import pyarrow as pa
 import pyarrow.parquet as pq
 
 from .. import Dataset, Features, NamedSplit, config
+from ..arrow_writer import ArrowWriter
+from ..info import DatasetInfo
 from ..formatting import query_table
 from ..packaged_modules import _PACKAGED_DATASETS_MODULES
 from ..packaged_modules.parquet.parquet import Parquet
 from ..utils import logging
+from ..utils.py_utils import asdict
 from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
 
@@ -93,6 +97,16 @@ class ParquetDatasetWriter:
             written = self._write(file_obj=self.path_or_buf, batch_size=batch_size, **self.parquet_writer_kwargs)
         return written
 
+    @staticmethod
+    def _build_metadata(info: DatasetInfo, fingerprint: Optional[str] = None) -> Dict[str, str]:
+        info_keys = ["features"]  # we can add support for more DatasetInfo keys in the future
+        info_as_dict = asdict(info)
+        metadata = {}
+        metadata["info"] = {key: info_as_dict[key] for key in info_keys}
+        if fingerprint is not None:
+            metadata["fingerprint"] = fingerprint
+        return {"huggingface": json.dumps(metadata)}
+
     def _write(self, file_obj: BinaryIO, batch_size: int, **parquet_writer_kwargs) -> int:
         """Writes the pyarrow table as Parquet to a binary file handle.
 
@@ -101,6 +115,13 @@ class ParquetDatasetWriter:
         written = 0
         _ = parquet_writer_kwargs.pop("path_or_buf", None)
         schema = pa.schema(self.dataset.features.type)
+
+        schema = schema.with_metadata(
+            ArrowWriter._build_metadata(
+                info=DatasetInfo(features=self.dataset.features)
+            )
+        )
+
         writer = pq.ParquetWriter(file_obj, schema=schema, **parquet_writer_kwargs)
 
         for offset in logging.tqdm(
