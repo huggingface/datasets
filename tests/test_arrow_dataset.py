@@ -161,7 +161,6 @@ class BaseDatasetTest(TestCase):
 
     def test_dummy_dataset(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
-
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                 self.assertEqual(dset[0]["filename"], "my_name-train_0")
@@ -347,7 +346,6 @@ class BaseDatasetTest(TestCase):
 
     def test_dummy_dataset_load_from_disk(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
-
             with self._create_dummy_dataset(in_memory, tmp_dir).select(range(10)) as dset:
                 dataset_path = os.path.join(tmp_dir, "my_dataset")
                 dset.save_to_disk(dataset_path)
@@ -360,7 +358,6 @@ class BaseDatasetTest(TestCase):
 
     def test_restore_saved_format(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
-
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
                 dset.set_format(type="numpy", columns=["col_1"], output_all_columns=True)
                 dataset_path = os.path.join(tmp_dir, "my_dataset")
@@ -1490,7 +1487,6 @@ class BaseDatasetTest(TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-
                 ex_cnt = ExampleCounter()
                 dset.map(ex_cnt)
                 self.assertEqual(ex_cnt.cnt, len(dset))

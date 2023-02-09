@@ -184,7 +184,6 @@ def get_temporary_cache_files_directory() -> str:
     """Return a directory that is deleted when session closes."""
     global _TEMP_DIR_FOR_TEMP_CACHE_FILES
     if _TEMP_DIR_FOR_TEMP_CACHE_FILES is None:
-
         # Avoids a PermissionError on Windows caused by the datasets referencing
         # the files from the cache directory on clean-up
         def cleanup_func():
@@ -412,7 +411,6 @@ def fingerprint_transform(
     fingerprint_names = fingerprint_names if fingerprint_names is not None else ["new_fingerprint"]
 
     def _fingerprint(func):
-
         if not inplace and not all(name in func.__code__.co_varnames for name in fingerprint_names):
             raise ValueError("function {func} is missing parameters {fingerprint_names} in signature")
 

@@ -692,7 +692,6 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[DownloadMode] = None,
     ):
-
         self.name = name
         self.data_files = data_files
         self.data_dir = data_dir
@@ -744,7 +743,6 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[DownloadMode] = None,
     ):
-
         self.name = name
         self.revision = revision
         self.data_files = data_files
@@ -1200,7 +1198,9 @@ def dataset_module_factory(
                     download_config=download_config,
                     download_mode=download_mode,
                 ).get_module()
-        except Exception as e1:  # noqa: all the attempts failed, before raising the error we should check if the module is already cached.
+        except (
+            Exception
+        ) as e1:  # noqa: all the attempts failed, before raising the error we should check if the module is already cached.
             try:
                 return CachedDatasetModuleFactory(path, dynamic_modules_path=dynamic_modules_path).get_module()
             except Exception as e2:  # noqa: if it's not in the cache, then it doesn't exist.
@@ -1303,7 +1303,9 @@ def metric_module_factory(
                     download_mode=download_mode,
                     dynamic_modules_path=dynamic_modules_path,
                 ).get_module()
-            except Exception as e1:  # noqa: all the attempts failed, before raising the error we should check if the module is already cached.
+            except (
+                Exception
+            ) as e1:  # noqa: all the attempts failed, before raising the error we should check if the module is already cached.
                 try:
                     return CachedMetricModuleFactory(path, dynamic_modules_path=dynamic_modules_path).get_module()
                 except Exception as e2:  # noqa: if it's not in the cache, then it doesn't exist.

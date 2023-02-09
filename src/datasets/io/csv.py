@@ -74,7 +74,6 @@ class CsvDatasetWriter:
         num_proc: Optional[int] = None,
         **to_csv_kwargs,
     ):
-
         if num_proc is not None and num_proc <= 0:
             raise ValueError(f"num_proc {num_proc} must be an integer > 0.")
 

@@ -777,7 +777,6 @@ class DatasetBuilder:
 
         # File locking only with local paths; no file locking on GCS or S3
         with FileLock(lock_path) if is_local else contextlib.nullcontext():
-
             # Check if the data already exists
             path_join = os.path.join if is_local else posixpath.join
             data_exists = self._fs.exists(path_join(self._output_dir, config.DATASET_INFO_FILENAME))
@@ -840,7 +839,6 @@ class DatasetBuilder:
                 # Temporarily assign _output_dir to tmp_data_dir to avoid having to forward
                 # it to every sub function.
                 with temporary_assignment(self, "_output_dir", tmp_output_dir):
-
                     # Try to download the already prepared dataset files
                     downloaded_from_gcs = False
                     if try_from_hf_gcs:
@@ -1400,7 +1398,6 @@ class GeneratorBasedBuilder(DatasetBuilder):
         num_proc: Optional[int] = None,
         max_shard_size: Optional[Union[int, str]] = None,
     ):
-
         max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
@@ -1547,7 +1544,6 @@ class GeneratorBasedBuilder(DatasetBuilder):
         check_duplicate_keys: bool,
         job_id: int,
     ) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
-
         generator = self._generate_examples(**gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"
@@ -1660,7 +1656,6 @@ class ArrowBasedBuilder(DatasetBuilder):
         num_proc: Optional[int] = None,
         max_shard_size: Optional[Union[str, int]] = None,
     ):
-
         max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
@@ -1798,7 +1793,6 @@ class ArrowBasedBuilder(DatasetBuilder):
     def _prepare_split_single(
         self, gen_kwargs: dict, fpath: str, file_format: str, max_shard_size: int, job_id: int
     ) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
-
         generator = self._generate_tables(**gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"

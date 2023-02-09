@@ -30,7 +30,6 @@ class NumpyFormatter(Formatter[Mapping, np.ndarray, Mapping]):
         return column
 
     def _tensorize(self, value):
-
         if isinstance(value, (str, bytes, type(None))):
             return value
         elif isinstance(value, (np.character, np.ndarray)) and np.issubdtype(value.dtype, np.character):
