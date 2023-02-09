@@ -114,13 +114,7 @@ class ParquetDatasetWriter:
         """
         written = 0
         _ = parquet_writer_kwargs.pop("path_or_buf", None)
-        schema = pa.schema(self.dataset.features.type)
-
-        schema = schema.with_metadata(
-            ArrowWriter._build_metadata(
-                info=DatasetInfo(features=self.dataset.features)
-            )
-        )
+        schema = self.dataset.features.arrow_schema
 
         writer = pq.ParquetWriter(file_obj, schema=schema, **parquet_writer_kwargs)
 
