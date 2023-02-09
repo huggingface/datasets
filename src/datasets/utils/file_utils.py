@@ -377,7 +377,7 @@ def http_get(
         desc=desc or "Downloading",
         disable=not logging.is_progress_bar_enabled(),
     ) as progress:
-        for chunk in response.iter_content(chunk_size=1024 * 1024):
+        for chunk in response.iter_content(chunk_size=10 * 1024 * 1024):
             progress.update(len(chunk))
             temp_file.write(chunk)
 
