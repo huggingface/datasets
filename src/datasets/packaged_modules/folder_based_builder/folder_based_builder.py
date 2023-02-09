@@ -134,7 +134,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
 
                 if metadata_files:
                     # add metadata if `metadata_files` are found and `drop_metadata` is None (default) or False
-                    add_metadata = self.config.drop_metadata is False
+                    add_metadata = not self.config.drop_metadata
                     # if `metadata_files` are found, add labels only if
                     # `drop_labels` is set up to False explicitly (not-default behavior)
                     add_labels = self.config.drop_labels is False
