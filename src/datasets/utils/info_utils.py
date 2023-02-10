@@ -13,23 +13,23 @@ logger = get_logger(__name__)
 class VerificationMode(enum.Enum):
     """`Enum` that specifies which verification checks to run.
 
-    The default mode is `BASIC`, which will perform only rudimentary checks to avoid slowdowns
+    The default mode is `BASIC_CHECKS`, which will perform only rudimentary checks to avoid slowdowns
     when generating/downloading a dataset for the first time.
 
     The verification modes:
 
-    |                    | Verification checks                                                           |
-    |--------------------|------------------------------------------------------------------------------ |
-    | `FULL`             | Split checks, uniqueness of the keys yielded in case of the GeneratorBuilder  |
-    |                    | and the validity (number of files, checksums, etc.) of downloaded files        |
-    | `BASIC` (default)  | The same as `FULL` but without checking downloaded files                      |
-    | `NONE`             | None                                                                          |
+    |                           | Verification checks                                                           |
+    |---------------------------|------------------------------------------------------------------------------ |
+    | `ALL_CHECKS`              | Split checks, uniqueness of the keys yielded in case of the GeneratorBuilder  |
+    |                           | and the validity (number of files, checksums, etc.) of downloaded files       |
+    | `BASIC_CHECKS` (default)  | Same as `ALL_CHECKS` but without checking downloaded files                    |
+    | `NO_CHECKS`               | None                                                                          |
 
     """
 
-    FULL = "full"
-    BASIC = "basic"
-    NONE = "none"
+    ALL_CHECKS = "all_checks"
+    BASIC_CHECKS = "basic_checks"
+    NO_CHECKS = "no_checks"
 
 
 class ChecksumVerificationException(Exception):

@@ -613,8 +613,8 @@ class DatasetBuilder:
         self,
         output_dir: Optional[str] = None,
         download_config: Optional[DownloadConfig] = None,
-        download_mode: Optional[DownloadMode] = None,
-        verification_mode: Optional[VerificationMode] = None,
+        download_mode: Optional[Union[DownloadMode, str]] = None,
+        verification_mode: Optional[Union[VerificationMode, str]] = None,
         ignore_verifications="deprecated",
         try_from_hf_gcs: bool = True,
         dl_manager: Optional[DownloadManager] = None,
@@ -636,9 +636,9 @@ class DatasetBuilder:
                 <Added version="2.5.0"/>
             download_config (`DownloadConfig`, *optional*):
                 Specific download configuration parameters.
-            download_mode (`DownloadMode`, *optional*):
+            download_mode ([`DownloadMode`] or `str`, *optional*):
                 Select the download/generate mode, default to `REUSE_DATASET_IF_EXISTS`.
-            verification_mode ([`VerificationMode`], defaults to `BASIC`):
+            verification_mode ([`VerificationMode`] or `str`, defaults to `BASIC_CHECKS`):
                 Verification mode determining the checks to run on the downloaded/processed dataset information (checksums/size/splits/...).
 
                 <Added version="2.9.1"/>
@@ -740,7 +740,7 @@ class DatasetBuilder:
         self._output_dir = fs_token_paths[2][0] if is_local else self._fs.unstrip_protocol(fs_token_paths[2][0])
 
         download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
-        verification_mode = VerificationMode(verification_mode or VerificationMode.BASIC)
+        verification_mode = VerificationMode(verification_mode or VerificationMode.BASIC_CHECKS)
         base_path = base_path if base_path is not None else self.base_path
 
         if file_format is not None and file_format not in ["arrow", "parquet"]:
@@ -771,7 +771,7 @@ class DatasetBuilder:
                 download_config=download_config,
                 data_dir=self.config.data_dir,
                 base_path=base_path,
-                record_checksums=(self._record_infos or verification_mode == VerificationMode.FULL),
+                record_checksums=(self._record_infos or verification_mode == VerificationMode.ALL_CHECKS),
             )
 
         if (
@@ -791,7 +791,6 @@ class DatasetBuilder:
 
         # File locking only with local paths; no file locking on GCS or S3
         with FileLock(lock_path) if is_local else contextlib.nullcontext():
-
             # Check if the data already exists
             path_join = os.path.join if is_local else posixpath.join
             data_exists = self._fs.exists(path_join(self._output_dir, config.DATASET_INFO_FILENAME))
@@ -854,7 +853,6 @@ class DatasetBuilder:
                 # Temporarily assign _output_dir to tmp_data_dir to avoid having to forward
                 # it to every sub function.
                 with temporary_assignment(self, "_output_dir", tmp_output_dir):
-
                     # Try to download the already prepared dataset files
                     downloaded_from_gcs = False
                     if try_from_hf_gcs:
@@ -933,12 +931,12 @@ class DatasetBuilder:
         the pre-processed datasets files.
 
         Args:
-            dl_manager (`DownloadManager`):
+            dl_manager ([`DownloadManager`]):
                 `DownloadManager` used to download and cache data.
-            verification_mode (`VerificationMode`):
-                if `FULL`, perform all the verifications including checksums.
-                if `BASIC`, do not perform checksums, only perform split tests.
-                if `NONE`, do not perform any verification.
+            verification_mode ([`VerificationMode`]):
+                if `ALL_CHECKS`, perform all the verifications including checksums.
+                if `BASIC_CHECKS`, do not perform checksums, only perform split tests.
+                if `NO_CHECKS`, do not perform any verification.
             prepare_split_kwargs: Additional options, such as `file_format`, `max_shard_size`
         """
         # Generating data for all splits
@@ -947,7 +945,7 @@ class DatasetBuilder:
         split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
 
         # Checksums verification
-        if verification_mode == VerificationMode.FULL and dl_manager.record_checksums:
+        if verification_mode == VerificationMode.ALL_CHECKS and dl_manager.record_checksums:
             verify_checksums(
                 self.info.download_checksums, dl_manager.get_recorded_sizes_checksums(), "dataset source files"
             )
@@ -983,7 +981,7 @@ class DatasetBuilder:
                 ) from None
             dl_manager.manage_extracted_files()
 
-        if verification_mode == VerificationMode.BASIC or verification_mode == VerificationMode.FULL:
+        if verification_mode == VerificationMode.BASIC_CHECKS or verification_mode == VerificationMode.ALL_CHECKS:
             verify_splits(self.info.splits, split_dict)
 
         # Update the info object with the splits.
@@ -1032,7 +1030,7 @@ class DatasetBuilder:
         self,
         split: Optional[Split] = None,
         run_post_process=True,
-        verification_mode: Optional[VerificationMode] = None,
+        verification_mode: Optional[Union[VerificationMode, str]] = None,
         ignore_verifications="deprecated",
         in_memory=False,
     ) -> Union[Dataset, DatasetDict]:
@@ -1044,7 +1042,7 @@ class DatasetBuilder:
             run_post_process (`bool`, defaults to `True`):
                 Whether to run post-processing dataset transforms and/or add
                 indexes.
-            verification_mode ([`VerificationMode`], defaults to `BASIC`):
+            verification_mode ([`VerificationMode`] or `str`, defaults to `BASIC_CHECKS`):
                 Verification mode determining the checks to run on the
                 downloaded/processed dataset information (checksums/size/splits/...).
 
@@ -1102,7 +1100,7 @@ class DatasetBuilder:
         if split is None:
             split = {s: s for s in self.info.splits}
 
-        verification_mode = VerificationMode(verification_mode or VerificationMode.BASIC)
+        verification_mode = VerificationMode(verification_mode or VerificationMode.BASIC_CHECKS)
 
         # Create a dataset for each of the given splits
         datasets = map_nested(
@@ -1155,7 +1153,7 @@ class DatasetBuilder:
                 for resource_name, resource_path in resources_paths.items():
                     size_checksum = get_size_checksum_dict(resource_path)
                     recorded_checksums[resource_name] = size_checksum
-                if verification_mode == VerificationMode.FULL and record_checksums:
+                if verification_mode == VerificationMode.ALL_CHECKS and record_checksums:
                     if self.info.post_processed is None or self.info.post_processed.resources_checksums is None:
                         expected_checksums = None
                     else:
@@ -1441,7 +1439,6 @@ class GeneratorBasedBuilder(DatasetBuilder):
         num_proc: Optional[int] = None,
         max_shard_size: Optional[Union[int, str]] = None,
     ):
-
         max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
@@ -1588,7 +1585,6 @@ class GeneratorBasedBuilder(DatasetBuilder):
         check_duplicate_keys: bool,
         job_id: int,
     ) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
-
         generator = self._generate_examples(**gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"
@@ -1653,8 +1649,8 @@ class GeneratorBasedBuilder(DatasetBuilder):
         super()._download_and_prepare(
             dl_manager,
             verification_mode,
-            check_duplicate_keys=verification_mode == VerificationMode.BASIC
-            or verification_mode == VerificationMode.FULL,
+            check_duplicate_keys=verification_mode == VerificationMode.BASIC_CHECKS
+            or verification_mode == VerificationMode.ALL_CHECKS,
             **prepare_splits_kwargs,
         )
 
@@ -1705,7 +1701,6 @@ class ArrowBasedBuilder(DatasetBuilder):
         num_proc: Optional[int] = None,
         max_shard_size: Optional[Union[str, int]] = None,
     ):
-
         max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
@@ -1843,7 +1838,6 @@ class ArrowBasedBuilder(DatasetBuilder):
     def _prepare_split_single(
         self, gen_kwargs: dict, fpath: str, file_format: str, max_shard_size: int, job_id: int
     ) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
-
         generator = self._generate_tables(**gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"
@@ -2010,7 +2004,7 @@ class BeamBasedBuilder(DatasetBuilder):
             options=beam_options,
         )
         super()._download_and_prepare(
-            dl_manager, verification_mode=VerificationMode.NONE, pipeline=pipeline, **prepare_splits_kwargs
+            dl_manager, verification_mode=VerificationMode.NO_CHECKS, pipeline=pipeline, **prepare_splits_kwargs
         )  # TODO handle verification_mode in beam datasets
         # Run pipeline
         pipeline_results = pipeline.run()

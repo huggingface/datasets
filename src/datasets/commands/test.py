@@ -145,7 +145,9 @@ class TestCommand(BaseDatasetsCLICommand):
                 download_mode=DownloadMode.REUSE_CACHE_IF_EXISTS
                 if not self._force_redownload
                 else DownloadMode.FORCE_REDOWNLOAD,
-                ignore_verifications=VerificationMode.NONE if self._ignore_verifications else VerificationMode.FULL,
+                verification_mode=VerificationMode.NO_CHECKS
+                if self._ignore_verifications
+                else VerificationMode.ALL_CHECKS,
                 try_from_hf_gcs=False,
             )
             builder.as_dataset()

@@ -132,7 +132,9 @@ class RunBeamCommand(BaseDatasetsCLICommand):
                 if not self._force_redownload
                 else DownloadMode.FORCE_REDOWNLOAD,
                 download_config=DownloadConfig(cache_dir=config.DOWNLOADED_DATASETS_PATH),
-                verification_mode=VerificationMode.NONE if self._ignore_verifications else VerificationMode.FULL,
+                verification_mode=VerificationMode.NO_CHECKS
+                if self._ignore_verifications
+                else VerificationMode.ALL_CHECKS,
                 try_from_hf_gcs=False,
             )
             if self._save_infos:
