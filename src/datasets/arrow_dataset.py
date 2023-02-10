@@ -2319,7 +2319,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # Check that the format_type and format_kwargs are valid and make it possible to have a Formatter
         type = get_format_type_from_alias(type)
-        _ = get_formatter(type, features=self.features, **format_kwargs)
+        get_formatter(type, features=self.features, **format_kwargs)
 
         # Check filter column
         if isinstance(columns, str):
