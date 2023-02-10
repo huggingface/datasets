@@ -24,7 +24,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install .[quality]
+          pip install black>=22.0,<22.1 flake8>=3.8.3 isort>=5.0.0
       - name: Check quality
         run: |
           black --check tests src benchmarks metrics
