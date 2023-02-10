@@ -57,7 +57,7 @@ class TestCommand(BaseDatasetsCLICommand):
         test_parser.add_argument(
             "--ignore_verifications",
             action="store_true",
-            help="Run the test without checksums and splits checks. Deprecated: use --verification_mode instead.",
+            help="Run the test without checksums and splits checks.",
         )
         test_parser.add_argument("--force_redownload", action="store_true", help="Force dataset redownload")
         test_parser.add_argument(

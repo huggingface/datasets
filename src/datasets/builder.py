@@ -936,7 +936,8 @@ class DatasetBuilder:
             dl_manager (`DownloadManager`):
                 `DownloadManager` used to download and cache data.
             verification_mode (`VerificationMode`):
-                if `BASIC`, do not perform checksums and split tests.
+                if `FULL`, perform all the verifications including checksums.
+                if `BASIC`, do not perform checksums, only perform split tests.
                 if `NONE`, do not perform any verification.
             prepare_split_kwargs: Additional options, such as `file_format`, `max_shard_size`
         """

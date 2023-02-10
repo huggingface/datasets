@@ -21,7 +21,7 @@ class VerificationMode(enum.Enum):
     |                    | Verification checks                                                           |
     |--------------------|------------------------------------------------------------------------------ |
     | `FULL`             | Split checks, uniqueness of the keys yielded in case of the GeneratorBuilder  |
-    |                    | and the validity (number of files, checksums, etc.) of dowloaded files        |
+    |                    | and the validity (number of files, checksums, etc.) of downloaded files        |
     | `BASIC` (default)  | The same as `FULL` but without checking downloaded files                      |
     | `NONE`             | None                                                                          |
 
@@ -62,7 +62,7 @@ def verify_checksums(expected_checksums: Optional[dict], recorded_checksums: dic
         raise NonMatchingChecksumError(
             f"Checksums didn't match{for_verification_name}:\n"
             f"{bad_urls}\n"
-            'Set `verification_mode="none"` to ignore this error'
+            'Set `verification_mode="none"` to skip checksums verification and ignore this error'
         )
     logger.info("All the checksums matched successfully" + for_verification_name)
 
