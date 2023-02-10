@@ -1,4 +1,3 @@
-import numpy as np
 import pyarrow.parquet as pq
 import pytest
 
