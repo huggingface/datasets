@@ -43,7 +43,7 @@ class JaxFormatter(Formatter[Mapping, "jnp.ndarray", Mapping]):
                 isinstance(x, jnp.ndarray) and x.shape == column[0].shape and x.dtype == column[0].dtype
                 for x in column
             ):
-                return jnp.stack(column)
+                return jnp.stack(column, axis=0)
         return column
 
     def _tensorize(self, value):
