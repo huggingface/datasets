@@ -4280,9 +4280,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Whether to select contiguous blocks of indices for shards.
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`):
-                If a cache file storing the current computation from `function`
-                can be identified, use it instead of recomputing.
             indices_cache_file_name (`str`, *optional*):
                 Provide the name of a path for the cache file. It is used to store the
                 indices of each shard instead of the automatically generated cache file name.
@@ -4420,6 +4417,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         path_or_buf: Union[PathLike, BinaryIO],
         batch_size: Optional[int] = None,
         num_proc: Optional[int] = None,
+        index: bool = False,
         **to_csv_kwargs,
     ) -> int:
         """Exports the dataset to csv
@@ -4435,6 +4433,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 use multiprocessing. `batch_size` in this case defaults to
                 `datasets.config.DEFAULT_MAX_BATCH_SIZE` but feel free to make it 5x or 10x of the default
                 value if you have sufficient compute power.
+            index (`bool`, default `False`): Write row names (index).
+
+                <Changed version="2.10.0">
+
+                Now, `index` defaults to `False`.
+
+                If you would like to write the index, set it to `True` and also set a name for the index column by
+                passing `index_label`.
+
+                </Changed>
+
             **to_csv_kwargs (additional keyword arguments):
                 Parameters to pass to pandas's `pandas.DataFrame.to_csv`.
 
@@ -4450,7 +4459,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Dynamic import to avoid circular dependency
         from .io.csv import CsvDatasetWriter
 
-        return CsvDatasetWriter(self, path_or_buf, batch_size=batch_size, num_proc=num_proc, **to_csv_kwargs).write()
+        return CsvDatasetWriter(
+            self, path_or_buf, batch_size=batch_size, num_proc=num_proc, index=index, **to_csv_kwargs
+        ).write()
 
     def to_dict(self, batch_size: Optional[int] = None, batched: bool = False) -> Union[dict, Iterator[dict]]:
         """Returns the dataset as a Python dict. Can also return a generator for large datasets.
