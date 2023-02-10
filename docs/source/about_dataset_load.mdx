@@ -99,7 +99,14 @@ To ensure a dataset is complete, [`load_dataset`] will perform a series of tests
 - The number of splits in the generated `DatasetDict`.
 - The number of samples in each split of the generated `DatasetDict`.
 
-If the dataset doesn't pass the verifications, it is likely that the original host of the dataset made some changes in the data files.
+If the dataset doesn't pass the verifications, it is likely that the original host of the dataset made some changes in the data files. 
+
+<Tip>
+
+If it is your own dataset, you'll need to recompute the information above and update the `README.md` file in your dataset repository. Take a look at this [section](dataset_script#optional-generate-dataset-metadata) to learn how to generate and update this metadata.
+
+</Tip>
+
 In this case, an error is raised to alert that the dataset has changed.
 To ignore the error, one needs to specify `verification_mode="none"` in [`load_dataset`].
 Anytime you see a verification error, feel free to open a discussion or pull request in the corresponding dataset "Community" tab, so that the integrity checks for that dataset are updated.

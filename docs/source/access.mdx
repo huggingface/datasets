@@ -1,5 +1,11 @@
 # Know your dataset
 
+There are two types of dataset objects, a regular [`Dataset`] and then an ✨ [`IterableDataset`] ✨. A [`Dataset`] provides fast random access to the rows, and memory-mapping so that loading even large datasets only uses a relatively small amount of device memory. But for really, really big datasets that won't even fit on disk or in memory, an [`IterableDataset`] allows you to access and use the dataset without waiting for it to download completely!
+
+This tutorial will show you how to load and access a [`Dataset`] and an [`IterableDataset`].
+
+## Dataset
+
 When you load a dataset split, you'll get a [`Dataset`] object. You can do many things with a [`Dataset`] object, which is why it's important to learn how to manipulate and interact with the data stored inside. 
  
 This tutorial uses the [rotten_tomatoes](https://huggingface.co/datasets/rotten_tomatoes) dataset, but feel free to load any dataset you'd like and follow along!
@@ -10,7 +16,7 @@ This tutorial uses the [rotten_tomatoes](https://huggingface.co/datasets/rotten_
 >>> dataset = load_dataset("rotten_tomatoes", split="train")
 ```
 
-## Indexing
+### Indexing
 
 A [`Dataset`] contains columns of data, and each column can be a different type of data. The *index*, or axis label, is used to access examples from the dataset. For example, indexing by the row returns a dictionary of an example from the dataset:
 
@@ -60,7 +66,7 @@ Elapsed time: 0.0031 seconds
 Elapsed time: 0.0094 seconds
 ```
 
-## Slicing
+### Slicing
 
 Slicing returns a slice - or subset - of the dataset, which is useful for viewing several rows at once. To slice a dataset, use the `:` operator to specify a range of positions. 
 
@@ -79,3 +85,53 @@ Slicing returns a slice - or subset - of the dataset, which is useful for viewin
   "emerges as something rare , an issue movie that's so honest and keenly observed that it doesn't feel like one .",
   'the film provides some great insight into the neurotic mindset of all comics -- even those who have reached the absolute top of the game .']}
 ```
+
+## IterableDataset
+
+An [`IterableDataset`] is loaded when you set the `streaming` parameter to `True` in [`~datasets.load_dataset`]:
+
+```py
+>>> from datasets import load_dataset
+
+>>> iterable_dataset = load_dataset("food101", split="train", streaming=True)
+>>> for example in iterable_dataset:
+...     print(example)
+...     break
+{'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=384x512 at 0x7F0681F5C520>, 'label': 6}
+```
+
+An [`IterableDataset`] progressively iterates over a dataset one example at a time, so you don't have to wait for the whole dataset to download before you can use it. As you can imagine, this is quite useful for large datasets you want to use immediately!
+
+However, this means an [`IterableDataset`]'s behavior is different from a regular [`Dataset`]. You don't get random access to examples in an [`IterableDataset`]. Instead, you should iterate over its elements, for example, by calling `next(iter())` or with a `for` loop to return the next item from the [`IterableDataset`]:
+
+```py
+>>> next(iter(iterable_dataset))
+{'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=384x512 at 0x7F0681F59B50>,
+ 'label': 6}
+
+>>> for example in iterable_dataset:
+...     print(example)
+...     break
+{'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=384x512 at 0x7F7479DE82B0>, 'label': 6}
+```
+
+You can return a subset of the dataset with a specific number of examples in it with [`IterableDataset.take`]:
+
+```py
+# Get first three examples
+>>> list(iterable_dataset.take(3))
+[{'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=384x512 at 0x7F7479DEE9D0>,
+  'label': 6},
+ {'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=512x512 at 0x7F7479DE8190>,
+  'label': 6},
+ {'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=512x383 at 0x7F7479DE8310>,
+  'label': 6}]
+```
+
+But unlike [slicing](access/#slicing), [`IterableDataset.take`] creates a new [`IterableDataset`]. 
+
+## Next steps
+
+Interested in learning more about the differences between these two types of datasets? Learn more about them in the [Differences between `Dataset` and `IterableDataset`](about_mapstyle_vs_iterable) conceptual guide.
+
+To get more hands-on with these datasets types, check out the [Process](process) guide to learn how to preprocess a [`Dataset`] or the [Stream](stream) guide to learn how to preprocess an [`IterableDataset`].

@@ -35,7 +35,12 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
         super().__init__(self, **kwargs)
         # always open as "rb" since fsspec can then use the TextIOWrapper to make it work for "r" mode
         self.file = fsspec.open(
-            fo, mode="rb", protocol=target_protocol, compression=self.compression, **(target_options or {})
+            fo,
+            mode="rb",
+            protocol=target_protocol,
+            compression=self.compression,
+            client_kwargs={"requote_redirect_url": False},  # see https://github.com/huggingface/datasets/pull/5459
+            **(target_options or {}),
         )
         self.compressed_name = os.path.basename(self.file.path.split("::")[0])
         self.uncompressed_name = (

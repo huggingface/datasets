@@ -121,6 +121,7 @@ if TYPE_CHECKING:
     import sqlalchemy
 
     from .dataset_dict import DatasetDict
+    from .iterable_dataset import IterableDataset
 
 logger = logging.get_logger(__name__)
 
@@ -313,6 +314,7 @@ class TensorflowDatasetMixin:
         label_cols: Optional[Union[str, List[str]]] = None,
         prefetch: bool = True,
         num_workers: int = 0,
+        num_test_batches: int = 20,
     ):
         """Create a `tf.data.Dataset` from the underlying Dataset. This `tf.data.Dataset` will load and collate batches from
         the Dataset, and is suitable for passing to methods like `model.fit()` or `model.predict()`. The dataset will yield
@@ -347,6 +349,10 @@ class TensorflowDatasetMixin:
                 background while the model is training.
             num_workers (`int`, defaults to `0`):
                 Number of workers to use for loading the dataset. Only supported on Python versions >= 3.8.
+            num_test_batches (`int`, defaults to `20`):
+                Number of batches to use to infer the output signature of the dataset.
+                The higher this number, the more accurate the signature will be, but the longer it will take to
+                create the dataset.
 
         Returns:
             `tf.data.Dataset`
@@ -414,6 +420,7 @@ class TensorflowDatasetMixin:
             collate_fn_args=collate_fn_args,
             cols_to_retain=cols_to_retain,
             batch_size=batch_size if drop_remainder else None,
+            num_test_batches=num_test_batches,
         )
 
         if "labels" in output_signature:
@@ -3848,6 +3855,34 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Currently shuffling uses numpy random generators.
         You can either supply a NumPy BitGenerator to use, or a seed to initiate NumPy's default random generator (PCG64).
 
+        Shuffling takes the list of indices `[0:len(my_dataset)]` and shuffles it to create an indices mapping.
+        However as soon as your [`Dataset`] has an indices mapping, the speed can become 10x slower.
+        This is because there is an extra step to get the row index to read using the indices mapping, and most importantly, you aren't reading contiguous chunks of data anymore.
+        To restore the speed, you'd need to rewrite the entire dataset on your disk again using [`Dataset.flatten_indices`], which removes the indices mapping.
+        This may take a lot of time depending of the size of your dataset though:
+
+        ```python
+        my_dataset[0]  # fast
+        my_dataset = my_dataset.shuffle(seed=42)
+        my_dataset[0]  # up to 10x slower
+        my_dataset = my_dataset.flatten_indices()  # rewrite the shuffled dataset on disk as contiguous chunks of data
+        my_dataset[0]  # fast again
+        ```
+
+        In this case, we recommend switching to an [`IterableDataset`] and leveraging its fast approximate shuffling method [`IterableDataset.shuffle`].
+        It only shuffles the shards order and adds a shuffle buffer to your dataset, which keeps the speed of your dataset optimal:
+
+        ```python
+        my_iterable_dataset = my_dataset.to_iterable_dataset(num_shards=128)
+        for example in enumerate(my_iterable_dataset):  # fast
+            pass
+
+        shuffled_iterable_dataset = my_iterable_dataset.shuffle(seed=42, buffer_size=100)
+
+        for example in enumerate(shuffled_iterable_dataset):  # as fast as before
+            pass
+        ```
+
         Args:
             seed (`int`, *optional*):
                 A seed to initialize the default BitGenerator if `generator=None`.
@@ -4245,9 +4280,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Whether to select contiguous blocks of indices for shards.
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`):
-                If a cache file storing the current computation from `function`
-                can be identified, use it instead of recomputing.
             indices_cache_file_name (`str`, *optional*):
                 Provide the name of a path for the cache file. It is used to store the
                 indices of each shard instead of the automatically generated cache file name.
@@ -4385,6 +4417,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         path_or_buf: Union[PathLike, BinaryIO],
         batch_size: Optional[int] = None,
         num_proc: Optional[int] = None,
+        index: bool = False,
         **to_csv_kwargs,
     ) -> int:
         """Exports the dataset to csv
@@ -4400,6 +4433,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 use multiprocessing. `batch_size` in this case defaults to
                 `datasets.config.DEFAULT_MAX_BATCH_SIZE` but feel free to make it 5x or 10x of the default
                 value if you have sufficient compute power.
+            index (`bool`, default `False`): Write row names (index).
+
+                <Changed version="2.10.0">
+
+                Now, `index` defaults to `False`.
+
+                If you would like to write the index, set it to `True` and also set a name for the index column by
+                passing `index_label`.
+
+                </Changed>
+
             **to_csv_kwargs (additional keyword arguments):
                 Parameters to pass to pandas's `pandas.DataFrame.to_csv`.
 
@@ -4415,7 +4459,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Dynamic import to avoid circular dependency
         from .io.csv import CsvDatasetWriter
 
-        return CsvDatasetWriter(self, path_or_buf, batch_size=batch_size, num_proc=num_proc, **to_csv_kwargs).write()
+        return CsvDatasetWriter(
+            self, path_or_buf, batch_size=batch_size, num_proc=num_proc, index=index, **to_csv_kwargs
+        ).write()
 
     def to_dict(self, batch_size: Optional[int] = None, batched: bool = False) -> Union[dict, Iterator[dict]]:
         """Returns the dataset as a Python dict. Can also return a generator for large datasets.
@@ -4642,6 +4688,122 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if self._indices is not None:
             dataset_nbytes = dataset_nbytes * len(self._indices) / len(self.data)
         return dataset_nbytes
+
+    @staticmethod
+    def _iter_shards(shards: List["Dataset"]):
+        for shard in shards:
+            yield from shard
+
+    def to_iterable_dataset(self, num_shards: Optional[int] = 1) -> "IterableDataset":
+        """Get an [`datasets.IterableDataset`] from a map-style [`datasets.Dataset`].
+        This is equivalent to loading a dataset in streaming mode with [`datasets.load_dataset`], but much faster since the data is streamed from local files.
+
+        Contrary to map-style datasets, iterable datasets are lazy and can only be iterated over (e.g. using a for loop).
+        Since they are read sequentially in training loops, iterable datasets are much faster than map-style datasets.
+        All the transformations applied to iterable datasets like filtering or processing are done on-the-fly when you start iterating over the dataset.
+
+        Still, it is possible to shuffle an iterable dataset using [`datasets.IterableDataset.shuffle`].
+        This is a fast approximate shuffling that works best if you have multiple shards and if you specify a buffer size that is big enough.
+
+        To get the best speed performance, make sure your dataset doesn't have an indices mapping.
+        If this is the case, the data are not read contiguously, which can be slow sometimes.
+        You can use `ds = ds.flatten_indices()` to write your dataset in contiguous chunks of data and have optimal speed before switching to an iterable dataset.
+
+        Args:
+            num_shards (`int`, default to `1`):
+                Number of shards to define when instantiating the iterable dataset. This is especially useful for big datasets to be able to shuffle properly,
+                and also to enable fast parallel loading using a PyTorch DataLoader or in distributed setups for example.
+                Shards are defined using [`datasets.Dataset.shard`]: it simply slices the data without writing anything on disk.
+
+        Returns:
+            [`datasets.IterableDataset`]
+
+        Example:
+
+        Basic usage:
+        ```python
+        >>> ids = ds.to_iterable_dataset()
+        >>> for example in ids:
+        ...     pass
+        ```
+
+        With lazy filtering and processing:
+        ```python
+        >>> ids = ds.to_iterable_dataset()
+        >>> ids = ids.filter(filter_fn).map(process_fn)  # will filter and process on-the-fly when you start iterating over the iterable dataset
+        >>> for example in ids:
+        ...     pass
+        ```
+
+        With sharding to enable efficient shuffling:
+        ```python
+        >>> ids = ds.to_iterable_dataset(num_shards=64)  # the dataset is split into 64 shards to be iterated over
+        >>> ids = ids.shuffle(buffer_size=10_000)  # will shuffle the shards order and use a shuffle buffer for fast approximate shuffling when you start iterating
+        >>> for example in ids:
+        ...     pass
+        ```
+
+        With a PyTorch DataLoader:
+        ```python
+        >>> import torch
+        >>> ids = ds.to_iterable_dataset(num_shards=64)
+        >>> ids = ids.filter(filter_fn).map(process_fn)
+        >>> dataloader = torch.utils.data.DataLoader(ids, num_workers=4)  # will assign 64 / 4 = 16 shards to each worker to load, filter and process when you start iterating
+        >>> for example in ids:
+        ...     pass
+        ```
+
+        With a PyTorch DataLoader and shuffling:
+        ```python
+        >>> import torch
+        >>> ids = ds.to_iterable_dataset(num_shards=64)
+        >>> ids = ids.shuffle(buffer_size=10_000)  # will shuffle the shards order and use a shuffle buffer when you start iterating
+        >>> dataloader = torch.utils.data.DataLoader(ids, num_workers=4)  # will assign 64 / 4 = 16 shards from the shuffled list of shards to each worker when you start iterating
+        >>> for example in ids:
+        ...     pass
+        ```
+
+        In a distributed setup like PyTorch DDP with a PyTorch DataLoader and shuffling
+        ```python
+        >>> from datasets.distributed import split_dataset_by_node
+        >>> ids = ds.to_iterable_dataset(num_shards=512)
+        >>> ids = ids.shuffle(buffer_size=10_000)  # will shuffle the shards order and use a shuffle buffer when you start iterating
+        >>> ids = split_dataset_by_node(ds, world_size=8, rank=0)  # will keep only 512 / 8 = 64 shards from the shuffled lists of shards when you start iterating
+        >>> dataloader = torch.utils.data.DataLoader(ids, num_workers=4)  # will assign 64 / 4 = 16 shards from this node's list of shards to each worker when you start iterating
+        >>> for example in ids:
+        ...     pass
+        ```
+
+        With shuffling and multiple epochs:
+        ```python
+        >>> ids = ds.to_iterable_dataset(num_shards=64)
+        >>> ids = ids.shuffle(buffer_size=10_000, seed=42)  # will shuffle the shards order and use a shuffle buffer when you start iterating
+        >>> for epoch in range(n_epochs):
+        ...     ids.set_epoch(epoch)  # will use effective_seed = seed + epoch to shuffle the shards and for the shuffle buffer when you start iterating
+        ...     for example in ids:
+        ...         pass
+        ```
+        Feel free to also use [`IterableDataset.set_epoch`] when using a PyTorch DataLoader or in distributed setups.
+        """
+        from .iterable_dataset import IterableDataset
+
+        if num_shards > len(self):
+            raise ValueError(
+                f"Unable to shard a dataset of size {len(self)} into {num_shards} shards (the number of shards exceeds the number of samples)."
+            )
+        if self._indices is not None:
+            logger.info(
+                "Converting an Arrow dataset to iterable but it has an indices mapping that can make it slower. "
+                "You can use `ds = ds.flatten_indices()` to write your dataset in contiguous chunks of data and have optimal speed."
+            )
+        shards = (
+            [copy.deepcopy(self)]
+            if num_shards == 1
+            else [
+                self.shard(num_shards=num_shards, index=shard_idx, contiguous=True) for shard_idx in range(num_shards)
+            ]
+        )
+        return IterableDataset.from_generator(Dataset._iter_shards, gen_kwargs={"shards": shards})
 
     def _push_parquet_shards_to_hub(
         self,
