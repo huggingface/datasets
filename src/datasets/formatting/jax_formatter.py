@@ -41,8 +41,7 @@ class JaxFormatter(Formatter[Mapping, "jax.Array", Mapping]):
 
         if isinstance(column, list) and column:
             if all(
-                isinstance(x, jax.Array) and x.shape == column[0].shape and x.dtype == column[0].dtype
-                for x in column
+                isinstance(x, jax.Array) and x.shape == column[0].shape and x.dtype == column[0].dtype for x in column
             ):
                 return jnp.stack(column, axis=0)
         return column
