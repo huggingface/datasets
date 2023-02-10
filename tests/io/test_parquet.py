@@ -6,7 +6,7 @@ from datasets import Dataset, DatasetDict, Features, NamedSplit, Value
 from datasets.features.image import Image
 from datasets.io.parquet import ParquetDatasetReader, ParquetDatasetWriter
 
-from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, require_pil
+from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
 
 
 def _check_parquet_dataset(dataset, expected_features):
@@ -134,12 +134,8 @@ def test_parquer_write(dataset, tmp_path):
     assert dataset.data.table == output_table
 
 
-@require_pil
 def test_dataset_to_parquet_keeps_features(shared_datadir, tmp_path):
-    import PIL.Image
-
     image_path = str(shared_datadir / "test_image_rgb.jpg")
-    PIL.Image.fromarray(np.zeros((5, 5), dtype=np.uint8)).save(image_path, format="png")
     data = {"image": [image_path]}
     features = Features({"image": Image()})
     dataset = Dataset.from_dict(data, features=features)
