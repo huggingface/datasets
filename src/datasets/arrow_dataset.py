@@ -2169,7 +2169,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rotten_tomatoes", split="validation")
-        >>> ds.select_columns('text')
+        >>> ds.select_columns(['text'])
         Dataset({
             features: ['text'],
             num_rows: 1066
@@ -2188,7 +2188,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
 
         dataset = copy.deepcopy(self)
-        dataset._info.features = {k: v for k, v in dataset._info.features.items() if k in column_names}
+        dataset._info.features = Features({k: v for k, v in dataset._info.features.items() if k in column_names})
         dataset._data = dataset._data.select(column_names)
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         dataset._fingerprint = new_fingerprint
