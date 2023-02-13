@@ -1195,7 +1195,7 @@ class DatasetDict(dict):
         """
         if fs != "deprecated":
             warnings.warn(
-                "'fs' was is deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
+                "'fs' was deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
                 "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
                 FutureWarning,
             )
@@ -1273,7 +1273,7 @@ class DatasetDict(dict):
         """
         if fs != "deprecated":
             warnings.warn(
-                "'fs' was is deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
+                "'fs' was deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
                 "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
                 FutureWarning,
             )

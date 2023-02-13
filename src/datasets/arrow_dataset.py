@@ -967,9 +967,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 You can define a sharded dataset by passing the list of shards in `gen_kwargs`.
             num_proc (`int`, *optional*, defaults to `None`):
                 Number of processes when downloading and generating the dataset locally.
-                    This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
+                This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
 
-                    <Added version="2.7.0"/>
+                <Added version="2.7.0"/>
             **kwargs (additional keyword arguments):
                 Keyword arguments to be passed to :[`GeneratorConfig`].
 
@@ -1312,7 +1312,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
         if fs != "deprecated":
             warnings.warn(
-                "'fs' was is deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
+                "'fs' was deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
                 "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
                 FutureWarning,
             )
@@ -1522,7 +1522,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         if fs != "deprecated":
             warnings.warn(
-                "'fs' was is deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
+                "'fs' was deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
                 "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
                 FutureWarning,
             )
