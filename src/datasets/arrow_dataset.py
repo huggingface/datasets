@@ -2146,6 +2146,55 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
+    @transmit_tasks
+    @transmit_format
+    @fingerprint_transform(inplace=False)
+    def select_columns(self, column_names: Union[str, List[str]], new_fingerprint: Optional[str] = None) -> "Dataset":
+        """Select one or several column(s) in the dataset and the features
+        associated to them.
+
+        Args:
+            column_names (`Union[str, List[str]]`):
+                Name of the column(s) to keep.
+            new_fingerprint (`str`, *optional*):
+                The new fingerprint of the dataset after transform. If `None`,
+                the new fingerprint is computed using a hash of the previous
+                fingerprint, and the transform arguments.
+
+        Returns:
+            [`Dataset`]: A copy of the dataset object which only consists of
+            selected columns.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds.select_columns(['text'])
+        Dataset({
+            features: ['text'],
+            num_rows: 1066
+        })
+        ```
+        """
+        if isinstance(column_names, str):
+            column_names = [column_names]
+
+        for column_name in column_names:
+            if column_name not in self._data.column_names:
+                raise ValueError(
+                    f"Column name {column_name} not in the "
+                    "dataset. Current columns in the dataset: "
+                    f"{self._data.column_names}."
+                )
+
+        dataset = copy.deepcopy(self)
+        dataset._info.features = Features({k: v for k, v in dataset._info.features.items() if k in column_names})
+        dataset._data = dataset._data.select(column_names)
+        dataset._data = update_metadata_with_features(dataset._data, dataset.features)
+        dataset._fingerprint = new_fingerprint
+        return dataset
+
     def __len__(self):
         """Number of rows in the dataset.
 
