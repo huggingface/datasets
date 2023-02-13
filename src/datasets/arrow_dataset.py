@@ -2889,9 +2889,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         shards_done += 1
                         if pbar is None:
                             init_pbar()
-                        pbar.set_description(f"Processing the dataset ({shards_done}/{num_shards} shards)")
+                        pbar.set_description(desc or "Map")
                         logger.debug(f"Finished processing shard number {rank} of {num_shards}.")
-                        (transformed_dataset,) = content
+                        transformed_dataset = content
                     else:
                         if pbar is None:
                             init_pbar()
@@ -2978,9 +2978,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             shards_done += 1
                             if pbar is None:
                                 init_pbar()
-                            pbar.set_description(f"Processing the dataset ({shards_done}/{num_shards} shards)")
+                            pbar.set_description((desc or "Map") + f" (num_proc={num_proc})")
                             logger.debug(f"Finished processing shard number {rank} of {num_shards}.")
-                            (transformed_shards[rank],) = content
+                            transformed_shards[rank] = content
                         else:
                             if pbar is None:
                                 init_pbar()
@@ -3017,7 +3017,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         new_fingerprint: Optional[str] = None,
         rank: Optional[int] = None,
         offset: int = 0,
-    ) -> "Dataset":
+    ) -> Iterable[Tuple[int, bool, Union[int, "Dataset"]]]:
         """Apply a function to all the elements in the table (individually or in batches)
         and update the table (if function does update examples).
 
@@ -3300,11 +3300,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             info.features = writer._features
             info.task_templates = None
             if buf_writer is None:
-                yield rank, True, (Dataset.from_file(cache_file_name, info=info, split=shard.split),)
+                yield rank, True, Dataset.from_file(cache_file_name, info=info, split=shard.split)
             else:
-                yield rank, True, (Dataset.from_buffer(buf_writer.getvalue(), info=info, split=shard.split),)
+                yield rank, True, Dataset.from_buffer(buf_writer.getvalue(), info=info, split=shard.split)
         else:
-            yield rank, True, (shard,)
+            yield rank, True, shard
 
     @transmit_format
     @fingerprint_transform(
