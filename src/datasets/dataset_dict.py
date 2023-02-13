@@ -1498,6 +1498,7 @@ class DatasetDict(dict):
         max_shard_size: Optional[Union[int, str]] = None,
         num_shards: Optional[Dict[str, int]] = None,
         embed_external_files: bool = True,
+        create_pr: bool = False,
     ):
         """Pushes the [`DatasetDict`] to the hub as a Parquet dataset.
         The [`DatasetDict`] is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
@@ -1528,6 +1529,11 @@ class DatasetDict(dict):
             num_shards (`Dict[str, int]`, *optional*):
                 Number of shards to write. By default the number of shards depends on `max_shard_size`.
                 Use a dictionary to define a different num_shards for each split.
+            create_pr (`bool`, *optional*, defaults to `False`):
+                If `branch` is not set, PR is opened against the `"main"` branch. If
+                `branch` is set and is a branch, PR is opened against this branch. If
+                `branch` is set and is not a branch name (example: a commit oid), an
+                `RevisionNotFoundError` is returned by the server.
 
                 <Added version="2.8.0"/>
             embed_external_files (`bool`, defaults to `True`):
@@ -1601,6 +1607,7 @@ class DatasetDict(dict):
                 token=token,
                 repo_type="dataset",
                 revision=branch,
+                create_pr=create_pr,
             )
         # push to README
         if "README.md" in repo_files:
@@ -1625,6 +1632,7 @@ class DatasetDict(dict):
             token=token,
             repo_type="dataset",
             revision=branch,
+            create_pr=create_pr,
         )
 
 
