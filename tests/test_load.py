@@ -126,6 +126,99 @@ def data_dir_with_metadata(tmp_path):
 
 
 @pytest.fixture
+def data_dir_with_one_default_config_in_metadata(tmp_path):
+    data_dir = tmp_path / "data_dir_with_one_default_config_in_metadata"
+
+    cats_data_dir = data_dir / "cats"
+    cats_data_dir.mkdir(parents=True)
+    dogs_data_dir = data_dir / "dogs"
+    dogs_data_dir.mkdir(parents=True)
+
+    with open(cats_data_dir / "cat.jpg", "wb") as f:
+        f.write(b"this_is_a_cat_image_bytes")
+    with open(dogs_data_dir / "dog.jpg", "wb") as f:
+        f.write(b"this_is_a_dog_image_bytes")
+    with open(data_dir / "README.md", "w") as f:
+        f.write(
+            """\
+---
+configs_kwargs:
+  drop_labels: true
+---
+        """
+        )
+    return str(data_dir)
+
+
+@pytest.fixture
+def data_dir_with_one_nondefault_config_in_metadata(tmp_path):
+    data_dir = tmp_path / "data_dir_with_one_nondefault_config_in_metadata"
+    cats_data_dir = data_dir / "cats"
+    cats_data_dir.mkdir(parents=True)
+    dogs_data_dir = data_dir / "dogs"
+    dogs_data_dir.mkdir(parents=True)
+
+    with open(cats_data_dir / "cat.jpg", "wb") as f:
+        f.write(b"this_is_a_cat_image_bytes")
+    with open(dogs_data_dir / "dog.jpg", "wb") as f:
+        f.write(b"this_is_a_dog_image_bytes")
+
+    with open(data_dir / "README.md", "w") as f:
+        f.write(
+            """\
+---
+configs_kwargs:
+  - config_name: "awesome"
+    drop_labels: true
+---
+        """
+        )
+    return str(data_dir)
+
+
+@pytest.fixture
+def data_dir_with_two_config_in_metadata(tmp_path):
+    data_dir = tmp_path / "data_dir_with_two_configs_in_metadata"
+    cats_data_dir = data_dir / "cats"
+    cats_data_dir.mkdir(parents=True)
+    dogs_data_dir = data_dir / "dogs"
+    dogs_data_dir.mkdir(parents=True)
+
+    with open(cats_data_dir / "cat.jpg", "wb") as f:
+        f.write(b"this_is_a_cat_image_bytes")
+    with open(dogs_data_dir / "dog.jpg", "wb") as f:
+        f.write(b"this_is_a_dog_image_bytes")
+
+    with open(data_dir / "README.md", "w") as f:
+        f.write(
+            """\
+---
+configs_kwargs:
+  - config_name: "v1"
+    drop_labels: true
+  - config_name: "v2"
+    drop_labels: false
+---
+        """
+        )
+    return str(data_dir)
+
+
+@pytest.fixture
+def data_dir_with_data_dir_configs_in_metadata(tmp_path):
+    data_dir = tmp_path / "data_dir_with_two_configs_in_metadata"
+    cats_data_dir = data_dir / "cats"
+    cats_data_dir.mkdir(parents=True)
+    dogs_data_dir = data_dir / "dogs"
+    dogs_data_dir.mkdir(parents=True)
+
+    with open(cats_data_dir / "cat.jpg", "wb") as f:
+        f.write(b"this_is_a_cat_image_bytes")
+    with open(dogs_data_dir / "dog.jpg", "wb") as f:
+        f.write(b"this_is_a_dog_image_bytes")
+
+
+@pytest.fixture
 def sub_data_dirs(tmp_path):
     data_dir2 = tmp_path / "data_dir2"
     relative_subdir1 = "subdir1"
@@ -232,6 +325,9 @@ class ModuleFactoryTest(TestCase):
         jsonl_path,
         data_dir,
         data_dir_with_metadata,
+        data_dir_with_one_default_config_in_metadata,
+        data_dir_with_one_nondefault_config_in_metadata,
+        data_dir_with_two_config_in_metadata,
         sub_data_dirs,
         dataset_loading_script_dir,
         metric_loading_script_dir,
@@ -239,6 +335,9 @@ class ModuleFactoryTest(TestCase):
         self._jsonl_path = jsonl_path
         self._data_dir = data_dir
         self._data_dir_with_metadata = data_dir_with_metadata
+        self._data_dir_with_one_default_config_in_metadata = data_dir_with_one_default_config_in_metadata
+        self._data_dir_with_one_nondefault_config_in_metadata = data_dir_with_one_nondefault_config_in_metadata
+        self._data_dir_with_two_config_in_metadata = data_dir_with_two_config_in_metadata
         self._data_dir2 = sub_data_dirs[0]
         self._sub_data_dir = sub_data_dirs[1]
         self._dataset_loading_script_dir = dataset_loading_script_dir
@@ -333,6 +432,40 @@ class ModuleFactoryTest(TestCase):
             data_file.name == "metadata.jsonl"
             for data_file in module_factory_result.builder_kwargs["data_files"]["test"]
         )
+
+    def test_LocalDatasetModuleFactoryWithoutScript_with_one_config_in_metadata(self):
+        factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir_with_one_default_config_in_metadata)
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+        # assert module_factory_result.module_path.split(".")[-1] == "imagefolder"
+        assert module_factory_result.metadata_configs is not None
+        assert len(module_factory_result.metadata_configs) == 1
+        assert next(iter(module_factory_result.metadata_configs.keys())) == "default"
+        # assert that config param from metadata is passed to builder:
+        assert "drop_labels" in module_factory_result.builder_kwargs
+        assert module_factory_result.builder_kwargs["drop_labels"] is True
+
+        factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir_with_one_nondefault_config_in_metadata)
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+        # assert module_factory_result.module_path.split(".")[-1] == "imagefolder"
+        assert module_factory_result.metadata_configs is not None
+        assert len(module_factory_result.metadata_configs) == 1
+        assert next(iter(module_factory_result.metadata_configs.keys())) == "awesome"
+        assert "drop_labels" in module_factory_result.builder_kwargs
+        assert module_factory_result.builder_kwargs["drop_labels"] is True
+
+    def test_LocalDatasetModuleFactoryWithoutScript_with_two_configs_in_metadata(self):
+        factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir_with_two_config_in_metadata, config_name="v1")
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+        # assert module_factory_result.module_path.split(".")[-1] == "imagefolder"
+        assert module_factory_result.metadata_configs is not None
+        assert len(module_factory_result.metadata_configs) == 2
+        assert list(module_factory_result.metadata_configs.keys()) == ["v1", "v2"]
+        # assert that config param from metadata is passed to builder:
+        assert "drop_labels" in module_factory_result.builder_kwargs
+        assert module_factory_result.builder_kwargs["drop_labels"] is True
 
     def test_PackagedDatasetModuleFactory(self):
         factory = PackagedDatasetModuleFactory(
