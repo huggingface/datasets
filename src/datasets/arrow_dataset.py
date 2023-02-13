@@ -3057,7 +3057,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         fn_kwargs: Optional[dict] = None,
         new_fingerprint: Optional[str] = None,
         desc: Optional[str] = None,
-    ) -> Dict[str, Any]:
+    ) -> Union[Dict[str, Any], "Dataset"]:
         """
         Apply a function repetitively over pairs of examples in the table (individually or in batches) and return the result.
 
@@ -3149,8 +3149,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     split=self.split,
                     fingerprint=new_fingerprint,
                 )
-            if remove_columns:
-                return self.remove_columns(remove_columns)
             else:
                 return self
 
