@@ -30,6 +30,7 @@ The base class [`Dataset`] implements a Dataset backed by an Apache Arrow table.
     - remove_columns
     - rename_column
     - rename_columns
+    - select_columns
     - class_encode_column
     - __len__
     - __iter__
@@ -137,6 +138,7 @@ It also has dataset transform methods like map or filter, to process all the spl
     - remove_columns
     - rename_column
     - rename_columns
+    - select_columns
     - class_encode_column
     - push_to_hub
     - save_to_disk
@@ -156,6 +158,7 @@ The base class [`IterableDataset`] implements an iterable Dataset backed by pyth
 [[autodoc]] datasets.IterableDataset
     - from_generator
     - remove_columns
+    - select_columns
     - cast_column
     - cast
     - __iter__
@@ -196,6 +199,7 @@ Dictionary with split names as keys ('train', 'test' for example), and `Iterable
     - remove_columns
     - rename_column
     - rename_columns
+    - select_columns
 
 ## Features
 
