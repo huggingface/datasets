@@ -3044,6 +3044,351 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 result._fingerprint = new_fingerprint
             return result
 
+    def reduce(
+        self,
+        function: Optional[Callable] = None,
+        with_indices: bool = False,
+        with_rank: bool = False,
+        input_columns: Optional[Union[str, List[str]]] = None,
+        batched: bool = False,
+        batch_size: Optional[int] = 1000,
+        drop_last_batch: bool = False,
+        remove_columns: Optional[Union[str, List[str]]] = None,
+        keep_in_memory: bool = False,
+        load_from_cache_file: bool = None,
+        cache_file_name: Optional[str] = None,
+        writer_batch_size: Optional[int] = 1000,
+        features: Optional[Features] = None,
+        disable_nullable: bool = False,
+        fn_kwargs: Optional[dict] = None,
+        num_proc: Optional[int] = None,
+        suffix_template: str = "_{rank:05d}_of_{num_proc:05d}",
+        new_fingerprint: Optional[str] = None,
+        desc: Optional[str] = None,
+    ) -> "Dataset":
+        """
+        Apply a function repetitively over pairs of examples in the table (individually or in batches) and return the result.
+
+        You can specify whether the function should be batched or not with the `batched` parameter:
+
+        - If batched is `False`, then the function takes 1 example in and should return 1 example.
+          An example is a dictionary, e.g. `{"text": "Hello there !"}`.
+        - If batched is `True` and `batch_size` is 1, then the function takes a batch of 1 example as input and can return a batch with 1 or more examples.
+          A batch is a dictionary, e.g. a batch of 1 example is `{"text": ["Hello there !"]}`.
+        - If batched is `True` and `batch_size` is `n > 1`, then the function takes a batch of `n` examples as input and can return a batch with `n` examples, or with an arbitrary number of examples.
+          Note that the last batch may have less than `n` examples.
+          A batch is a dictionary, e.g. a batch of `n` examples is `{"text": ["Hello there !"] * n}`.
+
+        Args:
+            function (`Callable`): Function with one of the following signatures:
+
+                - `function(example: Dict[str, Any]) -> Dict[str, Any]` if `batched=False` and `with_indices=False` and `with_rank=False`
+                - `function(example: Dict[str, Any], *extra_args) -> Dict[str, Any]` if `batched=False` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+                - `function(batch: Dict[str, List]) -> Dict[str, List]` if `batched=True` and `with_indices=False` and `with_rank=False`
+                - `function(batch: Dict[str, List], *extra_args) -> Dict[str, List]` if `batched=True` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+
+                For advanced usage, the function can also return a `pyarrow.Table`.
+                Moreover if your function returns nothing (`None`), then `map` will run your function and return the dataset unchanged.
+                If no function is provided, default to identity function: `lambda x: x`.
+            with_indices (`bool`, defaults to `False`):
+                Provide example indices to `function`. Note that in this case the
+                signature of `function` should be `def function(example, idx[, rank]): ...`.
+            with_rank (`bool`, defaults to `False`):
+                Provide process rank to `function`. Note that in this case the
+                signature of `function` should be `def function(example[, idx], rank): ...`.
+            input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`):
+                The columns to be passed into `function`
+                as positional arguments. If `None`, a `dict` mapping to all formatted columns is passed as one argument.
+            batched (`bool`, defaults to `False`):
+                Provide batch of examples to `function`.
+            batch_size (`int`, *optional*, defaults to `1000`):
+                Number of examples per batch provided to `function` if `batched=True`.
+                If `batch_size <= 0` or `batch_size == None`, provide the full dataset as a single batch to `function`.
+            drop_last_batch (`bool`, defaults to `False`):
+                Whether a last batch smaller than the batch_size should be
+                dropped instead of being processed by the function.
+            remove_columns (`Optional[Union[str, List[str]]]`, defaults to `None`):
+                Remove a selection of columns while doing the mapping.
+                Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
+                columns with names in `remove_columns`, these columns will be kept.
+            keep_in_memory (`bool`, defaults to `False`):
+                Keep the dataset in memory instead of writing it to a cache file.
+            load_from_cache_file (`bool`, defaults to `True` if caching is enabled):
+                If a cache file storing the current computation from `function`
+                can be identified, use it instead of recomputing.
+            cache_file_name (`str`, *optional*, defaults to `None`):
+                Provide the name of a path for the cache file. It is used to store the
+                results of the computation instead of the automatically generated cache file name.
+            writer_batch_size (`int`, defaults to `1000`):
+                Number of rows per write operation for the cache file writer.
+                This value is a good trade-off between memory usage during the processing, and processing speed.
+                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `map`.
+            features (`Optional[datasets.Features]`, defaults to `None`):
+                Use a specific Features to store the cache file
+                instead of the automatically generated one.
+            disable_nullable (`bool`, defaults to `False`):
+                Disallow null values in the table.
+            fn_kwargs (`Dict`, *optional*, defaults to `None`):
+                Keyword arguments to be passed to `function`.
+            num_proc (`int`, *optional*, defaults to `None`):
+                Max number of processes when generating cache. Already cached shards are loaded sequentially.
+            suffix_template (`str`):
+                If `cache_file_name` is specified, then this suffix
+                will be added at the end of the base name of each. Defaults to `"_{rank:05d}_of_{num_proc:05d}"`. For example, if `cache_file_name` is "processed.arrow", then for
+                `rank=1` and `num_proc=4`, the resulting file would be `"processed_00001_of_00004.arrow"` for the default suffix.
+            new_fingerprint (`str`, *optional*, defaults to `None`):
+                The new fingerprint of the dataset after transform.
+                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
+            desc (`str`, *optional*, defaults to `None`):
+                Meaningful description to be displayed alongside with the progress bar while mapping examples.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> def add_prefix(example):
+        ...     example["text"] = "Review: " + example["text"]
+        ...     return example
+        >>> ds = ds.map(add_prefix)
+        >>> ds[0:3]["text"]
+        ['Review: compassionately explores the seemingly irreconcilable situation between conservative christian parents and their estranged gay and lesbian children .',
+         'Review: the soundtrack alone is worth the price of admission .',
+         'Review: rodriguez does a splendid job of racial profiling hollywood style--casting excellent latin actors of all ages--a trend long overdue .']
+
+        # process a batch of examples
+        >>> ds = ds.map(lambda example: tokenizer(example["text"]), batched=True)
+        # set number of processors
+        >>> ds = ds.map(add_prefix, num_proc=4)
+        ```
+        """
+        if keep_in_memory and cache_file_name is not None:
+            raise ValueError("Please use either `keep_in_memory` or `cache_file_name` but not both.")
+
+
+        # If the array is empty we do nothing (but we make sure to handle an empty indices mapping and remove the requested columns anyway)
+        if len(self) == 0:
+            if self._indices is not None:  # empty indices mapping
+                self = Dataset(
+                    self.data.slice(0, 0),
+                    info=self.info.copy(),
+                    split=self.split,
+                    fingerprint=new_fingerprint,
+                )
+            if remove_columns:
+                return self.remove_columns(remove_columns)
+            else:
+                return self
+
+        if function is None:
+            function = lambda x, y: x  # noqa: E731
+
+        if isinstance(input_columns, str):
+            input_columns = [input_columns]
+
+        if input_columns is not None:
+            for input_column in input_columns:
+                if input_column not in self._data.column_names:
+                    raise ValueError(
+                        f"Input column {input_column} not in the dataset. Current columns in the dataset: {self._data.column_names}"
+                    )
+
+        if isinstance(remove_columns, str):
+            remove_columns = [remove_columns]
+
+        if remove_columns is not None and any(col not in self._data.column_names for col in remove_columns):
+            raise ValueError(
+                f"Column to remove {list(filter(lambda col: col not in self._data.column_names, remove_columns))} not in the dataset. Current columns in the dataset: {self._data.column_names}"
+            )
+
+        load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
+
+        if fn_kwargs is None:
+            fn_kwargs = {}
+
+        disable_tqdm = not logging.is_progress_bar_enabled()
+
+        return self._reduce_single(
+            function=function,
+            with_indices=with_indices,
+            with_rank=with_rank,
+            input_columns=input_columns,
+            load_from_cache_file=load_from_cache_file,
+            cache_file_name=cache_file_name,
+            features=features,
+            fn_kwargs=fn_kwargs,
+            new_fingerprint=new_fingerprint,
+            disable_tqdm=disable_tqdm,
+            desc=desc,
+        )
+
+    def _reduce_single(
+        self,
+        function: Optional[Callable] = None,
+        with_indices: bool = False,
+        with_rank: bool = False,
+        input_columns: Optional[List[str]] = None,
+        load_from_cache_file: bool = None,
+        cache_file_name: Optional[str] = None,
+        features: Optional[Features] = None,
+        fn_kwargs: Optional[dict] = None,
+        new_fingerprint: Optional[str] = None,
+        rank: Optional[int] = None,
+        offset: int = 0,
+        disable_tqdm: bool = False,
+        desc: Optional[str] = None,
+        cache_only: bool = False,
+    ) -> "Dataset":
+        """Apply a function to all the elements in the table (individually or in batches)
+        and update the table (if function does update examples).
+
+        Args:
+            function (`Callable`): with one of the following signature:
+                - `function(accumulant: Any, update_value: Any) -> Any` if `batched=False` and `with_indices=False` and `with_rank=False`
+                - `function(example: Dict[str, Any], *extra_args) -> Dict[str, Any]` if `batched=False` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+                - `function(batch: Dict[str, List]) -> Dict[str, List]` if `batched=True` and `with_indices=False` and `with_rank=False`
+                - `function(batch: Dict[str, List], *extra_args) -> Dict[str, List]` if `batched=True` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+
+                For advanced usage, the function can also return a `pyarrow.Table`.
+                Moreover if your function returns nothing (`None`), then `map` will run your function and return the dataset unchanged.
+                If no function is provided, default to identity function: lambda x: x
+            with_indices (`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx[, rank]): ...`.
+            with_rank (`bool`, default `False`): Provide process rank to `function`. Note that in this case the signature of `function` should be `def function(example[, idx], rank): ...`.
+            input_columns (`Optional[List[str]]`, defaults to `None`): The columns to be passed into `function` as
+                positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
+            load_from_cache_file (`bool`, defaults to `True` if caching is enabled): If a cache file storing the current computation from `function`
+                can be identified, use it instead of recomputing.
+            cache_file_name (`str`, optional, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
+                results of the computation instead of the automatically generated cache file name.
+            features (`Optional[datasets.Features]`, defaults to `None`): Use a specific Features to store the cache file
+                instead of the automatically generated one.
+            fn_kwargs (`Dict`, optional, defaults to `None`): Keyword arguments to be passed to `function`
+            new_fingerprint (`str`, optional, defaults to `None`): the new fingerprint of the dataset after transform.
+                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
+            rank: (`int`, optional, defaults to `None`): If specified, this is the process rank when doing multiprocessing
+            offset: (`int`, defaults to 0): If specified, this is an offset applied to the indices passed to `function` if `with_indices=True`.
+            disable_tqdm (`bool`, defaults to `False`): Whether to silence tqdm's output.
+            desc (`str`, optional, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
+            cache_only (`bool`, defaults to `False`): Flag in order to notifiy the method will either find a cached dataset or raise `NonExistentDatasetError` exception,
+        """
+        # Reduce logging to keep things readable in multiprocessing with tqdm
+        if rank is not None and logging.get_verbosity() < logging.WARNING:
+            logging.set_verbosity_warning()
+        # Print at least one thing to fix tqdm in notebooks in multiprocessing
+        # see https://github.com/tqdm/tqdm/issues/485#issuecomment-473338308
+        if rank is not None and not disable_tqdm and any("notebook" in tqdm_cls.__name__ for tqdm_cls in tqdm.__mro__):
+            print(" ", end="", flush=True)
+
+        if fn_kwargs is None:
+            fn_kwargs = {}
+
+        # Check if we've already cached this computation (indexed by a hash)
+        if self.cache_files:
+            if cache_file_name is None:
+                # we create a unique hash from the function,
+                # current dataset file and the mapping args
+                cache_file_name = self._get_cache_file_path(new_fingerprint)
+            if os.path.exists(cache_file_name) and load_from_cache_file:
+                logger.warning(f"Loading cached processed dataset at {cache_file_name}")
+                info = self.info.copy()
+                info.features = features
+                info.task_templates = None
+                return Dataset.from_file(cache_file_name, info=info, split=self.split)
+
+        # Raise an error if we were supposed to return a cached dataset and none was found
+        if cache_only:
+            raise NonExistentDatasetError
+
+        format_kwargs = self._format_kwargs.copy()
+        # Lazy formatting is only available for the default format (None/python)
+        if not input_columns and self._format_type is None:
+            format_kwargs["lazy"] = True
+        input_formatter = get_formatter(
+            self._format_type,
+            features=self.features,
+            **format_kwargs,
+        )
+
+
+        def validate_function_output(processed_inputs, indices):
+            """Validate output of the reduce function."""
+            input_types_fit_accumulant_types = all(
+                type(processed_inputs[col]) == accumulant_value_types[col] for col in processed_inputs.keys()
+            )
+                
+            if not input_types_fit_accumulant_types:
+                raise TypeError(
+                    f"Provided `function` does not return the same type as the type of the inputs, make sure `function` has signature `function(accumulant: Any, update_value: Any) -> Any`."
+                )
+
+        def apply_function_on_filtered_inputs_and_accumulant(update_value, accumulant, indices, offset=0):
+            """Utility to apply the function on a selection of columns."""
+            element = format_table(
+                update_value,
+                0,
+                format_columns=input_columns,
+                formatter=input_formatter,
+            )
+            if offset == 0:
+                effective_indices = indices
+            else:
+                effective_indices = [i + offset for i in indices] if isinstance(indices, list) else indices + offset
+            additional_args = ()
+            if with_indices:
+                additional_args += (effective_indices,)
+            if with_rank:
+                additional_args += (rank,)
+
+            for key, value in element.items():
+                try:
+                    accumulant[key] = function(accumulant.get(key, 0), value, *additional_args, **fn_kwargs)
+                except TypeError as e:
+                    raise TypeError(
+                        f"An error occurred while applying the function on the column {key}.\n"
+                        "Please make sure that the function has the following signature:\n"
+                        "function(accumulant: Any, update_value: Any, *args, **kwargs) -> Any\n"
+                        f"Error: {e}"
+                    )
+            
+            validate_function_output(accumulant, indices)
+            return accumulant
+
+        try:
+            input_dataset = self.with_format("arrow")
+
+            pbar_total = len(input_dataset)
+            pbar_iterable = enumerate(input_dataset)
+            pbar_unit = "ex"
+            pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
+            pbar = logging.tqdm(
+                pbar_iterable,
+                total=pbar_total,
+                disable=disable_tqdm,
+                position=rank,
+                unit=pbar_unit,
+                desc=pbar_desc,
+            )
+
+            accumulant = None
+            for i, example in pbar:
+                if accumulant is None:
+                    accumulant = format_table(
+                        example,
+                        0,
+                        format_columns=input_columns,
+                        formatter=input_formatter,
+                    )
+
+                    # Get the value types of the accumulant for later type checking
+                    accumulant_value_types = {k:type(v) for k, v in accumulant.items()}
+                    continue
+
+                accumulant = apply_function_on_filtered_inputs_and_accumulant(example, accumulant, i, offset=offset)
+
+        except (Exception, KeyboardInterrupt):
+            raise
+        return accumulant
+
     @staticmethod
     def _map_single(
         shard: "Dataset",
