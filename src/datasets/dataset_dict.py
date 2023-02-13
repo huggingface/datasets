@@ -1559,7 +1559,7 @@ class DatasetDict(dict):
         total_uploaded_size = 0
         total_dataset_nbytes = 0
         info_to_dump: DatasetInfo = next(iter(self.values())).info.copy()
-        info_to_dump.config_name = config_name if config_name != "default" else None
+        info_to_dump.config_name = config_name
         info_to_dump.splits = SplitDict()
 
         for split in self.keys():
@@ -1621,6 +1621,7 @@ class DatasetDict(dict):
             dataset_metadata = DatasetMetadata()
             readme_content = f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
         DatasetInfosDict({config_name: info_to_dump}).to_metadata(dataset_metadata)
+        # TODO: what about "default"? it should be added only if there are other configs?
         MetadataConfigsDict({config_name: {"config_name": config_name, "data_dir": config_name}}).to_metadata(
             dataset_metadata
         )

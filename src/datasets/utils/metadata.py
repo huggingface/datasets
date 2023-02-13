@@ -4,6 +4,8 @@ from typing import ClassVar, Dict, Optional, Tuple, Union
 
 import yaml
 
+from ..config import METADATA_CONFIGS_FIELD
+
 
 class _NoDuplicateSafeLoader(yaml.SafeLoader):
     def _check_no_duplicates_on_constructed_node(self, node):
@@ -110,15 +112,17 @@ class DatasetMetadata(dict):
 class MetadataConfigsDict(Dict[str, dict]):
     """{config_name: {**config_params}}"""
 
-    _config_field_name: ClassVar[str] = "configs_kwargs"
+    _config_field_name: ClassVar[str] = METADATA_CONFIGS_FIELD
 
     @classmethod
     def from_metadata(cls, dataset_metadata: DatasetMetadata):
         if cls._config_field_name in dataset_metadata:
             metadata_configs = dataset_metadata.get(cls._config_field_name)
             if isinstance(metadata_configs, dict):
-                # if there is no "config_name", smth is wrong
-                return cls({metadata_configs["config_name"]: metadata_configs})
+                if "config_name" in metadata_configs:
+                    return cls({metadata_configs["config_name"]: metadata_configs})
+                # if there is no config_name, it's a "default" one
+                return cls({"default": metadata_configs})
             if isinstance(metadata_configs, list):
                 return cls({config["config_name"]: config for config in metadata_configs})
         return cls()
