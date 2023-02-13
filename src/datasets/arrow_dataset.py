@@ -3050,22 +3050,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         with_indices: bool = False,
         with_rank: bool = False,
         input_columns: Optional[Union[str, List[str]]] = None,
-        batched: bool = False,
-        batch_size: Optional[int] = 1000,
-        drop_last_batch: bool = False,
-        remove_columns: Optional[Union[str, List[str]]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = None,
         cache_file_name: Optional[str] = None,
-        writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
-        disable_nullable: bool = False,
         fn_kwargs: Optional[dict] = None,
-        num_proc: Optional[int] = None,
-        suffix_template: str = "_{rank:05d}_of_{num_proc:05d}",
         new_fingerprint: Optional[str] = None,
         desc: Optional[str] = None,
-    ) -> "Dataset":
+    ) -> Dict[str, Any]:
         """
         Apply a function repetitively over pairs of examples in the table (individually or in batches) and return the result.
 
@@ -3099,18 +3091,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`):
                 The columns to be passed into `function`
                 as positional arguments. If `None`, a `dict` mapping to all formatted columns is passed as one argument.
-            batched (`bool`, defaults to `False`):
-                Provide batch of examples to `function`.
-            batch_size (`int`, *optional*, defaults to `1000`):
-                Number of examples per batch provided to `function` if `batched=True`.
-                If `batch_size <= 0` or `batch_size == None`, provide the full dataset as a single batch to `function`.
-            drop_last_batch (`bool`, defaults to `False`):
-                Whether a last batch smaller than the batch_size should be
-                dropped instead of being processed by the function.
-            remove_columns (`Optional[Union[str, List[str]]]`, defaults to `None`):
-                Remove a selection of columns while doing the mapping.
-                Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
-                columns with names in `remove_columns`, these columns will be kept.
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True` if caching is enabled):
@@ -3130,12 +3110,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Disallow null values in the table.
             fn_kwargs (`Dict`, *optional*, defaults to `None`):
                 Keyword arguments to be passed to `function`.
-            num_proc (`int`, *optional*, defaults to `None`):
-                Max number of processes when generating cache. Already cached shards are loaded sequentially.
-            suffix_template (`str`):
-                If `cache_file_name` is specified, then this suffix
-                will be added at the end of the base name of each. Defaults to `"_{rank:05d}_of_{num_proc:05d}"`. For example, if `cache_file_name` is "processed.arrow", then for
-                `rank=1` and `num_proc=4`, the resulting file would be `"processed_00001_of_00004.arrow"` for the default suffix.
             new_fingerprint (`str`, *optional*, defaults to `None`):
                 The new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
@@ -3238,7 +3212,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         disable_tqdm: bool = False,
         desc: Optional[str] = None,
         cache_only: bool = False,
-    ) -> "Dataset":
+    ) -> Dict[str, Any]:
         """Apply a function to all the elements in the table (individually or in batches)
         and update the table (if function does update examples).
 
