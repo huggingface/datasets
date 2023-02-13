@@ -95,6 +95,8 @@
     title: Datasets 🤝 Arrow
   - local: about_cache
     title: The cache
+  - local: about_mapstyle_vs_iterable
+    title: Dataset or IterableDataset
   - local: about_dataset_features
     title: Dataset features
   - local: about_dataset_load

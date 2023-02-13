@@ -28,7 +28,8 @@ All processing methods in this guide return a new [`Dataset`] object. Modificati
 
 ## Sort, shuffle, select, split, and shard
 
-There are several functions for rearranging the structure of a dataset. These functions are useful for selecting only the rows you want, creating train and test splits, and sharding very large datasets into smaller chunks.
+There are several functions for rearranging the structure of a dataset.
+These functions are useful for selecting only the rows you want, creating train and test splits, and sharding very large datasets into smaller chunks.
 
 ### Sort
 
@@ -44,6 +45,9 @@ Use [`~Dataset.sort`] to sort column values according to their numerical values.
 [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ```
 
+Under the hood, this creates a list of indices that is sorted according to values of the column.
+This indices mapping is then used to access the right rows in the underlying Arrow table.
+
 ### Shuffle
 
 The [`~Dataset.shuffle`] function randomly rearranges the column values. You can specify the `generator` parameter in this function to use a different `numpy.random.Generator` if you want more control over the algorithm used to shuffle the dataset.
@@ -52,6 +56,17 @@ The [`~Dataset.shuffle`] function randomly rearranges the column values. You can
 >>> shuffled_dataset = sorted_dataset.shuffle(seed=42)
 >>> shuffled_dataset["label"][:10]
 [1, 1, 1, 0, 1, 1, 1, 1, 1, 0]
+```
+
+Shuffling takes the list of indices `[0:len(my_dataset)]` and shuffles it to create an indices mapping.
+However as soon as your [`Dataset`] has an indices mapping, the speed can become 10x slower.
+This is because there is an extra step to get the row index to read using the indices mapping, and most importantly, you aren't reading contiguous chunks of data anymore.
+To restore the speed, you'd need to rewrite the entire dataset on your disk again using [`Dataset.flatten_indices`], which removes the indices mapping.
+Alternatively, you can switch to an [`IterableDataset`] and leverage its fast approximate shuffling [`IterableDataset.shuffle`]:
+
+```py
+>>> iterable_dataset = dataset.to_iterable_dataset(num_shards=128)
+>>> shuffled_iterable_dataset = iterable_dataset.shuffle(seed=42, buffer_size=1000)
 ```
 
 ### Select and Filter
@@ -91,6 +106,8 @@ There are two options for filtering rows in a dataset: [`~Dataset.select`] and [
 >>> len(dataset) / 2
 1834.0
 ```
+
+Unless the list of indices to keep is contiguous, those methods also create an indices mapping under the hood.
 
 ### Split
 

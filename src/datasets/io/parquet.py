@@ -1,7 +1,6 @@
 import os
 from typing import BinaryIO, Optional, Union
 
-import pyarrow as pa
 import pyarrow.parquet as pq
 
 from .. import Dataset, Features, NamedSplit, config
@@ -100,7 +99,8 @@ class ParquetDatasetWriter:
         """
         written = 0
         _ = parquet_writer_kwargs.pop("path_or_buf", None)
-        schema = pa.schema(self.dataset.features.type)
+        schema = self.dataset.features.arrow_schema
+
         writer = pq.ParquetWriter(file_obj, schema=schema, **parquet_writer_kwargs)
 
         for offset in logging.tqdm(

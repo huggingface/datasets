@@ -113,7 +113,7 @@ REQUIRED_PKGS = [
     # Minimum 6.0.0 to support wrap_array which is needed for ArrayND features
     "pyarrow>=6.0.0",
     # For smart caching dataset processing
-    "dill<0.3.7",  # tmp pin until next 0.3.7 release: see https://github.com/huggingface/datasets/pull/5166
+    "dill>=0.3.0,<0.3.7",  # tmp pin until next 0.3.7 release: see https://github.com/huggingface/datasets/pull/5166
     # For performance gains with apache arrow
     "pandas",
     # for downloading datasets over HTTPS
@@ -154,6 +154,7 @@ BENCHMARKS_REQUIRE = [
     "tensorflow==2.3.0",
     "torch==1.7.1",
     "transformers==3.0.2",
+    "protobuf==3.20.3",  # Fix tensorflow 2.3 import `TypeError: Descriptors cannot not be created directly.`
 ]
 
 TESTS_REQUIRE = [

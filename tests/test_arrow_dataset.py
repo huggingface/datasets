@@ -37,6 +37,7 @@ from datasets.features import (
 )
 from datasets.filesystems import extract_path_from_uri
 from datasets.info import DatasetInfo
+from datasets.iterable_dataset import IterableDataset
 from datasets.splits import NamedSplit
 from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable
 from datasets.tasks import (
@@ -621,6 +622,40 @@ class BaseDatasetTest(TestCase):
                 # Duplicates
                 with self.assertRaises(ValueError):
                     dset.rename_columns({"col_1": "new_name", "col_2": "new_name"})
+
+    def test_select_columns(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                fingerprint = dset._fingerprint
+                with dset.select_columns(column_names=[]) as new_dset:
+                    self.assertEqual(new_dset.num_columns, 0)
+                    self.assertListEqual(list(new_dset.column_names), [])
+                    self.assertNotEqual(new_dset._fingerprint, fingerprint)
+                    assert_arrow_metadata_are_synced_with_dataset_features(new_dset)
+
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                fingerprint = dset._fingerprint
+                with dset.select_columns(column_names="col_1") as new_dset:
+                    self.assertEqual(new_dset.num_columns, 1)
+                    self.assertListEqual(list(new_dset.column_names), ["col_1"])
+                    self.assertNotEqual(new_dset._fingerprint, fingerprint)
+                    assert_arrow_metadata_are_synced_with_dataset_features(new_dset)
+
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                with dset.select_columns(column_names=["col_1", "col_2", "col_3"]) as new_dset:
+                    self.assertEqual(new_dset.num_columns, 3)
+                    self.assertListEqual(list(new_dset.column_names), ["col_1", "col_2", "col_3"])
+                    self.assertNotEqual(new_dset._fingerprint, fingerprint)
+                    assert_arrow_metadata_are_synced_with_dataset_features(new_dset)
+
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                dset._format_columns = ["col_1", "col_2", "col_3"]
+                with dset.select_columns(column_names=["col_1"]) as new_dset:
+                    self.assertListEqual(new_dset._format_columns, ["col_1"])
+                    self.assertEqual(new_dset.num_columns, 1)
+                    self.assertListEqual(list(new_dset.column_names), ["col_1"])
+                    self.assertNotEqual(new_dset._fingerprint, fingerprint)
+                    assert_arrow_metadata_are_synced_with_dataset_features(new_dset)
 
     def test_concatenate(self, in_memory):
         data1, data2, data3 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}, {"id": [6, 7]}
@@ -1988,7 +2023,7 @@ class BaseDatasetTest(TestCase):
 
                 self.assertTrue(os.path.isfile(file_path))
                 self.assertEqual(bytes_written, os.path.getsize(file_path))
-                csv_dset = pd.read_csv(file_path, header=0, index_col=0)
+                csv_dset = pd.read_csv(file_path)
 
                 self.assertEqual(csv_dset.shape, dset.shape)
                 self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
@@ -2001,7 +2036,7 @@ class BaseDatasetTest(TestCase):
 
                 self.assertTrue(os.path.isfile(file_path))
                 self.assertEqual(bytes_written, os.path.getsize(file_path))
-                csv_dset = pd.read_csv(file_path, header=0, index_col=0)
+                csv_dset = pd.read_csv(file_path)
 
                 self.assertEqual(csv_dset.shape, dset.shape)
                 self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
@@ -2014,7 +2049,7 @@ class BaseDatasetTest(TestCase):
 
                 self.assertTrue(os.path.isfile(file_path))
                 self.assertEqual(bytes_written, os.path.getsize(file_path))
-                csv_dset = pd.read_csv(file_path, header=0, index_col=0)
+                csv_dset = pd.read_csv(file_path)
 
                 self.assertEqual(csv_dset.shape, dset.shape)
                 self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
@@ -2026,7 +2061,7 @@ class BaseDatasetTest(TestCase):
 
                 self.assertTrue(os.path.isfile(file_path))
                 self.assertEqual(bytes_written, os.path.getsize(file_path))
-                csv_dset = pd.read_csv(file_path, header=0, index_col=0)
+                csv_dset = pd.read_csv(file_path)
 
                 self.assertEqual(csv_dset.shape, dset.shape)
                 self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
@@ -4188,6 +4223,18 @@ def test_dataset_estimate_nbytes():
     ds = Dataset.from_dict({"a": ["0" * 100] * 100})
     ds = concatenate_datasets([ds] * 100).select([0])
     assert 0.9 * ds._estimate_nbytes() < 100 * 100, "must be smaller than one chunk"
+
+
+def test_dataset_to_iterable_dataset(dataset):
+    iterable_dataset = dataset.to_iterable_dataset()
+    assert isinstance(iterable_dataset, IterableDataset)
+    assert list(iterable_dataset) == list(dataset)
+    iterable_dataset = dataset.to_iterable_dataset(num_shards=3)
+    assert isinstance(iterable_dataset, IterableDataset)
+    assert list(iterable_dataset) == list(dataset)
+    assert iterable_dataset.n_shards == 3
+    with pytest.raises(ValueError):
+        dataset.to_iterable_dataset(num_shards=len(dataset) + 1)
 
 
 @pytest.mark.parametrize("return_lazy_dict", [True, False, "mix"])

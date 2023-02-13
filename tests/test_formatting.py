@@ -1,3 +1,4 @@
+import datetime
 from pathlib import Path
 from unittest import TestCase
 
@@ -23,6 +24,7 @@ from .utils import require_jax, require_pil, require_sndfile, require_tf, requir
 _COL_A = [0, 1, 2]
 _COL_B = ["foo", "bar", "foobar"]
 _COL_C = [[[1.0, 0.0, 0.0]] * 2, [[0.0, 1.0, 0.0]] * 2, [[0.0, 0.0, 1.0]] * 2]
+_COL_D = [datetime.datetime(2023, 1, 1, 0, 0, tzinfo=datetime.timezone.utc)] * 3
 
 _INDICES = [1, 0]
 
@@ -33,20 +35,20 @@ AUDIO_PATH_1 = Path(__file__).parent / "features" / "data" / "test_audio_44100.w
 
 class ArrowExtractorTest(TestCase):
     def _create_dummy_table(self):
-        return pa.Table.from_pydict({"a": _COL_A, "b": _COL_B, "c": _COL_C})
+        return pa.Table.from_pydict({"a": _COL_A, "b": _COL_B, "c": _COL_C, "d": _COL_D})
 
     def test_python_extractor(self):
         pa_table = self._create_dummy_table()
         extractor = PythonArrowExtractor()
         row = extractor.extract_row(pa_table)
-        self.assertEqual(row, {"a": _COL_A[0], "b": _COL_B[0], "c": _COL_C[0]})
+        self.assertEqual(row, {"a": _COL_A[0], "b": _COL_B[0], "c": _COL_C[0], "d": _COL_D[0]})
         col = extractor.extract_column(pa_table)
         self.assertEqual(col, _COL_A)
         batch = extractor.extract_batch(pa_table)
-        self.assertEqual(batch, {"a": _COL_A, "b": _COL_B, "c": _COL_C})
+        self.assertEqual(batch, {"a": _COL_A, "b": _COL_B, "c": _COL_C, "d": _COL_D})
 
     def test_numpy_extractor(self):
-        pa_table = self._create_dummy_table().drop(["c"])
+        pa_table = self._create_dummy_table().drop(["c", "d"])
         extractor = NumpyArrowExtractor()
         row = extractor.extract_row(pa_table)
         np.testing.assert_equal(row, {"a": _COL_A[0], "b": _COL_B[0]})
@@ -70,6 +72,18 @@ class ArrowExtractorTest(TestCase):
         self.assertEqual(batch["c"][0].dtype, object)
         self.assertEqual(batch["c"].dtype, object)
 
+    def test_numpy_extractor_temporal(self):
+        pa_table = self._create_dummy_table().drop(["a", "b", "c"])
+        extractor = NumpyArrowExtractor()
+        row = extractor.extract_row(pa_table)
+        self.assertTrue(np.issubdtype(row["d"].dtype, np.datetime64))
+        col = extractor.extract_column(pa_table)
+        self.assertTrue(np.issubdtype(col[0].dtype, np.datetime64))
+        self.assertTrue(np.issubdtype(col.dtype, np.datetime64))
+        batch = extractor.extract_batch(pa_table)
+        self.assertTrue(np.issubdtype(batch["d"][0].dtype, np.datetime64))
+        self.assertTrue(np.issubdtype(batch["d"].dtype, np.datetime64))
+
     def test_pandas_extractor(self):
         pa_table = self._create_dummy_table()
         extractor = PandasArrowExtractor()
@@ -78,6 +92,7 @@ class ArrowExtractorTest(TestCase):
         pd.testing.assert_series_equal(row["a"], pd.Series(_COL_A, name="a")[:1])
         pd.testing.assert_series_equal(row["b"], pd.Series(_COL_B, name="b")[:1])
         pd.testing.assert_series_equal(row["c"], pd.Series(_COL_C, name="c")[:1])
+        pd.testing.assert_series_equal(row["d"], pd.Series(_COL_D, name="d")[:1])
         col = extractor.extract_column(pa_table)
         pd.testing.assert_series_equal(col, pd.Series(_COL_A, name="a"))
         batch = extractor.extract_batch(pa_table)
@@ -85,6 +100,7 @@ class ArrowExtractorTest(TestCase):
         pd.testing.assert_series_equal(batch["a"], pd.Series(_COL_A, name="a"))
         pd.testing.assert_series_equal(batch["b"], pd.Series(_COL_B, name="b"))
         pd.testing.assert_series_equal(batch["c"], pd.Series(_COL_C, name="c"))
+        pd.testing.assert_series_equal(batch["d"], pd.Series(_COL_D, name="d"))
 
 
 class LazyDictTest(TestCase):
