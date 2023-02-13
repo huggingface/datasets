@@ -661,7 +661,7 @@ class BuilderTest(TestCase):
                 os.path.exists(os.path.join(tmp_dir, builder.name, "default", "0.0.0", "dataset_info.json"))
             )
 
-        # Test that duplicated keys are ignored if verification_mode is "NONE"
+        # Test that duplicated keys are ignored if verification_mode is "no_checks"
         with tempfile.TemporaryDirectory() as tmp_dir:
             builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir)
             with patch("datasets.builder.ArrowWriter", side_effect=ArrowWriter) as mock_arrow_writer:

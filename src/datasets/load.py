@@ -1732,8 +1732,8 @@ def load_dataset(
     if ignore_verifications != "deprecated":
         verification_mode = "none" if ignore_verifications else "full"
         warnings.warn(
-            "'ignore_verifications' was deprecated in favor of 'verification' in version 2.9.1 and will be removed in 3.0.0.\n"
-            f"You can remove this warning by passing 'verification_mode={verification_mode}' instead.",
+            "'ignore_verifications' was deprecated in favor of 'verification_mode' in version 2.9.1 and will be removed in 3.0.0.\n"
+            f"To ignore verifications, you can pass `verification_mode='no_checks'` instead.",
             FutureWarning,
         )
     if Path(path, config.DATASET_STATE_JSON_FILENAME).exists():
