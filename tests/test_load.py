@@ -433,7 +433,7 @@ class ModuleFactoryTest(TestCase):
             for data_file in module_factory_result.builder_kwargs["data_files"]["test"]
         )
 
-    def test_LocalDatasetModuleFactoryWithoutScript_with_one_config_in_metadata(self):
+    def test_LocalDatasetModuleFactoryWithoutScript_with_one_default_config_in_metadata(self):
         factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir_with_one_default_config_in_metadata)
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
@@ -445,15 +445,26 @@ class ModuleFactoryTest(TestCase):
         assert "drop_labels" in module_factory_result.builder_kwargs
         assert module_factory_result.builder_kwargs["drop_labels"] is True
 
-        factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir_with_one_nondefault_config_in_metadata)
-        module_factory_result = factory.get_module()
-        assert importlib.import_module(module_factory_result.module_path) is not None
-        # assert module_factory_result.module_path.split(".")[-1] == "imagefolder"
-        assert module_factory_result.metadata_configs is not None
-        assert len(module_factory_result.metadata_configs) == 1
-        assert next(iter(module_factory_result.metadata_configs.keys())) == "awesome"
-        assert "drop_labels" in module_factory_result.builder_kwargs
-        assert module_factory_result.builder_kwargs["drop_labels"] is True
+    def test_LocalDatasetModuleFactoryWithoutScript_with_one_nondefault_config_in_metadata(self):
+        for config_name in [None, "awesome"]:
+            factory = LocalDatasetModuleFactoryWithoutScript(
+                self._data_dir_with_one_nondefault_config_in_metadata, config_name=config_name
+            )
+            module_factory_result = factory.get_module()
+            assert importlib.import_module(module_factory_result.module_path) is not None
+            # assert module_factory_result.module_path.split(".")[-1] == "imagefolder"
+            assert module_factory_result.metadata_configs is not None
+            assert len(module_factory_result.metadata_configs) == 1
+            assert next(iter(module_factory_result.metadata_configs.keys())) == "awesome"
+            if config_name == "awesome":
+                assert module_factory_result.builder_kwargs["config_name"] == "awesome"
+                assert "drop_labels" in module_factory_result.builder_kwargs
+                assert module_factory_result.builder_kwargs["drop_labels"] is True
+            else:  # None
+                assert module_factory_result.builder_kwargs["config_name"] == "default"
+                # if configs are found in metadata but nothing is requested,
+                # config values shouldn't be passed to builder
+                assert "drop_labels" not in module_factory_result.builder_kwargs
 
     def test_LocalDatasetModuleFactoryWithoutScript_with_two_configs_in_metadata(self):
         factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir_with_two_config_in_metadata, config_name="v1")
@@ -774,13 +785,13 @@ def test_load_dataset_builder_for_absolute_data_dir(complex_data_dir):
     builder = datasets.load_dataset_builder(complex_data_dir)
     assert isinstance(builder, DatasetBuilder)
     assert builder.name == "text"
-    assert builder.config.name == Path(complex_data_dir).name
+    assert builder.config.name == "default"
     assert isinstance(builder.config.data_files, DataFilesDict)
     assert len(builder.config.data_files["train"]) > 0
     assert len(builder.config.data_files["test"]) > 0
 
 
-# TODO: .config.name is changed in load.py:698 to "default" for each cases where it's not provided.  ?
+# TODO: remove this test?
 def test_load_dataset_builder_for_relative_data_dir(complex_data_dir):
     with set_current_working_directory_to_temp_dir():
         relative_data_dir = "relative_data_dir"
@@ -788,7 +799,7 @@ def test_load_dataset_builder_for_relative_data_dir(complex_data_dir):
         builder = datasets.load_dataset_builder(relative_data_dir)
         assert isinstance(builder, DatasetBuilder)
         assert builder.name == "text"
-        assert builder.config.name == relative_data_dir
+        assert builder.config.name == "default"
         assert isinstance(builder.config.data_files, DataFilesDict)
         assert len(builder.config.data_files["train"]) > 0
         assert len(builder.config.data_files["test"]) > 0
