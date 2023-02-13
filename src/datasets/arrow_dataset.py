@@ -2904,19 +2904,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         else:
             pbar_total = len(self)
 
-        # Inititialize the progress bar later inside the loop to avoid the progress bar being displayed when there is no processing
-        pbar = None
-
-        def init_pbar():
-            nonlocal pbar
-            pbar = logging.tqdm(
-                disable=not logging.is_progress_bar_enabled(),
-                unit=" examples",
-                total=pbar_total,
-                leave=False,
-                desc=f"Processing the dataset ({shards_done}/{num_shards} shards)" if desc is None else desc,
-            )
-
         shards_done = 0
         if num_proc is None or num_proc == 1:
             dataset_kwargs = dict(
@@ -2940,17 +2927,29 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             try:
                 transformed_dataset = load_processed_shard_from_cache(dataset_kwargs)
             except NonExistentDatasetError:
+                pbar = logging.tqdm(
+                    disable=not logging.is_progress_bar_enabled(),
+                    unit=" examples",
+                    total=pbar_total,
+                    leave=False,
+                    desc=(desc or "Map") + f" (num_proc={num_proc})"
+                    f"Processing the dataset ({shards_done}/{num_shards} shards)"
+                    if desc is None
+                    else desc,
+                )
+                pbar = logging.tqdm(
+                    disable=not logging.is_progress_bar_enabled(),
+                    unit=" examples",
+                    total=pbar_total,
+                    leave=False,
+                    desc=desc or "Map",
+                )
                 for rank, done, content in Dataset._map_single(**dataset_kwargs):
                     if done:
                         shards_done += 1
-                        if pbar is None:
-                            init_pbar()
-                        pbar.set_description(desc or "Map")
                         logger.debug(f"Finished processing shard number {rank} of {num_shards}.")
                         transformed_dataset = content
                     else:
-                        if pbar is None:
-                            init_pbar()
                         pbar.update(content)
             assert transformed_dataset is not None, "Failed to retrieve the result from map"
             return transformed_dataset
@@ -3027,19 +3026,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 with Pool(len(kwargs_per_job)) as pool:
                     os.environ = prev_env
                     logger.info(f"Spawning {num_proc} processes")
+                    pbar = logging.tqdm(
+                        disable=not logging.is_progress_bar_enabled(),
+                        unit=" examples",
+                        total=pbar_total,
+                        leave=False,
+                        desc=(desc or "Map") + f" (num_proc={num_proc})",
+                    )
                     for rank, done, content in iflatmap_unordered(
                         pool, Dataset._map_single, kwargs_iterable=kwargs_per_job
                     ):
                         if done:
                             shards_done += 1
-                            if pbar is None:
-                                init_pbar()
-                            pbar.set_description((desc or "Map") + f" (num_proc={num_proc})")
                             logger.debug(f"Finished processing shard number {rank} of {num_shards}.")
                             transformed_shards[rank] = content
                         else:
-                            if pbar is None:
-                                init_pbar()
                             pbar.update(content)
                 # Avoids PermissionError on Windows (the error: https://github.com/huggingface/datasets/actions/runs/4026734820/jobs/6921621805)
                 for kwargs in kwargs_per_job:
