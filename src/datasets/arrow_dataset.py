@@ -5066,6 +5066,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         max_shard_size: Optional[Union[int, str]] = None,
         num_shards: Optional[int] = None,
         embed_external_files: bool = True,
+        create_pr: bool = False,
     ):
         """Pushes the dataset to the hub as a Parquet dataset.
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
@@ -5095,6 +5096,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by
                 a unit (like `"5MB"`).
             num_shards (`int`, *optional*): Number of shards to write. By default the number of shards depends on `max_shard_size`.
+            create_pr (`bool`, *optional*, defaults to `False`):
+                If `branch` is not set, PR is opened against the `"main"` branch. If
+                `branch` is set and is a branch, PR is opened against this branch. If
+                `branch` is set and is not a branch name (example: a commit oid), an
+                `RevisionNotFoundError` is returned by the server.
 
                 <Added version="2.8.0"/>
             embed_external_files (`bool`, defaults to `True`):
@@ -5198,6 +5204,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 token=token,
                 repo_type="dataset",
                 revision=branch,
+                create_pr=create_pr,
             )
         # push to README
         DatasetInfosDict({"default": info_to_dump}).to_metadata(dataset_metadata)
@@ -5213,6 +5220,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             token=token,
             repo_type="dataset",
             revision=branch,
+            create_pr=create_pr,
         )
 
     @transmit_format
