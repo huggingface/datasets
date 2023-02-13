@@ -3047,8 +3047,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def reduce(
         self,
         function: Optional[Callable] = None,
-        with_indices: bool = False,
-        with_rank: bool = False,
+        with_indices: bool = False, # REMOVE
+        with_rank: bool = False, # REMOVE
         input_columns: Optional[Union[str, List[str]]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = None,
@@ -3059,35 +3059,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         desc: Optional[str] = None,
     ) -> Union[Dict[str, Any], "Dataset"]:
         """
-        Apply a function repetitively over pairs of examples in the table (individually or in batches) and return the result.
+        Reduce the columns in the table using a function and return the result.
 
-        You can specify whether the function should be batched or not with the `batched` parameter:
-
-        - If batched is `False`, then the function takes 1 example in and should return 1 example.
-          An example is a dictionary, e.g. `{"text": "Hello there !"}`.
-        - If batched is `True` and `batch_size` is 1, then the function takes a batch of 1 example as input and can return a batch with 1 or more examples.
-          A batch is a dictionary, e.g. a batch of 1 example is `{"text": ["Hello there !"]}`.
-        - If batched is `True` and `batch_size` is `n > 1`, then the function takes a batch of `n` examples as input and can return a batch with `n` examples, or with an arbitrary number of examples.
-          Note that the last batch may have less than `n` examples.
-          A batch is a dictionary, e.g. a batch of `n` examples is `{"text": ["Hello there !"] * n}`.
+        
+        The function should be a binary operation, i.e. it takes 2 values of the same type in and should return 1 value of the same type as the input. Examples include addition, multiplication, or string concatenation.
 
         Args:
-            function (`Callable`): Function with one of the following signatures:
+            function (`Callable`): Function with the following signatures:
+                - `function(accumulant: Any, update_value: Any) -> Any`
 
-                - `function(example: Dict[str, Any]) -> Dict[str, Any]` if `batched=False` and `with_indices=False` and `with_rank=False`
-                - `function(example: Dict[str, Any], *extra_args) -> Dict[str, Any]` if `batched=False` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
-                - `function(batch: Dict[str, List]) -> Dict[str, List]` if `batched=True` and `with_indices=False` and `with_rank=False`
-                - `function(batch: Dict[str, List], *extra_args) -> Dict[str, List]` if `batched=True` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
-
-                For advanced usage, the function can also return a `pyarrow.Table`.
-                Moreover if your function returns nothing (`None`), then `map` will run your function and return the dataset unchanged.
-                If no function is provided, default to identity function: `lambda x: x`.
-            with_indices (`bool`, defaults to `False`):
-                Provide example indices to `function`. Note that in this case the
-                signature of `function` should be `def function(example, idx[, rank]): ...`.
-            with_rank (`bool`, defaults to `False`):
-                Provide process rank to `function`. Note that in this case the
-                signature of `function` should be `def function(example[, idx], rank): ...`.
+                If no function is provided, default to identity function: `lambda x, y: x`.
             input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`):
                 The columns to be passed into `function`
                 as positional arguments. If `None`, a `dict` mapping to all formatted columns is passed as one argument.
