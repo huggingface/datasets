@@ -1246,21 +1246,28 @@ class DatasetDict(dict):
         fs_token_paths = fsspec.get_fs_token_paths(dataset_dict_path, storage_options=storage_options)
         fs: fsspec.AbstractFileSystem = fs_token_paths[0]
 
-        dataset_dict = DatasetDict()
         if is_remote_filesystem(fs):
             dest_dataset_dict_path = extract_path_from_uri(dataset_dict_path)
         else:
             fs = fsspec.filesystem("file")
             dest_dataset_dict_path = dataset_dict_path
+
         dataset_dict_json_path = Path(dest_dataset_dict_path, config.DATASETDICT_JSON_FILENAME).as_posix()
+        dataset_state_json_path = Path(dest_dataset_dict_path, config.DATASET_STATE_JSON_FILENAME).as_posix()
         dataset_info_path = Path(dest_dataset_dict_path, config.DATASET_INFO_FILENAME).as_posix()
-        if fs.isfile(dataset_info_path) and not fs.isfile(dataset_dict_json_path):
+        if not fs.isfile(dataset_dict_json_path):
+            if fs.isfile(dataset_info_path) and fs.isfile(dataset_state_json_path):
+                raise FileNotFoundError(
+                    f"No such file or directory: '{dataset_dict_json_path}'. Expected to load a `DatasetDict` object, but got a `Dataset`. Please use either `datasets.load_from_disk` or `Dataset.load_from_disk` instead."
+                )
             raise FileNotFoundError(
-                f"No such file or directory: '{dataset_dict_json_path}'. Expected to load a DatasetDict object, but got a Dataset. Please use datasets.load_from_disk instead."
+                f"No such file or directory: '{dataset_dict_json_path}'. Expected to load a `DatasetDict` object, but provided path is neither a `DatasetDict` nor a `Dataset`"
             )
 
         with fs.open(dataset_dict_json_path, "r", encoding="utf-8") as f:
             splits = json.load(f)["splits"]
+
+        dataset_dict = DatasetDict()
         for k in splits:
             dataset_dict_split_path = (
                 dataset_dict_path.split("://")[0] + "://" + Path(dest_dataset_dict_path, k).as_posix()

@@ -1530,31 +1530,48 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         fs_token_paths = fsspec.get_fs_token_paths(dataset_path, storage_options=storage_options)
         fs: fsspec.AbstractFileSystem = fs_token_paths[0]
-        # copies file from filesystem if it is remote filesystem to local filesystem and modifies dataset_path to temp directory containing local copies
-        dataset_dict_json_path = Path(dataset_path, config.DATASETDICT_JSON_FILENAME).as_posix()
-        dataset_info_path = Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix()
-        if not fs.isfile(dataset_info_path) and fs.isfile(dataset_dict_json_path):
-            raise FileNotFoundError(
-                f"No such file or directory: '{dataset_info_path}'. Expected to load a Dataset object, but got a DatasetDict. Please use datasets.load_from_disk instead."
-            )
 
         if is_remote_filesystem(fs):
-            src_dataset_path = extract_path_from_uri(dataset_path)
-            dataset_path = Dataset._build_local_temp_path(src_dataset_path)
-            fs.download(src_dataset_path, dataset_path.as_posix(), recursive=True)
+            dest_dataset_path = extract_path_from_uri(dataset_path)
+        else:
+            fs = fsspec.filesystem("file")
+            dest_dataset_path = dataset_path
 
-        with open(Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), encoding="utf-8") as state_file:
+        dataset_dict_json_path = Path(dest_dataset_path, config.DATASETDICT_JSON_FILENAME).as_posix()
+        dataset_state_json_path = Path(dest_dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix()
+        dataset_info_path = Path(dest_dataset_path, config.DATASET_INFO_FILENAME).as_posix()
+        if fs.isfile(dataset_dict_json_path):
+            if not fs.isfile(dataset_info_path) and not fs.isfile(dataset_state_json_path):
+                raise FileNotFoundError(
+                    f"Neither file or directory: '{dataset_info_path}', nor '{dataset_state_json_path}' found. Expected to load a `Dataset` object, but got a `DatasetDict`. Please use either `datasets.load_from_disk` or `DatasetDict.load_from_disk` instead."
+                )
+            if not fs.isfile(dataset_info_path):
+                raise FileNotFoundError(
+                    f"No such file or directory: '{dataset_info_path}'. Expected to load a `Dataset` object, but got a `DatasetDict`. Please use either `datasets.load_from_disk` or `DatasetDict.load_from_disk` instead."
+                )
+            if not fs.isfile(dataset_state_json_path):
+                raise FileNotFoundError(
+                    f"No such file or directory: '{dataset_state_json_path}'. Expected to load a `Dataset` object, but got a `DatasetDict`. Please use either `datasets.load_from_disk` or `DatasetDict.load_from_disk` instead."
+                )
+
+        # copies file from filesystem if it is remote filesystem to local filesystem and modifies dataset_path to temp directory containing local copies
+        if is_remote_filesystem(fs):
+            src_dataset_path = dest_dataset_path
+            dest_dataset_path = Dataset._build_local_temp_path(src_dataset_path)
+            fs.download(src_dataset_path, dest_dataset_path.as_posix(), recursive=True)
+
+        with open(dataset_state_json_path, encoding="utf-8") as state_file:
             state = json.load(state_file)
-        with open(Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix(), encoding="utf-8") as dataset_info_file:
+        with open(dataset_info_path, encoding="utf-8") as dataset_info_file:
             dataset_info = DatasetInfo.from_dict(json.load(dataset_info_file))
 
         dataset_size = estimate_dataset_size(
-            Path(dataset_path, data_file["filename"]) for data_file in state["_data_files"]
+            Path(dest_dataset_path, data_file["filename"]) for data_file in state["_data_files"]
         )
         keep_in_memory = keep_in_memory if keep_in_memory is not None else is_small_dataset(dataset_size)
         table_cls = InMemoryTable if keep_in_memory else MemoryMappedTable
         arrow_table = concat_tables(
-            table_cls.from_file(Path(dataset_path, data_file["filename"]).as_posix())
+            table_cls.from_file(Path(dest_dataset_path, data_file["filename"]).as_posix())
             for data_file in state["_data_files"]
         )
 
