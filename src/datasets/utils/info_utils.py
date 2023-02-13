@@ -33,7 +33,10 @@ def verify_checksums(expected_checksums: Optional[dict], recorded_checksums: dic
         raise ExpectedMoreDownloadedFiles(str(set(expected_checksums) - set(recorded_checksums)))
     if len(set(recorded_checksums) - set(expected_checksums)) > 0:
         raise UnexpectedDownloadedFile(str(set(recorded_checksums) - set(expected_checksums)))
-    bad_urls = [url for url in expected_checksums if expected_checksums[url] != recorded_checksums[url]]
+    bad_urls = [
+        url for url in expected_checksums
+        if expected_checksums[url] != recorded_checksums[url]['checksum']
+    ]
     for_verification_name = " for " + verification_name if verification_name is not None else ""
     if len(bad_urls) > 0:
         error_msg = "Checksums didn't match" + for_verification_name + ":\n"
