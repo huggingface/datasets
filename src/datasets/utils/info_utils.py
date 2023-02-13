@@ -62,7 +62,7 @@ def verify_checksums(expected_checksums: Optional[dict], recorded_checksums: dic
         raise NonMatchingChecksumError(
             f"Checksums didn't match{for_verification_name}:\n"
             f"{bad_urls}\n"
-            'Set `verification_mode="no_checks"` to skip checksums verification and ignore this error'
+            "Set `verification_mode='no_checks'` to skip checksums verification and ignore this error"
         )
     logger.info("All the checksums matched successfully" + for_verification_name)
 
