@@ -1559,6 +1559,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             src_dataset_path = dest_dataset_path
             dest_dataset_path = Dataset._build_local_temp_path(src_dataset_path)
             fs.download(src_dataset_path, dest_dataset_path.as_posix(), recursive=True)
+            dataset_state_json_path = Path(dest_dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix()
+            dataset_info_path = Path(dest_dataset_path, config.DATASET_INFO_FILENAME).as_posix()
 
         with open(dataset_state_json_path, encoding="utf-8") as state_file:
             state = json.load(state_file)
