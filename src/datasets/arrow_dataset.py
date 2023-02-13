@@ -3167,14 +3167,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         f"Input column {input_column} not in the dataset. Current columns in the dataset: {self._data.column_names}"
                     )
 
-        if isinstance(remove_columns, str):
-            remove_columns = [remove_columns]
-
-        if remove_columns is not None and any(col not in self._data.column_names for col in remove_columns):
-            raise ValueError(
-                f"Column to remove {list(filter(lambda col: col not in self._data.column_names, remove_columns))} not in the dataset. Current columns in the dataset: {self._data.column_names}"
-            )
-
         load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
 
         if fn_kwargs is None:
