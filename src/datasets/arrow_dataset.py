@@ -2932,16 +2932,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     unit=" examples",
                     total=pbar_total,
                     leave=False,
-                    desc=(desc or "Map") + f" (num_proc={num_proc})"
-                    f"Processing the dataset ({shards_done}/{num_shards} shards)"
-                    if desc is None
-                    else desc,
-                )
-                pbar = logging.tqdm(
-                    disable=not logging.is_progress_bar_enabled(),
-                    unit=" examples",
-                    total=pbar_total,
-                    leave=False,
                     desc=desc or "Map",
                 )
                 for rank, done, content in Dataset._map_single(**dataset_kwargs):
