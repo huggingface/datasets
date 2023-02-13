@@ -386,7 +386,7 @@ class FaissIndex(BaseIndex):
             index = self.faiss_index
 
         with fsspec.open(str(file), "wb", **(storage_options or {})) as f:
-            index = faiss.write_index(index, faiss.BufferedIOWriter(faiss.PyCallbackIOWriter(f.write)))
+            faiss.write_index(index, faiss.BufferedIOWriter(faiss.PyCallbackIOWriter(f.write)))
 
     @classmethod
     def load(
