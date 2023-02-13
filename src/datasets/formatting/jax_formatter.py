@@ -18,6 +18,7 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 import numpy as np
+import pyarrow as pa
 
 from .. import config
 from ..utils.py_utils import map_nested
@@ -26,7 +27,6 @@ from .formatting import Formatter
 
 if TYPE_CHECKING:
     import jax
-    import pyarrow as pa
 
 
 class JaxFormatter(Formatter[Mapping, "jax.Array", Mapping]):
@@ -86,19 +86,19 @@ class JaxFormatter(Formatter[Mapping, "jax.Array", Mapping]):
     def recursive_tensorize(self, data_struct: dict):
         return map_nested(self._recursive_tensorize, data_struct)
 
-    def format_row(self, pa_table: "pa.Table") -> Mapping:
+    def format_row(self, pa_table: pa.Table) -> Mapping:
         row = self.numpy_arrow_extractor().extract_row(pa_table)
         row = self.python_features_decoder.decode_row(row)
         return self.recursive_tensorize(row)
 
-    def format_column(self, pa_table: "pa.Table") -> "jax.Array":
+    def format_column(self, pa_table: pa.Table) -> "jax.Array":
         column = self.numpy_arrow_extractor().extract_column(pa_table)
         column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
         column = self.recursive_tensorize(column)
         column = self._consolidate(column)
         return column
 
-    def format_batch(self, pa_table: "pa.Table") -> Mapping:
+    def format_batch(self, pa_table: pa.Table) -> Mapping:
         batch = self.numpy_arrow_extractor().extract_batch(pa_table)
         batch = self.python_features_decoder.decode_batch(batch)
         batch = self.recursive_tensorize(batch)
