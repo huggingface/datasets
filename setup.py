@@ -154,6 +154,7 @@ BENCHMARKS_REQUIRE = [
     "tensorflow==2.3.0",
     "torch==1.7.1",
     "transformers==3.0.2",
+    "protobuf==3.20.3",  # Fix tensorflow 2.3 import `TypeError: Descriptors cannot not be created directly.`
 ]
 
 TESTS_REQUIRE = [
