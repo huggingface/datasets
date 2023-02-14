@@ -104,6 +104,7 @@ from .table import (
 from .tasks import TaskTemplate
 from .utils import logging
 from .utils._hf_hub_fixes import create_repo
+from .utils._hf_hub_fixes import upload_file as hf_api_upload_file
 from .utils._hf_hub_fixes import list_repo_files as hf_api_list_repo_files
 from .utils.file_utils import _retry, cached_path, estimate_dataset_size
 from .utils.hub import hf_hub_url
@@ -5013,7 +5014,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 shard.to_parquet(buffer)
                 uploaded_size += buffer.tell()
                 _retry(
-                    api.upload_file,
+                    hf_api_upload_file,
                     func_kwargs=dict(
                         path_or_fileobj=buffer.getvalue(),
                         path_in_repo=shard_path_in_repo,
@@ -5197,7 +5198,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             buffer.write(b'{"default": ')
             info_to_dump._dump_info(buffer, pretty_print=True)
             buffer.write(b"}")
-            HfApi(endpoint=config.HF_ENDPOINT).upload_file(
+            hf_api_upload_file(
+                HfApi(endpoint=config.HF_ENDPOINT),
                 path_or_fileobj=buffer.getvalue(),
                 path_in_repo=config.DATASETDICT_INFOS_FILENAME,
                 repo_id=repo_id,
@@ -5213,7 +5215,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 readme_content = readme_file.read()
         else:
             readme_content = f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
-        HfApi(endpoint=config.HF_ENDPOINT).upload_file(
+        hf_api_upload_file(
+            HfApi(endpoint=config.HF_ENDPOINT),
             path_or_fileobj=dataset_metadata._to_readme(readme_content).encode(),
             path_in_repo="README.md",
             repo_id=repo_id,
