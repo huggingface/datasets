@@ -108,7 +108,6 @@ class ExactMatch(datasets.Metric):
         ignore_punctuation=False,
         ignore_numbers=False,
     ):
-
         if regexes_to_ignore is not None:
             for s in regexes_to_ignore:
                 predictions = np.array([re.sub(s, "", x) for x in predictions])

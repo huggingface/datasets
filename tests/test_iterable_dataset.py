@@ -647,7 +647,6 @@ def test_iterable_dataset_from_generator_with_shards():
 
 @require_torch
 def test_iterable_dataset_torch_integration():
-
     ex_iterable = ExamplesIterable(generate_examples_fn, {})
     dataset = IterableDataset(ex_iterable)
     import torch.utils.data

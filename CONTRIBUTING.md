@@ -57,7 +57,7 @@ If you want to add a dataset see specific instructions in the section [*How to a
 
 5. Develop the features on your branch.
 
-6. Format your code. Run black and isort so that your newly added files look nice with the following command:
+6. Format your code. Run black and ruff so that your newly added files look nice with the following command:
 
 	```bash
 	make style
