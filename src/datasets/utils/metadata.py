@@ -1,9 +1,12 @@
+import copy
 from collections import Counter
+from dataclasses import fields
 from pathlib import Path
-from typing import ClassVar, Dict, Optional, Tuple, Union
+from typing import ClassVar, Dict, List, Optional, Tuple, Union
 
 import yaml
 
+from ..builder import BuilderConfig
 from ..config import METADATA_CONFIGS_FIELD
 
 
@@ -112,12 +115,12 @@ class DatasetMetadata(dict):
 class MetadataConfigsDict(Dict[str, dict]):
     """{config_name: {**config_params}}"""
 
-    _config_field_name: ClassVar[str] = METADATA_CONFIGS_FIELD
+    __configs_field_name: ClassVar[str] = METADATA_CONFIGS_FIELD
 
     @classmethod
-    def from_metadata(cls, dataset_metadata: DatasetMetadata):
-        if cls._config_field_name in dataset_metadata:
-            metadata_configs = dataset_metadata.get(cls._config_field_name)
+    def from_metadata(cls, dataset_metadata: DatasetMetadata) -> "MetadataConfigsDict":
+        if cls.__configs_field_name in dataset_metadata:
+            metadata_configs = dataset_metadata.get(cls.__configs_field_name)
             if isinstance(metadata_configs, dict):
                 if "config_name" in metadata_configs:
                     return cls({metadata_configs["config_name"]: metadata_configs})
@@ -127,7 +130,7 @@ class MetadataConfigsDict(Dict[str, dict]):
                 return cls({config["config_name"]: config for config in metadata_configs})
         return cls()
 
-    def to_metadata(self, dataset_metadata: DatasetMetadata):
+    def to_metadata(self, dataset_metadata: DatasetMetadata) -> None:
         if self:
             current_metadata = self.from_metadata(dataset_metadata)
             total_metadata = dict(sorted({**current_metadata, **self}.items(), key=lambda x: x[0]))
@@ -135,11 +138,32 @@ class MetadataConfigsDict(Dict[str, dict]):
                 config_metadata.pop("config_name", None)
                 total_metadata[config_name] = {"config_name": config_name, **config_metadata}
             if len(total_metadata) > 1:
-                dataset_metadata[self._config_field_name] = [
+                dataset_metadata[self.__configs_field_name] = [
                     config_metadata for config_name, config_metadata in total_metadata.items()
                 ]
             else:
-                dataset_metadata[self._config_field_name] = next(iter(total_metadata.values()))
+                dataset_metadata[self.__configs_field_name] = next(iter(total_metadata.values()))
+
+    def to_builder_configs_list(self, builder_config_cls) -> List[BuilderConfig]:
+        metadata_configs = copy.deepcopy(self)
+        for meta_config in metadata_configs.values():
+            meta_config["name"] = meta_config.pop("config_name", "default")
+        return [builder_config_cls(**meta_config) for meta_config in metadata_configs.values()]
+
+    @classmethod
+    def from_builder_configs_list(cls, builder_configs_list) -> "MetadataConfigsDict":
+        builder_configs_dict = {
+            builder_config.name: _asdict_shallow(builder_config) for builder_config in builder_configs_list
+        }
+        for builder_config in builder_configs_dict.values():
+            builder_config["config_name"] = builder_config.pop("name", "default")
+            if "version" in builder_config:
+                builder_config["version"] = str(builder_config["version"])  # it might be int from Version object
+        return cls(builder_configs_dict)
+
+
+def _asdict_shallow(dataclass_object):
+    return {field.name: getattr(dataclass_object, field.name) for field in fields(dataclass_object)}
 
 
 # DEPRECATED - just here to support old versions of evaluate like 0.2.2

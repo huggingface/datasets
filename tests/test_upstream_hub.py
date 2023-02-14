@@ -11,17 +11,16 @@ import pytest
 from huggingface_hub import HfApi
 
 from datasets import Audio, ClassLabel, Dataset, DatasetDict, Features, Image, Value, load_dataset
+from datasets.config import METADATA_CONFIGS_FIELD
 from datasets.utils._hf_hub_fixes import list_repo_files
 from datasets.utils.file_utils import cached_path
 from datasets.utils.hub import hf_hub_url
-from datasets.utils.metadata import DatasetMetadata, MetadataConfigsDict
+from datasets.utils.metadata import DatasetMetadata
 from tests.fixtures.hub import CI_HUB_ENDPOINT, CI_HUB_USER, CI_HUB_USER_TOKEN
 from tests.utils import for_all_test_methods, require_pil, require_sndfile, xfail_if_500_502_http_error
 
 
 pytestmark = pytest.mark.integration
-
-METADATA_CONFIGS_FIELD = MetadataConfigsDict._config_field_name
 
 
 @for_all_test_methods(xfail_if_500_502_http_error)
