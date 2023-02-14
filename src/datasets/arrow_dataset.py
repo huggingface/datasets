@@ -3655,9 +3655,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         keep_in_memory: bool = False,
         load_from_cache_file: bool = None,
         cache_file_name: Optional[str] = None,
-        writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
-        disable_nullable: bool = False,
         fn_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
         suffix_template: str = "_{rank:05d}_of_{num_proc:05d}",
@@ -3702,15 +3700,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             cache_file_name (`str`, *optional*, defaults to `None`):
                 Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
-            writer_batch_size (`int`, defaults to `1000`):
-                Number of rows per write operation for the cache file writer.
-                This value is a good trade-off between memory usage during the processing, and processing speed.
-                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `map`.
             features (`Optional[datasets.Features]`, defaults to `None`):
                 Use a specific Features to store the cache file
                 instead of the automatically generated one.
-            disable_nullable (`bool`, defaults to `False`):
-                Disallow null values in the table.
             fn_kwargs (`Dict`, *optional*, defaults to `None`):
                 Keyword arguments to be passed to `function`.
             num_proc (`int`, *optional*, defaults to `None`):
@@ -3929,27 +3921,35 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         desc: Optional[str] = None,
         cache_only: bool = False,
     ) -> "Dataset":
-        """Apply a function to all the elements in the table (individually or in batches)
-        and update the table (if function does update examples).
+        """
+        Reduce the examples in the table (individually or in batches) using a binary operation and return the result.
 
+        The function should be a binary operation, i.e. it takes in 2 objects of the same type in and returns 1 object of the same type as the inputs.
+        Examples include addition, multiplication, maximum, minimum, etc. for `int`, `float`, `bool` and `str` types, and concatenation for `list` types.
+        The first input is the accumulant, which is the result of the previous application of the function on the previous examples, and the second input is the current example.
         Args:
-            function (`Callable`): with one of the following signature:
-                - `function(example: Dict[str, Any]) -> Dict[str, Any]` if `batched=False` and `with_indices=False` and `with_rank=False`
-                - `function(example: Dict[str, Any], *extra_args) -> Dict[str, Any]` if `batched=False` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
-                - `function(batch: Dict[str, List]) -> Dict[str, List]` if `batched=True` and `with_indices=False` and `with_rank=False`
-                - `function(batch: Dict[str, List], *extra_args) -> Dict[str, List]` if `batched=True` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+            function (`Callable`): Function with the following signatures:
 
-                For advanced usage, the function can also return a `pyarrow.Table`.
-                Moreover if your function returns nothing (`None`), then `map` will run your function and return the dataset unchanged.
-                If no function is provided, default to identity function: lambda x: x
-            with_indices (`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx[, rank]): ...`.
-            with_rank (`bool`, default `False`): Provide process rank to `function`. Note that in this case the signature of `function` should be `def function(example[, idx], rank): ...`.
-            input_columns (`Optional[List[str]]`, defaults to `None`): The columns to be passed into `function` as
-                positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
-            batched (`bool`, defaults to `False`): Provide batch of examples to `function`
-            batch_size (`int`, optional, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
-                `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
-            drop_last_batch (`bool`, default: `False`): Whether a last batch smaller than the batch_size should be
+                - `function(accumulant: Any, example: Any) -> Any` if `with_indices=False` and `with_rank=False`
+                - `function(accumulant: Any, example: Any, *extra_args) -> Any` if `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+
+                If no function is provided, default to identity function: `lambda x, y: x`, i.e. the first example is returned.
+            with_indices (`bool`, defaults to `False`):
+                Provide example indices to `function`. Note that in this case the
+                signature of `function` should be `def function(example, idx[, rank]): ...`.
+            with_rank (`bool`, defaults to `False`):
+                Provide process rank to `function`. Note that in this case the
+                signature of `function` should be `def function(example[, idx], rank): ...`.
+            input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`):
+                The columns to be passed into `function`
+                as positional arguments. If `None`, a `dict` mapping to all formatted columns is passed as one argument.
+            batched (`bool`, defaults to `False`):
+                Provide batch of examples to `function`.
+            batch_size (`int`, *optional*, defaults to `1000`):
+                Number of examples per batch provided to `function` if `batched=True`.
+                If `batch_size <= 0` or `batch_size == None`, provide the full dataset as a single batch to `function`.
+            drop_last_batch (`bool`, defaults to `False`):
+                Whether a last batch smaller than the batch_size should be
                 dropped instead of being processed by the function.
             remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
