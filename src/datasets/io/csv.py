@@ -48,19 +48,19 @@ class CsvDatasetReader(AbstractDatasetReader):
         else:
             download_config = None
             download_mode = None
-            ignore_verifications = False
+            verification_mode = None
             base_path = None
 
             self.builder.download_and_prepare(
                 download_config=download_config,
                 download_mode=download_mode,
-                ignore_verifications=ignore_verifications,
+                verification_mode=verification_mode,
                 # try_from_hf_gcs=try_from_hf_gcs,
                 base_path=base_path,
                 num_proc=self.num_proc,
             )
             dataset = self.builder.as_dataset(
-                split=self.split, ignore_verifications=ignore_verifications, in_memory=self.keep_in_memory
+                split=self.split, verification_mode=verification_mode, in_memory=self.keep_in_memory
             )
         return dataset
 
@@ -86,12 +86,13 @@ class CsvDatasetWriter:
 
     def write(self) -> int:
         _ = self.to_csv_kwargs.pop("path_or_buf", None)
+        index = self.to_csv_kwargs.pop("index", False)
 
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
             with open(self.path_or_buf, "wb+") as buffer:
-                written = self._write(file_obj=buffer, **self.to_csv_kwargs)
+                written = self._write(file_obj=buffer, index=index, **self.to_csv_kwargs)
         else:
-            written = self._write(file_obj=self.path_or_buf, **self.to_csv_kwargs)
+            written = self._write(file_obj=self.path_or_buf, index=index, **self.to_csv_kwargs)
         return written
 
     def _batch_csv(self, args):

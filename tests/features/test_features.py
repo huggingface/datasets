@@ -346,7 +346,11 @@ def test_classlabel_cast_storage():
     assert result.type == pa.int64()
     assert result.to_pylist() == [None]
     # from empty
-    arr = pa.array([])
+    arr = pa.array([], pa.int64())
+    result = classlabel.cast_storage(arr)
+    assert result.type == pa.int64()
+    assert result.to_pylist() == []
+    arr = pa.array([], pa.string())
     result = classlabel.cast_storage(arr)
     assert result.type == pa.int64()
     assert result.to_pylist() == []

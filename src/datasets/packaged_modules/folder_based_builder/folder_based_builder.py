@@ -62,7 +62,6 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
     EXTENSIONS: List[str]
     CLASSIFICATION_TASK: TaskTemplate
 
-    SKIP_CHECKSUM_COMPUTATION_BY_DEFAULT: bool = True
     METADATA_FILENAMES: List[str] = ["metadata.csv", "metadata.jsonl"]
 
     def _info(self):
