@@ -6,8 +6,8 @@ from typing import ClassVar, Dict, List, Optional, Tuple, Union
 
 import yaml
 
-from ..builder import BuilderConfig
-from ..config import METADATA_CONFIGS_FIELD
+from datasets.builder import BuilderConfig
+from datasets.config import METADATA_CONFIGS_FIELD
 
 
 class _NoDuplicateSafeLoader(yaml.SafeLoader):
