@@ -3665,30 +3665,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         desc: Optional[str] = None,
     ) -> "Dataset":
         """
-        Apply a function to all the examples in the table (individually or in batches) and update the table.
-        If your function returns a column that already exists, then it overwrites it.
-
-        You can specify whether the function should be batched or not with the `batched` parameter:
-
-        - If batched is `False`, then the function takes 1 example in and should return 1 example.
-          An example is a dictionary, e.g. `{"text": "Hello there !"}`.
-        - If batched is `True` and `batch_size` is 1, then the function takes a batch of 1 example as input and can return a batch with 1 or more examples.
-          A batch is a dictionary, e.g. a batch of 1 example is `{"text": ["Hello there !"]}`.
-        - If batched is `True` and `batch_size` is `n > 1`, then the function takes a batch of `n` examples as input and can return a batch with `n` examples, or with an arbitrary number of examples.
-          Note that the last batch may have less than `n` examples.
-          A batch is a dictionary, e.g. a batch of `n` examples is `{"text": ["Hello there !"] * n}`.
-
+        Reduce the examples in the table (individually or in batches) using a binary operation and return the result.
+        
+        The function should be a binary operation, i.e. it takes in 2 objects of the same type in and returns 1 object of the same type as the inputs.
+        Examples include addition, multiplication, maximum, minimum, etc. for `int`, `float`, `bool` and `str` types, and concatenation for `list` types.
+        The first input is the accumulant, which is the result of the previous application of the function on the previous examples, and the second input is the current example.
         Args:
-            function (`Callable`): Function with one of the following signatures:
+            function (`Callable`): Function with the following signatures:
 
-                - `function(example: Dict[str, Any]) -> Dict[str, Any]` if `batched=False` and `with_indices=False` and `with_rank=False`
-                - `function(example: Dict[str, Any], *extra_args) -> Dict[str, Any]` if `batched=False` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
-                - `function(batch: Dict[str, List]) -> Dict[str, List]` if `batched=True` and `with_indices=False` and `with_rank=False`
-                - `function(batch: Dict[str, List], *extra_args) -> Dict[str, List]` if `batched=True` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+                - `function(accumulant: Any, example: Any) -> Any` if `with_indices=False` and `with_rank=False`
+                - `function(accumulant: Any, example: Any, *extra_args) -> Any` if `with_indices=True` and/or `with_rank=True` (one extra arg for each)
 
-                For advanced usage, the function can also return a `pyarrow.Table`.
-                Moreover if your function returns nothing (`None`), then `map` will run your function and return the dataset unchanged.
-                If no function is provided, default to identity function: `lambda x: x`.
+                If no function is provided, default to identity function: `lambda x, y: x`, i.e. the first example is returned.
             with_indices (`bool`, defaults to `False`):
                 Provide example indices to `function`. Note that in this case the
                 signature of `function` should be `def function(example, idx[, rank]): ...`.
@@ -3742,19 +3730,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rotten_tomatoes", split="validation")
-        >>> def add_prefix(example):
-        ...     example["text"] = "Review: " + example["text"]
-        ...     return example
-        >>> ds = ds.map(add_prefix)
-        >>> ds[0:3]["text"]
-        ['Review: compassionately explores the seemingly irreconcilable situation between conservative christian parents and their estranged gay and lesbian children .',
-         'Review: the soundtrack alone is worth the price of admission .',
-         'Review: rodriguez does a splendid job of racial profiling hollywood style--casting excellent latin actors of all ages--a trend long overdue .']
+        >>> str_concat = lambda accumulant, example: accumulant + ' ' + example
+        >>> result = ds[0:3].reduce(str_concat, input_columns="text")
+        >>> result
+        'Review: compassionately explores the seemingly irreconcilable situation between conservative christian parents and their estranged gay and lesbian children . Review: the soundtrack alone is worth the price of admission . Review: rodriguez does a splendid job of racial profiling hollywood style--casting excellent latin actors of all ages--a trend long overdue .'
 
         # process a batch of examples
-        >>> ds = ds.map(lambda example: tokenizer(example["text"]), batched=True)
+        >>> result = ds.reduce(str_concat, input_columns="text", batched=True)
+        
         # set number of processors
-        >>> ds = ds.map(add_prefix, num_proc=4)
+        >>> result = ds.reduce(str_concat, input_columns="text", num_proc=4)
         ```
         """
         if keep_in_memory and cache_file_name is not None:
@@ -3776,7 +3761,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 return self
 
         if function is None:
-            function = lambda x: x  # noqa: E731
+            function = lambda x, y: x  # noqa: E731
 
         if isinstance(input_columns, str):
             input_columns = [input_columns]
@@ -3810,12 +3795,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 batched=batched,
                 batch_size=batch_size,
                 drop_last_batch=drop_last_batch,
-                keep_in_memory=keep_in_memory,
                 load_from_cache_file=load_from_cache_file,
                 cache_file_name=cache_file_name,
-                writer_batch_size=writer_batch_size,
                 features=features,
-                disable_nullable=disable_nullable,
                 fn_kwargs=fn_kwargs,
                 new_fingerprint=new_fingerprint,
                 disable_tqdm=disable_tqdm,
@@ -3865,14 +3847,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     batched=batched,
                     batch_size=batch_size,
                     drop_last_batch=drop_last_batch,
-                    keep_in_memory=keep_in_memory,
                     load_from_cache_file=load_from_cache_file,
                     cache_file_name=format_cache_file_name(cache_file_name, rank)
                     if cache_file_name is not None
                     else None,
-                    writer_batch_size=writer_batch_size,
                     features=features.copy() if features is not None else None,
-                    disable_nullable=disable_nullable,
                     fn_kwargs=fn_kwargs,
                     rank=rank,
                     offset=sum(len(s) for s in shards[:rank]),
@@ -3939,12 +3918,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
-        keep_in_memory: bool = False,
         load_from_cache_file: bool = None,
         cache_file_name: Optional[str] = None,
-        writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
-        disable_nullable: bool = False,
         fn_kwargs: Optional[dict] = None,
         new_fingerprint: Optional[str] = None,
         rank: Optional[int] = None,
@@ -3978,17 +3954,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
-            keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True` if caching is enabled): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
             cache_file_name (`str`, optional, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
-            writer_batch_size (`int`, default `1000`): Number of rows per write operation for the cache file writer.
-                This value is a good trade-off between memory usage during the processing, and processing speed.
-                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
             features (`Optional[datasets.Features]`, defaults to `None`): Use a specific Features to store the cache file
                 instead of the automatically generated one.
-            disable_nullable (`bool`, defaults to `False`): Disallow null values in the table.
             fn_kwargs (`Dict`, optional, defaults to `None`): Keyword arguments to be passed to `function`
             new_fingerprint (`str`, optional, defaults to `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
