@@ -1533,13 +1533,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if is_remote_filesystem(fs):
             dest_dataset_path = extract_path_from_uri(dataset_path)
+            path_join = posixpath.join
         else:
             fs = fsspec.filesystem("file")
             dest_dataset_path = dataset_path
+            path_join = os.path.join
 
-        dataset_dict_json_path = Path(dest_dataset_path, config.DATASETDICT_JSON_FILENAME).as_posix()
-        dataset_state_json_path = Path(dest_dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix()
-        dataset_info_path = Path(dest_dataset_path, config.DATASET_INFO_FILENAME).as_posix()
+        dataset_dict_json_path = path_join(dest_dataset_path, config.DATASETDICT_JSON_FILENAME)
+        dataset_state_json_path = path_join(dest_dataset_path, config.DATASET_STATE_JSON_FILENAME)
+        dataset_info_path = path_join(dest_dataset_path, config.DATASET_INFO_FILENAME)
         if fs.isfile(dataset_dict_json_path):
             if not fs.isfile(dataset_info_path) and not fs.isfile(dataset_state_json_path):
                 raise FileNotFoundError(
@@ -1559,8 +1561,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             src_dataset_path = dest_dataset_path
             dest_dataset_path = Dataset._build_local_temp_path(src_dataset_path)
             fs.download(src_dataset_path, dest_dataset_path.as_posix(), recursive=True)
-            dataset_state_json_path = Path(dest_dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix()
-            dataset_info_path = Path(dest_dataset_path, config.DATASET_INFO_FILENAME).as_posix()
+            dataset_state_json_path = path_join(dest_dataset_path, config.DATASET_STATE_JSON_FILENAME)
+            dataset_info_path = path_join(dest_dataset_path, config.DATASET_INFO_FILENAME)
 
         with open(dataset_state_json_path, encoding="utf-8") as state_file:
             state = json.load(state_file)
@@ -1573,7 +1575,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         keep_in_memory = keep_in_memory if keep_in_memory is not None else is_small_dataset(dataset_size)
         table_cls = InMemoryTable if keep_in_memory else MemoryMappedTable
         arrow_table = concat_tables(
-            table_cls.from_file(Path(dest_dataset_path, data_file["filename"]).as_posix())
+            table_cls.from_file(path_join(dest_dataset_path, data_file["filename"]))
             for data_file in state["_data_files"]
         )
 

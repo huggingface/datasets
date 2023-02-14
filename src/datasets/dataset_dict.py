@@ -1248,13 +1248,15 @@ class DatasetDict(dict):
 
         if is_remote_filesystem(fs):
             dest_dataset_dict_path = extract_path_from_uri(dataset_dict_path)
+            path_join = posixpath.join
         else:
             fs = fsspec.filesystem("file")
             dest_dataset_dict_path = dataset_dict_path
+            path_join = os.path.join
 
-        dataset_dict_json_path = Path(dest_dataset_dict_path, config.DATASETDICT_JSON_FILENAME).as_posix()
-        dataset_state_json_path = Path(dest_dataset_dict_path, config.DATASET_STATE_JSON_FILENAME).as_posix()
-        dataset_info_path = Path(dest_dataset_dict_path, config.DATASET_INFO_FILENAME).as_posix()
+        dataset_dict_json_path = path_join(dest_dataset_dict_path, config.DATASETDICT_JSON_FILENAME)
+        dataset_state_json_path = path_join(dest_dataset_dict_path, config.DATASET_STATE_JSON_FILENAME)
+        dataset_info_path = path_join(dest_dataset_dict_path, config.DATASET_INFO_FILENAME)
         if not fs.isfile(dataset_dict_json_path):
             if fs.isfile(dataset_info_path) and fs.isfile(dataset_state_json_path):
                 raise FileNotFoundError(
@@ -1270,9 +1272,9 @@ class DatasetDict(dict):
         dataset_dict = DatasetDict()
         for k in splits:
             dataset_dict_split_path = (
-                dataset_dict_path.split("://")[0] + "://" + Path(dest_dataset_dict_path, k).as_posix()
+                dataset_dict_path.split("://")[0] + "://" + path_join(dest_dataset_dict_path, k)
                 if is_remote_filesystem(fs)
-                else Path(dest_dataset_dict_path, k).as_posix()
+                else path_join(dest_dataset_dict_path, k)
             )
             dataset_dict[k] = Dataset.load_from_disk(
                 dataset_dict_split_path, keep_in_memory=keep_in_memory, storage_options=storage_options
