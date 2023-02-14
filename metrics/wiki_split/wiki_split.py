@@ -254,7 +254,6 @@ def SARIsent(ssent, csent, rsents):
 
 
 def normalize(sentence, lowercase: bool = True, tokenizer: str = "13a", return_str: bool = True):
-
     # Normalization is requried for the ASSET dataset (one of the primary
     # datasets in sentence simplification) to allow using space
     # to split the sentence. Even though Wiki-Auto and TURK datasets,
@@ -284,7 +283,6 @@ def normalize(sentence, lowercase: bool = True, tokenizer: str = "13a", return_s
 
 
 def compute_sari(sources, predictions, references):
-
     if not (len(sources) == len(predictions) == len(references)):
         raise ValueError("Sources length must match predictions and references lengths.")
     sari_score = 0

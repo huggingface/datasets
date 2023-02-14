@@ -10,7 +10,6 @@ from .utils import require_lz4, require_zstandard
 
 
 def test_extract_path_from_uri():
-
     mock_bucket = "mock-s3-bucket"
     dataset_path = f"s3://{mock_bucket}"
     dataset_path = extract_path_from_uri(dataset_path)
@@ -22,7 +21,6 @@ def test_extract_path_from_uri():
 
 
 def test_is_remote_filesystem(mockfs):
-
     is_remote = is_remote_filesystem(mockfs)
     assert is_remote is True
 

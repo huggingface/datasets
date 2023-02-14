@@ -60,7 +60,6 @@ class TestMetadataUtils(unittest.TestCase):
             self.assertEqual(metadata_dict, {})
 
     def test_from_yaml_string(self):
-
         valid_yaml_string = _dedent(
             """\
             annotations_creators:

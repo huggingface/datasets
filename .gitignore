@@ -62,3 +62,6 @@ docs/source/_build/
 # Benchmark results
 report.json
 report.md
+
+# Ruff
+.ruff_cache
