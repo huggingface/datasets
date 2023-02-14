@@ -5016,6 +5016,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 _retry(
                     hf_api_upload_file,
                     func_kwargs=dict(
+                        hf_api=api,
                         path_or_fileobj=buffer.getvalue(),
                         path_in_repo=shard_path_in_repo,
                         repo_id=repo_id,
