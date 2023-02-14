@@ -5,11 +5,12 @@ import time
 import unittest
 from pathlib import Path
 from unittest.mock import patch
+from functools import partial
 
 import numpy as np
 import pytest
 from huggingface_hub import HfApi
-
+from datasets.utils._hf_hub_fixes import upload_file as hf_api_upload_file
 from datasets import Audio, ClassLabel, Dataset, DatasetDict, Features, Image, Value, load_dataset
 from datasets.utils._hf_hub_fixes import list_repo_files
 from tests.fixtures.hub import CI_HUB_ENDPOINT, CI_HUB_USER, CI_HUB_USER_TOKEN
@@ -231,7 +232,8 @@ class TestPushToHub:
                 with open(path, "w") as f:
                     f.write("Bogus file")
 
-                self._api.upload_file(
+                hf_api_upload_file(
+                    self._api,
                     path_or_fileobj=str(path),
                     path_in_repo="datafile.txt",
                     repo_id=ds_name,
@@ -278,7 +280,8 @@ class TestPushToHub:
                 with open(path, "w") as f:
                     f.write("Bogus file")
 
-                self._api.upload_file(
+                hf_api_upload_file(
+                    self._api,
                     path_or_fileobj=str(path),
                     path_in_repo="datafile.txt",
                     repo_id=ds_name,
@@ -457,7 +460,7 @@ class TestPushToHub:
     def test_push_dataset_to_hub_skip_identical_files(self, temporary_repo):
         ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
         with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
-            with patch("datasets.arrow_dataset.HfApi.upload_file", side_effect=self._api.upload_file) as mock_hf_api:
+            with patch("datasets.utils._hf_hub_fixes.upload_file", side_effect=partial(hf_api_upload_file, self._api)) as mock_hf_api:
                 # Initial push
                 ds.push_to_hub(ds_name, token=self._token, max_shard_size="1KB")
                 call_count_old = mock_hf_api.call_count
