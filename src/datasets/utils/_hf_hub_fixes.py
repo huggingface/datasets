@@ -1,9 +1,12 @@
-from typing import List, Optional, Union
+from pathlib import Path
+from typing import List, Optional, Union, BinaryIO
 
 import huggingface_hub
 from huggingface_hub import HfApi, HfFolder
 from huggingface_hub.hf_api import DatasetInfo
 from packaging import version
+
+logger = logging.get_logger(__name__)
 
 
 def create_repo(
@@ -171,4 +174,47 @@ def list_repo_files(
     else:  # the `token` parameter is deprecated in huggingface_hub>=0.10.0
         return hf_api.list_repo_files(
             repo_id, revision=revision, repo_type=repo_type, use_auth_token=use_auth_token, timeout=timeout
+        )
+
+
+def upload_file(
+    hf_api: HfApi,
+    path_or_fileobj: Union[str, Path, bytes, BinaryIO],
+    path_in_repo: str,
+    repo_id: str,
+    token: Optional[str] = None,
+    repo_type: Optional[str] = None,
+    revision: Optional[str] = None,
+    commit_message: Optional[str] = None,
+    commit_description: Optional[str] = None,
+    create_pr: Optional[bool] = None,
+    parent_commit: Optional[str] = None,
+) -> List[str]:
+    """
+    Several new parameters for huggingface_hub.HfApi.upload_file were introduced in 0.8.1 and some of them were deprecated.
+    """
+    if version.parse(huggingface_hub.__version__) < version.parse("0.8.1"):
+        logger.warning(
+            "The `create_pr` parameter is only available for huggingface_hub>=0.8.0. Hence no pull request is created. Please upgrade huggingface_hub to >=0.8.0 to create a pull request."
+        )
+        return hf_api.upload_file(
+            path_or_fileobj=path_or_fileobj,
+            path_in_repo=path_in_repo,
+            repo_id=repo_id,
+            token=token,
+            repo_type=repo_type,
+            revision=revision,
+        )
+    else:
+        return hf_api.upload_file(
+            path_or_fileobj=path_or_fileobj,
+            path_in_repo=path_in_repo,
+            repo_id=repo_id,
+            token=token,
+            repo_type=repo_type,
+            revision=revision,
+            commit_message=commit_message,
+            commit_description=commit_description,
+            create_pr=create_pr,
+            parent_commit=parent_commit,
         )
