@@ -227,7 +227,7 @@ EXTRAS_REQUIRE = {
     ],
     "tensorflow_gpu": ["tensorflow-gpu>=2.2.0,!=2.6.0,!=2.6.1"],
     "torch": ["torch"],
-    "jax": ["jax>=0.2.8,!=0.3.2,<=0.4.3", "jaxlib>=0.1.65,<=0.3.6"],
+    "jax": ["jax>=0.2.8,!=0.3.2,<0.4.0", "jaxlib>=0.1.65,<=0.3.6"],
     "s3": ["s3fs"],
     "streaming": [],  # for backward compatibility
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE + DOCS_REQUIRE,
