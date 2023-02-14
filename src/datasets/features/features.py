@@ -1077,7 +1077,7 @@ class ClassLabel:
         Returns:
             `pa.Int64Array`: Array in the `ClassLabel` arrow storage type.
         """
-        if isinstance(storage, pa.IntegerArray):
+        if isinstance(storage, pa.IntegerArray) and len(storage) > 0:
             min_max = pc.min_max(storage).as_py()
             if min_max["max"] >= self.num_classes:
                 raise ValueError(

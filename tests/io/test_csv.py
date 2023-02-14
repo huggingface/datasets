@@ -117,7 +117,6 @@ def test_csv_datasetdict_reader_split(split, csv_path, tmp_path):
     if split:
         path = {split: csv_path}
     else:
-        split = "train"
         path = {"train": csv_path, "test": csv_path}
     cache_dir = tmp_path / "cache"
     expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
@@ -135,7 +134,7 @@ def test_dataset_to_csv(csv_path, tmp_path):
     cache_dir = tmp_path / "cache"
     output_csv = os.path.join(cache_dir, "tmp.csv")
     dataset = CsvDatasetReader({"train": csv_path}, cache_dir=cache_dir).read()
-    CsvDatasetWriter(dataset["train"], output_csv, index=False, num_proc=1).write()
+    CsvDatasetWriter(dataset["train"], output_csv, num_proc=1).write()
 
     original_csv = iter_csv_file(csv_path)
     expected_csv = iter_csv_file(output_csv)
@@ -148,7 +147,7 @@ def test_dataset_to_csv_multiproc(csv_path, tmp_path):
     cache_dir = tmp_path / "cache"
     output_csv = os.path.join(cache_dir, "tmp.csv")
     dataset = CsvDatasetReader({"train": csv_path}, cache_dir=cache_dir).read()
-    CsvDatasetWriter(dataset["train"], output_csv, index=False, num_proc=2).write()
+    CsvDatasetWriter(dataset["train"], output_csv, num_proc=2).write()
 
     original_csv = iter_csv_file(csv_path)
     expected_csv = iter_csv_file(output_csv)
@@ -162,4 +161,4 @@ def test_dataset_to_csv_invalidproc(csv_path, tmp_path):
     output_csv = os.path.join(cache_dir, "tmp.csv")
     dataset = CsvDatasetReader({"train": csv_path}, cache_dir=cache_dir).read()
     with pytest.raises(ValueError):
-        CsvDatasetWriter(dataset["train"], output_csv, index=False, num_proc=0)
+        CsvDatasetWriter(dataset["train"], output_csv, num_proc=0)
