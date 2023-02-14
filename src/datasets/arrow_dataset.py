@@ -1839,7 +1839,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         features: Features,
         batch_size: Optional[int] = 1000,
         keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
+        load_from_cache_file: Optional[bool] = None,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         num_proc: Optional[int] = None,
@@ -2711,7 +2711,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         drop_last_batch: bool = False,
         remove_columns: Optional[Union[str, List[str]]] = None,
         keep_in_memory: bool = False,
-        load_from_cache_file: bool = None,
+        load_from_cache_file: Optional[bool] = None,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
@@ -2770,7 +2770,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 columns with names in `remove_columns`, these columns will be kept.
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True` if caching is enabled):
+            load_from_cache_file (`Optioanl[bool]`, defaults to `True` if caching is enabled):
                 If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
             cache_file_name (`str`, *optional*, defaults to `None`):
@@ -3367,7 +3367,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
+        load_from_cache_file: Optional[bool] = None,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
@@ -3401,7 +3401,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 If `batch_size <= 0` or `batch_size == None`, provide the full dataset as a single batch to `function`.
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`):
+            load_from_cache_file (`Optional[bool]`, defaults to `True` if caching is enabled):
                 If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
             cache_file_name (`str`, *optional*):
@@ -3809,7 +3809,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         kind: str = None,
         null_placement: str = "last",
         keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
+        load_from_cache_file: Optional[bool] = None,
         indices_cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         new_fingerprint: Optional[str] = None,
@@ -3835,7 +3835,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 <Added version="1.14.2"/>
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the sorted indices in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`):
+            load_from_cache_file (`Optional[bool]`, defaults to `True` if caching is enabled):
                 If a cache file storing the sorted indices
                 can be identified, use it instead of recomputing.
             indices_cache_file_name (`str`, *optional*, defaults to `None`):
@@ -3874,6 +3874,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"Column '{column}' not found in the dataset. Please provide a column selected in: {self._data.column_names}"
             )
 
+        load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
+
         # Check if we've already cached this computation (indexed by a hash)
         if self.cache_files:
             if indices_cache_file_name is None:
@@ -3911,7 +3913,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         seed: Optional[int] = None,
         generator: Optional[np.random.Generator] = None,
         keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
+        load_from_cache_file: Optional[bool] = None,
         indices_cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         new_fingerprint: Optional[str] = None,
@@ -3959,7 +3961,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 If `generator=None` (default), uses `np.random.default_rng` (the default BitGenerator (PCG64) of NumPy).
             keep_in_memory (`bool`, default `False`):
                 Keep the shuffled indices in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`):
+            load_from_cache_file (`Optional[bool]`, defaults to `True` if caching is enabled):
                 If a cache file storing the shuffled indices
                 can be identified, use it instead of recomputing.
             indices_cache_file_name (`str`, *optional*):
@@ -4003,6 +4005,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if generator is not None and not isinstance(generator, np.random.Generator):
             raise ValueError("The provided generator must be an instance of numpy.random.Generator")
+
+        load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
 
         if generator is None:
             if seed is None:
@@ -4048,7 +4052,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         seed: Optional[int] = None,
         generator: Optional[np.random.Generator] = None,
         keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
+        load_from_cache_file: Optional[bool] = None,
         train_indices_cache_file_name: Optional[str] = None,
         test_indices_cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
@@ -4085,7 +4089,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 If `generator=None` (default), uses `np.random.default_rng` (the default BitGenerator (PCG64) of NumPy).
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the splits indices in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`):
+            load_from_cache_file (`Optional[bool]`, defaults to `True` if caching is enabled):
                 If a cache file storing the splits indices
                 can be identified, use it instead of recomputing.
             train_cache_file_name (`str`, *optional*):
@@ -4224,6 +4228,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 "resulting train set will be empty. Adjust any of the "
                 "aforementioned parameters."
             )
+
+        load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
 
         if generator is None and shuffle is True:
             if seed is None:
