@@ -529,9 +529,12 @@ class IndexableMixin:
 
         Args:
             index_name (`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
-            file (`str`): The path to the serialized faiss index on disk or remote URI (e.g. `"s3//my-bucket/index.faiss"`).
+            file (`str`): The path to the serialized faiss index on disk or remote URI (e.g. `"s3://my-bucket/index.faiss"`).
             storage_options (`dict`, *optional*):
                 Key/value pairs to be passed on to the file-system backend, if any.
+                
+                <Added version="2.10.0"/>
+                
         """
         index = self.get_index(index_name)
         if not isinstance(index, FaissIndex):
@@ -554,11 +557,13 @@ class IndexableMixin:
         Args:
             index_name (`str`): The index_name/identifier of the index. This is the index_name that is used to
                 call `.get_nearest` or `.search`.
-            file (`str`): The path to the serialized faiss index on disk or remote URI (e.g. `"s3//my-bucket/index.faiss"`).
+            file (`str`): The path to the serialized faiss index on disk or remote URI (e.g. `"s3://my-bucket/index.faiss"`).
             device (Optional `Union[int, List[int]]`): If positive integer, this is the index of the GPU to use. If negative integer, use all GPUs.
                 If a list of positive integers is passed in, run only on those GPUs. By default it uses the CPU.
             storage_options (`dict`, *optional*):
                 Key/value pairs to be passed on to the file-system backend, if any.
+                
+                <Added version="2.10.0"/>
 
         """
         index = FaissIndex.load(file, device=device, storage_options=storage_options)
