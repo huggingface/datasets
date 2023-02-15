@@ -1,0 +1,98 @@
+# Use with JAX
+
+This document is a quick introduction to using `datasets` with JAX, with a particular focus on how to get
+`jax.Array` objects out of our datasets, and how to use them to train JAX models.
+
+<Tip>
+
+`jax` and `jaxlib` are required to reproduce to code above, so please make sure you
+install them as `pip install datasets[jax]`.
+
+</Tip>
+
+## Dataset format
+
+By default, datasets return regular Python objects: integers, floats, strings, lists, etc.
+
+To get JAX arrays (numpy-like) instead, you can set the format of the dataset to `jax`:
+
+```py
+>>> from datasets import Dataset
+>>> data = [[1, 2], [3, 4]]
+>>> ds = Dataset.from_dict({"data": [[1, 2], [3, 4]]})
+>>> ds = ds.with_format("jax")
+>>> ds[0]
+{'data': DeviceArray([1, 2], dtype=int32)}
+>>> ds[:2]
+{'data': DeviceArray([
+    [1, 2],
+    [3, 4]], dtype=int32)}
+```
+
+<Tip>
+
+A [`Dataset`] object is a wrapper of an Arrow table, which allows fast reads from arrays in the dataset to JAX tensors.
+
+</Tip>
+
+Note that the exact same procedure applies to `DatasetDict` objects, so that
+when setting the format of a `DatasetDict` to `jax`, all the `Dataset`s there
+will be formatted as `jax`:
+
+```py
+>>> from datasets import DatasetDict
+>>> data = {"train": {"data": [[1, 2], [3, 4]]}, "test": {"data": [[5, 6], [7, 8]]}}
+>>> dds = DatasetDict.from_dict(data)
+>>> dds = dds.with_format("jax")
+>>> dds["train"][:2]
+{'data': DeviceArray([
+    [1, 2],
+    [3, 4]], dtype=int32)}
+```
+
+Another thing you'll need to take into consideration is that the formatting is not applied
+until you actually access the data. So if you want to get a JAX array out of a dataset,
+you'll need to access the data first, otherwise the format will remain the same.
+
+## Data loading
+
+JAX doesn't have any built-in data loading capabilities, so you'll need to use a library such
+as [PyTorch](https://pytorch.org/) to load your data using a `DataLoader` or [TensorFlow](https://www.tensorflow.org/)
+using a `tf.data.Dataset`. Citing the [JAX documentation](https://jax.readthedocs.io/en/latest/notebooks/Neural_Network_and_Data_Loading.html#data-loading-with-pytorch) on this topic:
+"JAX is laser-focused on program transformations and accelerator-backed NumPy, so we don’t
+include data loading or munging in the JAX library. There are already a lot of great data loaders
+out there, so let’s just use them instead of reinventing anything. We’ll grab PyTorch’s data loader,
+and make a tiny shim to make it work with NumPy arrays.".
+
+So that's the reason why JAX-formatting in `datasets` is so useful, because it lets you use
+any model from the HuggingFace Hub with JAX, without having to worry about the data loading
+part.
+
+### Using `with_format('jax')`
+
+The easiest way to get JAX arrays out of a dataset is to use the `with_format('jax')` method. Lets assume
+that we want to train a neural network on the [MNIST dataset](http://yann.lecun.com/exdb/mnist/) available
+at the HuggingFace Hub at https://huggingface.co/datasets/mnist.
+
+```py
+>>> from datasets import load_dataset
+>>> ds = load_dataset("mnist")
+>>> ds = ds.with_format("jax")
+>>> ds["train"][0]
+{'image': DeviceArray([[  0,   0,   0, ...],
+                       [  0,   0,   0, ...],
+                       ...,
+                       [  0,   0,   0, ...],
+                       [  0,   0,   0, ...]], dtype=uint8),
+ 'label': DeviceArray(5, dtype=int32)}
+```
+
+Once the format is set we can feed the dataset to the JAX model in batches using the `Dataset.iter()`
+method:
+
+```py
+>>> for epoch in range(epochs):
+...     for batch in ds["train"].iter(batch_size=32):
+...         x, y = batch["image"], batch["label"]
+...         ...
+```
