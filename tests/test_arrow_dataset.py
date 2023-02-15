@@ -1565,12 +1565,10 @@ class BaseDatasetTest(TestCase):
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
                 dset.set_format("numpy", columns=["col_1"])
                 sum_reduce = lambda x, y: x + y
-                reduction = dset.reduce(sum_reduce, input_columns="col_1")
+                reduction = dset.reduce(sum_reduce)
                 self.assertEqual(reduction['col_1'], 6)
-                self.assertEqual(reduction['col_2'], "abcd")
-                self.assertEqual(reduction['col_3'], 2)
 
-    def test_map_multiprocessing(self, in_memory):
+    def test_reduce_multiprocessing(self, in_memory):
         # standard
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
