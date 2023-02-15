@@ -4159,7 +4159,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             accumulant_value_types = {k:type(v) for k, v in accumulant.items()}
                             continue
 
-                        accumulant = apply_function_on_filtered_inputs_and_accumulant(example, accumulant, i)
+                        accumulant = apply_function_on_filtered_inputs_and_accumulant(example, accumulant)
 
                 # If we're working in batches, the first batch is used to initialize the accumulant as a dict
                 # with the same keys as the batch and empty values of the same type as the batch values
