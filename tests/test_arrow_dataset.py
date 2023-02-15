@@ -1579,7 +1579,20 @@ class BaseDatasetTest(TestCase):
                     sum_reduce,
                     ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]
                 )
-                self.assertEqual(functool_reduction, reduction['filename'])         
+                self.assertEqual(functool_reduction, reduction['filename'])
+
+        # num_proc > num rows
+        with tempfile.TemporaryDirectory() as tmp_dir:  
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                sum_reduce = lambda x, y: x + y
+                reduction = dset.select([0, 1], keep_in_memory=True).reduce(sum_reduce, num_proc=10)
+                functool_reduction = functools_reduce(
+                    sum_reduce,
+                    ["my_name-train" + "_" + str(x) for x in np.arange(2).tolist()]
+                )
+                self.assertEqual(functool_reduction, reduction['filename'])
+         
 
     def test_filter(self, in_memory):
         # keep only first five examples
