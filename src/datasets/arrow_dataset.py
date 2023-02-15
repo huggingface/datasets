@@ -3187,9 +3187,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 logger.warning("Setting TOKENIZERS_PARALLELISM=false for forked processes.")
             os.environ["TOKENIZERS_PARALLELISM"] = "false"
             initargs, initializer = None, None
-            if not disable_tqdm:
-                initargs, initializer = (RLock(),), tqdm.set_lock
-
             shards = [
                 self.shard(num_shards=num_proc, index=rank, contiguous=True, keep_in_memory=keep_in_memory)
                 for rank in range(num_proc)
@@ -3219,7 +3216,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     return None
 
             reduced_shards = [
-                catch_non_existent_error(self.__class__._reduce_single, dict(cache_only=True, **kwds))
+                catch_non_existent_error(self.__class__._reduce_single, dict(**kwds))
                 for kwds in kwds_per_shard
             ]
 
