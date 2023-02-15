@@ -1594,7 +1594,7 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(functool_reduction, reduction['filename'])
          
 
-    def test_map_batched(self, in_memory):
+    def test_reduce_batched(self, in_memory):
         # standard
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
