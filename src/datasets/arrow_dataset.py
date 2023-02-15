@@ -5141,7 +5141,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             repo_id = repo_url.repo_id
 
         # Try to find PR branch if branch is supplied
-        pr_branch_found = False
         if create_pr and branch is not None:
             for discussion in get_repo_discussions(repo_id, repo_type='dataset'):
                 if discussion.is_pull_request and discussion.git_reference == branch:
