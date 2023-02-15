@@ -1558,7 +1558,16 @@ class BaseDatasetTest(TestCase):
                 # Check if exception is raised when no transform is provided
                 sum_reduce_none = lambda x, y: None
                 with self.assertRaises(TypeError):
-                    reduction = dset.reduce(sum_reduce_none, input_columns="filename")             
+                    reduction = dset.reduce(sum_reduce_none, input_columns="filename")
+
+        # formatted
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                dset.set_format("numpy", columns=["col_1"])
+                sum_reduce = lambda x, y: x + y
+                reduction = dset.reduce(sum_reduce, input_columns="col_1")
+                self.assertEqual(reduction['col_1'], 6)
+          
 
     def test_filter(self, in_memory):
         # keep only first five examples
