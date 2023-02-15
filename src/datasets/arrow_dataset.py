@@ -56,7 +56,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
-from huggingface_hub import HfApi, HfFolder
+from huggingface_hub import HfApi, HfFolder, get_repo_discussions, create_pull_request
 from multiprocess import Pool, RLock
 from requests import HTTPError
 from tqdm.auto import tqdm
@@ -5125,6 +5125,38 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
             )
 
+        # Create repo if it doesn't exist
+        api = HfApi(endpoint=config.HF_ENDPOINT)
+        repo_url = create_repo(
+            hf_api=api,
+            repo_id=repo_id,
+            token=token,
+            exist_ok=True,
+            repo_type='dataset'
+        )
+        repo_id = repo_url.repo_id
+
+        # Try to find PR branch if branch is supplied
+        pr_branch_found = False
+        if create_pr and branch is not None:
+            for discussion in get_repo_discussions(repo_id, repo_type='dataset'):
+                if discussion.is_pull_request and discussion.git_reference == branch:
+                    create_pr = False
+                    pr_branch_found = True
+                    break
+            if not pr_branch_found:
+                raise ValueError("Provided branch not found")
+        
+        if create_pr:
+            pr = create_pull_request(
+                repo_id,
+                repo_type='dataset',
+                title=f'Add {repo_id} dataset',
+                token=token,
+            )
+            branch = pr.git_reference
+            create_pr = False
+
         repo_id, split, uploaded_size, dataset_nbytes, repo_files, deleted_size = self._push_parquet_shards_to_hub(
             repo_id=repo_id,
             split=split,
@@ -5200,7 +5232,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             info_to_dump._dump_info(buffer, pretty_print=True)
             buffer.write(b"}")
             hf_api_upload_file(
-                HfApi(endpoint=config.HF_ENDPOINT),
+                hf_api=api,
                 path_or_fileobj=buffer.getvalue(),
                 path_in_repo=config.DATASETDICT_INFOS_FILENAME,
                 repo_id=repo_id,
@@ -5217,7 +5249,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         else:
             readme_content = f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
         hf_api_upload_file(
-            HfApi(endpoint=config.HF_ENDPOINT),
+            hf_api=api,
             path_or_fileobj=dataset_metadata._to_readme(readme_content).encode(),
             path_in_repo="README.md",
             repo_id=repo_id,
