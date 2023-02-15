@@ -195,16 +195,8 @@ def upload_file(
     Several new parameters for huggingface_hub.HfApi.upload_file were introduced in 0.8.1 and some of them were deprecated.
     """
     if create_pr is not None and version.parse(huggingface_hub.__version__) < version.parse("0.8.1"):
-        logger.warning(
-            "The `create_pr` parameter is only available for huggingface_hub>=0.8.0. Hence no pull request is created. Please upgrade huggingface_hub to >=0.8.0 to create a pull request."
-        )
-        return hf_api.upload_file(
-            path_or_fileobj=path_or_fileobj,
-            path_in_repo=path_in_repo,
-            repo_id=repo_id,
-            token=token,
-            repo_type=repo_type,
-            revision=revision,
+        raise TypeError(
+            "The `create_pr` parameter is not supported in huggingface_hub<0.8.1. Please update huggingface_hub to >=0.8.1 to use this parameter, or exclude `create_pr` from the keyword arguments."
         )
     else:
         return hf_api.upload_file(
