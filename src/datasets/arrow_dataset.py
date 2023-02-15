@@ -3916,8 +3916,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if num_proc is None or num_proc == 1:
             return self._reduce_single(
                 function=function,
-                with_indices=with_indices,
-                with_rank=with_rank,
                 input_columns=input_columns,
                 batched=batched,
                 batch_size=batch_size,
@@ -3950,8 +3948,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 dict(
                     self=shards[rank],
                     function=function,
-                    with_indices=with_indices,
-                    with_rank=with_rank,
                     input_columns=input_columns,
                     batched=batched,
                     batch_size=batch_size,
