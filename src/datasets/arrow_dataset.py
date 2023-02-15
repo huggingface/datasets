@@ -3044,406 +3044,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 result._fingerprint = new_fingerprint
             return result
 
-    def reduce(
-        self,
-        function: Optional[Callable] = None,
-        input_columns: Optional[Union[str, List[str]]] = None,
-        batched: bool = False,
-        batch_size: Optional[int] = 1000,
-        drop_last_batch: bool = False,
-        keep_in_memory: bool = False,
-        load_from_cache_file: bool = None,
-        cache_file_name: Optional[str] = None,
-        fn_kwargs: Optional[dict] = None,
-        num_proc: Optional[int] = None,
-        new_fingerprint: Optional[str] = None,
-        desc: Optional[str] = None,
-    ) -> "Dataset":
-        """
-        Reduce the examples in the table (individually or in batches) using a binary operation and return the result.
-        
-        The function should be a binary operation, i.e. it takes in 2 objects of the same type in and returns 1 object of the same type as the inputs.
-        Examples include addition, multiplication, maximum, minimum, etc. for `int`, `float`, `bool` and `str` types, and concatenation for `list` types.
-        The first input is the accumulant, which is the result of the previous application of the function on the previous examples, and the second input is the current example.
-        Args:
-            function (`Callable`): Function with the following signature:
-                `function(accumulant: Any, example: Any) -> Any`
-
-                If no function is provided, default to identity function: `lambda x, y: x`, i.e. the first example is returned.
-            input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`):
-                The columns to be passed into `function`
-                as positional arguments. If `None`, a `dict` mapping to all formatted columns is passed as one argument.
-            batched (`bool`, defaults to `False`):
-                Provide batch of examples to `function`.
-            batch_size (`int`, *optional*, defaults to `1000`):
-                Number of examples per batch provided to `function` if `batched=True`.
-                If `batch_size <= 0` or `batch_size == None`, provide the full dataset as a single batch to `function`.
-            drop_last_batch (`bool`, defaults to `False`):
-                Whether a last batch smaller than the batch_size should be
-                dropped instead of being processed by the function.
-            keep_in_memory (`bool`, defaults to `False`):
-                Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True` if caching is enabled):
-                If a cache file storing the current computation from `function`
-                can be identified, use it instead of recomputing.
-            cache_file_name (`str`, *optional*, defaults to `None`):
-                Provide the name of a path for the cache file. It is used to store the
-                results of the computation instead of the automatically generated cache file name.
-            fn_kwargs (`Dict`, *optional*, defaults to `None`):
-                Keyword arguments to be passed to `function`.
-            num_proc (`int`, *optional*, defaults to `None`):
-                Max number of processes when generating cache. Already cached shards are loaded sequentially.
-            new_fingerprint (`str`, *optional*, defaults to `None`):
-                The new fingerprint of the dataset after transform.
-                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
-            desc (`str`, *optional*, defaults to `None`):
-                Meaningful description to be displayed alongside with the progress bar while mapping examples.
-
-        Example:
-
-        ```py
-        >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
-        >>> str_concat = lambda accumulant, example: accumulant + ' ' + example
-        >>> result = ds[0:3].reduce(str_concat, input_columns="text")
-        >>> result
-        'Review: compassionately explores the seemingly irreconcilable situation between conservative christian parents and their estranged gay and lesbian children . Review: the soundtrack alone is worth the price of admission . Review: rodriguez does a splendid job of racial profiling hollywood style--casting excellent latin actors of all ages--a trend long overdue .'
-
-        # process a batch of examples
-        >>> result = ds.reduce(str_concat, input_columns="text", batched=True)
-        
-        # set number of processors
-        >>> result = ds.reduce(str_concat, input_columns="text", num_proc=4)
-        ```
-        """
-        if keep_in_memory and cache_file_name is not None:
-            raise ValueError("Please use either `keep_in_memory` or `cache_file_name` but not both.")
-
-        if num_proc is not None and num_proc <= 0:
-            raise ValueError("num_proc must be an integer > 0.")
-
-        # If the array is empty we do nothing (but we make sure to handle an empty indices mapping and remove the requested columns anyway)
-        if len(self) == 0:
-            if self._indices is not None:  # empty indices mapping
-                self = Dataset(
-                    self.data.slice(0, 0),
-                    info=self.info.copy(),
-                    split=self.split,
-                    fingerprint=new_fingerprint,
-                )
-            else:
-                return self
-
-        if function is None:
-            function = lambda x, y: x  # noqa: E731
-
-        if isinstance(input_columns, str):
-            input_columns = [input_columns]
-
-        if input_columns is not None:
-            for input_column in input_columns:
-                if input_column not in self._data.column_names:
-                    raise ValueError(
-                        f"Input column {input_column} not in the dataset. Current columns in the dataset: {self._data.column_names}"
-                    )
-
-        load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
-
-        if fn_kwargs is None:
-            fn_kwargs = {}
-
-        if num_proc is not None and num_proc > len(self):
-            num_proc = len(self)
-            logger.warning(
-                f"num_proc must be <= {len(self)}. Reducing num_proc to {num_proc} for dataset of size {len(self)}."
-            )
-
-        disable_tqdm = not logging.is_progress_bar_enabled()
-
-        if num_proc is None or num_proc == 1:
-            return self._reduce_single(
-                function=function,
-                input_columns=input_columns,
-                batched=batched,
-                batch_size=batch_size,
-                drop_last_batch=drop_last_batch,
-                fn_kwargs=fn_kwargs,
-                disable_tqdm=disable_tqdm,
-                desc=desc,
-            )
-        else:
-            prev_env = deepcopy(os.environ)
-            # check if parallelism if off
-            # from https://github.com/huggingface/tokenizers/blob/bb668bc439dc34389b71dbb8ce0c597f15707b53/tokenizers/src/utils/parallelism.rs#L22
-            if prev_env.get("TOKENIZERS_PARALLELISM", "false").lower() not in (
-                "",
-                "off",
-                "false",
-                "f",
-                "no",
-                "n",
-                "0",
-            ):
-                logger.warning("Setting TOKENIZERS_PARALLELISM=false for forked processes.")
-            os.environ["TOKENIZERS_PARALLELISM"] = "false"
-            initargs, initializer = None, None
-            shards = [
-                self.shard(num_shards=num_proc, index=rank, contiguous=True, keep_in_memory=keep_in_memory)
-                for rank in range(num_proc)
-            ]
-            kwds_per_shard = [
-                dict(
-                    self=shards[rank],
-                    function=function,
-                    input_columns=input_columns,
-                    batched=batched,
-                    batch_size=batch_size,
-                    drop_last_batch=drop_last_batch,
-                    fn_kwargs=fn_kwargs,
-                    rank=rank,
-                    disable_tqdm=disable_tqdm,
-                    desc=desc,
-                )
-                for rank in range(num_proc)
-            ]
-
-            # We search for already cached shards
-            def catch_non_existent_error(func, kwargs):
-                try:
-                    return func(**kwargs)
-                except NonExistentDatasetError:
-                    return None
-
-            reduced_shards = [
-                catch_non_existent_error(self.__class__._reduce_single, dict(**kwds))
-                for kwds in kwds_per_shard
-            ]
-
-            # We try to create a pool with as many workers as dataset not yet cached.
-            nb_of_missing_shards = reduced_shards.count(None)
-            if nb_of_missing_shards > 0:
-                with Pool(nb_of_missing_shards, initargs=initargs, initializer=initializer) as pool:
-                    os.environ = prev_env
-                    logger.info(f"Spawning {num_proc} processes")
-                    results = {
-                        i: pool.apply_async(self.__class__._reduce_single, kwds=kwds)
-                        for i, (kwds, cached_shard) in enumerate(zip(kwds_per_shard, reduced_shards))
-                        if cached_shard is None
-                    }
-                    assert (
-                        len(results) == nb_of_missing_shards
-                    ), "The number of missing cached shards needs to correspond to the number of `_map_single` we're running"
-
-                    for index, async_result in results.items():
-                        reduced_shards[index] = async_result.get()
-
-            assert (
-                reduced_shards.count(None) == 0
-            ), "All shards have to be defined Datasets, none should still be missing."
-
-            logger.info(f"Concatenating {num_proc} shards")
-            accumulant_shard = reduced_shards[0]
-            for reduced_shard in reduced_shards[1:]:
-                for key in accumulant_shard.keys():
-                    accumulant_shard[key] = function(accumulant_shard.get(key, 0), reduced_shard[key], **fn_kwargs)
-
-            if new_fingerprint is not None:
-                accumulant_shard._fingerprint = new_fingerprint
-            return accumulant_shard
-
-
-    def _reduce_single(
-        self,
-        function: Optional[Callable] = None,
-        input_columns: Optional[List[str]] = None,
-        batched: bool = False,
-        batch_size: Optional[int] = 1000,
-        drop_last_batch: bool = False,
-        fn_kwargs: Optional[dict] = None,
-        rank: Optional[int] = None,
-        disable_tqdm: bool = False,
-        desc: Optional[str] = None,
-    ) -> "Dataset":
-        """
-        Reduce the examples in the table (individually or in batches) using a binary operation and return the result.
-
-        The function should be a binary operation, i.e. it takes in 2 objects of the same type in and returns 1 object of the same type as the inputs.
-        Examples include addition, multiplication, maximum, minimum, etc. for `int`, `float`, `bool` and `str` types, and concatenation for `list` types.
-        The first input is the accumulant, which is the result of the previous application of the function on the previous examples, and the second input is the current example.
-        Args:
-            function (`Callable`): Function with the following signatures:
-                `function(accumulant: Any, example: Any) -> Any`
-
-                If no function is provided, default to identity function: `lambda x, y: x`, i.e. the first example is returned.
-            input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`):
-                The columns to be passed into `function`
-                as positional arguments. If `None`, a `dict` mapping to all formatted columns is passed as one argument.
-            batched (`bool`, defaults to `False`):
-                Provide batch of examples to `function`.
-            batch_size (`int`, *optional*, defaults to `1000`):
-                Number of examples per batch provided to `function` if `batched=True`.
-                If `batch_size <= 0` or `batch_size == None`, provide the full dataset as a single batch to `function`.
-            drop_last_batch (`bool`, defaults to `False`):
-                Whether a last batch smaller than the batch_size should be
-                dropped instead of being processed by the function.
-            load_from_cache_file (`bool`, defaults to `True` if caching is enabled): If a cache file storing the current computation from `function`
-                can be identified, use it instead of recomputing.
-            cache_file_name (`str`, optional, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
-                results of the computation instead of the automatically generated cache file name.
-            features (`Optional[datasets.Features]`, defaults to `None`): Use a specific Features to store the cache file
-                instead of the automatically generated one.
-            fn_kwargs (`Dict`, optional, defaults to `None`): Keyword arguments to be passed to `function`
-            new_fingerprint (`str`, optional, defaults to `None`): the new fingerprint of the dataset after transform.
-                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
-            rank: (`int`, optional, defaults to `None`): If specified, this is the process rank when doing multiprocessing
-            disable_tqdm (`bool`, defaults to `False`): Whether to silence tqdm's output.
-            desc (`str`, optional, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
-            cache_only (`bool`, defaults to `False`): Flag in order to notifiy the method will either find a cached dataset or raise `NonExistentDatasetError` exception,
-        """
-        # Reduce logging to keep things readable in multiprocessing with tqdm
-        if rank is not None and logging.get_verbosity() < logging.WARNING:
-            logging.set_verbosity_warning()
-        # Print at least one thing to fix tqdm in notebooks in multiprocessing
-        # see https://github.com/tqdm/tqdm/issues/485#issuecomment-473338308
-        if rank is not None and not disable_tqdm and any("notebook" in tqdm_cls.__name__ for tqdm_cls in tqdm.__mro__):
-            print(" ", end="", flush=True)
-
-        if fn_kwargs is None:
-            fn_kwargs = {}
-
-        # If we do batch computation but no batch size is provided, default to the full dataset
-        if batched and (batch_size is None or batch_size <= 0):
-            batch_size = self.num_rows
-
-        format_kwargs = self._format_kwargs.copy()
-        # Lazy formatting is only available for the default format (None/python)
-        if not input_columns and self._format_type is None:
-            format_kwargs["lazy"] = True
-        input_formatter = get_formatter(
-            self._format_type,
-            features=self.features,
-            **format_kwargs,
-        )
-
-        def validate_function_output(processed_inputs):
-            """Validate output of the reduce function."""
-            input_types_fit_accumulant_types = all(
-                type(processed_inputs[col]) == accumulant_value_types[col] for col in processed_inputs.keys()
-            )
-                
-            if not input_types_fit_accumulant_types:
-                raise TypeError(
-                    f"Provided `function` does not return the same type as the type of the inputs, make sure `function` has signature `function(accumulant: Any, update_value: Any) -> Any`."
-                )
-
-        def apply_function_on_filtered_inputs_and_accumulant(update_value, accumulant):
-            """Utility to apply the function on a selection of columns."""
-            element = format_table(
-                update_value,
-                0 if not batched else range(update_value.num_rows),
-                format_columns=input_columns,
-                formatter=input_formatter,
-            )
-            for key, value in element.items():
-                try:
-                    if batched:
-                        for i in range(len(value)):
-                            accumulant[key] = function(accumulant.get(key, 0), value[i], **fn_kwargs)
-                    else:
-                        accumulant[key] = function(accumulant.get(key, 0), value, **fn_kwargs)
-                except TypeError as e:
-                    raise TypeError(
-                        f"An error occurred while applying the function on the column {key}.\n"
-                        "Please make sure that the function has the following signature:\n"
-                        "function(accumulant: Any, update_value: Any, *args, **kwargs) -> Any\n"
-                        f"Error: {e}"
-                    )
-            
-            validate_function_output(accumulant)
-            return accumulant
-
-        # Optionally initialize the writer as a context manager
-        with contextlib.ExitStack() as stack:
-            try:
-                input_dataset = self.with_format("arrow")
-
-                # Loop over single examples or batches and write to buffer/file if examples are to be updated
-                if not batched:
-                    pbar_total = len(input_dataset)
-                    pbar_iterable = enumerate(input_dataset)
-                else:
-                    num_rows = (
-                        len(input_dataset) if not drop_last_batch else len(input_dataset) // batch_size * batch_size
-                    )
-                    pbar_total = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
-                    pbar_iterable = zip(
-                        range(0, num_rows, batch_size),
-                        input_dataset.iter(batch_size, drop_last_batch=drop_last_batch),
-                    )
-                pbar_unit = "ex" if not batched else "ba"
-                pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
-                pbar = logging.tqdm(
-                    pbar_iterable,
-                    total=pbar_total,
-                    disable=disable_tqdm,
-                    position=rank,
-                    unit=pbar_unit,
-                    desc=pbar_desc,
-                )
-                # If we're not working in batches, the first example is used to initialize the accumulant
-                if not batched:
-                    accumulant = None
-                    for i, example in pbar:
-                        if accumulant is None: 
-                            accumulant = format_table(
-                                example,
-                                0,
-                                format_columns=input_columns,
-                                formatter=input_formatter,
-                            )
-                            # Get the value types of the accumulant for later type checking
-                            accumulant_value_types = {k:type(v) for k, v in accumulant.items()}
-                            continue
-
-                        accumulant = apply_function_on_filtered_inputs_and_accumulant(example, accumulant)
-
-                # If we're working in batches, the first batch is used to initialize the accumulant as a dict
-                # with the same keys as the batch and empty values of the same type as the batch values
-                else:
-                    accumulant = None
-                    for i, batch in pbar:
-                        if accumulant is None:
-
-                            # Create the empty accumulant
-                            formatted_table = format_table(
-                                batch,
-                                0,
-                                format_columns=input_columns,
-                                formatter=input_formatter,
-                            )
-                            accumulant = {
-                                k:type(v)() for k, v in formatted_table.items()
-                            }
-
-                            # Get the value types of the accumulant for later type checking
-                            accumulant_value_types = {k:type(v) for k, v in accumulant.items()}
-
-                            # Apply the function on the first batch, with the empty accumulant
-                            accumulant = apply_function_on_filtered_inputs_and_accumulant(
-                                batch,
-                                accumulant,
-                            )
-                            continue
-
-                        accumulant += apply_function_on_filtered_inputs_and_accumulant(
-                            batch,
-                            accumulant,
-                        )
-                        
-            except (Exception, KeyboardInterrupt):
-                raise
-        return accumulant
-
     @staticmethod
     def _map_single(
         shard: "Dataset",
@@ -3756,8 +3356,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def reduce(
         self,
         function: Optional[Callable] = None,
-        with_indices: bool = False,
-        with_rank: bool = False,
         input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
@@ -3769,7 +3367,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         num_proc: Optional[int] = None,
         new_fingerprint: Optional[str] = None,
         desc: Optional[str] = None,
-    ) -> "Dataset":
+    ) -> Dict[str, Any]:
         """
         Reduce the examples in the table (individually or in batches) using a binary operation and return the result.
         
@@ -3777,18 +3375,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Examples include addition, multiplication, maximum, minimum, etc. for `int`, `float`, `bool` and `str` types, and concatenation for `list` types.
         The first input is the accumulant, which is the result of the previous application of the function on the previous examples, and the second input is the current example.
         Args:
-            function (`Callable`): Function with the following signatures:
-
-                - `function(accumulant: Any, example: Any) -> Any` if `with_indices=False` and `with_rank=False`
-                - `function(accumulant: Any, example: Any, *extra_args) -> Any` if `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+            function (`Callable`): Function with the following signature:
+                `function(accumulant: Any, example: Any) -> Any`
 
                 If no function is provided, default to identity function: `lambda x, y: x`, i.e. the first example is returned.
-            with_indices (`bool`, defaults to `False`):
-                Provide example indices to `function`. Note that in this case the
-                signature of `function` should be `def function(accumulant, example, idx[, rank]): ...`.
-            with_rank (`bool`, defaults to `False`):
-                Provide process rank to `function`. Note that in this case the
-                signature of `function` should be `def function(accumulant, example[, idx], rank): ...`.
             input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`):
                 The columns to be passed into `function`
                 as positional arguments. If `None`, a `dict` mapping to all formatted columns is passed as one argument.
@@ -3934,7 +3524,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     return None
 
             reduced_shards = [
-                catch_non_existent_error(self.__class__._reduce_single, dict(cache_only=True, **kwds))
+                catch_non_existent_error(self.__class__._reduce_single, dict(**kwds))
                 for kwds in kwds_per_shard
             ]
 
@@ -3970,7 +3560,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 accumulant_shard._fingerprint = new_fingerprint
             return accumulant_shard
 
-
     def _reduce_single(
         self,
         function: Optional[Callable] = None,
@@ -3982,7 +3571,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         rank: Optional[int] = None,
         disable_tqdm: bool = False,
         desc: Optional[str] = None,
-    ) -> "Dataset":
+    ) -> Dict[str, Any]:
         """
         Reduce the examples in the table (individually or in batches) using a binary operation and return the result.
 
@@ -4018,7 +3607,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             offset: (`int`, defaults to 0): If specified, this is an offset applied to the indices passed to `function` if `with_indices=True`.
             disable_tqdm (`bool`, defaults to `False`): Whether to silence tqdm's output.
             desc (`str`, optional, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
-            cache_only (`bool`, defaults to `False`): Flag in order to notifiy the method will either find a cached dataset or raise `NonExistentDatasetError` exception,
         """
         # Reduce logging to keep things readable in multiprocessing with tqdm
         if rank is not None and logging.get_verbosity() < logging.WARNING:
