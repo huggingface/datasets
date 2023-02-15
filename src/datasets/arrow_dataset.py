@@ -3580,7 +3580,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         The first input is the accumulant, which is the result of the previous application of the function on the previous examples, and the second input is the current example.
         Args:
             function (`Callable`): Function with the following signature:
-                `function(accumulant: Any, example: Any) -> Any` if `with_indices=False` and `with_rank=False`
+                `function(accumulant: Any, example: Any) -> Any`
 
                 If no function is provided, default to identity function: `lambda x, y: x`, i.e. the first example is returned.
             input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`):
@@ -3594,17 +3594,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             drop_last_batch (`bool`, defaults to `False`):
                 Whether a last batch smaller than the batch_size should be
                 dropped instead of being processed by the function.
-            load_from_cache_file (`bool`, defaults to `True` if caching is enabled): If a cache file storing the current computation from `function`
-                can be identified, use it instead of recomputing.
-            cache_file_name (`str`, optional, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
-                results of the computation instead of the automatically generated cache file name.
-            features (`Optional[datasets.Features]`, defaults to `None`): Use a specific Features to store the cache file
-                instead of the automatically generated one.
             fn_kwargs (`Dict`, optional, defaults to `None`): Keyword arguments to be passed to `function`
-            new_fingerprint (`str`, optional, defaults to `None`): the new fingerprint of the dataset after transform.
-                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
             rank: (`int`, optional, defaults to `None`): If specified, this is the process rank when doing multiprocessing
-            offset: (`int`, defaults to 0): If specified, this is an offset applied to the indices passed to `function` if `with_indices=True`.
             disable_tqdm (`bool`, defaults to `False`): Whether to silence tqdm's output.
             desc (`str`, optional, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
         """
