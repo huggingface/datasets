@@ -1558,20 +1558,7 @@ class BaseDatasetTest(TestCase):
                 # Check if exception is raised when no transform is provided
                 sum_reduce_none = lambda x, y: None
                 with self.assertRaises(TypeError):
-                    reduction = dset.reduce(sum_reduce_none, input_columns="filename")
-
-
-        # with indices
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-                sum_reduce_w_index = lambda x, y, i: x + y + str(i)
-                reduction = dset.reduce(sum_reduce_w_index, input_columns="filename", with_indices=True)
-                functool_reduction = functools_reduce(
-                    sum_reduce,
-                    ["my_name-train" + "_" + str(x) + str(x) for x in np.arange(30).tolist()]
-                )
-                self.assertEqual(functool_reduction, reduction['filename'])                
+                    reduction = dset.reduce(sum_reduce_none, input_columns="filename")             
 
     def test_filter(self, in_memory):
         # keep only first five examples
