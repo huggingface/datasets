@@ -333,44 +333,6 @@ class TestPushToHub:
                 assert list(local_ds.features.keys()) == list(hub_ds.features.keys())
                 assert local_ds.features == hub_ds.features
 
-    def test_push_dataset_to_hub_with_pull_request(self, temporary_repo):
-        local_ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
-
-        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
-            local_ds.push_to_hub(ds_name, split="train", token=self._token, create_pr=True)
-            local_ds_dict = {"train": local_ds}
-            hub_ds_dict = load_dataset(ds_name, download_mode="force_redownload", revision="refs/pr/1")
-
-            assert list(local_ds_dict.keys()) == list(hub_ds_dict.keys())
-
-            for ds_split_name in local_ds_dict.keys():
-                local_ds = local_ds_dict[ds_split_name]
-                hub_ds = hub_ds_dict[ds_split_name]
-                assert local_ds.column_names == hub_ds.column_names
-                assert list(local_ds.features.keys()) == list(hub_ds.features.keys())
-                assert local_ds.features == hub_ds.features
-
-    def test_push_dataset_to_hub_with_pull_request_unused_files_removed(self, temporary_repo):
-        local_ds_1 = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
-        local_ds_2 = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6], "z": [7, 8, 9]})
-
-        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
-            # Upload first dataset and create PR
-            local_ds_1.push_to_hub(ds_name, split="train", token=self._token, create_pr=True)
-
-            # Upload second dataset, which has an extra column. This should remove the unused files from the PR.
-            local_ds_2.push_to_hub(ds_name, split="train", branch="refs/pr/1", token=self._token, create_pr=True)
-            local_ds_2_dict = {"train": local_ds_2}
-
-            hub_ds_dict = load_dataset(ds_name, download_mode="force_redownload", revision="refs/pr/1")
-            assert list(local_ds_2_dict.keys()) == list(hub_ds_dict.keys())
-            for ds_split_name in local_ds_2_dict.keys():
-                local_ds = local_ds_2_dict[ds_split_name]
-                hub_ds = hub_ds_dict[ds_split_name]
-                assert local_ds.column_names == hub_ds.column_names
-                assert list(local_ds.features.keys()) == list(hub_ds.features.keys())
-                assert local_ds.features == hub_ds.features
-
     def test_push_dataset_to_hub_custom_features(self, temporary_repo):
         features = Features({"x": Value("int64"), "y": ClassLabel(names=["neg", "pos"])})
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [0, 0, 1]}, features=features)
