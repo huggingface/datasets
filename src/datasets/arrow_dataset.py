@@ -57,6 +57,7 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 from huggingface_hub import HfApi, HfFolder, get_repo_discussions, create_pull_request
+from huggingface_hub.utils import RepositoryNotFoundError
 from multiprocess import Pool, RLock
 from requests import HTTPError
 from tqdm.auto import tqdm
@@ -5127,14 +5128,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # Create repo if it doesn't exist
         api = HfApi(endpoint=config.HF_ENDPOINT)
-        repo_url = create_repo(
-            hf_api=api,
-            repo_id=repo_id,
-            token=token,
-            exist_ok=True,
-            repo_type='dataset'
-        )
-        repo_id = repo_url.repo_id
+        try:
+            api.repo_info(repo_id, token=token)
+        except RepositoryNotFoundError:
+            repo_url = create_repo(
+                hf_api=api,
+                repo_id=repo_id,
+                token=token,
+                exist_ok=True,
+                repo_type='dataset'
+            )
+            repo_id = repo_url.repo_id
 
         # Try to find PR branch if branch is supplied
         pr_branch_found = False
@@ -5142,9 +5146,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             for discussion in get_repo_discussions(repo_id, repo_type='dataset'):
                 if discussion.is_pull_request and discussion.git_reference == branch:
                     create_pr = False
-                    pr_branch_found = True
                     break
-            if not pr_branch_found:
+            else:
                 raise ValueError("Provided branch not found")
         
         if create_pr:
