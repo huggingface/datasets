@@ -5061,7 +5061,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if data_file.startswith(f"data/{split}-") and data_file not in shards_path_in_repo
         ]
         deleted_size = sum(
-            xgetsize(hf_hub_url(repo_id, data_file, revision=branch), use_auth_token=token) for data_file in data_files_to_delete
+            xgetsize(hf_hub_url(repo_id, data_file, revision=branch), use_auth_token=token)
+            for data_file in data_files_to_delete
         )
 
         def delete_file(file):
@@ -5152,29 +5153,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         try:
             api.repo_info(repo_id, token=token)
         except RepositoryNotFoundError:
-            repo_url = create_repo(
-                hf_api=api,
-                repo_id=repo_id,
-                token=token,
-                exist_ok=True,
-                repo_type='dataset'
-            )
+            repo_url = create_repo(hf_api=api, repo_id=repo_id, token=token, exist_ok=True, repo_type="dataset")
             repo_id = repo_url.repo_id
 
         # Try to find PR branch if branch is supplied
         if create_pr and branch is not None:
-            for discussion in get_repo_discussions(repo_id, repo_type='dataset'):
+            for discussion in get_repo_discussions(repo_id, repo_type="dataset"):
                 if discussion.is_pull_request and discussion.git_reference == branch:
                     create_pr = False
                     break
             else:
                 raise ValueError("Provided branch not found")
-        
+
         if create_pr:
             pr = create_pull_request(
                 repo_id,
-                repo_type='dataset',
-                title=f'Add {repo_id} dataset',
+                repo_type="dataset",
+                title=f"Add {repo_id} dataset",
                 token=token,
             )
             branch = pr.git_reference
