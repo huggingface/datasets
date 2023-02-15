@@ -361,6 +361,7 @@ class TestPushToHub:
                 repo_id=ds_name,
                 title="Test PR",
                 token=self._token,
+                repo_type="dataset",
             )
 
 
