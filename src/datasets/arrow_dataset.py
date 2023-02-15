@@ -3047,8 +3047,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def reduce(
         self,
         function: Optional[Callable] = None,
-        with_indices: bool = False,
-        with_rank: bool = False,
         input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
@@ -3068,18 +3066,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Examples include addition, multiplication, maximum, minimum, etc. for `int`, `float`, `bool` and `str` types, and concatenation for `list` types.
         The first input is the accumulant, which is the result of the previous application of the function on the previous examples, and the second input is the current example.
         Args:
-            function (`Callable`): Function with the following signatures:
-
-                - `function(accumulant: Any, example: Any) -> Any` if `with_indices=False` and `with_rank=False`
-                - `function(accumulant: Any, example: Any, *extra_args) -> Any` if `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+            function (`Callable`): Function with the following signature:
+                `function(accumulant: Any, example: Any) -> Any` if `with_indices=False` and `with_rank=False`
 
                 If no function is provided, default to identity function: `lambda x, y: x`, i.e. the first example is returned.
-            with_indices (`bool`, defaults to `False`):
-                Provide example indices to `function`. Note that in this case the
-                signature of `function` should be `def function(accumulant, example, idx[, rank]): ...`.
-            with_rank (`bool`, defaults to `False`):
-                Provide process rank to `function`. Note that in this case the
-                signature of `function` should be `def function(accumulant, example[, idx], rank): ...`.
             input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`):
                 The columns to be passed into `function`
                 as positional arguments. If `None`, a `dict` mapping to all formatted columns is passed as one argument.
@@ -3173,8 +3163,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if num_proc is None or num_proc == 1:
             return self._reduce_single(
                 function=function,
-                with_indices=with_indices,
-                with_rank=with_rank,
                 input_columns=input_columns,
                 batched=batched,
                 batch_size=batch_size,
@@ -3210,8 +3198,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 dict(
                     self=shards[rank],
                     function=function,
-                    with_indices=with_indices,
-                    with_rank=with_rank,
                     input_columns=input_columns,
                     batched=batched,
                     batch_size=batch_size,
@@ -3956,9 +3942,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 logger.warning("Setting TOKENIZERS_PARALLELISM=false for forked processes.")
             os.environ["TOKENIZERS_PARALLELISM"] = "false"
             initargs, initializer = None, None
-            if not disable_tqdm:
-                initargs, initializer = (RLock(),), tqdm.set_lock
-
             shards = [
                 self.shard(num_shards=num_proc, index=rank, contiguous=True, keep_in_memory=keep_in_memory)
                 for rank in range(num_proc)
@@ -3975,7 +3958,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     drop_last_batch=drop_last_batch,
                     fn_kwargs=fn_kwargs,
                     rank=rank,
-                    offset=sum(len(s) for s in shards[:rank]),
                     disable_tqdm=disable_tqdm,
                     desc=desc,
                 )
@@ -4030,15 +4012,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def _reduce_single(
         self,
         function: Optional[Callable] = None,
-        with_indices: bool = False,
-        with_rank: bool = False,
         input_columns: Optional[List[str]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
         fn_kwargs: Optional[dict] = None,
         rank: Optional[int] = None,
-        offset: int = 0,
         disable_tqdm: bool = False,
         desc: Optional[str] = None,
     ) -> "Dataset":
@@ -4049,18 +4028,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Examples include addition, multiplication, maximum, minimum, etc. for `int`, `float`, `bool` and `str` types, and concatenation for `list` types.
         The first input is the accumulant, which is the result of the previous application of the function on the previous examples, and the second input is the current example.
         Args:
-            function (`Callable`): Function with the following signatures:
-
-                - `function(accumulant: Any, example: Any) -> Any` if `with_indices=False` and `with_rank=False`
-                - `function(accumulant: Any, example: Any, *extra_args) -> Any` if `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+            function (`Callable`): Function with the following signature:
+                `function(accumulant: Any, example: Any) -> Any` if `with_indices=False` and `with_rank=False`
 
                 If no function is provided, default to identity function: `lambda x, y: x`, i.e. the first example is returned.
-            with_indices (`bool`, defaults to `False`):
-                Provide example indices to `function`. Note that in this case the
-                signature of `function` should be `def function(example, idx[, rank]): ...`.
-            with_rank (`bool`, defaults to `False`):
-                Provide process rank to `function`. Note that in this case the
-                signature of `function` should be `def function(example[, idx], rank): ...`.
             input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`):
                 The columns to be passed into `function`
                 as positional arguments. If `None`, a `dict` mapping to all formatted columns is passed as one argument.
@@ -4112,7 +4083,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             **format_kwargs,
         )
 
-        def validate_function_output(processed_inputs, indices):
+        def validate_function_output(processed_inputs):
             """Validate output of the reduce function."""
             input_types_fit_accumulant_types = all(
                 type(processed_inputs[col]) == accumulant_value_types[col] for col in processed_inputs.keys()
@@ -4123,7 +4094,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     f"Provided `function` does not return the same type as the type of the inputs, make sure `function` has signature `function(accumulant: Any, update_value: Any) -> Any`."
                 )
 
-        def apply_function_on_filtered_inputs_and_accumulant(update_value, accumulant, indices, offset=0):
+        def apply_function_on_filtered_inputs_and_accumulant(update_value, accumulant):
             """Utility to apply the function on a selection of columns."""
             element = format_table(
                 update_value,
@@ -4131,22 +4102,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 format_columns=input_columns,
                 formatter=input_formatter,
             )
-            if offset == 0:
-                effective_indices = indices
-            else:
-                effective_indices = [i + offset for i in indices] if isinstance(indices, list) else indices + offset
-            additional_args = ()
-            if with_indices:
-                additional_args += (effective_indices,)
-            if with_rank:
-                additional_args += (rank,)
             for key, value in element.items():
                 try:
                     if batched:
                         for i in range(len(value)):
-                            accumulant[key] = function(accumulant.get(key, 0), value[i], *additional_args, **fn_kwargs)
+                            accumulant[key] = function(accumulant.get(key, 0), value[i], **fn_kwargs)
                     else:
-                        accumulant[key] = function(accumulant.get(key, 0), value, *additional_args, **fn_kwargs)
+                        accumulant[key] = function(accumulant.get(key, 0), value, **fn_kwargs)
                 except TypeError as e:
                     raise TypeError(
                         f"An error occurred while applying the function on the column {key}.\n"
@@ -4155,7 +4117,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         f"Error: {e}"
                     )
             
-            validate_function_output(accumulant, indices)
+            validate_function_output(accumulant)
             return accumulant
 
         # Optionally initialize the writer as a context manager
@@ -4201,18 +4163,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             accumulant_value_types = {k:type(v) for k, v in accumulant.items()}
                             continue
 
-                        accumulant = apply_function_on_filtered_inputs_and_accumulant(example, accumulant, i, offset=offset)
+                        accumulant = apply_function_on_filtered_inputs_and_accumulant(example, accumulant, i)
 
                 # If we're working in batches, the first batch is used to initialize the accumulant as a dict
                 # with the same keys as the batch and empty values of the same type as the batch values
                 else:
                     accumulant = None
                     for i, batch in pbar:
-
-                        indices = list(
-                            range(*(slice(i, i + batch_size).indices(input_dataset.num_rows)))
-                        )  # Something simpler?
-
                         if accumulant is None:
 
                             # Create the empty accumulant
@@ -4233,16 +4190,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             accumulant = apply_function_on_filtered_inputs_and_accumulant(
                                 batch,
                                 accumulant,
-                                indices,
-                                offset=offset,
                             )
                             continue
 
                         accumulant += apply_function_on_filtered_inputs_and_accumulant(
                             batch,
                             accumulant,
-                            indices,
-                            offset=offset,
                         )
                         
             except (Exception, KeyboardInterrupt):
