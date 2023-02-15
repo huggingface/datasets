@@ -5,9 +5,11 @@ import time
 import unittest
 from pathlib import Path
 from unittest.mock import patch
+from packaging import version
 
 import numpy as np
 import pytest
+import huggingface_hub
 from huggingface_hub import HfApi
 from datasets.utils._hf_hub_fixes import upload_file as hf_api_upload_file
 from datasets import Audio, ClassLabel, Dataset, DatasetDict, Features, Image, Value, load_dataset
@@ -332,6 +334,35 @@ class TestPushToHub:
                 assert local_ds.column_names == hub_ds.column_names
                 assert list(local_ds.features.keys()) == list(hub_ds.features.keys())
                 assert local_ds.features == hub_ds.features
+
+    @pytest.mark.skipif(version.parse(huggingface_hub.__version__) < version.parse("0.8.1"), reason="Requires huggingface_hub>=0.8.1")
+    def test_push_dataset_to_hub_with_pull_request(self, temporary_repo):
+        local_ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            local_ds.push_to_hub(ds_name, split="train", token=self._token, create_pr=True)
+            local_ds_dict = {"train": local_ds}
+            hub_ds_dict = load_dataset(ds_name, download_mode="force_redownload", revision="refs/pr/1")
+
+            assert list(local_ds_dict.keys()) == list(hub_ds_dict.keys())
+
+            for ds_split_name in local_ds_dict.keys():
+                local_ds = local_ds_dict[ds_split_name]
+                hub_ds = hub_ds_dict[ds_split_name]
+                assert local_ds.column_names == hub_ds.column_names
+                assert list(local_ds.features.keys()) == list(hub_ds.features.keys())
+                assert local_ds.features == hub_ds.features
+
+    def test_test(self, temporary_repo):
+        local_ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            local_ds.push_to_hub(ds_name, split="train", token=self._token)
+            huggingface_hub.create_pull_request(
+                repo_id=ds_name,
+                title="Test PR",
+                token=self._token,
+            )
+
 
     def test_push_dataset_to_hub_custom_features(self, temporary_repo):
         features = Features({"x": Value("int64"), "y": ClassLabel(names=["neg", "pos"])})
