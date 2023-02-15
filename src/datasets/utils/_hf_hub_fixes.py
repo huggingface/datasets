@@ -194,7 +194,7 @@ def upload_file(
     """
     Several new parameters for huggingface_hub.HfApi.upload_file were introduced in 0.8.1 and some of them were deprecated.
     """
-    if version.parse(huggingface_hub.__version__) < version.parse("0.8.1"):
+    if create_pr is not None and version.parse(huggingface_hub.__version__) < version.parse("0.8.1"):
         logger.warning(
             "The `create_pr` parameter is only available for huggingface_hub>=0.8.0. Hence no pull request is created. Please upgrade huggingface_hub to >=0.8.0 to create a pull request."
         )
