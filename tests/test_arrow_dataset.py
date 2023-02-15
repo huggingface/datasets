@@ -1594,6 +1594,46 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(functool_reduction, reduction['filename'])
          
 
+    def test_map_batched(self, in_memory):
+        # standard
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                sum_reduce = lambda x, y: x + y
+                reduction = dset.reduce(sum_reduce, batched=True, input_columns="filename")
+                functool_reduction = functools_reduce(
+                    sum_reduce,
+                    ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]
+                )
+                self.assertEqual(functool_reduction, reduction['filename'])
+
+        # change batch size and drop the last batch
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                sum_reduce = lambda x, y: x + y
+                batch_size = len(dset) - 1 
+                reduction = dset.reduce(
+                    sum_reduce,
+                    batch_size=batch_size,
+                    batched=True,
+                    drop_last_batch=True,
+                    input_columns="filename",
+                )
+                functool_reduction = functools_reduce(
+                    sum_reduce,
+                    ["my_name-train" + "_" + str(x) for x in np.arange(batch_size).tolist()]
+                )
+                self.assertEqual(functool_reduction, reduction['filename'])
+
+        # formatted
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                dset.set_format("numpy", columns=["col_1"])
+                sum_reduce = lambda x, y: x + y
+                reduction = dset.reduce(sum_reduce, input_columns="col_1", batched=True)
+                self.assertEqual(reduction['col_1'], 6)
+
     def test_filter(self, in_memory):
         # keep only first five examples
 
