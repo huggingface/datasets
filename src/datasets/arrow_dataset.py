@@ -3655,10 +3655,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         keep_in_memory: bool = False,
         load_from_cache_file: bool = None,
         cache_file_name: Optional[str] = None,
-        features: Optional[Features] = None,
         fn_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
-        suffix_template: str = "_{rank:05d}_of_{num_proc:05d}",
         new_fingerprint: Optional[str] = None,
         desc: Optional[str] = None,
     ) -> "Dataset":
@@ -3677,10 +3675,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 If no function is provided, default to identity function: `lambda x, y: x`, i.e. the first example is returned.
             with_indices (`bool`, defaults to `False`):
                 Provide example indices to `function`. Note that in this case the
-                signature of `function` should be `def function(example, idx[, rank]): ...`.
+                signature of `function` should be `def function(accumulant, example, idx[, rank]): ...`.
             with_rank (`bool`, defaults to `False`):
                 Provide process rank to `function`. Note that in this case the
-                signature of `function` should be `def function(example[, idx], rank): ...`.
+                signature of `function` should be `def function(accumulant, example[, idx], rank): ...`.
             input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`):
                 The columns to be passed into `function`
                 as positional arguments. If `None`, a `dict` mapping to all formatted columns is passed as one argument.
@@ -3700,17 +3698,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             cache_file_name (`str`, *optional*, defaults to `None`):
                 Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
-            features (`Optional[datasets.Features]`, defaults to `None`):
-                Use a specific Features to store the cache file
-                instead of the automatically generated one.
             fn_kwargs (`Dict`, *optional*, defaults to `None`):
                 Keyword arguments to be passed to `function`.
             num_proc (`int`, *optional*, defaults to `None`):
                 Max number of processes when generating cache. Already cached shards are loaded sequentially.
-            suffix_template (`str`):
-                If `cache_file_name` is specified, then this suffix
-                will be added at the end of the base name of each. Defaults to `"_{rank:05d}_of_{num_proc:05d}"`. For example, if `cache_file_name` is "processed.arrow", then for
-                `rank=1` and `num_proc=4`, the resulting file would be `"processed_00001_of_00004.arrow"` for the default suffix.
             new_fingerprint (`str`, *optional*, defaults to `None`):
                 The new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
@@ -3787,26 +3778,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 batched=batched,
                 batch_size=batch_size,
                 drop_last_batch=drop_last_batch,
-                load_from_cache_file=load_from_cache_file,
-                cache_file_name=cache_file_name,
-                features=features,
                 fn_kwargs=fn_kwargs,
-                new_fingerprint=new_fingerprint,
                 disable_tqdm=disable_tqdm,
                 desc=desc,
             )
         else:
-
-            def format_cache_file_name(cache_file_name, rank):
-                sep = cache_file_name.rindex(".")
-                base_name, extension = cache_file_name[:sep], cache_file_name[sep:]
-                cache_file_name = base_name + suffix_template.format(rank=rank, num_proc=num_proc) + extension
-                logger.info(f"Process #{rank} will write at {cache_file_name}")
-                return cache_file_name
-
-            def format_new_fingerprint(new_fingerprint, rank):
-                return new_fingerprint + suffix_template.format(rank=rank, num_proc=num_proc)
-
             prev_env = deepcopy(os.environ)
             # check if parallelism if off
             # from https://github.com/huggingface/tokenizers/blob/bb668bc439dc34389b71dbb8ce0c597f15707b53/tokenizers/src/utils/parallelism.rs#L22
@@ -3839,18 +3815,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     batched=batched,
                     batch_size=batch_size,
                     drop_last_batch=drop_last_batch,
-                    load_from_cache_file=load_from_cache_file,
-                    cache_file_name=format_cache_file_name(cache_file_name, rank)
-                    if cache_file_name is not None
-                    else None,
-                    features=features.copy() if features is not None else None,
                     fn_kwargs=fn_kwargs,
                     rank=rank,
                     offset=sum(len(s) for s in shards[:rank]),
                     disable_tqdm=disable_tqdm,
-                    new_fingerprint=format_new_fingerprint(new_fingerprint, rank)
-                    if new_fingerprint is not None
-                    else None,
                     desc=desc,
                 )
                 for rank in range(num_proc)
@@ -3910,16 +3878,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
-        load_from_cache_file: bool = None,
-        cache_file_name: Optional[str] = None,
-        features: Optional[Features] = None,
         fn_kwargs: Optional[dict] = None,
-        new_fingerprint: Optional[str] = None,
         rank: Optional[int] = None,
         offset: int = 0,
         disable_tqdm: bool = False,
         desc: Optional[str] = None,
-        cache_only: bool = False,
     ) -> "Dataset":
         """
         Reduce the examples in the table (individually or in batches) using a binary operation and return the result.
@@ -3951,9 +3914,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             drop_last_batch (`bool`, defaults to `False`):
                 Whether a last batch smaller than the batch_size should be
                 dropped instead of being processed by the function.
-            remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
-                Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
-                columns with names in `remove_columns`, these columns will be kept.
             load_from_cache_file (`bool`, defaults to `True` if caching is enabled): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
             cache_file_name (`str`, optional, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
@@ -3983,23 +3943,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # If we do batch computation but no batch size is provided, default to the full dataset
         if batched and (batch_size is None or batch_size <= 0):
             batch_size = self.num_rows
-
-        # Check if we've already cached this computation (indexed by a hash)
-        if self.cache_files:
-            if cache_file_name is None:
-                # we create a unique hash from the function,
-                # current dataset file and the mapping args
-                cache_file_name = self._get_cache_file_path(new_fingerprint)
-            if os.path.exists(cache_file_name) and load_from_cache_file:
-                logger.warning(f"Loading cached processed dataset at {cache_file_name}")
-                info = self.info.copy()
-                info.features = features
-                info.task_templates = None
-                return Dataset.from_file(cache_file_name, info=info, split=self.split)
-
-        # Raise an error if we were supposed to return a cached dataset and none was found
-        if cache_only:
-            raise NonExistentDatasetError
 
         format_kwargs = self._format_kwargs.copy()
         # Lazy formatting is only available for the default format (None/python)
@@ -4089,7 +4032,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 if not batched:
                     accumulant = None
                     for i, example in pbar:
-                        if accumulant is None:
+                        if accumulant is None: 
                             accumulant = format_table(
                                 example,
                                 0,
