@@ -3047,31 +3047,50 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def reduce(
         self,
         function: Optional[Callable] = None,
-        with_indices: bool = False, # REMOVE
-        with_rank: bool = False, # REMOVE
+        with_indices: bool = False,
+        with_rank: bool = False,
         input_columns: Optional[Union[str, List[str]]] = None,
+        batched: bool = False,
+        batch_size: Optional[int] = 1000,
+        drop_last_batch: bool = False,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = None,
         cache_file_name: Optional[str] = None,
-        features: Optional[Features] = None,
         fn_kwargs: Optional[dict] = None,
+        num_proc: Optional[int] = None,
         new_fingerprint: Optional[str] = None,
         desc: Optional[str] = None,
-    ) -> Union[Dict[str, Any], "Dataset"]:
+    ) -> "Dataset":
         """
-        Reduce the columns in the table using a function and return the result.
-
+        Reduce the examples in the table (individually or in batches) using a binary operation and return the result.
         
-        The function should be a binary operation, i.e. it takes 2 values of the same type in and should return 1 value of the same type as the input. Examples include addition, multiplication, or string concatenation.
-
+        The function should be a binary operation, i.e. it takes in 2 objects of the same type in and returns 1 object of the same type as the inputs.
+        Examples include addition, multiplication, maximum, minimum, etc. for `int`, `float`, `bool` and `str` types, and concatenation for `list` types.
+        The first input is the accumulant, which is the result of the previous application of the function on the previous examples, and the second input is the current example.
         Args:
             function (`Callable`): Function with the following signatures:
-                - `function(accumulant: Any, update_value: Any) -> Any`
 
-                If no function is provided, default to identity function: `lambda x, y: x`.
+                - `function(accumulant: Any, example: Any) -> Any` if `with_indices=False` and `with_rank=False`
+                - `function(accumulant: Any, example: Any, *extra_args) -> Any` if `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+
+                If no function is provided, default to identity function: `lambda x, y: x`, i.e. the first example is returned.
+            with_indices (`bool`, defaults to `False`):
+                Provide example indices to `function`. Note that in this case the
+                signature of `function` should be `def function(accumulant, example, idx[, rank]): ...`.
+            with_rank (`bool`, defaults to `False`):
+                Provide process rank to `function`. Note that in this case the
+                signature of `function` should be `def function(accumulant, example[, idx], rank): ...`.
             input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`):
                 The columns to be passed into `function`
                 as positional arguments. If `None`, a `dict` mapping to all formatted columns is passed as one argument.
+            batched (`bool`, defaults to `False`):
+                Provide batch of examples to `function`.
+            batch_size (`int`, *optional*, defaults to `1000`):
+                Number of examples per batch provided to `function` if `batched=True`.
+                If `batch_size <= 0` or `batch_size == None`, provide the full dataset as a single batch to `function`.
+            drop_last_batch (`bool`, defaults to `False`):
+                Whether a last batch smaller than the batch_size should be
+                dropped instead of being processed by the function.
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True` if caching is enabled):
@@ -3080,17 +3099,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             cache_file_name (`str`, *optional*, defaults to `None`):
                 Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
-            writer_batch_size (`int`, defaults to `1000`):
-                Number of rows per write operation for the cache file writer.
-                This value is a good trade-off between memory usage during the processing, and processing speed.
-                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `map`.
-            features (`Optional[datasets.Features]`, defaults to `None`):
-                Use a specific Features to store the cache file
-                instead of the automatically generated one.
-            disable_nullable (`bool`, defaults to `False`):
-                Disallow null values in the table.
             fn_kwargs (`Dict`, *optional*, defaults to `None`):
                 Keyword arguments to be passed to `function`.
+            num_proc (`int`, *optional*, defaults to `None`):
+                Max number of processes when generating cache. Already cached shards are loaded sequentially.
             new_fingerprint (`str`, *optional*, defaults to `None`):
                 The new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
@@ -3102,24 +3114,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rotten_tomatoes", split="validation")
-        >>> def add_prefix(example):
-        ...     example["text"] = "Review: " + example["text"]
-        ...     return example
-        >>> ds = ds.map(add_prefix)
-        >>> ds[0:3]["text"]
-        ['Review: compassionately explores the seemingly irreconcilable situation between conservative christian parents and their estranged gay and lesbian children .',
-         'Review: the soundtrack alone is worth the price of admission .',
-         'Review: rodriguez does a splendid job of racial profiling hollywood style--casting excellent latin actors of all ages--a trend long overdue .']
+        >>> str_concat = lambda accumulant, example: accumulant + ' ' + example
+        >>> result = ds[0:3].reduce(str_concat, input_columns="text")
+        >>> result
+        'Review: compassionately explores the seemingly irreconcilable situation between conservative christian parents and their estranged gay and lesbian children . Review: the soundtrack alone is worth the price of admission . Review: rodriguez does a splendid job of racial profiling hollywood style--casting excellent latin actors of all ages--a trend long overdue .'
 
         # process a batch of examples
-        >>> ds = ds.map(lambda example: tokenizer(example["text"]), batched=True)
+        >>> result = ds.reduce(str_concat, input_columns="text", batched=True)
+        
         # set number of processors
-        >>> ds = ds.map(add_prefix, num_proc=4)
+        >>> result = ds.reduce(str_concat, input_columns="text", num_proc=4)
         ```
         """
         if keep_in_memory and cache_file_name is not None:
             raise ValueError("Please use either `keep_in_memory` or `cache_file_name` but not both.")
 
+        if num_proc is not None and num_proc <= 0:
+            raise ValueError("num_proc must be an integer > 0.")
 
         # If the array is empty we do nothing (but we make sure to handle an empty indices mapping and remove the requested columns anyway)
         if len(self) == 0:
@@ -3151,21 +3162,113 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if fn_kwargs is None:
             fn_kwargs = {}
 
+        if num_proc is not None and num_proc > len(self):
+            num_proc = len(self)
+            logger.warning(
+                f"num_proc must be <= {len(self)}. Reducing num_proc to {num_proc} for dataset of size {len(self)}."
+            )
+
         disable_tqdm = not logging.is_progress_bar_enabled()
 
-        return self._reduce_single(
-            function=function,
-            with_indices=with_indices,
-            with_rank=with_rank,
-            input_columns=input_columns,
-            load_from_cache_file=load_from_cache_file,
-            cache_file_name=cache_file_name,
-            features=features,
-            fn_kwargs=fn_kwargs,
-            new_fingerprint=new_fingerprint,
-            disable_tqdm=disable_tqdm,
-            desc=desc,
-        )
+        if num_proc is None or num_proc == 1:
+            return self._reduce_single(
+                function=function,
+                with_indices=with_indices,
+                with_rank=with_rank,
+                input_columns=input_columns,
+                batched=batched,
+                batch_size=batch_size,
+                drop_last_batch=drop_last_batch,
+                fn_kwargs=fn_kwargs,
+                disable_tqdm=disable_tqdm,
+                desc=desc,
+            )
+        else:
+            prev_env = deepcopy(os.environ)
+            # check if parallelism if off
+            # from https://github.com/huggingface/tokenizers/blob/bb668bc439dc34389b71dbb8ce0c597f15707b53/tokenizers/src/utils/parallelism.rs#L22
+            if prev_env.get("TOKENIZERS_PARALLELISM", "false").lower() not in (
+                "",
+                "off",
+                "false",
+                "f",
+                "no",
+                "n",
+                "0",
+            ):
+                logger.warning("Setting TOKENIZERS_PARALLELISM=false for forked processes.")
+            os.environ["TOKENIZERS_PARALLELISM"] = "false"
+            initargs, initializer = None, None
+            if not disable_tqdm:
+                initargs, initializer = (RLock(),), tqdm.set_lock
+
+            shards = [
+                self.shard(num_shards=num_proc, index=rank, contiguous=True, keep_in_memory=keep_in_memory)
+                for rank in range(num_proc)
+            ]
+            kwds_per_shard = [
+                dict(
+                    self=shards[rank],
+                    function=function,
+                    with_indices=with_indices,
+                    with_rank=with_rank,
+                    input_columns=input_columns,
+                    batched=batched,
+                    batch_size=batch_size,
+                    drop_last_batch=drop_last_batch,
+                    fn_kwargs=fn_kwargs,
+                    rank=rank,
+                    offset=sum(len(s) for s in shards[:rank]),
+                    disable_tqdm=disable_tqdm,
+                    desc=desc,
+                )
+                for rank in range(num_proc)
+            ]
+
+            # We search for already cached shards
+            def catch_non_existent_error(func, kwargs):
+                try:
+                    return func(**kwargs)
+                except NonExistentDatasetError:
+                    return None
+
+            reduced_shards = [
+                catch_non_existent_error(self.__class__._reduce_single, dict(cache_only=True, **kwds))
+                for kwds in kwds_per_shard
+            ]
+
+            # We try to create a pool with as many workers as dataset not yet cached.
+            nb_of_missing_shards = reduced_shards.count(None)
+            if nb_of_missing_shards > 0:
+                with Pool(nb_of_missing_shards, initargs=initargs, initializer=initializer) as pool:
+                    os.environ = prev_env
+                    logger.info(f"Spawning {num_proc} processes")
+                    results = {
+                        i: pool.apply_async(self.__class__._reduce_single, kwds=kwds)
+                        for i, (kwds, cached_shard) in enumerate(zip(kwds_per_shard, reduced_shards))
+                        if cached_shard is None
+                    }
+                    assert (
+                        len(results) == nb_of_missing_shards
+                    ), "The number of missing cached shards needs to correspond to the number of `_map_single` we're running"
+
+                    for index, async_result in results.items():
+                        reduced_shards[index] = async_result.get()
+
+            assert (
+                reduced_shards.count(None) == 0
+            ), "All shards have to be defined Datasets, none should still be missing."
+
+            logger.info(f"Concatenating {num_proc} shards")
+            accumulant_shard = reduced_shards[0]
+            for reduced_shard in reduced_shards[1:]:
+                for key in accumulant_shard.keys():
+                    accumulant_shard[key] = function(accumulant_shard.get(key, 0), reduced_shard[key], **fn_kwargs)
+
+            if new_fingerprint is not None:
+                accumulant_shard._fingerprint = new_fingerprint
+            return accumulant_shard
+
 
     def _reduce_single(
         self,
@@ -3173,34 +3276,45 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         with_indices: bool = False,
         with_rank: bool = False,
         input_columns: Optional[List[str]] = None,
-        load_from_cache_file: bool = None,
-        cache_file_name: Optional[str] = None,
-        features: Optional[Features] = None,
+        batched: bool = False,
+        batch_size: Optional[int] = 1000,
+        drop_last_batch: bool = False,
         fn_kwargs: Optional[dict] = None,
-        new_fingerprint: Optional[str] = None,
         rank: Optional[int] = None,
         offset: int = 0,
         disable_tqdm: bool = False,
         desc: Optional[str] = None,
-        cache_only: bool = False,
-    ) -> Dict[str, Any]:
-        """Apply a function to all the elements in the table (individually or in batches)
-        and update the table (if function does update examples).
+    ) -> "Dataset":
+        """
+        Reduce the examples in the table (individually or in batches) using a binary operation and return the result.
 
+        The function should be a binary operation, i.e. it takes in 2 objects of the same type in and returns 1 object of the same type as the inputs.
+        Examples include addition, multiplication, maximum, minimum, etc. for `int`, `float`, `bool` and `str` types, and concatenation for `list` types.
+        The first input is the accumulant, which is the result of the previous application of the function on the previous examples, and the second input is the current example.
         Args:
-            function (`Callable`): with one of the following signature:
-                - `function(accumulant: Any, update_value: Any) -> Any` if `batched=False` and `with_indices=False` and `with_rank=False`
-                - `function(example: Dict[str, Any], *extra_args) -> Dict[str, Any]` if `batched=False` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
-                - `function(batch: Dict[str, List]) -> Dict[str, List]` if `batched=True` and `with_indices=False` and `with_rank=False`
-                - `function(batch: Dict[str, List], *extra_args) -> Dict[str, List]` if `batched=True` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+            function (`Callable`): Function with the following signatures:
 
-                For advanced usage, the function can also return a `pyarrow.Table`.
-                Moreover if your function returns nothing (`None`), then `map` will run your function and return the dataset unchanged.
-                If no function is provided, default to identity function: lambda x: x
-            with_indices (`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx[, rank]): ...`.
-            with_rank (`bool`, default `False`): Provide process rank to `function`. Note that in this case the signature of `function` should be `def function(example[, idx], rank): ...`.
-            input_columns (`Optional[List[str]]`, defaults to `None`): The columns to be passed into `function` as
-                positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
+                - `function(accumulant: Any, example: Any) -> Any` if `with_indices=False` and `with_rank=False`
+                - `function(accumulant: Any, example: Any, *extra_args) -> Any` if `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+
+                If no function is provided, default to identity function: `lambda x, y: x`, i.e. the first example is returned.
+            with_indices (`bool`, defaults to `False`):
+                Provide example indices to `function`. Note that in this case the
+                signature of `function` should be `def function(example, idx[, rank]): ...`.
+            with_rank (`bool`, defaults to `False`):
+                Provide process rank to `function`. Note that in this case the
+                signature of `function` should be `def function(example[, idx], rank): ...`.
+            input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`):
+                The columns to be passed into `function`
+                as positional arguments. If `None`, a `dict` mapping to all formatted columns is passed as one argument.
+            batched (`bool`, defaults to `False`):
+                Provide batch of examples to `function`.
+            batch_size (`int`, *optional*, defaults to `1000`):
+                Number of examples per batch provided to `function` if `batched=True`.
+                If `batch_size <= 0` or `batch_size == None`, provide the full dataset as a single batch to `function`.
+            drop_last_batch (`bool`, defaults to `False`):
+                Whether a last batch smaller than the batch_size should be
+                dropped instead of being processed by the function.
             load_from_cache_file (`bool`, defaults to `True` if caching is enabled): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
             cache_file_name (`str`, optional, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
@@ -3227,22 +3341,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if fn_kwargs is None:
             fn_kwargs = {}
 
-        # Check if we've already cached this computation (indexed by a hash)
-        if self.cache_files:
-            if cache_file_name is None:
-                # we create a unique hash from the function,
-                # current dataset file and the mapping args
-                cache_file_name = self._get_cache_file_path(new_fingerprint)
-            if os.path.exists(cache_file_name) and load_from_cache_file:
-                logger.warning(f"Loading cached processed dataset at {cache_file_name}")
-                info = self.info.copy()
-                info.features = features
-                info.task_templates = None
-                return Dataset.from_file(cache_file_name, info=info, split=self.split)
-
-        # Raise an error if we were supposed to return a cached dataset and none was found
-        if cache_only:
-            raise NonExistentDatasetError
+        # If we do batch computation but no batch size is provided, default to the full dataset
+        if batched and (batch_size is None or batch_size <= 0):
+            batch_size = self.num_rows
 
         format_kwargs = self._format_kwargs.copy()
         # Lazy formatting is only available for the default format (None/python)
@@ -3253,7 +3354,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features=self.features,
             **format_kwargs,
         )
-
 
         def validate_function_output(processed_inputs, indices):
             """Validate output of the reduce function."""
@@ -3270,7 +3370,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             """Utility to apply the function on a selection of columns."""
             element = format_table(
                 update_value,
-                0,
+                0 if not batched else range(update_value.num_rows),
                 format_columns=input_columns,
                 formatter=input_formatter,
             )
@@ -3283,10 +3383,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 additional_args += (effective_indices,)
             if with_rank:
                 additional_args += (rank,)
-
             for key, value in element.items():
                 try:
-                    accumulant[key] = function(accumulant.get(key, 0), value, *additional_args, **fn_kwargs)
+                    if batched:
+                        for i in range(len(value)):
+                            accumulant[key] = function(accumulant.get(key, 0), value[i], *additional_args, **fn_kwargs)
+                    else:
+                        accumulant[key] = function(accumulant.get(key, 0), value, *additional_args, **fn_kwargs)
                 except TypeError as e:
                     raise TypeError(
                         f"An error occurred while applying the function on the column {key}.\n"
@@ -3298,40 +3401,95 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             validate_function_output(accumulant, indices)
             return accumulant
 
-        try:
-            input_dataset = self.with_format("arrow")
+        # Optionally initialize the writer as a context manager
+        with contextlib.ExitStack() as stack:
+            try:
+                input_dataset = self.with_format("arrow")
 
-            pbar_total = len(input_dataset)
-            pbar_iterable = enumerate(input_dataset)
-            pbar_unit = "ex"
-            pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
-            pbar = logging.tqdm(
-                pbar_iterable,
-                total=pbar_total,
-                disable=disable_tqdm,
-                position=rank,
-                unit=pbar_unit,
-                desc=pbar_desc,
-            )
-
-            accumulant = None
-            for i, example in pbar:
-                if accumulant is None:
-                    accumulant = format_table(
-                        example,
-                        0,
-                        format_columns=input_columns,
-                        formatter=input_formatter,
+                # Loop over single examples or batches and write to buffer/file if examples are to be updated
+                if not batched:
+                    pbar_total = len(input_dataset)
+                    pbar_iterable = enumerate(input_dataset)
+                else:
+                    num_rows = (
+                        len(input_dataset) if not drop_last_batch else len(input_dataset) // batch_size * batch_size
                     )
+                    pbar_total = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
+                    pbar_iterable = zip(
+                        range(0, num_rows, batch_size),
+                        input_dataset.iter(batch_size, drop_last_batch=drop_last_batch),
+                    )
+                pbar_unit = "ex" if not batched else "ba"
+                pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
+                pbar = logging.tqdm(
+                    pbar_iterable,
+                    total=pbar_total,
+                    disable=disable_tqdm,
+                    position=rank,
+                    unit=pbar_unit,
+                    desc=pbar_desc,
+                )
+                # If we're not working in batches, the first example is used to initialize the accumulant
+                if not batched:
+                    accumulant = None
+                    for i, example in pbar:
+                        if accumulant is None: 
+                            accumulant = format_table(
+                                example,
+                                0,
+                                format_columns=input_columns,
+                                formatter=input_formatter,
+                            )
+                            # Get the value types of the accumulant for later type checking
+                            accumulant_value_types = {k:type(v) for k, v in accumulant.items()}
+                            continue
 
-                    # Get the value types of the accumulant for later type checking
-                    accumulant_value_types = {k:type(v) for k, v in accumulant.items()}
-                    continue
+                        accumulant = apply_function_on_filtered_inputs_and_accumulant(example, accumulant, i, offset=offset)
 
-                accumulant = apply_function_on_filtered_inputs_and_accumulant(example, accumulant, i, offset=offset)
+                # If we're working in batches, the first batch is used to initialize the accumulant as a dict
+                # with the same keys as the batch and empty values of the same type as the batch values
+                else:
+                    accumulant = None
+                    for i, batch in pbar:
 
-        except (Exception, KeyboardInterrupt):
-            raise
+                        indices = list(
+                            range(*(slice(i, i + batch_size).indices(input_dataset.num_rows)))
+                        )  # Something simpler?
+
+                        if accumulant is None:
+
+                            # Create the empty accumulant
+                            formatted_table = format_table(
+                                batch,
+                                0,
+                                format_columns=input_columns,
+                                formatter=input_formatter,
+                            )
+                            accumulant = {
+                                k:type(v)() for k, v in formatted_table.items()
+                            }
+
+                            # Get the value types of the accumulant for later type checking
+                            accumulant_value_types = {k:type(v) for k, v in accumulant.items()}
+
+                            # Apply the function on the first batch, with the empty accumulant
+                            accumulant = apply_function_on_filtered_inputs_and_accumulant(
+                                batch,
+                                accumulant,
+                                indices,
+                                offset=offset,
+                            )
+                            continue
+
+                        accumulant += apply_function_on_filtered_inputs_and_accumulant(
+                            batch,
+                            accumulant,
+                            indices,
+                            offset=offset,
+                        )
+                        
+            except (Exception, KeyboardInterrupt):
+                raise
         return accumulant
 
     @staticmethod
