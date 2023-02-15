@@ -1567,7 +1567,21 @@ class BaseDatasetTest(TestCase):
                 sum_reduce = lambda x, y: x + y
                 reduction = dset.reduce(sum_reduce, input_columns="col_1")
                 self.assertEqual(reduction['col_1'], 6)
-          
+                self.assertEqual(reduction['col_2'], "abcd")
+                self.assertEqual(reduction['col_3'], 2)
+
+    def test_map_multiprocessing(self, in_memory):
+        # standard
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                sum_reduce = lambda x, y: x + y
+                reduction = dset.reduce(sum_reduce, input_columns="filename", num_proc=2)
+                functool_reduction = functools_reduce(
+                    sum_reduce,
+                    ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]
+                )
+                self.assertEqual(functool_reduction, reduction['filename'])         
 
     def test_filter(self, in_memory):
         # keep only first five examples
