@@ -28,6 +28,7 @@ import tempfile
 import time
 import warnings
 import weakref
+from packaging import version
 from collections import Counter
 from collections.abc import Mapping
 from copy import deepcopy
@@ -56,6 +57,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
+import huggingface_hub
 from huggingface_hub import HfApi, HfFolder, get_repo_discussions, create_pull_request
 from huggingface_hub.utils import RepositoryNotFoundError
 from multiprocess import Pool, RLock
@@ -5154,7 +5156,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             api.repo_info(repo_id, token=token)
         except RepositoryNotFoundError:
             repo_url = create_repo(hf_api=api, repo_id=repo_id, token=token, exist_ok=True, repo_type="dataset")
-            repo_id = repo_url.repo_id
+            # Before huggingface_hub v0.12.0, repo_id a string, after it's a RepoUrl.
+            if version.parse(huggingface_hub.__version__) < version.parse("0.12.0"):
+                from urllib.parse import urlparse
+                repo_id = urlparse(repo_url).path[:1]
+            else:
+                repo_id = repo_url.repo_id
 
         # Try to find PR branch if branch is supplied
         if create_pr and branch is not None:
