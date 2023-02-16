@@ -1,10 +1,9 @@
 from . import logging
 from pathlib import Path
-from typing import List, Optional, Union, BinaryIO, Iterator
+from typing import List, Optional, Union, BinaryIO
 
 import huggingface_hub
-from huggingface_hub.community import Discussion
-from huggingface_hub import HfApi, HfFolder, get_repo_discussions
+from huggingface_hub import HfApi, HfFolder
 from huggingface_hub.hf_api import DatasetInfo
 from packaging import version
 
