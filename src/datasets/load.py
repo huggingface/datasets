@@ -155,7 +155,6 @@ class _InitializeParameterized:
 
 
 def parametrize_packaged_builder(builder_cls, metadata_configs: MetadataConfigsDict, name: str):
-
     config_cls = builder_cls.BUILDER_CONFIG_CLASS
     configs = metadata_configs.to_builder_configs_list(builder_config_cls=config_cls)
 
