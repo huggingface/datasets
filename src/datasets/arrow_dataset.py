@@ -108,7 +108,7 @@ from .table import (
 )
 from .tasks import TaskTemplate
 from .utils import logging
-from .utils._hf_hub_fixes import create_repo
+from .utils._hf_hub_fixes import create_repo, get_repo_id_from_repo_url
 from .utils._hf_hub_fixes import upload_file as hf_api_upload_file
 from .utils._hf_hub_fixes import list_repo_files as hf_api_list_repo_files
 from .utils.file_utils import _retry, cached_path, estimate_dataset_size
@@ -5156,12 +5156,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             api.repo_info(repo_id, token=token)
         except RepositoryNotFoundError:
             repo_url = create_repo(hf_api=api, repo_id=repo_id, token=token, exist_ok=True, repo_type="dataset")
-            # Before huggingface_hub v0.12.0, repo_id a string, after it's a RepoUrl.
-            if version.parse(huggingface_hub.__version__) < version.parse("0.12.0"):
-                from urllib.parse import urlparse
-                repo_id = urlparse(repo_url).path[:1]
-            else:
-                repo_id = repo_url.repo_id
+            repo_id = get_repo_id_from_repo_url(repo_url)
 
         # Try to find PR branch if branch is supplied
         if create_pr and branch is not None:
