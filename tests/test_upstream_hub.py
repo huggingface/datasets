@@ -5,15 +5,16 @@ import time
 import unittest
 from pathlib import Path
 from unittest.mock import patch
-from packaging import version
 
+import huggingface_hub
 import numpy as np
 import pytest
-import huggingface_hub
 from huggingface_hub import HfApi
-from datasets.utils._hf_hub_fixes import upload_file as hf_api_upload_file
+from packaging import version
+
 from datasets import Audio, ClassLabel, Dataset, DatasetDict, Features, Image, Value, load_dataset
 from datasets.utils._hf_hub_fixes import list_repo_files
+from datasets.utils._hf_hub_fixes import upload_file as hf_api_upload_file
 from tests.fixtures.hub import CI_HUB_ENDPOINT, CI_HUB_USER, CI_HUB_USER_TOKEN
 from tests.utils import for_all_test_methods, require_pil, require_sndfile, xfail_if_500_502_http_error
 

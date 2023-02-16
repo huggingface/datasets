@@ -28,7 +28,6 @@ import tempfile
 import time
 import warnings
 import weakref
-from packaging import version
 from collections import Counter
 from collections.abc import Mapping
 from copy import deepcopy
@@ -53,14 +52,15 @@ from typing import (
 )
 
 import fsspec
+import huggingface_hub
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
-import huggingface_hub
 from huggingface_hub import HfApi, HfFolder
 from huggingface_hub.utils import RepositoryNotFoundError
-from multiprocess import Pool, RLock
+from multiprocess import Pool
+from packaging import version
 from requests import HTTPError
 
 from . import config
@@ -109,8 +109,8 @@ from .table import (
 from .tasks import TaskTemplate
 from .utils import logging
 from .utils._hf_hub_fixes import create_repo, get_repo_id_from_repo_url
-from .utils._hf_hub_fixes import upload_file as hf_api_upload_file
 from .utils._hf_hub_fixes import list_repo_files as hf_api_list_repo_files
+from .utils._hf_hub_fixes import upload_file as hf_api_upload_file
 from .utils.file_utils import _retry, cached_path, estimate_dataset_size
 from .utils.hub import hf_hub_url
 from .utils.info_utils import is_small_dataset
