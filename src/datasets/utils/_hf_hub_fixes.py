@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import BinaryIO, Iterator, List, Optional, Union, Any
+from typing import Any, BinaryIO, Iterator, List, Optional, Union
 
 import huggingface_hub
 from huggingface_hub import HfApi, HfFolder
@@ -83,25 +83,52 @@ def get_repo_id_from_repo_url(repo_url: Union[str, Any]) -> str:
 
 
 def create_pr_it_does_not_exist(
-    hf_api: HfApi, repo_id: str, token: Optional[str] = None, private: Optional[bool] = False, repo_type: Optional[str] = "dataset", create_pr: Optional[bool] = False, branch: Optional[str] = None
+    hf_api: HfApi,
+    repo_id: str,
+    token: Optional[str] = None,
+    private: Optional[bool] = False,
+    repo_type: Optional[str] = "dataset",
+    create_pr: Optional[bool] = False,
+    branch: Optional[str] = None,
 ) -> str:
     """
-    This function creates a PR for a dataset if it does not exist safely. It checks if the PR already exists
+    This function creates a PR for a dataset if it does not exist safely. The RepositoryNotFoundError was introduced in
+    huggingface_hub 0.7.0. This function checks the huggingface_hub version to call the right parameters.
+    The `create_pr` parameter was introduced in huggingface_hub 0.9.0. This function checks the huggingface_hub version
+    to call the right parameters.
 
+    Args:
+        hf_api (`huggingface_hub.HfApi`): Hub client
+        repo_id (`str`): A namespace (user or an organization) and a repo name separated by a `/`.
+        token (`str`, *optional*): user or organization token. Defaults to None.
+        private (`bool`, *optional*):
+            Whether the model repo should be private.
+        repo_type (`str`, *optional*):
+            Set to `"dataset"` or `"space"` if uploading to a dataset or
+            space, `None` or `"model"` if uploading to a model. Default is
+            `None`.
+        create_pr (`bool`, *optional*):
+            Whether to create a PR if the branch does not exist. Defaults to False.
+        branch (`str`, *optional*):
+            The branch to create the PR on. Defaults to None.
     """
     # By version huggingface_hub 0.7.0 HTTPError was replaced by RepositoryNotFoundError
     if version.parse(huggingface_hub.__version__) < version.parse("0.7.0"):
         from requests.exceptions import HTTPError
+
         repo_not_found_exception = HTTPError
     else:
         from huggingface_hub.hf_api import RepositoryNotFoundError
+
         repo_not_found_exception = RepositoryNotFoundError
 
     try:
         hf_api.repo_info(repo_id, token=token)
 
     except repo_not_found_exception:
-        repo_url = create_repo(hf_api=hf_api, repo_id=repo_id, private=private, token=token, exist_ok=True, repo_type=repo_type)
+        repo_url = create_repo(
+            hf_api=hf_api, repo_id=repo_id, private=private, token=token, exist_ok=True, repo_type=repo_type
+        )
         repo_id = get_repo_id_from_repo_url(repo_url)
 
     # Try to find PR branch if branch is supplied
@@ -112,6 +139,7 @@ def create_pr_it_does_not_exist(
             )
         else:
             from huggingface_hub import get_repo_discussions
+
             for discussion in get_repo_discussions(repo_id, repo_type="dataset"):
                 if discussion.is_pull_request and discussion.git_reference == branch:
                     create_pr = False
@@ -121,6 +149,7 @@ def create_pr_it_does_not_exist(
 
     if create_pr:
         from huggingface_hub import create_pull_request
+
         pr = create_pull_request(
             repo_id,
             repo_type="dataset",
@@ -130,7 +159,6 @@ def create_pr_it_does_not_exist(
         branch = pr.git_reference
         create_pr = False
         logger.info(f"Created PR {branch} for {repo_id} dataset")
-    
 
 
 def delete_repo(

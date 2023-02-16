@@ -52,7 +52,6 @@ from typing import (
 )
 
 import fsspec
-import huggingface_hub
 import numpy as np
 import pandas as pd
 import pyarrow as pa
@@ -106,7 +105,7 @@ from .table import (
 )
 from .tasks import TaskTemplate
 from .utils import logging
-from .utils._hf_hub_fixes import create_repo, create_pr_it_does_not_exist
+from .utils._hf_hub_fixes import create_pr_it_does_not_exist, create_repo
 from .utils._hf_hub_fixes import list_repo_files as hf_api_list_repo_files
 from .utils._hf_hub_fixes import upload_file as hf_api_upload_file
 from .utils.file_utils import _retry, cached_path, estimate_dataset_size
@@ -5151,7 +5150,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         api = HfApi(endpoint=config.HF_ENDPOINT)
 
         # Create repo if it doesn't exist safely
-        create_pr_it_does_not_exist(hf_api=api, repo_id=repo_id, private=private, token=token, repo_type="dataset", create_pr=create_pr, branch=branch)
+        create_pr_it_does_not_exist(
+            hf_api=api,
+            repo_id=repo_id,
+            private=private,
+            token=token,
+            repo_type="dataset",
+            create_pr=create_pr,
+            branch=branch,
+        )
 
         repo_id, split, uploaded_size, dataset_nbytes, repo_files, deleted_size = self._push_parquet_shards_to_hub(
             repo_id=repo_id,
