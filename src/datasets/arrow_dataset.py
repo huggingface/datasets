@@ -5165,12 +5165,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # Try to find PR branch if branch is supplied
         if create_pr and branch is not None:
-            for discussion in get_repo_discussions(repo_id, repo_type="dataset"):
-                if discussion.is_pull_request and discussion.git_reference == branch:
-                    create_pr = False
-                    break
+            if version.parse(huggingface_hub.__version__) < version.parse("0.9.0"):
+                raise ValueError(
+                    "Using `create_pr` requires `huggingface-hub>=0.9.0`. Please use a more recent version of `huggingface-hub`."
+                )
             else:
-                raise ValueError("Provided branch not found")
+                for discussion in get_repo_discussions(repo_id, repo_type="dataset"):
+                    if discussion.is_pull_request and discussion.git_reference == branch:
+                        create_pr = False
+                        break
+                else:
+                    raise ValueError("Provided branch not found")
 
         if create_pr:
             pr = create_pull_request(

@@ -212,24 +212,3 @@ def upload_file(
             create_pr=create_pr,
             parent_commit=parent_commit,
         )
-
-
-def get_repo_discussions(
-    hf_api: HfApi,
-    repo_id: str,
-    repo_type: Optional[str] = None,
-    token: Optional[str] = None,
-) -> Iterator[Discussion]:
-    """
-    The method `huggingface_hub.HfApi.get_repo_discussions` was introduced in 0.9.0.
-    """
-    if version.parse(huggingface_hub.__version__) < version.parse("0.9.0"):
-        raise TypeError(
-            "The method `get_repo_discussions` was introduced in huggingface_hub 0.9.0. Please update huggingface_hub to >=0.9.0 to use this method."
-        )
-    else:
-        return hf_api.get_repo_discussions(
-            repo_id=repo_id,
-            repo_type=repo_type,
-            token=token,
-        )
