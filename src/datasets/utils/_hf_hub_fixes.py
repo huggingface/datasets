@@ -1,10 +1,10 @@
 from pathlib import Path
-from typing import BinaryIO, Iterator, List, Optional, Union
+from typing import BinaryIO, Iterator, List, Optional, Union, Any
 
 import huggingface_hub
 from huggingface_hub import HfApi, HfFolder
 from huggingface_hub.community import Discussion
-from huggingface_hub.hf_api import DatasetInfo, RepoUrl
+from huggingface_hub.hf_api import DatasetInfo
 from packaging import version
 
 from . import logging
@@ -67,7 +67,12 @@ def create_repo(
         )
 
 
-def get_repo_id_from_repo_url(repo_url: Union[str, RepoUrl]) -> str:
+def get_repo_id_from_repo_url(repo_url: Union[str, Any]) -> str:
+    """
+    In 0.12.0 the output of `huggingface_hub.hf_api.create_repo` change output from `str` containing the
+    repo_url, to `RepoUrl` object. This function checks the huggingface_hub version to get the repo_id from
+    the repo_url, in the correct way.
+    """
     if version.parse(huggingface_hub.__version__) < version.parse("0.12.0"):
         from urllib.parse import urlparse
 
