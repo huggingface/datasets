@@ -2,7 +2,7 @@ import copy
 from collections import Counter
 from dataclasses import fields
 from pathlib import Path
-from typing import ClassVar, Dict, List, Optional, Tuple, Union
+from typing import ClassVar, Dict, Optional, Tuple, Union
 
 import yaml
 
@@ -142,7 +142,7 @@ class MetadataConfigsDict(Dict[str, dict]):
             else:
                 dataset_metadata[self.__configs_field_name] = next(iter(total_metadata.values()))
 
-    def to_builder_configs_list(self, builder_config_cls) -> List[BuilderConfig]:
+    def to_builder_configs_list(self, builder_config_cls):
         metadata_configs = copy.deepcopy(self)
         for meta_config in metadata_configs.values():
             meta_config["name"] = meta_config.pop("config_name", "default")
