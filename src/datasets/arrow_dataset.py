@@ -58,7 +58,7 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 import huggingface_hub
-from huggingface_hub import HfApi, HfFolder, create_pull_request
+from huggingface_hub import HfApi, HfFolder
 from huggingface_hub.utils import RepositoryNotFoundError
 from multiprocess import Pool, RLock
 from requests import HTTPError
@@ -5174,6 +5174,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     raise ValueError("Provided branch not found")
 
         if create_pr:
+            from huggingface_hub import create_pull_request
             pr = create_pull_request(
                 repo_id,
                 repo_type="dataset",
