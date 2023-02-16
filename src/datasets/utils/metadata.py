@@ -36,7 +36,6 @@ def _split_yaml_from_readme(readme_content: str) -> Tuple[Optional[str], str]:
 
 
 class DatasetMetadata(dict):
-
     # class attributes
     _FIELDS_WITH_DASHES = {"train_eval_index"}  # train-eval-index in the YAML metadata
 
