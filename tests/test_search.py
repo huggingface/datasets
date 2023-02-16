@@ -243,7 +243,7 @@ class MilvusIndexTest(TestCase):
                 [MockScores(3, 3), MockScores(4, 4), MockScores(5, 5)],
             ]
             # batched queries
-            queries = np.random.rand(2, 10)
+            np.random.rand(2, 10)
             res = index.search_batch(query)
             self.assertEqual(res.total_scores[0], [0, 1, 2])
             self.assertEqual(res.total_indices[0], [0, 1, 2])

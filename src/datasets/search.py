@@ -443,7 +443,7 @@ class MilvusIndex(BaseIndex):
         self.drop_previous = drop_previous
         self.collection = None
 
-        if index_params == None:
+        if index_params is None:
             # Default to HNSW index.
             self.index_params = {
                 "index_type": "HNSW",
@@ -482,12 +482,12 @@ class MilvusIndex(BaseIndex):
         Raises:
             ValueError: Collection already exists.
         """
-        from pymilvus import Collection, CollectionSchema, DataType, FieldSchema, connections, utility  # noqa: F401
+        from pymilvus import Collection, CollectionSchema, DataType, FieldSchema, connections, utility  # noqa: F811
 
         # Connect to Milvus
         connections.connect(**self.connection_info)
 
-        if self.collection == None:
+        if self.collection is None:
             self.collection_name = "c" + uuid.uuid4().hex if self.collection_name is None else self.collection_name
             if utility.has_collection(self.collection_name):
                 if self.drop_previous:
@@ -529,7 +529,7 @@ class MilvusIndex(BaseIndex):
             collection_name (str): The collection name,
         """
 
-        from pymilvus import Collection, DataType  # noqa: F401
+        from pymilvus import Collection, DataType  # noqa: F811
 
         self.collection_name = collection_name
         self.collection = Collection(collection_name)
