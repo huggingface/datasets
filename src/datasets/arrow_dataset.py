@@ -58,7 +58,7 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 import huggingface_hub
-from huggingface_hub import HfApi, HfFolder, get_repo_discussions, create_pull_request
+from huggingface_hub import HfApi, HfFolder, create_pull_request
 from huggingface_hub.utils import RepositoryNotFoundError
 from multiprocess import Pool, RLock
 from requests import HTTPError
@@ -5165,6 +5165,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     "Using `create_pr` requires `huggingface-hub>=0.9.0`. Please use a more recent version of `huggingface-hub`."
                 )
             else:
+                from huggingface_hub import get_repo_discussions
                 for discussion in get_repo_discussions(repo_id, repo_type="dataset"):
                     if discussion.is_pull_request and discussion.git_reference == branch:
                         create_pr = False
