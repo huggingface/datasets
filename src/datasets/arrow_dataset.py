@@ -5166,6 +5166,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
             else:
                 from huggingface_hub import get_repo_discussions
+
                 for discussion in get_repo_discussions(repo_id, repo_type="dataset"):
                     if discussion.is_pull_request and discussion.git_reference == branch:
                         create_pr = False
@@ -5175,6 +5176,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if create_pr:
             from huggingface_hub import create_pull_request
+
             pr = create_pull_request(
                 repo_id,
                 repo_type="dataset",

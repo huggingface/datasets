@@ -335,7 +335,9 @@ class TestPushToHub:
                 assert list(local_ds.features.keys()) == list(hub_ds.features.keys())
                 assert local_ds.features == hub_ds.features
 
-    @pytest.mark.skipif(version.parse(huggingface_hub.__version__) < version.parse("0.8.1"), reason="Requires huggingface_hub>=0.8.1")
+    @pytest.mark.skipif(
+        version.parse(huggingface_hub.__version__) < version.parse("0.8.1"), reason="Requires huggingface_hub>=0.8.1"
+    )
     def test_push_dataset_to_hub_with_pull_request(self, temporary_repo):
         local_ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
 
@@ -363,7 +365,6 @@ class TestPushToHub:
                 token=self._token,
                 repo_type="dataset",
             )
-
 
     def test_push_dataset_to_hub_custom_features(self, temporary_repo):
         features = Features({"x": Value("int64"), "y": ClassLabel(names=["neg", "pos"])})
