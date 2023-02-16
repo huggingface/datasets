@@ -82,6 +82,57 @@ def get_repo_id_from_repo_url(repo_url: Union[str, Any]) -> str:
         return repo_url.repo_id
 
 
+def create_pr_it_does_not_exist(
+    hf_api: HfApi, repo_id: str, token: Optional[str] = None, private: Optional[bool] = False, repo_type: Optional[str] = "dataset", create_pr: Optional[bool] = False, branch: Optional[str] = None
+) -> str:
+    """
+    This function creates a PR for a dataset if it does not exist safely. It checks if the PR already exists
+
+    """
+    # By version huggingface_hub 0.7.0 HTTPError was replaced by RepositoryNotFoundError
+    if version.parse(huggingface_hub.__version__) < version.parse("0.7.0"):
+        from requests.exceptions import HTTPError
+        repo_not_found_exception = HTTPError
+    else:
+        from huggingface_hub.hf_api import RepositoryNotFoundError
+        repo_not_found_exception = RepositoryNotFoundError
+
+    try:
+        hf_api.repo_info(repo_id, token=token)
+
+    except repo_not_found_exception:
+        repo_url = create_repo(hf_api=hf_api, repo_id=repo_id, private=private, token=token, exist_ok=True, repo_type=repo_type)
+        repo_id = get_repo_id_from_repo_url(repo_url)
+
+    # Try to find PR branch if branch is supplied
+    if create_pr and branch is not None:
+        if version.parse(huggingface_hub.__version__) < version.parse("0.9.0"):
+            raise ValueError(
+                "Using `create_pr` requires `huggingface-hub>=0.9.0`. Please use a more recent version of `huggingface-hub`."
+            )
+        else:
+            from huggingface_hub import get_repo_discussions
+            for discussion in get_repo_discussions(repo_id, repo_type="dataset"):
+                if discussion.is_pull_request and discussion.git_reference == branch:
+                    create_pr = False
+                    break
+            else:
+                raise ValueError("Provided branch not found")
+
+    if create_pr:
+        from huggingface_hub import create_pull_request
+        pr = create_pull_request(
+            repo_id,
+            repo_type="dataset",
+            title=f"Add {repo_id} dataset",
+            token=token,
+        )
+        branch = pr.git_reference
+        create_pr = False
+        logger.info(f"Created PR {branch} for {repo_id} dataset")
+    
+
+
 def delete_repo(
     hf_api: HfApi,
     repo_id: str,

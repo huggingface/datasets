@@ -58,9 +58,7 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 from huggingface_hub import HfApi, HfFolder
-from huggingface_hub.utils import RepositoryNotFoundError
 from multiprocess import Pool
-from packaging import version
 from requests import HTTPError
 
 from . import config
@@ -108,7 +106,7 @@ from .table import (
 )
 from .tasks import TaskTemplate
 from .utils import logging
-from .utils._hf_hub_fixes import create_repo, get_repo_id_from_repo_url
+from .utils._hf_hub_fixes import create_repo, create_pr_it_does_not_exist
 from .utils._hf_hub_fixes import list_repo_files as hf_api_list_repo_files
 from .utils._hf_hub_fixes import upload_file as hf_api_upload_file
 from .utils.file_utils import _retry, cached_path, estimate_dataset_size
@@ -5150,42 +5148,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
             )
 
-        # Create repo if it doesn't exist
         api = HfApi(endpoint=config.HF_ENDPOINT)
-        try:
-            api.repo_info(repo_id, token=token)
-        except RepositoryNotFoundError:
-            repo_url = create_repo(hf_api=api, repo_id=repo_id, token=token, exist_ok=True, repo_type="dataset")
-            repo_id = get_repo_id_from_repo_url(repo_url)
 
-        # Try to find PR branch if branch is supplied
-        if create_pr and branch is not None:
-            if version.parse(huggingface_hub.__version__) < version.parse("0.9.0"):
-                raise ValueError(
-                    "Using `create_pr` requires `huggingface-hub>=0.9.0`. Please use a more recent version of `huggingface-hub`."
-                )
-            else:
-                from huggingface_hub import get_repo_discussions
-
-                for discussion in get_repo_discussions(repo_id, repo_type="dataset"):
-                    if discussion.is_pull_request and discussion.git_reference == branch:
-                        create_pr = False
-                        break
-                else:
-                    raise ValueError("Provided branch not found")
-
-        if create_pr:
-            from huggingface_hub import create_pull_request
-
-            pr = create_pull_request(
-                repo_id,
-                repo_type="dataset",
-                title=f"Add {repo_id} dataset",
-                token=token,
-            )
-            branch = pr.git_reference
-            create_pr = False
-            logger.info(f"Created PR {branch} for {repo_id} dataset")
+        # Create repo if it doesn't exist safely
+        create_pr_it_does_not_exist(hf_api=api, repo_id=repo_id, private=private, token=token, repo_type="dataset", create_pr=create_pr, branch=branch)
 
         repo_id, split, uploaded_size, dataset_nbytes, repo_files, deleted_size = self._push_parquet_shards_to_hub(
             repo_id=repo_id,
