@@ -647,7 +647,6 @@ def test_iterable_dataset_from_generator_with_shards():
 
 @require_torch
 def test_iterable_dataset_torch_integration():
-
     ex_iterable = ExamplesIterable(generate_examples_fn, {})
     dataset = IterableDataset(ex_iterable)
     import torch.utils.data
@@ -1007,6 +1006,23 @@ def test_iterable_dataset_remove_columns(dataset_with_several_columns):
     new_dataset = dataset_with_several_columns._resolve_features().remove_columns(["id", "filepath"])
     assert new_dataset.features is not None
     assert all(c not in new_dataset.features for c in ["id", "filepath"])
+
+
+def test_iterable_dataset_select_columns(dataset_with_several_columns):
+    new_dataset = dataset_with_several_columns.select_columns("id")
+    assert list(new_dataset) == [
+        {k: v for k, v in example.items() if k == "id"} for example in dataset_with_several_columns
+    ]
+    assert new_dataset.features is None
+    new_dataset = dataset_with_several_columns.select_columns(["id", "filepath"])
+    assert list(new_dataset) == [
+        {k: v for k, v in example.items() if k in ("id", "filepath")} for example in dataset_with_several_columns
+    ]
+    assert new_dataset.features is None
+    # remove the columns if ds.features was not None
+    new_dataset = dataset_with_several_columns._resolve_features().select_columns(["id", "filepath"])
+    assert new_dataset.features is not None
+    assert all(c in new_dataset.features for c in ["id", "filepath"])
 
 
 def test_iterable_dataset_cast_column():

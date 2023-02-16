@@ -101,7 +101,6 @@ class Perplexity(datasets.Metric):
         )
 
     def _compute(self, input_texts, model_id, batch_size: int = 16, add_start_token: bool = True, device=None):
-
         if device is not None:
             assert device in ["gpu", "cpu", "cuda"], "device should be either gpu or cpu."
             if device == "gpu":

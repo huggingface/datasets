@@ -154,6 +154,7 @@ BENCHMARKS_REQUIRE = [
     "tensorflow==2.3.0",
     "torch==1.7.1",
     "transformers==3.0.2",
+    "protobuf==3.20.3",  # Fix tensorflow 2.3 import `TypeError: Descriptors cannot not be created directly.`
 ]
 
 TESTS_REQUIRE = [
@@ -211,7 +212,7 @@ METRICS_TESTS_REQUIRE = [
 TESTS_REQUIRE.extend(VISION_REQUIRE)
 TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
-QUALITY_REQUIRE = ["black~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
+QUALITY_REQUIRE = ["black~=23.1", "ruff>=0.0.241", "pyyaml>=5.3.1"]
 
 DOCS_REQUIRE = [
     # Might need to add doc-builder and some specific deps in the future
@@ -228,6 +229,7 @@ EXTRAS_REQUIRE = {
     ],
     "tensorflow_gpu": ["tensorflow-gpu>=2.2.0,!=2.6.0,!=2.6.1"],
     "torch": ["torch"],
+    "jax": ["jax>=0.2.8,!=0.3.2,<=0.3.25", "jaxlib>=0.1.65,<=0.3.25"],
     "s3": ["s3fs"],
     "streaming": [],  # for backward compatibility
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE + DOCS_REQUIRE,

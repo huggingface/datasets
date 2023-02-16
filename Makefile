@@ -1,17 +1,18 @@
 .PHONY: quality style test
 
+check_dirs := tests src benchmarks metrics
+
 # Check that source code meets quality standards
 
 quality:
-	black --check tests src benchmarks metrics
-	isort --check-only tests src benchmarks metrics
-	flake8 tests src benchmarks metrics
+	black --check $(check_dirs)
+	ruff $(check_dirs)
 
 # Format source code automatically
 
 style:
 	black tests src benchmarks metrics
-	isort tests src benchmarks metrics
+	ruff $(check_dirs) --fix
 
 # Run tests for the library
 

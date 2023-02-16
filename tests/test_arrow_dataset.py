@@ -161,7 +161,6 @@ class BaseDatasetTest(TestCase):
 
     def test_dummy_dataset(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
-
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                 self.assertEqual(dset[0]["filename"], "my_name-train_0")
@@ -347,7 +346,6 @@ class BaseDatasetTest(TestCase):
 
     def test_dummy_dataset_load_from_disk(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
-
             with self._create_dummy_dataset(in_memory, tmp_dir).select(range(10)) as dset:
                 dataset_path = os.path.join(tmp_dir, "my_dataset")
                 dset.save_to_disk(dataset_path)
@@ -360,7 +358,6 @@ class BaseDatasetTest(TestCase):
 
     def test_restore_saved_format(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
-
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
                 dset.set_format(type="numpy", columns=["col_1"], output_all_columns=True)
                 dataset_path = os.path.join(tmp_dir, "my_dataset")
@@ -622,6 +619,40 @@ class BaseDatasetTest(TestCase):
                 # Duplicates
                 with self.assertRaises(ValueError):
                     dset.rename_columns({"col_1": "new_name", "col_2": "new_name"})
+
+    def test_select_columns(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                fingerprint = dset._fingerprint
+                with dset.select_columns(column_names=[]) as new_dset:
+                    self.assertEqual(new_dset.num_columns, 0)
+                    self.assertListEqual(list(new_dset.column_names), [])
+                    self.assertNotEqual(new_dset._fingerprint, fingerprint)
+                    assert_arrow_metadata_are_synced_with_dataset_features(new_dset)
+
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                fingerprint = dset._fingerprint
+                with dset.select_columns(column_names="col_1") as new_dset:
+                    self.assertEqual(new_dset.num_columns, 1)
+                    self.assertListEqual(list(new_dset.column_names), ["col_1"])
+                    self.assertNotEqual(new_dset._fingerprint, fingerprint)
+                    assert_arrow_metadata_are_synced_with_dataset_features(new_dset)
+
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                with dset.select_columns(column_names=["col_1", "col_2", "col_3"]) as new_dset:
+                    self.assertEqual(new_dset.num_columns, 3)
+                    self.assertListEqual(list(new_dset.column_names), ["col_1", "col_2", "col_3"])
+                    self.assertNotEqual(new_dset._fingerprint, fingerprint)
+                    assert_arrow_metadata_are_synced_with_dataset_features(new_dset)
+
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                dset._format_columns = ["col_1", "col_2", "col_3"]
+                with dset.select_columns(column_names=["col_1"]) as new_dset:
+                    self.assertListEqual(new_dset._format_columns, ["col_1"])
+                    self.assertEqual(new_dset.num_columns, 1)
+                    self.assertListEqual(list(new_dset.column_names), ["col_1"])
+                    self.assertNotEqual(new_dset._fingerprint, fingerprint)
+                    assert_arrow_metadata_are_synced_with_dataset_features(new_dset)
 
     def test_concatenate(self, in_memory):
         data1, data2, data3 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}, {"id": [6, 7]}
@@ -1273,12 +1304,19 @@ class BaseDatasetTest(TestCase):
             self._caplog.clear()
             with self._caplog.at_level(WARNING):
                 with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                    with dset.map(lambda x: {"foo": "bar"}) as dset_test1:
-                        dset_test1_data_files = list(dset_test1.cache_files)
-                    with dset.map(lambda x: {"foo": "bar"}) as dset_test2:
-                        self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
-                        self.assertEqual(len(dset_test2.cache_files), 1 - int(in_memory))
-                        self.assertTrue(("Loading cached processed dataset" in self._caplog.text) ^ in_memory)
+                    with patch(
+                        "datasets.arrow_dataset.Dataset._map_single",
+                        autospec=Dataset._map_single,
+                        side_effect=Dataset._map_single,
+                    ) as mock_map_single:
+                        with dset.map(lambda x: {"foo": "bar"}) as dset_test1:
+                            dset_test1_data_files = list(dset_test1.cache_files)
+                        self.assertEqual(mock_map_single.call_count, 1)
+                        with dset.map(lambda x: {"foo": "bar"}) as dset_test2:
+                            self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
+                            self.assertEqual(len(dset_test2.cache_files), 1 - int(in_memory))
+                            self.assertTrue(("Loading cached processed dataset" in self._caplog.text) ^ in_memory)
+                        self.assertEqual(mock_map_single.call_count, 2 if in_memory else 1)
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             self._caplog.clear()
@@ -1490,7 +1528,6 @@ class BaseDatasetTest(TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-
                 ex_cnt = ExampleCounter()
                 dset.map(ex_cnt)
                 self.assertEqual(ex_cnt.cnt, len(dset))
@@ -1989,7 +2026,7 @@ class BaseDatasetTest(TestCase):
 
                 self.assertTrue(os.path.isfile(file_path))
                 self.assertEqual(bytes_written, os.path.getsize(file_path))
-                csv_dset = pd.read_csv(file_path, header=0, index_col=0)
+                csv_dset = pd.read_csv(file_path)
 
                 self.assertEqual(csv_dset.shape, dset.shape)
                 self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
@@ -2002,7 +2039,7 @@ class BaseDatasetTest(TestCase):
 
                 self.assertTrue(os.path.isfile(file_path))
                 self.assertEqual(bytes_written, os.path.getsize(file_path))
-                csv_dset = pd.read_csv(file_path, header=0, index_col=0)
+                csv_dset = pd.read_csv(file_path)
 
                 self.assertEqual(csv_dset.shape, dset.shape)
                 self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
@@ -2015,7 +2052,7 @@ class BaseDatasetTest(TestCase):
 
                 self.assertTrue(os.path.isfile(file_path))
                 self.assertEqual(bytes_written, os.path.getsize(file_path))
-                csv_dset = pd.read_csv(file_path, header=0, index_col=0)
+                csv_dset = pd.read_csv(file_path)
 
                 self.assertEqual(csv_dset.shape, dset.shape)
                 self.assertListEqual(list(csv_dset.columns), list(dset.column_names))
@@ -2027,7 +2064,7 @@ class BaseDatasetTest(TestCase):
 
                 self.assertTrue(os.path.isfile(file_path))
                 self.assertEqual(bytes_written, os.path.getsize(file_path))
-                csv_dset = pd.read_csv(file_path, header=0, index_col=0)
+                csv_dset = pd.read_csv(file_path)
 
                 self.assertEqual(csv_dset.shape, dset.shape)
                 self.assertListEqual(list(csv_dset.columns), list(dset.column_names))

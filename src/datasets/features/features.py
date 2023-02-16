@@ -23,9 +23,8 @@ from collections.abc import Sequence as SequenceABC
 from dataclasses import InitVar, dataclass, field, fields
 from functools import reduce, wraps
 from operator import mul
-from typing import Any, ClassVar, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
 from typing import Sequence as Sequence_
-from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -685,7 +684,7 @@ def _is_zero_copy_only(pa_type: pa.DataType, unnest: bool = False) -> bool:
     When converting a pyarrow array to a numpy array, we must know whether this could be done in zero-copy or not.
     This function returns the value of the ``zero_copy_only`` parameter to pass to ``.to_numpy()``, given the type of the pyarrow array.
 
-    # zero copy is available for all primitive types except booleans
+    # zero copy is available for all primitive types except booleans and temporal types (date, time, timestamp or duration)
     # primitive types are types for which the physical representation in arrow and in numpy
     # https://github.com/wesm/arrow/blob/c07b9b48cf3e0bbbab493992a492ae47e5b04cad/python/pyarrow/types.pxi#L821
     # see https://arrow.apache.org/docs/python/generated/pyarrow.Array.html#pyarrow.Array.to_numpy
@@ -699,7 +698,7 @@ def _is_zero_copy_only(pa_type: pa.DataType, unnest: bool = False) -> bool:
 
     if unnest:
         pa_type = _unnest_pa_type(pa_type)
-    return pa.types.is_primitive(pa_type) and not pa.types.is_boolean(pa_type)
+    return pa.types.is_primitive(pa_type) and not (pa.types.is_boolean(pa_type) or pa.types.is_temporal(pa_type))
 
 
 class ArrayExtensionArray(pa.ExtensionArray):
@@ -1077,7 +1076,7 @@ class ClassLabel:
         Returns:
             `pa.Int64Array`: Array in the `ClassLabel` arrow storage type.
         """
-        if isinstance(storage, pa.IntegerArray):
+        if isinstance(storage, pa.IntegerArray) and len(storage) > 0:
             min_max = pc.min_max(storage).as_py()
             if min_max["max"] >= self.num_classes:
                 raise ValueError(
@@ -1763,7 +1762,6 @@ class Features(dict):
             return feature
 
         def from_yaml_inner(obj: Union[dict, list]) -> Union[dict, list]:
-
             if isinstance(obj, dict):
                 if not obj:
                     return {}

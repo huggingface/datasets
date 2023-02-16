@@ -233,6 +233,32 @@ class DatasetDictTest(TestCase):
             self.assertListEqual(list(dset_split.column_names), ["new_name", "col_2"])
         del dset
 
+    def test_select_columns(self):
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset = dset.select_columns(column_names=[])
+        for dset_split in dset.values():
+            self.assertEqual(dset_split.num_columns, 0)
+
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset = dset.select_columns(column_names="col_1")
+        for dset_split in dset.values():
+            self.assertEqual(dset_split.num_columns, 1)
+            self.assertListEqual(list(dset_split.column_names), ["col_1"])
+
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset = dset.select_columns(column_names=["col_1", "col_2"])
+        for dset_split in dset.values():
+            self.assertEqual(dset_split.num_columns, 2)
+
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        for dset_split in dset.values():
+            dset_split._format_columns = ["col_1", "col_2"]
+        dset = dset.select_columns(column_names=["col_1"])
+        for dset_split in dset.values():
+            self.assertEqual(dset_split.num_columns, 1)
+            self.assertListEqual(list(dset_split.column_names), ["col_1"])
+            self.assertListEqual(dset_split._format_columns, ["col_1"])
+
     def test_map(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dsets = self._create_dummy_dataset_dict()

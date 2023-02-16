@@ -132,7 +132,6 @@ class RecurseDumpTest(TestCase):
         self.assertEqual(hash1, hash2)
 
     def test_recurse_dump_for_class(self):
-
         hash1 = md5(datasets.utils.py_utils.dumps(Foo([0]))).hexdigest()
         hash2 = md5(datasets.utils.py_utils.dumps(Foo([1]))).hexdigest()
         hash3 = md5(datasets.utils.py_utils.dumps(Foo([0]))).hexdigest()
@@ -140,7 +139,6 @@ class RecurseDumpTest(TestCase):
         self.assertNotEqual(hash1, hash2)
 
     def test_recurse_dump_for_method(self):
-
         hash1 = md5(datasets.utils.py_utils.dumps(Foo([0]).__call__)).hexdigest()
         hash2 = md5(datasets.utils.py_utils.dumps(Foo([1]).__call__)).hexdigest()
         hash3 = md5(datasets.utils.py_utils.dumps(Foo([0]).__call__)).hexdigest()
@@ -148,7 +146,6 @@ class RecurseDumpTest(TestCase):
         self.assertNotEqual(hash1, hash2)
 
     def test_dump_ipython_function(self):
-
         code_args_py37 = (
             "co_argcount",
             "co_kwonlyargcount",

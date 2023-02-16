@@ -1159,6 +1159,30 @@ def test_cast_array_to_features_to_null_type():
         cast_array_to_feature(arr, Sequence(Value("null")))
 
 
+def test_cast_array_to_features_sequence_classlabel():
+    arr = pa.array([[], [1], [0, 1]], pa.list_(pa.int64()))
+    assert cast_array_to_feature(arr, Sequence(ClassLabel(names=["foo", "bar"]))).type == pa.list_(pa.int64())
+
+    arr = pa.array([[], ["bar"], ["foo", "bar"]], pa.list_(pa.string()))
+    assert cast_array_to_feature(arr, Sequence(ClassLabel(names=["foo", "bar"]))).type == pa.list_(pa.int64())
+
+    # Test empty arrays
+    arr = pa.array([[], []], pa.list_(pa.int64()))
+    assert cast_array_to_feature(arr, Sequence(ClassLabel(names=["foo", "bar"]))).type == pa.list_(pa.int64())
+
+    arr = pa.array([[], []], pa.list_(pa.string()))
+    assert cast_array_to_feature(arr, Sequence(ClassLabel(names=["foo", "bar"]))).type == pa.list_(pa.int64())
+
+    # Test invalid class labels
+    arr = pa.array([[2]], pa.list_(pa.int64()))
+    with pytest.raises(ValueError):
+        assert cast_array_to_feature(arr, Sequence(ClassLabel(names=["foo", "bar"])))
+
+    arr = pa.array([["baz"]], pa.list_(pa.string()))
+    with pytest.raises(ValueError):
+        assert cast_array_to_feature(arr, Sequence(ClassLabel(names=["foo", "bar"])))
+
+
 def test_embed_array_storage(image_file):
     array = pa.array([{"bytes": None, "path": image_file}], type=Image.pa_type)
     embedded_images_array = embed_array_storage(array, Image())

@@ -394,7 +394,6 @@ class DummyDataCommand(BaseDatasetsCLICommand):
         try:
             generator_splits = dataset_builder._split_generators(mock_dl_manager)
         except FileNotFoundError as e:
-
             print(
                 f"Dataset {self._dataset_name} with config {mock_dl_manager.config} seems to already open files in the method `_split_generators(...)`. You might consider to instead only open files in the method `_generate_examples(...)` instead. If this is not possible the dummy data has to be created with less guidance. Make sure you create the file {e.filename}."
             )

@@ -14,11 +14,11 @@
 # limitations under the License.
 """ MAUVE metric from https://github.com/krishnap25/mauve. """
 
-import faiss  # Here to have a nice missing dependency error message early on
-import numpy  # Here to have a nice missing dependency error message early on
-import requests  # Here to have a nice missing dependency error message early on
-import sklearn  # Here to have a nice missing dependency error message early on
-import tqdm  # Here to have a nice missing dependency error message early on
+import faiss  # noqa: F401 # Here to have a nice missing dependency error message early on
+import numpy  # noqa: F401 # Here to have a nice missing dependency error message early on
+import requests  # noqa: F401 # Here to have a nice missing dependency error message early on
+import sklearn  # noqa: F401 # Here to have a nice missing dependency error message early on
+import tqdm  # noqa: F401 # Here to have a nice missing dependency error message early on
 from mauve import compute_mauve  # From: mauve-text
 
 import datasets
