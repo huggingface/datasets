@@ -138,7 +138,6 @@ def create_pr_it_does_not_exist(
         repo_url = create_repo(
             hf_api=hf_api, repo_id=repo_id, private=private, token=token, exist_ok=True, repo_type=repo_type
         )
-        repo_id = get_repo_id_from_repo_url(repo_url)
 
     # Try to find PR branch if branch is supplied
     if create_pr and branch is not None:
