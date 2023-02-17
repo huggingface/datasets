@@ -112,6 +112,7 @@ def create_pr_it_does_not_exist(
             The branch to create the PR on. Defaults to None.
     """
     # By version huggingface_hub 0.7.0 HTTPError was replaced by RepositoryNotFoundError
+    # so we need to check the version to use the right exception
     if version.parse(huggingface_hub.__version__) < version.parse("0.7.0"):
         from requests.exceptions import HTTPError
 
@@ -121,6 +122,7 @@ def create_pr_it_does_not_exist(
 
         repo_not_found_exception = RepositoryNotFoundError
 
+    # Try to find the repo before creating it
     try:
         hf_api.repo_info(repo_id, token=token)
 
@@ -145,7 +147,8 @@ def create_pr_it_does_not_exist(
                     break
             else:
                 raise ValueError("Provided branch not found")
-
+                
+    # Create PR if we didn't find it before
     if create_pr:
         from huggingface_hub import create_pull_request
 
