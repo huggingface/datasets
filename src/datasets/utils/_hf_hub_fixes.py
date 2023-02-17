@@ -71,6 +71,13 @@ def get_repo_id_from_repo_url(repo_url: Union[str, Any]) -> str:
     In 0.12.0 the output of `huggingface_hub.hf_api.create_repo` change output from `str` containing the
     repo_url, to `RepoUrl` object. This function checks the huggingface_hub version to get the repo_id from
     the repo_url, in the correct way.
+
+    Args:
+        repo_url (`str` or `huggingface_hub.hf_api.RepoUrl`): URL to the repo.
+
+    Returns:
+        `str`: repo_id, the ID of the repository to push to in the following format: `<user>/<dataset_name>` or
+            `<org>/<dataset_name>`.
     """
     if version.parse(huggingface_hub.__version__) < version.parse("0.12.0"):
         from urllib.parse import urlparse
@@ -98,7 +105,8 @@ def create_pr_it_does_not_exist(
 
     Args:
         hf_api (`huggingface_hub.HfApi`): Hub client
-        repo_id (`str`): A namespace (user or an organization) and a repo name separated by a `/`.
+        repo_id (`str`): The ID of the repository to push to in the following format: `<user>/<dataset_name>` or
+            `<org>/<dataset_name>`.
         token (`str`, *optional*): user or organization token. Defaults to None.
         private (`bool`, *optional*):
             Whether the model repo should be private.
@@ -147,7 +155,7 @@ def create_pr_it_does_not_exist(
                     break
             else:
                 raise ValueError("Provided branch not found")
-                
+
     # Create PR if we didn't find it before
     if create_pr:
         from huggingface_hub import create_pull_request
