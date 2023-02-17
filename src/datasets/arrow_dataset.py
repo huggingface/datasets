@@ -36,9 +36,21 @@ from io import BytesIO
 from math import ceil, floor
 from pathlib import Path
 from random import sample
-from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, Iterable, Iterator, List, Optional
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    BinaryIO,
+    Callable,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    Union,
+    overload,
+)
 from typing import Sequence as Sequence_
-from typing import Tuple, Union, overload
 
 import fsspec
 import numpy as np
