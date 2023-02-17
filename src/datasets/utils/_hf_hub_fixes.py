@@ -159,7 +159,7 @@ def create_pr_it_does_not_exist(
     if create_pr:
         pr = hf_api.create_pull_request(
             repo_id,
-            repo_type="dataset",
+            repo_type=repo_type,
             title=f"Add {repo_id} dataset",
             token=token,
         )
