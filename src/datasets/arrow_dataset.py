@@ -5150,7 +5150,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         api = HfApi(endpoint=config.HF_ENDPOINT)
 
         # Create repo if it doesn't exist safely
-        create_pr_it_does_not_exist(
+        branch, pr_was_created = create_pr_it_does_not_exist(
             hf_api=api,
             repo_id=repo_id,
             private=private,
@@ -5159,6 +5159,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             create_pr=create_pr,
             branch=branch,
         )
+
+        # If the PR was created, we don't want to create a new one
+        create_pr = not pr_was_created
 
         repo_id, split, uploaded_size, dataset_nbytes, repo_files, deleted_size = self._push_parquet_shards_to_hub(
             repo_id=repo_id,
