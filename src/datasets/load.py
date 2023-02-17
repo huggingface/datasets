@@ -137,7 +137,7 @@ def import_main_class(module_path, dataset=True) -> Optional[Union[Type[DatasetB
     return module_main_cls
 
 
-class _InitializeParameterized:
+class _InitializeParameterizedBuilder:
     """
     From https://stackoverflow.com/questions/4647566/pickle-a-dynamically-parameterized-sub-class
     See also ParametrizedBuilder.__reduce__
@@ -149,12 +149,14 @@ class _InitializeParameterized:
 
     def __call__(self, builder_cls, metadata_configs, name):
         # make a simple object which has no complex __init__ (this one will do)
-        obj = _InitializeParameterized()
+        obj = _InitializeParameterizedBuilder()
         obj.__class__ = parametrize_packaged_builder(builder_cls, metadata_configs, name)
         return obj
 
 
-def parametrize_packaged_builder(builder_cls, metadata_configs: MetadataConfigsDict, name: str):
+def parametrize_packaged_builder(
+    builder_cls: Type[DatasetBuilder], metadata_configs: MetadataConfigsDict, name: str
+) -> Type[DatasetBuilder]:
     config_cls = builder_cls.BUILDER_CONFIG_CLASS
     configs = metadata_configs.to_builder_configs_list(builder_config_cls=config_cls)
 
@@ -167,7 +169,7 @@ def parametrize_packaged_builder(builder_cls, metadata_configs: MetadataConfigsD
             parent_builder_cls = self.__class__.__mro__[1]
             metadata_configs_dict = MetadataConfigsDict.from_builder_configs_list(self.BUILDER_CONFIGS)
             return (
-                _InitializeParameterized(),
+                _InitializeParameterizedBuilder(),
                 (parent_builder_cls, metadata_configs_dict, os.path.basename(self.base_path)),
                 self.__dict__.copy(),
             )
@@ -176,6 +178,13 @@ def parametrize_packaged_builder(builder_cls, metadata_configs: MetadataConfigsD
     ParametrizedBuilder.__qualname__ = f"{builder_cls.__name__.lower().capitalize()}{snakecase_to_camelcase(name)}"
 
     return ParametrizedBuilder
+
+
+def import_builder_cls(dataset_module, name: Optional[str]) -> Type[DatasetBuilder]:
+    builder_cls = import_main_class(dataset_module.module_path)
+    if dataset_module.metadata_configs:
+        builder_cls = parametrize_packaged_builder(builder_cls, dataset_module.metadata_configs, name=name)
+    return builder_cls
 
 
 def files_to_hash(file_paths: List[str]) -> str:
@@ -663,7 +672,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
 
         self.path = path
         self.name = Path(path).stem
-        self.config_name = config_name if config_name else "default"
+        self.config_name = config_name
         self.data_files = data_files
         self.data_dir = data_dir
         self.download_mode = download_mode
@@ -783,7 +792,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         # if config_name and data_files: TODO - ?
 
         self.name = name
-        self.config_name = config_name if config_name else "default"
+        self.config_name = config_name
         self.data_files = data_files
         self.data_dir = data_dir
         self.download_config = download_config
@@ -883,7 +892,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         download_mode: Optional[Union[DownloadMode, str]] = None,
     ):
         self.name = name
-        self.config_name = config_name if config_name else "default"
+        self.config_name = config_name
         self.revision = revision
         self.data_files = data_files
         self.data_dir = data_dir
@@ -959,7 +968,6 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
 
         if self.config_name and METADATA_CONFIGS_FIELD in dataset_metadata:
             metadata_configs_dict = MetadataConfigsDict.from_metadata(dataset_metadata)
-            config_kwargs = metadata_configs_dict.get(self.config_name, {})
 
             # # TODO: raise error if config doesn't exist? might there be cases when it's possible?
             # if self.config_name not in metadata_configs_dict:
@@ -1674,7 +1682,7 @@ def load_dataset_builder(
         download_config.use_auth_token = use_auth_token
     dataset_module = dataset_module_factory(
         path,
-        config_name=name if name else config_kwargs.get("config_name", "default"),
+        config_name=name if name else config_kwargs.get("config_name", None),
         revision=revision,
         download_config=download_config,
         download_mode=download_mode,
@@ -1683,11 +1691,7 @@ def load_dataset_builder(
     )
 
     # Get dataset builder class from the processing script
-    builder_cls = import_main_class(dataset_module.module_path)
-    if dataset_module.metadata_configs:
-        builder_cls = parametrize_packaged_builder(
-            builder_cls, dataset_module.metadata_configs, name=os.path.basename(path)
-        )
+    builder_cls = import_builder_cls(dataset_module, name=os.path.basename(path))
     builder_kwargs = dataset_module.builder_kwargs
     data_dir = builder_kwargs.pop("data_dir", data_dir)
     data_files = builder_kwargs.pop("data_files", data_files)
