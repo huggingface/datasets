@@ -1,15 +1,15 @@
 # Create a dataset
 
-Sometimes, you may need to create a dataset if you"re working with your own data. Creating a dataset with 🤗 Datasets confers all the advantages of the library to your dataset: fast loading and processing, [stream enormous datasets](stream), [memory-mapping](https://huggingface.co/course/chapter5/4?fw=pt#the-magic-of-memory-mapping), and more. You can easily and rapidly create a dataset with 🤗 Datasets low-code approaches, reducing the time it takes to start training a model. In many cases, it is as easy as [dragging and dropping](upload_dataset#upload-with-the-hub-ui) your data files into a dataset repository on the Hub.
+Sometimes, you may need to create a dataset if you're working with your own data. Creating a dataset with 🤗 Datasets confers all the advantages of the library to your dataset: fast loading and processing, [stream enormous datasets](stream), [memory-mapping](https://huggingface.co/course/chapter5/4?fw=pt#the-magic-of-memory-mapping), and more. You can easily and rapidly create a dataset with 🤗 Datasets low-code approaches, reducing the time it takes to start training a model. In many cases, it is as easy as [dragging and dropping](upload_dataset#upload-with-the-hub-ui) your data files into a dataset repository on the Hub.
 
-In this tutorial, you"ll learn how to use 🤗 Datasets low-code methods for creating all types of datasets:
+In this tutorial, you'll learn how to use 🤗 Datasets low-code methods for creating all types of datasets:
 
 * Folder-based builders for quickly creating an image or audio dataset
 * `from_` methods for creating datasets from local files
 
 ## Folder-based builders
 
-There are two folder-based builders, [`ImageFolder`] and [`AudioFolder`]. These are low-code methods for quickly creating an image or speech and audio dataset with several thousand examples. They are great for rapidly prototyping computer vision and speech models before scaling to a larger dataset. Folder-based builders takes your data and automatically generates the dataset"s features, splits, and labels. Under the hood:
+There are two folder-based builders, [`ImageFolder`] and [`AudioFolder`]. These are low-code methods for quickly creating an image or speech and audio dataset with several thousand examples. They are great for rapidly prototyping computer vision and speech models before scaling to a larger dataset. Folder-based builders takes your data and automatically generates the dataset's features, splits, and labels. Under the hood:
 
 * [`ImageFolder`] uses the [`~datasets.Image`] feature to decode an image file. Many image extension formats are supported, such as jpg and png, but other formats are also supported. You can check the complete [list](https://github.com/huggingface/datasets/blob/b5672a956d5de864e6f5550e493527d962d6ae55/src/datasets/packaged_modules/imagefolder/imagefolder.py#L39) of supported image extensions.
 * [`AudioFolder`] uses the [`~datasets.Audio`] feature to decode an audio file. Audio extensions such as wav and mp3 are supported, and you can check the complete [list](https://github.com/huggingface/datasets/blob/b5672a956d5de864e6f5550e493527d962d6ae55/src/datasets/packaged_modules/audiofolder/audiofolder.py#L39) of supported audio extensions.
@@ -65,7 +65,7 @@ To learn more about each of these folder-based builders, check out the and <a hr
 
 You can also create a dataset from local files by specifying the path to the data files. There are two ways you can create a dataset using the `from_` methods:
 
-    * The [`~Dataset.from_generator`] method is the most memory-efficient way to create a dataset from a [generator](https://wiki.python.org/moin/Generators) due to a generators lazy behavior. This is especially useful when you"re working with a really large dataset that may not fit in memory.
+    * The [`~Dataset.from_generator`] method is the most memory-efficient way to create a dataset from a [generator](https://wiki.python.org/moin/Generators) due to a generators iterative behavior. This is especially useful when you're working with a really large dataset that may not fit in memory, since the dataset is generated on disk progressively and then memory-mapped.
 
     ```py
     >>> from datasets import Dataset
@@ -73,11 +73,14 @@ You can also create a dataset from local files by specifying the path to the dat
     ...     yield {"pokemon": "bulbasaur", "type": "grass"}
     ...     yield {"pokemon": "squirtle", "type": "water"}
     >>> ds = Dataset.from_generator(gen)
+    >>> ds[0]
+    {"pokemon": "bulbasaur", "type": "grass"}
     ```
 
-    Generator-based datasets need to be iterated over with either a `for` loop or by calling `next(iter())`:
+    A generator-based [`IterableDataset`] needs to be iterated over with a `for` loop for example:
 
     ```py
+    >>> ds = IterableDataset.from_generator(gen)
     >>> for example in ds:
     ...     print(example)
     {"pokemon": "bulbasaur", "type": "grass"}
