@@ -82,7 +82,7 @@ def get_repo_id_from_repo_url(repo_url: Union[str, Any]) -> str:
     if version.parse(huggingface_hub.__version__) < version.parse("0.12.0"):
         from urllib.parse import urlparse
 
-        repo_id = urlparse(repo_url).path[:1]
+        repo_id = urlparse(repo_url).path[1:]
         return repo_id
     else:
         return repo_url.repo_id
