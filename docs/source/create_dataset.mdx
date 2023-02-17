@@ -80,6 +80,7 @@ You can also create a dataset from local files by specifying the path to the dat
     A generator-based [`IterableDataset`] needs to be iterated over with a `for` loop for example:
 
     ```py
+    >>> from datasets import IterableDataset
     >>> ds = IterableDataset.from_generator(gen)
     >>> for example in ds:
     ...     print(example)
