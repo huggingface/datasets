@@ -157,9 +157,7 @@ def create_pr_it_does_not_exist(
 
     # Create PR if we didn't find it before
     if create_pr:
-        from huggingface_hub import create_pull_request
-
-        pr = create_pull_request(
+        pr = hf_api.create_pull_request(
             repo_id,
             repo_type="dataset",
             title=f"Add {repo_id} dataset",
