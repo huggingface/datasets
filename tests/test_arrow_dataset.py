@@ -1542,13 +1542,13 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-                sum_reduce = lambda x, y: x + y
+                def sum_reduce(x, y):
+                    return x + y
                 reduction = dset.reduce(sum_reduce, input_columns="filename")
                 functool_reduction = functools_reduce(
-                    sum_reduce,
-                    ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]
+                    sum_reduce, ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]
                 )
-                self.assertEqual(functool_reduction, reduction['filename'])
+                self.assertEqual(functool_reduction, reduction["filename"])
 
         # no transform
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -1556,7 +1556,8 @@ class BaseDatasetTest(TestCase):
                 self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
 
                 # Check if exception is raised when no transform is provided
-                sum_reduce_none = lambda x, y: None
+                def sum_reduce_none(x, y):
+                    return None
                 with self.assertRaises(TypeError):
                     reduction = dset.reduce(sum_reduce_none, input_columns="filename")
 
@@ -1564,55 +1565,56 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
                 dset.set_format("numpy", columns=["col_1"])
-                sum_reduce = lambda x, y: x + y
+                def sum_reduce(x, y):
+                    return x + y
                 reduction = dset.reduce(sum_reduce, input_columns="col_1")
-                self.assertEqual(reduction['col_1'], 6)
+                self.assertEqual(reduction["col_1"], 6)
 
     def test_reduce_multiprocessing(self, in_memory):
         # standard
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-                sum_reduce = lambda x, y: x + y
+                def sum_reduce(x, y):
+                    return x + y
                 reduction = dset.reduce(sum_reduce, input_columns="filename", num_proc=2)
                 functool_reduction = functools_reduce(
-                    sum_reduce,
-                    ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]
+                    sum_reduce, ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]
                 )
-                self.assertEqual(functool_reduction, reduction['filename'])
+                self.assertEqual(functool_reduction, reduction["filename"])
 
         # num_proc > num rows
-        with tempfile.TemporaryDirectory() as tmp_dir:  
+        with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-                sum_reduce = lambda x, y: x + y
+                def sum_reduce(x, y):
+                    return x + y
                 reduction = dset.select([0, 1], keep_in_memory=True).reduce(sum_reduce, num_proc=10)
                 functool_reduction = functools_reduce(
-                    sum_reduce,
-                    ["my_name-train" + "_" + str(x) for x in np.arange(2).tolist()]
+                    sum_reduce, ["my_name-train" + "_" + str(x) for x in np.arange(2).tolist()]
                 )
-                self.assertEqual(functool_reduction, reduction['filename'])
-         
+                self.assertEqual(functool_reduction, reduction["filename"])
 
     def test_reduce_batched(self, in_memory):
         # standard
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-                sum_reduce = lambda x, y: x + y
+                def sum_reduce(x, y):
+                    return x + y
                 reduction = dset.reduce(sum_reduce, batched=True, input_columns="filename")
                 functool_reduction = functools_reduce(
-                    sum_reduce,
-                    ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]
+                    sum_reduce, ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]
                 )
-                self.assertEqual(functool_reduction, reduction['filename'])
+                self.assertEqual(functool_reduction, reduction["filename"])
 
         # change batch size and drop the last batch
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-                sum_reduce = lambda x, y: x + y
-                batch_size = len(dset) - 1 
+                def sum_reduce(x, y):
+                    return x + y
+                batch_size = len(dset) - 1
                 reduction = dset.reduce(
                     sum_reduce,
                     batch_size=batch_size,
@@ -1621,18 +1623,18 @@ class BaseDatasetTest(TestCase):
                     input_columns="filename",
                 )
                 functool_reduction = functools_reduce(
-                    sum_reduce,
-                    ["my_name-train" + "_" + str(x) for x in np.arange(batch_size).tolist()]
+                    sum_reduce, ["my_name-train" + "_" + str(x) for x in np.arange(batch_size).tolist()]
                 )
-                self.assertEqual(functool_reduction, reduction['filename'])
+                self.assertEqual(functool_reduction, reduction["filename"])
 
         # formatted
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
                 dset.set_format("numpy", columns=["col_1"])
-                sum_reduce = lambda x, y: x + y
+                def sum_reduce(x, y):
+                    return x + y
                 reduction = dset.reduce(sum_reduce, input_columns="col_1", batched=True)
-                self.assertEqual(reduction['col_1'], 6)
+                self.assertEqual(reduction["col_1"], 6)
 
     def test_filter(self, in_memory):
         # keep only first five examples
