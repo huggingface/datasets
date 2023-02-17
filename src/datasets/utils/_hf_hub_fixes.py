@@ -1,9 +1,8 @@
 from pathlib import Path
-from typing import Any, BinaryIO, Iterator, List, Optional, Union
+from typing import Any, BinaryIO, List, Optional, Union
 
 import huggingface_hub
 from huggingface_hub import HfApi, HfFolder
-from huggingface_hub.community import Discussion
 from huggingface_hub.hf_api import DatasetInfo
 from packaging import version
 
@@ -315,9 +314,26 @@ def get_repo_discussions(
     repo_id: str,
     repo_type: Optional[str] = None,
     token: Optional[str] = None,
-) -> Iterator[Discussion]:
+) -> Any:
     """
-    The method `huggingface_hub.HfApi.get_repo_discussions` was introduced in 0.9.0.
+    The method `huggingface_hub.HfApi.get_repo_discussions` was introduced in 0.9.0, this function checks the version before calling it.
+
+    Args:
+        hf_api (`huggingface_hub.HfApi`): Hub client
+        repo_id (`str`):
+            The ID of the repository to push to in the following format: `<user>/<dataset_name>` or
+            `<org>/<dataset_name>`. Also accepts `<dataset_name>`, which will default to the namespace
+            of the logged-in user.
+        repo_type (`str`, *optional*):
+            The type of repository to push to. Can be either `dataset` or `model`.
+        token (`str`, *optional*):
+            The token to use to authenticate to the Hugging Face Hub. If not provided, will use the token
+            stored in your `~/.huggingface` folder.
+    Returns:
+        Iterator[`huggingface_hub.hf_api.Discussion`]: The discussion(s) of the repository.
+
+    Raises:
+        TypeError: If the version of huggingface_hub is <0.9.0
     """
     if version.parse(huggingface_hub.__version__) < version.parse("0.9.0"):
         raise TypeError(
