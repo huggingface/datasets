@@ -3631,7 +3631,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     f"Provided `function` does not return the same type as the type of the inputs, make sure `function` has signature `function(accumulant: Any, update_value: Any) -> Any`."
                 )
 
-        def apply_function_on_filtered_inputs_and_accumulant(update_value, accumulant):
+        def apply_function_on_inputs_and_accumulant(update_value, accumulant):
             """Utility to apply the function on a selection of columns."""
             element = format_table(
                 update_value,
@@ -3657,86 +3657,87 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             validate_function_output(accumulant)
             return accumulant
 
-        # Optionally initialize the writer as a context manager
-        with contextlib.ExitStack() as stack:
-            try:
-                input_dataset = self.with_format("arrow")
+        
+        try:
+            input_dataset = self.with_format("arrow")
 
-                # Loop over single examples or batches and write to buffer/file if examples are to be updated
-                if not batched:
-                    pbar_total = len(input_dataset)
-                    pbar_iterable = enumerate(input_dataset)
-                else:
-                    num_rows = (
-                        len(input_dataset) if not drop_last_batch else len(input_dataset) // batch_size * batch_size
-                    )
-                    pbar_total = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
-                    pbar_iterable = zip(
-                        range(0, num_rows, batch_size),
-                        input_dataset.iter(batch_size, drop_last_batch=drop_last_batch),
-                    )
-                pbar_unit = "ex" if not batched else "ba"
-                pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
-                pbar = logging.tqdm(
-                    pbar_iterable,
-                    total=pbar_total,
-                    disable=disable_tqdm,
-                    position=rank,
-                    unit=pbar_unit,
-                    desc=pbar_desc,
+            # Loop over single examples or batches and write to buffer/file if examples are to be updated
+            if not batched:
+                pbar_total = len(input_dataset)
+                pbar_iterable = enumerate(input_dataset)
+            else:
+                num_rows = (
+                    len(input_dataset) if not drop_last_batch else len(input_dataset) // batch_size * batch_size
                 )
-                # If we're not working in batches, the first example is used to initialize the accumulant
-                if not batched:
-                    accumulant = None
-                    for i, example in pbar:
-                        if accumulant is None: 
-                            accumulant = format_table(
-                                example,
-                                0,
-                                format_columns=input_columns,
-                                formatter=input_formatter,
-                            )
-                            # Get the value types of the accumulant for later type checking
-                            accumulant_value_types = {k:type(v) for k, v in accumulant.items()}
-                            continue
+                pbar_total = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
+                pbar_iterable = zip(
+                    range(0, num_rows, batch_size),
+                    input_dataset.iter(batch_size, drop_last_batch=drop_last_batch),
+                )
+            pbar_unit = "ex" if not batched else "ba"
+            pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
+            pbar = logging.tqdm(
+                pbar_iterable,
+                total=pbar_total,
+                disable=disable_tqdm,
+                position=rank,
+                unit=pbar_unit,
+                desc=pbar_desc,
+            )
 
-                        accumulant = apply_function_on_filtered_inputs_and_accumulant(example, accumulant)
+            # If we're not working in batches, the first example is used to initialize the accumulant
+            if not batched:
+                accumulant = None
+                for i, example in pbar:
+                    if accumulant is None: 
+                        accumulant = format_table(
+                            example,
+                            0,
+                            format_columns=input_columns,
+                            formatter=input_formatter,
+                        )
 
-                # If we're working in batches, the first batch is used to initialize the accumulant as a dict
-                # with the same keys as the batch and empty values of the same type as the batch values
-                else:
-                    accumulant = None
-                    for i, batch in pbar:
-                        if accumulant is None:
+                        # Get the value types of the accumulant for later type checking
+                        accumulant_value_types = {k:type(v) for k, v in accumulant.items()}
+                        continue
 
-                            # Create the empty accumulant
-                            formatted_table = format_table(
-                                batch,
-                                0,
-                                format_columns=input_columns,
-                                formatter=input_formatter,
-                            )
-                            accumulant = {
-                                k:type(v)() for k, v in formatted_table.items()
-                            }
+                    accumulant = apply_function_on_inputs_and_accumulant(example, accumulant)
 
-                            # Get the value types of the accumulant for later type checking
-                            accumulant_value_types = {k:type(v) for k, v in accumulant.items()}
+            # If we're working in batches, the first batch is used to initialize the accumulant as a dict
+            # with the same keys as the batch and empty values of the same type as the batch values
+            else:
+                accumulant = None
+                for i, batch in pbar:
+                    if accumulant is None:
 
-                            # Apply the function on the first batch, with the empty accumulant
-                            accumulant = apply_function_on_filtered_inputs_and_accumulant(
-                                batch,
-                                accumulant,
-                            )
-                            continue
+                        # Create the empty accumulant
+                        formatted_table = format_table(
+                            batch,
+                            0,
+                            format_columns=input_columns,
+                            formatter=input_formatter,
+                        )
+                        accumulant = {
+                            k:type(v)() for k, v in formatted_table.items()
+                        }
 
-                        accumulant += apply_function_on_filtered_inputs_and_accumulant(
+                        # Get the value types of the accumulant for later type checking
+                        accumulant_value_types = {k:type(v) for k, v in accumulant.items()}
+
+                        # Apply the function on the first batch, with the empty accumulant
+                        accumulant = apply_function_on_inputs_and_accumulant(
                             batch,
                             accumulant,
                         )
-                        
-            except (Exception, KeyboardInterrupt):
-                raise
+                        continue
+
+                    accumulant += apply_function_on_inputs_and_accumulant(
+                        batch,
+                        accumulant,
+                    )
+                    
+        except (Exception, KeyboardInterrupt):
+            raise
         return accumulant
 
     @transmit_format
