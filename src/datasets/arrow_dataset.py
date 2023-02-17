@@ -3738,15 +3738,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         kind="deprecated",
     ) -> "Dataset":
         """Create a new dataset sorted according to a single or multiple columns.
-        The transformation is applied to all the datasets of the dataset dictionary.
 
-        Currently sorting according to a column name(s) uses pyarrow's sort_indices sorting algorithm under the hood.
-        The column(s) should thus be a pyarrow compatible type (in particular not a nested type).
         This also means that the column used for sorting is fully loaded in memory (which should be fine in most cases).
 
         Args:
             column_names (`Union[str, Sequence[str]]`):
-                Either a single column name or a list of unqiue column names to sort by.
+               Column name(s) to sort by.
             reverse (`Union[bool, Sequence[bool]]`, defaults to `False`):
                 If `True`, sort by descending order rather than ascending. If a single bool is provided,
                 the value is applied to the sorting of all column names. Otherwise a list of bools with the
@@ -3799,8 +3796,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Deprecation warning
         if kind != "deprecated":
             warnings.warn(
-                "The 'kind' parameter is deprecated and will be removed in future releases.",
-                category=DeprecationWarning,
+                "`kind` was deprecated in version 2.10.0 and will be removed in 3.0.0.",
+                category=FutureWarning,
             )
 
         # Check proper format of and for duplicates in column_names
@@ -3849,19 +3846,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     fingerprint=new_fingerprint, indices_cache_file_name=indices_cache_file_name
                 )
 
-        queried_dataset = query_table(
+        sort_table = query_table(
             table=self._data,
-            key=slice(0, len(self)),
+            key=range(self._data.num_rows),
             indices=self._indices if self._indices is not None else None,
         )
 
         sort_keys = [
-            (column_names[i], "ascending" if not reverse[i] else "descending") for i in range(len(column_names))
+            (col, "ascending" if not col_reverse else "descending") for col, col_reverse in zip(column_names, reverse)
         ]
 
-        indices = np.array(
-            pa.compute.sort_indices(queried_dataset, sort_keys=sort_keys, null_placement=null_placement)
-        ).astype(np.int64)
+        indices = pc.sort_indices(sort_table, sort_keys=sort_keys, null_placement=null_placement)
 
         return self.select(
             indices=indices,
