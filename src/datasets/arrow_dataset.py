@@ -3370,7 +3370,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     ) -> Dict[str, Any]:
         """
         Reduce the examples in the table (individually or in batches) using a binary operation and return the result.
-        
+
         The function should be a binary operation, i.e. it takes in 2 objects of the same type in and returns 1 object of the same type as the inputs.
         Examples include addition, multiplication, maximum, minimum, etc. for `int`, `float`, `bool` and `str` types, and concatenation for `list` types.
         The first input is the accumulant, which is the result of the previous application of the function on the previous examples, and the second input is the current example.
@@ -3420,7 +3420,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # process a batch of examples
         >>> result = ds.reduce(str_concat, input_columns="text", batched=True)
-        
+
         # set number of processors
         >>> result = ds.reduce(str_concat, input_columns="text", num_proc=4)
         ```
@@ -3524,8 +3524,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     return None
 
             reduced_shards = [
-                catch_non_existent_error(self.__class__._reduce_single, dict(**kwds))
-                for kwds in kwds_per_shard
+                catch_non_existent_error(self.__class__._reduce_single, dict(**kwds)) for kwds in kwds_per_shard
             ]
 
             # We try to create a pool with as many workers as dataset not yet cached.
@@ -3625,10 +3624,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             input_types_fit_accumulant_types = all(
                 type(processed_inputs[col]) == accumulant_value_types[col] for col in processed_inputs.keys()
             )
-                
+
             if not input_types_fit_accumulant_types:
                 raise TypeError(
-                    f"Provided `function` does not return the same type as the type of the inputs, make sure `function` has signature `function(accumulant: Any, update_value: Any) -> Any`."
+                    "Provided `function` does not return the same type as the type of the inputs, make sure `function` has signature `function(accumulant: Any, update_value: Any) -> Any`."
                 )
 
         def apply_function_on_inputs_and_accumulant(update_value, accumulant):
@@ -3653,11 +3652,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         "function(accumulant: Any, update_value: Any, *args, **kwargs) -> Any\n"
                         f"Error: {e}"
                     )
-            
+
             validate_function_output(accumulant)
             return accumulant
 
-        
         try:
             input_dataset = self.with_format("arrow")
 
@@ -3666,9 +3664,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 pbar_total = len(input_dataset)
                 pbar_iterable = enumerate(input_dataset)
             else:
-                num_rows = (
-                    len(input_dataset) if not drop_last_batch else len(input_dataset) // batch_size * batch_size
-                )
+                num_rows = len(input_dataset) if not drop_last_batch else len(input_dataset) // batch_size * batch_size
                 pbar_total = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
                 pbar_iterable = zip(
                     range(0, num_rows, batch_size),
@@ -3689,7 +3685,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if not batched:
                 accumulant = None
                 for i, example in pbar:
-                    if accumulant is None: 
+                    if accumulant is None:
                         accumulant = format_table(
                             example,
                             0,
@@ -3698,7 +3694,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         )
 
                         # Get the value types of the accumulant for later type checking
-                        accumulant_value_types = {k:type(v) for k, v in accumulant.items()}
+                        accumulant_value_types = {k: type(v) for k, v in accumulant.items()}
                         continue
 
                     accumulant = apply_function_on_inputs_and_accumulant(example, accumulant)
@@ -3709,7 +3705,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 accumulant = None
                 for i, batch in pbar:
                     if accumulant is None:
-
                         # Create the empty accumulant
                         formatted_table = format_table(
                             batch,
@@ -3717,12 +3712,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             format_columns=input_columns,
                             formatter=input_formatter,
                         )
-                        accumulant = {
-                            k:type(v)() for k, v in formatted_table.items()
-                        }
+                        accumulant = {k: type(v)() for k, v in formatted_table.items()}
 
                         # Get the value types of the accumulant for later type checking
-                        accumulant_value_types = {k:type(v) for k, v in accumulant.items()}
+                        accumulant_value_types = {k: type(v) for k, v in accumulant.items()}
 
                         # Apply the function on the first batch, with the empty accumulant
                         accumulant = apply_function_on_inputs_and_accumulant(
@@ -3735,7 +3728,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         batch,
                         accumulant,
                     )
-                    
+
         except (Exception, KeyboardInterrupt):
             raise
         return accumulant
