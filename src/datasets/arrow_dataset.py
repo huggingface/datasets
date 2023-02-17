@@ -3608,6 +3608,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if len(self) == 0:
             return self
 
+        # If indices is a PyArrow array, we convert to NumPy
+        if isinstance(indices, (pa.Array, pa.ChunkedArray)):
+            indices = indices.to_numpy().astype(np.int64)
+
         # Convert generator objects to lists
         if isinstance(indices, Iterator):
             indices = list(indices)
