@@ -132,7 +132,7 @@ def create_pr_it_does_not_exist(
 
     # Try to find the repo before creating it
     try:
-        hf_api.repo_info(repo_id, token=token)
+        hf_api.repo_info(repo_id, repo_type=repo_type, token=token)
 
     except repo_not_found_exception:
         repo_url = create_repo(
