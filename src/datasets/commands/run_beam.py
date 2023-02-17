@@ -10,6 +10,7 @@ from datasets.commands import BaseDatasetsCLICommand
 from datasets.download.download_config import DownloadConfig
 from datasets.download.download_manager import DownloadMode
 from datasets.load import dataset_module_factory, import_main_class
+from datasets.utils.info_utils import VerificationMode
 
 
 def run_beam_command_factory(args, **kwargs):
@@ -131,7 +132,9 @@ class RunBeamCommand(BaseDatasetsCLICommand):
                 if not self._force_redownload
                 else DownloadMode.FORCE_REDOWNLOAD,
                 download_config=DownloadConfig(cache_dir=config.DOWNLOADED_DATASETS_PATH),
-                ignore_verifications=self._ignore_verifications,
+                verification_mode=VerificationMode.NO_CHECKS
+                if self._ignore_verifications
+                else VerificationMode.ALL_CHECKS,
                 try_from_hf_gcs=False,
             )
             if self._save_infos:

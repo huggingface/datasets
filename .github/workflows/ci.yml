@@ -28,8 +28,7 @@ jobs:
       - name: Check quality
         run: |
           black --check tests src benchmarks metrics
-          isort --check-only tests src benchmarks metrics
-          flake8 tests src benchmarks metrics
+          ruff tests src benchmarks metrics
 
   test:
     needs: check_code_quality

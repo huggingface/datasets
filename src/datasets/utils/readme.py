@@ -253,7 +253,6 @@ class ReadMe(Section):  # Level 0
             # If one exactly
             start_key = list(self.content.keys())[0]  # Get the key
             if start_key.startswith("Dataset Card for"):  # Check correct start
-
                 # If the starting is correct, validate all the sections
                 _, sec_error_list, sec_warning_list = self.content[start_key].validate(
                     readme_structure["subsections"][0]

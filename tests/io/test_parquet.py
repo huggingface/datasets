@@ -2,6 +2,7 @@ import pyarrow.parquet as pq
 import pytest
 
 from datasets import Dataset, DatasetDict, Features, NamedSplit, Value
+from datasets.features.image import Image
 from datasets.io.parquet import ParquetDatasetReader, ParquetDatasetWriter
 
 from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
@@ -130,3 +131,16 @@ def test_parquer_write(dataset, tmp_path):
     pf = pq.ParquetFile(tmp_path / "foo.parquet")
     output_table = pf.read()
     assert dataset.data.table == output_table
+
+
+def test_dataset_to_parquet_keeps_features(shared_datadir, tmp_path):
+    image_path = str(shared_datadir / "test_image_rgb.jpg")
+    data = {"image": [image_path]}
+    features = Features({"image": Image()})
+    dataset = Dataset.from_dict(data, features=features)
+    writer = ParquetDatasetWriter(dataset, tmp_path / "foo.parquet")
+    assert writer.write() > 0
+
+    reloaded_dataset = Dataset.from_parquet(str(tmp_path / "foo.parquet"))
+
+    assert dataset.features == reloaded_dataset.features

@@ -151,7 +151,6 @@ def test_audio_decode_example_mp3_torchaudio_latest(shared_datadir, torchaudio_f
     audio = Audio()
 
     with patch("torchaudio.load") if torchaudio_failed else nullcontext() as load_mock:
-
         if torchaudio_failed:
             load_mock.side_effect = RuntimeError()
 

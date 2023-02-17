@@ -17,11 +17,13 @@
 """Util import."""
 
 __all__ = [
+    "VerificationMode",
     "Version",
     "disable_progress_bar",
     "enable_progress_bar",
     "is_progress_bar_enabled",
 ]
 
+from .info_utils import VerificationMode
 from .logging import disable_progress_bar, enable_progress_bar, is_progress_bar_enabled
 from .version import Version

@@ -26,24 +26,24 @@ from .formatting import Formatter
 
 
 if TYPE_CHECKING:
-    import jax.numpy as jnp
+    import jax
 
 
-class JaxFormatter(Formatter[Mapping, "jnp.ndarray", Mapping]):
+class JaxFormatter(Formatter[Mapping, "jax.Array", Mapping]):
     def __init__(self, features=None, **jnp_array_kwargs):
         super().__init__(features=features)
         self.jnp_array_kwargs = jnp_array_kwargs
-        import jax.numpy as jnp  # noqa import jax at initialization
+        import jax  # noqa import jax at initialization
 
     def _consolidate(self, column):
+        import jax
         import jax.numpy as jnp
 
         if isinstance(column, list) and column:
             if all(
-                isinstance(x, jnp.ndarray) and x.shape == column[0].shape and x.dtype == column[0].dtype
-                for x in column
+                isinstance(x, jax.Array) and x.shape == column[0].shape and x.dtype == column[0].dtype for x in column
             ):
-                return jnp.stack(column)
+                return jnp.stack(column, axis=0)
         return column
 
     def _tensorize(self, value):
@@ -91,7 +91,7 @@ class JaxFormatter(Formatter[Mapping, "jnp.ndarray", Mapping]):
         row = self.python_features_decoder.decode_row(row)
         return self.recursive_tensorize(row)
 
-    def format_column(self, pa_table: pa.Table) -> "jnp.ndarray":
+    def format_column(self, pa_table: pa.Table) -> "jax.Array":
         column = self.numpy_arrow_extractor().extract_column(pa_table)
         column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
         column = self.recursive_tensorize(column)

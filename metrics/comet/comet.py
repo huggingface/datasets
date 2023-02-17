@@ -108,7 +108,6 @@ Examples:
 @datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class COMET(datasets.Metric):
     def _info(self):
-
         return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
