@@ -3729,28 +3729,34 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         self,
         column_names: Union[str, Sequence_[str]],
         reverse: Union[bool, Sequence_[bool]] = False,
+        kind="deprecated",
         null_placement: str = "at_end",
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
         indices_cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         new_fingerprint: Optional[str] = None,
-        kind="deprecated",
     ) -> "Dataset":
         """Create a new dataset sorted according to a single or multiple columns.
 
-        This also means that the column used for sorting is fully loaded in memory (which should be fine in most cases).
-
         Args:
             column_names (`Union[str, Sequence[str]]`):
-               Column name(s) to sort by.
+                Column name(s) to sort by.
             reverse (`Union[bool, Sequence[bool]]`, defaults to `False`):
                 If `True`, sort by descending order rather than ascending. If a single bool is provided,
                 the value is applied to the sorting of all column names. Otherwise a list of bools with the
                 same length and order as column_names must be provided.
+            kind (`str`, *optional*):
+                Pandas algorithm for sorting selected in `{quicksort, mergesort, heapsort, stable}`,
+                The default is `quicksort`. Note that both `stable` and `mergesort` use `timsort` under the covers and, in general,
+                the actual implementation will vary with data type. The `mergesort` option is retained for backwards compatibility.
+                <Deprecated version="2.8.0">
+
+                `kind` was deprecated in version 2.10.0 and will be removed in 3.0.0.
+
+                </Deprecated>
             null_placement (`str`, defaults to `at_end`):
-                Put `None` values at the beginning if `at_start` or `first`; `at_end` or `last` puts `None`
-                values at the end.
+                Put `None` values at the beginning if `at_start` or `first` or at the end if `at_end` or `last`
 
                 <Added version="1.14.2"/>
             keep_in_memory (`bool`, defaults to `False`):
@@ -3767,8 +3773,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             new_fingerprint (`str`, *optional*, defaults to `None`):
                 The new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
-            kind (*deprecated*):
-                Parameter is deprecated and will be removed in future releases.
 
         Example:
 
@@ -3796,17 +3800,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Deprecation warning
         if kind != "deprecated":
             warnings.warn(
-                "`kind` was deprecated in version 2.10.0 and will be removed in 3.0.0.",
+                "'kind' was deprecated in version 2.10.0 and will be removed in 3.0.0.",
                 category=FutureWarning,
             )
 
         # Check proper format of and for duplicates in column_names
         if not isinstance(column_names, list):
             column_names = [column_names]
-        if not len(column_names) == len(set(column_names)):
-            raise ValueError(
-                "At least one of the column names in column_names occurs more than once. Ensure each column name is unique."
-            )
 
         # Check proper format and length of reverse
         if not isinstance(reverse, bool):
@@ -3832,7 +3832,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 null_placement = "at_end"
             else:
                 raise ValueError(
-                    f"null_placement '{null_placement}' is an invalid parameter value. Must be either 'last' or 'first'."
+                    f"null_placement '{null_placement}' is an invalid parameter value. Must be either 'last', 'at_end', 'first' or 'at_start'."
                 )
 
         # Check if we've already cached this computation (indexed by a hash)

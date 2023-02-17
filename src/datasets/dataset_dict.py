@@ -943,30 +943,33 @@ class DatasetDict(dict):
         self,
         column_names: Union[str, Sequence[str]],
         reverse: Union[bool, Sequence[bool]] = False,
+        kind="deprecated",
         null_placement: str = "at_end",
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
         indices_cache_file_names: Optional[Dict[str, Optional[str]]] = None,
         writer_batch_size: Optional[int] = 1000,
-        kind="deprecated",
     ) -> "DatasetDict":
         """Create a new dataset sorted according to a single or multiple columns.
-        The transformation is applied to all the datasets of the dataset dictionary.
-
-        Currently sorting according to a column name(s) uses pyarrow's sort_indices sorting algorithm under the hood.
-        The column(s) should thus be a pyarrow compatible type (in particular not a nested type).
-        This also means that the column used for sorting is fully loaded in memory (which should be fine in most cases).
 
         Args:
             column_names (`Union[str, Sequence[str]]`):
-                Either a single column name or a list of unqiue column names to sort by.
+                Column name(s) to sort by.
             reverse (`Union[bool, Sequence[bool]]`, defaults to `False`):
                 If `True`, sort by descending order rather than ascending. If a single bool is provided,
                 the value is applied to the sorting of all column names. Otherwise a list of bools with the
                 same length and order as column_names must be provided.
+            kind (`str`, *optional*):
+                Pandas algorithm for sorting selected in `{quicksort, mergesort, heapsort, stable}`,
+                The default is `quicksort`. Note that both `stable` and `mergesort` use timsort under the covers and, in general,
+                the actual implementation will vary with data type. The `mergesort` option is retained for backwards compatibility.
+                <Deprecated version="2.8.0">
+
+                `kind` was deprecated in version 2.10.0 and will be removed in 3.0.0.
+
+                </Deprecated>
             null_placement (`str`, defaults to `at_end`):
-                Put `None` values at the beginning if `at_start` or `first`; `at_end` or `last` puts `None`
-                values at the end.
+                Put `None` values at the beginning if `at_start` or `first` or at the end if `at_end` or `last`
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the sorted indices in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`):
@@ -979,8 +982,6 @@ class DatasetDict(dict):
             writer_batch_size (`int`, defaults to `1000`):
                 Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory.
-            kind (*deprecated*):
-                Parameter is deprecated and will be removed in future releases.
 
         Example:
 
@@ -1005,12 +1006,12 @@ class DatasetDict(dict):
                 k: dataset.sort(
                     column_names=column_names,
                     reverse=reverse,
+                    kind=kind,
                     null_placement=null_placement,
                     keep_in_memory=keep_in_memory,
                     load_from_cache_file=load_from_cache_file,
                     indices_cache_file_name=indices_cache_file_names[k],
                     writer_batch_size=writer_batch_size,
-                    kind=kind,
                 )
                 for k, dataset in self.items()
             }
