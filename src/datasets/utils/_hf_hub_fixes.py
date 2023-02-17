@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, BinaryIO, List, Optional, Union
+from typing import Any, BinaryIO, List, Optional, Tuple, Union
 
 import huggingface_hub
 from huggingface_hub import HfApi, HfFolder
@@ -96,7 +96,7 @@ def create_pr_it_does_not_exist(
     repo_type: Optional[str] = "dataset",
     create_pr: Optional[bool] = False,
     branch: Optional[str] = None,
-) -> str:
+) -> Tuple[str, bool]:
     """
     This function creates a PR for a dataset if it does not exist safely. The RepositoryNotFoundError was introduced in
     huggingface_hub 0.7.0. This function checks the huggingface_hub version to call the right parameters.
@@ -118,6 +118,9 @@ def create_pr_it_does_not_exist(
             Whether to create a PR if the branch does not exist. Defaults to False.
         branch (`str`, *optional*):
             The branch to create the PR on. Defaults to None.
+
+    Returns:
+        tuple: A tuple containing: (`str`, `bool`): The branch reference, either for the existing PR or for the newly created one. `bool`: Whether a PR was created.
     """
     # By version huggingface_hub 0.7.0 HTTPError was replaced by RepositoryNotFoundError
     # so we need to check the version to use the right exception
@@ -135,9 +138,7 @@ def create_pr_it_does_not_exist(
         hf_api.repo_info(repo_id, repo_type=repo_type, token=token)
 
     except repo_not_found_exception:
-        repo_url = create_repo(
-            hf_api=hf_api, repo_id=repo_id, private=private, token=token, exist_ok=True, repo_type=repo_type
-        )
+        create_repo(hf_api=hf_api, repo_id=repo_id, private=private, token=token, exist_ok=True, repo_type=repo_type)
 
     # Try to find PR branch if branch is supplied
     if create_pr and branch is not None:
@@ -156,6 +157,7 @@ def create_pr_it_does_not_exist(
                 raise ValueError("Provided branch not found")
 
     # Create PR if we didn't find it before
+    pr_was_created = False
     if create_pr:
         pr = hf_api.create_pull_request(
             repo_id,
@@ -164,8 +166,10 @@ def create_pr_it_does_not_exist(
             token=token,
         )
         branch = pr.git_reference
-        create_pr = False
+        pr_was_created = True
         logger.info(f"Created PR {branch} for {repo_id} dataset")
+
+    return branch, pr_was_created
 
 
 def delete_repo(
