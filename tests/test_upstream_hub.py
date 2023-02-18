@@ -356,17 +356,6 @@ class TestPushToHub:
                 assert list(local_ds.features.keys()) == list(hub_ds.features.keys())
                 assert local_ds.features == hub_ds.features
 
-    def test_test(self, temporary_repo):
-        local_ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
-        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
-            local_ds.push_to_hub(ds_name, split="train", token=self._token)
-            huggingface_hub.create_pull_request(
-                repo_id=ds_name,
-                title="Test PR",
-                token=self._token,
-                repo_type="dataset",
-            )
-
     def test_push_dataset_to_hub_custom_features(self, temporary_repo):
         features = Features({"x": Value("int64"), "y": ClassLabel(names=["neg", "pos"])})
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [0, 0, 1]}, features=features)
