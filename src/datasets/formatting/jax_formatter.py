@@ -26,9 +26,10 @@ from .formatting import Formatter
 
 
 if TYPE_CHECKING:
+    from typing import Dict
+
     import jax
     import jaxlib
-    from typing import Dict
 
 
 class JaxFormatter(Formatter[Mapping, "jax.Array", Mapping]):
