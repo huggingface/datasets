@@ -27,13 +27,25 @@ from .formatting import Formatter
 
 if TYPE_CHECKING:
     import jax
+    import jaxlib
 
 
 class JaxFormatter(Formatter[Mapping, "jax.Array", Mapping]):
-    def __init__(self, features=None, **jnp_array_kwargs):
+    def __init__(self, features=None, device=None, **jnp_array_kwargs):
         super().__init__(features=features)
+        import jax
+        from jaxlib.xla_client import Device
+
+        self.device_mapping = self._map_devices_to_str()
+        self.device = (
+            device if isinstance(device, str) else str(device) if isinstance(device, Device) else str(jax.devices()[0])
+        )
         self.jnp_array_kwargs = jnp_array_kwargs
-        import jax  # noqa import jax at initialization
+
+    def _map_devices_to_str(self) -> Mapping[str, "jaxlib.xla_extension.Device"]:
+        import jax
+
+        return {str(device): device for device in jax.devices()}
 
     def _consolidate(self, column):
         import jax
@@ -72,9 +84,10 @@ class JaxFormatter(Formatter[Mapping, "jax.Array", Mapping]):
             if isinstance(value, PIL.Image.Image):
                 value = np.asarray(value)
 
-        # calling jnp.array on a np.ndarray does copy the data
-        # see https://github.com/google/jax/issues/4486
-        return jnp.array(value, **{**default_dtype, **self.jnp_array_kwargs})
+        with jax.default_device(self.device_mapping[self.device]):
+            # calling jnp.array on a np.ndarray does copy the data
+            # see https://github.com/google/jax/issues/4486
+            return jnp.array(value, **{**default_dtype, **self.jnp_array_kwargs})
 
     def _recursive_tensorize(self, data_struct: dict):
         # support for nested types like struct of list of struct
