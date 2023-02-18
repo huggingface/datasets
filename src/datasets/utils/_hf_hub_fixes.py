@@ -66,7 +66,7 @@ def create_repo(
         )
 
 
-def get_repo_id_from_repo_url(repo_url: Union[str, Any]) -> str:
+def get_repo_id_from_repo_url(repo_url: Union[str, Any], repo_type: Optional[str]) -> str:
     """
     In 0.12.0 the output of `huggingface_hub.hf_api.create_repo` change output from `str` containing the
     repo_url, to `RepoUrl` object. This function checks the huggingface_hub version to get the repo_id from
@@ -74,14 +74,31 @@ def get_repo_id_from_repo_url(repo_url: Union[str, Any]) -> str:
 
     Args:
         repo_url (`str` or `huggingface_hub.hf_api.RepoUrl`): URL to the repo.
+        repo_type (`str`): Set to `"dataset"` or `"space"` if uploading to a dataset or
+            space, `None` or `"model"` if uploading to a model. Default is
+            `None`.
 
     Returns:
         `str`: repo_id, the ID of the repository to push to in the following format: `<user>/<dataset_name>` or
             `<org>/<dataset_name>`.
+
+    Raises:
+        ValueError: If `repo_type` is not valid.
     """
     if version.parse(huggingface_hub.__version__) < version.parse("0.12.0"):
-        from urllib.parse import urlparse
 
+        # This is a fix for the fact that the repo_id is not the same for datasets and models
+        # For datasets, the repo_url is of the form https://huggingface.co/datasets/<user>/<dataset_name>
+        # For models and spaces, the repo_url is of the form https://huggingface.co/<user>/<model_name>
+        # If the repo_type is not specified, huggingface_hub assumes it's a model
+        from urllib.parse import urlparse
+        if repo_type == "dataset":
+            repo_id = '/'.join(urlparse(repo_url).path.split('/')[-2:])
+        elif repo_type in ["model", "space", None]:
+            repo_id = urlparse(repo_url).path[1:]
+        else:
+            raise ValueError(f"repo_type {repo_type} is not valid.")
+        
         repo_id = urlparse(repo_url).path[1:]
         return repo_id
     else:
