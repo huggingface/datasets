@@ -28,6 +28,7 @@ from .formatting import Formatter
 if TYPE_CHECKING:
     import jax
     import jaxlib
+    from typing import Dict
 
 
 class JaxFormatter(Formatter[Mapping, "jax.Array", Mapping]):
@@ -42,7 +43,7 @@ class JaxFormatter(Formatter[Mapping, "jax.Array", Mapping]):
         )
         self.jnp_array_kwargs = jnp_array_kwargs
 
-    def _map_devices_to_str(self) -> Mapping[str, "jaxlib.xla_extension.Device"]:
+    def _map_devices_to_str() -> Dict[str, "jaxlib.xla_extension.Device"]:
         import jax
 
         return {str(device): device for device in jax.devices()}
