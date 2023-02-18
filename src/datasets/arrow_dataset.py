@@ -3357,6 +3357,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         self,
         function: Optional[Callable] = None,
         input_columns: Optional[Union[str, List[str]]] = None,
+        initializer: Optional[Union[Any, List[Any]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
@@ -3382,6 +3383,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`):
                 The columns to be passed into `function`
                 as positional arguments. If `None`, a `dict` mapping to all formatted columns is passed as one argument.
+            initializer (`Optional[Any]`, defaults to `None`):
+                The initial value of the accumulant, it is the first argument of the first application of the function, and hence must be of the same type as the examples.
+                If `batched=True`, the initializer must be set.
             batched (`bool`, defaults to `False`):
                 Provide batch of examples to `function`.
             batch_size (`int`, *optional*, defaults to `1000`):
@@ -3449,12 +3453,38 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if isinstance(input_columns, str):
             input_columns = [input_columns]
 
+        if not isinstance(initializer, list):
+            initializer = [initializer]
+
         if input_columns is not None:
             for input_column in input_columns:
                 if input_column not in self._data.column_names:
                     raise ValueError(
                         f"Input column {input_column} not in the dataset. Current columns in the dataset: {self._data.column_names}"
                     )
+
+
+        # If batched is True, we check if the initializer is provided
+        if batched and initializer is None:
+            raise ValueError("Batched reduce requires an initializer. Please provide an initializer, or set batched=False. The initializer is the first argument of the first application of the function, and hence must be of the same type as the examples.")
+
+        # We compare the type of the initializer with the examples in the dataset
+        # if input_columns is None, we compare the type of the initializer with all the columns in the dataset
+        columns_to_check = input_columns if input_columns is not None else self._data.column_names
+
+        # We check that the initializer is of the same length as the input columns, then we check if it is a list or not
+        # If it is a list, we check if the elements of the list are of the same type as the examples in the dataset
+        if len(initializer) == len(columns_to_check):
+            if isinstance(initializer, list):
+                for i in range(len(initializer)):
+                    if not isinstance(initializer[i], type(self[0][columns_to_check[i]])):
+                        raise ValueError(
+                            f"Initializer {initializer[i]} is not of the same type as the examples in the dataset: {type(self[0][columns_to_check[i]])}"
+                        )
+        else:
+            raise ValueError(
+                f"Initializer {initializer} is not of the same length as the input columns: {columns_to_check}"
+            )
 
         load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
 
@@ -3473,6 +3503,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             return self._reduce_single(
                 function=function,
                 input_columns=input_columns,
+                initializer=initializer,
                 batched=batched,
                 batch_size=batch_size,
                 drop_last_batch=drop_last_batch,
@@ -3505,6 +3536,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     self=shards[rank],
                     function=function,
                     input_columns=input_columns,
+                    initializer=initializer,
                     batched=batched,
                     batch_size=batch_size,
                     drop_last_batch=drop_last_batch,
@@ -3563,6 +3595,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         self,
         function: Optional[Callable] = None,
         input_columns: Optional[List[str]] = None,
+        initializer: Optional[Union[dict, List[Any]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
@@ -3585,6 +3618,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`):
                 The columns to be passed into `function`
                 as positional arguments. If `None`, a `dict` mapping to all formatted columns is passed as one argument.
+            initializer (`Optional[Any]`, defaults to `None`):
+                The initial value of the accumulant, it is the first argument of the first application of the function, and hence must be of the same type as the examples.
+                If `batched=True`, the initializer must be set.
             batched (`bool`, defaults to `False`):
                 Provide batch of examples to `function`.
             batch_size (`int`, *optional*, defaults to `1000`):
