@@ -19,7 +19,7 @@ To get JAX arrays (numpy-like) instead, you can set the format of the dataset to
 ```py
 >>> from datasets import Dataset
 >>> data = [[1, 2], [3, 4]]
->>> ds = Dataset.from_dict({"data": [[1, 2], [3, 4]]})
+>>> ds = Dataset.from_dict({"data": data})
 >>> ds = ds.with_format("jax")
 >>> ds[0]
 {'data': DeviceArray([1, 2], dtype=int32)}
@@ -31,7 +31,7 @@ To get JAX arrays (numpy-like) instead, you can set the format of the dataset to
 
 <Tip>
 
-A [`Dataset`] object is a wrapper of an Arrow table, which allows fast reads from arrays in the dataset to JAX tensors.
+A [`Dataset`] object is a wrapper of an Arrow table, which allows fast reads from arrays in the dataset to JAX arrays.
 
 </Tip>
 
@@ -53,6 +53,91 @@ will be formatted as `jax`:
 Another thing you'll need to take into consideration is that the formatting is not applied
 until you actually access the data. So if you want to get a JAX array out of a dataset,
 you'll need to access the data first, otherwise the format will remain the same.
+
+## N-dimensional arrays
+
+If your dataset consists of N-dimensional arrays, you will see that by default they are considered as nested lists.
+In particular, a JAX formatted dataset outputs a `DeviceArray` object, which is a numpy-like array, so it does not
+need the [`Array`] feature type to be specified as opposed to PyTorch or TensorFlow formatters.
+
+```py
+>>> from datasets import Dataset
+>>> data = [[[1, 2],[3, 4]], [[5, 6],[7, 8]]]
+>>> ds = Dataset.from_dict({"data": data})
+>>> ds = ds.with_format("jax")
+>>> ds[0]
+{'data': DeviceArray([[1, 2],
+             [3, 4]], dtype=int32)}
+```
+
+## Other feature types
+
+[`ClassLabel`] data is properly converted to arrays:
+
+```py
+>>> from datasets import Dataset, Features, ClassLabel
+>>> labels = [0, 0, 1]
+>>> features = Features({"label": ClassLabel(names=["negative", "positive"])})
+>>> ds = Dataset.from_dict({"label": labels}, features=features)
+>>> ds = ds.with_format("jax")
+>>> ds[:3]
+{'label': DeviceArray([0, 0, 1], dtype=int32)}
+```
+
+String and binary objects are unchanged, since JAX only supports numbers.
+
+The [`Image`] and [`Audio`] feature types are also supported.
+
+<Tip>
+
+To use the [`Image`] feature type, you'll need to install the `vision` extra as
+`pip install datasets[vision]`.
+
+</Tip>
+
+```py
+>>> from datasets import Dataset, Features, Image
+>>> images = ["path/to/image.png"] * 10
+>>> features = Features({"image": Image()})
+>>> ds = Dataset.from_dict({"image": images}, features=features)
+>>> ds = ds.with_format("jax")
+>>> ds[0]["image"].shape
+torch.Size([512, 512, 3])
+>>> ds[0]
+{'image': DeviceArray([[[ 255, 255, 255],
+              [ 255, 255, 255],
+              ...,
+              [ 255, 255, 255],
+              [ 255, 255, 255]]], dtype=uint8)}
+>>> ds[:2]["image"].shape
+torch.Size([2, 512, 512, 3])
+>>> ds[:2]
+{'image': DeviceArray([[[[ 255, 255, 255],
+              [ 255, 255, 255],
+              ...,
+              [ 255, 255, 255],
+              [ 255, 255, 255]]]], dtype=uint8)}
+```
+
+<Tip>
+
+To use the [`Audio`] feature type, you'll need to install the `audio` extra as
+`pip install datasets[audio]`.
+
+</Tip>
+
+```py
+>>> from datasets import Dataset, Features, Audio
+>>> audio = ["path/to/audio.wav"] * 10
+>>> features = Features({"audio": Audio()})
+>>> ds = Dataset.from_dict({"audio": audio}, features=features)
+>>> ds = ds.with_format("jax")
+>>> ds[0]["audio"]["array"]
+DeviceArray([-0.059021  , -0.03894043, -0.00735474, ...,  0.0133667 ,
+              0.01809692,  0.00268555], dtype=float32)
+>>> ds[0]["audio"]["sampling_rate"]
+DeviceArray(44100, dtype=int32, weak_type=True)
+```
 
 ## Data loading
 
