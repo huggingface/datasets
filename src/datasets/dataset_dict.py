@@ -1498,7 +1498,7 @@ class DatasetDict(dict):
         max_shard_size: Optional[Union[int, str]] = None,
         num_shards: Optional[Dict[str, int]] = None,
         embed_external_files: bool = True,
-    ):
+    ) -> str:
         """Pushes the [`DatasetDict`] to the hub as a Parquet dataset.
         The [`DatasetDict`] is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
 
@@ -1626,6 +1626,7 @@ class DatasetDict(dict):
             repo_type="dataset",
             revision=branch,
         )
+        return f"https://huggingface.co/datasets/{repo_id}"
 
 
 class IterableDatasetDict(dict):
