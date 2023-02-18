@@ -28,6 +28,7 @@ import tempfile
 import time
 import warnings
 import weakref
+from copy import deepcopy
 from collections import Counter
 from collections.abc import Mapping
 from copy import deepcopy
@@ -3450,6 +3451,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if function is None:
             function = lambda x, y: x  # noqa: E731
 
+        # If batched is True, we check if the initializer is provided
+        if batched and initializer is None:
+            raise ValueError("Batched reduce requires an initializer. Please provide an initializer, or set batched=False. The initializer is the first argument of the first application of the function, and hence must be of the same type as the examples.")
+
         if isinstance(input_columns, str):
             input_columns = [input_columns]
 
@@ -3463,28 +3468,29 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         f"Input column {input_column} not in the dataset. Current columns in the dataset: {self._data.column_names}"
                     )
 
-
-        # If batched is True, we check if the initializer is provided
-        if batched and initializer is None:
-            raise ValueError("Batched reduce requires an initializer. Please provide an initializer, or set batched=False. The initializer is the first argument of the first application of the function, and hence must be of the same type as the examples.")
-
         # We compare the type of the initializer with the examples in the dataset
         # if input_columns is None, we compare the type of the initializer with all the columns in the dataset
         columns_to_check = input_columns if input_columns is not None else self._data.column_names
 
-        # We check that the initializer is of the same length as the input columns, then we check if it is a list or not
-        # If it is a list, we check if the elements of the list are of the same type as the examples in the dataset
-        if len(initializer) == len(columns_to_check):
-            if isinstance(initializer, list):
-                for i in range(len(initializer)):
-                    if not isinstance(initializer[i], type(self[0][columns_to_check[i]])):
-                        raise ValueError(
-                            f"Initializer {initializer[i]} is not of the same type as the examples in the dataset: {type(self[0][columns_to_check[i]])}"
-                        )
-        else:
-            raise ValueError(
-                f"Initializer {initializer} is not of the same length as the input columns: {columns_to_check}"
-            )
+        # If the initializer is [None] and `batched=False`, we set the initializer to the first example in the dataset later
+        if all([i is not None for i in initializer]):
+            # We check that the initializer is of the same length as the input columns, then we check if it is a list or not
+            # If it is a list, we check if the elements of the list are of the same type as the examples in the dataset, 
+            # otherwise we raise an error.
+            if len(initializer) == len(columns_to_check):
+                if isinstance(initializer, list):
+                    for i in range(len(initializer)):
+                        if not isinstance(initializer[i], type(self[0][columns_to_check[i]])):
+                            raise ValueError(
+                                f"Initializer {initializer[i]} is not of the same type as the examples in the dataset: {type(self[0][columns_to_check[i]])}"
+                            )
+            else:
+                raise ValueError(
+                    f"Initializer {initializer} is not of the same length as the input columns: {columns_to_check}"
+                )
+        
+            # We create a dictionary with the input columns as keys and the initializer as values
+            initializer = {k:v for k,v in zip(columns_to_check, initializer)}
 
         load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
 
@@ -3526,7 +3532,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             ):
                 logger.warning("Setting TOKENIZERS_PARALLELISM=false for forked processes.")
             os.environ["TOKENIZERS_PARALLELISM"] = "false"
-            initargs, initializer = None, None
+            initargs, pool_initializer = None, None
             shards = [
                 self.shard(num_shards=num_proc, index=rank, contiguous=True, keep_in_memory=keep_in_memory)
                 for rank in range(num_proc)
@@ -3562,7 +3568,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # We try to create a pool with as many workers as dataset not yet cached.
             nb_of_missing_shards = reduced_shards.count(None)
             if nb_of_missing_shards > 0:
-                with Pool(nb_of_missing_shards, initargs=initargs, initializer=initializer) as pool:
+                with Pool(nb_of_missing_shards, initargs=initargs, initializer=pool_initializer) as pool:
                     os.environ = prev_env
                     logger.info(f"Spawning {num_proc} processes")
                     results = {
@@ -3722,13 +3728,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 accumulant = None
                 for i, example in pbar:
                     if accumulant is None:
-                        accumulant = format_table(
-                            example,
-                            0,
-                            format_columns=input_columns,
-                            formatter=input_formatter,
-                        )
-
+                        if any([i is None for i in initializer]):
+                            accumulant = format_table(
+                                example,
+                                0,
+                                format_columns=input_columns,
+                                formatter=input_formatter,
+                            )
+                        else:
+                            accumulant = deepcopy(initializer)
                         # Get the value types of the accumulant for later type checking
                         accumulant_value_types = {k: type(v) for k, v in accumulant.items()}
                         continue
@@ -3741,14 +3749,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 accumulant = None
                 for i, batch in pbar:
                     if accumulant is None:
-                        # Create the empty accumulant
-                        formatted_table = format_table(
-                            batch,
-                            0,
-                            format_columns=input_columns,
-                            formatter=input_formatter,
-                        )
-                        accumulant = {k: type(v)() for k, v in formatted_table.items()}
+                        accumulant = deepcopy(initializer)
 
                         # Get the value types of the accumulant for later type checking
                         accumulant_value_types = {k: type(v) for k, v in accumulant.items()}
@@ -3760,7 +3761,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         )
                         continue
 
-                    accumulant += apply_function_on_inputs_and_accumulant(
+                    accumulant = apply_function_on_inputs_and_accumulant(
                         batch,
                         accumulant,
                     )
