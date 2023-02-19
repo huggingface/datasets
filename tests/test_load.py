@@ -595,9 +595,9 @@ class ModuleFactoryTest(TestCase):
         assert "drop_labels" in module_factory_result.builder_kwargs
         assert module_factory_result.builder_kwargs["drop_labels"] is True
         assert (
-                module_factory_result.builder_kwargs["data_files"] is not None
-                and len(module_factory_result.builder_kwargs["data_files"]["train"]) == 3
-                and len(module_factory_result.builder_kwargs["data_files"]["test"]) == 3
+            module_factory_result.builder_kwargs["data_files"] is not None
+            and len(module_factory_result.builder_kwargs["data_files"]["train"]) == 3
+            and len(module_factory_result.builder_kwargs["data_files"]["test"]) == 3
         )  # there are more files in repo but `data_dir` is provided in meta so only 6 left
 
     @pytest.mark.integration
@@ -606,7 +606,7 @@ class ModuleFactoryTest(TestCase):
             factory = HubDatasetModuleFactoryWithoutScript(
                 SAMPLE_DATASET_ONE_NONDEFAULT_CONFIG_IN_METADATA,
                 config_name=config_name,
-                download_config=self.download_config
+                download_config=self.download_config,
             )
             module_factory_result = factory.get_module()
             assert importlib.import_module(module_factory_result.module_path) is not None
@@ -628,9 +628,7 @@ class ModuleFactoryTest(TestCase):
         config_names_and_expected_drop_labels_and_n_files = [(None, None, 9), ("v1", True, 6), ("v2", False, 3)]
         for config_name, expected_drop_labels, n_data_files in config_names_and_expected_drop_labels_and_n_files:
             factory = HubDatasetModuleFactoryWithoutScript(
-                SAMPLE_DATASET_TWO_CONFIG_IN_METADATA,
-                config_name=config_name,
-                download_config=self.download_config
+                SAMPLE_DATASET_TWO_CONFIG_IN_METADATA, config_name=config_name, download_config=self.download_config
             )
             module_factory_result = factory.get_module()
             assert importlib.import_module(module_factory_result.module_path) is not None
@@ -640,7 +638,11 @@ class ModuleFactoryTest(TestCase):
             assert module_factory_result.builder_kwargs["config_name"] == config_name
             assert module_factory_result.builder_kwargs.get("drop_labels", None) == expected_drop_labels
             assert module_factory_result.builder_kwargs["data_files"] is not None
-            assert len(module_factory_result.builder_kwargs["data_files"]["train"]) + len(module_factory_result.builder_kwargs["data_files"]["test"]) == n_data_files
+            assert (
+                len(module_factory_result.builder_kwargs["data_files"]["train"])
+                + len(module_factory_result.builder_kwargs["data_files"]["test"])
+                == n_data_files
+            )
 
     @pytest.mark.integration
     def test_HubDatasetModuleFactoryWithScript(self):

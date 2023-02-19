@@ -970,7 +970,9 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         metadata_configs_dict = (
             MetadataConfigsDict.from_metadata(dataset_metadata) if dataset_metadata else MetadataConfigsDict()
         )
-        config_kwargs = copy.deepcopy(metadata_configs_dict.get(self.config_name if self.config_name else "default", {}))
+        config_kwargs = copy.deepcopy(
+            metadata_configs_dict.get(self.config_name if self.config_name else "default", {})
+        )
 
         if config_kwargs:
             # TODO: raise error when having both and they aren't the same?
