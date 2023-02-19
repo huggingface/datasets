@@ -459,7 +459,7 @@ class DatasetBuilder:
             builder_config = self.builder_configs.get(config_name)
             if builder_config is None and self.BUILDER_CONFIGS:
                 raise ValueError(
-                    f"BuilderConfig {config_name} not found. Available: {list(self.builder_configs.keys())}"
+                    f"BuilderConfig '{config_name}' not found. Available: {list(self.builder_configs.keys())}"
                 )
 
         # if not using an existing config, then create a new config on the fly
