@@ -42,7 +42,8 @@ class JaxFormatter(Formatter[Mapping, "jax.Array", Mapping]):
         )
         self.jnp_array_kwargs = jnp_array_kwargs
 
-    def _map_devices_to_str(self) -> Dict[str, "jaxlib.xla_extension.Device"]:
+    @staticmethod
+    def _map_devices_to_str() -> Dict[str, "jaxlib.xla_extension.Device"]:
         import jax
 
         return {str(device): device for device in jax.devices()}
