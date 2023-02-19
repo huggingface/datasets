@@ -36,7 +36,6 @@ from huggingface_hub import HfApi
 from . import config
 from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
-from .config import METADATA_CONFIGS_FIELD
 from .data_files import (
     DEFAULT_PATTERNS_ALL,
     DataFilesDict,
@@ -685,12 +684,17 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         metadata_configs_dict = (
             MetadataConfigsDict.from_metadata(dataset_metadata) if dataset_metadata else MetadataConfigsDict()
         )
+        if self.config_name and not metadata_configs_dict:
+            logger.warning("`config_name` is provided but no configs parameters found, check your README.md")
+
         if metadata_configs_dict and not self.config_name:
             logger.warning(
                 "Configs found in metadata, but no config name is provided, "
-                "loading all the data with default loader settings."
+                "loading all the data with library's default loader settings."
             )
-        config_kwargs = copy.deepcopy(metadata_configs_dict.get(self.config_name, {}))
+        config_kwargs = copy.deepcopy(
+            metadata_configs_dict.get(self.config_name if self.config_name else "default", {})
+        )
         if config_kwargs:
             # setting / updating data_files and data_dir if found
             data_files, data_dir = config_kwargs.pop("data_files", None), config_kwargs.pop("data_dir", None)
@@ -805,7 +809,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
             if len(readme_candidates) == 1:
                 return Path(readme_candidates[0]).resolve()
             if len(readme_candidates) > 1:
-                raise ValueError("Found more then one README.md files. ")
+                raise ValueError("Found more then one README.md file. ")
             return None
 
         config_kwargs, metadata_configs_dict = {}, {}
@@ -825,7 +829,9 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
             metadata_configs_dict = (
                 MetadataConfigsDict.from_metadata(dataset_metadata) if dataset_metadata else MetadataConfigsDict()
             )
-            config_kwargs = copy.deepcopy(metadata_configs_dict.get(self.config_name, {}))
+            config_kwargs = copy.deepcopy(
+                metadata_configs_dict.get(self.config_name if self.config_name else "default", {})
+            )  # lol
             if config_kwargs:
                 # setting / updating data_files and data_dir if found
                 data_files = config_kwargs.pop("data_files", None)
@@ -937,14 +943,9 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             )
             dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
         except FileNotFoundError:
-            dataset_metadata = None
+            dataset_metadata = DatasetMetadata()
 
-        metadata_configs_dict = (
-            MetadataConfigsDict.from_metadata(dataset_metadata) if dataset_metadata else MetadataConfigsDict()
-        )
-        config_kwargs = copy.deepcopy(metadata_configs_dict.get(self.config_name, {}))
-
-        if isinstance(dataset_metadata.get("dataset_info"), list) and dataset_metadata["dataset_info"]:
+        if isinstance(dataset_metadata.get("dataset_info", None), list) and dataset_metadata["dataset_info"]:
             dataset_info_dicts = {info["config_name"]: info for info in dataset_metadata["dataset_info"]}
             if self.config_name and self.config_name in dataset_info_dicts:
                 dataset_info_dict = dataset_info_dicts[self.config_name]
@@ -966,19 +967,31 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             if "config_name" in dataset_info_dict:
                 builder_kwargs["config_name"] = dataset_info_dict["config_name"]
 
-        if self.config_name and METADATA_CONFIGS_FIELD in dataset_metadata:
-            metadata_configs_dict = MetadataConfigsDict.from_metadata(dataset_metadata)
+        metadata_configs_dict = (
+            MetadataConfigsDict.from_metadata(dataset_metadata) if dataset_metadata else MetadataConfigsDict()
+        )
+        config_kwargs = copy.deepcopy(metadata_configs_dict.get(self.config_name if self.config_name else "default", {}))
 
-            # # TODO: raise error if config doesn't exist? might there be cases when it's possible?
-            # if self.config_name not in metadata_configs_dict:
-            #     raise ValueError(
-            #         f"Config {self.config_name} doesn't exist, available configs: {set(metadata_configs)}"
-            #     )
-            config_kwargs = metadata_configs_dict.get(self.config_name, {})
-            # updating data_files and data_dir
+        if config_kwargs:
             # TODO: raise error when having both and they aren't the same?
-            self.data_files = config_kwargs.pop("data_files", None) or self.data_files
-            self.data_dir = config_kwargs.pop("data_dir", None) or self.data_dir
+            # setting / updating data_files and data_dir if found
+            data_files = config_kwargs.pop("data_files", None)
+            data_dir = config_kwargs.pop("data_dir", None)
+
+            if data_files:
+                if self.data_files:
+                    logger.warning(
+                        f"`data_files` is both provided as an argument and found in README.md config metadata,"
+                        f"setting config's value: data_files={data_files}. "
+                    )
+                self.data_files = data_files
+            if data_dir:
+                if self.data_dir:
+                    logger.warning(
+                        f"`data_dir` is both provided as an argument and found in README.md's configs,"
+                        f"setting config's value: data_dir={data_dir}. "
+                    )
+                self.data_dir = data_dir
 
         patterns = (
             sanitize_patterns(self.data_files)
@@ -1019,12 +1032,12 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
-            "config_name": self.config_name,  # if self.config_name else "default"? #self.name.replace("/", "--") TODO
+            "config_name": self.config_name,  # TODO if self.config_name else "default" ?
             "base_path": hf_hub_url(self.name, "", revision=self.revision),
             "repo_id": self.name,
             **default_builder_kwargs,  # from _EXTENSION_TO_MODULE
             **builder_kwargs,  # from "dataset_info"
-            **config_kwargs,  # from "configs_kwargs". "config_name" is still there
+            **config_kwargs,  # from "configs_kwargs" - TODO "config_name" is not here. it can be changed in MetadataConfigsDict
         }
 
         return DatasetModule(module_path, hash, builder_kwargs, metadata_configs=metadata_configs_dict)
