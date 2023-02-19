@@ -105,7 +105,7 @@ class DummyGeneratorBasedBuilderWithIntegers(GeneratorBasedBuilder):
             yield i, {"id": i}
 
 
-class DummyGeneratorBasedBuilderWithConfigConfig(BuilderConfig):
+class DummyGeneratorBasedBuilderConfig(BuilderConfig):
     def __init__(self, content="foo", times=2, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.content = content
@@ -113,7 +113,7 @@ class DummyGeneratorBasedBuilderWithConfigConfig(BuilderConfig):
 
 
 class DummyGeneratorBasedBuilderWithConfig(GeneratorBasedBuilder):
-    BUILDER_CONFIG_CLASS = DummyGeneratorBasedBuilderWithConfigConfig
+    BUILDER_CONFIG_CLASS = DummyGeneratorBasedBuilderConfig
 
     def _info(self):
         return DatasetInfo(features=Features({"text": Value("string")}))
@@ -128,8 +128,8 @@ class DummyGeneratorBasedBuilderWithConfig(GeneratorBasedBuilder):
 
 class DummyBuilderWithMultipleConfigs(DummyBuilder):
     BUILDER_CONFIGS = [
-        DummyGeneratorBasedBuilderWithConfigConfig(name="a"),
-        DummyGeneratorBasedBuilderWithConfigConfig(name="b"),
+        DummyGeneratorBasedBuilderConfig(name="a"),
+        DummyGeneratorBasedBuilderConfig(name="b"),
     ]
 
 
