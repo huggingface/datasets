@@ -15,7 +15,7 @@
 # Lint as: python3
 import sys
 from collections.abc import Mapping
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 import numpy as np
 import pyarrow as pa
@@ -26,8 +26,6 @@ from .formatting import Formatter
 
 
 if TYPE_CHECKING:
-    from typing import Dict
-
     import jax
     import jaxlib
 
