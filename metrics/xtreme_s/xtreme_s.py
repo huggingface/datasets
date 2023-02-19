@@ -179,7 +179,7 @@ def bleu(
         force=force,
         lowercase=lowercase,
         use_effective_order=use_effective_order,
-        **(dict(tokenize=tokenize) if tokenize else {}),
+        **({"tokenize": tokenize} if tokenize else {}),
     )
     return {"bleu": output.score}
 

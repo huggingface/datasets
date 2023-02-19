@@ -292,7 +292,7 @@ class TensorflowDatasetMixin:
             shapes = [array.shape for array in np_arrays]
             static_shape = []
             for dim in range(len(shapes[0])):
-                sizes = set([shape[dim] for shape in shapes])
+                sizes = {shape[dim] for shape in shapes}
                 if dim == 0:
                     static_shape.append(batch_size)
                     continue
@@ -1341,9 +1341,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if is_local:
             Path(dataset_path).resolve().mkdir(parents=True, exist_ok=True)
-            parent_cache_files_paths = set(
+            parent_cache_files_paths = {
                 Path(cache_filename["filename"]).resolve().parent for cache_filename in self.cache_files
-            )
+            }
             # Check that the dataset doesn't overwrite iself. It can cause a permission error on Windows and a segfault on linux.
             if Path(dataset_path).resolve() in parent_cache_files_paths:
                 raise PermissionError(
@@ -2910,24 +2910,24 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         shards_done = 0
         if num_proc is None or num_proc == 1:
-            dataset_kwargs = dict(
-                shard=self,
-                function=function,
-                with_indices=with_indices,
-                with_rank=with_rank,
-                input_columns=input_columns,
-                batched=batched,
-                batch_size=batch_size,
-                drop_last_batch=drop_last_batch,
-                remove_columns=remove_columns,
-                keep_in_memory=keep_in_memory,
-                cache_file_name=cache_file_name,
-                writer_batch_size=writer_batch_size,
-                features=features,
-                disable_nullable=disable_nullable,
-                fn_kwargs=fn_kwargs,
-                new_fingerprint=new_fingerprint,
-            )
+            dataset_kwargs = {
+                "shard": self,
+                "function": function,
+                "with_indices": with_indices,
+                "with_rank": with_rank,
+                "input_columns": input_columns,
+                "batched": batched,
+                "batch_size": batch_size,
+                "drop_last_batch": drop_last_batch,
+                "remove_columns": remove_columns,
+                "keep_in_memory": keep_in_memory,
+                "cache_file_name": cache_file_name,
+                "writer_batch_size": writer_batch_size,
+                "features": features,
+                "disable_nullable": disable_nullable,
+                "fn_kwargs": fn_kwargs,
+                "new_fingerprint": new_fingerprint,
+            }
             try:
                 transformed_dataset = load_processed_shard_from_cache(dataset_kwargs)
             except NonExistentDatasetError:
@@ -2978,30 +2978,30 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 for rank in range(num_proc)
             ]
             kwargs_per_job = [
-                dict(
-                    shard=shards[rank],
-                    function=function,
-                    with_indices=with_indices,
-                    with_rank=with_rank,
-                    input_columns=input_columns,
-                    batched=batched,
-                    batch_size=batch_size,
-                    drop_last_batch=drop_last_batch,
-                    remove_columns=remove_columns,
-                    keep_in_memory=keep_in_memory,
-                    cache_file_name=format_cache_file_name(cache_file_name, rank)
+                {
+                    "shard": shards[rank],
+                    "function": function,
+                    "with_indices": with_indices,
+                    "with_rank": with_rank,
+                    "input_columns": input_columns,
+                    "batched": batched,
+                    "batch_size": batch_size,
+                    "drop_last_batch": drop_last_batch,
+                    "remove_columns": remove_columns,
+                    "keep_in_memory": keep_in_memory,
+                    "cache_file_name": format_cache_file_name(cache_file_name, rank)
                     if cache_file_name is not None
                     else None,
-                    writer_batch_size=writer_batch_size,
-                    features=features.copy() if features is not None else None,
-                    disable_nullable=disable_nullable,
-                    fn_kwargs=fn_kwargs,
-                    rank=rank,
-                    offset=sum(len(s) for s in shards[:rank]),
-                    new_fingerprint=format_new_fingerprint(new_fingerprint, rank)
+                    "writer_batch_size": writer_batch_size,
+                    "features": features.copy() if features is not None else None,
+                    "disable_nullable": disable_nullable,
+                    "fn_kwargs": fn_kwargs,
+                    "rank": rank,
+                    "offset": sum(len(s) for s in shards[:rank]),
+                    "new_fingerprint": format_new_fingerprint(new_fingerprint, rank)
                     if new_fingerprint is not None
                     else None,
-                )
+                }
                 for rank in range(num_shards)
             ]
 
@@ -5039,14 +5039,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 uploaded_size += buffer.tell()
                 _retry(
                     api.upload_file,
-                    func_kwargs=dict(
-                        path_or_fileobj=buffer.getvalue(),
-                        path_in_repo=shard_path_in_repo,
-                        repo_id=repo_id,
-                        token=token,
-                        repo_type="dataset",
-                        revision=branch,
-                    ),
+                    func_kwargs={
+                        "path_or_fileobj": buffer.getvalue(),
+                        "path_in_repo": shard_path_in_repo,
+                        "repo_id": repo_id,
+                        "token": token,
+                        "repo_type": "dataset",
+                        "revision": branch,
+                    },
                     exceptions=HTTPError,
                     status_codes=[504],
                     base_wait_time=2.0,
