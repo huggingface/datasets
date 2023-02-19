@@ -17,6 +17,8 @@
     title: Preprocess
   - local: metrics
     title: Evaluate predictions
+  - local: create_dataset
+    title: Create a dataset
   - local: upload_dataset
     title: Share a dataset to the Hub
   title: "Tutorials"
