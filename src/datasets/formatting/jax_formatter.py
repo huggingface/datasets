@@ -21,6 +21,7 @@ import numpy as np
 import pyarrow as pa
 
 from .. import config
+from ..utils.logging import get_logger
 from ..utils.py_utils import map_nested
 from .formatting import Formatter
 
@@ -28,6 +29,8 @@ from .formatting import Formatter
 if TYPE_CHECKING:
     import jax
     import jaxlib
+
+logger = get_logger()
 
 
 class JaxFormatter(Formatter[Mapping, "jax.Array", Mapping]):
@@ -40,6 +43,11 @@ class JaxFormatter(Formatter[Mapping, "jax.Array", Mapping]):
         self.device = (
             device if isinstance(device, str) else str(device) if isinstance(device, Device) else str(jax.devices()[0])
         )
+        if self.device not in list(self.device_mapping.keys()):
+            logger.warning(
+                f"Device with string identifier {self.device} not listed among the available devices: {list(self.device_mapping.keys())}, so falling back to the default device: {str(jax.devices()[0])}."
+            )
+            self.device = str(jax.devices()[0])
         self.jnp_array_kwargs = jnp_array_kwargs
 
     @staticmethod
