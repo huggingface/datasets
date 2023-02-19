@@ -102,7 +102,7 @@ To use the [`Image`] feature type, you'll need to install the `vision` extra as
 >>> ds = Dataset.from_dict({"image": images}, features=features)
 >>> ds = ds.with_format("jax")
 >>> ds[0]["image"].shape
-torch.Size([512, 512, 3])
+(512, 512, 3)
 >>> ds[0]
 {'image': DeviceArray([[[ 255, 255, 255],
               [ 255, 255, 255],
@@ -110,7 +110,7 @@ torch.Size([512, 512, 3])
               [ 255, 255, 255],
               [ 255, 255, 255]]], dtype=uint8)}
 >>> ds[:2]["image"].shape
-torch.Size([2, 512, 512, 3])
+(2, 512, 512, 3)
 >>> ds[:2]
 {'image': DeviceArray([[[[ 255, 255, 255],
               [ 255, 255, 255],
