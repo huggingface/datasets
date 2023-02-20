@@ -315,14 +315,18 @@ def upload_file(
     commit_description: Optional[str] = None,
     create_pr: Optional[bool] = None,
     parent_commit: Optional[str] = None,
+    identical_ok: Optional[bool] = True,
 ) -> List[str]:
     """
     Several new parameters for huggingface_hub.HfApi.upload_file were introduced in 0.8.1 and some of them were deprecated.
+    This function checks the huggingface_hub version to call the right parameters. `commit_message`, `commit_description`, and `create_pr` were introduced in 
+    huggingface_hub>=0.8.1.
     """
-    if create_pr is not None and version.parse(huggingface_hub.__version__) < version.parse("0.8.1"):
-        raise TypeError(
-            "The `create_pr` parameter is not supported in huggingface_hub<0.8.1. Please update huggingface_hub to >=0.8.1 to use this parameter, or exclude `create_pr` from the keyword arguments."
-        )
+    for param in [commit_message, commit_description, create_pr, folder_path]:
+        if param is not None and version.parse(huggingface_hub.__version__) < version.parse("0.8.1"):
+            raise TypeError(
+                "The `commit_message`, `commit_description`, and `create_pr` parameters are not supported in huggingface_hub<0.8.1. Please update huggingface_hub to >=0.8.1 to use this parameter, or exclude `commit_message`, `commit_description` and `create_pr` from the keyword arguments."
+            )
     else:
         return hf_api.upload_file(
             path_or_fileobj=path_or_fileobj,
