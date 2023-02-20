@@ -5162,8 +5162,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
 
         # If create_pr is True, we have at this point either created or found a PR to push to.
-        # Hence we don't want to create a PR, in the following file uploads.
-        create_pr = False
+        # Hence we don't want to create a PR, in the following file uploads. For this we set create_pr to None,
+        # which also handles the where case where huggingface_hub is of version <0.8.1, hence create_pr does not exist.
+        create_pr = None
 
         repo_id, split, uploaded_size, dataset_nbytes, repo_files, deleted_size = self._push_parquet_shards_to_hub(
             repo_id=repo_id,

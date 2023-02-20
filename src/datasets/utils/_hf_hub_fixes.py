@@ -141,7 +141,7 @@ def create_pr_it_does_not_exist(
     """
     # By version huggingface_hub 0.7.0 HTTPError was replaced by RepositoryNotFoundError
     # so we need to check the version to use the right exception
-    if version.parse(huggingface_hub.__version__) < version.parse("0.7.0"):
+    if version.parse(huggingface_hub.__version__) <= version.parse("0.7.0"):
         from requests.exceptions import HTTPError
 
         repo_not_found_exception = HTTPError
@@ -314,17 +314,31 @@ def upload_file(
     commit_description: Optional[str] = None,
     create_pr: Optional[bool] = None,
     parent_commit: Optional[str] = None,
+    identical_ok: Optional[bool] = True,
 ) -> List[str]:
     """
     Several new parameters for huggingface_hub.HfApi.upload_file were introduced in 0.8.1 and some of them were deprecated.
     This function checks the huggingface_hub version to call the right parameters. `commit_message`, `commit_description`, and `create_pr` were introduced in
     huggingface_hub>=0.8.1.
     """
+    # If we are using a version of huggingface_hub that does not support the `commit_message`, `commit_description`, and `create_pr` parameters, we raise an error, if they are used.
     for param in [commit_message, commit_description, create_pr]:
         if param is not None and version.parse(huggingface_hub.__version__) < version.parse("0.8.1"):
             raise TypeError(
                 "The `commit_message`, `commit_description`, and `create_pr` parameters are not supported in huggingface_hub<0.8.1. Please update huggingface_hub to >=0.8.1 to use this parameter, or exclude `commit_message`, `commit_description` and `create_pr` from the keyword arguments."
             )
+    
+    # If we are using a version of huggingface_hub that does not support the `commit_message`, `commit_description`, and `create_pr` parameters, BUT they are not used, we call the function without them.
+    if version.parse(huggingface_hub.__version__) < version.parse("0.8.1"):
+        return hf_api.upload_file(
+            path_or_fileobj=path_or_fileobj,
+            path_in_repo=path_in_repo,
+            repo_id=repo_id,
+            token=token,
+            repo_type=repo_type,
+            revision=revision,
+            identical_ok=identical_ok,
+        )
     else:
         return hf_api.upload_file(
             path_or_fileobj=path_or_fileobj,
