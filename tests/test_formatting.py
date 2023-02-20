@@ -516,6 +516,8 @@ class FormatterTest(TestCase):
         row = formatter.format_row(pa_table)
         assert row["a"].device() == device
         assert row["c"].device() == device
+        col = formatter.format_column(pa_table)
+        assert col.device() == device
         batch = formatter.format_batch(pa_table)
         assert batch["a"].device() == device
         assert batch["c"].device() == device
