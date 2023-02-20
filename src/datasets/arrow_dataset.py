@@ -28,7 +28,6 @@ import tempfile
 import time
 import warnings
 import weakref
-from copy import deepcopy
 from collections import Counter
 from collections.abc import Mapping
 from copy import deepcopy
@@ -3357,6 +3356,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def reduce(
         self,
         function: Optional[Callable] = None,
+        combiner: Optional[Callable] = None,
         input_columns: Optional[Union[str, List[str]]] = None,
         initializer: Optional[Union[Any, List[Any]]] = None,
         batched: bool = False,
@@ -3371,70 +3371,99 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         desc: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
-        Reduce the examples in the table (individually or in batches) using a binary operation and return the result.
+         Reduce the examples in the table (individually or in batches) using a binary operation and return the result.
 
-        The function should be a binary operation, i.e. it takes in 2 objects of the same type in and returns 1 object of the same type as the inputs.
-        Examples include addition, multiplication, maximum, minimum, etc. for `int`, `float`, `bool` and `str` types, and concatenation for `list` types.
-        The first input is the accumulator, which is the result of the previous application of the function on the previous examples, and the second input is the current example.
-        Args:
-            function (`Callable`): Function with the following signature:
-                `function(accumulator: Any, example: Any) -> Any`
+         The function should be a binary operation, i.e. it takes in 2 objects of the same type in and returns 1 object of the same type as the inputs.
+         Examples include addition, multiplication, maximum, minimum, etc. for `int`, `float`, `bool` and `str` types, and concatenation for `list` types.
+         The first input is the accumulator, which is the result of the previous application of the function on the previous examples, and the second input is the current example.
 
-                If no function is provided, default to identity function: `lambda x, y: x`, i.e. the first example is returned.
-            input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`):
-                The columns to be passed into `function`
-                as positional arguments. If `None`, a `dict` mapping to all formatted columns is passed as one argument.
-            initializer (`Optional[Any]`, defaults to `None`):
-                The initial value of the accumulator, it is the first argument of the first application of the function, and hence must be of the same type as the examples.
-                If `batched=True`, the initializer must be set.
-            batched (`bool`, defaults to `False`):
-                Provide batch of examples to `function`.
-            batch_size (`int`, *optional*, defaults to `1000`):
-                Number of examples per batch provided to `function` if `batched=True`.
-                If `batch_size <= 0` or `batch_size == None`, provide the full dataset as a single batch to `function`.
-            drop_last_batch (`bool`, defaults to `False`):
-                Whether a last batch smaller than the batch_size should be
-                dropped instead of being processed by the function.
-            keep_in_memory (`bool`, defaults to `False`):
-                Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True` if caching is enabled):
-                If a cache file storing the current computation from `function`
-                can be identified, use it instead of recomputing.
-            cache_file_name (`str`, *optional*, defaults to `None`):
-                Provide the name of a path for the cache file. It is used to store the
-                results of the computation instead of the automatically generated cache file name.
-            fn_kwargs (`Dict`, *optional*, defaults to `None`):
-                Keyword arguments to be passed to `function`.
-            num_proc (`int`, *optional*, defaults to `None`):
-                Max number of processes when generating cache. Already cached shards are loaded sequentially.
-            new_fingerprint (`str`, *optional*, defaults to `None`):
-                The new fingerprint of the dataset after transform.
-                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
-            desc (`str`, *optional*, defaults to `None`):
-                Meaningful description to be displayed alongside with the progress bar while mapping examples.
+         In case of multiple processes or batches, the reduction of each process or batch is combined using the combiner function, which should be a binary operation as well.
+         Note that if there are multiple processes or batches, and the initializer is provided as a non-empty instance of the input type for `function`, then the initializer is applied to each process or batch separately, see examples below for what this entails for `int`.
+         Args:
+             function (`Callable`): Function with the following signature:
+                 `function(accumulator: Any, example: Any) -> Any`
 
-        Example:
+                 If no function is provided, default to identity function: `lambda x, y: x`, i.e. the first example is returned.
+             combiner (`Optional[Callable]`, defaults to `None`):
+                 The combiner is a function with the following signature:
+                 `combiner(accumulator_1: Any, accumulator_2: Any) -> Any`
 
-        ```py
-        >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
-        >>> str_concat = lambda accumulator, example: accumulator + ' ' + example
-        >>> result = ds[0:3].reduce(str_concat, input_columns="text")
-        >>> result
-        'Review: compassionately explores the seemingly irreconcilable situation between conservative christian parents and their estranged gay and lesbian children . Review: the soundtrack alone is worth the price of admission . Review: rodriguez does a splendid job of racial profiling hollywood style--casting excellent latin actors of all ages--a trend long overdue .'
+                 When the reduction of the available batches, when `batched=True`, or the reduction of the different processes when `num_proc > 1`, has been calculated they must be combined, this is done via this function. If no combiner is provided, default to identity function: `lambda x, y: x`, i.e. the first accumulator is returned. If `batched=True` or `num_proc > 1`, the combiner must be set.
+             input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`):
+                 The columns to be passed into `function`
+                 as positional arguments. If `None`, a `dict` mapping to all formatted columns is passed as one argument.
+             initializer (`Optional[Any]`, defaults to `None`):
+                 The initial value of the accumulator, it is the first argument of the first application of the function, and hence must be of the same type as the examples.
+                 If `batched=True`, the initializer must be set.
+             batched (`bool`, defaults to `False`):
+                 Provide batch of examples to `function`.
+             batch_size (`int`, *optional*, defaults to `1000`):
+                 Number of examples per batch provided to `function` if `batched=True`.
+                 If `batch_size <= 0` or `batch_size == None`, provide the full dataset as a single batch to `function`.
+             drop_last_batch (`bool`, defaults to `False`):
+                 Whether a last batch smaller than the batch_size should be
+                 dropped instead of being processed by the function.
+             keep_in_memory (`bool`, defaults to `False`):
+                 Keep the dataset in memory instead of writing it to a cache file.
+             load_from_cache_file (`bool`, defaults to `True` if caching is enabled):
+                 If a cache file storing the current computation from `function`
+                 can be identified, use it instead of recomputing.
+             cache_file_name (`str`, *optional*, defaults to `None`):
+                 Provide the name of a path for the cache file. It is used to store the
+                 results of the computation instead of the automatically generated cache file name.
+             fn_kwargs (`Dict`, *optional*, defaults to `None`):
+                 Keyword arguments to be passed to `function`.
+             num_proc (`int`, *optional*, defaults to `None`):
+                 Max number of processes when generating cache. Already cached shards are loaded sequentially.
+             new_fingerprint (`str`, *optional*, defaults to `None`):
+                 The new fingerprint of the dataset after transform.
+                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
+             desc (`str`, *optional*, defaults to `None`):
+                 Meaningful description to be displayed alongside with the progress bar while mapping examples.
 
-        # process a batch of examples
-        >>> result = ds.reduce(str_concat, input_columns="text", batched=True)
+         Example:
 
-        # set number of processors
-        >>> result = ds.reduce(str_concat, input_columns="text", num_proc=4)
-        ```
+         ```py
+         >>> from datasets import load_dataset
+         >>> string_ds = load_dataset("rotten_tomatoes", split="validation")
+         >>> str_concat = lambda accumulator, example: accumulator + ' ' + example
+         >>> result = string_ds[0:3].reduce(str_concat, input_columns="text")
+         >>> result
+         {'text': Review: compassionately explores the seemingly irreconcilable situation between conservative christian parents and their estranged gay and lesbian children . Review: the soundtrack alone is worth the price of admission . Review: rodriguez does a splendid job of racial profiling hollywood style--casting excellent latin actors of all ages--a trend long overdue .'}
+
+         # process a batch of examples
+         >>> result = ds.reduce(str_concat, input_columns="text", batched=True)
+
+         # set number of processors
+         >>> result = ds.reduce(str_concat, combiner=str_concat, input_columns="text", num_proc=4)
+
+         # set number of processors, with non-empty initializer, for input type `int`
+         >>> int_ds = Dataset.from_dict({"x": [1, 2, 3]})
+         >>> sum_reduce = lambda x, y: x + y
+         >>> reduction = int_ds.reduce(sum_reduce, combiner=sum_reduce, initializer=1, input_columns='x', num_proc=2)
+         >>> reduction       # reduction is (1+(1+2)+1+(3)) = 8, i.e. initializer + reduction_1 + initializer + reduction_2
+        {'x': 8}
+
+         # set number of processors, with non-empty initializer, for input type `str`
+         >>> string_ds = Dataset.from_dict({"x": ["1", "2", "3"]})
+         >>> sum_reduce_reverse = lambda x, y: y + x
+         >>> reduction = string_ds.reduce(sum_reduce, combiner=sum_reduce_reverse, initializer="X", input_columns='x', num_proc=2)
+         >>> reduction       # reduction is ('X'+('3')+'X'+('2'+'1')) = 'X3X12', i.e. `initializer + reduction_2 + initializer + reduction_1`, note that the order of the reduction is reversed
+         {'x': 'X3X12'}
+
+         ```
         """
         if keep_in_memory and cache_file_name is not None:
             raise ValueError("Please use either `keep_in_memory` or `cache_file_name` but not both.")
 
         if num_proc is not None and num_proc <= 0:
             raise ValueError("num_proc must be an integer > 0.")
+
+        if num_proc is not None and num_proc > 1 and combiner is None:
+            raise ValueError("When num_proc > 1, a combiner must be provided.")
+
+        if batched and combiner is None:
+            raise ValueError("When batched is True, a combiner must be provided.")
 
         # If the array is empty we do nothing (but we make sure to handle an empty indices mapping and remove the requested columns anyway)
         if len(self) == 0:
@@ -3453,7 +3482,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # If batched is True, we check if the initializer is provided
         if batched and initializer is None:
-            raise ValueError("Batched reduce requires an initializer. Please provide an initializer, or set batched=False. The initializer is the first argument of the first application of the function, and hence must be of the same type as the examples.")
+            raise ValueError(
+                "Batched reduce requires an initializer. Please provide an initializer, or set batched=False. The initializer is the first argument of the first application of the function, and hence must be of the same type as the examples."
+            )
 
         if isinstance(input_columns, str):
             input_columns = [input_columns]
@@ -3475,7 +3506,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # If the initializer is [None] and `batched=False`, we set the initializer to the first example in the dataset later
         if all([i is not None for i in initializer]):
             # We check that the initializer is of the same length as the input columns, then we check if it is a list or not
-            # If it is a list, we check if the elements of the list are of the same type as the examples in the dataset, 
+            # If it is a list, we check if the elements of the list are of the same type as the examples in the dataset,
             # otherwise we raise an error.
             if len(initializer) == len(columns_to_check):
                 if isinstance(initializer, list):
@@ -3488,9 +3519,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 raise ValueError(
                     f"Initializer {initializer} is not of the same length as the input columns: {columns_to_check}"
                 )
-        
+
             # We create a dictionary with the input columns as keys and the initializer as values
-            initializer = {k:v for k,v in zip(columns_to_check, initializer)}
+            initializer = {k: v for k, v in zip(columns_to_check, initializer)}
 
         load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
 
@@ -3508,6 +3539,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if num_proc is None or num_proc == 1:
             return self._reduce_single(
                 function=function,
+                combiner=combiner,
                 input_columns=input_columns,
                 initializer=initializer,
                 batched=batched,
@@ -3541,6 +3573,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 dict(
                     self=shards[rank],
                     function=function,
+                    combiner=combiner,
                     input_columns=input_columns,
                     initializer=initializer,
                     batched=batched,
@@ -3591,7 +3624,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             accumulator_shard = reduced_shards[0]
             for reduced_shard in reduced_shards[1:]:
                 for key in accumulator_shard.keys():
-                    accumulator_shard[key] = function(accumulator_shard.get(key, 0), reduced_shard[key], **fn_kwargs)
+                    accumulator_shard[key] = combiner(accumulator_shard.get(key, 0), reduced_shard[key], **fn_kwargs)
 
             if new_fingerprint is not None:
                 accumulator_shard._fingerprint = new_fingerprint
@@ -3600,6 +3633,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def _reduce_single(
         self,
         function: Optional[Callable] = None,
+        combiner: Optional[Callable] = None,
         input_columns: Optional[List[str]] = None,
         initializer: Optional[Union[dict, List[Any]]] = None,
         batched: bool = False,
@@ -3621,6 +3655,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 `function(accumulator: Any, example: Any) -> Any`
 
                 If no function is provided, default to identity function: `lambda x, y: x`, i.e. the first example is returned.
+            combiner (`Optional[Callable]`, defaults to `None`):
+                Function with the following signature:
+                `combiner(accumulator_1: Any, accumulator_2: Any) -> Any`
+
+                If no combiner is provided, default to identity function: `lambda x, y: x`, i.e. the first accumulator is returned. If `batched=True` or `num_proc > 1`, the combiner must be set.
             input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`):
                 The columns to be passed into `function`
                 as positional arguments. If `None`, a `dict` mapping to all formatted columns is passed as one argument.
@@ -3672,7 +3711,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     "Provided `function` does not return the same type as the type of the inputs, make sure `function` has signature `function(accumulator: Any, update_value: Any) -> Any`."
                 )
 
-        def apply_function_on_inputs_and_accumulator(update_value, accumulator):
+        def apply_function_on_inputs_and_accumulator(update_value, accumulator, function_):
             """Utility to apply the function on a selection of columns."""
             element = format_table(
                 update_value,
@@ -3684,9 +3723,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 try:
                     if batched:
                         for i in range(len(value)):
-                            accumulator[key] = function(accumulator.get(key, 0), value[i], **fn_kwargs)
+                            accumulator[key] = function_(accumulator.get(key, 0), value[i], **fn_kwargs)
                     else:
-                        accumulator[key] = function(accumulator.get(key, 0), value, **fn_kwargs)
+                        accumulator[key] = function_(accumulator.get(key, 0), value, **fn_kwargs)
                 except TypeError as e:
                     raise TypeError(
                         f"An error occurred while applying the function on the column {key}.\n"
@@ -3739,9 +3778,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             accumulator = deepcopy(initializer)
                         # Get the value types of the accumulator for later type checking
                         accumulator_value_types = {k: type(v) for k, v in accumulator.items()}
-                        continue
 
-                    accumulator = apply_function_on_inputs_and_accumulator(example, accumulator)
+                    accumulator = apply_function_on_inputs_and_accumulator(example, accumulator, function)
 
             # If we're working in batches, the user is forced to define a initializer, hence we use that
             else:
@@ -3757,12 +3795,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         accumulator = apply_function_on_inputs_and_accumulator(
                             batch,
                             accumulator,
+                            function,
                         )
                         continue
 
                     accumulator = apply_function_on_inputs_and_accumulator(
                         batch,
                         accumulator,
+                        combiner,
                     )
 
         except (Exception, KeyboardInterrupt):
