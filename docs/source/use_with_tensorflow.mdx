@@ -13,7 +13,7 @@ To get TensorFlow tensors instead, you can set the format of the dataset to `tf`
 ```py
 >>> from datasets import Dataset
 >>> data = [[1, 2],[3, 4]]
->>> ds = Dataset.from_dict({"data": [[1, 2],[3, 4]]})
+>>> ds = Dataset.from_dict({"data": data})
 >>> ds = ds.with_format("tf")
 >>> ds[0]
 {'data': <tf.Tensor: shape=(2,), dtype=int64, numpy=array([1, 2])>}
@@ -53,7 +53,7 @@ In particular, a TensorFlow formatted dataset outputs a `RaggedTensor` instead o
 {'data': <tf.RaggedTensor [[1, 2], [3, 4]]>}
 ```
 
-To get a single tensor, you must explicitly use the Array feature type and specify the shape of your tensors:
+To get a single tensor, you must explicitly use the [`Array`] feature type and specify the shape of your tensors:
 
 ```py
 >>> from datasets import Dataset, Features, Array2D
@@ -113,7 +113,14 @@ You can also explicitly format certain columns and leave the other columns unfor
 
 String and binary objects are unchanged, since PyTorch only supports numbers.
 
-The [`Image`] and [`Audio`] feature types are also supported:
+The [`Image`] and [`Audio`] feature types are also supported.
+
+<Tip>
+
+To use the [`Image`] feature type, you'll need to install the `vision` extra as
+`pip install datasets[vision]`.
+
+</Tip>
 
 ```py
 >>> from datasets import Dataset, Features, Audio, Image
@@ -136,6 +143,13 @@ The [`Image`] and [`Audio`] feature types are also supported:
           [255, 255, 255, 255],
           [255, 255, 255, 255]]]], dtype=uint8)>}
 ```
+
+<Tip>
+
+To use the [`Audio`] feature type, you'll need to install the `audio` extra as
+`pip install datasets[audio]`.
+
+</Tip>
 
 ```py
 >>> from datasets import Dataset, Features, Audio, Image
