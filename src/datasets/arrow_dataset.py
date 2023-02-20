@@ -3767,7 +3767,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 accumulator = None
                 for i, example in pbar:
                     if accumulator is None:
-                        if any([i is None for i in initializer]):
+                        initializer_is_none = any([i is None for i in initializer])
+                        if initializer_is_none:
                             accumulator = format_table(
                                 example,
                                 0,
@@ -3778,6 +3779,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             accumulator = deepcopy(initializer)
                         # Get the value types of the accumulator for later type checking
                         accumulator_value_types = {k: type(v) for k, v in accumulator.items()}
+                        if initializer_is_none:
+                            continue
 
                     accumulator = apply_function_on_inputs_and_accumulator(example, accumulator, function)
 
