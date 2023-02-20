@@ -314,11 +314,11 @@ def upload_file(
     commit_message: Optional[str] = None,
     commit_description: Optional[str] = None,
     create_pr: Optional[bool] = None,
-    parent_commit: Optional[str] = None
+    parent_commit: Optional[str] = None,
 ) -> List[str]:
     """
     Several new parameters for huggingface_hub.HfApi.upload_file were introduced in 0.8.1 and some of them were deprecated.
-    This function checks the huggingface_hub version to call the right parameters. `commit_message`, `commit_description`, and `create_pr` were introduced in 
+    This function checks the huggingface_hub version to call the right parameters. `commit_message`, `commit_description`, and `create_pr` were introduced in
     huggingface_hub>=0.8.1.
     """
     for param in [commit_message, commit_description, create_pr]:
