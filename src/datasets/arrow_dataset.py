@@ -3743,8 +3743,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
                     accumulant = apply_function_on_inputs_and_accumulant(example, accumulant)
 
-            # If we're working in batches, the first batch is used to initialize the accumulant as a dict
-            # with the same keys as the batch and empty values of the same type as the batch values
+            # If we're working in batches, the user is forced to define a initializer, hence we use that
             else:
                 accumulant = None
                 for i, batch in pbar:
