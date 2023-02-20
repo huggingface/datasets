@@ -3375,17 +3375,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         The function should be a binary operation, i.e. it takes in 2 objects of the same type in and returns 1 object of the same type as the inputs.
         Examples include addition, multiplication, maximum, minimum, etc. for `int`, `float`, `bool` and `str` types, and concatenation for `list` types.
-        The first input is the accumulant, which is the result of the previous application of the function on the previous examples, and the second input is the current example.
+        The first input is the accumulator, which is the result of the previous application of the function on the previous examples, and the second input is the current example.
         Args:
             function (`Callable`): Function with the following signature:
-                `function(accumulant: Any, example: Any) -> Any`
+                `function(accumulator: Any, example: Any) -> Any`
 
                 If no function is provided, default to identity function: `lambda x, y: x`, i.e. the first example is returned.
             input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`):
                 The columns to be passed into `function`
                 as positional arguments. If `None`, a `dict` mapping to all formatted columns is passed as one argument.
             initializer (`Optional[Any]`, defaults to `None`):
-                The initial value of the accumulant, it is the first argument of the first application of the function, and hence must be of the same type as the examples.
+                The initial value of the accumulator, it is the first argument of the first application of the function, and hence must be of the same type as the examples.
                 If `batched=True`, the initializer must be set.
             batched (`bool`, defaults to `False`):
                 Provide batch of examples to `function`.
@@ -3418,7 +3418,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rotten_tomatoes", split="validation")
-        >>> str_concat = lambda accumulant, example: accumulant + ' ' + example
+        >>> str_concat = lambda accumulator, example: accumulator + ' ' + example
         >>> result = ds[0:3].reduce(str_concat, input_columns="text")
         >>> result
         'Review: compassionately explores the seemingly irreconcilable situation between conservative christian parents and their estranged gay and lesbian children . Review: the soundtrack alone is worth the price of admission . Review: rodriguez does a splendid job of racial profiling hollywood style--casting excellent latin actors of all ages--a trend long overdue .'
@@ -3588,14 +3588,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             ), "All shards have to be defined Datasets, none should still be missing."
 
             logger.info(f"Concatenating {num_proc} shards")
-            accumulant_shard = reduced_shards[0]
+            accumulator_shard = reduced_shards[0]
             for reduced_shard in reduced_shards[1:]:
-                for key in accumulant_shard.keys():
-                    accumulant_shard[key] = function(accumulant_shard.get(key, 0), reduced_shard[key], **fn_kwargs)
+                for key in accumulator_shard.keys():
+                    accumulator_shard[key] = function(accumulator_shard.get(key, 0), reduced_shard[key], **fn_kwargs)
 
             if new_fingerprint is not None:
-                accumulant_shard._fingerprint = new_fingerprint
-            return accumulant_shard
+                accumulator_shard._fingerprint = new_fingerprint
+            return accumulator_shard
 
     def _reduce_single(
         self,
@@ -3615,17 +3615,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         The function should be a binary operation, i.e. it takes in 2 objects of the same type in and returns 1 object of the same type as the inputs.
         Examples include addition, multiplication, maximum, minimum, etc. for `int`, `float`, `bool` and `str` types, and concatenation for `list` types.
-        The first input is the accumulant, which is the result of the previous application of the function on the previous examples, and the second input is the current example.
+        The first input is the accumulator, which is the result of the previous application of the function on the previous examples, and the second input is the current example.
         Args:
             function (`Callable`): Function with the following signature:
-                `function(accumulant: Any, example: Any) -> Any`
+                `function(accumulator: Any, example: Any) -> Any`
 
                 If no function is provided, default to identity function: `lambda x, y: x`, i.e. the first example is returned.
             input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`):
                 The columns to be passed into `function`
                 as positional arguments. If `None`, a `dict` mapping to all formatted columns is passed as one argument.
             initializer (`Optional[Any]`, defaults to `None`):
-                The initial value of the accumulant, it is the first argument of the first application of the function, and hence must be of the same type as the examples.
+                The initial value of the accumulator, it is the first argument of the first application of the function, and hence must be of the same type as the examples.
                 If `batched=True`, the initializer must be set.
             batched (`bool`, defaults to `False`):
                 Provide batch of examples to `function`.
@@ -3663,16 +3663,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         def validate_function_output(processed_inputs):
             """Validate output of the reduce function."""
-            input_types_fit_accumulant_types = all(
-                type(processed_inputs[col]) == accumulant_value_types[col] for col in processed_inputs.keys()
+            input_types_fit_accumulator_types = all(
+                type(processed_inputs[col]) == accumulator_value_types[col] for col in processed_inputs.keys()
             )
 
-            if not input_types_fit_accumulant_types:
+            if not input_types_fit_accumulator_types:
                 raise TypeError(
-                    "Provided `function` does not return the same type as the type of the inputs, make sure `function` has signature `function(accumulant: Any, update_value: Any) -> Any`."
+                    "Provided `function` does not return the same type as the type of the inputs, make sure `function` has signature `function(accumulator: Any, update_value: Any) -> Any`."
                 )
 
-        def apply_function_on_inputs_and_accumulant(update_value, accumulant):
+        def apply_function_on_inputs_and_accumulator(update_value, accumulator):
             """Utility to apply the function on a selection of columns."""
             element = format_table(
                 update_value,
@@ -3684,19 +3684,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 try:
                     if batched:
                         for i in range(len(value)):
-                            accumulant[key] = function(accumulant.get(key, 0), value[i], **fn_kwargs)
+                            accumulator[key] = function(accumulator.get(key, 0), value[i], **fn_kwargs)
                     else:
-                        accumulant[key] = function(accumulant.get(key, 0), value, **fn_kwargs)
+                        accumulator[key] = function(accumulator.get(key, 0), value, **fn_kwargs)
                 except TypeError as e:
                     raise TypeError(
                         f"An error occurred while applying the function on the column {key}.\n"
                         "Please make sure that the function has the following signature:\n"
-                        "function(accumulant: Any, update_value: Any, *args, **kwargs) -> Any\n"
+                        "function(accumulator: Any, update_value: Any, *args, **kwargs) -> Any\n"
                         f"Error: {e}"
                     )
 
-            validate_function_output(accumulant)
-            return accumulant
+            validate_function_output(accumulator)
+            return accumulator
 
         try:
             input_dataset = self.with_format("arrow")
@@ -3723,51 +3723,51 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 desc=pbar_desc,
             )
 
-            # If we're not working in batches, the first example is used to initialize the accumulant
+            # If we're not working in batches, the first example is used to initialize the accumulator
             if not batched:
-                accumulant = None
+                accumulator = None
                 for i, example in pbar:
-                    if accumulant is None:
+                    if accumulator is None:
                         if any([i is None for i in initializer]):
-                            accumulant = format_table(
+                            accumulator = format_table(
                                 example,
                                 0,
                                 format_columns=input_columns,
                                 formatter=input_formatter,
                             )
                         else:
-                            accumulant = deepcopy(initializer)
-                        # Get the value types of the accumulant for later type checking
-                        accumulant_value_types = {k: type(v) for k, v in accumulant.items()}
+                            accumulator = deepcopy(initializer)
+                        # Get the value types of the accumulator for later type checking
+                        accumulator_value_types = {k: type(v) for k, v in accumulator.items()}
                         continue
 
-                    accumulant = apply_function_on_inputs_and_accumulant(example, accumulant)
+                    accumulator = apply_function_on_inputs_and_accumulator(example, accumulator)
 
             # If we're working in batches, the user is forced to define a initializer, hence we use that
             else:
-                accumulant = None
+                accumulator = None
                 for i, batch in pbar:
-                    if accumulant is None:
-                        accumulant = deepcopy(initializer)
+                    if accumulator is None:
+                        accumulator = deepcopy(initializer)
 
-                        # Get the value types of the accumulant for later type checking
-                        accumulant_value_types = {k: type(v) for k, v in accumulant.items()}
+                        # Get the value types of the accumulator for later type checking
+                        accumulator_value_types = {k: type(v) for k, v in accumulator.items()}
 
-                        # Apply the function on the first batch, with the empty accumulant
-                        accumulant = apply_function_on_inputs_and_accumulant(
+                        # Apply the function on the first batch, with the empty accumulator
+                        accumulator = apply_function_on_inputs_and_accumulator(
                             batch,
-                            accumulant,
+                            accumulator,
                         )
                         continue
 
-                    accumulant = apply_function_on_inputs_and_accumulant(
+                    accumulator = apply_function_on_inputs_and_accumulator(
                         batch,
-                        accumulant,
+                        accumulator,
                     )
 
         except (Exception, KeyboardInterrupt):
             raise
-        return accumulant
+        return accumulator
 
     @transmit_format
     @fingerprint_transform(
