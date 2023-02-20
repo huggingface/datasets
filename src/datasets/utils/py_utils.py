@@ -656,8 +656,8 @@ class Pickler(dill.Pickler):
                     @pklregister(obj_type)
                     def _save_encoding(pickler, obj):
                         dill_log(pickler, f"Enc: {obj}")
-                        args = (obj.name,)
-                        pickler.save_reduce(tiktoken.get_encoding, args, obj=obj)
+                        args = (obj.name, obj._pat_str, obj._mergeable_ranks, obj._special_tokens)
+                        pickler.save_reduce(tiktoken.Encoding, args, obj=obj)
                         dill_log(pickler, "# Enc")
                         return
 
