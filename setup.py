@@ -143,7 +143,7 @@ REQUIRED_PKGS = [
 
 AUDIO_REQUIRE = [
     "librosa",
-    "resampy",
+    "resampy",  # optional librosa dependency after 0.10 for resampling
 ]
 
 VISION_REQUIRE = [
