@@ -1689,7 +1689,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             column (`str`):
-                Column name (list all the column names with [~`datasets.Dataset.column_names`]).
+                Column name (list all the column names with [`~datasets.Dataset.column_names`]).
 
         Returns:
             `list`: List of unique elements in the given column.
@@ -1714,11 +1714,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return dataset._data.column(column).unique().to_pylist()
 
     def class_encode_column(self, column: str, include_nulls: bool = False) -> "Dataset":
-        """Casts the given column as [~`datasets.features.ClassLabel]` and updates the table.
+        """Casts the given column as [`~datasets.features.ClassLabel`] and updates the table.
 
         Args:
             column (`str`):
-                The name of the column to cast (list all the column names with [~`datasets.Dataset.column_names`])
+                The name of the column to cast (list all the column names with [`~datasets.Dataset.column_names`])
             include_nulls (`bool`, defaults to `False`):
                 Whether to include null values in the class labels. If `True`, the null values will be encoded as the `"None"` class label.
 
@@ -2645,9 +2645,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     def __getitem__(self, key):  # noqa: F811
         """Can be used to index columns (by string names) or rows (by integer index or iterable of indices or bools)."""
-        return self._getitem(
-            key,
-        )
+        return self._getitem(key)
+
+    def __getitems__(self, keys: List) -> List:
+        """Can be used to get a batch using a list of integers indices."""
+        batch = self.__getitem__(keys)
+        n_examples = len(batch[next(iter(batch))])
+        return [{col: array[i] for col, array in batch.items()} for i in range(n_examples)]
 
     def cleanup_cache_files(self) -> int:
         """Clean up all cache files in the dataset cache directory, excepted the currently used cache file if there is
