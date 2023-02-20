@@ -27,6 +27,8 @@ from .splits import NamedSplit, Split, SplitDict, SplitInfo
 from .table import Table
 from .tasks import TaskTemplate
 from .utils import logging
+from .utils._hf_hub_fixes import create_pr_it_does_not_exist
+from .utils._hf_hub_fixes import upload_file as hf_api_upload_file
 from .utils._hf_hub_fixes import list_repo_files as hf_api_list_repo_files
 from .utils.doc_utils import is_documented_by
 from .utils.file_utils import cached_path
@@ -1570,6 +1572,25 @@ class DatasetDict(dict):
             if not re.match(_split_re, split):
                 raise ValueError(f"Split name should match '{_split_re}' but got '{split}'.")
 
+        api = HfApi(endpoint=config.HF_ENDPOINT)
+
+        # Create repo if it doesn't exist safely, i.e. search for an existing PR and create one if none is found.
+        # If create_pr is False we neither create nor search.
+        branch = create_pr_it_does_not_exist(
+            hf_api=api,
+            repo_id=repo_id,
+            private=private,
+            token=token,
+            repo_type="dataset",
+            create_pr=create_pr,
+            branch=branch,
+        )
+
+        # If create_pr is True, we have at this point either created or found a PR to push to.
+        # Hence we don't want to create a PR, in the following file uploads. For this we set create_pr to None,
+        # which also handles the where case where huggingface_hub is of version <0.8.1, hence create_pr does not exist.
+        create_pr = None
+
         for split in self.keys():
             logger.warning(f"Pushing split {split} to the Hub.")
             # The split=key needs to be removed before merging
@@ -1591,7 +1612,6 @@ class DatasetDict(dict):
         info_to_dump.dataset_size = total_dataset_nbytes
         info_to_dump.size_in_bytes = total_uploaded_size + total_dataset_nbytes
 
-        api = HfApi(endpoint=config.HF_ENDPOINT)
         repo_files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, use_auth_token=token)
 
         # push to the deprecated dataset_infos.json
@@ -1600,7 +1620,8 @@ class DatasetDict(dict):
             buffer.write(b'{"default": ')
             info_to_dump._dump_info(buffer, pretty_print=True)
             buffer.write(b"}")
-            HfApi(endpoint=config.HF_ENDPOINT).upload_file(
+            hf_api_upload_file(
+                hf_api=api,
                 path_or_fileobj=buffer.getvalue(),
                 path_in_repo=config.DATASETDICT_INFOS_FILENAME,
                 repo_id=repo_id,
@@ -1625,7 +1646,9 @@ class DatasetDict(dict):
             dataset_metadata = DatasetMetadata()
             readme_content = f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
         DatasetInfosDict({"default": info_to_dump}).to_metadata(dataset_metadata)
-        HfApi(endpoint=config.HF_ENDPOINT).upload_file(
+        
+        hf_api_upload_file(
+            hf_api=api,
             path_or_fileobj=dataset_metadata._to_readme(readme_content).encode(),
             path_in_repo="README.md",
             repo_id=repo_id,
