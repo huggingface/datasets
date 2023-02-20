@@ -1657,7 +1657,7 @@ class BaseDatasetTest(TestCase):
                     return x + y
 
                 reduction = dset.reduce(
-                    sum_reduce, combiner=sum_reduce, initializer=0, input_columns="col_1", batched=True
+                    sum_reduce, combiner=sum_reduce, initializer=np.int64(0), input_columns="col_1", batched=True
                 )
                 self.assertEqual(reduction["col_1"], 6)
 
