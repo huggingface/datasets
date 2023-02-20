@@ -1542,8 +1542,10 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+
                 def sum_reduce(x, y):
                     return x + y
+
                 reduction = dset.reduce(sum_reduce, input_columns="filename")
                 functool_reduction = functools_reduce(
                     sum_reduce, ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]
@@ -1558,6 +1560,7 @@ class BaseDatasetTest(TestCase):
                 # Check if exception is raised when no transform is provided
                 def sum_reduce_none(x, y):
                     return None
+
                 with self.assertRaises(TypeError):
                     reduction = dset.reduce(sum_reduce_none, input_columns="filename")
 
@@ -1565,8 +1568,10 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
                 dset.set_format("numpy", columns=["col_1"])
+
                 def sum_reduce(x, y):
                     return x + y
+
                 reduction = dset.reduce(sum_reduce, input_columns="col_1")
                 self.assertEqual(reduction["col_1"], 6)
 
@@ -1575,9 +1580,13 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+
                 def sum_reduce(x, y):
                     return x + y
-                reduction = dset.reduce(sum_reduce, input_columns="filename", num_proc=2)
+
+                reduction = dset.reduce(
+                    sum_reduce, combiner=sum_reduce, input_columns="filename", initializer="", num_proc=2
+                )
                 functool_reduction = functools_reduce(
                     sum_reduce, ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]
                 )
@@ -1587,9 +1596,13 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+
                 def sum_reduce(x, y):
                     return x + y
-                reduction = dset.select([0, 1], keep_in_memory=True).reduce(sum_reduce, num_proc=10)
+
+                reduction = dset.select([0, 1], keep_in_memory=True).reduce(
+                    sum_reduce, combiner=sum_reduce, initializer="", num_proc=10
+                )
                 functool_reduction = functools_reduce(
                     sum_reduce, ["my_name-train" + "_" + str(x) for x in np.arange(2).tolist()]
                 )
@@ -1600,9 +1613,13 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+
                 def sum_reduce(x, y):
                     return x + y
-                reduction = dset.reduce(sum_reduce, batched=True, input_columns="filename")
+
+                reduction = dset.reduce(
+                    sum_reduce, combiner=sum_reduce, initializer="", batched=True, input_columns="filename"
+                )
                 functool_reduction = functools_reduce(
                     sum_reduce, ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]
                 )
@@ -1612,11 +1629,15 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+
                 def sum_reduce(x, y):
                     return x + y
+
                 batch_size = len(dset) - 1
                 reduction = dset.reduce(
                     sum_reduce,
+                    combiner=sum_reduce,
+                    initializer="",
                     batch_size=batch_size,
                     batched=True,
                     drop_last_batch=True,
@@ -1631,9 +1652,13 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
                 dset.set_format("numpy", columns=["col_1"])
+
                 def sum_reduce(x, y):
                     return x + y
-                reduction = dset.reduce(sum_reduce, input_columns="col_1", batched=True)
+
+                reduction = dset.reduce(
+                    sum_reduce, combiner=sum_reduce, initializer=0, input_columns="col_1", batched=True
+                )
                 self.assertEqual(reduction["col_1"], 6)
 
     def test_filter(self, in_memory):
