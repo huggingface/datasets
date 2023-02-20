@@ -314,8 +314,7 @@ def upload_file(
     commit_message: Optional[str] = None,
     commit_description: Optional[str] = None,
     create_pr: Optional[bool] = None,
-    parent_commit: Optional[str] = None,
-    identical_ok: Optional[bool] = True,
+    parent_commit: Optional[str] = None
 ) -> List[str]:
     """
     Several new parameters for huggingface_hub.HfApi.upload_file were introduced in 0.8.1 and some of them were deprecated.
