@@ -39,13 +39,20 @@ class JaxFormatter(Formatter[Mapping, "jax.Array", Mapping]):
         import jax
         from jaxlib.xla_client import Device
 
+        if isinstance(device, Device):
+            raise ValueError(
+                f"Expected {device} to be a `str` not {type(device)}, as `jaxlib.xla_extension.Device` "
+                "is not serializable neither with `pickle` nor with `dill`. Instead you can surround "
+                "the device with `str()` to get its string identifier that will be internally mapped "
+                "to the actual `jaxlib.xla_extension.Device`."
+            )
+        self.device = device if isinstance(device, str) else str(jax.devices()[0])
         self.device_mapping = self._map_devices_to_str()
-        self.device = (
-            device if isinstance(device, str) else str(device) if isinstance(device, Device) else str(jax.devices()[0])
-        )
         if self.device not in list(self.device_mapping.keys()):
             logger.warning(
-                f"Device with string identifier {self.device} not listed among the available devices: {list(self.device_mapping.keys())}, so falling back to the default device: {str(jax.devices()[0])}."
+                f"Device with string identifier {self.device} not listed among the available "
+                "devices: {list(self.device_mapping.keys())}, so falling back to the default "
+                f"device: {str(jax.devices()[0])}."
             )
             self.device = str(jax.devices()[0])
         self.jnp_array_kwargs = jnp_array_kwargs
