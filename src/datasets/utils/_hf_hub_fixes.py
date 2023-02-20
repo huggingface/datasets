@@ -321,7 +321,7 @@ def upload_file(
     This function checks the huggingface_hub version to call the right parameters. `commit_message`, `commit_description`, and `create_pr` were introduced in 
     huggingface_hub>=0.8.1.
     """
-    for param in [commit_message, commit_description, create_pr, folder_path]:
+    for param in [commit_message, commit_description, create_pr]:
         if param is not None and version.parse(huggingface_hub.__version__) < version.parse("0.8.1"):
             raise TypeError(
                 "The `commit_message`, `commit_description`, and `create_pr` parameters are not supported in huggingface_hub<0.8.1. Please update huggingface_hub to >=0.8.1 to use this parameter, or exclude `commit_message`, `commit_description` and `create_pr` from the keyword arguments."
