@@ -45,7 +45,11 @@ def create_repo(
         `str`: URL to the newly created repo.
     """
     if version.parse(huggingface_hub.__version__) < version.parse("0.5.0"):
-        organization, name = repo_id.split("/")
+        repo_id_split = repo_id.split("/")
+        if len(repo_id_split) > 1:
+            organization, name = repo_id_split
+        else:
+            organization, name = None, repo_id_split[0]
         return hf_api.create_repo(
             name=name,
             organization=organization,
@@ -154,7 +158,7 @@ def create_pr_it_does_not_exist(
     try:
         hf_api.repo_info(repo_id, repo_type=repo_type, token=token)
 
-    except repo_not_found_exception:
+    except (repo_not_found_exception, AttributeError):
         create_repo(hf_api=hf_api, repo_id=repo_id, private=private, token=token, exist_ok=True, repo_type=repo_type)
 
     # Try to find PR branch if branch is supplied
