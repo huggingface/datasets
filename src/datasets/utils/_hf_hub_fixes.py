@@ -137,7 +137,7 @@ def create_pr_it_does_not_exist(
             The branch to create the PR on. Defaults to None.
 
     Returns:
-        tuple: A tuple containing: (`str`, `bool`): The branch reference, either for the existing PR or for the newly created one. `bool`: Whether a PR was created.
+        branch (`str`): The branch reference, either for the existing PR or for the newly created one.
     """
     # By version huggingface_hub 0.7.0 HTTPError was replaced by RepositoryNotFoundError
     # so we need to check the version to use the right exception
@@ -158,6 +158,7 @@ def create_pr_it_does_not_exist(
         create_repo(hf_api=hf_api, repo_id=repo_id, private=private, token=token, exist_ok=True, repo_type=repo_type)
 
     # Try to find PR branch if branch is supplied
+    pr_was_found = False
     if create_pr and branch is not None:
         if version.parse(huggingface_hub.__version__) < version.parse("0.9.0"):
             raise ValueError(
@@ -168,14 +169,13 @@ def create_pr_it_does_not_exist(
 
             for discussion in get_repo_discussions(repo_id, repo_type="dataset"):
                 if discussion.is_pull_request and discussion.git_reference == branch:
-                    create_pr = False
+                    pr_was_found = True
                     break
             else:
                 raise ValueError("Provided branch not found")
 
     # Create PR if we didn't find it before
-    pr_was_created = False
-    if create_pr:
+    if create_pr and not pr_was_found:
         pr = hf_api.create_pull_request(
             repo_id,
             repo_type=repo_type,
@@ -183,10 +183,9 @@ def create_pr_it_does_not_exist(
             token=token,
         )
         branch = pr.git_reference
-        pr_was_created = True
         logger.info(f"Created PR {branch} for {repo_id} dataset")
 
-    return branch, pr_was_created
+    return branch
 
 
 def delete_repo(
