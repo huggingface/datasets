@@ -12,7 +12,8 @@ install them as `pip install datasets[jax]`.
 
 ## Dataset format
 
-By default, datasets return regular Python objects: integers, floats, strings, lists, etc.
+By default, datasets return regular Python objects: integers, floats, strings, lists, etc., and 
+string and binary objects are unchanged, since JAX only supports numbers.
 
 To get JAX arrays (numpy-like) instead, you can set the format of the dataset to `jax`:
 
