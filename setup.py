@@ -173,7 +173,7 @@ TESTS_REQUIRE = [
     "s3fs>=2021.11.1;python_version<'3.8'",  # aligned with fsspec[http]>=2021.11.1; test only on python 3.7 for now
     "tensorflow>=2.3,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
     "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
-    "tiktoken;python_version>='3.8'"
+    "tiktoken;python_version>='3.8'",
     "torch",
     "torchaudio<0.12.0",
     "soundfile",
