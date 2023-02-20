@@ -179,7 +179,7 @@ def parametrize_packaged_builder(
     return ParametrizedBuilder
 
 
-def import_builder_cls(dataset_module, name: Optional[str]) -> Type[DatasetBuilder]:
+def get_builder_class(dataset_module, name: Optional[str] = None) -> Type[DatasetBuilder]:
     builder_cls = import_main_class(dataset_module.module_path)
     if dataset_module.metadata_configs:
         builder_cls = parametrize_packaged_builder(builder_cls, dataset_module.metadata_configs, name=name)
@@ -1706,7 +1706,7 @@ def load_dataset_builder(
     )
 
     # Get dataset builder class from the processing script
-    builder_cls = import_builder_cls(dataset_module, name=os.path.basename(path))
+    builder_cls = get_builder_class(dataset_module, name=os.path.basename(path))
     builder_kwargs = dataset_module.builder_kwargs
     data_dir = builder_kwargs.pop("data_dir", data_dir)
     data_files = builder_kwargs.pop("data_files", data_files)
