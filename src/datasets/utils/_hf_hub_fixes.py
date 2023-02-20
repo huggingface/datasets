@@ -327,7 +327,7 @@ def upload_file(
             raise TypeError(
                 "The `commit_message`, `commit_description`, and `create_pr` parameters are not supported in huggingface_hub<0.8.1. Please update huggingface_hub to >=0.8.1 to use this parameter, or exclude `commit_message`, `commit_description` and `create_pr` from the keyword arguments."
             )
-    
+
     # If we are using a version of huggingface_hub that does not support the `commit_message`, `commit_description`, and `create_pr` parameters, BUT they are not used, we call the function without them.
     if version.parse(huggingface_hub.__version__) < version.parse("0.8.1"):
         return hf_api.upload_file(

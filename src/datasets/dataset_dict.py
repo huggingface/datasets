@@ -28,8 +28,8 @@ from .table import Table
 from .tasks import TaskTemplate
 from .utils import logging
 from .utils._hf_hub_fixes import create_pr_it_does_not_exist
-from .utils._hf_hub_fixes import upload_file as hf_api_upload_file
 from .utils._hf_hub_fixes import list_repo_files as hf_api_list_repo_files
+from .utils._hf_hub_fixes import upload_file as hf_api_upload_file
 from .utils.doc_utils import is_documented_by
 from .utils.file_utils import cached_path
 from .utils.hub import hf_hub_url
@@ -1646,7 +1646,7 @@ class DatasetDict(dict):
             dataset_metadata = DatasetMetadata()
             readme_content = f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
         DatasetInfosDict({"default": info_to_dump}).to_metadata(dataset_metadata)
-        
+
         hf_api_upload_file(
             hf_api=api,
             path_or_fileobj=dataset_metadata._to_readme(readme_content).encode(),
