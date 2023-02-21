@@ -492,7 +492,7 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
             return _unnest(formatted_batch)
         except Exception as exc:
             raise TypeError(
-                f"Custom formatting function must return a dict to be able to pick a row, but got {formatted_batch}"
+                f"Custom formatting function must return a dict of sequences to be able to pick a row, but got {formatted_batch}"
             ) from exc
 
     def format_column(self, pa_table: pa.Table) -> ColumnFormat:

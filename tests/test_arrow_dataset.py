@@ -19,6 +19,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 from absl.testing import parameterized
+from packaging import version
 
 import datasets.arrow_dataset
 from datasets import concatenate_datasets, interleave_datasets, load_from_disk
@@ -2072,7 +2073,8 @@ class BaseDatasetTest(TestCase):
 
     def test_sort(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+            # Sort on a single key
+            with self._create_dummy_dataset(in_memory=in_memory, tmp_dir=tmp_dir) as dset:
                 # Keep only 10 examples
                 tmp_file = os.path.join(tmp_dir, "test.arrow")
                 with dset.select(range(10), indices_cache_file_name=tmp_file) as dset:
@@ -2102,6 +2104,70 @@ class BaseDatasetTest(TestCase):
                             # formatted
                             dset.set_format("numpy")
                             with dset.sort("filename") as dset_sorted_formatted:
+                                self.assertEqual(dset_sorted_formatted.format["type"], "numpy")
+            # Sort on multiple keys
+            with self._create_dummy_dataset(in_memory=in_memory, tmp_dir=tmp_dir, multiple_columns=True) as dset:
+                tmp_file = os.path.join(tmp_dir, "test_5.arrow")
+                fingerprint = dset._fingerprint
+                # Throw error when reverse is a list of bools that does not match the length of column_names
+                with pytest.raises(ValueError):
+                    dset.sort(["col_1", "col_2", "col_3"], reverse=[False])
+                with dset.shuffle(seed=1234, indices_cache_file_name=tmp_file) as dset:
+                    # Sort
+                    with dset.sort(["col_1", "col_2", "col_3"], reverse=[False, True, False]) as dset_sorted:
+                        for i, row in enumerate(dset_sorted):
+                            self.assertEqual(row["col_1"], i)
+                        self.assertDictEqual(
+                            dset.features,
+                            Features(
+                                {
+                                    "col_1": Value("int64"),
+                                    "col_2": Value("string"),
+                                    "col_3": Value("bool"),
+                                }
+                            ),
+                        )
+                        self.assertDictEqual(
+                            dset_sorted.features,
+                            Features(
+                                {
+                                    "col_1": Value("int64"),
+                                    "col_2": Value("string"),
+                                    "col_3": Value("bool"),
+                                }
+                            ),
+                        )
+                        self.assertNotEqual(dset_sorted._fingerprint, fingerprint)
+                        # Sort reversed
+                        with dset.sort(["col_1", "col_2", "col_3"], reverse=[True, False, True]) as dset_sorted:
+                            for i, row in enumerate(dset_sorted):
+                                self.assertEqual(row["col_1"], len(dset_sorted) - 1 - i)
+                            self.assertDictEqual(
+                                dset.features,
+                                Features(
+                                    {
+                                        "col_1": Value("int64"),
+                                        "col_2": Value("string"),
+                                        "col_3": Value("bool"),
+                                    }
+                                ),
+                            )
+                            self.assertDictEqual(
+                                dset_sorted.features,
+                                Features(
+                                    {
+                                        "col_1": Value("int64"),
+                                        "col_2": Value("string"),
+                                        "col_3": Value("bool"),
+                                    }
+                                ),
+                            )
+                            self.assertNotEqual(dset_sorted._fingerprint, fingerprint)
+                            # formatted
+                            dset.set_format("numpy")
+                            with dset.sort(
+                                ["col_1", "col_2", "col_3"], reverse=[False, True, False]
+                            ) as dset_sorted_formatted:
                                 self.assertEqual(dset_sorted_formatted.format["type"], "numpy")
 
     @require_tf
@@ -4363,6 +4429,23 @@ def test_dataset_to_iterable_dataset(dataset):
     assert iterable_dataset.n_shards == 3
     with pytest.raises(ValueError):
         dataset.to_iterable_dataset(num_shards=len(dataset) + 1)
+
+
+@pytest.mark.parametrize("batch_size", [1, 4])
+@require_torch
+def test_dataset_with_torch_dataloader(dataset, batch_size):
+    from torch.utils.data import DataLoader
+
+    from datasets import config
+
+    dataloader = DataLoader(dataset, batch_size=batch_size)
+    with patch.object(dataset, "_getitem", wraps=dataset._getitem) as mock_getitem:
+        out = list(dataloader)
+        getitem_call_count = mock_getitem.call_count
+    assert len(out) == len(dataset) // batch_size + int(len(dataset) % batch_size > 0)
+    # calling dataset[list_of_indices] is much more efficient than [dataset[idx] for idx in list of indices]
+    if config.TORCH_VERSION >= version.parse("1.13.0"):
+        assert getitem_call_count == len(dataset) // batch_size + int(len(dataset) % batch_size > 0)
 
 
 @pytest.mark.parametrize("return_lazy_dict", [True, False, "mix"])

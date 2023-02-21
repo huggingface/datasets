@@ -50,6 +50,7 @@ from typing import (
     Union,
     overload,
 )
+from typing import Sequence as Sequence_
 
 import fsspec
 import numpy as np
@@ -1689,7 +1690,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             column (`str`):
-                Column name (list all the column names with [~`datasets.Dataset.column_names`]).
+                Column name (list all the column names with [`~datasets.Dataset.column_names`]).
 
         Returns:
             `list`: List of unique elements in the given column.
@@ -1714,11 +1715,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return dataset._data.column(column).unique().to_pylist()
 
     def class_encode_column(self, column: str, include_nulls: bool = False) -> "Dataset":
-        """Casts the given column as [~`datasets.features.ClassLabel]` and updates the table.
+        """Casts the given column as [`~datasets.features.ClassLabel`] and updates the table.
 
         Args:
             column (`str`):
-                The name of the column to cast (list all the column names with [~`datasets.Dataset.column_names`])
+                The name of the column to cast (list all the column names with [`~datasets.Dataset.column_names`])
             include_nulls (`bool`, defaults to `False`):
                 Whether to include null values in the class labels. If `True`, the null values will be encoded as the `"None"` class label.
 
@@ -2299,7 +2300,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             type (`str`, *optional*):
-                Output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow']`.
+                Output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow', 'jax']`.
                 `None` means `__getitem__`` returns python objects (default).
             columns (`List[str]`, *optional*):
                 Columns to format in the output.
@@ -2333,7 +2334,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             type (`str`, *optional*):
-                Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow']`.
+                Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow', 'jax']`.
                 `None` means `__getitem__` returns python objects (default).
             columns (`List[str]`, *optional*):
                 Columns to format in the output.
@@ -2370,7 +2371,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # Check that the format_type and format_kwargs are valid and make it possible to have a Formatter
         type = get_format_type_from_alias(type)
-        _ = get_formatter(type, features=self.features, **format_kwargs)
+        get_formatter(type, features=self.features, **format_kwargs)
 
         # Check filter column
         if isinstance(columns, str):
@@ -2484,7 +2485,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             type (`str`, *optional*):
-                Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow']`.
+                Either output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow', 'jax']`.
                 `None` means `__getitem__` returns python objects (default).
             columns (`List[str]`, *optional*):
                 Columns to format in the output.
@@ -2645,9 +2646,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     def __getitem__(self, key):  # noqa: F811
         """Can be used to index columns (by string names) or rows (by integer index or iterable of indices or bools)."""
-        return self._getitem(
-            key,
-        )
+        return self._getitem(key)
+
+    def __getitems__(self, keys: List) -> List:
+        """Can be used to get a batch using a list of integers indices."""
+        batch = self.__getitem__(keys)
+        n_examples = len(batch[next(iter(batch))])
+        return [{col: array[i] for col, array in batch.items()} for i in range(n_examples)]
 
     def cleanup_cache_files(self) -> int:
         """Clean up all cache files in the dataset cache directory, excepted the currently used cache file if there is
@@ -3925,7 +3930,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             suffix_template=suffix_template,
             new_fingerprint=new_fingerprint,
             input_columns=input_columns,
-            desc=desc,
+            desc=desc or "Filter",
         )
         new_dataset = copy.deepcopy(self)
         new_dataset._indices = indices.data
@@ -4065,6 +4070,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # If the array is empty we do nothing
         if len(self) == 0:
             return self
+
+        # If indices is a PyArrow array, we convert to NumPy
+        if isinstance(indices, (pa.Array, pa.ChunkedArray)):
+            indices = indices.to_numpy().astype(np.int64)
 
         # Convert generator objects to lists
         if isinstance(indices, Iterator):
@@ -4261,33 +4270,36 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"])
     def sort(
         self,
-        column: str,
-        reverse: bool = False,
-        kind: str = None,
-        null_placement: str = "last",
+        column_names: Union[str, Sequence_[str]],
+        reverse: Union[bool, Sequence_[bool]] = False,
+        kind="deprecated",
+        null_placement: str = "at_end",
         keep_in_memory: bool = False,
         load_from_cache_file: Optional[bool] = None,
         indices_cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         new_fingerprint: Optional[str] = None,
     ) -> "Dataset":
-        """Create a new dataset sorted according to a column.
-
-        Currently sorting according to a column name uses pandas sorting algorithm under the hood.
-        The column should thus be a pandas compatible type (in particular not a nested type).
-        This also means that the column used for sorting is fully loaded in memory (which should be fine in most cases).
+        """Create a new dataset sorted according to a single or multiple columns.
 
         Args:
-            column (`str`):
-                Column name to sort by.
-            reverse (`bool`, defaults to `False`):
-                If `True`, sort by descending order rather then ascending.
+            column_names (`Union[str, Sequence[str]]`):
+                Column name(s) to sort by.
+            reverse (`Union[bool, Sequence[bool]]`, defaults to `False`):
+                If `True`, sort by descending order rather than ascending. If a single bool is provided,
+                the value is applied to the sorting of all column names. Otherwise a list of bools with the
+                same length and order as column_names must be provided.
             kind (`str`, *optional*):
                 Pandas algorithm for sorting selected in `{quicksort, mergesort, heapsort, stable}`,
                 The default is `quicksort`. Note that both `stable` and `mergesort` use `timsort` under the covers and, in general,
                 the actual implementation will vary with data type. The `mergesort` option is retained for backwards compatibility.
-            null_placement (`str`, defaults to `last`):
-                Put `None` values at the beginning if first; last puts `None` values at the end.
+                <Deprecated version="2.8.0">
+
+                `kind` was deprecated in version 2.10.0 and will be removed in 3.0.0.
+
+                </Deprecated>
+            null_placement (`str`, defaults to `at_end`):
+                Put `None` values at the beginning if `at_start` or `first` or at the end if `at_end` or `last`
 
                 <Added version="1.14.2"/>
             keep_in_memory (`bool`, defaults to `False`):
@@ -4309,12 +4321,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes", split="validation")
+        >>> ds = load_dataset('rotten_tomatoes', split='validation')
         >>> ds['label'][:10]
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         >>> sorted_ds = ds.sort('label')
         >>> sorted_ds['label'][:10]
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        >>> another_sorted_ds = ds.sort(['label', 'text'], reverse=[True, False])
+        >>> another_sorted_ds['label'][:10]
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         ```
         """
         if len(self.list_indexes()) > 0:
@@ -4325,11 +4340,43 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if len(self) == 0:
             return self
 
-        # Check the column name
-        if not isinstance(column, str) or column not in self._data.column_names:
-            raise ValueError(
-                f"Column '{column}' not found in the dataset. Please provide a column selected in: {self._data.column_names}"
+        # Deprecation warning
+        if kind != "deprecated":
+            warnings.warn(
+                "'kind' was deprecated in version 2.10.0 and will be removed in 3.0.0.",
+                category=FutureWarning,
             )
+
+        # Check proper format of and for duplicates in column_names
+        if not isinstance(column_names, list):
+            column_names = [column_names]
+
+        # Check proper format and length of reverse
+        if not isinstance(reverse, bool):
+            if len(reverse) != len(column_names):
+                raise ValueError(
+                    "Parameter 'reverse' should be either a boolean or a list of booleans with the same length as 'column_names'."
+                )
+        else:
+            reverse = [reverse] * len(column_names)
+
+        # Check whether column name(s) exist in dataset
+        for column in column_names:
+            if not isinstance(column, str) or column not in self._data.column_names:
+                raise ValueError(
+                    f"Column '{column}' not found in the dataset. Please provide a column selected in: {self._data.column_names}"
+                )
+
+        # Change null_placement to conform to pyarrow's sort_indices() while ensuring backwards compatability
+        if null_placement not in ["at_start", "at_end"]:
+            if null_placement == "first":
+                null_placement = "at_start"
+            elif null_placement == "last":
+                null_placement = "at_end"
+            else:
+                raise ValueError(
+                    f"null_placement '{null_placement}' is an invalid parameter value. Must be either 'last', 'at_end', 'first' or 'at_start'."
+                )
 
         load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
 
@@ -4344,14 +4391,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     fingerprint=new_fingerprint, indices_cache_file_name=indices_cache_file_name
                 )
 
-        column_data = self._getitem(
-            column, format_type="pandas", format_columns=None, output_all_columns=False, format_kwargs=None
+        sort_table = query_table(
+            table=self._data,
+            key=range(self._data.num_rows),
+            indices=self._indices if self._indices is not None else None,
         )
 
-        df_sorted = column_data.to_frame().sort_values(
-            column, ascending=not reverse, kind=kind, na_position=null_placement
-        )
-        indices = df_sorted.index.to_numpy()
+        sort_keys = [
+            (col, "ascending" if not col_reverse else "descending") for col, col_reverse in zip(column_names, reverse)
+        ]
+
+        indices = pc.sort_indices(sort_table, sort_keys=sort_keys, null_placement=null_placement)
 
         return self.select(
             indices=indices,
