@@ -3470,7 +3470,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             suffix_template=suffix_template,
             new_fingerprint=new_fingerprint,
             input_columns=input_columns,
-            desc=desc,
+            desc=desc or "Filter",
         )
         new_dataset = copy.deepcopy(self)
         new_dataset._indices = indices.data
