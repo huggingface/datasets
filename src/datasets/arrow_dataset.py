@@ -1546,15 +1546,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset_state_json_path = path_join(dest_dataset_path, config.DATASET_STATE_JSON_FILENAME)
         dataset_info_path = path_join(dest_dataset_path, config.DATASET_INFO_FILENAME)
         if fs.isfile(dataset_dict_json_path):
-            if not fs.isfile(dataset_info_path) and not fs.isfile(dataset_state_json_path):
+            dataset_info_is_file = fs.isfile(dataset_info_path)
+            dataset_state_is_file = fs.isfile(dataset_state_json_path)
+            if not dataset_info_is_file and not dataset_state_is_file:
                 raise FileNotFoundError(
                     f"Neither file or directory: '{dataset_info_path}', nor '{dataset_state_json_path}' found. Expected to load a `Dataset` object, but got a `DatasetDict`. Please use either `datasets.load_from_disk` or `DatasetDict.load_from_disk` instead."
                 )
-            if not fs.isfile(dataset_info_path):
+            if not dataset_info_is_file:
                 raise FileNotFoundError(
                     f"No such file or directory: '{dataset_info_path}'. Expected to load a `Dataset` object, but got a `DatasetDict`. Please use either `datasets.load_from_disk` or `DatasetDict.load_from_disk` instead."
                 )
-            if not fs.isfile(dataset_state_json_path):
+            if not dataset_state_is_file:
                 raise FileNotFoundError(
                     f"No such file or directory: '{dataset_state_json_path}'. Expected to load a `Dataset` object, but got a `DatasetDict`. Please use either `datasets.load_from_disk` or `DatasetDict.load_from_disk` instead."
                 )
