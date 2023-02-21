@@ -135,7 +135,7 @@ def evaluate_multirc(ids_preds, labels):
         question_preds, question_labels = zip(*preds_labels)
         f1 = f1_score(y_true=question_labels, y_pred=question_preds, average="macro")
         f1s.append(f1)
-        em = int(sum(p == l for p, l in preds_labels) == len(preds_labels))
+        em = int(sum(pred == label for pred, label in preds_labels) == len(preds_labels))
         ems.append(em)
     f1_m = float(sum(f1s) / len(f1s))
     em = sum(ems) / len(ems)

@@ -106,6 +106,7 @@ class Timeout(TimeoutError):
 # Classes
 # ------------------------------------------------
 
+
 # This is a helper class which is returned by :meth:`BaseFileLock.acquire`
 # and wraps the lock to make sure __enter__ is not called twice when entering
 # the with statement.
@@ -301,7 +302,6 @@ class BaseFileLock:
             every case.
         """
         with self._thread_lock:
-
             if self.is_locked:
                 self._lock_counter -= 1
 

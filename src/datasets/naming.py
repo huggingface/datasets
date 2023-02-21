@@ -67,7 +67,6 @@ def filepattern_for_dataset_split(dataset_name, split, data_dir, filetype_suffix
 
 
 def filenames_for_dataset_split(path, dataset_name, split, filetype_suffix=None, shard_lengths=None):
-
     prefix = filename_prefix_for_split(dataset_name, split)
     prefix = os.path.join(path, prefix)
 

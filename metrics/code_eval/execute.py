@@ -54,9 +54,7 @@ def check_correctness(check_program, timeout, task_id, completion_id):
 
 
 def unsafe_execute(check_program, result, timeout):
-
     with create_tempdir():
-
         # These system calls are needed when cleaning up tempdir.
         import os
         import shutil

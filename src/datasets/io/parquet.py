@@ -1,7 +1,6 @@
 import os
 from typing import BinaryIO, Optional, Union
 
-import pyarrow as pa
 import pyarrow.parquet as pq
 
 from .. import Dataset, Features, NamedSplit, config
@@ -53,19 +52,19 @@ class ParquetDatasetReader(AbstractDatasetReader):
         else:
             download_config = None
             download_mode = None
-            ignore_verifications = False
+            verification_mode = None
             base_path = None
 
             self.builder.download_and_prepare(
                 download_config=download_config,
                 download_mode=download_mode,
-                ignore_verifications=ignore_verifications,
+                verification_mode=verification_mode,
                 # try_from_hf_gcs=try_from_hf_gcs,
                 base_path=base_path,
                 num_proc=self.num_proc,
             )
             dataset = self.builder.as_dataset(
-                split=self.split, ignore_verifications=ignore_verifications, in_memory=self.keep_in_memory
+                split=self.split, verification_mode=verification_mode, in_memory=self.keep_in_memory
             )
         return dataset
 
@@ -100,7 +99,8 @@ class ParquetDatasetWriter:
         """
         written = 0
         _ = parquet_writer_kwargs.pop("path_or_buf", None)
-        schema = pa.schema(self.dataset.features.type)
+        schema = self.dataset.features.arrow_schema
+
         writer = pq.ParquetWriter(file_obj, schema=schema, **parquet_writer_kwargs)
 
         for offset in logging.tqdm(

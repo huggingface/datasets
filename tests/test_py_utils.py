@@ -251,7 +251,6 @@ def _2seconds_generator_of_2items_with_timing(content):
 
 
 def test_iflatmap_unordered():
-
     with Pool(2) as pool:
         out = list(iflatmap_unordered(pool, _split_text, kwargs_iterable=[{"text": "hello there"}] * 10))
         assert out.count("hello") == 10

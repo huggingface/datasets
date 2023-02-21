@@ -7,7 +7,7 @@ import re
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import fsspec
 import numpy as np
@@ -432,8 +432,44 @@ class DatasetDict(dict):
         self._check_values_type()
         return DatasetDict({k: dataset.rename_columns(column_mapping=column_mapping) for k, dataset in self.items()})
 
+    def select_columns(self, column_names: Union[str, List[str]]) -> "DatasetDict":
+        """Select one or several column(s) from each split in the dataset and
+        the features associated to the column(s).
+
+        The transformation is applied to all the splits of the dataset
+        dictionary.
+
+        Args:
+            column_names (`Union[str, List[str]]`):
+                Name of the column(s) to keep.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes")
+        >>> ds.select_columns("text")
+        DatasetDict({
+            train: Dataset({
+                features: ['text'],
+                num_rows: 8530
+            })
+            validation: Dataset({
+                features: ['text'],
+                num_rows: 1066
+            })
+            test: Dataset({
+                features: ['text'],
+                num_rows: 1066
+            })
+        })
+        ```
+        """
+        self._check_values_type()
+        return DatasetDict({k: dataset.select_columns(column_names=column_names) for k, dataset in self.items()})
+
     def class_encode_column(self, column: str, include_nulls: bool = False) -> "DatasetDict":
-        """Casts the given column as `datasets.features.ClassLabel` and updates the tables.
+        """Casts the given column as [`~datasets.features.ClassLabel`] and updates the tables.
 
         Args:
             column (`str`):
@@ -476,8 +512,8 @@ class DatasetDict(dict):
         The transformation is applied to all the datasets of the dataset dictionary.
 
         Args:
-            type (`str`, optional):
-                Output type selected in `[None, numpy, torch, tensorflow, pandas, arrow]`.
+            type (`str`, *optional*):
+                Output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow', 'jax']`.
                 `None` means `__getitem__` returns python objects (default).
             columns (`List[str]`, *optional*):
                 Columns to format in the output.
@@ -513,7 +549,7 @@ class DatasetDict(dict):
 
         Args:
             type (`str`, *optional*):
-                Output type selected in `.[None, numpy, torch, tensorflow, pandas, arrow]`.
+                Output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow', 'jax']`.
                 `None` means `__getitem__` returns python objects (default).
             columns (`List[str]`, *optional*):
                 Columns to format in the output.
@@ -620,7 +656,7 @@ class DatasetDict(dict):
 
         Args:
             type (`str`, *optional*):
-                Either output type selected in `[None, numpy, torch, tensorflow, pandas, arrow]`.
+                Output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow', 'jax']`.
                 `None` means `__getitem__` returns python objects (default).
             columns (`List[str]`, *optional*):
                 Columns to format in the output.
@@ -720,7 +756,7 @@ class DatasetDict(dict):
         drop_last_batch: bool = False,
         remove_columns: Optional[Union[str, List[str]]] = None,
         keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
+        load_from_cache_file: Optional[bool] = None,
         cache_file_names: Optional[Dict[str, Optional[str]]] = None,
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
@@ -765,7 +801,7 @@ class DatasetDict(dict):
                 columns with names in `remove_columns`, these columns will be kept.
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`):
+            load_from_cache_file (`Optional[bool]`, defaults to `True` if caching is enabled):
                 If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
             cache_file_names (`[Dict[str, str]]`, *optional*, defaults to `None`):
@@ -845,7 +881,7 @@ class DatasetDict(dict):
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
+        load_from_cache_file: Optional[bool] = None,
         cache_file_names: Optional[Dict[str, Optional[str]]] = None,
         writer_batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
@@ -875,7 +911,7 @@ class DatasetDict(dict):
                 `batch_size <= 0` or `batch_size == None` then provide the full dataset as a single batch to `function`.
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`):
+            load_from_cache_file (`Optional[bool]`, defaults to `True` if chaching is enabled):
                 If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
             cache_file_names (`[Dict[str, str]]`, *optional*, defaults to `None`):
@@ -941,38 +977,38 @@ class DatasetDict(dict):
 
     def sort(
         self,
-        column: str,
-        reverse: bool = False,
-        kind: str = None,
-        null_placement: str = "last",
+        column_names: Union[str, Sequence[str]],
+        reverse: Union[bool, Sequence[bool]] = False,
+        kind="deprecated",
+        null_placement: str = "at_end",
         keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
+        load_from_cache_file: Optional[bool] = None,
         indices_cache_file_names: Optional[Dict[str, Optional[str]]] = None,
         writer_batch_size: Optional[int] = 1000,
     ) -> "DatasetDict":
-        """Create a new dataset sorted according to a column.
-        The transformation is applied to all the datasets of the dataset dictionary.
-
-        Currently sorting according to a column name uses pandas sorting algorithm under the hood.
-        The column should thus be a pandas compatible type (in particular not a nested type).
-        This also means that the column used for sorting is fully loaded in memory (which should be fine in most cases).
+        """Create a new dataset sorted according to a single or multiple columns.
 
         Args:
-            column (`str`):
-                Column name to sort by.
-            reverse (`bool`, defaults to `False`):
-                If `True`, sort by descending order rather then ascending.
+            column_names (`Union[str, Sequence[str]]`):
+                Column name(s) to sort by.
+            reverse (`Union[bool, Sequence[bool]]`, defaults to `False`):
+                If `True`, sort by descending order rather than ascending. If a single bool is provided,
+                the value is applied to the sorting of all column names. Otherwise a list of bools with the
+                same length and order as column_names must be provided.
             kind (`str`, *optional*):
                 Pandas algorithm for sorting selected in `{quicksort, mergesort, heapsort, stable}`,
                 The default is `quicksort`. Note that both `stable` and `mergesort` use timsort under the covers and, in general,
                 the actual implementation will vary with data type. The `mergesort` option is retained for backwards compatibility.
-            null_placement (`str`, defaults to `last`):
-                Put `None` values at the beginning if `first`; `last` puts `None` values at the end.
+                <Deprecated version="2.8.0">
 
-                <Added version="1.14.2"/>
+                `kind` was deprecated in version 2.10.0 and will be removed in 3.0.0.
+
+                </Deprecated>
+            null_placement (`str`, defaults to `at_end`):
+                Put `None` values at the beginning if `at_start` or `first` or at the end if `at_end` or `last`
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the sorted indices in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`):
+            load_from_cache_file (`Optional[bool]`, defaults to `True` if caching is enabled):
                 If a cache file storing the sorted indices
                 can be identified, use it instead of recomputing.
             indices_cache_file_names (`[Dict[str, str]]`, *optional*, defaults to `None`):
@@ -987,12 +1023,15 @@ class DatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes")
-        >>> ds["train"]["label"][:10]
+        >>> ds = load_dataset('rotten_tomatoes')
+        >>> ds['train']['label'][:10]
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        >>> sorted_ds = ds.sort("label")
-        >>> sorted_ds["train"]["label"][:10]
+        >>> sorted_ds = ds.sort('label')
+        >>> sorted_ds['train']['label'][:10]
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        >>> another_sorted_ds = ds.sort(['label', 'text'], reverse=[True, False])
+        >>> another_sorted_ds['train']['label'][:10]
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         ```
         """
         self._check_values_type()
@@ -1001,7 +1040,7 @@ class DatasetDict(dict):
         return DatasetDict(
             {
                 k: dataset.sort(
-                    column=column,
+                    column_names=column_names,
                     reverse=reverse,
                     kind=kind,
                     null_placement=null_placement,
@@ -1020,7 +1059,7 @@ class DatasetDict(dict):
         seed: Optional[int] = None,
         generators: Optional[Dict[str, np.random.Generator]] = None,
         keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
+        load_from_cache_file: Optional[bool] = None,
         indices_cache_file_names: Optional[Dict[str, Optional[str]]] = None,
         writer_batch_size: Optional[int] = 1000,
     ) -> "DatasetDict":
@@ -1045,7 +1084,7 @@ class DatasetDict(dict):
                 You have to provide one `generator` per dataset in the dataset dictionary.
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`):
+            load_from_cache_file (`Optional[bool]`, defaults to `True` if caching is enabled):
                 If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
             indices_cache_file_names (`Dict[str, str]`, *optional*):
@@ -1159,7 +1198,7 @@ class DatasetDict(dict):
         """
         if fs != "deprecated":
             warnings.warn(
-                "'fs' was is deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
+                "'fs' was deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
                 "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
                 FutureWarning,
             )
@@ -1237,7 +1276,7 @@ class DatasetDict(dict):
         """
         if fs != "deprecated":
             warnings.warn(
-                "'fs' was is deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
+                "'fs' was deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
                 "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
                 FutureWarning,
             )
@@ -1919,6 +1958,32 @@ class IterableDatasetDict(dict):
         ```
         """
         return IterableDatasetDict({k: dataset.remove_columns(column_names) for k, dataset in self.items()})
+
+    def select_columns(self, column_names: Union[str, List[str]]) -> "IterableDatasetDict":
+        """Select one or several column(s) in the dataset and the features
+        associated to them. The selection is done on-the-fly on the examples
+        when iterating over the dataset. The selection is applied to all the
+        datasets of the dataset dictionary.
+
+
+        Args:
+            column_names (`Union[str, List[str]]`):
+                Name of the column(s) to keep.
+
+        Returns:
+            [`IterableDatasetDict`]: A copy of the dataset object with only selected columns.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", streaming=True)
+        >>> ds = ds.select("text")
+        >>> next(iter(ds["train"]))
+        {'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
+        ```
+        """
+        return IterableDatasetDict({k: dataset.select_columns(column_names) for k, dataset in self.items()})
 
     def cast_column(self, column: str, feature: FeatureType) -> "IterableDatasetDict":
         """Cast column to feature for decoding.

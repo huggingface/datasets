@@ -23,9 +23,8 @@ from collections.abc import Sequence as SequenceABC
 from dataclasses import InitVar, dataclass, field, fields
 from functools import reduce, wraps
 from operator import mul
-from typing import Any, ClassVar, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
 from typing import Sequence as Sequence_
-from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -1077,7 +1076,7 @@ class ClassLabel:
         Returns:
             `pa.Int64Array`: Array in the `ClassLabel` arrow storage type.
         """
-        if isinstance(storage, pa.IntegerArray):
+        if isinstance(storage, pa.IntegerArray) and len(storage) > 0:
             min_max = pc.min_max(storage).as_py()
             if min_max["max"] >= self.num_classes:
                 raise ValueError(
@@ -1763,7 +1762,6 @@ class Features(dict):
             return feature
 
         def from_yaml_inner(obj: Union[dict, list]) -> Union[dict, list]:
-
             if isinstance(obj, dict):
                 if not obj:
                     return {}
