@@ -63,6 +63,10 @@ If you want to add a dataset see specific instructions in the section [*How to a
 	make style
 	```
 
+You can also install [`pre-commit`](https://pre-commit.com/) to format your code automatically each time you commit: `pip install pre-commit`.
+To activate it, run `pre-commit install` in the project root directory.
+
+
 7. Once you're happy with your contribution, add your changed files and make a commit to record your changes locally:
 
 	```bash
