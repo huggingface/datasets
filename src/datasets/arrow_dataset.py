@@ -3378,7 +3378,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
          The first input is the accumulator, which is the result of the previous application of the function on the previous examples, and the second input is the current example.
 
          In case of multiple processes or batches, the reduction of each process or batch is combined using the combiner function, which should be a binary operation as well.
-         Note that if there are multiple processes or batches, and the initializer is provided as a non-empty instance of the input type for `function`, then the initializer is applied to each process or batch separately, see examples below for what this entails for `int` and `str`.
+         Note that if there are multiple processes or batches, and the initializer is provided as a non-empty instance of the input type for `function`, then the initializer is applied to each process or batch separately, see examples below for what this entails for `int`.
          Args:
              function (`Callable`): Function with the following signature:
                  `function(accumulator: Any, example: Any) -> Any`
