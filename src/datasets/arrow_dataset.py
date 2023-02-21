@@ -3338,6 +3338,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         if os.path.exists(tmp_file.name):
                             os.remove(tmp_file.name)
                 raise
+            else:
+                yield rank, False, num_examples_progress_update
 
         if update_data and tmp_file is not None:
             tmp_file.close()
