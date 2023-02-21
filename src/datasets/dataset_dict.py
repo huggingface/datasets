@@ -469,7 +469,7 @@ class DatasetDict(dict):
         return DatasetDict({k: dataset.select_columns(column_names=column_names) for k, dataset in self.items()})
 
     def class_encode_column(self, column: str, include_nulls: bool = False) -> "DatasetDict":
-        """Casts the given column as [`~datasets.features.ClassLabel`] and updates the tables.
+        """Casts the given column as `datasets.features.ClassLabel` and updates the tables.
 
         Args:
             column (`str`):
