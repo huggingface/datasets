@@ -3460,14 +3460,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
          >>> reduction = int_ds.reduce(sum_reduce, combiner=sum_reduce, initializer=1, input_columns='x', num_proc=2)
          >>> reduction       # reduction is (1+(1+2)+1+(3)) = 8, i.e. initializer + reduction_1 + initializer + reduction_2
         {'x': 8}
-
-         # set number of processors, with non-empty initializer, for input type `str`
-         >>> string_ds = Dataset.from_dict({"x": ["1", "2", "3"]})
-         >>> sum_reduce_reverse = lambda x, y: y + x
-         >>> reduction = string_ds.reduce(sum_reduce, combiner=sum_reduce_reverse, initializer="X", input_columns='x', num_proc=2)
-         >>> reduction       # reduction is ('X'+('3')+'X'+('2'+'1')) = 'X3X12', i.e. `initializer + reduction_2 + initializer + reduction_1`, note that the order of the reduction is reversed
-         {'x': 'X3X12'}
-
          ```
         """
         if keep_in_memory and cache_file_name is not None:
