@@ -2929,9 +2929,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 fn_kwargs=fn_kwargs,
                 new_fingerprint=new_fingerprint,
             )
+            transformed_dataset = None
             try:
                 transformed_dataset = load_processed_shard_from_cache(dataset_kwargs)
             except NonExistentDatasetError:
+                pass
+            if transformed_dataset is None:
                 pbar = logging.tqdm(
                     disable=not logging.is_progress_bar_enabled(),
                     unit=" examples",
@@ -3338,9 +3341,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         if os.path.exists(tmp_file.name):
                             os.remove(tmp_file.name)
                 raise
-            else:
-                yield rank, False, num_examples_progress_update
 
+        yield rank, False, num_examples_progress_update
         if update_data and tmp_file is not None:
             tmp_file.close()
             shutil.move(tmp_file.name, cache_file_name)
