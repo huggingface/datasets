@@ -50,7 +50,6 @@ from typing import (
     Union,
     overload,
 )
-from typing import Sequence as Sequence_
 
 import fsspec
 import numpy as np
@@ -4071,10 +4070,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if len(self) == 0:
             return self
 
-        # If indices is a PyArrow array, we convert to NumPy
-        if isinstance(indices, (pa.Array, pa.ChunkedArray)):
-            indices = indices.to_numpy().astype(np.int64)
-
         # Convert generator objects to lists
         if isinstance(indices, Iterator):
             indices = list(indices)
@@ -4270,36 +4265,33 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"])
     def sort(
         self,
-        column_names: Union[str, Sequence_[str]],
-        reverse: Union[bool, Sequence_[bool]] = False,
-        kind="deprecated",
-        null_placement: str = "at_end",
+        column: str,
+        reverse: bool = False,
+        kind: str = None,
+        null_placement: str = "last",
         keep_in_memory: bool = False,
         load_from_cache_file: Optional[bool] = None,
         indices_cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         new_fingerprint: Optional[str] = None,
     ) -> "Dataset":
-        """Create a new dataset sorted according to a single or multiple columns.
+        """Create a new dataset sorted according to a column.
+
+        Currently sorting according to a column name uses pandas sorting algorithm under the hood.
+        The column should thus be a pandas compatible type (in particular not a nested type).
+        This also means that the column used for sorting is fully loaded in memory (which should be fine in most cases).
 
         Args:
-            column_names (`Union[str, Sequence[str]]`):
-                Column name(s) to sort by.
-            reverse (`Union[bool, Sequence[bool]]`, defaults to `False`):
-                If `True`, sort by descending order rather than ascending. If a single bool is provided,
-                the value is applied to the sorting of all column names. Otherwise a list of bools with the
-                same length and order as column_names must be provided.
+            column (`str`):
+                Column name to sort by.
+            reverse (`bool`, defaults to `False`):
+                If `True`, sort by descending order rather then ascending.
             kind (`str`, *optional*):
                 Pandas algorithm for sorting selected in `{quicksort, mergesort, heapsort, stable}`,
                 The default is `quicksort`. Note that both `stable` and `mergesort` use `timsort` under the covers and, in general,
                 the actual implementation will vary with data type. The `mergesort` option is retained for backwards compatibility.
-                <Deprecated version="2.8.0">
-
-                `kind` was deprecated in version 2.10.0 and will be removed in 3.0.0.
-
-                </Deprecated>
-            null_placement (`str`, defaults to `at_end`):
-                Put `None` values at the beginning if `at_start` or `first` or at the end if `at_end` or `last`
+            null_placement (`str`, defaults to `last`):
+                Put `None` values at the beginning if first; last puts `None` values at the end.
 
                 <Added version="1.14.2"/>
             keep_in_memory (`bool`, defaults to `False`):
@@ -4321,15 +4313,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset('rotten_tomatoes', split='validation')
+        >>> ds = load_dataset("rotten_tomatoes", split="validation")
         >>> ds['label'][:10]
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         >>> sorted_ds = ds.sort('label')
         >>> sorted_ds['label'][:10]
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        >>> another_sorted_ds = ds.sort(['label', 'text'], reverse=[True, False])
-        >>> another_sorted_ds['label'][:10]
-        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         ```
         """
         if len(self.list_indexes()) > 0:
@@ -4340,43 +4329,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if len(self) == 0:
             return self
 
-        # Deprecation warning
-        if kind != "deprecated":
-            warnings.warn(
-                "'kind' was deprecated in version 2.10.0 and will be removed in 3.0.0.",
-                category=FutureWarning,
+        # Check the column name
+        if not isinstance(column, str) or column not in self._data.column_names:
+            raise ValueError(
+                f"Column '{column}' not found in the dataset. Please provide a column selected in: {self._data.column_names}"
             )
-
-        # Check proper format of and for duplicates in column_names
-        if not isinstance(column_names, list):
-            column_names = [column_names]
-
-        # Check proper format and length of reverse
-        if not isinstance(reverse, bool):
-            if len(reverse) != len(column_names):
-                raise ValueError(
-                    "Parameter 'reverse' should be either a boolean or a list of booleans with the same length as 'column_names'."
-                )
-        else:
-            reverse = [reverse] * len(column_names)
-
-        # Check whether column name(s) exist in dataset
-        for column in column_names:
-            if not isinstance(column, str) or column not in self._data.column_names:
-                raise ValueError(
-                    f"Column '{column}' not found in the dataset. Please provide a column selected in: {self._data.column_names}"
-                )
-
-        # Change null_placement to conform to pyarrow's sort_indices() while ensuring backwards compatability
-        if null_placement not in ["at_start", "at_end"]:
-            if null_placement == "first":
-                null_placement = "at_start"
-            elif null_placement == "last":
-                null_placement = "at_end"
-            else:
-                raise ValueError(
-                    f"null_placement '{null_placement}' is an invalid parameter value. Must be either 'last', 'at_end', 'first' or 'at_start'."
-                )
 
         load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
 
@@ -4391,17 +4348,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     fingerprint=new_fingerprint, indices_cache_file_name=indices_cache_file_name
                 )
 
-        sort_table = query_table(
-            table=self._data,
-            key=range(self._data.num_rows),
-            indices=self._indices if self._indices is not None else None,
+        column_data = self._getitem(
+            column, format_type="pandas", format_columns=None, output_all_columns=False, format_kwargs=None
         )
 
-        sort_keys = [
-            (col, "ascending" if not col_reverse else "descending") for col, col_reverse in zip(column_names, reverse)
-        ]
-
-        indices = pc.sort_indices(sort_table, sort_keys=sort_keys, null_placement=null_placement)
+        df_sorted = column_data.to_frame().sort_values(
+            column, ascending=not reverse, kind=kind, na_position=null_placement
+        )
+        indices = df_sorted.index.to_numpy()
 
         return self.select(
             indices=indices,
