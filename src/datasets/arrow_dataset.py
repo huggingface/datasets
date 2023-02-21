@@ -3443,18 +3443,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
          # Calculate the average number of stars in the "Video_Games_v1_00" subset of the Amazon US reviews dataset
          >>> review_ds = load_dataset("amazon_us_reviews", "Video_Games_v1_00", split="train")
          >>> sum = lambda accumulator, review: accumulator + review
-         >>> sum_sums = lambda sum1, sum2: sum1 + sum2
-         >>> result = review_ds.reduce(sum, combiner=sum_sums, initializer=0, input_columns="star_rating")
+         >>> result = review_ds.reduce(sum, initializer=0, input_columns="star_rating")
          >>> result['star_rating'] / length(review_ds)
         4.059892597803915
 
-         # process a batch of examples
+         # Process a batch of examples, note that the combiner must be set
+         >>> sum_sums = lambda sum1, sum2: sum1 + sum2
          >>> review_ds = review_ds.reduce(sum, combiner=sum_sums, initializer=0, input_columns="star_rating", batched=True)
 
-         # set number of processors
+         # Set number of processors, note that the combiner must be set
          >>> result = review_ds.reduce(sum, combiner=sum_sums, initializer=0, input_columns="star_rating", num_proc=4)
 
-         # set number of processors, with non-empty initializer, for input type `int`
+         # Set number of processors, with non-empty initializer, for input type `int`
          >>> int_ds = Dataset.from_dict({"x": [1, 2, 3]})
          >>> sum_reduce = lambda x, y: x + y
          >>> reduction = int_ds.reduce(sum_reduce, combiner=sum_reduce, initializer=1, input_columns='x', num_proc=2)
