@@ -649,20 +649,6 @@ class Pickler(dill.Pickler):
 
                 except ImportError:
                     pass
-            elif (obj_type.__module__, obj_type.__name__) == ("tiktoken.core", "Encoding"):
-                try:
-                    import tiktoken
-
-                    @pklregister(obj_type)
-                    def _save_encoding(pickler, obj):
-                        dill_log(pickler, f"Enc: {obj}")
-                        args = (obj.name, obj._pat_str, obj._mergeable_ranks, obj._special_tokens)
-                        pickler.save_reduce(tiktoken.Encoding, args, obj=obj)
-                        dill_log(pickler, "# Enc")
-                        return
-
-                except ImportError:
-                    pass
             elif obj_type.__module__.startswith("spacy.lang") and any(
                 (cls.__module__, cls.__name__) == ("spacy.language", "Language") for cls in obj_type.__mro__
             ):
