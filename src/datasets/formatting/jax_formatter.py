@@ -15,7 +15,7 @@
 # Lint as: python3
 import sys
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING, Dict, Optional
 
 import numpy as np
 import pyarrow as pa
@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 
 logger = get_logger()
 
-DEVICE_MAPPING = {}
+DEVICE_MAPPING: Optional[dict] = None
 
 
 class JaxFormatter(Formatter[Mapping, "jax.Array", Mapping]):
@@ -52,7 +52,7 @@ class JaxFormatter(Formatter[Mapping, "jax.Array", Mapping]):
         # using global variable since `jaxlib.xla_extension.Device` is not serializable neither
         # with `pickle` nor with `dill`, so we need to use a global variable instead
         global DEVICE_MAPPING
-        if not DEVICE_MAPPING:
+        if DEVICE_MAPPING is None:
             DEVICE_MAPPING = self._map_devices_to_str()
         if self.device not in list(DEVICE_MAPPING.keys()):
             logger.warning(
@@ -109,7 +109,7 @@ class JaxFormatter(Formatter[Mapping, "jax.Array", Mapping]):
         # using global variable since `jaxlib.xla_extension.Device` is not serializable neither
         # with `pickle` nor with `dill`, so we need to use a global variable instead
         global DEVICE_MAPPING
-        if not DEVICE_MAPPING:
+        if DEVICE_MAPPING is None:
             DEVICE_MAPPING = self._map_devices_to_str()
 
         with jax.default_device(DEVICE_MAPPING[self.device]):
