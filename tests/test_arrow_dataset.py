@@ -1348,7 +1348,7 @@ class BaseDatasetTest(TestCase):
                         with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test2:
                             self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
                             self.assertTrue(
-                                (len(re.findall("Loading cached processed dataset", self._caplog.text)) == 2)
+                                (len(re.findall("Loading cached processed dataset", self._caplog.text)) == 1)
                                 ^ in_memory
                             )
                         self.assertEqual(mock_pool.call_count, 2 if in_memory else 1)

@@ -2952,7 +2952,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     else:
                         pbar.update(content)
             assert transformed_dataset is not None, "Failed to retrieve the result from map"
-            transformed_dataset._fingerprint = new_fingerprint
+            # update fingerprint if the dataset changed
+            if transformed_dataset._fingerprint != self._fingerprint:
+                transformed_dataset._fingerprint = new_fingerprint
             return transformed_dataset
         else:
 
@@ -3054,7 +3056,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             ), f"Failed to retrieve results from map: result list {transformed_shards} still contains None - at least one worker failed to return its results"
             logger.info(f"Concatenating {num_proc} shards")
             result = _concatenate_map_style_datasets(transformed_shards)
-            result._fingerprint = new_fingerprint
+            # update fingerprint if the dataset changed
+            if any(
+                transformed_shard._fingerprint != shard._fingerprint
+                for transformed_shard, shard in zip(transformed_shards, shards)
+            ):
+                result._fingerprint = new_fingerprint
+            else:
+                result._fingerprint = self._fingerprint
             return result
 
     @staticmethod
