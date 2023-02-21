@@ -3454,7 +3454,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
          # Set number of processors, note that the combiner must be set
          >>> result = review_ds.reduce(sum, combiner=sum_sums, initializer=0, input_columns="star_rating", num_proc=4)
 
-         # Set number of processors, with non-empty initializer, for input type `int`
+         # In multiprocessing, the combiner is used to combine intermediate results which can cause surprising behaviors when using non-zero initializers
          >>> int_ds = Dataset.from_dict({"x": [1, 2, 3]})
          >>> sum_reduce = lambda x, y: x + y
          >>> reduction = int_ds.reduce(sum_reduce, combiner=sum_reduce, initializer=1, input_columns='x', num_proc=2)
