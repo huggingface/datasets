@@ -7,7 +7,7 @@ import re
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import fsspec
 import numpy as np
@@ -471,7 +471,7 @@ class DatasetDict(dict):
         return DatasetDict({k: dataset.select_columns(column_names=column_names) for k, dataset in self.items()})
 
     def class_encode_column(self, column: str, include_nulls: bool = False) -> "DatasetDict":
-        """Casts the given column as `datasets.features.ClassLabel` and updates the tables.
+        """Casts the given column as [`~datasets.features.ClassLabel`] and updates the tables.
 
         Args:
             column (`str`):
@@ -514,8 +514,8 @@ class DatasetDict(dict):
         The transformation is applied to all the datasets of the dataset dictionary.
 
         Args:
-            type (`str`, optional):
-                Output type selected in `[None, numpy, torch, tensorflow, pandas, arrow]`.
+            type (`str`, *optional*):
+                Output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow', 'jax']`.
                 `None` means `__getitem__` returns python objects (default).
             columns (`List[str]`, *optional*):
                 Columns to format in the output.
@@ -551,7 +551,7 @@ class DatasetDict(dict):
 
         Args:
             type (`str`, *optional*):
-                Output type selected in `.[None, numpy, torch, tensorflow, pandas, arrow]`.
+                Output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow', 'jax']`.
                 `None` means `__getitem__` returns python objects (default).
             columns (`List[str]`, *optional*):
                 Columns to format in the output.
@@ -658,7 +658,7 @@ class DatasetDict(dict):
 
         Args:
             type (`str`, *optional*):
-                Either output type selected in `[None, numpy, torch, tensorflow, pandas, arrow]`.
+                Output type selected in `[None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow', 'jax']`.
                 `None` means `__getitem__` returns python objects (default).
             columns (`List[str]`, *optional*):
                 Columns to format in the output.
@@ -979,35 +979,35 @@ class DatasetDict(dict):
 
     def sort(
         self,
-        column: str,
-        reverse: bool = False,
-        kind: str = None,
-        null_placement: str = "last",
+        column_names: Union[str, Sequence[str]],
+        reverse: Union[bool, Sequence[bool]] = False,
+        kind="deprecated",
+        null_placement: str = "at_end",
         keep_in_memory: bool = False,
         load_from_cache_file: Optional[bool] = None,
         indices_cache_file_names: Optional[Dict[str, Optional[str]]] = None,
         writer_batch_size: Optional[int] = 1000,
     ) -> "DatasetDict":
-        """Create a new dataset sorted according to a column.
-        The transformation is applied to all the datasets of the dataset dictionary.
-
-        Currently sorting according to a column name uses pandas sorting algorithm under the hood.
-        The column should thus be a pandas compatible type (in particular not a nested type).
-        This also means that the column used for sorting is fully loaded in memory (which should be fine in most cases).
+        """Create a new dataset sorted according to a single or multiple columns.
 
         Args:
-            column (`str`):
-                Column name to sort by.
-            reverse (`bool`, defaults to `False`):
-                If `True`, sort by descending order rather then ascending.
+            column_names (`Union[str, Sequence[str]]`):
+                Column name(s) to sort by.
+            reverse (`Union[bool, Sequence[bool]]`, defaults to `False`):
+                If `True`, sort by descending order rather than ascending. If a single bool is provided,
+                the value is applied to the sorting of all column names. Otherwise a list of bools with the
+                same length and order as column_names must be provided.
             kind (`str`, *optional*):
                 Pandas algorithm for sorting selected in `{quicksort, mergesort, heapsort, stable}`,
                 The default is `quicksort`. Note that both `stable` and `mergesort` use timsort under the covers and, in general,
                 the actual implementation will vary with data type. The `mergesort` option is retained for backwards compatibility.
-            null_placement (`str`, defaults to `last`):
-                Put `None` values at the beginning if `first`; `last` puts `None` values at the end.
+                <Deprecated version="2.8.0">
 
-                <Added version="1.14.2"/>
+                `kind` was deprecated in version 2.10.0 and will be removed in 3.0.0.
+
+                </Deprecated>
+            null_placement (`str`, defaults to `at_end`):
+                Put `None` values at the beginning if `at_start` or `first` or at the end if `at_end` or `last`
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the sorted indices in memory instead of writing it to a cache file.
             load_from_cache_file (`Optional[bool]`, defaults to `True` if caching is enabled):
@@ -1025,12 +1025,15 @@ class DatasetDict(dict):
 
         ```py
         >>> from datasets import load_dataset
-        >>> ds = load_dataset("rotten_tomatoes")
-        >>> ds["train"]["label"][:10]
+        >>> ds = load_dataset('rotten_tomatoes')
+        >>> ds['train']['label'][:10]
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        >>> sorted_ds = ds.sort("label")
-        >>> sorted_ds["train"]["label"][:10]
+        >>> sorted_ds = ds.sort('label')
+        >>> sorted_ds['train']['label'][:10]
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        >>> another_sorted_ds = ds.sort(['label', 'text'], reverse=[True, False])
+        >>> another_sorted_ds['train']['label'][:10]
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         ```
         """
         self._check_values_type()
@@ -1039,7 +1042,7 @@ class DatasetDict(dict):
         return DatasetDict(
             {
                 k: dataset.sort(
-                    column=column,
+                    column_names=column_names,
                     reverse=reverse,
                     kind=kind,
                     null_placement=null_placement,
