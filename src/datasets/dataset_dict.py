@@ -7,7 +7,7 @@ import re
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
+from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union, Any
 
 import fsspec
 import numpy as np
@@ -872,6 +872,143 @@ class DatasetDict(dict):
                 for k, dataset in self.items()
             }
         )
+
+    def reduce(self,
+        function: Optional[Callable] = None,
+        combiner: Optional[Callable] = None,
+        input_columns: Optional[Union[str, List[str]]] = None,
+        initializer: Optional[Union[Any, List[Any]]] = None,
+        batched: bool = False,
+        batch_size: Optional[int] = 1000,
+        drop_last_batch: bool = False,
+        keep_in_memory: bool = False,
+        load_from_cache_file: bool = None,
+        cache_file_names: Optional[Dict[str, Optional[str]]] = None,
+        fn_kwargs: Optional[dict] = None,
+        num_proc: Optional[int] = None,
+        new_fingerprint: Optional[str] = None,
+        desc: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+         Reduce the examples in the table (individually or in batches) using a binary operation and return the result.
+
+         The function should be a binary operation, i.e. it takes in 2 objects of the same type in and returns 1 object of the same type as the inputs.
+         Examples include addition, multiplication, maximum, minimum, etc. for `int`, `float`, `bool` and `str` types, and concatenation for `list` types.
+         The first input is the accumulator, which is the result of the previous application of the function on the previous examples, and the second input is the current example.
+
+         In case of multiple processes or batches, the reduction of each process or batch is combined using the combiner function, which should be a binary operation as well.
+         Note that if there are multiple processes or batches, and the initializer is provided as a non-empty instance of the input type for `function`, then the initializer is applied to each process or batch separately, see examples below for what this entails for `int` and `str`.
+         Args:
+             function (`Callable`): Function with the following signature:
+                 `function(accumulator: Any, example: Any) -> Any`
+
+                 If no function is provided, default to identity function: `lambda x, y: x`, i.e. the first example is returned.
+             combiner (`Optional[Callable]`, defaults to `None`):
+                 The combiner is a function with the following signature:
+                 `combiner(accumulator_1: Any, accumulator_2: Any) -> Any`
+
+                 When the reduction of the available batches, when `batched=True`, or the reduction of the different processes when `num_proc > 1`, has been calculated they must be combined, this is done via this function. If no combiner is provided, default to identity function: `lambda x, y: x`, i.e. the first accumulator is returned. If `batched=True` or `num_proc > 1`, the combiner must be set.
+             input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`):
+                 The columns to be passed into `function`
+                 as positional arguments. If `None`, a `dict` mapping to all formatted columns is passed as one argument.
+             initializer (`Optional[Any]`, defaults to `None`):
+                 The initial value of the accumulator, it is the first argument of the first application of the function, and hence must be of the same type as the examples.
+                 If `batched=True`, the initializer must be set.
+             batched (`bool`, defaults to `False`):
+                 Provide batch of examples to `function`.
+             batch_size (`int`, *optional*, defaults to `1000`):
+                 Number of examples per batch provided to `function` if `batched=True`.
+                 If `batch_size <= 0` or `batch_size == None`, provide the full dataset as a single batch to `function`.
+             drop_last_batch (`bool`, defaults to `False`):
+                 Whether a last batch smaller than the batch_size should be
+                 dropped instead of being processed by the function.
+             keep_in_memory (`bool`, defaults to `False`):
+                 Keep the dataset in memory instead of writing it to a cache file.
+             load_from_cache_file (`bool`, defaults to `True` if caching is enabled):
+                 If a cache file storing the current computation from `function`
+                 can be identified, use it instead of recomputing.
+             cache_file_names (`Optional[Dict[str, Optional[str]]]`, defaults to `None`):
+                    Provide the cache file names to use to store the results of the computation instead of the automatically generated cache file name. You have to provide one `cache_file_name` per dataset in the dataset dictionary.
+                 results of the computation instead of the automatically generated cache file name.
+             fn_kwargs (`Dict`, *optional*, defaults to `None`):
+                 Keyword arguments to be passed to `function`.
+             num_proc (`int`, *optional*, defaults to `None`):
+                 Max number of processes when generating cache. Already cached shards are loaded sequentially.
+             new_fingerprint (`str`, *optional*, defaults to `None`):
+                 The new fingerprint of the dataset after transform.
+                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
+             desc (`str`, *optional*, defaults to `None`):
+                 Meaningful description to be displayed alongside with the progress bar while mapping examples.
+
+         Example:
+
+         ```py
+         >>> from datasets import load_dataset
+         >>> from collections import Counter
+
+         # Count the number of words in the validation set of the Rotten Tomatoes dataset
+         >>> rotten_ds = load_dataset("rotten_tomatoes", split="validation")
+         >>> count = lambda counter, text: counter + Counter(text.lower().split())
+         >>> sum_counts = lambda counter1, counter2: counter1 + counter2
+         >>> result = result = rotten_ds.select(range(1)).reduce(count, initializer=Counter(), input_columns="text")
+         >>> result
+        {'text': Counter({'and': 2, 'compassionately': 1, 'explores': 1, 'the': 1, 'seemingly': 1, 'irreconcilable': 1, 'situation': 1, 'between': 1, 'conservative': 1, 'christian': 1, 'parents': 1, 'their': 1, 'estranged': 1, 'gay': 1, 'lesbian': 1, 'children': 1, '.': 1})}
+        
+         # Calculate the average number of stars in the "Video_Games_v1_00" subset of the Amazon US reviews dataset
+         >>> review_ds = load_dataset("amazon_us_reviews", "Video_Games_v1_00", split="train")
+         >>> sum = lambda accumulator, review: accumulator + review
+         >>> sum_sums = lambda sum1, sum2: sum1 + sum2
+         >>> result = review_ds.reduce(sum, combiner=sum_sums, initializer=0, input_columns="star_rating")
+         >>> result['star_rating'] / length(review_ds)
+        4.059892597803915
+
+         # process a batch of examples
+         >>> review_ds = review_ds.reduce(sum, combiner=sum_sums, initializer=0, input_columns="star_rating", batched=True)
+
+         # set number of processors
+         >>> result = review_ds.reduce(sum, combiner=sum_sums, initializer=0, input_columns="star_rating", num_proc=4)
+
+         # set number of processors, with non-empty initializer, for input type `int`
+         >>> int_ds = Dataset.from_dict({"x": [1, 2, 3]})
+         >>> sum_reduce = lambda x, y: x + y
+         >>> reduction = int_ds.reduce(sum_reduce, combiner=sum_reduce, initializer=1, input_columns='x', num_proc=2)
+         >>> reduction       # reduction is (1+(1+2)+1+(3)) = 8, i.e. initializer + reduction_1 + initializer + reduction_2
+        {'x': 8}
+
+         # set number of processors, with non-empty initializer, for input type `str`
+         >>> string_ds = Dataset.from_dict({"x": ["1", "2", "3"]})
+         >>> sum_reduce_reverse = lambda x, y: y + x
+         >>> reduction = string_ds.reduce(sum_reduce, combiner=sum_reduce_reverse, initializer="X", input_columns='x', num_proc=2)
+         >>> reduction       # reduction is ('X'+('3')+'X'+('2'+'1')) = 'X3X12', i.e. `initializer + reduction_2 + initializer + reduction_1`, note that the order of the reduction is reversed
+         {'x': 'X3X12'}
+
+         ```
+        """
+        self._check_values_type()
+        if cache_file_names is None:
+            cache_file_names = {k: None for k in self}
+        return DatasetDict(
+            {
+                k: dataset.reduce(
+                    function=function,
+                    combiner=combiner,
+                    input_columns=input_columns,
+                    initializer=initializer,
+                    batched=batched,
+                    batch_size=batch_size,
+                    drop_last_batch=drop_last_batch,
+                    keep_in_memory=keep_in_memory,
+                    load_from_cache_file=load_from_cache_file,
+                    cache_file_name=cache_file_names[k],
+                    fn_kwargs=fn_kwargs,
+                    num_proc=num_proc,
+                    new_fingerprint=new_fingerprint,
+                    desc=desc,
+                )
+                for k, dataset in self.items()
+            }
+        )
+
 
     def filter(
         self,
