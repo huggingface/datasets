@@ -3436,7 +3436,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
          >>> rotten_ds = load_dataset("rotten_tomatoes", split="validation")
          >>> count = lambda counter, text: counter + Counter(text.lower().split())
          >>> sum_counts = lambda counter1, counter2: counter1 + counter2
-         >>> result = result = rotten_ds.select(range(1)).reduce(count, initializer=Counter(), input_columns="text")
+         >>> result = rotten_ds.select(range(1)).reduce(count, initializer=Counter(), input_columns="text")
          >>> result
         {'text': Counter({'and': 2, 'compassionately': 1, 'explores': 1, 'the': 1, 'seemingly': 1, 'irreconcilable': 1, 'situation': 1, 'between': 1, 'conservative': 1, 'christian': 1, 'parents': 1, 'their': 1, 'estranged': 1, 'gay': 1, 'lesbian': 1, 'children': 1, '.': 1})}
         
