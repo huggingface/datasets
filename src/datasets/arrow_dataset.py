@@ -3383,7 +3383,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
          The first input is the accumulator, which is the result of the previous application of the function on the previous examples, and the second input is the current example.
 
          In case of multiple processes or batches, the reduction of each process or batch is combined using the combiner function, which should be a binary operation as well.
-         Note that if there are multiple processes or batches, and the initializer is provided as a non-empty instance of the input type for `function`, then the initializer is applied to each process or batch separately, see examples below for what this entails for `int`.
+         Note that if there are multiple processes or batches, and the initializer is provided as a non-empty instance of the input type for `function`, then the initializer is applied to each process or batch separately, see examples below for what this entails for `int` and `str`.
          Args:
              function (`Callable`): Function with the following signature:
                  `function(accumulator: Any, example: Any) -> Any`
@@ -3430,17 +3430,29 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
          ```py
          >>> from datasets import load_dataset
-         >>> string_ds = load_dataset("rotten_tomatoes", split="validation")
-         >>> str_concat = lambda accumulator, example: accumulator + ' ' + example
-         >>> result = string_ds[0:3].reduce(str_concat, input_columns="text")
+         >>> from collections import Counter
+
+         # Count the number of words in the validation set of the Rotten Tomatoes dataset
+         >>> rotten_ds = load_dataset("rotten_tomatoes", split="validation")
+         >>> count = lambda counter, text: counter + Counter(text.lower().split())
+         >>> sum_counts = lambda counter1, counter2: counter1 + counter2
+         >>> result = result = rotten_ds.select(range(1)).reduce(count, initializer=Counter(), input_columns="text")
          >>> result
-         {'text': Review: compassionately explores the seemingly irreconcilable situation between conservative christian parents and their estranged gay and lesbian children . Review: the soundtrack alone is worth the price of admission . Review: rodriguez does a splendid job of racial profiling hollywood style--casting excellent latin actors of all ages--a trend long overdue .'}
+        {'text': Counter({'and': 2, 'compassionately': 1, 'explores': 1, 'the': 1, 'seemingly': 1, 'irreconcilable': 1, 'situation': 1, 'between': 1, 'conservative': 1, 'christian': 1, 'parents': 1, 'their': 1, 'estranged': 1, 'gay': 1, 'lesbian': 1, 'children': 1, '.': 1})}
+        
+         # Calculate the average number of stars in the "Video_Games_v1_00" subset of the Amazon US reviews dataset
+         >>> review_ds = load_dataset("amazon_us_reviews", "Video_Games_v1_00", split="train")
+         >>> sum = lambda accumulator, review: accumulator + review
+         >>> sum_sums = lambda sum1, sum2: sum1 + sum2
+         >>> result = review_ds.reduce(sum, combiner=sum_sums, initializer=0, input_columns="star_rating")
+         >>> result['star_rating'] / length(review_ds)
+        4.059892597803915
 
          # process a batch of examples
-         >>> result = ds.reduce(str_concat, input_columns="text", batched=True)
+         >>> review_ds = review_ds.reduce(sum, combiner=sum_sums, initializer=0, input_columns="star_rating", batched=True)
 
          # set number of processors
-         >>> result = ds.reduce(str_concat, combiner=str_concat, input_columns="text", num_proc=4)
+         >>> result = review_ds.reduce(sum, combiner=sum_sums, initializer=0, input_columns="star_rating", num_proc=4)
 
          # set number of processors, with non-empty initializer, for input type `int`
          >>> int_ds = Dataset.from_dict({"x": [1, 2, 3]})
@@ -3510,17 +3522,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # If the initializer is [None] and `batched=False`, we set the initializer to the first example in the dataset later
         if all([i is not None for i in initializer]):
-            # We check that the initializer is of the same length as the input columns, then we check if it is a list or not
-            # If it is a list, we check if the elements of the list are of the same type as the examples in the dataset,
-            # otherwise we raise an error.
-            if len(initializer) == len(columns_to_check):
-                if isinstance(initializer, list):
-                    for i in range(len(initializer)):
-                        if not isinstance(initializer[i], type(self[0][columns_to_check[i]])):
-                            raise ValueError(
-                                f"Initializer {initializer[i]} is not of the same type as the examples in the dataset: {type(self[0][columns_to_check[i]])}"
-                            )
-            else:
+            # We check that the initializer is of the same length as the input columns.
+            if len(initializer) != len(columns_to_check):
                 raise ValueError(
                     f"Initializer {initializer} is not of the same length as the input columns: {columns_to_check}"
                 )
