@@ -2955,6 +2955,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         transformed_dataset = content
                     else:
                         pbar.update(content)
+                pbar.close()
             assert transformed_dataset is not None, "Failed to retrieve the result from map"
             # update fingerprint if the dataset changed
             if transformed_dataset._fingerprint != self._fingerprint:
@@ -3050,6 +3051,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             transformed_shards[rank] = content
                         else:
                             pbar.update(content)
+                    pbar.close()
                 # Avoids PermissionError on Windows (the error: https://github.com/huggingface/datasets/actions/runs/4026734820/jobs/6921621805)
                 for kwargs in kwargs_per_job:
                     del kwargs["shard"]
