@@ -1948,7 +1948,7 @@ class BaseDatasetTest(TestCase):
 
     def test_sort(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
-            # Single key dataset
+            # Sort on a single key
             with self._create_dummy_dataset(in_memory=in_memory, tmp_dir=tmp_dir) as dset:
                 # Keep only 10 examples
                 tmp_file = os.path.join(tmp_dir, "test.arrow")
@@ -1980,7 +1980,7 @@ class BaseDatasetTest(TestCase):
                             dset.set_format("numpy")
                             with dset.sort("filename") as dset_sorted_formatted:
                                 self.assertEqual(dset_sorted_formatted.format["type"], "numpy")
-            # Multiple key dataset
+            # Sort on multiple keys
             with self._create_dummy_dataset(in_memory=in_memory, tmp_dir=tmp_dir, multiple_columns=True) as dset:
                 tmp_file = os.path.join(tmp_dir, "test_5.arrow")
                 fingerprint = dset._fingerprint
