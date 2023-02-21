@@ -36,8 +36,6 @@
       title: Use with TensorFlow
     - local: use_with_pytorch
       title: Use with PyTorch
-    - local: use_with_jax
-      title: Use with JAX
     - local: cache
       title: Cache management
     - local: filesystems
