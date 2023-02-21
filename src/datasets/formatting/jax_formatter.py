@@ -32,6 +32,8 @@ if TYPE_CHECKING:
 
 logger = get_logger()
 
+DEVICE_MAPPING = {}
+
 
 class JaxFormatter(Formatter[Mapping, "jax.Array", Mapping]):
     def __init__(self, features=None, device=None, **jnp_array_kwargs):
@@ -47,11 +49,15 @@ class JaxFormatter(Formatter[Mapping, "jax.Array", Mapping]):
                 "to the actual `jaxlib.xla_extension.Device`."
             )
         self.device = device if isinstance(device, str) else str(jax.devices()[0])
-        self.device_mapping = self._map_devices_to_str()
-        if self.device not in list(self.device_mapping.keys()):
+        # using global variable since `jaxlib.xla_extension.Device` is not serializable neither
+        # with `pickle` nor with `dill`, so we need to use a global variable instead
+        global DEVICE_MAPPING
+        if not DEVICE_MAPPING:
+            DEVICE_MAPPING = self._map_devices_to_str()
+        if self.device not in list(DEVICE_MAPPING.keys()):
             logger.warning(
                 f"Device with string identifier {self.device} not listed among the available "
-                "devices: {list(self.device_mapping.keys())}, so falling back to the default "
+                f"devices: {list(DEVICE_MAPPING.keys())}, so falling back to the default "
                 f"device: {str(jax.devices()[0])}."
             )
             self.device = str(jax.devices()[0])
@@ -100,7 +106,13 @@ class JaxFormatter(Formatter[Mapping, "jax.Array", Mapping]):
             if isinstance(value, PIL.Image.Image):
                 value = np.asarray(value)
 
-        with jax.default_device(self.device_mapping[self.device]):
+        # using global variable since `jaxlib.xla_extension.Device` is not serializable neither
+        # with `pickle` nor with `dill`, so we need to use a global variable instead
+        global DEVICE_MAPPING
+        if not DEVICE_MAPPING:
+            DEVICE_MAPPING = self._map_devices_to_str()
+
+        with jax.default_device(DEVICE_MAPPING[self.device]):
             # calling jnp.array on a np.ndarray does copy the data
             # see https://github.com/google/jax/issues/4486
             return jnp.array(value, **{**default_dtype, **self.jnp_array_kwargs})
