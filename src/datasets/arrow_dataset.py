@@ -1404,26 +1404,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         shard_sizes = [None] * num_shards
         if num_proc > 1:
             with Pool(num_proc) as pool:
-                for job_id, done, content in iflatmap_unordered(
-                    pool, Dataset._save_to_disk_single, kwargs_iterable=kwargs_per_job
-                ):
-                    if done:
-                        shards_done += 1
-                        pbar.set_description(f"Saving the dataset ({shards_done}/{num_shards} shards)")
-                        logger.debug(f"Finished writing shard number {job_id} of {num_shards}.")
-                        shard_lengths[job_id], shard_sizes[job_id] = content
-                    else:
-                        pbar.update(content)
+                with pbar:
+                    for job_id, done, content in iflatmap_unordered(
+                        pool, Dataset._save_to_disk_single, kwargs_iterable=kwargs_per_job
+                    ):
+                        if done:
+                            shards_done += 1
+                            pbar.set_description(f"Saving the dataset ({shards_done}/{num_shards} shards)")
+                            logger.debug(f"Finished writing shard number {job_id} of {num_shards}.")
+                            shard_lengths[job_id], shard_sizes[job_id] = content
+                        else:
+                            pbar.update(content)
         else:
             for kwargs in kwargs_per_job:
-                for job_id, done, content in Dataset._save_to_disk_single(**kwargs):
-                    if done:
-                        shards_done += 1
-                        pbar.set_description(f"Saving the dataset ({shards_done}/{num_shards} shards)")
-                        logger.debug(f"Finished writing shard number {job_id} of {num_shards}.")
-                        shard_lengths[job_id], shard_sizes[job_id] = content
-                    else:
-                        pbar.update(content)
+                with pbar:
+                    for job_id, done, content in Dataset._save_to_disk_single(**kwargs):
+                        if done:
+                            shards_done += 1
+                            pbar.set_description(f"Saving the dataset ({shards_done}/{num_shards} shards)")
+                            logger.debug(f"Finished writing shard number {job_id} of {num_shards}.")
+                            shard_lengths[job_id], shard_sizes[job_id] = content
+                        else:
+                            pbar.update(content)
         with fs.open(path_join(dataset_path, config.DATASET_STATE_JSON_FILENAME), "w", encoding="utf-8") as state_file:
             json.dump(state, state_file, indent=2, sort_keys=True)
         with fs.open(
@@ -2941,21 +2943,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             except NonExistentDatasetError:
                 pass
             if transformed_dataset is None:
-                pbar = logging.tqdm(
+                with logging.tqdm(
                     disable=not logging.is_progress_bar_enabled(),
                     unit=" examples",
                     total=pbar_total,
                     leave=False,
                     desc=desc or "Map",
-                )
-                for rank, done, content in Dataset._map_single(**dataset_kwargs):
-                    if done:
-                        shards_done += 1
-                        logger.debug(f"Finished processing shard number {rank} of {num_shards}.")
-                        transformed_dataset = content
-                    else:
-                        pbar.update(content)
-                pbar.close()
+                ) as pbar:
+                    for rank, done, content in Dataset._map_single(**dataset_kwargs):
+                        if done:
+                            shards_done += 1
+                            logger.debug(f"Finished processing shard number {rank} of {num_shards}.")
+                            transformed_dataset = content
+                        else:
+                            pbar.update(content)
             assert transformed_dataset is not None, "Failed to retrieve the result from map"
             # update fingerprint if the dataset changed
             if transformed_dataset._fingerprint != self._fingerprint:
@@ -3035,23 +3036,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 with Pool(len(kwargs_per_job)) as pool:
                     os.environ = prev_env
                     logger.info(f"Spawning {num_proc} processes")
-                    pbar = logging.tqdm(
+                    with logging.tqdm(
                         disable=not logging.is_progress_bar_enabled(),
                         unit=" examples",
                         total=pbar_total,
                         leave=False,
                         desc=(desc or "Map") + f" (num_proc={num_proc})",
-                    )
-                    for rank, done, content in iflatmap_unordered(
-                        pool, Dataset._map_single, kwargs_iterable=kwargs_per_job
-                    ):
-                        if done:
-                            shards_done += 1
-                            logger.debug(f"Finished processing shard number {rank} of {num_shards}.")
-                            transformed_shards[rank] = content
-                        else:
-                            pbar.update(content)
-                    pbar.close()
+                    ) as pbar:
+                        for rank, done, content in iflatmap_unordered(
+                            pool, Dataset._map_single, kwargs_iterable=kwargs_per_job
+                        ):
+                            if done:
+                                shards_done += 1
+                                logger.debug(f"Finished processing shard number {rank} of {num_shards}.")
+                                transformed_shards[rank] = content
+                            else:
+                                pbar.update(content)
                 # Avoids PermissionError on Windows (the error: https://github.com/huggingface/datasets/actions/runs/4026734820/jobs/6921621805)
                 for kwargs in kwargs_per_job:
                     del kwargs["shard"]
