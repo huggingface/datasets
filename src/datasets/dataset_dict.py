@@ -7,7 +7,7 @@ import re
 import warnings
 from io import BytesIO
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union, Any
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import fsspec
 import numpy as np
@@ -873,7 +873,8 @@ class DatasetDict(dict):
             }
         )
 
-    def reduce(self,
+    def reduce(
+        self,
         function: Optional[Callable] = None,
         combiner: Optional[Callable] = None,
         input_columns: Optional[Union[str, List[str]]] = None,
@@ -953,7 +954,7 @@ class DatasetDict(dict):
          >>> result = rotten_ds.select(range(1)).reduce(count, initializer=Counter(), input_columns="text")
          >>> result
         {'text': Counter({'and': 2, 'compassionately': 1, 'explores': 1, 'the': 1, 'seemingly': 1, 'irreconcilable': 1, 'situation': 1, 'between': 1, 'conservative': 1, 'christian': 1, 'parents': 1, 'their': 1, 'estranged': 1, 'gay': 1, 'lesbian': 1, 'children': 1, '.': 1})}
-        
+
          # Calculate the average number of stars in the "Video_Games_v1_00" subset of the Amazon US reviews dataset
          >>> review_ds = load_dataset("amazon_us_reviews", "Video_Games_v1_00", split="train")
          >>> sum = lambda accumulator, review: accumulator + review
@@ -1000,7 +1001,6 @@ class DatasetDict(dict):
                 for k, dataset in self.items()
             }
         )
-
 
     def filter(
         self,
