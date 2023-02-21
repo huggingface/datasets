@@ -175,6 +175,7 @@ def parametrize_packaged_builder(
 
     ParametrizedBuilder.__name__ = f"{builder_cls.__name__.lower().capitalize()}{snakecase_to_camelcase(name)}"
     ParametrizedBuilder.__qualname__ = f"{builder_cls.__name__.lower().capitalize()}{snakecase_to_camelcase(name)}"
+    setattr(ParametrizedBuilder, "_parametrized_builder_name", f"{builder_cls.__name__.lower()}---{name}")
 
     return ParametrizedBuilder
 

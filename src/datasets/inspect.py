@@ -184,7 +184,7 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
         **download_kwargs (additional keyword arguments): optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
     """
     metric_module = metric_module_factory(path, download_config=download_config, **download_kwargs)
-    metric_cls = import_main_class(metric_module)
+    metric_cls = import_main_class(metric_module.module_path, dataset=False)
     module_source_path = inspect.getsourcefile(metric_cls)
     module_source_dirpath = os.path.dirname(module_source_path)
     for dirpath, dirnames, filenames in os.walk(module_source_dirpath):

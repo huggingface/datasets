@@ -298,7 +298,13 @@ class DatasetBuilder:
             )
             config_name = name
         # DatasetBuilder name
-        self.name: str = camelcase_to_snakecase(self.__module__.split(".")[-1])
+        # Parametrized packaged builders classes with custom configs have `_parametrized_builder_name` attribute
+        # to reflect that they are different from default library's packaged builders
+        self.name: str = (
+            self._parametrized_builder_name
+            if hasattr(self, "_parametrized_builder_name")
+            else camelcase_to_snakecase(self.__module__.split(".")[-1])
+        )
         self.hash: Optional[str] = hash
         self.base_path = base_path
         self.use_auth_token = use_auth_token
@@ -513,7 +519,7 @@ class DatasetBuilder:
     @classmethod
     @memoize()
     def builder_configs(cls):
-        """String names of pre-defined list of configurations for this builder class."""
+        """Dictionary of pre-defined configurations for this builder class."""
         configs = {config.name: config for config in cls.BUILDER_CONFIGS}
         if len(configs) != len(cls.BUILDER_CONFIGS):
             names = [config.name for config in cls.BUILDER_CONFIGS]
@@ -532,16 +538,8 @@ class DatasetBuilder:
             self.namespace___self.name/self.config.version/self.hash/
         If any of these element is missing or if ``with_version=False`` the corresponding subfolders are dropped.
         """
-        namespace, dataset_name = (
-            self.repo_id.split("/") if self.repo_id and self.repo_id.count("/") > 0 else (None, None)
-        )
-        local_dir = Path(self.base_path).stem if self.base_path else None
-        if namespace:
-            builder_data_dir = f"{namespace}___{self.name}---{dataset_name}"
-        elif local_dir:
-            builder_data_dir = f"{self.name}---{local_dir}"
-        else:
-            builder_data_dir = self.name
+        namespace = self.repo_id.split("/")[0] if self.repo_id and self.repo_id.count("/") > 0 else None
+        builder_data_dir = self.name if namespace is None else f"{namespace}___{self.name}"
         builder_config = self.config
         hash = self.hash
         path_join = os.path.join if is_local else posixpath.join
