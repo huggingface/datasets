@@ -118,6 +118,11 @@ from .utils.tf_utils import dataset_to_tf, minimal_tf_collate_fn, multiprocess_d
 from .utils.typing import PathLike
 
 
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
+
 if TYPE_CHECKING:
     import sqlite3
 
@@ -534,8 +539,10 @@ def transmit_format(func):
                 "columns": sorted(dataset._format_columns) if dataset._format_columns is not None else None,
                 "output_all_columns": dataset._output_all_columns,
             }
-            if out_format != new_format:  # only apply if there's a change not to update the fingerprint for nothing
+            if out_format != new_format:
+                fingerprint = dataset._fingerprint
                 dataset.set_format(**new_format)
+                dataset._fingerprint = fingerprint
         return out
 
     wrapper._decorator_name_ = "transmit_format"
@@ -2874,29 +2881,45 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"num_proc must be <= {len(self)}. Reducing num_proc to {num_proc} for dataset of size {len(self)}."
             )
 
+        dataset_kwargs = dict(
+            shard=self,
+            function=function,
+            with_indices=with_indices,
+            with_rank=with_rank,
+            input_columns=input_columns,
+            batched=batched,
+            batch_size=batch_size,
+            drop_last_batch=drop_last_batch,
+            remove_columns=remove_columns,
+            keep_in_memory=keep_in_memory,
+            writer_batch_size=writer_batch_size,
+            features=features,
+            disable_nullable=disable_nullable,
+            fn_kwargs=fn_kwargs,
+        )
+
+        if new_fingerprint is None:
+            # we create a unique hash from the function,
+            # current dataset file and the mapping args
+            transform = format_transform_for_fingerprint(Dataset._map_single)
+            kwargs_for_fingerprint = format_kwargs_for_fingerprint(Dataset._map_single, (), dataset_kwargs)
+            kwargs_for_fingerprint["fingerprint_name"] = "new_fingerprint"
+            new_fingerprint = update_fingerprint(self._fingerprint, transform, kwargs_for_fingerprint)
+        else:
+            validate_fingerprint(new_fingerprint)
+        dataset_kwargs["new_fingerprint"] = new_fingerprint
+
+        if self.cache_files:
+            if cache_file_name is None:
+                cache_file_name = self._get_cache_file_path(new_fingerprint)
+        dataset_kwargs["cache_file_name"] = cache_file_name
+
         def load_processed_shard_from_cache(shard_kwargs):
             """Load a processed shard from cache if it exists, otherwise throw an error."""
             shard = shard_kwargs["shard"]
-            if shard_kwargs["new_fingerprint"] is None:
-                transform = format_transform_for_fingerprint(Dataset._map_single)
-                kwargs_for_fingerprint = format_kwargs_for_fingerprint(
-                    Dataset._map_single, (), shard_kwargs, ignore_kwargs=["cache_file_name"]
-                )
-                kwargs_for_fingerprint["fingerprint_name"] = "new_fingerprint"
-                shard_kwargs["new_fingerprint"] = update_fingerprint(
-                    shard._fingerprint, transform, kwargs_for_fingerprint
-                )
-            else:
-                validate_fingerprint(shard_kwargs["new_fingerprint"])
-
             # Check if we've already cached this computation (indexed by a hash)
-            if shard.cache_files:
-                if shard_kwargs["cache_file_name"] is None:
-                    # we create a unique hash from the function,
-                    # current dataset file and the mapping args
-                    shard_kwargs["cache_file_name"] = shard._get_cache_file_path(shard_kwargs["new_fingerprint"])
+            if shard_kwargs["cache_file_name"] is not None:
                 if os.path.exists(shard_kwargs["cache_file_name"]) and load_from_cache_file:
-                    logger.warning(f"Loading cached processed dataset at {shard_kwargs['cache_file_name']}")
                     info = shard.info.copy()
                     info.features = features
                     info.task_templates = None
@@ -2911,27 +2934,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         shards_done = 0
         if num_proc is None or num_proc == 1:
-            dataset_kwargs = dict(
-                shard=self,
-                function=function,
-                with_indices=with_indices,
-                with_rank=with_rank,
-                input_columns=input_columns,
-                batched=batched,
-                batch_size=batch_size,
-                drop_last_batch=drop_last_batch,
-                remove_columns=remove_columns,
-                keep_in_memory=keep_in_memory,
-                cache_file_name=cache_file_name,
-                writer_batch_size=writer_batch_size,
-                features=features,
-                disable_nullable=disable_nullable,
-                fn_kwargs=fn_kwargs,
-                new_fingerprint=new_fingerprint,
-            )
             transformed_dataset = None
             try:
                 transformed_dataset = load_processed_shard_from_cache(dataset_kwargs)
+                logger.warning(f"Loading cached processed dataset at {dataset_kwargs['cache_file_name']}")
             except NonExistentDatasetError:
                 pass
             if transformed_dataset is None:
@@ -2950,18 +2956,34 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     else:
                         pbar.update(content)
             assert transformed_dataset is not None, "Failed to retrieve the result from map"
+            # update fingerprint if the dataset changed
+            if transformed_dataset._fingerprint != self._fingerprint:
+                transformed_dataset._fingerprint = new_fingerprint
             return transformed_dataset
         else:
 
-            def format_cache_file_name(cache_file_name, rank):
+            def format_cache_file_name(
+                cache_file_name: Optional[str], rank: Union[int, Literal["*"]]
+            ) -> Optional[str]:
+                if not cache_file_name:
+                    return cache_file_name
                 sep = cache_file_name.rindex(".")
                 base_name, extension = cache_file_name[:sep], cache_file_name[sep:]
-                cache_file_name = base_name + suffix_template.format(rank=rank, num_proc=num_proc) + extension
-                logger.info(f"Process #{rank} will write at {cache_file_name}")
+                if isinstance(rank, int):
+                    cache_file_name = base_name + suffix_template.format(rank=rank, num_proc=num_proc) + extension
+                    logger.info(f"Process #{rank} will write at {cache_file_name}")
+                else:
+                    cache_file_name = (
+                        base_name
+                        + suffix_template.replace("{rank:05d}", "{rank}").format(rank=rank, num_proc=num_proc)
+                        + extension
+                    )
                 return cache_file_name
 
-            def format_new_fingerprint(new_fingerprint, rank):
-                return new_fingerprint + suffix_template.format(rank=rank, num_proc=num_proc)
+            def format_new_fingerprint(new_fingerprint: str, rank: int) -> str:
+                new_fingerprint = new_fingerprint + suffix_template.format(rank=rank, num_proc=num_proc)
+                validate_fingerprint(new_fingerprint)
+                return new_fingerprint
 
             prev_env = deepcopy(os.environ)
             # check if parallelism if off
@@ -2982,30 +3004,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 for rank in range(num_proc)
             ]
             kwargs_per_job = [
-                dict(
-                    shard=shards[rank],
-                    function=function,
-                    with_indices=with_indices,
-                    with_rank=with_rank,
-                    input_columns=input_columns,
-                    batched=batched,
-                    batch_size=batch_size,
-                    drop_last_batch=drop_last_batch,
-                    remove_columns=remove_columns,
-                    keep_in_memory=keep_in_memory,
-                    cache_file_name=format_cache_file_name(cache_file_name, rank)
-                    if cache_file_name is not None
-                    else None,
-                    writer_batch_size=writer_batch_size,
-                    features=features.copy() if features is not None else None,
-                    disable_nullable=disable_nullable,
-                    fn_kwargs=fn_kwargs,
-                    rank=rank,
-                    offset=sum(len(s) for s in shards[:rank]),
-                    new_fingerprint=format_new_fingerprint(new_fingerprint, rank)
-                    if new_fingerprint is not None
-                    else None,
-                )
+                {
+                    **dataset_kwargs,
+                    "shard": shards[rank],
+                    "cache_file_name": format_cache_file_name(cache_file_name, rank),
+                    "rank": rank,
+                    "offset": sum(len(s) for s in shards[:rank]),
+                    "new_fingerprint": format_new_fingerprint(new_fingerprint, rank),
+                }
                 for rank in range(num_shards)
             ]
 
@@ -3021,6 +3027,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
             # We try to create a pool with as many workers as dataset not yet cached.
             if kwargs_per_job:
+                if len(kwargs_per_job) < num_shards:
+                    logger.info(
+                        f"Reprocessing {len(kwargs_per_job)}/{num_shards} shards because some of them were missing from the cache."
+                    )
                 with Pool(len(kwargs_per_job)) as pool:
                     os.environ = prev_env
                     logger.info(f"Spawning {num_proc} processes")
@@ -3043,13 +3053,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 # Avoids PermissionError on Windows (the error: https://github.com/huggingface/datasets/actions/runs/4026734820/jobs/6921621805)
                 for kwargs in kwargs_per_job:
                     del kwargs["shard"]
+            else:
+                logger.warning(f"Loading cached processed dataset at {format_cache_file_name(cache_file_name, '*')}")
             assert (
                 None not in transformed_shards
             ), f"Failed to retrieve results from map: result list {transformed_shards} still contains None - at least one worker failed to return its results"
             logger.info(f"Concatenating {num_proc} shards")
             result = _concatenate_map_style_datasets(transformed_shards)
-            if new_fingerprint is not None:
+            # update fingerprint if the dataset changed
+            if any(
+                transformed_shard._fingerprint != shard._fingerprint
+                for transformed_shard, shard in zip(transformed_shards, shards)
+            ):
                 result._fingerprint = new_fingerprint
+            else:
+                result._fingerprint = self._fingerprint
             return result
 
     @staticmethod
