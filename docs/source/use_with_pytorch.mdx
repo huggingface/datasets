@@ -88,7 +88,14 @@ To get a single tensor, you must explicitly use the [`Array`] feature type and s
 
 String and binary objects are unchanged, since PyTorch only supports numbers.
 
-The [`Image`] and [`Audio`] feature types are also supported:
+The [`Image`] and [`Audio`] feature types are also supported.
+
+<Tip>
+
+To use the [`Image`] feature type, you'll need to install the `vision` extra as
+`pip install datasets[vision]`.
+
+</Tip>
 
 ```py
 >>> from datasets import Dataset, Features, Audio, Image
@@ -113,6 +120,13 @@ torch.Size([2, 512, 512, 4])
           [255, 255, 255, 255],
           [255, 255, 255, 255]]]], dtype=torch.uint8)}
 ```
+
+<Tip>
+
+To use the [`Audio`] feature type, you'll need to install the `audio` extra as
+`pip install datasets[audio]`.
+
+</Tip>
 
 ```py
 >>> from datasets import Dataset, Features, Audio, Image

@@ -1067,6 +1067,8 @@ class BaseDatasetTest(TestCase):
                         Features({"filename": Value("string"), "id": Value("int64")}),
                     )
                     self.assertEqual(len(dset_test.cache_files), 0 if in_memory else 2)
+                    if not in_memory:
+                        self.assertIn("_of_00002.arrow", dset_test.cache_files[0]["filename"])
                     self.assertListEqual(dset_test["id"], list(range(30)))
                     self.assertNotEqual(dset_test._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
@@ -1153,6 +1155,7 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_test.cache_files), 0 if in_memory else 2)
                     self.assertListEqual(dset_test["id"], list(range(30)))
                     self.assertNotEqual(dset_test._fingerprint, fingerprint)
+                    self.assertEqual(dset_test._fingerprint, new_fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
                     file_names = sorted(Path(cache_file["filename"]).name for cache_file in dset_test.cache_files)
                     for i, file_name in enumerate(file_names):
@@ -1345,7 +1348,7 @@ class BaseDatasetTest(TestCase):
                         with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test2:
                             self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
                             self.assertTrue(
-                                (len(re.findall("Loading cached processed dataset", self._caplog.text)) == 2)
+                                (len(re.findall("Loading cached processed dataset", self._caplog.text)) == 1)
                                 ^ in_memory
                             )
                         self.assertEqual(mock_pool.call_count, 2 if in_memory else 1)
@@ -1948,7 +1951,8 @@ class BaseDatasetTest(TestCase):
 
     def test_sort(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+            # Sort on a single key
+            with self._create_dummy_dataset(in_memory=in_memory, tmp_dir=tmp_dir) as dset:
                 # Keep only 10 examples
                 tmp_file = os.path.join(tmp_dir, "test.arrow")
                 with dset.select(range(10), indices_cache_file_name=tmp_file) as dset:
@@ -1978,6 +1982,70 @@ class BaseDatasetTest(TestCase):
                             # formatted
                             dset.set_format("numpy")
                             with dset.sort("filename") as dset_sorted_formatted:
+                                self.assertEqual(dset_sorted_formatted.format["type"], "numpy")
+            # Sort on multiple keys
+            with self._create_dummy_dataset(in_memory=in_memory, tmp_dir=tmp_dir, multiple_columns=True) as dset:
+                tmp_file = os.path.join(tmp_dir, "test_5.arrow")
+                fingerprint = dset._fingerprint
+                # Throw error when reverse is a list of bools that does not match the length of column_names
+                with pytest.raises(ValueError):
+                    dset.sort(["col_1", "col_2", "col_3"], reverse=[False])
+                with dset.shuffle(seed=1234, indices_cache_file_name=tmp_file) as dset:
+                    # Sort
+                    with dset.sort(["col_1", "col_2", "col_3"], reverse=[False, True, False]) as dset_sorted:
+                        for i, row in enumerate(dset_sorted):
+                            self.assertEqual(row["col_1"], i)
+                        self.assertDictEqual(
+                            dset.features,
+                            Features(
+                                {
+                                    "col_1": Value("int64"),
+                                    "col_2": Value("string"),
+                                    "col_3": Value("bool"),
+                                }
+                            ),
+                        )
+                        self.assertDictEqual(
+                            dset_sorted.features,
+                            Features(
+                                {
+                                    "col_1": Value("int64"),
+                                    "col_2": Value("string"),
+                                    "col_3": Value("bool"),
+                                }
+                            ),
+                        )
+                        self.assertNotEqual(dset_sorted._fingerprint, fingerprint)
+                        # Sort reversed
+                        with dset.sort(["col_1", "col_2", "col_3"], reverse=[True, False, True]) as dset_sorted:
+                            for i, row in enumerate(dset_sorted):
+                                self.assertEqual(row["col_1"], len(dset_sorted) - 1 - i)
+                            self.assertDictEqual(
+                                dset.features,
+                                Features(
+                                    {
+                                        "col_1": Value("int64"),
+                                        "col_2": Value("string"),
+                                        "col_3": Value("bool"),
+                                    }
+                                ),
+                            )
+                            self.assertDictEqual(
+                                dset_sorted.features,
+                                Features(
+                                    {
+                                        "col_1": Value("int64"),
+                                        "col_2": Value("string"),
+                                        "col_3": Value("bool"),
+                                    }
+                                ),
+                            )
+                            self.assertNotEqual(dset_sorted._fingerprint, fingerprint)
+                            # formatted
+                            dset.set_format("numpy")
+                            with dset.sort(
+                                ["col_1", "col_2", "col_3"], reverse=[False, True, False]
+                            ) as dset_sorted_formatted:
                                 self.assertEqual(dset_sorted_formatted.format["type"], "numpy")
 
     @require_tf
