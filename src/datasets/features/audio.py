@@ -323,7 +323,7 @@ class Audio:
                     import librosa
                 except ImportError as err:
                     raise ImportError(
-                        "\nTo support 'mp3' decoding with `torchaudio>=0.12.0`, make sure you have `ffmpeg` system package of at least version 4 installed. "
+                        "\nTo support 'mp3' decoding with `torchaudio>=0.12.0`, make sure you have `ffmpeg` system package with at least version 4 installed. "
                         "\tpip install \"torchaudio<0.12\".\n\nTo decode 'mp3' files without `torchaudio`, please install `librosa`:\n\n"
                         "\tpip install librosa\n\nNote that decoding might be extremely slow in that case."
                     ) from err
