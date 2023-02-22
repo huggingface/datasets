@@ -31,7 +31,6 @@ class CsvConfig(datasets.BuilderConfig):
     index_col: Optional[Union[int, str, List[int], List[str]]] = None
     usecols: Optional[Union[List[int], List[str]]] = None
     prefix: Optional[str] = None
-    mangle_dupe_cols: bool = True
     engine: Optional[str] = None
     converters: Dict[Union[int, str], Callable[[Any], Any]] = None
     true_values: Optional[list] = None
