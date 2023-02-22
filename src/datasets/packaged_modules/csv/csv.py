@@ -78,7 +78,6 @@ class CsvConfig(datasets.BuilderConfig):
             index_col=self.index_col,
             usecols=self.usecols,
             prefix=self.prefix,
-            mangle_dupe_cols=self.mangle_dupe_cols,
             engine=self.engine,
             converters=self.converters,
             true_values=self.true_values,
