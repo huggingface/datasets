@@ -12,7 +12,8 @@ install them as `pip install datasets[jax]`.
 
 ## Dataset format
 
-By default, datasets return regular Python objects: integers, floats, strings, lists, etc.
+By default, datasets return regular Python objects: integers, floats, strings, lists, etc., and 
+string and binary objects are unchanged, since JAX only supports numbers.
 
 To get JAX arrays (numpy-like) instead, you can set the format of the dataset to `jax`:
 
@@ -53,6 +54,28 @@ will be formatted as `jax`:
 Another thing you'll need to take into consideration is that the formatting is not applied
 until you actually access the data. So if you want to get a JAX array out of a dataset,
 you'll need to access the data first, otherwise the format will remain the same.
+
+Finally, to load the data in the device of your choice, you can specify the `device` argument,
+but note that `jaxlib.xla_extension.Device` is not supported as it's not serializable with neither
+`pickle` not `dill`, so you'll need to use its string identifier instead:
+
+```py
+>>> import jax
+>>> from datasets import Dataset
+>>> data = [[1, 2], [3, 4]]
+>>> ds = Dataset.from_dict({"data": data})
+>>> device = str(jax.devices()[0])  # Not casting to `str` before passing it to `with_format` will raise a `ValueError`
+>>> ds = ds.with_format("jax", device=device)
+>>> ds[0]
+{'data': DeviceArray([1, 2], dtype=int32)}
+>>> ds[0]["data"].device()
+TFRT_CPU_0
+>>> assert ds[0]["data"].device() == jax.devices()[0]
+True
+```
+
+Note that if the `device` argument is not provided to `with_format` then it will use the default
+device which is `jax.devices()[0]`.
 
 ## N-dimensional arrays
 

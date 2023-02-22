@@ -1067,6 +1067,8 @@ class BaseDatasetTest(TestCase):
                         Features({"filename": Value("string"), "id": Value("int64")}),
                     )
                     self.assertEqual(len(dset_test.cache_files), 0 if in_memory else 2)
+                    if not in_memory:
+                        self.assertIn("_of_00002.arrow", dset_test.cache_files[0]["filename"])
                     self.assertListEqual(dset_test["id"], list(range(30)))
                     self.assertNotEqual(dset_test._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
@@ -1153,6 +1155,7 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_test.cache_files), 0 if in_memory else 2)
                     self.assertListEqual(dset_test["id"], list(range(30)))
                     self.assertNotEqual(dset_test._fingerprint, fingerprint)
+                    self.assertEqual(dset_test._fingerprint, new_fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
                     file_names = sorted(Path(cache_file["filename"]).name for cache_file in dset_test.cache_files)
                     for i, file_name in enumerate(file_names):
@@ -1345,7 +1348,7 @@ class BaseDatasetTest(TestCase):
                         with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test2:
                             self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
                             self.assertTrue(
-                                (len(re.findall("Loading cached processed dataset", self._caplog.text)) == 2)
+                                (len(re.findall("Loading cached processed dataset", self._caplog.text)) == 1)
                                 ^ in_memory
                             )
                         self.assertEqual(mock_pool.call_count, 2 if in_memory else 1)

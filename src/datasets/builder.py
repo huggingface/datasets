@@ -1745,13 +1745,14 @@ class ArrowBasedBuilder(DatasetBuilder):
             result = None
             gen_kwargs = split_generator.gen_kwargs
             job_id = 0
-            for job_id, done, content in self._prepare_split_single(
-                gen_kwargs=gen_kwargs, job_id=job_id, **_prepare_split_args
-            ):
-                if done:
-                    result = content
-                else:
-                    pbar.update(content)
+            with pbar:
+                for job_id, done, content in self._prepare_split_single(
+                    gen_kwargs=gen_kwargs, job_id=job_id, **_prepare_split_args
+                ):
+                    if done:
+                        result = content
+                    else:
+                        pbar.update(content)
             # wrapping everything into lists for consistency with the multiprocessed code path
             assert result is not None, "Failed to retrieve results from prepare_split"
             examples_per_job, bytes_per_job, features_per_job, shards_per_job, shard_lengths_per_job = [
@@ -1773,21 +1774,22 @@ class ArrowBasedBuilder(DatasetBuilder):
             shard_lengths_per_job = [None] * num_jobs
 
             with Pool(num_proc) as pool:
-                for job_id, done, content in iflatmap_unordered(
-                    pool, self._prepare_split_single, kwargs_iterable=kwargs_per_job
-                ):
-                    if done:
-                        # the content is the result of the job
-                        (
-                            examples_per_job[job_id],
-                            bytes_per_job[job_id],
-                            features_per_job[job_id],
-                            shards_per_job[job_id],
-                            shard_lengths_per_job[job_id],
-                        ) = content
-                    else:
-                        # the content is the number of examples progress update
-                        pbar.update(content)
+                with pbar:
+                    for job_id, done, content in iflatmap_unordered(
+                        pool, self._prepare_split_single, kwargs_iterable=kwargs_per_job
+                    ):
+                        if done:
+                            # the content is the result of the job
+                            (
+                                examples_per_job[job_id],
+                                bytes_per_job[job_id],
+                                features_per_job[job_id],
+                                shards_per_job[job_id],
+                                shard_lengths_per_job[job_id],
+                            ) = content
+                        else:
+                            # the content is the number of examples progress update
+                            pbar.update(content)
 
             assert (
                 None not in examples_per_job
