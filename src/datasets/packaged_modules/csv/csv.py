@@ -15,7 +15,7 @@ from datasets.table import table_cast
 logger = datasets.utils.logging.get_logger(__name__)
 
 _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS = ["names", "prefix"]
-_PANDAS_READ_CSV_DEPRECATED_PARAMETERS = ["warn_bad_lines", "error_bad_lines"]
+_PANDAS_READ_CSV_DEPRECATED_PARAMETERS = ["warn_bad_lines", "error_bad_lines", "mangle_dupe_cols"]
 _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS = ["encoding_errors", "on_bad_lines"]
 
 
@@ -31,6 +31,7 @@ class CsvConfig(datasets.BuilderConfig):
     index_col: Optional[Union[int, str, List[int], List[str]]] = None
     usecols: Optional[Union[List[int], List[str]]] = None
     prefix: Optional[str] = None
+    mangle_dupe_cols: bool = True
     engine: Optional[str] = None
     converters: Dict[Union[int, str], Callable[[Any], Any]] = None
     true_values: Optional[list] = None
@@ -78,6 +79,7 @@ class CsvConfig(datasets.BuilderConfig):
             index_col=self.index_col,
             usecols=self.usecols,
             prefix=self.prefix,
+            mangle_dupe_cols=self.mangle_dupe_cols,
             engine=self.engine,
             converters=self.converters,
             true_values=self.true_values,
