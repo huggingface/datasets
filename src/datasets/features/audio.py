@@ -313,7 +313,7 @@ class Audio:
                 global _ffmpeg_warned
                 if not _ffmpeg_warned:
                     warnings.warn(
-                        "\nTo support 'mp3' decoding with `torchaudio>=0.12.0`, make sure you have `ffmpeg` system package of at least version 4 installed. "
+                        "\nTo support 'mp3' decoding with `torchaudio>=0.12.0`, make sure you have `ffmpeg` system package with at least version 4 installed. "
                         "Alternatively, you can downgrade `torchaudio`:\n\n"
                         "\tpip install \"torchaudio<0.12\".\n\nOtherwise 'mp3' files will be decoded with `librosa`."
                     )
