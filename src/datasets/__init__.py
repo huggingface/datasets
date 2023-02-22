@@ -17,7 +17,7 @@
 # pylint: enable=line-too-long
 # pylint: disable=g-import-not-at-top,g-bad-import-order,wrong-import-position
 
-__version__ = "2.9.1.dev0"
+__version__ = "2.10.1.dev0"
 
 import platform
 
