@@ -35,7 +35,7 @@ def test_inspect_metric(path, tmp_path):
     "path, config_name, expected_splits",
     [
         ("squad", "plain_text", ["train", "validation"]),
-        ("dalle-mini/wit", "dalle-mini--wit", ["train"]),
+        ("dalle-mini/wit", "default", ["train"]),
         ("paws", "labeled_final", ["train", "test", "validation"]),
     ],
 )
@@ -59,24 +59,27 @@ def test_get_dataset_config_info_error(path, config_name, expected_exception):
 @pytest.mark.parametrize(
     "path, expected",
     [
-        ("squad", "plain_text"),
-        ("acronym_identification", "default"),
-        ("lhoestq/squad", "plain_text"),
-        ("lhoestq/test", "default"),
-        ("lhoestq/demo1", "lhoestq--demo1"),
-        ("dalle-mini/wit", "dalle-mini--wit"),
+        ("squad", ["plain_text"]),
+        ("acronym_identification", ["default"]),
+        ("lhoestq/squad", ["plain_text"]),
+        ("lhoestq/test", ["default"]),
+        ("lhoestq/demo1", ["default"]),
+        ("dalle-mini/wit", ["default"]),
+        ("polinaeterna/audiofolder_one_default_config_in_metadata", ["default"]),
+        ("polinaeterna/audiofolder_one_nondefault_config_in_metadata", ["custom"]),
+        ("polinaeterna/audiofolder_two_configs_in_metadata", ["v1", "v2"]),
     ],
 )
 def test_get_dataset_config_names(path, expected):
     config_names = get_dataset_config_names(path)
-    assert expected in config_names
+    assert config_names == expected
 
 
 @pytest.mark.parametrize(
     "path, expected_configs, expected_splits_in_first_config",
     [
         ("squad", ["plain_text"], ["train", "validation"]),
-        ("dalle-mini/wit", ["dalle-mini--wit"], ["train"]),
+        ("dalle-mini/wit", ["default"], ["train"]),
         ("paws", ["labeled_final", "labeled_swap", "unlabeled_final"], ["train", "test", "validation"]),
     ],
 )
@@ -94,7 +97,7 @@ def test_get_dataset_info(path, expected_configs, expected_splits_in_first_confi
     "path, expected_config, expected_splits",
     [
         ("squad", "plain_text", ["train", "validation"]),
-        ("dalle-mini/wit", "dalle-mini--wit", ["train"]),
+        ("dalle-mini/wit", "default", ["train"]),
         ("paws", "labeled_final", ["train", "test", "validation"]),
     ],
 )

@@ -298,13 +298,7 @@ class DatasetBuilder:
             )
             config_name = name
         # DatasetBuilder name
-        # Parametrized packaged builders classes with custom configs have `_parametrized_builder_name` attribute
-        # to reflect that they are different from default library's packaged builders
-        self.name: str = (
-            self._parametrized_builder_name
-            if hasattr(self, "_parametrized_builder_name")
-            else camelcase_to_snakecase(self.__module__.split(".")[-1])
-        )
+        self.name: str = camelcase_to_snakecase(self.__module__.split(".")[-1])
         self.hash: Optional[str] = hash
         self.base_path = base_path
         self.use_auth_token = use_auth_token
@@ -843,16 +837,14 @@ class DatasetBuilder:
             # This comes right before the progress bar.
             if self.info.size_in_bytes:
                 print(
-                    f"Downloading and preparing dataset {self.info.builder_name}/{self.info.config_name} "
+                    f"Downloading and preparing dataset {self.name}/{self.config.name} "
                     f"(download: {size_str(self.info.download_size)}, generated: {size_str(self.info.dataset_size)}, "
                     f"post-processed: {size_str(self.info.post_processing_size)}, "
                     f"total: {size_str(self.info.size_in_bytes)}) to {self._output_dir}..."
                 )
             else:
                 _dest = self._fs._strip_protocol(self._output_dir) if is_local else self._output_dir
-                print(
-                    f"Downloading and preparing dataset {self.info.builder_name}/{self.info.config_name} to {_dest}..."
-                )
+                print(f"Downloading and preparing dataset {self.name}/{self.config.name} to {_dest}...")
 
             self._check_manual_download(dl_manager)
 

@@ -136,7 +136,7 @@ def import_main_class(module_path, dataset=True) -> Optional[Union[Type[DatasetB
     return module_main_cls
 
 
-class _InitializeParameterizedBuilder:
+class _InitializeParameterizedDatasetBuilder:
     """
     From https://stackoverflow.com/questions/4647566/pickle-a-dynamically-parameterized-sub-class
     See also ParametrizedBuilder.__reduce__
@@ -148,42 +148,51 @@ class _InitializeParameterizedBuilder:
 
     def __call__(self, builder_cls, metadata_configs, name):
         # make a simple object which has no complex __init__ (this one will do)
-        obj = _InitializeParameterizedBuilder()
-        obj.__class__ = parametrize_packaged_builder(builder_cls, metadata_configs, name)
+        obj = _InitializeParameterizedDatasetBuilder()
+        obj.__class__ = parametrize_packaged_dataset_builder(builder_cls, metadata_configs, name)
         return obj
 
 
-def parametrize_packaged_builder(
+def parametrize_packaged_dataset_builder(
     builder_cls: Type[DatasetBuilder], metadata_configs: MetadataConfigsDict, name: str
 ) -> Type[DatasetBuilder]:
+    """
+    Dynamically create packaged builder class with custom configs parsed from README.md file,
+    i.e. set BUILDER_CONFIGS class variable of a packaged builder class to custom configs list.
+    """
     config_cls = builder_cls.BUILDER_CONFIG_CLASS
     configs = metadata_configs.to_builder_configs_list(builder_config_cls=config_cls)
 
-    class ParametrizedBuilder(builder_cls):
+    class ParametrizedDatasetBuilder(builder_cls):
         BUILDER_CONFIGS = configs
 
-        __module__ = builder_cls.__module__  # so that the actual builder can be imported
+        __module__ = builder_cls.__module__  # so that the actual packaged builder can be imported
 
-        def __reduce__(self):
+        def __init__(self, *args, **kwargs):
+            super(ParametrizedDatasetBuilder, self).__init__(*args, **kwargs)
+            self.name = f"{builder_cls.__name__.lower()}---{name}"
+
+        def __reduce__(self):  # to make dynamically created class pickable
             parent_builder_cls = self.__class__.__mro__[1]
             metadata_configs_dict = MetadataConfigsDict.from_builder_configs_list(self.BUILDER_CONFIGS)
             return (
-                _InitializeParameterizedBuilder(),
+                _InitializeParameterizedDatasetBuilder(),
                 (parent_builder_cls, metadata_configs_dict, os.path.basename(self.base_path)),
                 self.__dict__.copy(),
             )
 
-    ParametrizedBuilder.__name__ = f"{builder_cls.__name__.lower().capitalize()}{snakecase_to_camelcase(name)}"
-    ParametrizedBuilder.__qualname__ = f"{builder_cls.__name__.lower().capitalize()}{snakecase_to_camelcase(name)}"
-    setattr(ParametrizedBuilder, "_parametrized_builder_name", f"{builder_cls.__name__.lower()}---{name}")
+    ParametrizedDatasetBuilder.__name__ = f"{builder_cls.__name__.lower().capitalize()}{snakecase_to_camelcase(name)}"
+    ParametrizedDatasetBuilder.__qualname__ = (
+        f"{builder_cls.__name__.lower().capitalize()}{snakecase_to_camelcase(name)}"
+    )
 
-    return ParametrizedBuilder
+    return ParametrizedDatasetBuilder
 
 
 def get_builder_class(dataset_module, name: Optional[str] = None) -> Type[DatasetBuilder]:
     builder_cls = import_main_class(dataset_module.module_path)
     if dataset_module.metadata_configs:
-        builder_cls = parametrize_packaged_builder(builder_cls, dataset_module.metadata_configs, name=name)
+        builder_cls = parametrize_packaged_dataset_builder(builder_cls, dataset_module.metadata_configs, name=name)
     return builder_cls
 
 
@@ -750,7 +759,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
-            "config_name": self.config_name,
+            "config_name": self.config_name if self.config_name else "default",
             "base_path": self.path,
             **builder_kwargs,
         }
@@ -854,7 +863,6 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
                             f"setting config's value: data_dir={data_dir}. "
                         )
                     self.data_dir = data_dir
-        # TODO: i think it's possible to have "dataset_info" in README.md yaml for PackagedModule too, no?
 
         base_path = str(Path(self.data_dir).resolve()) if self.data_dir is not None else str(Path().resolve())
         patterns = (
@@ -1037,7 +1045,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
-            "config_name": self.config_name,  # TODO if self.config_name else "default" ?
+            "config_name": self.config_name if self.config_name else "default",
             "base_path": hf_hub_url(self.name, "", revision=self.revision),
             "repo_id": self.name,
             **default_builder_kwargs,  # from _EXTENSION_TO_MODULE
@@ -1049,7 +1057,10 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
 
 
 class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
-    """Get the module of a dataset from a dataset repository. The dataset script comes from the script inside the dataset repository."""
+    """
+    Get the module of a dataset from a dataset repository.
+    The dataset script comes from the script inside the dataset repository.
+    """
 
     def __init__(
         self,
