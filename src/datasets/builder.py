@@ -287,7 +287,6 @@ class DatasetBuilder:
     # None means that the ArrowWriter will use its default value
     DEFAULT_WRITER_BATCH_SIZE = None
 
-
     def __init__(
         self,
         cache_dir: Optional[str] = None,
@@ -1981,7 +1980,9 @@ class BeamBasedBuilder(DatasetBuilder):
                 f"\n\t`{usage_example}`"
             )
         if self._writer_batch_size is not None:
-            logger.warning("Writer batch size is not supported for beam pipelines yet. Using the default chunk size for writing.")
+            logger.warning(
+                "Writer batch size is not supported for beam pipelines yet. Using the default chunk size for writing."
+            )
 
         # Beam type checking assumes transforms multiple outputs are of same type,
         # which is not our case. Plus it doesn't handle correctly all types, so we
