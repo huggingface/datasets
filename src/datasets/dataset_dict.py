@@ -1299,7 +1299,7 @@ class DatasetDict(dict):
         if not fs.isfile(dataset_dict_json_path):
             if fs.isfile(dataset_info_path) and fs.isfile(dataset_state_json_path):
                 raise FileNotFoundError(
-                    f"No such file or directory: '{dataset_dict_json_path}'. Expected to load a `DatasetDict` object, but got a `Dataset`. Please use either `datasets.load_from_disk` or `Dataset.load_from_disk` instead."
+                    f"No such file: '{dataset_dict_json_path}'. Expected to load a `DatasetDict` object, but got a `Dataset`. Please use either `datasets.load_from_disk` or `Dataset.load_from_disk` instead."
                 )
             raise FileNotFoundError(
                 f"No such file or directory: '{dataset_dict_json_path}'. Expected to load a `DatasetDict` object, but provided path is neither a `DatasetDict` nor a `Dataset`"
