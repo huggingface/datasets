@@ -6,12 +6,10 @@ repos:
         language_version: python3
         types: [python]
         stages: [commit]
-        always_run: true
         args: ["--config", "pyproject.toml", "tests", "src", "benchmarks", "metrics"]
   - repo: https://github.com/charliermarsh/ruff-pre-commit
     rev: 'v0.0.247'
     hooks:
     - id: ruff
       stages: [commit]
-      always_run: true
       args: [ "--config", "pyproject.toml", "tests", "src", "benchmarks", "metrics", "--fix"]
