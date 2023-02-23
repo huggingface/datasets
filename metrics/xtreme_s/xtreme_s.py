@@ -179,7 +179,7 @@ def bleu(
         force=force,
         lowercase=lowercase,
         use_effective_order=use_effective_order,
-        **(dict(tokenize=tokenize) if tokenize else {}),
+        **({"tokenize": tokenize} if tokenize else {}),
     )
     return {"bleu": output.score}
 
@@ -238,7 +238,6 @@ class XtremeS(datasets.Metric):
         )
 
     def _compute(self, predictions, references, bleu_kwargs=None, wer_kwargs=None):
-
         bleu_kwargs = bleu_kwargs if bleu_kwargs is not None else {}
         wer_kwargs = wer_kwargs if wer_kwargs is not None else {}
 

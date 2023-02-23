@@ -12,13 +12,7 @@ from datasets.dataset_dict import DatasetDict
 from datasets.features import ClassLabel, Features, Sequence, Value
 from datasets.splits import NamedSplit
 
-from .utils import (
-    assert_arrow_memory_doesnt_increase,
-    assert_arrow_memory_increases,
-    require_s3,
-    require_tf,
-    require_torch,
-)
+from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, require_tf, require_torch
 
 
 class DatasetDictTest(TestCase):
@@ -106,10 +100,14 @@ class DatasetDictTest(TestCase):
             self.assertIsInstance(dset_split[0]["col_2"], str)
             self.assertEqual(dset_split[0]["col_2"], "a")
 
-        dset.set_format(type="torch", columns=["col_1", "col_2"])
+        dset.set_format(type="torch")
         for dset_split in dset.values():
-            with self.assertRaises(TypeError):
-                dset_split[0]
+            self.assertEqual(len(dset_split[0]), 2)
+            self.assertIsInstance(dset_split[0]["col_1"], torch.Tensor)
+            self.assertListEqual(list(dset_split[0]["col_1"].shape), [])
+            self.assertEqual(dset_split[0]["col_1"].item(), 3)
+            self.assertIsInstance(dset_split[0]["col_2"], str)
+            self.assertEqual(dset_split[0]["col_2"], "a")
         del dset
 
     @require_tf
@@ -234,6 +232,32 @@ class DatasetDictTest(TestCase):
             self.assertEqual(dset_split.num_columns, 2)
             self.assertListEqual(list(dset_split.column_names), ["new_name", "col_2"])
         del dset
+
+    def test_select_columns(self):
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset = dset.select_columns(column_names=[])
+        for dset_split in dset.values():
+            self.assertEqual(dset_split.num_columns, 0)
+
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset = dset.select_columns(column_names="col_1")
+        for dset_split in dset.values():
+            self.assertEqual(dset_split.num_columns, 1)
+            self.assertListEqual(list(dset_split.column_names), ["col_1"])
+
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset = dset.select_columns(column_names=["col_1", "col_2"])
+        for dset_split in dset.values():
+            self.assertEqual(dset_split.num_columns, 2)
+
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        for dset_split in dset.values():
+            dset_split._format_columns = ["col_1", "col_2"]
+        dset = dset.select_columns(column_names=["col_1"])
+        for dset_split in dset.values():
+            self.assertEqual(dset_split.num_columns, 1)
+            self.assertListEqual(list(dset_split.column_names), ["col_1"])
+            self.assertListEqual(dset_split._format_columns, ["col_1"])
 
     def test_map(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -390,6 +414,30 @@ class DatasetDictTest(TestCase):
             self.assertListEqual(reloaded_dsets["train"].column_names, ["filename"])
             del dsets, reloaded_dsets
 
+            dsets = self._create_dummy_dataset_dict()
+            dsets.save_to_disk(tmp_dir, num_shards={"train": 3, "test": 2})
+            reloaded_dsets = DatasetDict.load_from_disk(tmp_dir)
+            self.assertListEqual(sorted(reloaded_dsets), ["test", "train"])
+            self.assertEqual(len(reloaded_dsets["train"]), 30)
+            self.assertListEqual(reloaded_dsets["train"].column_names, ["filename"])
+            self.assertEqual(len(reloaded_dsets["train"].cache_files), 3)
+            self.assertEqual(len(reloaded_dsets["test"]), 30)
+            self.assertListEqual(reloaded_dsets["test"].column_names, ["filename"])
+            self.assertEqual(len(reloaded_dsets["test"].cache_files), 2)
+            del reloaded_dsets
+
+            dsets = self._create_dummy_dataset_dict()
+            dsets.save_to_disk(tmp_dir, num_proc=2)
+            reloaded_dsets = DatasetDict.load_from_disk(tmp_dir)
+            self.assertListEqual(sorted(reloaded_dsets), ["test", "train"])
+            self.assertEqual(len(reloaded_dsets["train"]), 30)
+            self.assertListEqual(reloaded_dsets["train"].column_names, ["filename"])
+            self.assertEqual(len(reloaded_dsets["train"].cache_files), 2)
+            self.assertEqual(len(reloaded_dsets["test"]), 30)
+            self.assertListEqual(reloaded_dsets["test"].column_names, ["filename"])
+            self.assertEqual(len(reloaded_dsets["test"].cache_files), 2)
+            del reloaded_dsets
+
     def test_load_from_disk(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dsets = self._create_dummy_dataset_dict()
@@ -441,6 +489,24 @@ class DatasetDictTest(TestCase):
         ]
         self.assertListEqual(train_expected_label_names, train_aligned_label_names)
         self.assertListEqual(test_expected_label_names, test_aligned_label_names)
+
+
+def test_dummy_datasetdict_serialize_fs(mockfs):
+    dataset_dict = DatasetDict(
+        {
+            "train": Dataset.from_dict({"a": range(30)}),
+            "test": Dataset.from_dict({"a": range(10)}),
+        }
+    )
+    dataset_path = "mock://my_dataset"
+    dataset_dict.save_to_disk(dataset_path, storage_options=mockfs.storage_options)
+    assert mockfs.isdir(dataset_path)
+    assert mockfs.glob(dataset_path + "/*")
+    reloaded = dataset_dict.load_from_disk(dataset_path, storage_options=mockfs.storage_options)
+    assert list(reloaded) == list(dataset_dict)
+    for k in dataset_dict:
+        assert reloaded[k].features == dataset_dict[k].features
+        assert reloaded[k].to_dict() == dataset_dict[k].to_dict()
 
 
 def _check_csv_datasetdict(dataset_dict, expected_features, splits=("train",)):
@@ -661,24 +727,3 @@ def test_datasetdict_from_text_split(split, text_path, tmp_path):
     dataset = DatasetDict.from_text(path, cache_dir=cache_dir)
     _check_text_datasetdict(dataset, expected_features, splits=list(path.keys()))
     assert all(dataset[split].split == split for split in path.keys())
-
-
-@pytest.mark.skipif(
-    os.name in ["nt", "posix"] and (os.getenv("CIRCLECI") == "true" or os.getenv("GITHUB_ACTIONS") == "true"),
-    reason='On Windows CircleCI or GitHub Actions, it raises botocore.exceptions.EndpointConnectionError: Could not connect to the endpoint URL: "http://127.0.0.1:5555/test"',
-)  # TODO: find what's wrong with CircleCI / GitHub Actions
-@require_s3
-@pytest.mark.integration
-def test_dummy_dataset_serialize_s3(s3, dataset, s3_test_bucket_name):
-    dsets = DatasetDict({"train": dataset, "test": dataset.select(range(2))})
-    mock_bucket = s3_test_bucket_name
-    dataset_path = f"s3://{mock_bucket}/datasets/dict"
-    column_names = dsets["train"].column_names
-    lengths = [len(dset) for dset in dsets.values()]
-    dataset.save_to_disk(dataset_path, s3)
-    dataset = dataset.load_from_disk(dataset_path, s3)
-
-    assert sorted(dsets) == ["test", "train"]
-    assert [len(dset) for dset in dsets.values()] == lengths
-    assert dsets["train"].column_names == column_names
-    assert dsets["test"].column_names == column_names

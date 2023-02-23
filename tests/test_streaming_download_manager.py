@@ -9,9 +9,9 @@ from fsspec.spec import AbstractBufferedFile, AbstractFileSystem
 
 from datasets.download.streaming_download_manager import (
     StreamingDownloadManager,
-    _as_posix,
     _get_extraction_protocol,
     xbasename,
+    xexists,
     xgetsize,
     xglob,
     xisdir,
@@ -26,7 +26,7 @@ from datasets.download.streaming_download_manager import (
     xwalk,
 )
 from datasets.filesystems import COMPRESSION_FILESYSTEMS
-from datasets.utils.file_utils import hf_hub_url
+from datasets.utils.hub import hf_hub_url
 
 from .utils import require_lz4, require_zstandard, slow
 
@@ -128,8 +128,11 @@ class DummyTestFS(AbstractFileSystem):
 
 
 @pytest.fixture
-def mock_fsspec(monkeypatch):
-    monkeypatch.setitem(fsspec.registry.target, "mock", DummyTestFS)
+def mock_fsspec():
+    original_registry = fsspec.registry.copy()
+    fsspec.register_implementation("mock", DummyTestFS)
+    yield
+    fsspec.registry = original_registry
 
 
 def _readd_double_slash_removed_by_path(path_as_posix: str) -> str:
@@ -155,18 +158,13 @@ def _readd_double_slash_removed_by_path(path_as_posix: str) -> str:
 
 
 @pytest.mark.parametrize(
-    "input_path, expected_path",
-    [("zip:/test.txt::/Users/username/bar.zip", "zip://test.txt::/Users/username/bar.zip")],
-)
-def test_as_posix(input_path, expected_path):
-    assert _as_posix(Path(input_path)) == expected_path
-
-
-@pytest.mark.parametrize(
     "input_path, paths_to_join, expected_path",
     [
-        (str(Path(__file__).resolve().parent), (Path(__file__).name,), str(Path(__file__).resolve())),
-        ("https://host.com/archive.zip", ("file.txt",), "https://host.com/archive.zip/file.txt"),
+        (
+            "https://host.com/archive.zip",
+            ("file.txt",),
+            "https://host.com/archive.zip/file.txt",
+        ),
         (
             "zip://::https://host.com/archive.zip",
             ("file.txt",),
@@ -180,19 +178,18 @@ def test_as_posix(input_path, expected_path):
         (
             ".",
             ("file.txt",),
-            "file.txt",
+            os.path.join(".", "file.txt"),
         ),
         (
-            Path().resolve().as_posix(),
+            str(Path().resolve()),
             ("file.txt",),
-            (Path().resolve() / "file.txt").as_posix(),
+            str((Path().resolve() / "file.txt")),
         ),
     ],
 )
 def test_xjoin(input_path, paths_to_join, expected_path):
     output_path = xjoin(input_path, *paths_to_join)
-    output_path = _readd_double_slash_removed_by_path(Path(output_path).as_posix())
-    assert output_path == _readd_double_slash_removed_by_path(Path(expected_path).as_posix())
+    assert output_path == expected_path
     output_path = xPath(input_path).joinpath(*paths_to_join)
     assert output_path == xPath(expected_path)
 
@@ -218,6 +215,29 @@ def test_xdirname(input_path, expected_path):
     output_path = xdirname(input_path)
     output_path = _readd_double_slash_removed_by_path(Path(output_path).as_posix())
     assert output_path == _readd_double_slash_removed_by_path(Path(expected_path).as_posix())
+
+
+@pytest.mark.parametrize(
+    "input_path, exists",
+    [
+        ("tmp_path/file.txt", True),
+        ("tmp_path/file_that_doesnt_exist.txt", False),
+        ("mock://top_level/second_level/date=2019-10-01/a.parquet", True),
+        ("mock://top_level/second_level/date=2019-10-01/file_that_doesnt_exist.parquet", False),
+    ],
+)
+def test_xexists(input_path, exists, tmp_path, mock_fsspec):
+    if input_path.startswith("tmp_path"):
+        input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
+        (tmp_path / "file.txt").touch()
+    assert xexists(input_path) is exists
+
+
+@pytest.mark.integration
+def test_xexists_private(hf_private_dataset_repo_txt_data, hf_token):
+    root_url = hf_hub_url(hf_private_dataset_repo_txt_data, "")
+    assert xexists(root_url + "data/text_data.txt", use_auth_token=hf_token)
+    assert not xexists(root_url + "file_that_doesnt_exist.txt", use_auth_token=hf_token)
 
 
 @pytest.mark.parametrize(
@@ -486,158 +506,211 @@ def test_xrelpath(input_path, start_path, expected_path):
     assert output_path == expected_path
 
 
-@pytest.mark.parametrize(
-    "input_path, pattern, expected_paths",
-    [
-        ("tmp_path", "*.txt", ["file1.txt", "file2.txt"]),
-        ("mock://", "*", ["mock://glob_test", "mock://misc", "mock://top_level"]),
-        ("mock://", "top_*", ["mock://top_level"]),
-        (
-            "mock://top_level/second_level",
-            "date=2019-10-0[1-4]",
-            [
-                "mock://top_level/second_level/date=2019-10-01",
-                "mock://top_level/second_level/date=2019-10-02",
-                "mock://top_level/second_level/date=2019-10-04",
-            ],
-        ),
-        (
-            "mock://top_level/second_level",
-            "date=2019-10-0[1-4]/*",
-            [
-                "mock://top_level/second_level/date=2019-10-01/a.parquet",
-                "mock://top_level/second_level/date=2019-10-01/b.parquet",
-                "mock://top_level/second_level/date=2019-10-02/a.parquet",
-                "mock://top_level/second_level/date=2019-10-04/a.parquet",
-            ],
-        ),
-    ],
-)
-def test_xpathglob(input_path, pattern, expected_paths, tmp_path, mock_fsspec):
-    if input_path == "tmp_path":
-        input_path = tmp_path
-        expected_paths = [tmp_path / file for file in expected_paths]
-        for file in ["file1.txt", "file2.txt", "README.md"]:
-            (tmp_path / file).touch()
-    else:
-        expected_paths = [Path(file) for file in expected_paths]
-    output_paths = sorted(xPath(input_path).glob(pattern))
-    assert output_paths == expected_paths
+class TestxPath:
+    @pytest.mark.parametrize(
+        "input_path",
+        [
+            "https://host.com/archive.zip",
+            "zip://file.txt::https://host.com/archive.zip",
+            "zip://dir/file.txt::https://host.com/archive.zip",
+            "file.txt",
+            str(Path().resolve() / "file.txt"),
+        ],
+    )
+    def test_xpath_str(self, input_path):
+        assert str(xPath(input_path)) == input_path
 
+    @pytest.mark.parametrize(
+        "input_path, expected_path",
+        [
+            ("https://host.com/archive.zip", "https://host.com/archive.zip"),
+            ("zip://file.txt::https://host.com/archive.zip", "zip://file.txt::https://host.com/archive.zip"),
+            ("zip://dir/file.txt::https://host.com/archive.zip", "zip://dir/file.txt::https://host.com/archive.zip"),
+            ("file.txt", "file.txt"),
+            (str(Path().resolve() / "file.txt"), (Path().resolve() / "file.txt").as_posix()),
+        ],
+    )
+    def test_xpath_as_posix(self, input_path, expected_path):
+        assert xPath(input_path).as_posix() == expected_path
 
-@pytest.mark.parametrize(
-    "input_path, pattern, expected_paths",
-    [
-        ("tmp_path", "*.txt", ["file1.txt", "file2.txt"]),
-        (
-            "mock://",
-            "date=2019-10-0[1-4]",
-            [
-                "mock://top_level/second_level/date=2019-10-01",
-                "mock://top_level/second_level/date=2019-10-02",
-                "mock://top_level/second_level/date=2019-10-04",
-            ],
-        ),
-        (
-            "mock://top_level",
-            "date=2019-10-0[1-4]",
-            [
-                "mock://top_level/second_level/date=2019-10-01",
-                "mock://top_level/second_level/date=2019-10-02",
-                "mock://top_level/second_level/date=2019-10-04",
-            ],
-        ),
-        (
-            "mock://",
-            "date=2019-10-0[1-4]/*",
-            [
-                "mock://top_level/second_level/date=2019-10-01/a.parquet",
-                "mock://top_level/second_level/date=2019-10-01/b.parquet",
-                "mock://top_level/second_level/date=2019-10-02/a.parquet",
-                "mock://top_level/second_level/date=2019-10-04/a.parquet",
-            ],
-        ),
-        (
-            "mock://top_level",
-            "date=2019-10-0[1-4]/*",
-            [
-                "mock://top_level/second_level/date=2019-10-01/a.parquet",
-                "mock://top_level/second_level/date=2019-10-01/b.parquet",
-                "mock://top_level/second_level/date=2019-10-02/a.parquet",
-                "mock://top_level/second_level/date=2019-10-04/a.parquet",
-            ],
-        ),
-    ],
-)
-def test_xpathrglob(input_path, pattern, expected_paths, tmp_path, mock_fsspec):
-    if input_path == "tmp_path":
-        input_path = tmp_path
-        dir_path = tmp_path / "dir"
-        dir_path.mkdir()
-        expected_paths = [dir_path / file for file in expected_paths]
-        for file in ["file1.txt", "file2.txt", "README.md"]:
-            (dir_path / file).touch()
-    else:
-        expected_paths = [Path(file) for file in expected_paths]
-    output_paths = sorted(xPath(input_path).rglob(pattern))
-    assert output_paths == expected_paths
+    @pytest.mark.parametrize(
+        "input_path, exists",
+        [
+            ("tmp_path/file.txt", True),
+            ("tmp_path/file_that_doesnt_exist.txt", False),
+            ("mock://top_level/second_level/date=2019-10-01/a.parquet", True),
+            ("mock://top_level/second_level/date=2019-10-01/file_that_doesnt_exist.parquet", False),
+        ],
+    )
+    def test_xpath_exists(self, input_path, exists, tmp_path, mock_fsspec):
+        if input_path.startswith("tmp_path"):
+            input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
+            (tmp_path / "file.txt").touch()
+        assert xexists(input_path) is exists
 
+    @pytest.mark.parametrize(
+        "input_path, pattern, expected_paths",
+        [
+            ("tmp_path", "*.txt", ["file1.txt", "file2.txt"]),
+            ("mock://", "*", ["mock://glob_test", "mock://misc", "mock://top_level"]),
+            ("mock://", "top_*", ["mock://top_level"]),
+            (
+                "mock://top_level/second_level",
+                "date=2019-10-0[1-4]",
+                [
+                    "mock://top_level/second_level/date=2019-10-01",
+                    "mock://top_level/second_level/date=2019-10-02",
+                    "mock://top_level/second_level/date=2019-10-04",
+                ],
+            ),
+            (
+                "mock://top_level/second_level",
+                "date=2019-10-0[1-4]/*",
+                [
+                    "mock://top_level/second_level/date=2019-10-01/a.parquet",
+                    "mock://top_level/second_level/date=2019-10-01/b.parquet",
+                    "mock://top_level/second_level/date=2019-10-02/a.parquet",
+                    "mock://top_level/second_level/date=2019-10-04/a.parquet",
+                ],
+            ),
+        ],
+    )
+    def test_xpath_glob(self, input_path, pattern, expected_paths, tmp_path, mock_fsspec):
+        if input_path == "tmp_path":
+            input_path = tmp_path
+            expected_paths = [tmp_path / file for file in expected_paths]
+            for file in ["file1.txt", "file2.txt", "README.md"]:
+                (tmp_path / file).touch()
+        else:
+            expected_paths = [Path(file) for file in expected_paths]
+        output_paths = sorted(xPath(input_path).glob(pattern))
+        assert output_paths == expected_paths
 
-@pytest.mark.parametrize(
-    "input_path, expected_path",
-    [
-        (Path(__file__).resolve(), Path(__file__).resolve().parent),
-        (Path("https://host.com/archive.zip"), Path("https://host.com")),
-        (
-            Path("zip://file.txt::https://host.com/archive.zip"),
-            Path("zip://::https://host.com/archive.zip"),
-        ),
-        (
-            Path("zip://folder/file.txt::https://host.com/archive.zip"),
-            Path("zip://folder::https://host.com/archive.zip"),
-        ),
-    ],
-)
-def test_xpathparent(input_path, expected_path):
-    output_path = xPath(input_path).parent
-    output_path = _readd_double_slash_removed_by_path(output_path.as_posix())
-    assert output_path == _readd_double_slash_removed_by_path(expected_path.as_posix())
+    @pytest.mark.parametrize(
+        "input_path, pattern, expected_paths",
+        [
+            ("tmp_path", "*.txt", ["file1.txt", "file2.txt"]),
+            (
+                "mock://",
+                "date=2019-10-0[1-4]",
+                [
+                    "mock://top_level/second_level/date=2019-10-01",
+                    "mock://top_level/second_level/date=2019-10-02",
+                    "mock://top_level/second_level/date=2019-10-04",
+                ],
+            ),
+            (
+                "mock://top_level",
+                "date=2019-10-0[1-4]",
+                [
+                    "mock://top_level/second_level/date=2019-10-01",
+                    "mock://top_level/second_level/date=2019-10-02",
+                    "mock://top_level/second_level/date=2019-10-04",
+                ],
+            ),
+            (
+                "mock://",
+                "date=2019-10-0[1-4]/*",
+                [
+                    "mock://top_level/second_level/date=2019-10-01/a.parquet",
+                    "mock://top_level/second_level/date=2019-10-01/b.parquet",
+                    "mock://top_level/second_level/date=2019-10-02/a.parquet",
+                    "mock://top_level/second_level/date=2019-10-04/a.parquet",
+                ],
+            ),
+            (
+                "mock://top_level",
+                "date=2019-10-0[1-4]/*",
+                [
+                    "mock://top_level/second_level/date=2019-10-01/a.parquet",
+                    "mock://top_level/second_level/date=2019-10-01/b.parquet",
+                    "mock://top_level/second_level/date=2019-10-02/a.parquet",
+                    "mock://top_level/second_level/date=2019-10-04/a.parquet",
+                ],
+            ),
+        ],
+    )
+    def test_xpath_rglob(self, input_path, pattern, expected_paths, tmp_path, mock_fsspec):
+        if input_path == "tmp_path":
+            input_path = tmp_path
+            dir_path = tmp_path / "dir"
+            dir_path.mkdir()
+            expected_paths = [dir_path / file for file in expected_paths]
+            for file in ["file1.txt", "file2.txt", "README.md"]:
+                (dir_path / file).touch()
+        else:
+            expected_paths = [Path(file) for file in expected_paths]
+        output_paths = sorted(xPath(input_path).rglob(pattern))
+        assert output_paths == expected_paths
 
+    @pytest.mark.parametrize(
+        "input_path, expected_path",
+        [
+            ("https://host.com/archive.zip", "https://host.com"),
+            ("zip://file.txt::https://host.com/archive.zip", "zip://::https://host.com/archive.zip"),
+            ("zip://dir/file.txt::https://host.com/archive.zip", "zip://dir::https://host.com/archive.zip"),
+            ("file.txt", ""),
+            (str(Path().resolve() / "file.txt"), str(Path().resolve())),
+        ],
+    )
+    def test_xpath_parent(self, input_path, expected_path):
+        assert xPath(input_path).parent == xPath(expected_path)
 
-@pytest.mark.parametrize(
-    "input_path, expected",
-    [
-        ("zip://file.txt::https://host.com/archive.zip", "file.txt"),
-        ("datasets/file.txt", "file.txt"),
-        ((Path().resolve() / "file.txt").as_posix(), "file.txt"),
-    ],
-)
-def test_xpathname(input_path, expected):
-    assert xPath(input_path).name == expected
+    @pytest.mark.parametrize(
+        "input_path, expected",
+        [
+            ("https://host.com/archive.zip", "archive.zip"),
+            ("zip://file.txt::https://host.com/archive.zip", "file.txt"),
+            ("zip://dir/file.txt::https://host.com/archive.zip", "file.txt"),
+            ("file.txt", "file.txt"),
+            (str(Path().resolve() / "file.txt"), "file.txt"),
+        ],
+    )
+    def test_xpath_name(self, input_path, expected):
+        assert xPath(input_path).name == expected
 
+    @pytest.mark.parametrize(
+        "input_path, expected",
+        [
+            ("https://host.com/archive.zip", "archive"),
+            ("zip://file.txt::https://host.com/archive.zip", "file"),
+            ("zip://dir/file.txt::https://host.com/archive.zip", "file"),
+            ("file.txt", "file"),
+            (str(Path().resolve() / "file.txt"), "file"),
+        ],
+    )
+    def test_xpath_stem(self, input_path, expected):
+        assert xPath(input_path).stem == expected
 
-@pytest.mark.parametrize(
-    "input_path, expected",
-    [
-        ("zip://file.txt::https://host.com/archive.zip", "file"),
-        ("file.txt", "file"),
-        ((Path().resolve() / "file.txt").as_posix(), "file"),
-    ],
-)
-def test_xpathstem(input_path, expected):
-    assert xPath(input_path).stem == expected
+    @pytest.mark.parametrize(
+        "input_path, expected",
+        [
+            ("https://host.com/archive.zip", ".zip"),
+            ("zip://file.txt::https://host.com/archive.zip", ".txt"),
+            ("zip://dir/file.txt::https://host.com/archive.zip", ".txt"),
+            ("file.txt", ".txt"),
+            (str(Path().resolve() / "file.txt"), ".txt"),
+        ],
+    )
+    def test_xpath_suffix(self, input_path, expected):
+        assert xPath(input_path).suffix == expected
 
-
-@pytest.mark.parametrize(
-    "input_path, expected",
-    [
-        ("zip://file.txt::https://host.com/archive.zip", ".txt"),
-        ("file.txt", ".txt"),
-        ((Path().resolve() / "file.txt").as_posix(), ".txt"),
-    ],
-)
-def test_xpathsuffix(input_path, expected):
-    assert xPath(input_path).suffix == expected
+    @pytest.mark.parametrize(
+        "input_path, suffix, expected",
+        [
+            ("https://host.com/archive.zip", ".ann", "https://host.com/archive.ann"),
+            ("zip://file.txt::https://host.com/archive.zip", ".ann", "zip://file.ann::https://host.com/archive.zip"),
+            (
+                "zip://dir/file.txt::https://host.com/archive.zip",
+                ".ann",
+                "zip://dir/file.ann::https://host.com/archive.zip",
+            ),
+            ("file.txt", ".ann", "file.ann"),
+            (str(Path().resolve() / "file.txt"), ".ann", str(Path().resolve() / "file.ann")),
+        ],
+    )
+    def test_xpath_with_suffix(self, input_path, suffix, expected):
+        assert xPath(input_path).with_suffix(suffix) == xPath(expected)
 
 
 @pytest.mark.parametrize("urlpath", [r"C:\\foo\bar.txt", "/foo/bar.txt", "https://f.oo/bar.txt"])
@@ -728,7 +801,7 @@ def test_streaming_dl_manager_extract_all_supported_single_file_compression_type
         ("https://zenodo.org/record/2787612/files/SICK.zip?download=1", "zip"),
     ],
 )
-def test_streaming_dl_manager_get_extraction_protocol_gg_drive(urlpath, expected_protocol):
+def test_streaming_dl_manager_get_extraction_protocol(urlpath, expected_protocol):
     assert _get_extraction_protocol(urlpath) == expected_protocol
 
 
@@ -739,8 +812,8 @@ def test_streaming_dl_manager_get_extraction_protocol_gg_drive(urlpath, expected
         (TEST_GG_DRIVE_ZIPPED_URL, "zip"),
     ],
 )
-@slow  # otherwise it spams google drive and the CI gets banned
-def test_streaming_dl_manager_get_extraction_protocol(urlpath, expected_protocol):
+@slow  # otherwise it spams Google Drive and the CI gets banned
+def test_streaming_dl_manager_get_extraction_protocol_gg_drive(urlpath, expected_protocol):
     assert _get_extraction_protocol(urlpath) == expected_protocol
 
 
@@ -749,22 +822,23 @@ def test_streaming_dl_manager_get_extraction_protocol(urlpath, expected_protocol
     [
         "zip://train-00000.tar.gz::https://foo.bar/data.zip",
         "https://foo.bar/train.tar.gz",
+        "https://foo.bar/train.tgz",
         "https://foo.bar/train.tar",
     ],
 )
-@pytest.mark.xfail(raises=NotImplementedError)
-def test_streaming_dl_manager_get_extraction_protocol_throws(urlpath):
-    _get_extraction_protocol(urlpath)
+def test_streaming_dl_manager_extract_throws(urlpath):
+    with pytest.raises(NotImplementedError):
+        _ = StreamingDownloadManager().extract(urlpath)
 
 
-@slow  # otherwise it spams google drive and the CI gets banned
+@slow  # otherwise it spams Google Drive and the CI gets banned
 @pytest.mark.integration
 def test_streaming_gg_drive():
     with xopen(TEST_GG_DRIVE_URL) as f:
         assert f.read() == TEST_GG_DRIVE_CONTENT
 
 
-@slow  # otherwise it spams google drive and the CI gets banned
+@slow  # otherwise it spams Google Drive and the CI gets banned
 @pytest.mark.integration
 def test_streaming_gg_drive_no_extract():
     urlpath = StreamingDownloadManager().download_and_extract(TEST_GG_DRIVE_URL)
@@ -772,7 +846,7 @@ def test_streaming_gg_drive_no_extract():
         assert f.read() == TEST_GG_DRIVE_CONTENT
 
 
-@slow  # otherwise it spams google drive and the CI gets banned
+@slow  # otherwise it spams Google Drive and the CI gets banned
 @pytest.mark.integration
 def test_streaming_gg_drive_gzipped():
     urlpath = StreamingDownloadManager().download_and_extract(TEST_GG_DRIVE_GZIPPED_URL)
@@ -780,7 +854,7 @@ def test_streaming_gg_drive_gzipped():
         assert f.read() == TEST_GG_DRIVE_CONTENT
 
 
-@slow  # otherwise it spams google drive and the CI gets banned
+@slow  # otherwise it spams Google Drive and the CI gets banned
 @pytest.mark.integration
 def test_streaming_gg_drive_zipped():
     urlpath = StreamingDownloadManager().download_and_extract(TEST_GG_DRIVE_ZIPPED_URL)
@@ -799,9 +873,11 @@ def _test_jsonl(path, file):
     assert num_items == 4
 
 
-def test_iter_archive_path(tar_jsonl_path):
+@pytest.mark.parametrize("archive_jsonl", ["tar_jsonl_path", "zip_jsonl_path"])
+def test_iter_archive_path(archive_jsonl, request):
+    archive_jsonl_path = request.getfixturevalue(archive_jsonl)
     dl_manager = StreamingDownloadManager()
-    archive_iterable = dl_manager.iter_archive(tar_jsonl_path)
+    archive_iterable = dl_manager.iter_archive(archive_jsonl_path)
     num_jsonl = 0
     for num_jsonl, (path, file) in enumerate(archive_iterable, start=1):
         _test_jsonl(path, file)
@@ -813,9 +889,11 @@ def test_iter_archive_path(tar_jsonl_path):
     assert num_jsonl == 2
 
 
-def test_iter_archive_file(tar_nested_jsonl_path):
+@pytest.mark.parametrize("archive_nested_jsonl", ["tar_nested_jsonl_path", "zip_nested_jsonl_path"])
+def test_iter_archive_file(archive_nested_jsonl, request):
+    archive_nested_jsonl_path = request.getfixturevalue(archive_nested_jsonl)
     dl_manager = StreamingDownloadManager()
-    files_iterable = dl_manager.iter_archive(tar_nested_jsonl_path)
+    files_iterable = dl_manager.iter_archive(archive_nested_jsonl_path)
     num_tar, num_jsonl = 0, 0
     for num_tar, (path, file) in enumerate(files_iterable, start=1):
         for num_jsonl, (subpath, subfile) in enumerate(dl_manager.iter_archive(file), start=1):
@@ -834,5 +912,5 @@ def test_iter_archive_file(tar_nested_jsonl_path):
 def test_iter_files(data_dir_with_hidden_files):
     dl_manager = StreamingDownloadManager()
     for num_file, file in enumerate(dl_manager.iter_files(data_dir_with_hidden_files), start=1):
-        pass
+        assert os.path.basename(file) == ("test.txt" if num_file == 1 else "train.txt")
     assert num_file == 2

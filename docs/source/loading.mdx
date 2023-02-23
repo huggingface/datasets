@@ -54,11 +54,16 @@ If you don't specify which data files to use, [`load_dataset`] will return all t
 
 </Tip>
 
-You can also load a specific subset of the files with the `data_files` parameter. The example below only loads files that match the grep pattern:
+You can also load a specific subset of the files with the `data_files` or `data_dir` parameter. These parameters can accept a relative path which resolves to the base path corresponding to where the dataset is loaded from.
 
 ```py
 >>> from datasets import load_dataset
+
+# load files that match the grep pattern
 >>> c4_subset = load_dataset("allenai/c4", data_files="en/c4-train.0000*-of-01024.json.gz")
+
+# load dataset from the en directory on the Hub
+>>> c4_subset = load_dataset("allenai/c4", data_dir="en")
 ```
 
 The `split` parameter can also map a data file to a specific split:
@@ -80,45 +85,39 @@ You may have a 🤗 Datasets loading script locally on your computer. In this ca
 >>> dataset = load_dataset("path/to/local/loading_script", split="train")  # equivalent because the file has the same name as the directory
 ```
 
+### Edit loading script
+
+You can also edit a loading script from the Hub to add your own modifications. Download the dataset repository locally so any data files referenced by a relative path in the loading script can be loaded:
+
+```bash
+git clone https://huggingface.co/datasets/eli5
+```
+
+Make your edits to the loading script and then load it by passing its local path to [`~datasets.load_dataset`]:
+
+```py
+>>> from datasets import load_dataset
+>>> eli5 = load_dataset("path/to/local/eli5")
+```
+
 ## Local and remote files
 
 Datasets can be loaded from local files stored on your computer and from remote files. The datasets are most likely stored as a `csv`, `json`, `txt` or `parquet` file. The [`load_dataset`] function can load each of these file types.
 
 ### CSV
 
-🤗 Datasets can read a dataset made up of one or several CSV files:
+🤗 Datasets can read a dataset made up of one or several CSV files (in this case, pass your CSV files as a list):
 
 ```py
 >>> from datasets import load_dataset
 >>> dataset = load_dataset("csv", data_files="my_file.csv")
 ```
 
-If you have more than one CSV file:
+<Tip>
 
-```py
->>> dataset = load_dataset("csv", data_files=["my_file_1.csv", "my_file_2.csv", "my_file_3.csv"])
-```
+For more details, check out the [how to load tabular datasets from CSV files](tabular_load#csv-files) guide.
 
-You can also map the training and test splits to specific CSV files:
-
-```py
->>> dataset = load_dataset("csv", data_files={"train": ["my_train_file_1.csv", "my_train_file_2.csv"], "test": "my_test_file.csv"})
-```
-
-To load remote CSV files via HTTP, pass the URLs instead:
-
-```py
->>> base_url = "https://huggingface.co/datasets/lhoestq/demo1/resolve/main/data/"
->>> dataset = load_dataset('csv', data_files={'train': base_url + 'train.csv', 'test': base_url + 'test.csv'})
-```
-
-To load zipped CSV files:
-
-```py
->>> url = "https://domain.org/train_data.zip"
->>> data_files = {"train": url}
->>> dataset = load_dataset("csv", data_files=data_files)
-```
+</Tip>
 
 ### JSON
 
@@ -176,6 +175,39 @@ To load remote Parquet files via HTTP, pass the URLs instead:
 >>> wiki = load_dataset("parquet", data_files=data_files, split="train")
 ```
 
+### SQL
+
+Read database contents with [`~datasets.Dataset.from_sql`] by specifying the URI to connect to your database. You can read both table names and queries:
+
+```py
+>>> from datasets import Dataset
+# load entire table
+>>> dataset = Dataset.from_sql("data_table_name", con="sqlite:///sqlite_file.db")
+# load from query
+>>> dataset = Dataset.from_sql("SELECT text FROM table WHERE length(text) > 100 LIMIT 10", con="sqlite:///sqlite_file.db")
+```
+
+<Tip>
+
+For more details, check out the [how to load tabular datasets from SQL databases](tabular_load#databases) guide.
+
+</Tip>
+
+## Multiprocessing
+
+When a dataset is made of several files (that we call "shards"), it is possible to significantly speed up the dataset downloading and preparation step.
+
+You can choose how many processes you'd like to use to prepare a dataset in parallel using `num_proc`.
+In this case, each process is given a subset of shards to prepare:
+
+```python
+from datasets import load_dataset
+
+oscar_afrikaans = load_dataset("oscar-corpus/OSCAR-2201", "af", num_proc=8)
+imagenet = load_dataset("imagenet-1k", num_proc=8)
+ml_librispeech_spanish = load_dataset("facebook/multilingual_librispeech", "spanish", num_proc=8)
+```
+
 ## In-memory data
 
 🤗 Datasets will also allow you to create a [`Dataset`] directly from in-memory data structures like Python dictionaries and Pandas DataFrames.
@@ -190,6 +222,47 @@ Load Python dictionaries with [`~Dataset.from_dict`]:
 >>> dataset = Dataset.from_dict(my_dict)
 ```
 
+### Python list of dictionaries
+
+Load a list of Python dictionaries with [`~Dataset.from_list`]:
+
+```py
+>>> from datasets import Dataset
+>>> my_list = [{"a": 1}, {"a": 2}, {"a": 3}]
+>>> dataset = Dataset.from_list(my_list)
+```
+
+### Python generator
+
+Create a dataset from a Python generator with [`~Dataset.from_generator`]:
+
+```py
+>>> from datasets import Dataset
+>>> def my_gen():
+...     for i in range(1, 4):
+...         yield {"a": i}
+...
+>>> dataset = Dataset.from_generator(my_gen)
+```
+
+This approach supports loading data larger than available memory.
+
+You can also define a sharded dataset by passing lists to `gen_kwargs`:
+
+```py
+>>> def gen(shards):
+...     for shard in shards:
+...         with open(shard) as f:
+...             for line in f:
+...                 yield {"line": line}
+...
+>>> shards = [f"data{i}.txt" for i in range(32)]
+>>> ds = IterableDataset.from_generator(gen, gen_kwargs={"shards": shards})
+>>> ds = ds.shuffle(seed=42, buffer_size=10_000)  # shuffles the shards order + uses a shuffle buffer
+>>> from torch.utils.data import DataLoader
+>>> dataloader = DataLoader(ds.with_format("torch"), num_workers=4)  # give each worker a subset of 32/4=8 shards
+```
+
 ### Pandas DataFrame
 
 Load Pandas DataFrames with [`~Dataset.from_pandas`]:
@@ -201,15 +274,15 @@ Load Pandas DataFrames with [`~Dataset.from_pandas`]:
 >>> dataset = Dataset.from_pandas(df)
 ```
 
-<Tip warning={true}>
+<Tip>
 
-An object data type in [pandas.Series](https://pandas.pydata.org/docs/reference/api/pandas.Series.html) doesn't always carry enough information for Arrow to automatically infer a data type. For example, if a DataFrame is of length `0` or the Series only contains `None/NaN` objects, the type is set to `null`. Avoid potential errors by constructing an explicit schema with [`Features`] using the `from_dict` or `from_pandas` methods. See the [troubleshoot](./loading#specify-features) section for more details on how to explicitly specify your own features.
+For more details, check out the [how to load tabular datasets from Pandas DataFrames](tabular_load#pandas-dataframes) guide.
 
 </Tip>
 
 ## Offline
 
-Even if you don't have an internet connection, it is still possible to load a dataset. As long as you've downloaded a dataset from the Hub or 🤗 Datasets GitHub repository before, it should be cached. This means you can reload the dataset from the cache and use it offline.
+Even if you don't have an internet connection, it is still possible to load a dataset. As long as you've downloaded a dataset from the Hub repository before, it should be cached. This means you can reload the dataset from the cache and use it offline.
 
 If you know you won't have internet access, you can run 🤗 Datasets in full offline mode. This saves time because instead of waiting for the Dataset builder download to time out, 🤗 Datasets will look directly in the cache. Set the environment variable `HF_DATASETS_OFFLINE` to `1` to enable full offline mode.
 
@@ -245,7 +318,7 @@ Or select a percentage of a split with:
 Select a combination of percentages from each split:
 
 ```py
->>> train_10_80pct_ds = datasets.load_dataset("bookcorpus", split="tr"in[:10%]+train[-80%:]")
+>>> train_10_80pct_ds = datasets.load_dataset("bookcorpus", split="train[:10%]+train[-80%:]")
 ===STRINGAPI-READINSTRUCTION-SPLIT===
 >>> ri = (datasets.ReadInstruction("train", to=10, unit="%") + datasets.ReadInstruction("train", from_=-80, unit="%"))
 >>> train_10_80pct_ds = datasets.load_dataset("bookcorpus", split=ri)
@@ -310,6 +383,7 @@ Please follow the manual download instructions: To use MATINF you have to downlo
 Manual data can be loaded with `datasets.load_dataset(matinf, data_dir='<path/to/manual/data>') 
 ```
 
+If you've already downloaded a dataset from the *Hub with a loading script* to your computer, then you need to pass an absolute path to the `data_dir` or `data_files` parameter to load that dataset. Otherwise, if you pass a relative path, [`load_dataset`] will load the directory from the repository on the Hub instead of the local directory.
 
 ### Specify features
 

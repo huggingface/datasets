@@ -1,10 +1,10 @@
 import importlib
 import os
-import re
 import shutil
 import tempfile
 import time
 from hashlib import sha256
+from multiprocessing import Pool
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
@@ -13,7 +13,7 @@ import pytest
 import requests
 
 import datasets
-from datasets import SCRIPTS_VERSION, config, load_dataset, load_from_disk
+from datasets import config, load_dataset, load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.builder import DatasetBuilder
 from datasets.data_files import DataFilesDict
@@ -24,7 +24,6 @@ from datasets.iterable_dataset import IterableDataset
 from datasets.load import (
     CachedDatasetModuleFactory,
     CachedMetricModuleFactory,
-    GithubDatasetModuleFactory,
     GithubMetricModuleFactory,
     HubDatasetModuleFactoryWithoutScript,
     HubDatasetModuleFactoryWithScript,
@@ -35,7 +34,6 @@ from datasets.load import (
     infer_module_for_data_files,
     infer_module_for_data_files_in_archives,
 )
-from datasets.utils.file_utils import is_remote_url
 
 from .utils import (
     OfflineSimulationMode,
@@ -255,9 +253,9 @@ class ModuleFactoryTest(TestCase):
             hf_modules_cache=self.hf_modules_cache,
         )
 
-    def test_GithubDatasetModuleFactory(self):
+    def test_HubDatasetModuleFactoryWithScript_with_github_dataset(self):
         # "wmt_t2t" has additional imports (internal)
-        factory = GithubDatasetModuleFactory(
+        factory = HubDatasetModuleFactoryWithScript(
             "wmt_t2t", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
         )
         module_factory_result = factory.get_module()
@@ -479,7 +477,6 @@ class ModuleFactoryTest(TestCase):
     [
         CachedDatasetModuleFactory,
         CachedMetricModuleFactory,
-        GithubDatasetModuleFactory,
         GithubMetricModuleFactory,
         HubDatasetModuleFactoryWithoutScript,
         HubDatasetModuleFactoryWithScript,
@@ -490,10 +487,7 @@ class ModuleFactoryTest(TestCase):
     ],
 )
 def test_module_factories(factory_class):
-    if issubclass(factory_class, (HubDatasetModuleFactoryWithoutScript, HubDatasetModuleFactoryWithScript)):
-        name = "dummy_org/dummy_name"
-    else:
-        name = "dummy_name"
+    name = "dummy_name"
     factory = factory_class(name)
     assert factory.name == name
 
@@ -576,18 +570,21 @@ class LoadTest(TestCase):
                 self.assertNotEqual(dataset_module_1.module_path, dataset_module_3.module_path)
                 self.assertIn("Using the latest cached version of the module", self._caplog.text)
 
-    def test_load_dataset_from_github(self):
-        scripts_version = os.getenv("HF_SCRIPTS_VERSION", SCRIPTS_VERSION)
+    def test_load_dataset_from_hub(self):
         with self.assertRaises(FileNotFoundError) as context:
             datasets.load_dataset("_dummy")
         self.assertIn(
-            "https://raw.githubusercontent.com/huggingface/datasets/main/datasets/_dummy/_dummy.py",
+            "Dataset '_dummy' doesn't exist on the Hub",
             str(context.exception),
         )
         with self.assertRaises(FileNotFoundError) as context:
             datasets.load_dataset("_dummy", revision="0.0.0")
         self.assertIn(
-            "https://raw.githubusercontent.com/huggingface/datasets/0.0.0/datasets/_dummy/_dummy.py",
+            "Dataset '_dummy' doesn't exist on the Hub",
+            str(context.exception),
+        )
+        self.assertIn(
+            "at revision '0.0.0'",
             str(context.exception),
         )
         for offline_simulation_mode in list(OfflineSimulationMode):
@@ -596,7 +593,7 @@ class LoadTest(TestCase):
                     datasets.load_dataset("_dummy")
                 if offline_simulation_mode != OfflineSimulationMode.HF_DATASETS_OFFLINE_SET_TO_1:
                     self.assertIn(
-                        f"https://raw.githubusercontent.com/huggingface/datasets/{scripts_version}/datasets/_dummy/_dummy.py",
+                        "Couldn't reach '_dummy' on the Hub",
                         str(context.exception),
                     )
 
@@ -708,11 +705,7 @@ def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory
             assert "Using the latest cached version of the module" in caplog.text
     with pytest.raises(FileNotFoundError) as exc_info:
         datasets.load_dataset(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST)
-    m_combined_path = re.search(
-        rf"http\S*{re.escape(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST + '/' + SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST + '.py')}\b",
-        str(exc_info.value),
-    )
-    assert m_combined_path is not None and is_remote_url(m_combined_path.group())
+    assert f"Dataset '{SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST}' doesn't exist on the Hub" in str(exc_info.value)
     assert os.path.abspath(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST) in str(exc_info.value)
 
 
@@ -763,18 +756,6 @@ def test_load_dataset_streaming_csv(path_extension, streaming, csv_path, bz2_csv
     assert isinstance(ds, IterableDataset if streaming else Dataset)
     ds_item = next(iter(ds))
     assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
-
-
-@require_pil
-@pytest.mark.integration
-@pytest.mark.parametrize("streaming", [False, True])
-def test_load_dataset_private_zipped_images(hf_private_dataset_repo_zipped_img_data, hf_token, streaming):
-    ds = load_dataset(
-        hf_private_dataset_repo_zipped_img_data, split="train", streaming=streaming, use_auth_token=hf_token
-    )
-    assert isinstance(ds, IterableDataset if streaming else Dataset)
-    ds_items = list(ds)
-    assert len(ds_items) == 2
 
 
 @pytest.mark.parametrize("streaming", [False, True])
@@ -885,18 +866,30 @@ def test_loading_from_the_datasets_hub_with_use_auth_token():
 
 @pytest.mark.integration
 def test_load_streaming_private_dataset(hf_token, hf_private_dataset_repo_txt_data):
-    with pytest.raises(FileNotFoundError):
-        load_dataset(hf_private_dataset_repo_txt_data, streaming=True)
-    ds = load_dataset(hf_private_dataset_repo_txt_data, streaming=True, use_auth_token=hf_token)
+    ds = load_dataset(hf_private_dataset_repo_txt_data, streaming=True)
     assert next(iter(ds)) is not None
 
 
 @pytest.mark.integration
 def test_load_streaming_private_dataset_with_zipped_data(hf_token, hf_private_dataset_repo_zipped_txt_data):
-    with pytest.raises(FileNotFoundError):
-        load_dataset(hf_private_dataset_repo_zipped_txt_data, streaming=True)
-    ds = load_dataset(hf_private_dataset_repo_zipped_txt_data, streaming=True, use_auth_token=hf_token)
+    ds = load_dataset(hf_private_dataset_repo_zipped_txt_data, streaming=True)
     assert next(iter(ds)) is not None
+
+
+@require_pil
+@pytest.mark.integration
+@pytest.mark.parametrize("implicit_token", [False, True])
+@pytest.mark.parametrize("streaming", [False, True])
+def test_load_dataset_private_zipped_images(
+    hf_private_dataset_repo_zipped_img_data, hf_token, streaming, implicit_token
+):
+    use_auth_token = None if implicit_token else hf_token
+    ds = load_dataset(
+        hf_private_dataset_repo_zipped_img_data, split="train", streaming=streaming, use_auth_token=use_auth_token
+    )
+    assert isinstance(ds, IterableDataset if streaming else Dataset)
+    ds_items = list(ds)
+    assert len(ds_items) == 2
 
 
 def test_load_dataset_then_move_then_reload(dataset_loading_script_dir, data_dir, tmp_path, caplog):
@@ -908,7 +901,7 @@ def test_load_dataset_then_move_then_reload(dataset_loading_script_dir, data_dir
     os.rename(cache_dir1, cache_dir2)
     caplog.clear()
     dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, split="train", cache_dir=cache_dir2)
-    assert "Reusing dataset" in caplog.text
+    assert "Found cached dataset" in caplog.text
     assert dataset._fingerprint == fingerprint1, "for the caching mechanism to work, fingerprint should stay the same"
     dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, split="test", cache_dir=cache_dir2)
     assert dataset._fingerprint != fingerprint1
@@ -989,4 +982,23 @@ def test_load_dataset_deletes_extracted_files(deleted, jsonl_gz_path, tmp_path):
     else:  # default
         ds = load_dataset("json", split="train", data_files=data_files, cache_dir=cache_dir)
     assert ds[0] == {"col_1": "0", "col_2": 0, "col_3": 0.0}
-    assert (sorted((cache_dir / "downloads" / "extracted").iterdir()) == []) is deleted
+    assert (
+        [path for path in (cache_dir / "downloads" / "extracted").iterdir() if path.suffix != ".lock"] == []
+    ) is deleted
+
+
+def distributed_load_dataset(args):
+    data_name, tmp_dir, datafiles = args
+    dataset = load_dataset(data_name, cache_dir=tmp_dir, data_files=datafiles)
+    return dataset
+
+
+def test_load_dataset_distributed(tmp_path, csv_path):
+    num_workers = 5
+    args = "csv", str(tmp_path), csv_path
+    with Pool(processes=num_workers) as pool:  # start num_workers processes
+        datasets = pool.map(distributed_load_dataset, [args] * num_workers)
+        assert len(datasets) == num_workers
+        assert all(len(dataset) == len(datasets[0]) > 0 for dataset in datasets)
+        assert len(datasets[0].cache_files) > 0
+        assert all(dataset.cache_files == datasets[0].cache_files for dataset in datasets)

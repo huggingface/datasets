@@ -38,13 +38,13 @@ Now apply some augmentations with `albumentations`. You'll randomly crop the ima
 
 ```py
 >>> import cv2
->>> import albumentations as A
+>>> import albumentations
 >>> import numpy as np
 
->>> transform = A.Compose([
-...     A.RandomCrop(width=256, height=256),
-...     A.HorizontalFlip(p=0.5),
-...     A.RandomBrightnessContrast(p=0.2),
+>>> transform = albumentations.Compose([
+...     albumentations.RandomCrop(width=256, height=256),
+...     albumentations.HorizontalFlip(p=0.5),
+...     albumentations.RandomBrightnessContrast(p=0.2),
 ... ])
 ```
 
@@ -79,3 +79,11 @@ You can verify the transformation worked by indexing into the `pixel_values` of 
     <img class="block dark:hidden" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/img_clf_aug.png">
     <img class="hidden dark:block" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/img_clf_aug.png"/>
 </div>
+
+<Tip>
+
+Now that you know how to process a dataset for image classification, learn
+[how to train an image classification model](https://colab.research.google.com/github/huggingface/notebooks/blob/main/examples/image_classification.ipynb)
+and use it for inference.
+
+</Tip>

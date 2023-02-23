@@ -10,7 +10,8 @@ from tqdm.contrib.concurrent import thread_map
 from .filesystems.hffilesystem import HfFileSystem
 from .splits import Split
 from .utils import logging
-from .utils.file_utils import hf_hub_url, is_relative_path, is_remote_url, request_etag
+from .utils.file_utils import is_relative_path, is_remote_url, request_etag
+from .utils.hub import hf_hub_url
 from .utils.py_utils import string_to_dict
 
 
@@ -24,11 +25,15 @@ class Url(str):
     pass
 
 
+class EmptyDatasetError(FileNotFoundError):
+    pass
+
+
 SPLIT_PATTERN_SHARDED = "data/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"
 
 TRAIN_KEYWORDS = ["train", "training"]
 TEST_KEYWORDS = ["test", "testing", "eval", "evaluation"]
-VALIDATION_KEYWORDS = ["validation", "valid", "dev"]
+VALIDATION_KEYWORDS = ["validation", "valid", "dev", "val"]
 NON_WORDS_CHARS = "-._ 0-9"
 KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**[{sep}/]{keyword}[{sep}]*", "{keyword}[{sep}]*"]
 KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**[{sep}/]{keyword}[{sep}/]**"]
@@ -75,11 +80,16 @@ DEFAULT_PATTERNS_ALL = {
 
 ALL_SPLIT_PATTERNS = [SPLIT_PATTERN_SHARDED]
 ALL_DEFAULT_PATTERNS = [
-    DEFAULT_PATTERNS_SPLIT_IN_FILENAME,
     DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME,
+    DEFAULT_PATTERNS_SPLIT_IN_FILENAME,
     DEFAULT_PATTERNS_ALL,
 ]
-METADATA_PATTERNS = ["metadata.jsonl", "**/metadata.jsonl"]  # metadata file for ImageFolder and AudioFolder
+METADATA_PATTERNS = [
+    "metadata.csv",
+    "**/metadata.csv",
+    "metadata.jsonl",
+    "**/metadata.jsonl",
+]  # metadata file for ImageFolder and AudioFolder
 WILDCARD_CHARACTERS = "*[]"
 FILES_TO_IGNORE = ["README.md", "config.json", "dataset_infos.json", "dummy_data.zip", "dataset_dict.json"]
 
@@ -266,7 +276,7 @@ def _resolve_single_pattern_locally(
     fs = LocalFileSystem()
     glob_iter = [PurePath(filepath) for filepath in fs.glob(pattern) if fs.isfile(filepath)]
     matched_paths = [
-        Path(filepath).resolve()
+        Path(os.path.abspath(filepath))
         for filepath in glob_iter
         if (filepath.name not in FILES_TO_IGNORE or PurePath(pattern).name == filepath.name)
         and not _is_inside_unrequested_special_dir(
@@ -448,7 +458,7 @@ def get_data_patterns_locally(base_path: str) -> Dict[str, List[str]]:
     try:
         return _get_data_files_patterns(resolver)
     except FileNotFoundError:
-        raise FileNotFoundError(f"The directory at {base_path} doesn't contain any data file") from None
+        raise EmptyDatasetError(f"The directory at {base_path} doesn't contain any data files") from None
 
 
 def get_metadata_patterns_locally(base_path: str) -> List[str]:
@@ -664,8 +674,8 @@ def get_data_patterns_in_dataset_repository(
     try:
         return _get_data_files_patterns(resolver)
     except FileNotFoundError:
-        raise FileNotFoundError(
-            f"The dataset repository at '{dataset_info.id}' doesn't contain any data file."
+        raise EmptyDatasetError(
+            f"The dataset repository at '{dataset_info.id}' doesn't contain any data files"
         ) from None
 
 

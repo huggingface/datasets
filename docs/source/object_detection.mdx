@@ -77,14 +77,14 @@ With `albumentations`, you can apply transforms that will affect the image while
 `albumentations` expects the image to be in BGR format, not RGB, so you'll have to convert the image before applying the transform.
 
 ```py
->>> import albumentations as A
+>>> import albumentations
 >>> import numpy as np
 
->>> transform = A.Compose([
-...     A.Resize(480, 480),
-...     A.HorizontalFlip(p=1.0),
-...     A.RandomBrightnessContrast(p=1.0),
-... ], bbox_params=A.BboxParams(format='coco',  label_fields=['category']))
+>>> transform = albumentations.Compose([
+...     albumentations.Resize(480, 480),
+...     albumentations.HorizontalFlip(p=1.0),
+...     albumentations.RandomBrightnessContrast(p=1.0),
+... ], bbox_params=albumentations.BboxParams(format='coco',  label_fields=['category']))
 
 >>> # RGB PIL Image -> BGR Numpy array
 >>> image = np.flip(np.array(example['image']), -1)
@@ -157,3 +157,11 @@ You can verify the transform works by visualizing the 10th example:
 <div class="flex justify-center">
     <img src="https://huggingface.co/datasets/nateraw/documentation-images/resolve/main/visualize_detection_example_transformed_2.png">
 </div>
+
+<Tip>
+
+Now that you know how to process a dataset for object detection, learn
+[how to train an object detection model](https://colab.research.google.com/github/NielsRogge/Transformers-Tutorials/blob/master/YOLOS/Fine_tuning_YOLOS_for_object_detection_on_custom_dataset_(balloon).ipynb)
+and use it for inference.
+
+</Tip>

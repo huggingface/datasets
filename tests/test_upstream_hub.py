@@ -11,14 +11,16 @@ import pytest
 from huggingface_hub import HfApi
 
 from datasets import Audio, ClassLabel, Dataset, DatasetDict, Features, Image, Value, load_dataset
+from datasets.utils._hf_hub_fixes import list_repo_files
 from tests.fixtures.hub import CI_HUB_ENDPOINT, CI_HUB_USER, CI_HUB_USER_TOKEN
-from tests.utils import require_pil, require_sndfile
+from tests.utils import for_all_test_methods, require_pil, require_sndfile, xfail_if_500_502_http_error
 
 
 pytestmark = pytest.mark.integration
 
 
-@pytest.mark.usefixtures("set_ci_hub_access_token")
+@for_all_test_methods(xfail_if_500_502_http_error)
+@pytest.mark.usefixtures("set_ci_hub_access_token", "ci_hfh_hf_hub_url")
 class TestPushToHub:
     _api = HfApi(endpoint=CI_HUB_ENDPOINT)
     _token = CI_HUB_USER_TOKEN
@@ -41,7 +43,7 @@ class TestPushToHub:
             assert all(
                 fnmatch.fnmatch(file, expected_file)
                 for file, expected_file in zip(
-                    files, [".gitattributes", "data/train-00000-of-00001-*.parquet", "dataset_infos.json"]
+                    files, [".gitattributes", "README.md", "data/train-00000-of-00001-*.parquet"]
                 )
             )
 
@@ -63,7 +65,7 @@ class TestPushToHub:
             assert all(
                 fnmatch.fnmatch(file, expected_file)
                 for file, expected_file in zip(
-                    files, [".gitattributes", "data/train-00000-of-00001-*.parquet", "dataset_infos.json"]
+                    files, [".gitattributes", "README.md", "data/train-00000-of-00001-*.parquet"]
                 )
             )
 
@@ -95,11 +97,11 @@ class TestPushToHub:
             assert local_ds["train"].features == hub_ds["train"].features
 
             # Ensure that there is a single file on the repository that has the correct name
-            files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
+            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", use_auth_token=self._token))
             assert all(
                 fnmatch.fnmatch(file, expected_file)
                 for file, expected_file in zip(
-                    files, [".gitattributes", "data/train-00000-of-00001-*.parquet", "dataset_infos.json"]
+                    files, [".gitattributes", "README.md", "data/train-00000-of-00001-*.parquet"]
                 )
             )
 
@@ -117,15 +119,44 @@ class TestPushToHub:
             assert local_ds["train"].features == hub_ds["train"].features
 
             # Ensure that there is a single file on the repository that has the correct name
-            files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
+            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", use_auth_token=self._token))
             assert all(
                 fnmatch.fnmatch(file, expected_file)
                 for file, expected_file in zip(
-                    files, [".gitattributes", "data/train-00000-of-00001-*.parquet", "dataset_infos.json"]
+                    files, [".gitattributes", "README.md", "data/train-00000-of-00001-*.parquet"]
                 )
             )
 
     def test_push_dataset_dict_to_hub_multiple_files(self, temporary_repo):
+        ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
+
+        local_ds = DatasetDict({"train": ds})
+
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            with patch("datasets.config.MAX_SHARD_SIZE", "16KB"):
+                local_ds.push_to_hub(ds_name, token=self._token)
+            hub_ds = load_dataset(ds_name, download_mode="force_redownload")
+
+            assert local_ds.column_names == hub_ds.column_names
+            assert list(local_ds["train"].features.keys()) == list(hub_ds["train"].features.keys())
+            assert local_ds["train"].features == hub_ds["train"].features
+
+            # Ensure that there are two files on the repository that have the correct name
+            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", use_auth_token=self._token))
+            assert all(
+                fnmatch.fnmatch(file, expected_file)
+                for file, expected_file in zip(
+                    files,
+                    [
+                        ".gitattributes",
+                        "README.md",
+                        "data/train-00000-of-00002-*.parquet",
+                        "data/train-00001-of-00002-*.parquet",
+                    ],
+                )
+            )
+
+    def test_push_dataset_dict_to_hub_multiple_files_with_max_shard_size(self, temporary_repo):
         ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
 
         local_ds = DatasetDict({"train": ds})
@@ -139,16 +170,44 @@ class TestPushToHub:
             assert local_ds["train"].features == hub_ds["train"].features
 
             # Ensure that there are two files on the repository that have the correct name
-            files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
+            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", use_auth_token=self._token))
             assert all(
                 fnmatch.fnmatch(file, expected_file)
                 for file, expected_file in zip(
                     files,
                     [
                         ".gitattributes",
+                        "README.md",
                         "data/train-00000-of-00002-*.parquet",
                         "data/train-00001-of-00002-*.parquet",
-                        "dataset_infos.json",
+                    ],
+                )
+            )
+
+    def test_push_dataset_dict_to_hub_multiple_files_with_num_shards(self, temporary_repo):
+        ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
+
+        local_ds = DatasetDict({"train": ds})
+
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            local_ds.push_to_hub(ds_name, token=self._token, num_shards={"train": 2})
+            hub_ds = load_dataset(ds_name, download_mode="force_redownload")
+
+            assert local_ds.column_names == hub_ds.column_names
+            assert list(local_ds["train"].features.keys()) == list(hub_ds["train"].features.keys())
+            assert local_ds["train"].features == hub_ds["train"].features
+
+            # Ensure that there are two files on the repository that have the correct name
+            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", use_auth_token=self._token))
+            assert all(
+                fnmatch.fnmatch(file, expected_file)
+                for file, expected_file in zip(
+                    files,
+                    [
+                        ".gitattributes",
+                        "README.md",
+                        "data/train-00000-of-00002-*.parquet",
+                        "data/train-00001-of-00002-*.parquet",
                     ],
                 )
             )
@@ -183,7 +242,7 @@ class TestPushToHub:
             local_ds.push_to_hub(ds_name, token=self._token, max_shard_size=500 << 5)
 
             # Ensure that there are two files on the repository that have the correct name
-            files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
+            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", use_auth_token=self._token))
 
             assert all(
                 fnmatch.fnmatch(file, expected_file)
@@ -191,11 +250,11 @@ class TestPushToHub:
                     files,
                     [
                         ".gitattributes",
+                        "README.md",
                         "data/random-00000-of-00001-*.parquet",
                         "data/train-00000-of-00002-*.parquet",
                         "data/train-00001-of-00002-*.parquet",
                         "datafile.txt",
-                        "dataset_infos.json",
                     ],
                 )
             )
@@ -230,7 +289,7 @@ class TestPushToHub:
             local_ds.push_to_hub(ds_name, token=self._token)
 
             # Ensure that there are two files on the repository that have the correct name
-            files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
+            files = sorted(list_repo_files(self._api, ds_name, repo_type="dataset", use_auth_token=self._token))
 
             assert all(
                 fnmatch.fnmatch(file, expected_file)
@@ -238,10 +297,10 @@ class TestPushToHub:
                     files,
                     [
                         ".gitattributes",
+                        "README.md",
                         "data/random-00000-of-00001-*.parquet",
                         "data/train-00000-of-00001-*.parquet",
                         "datafile.txt",
-                        "dataset_infos.json",
                     ],
                 )
             )
@@ -305,7 +364,8 @@ class TestPushToHub:
                 hub_ds = hub_ds.cast_column("x", Audio(decode=False))
                 elem = hub_ds[0]["x"]
                 path, bytes_ = elem["path"], elem["bytes"]
-                assert bool(path) == (not embed_external_files)
+                assert isinstance(path, str)
+                assert os.path.basename(path) == "test_audio_44100.wav"
                 assert bool(bytes_) == embed_external_files
 
     @require_pil
@@ -327,7 +387,7 @@ class TestPushToHub:
                 hub_ds = hub_ds.cast_column("x", Image(decode=False))
                 elem = hub_ds[0]["x"]
                 path, bytes_ = elem["path"], elem["bytes"]
-                assert bool(path) == (not embed_external_files)
+                assert isinstance(path, str)
                 assert bool(bytes_) == embed_external_files
 
     @require_pil
@@ -349,7 +409,7 @@ class TestPushToHub:
                 hub_ds = hub_ds.cast_column("x", [Image(decode=False)])
                 elem = hub_ds[0]["x"][0]
                 path, bytes_ = elem["path"], elem["bytes"]
-                assert bool(path) == (not embed_external_files)
+                assert isinstance(path, str)
                 assert bool(bytes_) == embed_external_files
 
     def test_push_dataset_dict_to_hub_custom_features(self, temporary_repo):
@@ -387,7 +447,7 @@ class TestPushToHub:
                 mock_hf_api.reset_mock()
 
                 # Remove a data file
-                files = self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token)
+                files = list_repo_files(self._api, ds_name, repo_type="dataset", use_auth_token=self._token)
                 data_files = [f for f in files if f.startswith("data/")]
                 assert len(data_files) > 1
                 self._api.delete_file(data_files[0], repo_id=ds_name, repo_type="dataset", token=self._token)

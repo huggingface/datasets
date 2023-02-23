@@ -15,7 +15,7 @@
 # flake8: noqa
 # Lint as: python3
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Type
 
 from .. import config
 from ..utils import logging
@@ -23,22 +23,26 @@ from .formatting import (
     ArrowFormatter,
     CustomFormatter,
     Formatter,
-    NumpyFormatter,
     PandasFormatter,
     PythonFormatter,
     format_table,
     query_table,
 )
+from .np_formatter import NumpyFormatter
 
 
 logger = logging.get_logger(__name__)
 
-_FORMAT_TYPES: Dict[Optional[str], type] = {}
+_FORMAT_TYPES: Dict[Optional[str], Type[Formatter]] = {}
 _FORMAT_TYPES_ALIASES: Dict[Optional[str], str] = {}
 _FORMAT_TYPES_ALIASES_UNAVAILABLE: Dict[Optional[str], Exception] = {}
 
 
-def _register_formatter(formatter_cls: type, format_type: Optional[str], aliases: Optional[List[str]] = None):
+def _register_formatter(
+    formatter_cls: type,
+    format_type: Optional[str],
+    aliases: Optional[List[str]] = None,
+):
     """
     Register a Formatter object using a name and optional aliases.
     This function must be used on a Formatter class.

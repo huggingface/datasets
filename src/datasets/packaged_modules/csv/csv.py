@@ -1,6 +1,6 @@
 import itertools
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import pandas as pd
 import pyarrow as pa
@@ -15,7 +15,7 @@ from datasets.table import table_cast
 logger = datasets.utils.logging.get_logger(__name__)
 
 _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS = ["names", "prefix"]
-_PANDAS_READ_CSV_DEPRECATED_PARAMETERS = ["warn_bad_lines", "error_bad_lines"]
+_PANDAS_READ_CSV_DEPRECATED_PARAMETERS = ["warn_bad_lines", "error_bad_lines", "mangle_dupe_cols"]
 _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS = ["encoding_errors", "on_bad_lines"]
 
 
@@ -33,6 +33,7 @@ class CsvConfig(datasets.BuilderConfig):
     prefix: Optional[str] = None
     mangle_dupe_cols: bool = True
     engine: Optional[str] = None
+    converters: Dict[Union[int, str], Callable[[Any], Any]] = None
     true_values: Optional[list] = None
     false_values: Optional[list] = None
     skipinitialspace: bool = False
@@ -70,58 +71,59 @@ class CsvConfig(datasets.BuilderConfig):
             self.names = self.column_names
 
     @property
-    def read_csv_kwargs(self):
-        read_csv_kwargs = dict(
-            sep=self.sep,
-            header=self.header,
-            names=self.names,
-            index_col=self.index_col,
-            usecols=self.usecols,
-            prefix=self.prefix,
-            mangle_dupe_cols=self.mangle_dupe_cols,
-            engine=self.engine,
-            true_values=self.true_values,
-            false_values=self.false_values,
-            skipinitialspace=self.skipinitialspace,
-            skiprows=self.skiprows,
-            nrows=self.nrows,
-            na_values=self.na_values,
-            keep_default_na=self.keep_default_na,
-            na_filter=self.na_filter,
-            verbose=self.verbose,
-            skip_blank_lines=self.skip_blank_lines,
-            thousands=self.thousands,
-            decimal=self.decimal,
-            lineterminator=self.lineterminator,
-            quotechar=self.quotechar,
-            quoting=self.quoting,
-            escapechar=self.escapechar,
-            comment=self.comment,
-            encoding=self.encoding,
-            dialect=self.dialect,
-            error_bad_lines=self.error_bad_lines,
-            warn_bad_lines=self.warn_bad_lines,
-            skipfooter=self.skipfooter,
-            doublequote=self.doublequote,
-            memory_map=self.memory_map,
-            float_precision=self.float_precision,
-            chunksize=self.chunksize,
-            encoding_errors=self.encoding_errors,
-            on_bad_lines=self.on_bad_lines,
-        )
+    def pd_read_csv_kwargs(self):
+        pd_read_csv_kwargs = {
+            "sep": self.sep,
+            "header": self.header,
+            "names": self.names,
+            "index_col": self.index_col,
+            "usecols": self.usecols,
+            "prefix": self.prefix,
+            "mangle_dupe_cols": self.mangle_dupe_cols,
+            "engine": self.engine,
+            "converters": self.converters,
+            "true_values": self.true_values,
+            "false_values": self.false_values,
+            "skipinitialspace": self.skipinitialspace,
+            "skiprows": self.skiprows,
+            "nrows": self.nrows,
+            "na_values": self.na_values,
+            "keep_default_na": self.keep_default_na,
+            "na_filter": self.na_filter,
+            "verbose": self.verbose,
+            "skip_blank_lines": self.skip_blank_lines,
+            "thousands": self.thousands,
+            "decimal": self.decimal,
+            "lineterminator": self.lineterminator,
+            "quotechar": self.quotechar,
+            "quoting": self.quoting,
+            "escapechar": self.escapechar,
+            "comment": self.comment,
+            "encoding": self.encoding,
+            "dialect": self.dialect,
+            "error_bad_lines": self.error_bad_lines,
+            "warn_bad_lines": self.warn_bad_lines,
+            "skipfooter": self.skipfooter,
+            "doublequote": self.doublequote,
+            "memory_map": self.memory_map,
+            "float_precision": self.float_precision,
+            "chunksize": self.chunksize,
+            "encoding_errors": self.encoding_errors,
+            "on_bad_lines": self.on_bad_lines,
+        }
 
         # some kwargs must not be passed if they don't have a default value
         # some others are deprecated and we can also not pass them if they are the default value
-        for read_csv_parameter in _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS + _PANDAS_READ_CSV_DEPRECATED_PARAMETERS:
-            if read_csv_kwargs[read_csv_parameter] == getattr(CsvConfig(), read_csv_parameter):
-                del read_csv_kwargs[read_csv_parameter]
+        for pd_read_csv_parameter in _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS + _PANDAS_READ_CSV_DEPRECATED_PARAMETERS:
+            if pd_read_csv_kwargs[pd_read_csv_parameter] == getattr(CsvConfig(), pd_read_csv_parameter):
+                del pd_read_csv_kwargs[pd_read_csv_parameter]
 
         # Remove 1.3 new arguments
         if not (datasets.config.PANDAS_VERSION.major >= 1 and datasets.config.PANDAS_VERSION.minor >= 3):
-            for read_csv_parameter in _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS:
-                del read_csv_kwargs[read_csv_parameter]
+            for pd_read_csv_parameter in _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS:
+                del pd_read_csv_kwargs[pd_read_csv_parameter]
 
-        return read_csv_kwargs
+        return pd_read_csv_kwargs
 
 
 class Csv(datasets.ArrowBasedBuilder):
@@ -172,7 +174,7 @@ class Csv(datasets.ArrowBasedBuilder):
             else None
         )
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
-            csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **self.config.read_csv_kwargs)
+            csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **self.config.pd_read_csv_kwargs)
             try:
                 for batch_idx, df in enumerate(csv_file_reader):
                     pa_table = pa.Table.from_pandas(df)

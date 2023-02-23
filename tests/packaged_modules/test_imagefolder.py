@@ -8,7 +8,6 @@ from datasets import ClassLabel, Features, Image, Value
 from datasets.data_files import DataFilesDict, get_data_patterns_locally
 from datasets.download.streaming_download_manager import StreamingDownloadManager
 from datasets.packaged_modules.imagefolder.imagefolder import ImageFolder
-from datasets.streaming import extend_module_for_streaming
 
 from ..utils import require_pil
 
@@ -24,8 +23,7 @@ def data_files_with_labels_no_metadata(tmp_path, image_file):
     data_dir.mkdir(parents=True, exist_ok=True)
     subdir_class_0 = data_dir / "cat"
     subdir_class_0.mkdir(parents=True, exist_ok=True)
-    # data dirs can be nested but imagefolder should care only about the last part of the path:
-    subdir_class_1 = data_dir / "subdir" / "dog"
+    subdir_class_1 = data_dir / "dog"
     subdir_class_1.mkdir(parents=True, exist_ok=True)
 
     image_filename = subdir_class_0 / "image_cat.jpg"
@@ -99,8 +97,8 @@ def image_files_with_metadata_that_misses_one_image(tmp_path, image_file):
     return str(image_filename), str(image_filename2), str(image_metadata_filename)
 
 
-@pytest.fixture
-def data_files_with_one_split_and_metadata(tmp_path, image_file):
+@pytest.fixture(params=["jsonl", "csv"])
+def data_files_with_one_split_and_metadata(request, tmp_path, image_file):
     data_dir = tmp_path / "imagefolder_data_dir_with_metadata_one_split"
     data_dir.mkdir(parents=True, exist_ok=True)
     subdir = data_dir / "subdir"
@@ -113,13 +111,24 @@ def data_files_with_one_split_and_metadata(tmp_path, image_file):
     image_filename3 = subdir / "image_rgb3.jpg"  # in subdir
     shutil.copyfile(image_file, image_filename3)
 
-    image_metadata_filename = data_dir / "metadata.jsonl"
-    image_metadata = textwrap.dedent(
-        """\
+    image_metadata_filename = data_dir / f"metadata.{request.param}"
+    image_metadata = (
+        textwrap.dedent(
+            """\
         {"file_name": "image_rgb.jpg", "caption": "Nice image"}
         {"file_name": "image_rgb2.jpg", "caption": "Nice second image"}
         {"file_name": "subdir/image_rgb3.jpg", "caption": "Nice third image"}
         """
+        )
+        if request.param == "jsonl"
+        else textwrap.dedent(
+            """\
+        file_name,caption
+        image_rgb.jpg,Nice image
+        image_rgb2.jpg,Nice second image
+        subdir/image_rgb3.jpg,Nice third image
+        """
+        )
     )
     with open(image_metadata_filename, "w", encoding="utf-8") as f:
         f.write(image_metadata)
@@ -131,8 +140,8 @@ def data_files_with_one_split_and_metadata(tmp_path, image_file):
     return data_files_with_one_split_and_metadata
 
 
-@pytest.fixture
-def data_files_with_two_splits_and_metadata(tmp_path, image_file):
+@pytest.fixture(params=["jsonl", "csv"])
+def data_files_with_two_splits_and_metadata(request, tmp_path, image_file):
     data_dir = tmp_path / "imagefolder_data_dir_with_metadata_two_splits"
     data_dir.mkdir(parents=True, exist_ok=True)
     train_dir = data_dir / "train"
@@ -147,20 +156,39 @@ def data_files_with_two_splits_and_metadata(tmp_path, image_file):
     image_filename3 = test_dir / "image_rgb3.jpg"  # test image
     shutil.copyfile(image_file, image_filename3)
 
-    train_image_metadata_filename = train_dir / "metadata.jsonl"
-    image_metadata = textwrap.dedent(
-        """\
+    train_image_metadata_filename = train_dir / f"metadata.{request.param}"
+    image_metadata = (
+        textwrap.dedent(
+            """\
         {"file_name": "image_rgb.jpg", "caption": "Nice train image"}
         {"file_name": "image_rgb2.jpg", "caption": "Nice second train image"}
         """
+        )
+        if request.param == "jsonl"
+        else textwrap.dedent(
+            """\
+        file_name,caption
+        image_rgb.jpg,Nice train image
+        image_rgb2.jpg,Nice second train image
+        """
+        )
     )
     with open(train_image_metadata_filename, "w", encoding="utf-8") as f:
         f.write(image_metadata)
-    test_image_metadata_filename = test_dir / "metadata.jsonl"
-    image_metadata = textwrap.dedent(
-        """\
+    test_image_metadata_filename = test_dir / f"metadata.{request.param}"
+    image_metadata = (
+        textwrap.dedent(
+            """\
         {"file_name": "image_rgb3.jpg", "caption": "Nice test image"}
         """
+        )
+        if request.param == "jsonl"
+        else textwrap.dedent(
+            """\
+        file_name,caption
+        image_rgb3.jpg,Nice test image
+        """
+        )
     )
     with open(test_image_metadata_filename, "w", encoding="utf-8") as f:
         f.write(image_metadata)
@@ -262,8 +290,10 @@ def test_generate_examples_duplicated_label_key(
 @require_pil
 @pytest.mark.parametrize("drop_metadata", [None, True, False])
 @pytest.mark.parametrize("drop_labels", [None, True, False])
-def test_generate_examples_drop_labels(image_file, drop_metadata, drop_labels):
-    imagefolder = ImageFolder(drop_metadata=drop_metadata, drop_labels=drop_labels, data_files={"train": [image_file]})
+def test_generate_examples_drop_labels(data_files_with_labels_no_metadata, drop_metadata, drop_labels):
+    imagefolder = ImageFolder(
+        drop_metadata=drop_metadata, drop_labels=drop_labels, data_files=data_files_with_labels_no_metadata
+    )
     gen_kwargs = imagefolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
     # removing the labels explicitly requires drop_labels=True
     assert gen_kwargs["add_labels"] is not bool(drop_labels)
@@ -354,11 +384,8 @@ def test_generate_examples_with_metadata_that_misses_one_image(
 
 @require_pil
 @pytest.mark.parametrize("streaming", [False, True])
-@pytest.mark.parametrize("n_splits", [1, 2])
-def test_data_files_with_metadata_and_splits(
-    streaming, cache_dir, n_splits, data_files_with_one_split_and_metadata, data_files_with_two_splits_and_metadata
-):
-    data_files = data_files_with_one_split_and_metadata if n_splits == 1 else data_files_with_two_splits_and_metadata
+def test_data_files_with_metadata_and_single_split(streaming, cache_dir, data_files_with_one_split_and_metadata):
+    data_files = data_files_with_one_split_and_metadata
     imagefolder = ImageFolder(data_files=data_files, cache_dir=cache_dir)
     imagefolder.download_and_prepare()
     datasets = imagefolder.as_streaming_dataset() if streaming else imagefolder.as_dataset()
@@ -368,16 +395,32 @@ def test_data_files_with_metadata_and_splits(
         dataset = list(datasets[split])
         assert len(dataset) == expected_num_of_images
         # make sure each sample has its own image and metadata
-        assert len(set(example["image"].filename for example in dataset)) == expected_num_of_images
-        assert len(set(example["caption"] for example in dataset)) == expected_num_of_images
+        assert len({example["image"].filename for example in dataset}) == expected_num_of_images
+        assert len({example["caption"] for example in dataset}) == expected_num_of_images
+        assert all(example["caption"] is not None for example in dataset)
+
+
+@require_pil
+@pytest.mark.parametrize("streaming", [False, True])
+def test_data_files_with_metadata_and_multiple_splits(streaming, cache_dir, data_files_with_two_splits_and_metadata):
+    data_files = data_files_with_two_splits_and_metadata
+    imagefolder = ImageFolder(data_files=data_files, cache_dir=cache_dir)
+    imagefolder.download_and_prepare()
+    datasets = imagefolder.as_streaming_dataset() if streaming else imagefolder.as_dataset()
+    for split, data_files in data_files.items():
+        expected_num_of_images = len(data_files) - 1  # don't count the metadata file
+        assert split in datasets
+        dataset = list(datasets[split])
+        assert len(dataset) == expected_num_of_images
+        # make sure each sample has its own image and metadata
+        assert len({example["image"].filename for example in dataset}) == expected_num_of_images
+        assert len({example["caption"] for example in dataset}) == expected_num_of_images
         assert all(example["caption"] is not None for example in dataset)
 
 
 @require_pil
 @pytest.mark.parametrize("streaming", [False, True])
 def test_data_files_with_metadata_and_archives(streaming, cache_dir, data_files_with_zip_archives):
-    if streaming:
-        extend_module_for_streaming(ImageFolder.__module__)
     imagefolder = ImageFolder(data_files=data_files_with_zip_archives, cache_dir=cache_dir)
     imagefolder.download_and_prepare()
     datasets = imagefolder.as_streaming_dataset() if streaming else imagefolder.as_dataset()
@@ -388,8 +431,8 @@ def test_data_files_with_metadata_and_archives(streaming, cache_dir, data_files_
         dataset = list(datasets[split])
         assert len(dataset) == expected_num_of_images
         # make sure each sample has its own image and metadata
-        assert len(set([np.array(example["image"])[0, 0, 0] for example in dataset])) == expected_num_of_images
-        assert len(set(example["caption"] for example in dataset)) == expected_num_of_images
+        assert len({np.array(example["image"])[0, 0, 0] for example in dataset}) == expected_num_of_images
+        assert len({example["caption"] for example in dataset}) == expected_num_of_images
         assert all(example["caption"] is not None for example in dataset)
 
 
@@ -434,3 +477,33 @@ def test_data_files_with_wrong_image_file_name_column_in_metadata_file(cache_dir
     with pytest.raises(ValueError) as exc_info:
         imagefolder.download_and_prepare()
     assert "`file_name` must be present" in str(exc_info.value)
+
+
+@require_pil
+def test_data_files_with_with_metadata_in_different_formats(cache_dir, tmp_path, image_file):
+    data_dir = tmp_path / "data_dir_with_metadata_in_different_format"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(image_file, data_dir / "image_rgb.jpg")
+    image_metadata_filename_jsonl = data_dir / "metadata.jsonl"
+    image_metadata_jsonl = textwrap.dedent(
+        """\
+        {"file_name": "image_rgb.jpg", "caption": "Nice image"}
+        """
+    )
+    with open(image_metadata_filename_jsonl, "w", encoding="utf-8") as f:
+        f.write(image_metadata_jsonl)
+    image_metadata_filename_csv = data_dir / "metadata.csv"
+    image_metadata_csv = textwrap.dedent(
+        """\
+        file_name,caption
+        image_rgb.jpg,Nice image
+        """
+    )
+    with open(image_metadata_filename_csv, "w", encoding="utf-8") as f:
+        f.write(image_metadata_csv)
+
+    data_files_with_bad_metadata = DataFilesDict.from_local_or_remote(get_data_patterns_locally(data_dir), data_dir)
+    imagefolder = ImageFolder(data_files=data_files_with_bad_metadata, cache_dir=cache_dir)
+    with pytest.raises(ValueError) as exc_info:
+        imagefolder.download_and_prepare()
+    assert "metadata files with different extensions" in str(exc_info.value)

@@ -32,11 +32,18 @@ from datasets import load_metric
 from .utils import for_all_test_methods, local, slow
 
 
+# mark all tests as integration
+pytestmark = pytest.mark.integration
+
+
 REQUIRE_FAIRSEQ = {"comet"}
 _has_fairseq = importlib.util.find_spec("fairseq") is not None
 
 UNSUPPORTED_ON_WINDOWS = {"code_eval"}
 _on_windows = os.name == "nt"
+
+REQUIRE_TRANSFORMERS = {"bertscore", "frugalscore", "perplexity"}
+_has_transformers = importlib.util.find_spec("transformers") is not None
 
 
 def skip_if_metric_requires_fairseq(test_case):
@@ -44,6 +51,17 @@ def skip_if_metric_requires_fairseq(test_case):
     def wrapper(self, metric_name):
         if not _has_fairseq and metric_name in REQUIRE_FAIRSEQ:
             self.skipTest('"test requires Fairseq"')
+        else:
+            test_case(self, metric_name)
+
+    return wrapper
+
+
+def skip_if_metric_requires_transformers(test_case):
+    @wraps(test_case)
+    def wrapper(self, metric_name):
+        if not _has_transformers and metric_name in REQUIRE_TRANSFORMERS:
+            self.skipTest('"test requires transformers"')
         else:
             test_case(self, metric_name)
 
@@ -67,9 +85,10 @@ def get_local_metric_names():
 
 
 @parameterized.named_parameters(get_local_metric_names())
-@for_all_test_methods(skip_if_metric_requires_fairseq, skip_on_windows_if_not_windows_compatible)
+@for_all_test_methods(
+    skip_if_metric_requires_fairseq, skip_if_metric_requires_transformers, skip_on_windows_if_not_windows_compatible
+)
 @local
-@pytest.mark.integration
 class LocalMetricTest(parameterized.TestCase):
     INTENSIVE_CALLS_PATCHER = {}
     metric_name = None

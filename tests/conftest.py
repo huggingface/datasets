@@ -4,7 +4,7 @@ import datasets
 
 
 # Import fixture modules as plugins
-pytest_plugins = ["tests.fixtures.files", "tests.fixtures.hub", "tests.fixtures.s3"]
+pytest_plugins = ["tests.fixtures.files", "tests.fixtures.hub", "tests.fixtures.fsspec"]
 
 
 def pytest_collection_modifyitems(config, items):
@@ -13,6 +13,10 @@ def pytest_collection_modifyitems(config, items):
         if any(marker in item.keywords for marker in ["integration", "unit"]):
             continue
         item.add_marker(pytest.mark.unit)
+
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", "torchaudio_latest: mark test to run with torchaudio>=0.12")
 
 
 @pytest.fixture(autouse=True)

@@ -7,8 +7,9 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
+from datasets import Array2D
 from datasets.arrow_dataset import Dataset
-from datasets.features import ClassLabel, Features, Image, Sequence, Value
+from datasets.features import Audio, ClassLabel, Features, Image, Sequence, Value
 from datasets.features.features import (
     _arrow_to_datasets_dtype,
     _cast_to_python_objects,
@@ -286,6 +287,8 @@ def test_classlabel_init(tmp_path_factory):
         classlabel = ClassLabel(names=names, names_file=names_file)
     with pytest.raises(ValueError):
         classlabel = ClassLabel()
+    with pytest.raises(TypeError):
+        classlabel = ClassLabel(names=np.array(names))
 
 
 def test_classlabel_str2int():
@@ -343,7 +346,11 @@ def test_classlabel_cast_storage():
     assert result.type == pa.int64()
     assert result.to_pylist() == [None]
     # from empty
-    arr = pa.array([])
+    arr = pa.array([], pa.int64())
+    result = classlabel.cast_storage(arr)
+    assert result.type == pa.int64()
+    assert result.to_pylist() == []
+    arr = pa.array([], pa.string())
     result = classlabel.cast_storage(arr)
     assert result.type == pa.int64()
     assert result.to_pylist() == []
@@ -438,7 +445,6 @@ def iternumpy(key1, value1, value2):
 
 
 def dict_diff(d1: dict, d2: dict):  # check if 2 dictionaries are equal
-
     np.testing.assert_equal(d1, d2)  # sanity check if dict values are equal or not
 
     for (k1, v1), (k2, v2) in zip(d1.items(), d2.items()):  # check if their values have same dtype or not
@@ -447,7 +453,7 @@ def dict_diff(d1: dict, d2: dict):  # check if 2 dictionaries are equal
         elif isinstance(v1, np.ndarray):  # checks if dtype and value of np.ndarray is equal
             iternumpy(k1, v1, v2)
         elif isinstance(v1, list):
-            for (element1, element2) in zip(v1, v2):  # iterates over all elements of list
+            for element1, element2 in zip(v1, v2):  # iterates over all elements of list
                 if isinstance(element1, dict):
                     dict_diff(element1, element2)
                 elif isinstance(element1, np.ndarray):
@@ -463,7 +469,7 @@ class CastToPythonObjectsTest(TestCase):
 
     def test_cast_to_python_objects_tuple(self):
         obj = {"col_1": [{"vec": (1, 2, 3), "txt": "foo"}] * 3, "col_2": [(1, 2), (3, 4), (5, 6)]}
-        expected_obj = {"col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3, "col_2": [[1, 2], [3, 4], [5, 6]]}
+        expected_obj = {"col_1": [{"vec": (1, 2, 3), "txt": "foo"}] * 3, "col_2": [(1, 2), (3, 4), (5, 6)]}
         casted_obj = cast_to_python_objects(obj)
         self.assertDictEqual(casted_obj, expected_obj)
 
@@ -562,3 +568,65 @@ class CastToPythonObjectsTest(TestCase):
         obj = {"col_1": [[1, 2], [3, 4], [5, 6]]}
         cast_to_python_objects(obj)
         self.assertEqual(mocked_cast.call_count, 4)  # 4 = depth of obj
+
+
+SIMPLE_FEATURES = [
+    Features(),
+    Features({"a": Value("int32")}),
+    Features({"a": Value("int32", id="my feature")}),
+    Features({"a": Value("int32"), "b": Value("float64"), "c": Value("string")}),
+]
+
+CUSTOM_FEATURES = [
+    Features({"label": ClassLabel(names=["negative", "positive"])}),
+    Features({"array": Array2D(dtype="float32", shape=(4, 4))}),
+    Features({"image": Image()}),
+    Features({"audio": Audio()}),
+    Features({"image": Image(decode=False)}),
+    Features({"audio": Audio(decode=False)}),
+    Features({"translation": Translation(["en", "fr"])}),
+    Features({"translation": TranslationVariableLanguages(["en", "fr"])}),
+]
+
+NESTED_FEATURES = [
+    Features({"foo": {}}),
+    Features({"foo": {"bar": Value("int32")}}),
+    Features({"foo": {"bar1": Value("int32"), "bar2": Value("float64")}}),
+    Features({"foo": Sequence(Value("int32"))}),
+    Features({"foo": Sequence({})}),
+    Features({"foo": Sequence({"bar": Value("int32")})}),
+    Features({"foo": [Value("int32")]}),
+    Features({"foo": [{"bar": Value("int32")}]}),
+]
+
+NESTED_CUSTOM_FEATURES = [
+    Features({"foo": {"bar": ClassLabel(names=["negative", "positive"])}}),
+    Features({"foo": Sequence(ClassLabel(names=["negative", "positive"]))}),
+    Features({"foo": Sequence({"bar": ClassLabel(names=["negative", "positive"])})}),
+    Features({"foo": [ClassLabel(names=["negative", "positive"])]}),
+    Features({"foo": [{"bar": ClassLabel(names=["negative", "positive"])}]}),
+]
+
+
+@pytest.mark.parametrize("features", SIMPLE_FEATURES + CUSTOM_FEATURES + NESTED_FEATURES + NESTED_CUSTOM_FEATURES)
+def test_features_to_dict(features: Features):
+    features_dict = features.to_dict()
+    assert isinstance(features_dict, dict)
+    reloaded = Features.from_dict(features_dict)
+    assert features == reloaded
+
+
+@pytest.mark.parametrize("features", SIMPLE_FEATURES + CUSTOM_FEATURES + NESTED_FEATURES + NESTED_CUSTOM_FEATURES)
+def test_features_to_yaml_list(features: Features):
+    features_yaml_list = features._to_yaml_list()
+    assert isinstance(features_yaml_list, list)
+    reloaded = Features._from_yaml_list(features_yaml_list)
+    assert features == reloaded
+
+
+@pytest.mark.parametrize("features", SIMPLE_FEATURES + CUSTOM_FEATURES + NESTED_FEATURES + NESTED_CUSTOM_FEATURES)
+def test_features_to_arrow_schema(features: Features):
+    arrow_schema = features.arrow_schema
+    assert isinstance(arrow_schema, pa.Schema)
+    reloaded = Features.from_arrow_schema(arrow_schema)
+    assert features == reloaded

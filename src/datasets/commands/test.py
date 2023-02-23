@@ -10,6 +10,7 @@ from datasets.commands import BaseDatasetsCLICommand
 from datasets.download.download_manager import DownloadMode
 from datasets.load import dataset_module_factory, import_main_class
 from datasets.utils.filelock import logger as fl_logger
+from datasets.utils.info_utils import VerificationMode
 from datasets.utils.logging import ERROR, get_logger
 
 
@@ -23,7 +24,7 @@ def _test_command_factory(args):
         args.cache_dir,
         args.data_dir,
         args.all_configs,
-        args.save_infos,
+        args.save_info or args.save_infos,
         args.ignore_verifications,
         args.force_redownload,
         args.clear_cache,
@@ -50,9 +51,13 @@ class TestCommand(BaseDatasetsCLICommand):
             help="Can be used to specify a manual directory to get the files from.",
         )
         test_parser.add_argument("--all_configs", action="store_true", help="Test all dataset configurations")
-        test_parser.add_argument("--save_infos", action="store_true", help="Save the dataset infos file")
         test_parser.add_argument(
-            "--ignore_verifications", action="store_true", help="Run the test without checksums and splits checks"
+            "--save_info", action="store_true", help="Save the dataset infos in the dataset card (README.md)"
+        )
+        test_parser.add_argument(
+            "--ignore_verifications",
+            action="store_true",
+            help="Run the test without checksums and splits checks.",
         )
         test_parser.add_argument("--force_redownload", action="store_true", help="Force dataset redownload")
         test_parser.add_argument(
@@ -60,6 +65,8 @@ class TestCommand(BaseDatasetsCLICommand):
             action="store_true",
             help="Remove downloaded files and cached datasets after each config test",
         )
+        # aliases
+        test_parser.add_argument("--save_infos", action="store_true", help="alias to save_info")
         test_parser.add_argument("dataset", type=str, help="Name of the dataset to download")
         test_parser.set_defaults(func=_test_command_factory)
 
@@ -138,20 +145,22 @@ class TestCommand(BaseDatasetsCLICommand):
                 download_mode=DownloadMode.REUSE_CACHE_IF_EXISTS
                 if not self._force_redownload
                 else DownloadMode.FORCE_REDOWNLOAD,
-                ignore_verifications=self._ignore_verifications,
+                verification_mode=VerificationMode.NO_CHECKS
+                if self._ignore_verifications
+                else VerificationMode.ALL_CHECKS,
                 try_from_hf_gcs=False,
             )
             builder.as_dataset()
             if self._save_infos:
                 builder._save_infos()
 
-            # If save_infos=True, the dataset infos file is created next to the loaded module file.
+            # If save_infos=True, the dataset card (README.md) is created next to the loaded module file.
+            # The dataset_infos are saved in the YAML part of the README.md
+
             # Let's move it to the original directory of the dataset script, to allow the user to
             # upload them on S3 at the same time afterwards.
             if self._save_infos:
-                dataset_infos_path = os.path.join(
-                    builder_cls.get_imported_module_dir(), datasets.config.DATASETDICT_INFOS_FILENAME
-                )
+                dataset_readme_path = os.path.join(builder_cls.get_imported_module_dir(), "README.md")
                 name = Path(path).name + ".py"
                 combined_path = os.path.join(path, name)
                 if os.path.isfile(path):
@@ -162,13 +171,13 @@ class TestCommand(BaseDatasetsCLICommand):
                     dataset_dir = path
                 else:  # in case of a remote dataset
                     dataset_dir = None
-                    print(f"Dataset Infos file saved at {dataset_infos_path}")
+                    print(f"Dataset card saved at {dataset_readme_path}")
 
                 # Move dataset_info back to the user
                 if dataset_dir is not None:
-                    user_dataset_infos_path = os.path.join(dataset_dir, datasets.config.DATASETDICT_INFOS_FILENAME)
-                    copyfile(dataset_infos_path, user_dataset_infos_path)
-                    print(f"Dataset Infos file saved at {user_dataset_infos_path}")
+                    user_dataset_readme_path = os.path.join(dataset_dir, "README.md")
+                    copyfile(dataset_readme_path, user_dataset_readme_path)
+                    print(f"Dataset card saved at {user_dataset_readme_path}")
 
             # If clear_cache=True, the download folder and the dataset builder cache directory are deleted
             if self._clear_cache:

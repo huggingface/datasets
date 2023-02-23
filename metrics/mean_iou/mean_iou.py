@@ -252,7 +252,7 @@ def mean_iou(
     )
 
     # compute metrics
-    metrics = dict()
+    metrics = {}
 
     all_acc = total_area_intersect.sum() / total_area_label.sum()
     iou = total_area_intersect / total_area_union

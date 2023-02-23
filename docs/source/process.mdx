@@ -28,7 +28,8 @@ All processing methods in this guide return a new [`Dataset`] object. Modificati
 
 ## Sort, shuffle, select, split, and shard
 
-There are several functions for rearranging the structure of a dataset. These functions are useful for selecting only the rows you want, creating train and test splits, and sharding very large datasets into smaller chunks.
+There are several functions for rearranging the structure of a dataset.
+These functions are useful for selecting only the rows you want, creating train and test splits, and sharding very large datasets into smaller chunks.
 
 ### Sort
 
@@ -44,6 +45,9 @@ Use [`~Dataset.sort`] to sort column values according to their numerical values.
 [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ```
 
+Under the hood, this creates a list of indices that is sorted according to values of the column.
+This indices mapping is then used to access the right rows in the underlying Arrow table.
+
 ### Shuffle
 
 The [`~Dataset.shuffle`] function randomly rearranges the column values. You can specify the `generator` parameter in this function to use a different `numpy.random.Generator` if you want more control over the algorithm used to shuffle the dataset.
@@ -52,6 +56,17 @@ The [`~Dataset.shuffle`] function randomly rearranges the column values. You can
 >>> shuffled_dataset = sorted_dataset.shuffle(seed=42)
 >>> shuffled_dataset["label"][:10]
 [1, 1, 1, 0, 1, 1, 1, 1, 1, 0]
+```
+
+Shuffling takes the list of indices `[0:len(my_dataset)]` and shuffles it to create an indices mapping.
+However as soon as your [`Dataset`] has an indices mapping, the speed can become 10x slower.
+This is because there is an extra step to get the row index to read using the indices mapping, and most importantly, you aren't reading contiguous chunks of data anymore.
+To restore the speed, you'd need to rewrite the entire dataset on your disk again using [`Dataset.flatten_indices`], which removes the indices mapping.
+Alternatively, you can switch to an [`IterableDataset`] and leverage its fast approximate shuffling [`IterableDataset.shuffle`]:
+
+```py
+>>> iterable_dataset = dataset.to_iterable_dataset(num_shards=128)
+>>> shuffled_iterable_dataset = iterable_dataset.shuffle(seed=42, buffer_size=1000)
 ```
 
 ### Select and Filter
@@ -91,6 +106,8 @@ There are two options for filtering rows in a dataset: [`~Dataset.select`] and [
 >>> len(dataset) / 2
 1834.0
 ```
+
+Unless the list of indices to keep is contiguous, those methods also create an indices mapping under the hood.
 
 ### Split
 
@@ -256,7 +273,7 @@ Start by creating a function that adds `'My sentence: '` to the beginning of eac
 
 ```py
 >>> def add_prefix(example):
-...     example["sentence1"] = 'My sentence: '' + example["sentence1"]
+...     example["sentence1"] = 'My sentence: ' + example["sentence1"]
 ...     return example
 ```
 
@@ -489,18 +506,44 @@ Separate datasets can be concatenated if they share the same column types. Conca
 >>> bert_dataset = concatenate_datasets([bookcorpus, wiki])
 ```
 
-<Tip>
-
-You can also mix several datasets together by taking alternating examples from each one to create a new dataset. This is known as *interleaving*, which is enabled by the [`interleave_datasets`] function. Both [`interleave_datasets`] and [`concatenate_datasets`] work with regular [`Dataset`] and [`IterableDataset`] objects. Refer to the [Stream](./stream#interleave) guide for an example of how to interleave datasets.
-
-</Tip>
-
 You can also concatenate two datasets horizontally by setting `axis=1` as long as the datasets have the same number of rows:
 
 ```py
 >>> from datasets import Dataset
 >>> bookcorpus_ids = Dataset.from_dict({"ids": list(range(len(bookcorpus)))})
 >>> bookcorpus_with_ids = concatenate_datasets([bookcorpus, bookcorpus_ids], axis=1)
+```
+
+### Interleave
+
+You can also mix several datasets together by taking alternating examples from each one to create a new dataset. This is known as *interleaving*, which is enabled by the [`interleave_datasets`] function. Both [`interleave_datasets`] and [`concatenate_datasets`] work with regular [`Dataset`] and [`IterableDataset`] objects.
+Refer to the [Stream](./stream#interleave) guide for an example of how to interleave [`IterableDataset`] objects.
+
+You can define sampling probabilities for each of the original datasets to specify how to interleave the datasets.
+In this case, the new dataset is constructed by getting examples one by one from a random dataset until one of the datasets runs out of samples.
+
+```py
+>>> seed = 42
+>>> probabilities = [0.3, 0.5, 0.2]
+>>> d1 = Dataset.from_dict({"a": [0, 1, 2]})
+>>> d2 = Dataset.from_dict({"a": [10, 11, 12, 13]})
+>>> d3 = Dataset.from_dict({"a": [20, 21, 22]})
+>>> dataset = interleave_datasets([d1, d2, d3], probabilities=probabilities, seed=seed)
+>>> dataset["a"]
+[10, 11, 20, 12, 0, 21, 13]
+```
+
+You can also specify the `stopping_strategy`. The default strategy, `first_exhausted`, is a subsampling strategy, i.e the dataset construction is stopped as soon one of the dataset runs out of samples.
+You can specify `stopping_strategy=all_exhausted` to execute an oversampling strategy. In this case, the dataset construction is stopped as soon as every samples in every dataset has been added at least once. In practice, it means that if a dataset is exhausted, it will return to the beginning of this dataset until the stop criterion has been reached.
+Note that if no sampling probabilities are specified, the new dataset will have `max_length_datasets*nb_dataset samples`.
+
+```py
+>>> d1 = Dataset.from_dict({"a": [0, 1, 2]})
+>>> d2 = Dataset.from_dict({"a": [10, 11, 12, 13]})
+>>> d3 = Dataset.from_dict({"a": [20, 21, 22]})
+>>> dataset = interleave_datasets([d1, d2, d3], stopping_strategy="all_exhausted")
+>>> dataset["a"]
+[0, 10, 20, 1, 11, 21, 2, 12, 22, 0, 13, 20]
 ```
 
 ## Format
@@ -583,6 +626,7 @@ Want to save your dataset to a cloud storage provider? Read our [Cloud Storage](
 | CSV                     | [`Dataset.to_csv`]                                    |
 | JSON                    | [`Dataset.to_json`]                                   |
 | Parquet                 | [`Dataset.to_parquet`]                                |
+| SQL                     | [`Dataset.to_sql`]                                    |
 | In-memory Python object | [`Dataset.to_pandas`] or [`Dataset.to_dict`] |
 
 For example, export your dataset to a CSV file like this:

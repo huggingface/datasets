@@ -14,6 +14,7 @@ from datasets.download.download_config import DownloadConfig
 from datasets.download.download_manager import DownloadManager
 from datasets.download.mock_download_manager import MockDownloadManager
 from datasets.load import dataset_module_factory, import_main_class
+from datasets.utils.deprecation_utils import deprecated
 from datasets.utils.logging import get_logger, set_verbosity_warning
 from datasets.utils.py_utils import map_nested
 
@@ -212,6 +213,9 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
         shutil.rmtree(base_name)
 
 
+@deprecated(
+    "The `datasets` repository does not host the dataset scripts anymore. Therefore, dummy data is no longer needed to test their loading with CI."
+)
 class DummyDataCommand(BaseDatasetsCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
@@ -390,7 +394,6 @@ class DummyDataCommand(BaseDatasetsCLICommand):
         try:
             generator_splits = dataset_builder._split_generators(mock_dl_manager)
         except FileNotFoundError as e:
-
             print(
                 f"Dataset {self._dataset_name} with config {mock_dl_manager.config} seems to already open files in the method `_split_generators(...)`. You might consider to instead only open files in the method `_generate_examples(...)` instead. If this is not possible the dummy data has to be created with less guidance. Make sure you create the file {e.filename}."
             )

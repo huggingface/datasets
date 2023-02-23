@@ -19,12 +19,12 @@ import json
 import re
 import sys
 from collections.abc import Iterable, Mapping
+from collections.abc import Sequence as SequenceABC
 from dataclasses import InitVar, dataclass, field, fields
 from functools import reduce, wraps
 from operator import mul
-from typing import Any, ClassVar, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
 from typing import Sequence as Sequence_
-from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -35,6 +35,7 @@ from pandas.api.extensions import ExtensionArray as PandasExtensionArray
 from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 
 from .. import config
+from ..naming import camelcase_to_snakecase, snakecase_to_camelcase
 from ..table import array_cast
 from ..utils import logging
 from ..utils.py_utils import asdict, first_non_null_value, zip_dict
@@ -294,45 +295,65 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         import PIL.Image
 
     if isinstance(obj, np.ndarray):
-        if not only_1d_for_numpy or obj.ndim == 1:
+        if obj.ndim == 0:
+            return obj[()], True
+        elif not only_1d_for_numpy or obj.ndim == 1:
             return obj, False
         else:
-            return [
-                _cast_to_python_objects(
-                    x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
-                )[0]
-                for x in obj
-            ], True
+            return (
+                [
+                    _cast_to_python_objects(
+                        x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                    )[0]
+                    for x in obj
+                ],
+                True,
+            )
     elif config.TORCH_AVAILABLE and "torch" in sys.modules and isinstance(obj, torch.Tensor):
-        if not only_1d_for_numpy or obj.ndim == 1:
+        if obj.ndim == 0:
+            return obj.detach().cpu().numpy()[()], True
+        elif not only_1d_for_numpy or obj.ndim == 1:
             return obj.detach().cpu().numpy(), True
         else:
-            return [
-                _cast_to_python_objects(
-                    x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
-                )[0]
-                for x in obj.detach().cpu().numpy()
-            ], True
+            return (
+                [
+                    _cast_to_python_objects(
+                        x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                    )[0]
+                    for x in obj.detach().cpu().numpy()
+                ],
+                True,
+            )
     elif config.TF_AVAILABLE and "tensorflow" in sys.modules and isinstance(obj, tf.Tensor):
-        if not only_1d_for_numpy or obj.ndim == 1:
+        if obj.ndim == 0:
+            return obj.numpy()[()], True
+        elif not only_1d_for_numpy or obj.ndim == 1:
             return obj.numpy(), True
         else:
-            return [
-                _cast_to_python_objects(
-                    x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
-                )[0]
-                for x in obj.numpy()
-            ], True
+            return (
+                [
+                    _cast_to_python_objects(
+                        x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                    )[0]
+                    for x in obj.numpy()
+                ],
+                True,
+            )
     elif config.JAX_AVAILABLE and "jax" in sys.modules and isinstance(obj, jnp.ndarray):
-        if not only_1d_for_numpy or obj.ndim == 1:
+        if obj.ndim == 0:
+            return np.asarray(obj)[()], True
+        elif not only_1d_for_numpy or obj.ndim == 1:
             return np.asarray(obj), True
         else:
-            return [
-                _cast_to_python_objects(
-                    x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
-                )[0]
-                for x in np.asarray(obj)
-            ], True
+            return (
+                [
+                    _cast_to_python_objects(
+                        x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                    )[0]
+                    for x in np.asarray(obj)
+                ],
+                True,
+            )
     elif config.PIL_AVAILABLE and "PIL" in sys.modules and isinstance(obj, PIL.Image.Image):
         return encode_pil_image(obj), True
     elif isinstance(obj, pd.Series):
@@ -343,17 +364,20 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
             True,
         )
     elif isinstance(obj, pd.DataFrame):
-        return {
-            key: _cast_to_python_objects(
-                value, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
-            )[0]
-            for key, value in obj.to_dict("list").items()
-        }, True
+        return (
+            {
+                key: _cast_to_python_objects(
+                    value, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                )[0]
+                for key, value in obj.to_dict("list").items()
+            },
+            True,
+        )
     elif isinstance(obj, pd.Timestamp):
         return obj.to_pydatetime(), True
     elif isinstance(obj, pd.Timedelta):
         return obj.to_pytimedelta(), True
-    elif isinstance(obj, Mapping):  # check for dict-like to handle nested LazyDict objects
+    elif isinstance(obj, Mapping):
         has_changed = not isinstance(obj, dict)
         output = {}
         for k, v in obj.items():
@@ -372,19 +396,22 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
                 first_elmt, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
             )
             if has_changed_first_elmt or not optimize_list_casting:
-                return [
-                    _cast_to_python_objects(
-                        elmt, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
-                    )[0]
-                    for elmt in obj
-                ], True
+                return (
+                    [
+                        _cast_to_python_objects(
+                            elmt, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                        )[0]
+                        for elmt in obj
+                    ],
+                    True,
+                )
             else:
-                if isinstance(obj, list):
+                if isinstance(obj, (list, tuple)):
                     return obj, False
                 else:
                     return list(obj), True
         else:
-            return obj if isinstance(obj, list) else [], isinstance(obj, tuple)
+            return obj, False
     else:
         return obj, False
 
@@ -417,34 +444,34 @@ def cast_to_python_objects(obj: Any, only_1d_for_numpy=False, optimize_list_cast
 @dataclass
 class Value:
     """
-    The Value dtypes are as follows:
+    The `Value` dtypes are as follows:
 
-    null
-    bool
-    int8
-    int16
-    int32
-    int64
-    uint8
-    uint16
-    uint32
-    uint64
-    float16
-    float32 (alias float)
-    float64 (alias double)
-    time32[(s|ms)]
-    time64[(us|ns)]
-    timestamp[(s|ms|us|ns)]
-    timestamp[(s|ms|us|ns), tz=(tzstring)]
-    date32
-    date64
-    duration[(s|ms|us|ns)]
-    decimal128(precision, scale)
-    decimal256(precision, scale)
-    binary
-    large_binary
-    string
-    large_string
+    - `null`
+    - `bool`
+    - `int8`
+    - `int16`
+    - `int32`
+    - `int64`
+    - `uint8`
+    - `uint16`
+    - `uint32`
+    - `uint64`
+    - `float16`
+    - `float32` (alias float)
+    - `float64` (alias double)
+    - `time32[(s|ms)]`
+    - `time64[(us|ns)]`
+    - `timestamp[(s|ms|us|ns)]`
+    - `timestamp[(s|ms|us|ns), tz=(tzstring)]`
+    - `date32`
+    - `date64`
+    - `duration[(s|ms|us|ns)]`
+    - `decimal128(precision, scale)`
+    - `decimal256(precision, scale)`
+    - `binary`
+    - `large_binary`
+    - `string`
+    - `large_string`
 
     Example:
 
@@ -504,8 +531,10 @@ class Array2D(_ArrayXD):
     """Create a two-dimensional array.
 
     Args:
-        shape (`tuple`): The size of each dimension.
-        dtype (`str`): The value of the data type.
+        shape (`tuple`):
+            The size of each dimension.
+        dtype (`str`):
+            The value of the data type.
 
     Example:
 
@@ -527,8 +556,10 @@ class Array3D(_ArrayXD):
     """Create a three-dimensional array.
 
     Args:
-        shape (`tuple`): The size of each dimension.
-        dtype (`str`): The value of the data type.
+        shape (`tuple`):
+            The size of each dimension.
+        dtype (`str`):
+            The value of the data type.
 
     Example:
 
@@ -550,8 +581,10 @@ class Array4D(_ArrayXD):
     """Create a four-dimensional array.
 
     Args:
-        shape (`tuple`): The size of each dimension.
-        dtype (`str`): The value of the data type.
+        shape (`tuple`):
+            The size of each dimension.
+        dtype (`str`):
+            The value of the data type.
 
     Example:
 
@@ -573,8 +606,10 @@ class Array5D(_ArrayXD):
     """Create a five-dimensional array.
 
     Args:
-        shape (`tuple`): The size of each dimension.
-        dtype (`str`): The value of the data type.
+        shape (`tuple`):
+            The size of each dimension.
+        dtype (`str`):
+            The value of the data type.
 
     Example:
 
@@ -609,6 +644,9 @@ class _ArrayXDExtensionType(pa.PyExtensionType):
             self.shape,
             self.value_type,
         )
+
+    def __hash__(self):
+        return hash((self.__class__, self.shape, self.value_type))
 
     def __arrow_ext_class__(self):
         return ArrayExtensionArray
@@ -646,7 +684,7 @@ def _is_zero_copy_only(pa_type: pa.DataType, unnest: bool = False) -> bool:
     When converting a pyarrow array to a numpy array, we must know whether this could be done in zero-copy or not.
     This function returns the value of the ``zero_copy_only`` parameter to pass to ``.to_numpy()``, given the type of the pyarrow array.
 
-    # zero copy is available for all primitive types except booleans
+    # zero copy is available for all primitive types except booleans and temporal types (date, time, timestamp or duration)
     # primitive types are types for which the physical representation in arrow and in numpy
     # https://github.com/wesm/arrow/blob/c07b9b48cf3e0bbbab493992a492ae47e5b04cad/python/pyarrow/types.pxi#L821
     # see https://arrow.apache.org/docs/python/generated/pyarrow.Array.html#pyarrow.Array.to_numpy
@@ -660,7 +698,7 @@ def _is_zero_copy_only(pa_type: pa.DataType, unnest: bool = False) -> bool:
 
     if unnest:
         pa_type = _unnest_pa_type(pa_type)
-    return pa.types.is_primitive(pa_type) and not pa.types.is_boolean(pa_type)
+    return pa.types.is_primitive(pa_type) and not (pa.types.is_boolean(pa_type) or pa.types.is_temporal(pa_type))
 
 
 class ArrayExtensionArray(pa.ExtensionArray):
@@ -872,22 +910,25 @@ class ClassLabel:
     You can use negative integers to represent unknown/missing labels.
 
     Args:
-        num_classes (:obj:`int`, optional): Number of classes. All labels must be < `num_classes`.
-        names (:obj:`list` of :obj:`str`, optional): String names for the integer classes.
+        num_classes (`int`, *optional*):
+            Number of classes. All labels must be < `num_classes`.
+        names (`list` of `str`, *optional*):
+            String names for the integer classes.
             The order in which the names are provided is kept.
-        names_file (:obj:`str`, optional): Path to a file with names for the integer classes, one per line.
+        names_file (`str`, *optional*):
+            Path to a file with names for the integer classes, one per line.
 
     Example:
 
     ```py
-    >>> from datasets Features
+    >>> from datasets import Features
     >>> features = Features({'label': ClassLabel(num_classes=3, names=['bad', 'ok', 'good'])})
     >>> features
     {'label': ClassLabel(num_classes=3, names=['bad', 'ok', 'good'], id=None)}
     ```
     """
 
-    num_classes: int = None
+    num_classes: InitVar[Optional[int]] = None  # Pseudo-field: ignored by asdict/fields when converting to/from dict
     names: List[str] = None
     names_file: InitVar[Optional[str]] = None  # Pseudo-field: ignored by asdict/fields when converting to/from dict
     id: Optional[str] = None
@@ -898,7 +939,8 @@ class ClassLabel:
     _int2str: ClassVar[Dict[int, int]] = None
     _type: str = field(default="ClassLabel", init=False, repr=False)
 
-    def __post_init__(self, names_file):
+    def __post_init__(self, num_classes, names_file):
+        self.num_classes = num_classes
         self.names_file = names_file
         if self.names_file is not None and self.names is not None:
             raise ValueError("Please provide either names or names_file but not both.")
@@ -910,6 +952,8 @@ class ClassLabel:
                 self.names = [str(i) for i in range(self.num_classes)]
             else:
                 raise ValueError("Please provide either num_classes, names or names_file.")
+        elif not isinstance(self.names, SequenceABC):
+            raise TypeError(f"Please provide names as a list, is {type(self.names)}")
         # Set self.num_classes
         if self.num_classes is None:
             self.num_classes = len(self.names)
@@ -928,7 +972,7 @@ class ClassLabel:
         return self.pa_type
 
     def str2int(self, values: Union[str, Iterable]) -> Union[int, Iterable]:
-        """Conversion class name string => integer.
+        """Conversion class name `string` => `integer`.
 
         Example:
 
@@ -973,9 +1017,9 @@ class ClassLabel:
         return int_value
 
     def int2str(self, values: Union[int, Iterable]) -> Union[str, Iterable]:
-        """Conversion integer => class name string.
+        """Conversion `integer` => class name `string`.
 
-        Regarding unknown/missing labels: passing negative integers raises ValueError.
+        Regarding unknown/missing labels: passing negative integers raises `ValueError`.
 
         Example:
 
@@ -1019,19 +1063,20 @@ class ClassLabel:
         return example_data
 
     def cast_storage(self, storage: Union[pa.StringArray, pa.IntegerArray]) -> pa.Int64Array:
-        """Cast an Arrow array to the ClassLabel arrow storage type.
-        The Arrow types that can be converted to the ClassLabel pyarrow storage type are:
+        """Cast an Arrow array to the `ClassLabel` arrow storage type.
+        The Arrow types that can be converted to the `ClassLabel` pyarrow storage type are:
 
-        - pa.string()
-        - pa.int()
+        - `pa.string()`
+        - `pa.int()`
 
         Args:
-            storage (Union[pa.StringArray, pa.IntegerArray]): PyArrow array to cast.
+            storage (`Union[pa.StringArray, pa.IntegerArray]`):
+                PyArrow array to cast.
 
         Returns:
-            pa.Int64Array: Array in the ClassLabel arrow storage type
+            `pa.Int64Array`: Array in the `ClassLabel` arrow storage type.
         """
-        if isinstance(storage, pa.IntegerArray):
+        if isinstance(storage, pa.IntegerArray) and len(storage) > 0:
             min_max = pc.min_max(storage).as_py()
             if min_max["max"] >= self.num_classes:
                 raise ValueError(
@@ -1055,8 +1100,10 @@ class Sequence:
     Mostly here for compatiblity with tfds.
 
     Args:
-        feature: A list of features of a single type or a dictionary of types.
-        length (`int`): Length of the sequence.
+        feature:
+            A list of features of a single type or a dictionary of types.
+        length (`int`):
+            Length of the sequence.
 
     Example:
 
@@ -1136,7 +1183,7 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
         )  # however don't sort on struct types since the order matters
     elif isinstance(schema, (list, tuple)):
         if len(schema) != 1:
-            raise ValueError("We defining list feature, you should just provide one example of the inner type")
+            raise ValueError("When defining list feature, you should just provide one example of the inner type")
         value_type = get_nested_type(schema[0])
         return pa.list_(value_type)
     elif isinstance(schema, Sequence):
@@ -1257,7 +1304,8 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Uni
     # Object with special decoding:
     elif isinstance(schema, (Audio, Image)):
         # we pass the token to read and decode files from private repositories in streaming mode
-        return schema.decode_example(obj, token_per_repo_id=token_per_repo_id) if obj is not None else None
+        if obj is not None and schema.decode:
+            return schema.decode_example(obj, token_per_repo_id=token_per_repo_id)
     return obj
 
 
@@ -1281,7 +1329,7 @@ def generate_from_dict(obj: Any):
     class_type = globals()[obj.pop("_type")]
 
     if class_type == Sequence:
-        return Sequence(feature=generate_from_dict(obj["feature"]), length=obj["length"])
+        return Sequence(feature=generate_from_dict(obj["feature"]), length=obj.get("length", -1))
 
     field_names = {f.name for f in fields(class_type)}
     return class_type(**{k: v for k, v in obj.items() if k in field_names})
@@ -1481,34 +1529,34 @@ def keep_features_dicts_synced(func):
 class Features(dict):
     """A special dictionary that defines the internal structure of a dataset.
 
-    Instantiated with a dictionary of type ``dict[str, FieldType]``, where keys are the desired column names,
+    Instantiated with a dictionary of type `dict[str, FieldType]`, where keys are the desired column names,
     and values are the type of that column.
 
-    ``FieldType`` can be one of the following:
-        - a :class:`datasets.Value` feature specifies a single typed value, e.g. ``int64`` or ``string``
-        - a :class:`datasets.ClassLabel` feature specifies a field with a predefined set of classes which can have labels
-          associated to them and will be stored as integers in the dataset
-        - a python :obj:`dict` which specifies that the field is a nested field containing a mapping of sub-fields to sub-fields
-          features. It's possible to have nested fields of nested fields in an arbitrary manner
-        - a python :obj:`list` or a :class:`datasets.Sequence` specifies that the field contains a list of objects. The python
-          :obj:`list` or :class:`datasets.Sequence` should be provided with a single sub-feature as an example of the feature
-          type hosted in this list
+    `FieldType` can be one of the following:
+        - a [`~datasets.Value`] feature specifies a single typed value, e.g. `int64` or `string`.
+        - a [`~datasets.ClassLabel`] feature specifies a field with a predefined set of classes which can have labels
+          associated to them and will be stored as integers in the dataset.
+        - a python `dict` which specifies that the field is a nested field containing a mapping of sub-fields to sub-fields
+          features. It's possible to have nested fields of nested fields in an arbitrary manner.
+        - a python `list` or a [`~datasets.Sequence`] specifies that the field contains a list of objects. The python
+          `list` or [`~datasets.Sequence`] should be provided with a single sub-feature as an example of the feature
+          type hosted in this list.
 
           <Tip>
 
-           A :class:`datasets.Sequence` with a internal dictionary feature will be automatically converted into a dictionary of
+           A [`~datasets.Sequence`] with a internal dictionary feature will be automatically converted into a dictionary of
            lists. This behavior is implemented to have a compatilbity layer with the TensorFlow Datasets library but may be
-           un-wanted in some cases. If you don't want this behavior, you can use a python :obj:`list` instead of the
-           :class:`datasets.Sequence`.
+           un-wanted in some cases. If you don't want this behavior, you can use a python `list` instead of the
+           [`~datasets.Sequence`].
 
           </Tip>
 
-        - a :class:`Array2D`, :class:`Array3D`, :class:`Array4D` or :class:`Array5D` feature for multidimensional arrays
-        - an :class:`Audio` feature to store the absolute path to an audio file or a dictionary with the relative path
+        - a [`Array2D`], [`Array3D`], [`Array4D`] or [`Array5D`] feature for multidimensional arrays.
+        - an [`Audio`] feature to store the absolute path to an audio file or a dictionary with the relative path
           to an audio file ("path" key) and its bytes content ("bytes" key). This feature extracts the audio data.
-        - an :class:`Image` feature to store the absolute path to an image file, an :obj:`np.ndarray` object, a :obj:`PIL.Image.Image` object
+        - an [`Image`] feature to store the absolute path to an image file, an `np.ndarray` object, a `PIL.Image.Image` object
           or a dictionary with the relative path to an image file ("path" key) and its bytes content ("bytes" key). This feature extracts the image data.
-        - :class:`datasets.Translation` and :class:`datasets.TranslationVariableLanguages`, the two features specific to Machine Translation
+        - [`~datasets.Translation`] and [`~datasets.TranslationVariableLanguages`], the two features specific to Machine Translation.
     """
 
     def __init__(self, *args, **kwargs):
@@ -1552,14 +1600,15 @@ class Features(dict):
     @classmethod
     def from_arrow_schema(cls, pa_schema: pa.Schema) -> "Features":
         """
-        Construct Features from Arrow Schema.
+        Construct [`Features`] from Arrow Schema.
         It also checks the schema metadata for Hugging Face Datasets features.
 
         Args:
-            pa_schema (:obj:`pyarrow.Schema`): Arrow Schema.
+            pa_schema (`pyarrow.Schema`):
+                Arrow Schema.
 
         Returns:
-            :class:`Features`
+            [`Features`]
         """
         # try to load features from the arrow schema metadata
         if pa_schema.metadata is not None and "huggingface".encode("utf-8") in pa_schema.metadata:
@@ -1572,23 +1621,24 @@ class Features(dict):
     @classmethod
     def from_dict(cls, dic) -> "Features":
         """
-        Construct Features from dict.
+        Construct [`Features`] from dict.
 
         Regenerate the nested feature object from a deserialized dict.
-        We use the '_type' key to infer the dataclass name of the feature FieldType.
+        We use the `_type` key to infer the dataclass name of the feature `FieldType`.
 
         It allows for a convenient constructor syntax
         to define features from deserialized JSON dictionaries. This function is used in particular when deserializing
-        a :class:`DatasetInfo` that was dumped to a JSON object. This acts as an analogue to
-        :meth:`Features.from_arrow_schema` and handles the recursive field-by-field instantiation, but doesn't require
+        a [`DatasetInfo`] that was dumped to a JSON object. This acts as an analogue to
+        [`Features.from_arrow_schema`] and handles the recursive field-by-field instantiation, but doesn't require
         any mapping to/from pyarrow, except for the fact that it takes advantage of the mapping of pyarrow primitive
-        dtypes that :class:`Value` automatically performs.
+        dtypes that [`Value`] automatically performs.
 
         Args:
-            dic (:obj:`dict[str, Any]`): Python dictionary.
+            dic (`dict[str, Any]`):
+                Python dictionary.
 
         Returns:
-            :class:`Features`
+            `Features`
 
         Example::
             >>> Features.from_dict({'_type': {'dtype': 'string', 'id': None, '_type': 'Value'}})
@@ -1600,15 +1650,160 @@ class Features(dict):
     def to_dict(self):
         return asdict(self)
 
+    def _to_yaml_list(self) -> list:
+        # we compute the YAML list from the dict representation that is used for JSON dump
+        yaml_data = self.to_dict()
+
+        def simplify(feature: dict) -> dict:
+            if not isinstance(feature, dict):
+                raise TypeError(f"Expected a dict but got a {type(feature)}: {feature}")
+
+            #
+            # sequence:                 ->              sequence: int32
+            #   dtype: int32            ->
+            #
+            if isinstance(feature.get("sequence"), dict) and list(feature["sequence"]) == ["dtype"]:
+                feature["sequence"] = feature["sequence"]["dtype"]
+
+            #
+            # sequence:                 ->              sequence:
+            #   struct:                 ->              - name: foo
+            #   - name: foo             ->                dtype: int32
+            #     dtype: int32          ->
+            #
+            if isinstance(feature.get("sequence"), dict) and list(feature["sequence"]) == ["struct"]:
+                feature["sequence"] = feature["sequence"]["struct"]
+
+            #
+            # list:                     ->              list: int32
+            #   dtype: int32            ->
+            #
+            if isinstance(feature.get("list"), dict) and list(feature["list"]) == ["dtype"]:
+                feature["list"] = feature["list"]["dtype"]
+
+            #
+            # list:                     ->              list:
+            #   struct:                 ->              - name: foo
+            #   - name: foo             ->                dtype: int32
+            #     dtype: int32          ->
+            #
+            if isinstance(feature.get("list"), dict) and list(feature["list"]) == ["struct"]:
+                feature["list"] = feature["list"]["struct"]
+
+            #
+            # class_label:              ->              class_label:
+            #   names:                  ->                names:
+            #   - negative              ->                  '0': negative
+            #   - positive              ->                  '1': positive
+            #
+            if isinstance(feature.get("class_label"), dict) and isinstance(feature["class_label"].get("names"), list):
+                # server-side requirement: keys must be strings
+                feature["class_label"]["names"] = {
+                    str(label_id): label_name for label_id, label_name in enumerate(feature["class_label"]["names"])
+                }
+            return feature
+
+        def to_yaml_inner(obj: Union[dict, list]) -> dict:
+            if isinstance(obj, dict):
+                _type = obj.pop("_type", None)
+                if _type == "Sequence":
+                    _feature = obj.pop("feature")
+                    return simplify({"sequence": to_yaml_inner(_feature), **obj})
+                elif _type == "Value":
+                    return obj
+                elif _type and not obj:
+                    return {"dtype": camelcase_to_snakecase(_type)}
+                elif _type:
+                    return {"dtype": simplify({camelcase_to_snakecase(_type): obj})}
+                else:
+                    return {"struct": [{"name": name, **to_yaml_inner(_feature)} for name, _feature in obj.items()]}
+            elif isinstance(obj, list):
+                return simplify({"list": simplify(to_yaml_inner(obj[0]))})
+            else:
+                raise TypeError(f"Expected a dict or a list but got {type(obj)}: {obj}")
+
+        return to_yaml_inner(yaml_data)["struct"]
+
+    @classmethod
+    def _from_yaml_list(cls, yaml_data: list) -> "Features":
+        yaml_data = copy.deepcopy(yaml_data)
+
+        # we convert the list obtained from YAML data into the dict representation that is used for JSON dump
+
+        def unsimplify(feature: dict) -> dict:
+            if not isinstance(feature, dict):
+                raise TypeError(f"Expected a dict but got a {type(feature)}: {feature}")
+            #
+            # sequence: int32           ->              sequence:
+            #                           ->                dtype: int32
+            #
+            if isinstance(feature.get("sequence"), str):
+                feature["sequence"] = {"dtype": feature["sequence"]}
+            #
+            # list: int32               ->              list:
+            #                           ->                dtype: int32
+            #
+            if isinstance(feature.get("list"), str):
+                feature["list"] = {"dtype": feature["list"]}
+
+            #
+            # class_label:              ->              class_label:
+            #   names:                  ->                names:
+            #     '0': negative              ->               - negative
+            #     '1': positive              ->               - positive
+            #
+            if isinstance(feature.get("class_label"), dict) and isinstance(feature["class_label"].get("names"), dict):
+                label_ids = sorted(feature["class_label"]["names"], key=int)
+                if label_ids and [int(label_id) for label_id in label_ids] != list(range(int(label_ids[-1]) + 1)):
+                    raise ValueError(
+                        f"ClassLabel expected a value for all label ids [0:{int(label_ids[-1]) + 1}] but some ids are missing."
+                    )
+                feature["class_label"]["names"] = [feature["class_label"]["names"][label_id] for label_id in label_ids]
+            return feature
+
+        def from_yaml_inner(obj: Union[dict, list]) -> Union[dict, list]:
+            if isinstance(obj, dict):
+                if not obj:
+                    return {}
+                _type = next(iter(obj))
+                if _type == "sequence":
+                    _feature = unsimplify(obj).pop(_type)
+                    return {"feature": from_yaml_inner(_feature), **obj, "_type": "Sequence"}
+                if _type == "list":
+                    return [from_yaml_inner(unsimplify(obj)[_type])]
+                if _type == "struct":
+                    return from_yaml_inner(obj["struct"])
+                elif _type == "dtype":
+                    if isinstance(obj["dtype"], str):
+                        # e.g. int32, float64, string, audio, image
+                        try:
+                            Value(obj["dtype"])
+                            return {**obj, "_type": "Value"}
+                        except ValueError:
+                            # for audio and image that are Audio and Image types, not Value
+                            return {"_type": snakecase_to_camelcase(obj["dtype"])}
+                    else:
+                        return from_yaml_inner(obj["dtype"])
+                else:
+                    return {"_type": snakecase_to_camelcase(_type), **unsimplify(obj)[_type]}
+            elif isinstance(obj, list):
+                names = [_feature.pop("name") for _feature in obj]
+                return {name: from_yaml_inner(_feature) for name, _feature in zip(names, obj)}
+            else:
+                raise TypeError(f"Expected a dict or a list but got {type(obj)}: {obj}")
+
+        return cls.from_dict(from_yaml_inner(yaml_data))
+
     def encode_example(self, example):
         """
         Encode example into a format for Arrow.
 
         Args:
-            example (:obj:`dict[str, Any]`): Data in a Dataset row.
+            example (`dict[str, Any]`):
+                Data in a Dataset row.
 
         Returns:
-            :obj:`dict[str, Any]`
+            `dict[str, Any]`
         """
         example = cast_to_python_objects(example)
         return encode_nested_example(self, example)
@@ -1618,10 +1813,11 @@ class Features(dict):
         Encode batch into a format for Arrow.
 
         Args:
-            batch (:obj:`dict[str, list[Any]]`): Data in a Dataset batch.
+            batch (`dict[str, list[Any]]`):
+                Data in a Dataset batch.
 
         Returns:
-            :obj:`dict[str, list[Any]]`
+            `dict[str, list[Any]]`
         """
         encoded_batch = {}
         if set(batch) != set(self):
@@ -1635,13 +1831,14 @@ class Features(dict):
         """Decode example with custom feature decoding.
 
         Args:
-            example (:obj:`dict[str, Any]`): Dataset row data.
-            token_per_repo_id (:obj:`dict`, optional): To access and decode
-                audio or image files from private repositories on the Hub, you can pass
-                a dictionary repo_id (str) -> token (bool or str)
+            example (`dict[str, Any]`):
+                Dataset row data.
+            token_per_repo_id (`dict`, *optional*):
+                To access and decode audio or image files from private repositories on the Hub, you can pass
+                a dictionary `repo_id (str) -> token (bool or str)`.
 
         Returns:
-            :obj:`dict[str, Any]`
+            `dict[str, Any]`
         """
 
         return {
@@ -1657,11 +1854,13 @@ class Features(dict):
         """Decode column with custom feature decoding.
 
         Args:
-            column (:obj:`list[Any]`): Dataset column data.
-            column_name (:obj:`str`): Dataset column name.
+            column (`list[Any]`):
+                Dataset column data.
+            column_name (`str`):
+                Dataset column name.
 
         Returns:
-            :obj:`list[Any]`
+            `list[Any]`
         """
         return (
             [decode_nested_example(self[column_name], value) if value is not None else None for value in column]
@@ -1669,19 +1868,28 @@ class Features(dict):
             else column
         )
 
-    def decode_batch(self, batch: dict):
+    def decode_batch(self, batch: dict, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None):
         """Decode batch with custom feature decoding.
 
         Args:
-            batch (:obj:`dict[str, list[Any]]`): Dataset batch data.
+            batch (`dict[str, list[Any]]`):
+                Dataset batch data.
+            token_per_repo_id (`dict`, *optional*):
+                To access and decode audio or image files from private repositories on the Hub, you can pass
+                a dictionary repo_id (str) -> token (bool or str)
 
         Returns:
-            :obj:`dict[str, list[Any]]`
+            `dict[str, list[Any]]`
         """
         decoded_batch = {}
         for column_name, column in batch.items():
             decoded_batch[column_name] = (
-                [decode_nested_example(self[column_name], value) if value is not None else None for value in column]
+                [
+                    decode_nested_example(self[column_name], value, token_per_repo_id=token_per_repo_id)
+                    if value is not None
+                    else None
+                    for value in column
+                ]
                 if self._column_requires_decoding[column_name]
                 else column
             )
@@ -1689,10 +1897,10 @@ class Features(dict):
 
     def copy(self) -> "Features":
         """
-        Make a deep copy of Features.
+        Make a deep copy of [`Features`].
 
         Returns:
-            :class:`Features`
+            [`Features`]
 
         Example:
 
@@ -1709,16 +1917,17 @@ class Features(dict):
 
     def reorder_fields_as(self, other: "Features") -> "Features":
         """
-        Reorder Features fields to match the field order of other Features.
+        Reorder Features fields to match the field order of other [`Features`].
 
         The order of the fields is important since it matters for the underlying arrow data.
         Re-ordering the fields allows to make the underlying arrow data type match.
 
         Args:
-            other (:class:`Features`): The other Features to align with.
+            other ([`Features`]):
+                The other [`Features`] to align with.
 
         Returns:
-            :class:`Features`
+            [`Features`]
 
         Example::
 
@@ -1755,7 +1964,12 @@ class Features(dict):
                 if not isinstance(target, dict):
                     raise ValueError(f"Type mismatch: between {source} and {target}" + stack_position)
                 if sorted(source) != sorted(target):
-                    raise ValueError(f"Keys mismatch: between {source} and {target}" + stack_position)
+                    message = (
+                        f"Keys mismatch: between {source} (source) and {target} (target).\n"
+                        f"{source.keys()-target.keys()} are missing from target "
+                        f"and {target.keys()-source.keys()} are missing from source" + stack_position
+                    )
+                    raise ValueError(message)
                 return {key: recursive_reorder(source[key], target[key], stack + f".{key}") for key in target}
             elif isinstance(source, list):
                 if not isinstance(target, list):
@@ -1771,13 +1985,14 @@ class Features(dict):
     def flatten(self, max_depth=16) -> "Features":
         """Flatten the features. Every dictionary column is removed and is replaced by
         all the subfields it contains. The new fields are named by concatenating the
-        name of the original column and the subfield name like this: "<original>.<subfield>".
+        name of the original column and the subfield name like this: `<original>.<subfield>`.
 
         If a column contains nested dictionaries, then all the lower-level subfields names are
-        also concatenated to form new columns: "<original>.<subfield>.<subsubfield>", etc.
+        also concatenated to form new columns: `<original>.<subfield>.<subsubfield>`, etc.
 
         Returns:
-            Features: the flattened features
+            [`Features`]:
+                The flattened features.
 
         Example:
 
@@ -1818,3 +2033,33 @@ class Features(dict):
             if no_change:
                 break
         return self
+
+
+def _align_features(features_list: List[Features]) -> List[Features]:
+    """Align dictionaries of features so that the keys that are found in multiple dictionaries share the same feature."""
+    name2feature = {}
+    for features in features_list:
+        for k, v in features.items():
+            if k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):
+                name2feature[k] = v
+
+    return [Features({k: name2feature[k] for k in features.keys()}) for features in features_list]
+
+
+def _check_if_features_can_be_aligned(features_list: List[Features]):
+    """Check if the dictionaries of features can be aligned.
+
+    Two dictonaries of features can be aligned if the keys they share have the same type or some of them is of type `Value("null")`.
+    """
+    name2feature = {}
+    for features in features_list:
+        for k, v in features.items():
+            if k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):
+                name2feature[k] = v
+
+    for features in features_list:
+        for k, v in features.items():
+            if not (isinstance(v, Value) and v.dtype == "null") and name2feature[k] != v:
+                raise ValueError(
+                    f'The features can\'t be aligned because the key {k} of features {features} has unexpected type - {v} (expected either {name2feature[k]} or Value("null").'
+                )

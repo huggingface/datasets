@@ -236,10 +236,11 @@ class MockDownloadManager:
                     return
                 yield path
             else:
-                for dirpath, _, filenames in os.walk(path):
+                for dirpath, dirnames, filenames in os.walk(path):
                     if os.path.basename(dirpath).startswith((".", "__")):
                         continue
-                    for filename in filenames:
+                    dirnames.sort()
+                    for filename in sorted(filenames):
                         if filename.startswith((".", "__")):
                             continue
                         yield os.path.join(dirpath, filename)

@@ -10,12 +10,13 @@
 The base class [`Dataset`] implements a Dataset backed by an Apache Arrow table.
 
 [[autodoc]] datasets.Dataset
-    -  add_column
+    - add_column
     - add_item
     - from_file
     - from_buffer
     - from_pandas
     - from_dict
+    - from_generator
     - data
     - cache_files
     - num_columns
@@ -29,9 +30,11 @@ The base class [`Dataset`] implements a Dataset backed by an Apache Arrow table.
     - remove_columns
     - rename_column
     - rename_columns
+    - select_columns
     - class_encode_column
     - __len__
     - __iter__
+    - iter
     - formatted_as
     - set_format
     - set_transform
@@ -57,6 +60,7 @@ The base class [`Dataset`] implements a Dataset backed by an Apache Arrow table.
     - to_dict
     - to_json
     - to_parquet
+    - to_sql
     - add_faiss_index
     - add_faiss_index_from_external_arrays
     - save_faiss_index
@@ -89,12 +93,15 @@ The base class [`Dataset`] implements a Dataset backed by an Apache Arrow table.
     - from_json
     - from_parquet
     - from_text
+    - from_sql
     - prepare_for_task
     - align_labels_with_mapping
 
 [[autodoc]] datasets.concatenate_datasets
 
 [[autodoc]] datasets.interleave_datasets
+
+[[autodoc]] datasets.distributed.split_dataset_by_node
 
 [[autodoc]] datasets.enable_caching
 
@@ -131,6 +138,7 @@ It also has dataset transform methods like map or filter, to process all the spl
     - remove_columns
     - rename_column
     - rename_columns
+    - select_columns
     - class_encode_column
     - push_to_hub
     - save_to_disk
@@ -148,10 +156,13 @@ It also has dataset transform methods like map or filter, to process all the spl
 The base class [`IterableDataset`] implements an iterable Dataset backed by python generators.
 
 [[autodoc]] datasets.IterableDataset
-    -  remove_columns
+    - from_generator
+    - remove_columns
+    - select_columns
     - cast_column
     - cast
     - __iter__
+    - iter
     - map
     - rename_column
     - filter
@@ -188,6 +199,7 @@ Dictionary with split names as keys ('train', 'test' for example), and `Iterable
     - remove_columns
     - rename_column
     - rename_columns
+    - select_columns
 
 ## Features
 

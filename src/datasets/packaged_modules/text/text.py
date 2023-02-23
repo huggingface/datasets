@@ -19,6 +19,7 @@ class TextConfig(datasets.BuilderConfig):
 
     features: Optional[datasets.Features] = None
     encoding: str = "utf-8"
+    errors: Optional[str] = None
     chunksize: int = 10 << 20  # 10MB
     keep_linebreaks: bool = False
     sample_by: str = "line"
@@ -70,7 +71,7 @@ class Text(datasets.ArrowBasedBuilder):
         pa_table_names = list(self.config.features) if self.config.features is not None else ["text"]
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             # open in text mode, by default translates universal newlines ("\n", "\r\n" and "\r") into "\n"
-            with open(file, encoding=self.config.encoding) as f:
+            with open(file, encoding=self.config.encoding, errors=self.config.errors) as f:
                 if self.config.sample_by == "line":
                     batch_idx = 0
                     while True:
@@ -92,9 +93,10 @@ class Text(datasets.ArrowBasedBuilder):
                     batch_idx = 0
                     batch = ""
                     while True:
-                        batch += f.read(self.config.chunksize)
-                        if not batch:
+                        new_batch = f.read(self.config.chunksize)
+                        if not new_batch:
                             break
+                        batch += new_batch
                         batch += f.readline()  # finish current line
                         batch = batch.split("\n\n")
                         pa_table = pa.Table.from_arrays(
@@ -106,6 +108,9 @@ class Text(datasets.ArrowBasedBuilder):
                         yield (file_idx, batch_idx), self._cast_table(pa_table)
                         batch_idx += 1
                         batch = batch[-1]
+                    if batch:
+                        pa_table = pa.Table.from_arrays([pa.array([batch])], names=pa_table_names)
+                        yield (file_idx, batch_idx), self._cast_table(pa_table)
                 elif self.config.sample_by == "document":
                     text = f.read()
                     pa_table = pa.Table.from_arrays([pa.array([text])], names=pa_table_names)

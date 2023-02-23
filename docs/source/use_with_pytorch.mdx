@@ -78,28 +78,68 @@ To get a single tensor, you must explicitly use the [`Array`] feature type and s
 
 ```py
 >>> from datasets import Dataset, Features, ClassLabel
->>> data = [0, 0, 1]
->>> features = Features({"data": ClassLabel(names=["negative", "positive"])})
->>> ds = Dataset.from_dict({"data": data}, features=features) 
+>>> labels = [0, 0, 1]
+>>> features = Features({"label": ClassLabel(names=["negative", "positive"])})
+>>> ds = Dataset.from_dict({"label": labels}, features=features) 
 >>> ds = ds.with_format("torch")  
 >>> ds[:3]
-{'data': tensor([0, 0, 1])}
+{'label': tensor([0, 0, 1])}
 ```
 
-However, since it's not possible to convert text data to PyTorch tensors, you can't format a `string` column to PyTorch.
-Instead, you can explicitly format certain columns and leave the other columns unformatted:
+String and binary objects are unchanged, since PyTorch only supports numbers.
+
+The [`Image`] and [`Audio`] feature types are also supported.
+
+<Tip>
+
+To use the [`Image`] feature type, you'll need to install the `vision` extra as
+`pip install datasets[vision]`.
+
+</Tip>
 
 ```py
->>> from datasets import Dataset, Features 
->>> text = ["foo", "bar"]
->>> data = [0, 1] 
->>> ds = Dataset.from_dict({"text": text, "data": data})  
->>> ds = ds.with_format("torch", columns=["data"], output_all_columns=True) 
->>> ds[:2]                                                                                                                                                     
-{'data': tensor([0, 1]), 'text': ['foo', 'bar']}
+>>> from datasets import Dataset, Features, Audio, Image
+>>> images = ["path/to/image.png"] * 10
+>>> features = Features({"image": Image()})
+>>> ds = Dataset.from_dict({"image": images}, features=features) 
+>>> ds = ds.with_format("torch")
+>>> ds[0]["image"].shape
+torch.Size([512, 512, 4])
+>>> ds[0]
+{'image': tensor([[[255, 215, 106, 255],
+         [255, 215, 106, 255],
+         ...,
+         [255, 255, 255, 255],
+         [255, 255, 255, 255]]], dtype=torch.uint8)}
+>>> ds[:2]["image"].shape
+torch.Size([2, 512, 512, 4])
+>>> ds[:2]
+{'image': tensor([[[[255, 215, 106, 255],
+          [255, 215, 106, 255],
+          ...,
+          [255, 255, 255, 255],
+          [255, 255, 255, 255]]]], dtype=torch.uint8)}
 ```
 
-The [`Image`] and [`Audio`] feature types are not supported yet.
+<Tip>
+
+To use the [`Audio`] feature type, you'll need to install the `audio` extra as
+`pip install datasets[audio]`.
+
+</Tip>
+
+```py
+>>> from datasets import Dataset, Features, Audio, Image
+>>> audio = ["path/to/audio.wav"] * 10
+>>> features = Features({"audio": Audio()})
+>>> ds = Dataset.from_dict({"audio": audio}, features=features) 
+>>> ds = ds.with_format("torch")  
+>>> ds[0]["audio"]["array"]
+tensor([ 6.1035e-05,  1.5259e-05,  1.6785e-04,  ..., -1.5259e-05,
+        -1.5259e-05,  1.5259e-05])
+>>> ds[0]["audio"]["sampling_rate"]
+tensor(44100)
+```
 
 ## Data loading
 
@@ -124,7 +164,7 @@ Like `torch.utils.data.Dataset` objects, a [`Dataset`] can be passed directly to
 ### Optimize data loading
 
 There are several ways you can increase the speed your data is loaded which can save you time, especially if you are working with large datasets.
-PyTorch offers parallelized data loading, retrieving batches of indices instead of individually, and streaming to progressively download datasets.
+PyTorch offers parallelized data loading, retrieving batches of indices instead of individually, and streaming to iterate over the dataset without downloading it on disk.
 
 #### Use multiple Workers
 
@@ -144,9 +184,10 @@ Reloading the dataset inside a worker doesn't fill up your RAM, since it simply 
 >>> dataloader = DataLoader(ds, batch_size=32, num_workers=4)
 ```
 
-#### Use a BatchSampler
+#### Use a BatchSampler (torch<=1.12.1)
 
-By default, the PyTorch `DataLoader` load batches of data from a dataset one by one like this:
+For old versions of PyTorch, using a `BatchSampler` can speed up data loading.
+Indeed if you are using `torch<=1.12.1`, the PyTorch `DataLoader` load batches of data from a dataset one by one like this:
 
 ```py
 batch = [dataset[idx] for idx in range(start, end)]
@@ -165,17 +206,22 @@ For the PyTorch `DataLoader` to query batches using a list, you can use a `Batch
 
 ```py
 >>> from torch.utils.data.sampler import BatchSampler, RandomSampler
->>> sampler = BatchSampler(RandomSampler(ds), batch_size=32, drop_last=False)
->>> dataloader = DataLoader(ds, sampler=sampler)
+>>> batch_sampler = BatchSampler(RandomSampler(ds), batch_size=32, drop_last=False)
+>>> dataloader = DataLoader(ds, batch_sampler=batch_sampler)
 ```
 
 Moreover, this is particularly useful if you used [`set_transform`] to apply a transform on-the-fly when examples are accessed.
 You must use a `BatchSampler` if you want the transform to be given full batches instead of receiving `batch_size` times one single element.
 
+Recent versions of PyTorch use a list of indices, so a `BatchSampler` is not needed to get the best speed even if you used [`set_transform`].
+
 ### Stream data
 
-Loading a dataset in streaming mode is useful to progressively download the data you need while iterating over the dataset.
-Set the format of a streaming dataset to `torch`, and it inherits from `torch.utils.data.IterableDataset` so you can pass it to a `DataLoader`:
+Stream a dataset by loading it as an [`IterableDataset`]. This allows you to progressively iterate over a remote dataset without downloading it on disk and or over local data files.
+Learn more about which type of dataset is best for your use case in the (choosing between a regular dataset or an iterable dataset)[./dataset_vs_iterable_dataset] guide.
+
+
+An iterable dataset from `datasets` inherits from `torch.utils.data.IterableDataset` so you can pass it to a `torch.utils.data.DataLoader`:
 
 ```py
 >>> import numpy as np
@@ -183,17 +229,43 @@ Set the format of a streaming dataset to `torch`, and it inherits from `torch.ut
 >>> from torch.utils.data import DataLoader
 >>> data = np.random.rand(10_000)
 >>> Dataset.from_dict({"data": data}).push_to_hub("<username>/my_dataset")  # Upload to the Hugging Face Hub
->>> ds = load_dataset("<username>/my_dataset", streaming=True, split="train").with_format("torch")
->>> dataloader = DataLoader(ds, batch_size=32)
+>>> my_iterable_dataset = load_dataset("<username>/my_dataset", streaming=True, split="train")
+>>> dataloader = DataLoader(my_iterable_dataset, batch_size=32)
 ```
 
 If the dataset is split in several shards (i.e. if the dataset consists of multiple data files), then you can stream in parallel using `num_workers`:
 
 ```py
->>> ds = load_dataset("c4", "en", streaming=True, split="train").with_format("torch")
->>> ds.n_shards
+>>> my_iterable_dataset = load_dataset("c4", "en", streaming=True, split="train")
+>>> my_iterable_dataset.n_shards
 1024
->>> dataloader = DataLoader(ds, batch_size=32, num_workers=4)
+>>> dataloader = DataLoader(my_iterable_dataset, batch_size=32, num_workers=4)
 ```
 
-In this case each worker will be given a subset of the list of shards to stream from.
+In this case each worker is given a subset of the list of shards to stream from.
+
+### Distributed
+
+To split your dataset across your training nodes, you can use [`datasets.distributed.split_dataset_by_node`]:
+
+```python
+import os
+from datasets.distributed import split_dataset_by_node
+
+ds = split_dataset_by_node(ds, rank=int(os.environ["RANK"]), world_size=int(os.environ["WORLD_SIZE"]))
+```
+
+This works for both map-style datasets and iterable datasets.
+The dataset is split for the node at rank `rank` in a pool of nodes of size `world_size`.
+
+For map-style datasets:
+
+Each node is assigned a chunk of data, e.g. rank 0 is given the first chunk of the dataset.
+
+For iterable datasets:
+
+If the dataset has a number of shards that is a factor of `world_size` (i.e. if `dataset.n_shards % world_size == 0`),
+then the shards are evenly assigned across the nodes, which is the most optimized.
+Otherwise, each node keeps 1 example out of `world_size`, skipping the other examples.
+
+This can also be combined with a `torch.utils.data.DataLoader` if you want each node to use multiple workers to load the data.

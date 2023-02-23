@@ -20,24 +20,22 @@ from datasets.data_files import (
     resolve_patterns_locally_or_by_urls,
 )
 from datasets.fingerprint import Hasher
-from datasets.utils.file_utils import hf_hub_url
+from datasets.utils.hub import hf_hub_url
 
 
 _TEST_PATTERNS = ["*", "**", "**/*", "*.txt", "data/*", "**/*.txt", "**/train.txt"]
 _FILES_TO_IGNORE = {".dummy", "README.md", "dummy_data.zip", "dataset_infos.json"}
 _DIRS_TO_IGNORE = {"data/.dummy_subdir", "__pycache__"}
-_TEST_PATTERNS_SIZES = dict(
-    [
-        ("*", 0),
-        ("**", 4),
-        ("**/*", 4),
-        ("*.txt", 0),
-        ("data/*", 2),
-        ("data/**", 4),
-        ("**/*.txt", 4),
-        ("**/train.txt", 2),
-    ]
-)
+_TEST_PATTERNS_SIZES = {
+    "*": 0,
+    "**": 4,
+    "**/*": 4,
+    "*.txt": 0,
+    "data/*": 2,
+    "data/**": 4,
+    "**/*.txt": 4,
+    "**/train.txt": 2,
+}
 
 _TEST_URL = "https://raw.githubusercontent.com/huggingface/datasets/9675a5a1e7b99a86f9c250f6ea5fa5d1e6d5cc7d/setup.py"
 
@@ -46,11 +44,13 @@ _TEST_URL = "https://raw.githubusercontent.com/huggingface/datasets/9675a5a1e7b9
 def complex_data_dir(tmp_path):
     data_dir = tmp_path / "complex_data_dir"
     data_dir.mkdir()
+
     (data_dir / "data").mkdir()
     with open(data_dir / "data" / "train.txt", "w") as f:
         f.write("foo\n" * 10)
     with open(data_dir / "data" / "test.txt", "w") as f:
         f.write("bar\n" * 10)
+
     with open(data_dir / "README.md", "w") as f:
         f.write("This is a readme")
     with open(data_dir / ".dummy", "w") as f:
@@ -100,7 +100,7 @@ def pattern_results(complex_data_dir):
 
     return {
         pattern: sorted(
-            str(Path(path).resolve())
+            str(Path(os.path.abspath(path)))
             for path in fsspec.filesystem("file").glob(os.path.join(complex_data_dir, pattern))
             if Path(path).name not in _FILES_TO_IGNORE
             and not any(
@@ -266,6 +266,14 @@ def test_resolve_patterns_locally_or_by_urls_with_extensions(complex_data_dir, p
 def test_fail_resolve_patterns_locally_or_by_urls(complex_data_dir):
     with pytest.raises(FileNotFoundError):
         resolve_patterns_locally_or_by_urls(complex_data_dir, ["blablabla"])
+
+
+@pytest.mark.skipif(os.name == "nt", reason="Windows does not support symlinks in the default mode")
+def test_resolve_patterns_locally_or_by_urls_does_not_resolve_symbolic_links(tmp_path, complex_data_dir):
+    (tmp_path / "train_data_symlink.txt").symlink_to(os.path.join(complex_data_dir, "data", "train.txt"))
+    resolved_data_files = resolve_patterns_locally_or_by_urls(str(tmp_path), ["train_data_symlink.txt"])
+    assert len(resolved_data_files) == 1
+    assert resolved_data_files[0] == tmp_path / "train_data_symlink.txt"
 
 
 def test_resolve_patterns_locally_or_by_urls_sorted_files(tmp_path_factory):
@@ -566,6 +574,7 @@ def mock_fs(file_paths: List[str]):
         {"train": "dataset.txt"},
         {"train": "data/dataset.txt"},
         {"train": ["data/image.jpg", "metadata.jsonl"]},
+        {"train": ["data/image.jpg", "metadata.csv"]},
         # With prefix or suffix in directory or file names
         {"train": "my_train_dir/dataset.txt"},
         {"train": "data/my_train_file.txt"},
@@ -581,6 +590,9 @@ def mock_fs(file_paths: List[str]):
         {"validation": "dev.txt"},
         {"validation": "data/dev.txt"},
         {"validation": "dev/dataset.txt"},
+        # With valid<>val aliases
+        {"validation": "val.txt"},
+        {"validation": "data/val.txt"},
         # With other extensions
         {"train": "train.parquet", "test": "test.parquet", "validation": "valid.parquet"},
         # With "dev" or "eval" without separators
@@ -615,8 +627,10 @@ def test_get_data_files_patterns(data_file_per_split):
     [
         # metadata files at the root
         ["metadata.jsonl"],
+        ["metadata.csv"],
         # nested metadata files
         ["data/metadata.jsonl", "data/train/metadata.jsonl"],
+        ["data/metadata.csv", "data/train/metadata.csv"],
     ],
 )
 def test_get_metadata_files_patterns(metadata_files):

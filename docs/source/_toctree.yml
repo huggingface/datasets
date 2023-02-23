@@ -17,6 +17,8 @@
     title: Preprocess
   - local: metrics
     title: Evaluate predictions
+  - local: create_dataset
+    title: Create a dataset
   - local: upload_dataset
     title: Share a dataset to the Hub
   title: "Tutorials"
@@ -34,6 +36,8 @@
       title: Use with TensorFlow
     - local: use_with_pytorch
       title: Use with PyTorch
+    - local: use_with_jax
+      title: Use with JAX
     - local: cache
       title: Cache management
     - local: filesystems
@@ -50,14 +54,22 @@
       title: Load audio data
     - local: audio_process
       title: Process audio data
+    - local: audio_dataset
+      title: Create an audio dataset
     title: "Audio"
   - sections:
     - local: image_load
       title: Load image data
     - local: image_process
       title: Process image data
+    - local: image_dataset
+      title: Create an image dataset
+    - local: depth_estimation
+      title: Depth estimation
     - local: image_classification
       title: Image classification
+    - local: semantic_segmentation
+      title: Semantic segmentation
     - local: object_detection
       title: Object detection
     title: "Vision"
@@ -67,6 +79,10 @@
     - local: nlp_process
       title: Process text data
     title: "Text"
+  - sections:
+    - local: tabular_load
+      title: Load tabular data
+    title: "Tabular"
   - sections:
     - local: share
       title: Share
@@ -83,6 +99,8 @@
     title: Datasets 🤝 Arrow
   - local: about_cache
     title: The cache
+  - local: about_mapstyle_vs_iterable
+    title: Dataset or IterableDataset
   - local: about_dataset_features
     title: Dataset features
   - local: about_dataset_load

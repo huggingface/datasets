@@ -22,7 +22,10 @@ from pathlib import Path
 from typing import List, Optional, Type, TypeVar, Union
 from urllib.parse import urljoin, urlparse
 
+import huggingface_hub
 import requests
+from huggingface_hub import HfFolder
+from packaging import version
 
 from .. import __version__, config
 from ..download.download_config import DownloadConfig
@@ -97,18 +100,12 @@ def head_hf_s3(
 
 
 def hf_github_url(path: str, name: str, dataset=True, revision: Optional[str] = None) -> str:
-    from .. import SCRIPTS_VERSION
-
-    revision = revision or os.getenv("HF_SCRIPTS_VERSION", SCRIPTS_VERSION)
+    default_revision = "main" if version.parse(__version__).is_devrelease else __version__
+    revision = revision or default_revision
     if dataset:
         return config.REPO_DATASETS_URL.format(revision=revision, path=path, name=name)
     else:
         return config.REPO_METRICS_URL.format(revision=revision, path=path, name=name)
-
-
-def hf_hub_url(repo_id: str, path: str, revision: Optional[str] = None) -> str:
-    revision = revision or config.HUB_DEFAULT_VERSION
-    return config.HUB_DATASETS_URL.format(repo_id=repo_id, path=path, revision=revision)
 
 
 def url_or_path_join(base_name: str, *pathnames: str) -> str:
@@ -218,7 +215,9 @@ def cached_path(
 
 
 def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
-    ua = f"datasets/{__version__}; python/{config.PY_VERSION}"
+    ua = f"datasets/{__version__}"
+    ua += f"; python/{config.PY_VERSION}"
+    ua += f"; huggingface_hub/{huggingface_hub.__version__}"
     ua += f"; pyarrow/{config.PYARROW_VERSION}"
     if config.TORCH_AVAILABLE:
         ua += f"; torch/{config.TORCH_VERSION}"
@@ -239,13 +238,13 @@ def get_authentication_headers_for_url(url: str, use_auth_token: Optional[Union[
     """Handle the HF authentication"""
     headers = {}
     if url.startswith(config.HF_ENDPOINT):
-        token = None
-        if isinstance(use_auth_token, str):
+        if use_auth_token is False:
+            token = None
+        elif isinstance(use_auth_token, str):
             token = use_auth_token
-        elif bool(use_auth_token):
-            from huggingface_hub import hf_api
+        else:
+            token = HfFolder.get_token()
 
-            token = hf_api.HfFolder.get_token()
         if token:
             headers["authorization"] = f"Bearer {token}"
     return headers
@@ -547,7 +546,6 @@ def get_from_cache(
     # Prevent parallel downloads of the same file with a lock.
     lock_path = cache_path + ".lock"
     with FileLock(lock_path):
-
         if resume_download:
             incomplete_path = cache_path + ".incomplete"
 

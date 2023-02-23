@@ -1,6 +1,8 @@
+import contextlib
 import csv
 import json
 import os
+import sqlite3
 import tarfile
 import textwrap
 import zipfile
@@ -239,6 +241,18 @@ def arrow_path(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
+def sqlite_path(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("data") / "dataset.sqlite")
+    with contextlib.closing(sqlite3.connect(path)) as con:
+        cur = con.cursor()
+        cur.execute("CREATE TABLE dataset(col_1 text, col_2 int, col_3 real)")
+        for item in DATA:
+            cur.execute("INSERT INTO dataset(col_1, col_2, col_3) VALUES (?, ?, ?)", tuple(item.values()))
+        con.commit()
+    return path
+
+
+@pytest.fixture(scope="session")
 def csv_path(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("data") / "dataset.csv")
     with open(path, "w", newline="") as f:
@@ -395,6 +409,14 @@ def zip_jsonl_path(jsonl_path, jsonl2_path, tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
+def zip_nested_jsonl_path(zip_jsonl_path, jsonl_path, jsonl2_path, tmp_path_factory):
+    path = tmp_path_factory.mktemp("data") / "dataset_nested.jsonl.zip"
+    with zipfile.ZipFile(path, "w") as f:
+        f.write(zip_jsonl_path, arcname=os.path.join("nested", os.path.basename(zip_jsonl_path)))
+    return path
+
+
+@pytest.fixture(scope="session")
 def zip_jsonl_with_dir_path(jsonl_path, jsonl2_path, tmp_path_factory):
     path = tmp_path_factory.mktemp("data") / "dataset_with_dir.jsonl.zip"
     with zipfile.ZipFile(path, "w") as f:
@@ -470,6 +492,11 @@ def text_path_with_unicode_new_lines(tmp_path_factory):
 @pytest.fixture(scope="session")
 def image_file():
     return os.path.join("tests", "features", "data", "test_image_rgb.jpg")
+
+
+@pytest.fixture(scope="session")
+def audio_file():
+    return os.path.join("tests", "features", "data", "test_audio_44100.wav")
 
 
 @pytest.fixture(scope="session")

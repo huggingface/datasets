@@ -47,7 +47,7 @@ If you only want to load the underlying path to the image dataset without decodi
 
 ## ImageFolder
 
-You can also load a dataset with a `ImageFolder` dataset builder. It does not require writing a custom dataloader, making it useful for quickly loading a dataset for certain vision tasks. Your image dataset structure should look like this:
+You can also load a dataset with an `ImageFolder` dataset builder which does not require writing a custom dataloader. This makes `ImageFolder` ideal for quickly creating and loading image datasets with several thousand images for different vision tasks. Your image dataset structure should look like this:
 
 ```
 folder/train/dog/golden_retriever.png
@@ -78,65 +78,18 @@ Load remote datasets from their URLs with the `data_files` parameter:
 >>> dataset = load_dataset("imagefolder", data_files="https://download.microsoft.com/download/3/E/1/3E1C3F21-ECDB-4869-8368-6DEBA77B919F/kagglecatsanddogs_3367a.zip", split="train")
 ```
 
-`ImageFolder` creates a `label` column, and the label name is based on the directory name. To ignore the `label` column, set `drop_labels=False` as defined in [`~datasets.packaged_modules.imagefolder.ImageFolderConfig`].
+Some datasets have a metadata file (`metadata.csv`/`metadata.jsonl`) associated with it, containing other information about the data like bounding boxes, text captions, and labels. The metadata is automatically loaded when you call [`load_dataset`] and specify `imagefolder`. 
 
-## ImageFolder with metadata
+To ignore the information in the metadata file, set `drop_labels=False` in [`load_dataset`], and allow `ImageFolder` to automatically infer the label name from the directory name:
 
-Metadata associated with your dataset can also be loaded, extending the utility of `ImageFolder` to additional vision tasks like image captioning and object detection. Make sure your dataset has a `metadata.jsonl` file:
+```py
+>>> from datasets import load_dataset
 
-```
-folder/train/metadata.jsonl
-folder/train/0001.png
-folder/train/0002.png
-folder/train/0003.png
-```
-Your `metadata.jsonl` file must have a `file_name` column which links image files with their metadata:
-
-```jsonl
-{"file_name": "0001.png", "additional_feature": "This is a first value of a text feature you added to your images"}
-{"file_name": "0002.png", "additional_feature": "This is a second value of a text feature you added to your images"}
-{"file_name": "0003.png", "additional_feature": "This is a third value of a text feature you added to your images"}
+>>> dataset = load_dataset("imagefolder", data_dir="/path/to/folder", drop_labels=False)
 ```
 
 <Tip>
 
-If metadata files are present, the inferred labels based on the directory name are dropped by default. To include those labels, set `drop_labels=False` in `load_dataset`.
+For more information about creating your own `ImageFolder` dataset, take a look at the [Create an image dataset](./image_dataset) guide.
 
 </Tip>
-
-### Image captioning
-
-Image captioning datasets have text describing an image. An example `metadata.jsonl` may look like:
-
-```jsonl
-{"file_name": "0001.png", "text": "This is a golden retriever playing with a ball"}
-{"file_name": "0002.png", "text": "A german shepherd"}
-{"file_name": "0003.png", "text": "One chihuahua"}
-```
-
-Load the dataset with `ImageFolder`, and it will create a `text` column for the image captions:
-
-```py
->>> dataset = load_dataset("imagefolder", data_dir="/path/to/folder", split="train")
->>> dataset[0]["text"]
-"This is a golden retriever playing with a ball"
-```
-
-
-### Object detection
-
-Object detection datasets have bounding boxes and categories identifying objects in an image. An example `metadata.jsonl` may look like:
-
-```jsonl
-{"file_name": "0001.png", "objects": {"bbox": [[302.0, 109.0, 73.0, 52.0]], "categories": [0]}}
-{"file_name": "0002.png", "objects": {"bbox": [[810.0, 100.0, 57.0, 28.0]], "categories": [1]}}
-{"file_name": "0003.png", "objects": {"bbox": [[160.0, 31.0, 248.0, 616.0], [741.0, 68.0, 202.0, 401.0]], "categories": [2, 2]}}
-```
-
-Load the dataset with `ImageFolder`, and it will create a `objects` column with the bounding boxes and the categories:
-
-```py
->>> dataset = load_dataset("imagefolder", data_dir="/path/to/folder", split="train")
->>> dataset[0]["objects"]
-{"bbox": [[302.0, 109.0, 73.0, 52.0]], "categories": [0]}
-```

@@ -18,8 +18,10 @@ import os
 import sys
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
+import fsspec
 import numpy as np
 import pyarrow as pa
+import pyarrow.parquet as pq
 
 from . import config
 from .features import Features, Image, Value
@@ -33,9 +35,10 @@ from .features.features import (
     numpy_to_pyarrow_listarray,
     to_pyarrow_listarray,
 )
+from .filesystems import is_remote_filesystem
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
-from .table import array_cast, cast_array_to_feature, table_cast
+from .table import array_cast, array_concat, cast_array_to_feature, embed_table_storage, table_cast
 from .utils import logging
 from .utils.file_utils import hash_url_to_filename
 from .utils.py_utils import asdict, first_non_null_value
@@ -44,6 +47,10 @@ from .utils.py_utils import asdict, first_non_null_value
 logger = logging.get_logger(__name__)
 
 type_ = type  # keep python's type function
+
+
+class SchemaInferenceError(ValueError):
+    pass
 
 
 class TypedSequence:
@@ -196,7 +203,15 @@ class TypedSequence:
                 # We only do it if trying_type is False - since this is what the user asks for.
                 out = cast_array_to_feature(out, type, allow_number_to_str=not self.trying_type)
             return out
-        except (TypeError, pa.lib.ArrowInvalid) as e:  # handle type errors and overflows
+        except (
+            TypeError,
+            pa.lib.ArrowInvalid,
+            pa.lib.ArrowNotImplementedError,
+        ) as e:  # handle type errors and overflows
+            # Ignore ArrowNotImplementedError caused by trying type, otherwise re-raise
+            if not self.trying_type and isinstance(e, pa.lib.ArrowNotImplementedError):
+                raise
+
             if self.trying_type:
                 try:  # second chance
                     if isinstance(data, np.ndarray):
@@ -268,6 +283,8 @@ class OptimizedTypedSequence(TypedSequence):
 class ArrowWriter:
     """Shuffles and writes Examples to Arrow files."""
 
+    _WRITER_CLASS = pa.RecordBatchStreamWriter
+
     def __init__(
         self,
         schema: Optional[pa.Schema] = None,
@@ -282,6 +299,8 @@ class ArrowWriter:
         update_features: bool = False,
         with_metadata: bool = True,
         unit: str = "examples",
+        embed_local_files: bool = False,
+        storage_options: Optional[dict] = None,
     ):
         if path is None and stream is None:
             raise ValueError("At least one of path and stream must be provided.")
@@ -304,11 +323,19 @@ class ArrowWriter:
         self._check_duplicates = check_duplicates
         self._disable_nullable = disable_nullable
 
-        self._path = path
         if stream is None:
-            self.stream = pa.OSFile(self._path, "wb")
+            fs_token_paths = fsspec.get_fs_token_paths(path, storage_options=storage_options)
+            self._fs: fsspec.AbstractFileSystem = fs_token_paths[0]
+            self._path = (
+                fs_token_paths[2][0]
+                if not is_remote_filesystem(self._fs)
+                else self._fs.unstrip_protocol(fs_token_paths[2][0])
+            )
+            self.stream = self._fs.open(fs_token_paths[2][0], "wb")
             self._closable_stream = True
         else:
+            self._fs = None
+            self._path = None
             self.stream = stream
             self._closable_stream = False
 
@@ -318,6 +345,7 @@ class ArrowWriter:
         self.update_features = update_features
         self.with_metadata = with_metadata
         self.unit = unit
+        self.embed_local_files = embed_local_files
 
         self._num_examples = 0
         self._num_bytes = 0
@@ -367,7 +395,7 @@ class ArrowWriter:
         if self.with_metadata:
             schema = schema.with_metadata(self._build_metadata(DatasetInfo(features=self._features), self.fingerprint))
         self._schema = schema
-        self.pa_writer = pa.RecordBatchStreamWriter(self.stream, schema)
+        self.pa_writer = self._WRITER_CLASS(self.stream, schema)
 
     @property
     def schema(self):
@@ -404,8 +432,17 @@ class ArrowWriter:
         )
         batch_examples = {}
         for col in cols:
-            # Since current_examples contains (example, key) tuples
-            batch_examples[col] = [row[0][col] for row in self.current_examples]
+            # We use row[0][col] since current_examples contains (example, key) tuples.
+            # Morever, examples could be Arrow arrays of 1 element.
+            # This can happen in `.map()` when we want to re-write the same Arrow data
+            if all(isinstance(row[0][col], (pa.Array, pa.ChunkedArray)) for row in self.current_examples):
+                arrays = [row[0][col] for row in self.current_examples]
+                batch_examples[col] = array_concat(arrays)
+            else:
+                batch_examples[col] = [
+                    row[0][col].to_pylist()[0] if isinstance(row[0][col], (pa.Array, pa.ChunkedArray)) else row[0][col]
+                    for row in self.current_examples
+                ]
         self.write_batch(batch_examples=batch_examples)
         self.current_examples = []
 
@@ -413,7 +450,7 @@ class ArrowWriter:
         """Write stored rows from the write-pool of rows. It concatenates the single-row tables and it writes the resulting table."""
         if not self.current_rows:
             return
-        table = pa.concat_tables(self.current_rows).combine_chunks()
+        table = pa.concat_tables(self.current_rows)
         self.write_table(table)
         self.current_rows = []
 
@@ -502,11 +539,17 @@ class ArrowWriter:
             else batch_examples.keys()
         )
         for col in cols:
+            col_values = batch_examples[col]
             col_type = features[col] if features else None
-            col_try_type = try_features[col] if try_features is not None and col in try_features else None
-            typed_sequence = OptimizedTypedSequence(batch_examples[col], type=col_type, try_type=col_try_type, col=col)
-            arrays.append(pa.array(typed_sequence))
-            inferred_features[col] = typed_sequence.get_inferred_type()
+            if isinstance(col_values, (pa.Array, pa.ChunkedArray)):
+                array = cast_array_to_feature(col_values, col_type) if col_type is not None else col_values
+                arrays.append(array)
+                inferred_features[col] = generate_from_arrow_type(col_values.type)
+            else:
+                col_try_type = try_features[col] if try_features is not None and col in try_features else None
+                typed_sequence = OptimizedTypedSequence(col_values, type=col_type, try_type=col_try_type, col=col)
+                arrays.append(pa.array(typed_sequence))
+                inferred_features[col] = typed_sequence.get_inferred_type()
         schema = inferred_features.arrow_schema if self.pa_writer is None else self.schema
         pa_table = pa.Table.from_arrays(arrays, schema=schema)
         self.write_table(pa_table, writer_batch_size)
@@ -521,12 +564,13 @@ class ArrowWriter:
             writer_batch_size = self.writer_batch_size
         if self.pa_writer is None:
             self._build_writer(inferred_schema=pa_table.schema)
+        pa_table = pa_table.combine_chunks()
         pa_table = table_cast(pa_table, self._schema)
-        batches: List[pa.RecordBatch] = pa_table.to_batches(max_chunksize=writer_batch_size)
-        self._num_bytes += sum(batch.nbytes for batch in batches)
+        if self.embed_local_files:
+            pa_table = embed_table_storage(pa_table)
+        self._num_bytes += pa_table.nbytes
         self._num_examples += pa_table.num_rows
-        for batch in batches:
-            self.pa_writer.write_batch(batch)
+        self.pa_writer.write_table(pa_table, writer_batch_size)
 
     def finalize(self, close_stream=True):
         self.write_rows_on_file()
@@ -536,18 +580,26 @@ class ArrowWriter:
             # Re-intializing to empty list for next batch
             self.hkey_record = []
         self.write_examples_on_file()
-        if self.pa_writer is None:
-            if self.schema:
-                self._build_writer(self.schema)
-            else:
-                raise ValueError("Please pass `features` or at least one example when writing data")
-        self.pa_writer.close()
-        if close_stream:
-            self.stream.close()
+        # If schema is known, infer features even if no examples were written
+        if self.pa_writer is None and self.schema:
+            self._build_writer(self.schema)
+        if self.pa_writer is not None:
+            self.pa_writer.close()
+            self.pa_writer = None
+            if close_stream:
+                self.stream.close()
+        else:
+            if close_stream:
+                self.stream.close()
+            raise SchemaInferenceError("Please pass `features` or at least one example when writing data")
         logger.debug(
             f"Done writing {self._num_examples} {self.unit} in {self._num_bytes} bytes {self._path if self._path else ''}."
         )
         return self._num_examples, self._num_bytes
+
+
+class ParquetWriter(ArrowWriter):
+    _WRITER_CLASS = pq.ParquetWriter
 
 
 class BeamWriter:
@@ -615,47 +667,75 @@ class BeamWriter:
 
         from .utils import beam_utils
 
+        shards_metadata = list(
+            beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[0].metadata_list
+        )
+        shards = [metadata.path for metadata in shards_metadata]
+        num_bytes = sum([metadata.size_in_bytes for metadata in shards_metadata])
+        shard_lengths = get_parquet_lengths(shards)
+
         # Convert to arrow
-        logger.info(f"Converting parquet file {self._parquet_path} to arrow {self._path}")
-        shards = [
-            metadata.path
-            for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[0].metadata_list
-        ]
-        try:  # stream conversion
-            sources = [beam.io.filesystems.FileSystems.open(shard) for shard in shards]
-            with beam.io.filesystems.FileSystems.create(self._path) as dest:
-                parquet_to_arrow(sources, dest)
-        except OSError as e:  # broken pipe can happen if the connection is unstable, do local conversion instead
-            if e.errno != errno.EPIPE:  # not a broken pipe
-                raise
-            logger.warning("Broken Pipe during stream conversion from parquet to arrow. Using local convert instead")
-            local_convert_dir = os.path.join(self._cache_dir, "beam_convert")
-            os.makedirs(local_convert_dir, exist_ok=True)
-            local_arrow_path = os.path.join(local_convert_dir, hash_url_to_filename(self._parquet_path) + ".arrow")
-            local_shards = []
-            for shard in shards:
-                local_parquet_path = os.path.join(local_convert_dir, hash_url_to_filename(shard) + ".parquet")
-                local_shards.append(local_parquet_path)
-                beam_utils.download_remote_to_local(shard, local_parquet_path)
-            parquet_to_arrow(local_shards, local_arrow_path)
-            beam_utils.upload_local_to_remote(local_arrow_path, self._path)
+        if self._path.endswith(".arrow"):
+            logger.info(f"Converting parquet files {self._parquet_path} to arrow {self._path}")
+            shards = [
+                metadata.path
+                for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[
+                    0
+                ].metadata_list
+            ]
+            try:  # stream conversion
+                disable = not logging.is_progress_bar_enabled()
+                num_bytes = 0
+                for shard in logging.tqdm(shards, unit="shards", disable=disable):
+                    with beam.io.filesystems.FileSystems.open(shard) as source:
+                        with beam.io.filesystems.FileSystems.create(
+                            shard.replace(".parquet", ".arrow")
+                        ) as destination:
+                            shard_num_bytes, _ = parquet_to_arrow(source, destination)
+                            num_bytes += shard_num_bytes
+            except OSError as e:  # broken pipe can happen if the connection is unstable, do local conversion instead
+                if e.errno != errno.EPIPE:  # not a broken pipe
+                    raise
+                logger.warning(
+                    "Broken Pipe during stream conversion from parquet to arrow. Using local convert instead"
+                )
+                local_convert_dir = os.path.join(self._cache_dir, "beam_convert")
+                os.makedirs(local_convert_dir, exist_ok=True)
+                disable = not logging.is_progress_bar_enabled()
+                num_bytes = 0
+                for shard in logging.tqdm(shards, unit="shards", disable=disable):
+                    local_parquet_path = os.path.join(local_convert_dir, hash_url_to_filename(shard) + ".parquet")
+                    beam_utils.download_remote_to_local(shard, local_parquet_path)
+                    local_arrow_path = local_parquet_path.replace(".parquet", ".arrow")
+                    shard_num_bytes, _ = parquet_to_arrow(local_parquet_path, local_arrow_path)
+                    num_bytes += shard_num_bytes
+                    remote_arrow_path = shard.replace(".parquet", ".arrow")
+                    beam_utils.upload_local_to_remote(local_arrow_path, remote_arrow_path)
 
         # Save metrics
         counters_dict = {metric.key.metric.name: metric.result for metric in metrics_query_result["counters"]}
         self._num_examples = counters_dict["num_examples"]
-        output_file_metadata = beam.io.filesystems.FileSystems.match([self._path], limits=[1])[0].metadata_list[0]
-        self._num_bytes = output_file_metadata.size_in_bytes
+        self._num_bytes = num_bytes
+        self._shard_lengths = shard_lengths
         return self._num_examples, self._num_bytes
 
 
-def parquet_to_arrow(sources, destination):
-    """Convert parquet files to arrow file. Inputs can be str paths or file-like objects"""
-    stream = None if isinstance(destination, str) else destination
+def get_parquet_lengths(sources) -> List[int]:
+    shard_lengths = []
     disable = not logging.is_progress_bar_enabled()
+    for source in logging.tqdm(sources, unit="parquet files", disable=disable):
+        parquet_file = pa.parquet.ParquetFile(source)
+        shard_lengths.append(parquet_file.metadata.num_rows)
+    return shard_lengths
+
+
+def parquet_to_arrow(source, destination) -> List[int]:
+    """Convert parquet file to arrow file. Inputs can be str paths or file-like objects"""
+    stream = None if isinstance(destination, str) else destination
     with ArrowWriter(path=destination, stream=stream) as writer:
-        for source in logging.tqdm(sources, unit="sources", disable=disable):
-            parquet_file = pa.parquet.ParquetFile(source)
-            for record_batch in parquet_file.iter_batches():
-                pa_table = pa.Table.from_batches([record_batch])
-                writer.write_table(pa_table)
-    return destination
+        parquet_file = pa.parquet.ParquetFile(source)
+        for record_batch in parquet_file.iter_batches():
+            pa_table = pa.Table.from_batches([record_batch])
+            writer.write_table(pa_table)
+        num_bytes, num_examples = writer.finalize()
+    return num_bytes, num_examples

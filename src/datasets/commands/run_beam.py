@@ -10,6 +10,7 @@ from datasets.commands import BaseDatasetsCLICommand
 from datasets.download.download_config import DownloadConfig
 from datasets.download.download_manager import DownloadMode
 from datasets.load import dataset_module_factory, import_main_class
+from datasets.utils.info_utils import VerificationMode
 
 
 def run_beam_command_factory(args, **kwargs):
@@ -20,7 +21,7 @@ def run_beam_command_factory(args, **kwargs):
         args.beam_pipeline_options,
         args.data_dir,
         args.all_configs,
-        args.save_infos,
+        args.save_info or args.save_infos,
         args.ignore_verifications,
         args.force_redownload,
         **kwargs,
@@ -52,11 +53,13 @@ class RunBeamCommand(BaseDatasetsCLICommand):
             help="Can be used to specify a manual directory to get the files from",
         )
         run_beam_parser.add_argument("--all_configs", action="store_true", help="Test all dataset configurations")
-        run_beam_parser.add_argument("--save_infos", action="store_true", help="Save the dataset infos file")
+        run_beam_parser.add_argument("--save_info", action="store_true", help="Save the dataset infos file")
         run_beam_parser.add_argument(
             "--ignore_verifications", action="store_true", help="Run the test without checksums and splits checks"
         )
         run_beam_parser.add_argument("--force_redownload", action="store_true", help="Force dataset redownload")
+        # aliases
+        run_beam_parser.add_argument("--save_infos", action="store_true", help="alias for save_info")
         run_beam_parser.set_defaults(func=run_beam_command_factory)
 
     def __init__(
@@ -129,7 +132,9 @@ class RunBeamCommand(BaseDatasetsCLICommand):
                 if not self._force_redownload
                 else DownloadMode.FORCE_REDOWNLOAD,
                 download_config=DownloadConfig(cache_dir=config.DOWNLOADED_DATASETS_PATH),
-                ignore_verifications=self._ignore_verifications,
+                verification_mode=VerificationMode.NO_CHECKS
+                if self._ignore_verifications
+                else VerificationMode.ALL_CHECKS,
                 try_from_hf_gcs=False,
             )
             if self._save_infos:

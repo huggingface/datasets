@@ -20,7 +20,6 @@ def test_patch_submodule():
 
     mock = "__test_patch_submodule_mock__"
     with patch_submodule(_test_patching, "os.path.join", mock):
-
         # Every way to access os.path.join must be patched, and the rest must stay untouched
 
         # check os.path.join

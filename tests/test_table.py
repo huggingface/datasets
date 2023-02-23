@@ -1,13 +1,15 @@
 import copy
 import pickle
+import warnings
 from typing import List, Union
 
 import numpy as np
 import pyarrow as pa
 import pytest
 
+import datasets
 from datasets import Sequence, Value
-from datasets.features.features import ClassLabel, Features, Image
+from datasets.features.features import Array2DExtensionType, ClassLabel, Features, Image
 from datasets.table import (
     ConcatenationTable,
     InMemoryTable,
@@ -17,13 +19,16 @@ from datasets.table import (
     _in_memory_arrow_table_from_buffer,
     _in_memory_arrow_table_from_file,
     _interpolation_search,
+    _is_extension_type,
     _memory_mapped_arrow_table_from_file,
+    array_concat,
     cast_array_to_feature,
     concat_tables,
     embed_array_storage,
     embed_table_storage,
     inject_arrow_table_documentation,
     table_cast,
+    table_iter,
 )
 
 from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, slow
@@ -113,13 +118,13 @@ def test_inject_arrow_table_documentation(in_memory_pa_table):
     assert "Table" in wrapped_method.__doc__
 
 
-def test__in_memory_arrow_table_from_file(arrow_file, in_memory_pa_table):
+def test_in_memory_arrow_table_from_file(arrow_file, in_memory_pa_table):
     with assert_arrow_memory_increases():
         pa_table = _in_memory_arrow_table_from_file(arrow_file)
         assert in_memory_pa_table == pa_table
 
 
-def test__in_memory_arrow_table_from_buffer(in_memory_pa_table):
+def test_in_memory_arrow_table_from_buffer(in_memory_pa_table):
     with assert_arrow_memory_increases():
         buf_writer = pa.BufferOutputStream()
         writer = pa.RecordBatchStreamWriter(buf_writer, schema=in_memory_pa_table.schema)
@@ -130,7 +135,7 @@ def test__in_memory_arrow_table_from_buffer(in_memory_pa_table):
         assert in_memory_pa_table == pa_table
 
 
-def test__memory_mapped_arrow_table_from_file(arrow_file, in_memory_pa_table):
+def test_memory_mapped_arrow_table_from_file(arrow_file, in_memory_pa_table):
     with assert_arrow_memory_doesnt_increase():
         pa_table = _memory_mapped_arrow_table_from_file(arrow_file)
         assert in_memory_pa_table == pa_table
@@ -255,6 +260,13 @@ def test_in_memory_table_from_pydict(in_memory_pa_table):
         assert table.table == pa.Table.from_pydict(pydict)
 
 
+def test_in_memory_table_from_pylist(in_memory_pa_table):
+    pylist = InMemoryTable(in_memory_pa_table).to_pylist()
+    table = InMemoryTable.from_pylist(pylist)
+    assert isinstance(table, InMemoryTable)
+    assert pylist == table.to_pylist()
+
+
 def test_in_memory_table_from_batches(in_memory_pa_table):
     batches = list(in_memory_pa_table.to_batches())
     table = InMemoryTable.from_batches(batches)
@@ -362,7 +374,7 @@ def test_in_memory_table_replace_schema_metadata(in_memory_pa_table):
 def test_in_memory_table_add_column(in_memory_pa_table):
     i = len(in_memory_pa_table.column_names)
     field_ = "new_field"
-    column = pa.array([i for i in range(len(in_memory_pa_table))])
+    column = pa.array(list(range(len(in_memory_pa_table))))
     table = InMemoryTable(in_memory_pa_table).add_column(i, field_, column)
     assert table.table == in_memory_pa_table.add_column(i, field_, column)
     assert isinstance(table, InMemoryTable)
@@ -370,7 +382,7 @@ def test_in_memory_table_add_column(in_memory_pa_table):
 
 def test_in_memory_table_append_column(in_memory_pa_table):
     field_ = "new_field"
-    column = pa.array([i for i in range(len(in_memory_pa_table))])
+    column = pa.array(list(range(len(in_memory_pa_table))))
     table = InMemoryTable(in_memory_pa_table).append_column(field_, column)
     assert table.table == in_memory_pa_table.append_column(field_, column)
     assert isinstance(table, InMemoryTable)
@@ -385,7 +397,7 @@ def test_in_memory_table_remove_column(in_memory_pa_table):
 def test_in_memory_table_set_column(in_memory_pa_table):
     i = len(in_memory_pa_table.column_names)
     field_ = "new_field"
-    column = pa.array([i for i in range(len(in_memory_pa_table))])
+    column = pa.array(list(range(len(in_memory_pa_table))))
     table = InMemoryTable(in_memory_pa_table).set_column(i, field_, column)
     assert table.table == in_memory_pa_table.set_column(i, field_, column)
     assert isinstance(table, InMemoryTable)
@@ -424,7 +436,7 @@ def test_memory_mapped_table_from_file(arrow_file, in_memory_pa_table):
 
 
 def test_memory_mapped_table_from_file_with_replay(arrow_file, in_memory_pa_table):
-    replays = [("slice", (0, 1), {}), ("flatten", tuple(), {})]
+    replays = [("slice", (0, 1), {}), ("flatten", (), {})]
     with assert_arrow_memory_doesnt_increase():
         table = MemoryMappedTable.from_file(arrow_file, replays=replays)
     assert len(table) == 1
@@ -463,7 +475,7 @@ def test_memory_mapped_table_pickle_doesnt_fill_memory(arrow_file):
 
 
 def test_memory_mapped_table_pickle_applies_replay(arrow_file):
-    replays = [("slice", (0, 1), {}), ("flatten", tuple(), {})]
+    replays = [("slice", (0, 1), {}), ("flatten", (), {})]
     with assert_arrow_memory_doesnt_increase():
         table = MemoryMappedTable.from_file(arrow_file, replays=replays)
     assert isinstance(table, MemoryMappedTable)
@@ -497,7 +509,7 @@ def test_memory_mapped_table_flatten(arrow_file, in_memory_pa_table):
     table = MemoryMappedTable.from_file(arrow_file).flatten()
     assert table.table == in_memory_pa_table.flatten()
     assert isinstance(table, MemoryMappedTable)
-    assert table.replays == [("flatten", tuple(), {})]
+    assert table.replays == [("flatten", (), {})]
     assert_deepcopy_without_bringing_data_in_memory(table)
     assert_pickle_without_bringing_data_in_memory(table)
 
@@ -506,7 +518,7 @@ def test_memory_mapped_table_combine_chunks(arrow_file, in_memory_pa_table):
     table = MemoryMappedTable.from_file(arrow_file).combine_chunks()
     assert table.table == in_memory_pa_table.combine_chunks()
     assert isinstance(table, MemoryMappedTable)
-    assert table.replays == [("combine_chunks", tuple(), {})]
+    assert table.replays == [("combine_chunks", (), {})]
     assert_deepcopy_without_bringing_data_in_memory(table)
     assert_pickle_without_bringing_data_in_memory(table)
 
@@ -542,7 +554,7 @@ def test_memory_mapped_table_replace_schema_metadata(arrow_file, in_memory_pa_ta
 def test_memory_mapped_table_add_column(arrow_file, in_memory_pa_table):
     i = len(in_memory_pa_table.column_names)
     field_ = "new_field"
-    column = pa.array([i for i in range(len(in_memory_pa_table))])
+    column = pa.array(list(range(len(in_memory_pa_table))))
     table = MemoryMappedTable.from_file(arrow_file).add_column(i, field_, column)
     assert table.table == in_memory_pa_table.add_column(i, field_, column)
     assert isinstance(table, MemoryMappedTable)
@@ -553,7 +565,7 @@ def test_memory_mapped_table_add_column(arrow_file, in_memory_pa_table):
 
 def test_memory_mapped_table_append_column(arrow_file, in_memory_pa_table):
     field_ = "new_field"
-    column = pa.array([i for i in range(len(in_memory_pa_table))])
+    column = pa.array(list(range(len(in_memory_pa_table))))
     table = MemoryMappedTable.from_file(arrow_file).append_column(field_, column)
     assert table.table == in_memory_pa_table.append_column(field_, column)
     assert isinstance(table, MemoryMappedTable)
@@ -574,7 +586,7 @@ def test_memory_mapped_table_remove_column(arrow_file, in_memory_pa_table):
 def test_memory_mapped_table_set_column(arrow_file, in_memory_pa_table):
     i = len(in_memory_pa_table.column_names)
     field_ = "new_field"
-    column = pa.array([i for i in range(len(in_memory_pa_table))])
+    column = pa.array(list(range(len(in_memory_pa_table))))
     table = MemoryMappedTable.from_file(arrow_file).set_column(i, field_, column)
     assert table.table == in_memory_pa_table.set_column(i, field_, column)
     assert isinstance(table, MemoryMappedTable)
@@ -687,6 +699,30 @@ def test_concatenation_table_from_tables(axis, in_memory_pa_table, arrow_file):
     assert axis == 1 or len(table.blocks[1]) == 1
     assert isinstance(table.blocks[0][0], InMemoryTable)
     assert isinstance(table.blocks[1][0] if axis == 0 else table.blocks[0][1], MemoryMappedTable)
+
+
+def test_concatenation_table_from_tables_axis1_misaligned_blocks(arrow_file):
+    table = MemoryMappedTable.from_file(arrow_file)
+    t1 = table.slice(0, 2)
+    t2 = table.slice(0, 3).rename_columns([col + "_1" for col in table.column_names])
+    concatenated = ConcatenationTable.from_tables(
+        [
+            ConcatenationTable.from_blocks([[t1], [t1], [t1]]),
+            ConcatenationTable.from_blocks([[t2], [t2]]),
+        ],
+        axis=1,
+    )
+    assert len(concatenated) == 6
+    assert [len(row_blocks[0]) for row_blocks in concatenated.blocks] == [2, 1, 1, 2]
+    concatenated = ConcatenationTable.from_tables(
+        [
+            ConcatenationTable.from_blocks([[t2], [t2]]),
+            ConcatenationTable.from_blocks([[t1], [t1], [t1]]),
+        ],
+        axis=1,
+    )
+    assert len(concatenated) == 6
+    assert [len(row_blocks[0]) for row_blocks in concatenated.blocks] == [2, 1, 1, 2]
 
 
 @pytest.mark.parametrize("blocks_type", ["in_memory", "memory_mapped", "mixed"])
@@ -876,7 +912,7 @@ def test_concatenation_table_add_column(
     }[blocks_type]
     i = len(in_memory_pa_table.column_names)
     field_ = "new_field"
-    column = pa.array([i for i in range(len(in_memory_pa_table))])
+    column = pa.array(list(range(len(in_memory_pa_table))))
     with pytest.raises(NotImplementedError):
         ConcatenationTable.from_blocks(blocks).add_column(i, field_, column)
         # assert table.table == in_memory_pa_table.add_column(i, field_, column)
@@ -894,7 +930,7 @@ def test_concatenation_table_append_column(
         "mixed": mixed_in_memory_and_memory_mapped_blocks,
     }[blocks_type]
     field_ = "new_field"
-    column = pa.array([i for i in range(len(in_memory_pa_table))])
+    column = pa.array(list(range(len(in_memory_pa_table))))
     with pytest.raises(NotImplementedError):
         ConcatenationTable.from_blocks(blocks).append_column(field_, column)
         # assert table.table == in_memory_pa_table.append_column(field_, column)
@@ -927,7 +963,7 @@ def test_concatenation_table_set_column(
     }[blocks_type]
     i = len(in_memory_pa_table.column_names)
     field_ = "new_field"
-    column = pa.array([i for i in range(len(in_memory_pa_table))])
+    column = pa.array(list(range(len(in_memory_pa_table))))
     with pytest.raises(NotImplementedError):
         ConcatenationTable.from_blocks(blocks).set_column(i, field_, column)
         # assert table.table == in_memory_pa_table.set_column(i, field_, column)
@@ -1045,6 +1081,35 @@ def test_indexed_table_mixin():
     assert table.fast_slice(2, 13) == pa_table.slice(2, 13)
 
 
+@pytest.mark.parametrize(
+    "arrays",
+    [
+        [pa.array([[1, 2, 3, 4]]), pa.array([[10, 2]])],
+        [
+            pa.array([[[1, 2], [3]]], pa.list_(pa.list_(pa.int32()), 2)),
+            pa.array([[[10, 2, 3], [2]]], pa.list_(pa.list_(pa.int32()), 2)),
+        ],
+        [pa.array([[[1, 2, 3]], [[2, 3], [20, 21]], [[4]]]).slice(1), pa.array([[[1, 2, 3]]])],
+    ],
+)
+def test_concat_arrays(arrays):
+    assert array_concat(arrays) == pa.concat_arrays(arrays)
+
+
+def test_concat_arrays_nested_with_nulls():
+    arrays = [pa.array([{"a": 21, "b": [[1, 2], [3]]}]), pa.array([{"a": 100, "b": [[1], None]}])]
+    concatenated_arrays = array_concat(arrays)
+    assert concatenated_arrays == pa.array([{"a": 21, "b": [[1, 2], [3]]}, {"a": 100, "b": [[1], None]}])
+
+
+def test_concat_extension_arrays():
+    arrays = [pa.array([[[1, 2], [3, 4]]]), pa.array([[[10, 2], [3, 4]]])]
+    extension_type = Array2DExtensionType((2, 2), "int64")
+    assert array_concat([extension_type.wrap_array(array) for array in arrays]) == extension_type.wrap_array(
+        pa.concat_arrays(arrays)
+    )
+
+
 def test_cast_array_to_features():
     arr = pa.array([[0, 1]])
     assert cast_array_to_feature(arr, Sequence(Value("string"))).type == pa.list_(pa.string())
@@ -1068,12 +1133,19 @@ def test_cast_array_to_features_nested_with_null_values():
 
     # different type
     arr = pa.array([{"foo": [None, [0]]}], pa.struct({"foo": pa.list_(pa.list_(pa.int64()))}))
-    with pytest.warns(UserWarning, match="None values are converted to empty lists.+"):
-        casted_array = cast_array_to_feature(arr, {"foo": [[Value("int32")]]})
-    assert casted_array.type == pa.struct({"foo": pa.list_(pa.list_(pa.int32()))})
-    assert casted_array.to_pylist() == [
-        {"foo": [[], [0]]}
-    ]  # empty list because of https://github.com/huggingface/datasets/issues/3676
+    if datasets.config.PYARROW_VERSION.major < 10:
+        with pytest.warns(UserWarning, match="None values are converted to empty lists.+"):
+            casted_array = cast_array_to_feature(arr, {"foo": [[Value("int32")]]})
+        assert casted_array.type == pa.struct({"foo": pa.list_(pa.list_(pa.int32()))})
+        assert casted_array.to_pylist() == [
+            {"foo": [[], [0]]}
+        ]  # empty list because of https://github.com/huggingface/datasets/issues/3676
+    else:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            casted_array = cast_array_to_feature(arr, {"foo": [[Value("int32")]]})
+        assert casted_array.type == pa.struct({"foo": pa.list_(pa.list_(pa.int32()))})
+        assert casted_array.to_pylist() == [{"foo": [None, [0]]}]
 
 
 def test_cast_array_to_features_to_null_type():
@@ -1087,21 +1159,46 @@ def test_cast_array_to_features_to_null_type():
         cast_array_to_feature(arr, Sequence(Value("null")))
 
 
+def test_cast_array_to_features_sequence_classlabel():
+    arr = pa.array([[], [1], [0, 1]], pa.list_(pa.int64()))
+    assert cast_array_to_feature(arr, Sequence(ClassLabel(names=["foo", "bar"]))).type == pa.list_(pa.int64())
+
+    arr = pa.array([[], ["bar"], ["foo", "bar"]], pa.list_(pa.string()))
+    assert cast_array_to_feature(arr, Sequence(ClassLabel(names=["foo", "bar"]))).type == pa.list_(pa.int64())
+
+    # Test empty arrays
+    arr = pa.array([[], []], pa.list_(pa.int64()))
+    assert cast_array_to_feature(arr, Sequence(ClassLabel(names=["foo", "bar"]))).type == pa.list_(pa.int64())
+
+    arr = pa.array([[], []], pa.list_(pa.string()))
+    assert cast_array_to_feature(arr, Sequence(ClassLabel(names=["foo", "bar"]))).type == pa.list_(pa.int64())
+
+    # Test invalid class labels
+    arr = pa.array([[2]], pa.list_(pa.int64()))
+    with pytest.raises(ValueError):
+        assert cast_array_to_feature(arr, Sequence(ClassLabel(names=["foo", "bar"])))
+
+    arr = pa.array([["baz"]], pa.list_(pa.string()))
+    with pytest.raises(ValueError):
+        assert cast_array_to_feature(arr, Sequence(ClassLabel(names=["foo", "bar"])))
+
+
 def test_embed_array_storage(image_file):
     array = pa.array([{"bytes": None, "path": image_file}], type=Image.pa_type)
     embedded_images_array = embed_array_storage(array, Image())
-    assert embedded_images_array.to_pylist()[0]["path"] is None
+    assert isinstance(embedded_images_array.to_pylist()[0]["path"], str)
+    assert embedded_images_array.to_pylist()[0]["path"] == "test_image_rgb.jpg"
     assert isinstance(embedded_images_array.to_pylist()[0]["bytes"], bytes)
 
 
 def test_embed_array_storage_nested(image_file):
     array = pa.array([[{"bytes": None, "path": image_file}]], type=pa.list_(Image.pa_type))
     embedded_images_array = embed_array_storage(array, [Image()])
-    assert embedded_images_array.to_pylist()[0][0]["path"] is None
+    assert isinstance(embedded_images_array.to_pylist()[0][0]["path"], str)
     assert isinstance(embedded_images_array.to_pylist()[0][0]["bytes"], bytes)
     array = pa.array([{"foo": {"bytes": None, "path": image_file}}], type=pa.struct({"foo": Image.pa_type}))
     embedded_images_array = embed_array_storage(array, {"foo": Image()})
-    assert embedded_images_array.to_pylist()[0]["foo"]["path"] is None
+    assert isinstance(embedded_images_array.to_pylist()[0]["foo"]["path"], str)
     assert isinstance(embedded_images_array.to_pylist()[0]["foo"]["bytes"], bytes)
 
 
@@ -1109,5 +1206,44 @@ def test_embed_table_storage(image_file):
     features = Features({"image": Image()})
     table = table_cast(pa.table({"image": [image_file]}), features.arrow_schema)
     embedded_images_table = embed_table_storage(table)
-    assert embedded_images_table.to_pydict()["image"][0]["path"] is None
+    assert isinstance(embedded_images_table.to_pydict()["image"][0]["path"], str)
     assert isinstance(embedded_images_table.to_pydict()["image"][0]["bytes"], bytes)
+
+
+@pytest.mark.parametrize(
+    "table",
+    [
+        InMemoryTable(pa.table({"foo": range(10)})),
+        InMemoryTable(pa.concat_tables([pa.table({"foo": range(0, 5)}), pa.table({"foo": range(5, 10)})])),
+        InMemoryTable(pa.concat_tables([pa.table({"foo": [i]}) for i in range(10)])),
+    ],
+)
+@pytest.mark.parametrize("batch_size", [1, 2, 3, 9, 10, 11, 20])
+@pytest.mark.parametrize("drop_last_batch", [False, True])
+def test_table_iter(table, batch_size, drop_last_batch):
+    num_rows = len(table) if not drop_last_batch else len(table) // batch_size * batch_size
+    num_batches = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
+    subtables = list(table_iter(table, batch_size=batch_size, drop_last_batch=drop_last_batch))
+    assert len(subtables) == num_batches
+    if drop_last_batch:
+        assert all(len(subtable) == batch_size for subtable in subtables)
+    else:
+        assert all(len(subtable) == batch_size for subtable in subtables[:-1])
+        assert len(subtables[-1]) <= batch_size
+    if num_rows > 0:
+        reloaded = pa.concat_tables(subtables)
+        assert table.slice(0, num_rows).to_pydict() == reloaded.to_pydict()
+
+
+@pytest.mark.parametrize(
+    "pa_type, expected",
+    [
+        (pa.int8(), False),
+        (pa.struct({"col1": pa.int8(), "col2": pa.int64()}), False),
+        (pa.struct({"col1": pa.list_(pa.int8()), "col2": Array2DExtensionType((1, 3), "int64")}), True),
+        (pa.list_(pa.int8()), False),
+        (pa.list_(Array2DExtensionType((1, 3), "int64"), 4), True),
+    ],
+)
+def test_is_extension_type(pa_type, expected):
+    assert _is_extension_type(pa_type) == expected
