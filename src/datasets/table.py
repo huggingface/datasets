@@ -1872,7 +1872,7 @@ def array_concat(arrays: List[pa.Array]):
         array (:obj:`pyarrow.Array`): the concatenated array
     """
     arrays = list(arrays)
-    array_types = set(array.type for array in arrays)
+    array_types = {array.type for array in arrays}
 
     if not array_types:
         raise ValueError("Couldn't concatenate empty list of arrays")
@@ -1966,9 +1966,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
     elif array.type == pa_type:
         return array
     elif pa.types.is_struct(array.type):
-        if pa.types.is_struct(pa_type) and (
-            set(field.name for field in pa_type) == set(field.name for field in array.type)
-        ):
+        if pa.types.is_struct(pa_type) and ({field.name for field in pa_type} == {field.name for field in array.type}):
             arrays = [_c(array.field(field.name), field.type) for field in pa_type]
             return pa.StructArray.from_arrays(arrays, fields=list(pa_type), mask=array.is_null())
     elif pa.types.is_list(array.type):
@@ -2061,7 +2059,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
             feature = {
                 name: Sequence(subfeature, length=feature.length) for name, subfeature in feature.feature.items()
             }
-        if isinstance(feature, dict) and set(field.name for field in array.type) == set(feature):
+        if isinstance(feature, dict) and {field.name for field in array.type} == set(feature):
             arrays = [_c(array.field(name), subfeature) for name, subfeature in feature.items()]
             return pa.StructArray.from_arrays(arrays, names=list(feature), mask=array.is_null())
     elif pa.types.is_list(array.type):

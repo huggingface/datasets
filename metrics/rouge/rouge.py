@@ -125,6 +125,6 @@ class Rouge(datasets.Metric):
         else:
             result = {}
             for key in scores[0]:
-                result[key] = list(score[key] for score in scores)
+                result[key] = [score[key] for score in scores]
 
         return result
