@@ -289,9 +289,7 @@ class Audio:
         if self.mono:
             array = librosa.to_mono(array)
         if self.sampling_rate and self.sampling_rate != sampling_rate:
-            array = librosa.resample(
-                array, orig_sr=sampling_rate, target_sr=self.sampling_rate, res_type="kaiser_best"
-            )
+            array = librosa.resample(array, orig_sr=sampling_rate, target_sr=self.sampling_rate)
             sampling_rate = self.sampling_rate
         return array, sampling_rate
 

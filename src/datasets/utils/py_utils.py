@@ -356,18 +356,17 @@ def _single_map_nested(args):
     # Loop over single examples or batches and write to buffer/file if examples are to be updated
     pbar_iterable = data_struct.items() if isinstance(data_struct, dict) else data_struct
     pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
-    pbar = logging.tqdm(pbar_iterable, disable=disable_tqdm, position=rank, unit="obj", desc=pbar_desc)
-
-    if isinstance(data_struct, dict):
-        return {k: _single_map_nested((function, v, types, None, True, None)) for k, v in pbar}
-    else:
-        mapped = [_single_map_nested((function, v, types, None, True, None)) for v in pbar]
-        if isinstance(data_struct, list):
-            return mapped
-        elif isinstance(data_struct, tuple):
-            return tuple(mapped)
+    with logging.tqdm(pbar_iterable, disable=disable_tqdm, position=rank, unit="obj", desc=pbar_desc) as pbar:
+        if isinstance(data_struct, dict):
+            return {k: _single_map_nested((function, v, types, None, True, None)) for k, v in pbar}
         else:
-            return np.array(mapped)
+            mapped = [_single_map_nested((function, v, types, None, True, None)) for v in pbar]
+            if isinstance(data_struct, list):
+                return mapped
+            elif isinstance(data_struct, tuple):
+                return tuple(mapped)
+            else:
+                return np.array(mapped)
 
 
 def map_nested(
@@ -645,6 +644,20 @@ class Pickler(dill.Pickler):
                         args = (obj.detach().cpu().numpy(),)
                         pickler.save_reduce(torch.from_numpy, args, obj=obj)
                         dill_log(pickler, "# To")
+                        return
+
+                except ImportError:
+                    pass
+            elif (obj_type.__module__, obj_type.__name__) == ("tiktoken.core", "Encoding"):
+                try:
+                    import tiktoken
+
+                    @pklregister(obj_type)
+                    def _save_encoding(pickler, obj):
+                        dill_log(pickler, f"Enc: {obj}")
+                        args = (obj.name, obj._pat_str, obj._mergeable_ranks, obj._special_tokens)
+                        pickler.save_reduce(tiktoken.Encoding, args, obj=obj)
+                        dill_log(pickler, "# Enc")
                         return
 
                 except ImportError:
