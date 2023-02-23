@@ -174,8 +174,6 @@ TESTS_REQUIRE = [
     "tensorflow>=2.3,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
     "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
     "tiktoken;python_version>='3.8'",
-    "torch",
-    "torchaudio<0.12.0",
     "soundfile",
     "transformers",
     "zstandard",
