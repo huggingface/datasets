@@ -4947,7 +4947,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 self.shard(num_shards=num_shards, index=shard_idx, contiguous=True) for shard_idx in range(num_shards)
             ]
         )
-        return IterableDataset.from_generator(Dataset._iter_shards, gen_kwargs={"shards": shards})
+        return IterableDataset.from_generator(Dataset._iter_shards, features=self.features, gen_kwargs={"shards": shards})
 
     def _push_parquet_shards_to_hub(
         self,
