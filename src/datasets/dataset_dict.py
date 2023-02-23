@@ -1302,7 +1302,7 @@ class DatasetDict(dict):
                     f"No such file: '{dataset_dict_json_path}'. Expected to load a `DatasetDict` object, but got a `Dataset`. Please use either `datasets.load_from_disk` or `Dataset.load_from_disk` instead."
                 )
             raise FileNotFoundError(
-                f"No such file or directory: '{dataset_dict_json_path}'. Expected to load a `DatasetDict` object, but provided path is neither a `DatasetDict` nor a `Dataset`"
+                f"No such file: '{dataset_dict_json_path}'. Expected to load a `DatasetDict` object, but provided path is not a `DatasetDict`."
             )
 
         with fs.open(dataset_dict_json_path, "r", encoding="utf-8") as f:
