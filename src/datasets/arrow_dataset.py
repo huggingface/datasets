@@ -4936,7 +4936,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         max_shard_size: Optional[Union[int, str]] = None,
         num_shards: Optional[int] = None,
         embed_external_files: bool = True,
-    ) -> Tuple[str, str, int, int]:
+    ) -> Tuple[str, str, int, int, List[str], int]:
         """Pushes the dataset to the hub.
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
 
@@ -4945,6 +4945,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The ID of the repository to push to in the following format: `<user>/<dataset_name>` or
                 `<org>/<dataset_name>`. Also accepts `<dataset_name>`, which will default to the namespace
                 of the logged-in user.
+            config_name (`str`):
+                The name of dataset configuration. Defaults to "default".
             split (Optional, `str`):
                 The name of the split that will be given to that dataset. Defaults to `self.split`.
             private (Optional `bool`, defaults to `False`):
@@ -4975,7 +4977,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             split (`str`): name of the uploaded split
             uploaded_size (`int`): number of uploaded bytes to the repository
             dataset_nbytes (`int`): approximate size in bytes of the uploaded dataset afer uncompression
-            repo_files (`str`): list of files in the repository
+            repo_files (`List[str]`): list of files in the repository
             deleted_size (`int`): number of deleted bytes in the repository
 
         Example:
@@ -5153,6 +5155,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The ID of the repository to push to in the following format: `<user>/<dataset_name>` or
                 `<org>/<dataset_name>`. Also accepts `<dataset_name>`, which will default to the namespace
                 of the logged-in user.
+            config_name (`str`, defaults to "default"):
+                The configuration name of a dataset. Defaults to "default"
             split (`str`, *optional*):
                 The name of the split that will be given to that dataset. Defaults to `self.split`.
             private (`bool`, *optional*, defaults to `False`):
