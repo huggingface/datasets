@@ -299,7 +299,7 @@ class TensorflowDatasetMixin:
             shapes = [array.shape for array in np_arrays]
             static_shape = []
             for dim in range(len(shapes[0])):
-                sizes = set([shape[dim] for shape in shapes])
+                sizes = {shape[dim] for shape in shapes}
                 if dim == 0:
                     static_shape.append(batch_size)
                     continue
@@ -1350,9 +1350,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if is_local:
             Path(dataset_path).resolve().mkdir(parents=True, exist_ok=True)
-            parent_cache_files_paths = set(
+            parent_cache_files_paths = {
                 Path(cache_filename["filename"]).resolve().parent for cache_filename in self.cache_files
-            )
+            }
             # Check that the dataset doesn't overwrite iself. It can cause a permission error on Windows and a segfault on linux.
             if Path(dataset_path).resolve() in parent_cache_files_paths:
                 raise PermissionError(
@@ -2884,22 +2884,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"num_proc must be <= {len(self)}. Reducing num_proc to {num_proc} for dataset of size {len(self)}."
             )
 
-        dataset_kwargs = dict(
-            shard=self,
-            function=function,
-            with_indices=with_indices,
-            with_rank=with_rank,
-            input_columns=input_columns,
-            batched=batched,
-            batch_size=batch_size,
-            drop_last_batch=drop_last_batch,
-            remove_columns=remove_columns,
-            keep_in_memory=keep_in_memory,
-            writer_batch_size=writer_batch_size,
-            features=features,
-            disable_nullable=disable_nullable,
-            fn_kwargs=fn_kwargs,
-        )
+        dataset_kwargs = {
+            "shard": self,
+            "function": function,
+            "with_indices": with_indices,
+            "with_rank": with_rank,
+            "input_columns": input_columns,
+            "batched": batched,
+            "batch_size": batch_size,
+            "drop_last_batch": drop_last_batch,
+            "remove_columns": remove_columns,
+            "keep_in_memory": keep_in_memory,
+            "writer_batch_size": writer_batch_size,
+            "features": features,
+            "disable_nullable": disable_nullable,
+            "fn_kwargs": fn_kwargs,
+        }
 
         if new_fingerprint is None:
             # we create a unique hash from the function,

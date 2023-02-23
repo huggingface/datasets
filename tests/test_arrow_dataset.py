@@ -3686,11 +3686,11 @@ def test_dataset_to_json(dataset, tmp_path):
 @pytest.mark.parametrize(
     "method_and_params",
     [
-        ("rename_column", tuple(), {"original_column_name": "labels", "new_column_name": "label"}),
-        ("remove_columns", tuple(), {"column_names": "labels"}),
+        ("rename_column", (), {"original_column_name": "labels", "new_column_name": "label"}),
+        ("remove_columns", (), {"column_names": "labels"}),
         (
             "cast",
-            tuple(),
+            (),
             {
                 "features": Features(
                     {
@@ -3707,7 +3707,7 @@ def test_dataset_to_json(dataset, tmp_path):
                 )
             },
         ),
-        ("flatten", tuple(), {}),
+        ("flatten", (), {}),
     ],
 )
 def test_pickle_dataset_after_transforming_the_table(in_memory, method_and_params, arrow_file):
