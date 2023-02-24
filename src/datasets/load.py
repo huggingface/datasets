@@ -154,7 +154,7 @@ class _InitializeParameterizedDatasetBuilder:
 
 
 def parametrize_packaged_dataset_builder(
-    builder_cls: Type[DatasetBuilder], metadata_configs: MetadataConfigsDict, name: str
+    builder_cls: Type[DatasetBuilder], metadata_configs: MetadataConfigsDict, parametrized_name_suffix: str
 ) -> Type[DatasetBuilder]:
     """
     Dynamically create packaged builder class with custom configs parsed from README.md file,
@@ -168,31 +168,40 @@ def parametrize_packaged_dataset_builder(
 
         __module__ = builder_cls.__module__  # so that the actual packaged builder can be imported
 
-        def __init__(self, *args, **kwargs):
-            super(ParametrizedDatasetBuilder, self).__init__(*args, **kwargs)
-            self.name = f"{builder_cls.__name__.lower()}---{name}"
-
         def __reduce__(self):  # to make dynamically created class pickable
             parent_builder_cls = self.__class__.__mro__[1]
             metadata_configs_dict = MetadataConfigsDict.from_builder_configs_list(self.BUILDER_CONFIGS)
             return (
                 _InitializeParameterizedDatasetBuilder(),
-                (parent_builder_cls, metadata_configs_dict, os.path.basename(self.base_path)),
+                (
+                    parent_builder_cls,
+                    metadata_configs_dict,
+                    os.path.basename(self.repo_id if self.repo_id else self.base_path),
+                ),
                 self.__dict__.copy(),
             )
 
-    ParametrizedDatasetBuilder.__name__ = f"{builder_cls.__name__.lower().capitalize()}{snakecase_to_camelcase(name)}"
+    ParametrizedDatasetBuilder.__name__ = (
+        f"{builder_cls.__name__.lower().capitalize()}{snakecase_to_camelcase(parametrized_name_suffix)}"
+    )
     ParametrizedDatasetBuilder.__qualname__ = (
-        f"{builder_cls.__name__.lower().capitalize()}{snakecase_to_camelcase(name)}"
+        f"{builder_cls.__name__.lower().capitalize()}{snakecase_to_camelcase(parametrized_name_suffix)}"
+    )
+    setattr(
+        ParametrizedDatasetBuilder,
+        "_parametrized_builder_name",
+        f"{builder_cls.__name__.lower()}---{parametrized_name_suffix}",
     )
 
     return ParametrizedDatasetBuilder
 
 
-def get_builder_class(dataset_module, name: Optional[str] = None) -> Type[DatasetBuilder]:
+def get_dataset_builder_class(dataset_module, parametrized_name_suffix: Optional[str] = None) -> Type[DatasetBuilder]:
     builder_cls = import_main_class(dataset_module.module_path)
     if dataset_module.metadata_configs:
-        builder_cls = parametrize_packaged_dataset_builder(builder_cls, dataset_module.metadata_configs, name=name)
+        builder_cls = parametrize_packaged_dataset_builder(
+            builder_cls, dataset_module.metadata_configs, parametrized_name_suffix=parametrized_name_suffix
+        )
     return builder_cls
 
 
@@ -474,7 +483,7 @@ class DatasetModule:
     module_path: str
     hash: str
     builder_kwargs: dict
-    metadata_configs: Optional[MetadataConfigsDict] = None
+    metadata_configs: Optional[Union[MetadataConfigsDict, dict]] = None
 
 
 @dataclass
@@ -1720,7 +1729,7 @@ def load_dataset_builder(
     )
 
     # Get dataset builder class from the processing script
-    builder_cls = get_builder_class(dataset_module, name=os.path.basename(path))
+    builder_cls = get_dataset_builder_class(dataset_module, parametrized_name_suffix=os.path.basename(path))
     builder_kwargs = dataset_module.builder_kwargs
     data_dir = builder_kwargs.pop("data_dir", data_dir)
     data_files = builder_kwargs.pop("data_files", data_files)
@@ -1746,6 +1755,7 @@ def load_dataset_builder(
         features=features,
         use_auth_token=use_auth_token,
         **builder_kwargs,
+        # **config_kwargs,
     )
 
     return builder_instance
@@ -1872,7 +1882,7 @@ def load_dataset(
             Save the dataset information (checksums/size/splits/...).
         revision ([`Version`] or `str`, *optional*):
             Version of the dataset script to load.
-            As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
+            As datasets have their own git repository on the Datasets HubF, the default version "main" corresponds to their "main" branch.
             You can specify a different version than the default "main" by using a commit SHA or a git tag of the dataset repository.
         use_auth_token (`str` or `bool`, *optional*):
             Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.

@@ -298,7 +298,13 @@ class DatasetBuilder:
             )
             config_name = name
         # DatasetBuilder name
-        self.name: str = camelcase_to_snakecase(self.__module__.split(".")[-1])
+        # Parametrized packaged builders classes with custom configs have `_parametrized_builder_name` attribute
+        # to reflect that they are different from default library's packaged builders
+        self.name: str = (
+            self.__class__._parametrized_builder_name
+            if hasattr(self.__class__, "_parametrized_builder_name")
+            else camelcase_to_snakecase(self.__module__.split(".")[-1])
+        )
         self.hash: Optional[str] = hash
         self.base_path = base_path
         self.use_auth_token = use_auth_token
@@ -326,7 +332,7 @@ class DatasetBuilder:
         # Prefill datasetinfo
         if info is None:
             # TODO FOR PACKAGED MODULES IT IMPORTS DATA FROM src/packaged_modules which doesn't make sense
-            # so it should be provided before if we read info in .get_module()
+            # so should it be provided before if we read info in .get_module() ?
             info = self.get_exported_dataset_info()
             info.update(self._info())
         info.builder_name = self.name
