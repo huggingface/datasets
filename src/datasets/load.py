@@ -218,6 +218,8 @@ def _download_additional_modules(
     if needs_to_be_installed:
         _dependencies_str = "dependencies" if len(needs_to_be_installed) > 1 else "dependency"
         _them_str = "them" if len(needs_to_be_installed) > 1 else "it"
+        if "sklearn" in needs_to_be_installed.keys():
+            needs_to_be_installed["sklearn"] = "scikit-learn"
         raise ImportError(
             f"To be able to use {name}, you need to install the following {_dependencies_str}: "
             f"{', '.join(needs_to_be_installed)}.\nPlease install {_them_str} using 'pip install "
@@ -1866,11 +1868,13 @@ def load_from_disk(
 
     if not fs.exists(dest_dataset_path):
         raise FileNotFoundError(f"Directory {dataset_path} not found")
-    if fs.isfile(path_join(dest_dataset_path, config.DATASET_INFO_FILENAME)):
+    if fs.isfile(path_join(dest_dataset_path, config.DATASET_INFO_FILENAME)) and fs.isfile(
+        path_join(dest_dataset_path, config.DATASET_STATE_JSON_FILENAME)
+    ):
         return Dataset.load_from_disk(dataset_path, keep_in_memory=keep_in_memory, storage_options=storage_options)
     elif fs.isfile(path_join(dest_dataset_path, config.DATASETDICT_JSON_FILENAME)):
         return DatasetDict.load_from_disk(dataset_path, keep_in_memory=keep_in_memory, storage_options=storage_options)
     else:
         raise FileNotFoundError(
-            f"Directory {dataset_path} is neither a dataset directory nor a dataset dict directory."
+            f"Directory {dataset_path} is neither a `Dataset` directory nor a `DatasetDict` directory."
         )

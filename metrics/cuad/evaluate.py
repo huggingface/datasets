@@ -159,7 +159,7 @@ def evaluate(dataset, predictions):
                     message = "Unanswered question " + qa["id"] + " will receive score 0."
                     print(message, file=sys.stderr)
                     continue
-                ground_truths = list(map(lambda x: x["text"], qa["answers"]))
+                ground_truths = [x["text"] for x in qa["answers"]]
                 prediction = predictions[qa["id"]]
                 precision, recall = compute_precision_recall(prediction, ground_truths, qa["id"])
 

@@ -223,6 +223,21 @@ def require_transformers(test_case):
         return test_case
 
 
+def require_tiktoken(test_case):
+    """
+    Decorator marking a test that requires tiktoken.
+
+    These tests are skipped when transformers isn't installed.
+
+    """
+    try:
+        import tiktoken  # noqa F401
+    except ImportError:
+        return unittest.skip("test requires tiktoken")(test_case)
+    else:
+        return test_case
+
+
 def require_spacy(test_case):
     """
     Decorator marking a test that requires spacy.

@@ -88,7 +88,14 @@ To get a single tensor, you must explicitly use the [`Array`] feature type and s
 
 String and binary objects are unchanged, since PyTorch only supports numbers.
 
-The [`Image`] and [`Audio`] feature types are also supported:
+The [`Image`] and [`Audio`] feature types are also supported.
+
+<Tip>
+
+To use the [`Image`] feature type, you'll need to install the `vision` extra as
+`pip install datasets[vision]`.
+
+</Tip>
 
 ```py
 >>> from datasets import Dataset, Features, Audio, Image
@@ -113,6 +120,13 @@ torch.Size([2, 512, 512, 4])
           [255, 255, 255, 255],
           [255, 255, 255, 255]]]], dtype=torch.uint8)}
 ```
+
+<Tip>
+
+To use the [`Audio`] feature type, you'll need to install the `audio` extra as
+`pip install datasets[audio]`.
+
+</Tip>
 
 ```py
 >>> from datasets import Dataset, Features, Audio, Image
@@ -170,9 +184,10 @@ Reloading the dataset inside a worker doesn't fill up your RAM, since it simply 
 >>> dataloader = DataLoader(ds, batch_size=32, num_workers=4)
 ```
 
-#### Use a BatchSampler
+#### Use a BatchSampler (torch<=1.12.1)
 
-By default, the PyTorch `DataLoader` load batches of data from a dataset one by one like this:
+For old versions of PyTorch, using a `BatchSampler` can speed up data loading.
+Indeed if you are using `torch<=1.12.1`, the PyTorch `DataLoader` load batches of data from a dataset one by one like this:
 
 ```py
 batch = [dataset[idx] for idx in range(start, end)]
@@ -197,6 +212,8 @@ For the PyTorch `DataLoader` to query batches using a list, you can use a `Batch
 
 Moreover, this is particularly useful if you used [`set_transform`] to apply a transform on-the-fly when examples are accessed.
 You must use a `BatchSampler` if you want the transform to be given full batches instead of receiving `batch_size` times one single element.
+
+Recent versions of PyTorch use a list of indices, so a `BatchSampler` is not needed to get the best speed even if you used [`set_transform`].
 
 ### Stream data
 

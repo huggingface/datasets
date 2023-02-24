@@ -450,7 +450,7 @@ class ArrowWriter:
         """Write stored rows from the write-pool of rows. It concatenates the single-row tables and it writes the resulting table."""
         if not self.current_rows:
             return
-        table = pa.concat_tables(self.current_rows).combine_chunks()
+        table = pa.concat_tables(self.current_rows)
         self.write_table(table)
         self.current_rows = []
 
@@ -564,6 +564,7 @@ class ArrowWriter:
             writer_batch_size = self.writer_batch_size
         if self.pa_writer is None:
             self._build_writer(inferred_schema=pa_table.schema)
+        pa_table = pa_table.combine_chunks()
         pa_table = table_cast(pa_table, self._schema)
         if self.embed_local_files:
             pa_table = embed_table_storage(pa_table)
@@ -666,10 +667,9 @@ class BeamWriter:
 
         from .utils import beam_utils
 
-        shards_metadata = [
-            metadata
-            for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[0].metadata_list
-        ]
+        shards_metadata = list(
+            beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[0].metadata_list
+        )
         shards = [metadata.path for metadata in shards_metadata]
         num_bytes = sum([metadata.size_in_bytes for metadata in shards_metadata])
         shard_lengths = get_parquet_lengths(shards)

@@ -504,6 +504,24 @@ class FormatterTest(TestCase):
         batch = formatter.format_batch(pa_table)
         self.assertEqual(batch["audio"][0]["array"].dtype, jnp.float32)
 
+    @require_jax
+    def test_jax_formatter_device(self):
+        import jax
+
+        from datasets.formatting import JaxFormatter
+
+        pa_table = self._create_dummy_table()
+        device = jax.devices()[0]
+        formatter = JaxFormatter(device=str(device))
+        row = formatter.format_row(pa_table)
+        assert row["a"].device() == device
+        assert row["c"].device() == device
+        col = formatter.format_column(pa_table)
+        assert col.device() == device
+        batch = formatter.format_batch(pa_table)
+        assert batch["a"].device() == device
+        assert batch["c"].device() == device
+
 
 class QueryTest(TestCase):
     def _create_dummy_table(self):

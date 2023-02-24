@@ -89,4 +89,4 @@ class HfFileSystem(AbstractFileSystem):
         if detail:
             return out
         else:
-            return list(sorted(f["name"] for f in out))
+            return sorted(f["name"] for f in out)

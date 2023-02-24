@@ -18,7 +18,7 @@ def test_split_dataset_by_node_map_style():
         split_dataset_by_node(full_ds, rank=rank, world_size=world_size) for rank in range(world_size)
     ]
     assert sum(len(ds) for ds in datasets_per_rank) == full_size
-    assert len(set(tuple(x.values()) for ds in datasets_per_rank for x in ds)) == full_size
+    assert len({tuple(x.values()) for ds in datasets_per_rank for x in ds}) == full_size
 
 
 def test_split_dataset_by_node_iterable():
@@ -32,7 +32,7 @@ def test_split_dataset_by_node_iterable():
         split_dataset_by_node(full_ds, rank=rank, world_size=world_size) for rank in range(world_size)
     ]
     assert sum(len(list(ds)) for ds in datasets_per_rank) == full_size
-    assert len(set(tuple(x.values()) for ds in datasets_per_rank for x in ds)) == full_size
+    assert len({tuple(x.values()) for ds in datasets_per_rank for x in ds}) == full_size
 
 
 @pytest.mark.parametrize("shards_per_node", [1, 2, 3])
@@ -52,7 +52,7 @@ def test_split_dataset_by_node_iterable_sharded(shards_per_node):
     ]
     assert [ds.n_shards for ds in datasets_per_rank] == [shards_per_node] * world_size
     assert sum(len(list(ds)) for ds in datasets_per_rank) == full_size
-    assert len(set(tuple(x.values()) for ds in datasets_per_rank for x in ds)) == full_size
+    assert len({tuple(x.values()) for ds in datasets_per_rank for x in ds}) == full_size
 
 
 @pytest.mark.parametrize("streaming", [False, True])

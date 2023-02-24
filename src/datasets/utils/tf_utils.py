@@ -103,7 +103,7 @@ def np_get_batch(
     batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
     batch = collate_fn(batch, **collate_fn_args)
     if return_dict:
-        out_batch = dict()
+        out_batch = {}
         for col, cast_dtype in columns_to_np_types.items():
             # In case the collate_fn returns something strange
             array = np.array(batch[col])
@@ -395,7 +395,7 @@ class NumpyMultiprocessingGenerator:
             )
 
             # Now begins the fun part where we start shovelling shared memory at the parent process
-            out_arrays = dict()
+            out_arrays = {}
             with SharedMemoryContext() as batch_shm_ctx:
                 # The batch shared memory context exists only as long as it takes for the parent process
                 # to read everything, after which it cleans everything up again
