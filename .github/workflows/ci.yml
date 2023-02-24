@@ -97,7 +97,6 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           sudo apt-get -y update
-          sudo apt-get -y install libsndfile1 sox
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
@@ -112,13 +111,3 @@ jobs:
       - name: Test with pytest
         run: |
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
-      - name: Install dependencies to test torchaudio>=0.12 on Ubuntu
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: |
-          pip uninstall -y torchaudio torch
-          pip install "torchaudio>=0.12"
-          sudo apt-get -y install ffmpeg
-      - name: Test torchaudio>=0.12 on Ubuntu
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: |
-          python -m pytest -rfExX -m torchaudio_latest -n 2 --dist loadfile -sv ./tests/features/test_audio.py
