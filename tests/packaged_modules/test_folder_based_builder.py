@@ -471,8 +471,8 @@ def test_data_files_with_metadata_and_splits(
         expected_num_of_examples = len(files) - 1
         generated_examples = list(autofolder._generate_examples(**generated_split.gen_kwargs))
         assert len(generated_examples) == expected_num_of_examples
-        assert len(set(example["base"] for _, example in generated_examples)) == expected_num_of_examples
-        assert len(set(example["additional_feature"] for _, example in generated_examples)) == expected_num_of_examples
+        assert len({example["base"] for _, example in generated_examples}) == expected_num_of_examples
+        assert len({example["additional_feature"] for _, example in generated_examples}) == expected_num_of_examples
         assert all(example["additional_feature"] is not None for _, example in generated_examples)
 
 
@@ -487,8 +487,8 @@ def test_data_files_with_metadata_and_archives(streaming, cache_dir, data_files_
         expected_num_of_examples = 2 * num_of_archives
         generated_examples = list(autofolder._generate_examples(**generated_split.gen_kwargs))
         assert len(generated_examples) == expected_num_of_examples
-        assert len(set(example["base"] for _, example in generated_examples)) == expected_num_of_examples
-        assert len(set(example["additional_feature"] for _, example in generated_examples)) == expected_num_of_examples
+        assert len({example["base"] for _, example in generated_examples}) == expected_num_of_examples
+        assert len({example["additional_feature"] for _, example in generated_examples}) == expected_num_of_examples
         assert all(example["additional_feature"] is not None for _, example in generated_examples)
 
 
