@@ -517,7 +517,7 @@ class MilvusIndex(BaseIndex):
             # Dataset should already convert ndarray to list on read.
             if type(vecs) == np.ndarray:
                 vecs = vecs.tolist()
-            keys = [x for x in range(i, i + len(vecs))]
+            keys = list(range(i, i + len(vecs)))
             self.collection.insert([keys, vecs])
 
     def load(self, collection_name: str):
