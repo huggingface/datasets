@@ -667,10 +667,9 @@ class BeamWriter:
 
         from .utils import beam_utils
 
-        shards_metadata = [
-            metadata
-            for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[0].metadata_list
-        ]
+        shards_metadata = list(
+            beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[0].metadata_list
+        )
         shards = [metadata.path for metadata in shards_metadata]
         num_bytes = sum([metadata.size_in_bytes for metadata in shards_metadata])
         shard_lengths = get_parquet_lengths(shards)

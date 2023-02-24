@@ -77,13 +77,13 @@ class SqlConfig(datasets.BuilderConfig):
 
     @property
     def pd_read_sql_kwargs(self):
-        pd_read_sql_kwargs = dict(
-            index_col=self.index_col,
-            columns=self.columns,
-            params=self.params,
-            coerce_float=self.coerce_float,
-            parse_dates=self.parse_dates,
-        )
+        pd_read_sql_kwargs = {
+            "index_col": self.index_col,
+            "columns": self.columns,
+            "params": self.params,
+            "coerce_float": self.coerce_float,
+            "parse_dates": self.parse_dates,
+        }
         return pd_read_sql_kwargs
 
 

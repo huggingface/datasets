@@ -7,7 +7,7 @@ target_version = ['py37']
 #   "E501" -> line length violation
 #   "F821" -> undefined named in type annotation (e.g. Literal["something"])
 ignore = ["E501", "F821"]
-select = ["E", "F", "I", "W"]
+select = ["C", "E", "F", "I", "W"]
 line-length = 119
 
 [tool.ruff.isort]

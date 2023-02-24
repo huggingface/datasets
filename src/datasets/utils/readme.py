@@ -189,7 +189,7 @@ class ReadMe(Section):  # Level 0
         else:
             content, error_list, warning_list = self._validate(self.structure)
         if error_list != [] or warning_list != []:
-            errors = "\n".join(list(map(lambda x: "-\t" + x, error_list + warning_list)))
+            errors = "\n".join(["-\t" + x for x in error_list + warning_list])
             error_string = f"The following issues were found for the README at `{self.name}`:\n" + errors
             raise ValueError(error_string)
 
