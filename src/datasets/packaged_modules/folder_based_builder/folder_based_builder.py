@@ -176,10 +176,10 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
             features_per_metadata_file: List[Tuple[str, datasets.Features]] = []
 
             # Check that all metadata files share the same format
-            metadata_ext = set(
+            metadata_ext = {
                 os.path.splitext(downloaded_metadata_file)[1][1:]
                 for _, downloaded_metadata_file in itertools.chain.from_iterable(metadata_files.values())
-            )
+            }
             if len(metadata_ext) > 1:
                 raise ValueError(f"Found metadata files with different extensions: {list(metadata_ext)}")
             metadata_ext = metadata_ext.pop()
@@ -269,10 +269,10 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
         downloaded_metadata_file = None
 
         if split_metadata_files:
-            metadata_ext = set(
+            metadata_ext = {
                 os.path.splitext(downloaded_metadata_file)[1][1:]
                 for _, downloaded_metadata_file in split_metadata_files
-            )
+            }
             metadata_ext = metadata_ext.pop()
 
         file_idx = 0

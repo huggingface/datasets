@@ -395,8 +395,8 @@ def test_data_files_with_metadata_and_single_split(streaming, cache_dir, data_fi
         dataset = list(datasets[split])
         assert len(dataset) == expected_num_of_images
         # make sure each sample has its own image and metadata
-        assert len(set(example["image"].filename for example in dataset)) == expected_num_of_images
-        assert len(set(example["caption"] for example in dataset)) == expected_num_of_images
+        assert len({example["image"].filename for example in dataset}) == expected_num_of_images
+        assert len({example["caption"] for example in dataset}) == expected_num_of_images
         assert all(example["caption"] is not None for example in dataset)
 
 
@@ -413,8 +413,8 @@ def test_data_files_with_metadata_and_multiple_splits(streaming, cache_dir, data
         dataset = list(datasets[split])
         assert len(dataset) == expected_num_of_images
         # make sure each sample has its own image and metadata
-        assert len(set(example["image"].filename for example in dataset)) == expected_num_of_images
-        assert len(set(example["caption"] for example in dataset)) == expected_num_of_images
+        assert len({example["image"].filename for example in dataset}) == expected_num_of_images
+        assert len({example["caption"] for example in dataset}) == expected_num_of_images
         assert all(example["caption"] is not None for example in dataset)
 
 
@@ -431,8 +431,8 @@ def test_data_files_with_metadata_and_archives(streaming, cache_dir, data_files_
         dataset = list(datasets[split])
         assert len(dataset) == expected_num_of_images
         # make sure each sample has its own image and metadata
-        assert len(set([np.array(example["image"])[0, 0, 0] for example in dataset])) == expected_num_of_images
-        assert len(set(example["caption"] for example in dataset)) == expected_num_of_images
+        assert len({np.array(example["image"])[0, 0, 0] for example in dataset}) == expected_num_of_images
+        assert len({example["caption"] for example in dataset}) == expected_num_of_images
         assert all(example["caption"] is not None for example in dataset)
 
 

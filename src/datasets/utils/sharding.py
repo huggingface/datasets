@@ -83,7 +83,7 @@ def _shuffle_gen_kwargs(rng: np.random.Generator, gen_kwargs: dict) -> dict:
     # This way entangled lists of (shard, shard_metadata) are still in the right order.
 
     # First, let's generate the shuffled indices per list size
-    list_sizes = set(len(value) for value in gen_kwargs.values() if isinstance(value, list))
+    list_sizes = {len(value) for value in gen_kwargs.values() if isinstance(value, list)}
     indices_per_size = {}
     for size in list_sizes:
         indices_per_size[size] = list(range(size))

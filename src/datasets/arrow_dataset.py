@@ -298,7 +298,7 @@ class TensorflowDatasetMixin:
             shapes = [array.shape for array in np_arrays]
             static_shape = []
             for dim in range(len(shapes[0])):
-                sizes = set([shape[dim] for shape in shapes])
+                sizes = {shape[dim] for shape in shapes}
                 if dim == 0:
                     static_shape.append(batch_size)
                     continue
@@ -1349,9 +1349,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if is_local:
             Path(dataset_path).resolve().mkdir(parents=True, exist_ok=True)
-            parent_cache_files_paths = set(
+            parent_cache_files_paths = {
                 Path(cache_filename["filename"]).resolve().parent for cache_filename in self.cache_files
-            )
+            }
             # Check that the dataset doesn't overwrite iself. It can cause a permission error on Windows and a segfault on linux.
             if Path(dataset_path).resolve() in parent_cache_files_paths:
                 raise PermissionError(
@@ -1542,31 +1542,67 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         fs_token_paths = fsspec.get_fs_token_paths(dataset_path, storage_options=storage_options)
         fs: fsspec.AbstractFileSystem = fs_token_paths[0]
-        # copies file from filesystem if it is remote filesystem to local filesystem and modifies dataset_path to temp directory containing local copies
-        dataset_dict_json_path = Path(dataset_path, config.DATASETDICT_JSON_FILENAME).as_posix()
-        dataset_info_path = Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix()
-        if not fs.isfile(dataset_info_path) and fs.isfile(dataset_dict_json_path):
-            raise FileNotFoundError(
-                f"No such file or directory: '{dataset_info_path}'. Expected to load a Dataset object, but got a DatasetDict. Please use datasets.load_from_disk instead."
-            )
 
         if is_remote_filesystem(fs):
-            src_dataset_path = extract_path_from_uri(dataset_path)
-            dataset_path = Dataset._build_local_temp_path(src_dataset_path)
-            fs.download(src_dataset_path, dataset_path.as_posix(), recursive=True)
+            dest_dataset_path = extract_path_from_uri(dataset_path)
+            path_join = posixpath.join
+        else:
+            fs = fsspec.filesystem("file")
+            dest_dataset_path = dataset_path
+            path_join = os.path.join
 
-        with open(Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), encoding="utf-8") as state_file:
+        dataset_dict_json_path = path_join(dest_dataset_path, config.DATASETDICT_JSON_FILENAME)
+        dataset_state_json_path = path_join(dest_dataset_path, config.DATASET_STATE_JSON_FILENAME)
+        dataset_info_path = path_join(dest_dataset_path, config.DATASET_INFO_FILENAME)
+
+        dataset_dict_is_file = fs.isfile(dataset_dict_json_path)
+        dataset_info_is_file = fs.isfile(dataset_info_path)
+        dataset_state_is_file = fs.isfile(dataset_state_json_path)
+        if not dataset_info_is_file and not dataset_state_is_file:
+            if dataset_dict_is_file:
+                raise FileNotFoundError(
+                    f"No such files: '{dataset_info_path}', nor '{dataset_state_json_path}' found. Expected to load a `Dataset` object, but got a `DatasetDict`. Please use either `datasets.load_from_disk` or `DatasetDict.load_from_disk` instead."
+                )
+            raise FileNotFoundError(
+                f"No such files: '{dataset_info_path}', nor '{dataset_state_json_path}' found. Expected to load a `Dataset` object but provided path is not a `Dataset`."
+            )
+        if not dataset_info_is_file:
+            if dataset_dict_is_file:
+                raise FileNotFoundError(
+                    f"No such file: '{dataset_info_path}' found. Expected to load a `Dataset` object, but got a `DatasetDict`. Please use either `datasets.load_from_disk` or `DatasetDict.load_from_disk` instead."
+                )
+            raise FileNotFoundError(
+                f"No such file: '{dataset_info_path}'. Expected to load a `Dataset` object but provided path is not a `Dataset`."
+            )
+        if not dataset_state_is_file:
+            if dataset_dict_is_file:
+                raise FileNotFoundError(
+                    f"No such file: '{dataset_state_json_path}' found. Expected to load a `Dataset` object, but got a `DatasetDict`. Please use either `datasets.load_from_disk` or `DatasetDict.load_from_disk` instead."
+                )
+            raise FileNotFoundError(
+                f"No such file: '{dataset_state_json_path}'. Expected to load a `Dataset` object but provided path is not a `Dataset`."
+            )
+
+        # copies file from filesystem if it is remote filesystem to local filesystem and modifies dataset_path to temp directory containing local copies
+        if is_remote_filesystem(fs):
+            src_dataset_path = dest_dataset_path
+            dest_dataset_path = Dataset._build_local_temp_path(src_dataset_path)
+            fs.download(src_dataset_path, dest_dataset_path.as_posix(), recursive=True)
+            dataset_state_json_path = path_join(dest_dataset_path, config.DATASET_STATE_JSON_FILENAME)
+            dataset_info_path = path_join(dest_dataset_path, config.DATASET_INFO_FILENAME)
+
+        with open(dataset_state_json_path, encoding="utf-8") as state_file:
             state = json.load(state_file)
-        with open(Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix(), encoding="utf-8") as dataset_info_file:
+        with open(dataset_info_path, encoding="utf-8") as dataset_info_file:
             dataset_info = DatasetInfo.from_dict(json.load(dataset_info_file))
 
         dataset_size = estimate_dataset_size(
-            Path(dataset_path, data_file["filename"]) for data_file in state["_data_files"]
+            Path(dest_dataset_path, data_file["filename"]) for data_file in state["_data_files"]
         )
         keep_in_memory = keep_in_memory if keep_in_memory is not None else is_small_dataset(dataset_size)
         table_cls = InMemoryTable if keep_in_memory else MemoryMappedTable
         arrow_table = concat_tables(
-            table_cls.from_file(Path(dataset_path, data_file["filename"]).as_posix())
+            table_cls.from_file(path_join(dest_dataset_path, data_file["filename"]))
             for data_file in state["_data_files"]
         )
 
@@ -2883,22 +2919,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"num_proc must be <= {len(self)}. Reducing num_proc to {num_proc} for dataset of size {len(self)}."
             )
 
-        dataset_kwargs = dict(
-            shard=self,
-            function=function,
-            with_indices=with_indices,
-            with_rank=with_rank,
-            input_columns=input_columns,
-            batched=batched,
-            batch_size=batch_size,
-            drop_last_batch=drop_last_batch,
-            remove_columns=remove_columns,
-            keep_in_memory=keep_in_memory,
-            writer_batch_size=writer_batch_size,
-            features=features,
-            disable_nullable=disable_nullable,
-            fn_kwargs=fn_kwargs,
-        )
+        dataset_kwargs = {
+            "shard": self,
+            "function": function,
+            "with_indices": with_indices,
+            "with_rank": with_rank,
+            "input_columns": input_columns,
+            "batched": batched,
+            "batch_size": batch_size,
+            "drop_last_batch": drop_last_batch,
+            "remove_columns": remove_columns,
+            "keep_in_memory": keep_in_memory,
+            "writer_batch_size": writer_batch_size,
+            "features": features,
+            "disable_nullable": disable_nullable,
+            "fn_kwargs": fn_kwargs,
+        }
 
         if new_fingerprint is None:
             # we create a unique hash from the function,
@@ -4947,7 +4983,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 self.shard(num_shards=num_shards, index=shard_idx, contiguous=True) for shard_idx in range(num_shards)
             ]
         )
-        return IterableDataset.from_generator(Dataset._iter_shards, gen_kwargs={"shards": shards})
+        return IterableDataset.from_generator(
+            Dataset._iter_shards, features=self.features, gen_kwargs={"shards": shards}
+        )
 
     def _push_parquet_shards_to_hub(
         self,
@@ -5109,14 +5147,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 uploaded_size += buffer.tell()
                 _retry(
                     api.upload_file,
-                    func_kwargs=dict(
-                        path_or_fileobj=buffer.getvalue(),
-                        path_in_repo=shard_path_in_repo,
-                        repo_id=repo_id,
-                        token=token,
-                        repo_type="dataset",
-                        revision=branch,
-                    ),
+                    func_kwargs={
+                        "path_or_fileobj": buffer.getvalue(),
+                        "path_in_repo": shard_path_in_repo,
+                        "repo_id": repo_id,
+                        "token": token,
+                        "repo_type": "dataset",
+                        "revision": branch,
+                    },
                     exceptions=HTTPError,
                     status_codes=[504],
                     base_wait_time=2.0,
