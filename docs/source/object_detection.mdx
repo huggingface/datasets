@@ -158,6 +158,32 @@ You can verify the transform works by visualizing the 10th example:
     <img src="https://huggingface.co/datasets/nateraw/documentation-images/resolve/main/visualize_detection_example_transformed_2.png">
 </div>
 
+Finally, if you wish to create a [`torch.utils.data.DataLoader`](https://alband.github.io/doc_view/data.html?highlight=torch%20utils%20data%20dataloader#torch.utils.data.DataLoader), you can do so as follows:
+
+```py
+>>> from torch.utils.data import DataLoader
+
+# `transforms` already collates our data in batches
+# so we only pass along the batch
+>>> def collate_fn(batch):
+...     return batch
+
+>>> loader = DataLoader(ds['train'], batch_size=8, collate_fn=collate_fn)
+>>> example = next(iter(loader))[0]
+>>> to_pil_image(
+...     draw_bounding_boxes(
+...         example['image'],
+...         box_convert(example['bbox'], 'xywh', 'xyxy'),
+...         colors='red',
+...         labels=[categories.int2str(x) for x in example['category']]
+...     )
+... )
+```
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/nateraw/documentation-images/resolve/main/visualize_detection_example_transformed.png">
+</div>
+
 <Tip>
 
 Now that you know how to process a dataset for object detection, learn
