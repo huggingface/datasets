@@ -778,6 +778,7 @@ class DatasetBuilder:
                     use_etag=False,
                     num_proc=num_proc,
                     use_auth_token=use_auth_token,
+                    storage_options=storage_options,
                 )  # We don't use etag for data files to speed up the process
 
             dl_manager = DownloadManager(

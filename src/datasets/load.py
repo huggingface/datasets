@@ -1550,6 +1550,7 @@ def load_dataset(
     task: Optional[Union[str, TaskTemplate]] = None,
     streaming: bool = False,
     num_proc: Optional[int] = None,
+    storage_options: Optional[Dict] = None,
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset, IterableDatasetDict, IterableDataset]:
     """Load a dataset from the Hugging Face Hub, or a local dataset.
@@ -1671,6 +1672,8 @@ def load_dataset(
             Multiprocessing is disabled by default.
 
             <Added version="2.7.0"/>
+        storage_options (`dict`, *optional*, defaults to `None`):
+            Key/value pairs to be passed on to the file-system backend, if any.
         **config_kwargs (additional keyword arguments):
             Keyword arguments to be passed to the `BuilderConfig`
             and used in the [`DatasetBuilder`].
@@ -1782,6 +1785,7 @@ def load_dataset(
         verification_mode=verification_mode,
         try_from_hf_gcs=try_from_hf_gcs,
         num_proc=num_proc,
+        storage_options=storage_options,
     )
 
     # Build dataset for splits
