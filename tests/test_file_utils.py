@@ -6,7 +6,16 @@ import pytest
 import zstandard as zstd
 
 from datasets.download.download_config import DownloadConfig
-from datasets.utils.file_utils import OfflineModeIsEnabled, cached_path, ftp_get, ftp_head, http_get, http_head
+from datasets.utils.file_utils import (
+    OfflineModeIsEnabled,
+    cached_path,
+    fsspec_get,
+    fsspec_head,
+    ftp_get,
+    ftp_head,
+    http_get,
+    http_head,
+)
 
 
 FILE_CONTENT = """\
@@ -102,3 +111,12 @@ def test_ftp_offline(tmp_path_factory):
         ftp_get("ftp://huggingface.co", temp_file=filename)
     with pytest.raises(OfflineModeIsEnabled):
         ftp_head("ftp://huggingface.co")
+
+
+@patch("datasets.config.HF_DATASETS_OFFLINE", True)
+def test_fsspec_offline(tmp_path_factory):
+    filename = tmp_path_factory.mktemp("data") / "file.html"
+    with pytest.raises(OfflineModeIsEnabled):
+        fsspec_get("s3://huggingface.co", temp_file=filename)
+    with pytest.raises(OfflineModeIsEnabled):
+        fsspec_head("s3://huggingface.co")

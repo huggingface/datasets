@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import List, Optional, Type, TypeVar, Union
 from urllib.parse import urljoin, urlparse
 
+import fsspec
 import huggingface_hub
 import requests
 from huggingface_hub import HfFolder
@@ -327,6 +328,23 @@ def _request_with_retry(
     return response
 
 
+def fsspec_head(url, timeout=10.0):
+    _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
+    try:
+        fsspec.filesystem(urlparse(url).scheme).info(url, timeout=timeout)
+    except Exception:
+        return False
+    return True
+
+
+def fsspec_get(url, temp_file, timeout=10.0):
+    _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
+    try:
+        fsspec.filesystem(urlparse(url).scheme).get(url, temp_file, timeout=timeout)
+    except fsspec.FSTimeoutError as e:
+        raise ConnectionError(e) from None
+
+
 def ftp_head(url, timeout=10.0):
     _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
     try:
@@ -400,6 +418,8 @@ def http_head(
 
 
 def request_etag(url: str, use_auth_token: Optional[Union[str, bool]] = None) -> Optional[str]:
+    if urlparse(url).scheme not in ("http", "https"):
+        return None
     headers = get_authentication_headers_for_url(url, use_auth_token=use_auth_token)
     response = http_head(url, headers=headers, max_retries=3)
     response.raise_for_status()
@@ -453,6 +473,7 @@ def get_from_cache(
     cookies = None
     etag = None
     head_error = None
+    scheme = None
 
     # Try a first time to file the file on the local file system without eTag (None)
     # if we don't ask for 'force_download' then we spare a request
@@ -469,8 +490,11 @@ def get_from_cache(
 
     # We don't have the file locally or we need an eTag
     if not local_files_only:
-        if url.startswith("ftp://"):
+        scheme = urlparse(url).scheme
+        if scheme == "ftp":
             connected = ftp_head(url)
+        elif scheme in ("s3", "gs"):
+            connected = fsspec_head(url)
         try:
             response = http_head(
                 url,
@@ -569,8 +593,10 @@ def get_from_cache(
             logger.info(f"{url} not found in cache or force_download set to True, downloading to {temp_file.name}")
 
             # GET file object
-            if url.startswith("ftp://"):
+            if scheme == "ftp":
                 ftp_get(url, temp_file)
+            elif scheme in ("gs", "s3"):
+                fsspec_get(url, temp_file)
             else:
                 http_get(
                     url,
