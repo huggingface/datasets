@@ -6,10 +6,8 @@ import tempfile
 import unittest
 from contextlib import contextmanager
 from copy import deepcopy
-from ctypes.util import find_library
 from distutils.util import strtobool
 from enum import Enum
-from importlib import import_module
 from importlib.util import find_spec
 from pathlib import Path
 from unittest.mock import patch
@@ -56,31 +54,8 @@ require_zstandard = pytest.mark.skipif(not config.ZSTANDARD_AVAILABLE, reason="t
 # Audio
 require_sndfile = pytest.mark.skipif(
     # On Windows and OS X, soundfile installs sndfile
-    (sys.platform != "linux" and find_spec("soundfile") is None)
-    # On Linux, soundfile throws RuntimeError if sndfile OS dependency not installed with distribution package manager
-    or (sys.platform == "linux" and find_library("sndfile") is None),
-    reason="test requires sndfile: 'pip install soundfile'; "
-    "on Linux, test requires sndfile OS dependency: 'sudo apt-get install libsndfile1'",
-)
-require_libsndfile_with_opus = pytest.mark.skipif(
-    version.parse(import_module("soundfile").__libsndfile_version__) < version.parse("1.0.30")
-    if (sys.platform != "linux" and find_spec("soundfile")) or (sys.platform == "linux" and find_library("sndfile"))
-    else True,
-    reason="test requires libsndfile>=1.0.30: 'conda install -c conda-forge libsndfile>=1.0.30'",
-)
-require_sox = pytest.mark.skipif(
-    find_library("sox") is None,
-    reason="test requires sox OS dependency; only available on non-Windows: 'sudo apt-get install sox'",
-)
-require_torchaudio = pytest.mark.skipif(
-    find_spec("torchaudio") is None
-    or version.parse(importlib_metadata.version("torchaudio")) >= version.parse("0.12.0"),
-    reason="test requires torchaudio<0.12",
-)
-require_torchaudio_latest = pytest.mark.skipif(
-    find_spec("torchaudio") is None
-    or version.parse(importlib_metadata.version("torchaudio")) < version.parse("0.12.0"),
-    reason="test requires torchaudio>=0.12",
+    find_spec("soundfile") is None or version.parse(importlib_metadata.version("soundfile")) < version.parse("0.12.0"),
+    reason="test requires sndfile>=0.12.1: 'pip install \"soundfile>=0.12.1\"'; ",
 )
 
 # Beam
