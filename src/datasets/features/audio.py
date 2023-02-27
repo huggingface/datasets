@@ -156,7 +156,7 @@ class Audio:
         except ImportError as err:
             raise ImportError("To support decoding audio files, please install 'librosa' and 'soundfile'.") from err
 
-        audio_format = path.split(".")[-1] if path is not None else None
+        audio_format = os.path.splitext(path)[1].lstrip(".").lower() if path is not None else None
         if audio_format == "opus":
             if version.parse(sf.__libsndfile_version__) < version.parse("1.0.31"):
                 raise RuntimeError(
