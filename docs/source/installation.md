@@ -67,31 +67,15 @@ pip install datasets[audio]
 
 <Tip warning={true}>
 
-On Linux, non-Python dependency on `libsndfile` package must be installed manually, using your distribution package manager, for example:
+To decode mp3 files you should have the `libsndfile` system library of at least version 1.1.0. Normally, it's bundled into the python [`soundfile`](https://github.com/bastibe/python-soundfile) package which is installed as an extra audio dependency of 🤗 Datasets.
+On Linux, the required version of `libsndfile` is bundled into the `soundfile` wheel since version 0.12.0 of `soundfile`. You can check which version of `libsndfile` is used by `soundfile` running the following code:
 
 ```bash
-sudo apt-get install libsndfile1
+python -c "import soundfile; print(soundfile.__libsndfile_version__)"
 ```
 
 </Tip>
 
-To support loading audio datasets containing MP3 files, users should also install [torchaudio](https://pytorch.org/audio/stable/index.html) to handle the audio data with high performance:
-
-```bash
-pip install 'torchaudio<0.12.0'
-```
-
-<Tip warning={true}>
-
-torchaudio's `sox_io` [backend](https://pytorch.org/audio/stable/backend.html#) supports decoding MP3 files. Unfortunately, the `sox_io` backend is only available on Linux/macOS and isn't supported by Windows.
-
-You need to install it using your distribution package manager, for example:
-
-```bash
-sudo apt-get install sox
-```
-
-</Tip>
 
 ## Vision
 

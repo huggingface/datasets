@@ -1,7 +1,7 @@
 # Load audio data
 
 You can load an audio dataset using the [`Audio`] feature that automatically decodes and resamples the audio files when you access the examples.
-Audio decoding is based on `librosa` in general, and `torchaudio` for MP3.
+Audio decoding is based on the [`soundfile`](https://github.com/bastibe/python-soundfile) python package, which uses the [`libsndfile`](https://github.com/libsndfile/libsndfile) C library under the hood.
 
 ## Installation
 
