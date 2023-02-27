@@ -68,7 +68,7 @@ pip install datasets[audio]
 <Tip warning={true}>
 
 To decode mp3 files you should have the `libsndfile` system library of at least version 1.1.0. Normally, it's bundled into the python [`soundfile`](https://github.com/bastibe/python-soundfile) package which is installed as an extra audio dependency of 🤗 Datasets.
-On Linux, the required version of `libsndfile` is bundled into the `soundfile` wheel since version 0.12.0 of `soundfile`. You can check which version of `libsndfile` is used by `soundfile` running the following code:
+On Linux, the required version of `libsndfile` is bundled into the `soundfile` wheel since version 0.12.0 of `soundfile`. You can run the following command to check which version of `libsndfile` is used by `soundfile`:
 
 ```bash
 python -c "import soundfile; print(soundfile.__libsndfile_version__)"
