@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Union
 
 import numpy as np
 import pyarrow as pa
-from packaging import version
 
 from .. import config
 from ..download.streaming_download_manager import xopen
@@ -158,13 +157,13 @@ class Audio:
 
         audio_format = os.path.splitext(path)[1].lstrip(".").lower() if path is not None else None
         if audio_format == "opus":
-            if version.parse(sf.__libsndfile_version__) < version.parse("1.0.31"):
+            if not config.IS_OPUS_SUPPORTED:
                 raise RuntimeError(
                     "Decoding 'opus' files requires system library 'libsndfile'>=1.0.31, "
                     'You can try to update `soundfile` python library: `pip install "soundfile>=0.12.1"`. '
                 )
         if audio_format == "mp3":
-            if version.parse(sf.__libsndfile_version__) < version.parse("1.1.0"):
+            if not config.IS_MP3_SUPPORTED:
                 raise RuntimeError(
                     "Decoding 'mp3' files requires system library 'libsndfile'>=1.1.0, "
                     'You can try to update `soundfile` python library: `pip install "soundfile>=0.12.1"`. '
