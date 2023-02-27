@@ -346,7 +346,11 @@ def test_classlabel_cast_storage():
     assert result.type == pa.int64()
     assert result.to_pylist() == [None]
     # from empty
-    arr = pa.array([])
+    arr = pa.array([], pa.int64())
+    result = classlabel.cast_storage(arr)
+    assert result.type == pa.int64()
+    assert result.to_pylist() == []
+    arr = pa.array([], pa.string())
     result = classlabel.cast_storage(arr)
     assert result.type == pa.int64()
     assert result.to_pylist() == []
@@ -441,7 +445,6 @@ def iternumpy(key1, value1, value2):
 
 
 def dict_diff(d1: dict, d2: dict):  # check if 2 dictionaries are equal
-
     np.testing.assert_equal(d1, d2)  # sanity check if dict values are equal or not
 
     for (k1, v1), (k2, v2) in zip(d1.items(), d2.items()):  # check if their values have same dtype or not
@@ -450,7 +453,7 @@ def dict_diff(d1: dict, d2: dict):  # check if 2 dictionaries are equal
         elif isinstance(v1, np.ndarray):  # checks if dtype and value of np.ndarray is equal
             iternumpy(k1, v1, v2)
         elif isinstance(v1, list):
-            for (element1, element2) in zip(v1, v2):  # iterates over all elements of list
+            for element1, element2 in zip(v1, v2):  # iterates over all elements of list
                 if isinstance(element1, dict):
                     dict_diff(element1, element2)
                 elif isinstance(element1, np.ndarray):

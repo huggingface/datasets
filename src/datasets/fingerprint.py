@@ -7,7 +7,7 @@ import tempfile
 import weakref
 from functools import wraps
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pyarrow as pa
@@ -184,7 +184,6 @@ def get_temporary_cache_files_directory() -> str:
     """Return a directory that is deleted when session closes."""
     global _TEMP_DIR_FOR_TEMP_CACHE_FILES
     if _TEMP_DIR_FOR_TEMP_CACHE_FILES is None:
-
         # Avoids a PermissionError on Windows caused by the datasets referencing
         # the files from the cache directory on clean-up
         def cleanup_func():
@@ -364,6 +363,61 @@ def validate_fingerprint(fingerprint: str, max_length=64):
         )
 
 
+def format_transform_for_fingerprint(func: Callable, version: Optional[str] = None) -> str:
+    """
+    Format a transform to the format that will be used to update the fingerprint.
+    """
+    transform = f"{func.__module__}.{func.__qualname__}"
+    if version is not None:
+        transform += f"@{version}"
+    return transform
+
+
+def format_kwargs_for_fingerprint(
+    func: Callable,
+    args: Tuple,
+    kwargs: Dict[str, Any],
+    use_kwargs: Optional[List[str]] = None,
+    ignore_kwargs: Optional[List[str]] = None,
+    randomized_function: bool = False,
+) -> Dict[str, Any]:
+    """
+    Format the kwargs of a transform to the format that will be used to update the fingerprint.
+    """
+    kwargs_for_fingerprint = kwargs.copy()
+    if args:
+        params = [p.name for p in inspect.signature(func).parameters.values() if p != p.VAR_KEYWORD]
+        args = args[1:]  # assume the first argument is the dataset
+        params = params[1:]
+        kwargs_for_fingerprint.update(zip(params, args))
+    else:
+        del kwargs_for_fingerprint[
+            next(iter(inspect.signature(func).parameters))
+        ]  # assume the first key is the dataset
+
+    # keep the right kwargs to be hashed to generate the fingerprint
+
+    if use_kwargs:
+        kwargs_for_fingerprint = {k: v for k, v in kwargs_for_fingerprint.items() if k in use_kwargs}
+    if ignore_kwargs:
+        kwargs_for_fingerprint = {k: v for k, v in kwargs_for_fingerprint.items() if k not in ignore_kwargs}
+    if randomized_function:  # randomized functions have `seed` and `generator` parameters
+        if kwargs_for_fingerprint.get("seed") is None and kwargs_for_fingerprint.get("generator") is None:
+            _, seed, pos, *_ = np.random.get_state()
+            seed = seed[pos] if pos < 624 else seed[0]
+            kwargs_for_fingerprint["generator"] = np.random.default_rng(seed)
+
+    # remove kwargs that are the default values
+
+    default_values = {
+        p.name: p.default for p in inspect.signature(func).parameters.values() if p.default != inspect._empty
+    }
+    for default_varname, default_value in default_values.items():
+        if default_varname in kwargs_for_fingerprint and kwargs_for_fingerprint[default_varname] == default_value:
+            kwargs_for_fingerprint.pop(default_varname)
+    return kwargs_for_fingerprint
+
+
 def fingerprint_transform(
     inplace: bool,
     use_kwargs: Optional[List[str]] = None,
@@ -374,7 +428,6 @@ def fingerprint_transform(
 ):
     """
     Wrapper for dataset transforms to update the dataset fingerprint using ``update_fingerprint``
-
     Args:
         inplace (:obj:`bool`):  If inplace is True, the fingerprint of the dataset is updated inplace.
             Otherwise, a parameter "new_fingerprint" is passed to the wrapped method that should take care of
@@ -412,7 +465,6 @@ def fingerprint_transform(
     fingerprint_names = fingerprint_names if fingerprint_names is not None else ["new_fingerprint"]
 
     def _fingerprint(func):
-
         if not inplace and not all(name in func.__code__.co_varnames for name in fingerprint_names):
             raise ValueError("function {func} is missing parameters {fingerprint_names} in signature")
 
@@ -421,68 +473,47 @@ def fingerprint_transform(
                 raise ValueError(f"'seed' must be in {func}'s signature")
             if "generator" not in func.__code__.co_varnames:
                 raise ValueError(f"'generator' must be in {func}'s signature")
-        # this has to be outside the wrapper or since __qualname__ changes in multiprocessing
-        transform = f"{func.__module__}.{func.__qualname__}"
-        if version is not None:
-            transform += f"@{version}"
+        # this call has to be outside the wrapper or since __qualname__ changes in multiprocessing
+        transform = format_transform_for_fingerprint(func, version=version)
 
         @wraps(func)
         def wrapper(*args, **kwargs):
-            kwargs_for_fingerprint = kwargs.copy()
+            kwargs_for_fingerprint = format_kwargs_for_fingerprint(
+                func,
+                args,
+                kwargs,
+                use_kwargs=use_kwargs,
+                ignore_kwargs=ignore_kwargs,
+                randomized_function=randomized_function,
+            )
+
             if args:
-                params = [p.name for p in inspect.signature(func).parameters.values() if p != p.VAR_KEYWORD]
-                self: "Dataset" = args[0]
+                dataset: Dataset = args[0]
                 args = args[1:]
-                params = params[1:]
-                kwargs_for_fingerprint.update(zip(params, args))
             else:
-                self: "Dataset" = kwargs.pop("self")
-
-            # keep the right kwargs to be hashed to generate the fingerprint
-
-            if use_kwargs:
-                kwargs_for_fingerprint = {k: v for k, v in kwargs_for_fingerprint.items() if k in use_kwargs}
-            if ignore_kwargs:
-                kwargs_for_fingerprint = {k: v for k, v in kwargs_for_fingerprint.items() if k not in ignore_kwargs}
-            if randomized_function:  # randomized functions have `seed` and `generator` parameters
-                if kwargs_for_fingerprint.get("seed") is None and kwargs_for_fingerprint.get("generator") is None:
-                    _, seed, pos, *_ = np.random.get_state()
-                    seed = seed[pos] if pos < 624 else seed[0]
-                    kwargs_for_fingerprint["generator"] = np.random.default_rng(seed)
-
-            # remove kwargs that are the default values
-
-            default_values = {
-                p.name: p.default for p in inspect.signature(func).parameters.values() if p.default != inspect._empty
-            }
-            for default_varname, default_value in default_values.items():
-                if (
-                    default_varname in kwargs_for_fingerprint
-                    and kwargs_for_fingerprint[default_varname] == default_value
-                ):
-                    kwargs_for_fingerprint.pop(default_varname)
+                dataset: Dataset = kwargs.pop(next(iter(inspect.signature(func).parameters)))
 
             # compute new_fingerprint and add it to the args of not in-place transforms
             if inplace:
-                new_fingerprint = update_fingerprint(self._fingerprint, transform, kwargs_for_fingerprint)
+                new_fingerprint = update_fingerprint(dataset._fingerprint, transform, kwargs_for_fingerprint)
             else:
                 for fingerprint_name in fingerprint_names:  # transforms like `train_test_split` have several hashes
                     if kwargs.get(fingerprint_name) is None:
                         kwargs_for_fingerprint["fingerprint_name"] = fingerprint_name
                         kwargs[fingerprint_name] = update_fingerprint(
-                            self._fingerprint, transform, kwargs_for_fingerprint
+                            dataset._fingerprint, transform, kwargs_for_fingerprint
                         )
                     else:
                         validate_fingerprint(kwargs[fingerprint_name])
 
             # Call actual function
 
-            out = func(self, *args, **kwargs)
+            out = func(dataset, *args, **kwargs)
 
             # Update fingerprint of in-place transforms + update in-place history of transforms
 
             if inplace:  # update after calling func so that the fingerprint doesn't change if the function fails
-                self._fingerprint = new_fingerprint
+                dataset._fingerprint = new_fingerprint
 
             return out
 

@@ -81,7 +81,7 @@ def size_str(size_in_bytes):
     _NAME_LIST = [("PiB", 2**50), ("TiB", 2**40), ("GiB", 2**30), ("MiB", 2**20), ("KiB", 2**10)]
 
     size_in_bytes = float(size_in_bytes)
-    for (name, size_bytes) in _NAME_LIST:
+    for name, size_bytes in _NAME_LIST:
         value = size_in_bytes / size_bytes
         if value >= 1.0:
             return f"{value:.2f} {name}"
@@ -356,18 +356,17 @@ def _single_map_nested(args):
     # Loop over single examples or batches and write to buffer/file if examples are to be updated
     pbar_iterable = data_struct.items() if isinstance(data_struct, dict) else data_struct
     pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
-    pbar = logging.tqdm(pbar_iterable, disable=disable_tqdm, position=rank, unit="obj", desc=pbar_desc)
-
-    if isinstance(data_struct, dict):
-        return {k: _single_map_nested((function, v, types, None, True, None)) for k, v in pbar}
-    else:
-        mapped = [_single_map_nested((function, v, types, None, True, None)) for v in pbar]
-        if isinstance(data_struct, list):
-            return mapped
-        elif isinstance(data_struct, tuple):
-            return tuple(mapped)
+    with logging.tqdm(pbar_iterable, disable=disable_tqdm, position=rank, unit="obj", desc=pbar_desc) as pbar:
+        if isinstance(data_struct, dict):
+            return {k: _single_map_nested((function, v, types, None, True, None)) for k, v in pbar}
         else:
-            return np.array(mapped)
+            mapped = [_single_map_nested((function, v, types, None, True, None)) for v in pbar]
+            if isinstance(data_struct, list):
+                return mapped
+            elif isinstance(data_struct, tuple):
+                return tuple(mapped)
+            else:
+                return np.array(mapped)
 
 
 def map_nested(
@@ -649,6 +648,20 @@ class Pickler(dill.Pickler):
 
                 except ImportError:
                     pass
+            elif (obj_type.__module__, obj_type.__name__) == ("tiktoken.core", "Encoding"):
+                try:
+                    import tiktoken
+
+                    @pklregister(obj_type)
+                    def _save_encoding(pickler, obj):
+                        dill_log(pickler, f"Enc: {obj}")
+                        args = (obj.name, obj._pat_str, obj._mergeable_ranks, obj._special_tokens)
+                        pickler.save_reduce(tiktoken.Encoding, args, obj=obj)
+                        dill_log(pickler, "# Enc")
+                        return
+
+                except ImportError:
+                    pass
             elif obj_type.__module__.startswith("spacy.lang") and any(
                 (cls.__module__, cls.__name__) == ("spacy.language", "Language") for cls in obj_type.__mro__
             ):
@@ -816,7 +829,6 @@ if config.DILL_VERSION < version.parse("0.3.6"):
         return
 
 elif config.DILL_VERSION.release[:3] == version.parse("0.3.6").release:
-
     # From: https://github.com/uqfoundation/dill/blob/dill-0.3.6/dill/_dill.py#L1104
     @pklregister(CodeType)
     def save_code(pickler, obj):
@@ -1041,7 +1053,6 @@ if config.DILL_VERSION < version.parse("0.3.5"):
         return
 
 elif config.DILL_VERSION.release[:3] == version.parse("0.3.5").release:  # 0.3.5, 0.3.5.1
-
     # https://github.com/uqfoundation/dill/blob/dill-0.3.5.1/dill/_dill.py
     @pklregister(FunctionType)
     def save_function(pickler, obj):
@@ -1185,7 +1196,6 @@ elif config.DILL_VERSION.release[:3] == version.parse("0.3.5").release:  # 0.3.5
         return
 
 elif config.DILL_VERSION.release[:3] == version.parse("0.3.6").release:
-
     # From: https://github.com/uqfoundation/dill/blob/dill-0.3.6/dill/_dill.py#L1739
     @pklregister(FunctionType)
     def save_function(pickler, obj):

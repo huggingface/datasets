@@ -209,6 +209,21 @@ def require_transformers(test_case):
         return test_case
 
 
+def require_tiktoken(test_case):
+    """
+    Decorator marking a test that requires tiktoken.
+
+    These tests are skipped when transformers isn't installed.
+
+    """
+    try:
+        import tiktoken  # noqa F401
+    except ImportError:
+        return unittest.skip("test requires tiktoken")(test_case)
+    else:
+        return test_case
+
+
 def require_spacy(test_case):
     """
     Decorator marking a test that requires spacy.
@@ -476,8 +491,8 @@ async def _stream_subprocess(cmd, env=None, stdin=None, timeout=None, quiet=Fals
     # XXX: the timeout doesn't seem to make any difference here
     await asyncio.wait(
         [
-            _read_stream(p.stdout, lambda l: tee(l, out, sys.stdout, label="stdout:")),
-            _read_stream(p.stderr, lambda l: tee(l, err, sys.stderr, label="stderr:")),
+            _read_stream(p.stdout, lambda line: tee(line, out, sys.stdout, label="stdout:")),
+            _read_stream(p.stderr, lambda line: tee(line, err, sys.stderr, label="stderr:")),
         ],
         timeout=timeout,
     )

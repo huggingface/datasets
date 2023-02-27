@@ -141,7 +141,7 @@ def test_buffer_shuffled_examples_iterable(seed):
 
     assert next(iter(ex_iterable)) == expected[0]
     assert list(ex_iterable) == expected
-    assert sorted(list(ex_iterable)) == sorted(all_examples)
+    assert sorted(ex_iterable) == sorted(all_examples)
 
 
 def test_cycling_multi_sources_examples_iterable():
@@ -223,7 +223,7 @@ def test_mapped_examples_iterable(n, func, batched, batch_size):
         expected.update(_examples_to_batch(all_transformed_examples))
         expected = list(_batch_to_examples(expected))
     assert next(iter(ex_iterable))[1] == expected[0]
-    assert list(x for _, x in ex_iterable) == expected
+    assert [x for _, x in ex_iterable] == expected
 
 
 @pytest.mark.parametrize(
@@ -271,7 +271,7 @@ def test_mapped_examples_iterable_drop_last_batch(n, func, batched, batch_size):
 
     if not is_empty:
         assert next(iter(ex_iterable))[1] == expected[0]
-        assert list(x for _, x in ex_iterable) == expected
+        assert [x for _, x in ex_iterable] == expected
     else:
         with pytest.raises(StopIteration):
             next(iter(ex_iterable))
@@ -315,7 +315,7 @@ def test_mapped_examples_iterable_with_indices(n, func, batched, batch_size):
         expected.update(_examples_to_batch(all_transformed_examples))
         expected = list(_batch_to_examples(expected))
     assert next(iter(ex_iterable))[1] == expected[0]
-    assert list(x for _, x in ex_iterable) == expected
+    assert [x for _, x in ex_iterable] == expected
 
 
 @pytest.mark.parametrize(
@@ -358,7 +358,7 @@ def test_mapped_examples_iterable_remove_columns(n, func, batched, batch_size, r
         expected.update(_examples_to_batch(all_transformed_examples))
         expected = list(_batch_to_examples(expected))
     assert next(iter(ex_iterable))[1] == expected[0]
-    assert list(x for _, x in ex_iterable) == expected
+    assert [x for _, x in ex_iterable] == expected
 
 
 @pytest.mark.parametrize(
@@ -396,7 +396,7 @@ def test_mapped_examples_iterable_fn_kwargs(n, func, batched, batch_size, fn_kwa
         expected.update(_examples_to_batch(all_transformed_examples))
         expected = list(_batch_to_examples(expected))
     assert next(iter(ex_iterable))[1] == expected[0]
-    assert list(x for _, x in ex_iterable) == expected
+    assert [x for _, x in ex_iterable] == expected
 
 
 @pytest.mark.parametrize(
@@ -432,7 +432,7 @@ def test_mapped_examples_iterable_input_columns(n, func, batched, batch_size, in
         expected.update(_examples_to_batch(all_transformed_examples))
         expected = list(_batch_to_examples(expected))
     assert next(iter(ex_iterable))[1] == expected[0]
-    assert list(x for _, x in ex_iterable) == expected
+    assert [x for _, x in ex_iterable] == expected
 
 
 @pytest.mark.parametrize(
@@ -466,7 +466,7 @@ def test_filtered_examples_iterable(n, func, batched, batch_size):
             expected.extend([x for x, to_keep in zip(examples, mask) if to_keep])
     if expected:
         assert next(iter(ex_iterable))[1] == expected[0]
-    assert list(x for _, x in ex_iterable) == expected
+    assert [x for _, x in ex_iterable] == expected
 
 
 @pytest.mark.parametrize(
@@ -499,7 +499,7 @@ def test_filtered_examples_iterable_with_indices(n, func, batched, batch_size):
             mask = func(batch, indices)
             expected.extend([x for x, to_keep in zip(examples, mask) if to_keep])
     assert next(iter(ex_iterable))[1] == expected[0]
-    assert list(x for _, x in ex_iterable) == expected
+    assert [x for _, x in ex_iterable] == expected
 
 
 @pytest.mark.parametrize(
@@ -532,7 +532,7 @@ def test_filtered_examples_iterable_input_columns(n, func, batched, batch_size, 
             mask = func(*[batch[col] for col in columns_to_input])
             expected.extend([x for x, to_keep in zip(examples, mask) if to_keep])
     assert next(iter(ex_iterable))[1] == expected[0]
-    assert list(x for _, x in ex_iterable) == expected
+    assert [x for _, x in ex_iterable] == expected
 
 
 def test_skip_examples_iterable():
@@ -561,8 +561,8 @@ def test_vertically_concatenated_examples_iterable():
     ex_iterable1 = ExamplesIterable(generate_examples_fn, {"label": 10})
     ex_iterable2 = ExamplesIterable(generate_examples_fn, {"label": 5})
     concatenated_ex_iterable = VerticallyConcatenatedMultiSourcesExamplesIterable([ex_iterable1, ex_iterable2])
-    expected = list(x for _, x in ex_iterable1) + list(x for _, x in ex_iterable2)
-    assert list(x for _, x in concatenated_ex_iterable) == expected
+    expected = [x for _, x in ex_iterable1] + [x for _, x in ex_iterable2]
+    assert [x for _, x in concatenated_ex_iterable] == expected
 
 
 def test_vertically_concatenated_examples_iterable_with_different_columns():
@@ -571,8 +571,8 @@ def test_vertically_concatenated_examples_iterable_with_different_columns():
     ex_iterable1 = ExamplesIterable(generate_examples_fn, {"label": 10})
     ex_iterable2 = ExamplesIterable(generate_examples_fn, {})
     concatenated_ex_iterable = VerticallyConcatenatedMultiSourcesExamplesIterable([ex_iterable1, ex_iterable2])
-    expected = list(x for _, x in ex_iterable1) + list(x for _, x in ex_iterable2)
-    assert list(x for _, x in concatenated_ex_iterable) == expected
+    expected = [x for _, x in ex_iterable1] + [x for _, x in ex_iterable2]
+    assert [x for _, x in concatenated_ex_iterable] == expected
 
 
 def test_vertically_concatenated_examples_iterable_shuffle_data_sources():
@@ -582,10 +582,10 @@ def test_vertically_concatenated_examples_iterable_shuffle_data_sources():
     rng = np.random.default_rng(42)
     shuffled_ex_iterable = concatenated_ex_iterable.shuffle_data_sources(rng)
     # make sure the list of examples iterables is shuffled, and each examples iterable is shuffled
-    expected = list(x for _, x in ex_iterable2.shuffle_data_sources(rng)) + list(
+    expected = [x for _, x in ex_iterable2.shuffle_data_sources(rng)] + [
         x for _, x in ex_iterable1.shuffle_data_sources(rng)
-    )
-    assert list(x for _, x in shuffled_ex_iterable) == expected
+    ]
+    assert [x for _, x in shuffled_ex_iterable] == expected
 
 
 def test_horizontally_concatenated_examples_iterable():
@@ -596,8 +596,8 @@ def test_horizontally_concatenated_examples_iterable():
         list(concatenated_ex_iterable)
     ex_iterable2 = MappedExamplesIterable(ex_iterable2, lambda x: x, remove_columns=["id"])
     concatenated_ex_iterable = HorizontallyConcatenatedMultiSourcesExamplesIterable([ex_iterable1, ex_iterable2])
-    expected = list({**x, **y} for (_, x), (_, y) in zip(ex_iterable1, ex_iterable2))
-    assert list(x for _, x in concatenated_ex_iterable) == expected
+    expected = [{**x, **y} for (_, x), (_, y) in zip(ex_iterable1, ex_iterable2)]
+    assert [x for _, x in concatenated_ex_iterable] == expected
     assert (
         concatenated_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is concatenated_ex_iterable
     ), "horizontally concatenated examples makes the shards order fixed"
@@ -647,7 +647,6 @@ def test_iterable_dataset_from_generator_with_shards():
 
 @require_torch
 def test_iterable_dataset_torch_integration():
-
     ex_iterable = ExamplesIterable(generate_examples_fn, {})
     dataset = IterableDataset(ex_iterable)
     import torch.utils.data
@@ -693,7 +692,7 @@ def test_iterable_dataset_torch_dataloader_parallel():
     result = list(dataloader)
     expected = [example for _, example in ex_iterable]
     assert len(result) == len(expected)
-    assert set(str(x) for x in result) == set(str(x) for x in expected)
+    assert {str(x) for x in result} == {str(x) for x in expected}
 
 
 @require_torch
@@ -707,7 +706,7 @@ def test_sharded_iterable_dataset_torch_dataloader_parallel(n_shards, num_worker
     result = list(dataloader)
     expected = [example for _, example in ex_iterable]
     assert len(result) == len(expected)
-    assert set(str(x) for x in result) == set(str(x) for x in expected)
+    assert {str(x) for x in result} == {str(x) for x in expected}
 
 
 @require_torch
@@ -729,7 +728,7 @@ def test_iterable_dataset_from_hub_torch_dataloader_parallel(num_workers, tmp_pa
 def test_iterable_dataset_iter_batch(batch_size, drop_last_batch):
     n = 25
     dataset = IterableDataset(ExamplesIterable(generate_examples_fn, {"n": n}))
-    all_examples = list(ex for _, ex in generate_examples_fn(n=n))
+    all_examples = [ex for _, ex in generate_examples_fn(n=n)]
     expected = []
     for i in range(0, len(all_examples), batch_size):
         if len(all_examples[i : i + batch_size]) < batch_size and drop_last_batch:
@@ -1007,6 +1006,23 @@ def test_iterable_dataset_remove_columns(dataset_with_several_columns):
     new_dataset = dataset_with_several_columns._resolve_features().remove_columns(["id", "filepath"])
     assert new_dataset.features is not None
     assert all(c not in new_dataset.features for c in ["id", "filepath"])
+
+
+def test_iterable_dataset_select_columns(dataset_with_several_columns):
+    new_dataset = dataset_with_several_columns.select_columns("id")
+    assert list(new_dataset) == [
+        {k: v for k, v in example.items() if k == "id"} for example in dataset_with_several_columns
+    ]
+    assert new_dataset.features is None
+    new_dataset = dataset_with_several_columns.select_columns(["id", "filepath"])
+    assert list(new_dataset) == [
+        {k: v for k, v in example.items() if k in ("id", "filepath")} for example in dataset_with_several_columns
+    ]
+    assert new_dataset.features is None
+    # remove the columns if ds.features was not None
+    new_dataset = dataset_with_several_columns._resolve_features().select_columns(["id", "filepath"])
+    assert new_dataset.features is not None
+    assert all(c in new_dataset.features for c in ["id", "filepath"])
 
 
 def test_iterable_dataset_cast_column():

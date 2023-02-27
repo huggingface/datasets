@@ -100,7 +100,6 @@ def head_hf_s3(
 
 
 def hf_github_url(path: str, name: str, dataset=True, revision: Optional[str] = None) -> str:
-
     default_revision = "main" if version.parse(__version__).is_devrelease else __version__
     revision = revision or default_revision
     if dataset:
@@ -547,7 +546,6 @@ def get_from_cache(
     # Prevent parallel downloads of the same file with a lock.
     lock_path = cache_path + ".lock"
     with FileLock(lock_path):
-
         if resume_download:
             incomplete_path = cache_path + ".incomplete"
 

@@ -62,7 +62,6 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
     EXTENSIONS: List[str]
     CLASSIFICATION_TASK: TaskTemplate
 
-    SKIP_CHECKSUM_COMPUTATION_BY_DEFAULT: bool = True
     METADATA_FILENAMES: List[str] = ["metadata.csv", "metadata.jsonl"]
 
     def _info(self):
@@ -134,7 +133,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
 
                 if metadata_files:
                     # add metadata if `metadata_files` are found and `drop_metadata` is None (default) or False
-                    add_metadata = not (self.config.drop_metadata is True)
+                    add_metadata = not self.config.drop_metadata
                     # if `metadata_files` are found, add labels only if
                     # `drop_labels` is set up to False explicitly (not-default behavior)
                     add_labels = self.config.drop_labels is False
@@ -177,10 +176,10 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
             features_per_metadata_file: List[Tuple[str, datasets.Features]] = []
 
             # Check that all metadata files share the same format
-            metadata_ext = set(
+            metadata_ext = {
                 os.path.splitext(downloaded_metadata_file)[1][1:]
                 for _, downloaded_metadata_file in itertools.chain.from_iterable(metadata_files.values())
-            )
+            }
             if len(metadata_ext) > 1:
                 raise ValueError(f"Found metadata files with different extensions: {list(metadata_ext)}")
             metadata_ext = metadata_ext.pop()
@@ -270,10 +269,10 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
         downloaded_metadata_file = None
 
         if split_metadata_files:
-            metadata_ext = set(
+            metadata_ext = {
                 os.path.splitext(downloaded_metadata_file)[1][1:]
                 for _, downloaded_metadata_file in split_metadata_files
-            )
+            }
             metadata_ext = metadata_ext.pop()
 
         file_idx = 0

@@ -15,35 +15,69 @@
 # Lint as: python3
 import sys
 from collections.abc import Mapping
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, Optional
 
 import numpy as np
 import pyarrow as pa
 
 from .. import config
+from ..utils.logging import get_logger
 from ..utils.py_utils import map_nested
 from .formatting import Formatter
 
 
 if TYPE_CHECKING:
-    import jax.numpy as jnp
+    import jax
+    import jaxlib
+
+logger = get_logger()
+
+DEVICE_MAPPING: Optional[dict] = None
 
 
-class JaxFormatter(Formatter[Mapping, "jnp.ndarray", Mapping]):
-    def __init__(self, features=None, **jnp_array_kwargs):
+class JaxFormatter(Formatter[Mapping, "jax.Array", Mapping]):
+    def __init__(self, features=None, device=None, **jnp_array_kwargs):
         super().__init__(features=features)
+        import jax
+        from jaxlib.xla_client import Device
+
+        if isinstance(device, Device):
+            raise ValueError(
+                f"Expected {device} to be a `str` not {type(device)}, as `jaxlib.xla_extension.Device` "
+                "is not serializable neither with `pickle` nor with `dill`. Instead you can surround "
+                "the device with `str()` to get its string identifier that will be internally mapped "
+                "to the actual `jaxlib.xla_extension.Device`."
+            )
+        self.device = device if isinstance(device, str) else str(jax.devices()[0])
+        # using global variable since `jaxlib.xla_extension.Device` is not serializable neither
+        # with `pickle` nor with `dill`, so we need to use a global variable instead
+        global DEVICE_MAPPING
+        if DEVICE_MAPPING is None:
+            DEVICE_MAPPING = self._map_devices_to_str()
+        if self.device not in list(DEVICE_MAPPING.keys()):
+            logger.warning(
+                f"Device with string identifier {self.device} not listed among the available "
+                f"devices: {list(DEVICE_MAPPING.keys())}, so falling back to the default "
+                f"device: {str(jax.devices()[0])}."
+            )
+            self.device = str(jax.devices()[0])
         self.jnp_array_kwargs = jnp_array_kwargs
-        import jax.numpy as jnp  # noqa import jax at initialization
+
+    @staticmethod
+    def _map_devices_to_str() -> Dict[str, "jaxlib.xla_extension.Device"]:
+        import jax
+
+        return {str(device): device for device in jax.devices()}
 
     def _consolidate(self, column):
+        import jax
         import jax.numpy as jnp
 
         if isinstance(column, list) and column:
             if all(
-                isinstance(x, jnp.ndarray) and x.shape == column[0].shape and x.dtype == column[0].dtype
-                for x in column
+                isinstance(x, jax.Array) and x.shape == column[0].shape and x.dtype == column[0].dtype for x in column
             ):
-                return jnp.stack(column)
+                return jnp.stack(column, axis=0)
         return column
 
     def _tensorize(self, value):
@@ -72,9 +106,16 @@ class JaxFormatter(Formatter[Mapping, "jnp.ndarray", Mapping]):
             if isinstance(value, PIL.Image.Image):
                 value = np.asarray(value)
 
-        # calling jnp.array on a np.ndarray does copy the data
-        # see https://github.com/google/jax/issues/4486
-        return jnp.array(value, **{**default_dtype, **self.jnp_array_kwargs})
+        # using global variable since `jaxlib.xla_extension.Device` is not serializable neither
+        # with `pickle` nor with `dill`, so we need to use a global variable instead
+        global DEVICE_MAPPING
+        if DEVICE_MAPPING is None:
+            DEVICE_MAPPING = self._map_devices_to_str()
+
+        with jax.default_device(DEVICE_MAPPING[self.device]):
+            # calling jnp.array on a np.ndarray does copy the data
+            # see https://github.com/google/jax/issues/4486
+            return jnp.array(value, **{**default_dtype, **self.jnp_array_kwargs})
 
     def _recursive_tensorize(self, data_struct: dict):
         # support for nested types like struct of list of struct
@@ -91,7 +132,7 @@ class JaxFormatter(Formatter[Mapping, "jnp.ndarray", Mapping]):
         row = self.python_features_decoder.decode_row(row)
         return self.recursive_tensorize(row)
 
-    def format_column(self, pa_table: pa.Table) -> "jnp.ndarray":
+    def format_column(self, pa_table: pa.Table) -> "jax.Array":
         column = self.numpy_arrow_extractor().extract_column(pa_table)
         column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
         column = self.recursive_tensorize(column)

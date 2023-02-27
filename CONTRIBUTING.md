@@ -31,25 +31,25 @@ If you want to add a dataset see specific instructions in the section [*How to a
 
 2. Clone your fork to your local disk, and add the base repository as a remote:
 
-	```bash
-	git clone git@github.com:<your Github handle>/datasets.git
-	cd datasets
-	git remote add upstream https://github.com/huggingface/datasets.git
-	```
+    ```bash
+    git clone git@github.com:<your Github handle>/datasets.git
+    cd datasets
+    git remote add upstream https://github.com/huggingface/datasets.git
+    ```
 
 3. Create a new branch to hold your development changes:
 
-	```bash
-	git checkout -b a-descriptive-name-for-my-changes
-	```
+    ```bash
+    git checkout -b a-descriptive-name-for-my-changes
+    ```
 
-	**do not** work on the `main` branch.
+    **do not** work on the `main` branch.
 
 4. Set up a development environment by running the following command in a virtual environment:
 
-	```bash
-	pip install -e ".[dev]"
-	```
+    ```bash
+    pip install -e ".[dev]"
+    ```
 
    (If datasets was already installed in the virtual environment, remove
    it with `pip uninstall datasets` before reinstalling it in editable
@@ -57,28 +57,33 @@ If you want to add a dataset see specific instructions in the section [*How to a
 
 5. Develop the features on your branch.
 
-6. Format your code. Run black and isort so that your newly added files look nice with the following command:
+6. Format your code. Run `black` and `ruff` so that your newly added files look nice with the following command:
 
-	```bash
-	make style
-	```
+    ```bash
+    make style
+    ```
+   
+7. _(Optional)_ You can also use [`pre-commit`](https://pre-commit.com/) to format your code automatically each time run `git commit`, instead of running `make style` manually. 
+To do this, install `pre-commit` via `pip install pre-commit` and then run `pre-commit install` in the project's root directory to set up the hooks.
+Note that if any files were formatted by `pre-commit` hooks during committing, you have to run `git commit` again .
 
-7. Once you're happy with your contribution, add your changed files and make a commit to record your changes locally:
 
-	```bash
-	git add -u
-	git commit
-	```
+8. Once you're happy with your contribution, add your changed files and make a commit to record your changes locally:
 
-	It is a good idea to sync your copy of the code with the original
-	repository regularly. This way you can quickly account for changes:
-
-	```bash
-	git fetch upstream
-	git rebase upstream/main
+    ```bash
+    git add -u
+    git commit
     ```
 
-8. Once you are satisfied, push the changes to your fork repo using:
+    It is a good idea to sync your copy of the code with the original
+    repository regularly. This way you can quickly account for changes:
+
+    ```bash
+    git fetch upstream
+    git rebase upstream/main
+    ```
+
+9. Once you are satisfied, push the changes to your fork repo using:
 
    ```bash
    git push -u origin a-descriptive-name-for-my-changes

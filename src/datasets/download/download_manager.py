@@ -20,7 +20,6 @@ import io
 import os
 import posixpath
 import tarfile
-import time
 import warnings
 import zipfile
 from datetime import datetime
@@ -338,25 +337,17 @@ class DownloadManager:
 
     def _record_sizes_checksums(self, url_or_urls: NestedDataStructure, downloaded_path_or_paths: NestedDataStructure):
         """Record size/checksum of downloaded files."""
-        _time = time.time()
-        warn_about_checksums = self.record_checksums
         delay = 5
         for url, path in tqdm(
             list(zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten())),
             delay=delay,
             desc="Computing checksums",
-            disable=not is_progress_bar_enabled() and not warn_about_checksums,
+            disable=not is_progress_bar_enabled(),
         ):
             # call str to support PathLike objects
             self._recorded_sizes_checksums[str(url)] = get_size_checksum_dict(
                 path, record_checksum=self.record_checksums
             )
-            if warn_about_checksums and _time + delay < time.time():
-                warn_about_checksums = False
-                logger.warning(
-                    "Computing checksums of downloaded files. They can be used for integrity verification. "
-                    "You can disable this by passing ignore_verifications=True to load_dataset"
-                )
 
     def download_custom(self, url_or_urls, custom_download):
         """

@@ -18,7 +18,14 @@ import datasets
 from datasets.fingerprint import Hasher, fingerprint_transform
 from datasets.table import InMemoryTable
 
-from .utils import require_regex, require_spacy, require_spacy_model, require_torch, require_transformers
+from .utils import (
+    require_regex,
+    require_spacy,
+    require_spacy_model,
+    require_tiktoken,
+    require_torch,
+    require_transformers,
+)
 
 
 class Foo:
@@ -132,7 +139,6 @@ class RecurseDumpTest(TestCase):
         self.assertEqual(hash1, hash2)
 
     def test_recurse_dump_for_class(self):
-
         hash1 = md5(datasets.utils.py_utils.dumps(Foo([0]))).hexdigest()
         hash2 = md5(datasets.utils.py_utils.dumps(Foo([1]))).hexdigest()
         hash3 = md5(datasets.utils.py_utils.dumps(Foo([0]))).hexdigest()
@@ -140,7 +146,6 @@ class RecurseDumpTest(TestCase):
         self.assertNotEqual(hash1, hash2)
 
     def test_recurse_dump_for_method(self):
-
         hash1 = md5(datasets.utils.py_utils.dumps(Foo([0]).__call__)).hexdigest()
         hash2 = md5(datasets.utils.py_utils.dumps(Foo([1]).__call__)).hexdigest()
         hash3 = md5(datasets.utils.py_utils.dumps(Foo([0]).__call__)).hexdigest()
@@ -148,7 +153,6 @@ class RecurseDumpTest(TestCase):
         self.assertNotEqual(hash1, hash2)
 
     def test_dump_ipython_function(self):
-
         code_args_py37 = (
             "co_argcount",
             "co_kwonlyargcount",
@@ -297,6 +301,19 @@ class HashingTest(TestCase):
         hash3 = Hasher.hash(obj3)
         self.assertEqual(hash1, hash2)
         self.assertEqual(hash1, hash3)
+
+    @require_tiktoken
+    def test_hash_tiktoken_encoding(self):
+        import tiktoken
+
+        enc = tiktoken.get_encoding("gpt2")
+        hash1 = md5(datasets.utils.py_utils.dumps(enc)).hexdigest()
+        enc = tiktoken.get_encoding("r50k_base")
+        hash2 = md5(datasets.utils.py_utils.dumps(enc)).hexdigest()
+        enc = tiktoken.get_encoding("gpt2")
+        hash3 = md5(datasets.utils.py_utils.dumps(enc)).hexdigest()
+        self.assertEqual(hash1, hash3)
+        self.assertNotEqual(hash1, hash2)
 
     @require_torch
     def test_hash_torch_tensor(self):

@@ -201,7 +201,7 @@ def get_dataset_infos(
     path: str,
     data_files: Optional[Union[Dict, List, str]] = None,
     download_config: Optional[DownloadConfig] = None,
-    download_mode: Optional[DownloadMode] = None,
+    download_mode: Optional[Union[DownloadMode, str]] = None,
     revision: Optional[Union[str, Version]] = None,
     use_auth_token: Optional[Union[bool, str]] = None,
     **config_kwargs,
@@ -223,7 +223,7 @@ def get_dataset_infos(
             Specifying a version that is different from your local version of the lib might cause compatibility issues.
         download_config ([`DownloadConfig`], *optional*):
             Specific download configuration parameters.
-        download_mode ([`DownloadMode`], defaults to `REUSE_DATASET_IF_EXISTS`):
+        download_mode ([`DownloadMode`] or `str`, defaults to `REUSE_DATASET_IF_EXISTS`):
             Download/generate mode.
         data_files (`Union[Dict, List, str]`, *optional*):
             Defining the data_files of the dataset configuration.
@@ -268,7 +268,7 @@ def get_dataset_config_names(
     path: str,
     revision: Optional[Union[str, Version]] = None,
     download_config: Optional[DownloadConfig] = None,
-    download_mode: Optional[DownloadMode] = None,
+    download_mode: Optional[Union[DownloadMode, str]] = None,
     dynamic_modules_path: Optional[str] = None,
     data_files: Optional[Union[Dict, List, str]] = None,
     **download_kwargs,
@@ -290,7 +290,7 @@ def get_dataset_config_names(
             Specifying a version that is different from your local version of the lib might cause compatibility issues.
         download_config ([`DownloadConfig`], *optional*):
             Specific download configuration parameters.
-        download_mode ([`DownloadMode`], defaults to `REUSE_DATASET_IF_EXISTS`):
+        download_mode ([`DownloadMode`] or `str`, defaults to `REUSE_DATASET_IF_EXISTS`):
             Download/generate mode.
         dynamic_modules_path (`str`, defaults to `~/.cache/huggingface/modules/datasets_modules`):
             Optional path to the directory in which the dynamic modules are saved. It must have been initialized with `init_dynamic_modules`.
@@ -338,7 +338,7 @@ def get_dataset_config_info(
     config_name: Optional[str] = None,
     data_files: Optional[Union[str, Sequence[str], Mapping[str, Union[str, Sequence[str]]]]] = None,
     download_config: Optional[DownloadConfig] = None,
-    download_mode: Optional[DownloadMode] = None,
+    download_mode: Optional[Union[DownloadMode, str]] = None,
     revision: Optional[Union[str, Version]] = None,
     use_auth_token: Optional[Union[bool, str]] = None,
     **config_kwargs,
@@ -355,7 +355,7 @@ def get_dataset_config_info(
         config_name (:obj:`str`, optional): Defining the name of the dataset configuration.
         data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
         download_config (:class:`~download.DownloadConfig`, optional): Specific download configuration parameters.
-        download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
+        download_mode (:class:`DownloadMode` or :obj:`str`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load.
             As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
             You can specify a different version than the default "main" by using a commit SHA or a git tag of the dataset repository.
@@ -399,7 +399,7 @@ def get_dataset_split_names(
     config_name: Optional[str] = None,
     data_files: Optional[Union[str, Sequence[str], Mapping[str, Union[str, Sequence[str]]]]] = None,
     download_config: Optional[DownloadConfig] = None,
-    download_mode: Optional[DownloadMode] = None,
+    download_mode: Optional[Union[DownloadMode, str]] = None,
     revision: Optional[Union[str, Version]] = None,
     use_auth_token: Optional[Union[bool, str]] = None,
     **config_kwargs,
@@ -419,7 +419,7 @@ def get_dataset_split_names(
             Path(s) to source data file(s).
         download_config ([`DownloadConfig`], *optional*):
             Specific download configuration parameters.
-        download_mode ([`DownloadMode`], defaults to `REUSE_DATASET_IF_EXISTS`):
+        download_mode ([`DownloadMode`] or `str`, defaults to `REUSE_DATASET_IF_EXISTS`):
             Download/generate mode.
         revision ([`Version`] or `str`, *optional*):
             Version of the dataset script to load.

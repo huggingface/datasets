@@ -21,7 +21,7 @@ class _NoDuplicateSafeLoader(yaml.SafeLoader):
 
 
 def _split_yaml_from_readme(readme_content: str) -> Tuple[Optional[str], str]:
-    full_content = [line for line in readme_content.splitlines()]
+    full_content = list(readme_content.splitlines())
     if full_content and full_content[0] == "---" and "---" in full_content[1:]:
         sep_idx = full_content[1:].index("---") + 1
         yamlblock = "\n".join(full_content[1:sep_idx])
@@ -31,7 +31,6 @@ def _split_yaml_from_readme(readme_content: str) -> Tuple[Optional[str], str]:
 
 
 class DatasetMetadata(dict):
-
     # class attributes
     _FIELDS_WITH_DASHES = {"train_eval_index"}  # train-eval-index in the YAML metadata
 
@@ -86,7 +85,7 @@ class DatasetMetadata(dict):
         Raises:
             :obj:`TypeError`: If the dataset's metadata is invalid
         """
-        metadata_dict = yaml.load(string, Loader=_NoDuplicateSafeLoader) or dict()
+        metadata_dict = yaml.load(string, Loader=_NoDuplicateSafeLoader) or {}
 
         # Convert the YAML keys to DatasetMetadata fields
         metadata_dict = {

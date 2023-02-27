@@ -97,7 +97,7 @@ class PyUtilsTest(TestCase):
         d2 = {"a": 3, "b": 4}
         d3 = {"a": 5, "b": 6}
         expected_zip_dict_result = sorted([("a", (1, 3, 5)), ("b", (2, 4, 6))])
-        self.assertEqual(sorted(list(zip_dict(d1, d2, d3))), expected_zip_dict_result)
+        self.assertEqual(sorted(zip_dict(d1, d2, d3)), expected_zip_dict_result)
 
     def test_temporary_assignment(self):
         class Foo:
@@ -251,7 +251,6 @@ def _2seconds_generator_of_2items_with_timing(content):
 
 
 def test_iflatmap_unordered():
-
     with Pool(2) as pool:
         out = list(iflatmap_unordered(pool, _split_text, kwargs_iterable=[{"text": "hello there"}] * 10))
         assert out.count("hello") == 10

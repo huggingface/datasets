@@ -154,6 +154,7 @@ BENCHMARKS_REQUIRE = [
     "tensorflow==2.3.0",
     "torch==1.7.1",
     "transformers==3.0.2",
+    "protobuf==3.20.3",  # Fix tensorflow 2.3 import `TypeError: Descriptors cannot not be created directly.`
 ]
 
 TESTS_REQUIRE = [
@@ -172,6 +173,7 @@ TESTS_REQUIRE = [
     "s3fs>=2021.11.1;python_version<'3.8'",  # aligned with fsspec[http]>=2021.11.1; test only on python 3.7 for now
     "tensorflow>=2.3,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
     "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
+    "tiktoken;python_version>='3.8'",
     "torch",
     "torchaudio<0.12.0",
     "soundfile",
@@ -210,7 +212,7 @@ METRICS_TESTS_REQUIRE = [
 TESTS_REQUIRE.extend(VISION_REQUIRE)
 TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
-QUALITY_REQUIRE = ["black~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
+QUALITY_REQUIRE = ["black~=23.1", "ruff>=0.0.241", "pyyaml>=5.3.1"]
 
 DOCS_REQUIRE = [
     # Might need to add doc-builder and some specific deps in the future
@@ -227,6 +229,7 @@ EXTRAS_REQUIRE = {
     ],
     "tensorflow_gpu": ["tensorflow-gpu>=2.2.0,!=2.6.0,!=2.6.1"],
     "torch": ["torch"],
+    "jax": ["jax>=0.2.8,!=0.3.2,<=0.3.25", "jaxlib>=0.1.65,<=0.3.25"],
     "s3": ["s3fs"],
     "streaming": [],  # for backward compatibility
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE + DOCS_REQUIRE,
@@ -239,7 +242,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.9.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.10.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
