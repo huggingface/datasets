@@ -5110,15 +5110,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 uploaded_size += buffer.tell()
                 _retry(
                     hf_api_upload_file,
-                    func_kwargs=dict(
-                        hf_api=api,
-                        path_or_fileobj=buffer.getvalue(),
-                        path_in_repo=shard_path_in_repo,
-                        repo_id=repo_id,
-                        token=token,
-                        repo_type="dataset",
-                        revision=branch,
-                    ),
+                    func_kwargs={
+                        "hf_api": api,
+                        "path_or_fileobj": buffer.getvalue(),
+                        "path_in_repo": shard_path_in_repo,
+                        "repo_id": repo_id,
+                        "token": token,
+                        "repo_type": "dataset",
+                        "revision": branch,
+                    },
                     exceptions=HTTPError,
                     status_codes=[504],
                     base_wait_time=2.0,
