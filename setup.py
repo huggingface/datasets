@@ -142,7 +142,8 @@ REQUIRED_PKGS = [
 ]
 
 AUDIO_REQUIRE = [
-    "soundfile>=0.12.1" "librosa",
+    "soundfile>=0.12.1",
+    "librosa",
 ]
 
 VISION_REQUIRE = [
