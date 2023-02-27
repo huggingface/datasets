@@ -252,16 +252,14 @@ class Audio:
         if format == "opus":
             if version.parse(sf.__libsndfile_version__) < version.parse("1.0.31"):
                 raise RuntimeError(
-                    "Decoding .opus files requires 'libsndfile'>=1.0.31, "
-                    "You can try to update `soundfile`: `pip install soundfile` or install `libsndfile` with your"
-                    "system package manager or compile it from source.`"
+                    "Decoding 'opus' files requires system library 'libsndfile'>=1.0.31, "
+                    'You can try to update `soundfile` python library: `pip install "soundfile>=0.12.1"`. '
                 )
         if format == "mp3":
             if version.parse(sf.__libsndfile_version__) < version.parse("1.1.0"):
                 raise RuntimeError(
-                    "Decoding 'mp3' files requires 'libsndfile'>=1.1.0, "
-                    "You can try to update `soundfile`: `pip install soundfile` or install `libsndfile` with your"
-                    "system package manager or compile it from source.`"
+                    "Decoding 'mp3' files requires system library 'libsndfile'>=1.1.0, "
+                    'You can try to update `soundfile` python library: `pip install "soundfile>=0.12.1"`. '
                 )
 
         if not is_file:
