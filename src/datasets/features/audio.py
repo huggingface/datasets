@@ -150,12 +150,47 @@ class Audio:
         if path is None and file is None:
             raise ValueError(f"An audio sample should have one of 'path' or 'bytes' but both are None in {value}.")
 
-        format = path.split(".")[-1] if path is not None else None
-        is_file = file is not None
-        path_or_file = file if is_file else path
-        array, sampling_rate = self._decode_example(
-            path_or_file, is_file=is_file, format=format, token_per_repo_id=token_per_repo_id
-        )
+        try:
+            import librosa
+            import soundfile as sf
+        except ImportError as err:
+            raise ImportError("To support decoding audio files, please install 'librosa' and 'soundfile'.") from err
+
+        audio_format = path.split(".")[-1] if path is not None else None
+        if audio_format == "opus":
+            if version.parse(sf.__libsndfile_version__) < version.parse("1.0.31"):
+                raise RuntimeError(
+                    "Decoding 'opus' files requires system library 'libsndfile'>=1.0.31, "
+                    'You can try to update `soundfile` python library: `pip install "soundfile>=0.12.1"`. '
+                )
+        if audio_format == "mp3":
+            if version.parse(sf.__libsndfile_version__) < version.parse("1.1.0"):
+                raise RuntimeError(
+                    "Decoding 'mp3' files requires system library 'libsndfile'>=1.1.0, "
+                    'You can try to update `soundfile` python library: `pip install "soundfile>=0.12.1"`. '
+                )
+
+        if file is None:
+            token_per_repo_id = token_per_repo_id or {}
+            source_url = path.split("::")[-1]
+            try:
+                repo_id = string_to_dict(source_url, config.HUB_DATASETS_URL)["repo_id"]
+                use_auth_token = token_per_repo_id[repo_id]
+            except (ValueError, KeyError):
+                use_auth_token = None
+
+            with xopen(path, "rb", use_auth_token=use_auth_token) as f:
+                array, sampling_rate = sf.read(f)
+
+        else:
+            array, sampling_rate = sf.read(file)
+
+        array = array.T
+        if self.mono:
+            array = librosa.to_mono(array)
+        if self.sampling_rate and self.sampling_rate != sampling_rate:
+            array = librosa.resample(array, orig_sr=sampling_rate, target_sr=self.sampling_rate)
+            sampling_rate = self.sampling_rate
 
         return {"path": path, "array": array, "sampling_rate": sampling_rate}
 
@@ -235,53 +270,3 @@ class Audio:
         )
         storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=bytes_array.is_null())
         return array_cast(storage, self.pa_type)
-
-    def _decode_example(
-        self,
-        path_or_file,
-        is_file: bool,
-        format=None,
-        token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None,
-    ):
-        try:
-            import librosa
-            import soundfile as sf
-        except ImportError as err:
-            raise ImportError("To support decoding audio files, please install 'librosa' and 'soundfile'.") from err
-
-        if format == "opus":
-            if version.parse(sf.__libsndfile_version__) < version.parse("1.0.31"):
-                raise RuntimeError(
-                    "Decoding 'opus' files requires system library 'libsndfile'>=1.0.31, "
-                    'You can try to update `soundfile` python library: `pip install "soundfile>=0.12.1"`. '
-                )
-        if format == "mp3":
-            if version.parse(sf.__libsndfile_version__) < version.parse("1.1.0"):
-                raise RuntimeError(
-                    "Decoding 'mp3' files requires system library 'libsndfile'>=1.1.0, "
-                    'You can try to update `soundfile` python library: `pip install "soundfile>=0.12.1"`. '
-                )
-
-        if not is_file:
-            token_per_repo_id = token_per_repo_id or {}
-            source_url = path_or_file.split("::")[-1]
-            try:
-                repo_id = string_to_dict(source_url, config.HUB_DATASETS_URL)["repo_id"]
-                use_auth_token = token_per_repo_id[repo_id]
-            except (ValueError, KeyError):
-                use_auth_token = None
-
-            with xopen(path_or_file, "rb", use_auth_token=use_auth_token) as f:
-                array, sampling_rate = sf.read(f)
-
-        else:
-            array, sampling_rate = sf.read(path_or_file)
-
-        array = array.T
-        if self.mono:
-            array = librosa.to_mono(array)
-        if self.sampling_rate and self.sampling_rate != sampling_rate:
-            array = librosa.resample(array, orig_sr=sampling_rate, target_sr=self.sampling_rate)
-            sampling_rate = self.sampling_rate
-
-        return array, sampling_rate
