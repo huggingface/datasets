@@ -163,26 +163,15 @@ Finally, if you wish to create a [`torch.utils.data.DataLoader`](https://alband.
 ```py
 >>> from torch.utils.data import DataLoader
 
-# `transforms` already collates our data in batches
-# so we only pass along the batch
->>> def collate_fn(batch):
-...     return batch
+>>> def collate_fn(examples):
+...     return {
+...         "images": torch.stack([example["image"] for example in examples]),
+...         "bboxes": torch.stack([example["bbox"] for example in examples]),
+...         "categories": [example["category"] for example in examples],
+...     }
 
 >>> loader = DataLoader(ds['train'], batch_size=8, collate_fn=collate_fn)
->>> example = next(iter(loader))[0]
->>> to_pil_image(
-...     draw_bounding_boxes(
-...         example['image'],
-...         box_convert(example['bbox'], 'xywh', 'xyxy'),
-...         colors='red',
-...         labels=[categories.int2str(x) for x in example['category']]
-...     )
-... )
 ```
-
-<div class="flex justify-center">
-    <img src="https://huggingface.co/datasets/nateraw/documentation-images/resolve/main/visualize_detection_example_transformed.png">
-</div>
 
 <Tip>
 
