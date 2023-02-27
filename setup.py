@@ -170,6 +170,7 @@ TESTS_REQUIRE = [
     "lz4",
     "py7zr",
     "rarfile>=4.0",
+    "sqlalchemy<2.0.0",
     "s3fs>=2021.11.1;python_version<'3.8'",  # aligned with fsspec[http]>=2021.11.1; test only on python 3.7 for now
     "tensorflow>=2.3,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
     "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
@@ -196,7 +197,6 @@ METRICS_TESTS_REQUIRE = [
     "scipy",
     "sentencepiece",  # for bleurt
     "seqeval",
-    "sqlalchemy<2.0.0",
     "spacy>=3.0.0",
     "tldextract",
     # to speed up pip backtracking

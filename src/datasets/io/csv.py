@@ -86,17 +86,18 @@ class CsvDatasetWriter:
 
     def write(self) -> int:
         _ = self.to_csv_kwargs.pop("path_or_buf", None)
+        header = self.to_csv_kwargs.pop("header", True)
         index = self.to_csv_kwargs.pop("index", False)
 
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
             with open(self.path_or_buf, "wb+") as buffer:
-                written = self._write(file_obj=buffer, index=index, **self.to_csv_kwargs)
+                written = self._write(file_obj=buffer, header=header, index=index, **self.to_csv_kwargs)
         else:
-            written = self._write(file_obj=self.path_or_buf, index=index, **self.to_csv_kwargs)
+            written = self._write(file_obj=self.path_or_buf, header=header, index=index, **self.to_csv_kwargs)
         return written
 
     def _batch_csv(self, args):
-        offset, header, to_csv_kwargs = args
+        offset, header, index, to_csv_kwargs = args
 
         batch = query_table(
             table=self.dataset.data,
@@ -104,11 +105,11 @@ class CsvDatasetWriter:
             indices=self.dataset._indices,
         )
         csv_str = batch.to_pandas().to_csv(
-            path_or_buf=None, header=header if (offset == 0) else False, **to_csv_kwargs
+            path_or_buf=None, header=header if (offset == 0) else False, index=index, **to_csv_kwargs
         )
         return csv_str.encode(self.encoding)
 
-    def _write(self, file_obj: BinaryIO, header: bool = True, **to_csv_kwargs) -> int:
+    def _write(self, file_obj: BinaryIO, header, index, **to_csv_kwargs) -> int:
         """Writes the pyarrow table as CSV to a binary file handle.
 
         Caller is responsible for opening and closing the handle.
@@ -122,7 +123,7 @@ class CsvDatasetWriter:
                 disable=not logging.is_progress_bar_enabled(),
                 desc="Creating CSV from Arrow format",
             ):
-                csv_str = self._batch_csv((offset, header, to_csv_kwargs))
+                csv_str = self._batch_csv((offset, header, index, to_csv_kwargs))
                 written += file_obj.write(csv_str)
 
         else:
@@ -131,7 +132,7 @@ class CsvDatasetWriter:
                 for csv_str in logging.tqdm(
                     pool.imap(
                         self._batch_csv,
-                        [(offset, header, to_csv_kwargs) for offset in range(0, num_rows, batch_size)],
+                        [(offset, header, index, to_csv_kwargs) for offset in range(0, num_rows, batch_size)],
                     ),
                     total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
                     unit="ba",

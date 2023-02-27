@@ -77,12 +77,13 @@ class SqlDatasetWriter:
     def write(self) -> int:
         _ = self.to_sql_kwargs.pop("sql", None)
         _ = self.to_sql_kwargs.pop("con", None)
+        index = self.to_sql_kwargs.pop("index", False)
 
-        written = self._write(**self.to_sql_kwargs)
+        written = self._write(index=index, **self.to_sql_kwargs)
         return written
 
     def _batch_sql(self, args):
-        offset, to_sql_kwargs = args
+        offset, index, to_sql_kwargs = args
         to_sql_kwargs = {**to_sql_kwargs, "if_exists": "append"} if offset > 0 else to_sql_kwargs
         batch = query_table(
             table=self.dataset.data,
@@ -90,10 +91,10 @@ class SqlDatasetWriter:
             indices=self.dataset._indices,
         )
         df = batch.to_pandas()
-        num_rows = df.to_sql(self.name, self.con, **to_sql_kwargs)
+        num_rows = df.to_sql(self.name, self.con, index=index, **to_sql_kwargs)
         return num_rows or len(df)
 
-    def _write(self, **to_sql_kwargs) -> int:
+    def _write(self, index, **to_sql_kwargs) -> int:
         """Writes the pyarrow table as SQL to a database.
 
         Caller is responsible for opening and closing the SQL connection.
@@ -107,14 +108,14 @@ class SqlDatasetWriter:
                 disable=not logging.is_progress_bar_enabled(),
                 desc="Creating SQL from Arrow format",
             ):
-                written += self._batch_sql((offset, to_sql_kwargs))
+                written += self._batch_sql((offset, index, to_sql_kwargs))
         else:
             num_rows, batch_size = len(self.dataset), self.batch_size
             with multiprocessing.Pool(self.num_proc) as pool:
                 for num_rows in logging.tqdm(
                     pool.imap(
                         self._batch_sql,
-                        [(offset, to_sql_kwargs) for offset in range(0, num_rows, batch_size)],
+                        [(offset, index, to_sql_kwargs) for offset in range(0, num_rows, batch_size)],
                     ),
                     total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
                     unit="ba",

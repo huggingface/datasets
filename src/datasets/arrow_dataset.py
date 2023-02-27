@@ -4597,7 +4597,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         path_or_buf: Union[PathLike, BinaryIO],
         batch_size: Optional[int] = None,
         num_proc: Optional[int] = None,
-        index: bool = False,
         **to_csv_kwargs,
     ) -> int:
         """Exports the dataset to csv
@@ -4613,19 +4612,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 use multiprocessing. `batch_size` in this case defaults to
                 `datasets.config.DEFAULT_MAX_BATCH_SIZE` but feel free to make it 5x or 10x of the default
                 value if you have sufficient compute power.
-            index (`bool`, default `False`): Write row names (index).
+            **to_csv_kwargs (additional keyword arguments):
+                Parameters to pass to pandas's [`pandas.DataFrame.to_csv`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_json.html).
 
                 <Changed version="2.10.0">
 
-                Now, `index` defaults to `False`.
+                Now, `index` defaults to `False` if not specified.
 
-                If you would like to write the index, set it to `True` and also set a name for the index column by
+                If you would like to write the index, pass `index=True` and also set a name for the index column by
                 passing `index_label`.
 
                 </Changed>
-
-            **to_csv_kwargs (additional keyword arguments):
-                Parameters to pass to pandas's `pandas.DataFrame.to_csv`.
 
         Returns:
             `int`: The number of characters or bytes written.
@@ -4639,9 +4636,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Dynamic import to avoid circular dependency
         from .io.csv import CsvDatasetWriter
 
-        return CsvDatasetWriter(
-            self, path_or_buf, batch_size=batch_size, num_proc=num_proc, index=index, **to_csv_kwargs
-        ).write()
+        return CsvDatasetWriter(self, path_or_buf, batch_size=batch_size, num_proc=num_proc, **to_csv_kwargs).write()
 
     def to_dict(self, batch_size: Optional[int] = None, batched: bool = False) -> Union[dict, Iterator[dict]]:
         """Returns the dataset as a Python dict. Can also return a generator for large datasets.
@@ -4699,21 +4694,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 use multiprocessing. `batch_size` in this case defaults to
                 `datasets.config.DEFAULT_MAX_BATCH_SIZE` but feel free to make it 5x or 10x of the default
                 value if you have sufficient compute power.
-            lines (`bool`, defaults to `True`):
-                Whether output JSON lines format.
-                Only possible if `orient="records"`. It will throw ValueError with `orient` different from
-                `"records"`, since the others are not list-like.
-            orient (`str`, defaults to `"records"`):
-                Format of the JSON:
-
-                - `"records"`: list like `[{column -> value}, … , {column -> value}]`
-                - `"split"`: dict like `{"index" -> [index], "columns" -> [columns], "data" -> [values]}`
-                - `"index"`: dict like `{index -> {column -> value}}`
-                - `"columns"`: dict like `{column -> {index -> value}}`
-                - `"values"`: just the values array
-                - `"table"`: dict like `{"schema": {schema}, "data": {data}}`
             **to_json_kwargs (additional keyword arguments):
                 Parameters to pass to pandas's [`pandas.DataFrame.to_json`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_json.html).
+
+                <Changed version="2.11.0">
+
+                Now, `index` defaults to `False` if `orint` is  `"split"` or `"table"` is  specified.
+
+                If you would like to write the index, pass `index=True`.
+
+                </Changed>
 
         Returns:
             `int`: The number of characters or bytes written.
@@ -4817,7 +4807,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Size of the batch to load in memory and write at once.
                 Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
             **sql_writer_kwargs (additional keyword arguments):
-                Parameters to pass to pandas's [`Dataframe.to_sql`].
+                Parameters to pass to pandas's [`pandas.DataFrame.to_sql`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_sql.html).
+
+                <Changed version="2.11.0">
+
+                Now, `index` defaults to `False` if not specified.
+
+                If you would like to write the index, pass `index=True` and also set a name for the index column by
+                passing `index_label`.
+
+                </Changed>
 
         Returns:
             `int`: The number of records written.
