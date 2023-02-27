@@ -532,9 +532,9 @@ class IndexableMixin:
             file (`str`): The path to the serialized faiss index on disk or remote URI (e.g. `"s3://my-bucket/index.faiss"`).
             storage_options (`dict`, *optional*):
                 Key/value pairs to be passed on to the file-system backend, if any.
-                
+
                 <Added version="2.10.0"/>
-                
+
         """
         index = self.get_index(index_name)
         if not isinstance(index, FaissIndex):
@@ -562,7 +562,7 @@ class IndexableMixin:
                 If a list of positive integers is passed in, run only on those GPUs. By default it uses the CPU.
             storage_options (`dict`, *optional*):
                 Key/value pairs to be passed on to the file-system backend, if any.
-                
+
                 <Added version="2.11.0"/>
 
         """
