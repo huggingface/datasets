@@ -7,7 +7,7 @@ import numpy as np
 import pyarrow as pa
 
 from .. import config
-from ..download.streaming_download_manager import xopen
+from ..download.streaming_download_manager import xopen, xsplitext
 from ..table import array_cast
 from ..utils.py_utils import no_op_if_value_is_null, string_to_dict
 
