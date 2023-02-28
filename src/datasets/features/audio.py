@@ -155,18 +155,16 @@ class Audio:
         except ImportError as err:
             raise ImportError("To support decoding audio files, please install 'librosa' and 'soundfile'.") from err
 
-        audio_format = os.path.splitext(path)[1].lstrip(".").lower() if path is not None else None
-        if audio_format == "opus":
-            if not config.IS_OPUS_SUPPORTED:
-                raise RuntimeError(
-                    "Decoding 'opus' files requires system library 'libsndfile'>=1.0.31, "
-                    'You can try to update `soundfile` python library: `pip install "soundfile>=0.12.1"`. '
-                )
-        if audio_format == "mp3":
-            if not config.IS_MP3_SUPPORTED:
-                raise RuntimeError(
-                    "Decoding 'mp3' files requires system library 'libsndfile'>=1.1.0, "
-                    'You can try to update `soundfile` python library: `pip install "soundfile>=0.12.1"`. '
+        audio_format = xsplitext(path)[1][1:].lower() if path is not None else None
+        if not config.IS_OPUS_SUPPORTED and audio_format == "opus":
+            raise RuntimeError(
+                "Decoding 'opus' files requires system library 'libsndfile'>=1.0.31, "
+                'You can try to update `soundfile` python library: `pip install "soundfile>=0.12.1"`. '
+            )
+        elif not config.IS_MP3_SUPPORTED and audio_format == "mp3":
+            raise RuntimeError(
+                "Decoding 'mp3' files requires system library 'libsndfile'>=1.1.0, "
+                'You can try to update `soundfile` python library: `pip install "soundfile>=0.12.1"`. '
                 )
 
         if file is None:
