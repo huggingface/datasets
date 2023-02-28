@@ -1,15 +1,13 @@
 import os
-import warnings
 from dataclasses import dataclass, field
 from io import BytesIO
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Union
 
 import numpy as np
 import pyarrow as pa
-from packaging import version
 
 from .. import config
-from ..download.streaming_download_manager import xopen
+from ..download.streaming_download_manager import xopen, xsplitext
 from ..table import array_cast
 from ..utils.py_utils import no_op_if_value_is_null, string_to_dict
 
@@ -150,20 +148,47 @@ class Audio:
         path, file = (value["path"], BytesIO(value["bytes"])) if value["bytes"] is not None else (value["path"], None)
         if path is None and file is None:
             raise ValueError(f"An audio sample should have one of 'path' or 'bytes' but both are None in {value}.")
-        elif path is not None and path.endswith("mp3"):
-            array, sampling_rate = self._decode_mp3(file if file else path)
-        elif path is not None and path.endswith("opus"):
-            if file:
-                array, sampling_rate = self._decode_non_mp3_file_like(file, "opus")
-            else:
-                array, sampling_rate = self._decode_non_mp3_path_like(
-                    path, "opus", token_per_repo_id=token_per_repo_id
-                )
+
+        try:
+            import librosa
+            import soundfile as sf
+        except ImportError as err:
+            raise ImportError("To support decoding audio files, please install 'librosa' and 'soundfile'.") from err
+
+        audio_format = xsplitext(path)[1][1:].lower() if path is not None else None
+        if not config.IS_OPUS_SUPPORTED and audio_format == "opus":
+            raise RuntimeError(
+                "Decoding 'opus' files requires system library 'libsndfile'>=1.0.31, "
+                'You can try to update `soundfile` python library: `pip install "soundfile>=0.12.1"`. '
+            )
+        elif not config.IS_MP3_SUPPORTED and audio_format == "mp3":
+            raise RuntimeError(
+                "Decoding 'mp3' files requires system library 'libsndfile'>=1.1.0, "
+                'You can try to update `soundfile` python library: `pip install "soundfile>=0.12.1"`. '
+            )
+
+        if file is None:
+            token_per_repo_id = token_per_repo_id or {}
+            source_url = path.split("::")[-1]
+            try:
+                repo_id = string_to_dict(source_url, config.HUB_DATASETS_URL)["repo_id"]
+                use_auth_token = token_per_repo_id[repo_id]
+            except (ValueError, KeyError):
+                use_auth_token = None
+
+            with xopen(path, "rb", use_auth_token=use_auth_token) as f:
+                array, sampling_rate = sf.read(f)
+
         else:
-            if file:
-                array, sampling_rate = self._decode_non_mp3_file_like(file)
-            else:
-                array, sampling_rate = self._decode_non_mp3_path_like(path, token_per_repo_id=token_per_repo_id)
+            array, sampling_rate = sf.read(file)
+
+        array = array.T
+        if self.mono:
+            array = librosa.to_mono(array)
+        if self.sampling_rate and self.sampling_rate != sampling_rate:
+            array = librosa.resample(array, orig_sr=sampling_rate, target_sr=self.sampling_rate)
+            sampling_rate = self.sampling_rate
+
         return {"path": path, "array": array, "sampling_rate": sampling_rate}
 
     def flatten(self) -> Union["FeatureType", Dict[str, "FeatureType"]]:
@@ -242,129 +267,3 @@ class Audio:
         )
         storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=bytes_array.is_null())
         return array_cast(storage, self.pa_type)
-
-    def _decode_non_mp3_path_like(
-        self, path, format=None, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None
-    ):
-        try:
-            import librosa
-        except ImportError as err:
-            raise ImportError("To support decoding audio files, please install 'librosa'.") from err
-
-        token_per_repo_id = token_per_repo_id or {}
-        if format == "opus":
-            import soundfile
-
-            if version.parse(soundfile.__libsndfile_version__) < version.parse("1.0.30"):
-                raise RuntimeError(
-                    "Decoding .opus files requires 'libsndfile'>=1.0.30, "
-                    + "it can be installed via conda: `conda install -c conda-forge libsndfile>=1.0.30`"
-                )
-        source_url = path.split("::")[-1]
-        try:
-            repo_id = string_to_dict(source_url, config.HUB_DATASETS_URL)["repo_id"]
-            use_auth_token = token_per_repo_id[repo_id]
-        except (ValueError, KeyError):
-            use_auth_token = None
-
-        with xopen(path, "rb", use_auth_token=use_auth_token) as f:
-            array, sampling_rate = librosa.load(f, sr=self.sampling_rate, mono=self.mono)
-        return array, sampling_rate
-
-    def _decode_non_mp3_file_like(self, file, format=None):
-        try:
-            import librosa
-            import soundfile as sf
-        except ImportError as err:
-            raise ImportError("To support decoding audio files, please install 'librosa' and 'soundfile'.") from err
-
-        if format == "opus":
-            if version.parse(sf.__libsndfile_version__) < version.parse("1.0.30"):
-                raise RuntimeError(
-                    "Decoding .opus files requires 'libsndfile'>=1.0.30, "
-                    + 'it can be installed via conda: `conda install -c conda-forge "libsndfile>=1.0.30"`'
-                )
-        array, sampling_rate = sf.read(file)
-        array = array.T
-        if self.mono:
-            array = librosa.to_mono(array)
-        if self.sampling_rate and self.sampling_rate != sampling_rate:
-            array = librosa.resample(array, orig_sr=sampling_rate, target_sr=self.sampling_rate)
-            sampling_rate = self.sampling_rate
-        return array, sampling_rate
-
-    def _decode_mp3(self, path_or_file):
-        try:
-            import torchaudio
-        except ImportError as err:
-            raise ImportError("To support decoding 'mp3' audio files, please install 'torchaudio'.") from err
-        if version.parse(torchaudio.__version__) < version.parse("0.12.0"):
-            try:
-                torchaudio.set_audio_backend("sox_io")
-            except RuntimeError as err:
-                raise ImportError("To support decoding 'mp3' audio files, please install 'sox'.") from err
-            array, sampling_rate = self._decode_mp3_torchaudio(path_or_file)
-        else:
-            try:  # try torchaudio anyway because sometimes it works (depending on the os and os packages installed)
-                array, sampling_rate = self._decode_mp3_torchaudio(path_or_file)
-            except RuntimeError:
-                global _ffmpeg_warned
-                if not _ffmpeg_warned:
-                    warnings.warn(
-                        "\nTo support 'mp3' decoding with `torchaudio>=0.12.0`, make sure you have `ffmpeg` system package with at least version 4 installed. "
-                        "Alternatively, you can downgrade `torchaudio`:\n\n"
-                        "\tpip install \"torchaudio<0.12\".\n\nOtherwise 'mp3' files will be decoded with `librosa`."
-                    )
-                    _ffmpeg_warned = True
-                try:
-                    # flake8: noqa
-                    import librosa
-                except ImportError as err:
-                    raise ImportError(
-                        "\nTo support 'mp3' decoding with `torchaudio>=0.12.0`, make sure you have `ffmpeg` system package with at least version 4 installed. "
-                        "\tpip install \"torchaudio<0.12\".\n\nTo decode 'mp3' files without `torchaudio`, please install `librosa`:\n\n"
-                        "\tpip install librosa\n\nNote that decoding might be extremely slow in that case."
-                    ) from err
-                # try to decode with librosa for torchaudio>=0.12.0 as a workaround
-                global _librosa_warned
-                if not _librosa_warned:
-                    warnings.warn("Decoding mp3 with `librosa` instead of `torchaudio`, decoding might be slow.")
-                    _librosa_warned = True
-                try:
-                    array, sampling_rate = self._decode_mp3_librosa(path_or_file)
-                except RuntimeError as err:
-                    raise RuntimeError(
-                        "Decoding of 'mp3' failed, probably because of streaming mode "
-                        "(`librosa` cannot decode 'mp3' file-like objects, only path-like)."
-                    ) from err
-
-        return array, sampling_rate
-
-    def _decode_mp3_torchaudio(self, path_or_file):
-        import torchaudio
-        import torchaudio.transforms as T
-
-        array, sampling_rate = torchaudio.load(path_or_file, format="mp3")
-        if self.sampling_rate and self.sampling_rate != sampling_rate:
-            if not hasattr(self, "_resampler") or self._resampler.orig_freq != sampling_rate:
-                self._resampler = T.Resample(sampling_rate, self.sampling_rate)
-            array = self._resampler(array)
-            sampling_rate = self.sampling_rate
-        array = array.numpy()
-        if self.mono:
-            array = array.mean(axis=0)
-        return array, sampling_rate
-
-    def _decode_mp3_librosa(self, path_or_file):
-        import librosa
-
-        global _audioread_warned
-
-        with warnings.catch_warnings():
-            if _audioread_warned:
-                warnings.filterwarnings("ignore", "pysoundfile failed.+?", UserWarning, module=librosa.__name__)
-            else:
-                _audioread_warned = True
-            array, sampling_rate = librosa.load(path_or_file, mono=self.mono, sr=self.sampling_rate)
-
-        return array, sampling_rate

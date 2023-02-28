@@ -142,6 +142,7 @@ REQUIRED_PKGS = [
 ]
 
 AUDIO_REQUIRE = [
+    "soundfile>=0.12.1",
     "librosa",
 ]
 
@@ -176,8 +177,7 @@ TESTS_REQUIRE = [
     "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
     "tiktoken;python_version>='3.8'",
     "torch",
-    "torchaudio<0.12.0",
-    "soundfile",
+    "soundfile>=0.12.1",
     "transformers",
     "zstandard",
 ]
