@@ -165,7 +165,7 @@ class Audio:
             raise RuntimeError(
                 "Decoding 'mp3' files requires system library 'libsndfile'>=1.1.0, "
                 'You can try to update `soundfile` python library: `pip install "soundfile>=0.12.1"`. '
-                )
+            )
 
         if file is None:
             token_per_repo_id = token_per_repo_id or {}
