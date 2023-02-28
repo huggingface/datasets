@@ -3986,7 +3986,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         sort_table = query_table(
             table=self._data,
-            key=range(self._data.num_rows),
+            key=slice(0, len(self)),
             indices=self._indices if self._indices is not None else None,
         )
 
