@@ -2398,10 +2398,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds = ds.map(lambda x: tokenizer(x['text'], truncation=True, padding=True), batched=True)
         >>> ds.set_format(type='numpy', columns=['text', 'label'])
         >>> ds.format
-        {'columns': ['input_ids', 'token_type_ids', 'attention_mask', 'label'],
-         'format_kwargs': {},
-         'output_all_columns': False,
-         'type': 'numpy'}
+        {'type': 'numpy',
+        'format_kwargs': {},
+        'columns': ['text', 'label'],
+        'output_all_columns': False}
         ```
         """
         format_kwargs.update(format_kwargs.pop("format_kwargs", {}))  # allow to use self.set_format(self.format)
