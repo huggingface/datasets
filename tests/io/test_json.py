@@ -188,7 +188,7 @@ class TestJsonDatasetWriter:
         "orient, container, keys, len_at",
         [
             ("records", list, {"tokens", "labels", "answers", "id"}, None),
-            ("split", dict, {"index", "columns", "data"}, "data"),
+            ("split", dict, {"columns", "data"}, "data"),
             ("index", dict, set("0123456789"), None),
             ("columns", dict, {"tokens", "labels", "answers", "id"}, "tokens"),
             ("values", list, None, None),
@@ -227,7 +227,7 @@ class TestJsonDatasetWriter:
         "orient, container, keys, len_at",
         [
             ("records", list, {"tokens", "labels", "answers", "id"}, None),
-            ("split", dict, {"index", "columns", "data"}, "data"),
+            ("split", dict, {"columns", "data"}, "data"),
             ("index", dict, set("0123456789"), None),
             ("columns", dict, {"tokens", "labels", "answers", "id"}, "tokens"),
             ("values", list, None, None),

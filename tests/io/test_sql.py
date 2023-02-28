@@ -66,7 +66,7 @@ def test_dataset_to_sql(sqlite_path, tmp_path):
     cache_dir = tmp_path / "cache"
     output_sqlite_path = os.path.join(cache_dir, "tmp.sql")
     dataset = SqlDatasetReader("dataset", "sqlite:///" + sqlite_path, cache_dir=cache_dir).read()
-    SqlDatasetWriter(dataset, "dataset", "sqlite:///" + output_sqlite_path, index=False, num_proc=1).write()
+    SqlDatasetWriter(dataset, "dataset", "sqlite:///" + output_sqlite_path, num_proc=1).write()
 
     original_sql = iter_sql_file(sqlite_path)
     expected_sql = iter_sql_file(output_sqlite_path)
@@ -80,7 +80,7 @@ def test_dataset_to_sql_multiproc(sqlite_path, tmp_path):
     cache_dir = tmp_path / "cache"
     output_sqlite_path = os.path.join(cache_dir, "tmp.sql")
     dataset = SqlDatasetReader("dataset", "sqlite:///" + sqlite_path, cache_dir=cache_dir).read()
-    SqlDatasetWriter(dataset, "dataset", "sqlite:///" + output_sqlite_path, index=False, num_proc=2).write()
+    SqlDatasetWriter(dataset, "dataset", "sqlite:///" + output_sqlite_path, num_proc=2).write()
 
     original_sql = iter_sql_file(sqlite_path)
     expected_sql = iter_sql_file(output_sqlite_path)
@@ -95,4 +95,4 @@ def test_dataset_to_sql_invalidproc(sqlite_path, tmp_path):
     output_sqlite_path = os.path.join(cache_dir, "tmp.sql")
     dataset = SqlDatasetReader("dataset", "sqlite:///" + sqlite_path, cache_dir=cache_dir).read()
     with pytest.raises(ValueError):
-        SqlDatasetWriter(dataset, "dataset", "sqlite:///" + output_sqlite_path, index=False, num_proc=0).write()
+        SqlDatasetWriter(dataset, "dataset", "sqlite:///" + output_sqlite_path, num_proc=0).write()

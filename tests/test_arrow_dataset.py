@@ -2259,7 +2259,7 @@ class BaseDatasetTest(TestCase):
             # Destionation specified as database URI string
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
                 file_path = os.path.join(tmp_dir, "test_path.sqlite")
-                _ = dset.to_sql("data", "sqlite:///" + file_path, index=False)
+                _ = dset.to_sql("data", "sqlite:///" + file_path)
 
                 self.assertTrue(os.path.isfile(file_path))
                 sql_dset = pd.read_sql("data", "sqlite:///" + file_path)
@@ -2273,7 +2273,7 @@ class BaseDatasetTest(TestCase):
 
                 file_path = os.path.join(tmp_dir, "test_path.sqlite")
                 with contextlib.closing(sqlite3.connect(file_path)) as con:
-                    _ = dset.to_sql("data", con, index=False, if_exists="replace")
+                    _ = dset.to_sql("data", con, if_exists="replace")
 
                 self.assertTrue(os.path.isfile(file_path))
                 sql_dset = pd.read_sql("data", "sqlite:///" + file_path)
@@ -2284,7 +2284,7 @@ class BaseDatasetTest(TestCase):
             # Test writing to a database in chunks
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
                 file_path = os.path.join(tmp_dir, "test_path.sqlite")
-                _ = dset.to_sql("data", "sqlite:///" + file_path, batch_size=1, index=False, if_exists="replace")
+                _ = dset.to_sql("data", "sqlite:///" + file_path, batch_size=1, if_exists="replace")
 
                 self.assertTrue(os.path.isfile(file_path))
                 sql_dset = pd.read_sql("data", "sqlite:///" + file_path)
@@ -2296,7 +2296,7 @@ class BaseDatasetTest(TestCase):
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
                 dset = dset.select(range(0, len(dset), 2)).shuffle()
                 file_path = os.path.join(tmp_dir, "test_path.sqlite")
-                _ = dset.to_sql("data", "sqlite:///" + file_path, index=False, if_exists="replace")
+                _ = dset.to_sql("data", "sqlite:///" + file_path, if_exists="replace")
 
                 self.assertTrue(os.path.isfile(file_path))
                 sql_dset = pd.read_sql("data", "sqlite:///" + file_path)
@@ -2307,7 +2307,7 @@ class BaseDatasetTest(TestCase):
             # With array features
             with self._create_dummy_dataset(in_memory, tmp_dir, array_features=True) as dset:
                 file_path = os.path.join(tmp_dir, "test_path.sqlite")
-                _ = dset.to_sql("data", "sqlite:///" + file_path, index=False, if_exists="replace")
+                _ = dset.to_sql("data", "sqlite:///" + file_path, if_exists="replace")
 
                 self.assertTrue(os.path.isfile(file_path))
                 sql_dset = pd.read_sql("data", "sqlite:///" + file_path)
