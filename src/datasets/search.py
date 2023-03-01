@@ -533,7 +533,7 @@ class IndexableMixin:
             storage_options (`dict`, *optional*):
                 Key/value pairs to be passed on to the file-system backend, if any.
 
-                <Added version="2.10.0"/>
+                <Added version="2.11.0"/>
 
         """
         index = self.get_index(index_name)
