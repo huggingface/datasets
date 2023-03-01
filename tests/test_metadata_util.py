@@ -3,7 +3,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from datasets.utils.metadata import DatasetMetadata
+import pytest
+
+from datasets.utils.metadata import DatasetMetadata, MetadataConfigs
 
 
 def _dedent(string: str) -> str:
@@ -38,6 +40,44 @@ README_NO_YAML = """\
 
 Some cool dataset card
 """
+
+
+README_METADATA_CONFIG_DEFAULT = """\
+---
+configs_kwargs:
+  data_dir: v1
+  drop_labels: true
+---
+"""
+
+README_METADATA_CONFIG_NONDEFAULT = """\
+---
+configs_kwargs:
+  config_name: custom
+  data_dir: v1
+  drop_labels: true
+---
+"""
+
+
+README_METADATA_CONFIGS = """\
+---
+configs_kwargs:
+  - config_name: v1
+    data_dir: v1
+    drop_labels: true
+  - config_name: v2
+    data_dir: v2
+    drop_labels: false
+---
+"""
+
+EXPECTED_METADATA_CONFIG_DEFAULT = {"default": {"data_dir": "v1", "drop_labels": True}}
+EXPECTED_METADATA_CONFIG_NONDEFAULT = {"custom": {"data_dir": "v1", "drop_labels": True}}
+EXPECTED_METADATA_CONFIGS = {
+    "v1": {"data_dir": "v1", "drop_labels": True},
+    "v2": {"data_dir": "v2", "drop_labels": False},
+}
 
 
 class TestMetadataUtils(unittest.TestCase):
@@ -160,3 +200,77 @@ class TestMetadataUtils(unittest.TestCase):
             """
         )
         assert DatasetMetadata.from_yaml_string(valid_yaml_with_optional_keys)
+
+    def test_metadata_configs_dict_from_metadata_one_default_config(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            path = Path(tmp_dir) / "README.md"
+            with open(path, "w+") as readme_file:
+                readme_file.write(README_METADATA_CONFIG_DEFAULT)
+            metadata_dict = DatasetMetadata.from_readme(path)
+            metadata_configs_dict = MetadataConfigs.from_metadata(metadata_dict)
+            self.assertDictEqual(metadata_configs_dict, {"default": {"data_dir": "v1", "drop_labels": True}})
+
+    def test_metadata_configs_dict_from_metadata_one_nondefault_config(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            path = Path(tmp_dir) / "README.md"
+            with open(path, "w+") as readme_file:
+                readme_file.write(README_METADATA_CONFIG_NONDEFAULT)
+            metadata_dict = DatasetMetadata.from_readme(path)
+            metadata_configs_dict = MetadataConfigs.from_metadata(metadata_dict)
+            self.assertDictEqual(metadata_configs_dict, {"custom": {"data_dir": "v1", "drop_labels": True}})
+
+    def test_metadata_configs_dict_from_metadata_two_configs(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            path = Path(tmp_dir) / "README.md"
+            with open(path, "w+") as readme_file:
+                readme_file.write(README_METADATA_CONFIGS)
+            metadata_dict = DatasetMetadata.from_readme(path)
+            metadata_configs_dict = MetadataConfigs.from_metadata(metadata_dict)
+            self.assertDictEqual(
+                metadata_configs_dict,
+                {
+                    "v1": {"data_dir": "v1", "drop_labels": True},
+                    "v2": {"data_dir": "v2", "drop_labels": False},
+                },
+            )
+
+
+@pytest.mark.parametrize(
+    "readme_content, expected_metadata_configs_dict",
+    [
+        (README_METADATA_CONFIG_DEFAULT, EXPECTED_METADATA_CONFIG_DEFAULT),
+        (README_METADATA_CONFIG_NONDEFAULT, EXPECTED_METADATA_CONFIG_NONDEFAULT),
+        (README_METADATA_CONFIGS, EXPECTED_METADATA_CONFIGS),
+    ],
+)
+def test_metadata_configs_from_metadata(readme_content, expected_metadata_configs_dict):
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        path = Path(tmp_dir) / "README.md"
+        with open(path, "w+") as readme_file:
+            readme_file.write(readme_content)
+        metadata_dict = DatasetMetadata.from_readme(path)
+        metadata_configs_dict = MetadataConfigs.from_metadata(metadata_dict)
+        assert metadata_configs_dict == expected_metadata_configs_dict
+
+
+# TODO
+README_YAML_WITH_CONFIG = """\
+---
+language:
+- zh
+- en
+task_ids:
+- sentiment-classification
+configs_kwargs:
+  config_name: custom
+  data_dir: v1
+  drop_labels: true
+---
+# Begin of markdown
+
+Some cool dataset card
+"""
+
+
+def test_metadata_configs_to_metadata():
+    pass
