@@ -13,7 +13,7 @@ import fsspec
 import numpy as np
 from huggingface_hub import HfApi
 
-from datasets.utils.metadata import DatasetMetadata, MetadataConfigsDict
+from datasets.utils.metadata import DatasetMetadata, MetadataConfigs
 
 from . import config
 from .arrow_dataset import Dataset
@@ -1633,8 +1633,7 @@ class DatasetDict(dict):
             dataset_metadata = DatasetMetadata()
             readme_content = f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
         DatasetInfosDict({config_name: info_to_dump}).to_metadata(dataset_metadata)
-        # TODO: what about "default"? it should be added only if there are other configs?
-        MetadataConfigsDict({config_name: {"config_name": config_name, "data_dir": config_name}}).to_metadata(
+        MetadataConfigs({config_name: {"data_dir": config_name if config_name != "default" else "data"}}).to_metadata(
             dataset_metadata
         )
         HfApi(endpoint=config.HF_ENDPOINT).upload_file(
