@@ -591,7 +591,7 @@ class ModuleFactoryTest(TestCase):
         assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
         assert module_factory_result.metadata_configs is not None
         assert len(module_factory_result.metadata_configs) == 1
-        assert list(module_factory_result.metadata_configs.keys()) == "default"
+        assert list(module_factory_result.metadata_configs.keys())[0] == "default"
         # assert that config param from metadata is passed to builder:
         assert "drop_labels" in module_factory_result.builder_kwargs
         assert module_factory_result.builder_kwargs["drop_labels"] is True
@@ -619,7 +619,7 @@ class ModuleFactoryTest(TestCase):
                 assert "drop_labels" in module_factory_result.builder_kwargs
                 assert module_factory_result.builder_kwargs["drop_labels"] is True
             else:  # None
-                assert module_factory_result.builder_kwargs["config_name"] is None
+                assert module_factory_result.builder_kwargs["config_name"] == "default"
                 # if configs are found in metadata but none is requested,
                 # config values shouldn't be passed to builder
                 assert "drop_labels" not in module_factory_result.builder_kwargs
@@ -636,8 +636,12 @@ class ModuleFactoryTest(TestCase):
             assert module_factory_result.metadata_configs is not None
             assert len(module_factory_result.metadata_configs) == 2
             assert list(module_factory_result.metadata_configs.keys()) == ["v1", "v2"]
-            assert module_factory_result.builder_kwargs["config_name"] == config_name
-            assert module_factory_result.builder_kwargs.get("drop_labels", None) == expected_drop_labels
+            if config_name is None:
+                assert module_factory_result.builder_kwargs["config_name"] == "default"
+                assert "drop_labels" not in module_factory_result.builder_kwargs
+            else:
+                assert module_factory_result.builder_kwargs["config_name"] == config_name
+                assert module_factory_result.builder_kwargs["drop_labels"] == expected_drop_labels
             assert module_factory_result.builder_kwargs["data_files"] is not None
             assert (
                 len(module_factory_result.builder_kwargs["data_files"]["train"])
@@ -893,7 +897,7 @@ def test_load_dataset_builder_for_community_dataset_without_script():
     builder = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER2)
     assert isinstance(builder, DatasetBuilder)
     assert builder.name == "text"
-    assert builder.config.name == SAMPLE_DATASET_IDENTIFIER2.replace("/", "--")
+    assert builder.config.name == "default"
     assert isinstance(builder.config.data_files, DataFilesDict)
     assert len(builder.config.data_files["train"]) > 0
     assert len(builder.config.data_files["test"]) > 0
