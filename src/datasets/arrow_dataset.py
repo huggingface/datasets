@@ -1345,8 +1345,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if self.list_indexes():
             raise ValueError("please remove all the indexes using `dataset.drop_index` before saving a dataset")
 
-        dataset = self.flatten_indices(num_proc=num_proc) if self._indices is not None else self
-
         if is_local:
             Path(dataset_path).resolve().mkdir(parents=True, exist_ok=True)
             parent_cache_files_paths = {
@@ -1360,7 +1358,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # Get json serializable state
         state = {
-            key: dataset.__dict__[key]
+            key: self.__dict__[key]
             for key in [
                 "_fingerprint",
                 "_format_columns",
@@ -1369,7 +1367,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 "_output_all_columns",
             ]
         }
-        state["_split"] = str(dataset.split) if dataset.split is not None else dataset.split
+        state["_split"] = str(self.split) if self.split is not None else self.split
         state["_data_files"] = [
             {"filename": f"data-{shard_idx:05d}-of-{num_shards:05d}.arrow"} for shard_idx in range(num_shards)
         ]
@@ -1381,20 +1379,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     str(e) + f"\nThe format kwargs must be JSON serializable, but key '{k}' isn't."
                 ) from None
         # Get json serializable dataset info
-        dataset_info = asdict(dataset._info)
+        dataset_info = asdict(self._info)
 
         shards_done = 0
         pbar = logging.tqdm(
             disable=not logging.is_progress_bar_enabled(),
             unit=" examples",
-            total=len(dataset),
+            total=len(self),
             leave=False,
             desc=f"Saving the dataset ({shards_done}/{num_shards} shards)",
         )
         kwargs_per_job = (
             {
                 "job_id": shard_idx,
-                "shard": dataset.shard(num_shards=num_shards, index=shard_idx, contiguous=True),
+                "shard": self.shard(num_shards=num_shards, index=shard_idx, contiguous=True),
                 "fpath": path_join(dataset_path, f"data-{shard_idx:05d}-of-{num_shards:05d}.arrow"),
                 "storage_options": storage_options,
             }
@@ -1439,12 +1437,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def _save_to_disk_single(job_id: int, shard: "Dataset", fpath: str, storage_options: Optional[dict]):
         batch_size = config.DEFAULT_MAX_BATCH_SIZE
 
-        if shard._indices is not None:
-            raise ValueError(
-                "`_save_to_disk_single` only support shards with flattened indices. "
-                "Please call ds.flatten_indices() before saving to disk."
-            )
-
         num_examples_progress_update = 0
         writer = ArrowWriter(
             features=shard.features,
@@ -1454,7 +1446,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
         try:
             _time = time.time()
-            for pa_table in table_iter(shard.data, batch_size=batch_size):
+            for pa_table in shard.with_format("arrow").iter(batch_size):
                 writer.write_table(pa_table)
                 num_examples_progress_update += len(pa_table)
                 if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
@@ -2406,10 +2398,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds = ds.map(lambda x: tokenizer(x['text'], truncation=True, padding=True), batched=True)
         >>> ds.set_format(type='numpy', columns=['text', 'label'])
         >>> ds.format
-        {'columns': ['input_ids', 'token_type_ids', 'attention_mask', 'label'],
-         'format_kwargs': {},
-         'output_all_columns': False,
-         'type': 'numpy'}
+        {'type': 'numpy',
+        'format_kwargs': {},
+        'columns': ['text', 'label'],
+        'output_all_columns': False}
         ```
         """
         format_kwargs.update(format_kwargs.pop("format_kwargs", {}))  # allow to use self.set_format(self.format)
@@ -3994,7 +3986,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         sort_table = query_table(
             table=self._data,
-            key=range(self._data.num_rows),
+            key=slice(0, len(self)),
             indices=self._indices if self._indices is not None else None,
         )
 
@@ -4597,7 +4589,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         path_or_buf: Union[PathLike, BinaryIO],
         batch_size: Optional[int] = None,
         num_proc: Optional[int] = None,
-        index: bool = False,
         **to_csv_kwargs,
     ) -> int:
         """Exports the dataset to csv
@@ -4613,19 +4604,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 use multiprocessing. `batch_size` in this case defaults to
                 `datasets.config.DEFAULT_MAX_BATCH_SIZE` but feel free to make it 5x or 10x of the default
                 value if you have sufficient compute power.
-            index (`bool`, default `False`): Write row names (index).
+            **to_csv_kwargs (additional keyword arguments):
+                Parameters to pass to pandas's [`pandas.DataFrame.to_csv`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_json.html).
 
                 <Changed version="2.10.0">
 
-                Now, `index` defaults to `False`.
+                Now, `index` defaults to `False` if not specified.
 
-                If you would like to write the index, set it to `True` and also set a name for the index column by
+                If you would like to write the index, pass `index=True` and also set a name for the index column by
                 passing `index_label`.
 
                 </Changed>
-
-            **to_csv_kwargs (additional keyword arguments):
-                Parameters to pass to pandas's `pandas.DataFrame.to_csv`.
 
         Returns:
             `int`: The number of characters or bytes written.
@@ -4639,9 +4628,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Dynamic import to avoid circular dependency
         from .io.csv import CsvDatasetWriter
 
-        return CsvDatasetWriter(
-            self, path_or_buf, batch_size=batch_size, num_proc=num_proc, index=index, **to_csv_kwargs
-        ).write()
+        return CsvDatasetWriter(self, path_or_buf, batch_size=batch_size, num_proc=num_proc, **to_csv_kwargs).write()
 
     def to_dict(self, batch_size: Optional[int] = None, batched: bool = False) -> Union[dict, Iterator[dict]]:
         """Returns the dataset as a Python dict. Can also return a generator for large datasets.
@@ -4699,21 +4686,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 use multiprocessing. `batch_size` in this case defaults to
                 `datasets.config.DEFAULT_MAX_BATCH_SIZE` but feel free to make it 5x or 10x of the default
                 value if you have sufficient compute power.
-            lines (`bool`, defaults to `True`):
-                Whether output JSON lines format.
-                Only possible if `orient="records"`. It will throw ValueError with `orient` different from
-                `"records"`, since the others are not list-like.
-            orient (`str`, defaults to `"records"`):
-                Format of the JSON:
-
-                - `"records"`: list like `[{column -> value}, … , {column -> value}]`
-                - `"split"`: dict like `{"index" -> [index], "columns" -> [columns], "data" -> [values]}`
-                - `"index"`: dict like `{index -> {column -> value}}`
-                - `"columns"`: dict like `{column -> {index -> value}}`
-                - `"values"`: just the values array
-                - `"table"`: dict like `{"schema": {schema}, "data": {data}}`
             **to_json_kwargs (additional keyword arguments):
                 Parameters to pass to pandas's [`pandas.DataFrame.to_json`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_json.html).
+
+                <Changed version="2.11.0">
+
+                Now, `index` defaults to `False` if `orint` is  `"split"` or `"table"` is  specified.
+
+                If you would like to write the index, pass `index=True`.
+
+                </Changed>
 
         Returns:
             `int`: The number of characters or bytes written.
@@ -4817,7 +4799,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Size of the batch to load in memory and write at once.
                 Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
             **sql_writer_kwargs (additional keyword arguments):
-                Parameters to pass to pandas's [`Dataframe.to_sql`].
+                Parameters to pass to pandas's [`pandas.DataFrame.to_sql`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_sql.html).
+
+                <Changed version="2.11.0">
+
+                Now, `index` defaults to `False` if not specified.
+
+                If you would like to write the index, pass `index=True` and also set a name for the index column by
+                passing `index_label`.
+
+                </Changed>
 
         Returns:
             `int`: The number of records written.

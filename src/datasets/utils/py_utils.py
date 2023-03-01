@@ -640,9 +640,13 @@ class Pickler(dill.Pickler):
 
                     @pklregister(obj_type)
                     def _save_tensor(pickler, obj):
+                        # `torch.from_numpy` is not picklable in `torch>=1.11.0`
+                        def _create_tensor(np_array):
+                            return torch.from_numpy(np_array)
+
                         dill_log(pickler, f"To: {obj}")
                         args = (obj.detach().cpu().numpy(),)
-                        pickler.save_reduce(torch.from_numpy, args, obj=obj)
+                        pickler.save_reduce(_create_tensor, args, obj=obj)
                         dill_log(pickler, "# To")
                         return
 
