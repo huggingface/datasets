@@ -110,46 +110,58 @@ class DatasetMetadata(dict):
         ).decode("utf-8")
 
 
-class MetadataConfigsDict(Dict[str, dict]):
-    """{config_name: {**config_params}}"""
+class MetadataConfigs(Dict[str, dict]):
+    """Should be in format {config_name: {**config_params}}."""
 
     __configs_field_name: ClassVar[str] = METADATA_CONFIGS_FIELD
 
     @classmethod
-    def from_metadata(cls, dataset_metadata: DatasetMetadata) -> "MetadataConfigsDict":
+    def from_metadata(cls, dataset_metadata: DatasetMetadata) -> "MetadataConfigs":
         if cls.__configs_field_name in dataset_metadata:
             metadata_configs = dataset_metadata.get(cls.__configs_field_name)
             if isinstance(metadata_configs, dict):
-                if "config_name" in metadata_configs:
-                    return cls({metadata_configs["config_name"]: metadata_configs})
-                # if there is no config_name, it's a "default" one
-                return cls({"default": metadata_configs})
+                config_name = metadata_configs.pop("config_name", "default")
+                return cls({config_name: metadata_configs})
             if isinstance(metadata_configs, list):
-                return cls({config["config_name"]: config for config in metadata_configs})
+                return cls(
+                    {
+                        config["config_name"]: {
+                            param: value for param, value in config.items() if param != "config_name"
+                        }
+                        for config in metadata_configs
+                    }
+                )
         return cls()
 
     def to_metadata(self, dataset_metadata: DatasetMetadata) -> None:
         if self:
-            current_metadata = self.from_metadata(dataset_metadata)
-            total_metadata = dict(sorted({**current_metadata, **self}.items(), key=lambda x: x[0]))
-            for config_name, config_metadata in total_metadata.items():
-                config_metadata.pop("config_name", None)
-                total_metadata[config_name] = {"config_name": config_name, **config_metadata}
-            if len(total_metadata) > 1:
+            current_metadata_configs = self.from_metadata(dataset_metadata)
+            total_metadata_configs = dict(sorted({**current_metadata_configs, **self}.items(), key=lambda x: x[0]))
+            if len(total_metadata_configs) > 1:
+                for config_name, config_metadata in total_metadata_configs.items():
+                    config_metadata.pop("config_name", None)
                 dataset_metadata[self.__configs_field_name] = [
-                    config_metadata for config_name, config_metadata in total_metadata.items()
+                    {"config_name": config_name, **config_metadata}
+                    for config_name, config_metadata in total_metadata_configs.items()
                 ]
-            else:
-                dataset_metadata[self.__configs_field_name] = next(iter(total_metadata.values()))
+            elif len(total_metadata_configs) == 1:
+                metadata_config_name, metadata_config = next(iter(total_metadata_configs.items()))
+                metadata_config = (
+                    {"config_name": metadata_config_name, **metadata_config}
+                    if metadata_config_name != "default"
+                    else {**metadata_config}
+                )
+                dataset_metadata[self.__configs_field_name] = metadata_config
 
     def to_builder_configs_list(self, builder_config_cls):
         metadata_configs = copy.deepcopy(self)
-        for meta_config in metadata_configs.values():
-            meta_config["name"] = meta_config.pop("config_name", "default")
-        return [builder_config_cls(**meta_config) for meta_config in metadata_configs.values()]
+        # for meta_config in metadata_configs.values():
+        #     meta_config["name"] = meta_config.pop("config_name", "default")
+        # return [builder_config_cls(**meta_config) for meta_config in metadata_configs.values()]
+        return [builder_config_cls(name=name, **meta_config) for name, meta_config in metadata_configs.items()]
 
     @classmethod
-    def from_builder_configs_list(cls, builder_configs_list) -> "MetadataConfigsDict":
+    def from_builder_configs_list(cls, builder_configs_list) -> "MetadataConfigs":
         builder_configs_dict = {
             builder_config.name: _asdict_shallow(builder_config) for builder_config in builder_configs_list
         }

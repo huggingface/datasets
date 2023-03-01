@@ -82,7 +82,7 @@ from .utils.filelock import FileLock
 from .utils.hub import hf_hub_url
 from .utils.info_utils import VerificationMode, is_small_dataset
 from .utils.logging import get_logger
-from .utils.metadata import DatasetMetadata, MetadataConfigsDict
+from .utils.metadata import DatasetMetadata, MetadataConfigs
 from .utils.py_utils import get_imports
 from .utils.version import Version
 
@@ -154,7 +154,7 @@ class _InitializeParameterizedDatasetBuilder:
 
 
 def parametrize_packaged_dataset_builder(
-    builder_cls: Type[DatasetBuilder], metadata_configs: MetadataConfigsDict, parametrized_name_suffix: str
+    builder_cls: Type[DatasetBuilder], metadata_configs: MetadataConfigs, parametrized_name_suffix: str
 ) -> Type[DatasetBuilder]:
     """
     Dynamically create packaged builder class with custom configs parsed from README.md file,
@@ -170,7 +170,7 @@ def parametrize_packaged_dataset_builder(
 
         def __reduce__(self):  # to make dynamically created class pickable
             parent_builder_cls = self.__class__.__mro__[1]
-            metadata_configs_dict = MetadataConfigsDict.from_builder_configs_list(self.BUILDER_CONFIGS)
+            metadata_configs_dict = MetadataConfigs.from_builder_configs_list(self.BUILDER_CONFIGS)
             return (
                 _InitializeParameterizedDatasetBuilder(),
                 (
@@ -483,7 +483,7 @@ class DatasetModule:
     module_path: str
     hash: str
     builder_kwargs: dict
-    metadata_configs: Optional[Union[MetadataConfigsDict, dict]] = None
+    metadata_configs: Optional[Union[MetadataConfigs, dict]] = None
 
 
 @dataclass
@@ -703,7 +703,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         readme_path = os.path.join(self.path, "README.md")
         dataset_metadata = DatasetMetadata.from_readme(readme_path) if os.path.isfile(readme_path) else None
         metadata_configs_dict = (
-            MetadataConfigsDict.from_metadata(dataset_metadata) if dataset_metadata else MetadataConfigsDict()
+            MetadataConfigs.from_metadata(dataset_metadata) if dataset_metadata else MetadataConfigs()
         )
         if self.config_name and not metadata_configs_dict:
             logger.warning("`config_name` is provided but no configs parameters found, check your README.md")
@@ -848,7 +848,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
 
             dataset_metadata = DatasetMetadata.from_readme(readme_path) if os.path.isfile(readme_path) else None
             metadata_configs_dict = (
-                MetadataConfigsDict.from_metadata(dataset_metadata) if dataset_metadata else MetadataConfigsDict()
+                MetadataConfigs.from_metadata(dataset_metadata) if dataset_metadata else MetadataConfigs()
             )
             config_kwargs = copy.deepcopy(
                 metadata_configs_dict.get(self.config_name if self.config_name else "default", {})
@@ -970,11 +970,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             if self.config_name and self.config_name in dataset_info_dicts:
                 dataset_info_dict = dataset_info_dicts[self.config_name]
             else:
-                # this is weird (but it was like this because there was only one config possible)
-                dataset_info_dict = next(iter(dataset_info_dicts.values()))
-            # TODO: what if self.config_name is in "configs" but not in "dataset_info"?
-            # make sure that dataset_info_dict doesn't have a config_name (so it's like a general info?
-            # but why it's in a list then
+                dataset_info_dict = {}
             builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
             # aaaaaaaa
             if "config_name" in dataset_info_dict:
@@ -988,7 +984,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 builder_kwargs["config_name"] = dataset_info_dict["config_name"]
 
         metadata_configs_dict = (
-            MetadataConfigsDict.from_metadata(dataset_metadata) if dataset_metadata else MetadataConfigsDict()
+            MetadataConfigs.from_metadata(dataset_metadata) if dataset_metadata else MetadataConfigs()
         )
         config_kwargs = copy.deepcopy(
             metadata_configs_dict.get(self.config_name if self.config_name else "default", {})
