@@ -323,7 +323,6 @@ class TensorflowDatasetMixin:
         prefetch: bool = True,
         num_workers: int = 0,
         num_test_batches: int = 20,
-        return_dict: Optional[bool] = None,
     ):
         """Create a `tf.data.Dataset` from the underlying Dataset. This `tf.data.Dataset` will load and collate batches from
         the Dataset, and is suitable for passing to methods like `model.fit()` or `model.predict()`. The dataset will yield
@@ -362,11 +361,6 @@ class TensorflowDatasetMixin:
                 Number of batches to use to infer the output signature of the dataset.
                 The higher this number, the more accurate the signature will be, but the longer it will take to
                 create the dataset.
-            return_dict (`bool`, *optional*):
-                Whether to return a `dict` for both inputs and labels. If `False`, the inputs and labels will be
-                returned as tuples, if True, they will be returned as dicts. If `None` (default), the inputs and
-                labels will be returned as dicts if the `dict` would contain more than a single key, and as tuples
-                otherwise.
 
         Returns:
             `tf.data.Dataset`
@@ -387,9 +381,6 @@ class TensorflowDatasetMixin:
         else:
             raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
 
-        if label_cols is not None and return_dict is True:
-            raise ValueError("return_dict cannot be True if label_cols is specified.")
-
         if isinstance(tf.distribute.get_strategy(), tf.distribute.TPUStrategy):
             logger.warning(
                 "Note that to_tf_dataset() loads the data with a generator rather than a full tf.data "
@@ -401,6 +392,8 @@ class TensorflowDatasetMixin:
         if num_workers > 0 and sys.version_info < (3, 8):
             raise ValueError("Using multiple workers is only supported on Python versions >= 3.8.")
 
+        column_as_dict = True
+        labels_as_dict = True
         if collate_fn is None:
             # Set a very simple default collator that just stacks things together
             collate_fn = minimal_tf_collate_fn
@@ -412,11 +405,13 @@ class TensorflowDatasetMixin:
             label_cols = []
         elif isinstance(label_cols, str):
             label_cols = [label_cols]
+            labels_as_dict = False
         if len(set(label_cols)) < len(label_cols):
             raise ValueError("List of label_cols contains duplicates.")
         if columns:
             if isinstance(columns, str):
                 columns = [columns]
+                column_as_dict = False
             if len(set(columns)) < len(columns):
                 raise ValueError("List of columns contains duplicates.")
             cols_to_retain = list(set(columns + label_cols))
@@ -483,26 +478,17 @@ class TensorflowDatasetMixin:
             raise ValueError("num_workers must be >= 0")
 
         def split_features_and_labels(input_batch):
-            if return_dict:
-                return input_batch
-
             # TODO(Matt, QL): deprecate returning the dict content when there's only one key
             features = {key: tensor for key, tensor in input_batch.items() if key in columns}
             labels = {key: tensor for key, tensor in input_batch.items() if key in label_cols}
 
-            if return_dict is False:
-                features = tuple(features.values())
-                features = features[0] if len(features) == 1 else features
+            # If columns or labels are passed in as a string instead of a list of strings, there is
+            # only one element and the raw tensor is returned
+            if not column_as_dict:
+                features = list(features.values())[0]
 
-                if len(labels) == 0:
-                    return features
-                else:
-                    labels = tuple(labels.values())
-                    labels = labels[0] if len(labels) == 1 else labels
-                    return features, labels
-
-            features = list(features.values())[0] if len(features) == 1 else features
-            labels = list(labels.values())[0] if len(labels) == 1 else labels
+            if not labels_as_dict:
+                labels = list(labels.values())[0]
 
             if isinstance(labels, dict) and len(labels) == 0:
                 return features
