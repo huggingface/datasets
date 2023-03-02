@@ -387,6 +387,9 @@ class TensorflowDatasetMixin:
         else:
             raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
 
+        if label_cols is not None and return_dict is True:
+            raise ValueError("return_dict cannot be True if label_cols is specified.")
+
         if isinstance(tf.distribute.get_strategy(), tf.distribute.TPUStrategy):
             logger.warning(
                 "Note that to_tf_dataset() loads the data with a generator rather than a full tf.data "

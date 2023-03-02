@@ -2777,23 +2777,7 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(batch["col_1"].dtype.name, "int64")
 
                 tf_dataset = dset.to_tf_dataset(
-                    columns="col_1", label_cols="col_2", return_dict=True, batch_size=2, num_workers=num_workers
-                )
-                batch = next(iter(tf_dataset))
-                self.assertIsInstance(batch, dict)
-                self.assertTrue(len(batch) == 2)
-                self.assertTrue(sorted(batch.keys()) == sorted(["col_1", "col_2"]))
-                self.assertEqual(batch["col_1"].shape.as_list(), [2])
-                self.assertEqual(batch["col_1"].dtype.name, "int64")
-                self.assertEqual(batch["col_2"].shape.as_list(), [2])
-                self.assertEqual(batch["col_2"].dtype.name, "string")
-
-                tf_dataset = dset.to_tf_dataset(
-                    columns=["col_1", "col_3"],
-                    label_cols="col_2",
-                    return_dict=True,
-                    batch_size=2,
-                    num_workers=num_workers,
+                    columns=["col_1", "col_3"], return_dict=True, batch_size=2, num_workers=num_workers
                 )
                 batch = next(iter(tf_dataset))
                 self.assertIsInstance(batch, dict)
@@ -2803,26 +2787,13 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(batch["col_1"].dtype.name, "int64")
                 self.assertEqual(batch["col_3"].shape.as_list(), [2])
                 self.assertEqual(batch["col_3"].dtype.name, "int64")
-                self.assertEqual(batch["col_2"].shape.as_list(), [2])
-                self.assertEqual(batch["col_2"].dtype.name, "string")
 
-                tf_dataset = dset.to_tf_dataset(
-                    columns=["col_1", "col_3"],
-                    label_cols=["col_2"],
-                    return_dict=True,
-                    batch_size=2,
-                    num_workers=num_workers,
-                )
-                batch = next(iter(tf_dataset))
-                self.assertIsInstance(batch, dict)
-                self.assertTrue(len(batch) == 3)
-                self.assertTrue(sorted(batch.keys()) == sorted(["col_1", "col_3", "col_2"]))
-                self.assertEqual(batch["col_1"].shape.as_list(), [2])
-                self.assertEqual(batch["col_1"].dtype.name, "int64")
-                self.assertEqual(batch["col_3"].shape.as_list(), [2])
-                self.assertEqual(batch["col_3"].dtype.name, "int64")
-                self.assertEqual(batch["col_2"].shape.as_list(), [2])
-                self.assertEqual(batch["col_2"].dtype.name, "string")
+                # Exception raised if return_dict is True and label_cols is specified
+                with self.assertRaises(ValueError):
+                    dset.to_tf_dataset(
+                        columns="col_1", label_cols="col_2", return_dict=True, batch_size=2, num_workers=num_workers
+                    )
+
                 # If return_dict is False and there's only one column, we get a single tensor
                 tf_dataset = dset.to_tf_dataset(
                     columns="col_1", return_dict=False, batch_size=2, num_workers=num_workers
