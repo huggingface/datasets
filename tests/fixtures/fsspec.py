@@ -40,6 +40,10 @@ class MockFileSystem(AbstractFileSystem):
         out["name"] = out["name"][len(self.local_root_dir) :]
         return out
 
+    def get_file(self, rpath, lpath, *args, **kwargs):
+        rpath = posixpath.join(self.local_root_dir, self._strip_protocol(rpath))
+        return self._fs.get_file(rpath, lpath, *args, **kwargs)
+
     def cp_file(self, path1, path2, *args, **kwargs):
         path1 = posixpath.join(self.local_root_dir, self._strip_protocol(path1))
         path2 = posixpath.join(self.local_root_dir, self._strip_protocol(path2))

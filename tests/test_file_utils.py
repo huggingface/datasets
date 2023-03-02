@@ -13,6 +13,7 @@ from datasets.utils.file_utils import (
     fsspec_head,
     ftp_get,
     ftp_head,
+    get_from_cache,
     http_get,
     http_head,
 )
@@ -22,14 +23,23 @@ FILE_CONTENT = """\
     Text data.
     Second line of data."""
 
+FILE_PATH = "file"
+
 
 @pytest.fixture(scope="session")
 def zstd_path(tmp_path_factory):
-    path = tmp_path_factory.mktemp("data") / "file.zstd"
+    path = tmp_path_factory.mktemp("data") / FILE_PATH
     data = bytes(FILE_CONTENT, "utf-8")
     with zstd.open(path, "wb") as f:
         f.write(data)
     return path
+
+
+@pytest.fixture
+def mockfs_file(mockfs):
+    with open(os.path.join(mockfs.local_root_dir, FILE_PATH), "w") as f:
+        f.write(FILE_CONTENT)
+    return mockfs
 
 
 @pytest.mark.parametrize("compression_format", ["gzip", "xz", "zstd"])
@@ -87,6 +97,15 @@ def test_cached_path_missing_local(tmp_path):
     missing_file = "./__missing_file__.txt"
     with pytest.raises(FileNotFoundError):
         cached_path(missing_file)
+
+
+def test_get_from_cache_fsspec(mockfs_file):
+    with patch("datasets.utils.file_utils.fsspec.get_fs_token_paths") as mock_get_fs_token_paths:
+        mock_get_fs_token_paths.return_value = (mockfs_file, "", [FILE_PATH])
+        output_path = get_from_cache("mock://huggingface.co")
+        with open(output_path) as f:
+            output_file_content = f.read()
+        assert output_file_content == FILE_CONTENT
 
 
 @patch("datasets.config.HF_DATASETS_OFFLINE", True)

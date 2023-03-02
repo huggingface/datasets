@@ -330,24 +330,24 @@ def _request_with_retry(
 
 def fsspec_head(url, timeout=10.0):
     _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
-    fs, _, paths = fsspec.get_fs_token_paths(url)
+    fs, _, paths = fsspec.get_fs_token_paths(url, storage_options={"requests_timeout": timeout})
     if len(paths) > 1:
-        raise ValueError("HEAD can be called with at most one path but was called with {paths}")
-    return fs.info(paths[0], timeout=timeout)
+        raise ValueError(f"HEAD can be called with at most one path but was called with {paths}")
+    return fs.info(paths[0])
 
 
 def fsspec_get(url, temp_file, timeout=10.0, desc=None):
     _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
-    fs, _, paths = fsspec.get_fs_token_paths(url)
+    fs, _, paths = fsspec.get_fs_token_paths(url, storage_options={"requests_timeout": timeout})
     if len(paths) > 1:
-        raise ValueError("GET can be called with at most one path but was called with {paths}")
+        raise ValueError(f"GET can be called with at most one path but was called with {paths}")
     callback = fsspec.callbacks.TqdmCallback(
         tqdm_kwargs={
             "desc": desc or "Downloading",
             "disable": logging.is_progress_bar_enabled(),
         }
     )
-    fs.get(paths[0], temp_file, timeout=timeout, callback=callback)
+    fs.get_file(paths[0], temp_file.name, callback=callback)
 
 
 def ftp_head(url, timeout=10.0):
