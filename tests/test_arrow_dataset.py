@@ -2727,6 +2727,113 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(batch["col_1"].dtype.name, "int64")
                 self.assertEqual(batch["col_2"].dtype.name, "string")  # Assert that we're converting strings properly
             with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+                # Check behavior for different values of return_dict
+                # If return_dict is None and there's only one column, we get a single tensor
+                tf_dataset = dset.to_tf_dataset(columns="col_1", batch_size=2, num_workers=num_workers)
+                batch = next(iter(tf_dataset))
+                self.assertEqual(batch.shape.as_list(), [2])
+                self.assertEqual(batch.dtype.name, "int64")
+                # If return_dict is None and there's a label and only one feature column, we get a tuple of tensors
+                tf_dataset = dset.to_tf_dataset(columns="col_1", label_cols="col_2", batch_size=2, num_workers=num_workers)
+                batch = next(iter(tf_dataset))
+                self.assertTrue(len(batch) == 2)
+                self.assertEqual(batch[0].shape.as_list(), [2])
+                self.assertEqual(batch[0].dtype.name, "int64")
+                self.assertEqual(batch[1].shape.as_list(), [2])
+                self.assertEqual(batch[1].dtype.name, "string")
+                # If return_dict is None, and there's more than one feature column, we get a tuple, where the first element is a dict
+                # and the second element is a tuple
+                tf_dataset = dset.to_tf_dataset(columns=["col_1", "col_3"], label_cols="col_2", batch_size=2, num_workers=num_workers)
+                batch = next(iter(tf_dataset))
+                self.assertEqual(batch[0]["col_1"].shape.as_list(), [2])
+                self.assertEqual(batch[0]["col_1"].dtype.name, "int64")
+                self.assertEqual(batch[0]["col_3"].shape.as_list(), [2])
+                self.assertEqual(batch[0]["col_3"].dtype.name, "int64")
+                self.assertEqual(batch[1].shape.as_list(), [2])
+                self.assertEqual(batch[1].dtype.name, "string")
+                # If return_dict is None, and there's more than one label column, we get tuple, where the first element is a tuple
+                # and the second element is a dict
+                tf_dataset = dset.to_tf_dataset(columns="col_1", label_cols=["col_2", "col_3"], batch_size=2, num_workers=num_workers)
+                batch = next(iter(tf_dataset))
+                self.assertEqual(batch[0].shape.as_list(), [2])
+                self.assertEqual(batch[0].dtype.name, "int64")
+                self.assertEqual(batch[1]["col_2"].shape.as_list(), [2])
+                self.assertEqual(batch[1]["col_2"].dtype.name, "string")
+                self.assertEqual(batch[1]["col_3"].shape.as_list(), [2])
+                self.assertEqual(batch[1]["col_3"].dtype.name, "int64")
+                # If return_dict is True and there's only one column, we get a single tensor
+                tf_dataset = dset.to_tf_dataset(columns="col_1", return_dict=True, batch_size=2, num_workers=num_workers)
+                batch = next(iter(tf_dataset))
+                self.assertIsInstance(batch, dict)
+                self.assertEqual(batch["col_1"].shape.as_list(), [2])
+                self.assertEqual(batch["col_1"].dtype.name, "int64")
+                # If return_dict is True and there's more than one column, we get a tuple of tensors
+                tf_dataset = dset.to_tf_dataset(columns="col_1", label_cols="col_2", return_dict=True, batch_size=2, num_workers=num_workers)
+                batch = next(iter(tf_dataset))
+                self.assertTrue(len(batch) == 2)
+                self.assertTrue(sorted(batch.keys()) == sorted(["col_1", "col_2"]))
+                self.assertEqual(batch["col_1"].shape.as_list(), [2])
+                self.assertEqual(batch["col_1"].dtype.name, "int64")
+                self.assertEqual(batch["col_2"].shape.as_list(), [2])
+                self.assertEqual(batch["col_2"].dtype.name, "string")
+                # If return_dict is True, and there's more than one column, we get a nested tuple of tensors
+                tf_dataset = dset.to_tf_dataset(columns=["col_1", "col_3"], label_cols="col_2", return_dict=True, batch_size=2, num_workers=num_workers)
+                batch = next(iter(tf_dataset))
+                self.assertTrue(len(batch) == 3)
+                self.assertTrue(sorted(batch.keys()) == sorted(["col_1", "col_3", "col_2"]))
+                self.assertEqual(batch["col_1"].shape.as_list(), [2])
+                self.assertEqual(batch["col_1"].dtype.name, "int64")
+                self.assertEqual(batch["col_3"].shape.as_list(), [2])
+                self.assertEqual(batch["col_3"].dtype.name, "int64")
+                self.assertEqual(batch["col_2"].shape.as_list(), [2])
+                self.assertEqual(batch["col_2"].dtype.name, "string")
+                # If return_dict is True, and there's more than one label column, we get a nested tuple of tensors
+                tf_dataset = dset.to_tf_dataset(columns=["col_1", "col_3"], label_cols=["col_2"], return_dict=True, batch_size=2, num_workers=num_workers)
+                batch = next(iter(tf_dataset))
+                self.assertTrue(len(batch) == 3)
+                self.assertTrue(sorted(batch.keys()) == sorted(["col_1", "col_3", "col_2"]))
+                self.assertEqual(batch["col_1"].shape.as_list(), [2])
+                self.assertEqual(batch["col_1"].dtype.name, "int64")
+                self.assertEqual(batch["col_3"].shape.as_list(), [2])
+                self.assertEqual(batch["col_3"].dtype.name, "int64")
+                self.assertEqual(batch["col_2"].shape.as_list(), [2])
+                self.assertEqual(batch["col_2"].dtype.name, "string")
+                # If return_dict is False and there's only one column, we get a single tensor # FIXME
+                tf_dataset = dset.to_tf_dataset(columns="col_1", return_dict=False, batch_size=2, num_workers=num_workers)
+                batch = next(iter(tf_dataset))
+                self.assertEqual(batch.shape.as_list(), [2])
+                self.assertEqual(batch.dtype.name, "int64")
+                # If return_dict is False and there's a feature and label column, we get a tuple of tensors - FIXME
+                tf_dataset = dset.to_tf_dataset(columns="col_1", label_cols="col_2", return_dict=False, batch_size=2, num_workers=num_workers)
+                batch = next(iter(tf_dataset))
+                self.assertTrue(len(batch) == 2)
+                self.assertEqual(batch[0].shape.as_list(), [2])
+                self.assertEqual(batch[0].dtype.name, "int64")
+                self.assertEqual(batch[1].shape.as_list(), [2])
+                self.assertEqual(batch[1].dtype.name, "string")
+                # If return_dict is False, and there's more than one column, we get a nested tuple of tensors
+                tf_dataset = dset.to_tf_dataset(columns=["col_1", "col_3"], label_cols="col_2", return_dict=False, batch_size=2, num_workers=num_workers)
+                batch = next(iter(tf_dataset))
+                self.assertTrue(len(batch) == 2)
+                self.assertTrue(len(batch[0]) == 2)
+                self.assertEqual(batch[0][0].shape.as_list(), [2])
+                self.assertEqual(batch[0][0].dtype.name, "int64")
+                self.assertEqual(batch[0][1].shape.as_list(), [2])
+                self.assertEqual(batch[0][1].dtype.name, "int64")
+                self.assertEqual(batch[1].shape.as_list(), [2])
+                self.assertEqual(batch[1].dtype.name, "string")
+                # If return_dict is False, and there's more than one label column, we get a nested tuple of tensors
+                tf_dataset = dset.to_tf_dataset(columns=["col_1"], label_cols=["col_2", "col_3"], return_dict=False, batch_size=2, num_workers=num_workers)
+                batch = next(iter(tf_dataset))
+                self.assertTrue(len(batch) == 2)
+                self.assertTrue(len(batch[1]) == 2)
+                self.assertEqual(batch[0].shape.as_list(), [2])
+                self.assertEqual(batch[0].dtype.name, "int64")
+                self.assertEqual(batch[1][0].shape.as_list(), [2])
+                self.assertEqual(batch[1][0].dtype.name, "string")
+                self.assertEqual(batch[1][1].shape.as_list(), [2])
+                self.assertEqual(batch[1][1].dtype.name, "int64")
+            with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
                 # Check that when we use a transform that creates a new column from existing column values
                 # but don't load the old columns that the new column depends on in the final dataset,
                 # that they're still kept around long enough to be used in the transform

@@ -323,6 +323,7 @@ class TensorflowDatasetMixin:
         prefetch: bool = True,
         num_workers: int = 0,
         num_test_batches: int = 20,
+        return_dict: Optional[bool] = None,
     ):
         """Create a `tf.data.Dataset` from the underlying Dataset. This `tf.data.Dataset` will load and collate batches from
         the Dataset, and is suitable for passing to methods like `model.fit()` or `model.predict()`. The dataset will yield
@@ -361,6 +362,11 @@ class TensorflowDatasetMixin:
                 Number of batches to use to infer the output signature of the dataset.
                 The higher this number, the more accurate the signature will be, but the longer it will take to
                 create the dataset.
+            return_dict (`bool`, *optional*):
+                Whether to return a `dict` for both inputs and labels. If `False`, the inputs and labels will be
+                returned as tuples, if True, they will be returned as dicts. If `None` (default), the inputs and
+                labels will be returned as dicts if the `dict` would contain more than a single key, and as tuples
+                otherwise.
 
         Returns:
             `tf.data.Dataset`
@@ -474,13 +480,27 @@ class TensorflowDatasetMixin:
             raise ValueError("num_workers must be >= 0")
 
         def split_features_and_labels(input_batch):
+            if return_dict:
+                return input_batch
+
             # TODO(Matt, QL): deprecate returning the dict content when there's only one key
             features = {key: tensor for key, tensor in input_batch.items() if key in columns}
             labels = {key: tensor for key, tensor in input_batch.items() if key in label_cols}
-            if len(features) == 1:
-                features = list(features.values())[0]
-            if len(labels) == 1:
-                labels = list(labels.values())[0]
+
+            if return_dict is False:
+                features = tuple(features.values())
+                features = features[0] if len(features) == 1 else features
+
+                if len(labels) == 0:
+                    return features
+                else:
+                    labels = tuple(labels.values())
+                    labels = labels[0] if len(labels) == 1 else labels
+                    return features, labels
+
+            features = list(features.values())[0] if len(features) == 1 else features
+            labels = list(labels.values())[0] if len(labels) == 1 else labels
+
             if isinstance(labels, dict) and len(labels) == 0:
                 return features
             else:
