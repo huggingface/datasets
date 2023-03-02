@@ -1981,7 +1981,7 @@ class BeamBasedBuilder(DatasetBuilder):
             )
         if self._writer_batch_size is not None:
             logger.warning(
-                "Writer batch size is not supported for beam pipelines yet. Using the default chunk size for writing."
+                "`writer_batch_size` is not supported for beam pipelines yet. Using the default chunk size for writing."
             )
 
         # Beam type checking assumes transforms multiple outputs are of same type,
