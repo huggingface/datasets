@@ -28,7 +28,7 @@ FILE_PATH = "file"
 
 @pytest.fixture(scope="session")
 def zstd_path(tmp_path_factory):
-    path = tmp_path_factory.mktemp("data") / FILE_PATH
+    path = tmp_path_factory.mktemp("data") / (FILE_PATH + ".zstd")
     data = bytes(FILE_CONTENT, "utf-8")
     with zstd.open(path, "wb") as f:
         f.write(data)
