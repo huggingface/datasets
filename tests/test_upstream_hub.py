@@ -52,6 +52,9 @@ class TestPushToHub:
             )
 
     def test_push_to_hub_custom_configs(self, temporary_repo):
+        ds_default = Dataset.from_dict({"x": range(10), "y": range(10)})
+        local_ds_default = DatasetDict({"train": ds_default})
+
         ds_first = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
         local_ds_first = DatasetDict({"train": ds_first})
 
@@ -59,19 +62,26 @@ class TestPushToHub:
         local_ds_second = DatasetDict({"train": ds_second})
 
         with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            local_ds_default.push_to_hub(ds_name)
+            hub_ds_default = load_dataset(ds_name, download_mode="force_redownload")
+
+            # test that it doesn't break existing repos...
             local_ds_first.push_to_hub(ds_name, "first")
             hub_ds_first = load_dataset(ds_name, "first", download_mode="force_redownload")
             local_ds_second.push_to_hub(ds_name, "second")
             hub_ds_second = load_dataset(ds_name, "second", download_mode="force_redownload")
 
+            assert local_ds_default["train"].column_names == hub_ds_default["train"].column_names == ["x", "y"]
             assert local_ds_first["train"].column_names == hub_ds_first["train"].column_names == ["x", "y"]
             assert local_ds_second["train"].column_names == hub_ds_second["train"].column_names == ["a", "b"]
             # assert hub_ds_first.column_names != hub_ds_second.column_names
 
+            assert local_ds_default["train"].features == hub_ds_default["train"].features
             assert local_ds_first["train"].features == hub_ds_first["train"].features
             assert local_ds_second["train"].features == hub_ds_second["train"].features
             assert hub_ds_first["train"].features != hub_ds_second["train"].features
 
+            assert local_ds_default["train"].num_rows == hub_ds_default["train"].num_rows == 10
             assert local_ds_first["train"].num_rows == hub_ds_first["train"].num_rows == 3
             assert local_ds_second["train"].num_rows == hub_ds_second["train"].num_rows == 2
 
@@ -79,8 +89,9 @@ class TestPushToHub:
             expected_files = [
                 ".gitattributes",
                 "README.md",
-                "first/train-00000-of-00001-*.parquet",
-                "second/train-00000-of-00001-*.parquet",
+                "data/train-00000-of-00001-*.parquet",
+                "first/data/train-00000-of-00001-*.parquet",
+                "second/data/train-00000-of-00001-*.parquet",
             ]
             assert all(fnmatch.fnmatch(file, expected_file) for file, expected_file in zip(files, expected_files))
 
@@ -90,6 +101,7 @@ class TestPushToHub:
             assert METADATA_CONFIGS_FIELD in dataset_metadata
             assert isinstance(dataset_metadata[METADATA_CONFIGS_FIELD], list)
             assert dataset_metadata[METADATA_CONFIGS_FIELD] == [
+                {"config_name": "default", "data_dir": "./"},
                 {"config_name": "first", "data_dir": "first"},
                 {"config_name": "second", "data_dir": "second"},
             ]
