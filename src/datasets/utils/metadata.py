@@ -155,10 +155,13 @@ class MetadataConfigs(Dict[str, dict]):
 
     def to_builder_configs_list(self, builder_config_cls):
         metadata_configs = copy.deepcopy(self)
-        # for meta_config in metadata_configs.values():
-        #     meta_config["name"] = meta_config.pop("config_name", "default")
-        # return [builder_config_cls(**meta_config) for meta_config in metadata_configs.values()]
-        return [builder_config_cls(name=name, **meta_config) for name, meta_config in metadata_configs.items()]
+        return [
+            builder_config_cls(
+                name=name,
+                **{param: value for param, value in meta_config.items() if hasattr(builder_config_cls, param)},
+            )
+            for name, meta_config in metadata_configs.items()
+        ]
 
     @classmethod
     def from_builder_configs_list(cls, builder_configs_list) -> "MetadataConfigs":
