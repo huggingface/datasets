@@ -5114,7 +5114,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             shards = shards_with_embedded_external_files(shards)
 
         files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, use_auth_token=token)
-        data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
+        data_dir = f"{config_name}/data" if config_name != "default" else "data"  # for backward compatibility
         data_files = [file for file in files if file.startswith(data_dir)]
 
         def path_in_repo(_index, shard):
@@ -5334,7 +5334,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
         # push to README
         DatasetInfosDict({config_name: info_to_dump}).to_metadata(dataset_metadata)
-        MetadataConfigs({config_name: {"data_dir": config_name if config_name != "default" else "data"}}).to_metadata(
+        MetadataConfigs({config_name: {"data_dir": config_name if config_name != "default" else "./"}}).to_metadata(
             dataset_metadata
         )
         if "README.md" in repo_files:
