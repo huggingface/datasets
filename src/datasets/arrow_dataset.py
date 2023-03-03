@@ -5281,7 +5281,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
             dataset_infos: DatasetInfosDict = DatasetInfosDict.from_metadata(dataset_metadata)
             repo_info = dataset_infos.get(config_name, None)
-        # get the deprecated dataset_infos.json to uodate them
+        # get the deprecated dataset_infos.json to update them
         elif config.DATASETDICT_INFOS_FILENAME in repo_files:
             dataset_metadata = DatasetMetadata()
             download_config = DownloadConfig()
@@ -5293,7 +5293,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
                 dataset_infos: DatasetInfosDict = json.load(f)
-                repo_info = DatasetInfo.from_dict(dataset_infos[next(iter(dataset_infos))])
+                if dataset_infos:
+                    repo_info = DatasetInfo.from_dict(dataset_infos[next(iter(dataset_infos))])
+                else:
+                    dataset_metadata = DatasetMetadata()
+                    repo_info = None
         else:
             dataset_metadata = DatasetMetadata()
             repo_info = None
