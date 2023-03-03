@@ -2855,8 +2855,8 @@ class BaseDatasetTest(TestCase):
                 self.assertTrue("labels" in batch and "features" in batch)  # Assert renaming was handled correctly
 
                 tf_dataset = new_dset.to_tf_dataset(
-                    columns=["features"],
-                    label_cols=["labels"],
+                    columns="features",
+                    label_cols="labels",
                     collate_fn=minimal_tf_collate_fn_with_renaming,
                     batch_size=4,
                 )
@@ -2866,8 +2866,8 @@ class BaseDatasetTest(TestCase):
                 self.assertTrue(isinstance(batch[0], tf.Tensor) and isinstance(batch[1], tf.Tensor))
 
                 tf_dataset = new_dset.to_tf_dataset(
-                    columns=["features"],
-                    label_cols=["label"],
+                    columns="features",
+                    label_cols="label",
                     collate_fn=minimal_tf_collate_fn_with_renaming,
                     batch_size=4,
                 )
@@ -2877,7 +2877,7 @@ class BaseDatasetTest(TestCase):
                 self.assertTrue(isinstance(batch[0], tf.Tensor) and isinstance(batch[1], tf.Tensor))
 
                 tf_dataset = new_dset.to_tf_dataset(
-                    columns=["features"],
+                    columns="features",
                     collate_fn=minimal_tf_collate_fn_with_renaming,
                     batch_size=4,
                 )
