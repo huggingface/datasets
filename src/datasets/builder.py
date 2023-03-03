@@ -1707,7 +1707,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
 
-        if self.info.splits is not None:  # and verification_mode == " .. "
+        if self.info.splits is not None:
             split_info = self.info.splits[split_generator.name]
         else:
             split_info = split_generator.split_info
