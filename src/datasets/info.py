@@ -150,6 +150,7 @@ class DatasetInfo:
 
     # Set later by the builder
     builder_name: Optional[str] = None
+    dataset_name: Optional[str] = None  # for packaged builders, to be different from builder_name
     config_name: Optional[str] = None
     version: Optional[Union[str, Version]] = None
     # Set later by `download_and_prepare`
