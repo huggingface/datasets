@@ -56,7 +56,7 @@ from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .info import DatasetInfo, DatasetInfosDict
 from .iterable_dataset import IterableDataset
 from .metric import Metric
-from .naming import snakecase_to_camelcase
+from .naming import camelcase_to_snakecase, snakecase_to_camelcase
 from .packaged_modules import (
     _EXTENSION_TO_MODULE,
     _MODULE_SUPPORTS_METADATA,
@@ -176,7 +176,7 @@ def parametrize_packaged_dataset_builder(
                 (
                     parent_builder_cls,
                     metadata_configs_dict,
-                    os.path.basename(self.repo_id if self.repo_id else self.base_path),
+                    self.dataset_name,
                 ),
                 self.__dict__.copy(),
             )
@@ -186,11 +186,6 @@ def parametrize_packaged_dataset_builder(
     )
     ParametrizedDatasetBuilder.__qualname__ = (
         f"{builder_cls.__name__.lower().capitalize()}{snakecase_to_camelcase(parametrized_name_suffix)}"
-    )
-    setattr(
-        ParametrizedDatasetBuilder,
-        "_parametrized_builder_name",
-        f"{builder_cls.__name__.lower()}---{parametrized_name_suffix}",
     )
 
     return ParametrizedDatasetBuilder
@@ -1689,9 +1684,13 @@ def load_dataset_builder(
         data_dir=data_dir,
         data_files=data_files,
     )
-
+    dataset_name = (
+        camelcase_to_snakecase(os.path.basename(path))
+        if dataset_module.module_path.split(".")[-1] in _PACKAGED_DATASETS_MODULES
+        else None
+    )
     # Get dataset builder class from the processing script
-    builder_cls = get_dataset_builder_class(dataset_module, parametrized_name_suffix=os.path.basename(path))
+    builder_cls = get_dataset_builder_class(dataset_module, parametrized_name_suffix=dataset_name)
     builder_kwargs = dataset_module.builder_kwargs
     data_dir = builder_kwargs.pop("data_dir", data_dir)
     data_files = builder_kwargs.pop("data_files", data_files)
@@ -1709,6 +1708,7 @@ def load_dataset_builder(
 
     # Instantiate the dataset builder
     builder_instance: DatasetBuilder = builder_cls(
+        dataset_name=dataset_name,
         cache_dir=cache_dir,
         config_name=config_name,
         data_dir=data_dir,
@@ -1717,7 +1717,6 @@ def load_dataset_builder(
         features=features,
         use_auth_token=use_auth_token,
         **builder_kwargs,
-        # **config_kwargs,
     )
 
     return builder_instance

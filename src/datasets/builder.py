@@ -278,6 +278,7 @@ class DatasetBuilder:
 
     def __init__(
         self,
+        dataset_name: Optional[str] = None,
         cache_dir: Optional[str] = None,
         config_name: Optional[str] = None,
         hash: Optional[str] = None,
@@ -298,17 +299,12 @@ class DatasetBuilder:
             )
             config_name = name
         # DatasetBuilder name
-        # Parametrized packaged builders classes with custom configs have `_parametrized_builder_name` attribute
-        # to reflect that they are different from default library's packaged builders
-        self.name: str = (
-            self.__class__._parametrized_builder_name
-            if hasattr(self.__class__, "_parametrized_builder_name")
-            else camelcase_to_snakecase(self.__module__.split(".")[-1])
-        )
+        self.name: str = camelcase_to_snakecase(self.__module__.split(".")[-1])
         self.hash: Optional[str] = hash
         self.base_path = base_path
         self.use_auth_token = use_auth_token
         self.repo_id = repo_id
+        self.dataset_name = camelcase_to_snakecase(dataset_name) if dataset_name else self.name
 
         if data_files is not None and not isinstance(data_files, DataFilesDict):
             data_files = DataFilesDict.from_local_or_remote(
@@ -336,6 +332,7 @@ class DatasetBuilder:
             info = self.get_exported_dataset_info()
             info.update(self._info())
         info.builder_name = self.name
+        info.dataset_name = self.dataset_name
         info.config_name = self.config.name
         info.version = self.config.version
         self.info = info
@@ -539,7 +536,7 @@ class DatasetBuilder:
         If any of these element is missing or if ``with_version=False`` the corresponding subfolders are dropped.
         """
         namespace = self.repo_id.split("/")[0] if self.repo_id and self.repo_id.count("/") > 0 else None
-        builder_data_dir = self.name if namespace is None else f"{namespace}___{self.name}"
+        builder_data_dir = self.dataset_name if namespace is None else f"{namespace}___{self.dataset_name}"
         builder_config = self.config
         hash = self.hash
         path_join = os.path.join if is_local else posixpath.join
@@ -843,14 +840,14 @@ class DatasetBuilder:
             # This comes right before the progress bar.
             if self.info.size_in_bytes:
                 print(
-                    f"Downloading and preparing dataset {self.name}/{self.config.name} "
+                    f"Downloading and preparing dataset {self.dataset_name}/{self.config.name} "
                     f"(download: {size_str(self.info.download_size)}, generated: {size_str(self.info.dataset_size)}, "
                     f"post-processed: {size_str(self.info.post_processing_size)}, "
                     f"total: {size_str(self.info.size_in_bytes)}) to {self._output_dir}..."
                 )
             else:
                 _dest = self._fs._strip_protocol(self._output_dir) if is_local else self._output_dir
-                print(f"Downloading and preparing dataset {self.name}/{self.config.name} to {_dest}...")
+                print(f"Downloading and preparing dataset {self.dataset_name}/{self.config.name} to {_dest}...")
 
             self._check_manual_download(dl_manager)
 
