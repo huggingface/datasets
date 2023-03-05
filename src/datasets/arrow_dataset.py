@@ -5292,12 +5292,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 download_config=download_config,
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
-                dataset_infos: DatasetInfosDict = json.load(f)
-                if dataset_infos:
-                    repo_info = DatasetInfo.from_dict(dataset_infos[next(iter(dataset_infos))])
-                else:
-                    dataset_metadata = DatasetMetadata()
-                    repo_info = None
+                dataset_infos: dict = json.load(f)
+                dataset_info = dataset_infos.get(config_name, None) if dataset_infos else None
+                repo_info = DatasetInfo.from_dict(dataset_info) if dataset_info else None
         else:
             dataset_metadata = DatasetMetadata()
             repo_info = None
@@ -5324,10 +5321,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 info_to_dump = repo_info
         # push to the deprecated dataset_infos.json
         if config.DATASETDICT_INFOS_FILENAME in repo_files:
+            dataset_infos_path = cached_path(
+                hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME),
+                download_config=download_config,
+            )
+            with open(dataset_infos_path, encoding="utf-8") as f:
+                dataset_infos: DatasetInfosDict = json.load(f)
+            dataset_infos[config_name] = asdict(info_to_dump)
             buffer = BytesIO()
-            buffer.write(b'{"default": ')
-            info_to_dump._dump_info(buffer, pretty_print=True)
-            buffer.write(b"}")
+            buffer.write(json.dumps(dataset_infos, indent=4).encode("utf-8"))
             HfApi(endpoint=config.HF_ENDPOINT).upload_file(
                 path_or_fileobj=buffer.getvalue(),
                 path_in_repo=config.DATASETDICT_INFOS_FILENAME,
