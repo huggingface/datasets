@@ -5285,7 +5285,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         elif config.DATASETDICT_INFOS_FILENAME in repo_files:
             dataset_metadata = DatasetMetadata()
             download_config = DownloadConfig()
-            download_config.download_desc = "Downloading metadata"
+            download_config.download_desc = "Downloading metadata from deprecated dataset_infos.json"
             download_config.use_auth_token = token
             dataset_infos_path = cached_path(
                 hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME),
@@ -5321,6 +5321,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 info_to_dump = repo_info
         # push to the deprecated dataset_infos.json
         if config.DATASETDICT_INFOS_FILENAME in repo_files:
+            download_config = DownloadConfig()
+            download_config.download_desc = "Downloading deprecated dataset_infos.json"
+            download_config.use_auth_token = token
             dataset_infos_path = cached_path(
                 hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME),
                 download_config=download_config,

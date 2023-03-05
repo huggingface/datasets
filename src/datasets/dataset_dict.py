@@ -31,6 +31,7 @@ from .utils._hf_hub_fixes import list_repo_files as hf_api_list_repo_files
 from .utils.doc_utils import is_documented_by
 from .utils.file_utils import cached_path
 from .utils.hub import hf_hub_url
+from .utils.py_utils import asdict
 from .utils.typing import PathLike
 
 
@@ -1602,13 +1603,19 @@ class DatasetDict(dict):
 
         api = HfApi(endpoint=config.HF_ENDPOINT)
         repo_files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, use_auth_token=token)
-
-        # push to the deprecated dataset_infos.json
         if config.DATASETDICT_INFOS_FILENAME in repo_files:
+            download_config = DownloadConfig()
+            download_config.download_desc = "Updating deprecated dataset_infos.json"
+            download_config.use_auth_token = token
+            dataset_infos_path = cached_path(
+                hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME),
+                download_config=download_config,
+            )
+            with open(dataset_infos_path, encoding="utf-8") as f:
+                dataset_infos: DatasetInfosDict = json.load(f)
+            dataset_infos[config_name] = asdict(info_to_dump)
             buffer = BytesIO()
-            buffer.write(b'{"default": ')  # TODO: should we update config info here too?
-            info_to_dump._dump_info(buffer, pretty_print=True)
-            buffer.write(b"}")
+            buffer.write(json.dumps(dataset_infos, indent=4).encode("utf-8"))
             HfApi(endpoint=config.HF_ENDPOINT).upload_file(
                 path_or_fileobj=buffer.getvalue(),
                 path_in_repo=config.DATASETDICT_INFOS_FILENAME,
@@ -1620,7 +1627,7 @@ class DatasetDict(dict):
         # push to README
         if "README.md" in repo_files:
             download_config = DownloadConfig()
-            download_config.download_desc = "Downloading metadata"
+            download_config.download_desc = "Downloading and metadata"
             download_config.use_auth_token = token
             dataset_readme_path = cached_path(
                 hf_hub_url(repo_id, "README.md"),
