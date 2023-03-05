@@ -36,10 +36,10 @@ def zstd_path(tmp_path_factory):
 
 
 @pytest.fixture
-def mockfs_file(mockfs):
-    with open(os.path.join(mockfs.local_root_dir, FILE_PATH), "w") as f:
+def tmpfs_file(tmpfs):
+    with open(os.path.join(tmpfs.local_root_dir, FILE_PATH), "w") as f:
         f.write(FILE_CONTENT)
-    return mockfs
+    return FILE_PATH
 
 
 @pytest.mark.parametrize("compression_format", ["gzip", "xz", "zstd"])
@@ -99,13 +99,11 @@ def test_cached_path_missing_local(tmp_path):
         cached_path(missing_file)
 
 
-def test_get_from_cache_fsspec(mockfs_file):
-    with patch("datasets.utils.file_utils.fsspec.get_fs_token_paths") as mock_get_fs_token_paths:
-        mock_get_fs_token_paths.return_value = (mockfs_file, "", [FILE_PATH])
-        output_path = get_from_cache("mock://huggingface.co")
-        with open(output_path) as f:
-            output_file_content = f.read()
-        assert output_file_content == FILE_CONTENT
+def test_get_from_cache_fsspec(tmpfs_file):
+    output_path = get_from_cache(f"tmp://{tmpfs_file}")
+    with open(output_path) as f:
+        output_file_content = f.read()
+    assert output_file_content == FILE_CONTENT
 
 
 @patch("datasets.config.HF_DATASETS_OFFLINE", True)

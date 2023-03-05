@@ -1,5 +1,6 @@
 import posixpath
 from pathlib import Path
+from unittest.mock import patch
 
 import fsspec
 import pytest
@@ -40,10 +41,6 @@ class MockFileSystem(AbstractFileSystem):
         out["name"] = out["name"][len(self.local_root_dir) :]
         return out
 
-    def get_file(self, rpath, lpath, *args, **kwargs):
-        rpath = posixpath.join(self.local_root_dir, self._strip_protocol(rpath))
-        return self._fs.get_file(rpath, lpath, *args, **kwargs)
-
     def cp_file(self, path1, path2, *args, **kwargs):
         path1 = posixpath.join(self.local_root_dir, self._strip_protocol(path1))
         path2 = posixpath.join(self.local_root_dir, self._strip_protocol(path2))
@@ -77,10 +74,27 @@ class MockFileSystem(AbstractFileSystem):
         return path
 
 
+class TmpDirFileSystem(MockFileSystem):
+    protocol = "tmp"
+    tmp_dir = None
+
+    def __init__(self, *args, **kwargs):
+        assert self.tmp_dir is not None, "TmpDirFileSystem.tmp_dir is not set"
+        super().__init__(*args, **kwargs, local_root_dir=self.tmp_dir, auto_mkdir=True)
+
+    @classmethod
+    def _strip_protocol(cls, path):
+        path = stringify_path(path)
+        if path.startswith("tmp://"):
+            path = path[6:]
+        return path
+
+
 @pytest.fixture
 def mock_fsspec():
     original_registry = fsspec.registry.copy()
     fsspec.register_implementation("mock", MockFileSystem)
+    fsspec.register_implementation("tmp", TmpDirFileSystem)
     yield
     fsspec.registry = original_registry
 
@@ -89,3 +103,10 @@ def mock_fsspec():
 def mockfs(tmp_path_factory, mock_fsspec):
     local_fs_dir = tmp_path_factory.mktemp("mockfs")
     return MockFileSystem(local_root_dir=local_fs_dir, auto_mkdir=True)
+
+
+@pytest.fixture
+def tmpfs(tmp_path_factory, mock_fsspec):
+    tmp_fs_dir = tmp_path_factory.mktemp("tmpfs")
+    with patch.object(TmpDirFileSystem, "tmp_dir", tmp_fs_dir):
+        yield TmpDirFileSystem()
