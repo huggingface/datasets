@@ -1,10 +1,11 @@
 import copy
 from collections import Counter
-from dataclasses import fields
 from pathlib import Path
 from typing import ClassVar, Dict, Optional, Tuple, Union
 
 import yaml
+
+from datasets.utils.py_utils import asdict
 
 from ..config import METADATA_CONFIGS_FIELD
 
@@ -165,18 +166,10 @@ class MetadataConfigs(Dict[str, dict]):
 
     @classmethod
     def from_builder_configs_list(cls, builder_configs_list) -> "MetadataConfigs":
-        builder_configs_dict = {
-            builder_config.name: _asdict_shallow(builder_config) for builder_config in builder_configs_list
-        }
+        builder_configs_dict = {builder_config.name: asdict(builder_config) for builder_config in builder_configs_list}
         for builder_config in builder_configs_dict.values():
             builder_config["config_name"] = builder_config.pop("name", "default")
-            if "version" in builder_config:
-                builder_config["version"] = str(builder_config["version"])  # it might be int from Version object
         return cls(builder_configs_dict)
-
-
-def _asdict_shallow(dataclass_object):
-    return {field.name: getattr(dataclass_object, field.name) for field in fields(dataclass_object)}
 
 
 # DEPRECATED - just here to support old versions of evaluate like 0.2.2
