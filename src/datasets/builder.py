@@ -186,12 +186,12 @@ class BuilderConfig:
             suffix = m.hexdigest()
 
         if suffix:
-            config_id = self.dataset_name + "-" + suffix
+            config_id = self.name + "-" + suffix
             if len(config_id) > config.MAX_DATASET_CONFIG_ID_READABLE_LENGTH:
-                config_id = self.dataset_name + "-" + Hasher.hash(suffix)
+                config_id = self.name + "-" + Hasher.hash(suffix)
             return config_id
         else:
-            return self.dataset_name
+            return self.name
 
 
 class DatasetBuilder:
