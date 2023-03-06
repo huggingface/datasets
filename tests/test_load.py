@@ -895,6 +895,7 @@ def test_load_dataset_builder_for_absolute_script_dir(dataset_loading_script_dir
     builder = datasets.load_dataset_builder(dataset_loading_script_dir, data_dir=data_dir)
     assert isinstance(builder, DatasetBuilder)
     assert builder.name == DATASET_LOADING_SCRIPT_NAME
+    assert builder.dataset_name == DATASET_LOADING_SCRIPT_NAME
     assert builder.info.features == Features({"text": Value("string")})
 
 
@@ -905,6 +906,7 @@ def test_load_dataset_builder_for_relative_script_dir(dataset_loading_script_dir
         builder = datasets.load_dataset_builder(relative_script_dir, data_dir=data_dir)
         assert isinstance(builder, DatasetBuilder)
         assert builder.name == DATASET_LOADING_SCRIPT_NAME
+        assert builder.dataset_name == DATASET_LOADING_SCRIPT_NAME
         assert builder.info.features == Features({"text": Value("string")})
 
 
@@ -914,6 +916,7 @@ def test_load_dataset_builder_for_script_path(dataset_loading_script_dir, data_d
     )
     assert isinstance(builder, DatasetBuilder)
     assert builder.name == DATASET_LOADING_SCRIPT_NAME
+    assert builder.dataset_name == DATASET_LOADING_SCRIPT_NAME
     assert builder.info.features == Features({"text": Value("string")})
 
 
@@ -921,13 +924,13 @@ def test_load_dataset_builder_for_absolute_data_dir(complex_data_dir):
     builder = datasets.load_dataset_builder(complex_data_dir)
     assert isinstance(builder, DatasetBuilder)
     assert builder.name == "text"
+    assert builder.dataset_name == Path(complex_data_dir).name
     assert builder.config.name == "default"
     assert isinstance(builder.config.data_files, DataFilesDict)
     assert len(builder.config.data_files["train"]) > 0
     assert len(builder.config.data_files["test"]) > 0
 
 
-# TODO: remove this test?
 def test_load_dataset_builder_for_relative_data_dir(complex_data_dir):
     with set_current_working_directory_to_temp_dir():
         relative_data_dir = "relative_data_dir"
@@ -935,6 +938,7 @@ def test_load_dataset_builder_for_relative_data_dir(complex_data_dir):
         builder = datasets.load_dataset_builder(relative_data_dir)
         assert isinstance(builder, DatasetBuilder)
         assert builder.name == "text"
+        assert builder.dataset_name == relative_data_dir
         assert builder.config.name == "default"
         assert isinstance(builder.config.data_files, DataFilesDict)
         assert len(builder.config.data_files["train"]) > 0
@@ -946,6 +950,7 @@ def test_load_dataset_builder_for_community_dataset_with_script():
     builder = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER)
     assert isinstance(builder, DatasetBuilder)
     assert builder.name == SAMPLE_DATASET_IDENTIFIER.split("/")[-1]
+    assert builder.dataset_name == SAMPLE_DATASET_IDENTIFIER.split("/")[-1]
     assert builder.config.name == "default"
     assert builder.info.features == Features({"text": Value("string")})
     namespace = SAMPLE_DATASET_IDENTIFIER[: SAMPLE_DATASET_IDENTIFIER.index("/")]
@@ -958,25 +963,11 @@ def test_load_dataset_builder_for_community_dataset_without_script():
     builder = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER2)
     assert isinstance(builder, DatasetBuilder)
     assert builder.name == "text"
+    assert builder.dataset_name == SAMPLE_DATASET_IDENTIFIER2.split("/")[-1]
     assert builder.config.name == "default"
     assert isinstance(builder.config.data_files, DataFilesDict)
     assert len(builder.config.data_files["train"]) > 0
     assert len(builder.config.data_files["test"]) > 0
-
-
-# def test_load_dataset_builder_with_metadata_configs_and_params_passed_manually():
-# metadata_configs = ["v1", "v2"]
-# builder = datasets.load_dataset_builder(SAMPLE_DATASET_TWO_CONFIG_IN_METADATA, metadata_configs[0])
-# assert len(builder.BUILDER_CONFIGS) == 2
-# assert len(builder.builder_configs) == 2
-# assert list(builder.builder_configs.keys()) == metadata_configs
-# assert builder.config.drop_labels  # by default "drop_labels" is None
-
-# builder = datasets.load_dataset_builder(SAMPLE_DATASET_TWO_CONFIG_IN_METADATA, drop_labels=False)
-# assert len(builder.BUILDER_CONFIGS) == 2
-# assert len(builder.builder_configs) == 2
-# assert list(builder.builder_configs.keys()) == metadata_configs
-# assert builder.config.drop_labels is False  # assert value corresponds to the one provided in load_dataset_builder
 
 
 def test_load_dataset_builder_fail():

@@ -1708,8 +1708,8 @@ def load_dataset_builder(
 
     # Instantiate the dataset builder
     builder_instance: DatasetBuilder = builder_cls(
-        dataset_name=dataset_name,
         cache_dir=cache_dir,
+        dataset_name=dataset_name,
         config_name=config_name,
         data_dir=data_dir,
         data_files=data_files,

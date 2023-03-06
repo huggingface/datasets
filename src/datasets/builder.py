@@ -186,12 +186,12 @@ class BuilderConfig:
             suffix = m.hexdigest()
 
         if suffix:
-            config_id = self.name + "-" + suffix
+            config_id = self.dataset_name + "-" + suffix
             if len(config_id) > config.MAX_DATASET_CONFIG_ID_READABLE_LENGTH:
-                config_id = self.name + "-" + Hasher.hash(suffix)
+                config_id = self.dataset_name + "-" + Hasher.hash(suffix)
             return config_id
         else:
-            return self.name
+            return self.dataset_name
 
 
 class DatasetBuilder:
@@ -213,6 +213,10 @@ class DatasetBuilder:
     Args:
         cache_dir (`str`, *optional*):
             Directory to cache data. Defaults to `"~/.cache/huggingface/datasets"`.
+        dataset_name (`str`, *optional*):
+            Name of the dataset, if different from the builder name. Useful for packaged builders
+            like csv, imagefolder, audiofolder, etc. to reflect the difference between datasets
+            that use the same packaged builder.
         config_name (`str`, *optional*):
             Name of the dataset configuration.
             It affects the data generated on disk. Different configurations will have their own subdirectories and
@@ -278,8 +282,8 @@ class DatasetBuilder:
 
     def __init__(
         self,
-        dataset_name: Optional[str] = None,
         cache_dir: Optional[str] = None,
+        dataset_name: Optional[str] = None,
         config_name: Optional[str] = None,
         hash: Optional[str] = None,
         base_path: Optional[str] = None,
@@ -328,7 +332,6 @@ class DatasetBuilder:
         # Prefill datasetinfo
         if info is None:
             # TODO FOR PACKAGED MODULES IT IMPORTS DATA FROM src/packaged_modules which doesn't make sense
-            # so should it be provided before if we read info in .get_module() ?
             info = self.get_exported_dataset_info()
             info.update(self._info())
         info.builder_name = self.name
@@ -368,7 +371,7 @@ class DatasetBuilder:
                         self.info = DatasetInfo.from_directory(self._cache_dir)
                     else:  # dir exists but no data, remove the empty dir as data aren't available anymore
                         logger.warning(
-                            f"Old caching folder {self._cache_dir} for dataset {self.name} exists but not data were found. Removing it. "
+                            f"Old caching folder {self._cache_dir} for dataset {self.dataset_name} exists but not data were found. Removing it. "
                         )
                         os.rmdir(self._cache_dir)
 
@@ -445,17 +448,19 @@ class DatasetBuilder:
         if config_name is None and self.BUILDER_CONFIGS and not config_kwargs:
             if self.DEFAULT_CONFIG_NAME is not None:
                 builder_config = self.builder_configs.get(self.DEFAULT_CONFIG_NAME)
-                logger.warning(f"No config specified, defaulting to: {self.name}/{builder_config.name}")
+                logger.warning(f"No config specified, defaulting to: {self.dataset_name}/{builder_config.name}")
             else:
                 if len(self.BUILDER_CONFIGS) > 1:
-                    example_of_usage = f"load_dataset('{self.name}', '{self.BUILDER_CONFIGS[0].name}')"
+                    example_of_usage = f"load_dataset('{self.dataset_name}', '{self.BUILDER_CONFIGS[0].name}')"
                     raise ValueError(
                         "Config name is missing."
                         f"\nPlease pick one among the available configs: {list(self.builder_configs.keys())}"
                         + f"\nExample of usage:\n\t`{example_of_usage}`"
                     )
                 builder_config = self.BUILDER_CONFIGS[0]
-                logger.info(f"No config specified, defaulting to the single config: {self.name}/{builder_config.name}")
+                logger.info(
+                    f"No config specified, defaulting to the single config: {self.dataset_name}/{builder_config.name}"
+                )
 
         # try to get config by name
         if isinstance(config_name, str):
@@ -530,9 +535,9 @@ class DatasetBuilder:
     def _relative_data_dir(self, with_version=True, with_hash=True, is_local=True) -> str:
         """Relative path of this dataset in cache_dir:
         Will be:
-            self.name/self.config.version/self.hash/
+            self.dataset_name/self.config.version/self.hash/
         or if a repo_id with a namespace has been specified:
-            self.namespace___self.name/self.config.version/self.hash/
+            self.namespace___self.dataset_name/self.config.version/self.hash/
         If any of these element is missing or if ``with_version=False`` the corresponding subfolders are dropped.
         """
         namespace = self.repo_id.split("/")[0] if self.repo_id and self.repo_id.count("/") > 0 else None
@@ -581,7 +586,7 @@ class DatasetBuilder:
                 other_version = version_dirs[0][0]
                 if other_version != self.config.version:
                     warn_msg = (
-                        f"Found a different version {str(other_version)} of dataset {self.name} in "
+                        f"Found a different version {str(other_version)} of dataset {self.dataset_name} in "
                         f"cache_dir {self._cache_dir_root}. Using currently defined version "
                         f"{str(self.config.version)}."
                     )
@@ -757,7 +762,7 @@ class DatasetBuilder:
             # when the dataset is being written
             raise RuntimeError(
                 f"Unable to download and prepare the dataset at the root {self._output_dir}. "
-                f"Please specify a subdirectory, e.g. '{self._output_dir + self.name}'"
+                f"Please specify a subdirectory, e.g. '{self._output_dir + self.dataset_name}'"
             )
 
         if dl_manager is None:
@@ -772,7 +777,7 @@ class DatasetBuilder:
                 )  # We don't use etag for data files to speed up the process
 
             dl_manager = DownloadManager(
-                dataset_name=self.name,
+                dataset_name=self.dataset_name,
                 download_config=download_config,
                 data_dir=self.config.data_dir,
                 base_path=base_path,
@@ -800,14 +805,14 @@ class DatasetBuilder:
             path_join = os.path.join if is_local else posixpath.join
             data_exists = self._fs.exists(path_join(self._output_dir, config.DATASET_INFO_FILENAME))
             if data_exists and download_mode == DownloadMode.REUSE_DATASET_IF_EXISTS:
-                logger.warning(f"Found cached dataset {self.name} ({self._output_dir})")
+                logger.warning(f"Found cached dataset {self.dataset_name} ({self._output_dir})")
                 # We need to update the info in case some splits were added in the meantime
                 # for example when calling load_dataset from multiple workers.
                 self.info = self._load_info()
                 self.download_post_processing_resources(dl_manager)
                 return
 
-            logger.info(f"Generating dataset {self.name} ({self._output_dir})")
+            logger.info(f"Generating dataset {self.dataset_name} ({self._output_dir})")
             if is_local:  # if cache dir is local, check for available space
                 if not has_sufficient_disk_space(
                     self.info.size_in_bytes or 0, directory=Path(self._output_dir).parent
@@ -889,7 +894,7 @@ class DatasetBuilder:
             self.download_post_processing_resources(dl_manager)
 
             print(
-                f"Dataset {self.name} downloaded and prepared to {self._output_dir}. "
+                f"Dataset {self.dataset_name} downloaded and prepared to {self._output_dir}. "
                 f"Subsequent calls will reuse this data."
             )
 
@@ -898,11 +903,11 @@ class DatasetBuilder:
             raise ManualDownloadError(
                 textwrap.dedent(
                     f"""\
-                    The dataset {self.name} with config {self.config.name} requires manual data.
+                    The dataset {self.dataset_name} with config {self.config.name} requires manual data.
                     Please follow the manual download instructions:
                      {self.manual_download_instructions}
                     Manual data can be loaded with:
-                     datasets.load_dataset("{self.name}", data_dir="<path/to/manual/data>")"""
+                     datasets.load_dataset("{self.dataset_name}", data_dir="<path/to/manual/data>")"""
                 )
             )
 
@@ -943,7 +948,7 @@ class DatasetBuilder:
             prepare_split_kwargs: Additional options, such as `file_format`, `max_shard_size`
         """
         # Generating data for all splits
-        split_dict = SplitDict(dataset_name=self.name)
+        split_dict = SplitDict(dataset_name=self.dataset_name)
         split_generators_kwargs = self._make_split_generators_kwargs(prepare_split_kwargs)
         split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
 
@@ -1092,7 +1097,7 @@ class DatasetBuilder:
             raise NotImplementedError(f"Loading a dataset cached in a {type(self._fs).__name__} is not supported.")
         if not os.path.exists(self._output_dir):
             raise FileNotFoundError(
-                f"Dataset {self.name}: could not find data in {self._output_dir}. Please make sure to call "
+                f"Dataset {self.dataset_name}: could not find data in {self._output_dir}. Please make sure to call "
                 "builder.download_and_prepare(), or use "
                 "datasets.load_dataset() before trying to access the Dataset object."
             )
@@ -1208,7 +1213,7 @@ class DatasetBuilder:
         """
         cache_dir = self._fs._strip_protocol(self._output_dir)
         dataset_kwargs = ArrowReader(cache_dir, self.info).read(
-            name=self.name,
+            name=self.dataset_name,
             instructions=split,
             split_infos=self.info.splits.values(),
             in_memory=in_memory,
@@ -1241,7 +1246,7 @@ class DatasetBuilder:
         dl_manager = StreamingDownloadManager(
             base_path=base_path or self.base_path,
             download_config=DownloadConfig(use_auth_token=self.use_auth_token),
-            dataset_name=self.name,
+            dataset_name=self.dataset_name,
             data_dir=self.config.data_dir,
         )
         self._check_manual_download(dl_manager)
@@ -1452,7 +1457,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
             split_info = split_generator.split_info
 
         SUFFIX = "-JJJJJ-SSSSS-of-NNNNN"
-        fname = f"{self.name}-{split_generator.name}{SUFFIX}.{file_format}"
+        fname = f"{self.dataset_name}-{split_generator.name}{SUFFIX}.{file_format}"
         fpath = path_join(self._output_dir, fname)
 
         if num_proc and num_proc > 1:
@@ -1714,7 +1719,7 @@ class ArrowBasedBuilder(DatasetBuilder):
             split_info = split_generator.split_info
 
         SUFFIX = "-JJJJJ-SSSSS-of-NNNNN"
-        fname = f"{self.name}-{split_generator.name}{SUFFIX}.{file_format}"
+        fname = f"{self.dataset_name}-{split_generator.name}{SUFFIX}.{file_format}"
         fpath = path_join(self._output_dir, fname)
 
         if num_proc and num_proc > 1:
@@ -2029,8 +2034,8 @@ class BeamBasedBuilder(DatasetBuilder):
             else:
                 # don't use any pattern
                 file_format = prepare_splits_kwargs.get("file_format", "arrow")
-                src_fname = f"{self.name}-{split_name}-00000-of-00001.{file_format}"
-                dst_fname = f"{self.name}-{split_name}.{file_format}"
+                src_fname = f"{self.dataset_name}-{split_name}-00000-of-00001.{file_format}"
+                dst_fname = f"{self.dataset_name}-{split_name}.{file_format}"
                 path_join = os.path.join if not is_remote_filesystem(self._fs) else posixpath.join
                 src_fpath = path_join(self._output_dir, src_fname)
                 dst_fpath = path_join(self._output_dir, dst_fname)
@@ -2060,7 +2065,7 @@ class BeamBasedBuilder(DatasetBuilder):
 
         # To write examples in filesystem:
         split_name = split_generator.split_info.name
-        fname = f"{self.name}-{split_name}.{file_format}"
+        fname = f"{self.dataset_name}-{split_name}.{file_format}"
         path_join = os.path.join if not is_remote_filesystem(self._fs) else posixpath.join
         fpath = path_join(self._output_dir, fname)
         beam_writer = BeamWriter(
