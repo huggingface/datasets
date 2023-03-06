@@ -1387,9 +1387,7 @@ class IterableDataset(DatasetInfoMixin):
         ['text', 'label']
         ```
         """
-        if self._info.features is not None:
-            return list(self._info.features.keys())
-        return None
+        return list(self._info.features.keys()) if self._info.features is not None else None
 
     def add_column(self, name: str, column: Union[list, np.array]) -> "IterableDataset":
         """Add column to Dataset.
