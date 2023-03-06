@@ -191,7 +191,7 @@ Remember to define your credentials in your [FileSystem instance](#set-up-your-c
 List files from a cloud storage with your FileSystem instance `fs`, using `fs.ls`:
 
 ```py
->>> fs.ls("my-private-datasets/imdb/train")
+>>> fs.ls("my-private-datasets/imdb/train", detail=False)
 ["dataset_info.json.json","dataset.arrow","state.json"]
 ```
 
