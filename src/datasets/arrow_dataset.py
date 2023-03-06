@@ -4666,6 +4666,42 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 for offset in range(0, len(self), batch_size)
             )
 
+    def to_list(self, batch_size: Optional[int] = None, batched: bool = False) -> Union[list, Iterator[list]]:
+        """Returns the dataset as a Python list. Can also return a generator for large datasets.
+
+        Args:
+            batched (`bool`):
+                Set to `True` to return a generator that yields the dataset as batches
+                of `batch_size` rows. Defaults to `False` (returns the whole datasets once).
+            batch_size (`int`, *optional*): The size (number of rows) of the batches if `batched` is `True`.
+                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+
+        Returns:
+            `list` or `Iterator[list]`
+
+        Example:
+
+        ```py
+        >>> ds.to_list()
+        ```
+        """
+        if not batched:
+            return query_table(
+                table=self._data,
+                key=slice(0, len(self)),
+                indices=self._indices if self._indices is not None else None,
+            ).to_pylist()
+        else:
+            batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
+            return (
+                query_table(
+                    table=self._data,
+                    key=slice(offset, offset + batch_size),
+                    indices=self._indices if self._indices is not None else None,
+                ).to_pylist()
+                for offset in range(0, len(self), batch_size)
+            )
+
     def to_json(
         self,
         path_or_buf: Union[PathLike, BinaryIO],
