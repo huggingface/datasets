@@ -2743,16 +2743,16 @@ class BaseDatasetTest(TestCase):
             #     self.assertEqual(batch["col_1"].shape.as_list(), [2])
             #     del tf_dataset
 
-            # with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
-            #     # Returns: (., .)
-            #     tf_dataset = dset.to_tf_dataset(
-            #         columns="col_1", label_cols="col_2", batch_size=2, num_workers=num_workers
-            #     )
-            #     batch = next(iter(tf_dataset))
-            #     self.assertTrue(len(batch) == 2)
-            #     self.assertEqual(batch[0].shape.as_list(), [2])
-            #     self.assertEqual(batch[1].shape.as_list(), [2])
-            #     del tf_dataset
+            with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+                # Returns: (., .)
+                tf_dataset = dset.to_tf_dataset(
+                    columns="col_1", label_cols="col_2", batch_size=2, num_workers=num_workers
+                )
+                batch = next(iter(tf_dataset))
+                self.assertTrue(len(batch) == 2)
+                self.assertEqual(batch[0].shape.as_list(), [2])
+                self.assertEqual(batch[1].shape.as_list(), [2])
+                del tf_dataset
 
             # with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
             #     # Returns: ({"col_1": ., "col_2": .}, .)
