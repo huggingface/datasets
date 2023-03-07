@@ -19,8 +19,8 @@ jobs:
           pip install setuptools wheel
           pip install -e .[benchmarks]
 
-          # pyarrow==6.0.0
-          pip install pyarrow==6.0.0
+          # pyarrow==8.0.0
+          pip install pyarrow==8.0.0
 
           dvc repro --force
 
