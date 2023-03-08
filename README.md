@@ -1,8 +1,13 @@
 <p align="center">
-    <br>
-    <img src="https://raw.githubusercontent.com/huggingface/datasets/main/docs/source/imgs/datasets_logo_name.jpg" width="400"/>
-    <br>
-<p>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://huggingface.co/datasets/huggingface/documentation-images/raw/main/datasets-logo-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="https://huggingface.co/datasets/huggingface/documentation-images/raw/main/datasets-logo-light.svg">
+    <img alt="Hugging Face Datasets Library" src="https://huggingface.co/datasets/huggingface/documentation-images/raw/main/datasets-logo-light.svg" width="352" height="59" style="max-width: 100%;">
+  </picture>
+  <br/>
+  <br/>
+</p>
+
 <p align="center">
     <a href="https://github.com/huggingface/datasets/actions/workflows/ci.yml?query=branch%3Amain">
         <img alt="Build" src="https://github.com/huggingface/datasets/actions/workflows/ci.yml/badge.svg?branch=main">
