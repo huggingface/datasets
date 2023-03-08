@@ -357,11 +357,12 @@ class DatasetBuilder:
             os.makedirs(self._cache_dir_root, exist_ok=True)
             lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
             with FileLock(lock_path):
-                if os.path.exists(self._cache_dir) > 0:  # check if data exist
-                    if len(os.listdir(self._cache_dir)):
+                if os.path.exists(self._cache_dir):  # check if data exist
+                    if len(os.listdir(self._cache_dir)) > 0 and os.path.exists(
+                        path_join(self._cache_dir, config.DATASET_INFO_FILENAME)
+                    ):
                         logger.info("Overwrite dataset info from restored data version if exists.")
-                        if os.path.exists(path_join(self._cache_dir, config.DATASET_INFO_FILENAME)):
-                            self.info = DatasetInfo.from_directory(self._cache_dir)
+                        self.info = DatasetInfo.from_directory(self._cache_dir)
                     else:  # dir exists but no data, remove the empty dir as data aren't available anymore
                         logger.warning(
                             f"Old caching folder {self._cache_dir} for dataset {self.name} exists but not data were found. Removing it. "
@@ -375,7 +376,7 @@ class DatasetBuilder:
         # Set download manager
         self.dl_manager = None
 
-        # Set to True by "datasets-cli test" to generate file checksums for (deprecated) dataset_infos.json independently of verification_mode value
+        # Set to True by "datasets-cli test" to generate file checksums for (deprecated) dataset_infos.json independently of verification_mode value.
         self._record_infos = False
 
         # Enable streaming (e.g. it patches "open" to work with remote files)
@@ -881,8 +882,7 @@ class DatasetBuilder:
                     self.info.download_checksums = dl_manager.get_recorded_sizes_checksums()
                     self.info.size_in_bytes = self.info.dataset_size + self.info.download_size
                     # Save info
-                    if verification_mode is not VerificationMode.NO_CHECKS:
-                        self._save_info()
+                    self._save_info()
 
             # Download post processing resources
             self.download_post_processing_resources(dl_manager)
