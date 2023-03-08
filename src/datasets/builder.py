@@ -358,14 +358,13 @@ class DatasetBuilder:
             lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
             with FileLock(lock_path):
                 if os.path.exists(self._cache_dir):  # check if data exist
-                    if len(os.listdir(self._cache_dir)) > 0 and os.path.exists(
-                        path_join(self._cache_dir, config.DATASET_INFO_FILENAME)
-                    ):
-                        logger.info("Overwrite dataset info from restored data version if exists.")
-                        self.info = DatasetInfo.from_directory(self._cache_dir)
+                    if len(os.listdir(self._cache_dir)) > 0:
+                        if os.path.exists(path_join(self._cache_dir, config.DATASET_INFO_FILENAME)):
+                            logger.info("Overwrite dataset info from restored data version if exists.")
+                            self.info = DatasetInfo.from_directory(self._cache_dir)
                     else:  # dir exists but no data, remove the empty dir as data aren't available anymore
                         logger.warning(
-                            f"Old caching folder {self._cache_dir} for dataset {self.name} exists but not data were found. Removing it. "
+                            f"Old caching folder {self._cache_dir} for dataset {self.name} exists but no data were found. Removing it. "
                         )
                         os.rmdir(self._cache_dir)
 
