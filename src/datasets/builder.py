@@ -375,7 +375,7 @@ class DatasetBuilder:
         # Set download manager
         self.dl_manager = None
 
-        # Record infos even if verification_mode="none"; used by "datasets-cli test" to generate file checksums for (deprecated) dataset_infos.json
+        # Set to True by "datasets-cli test" to generate file checksums for (deprecated) dataset_infos.json independently of verification_mode value
         self._record_infos = False
 
         # Enable streaming (e.g. it patches "open" to work with remote files)
@@ -719,10 +719,10 @@ class DatasetBuilder:
         ```
         """
         if ignore_verifications != "deprecated":
-            verification_mode = "no_checks" if ignore_verifications else "all_checks"
+            verification_mode = VerificationMode.NO_CHECKS if ignore_verifications else VerificationMode.ALL_CHECKS
             warnings.warn(
                 "'ignore_verifications' was deprecated in favor of 'verification_mode' in version 2.9.1 and will be removed in 3.0.0.\n"
-                f"You can remove this warning by passing 'verification_mode={verification_mode}' instead.",
+                f"You can remove this warning by passing 'verification_mode={verification_mode.value}' instead.",
                 FutureWarning,
             )
         if use_auth_token != "deprecated":
@@ -1080,10 +1080,10 @@ class DatasetBuilder:
         ```
         """
         if ignore_verifications != "deprecated":
-            verification_mode = "no_checks" if ignore_verifications else "all_checks"
+            verification_mode = verification_mode.NO_CHECKS if ignore_verifications else VerificationMode.ALL_CHECKS
             warnings.warn(
                 "'ignore_verifications' was deprecated in favor of 'verification' in version 2.9.1 and will be removed in 3.0.0.\n"
-                f"You can remove this warning by passing 'verification_mode={verification_mode}' instead.",
+                f"You can remove this warning by passing 'verification_mode={verification_mode.value}' instead.",
                 FutureWarning,
             )
         is_local = not is_remote_filesystem(self._fs)
