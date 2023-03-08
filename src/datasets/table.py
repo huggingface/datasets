@@ -800,11 +800,7 @@ class InMemoryTable(TableBlock):
         Returns:
             `datasets.table.Table`
         """
-        try:
-            return cls(pa.Table.from_pylist(mapping, *args, **kwargs))
-        except AttributeError:  # pyarrow <7 does not have from_pylist, so we convert and use from_pydict
-            mapping = {k: [r.get(k) for r in mapping] for k in mapping[0]} if mapping else {}
-            return cls(pa.Table.from_pydict(mapping, *args, **kwargs))
+        return cls(pa.Table.from_pylist(mapping, *args, **kwargs))
 
     @classmethod
     def from_batches(cls, *args, **kwargs):
