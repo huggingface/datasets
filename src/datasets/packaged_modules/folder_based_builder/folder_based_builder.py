@@ -16,19 +16,6 @@ from datasets.tasks.base import TaskTemplate
 logger = datasets.utils.logging.get_logger(__name__)
 
 
-if datasets.config.PYARROW_VERSION.major >= 7:
-
-    def pa_table_to_pylist(table):
-        return table.to_pylist()
-
-else:
-
-    def pa_table_to_pylist(table):
-        keys = table.column_names
-        values = table.to_pydict().values()
-        return [{k: v for k, v in zip(keys, row_values)} for row_values in zip(*values)]
-
-
 def count_path_segments(path):
     return path.replace("\\", "/").count("/")
 
@@ -310,7 +297,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                                 metadata_dict = {
                                     os.path.normpath(file_name).replace("\\", "/"): sample_metadata
                                     for file_name, sample_metadata in zip(
-                                        pa_file_name_array.to_pylist(), pa_table_to_pylist(pa_metadata_table)
+                                        pa_file_name_array.to_pylist(), pa_metadata_table.to_pylist()
                                     )
                                 }
                             else:
@@ -376,7 +363,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                                     metadata_dict = {
                                         os.path.normpath(file_name).replace("\\", "/"): sample_metadata
                                         for file_name, sample_metadata in zip(
-                                            pa_file_name_array.to_pylist(), pa_table_to_pylist(pa_metadata_table)
+                                            pa_file_name_array.to_pylist(), pa_metadata_table.to_pylist()
                                         )
                                     }
                                 else:

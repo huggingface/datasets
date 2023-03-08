@@ -148,20 +148,6 @@ class IndexedTableMixin:
         return pa.Table.from_batches(batches, schema=self._schema)
 
 
-class _RecordBatchReader:
-    def __init__(self, table: "Table", max_chunksize: Optional[int] = None):
-        self.table = table
-        self.max_chunksize = max_chunksize
-
-    def __iter__(self):
-        for batch in self.table._batches:
-            if self.max_chunksize is None or len(batch) <= self.max_chunksize:
-                yield batch
-            else:
-                for offset in range(0, len(batch), self.max_chunksize):
-                    yield batch.slice(offset, self.max_chunksize)
-
-
 class Table(IndexedTableMixin):
     """
     Wraps a pyarrow Table by using composition.
@@ -359,10 +345,8 @@ class Table(IndexedTableMixin):
                 on the chunk layout of individual columns.
 
         Returns:
-            `pyarrow.RecordBatchReader` if pyarrow>=8.0.0, otherwise a `pyarrow.RecordBatch` iterable
+            `pyarrow.RecordBatchReader`
         """
-        if config.PYARROW_VERSION.major < 8:
-            return _RecordBatchReader(self, max_chunksize=max_chunksize)
         return self.table.to_reader(max_chunksize=max_chunksize)
 
     def field(self, *args, **kwargs):
@@ -816,11 +800,7 @@ class InMemoryTable(TableBlock):
         Returns:
             `datasets.table.Table`
         """
-        try:
-            return cls(pa.Table.from_pylist(mapping, *args, **kwargs))
-        except AttributeError:  # pyarrow <7 does not have from_pylist, so we convert and use from_pydict
-            mapping = {k: [r.get(k) for r in mapping] for k in mapping[0]} if mapping else {}
-            return cls(pa.Table.from_pydict(mapping, *args, **kwargs))
+        return cls(pa.Table.from_pylist(mapping, *args, **kwargs))
 
     @classmethod
     def from_batches(cls, *args, **kwargs):
