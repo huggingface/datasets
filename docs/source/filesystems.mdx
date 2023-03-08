@@ -11,9 +11,10 @@ Take a look at the following table for some example of supported cloud storage p
 | Azure Blob/DataLake  | [adlfs](https://github.com/fsspec/adlfs)                      |
 | Dropbox              | [dropboxdrivefs](https://github.com/MarineChap/dropboxdrivefs)|
 | Google Drive         | [gdrivefs](https://github.com/intake/gdrivefs)                |
+| Oracle Cloud Storage | [ocifs](https://ocifs.readthedocs.io/en/latest/)              |
 
 This guide will show you how to save and load datasets with any cloud storage.
-Here are examples for S3, Google Cloud Storage and Azure Blob Storage.
+Here are examples for S3, Google Cloud Storage, Azure Blob Storage, and Oracle Cloud Object Storage.
 
 ## Set up your cloud storage FileSystem
 
@@ -99,6 +100,27 @@ Otherwise, include your `aws_access_key_id` and `aws_secret_access_key` whenever
 ```py
 >>> import adlfs
 >>> fs = adlfs.AzureBlobFileSystem(**storage_options)
+```
+
+### Oracle Cloud Object Storage
+
+1. Install the OCI FileSystem implementation:
+
+```
+>>> pip install ocifs
+```
+
+2. Define your credentials
+
+```py
+>>> storage_options = {"config": "~/.oci/config", "region": "us-ashburn-1"} 
+```
+
+3. Create your FileSystem instance
+
+```py
+>>> import ocifs
+>>> fs = ocifs.OCIFileSystem(**storage_options)
 ```
 
 ## Load and Save your datasets using your cloud storage FileSystem
