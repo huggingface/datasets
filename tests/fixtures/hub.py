@@ -39,12 +39,9 @@ def ci_hub_token_path(monkeypatch):
 
 @pytest.fixture
 def set_ci_hub_access_token(ci_hub_config, ci_hub_token_path):
-    _api = HfApi(endpoint=CI_HUB_ENDPOINT)
-    _api.set_access_token(CI_HUB_USER_TOKEN)
     HfFolder.save_token(CI_HUB_USER_TOKEN)
     yield
     HfFolder.delete_token()
-    _api.unset_access_token()
 
 
 @pytest.fixture(scope="session")
@@ -54,14 +51,10 @@ def hf_api():
 
 @pytest.fixture(scope="session")
 def hf_token(hf_api: HfApi):
-    hf_api.set_access_token(CI_HUB_USER_TOKEN)
+    previous_token = HfFolder.get_token()
     HfFolder.save_token(CI_HUB_USER_TOKEN)
-
     yield CI_HUB_USER_TOKEN
-    try:
-        hf_api.unset_access_token()
-    except requests.exceptions.HTTPError:
-        pass
+    HfFolder.save_token(previous_token)
 
 
 @pytest.fixture
