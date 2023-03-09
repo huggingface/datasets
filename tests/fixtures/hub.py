@@ -54,7 +54,8 @@ def hf_token(hf_api: HfApi):
     previous_token = HfFolder.get_token()
     HfFolder.save_token(CI_HUB_USER_TOKEN)
     yield CI_HUB_USER_TOKEN
-    HfFolder.save_token(previous_token)
+    if previous_token is not None:
+        HfFolder.save_token(previous_token)
 
 
 @pytest.fixture
