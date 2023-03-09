@@ -359,11 +359,12 @@ class DatasetBuilder:
             with FileLock(lock_path):
                 if os.path.exists(self._cache_dir):  # check if data exist
                     if len(os.listdir(self._cache_dir)) > 0:
-                        logger.info("Overwrite dataset info from restored data version.")
-                        self.info = DatasetInfo.from_directory(self._cache_dir)
+                        if os.path.exists(path_join(self._cache_dir, config.DATASET_INFO_FILENAME)):
+                            logger.info("Overwrite dataset info from restored data version if exists.")
+                            self.info = DatasetInfo.from_directory(self._cache_dir)
                     else:  # dir exists but no data, remove the empty dir as data aren't available anymore
                         logger.warning(
-                            f"Old caching folder {self._cache_dir} for dataset {self.name} exists but not data were found. Removing it. "
+                            f"Old caching folder {self._cache_dir} for dataset {self.name} exists but no data were found. Removing it. "
                         )
                         os.rmdir(self._cache_dir)
 
@@ -374,7 +375,7 @@ class DatasetBuilder:
         # Set download manager
         self.dl_manager = None
 
-        # Record infos even if verification_mode="none"; used by "datasets-cli test" to generate file checksums for (deprecated) dataset_infos.json
+        # Set to True by "datasets-cli test" to generate file checksums for (deprecated) dataset_infos.json independently of verification_mode value.
         self._record_infos = False
 
         # Enable streaming (e.g. it patches "open" to work with remote files)
@@ -718,10 +719,10 @@ class DatasetBuilder:
         ```
         """
         if ignore_verifications != "deprecated":
-            verification_mode = "none" if ignore_verifications else "full"
+            verification_mode = VerificationMode.NO_CHECKS if ignore_verifications else VerificationMode.ALL_CHECKS
             warnings.warn(
                 "'ignore_verifications' was deprecated in favor of 'verification_mode' in version 2.9.1 and will be removed in 3.0.0.\n"
-                f"You can remove this warning by passing 'verification_mode={verification_mode}' instead.",
+                f"You can remove this warning by passing 'verification_mode={verification_mode.value}' instead.",
                 FutureWarning,
             )
         if use_auth_token != "deprecated":
@@ -1078,10 +1079,10 @@ class DatasetBuilder:
         ```
         """
         if ignore_verifications != "deprecated":
-            verification_mode = "none" if ignore_verifications else "full"
+            verification_mode = verification_mode.NO_CHECKS if ignore_verifications else VerificationMode.ALL_CHECKS
             warnings.warn(
                 "'ignore_verifications' was deprecated in favor of 'verification' in version 2.9.1 and will be removed in 3.0.0.\n"
-                f"You can remove this warning by passing 'verification_mode={verification_mode}' instead.",
+                f"You can remove this warning by passing 'verification_mode={verification_mode.value}' instead.",
                 FutureWarning,
             )
         is_local = not is_remote_filesystem(self._fs)
