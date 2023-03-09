@@ -45,7 +45,7 @@ def test_compression_filesystems(compression_fs_class, gz_file, bz2_file, lz4_fi
     assert isinstance(fs, compression_fs_class)
     expected_filename = os.path.basename(input_path)
     expected_filename = expected_filename[: expected_filename.rindex(".")]
-    assert fs.ls("/") == [expected_filename]
+    assert fs.glob("*") == [expected_filename]
     with fs.open(expected_filename, "r", encoding="utf-8") as f, open(text_file, encoding="utf-8") as expected_file:
         assert f.read() == expected_file.read()
 
