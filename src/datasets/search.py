@@ -190,7 +190,7 @@ class ElasticSearchIndex(BaseIndex):
         response = self.es_client.search(
             index=self.es_index_name,
             body={"query": {"multi_match": {"query": query, "fields": ["text"], "type": "cross_fields"}}, "size": k},
-            **kwargs
+            **kwargs,
         )
         hits = response["hits"]["hits"]
         return SearchResults([hit["_score"] for hit in hits], [int(hit["_id"]) for hit in hits])
@@ -686,7 +686,9 @@ class IndexableMixin:
         self._check_index_is_initialized(index_name)
         return self._indexes[index_name].search(query, k, **kwargs)
 
-    def search_batch(self, index_name: str, queries: Union[List[str], np.array], k: int = 10, **kwargs) -> BatchedSearchResults:
+    def search_batch(
+        self, index_name: str, queries: Union[List[str], np.array], k: int = 10, **kwargs
+    ) -> BatchedSearchResults:
         """Find the nearest examples indices in the dataset to the query.
 
         Args:
