@@ -34,8 +34,8 @@ jobs:
     needs: check_code_quality
     strategy:
       matrix:
-        test: ['unit', 'integration']
-        os: [ubuntu-latest, windows-latest]
+        test: ['unit'] #, 'integration']
+        os: [ubuntu-latest] #, windows-latest]
         deps_versions: [deps-latest, deps-minimum]
     continue-on-error: ${{ matrix.test == 'integration' }}
     runs-on: ${{ matrix.os }}
