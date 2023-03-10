@@ -15,6 +15,7 @@ from .download.streaming_download_manager import (
     xisfile,
     xjoin,
     xlistdir,
+    xnumpy_load,
     xopen,
     xpandas_read_csv,
     xpandas_read_excel,
@@ -92,6 +93,7 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
     patch_submodule(module, "pathlib.Path", xPath).start()
     # file readers
     patch_submodule(module, "gzip.open", wrap_auth(xgzip_open)).start()
+    patch_submodule(module, "numpy.load", wrap_auth(xnumpy_load)).start()
     patch_submodule(module, "pandas.read_csv", wrap_auth(xpandas_read_csv), attrs=["__version__"]).start()
     patch_submodule(module, "pandas.read_excel", wrap_auth(xpandas_read_excel), attrs=["__version__"]).start()
     patch_submodule(module, "scipy.io.loadmat", wrap_auth(xsio_loadmat), attrs=["__version__"]).start()
