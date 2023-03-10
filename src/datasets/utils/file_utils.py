@@ -501,7 +501,8 @@ def get_from_cache(
         elif scheme not in ("http", "https"):
             response = fsspec_head(url)
             # use the hash of the response as a pseudo ETag to detect changes
-            etag = json.dumps(response, sort_keys=True) if use_etag else None
+            # s3fs uses "ETag", gcsfs uses "etag"
+            etag = (response.get("ETag", None) or response.get("etag", None)) if use_etag else None
             connected = True
         try:
             response = http_head(
