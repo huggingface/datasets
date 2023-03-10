@@ -392,8 +392,8 @@ class TensorflowDatasetMixin:
         if num_workers > 0 and sys.version_info < (3, 8):
             raise ValueError("Using multiple workers is only supported on Python versions >= 3.8.")
 
-        # column_as_dict = True
-        # labels_as_dict = True
+        column_as_dict = True
+        labels_as_dict = True
         if collate_fn is None:
             # Set a very simple default collator that just stacks things together
             collate_fn = minimal_tf_collate_fn
@@ -405,13 +405,13 @@ class TensorflowDatasetMixin:
             label_cols = []
         elif isinstance(label_cols, str):
             label_cols = [label_cols]
-            # labels_as_dict = False
+            labels_as_dict = False
         if len(set(label_cols)) < len(label_cols):
             raise ValueError("List of label_cols contains duplicates.")
         if columns:
             if isinstance(columns, str):
                 columns = [columns]
-                # column_as_dict = False
+                column_as_dict = False
             if len(set(columns)) < len(columns):
                 raise ValueError("List of columns contains duplicates.")
             cols_to_retain = list(set(columns + label_cols))
@@ -484,12 +484,12 @@ class TensorflowDatasetMixin:
 
             # If columns or labels are passed in as a string instead of a list of strings, there is
             # only one element and the raw tensor is returned
-            # if not column_as_dict:
-            if len(features) == 1:
+            if not column_as_dict:
+            # if len(features) == 1:
                 features = list(features.values())[0]
 
-            # if not labels_as_dict:
-            if len(labels) == 1:
+            if not labels_as_dict:
+            # if len(labels) == 1:
                 labels = list(labels.values())[0]
 
             if isinstance(labels, dict) and len(labels) == 0:

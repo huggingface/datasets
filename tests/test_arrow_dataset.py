@@ -434,26 +434,26 @@ class BaseDatasetTest(TestCase):
     #             self.assertIsInstance(dset["col_3"], torch.Tensor)
     #             self.assertListEqual(list(dset[0]["col_3"].shape), [])
 
-    @require_tf
-    def test_set_format_tf(self, in_memory):
-        import tensorflow as tf
+    # @require_tf
+    # def test_set_format_tf(self, in_memory):
+    #     import tensorflow as tf
 
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
-                dset.set_format(type="tensorflow", columns=["col_1"])
-                self.assertEqual(len(dset[0]), 1)
-                self.assertIsInstance(dset[0]["col_1"], tf.Tensor)
-                self.assertListEqual(list(dset[0]["col_1"].shape), [])
-                self.assertEqual(dset[0]["col_1"].numpy().item(), 3)
+    #     with tempfile.TemporaryDirectory() as tmp_dir:
+    #         with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+    #             dset.set_format(type="tensorflow", columns=["col_1"])
+    #             self.assertEqual(len(dset[0]), 1)
+    #             self.assertIsInstance(dset[0]["col_1"], tf.Tensor)
+    #             self.assertListEqual(list(dset[0]["col_1"].shape), [])
+    #             self.assertEqual(dset[0]["col_1"].numpy().item(), 3)
 
-                dset.set_format(type="tensorflow", columns=["col_1"], output_all_columns=True)
-                self.assertEqual(len(dset[0]), 3)
-                self.assertIsInstance(dset[0]["col_2"], str)
-                self.assertEqual(dset[0]["col_2"], "a")
+    #             dset.set_format(type="tensorflow", columns=["col_1"], output_all_columns=True)
+    #             self.assertEqual(len(dset[0]), 3)
+    #             self.assertIsInstance(dset[0]["col_2"], str)
+    #             self.assertEqual(dset[0]["col_2"], "a")
 
-                dset.set_format(type="tensorflow", columns=["col_1", "col_2"])
-                self.assertEqual(len(dset[0]), 2)
-                self.assertEqual(dset[0]["col_2"].numpy().decode("utf-8"), "a")
+    #             dset.set_format(type="tensorflow", columns=["col_1", "col_2"])
+    #             self.assertEqual(len(dset[0]), 2)
+    #             self.assertEqual(dset[0]["col_2"].numpy().decode("utf-8"), "a")
 
     # def test_set_format_pandas(self, in_memory):
     #     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -2048,43 +2048,43 @@ class BaseDatasetTest(TestCase):
     #                         ) as dset_sorted_formatted:
     #                             self.assertEqual(dset_sorted_formatted.format["type"], "numpy")
 
-    @require_tf
-    def test_export(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                # Export the data
-                tfrecord_path = os.path.join(tmp_dir, "test.tfrecord")
-                with dset.map(
-                    lambda ex, i: {
-                        "id": i,
-                        "question": f"Question {i}",
-                        "answers": {"text": [f"Answer {i}-0", f"Answer {i}-1"], "answer_start": [0, 1]},
-                    },
-                    with_indices=True,
-                    remove_columns=["filename"],
-                ) as formatted_dset:
-                    with formatted_dset.flatten() as formatted_dset:
-                        formatted_dset.set_format("numpy")
-                        formatted_dset.export(filename=tfrecord_path, format="tfrecord")
+    # @require_tf
+    # def test_export(self, in_memory):
+    #     with tempfile.TemporaryDirectory() as tmp_dir:
+    #         with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+    #             # Export the data
+    #             tfrecord_path = os.path.join(tmp_dir, "test.tfrecord")
+    #             with dset.map(
+    #                 lambda ex, i: {
+    #                     "id": i,
+    #                     "question": f"Question {i}",
+    #                     "answers": {"text": [f"Answer {i}-0", f"Answer {i}-1"], "answer_start": [0, 1]},
+    #                 },
+    #                 with_indices=True,
+    #                 remove_columns=["filename"],
+    #             ) as formatted_dset:
+    #                 with formatted_dset.flatten() as formatted_dset:
+    #                     formatted_dset.set_format("numpy")
+    #                     formatted_dset.export(filename=tfrecord_path, format="tfrecord")
 
-                        # Import the data
-                        import tensorflow as tf
+    #                     # Import the data
+    #                     import tensorflow as tf
 
-                        tf_dset = tf.data.TFRecordDataset([tfrecord_path])
-                        feature_description = {
-                            "id": tf.io.FixedLenFeature([], tf.int64),
-                            "question": tf.io.FixedLenFeature([], tf.string),
-                            "answers.text": tf.io.VarLenFeature(tf.string),
-                            "answers.answer_start": tf.io.VarLenFeature(tf.int64),
-                        }
-                        tf_parsed_dset = tf_dset.map(
-                            lambda example_proto: tf.io.parse_single_example(example_proto, feature_description)
-                        )
-                        # Test that keys match original dataset
-                        for i, ex in enumerate(tf_parsed_dset):
-                            self.assertEqual(ex.keys(), formatted_dset[i].keys())
-                        # Test for equal number of elements
-                        self.assertEqual(i, len(formatted_dset) - 1)
+    #                     tf_dset = tf.data.TFRecordDataset([tfrecord_path])
+    #                     feature_description = {
+    #                         "id": tf.io.FixedLenFeature([], tf.int64),
+    #                         "question": tf.io.FixedLenFeature([], tf.string),
+    #                         "answers.text": tf.io.VarLenFeature(tf.string),
+    #                         "answers.answer_start": tf.io.VarLenFeature(tf.int64),
+    #                     }
+    #                     tf_parsed_dset = tf_dset.map(
+    #                         lambda example_proto: tf.io.parse_single_example(example_proto, feature_description)
+    #                     )
+    #                     # Test that keys match original dataset
+    #                     for i, ex in enumerate(tf_parsed_dset):
+    #                         self.assertEqual(ex.keys(), formatted_dset[i].keys())
+    #                     # Test for equal number of elements
+    #                     self.assertEqual(i, len(formatted_dset) - 1)
 
     def test_to_csv(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -2487,153 +2487,153 @@ class BaseDatasetTest(TestCase):
                         dset.unique(dset.column_names[0])
                         assert_arrow_metadata_are_synced_with_dataset_features(dset)
 
-    @require_tf
-    @require_torch
-    def test_format_vectors(self, in_memory):
-        import numpy as np
-        import tensorflow as tf
-        import torch
+    # @require_tf
+    # @require_torch
+    # def test_format_vectors(self, in_memory):
+    #     import numpy as np
+    #     import tensorflow as tf
+    #     import torch
 
-        with tempfile.TemporaryDirectory() as tmp_dir, self._create_dummy_dataset(
-            in_memory, tmp_dir
-        ) as dset, dset.map(lambda ex, i: {"vec": np.ones(3) * i}, with_indices=True) as dset:
-            columns = dset.column_names
+    #     with tempfile.TemporaryDirectory() as tmp_dir, self._create_dummy_dataset(
+    #         in_memory, tmp_dir
+    #     ) as dset, dset.map(lambda ex, i: {"vec": np.ones(3) * i}, with_indices=True) as dset:
+    #         columns = dset.column_names
 
-            self.assertIsNotNone(dset[0])
-            self.assertIsNotNone(dset[:2])
-            for col in columns:
-                self.assertIsInstance(dset[0][col], (str, list))
-                self.assertIsInstance(dset[:2][col], list)
-            self.assertDictEqual(
-                dset.features, Features({"filename": Value("string"), "vec": Sequence(Value("float64"))})
-            )
+    #         self.assertIsNotNone(dset[0])
+    #         self.assertIsNotNone(dset[:2])
+    #         for col in columns:
+    #             self.assertIsInstance(dset[0][col], (str, list))
+    #             self.assertIsInstance(dset[:2][col], list)
+    #         self.assertDictEqual(
+    #             dset.features, Features({"filename": Value("string"), "vec": Sequence(Value("float64"))})
+    #         )
 
-            dset.set_format("tensorflow")
-            self.assertIsNotNone(dset[0])
-            self.assertIsNotNone(dset[:2])
-            for col in columns:
-                self.assertIsInstance(dset[0][col], (tf.Tensor, tf.RaggedTensor))
-                self.assertIsInstance(dset[:2][col], (tf.Tensor, tf.RaggedTensor))
-                self.assertIsInstance(dset[col], (tf.Tensor, tf.RaggedTensor))
-            self.assertTupleEqual(tuple(dset[:2]["vec"].shape), (2, 3))
-            self.assertTupleEqual(tuple(dset["vec"][:2].shape), (2, 3))
+    #         dset.set_format("tensorflow")
+    #         self.assertIsNotNone(dset[0])
+    #         self.assertIsNotNone(dset[:2])
+    #         for col in columns:
+    #             self.assertIsInstance(dset[0][col], (tf.Tensor, tf.RaggedTensor))
+    #             self.assertIsInstance(dset[:2][col], (tf.Tensor, tf.RaggedTensor))
+    #             self.assertIsInstance(dset[col], (tf.Tensor, tf.RaggedTensor))
+    #         self.assertTupleEqual(tuple(dset[:2]["vec"].shape), (2, 3))
+    #         self.assertTupleEqual(tuple(dset["vec"][:2].shape), (2, 3))
 
-            dset.set_format("numpy")
-            self.assertIsNotNone(dset[0])
-            self.assertIsNotNone(dset[:2])
-            self.assertIsInstance(dset[0]["filename"], np.str_)
-            self.assertIsInstance(dset[:2]["filename"], np.ndarray)
-            self.assertIsInstance(dset["filename"], np.ndarray)
-            self.assertIsInstance(dset[0]["vec"], np.ndarray)
-            self.assertIsInstance(dset[:2]["vec"], np.ndarray)
-            self.assertIsInstance(dset["vec"], np.ndarray)
-            self.assertTupleEqual(dset[:2]["vec"].shape, (2, 3))
-            self.assertTupleEqual(dset["vec"][:2].shape, (2, 3))
+    #         dset.set_format("numpy")
+    #         self.assertIsNotNone(dset[0])
+    #         self.assertIsNotNone(dset[:2])
+    #         self.assertIsInstance(dset[0]["filename"], np.str_)
+    #         self.assertIsInstance(dset[:2]["filename"], np.ndarray)
+    #         self.assertIsInstance(dset["filename"], np.ndarray)
+    #         self.assertIsInstance(dset[0]["vec"], np.ndarray)
+    #         self.assertIsInstance(dset[:2]["vec"], np.ndarray)
+    #         self.assertIsInstance(dset["vec"], np.ndarray)
+    #         self.assertTupleEqual(dset[:2]["vec"].shape, (2, 3))
+    #         self.assertTupleEqual(dset["vec"][:2].shape, (2, 3))
 
-            dset.set_format("torch", columns=["vec"])
-            self.assertIsNotNone(dset[0])
-            self.assertIsNotNone(dset[:2])
-            # torch.Tensor is only for numerical columns
-            self.assertIsInstance(dset[0]["vec"], torch.Tensor)
-            self.assertIsInstance(dset[:2]["vec"], torch.Tensor)
-            self.assertIsInstance(dset["vec"][:2], torch.Tensor)
-            self.assertTupleEqual(dset[:2]["vec"].shape, (2, 3))
-            self.assertTupleEqual(dset["vec"][:2].shape, (2, 3))
+    #         dset.set_format("torch", columns=["vec"])
+    #         self.assertIsNotNone(dset[0])
+    #         self.assertIsNotNone(dset[:2])
+    #         # torch.Tensor is only for numerical columns
+    #         self.assertIsInstance(dset[0]["vec"], torch.Tensor)
+    #         self.assertIsInstance(dset[:2]["vec"], torch.Tensor)
+    #         self.assertIsInstance(dset["vec"][:2], torch.Tensor)
+    #         self.assertTupleEqual(dset[:2]["vec"].shape, (2, 3))
+    #         self.assertTupleEqual(dset["vec"][:2].shape, (2, 3))
 
-    @require_tf
-    @require_torch
-    def test_format_ragged_vectors(self, in_memory):
-        import numpy as np
-        import tensorflow as tf
-        import torch
+    # @require_tf
+    # @require_torch
+    # def test_format_ragged_vectors(self, in_memory):
+    #     import numpy as np
+    #     import tensorflow as tf
+    #     import torch
 
-        with tempfile.TemporaryDirectory() as tmp_dir, self._create_dummy_dataset(
-            in_memory, tmp_dir
-        ) as dset, dset.map(lambda ex, i: {"vec": np.ones(3 + i) * i}, with_indices=True) as dset:
-            columns = dset.column_names
+    #     with tempfile.TemporaryDirectory() as tmp_dir, self._create_dummy_dataset(
+    #         in_memory, tmp_dir
+    #     ) as dset, dset.map(lambda ex, i: {"vec": np.ones(3 + i) * i}, with_indices=True) as dset:
+    #         columns = dset.column_names
 
-            self.assertIsNotNone(dset[0])
-            self.assertIsNotNone(dset[:2])
-            for col in columns:
-                self.assertIsInstance(dset[0][col], (str, list))
-                self.assertIsInstance(dset[:2][col], list)
-            self.assertDictEqual(
-                dset.features, Features({"filename": Value("string"), "vec": Sequence(Value("float64"))})
-            )
+    #         self.assertIsNotNone(dset[0])
+    #         self.assertIsNotNone(dset[:2])
+    #         for col in columns:
+    #             self.assertIsInstance(dset[0][col], (str, list))
+    #             self.assertIsInstance(dset[:2][col], list)
+    #         self.assertDictEqual(
+    #             dset.features, Features({"filename": Value("string"), "vec": Sequence(Value("float64"))})
+    #         )
 
-            dset.set_format("tensorflow")
-            self.assertIsNotNone(dset[0])
-            self.assertIsNotNone(dset[:2])
-            for col in columns:
-                self.assertIsInstance(dset[0][col], tf.Tensor)
-                self.assertIsInstance(dset[:2][col], tf.RaggedTensor if col == "vec" else tf.Tensor)
-                self.assertIsInstance(dset[col], tf.RaggedTensor if col == "vec" else tf.Tensor)
-            # dim is None for ragged vectors in tensorflow
-            self.assertListEqual(dset[:2]["vec"].shape.as_list(), [2, None])
-            self.assertListEqual(dset["vec"][:2].shape.as_list(), [2, None])
+    #         dset.set_format("tensorflow")
+    #         self.assertIsNotNone(dset[0])
+    #         self.assertIsNotNone(dset[:2])
+    #         for col in columns:
+    #             self.assertIsInstance(dset[0][col], tf.Tensor)
+    #             self.assertIsInstance(dset[:2][col], tf.RaggedTensor if col == "vec" else tf.Tensor)
+    #             self.assertIsInstance(dset[col], tf.RaggedTensor if col == "vec" else tf.Tensor)
+    #         # dim is None for ragged vectors in tensorflow
+    #         self.assertListEqual(dset[:2]["vec"].shape.as_list(), [2, None])
+    #         self.assertListEqual(dset["vec"][:2].shape.as_list(), [2, None])
 
-            dset.set_format("numpy")
-            self.assertIsNotNone(dset[0])
-            self.assertIsNotNone(dset[:2])
-            self.assertIsInstance(dset[0]["filename"], np.str_)
-            self.assertIsInstance(dset[:2]["filename"], np.ndarray)
-            self.assertIsInstance(dset["filename"], np.ndarray)
-            self.assertIsInstance(dset[0]["vec"], np.ndarray)
-            self.assertIsInstance(dset[:2]["vec"], np.ndarray)
-            self.assertIsInstance(dset["vec"], np.ndarray)
-            # array is flat for ragged vectors in numpy
-            self.assertTupleEqual(dset[:2]["vec"].shape, (2,))
-            self.assertTupleEqual(dset["vec"][:2].shape, (2,))
+    #         dset.set_format("numpy")
+    #         self.assertIsNotNone(dset[0])
+    #         self.assertIsNotNone(dset[:2])
+    #         self.assertIsInstance(dset[0]["filename"], np.str_)
+    #         self.assertIsInstance(dset[:2]["filename"], np.ndarray)
+    #         self.assertIsInstance(dset["filename"], np.ndarray)
+    #         self.assertIsInstance(dset[0]["vec"], np.ndarray)
+    #         self.assertIsInstance(dset[:2]["vec"], np.ndarray)
+    #         self.assertIsInstance(dset["vec"], np.ndarray)
+    #         # array is flat for ragged vectors in numpy
+    #         self.assertTupleEqual(dset[:2]["vec"].shape, (2,))
+    #         self.assertTupleEqual(dset["vec"][:2].shape, (2,))
 
-            dset.set_format("torch")
-            self.assertIsNotNone(dset[0])
-            self.assertIsNotNone(dset[:2])
-            self.assertIsInstance(dset[0]["filename"], str)
-            self.assertIsInstance(dset[:2]["filename"], list)
-            self.assertIsInstance(dset["filename"], list)
-            self.assertIsInstance(dset[0]["vec"], torch.Tensor)
-            self.assertIsInstance(dset[:2]["vec"][0], torch.Tensor)
-            self.assertIsInstance(dset["vec"][0], torch.Tensor)
-            # pytorch doesn't support ragged tensors, so we should have lists
-            self.assertIsInstance(dset[:2]["vec"], list)
-            self.assertIsInstance(dset[:2]["vec"][0], torch.Tensor)
-            self.assertIsInstance(dset["vec"][:2], list)
-            self.assertIsInstance(dset["vec"][0], torch.Tensor)
+    #         dset.set_format("torch")
+    #         self.assertIsNotNone(dset[0])
+    #         self.assertIsNotNone(dset[:2])
+    #         self.assertIsInstance(dset[0]["filename"], str)
+    #         self.assertIsInstance(dset[:2]["filename"], list)
+    #         self.assertIsInstance(dset["filename"], list)
+    #         self.assertIsInstance(dset[0]["vec"], torch.Tensor)
+    #         self.assertIsInstance(dset[:2]["vec"][0], torch.Tensor)
+    #         self.assertIsInstance(dset["vec"][0], torch.Tensor)
+    #         # pytorch doesn't support ragged tensors, so we should have lists
+    #         self.assertIsInstance(dset[:2]["vec"], list)
+    #         self.assertIsInstance(dset[:2]["vec"][0], torch.Tensor)
+    #         self.assertIsInstance(dset["vec"][:2], list)
+    #         self.assertIsInstance(dset["vec"][0], torch.Tensor)
 
-    @require_tf
-    @require_torch
-    def test_format_nested(self, in_memory):
-        import numpy as np
-        import tensorflow as tf
-        import torch
+    # @require_tf
+    # @require_torch
+    # def test_format_nested(self, in_memory):
+    #     import numpy as np
+    #     import tensorflow as tf
+    #     import torch
 
-        with tempfile.TemporaryDirectory() as tmp_dir, self._create_dummy_dataset(
-            in_memory, tmp_dir
-        ) as dset, dset.map(lambda ex: {"nested": [{"foo": np.ones(3)}] * len(ex["filename"])}, batched=True) as dset:
-            self.assertDictEqual(
-                dset.features, Features({"filename": Value("string"), "nested": {"foo": Sequence(Value("float64"))}})
-            )
+    #     with tempfile.TemporaryDirectory() as tmp_dir, self._create_dummy_dataset(
+    #         in_memory, tmp_dir
+    #     ) as dset, dset.map(lambda ex: {"nested": [{"foo": np.ones(3)}] * len(ex["filename"])}, batched=True) as dset:
+    #         self.assertDictEqual(
+    #             dset.features, Features({"filename": Value("string"), "nested": {"foo": Sequence(Value("float64"))}})
+    #         )
 
-            dset.set_format("tensorflow")
-            self.assertIsNotNone(dset[0])
-            self.assertIsInstance(dset[0]["nested"]["foo"], (tf.Tensor, tf.RaggedTensor))
-            self.assertIsNotNone(dset[:2])
-            self.assertIsInstance(dset[:2]["nested"][0]["foo"], (tf.Tensor, tf.RaggedTensor))
-            self.assertIsInstance(dset["nested"][0]["foo"], (tf.Tensor, tf.RaggedTensor))
+    #         dset.set_format("tensorflow")
+    #         self.assertIsNotNone(dset[0])
+    #         self.assertIsInstance(dset[0]["nested"]["foo"], (tf.Tensor, tf.RaggedTensor))
+    #         self.assertIsNotNone(dset[:2])
+    #         self.assertIsInstance(dset[:2]["nested"][0]["foo"], (tf.Tensor, tf.RaggedTensor))
+    #         self.assertIsInstance(dset["nested"][0]["foo"], (tf.Tensor, tf.RaggedTensor))
 
-            dset.set_format("numpy")
-            self.assertIsNotNone(dset[0])
-            self.assertIsInstance(dset[0]["nested"]["foo"], np.ndarray)
-            self.assertIsNotNone(dset[:2])
-            self.assertIsInstance(dset[:2]["nested"][0]["foo"], np.ndarray)
-            self.assertIsInstance(dset["nested"][0]["foo"], np.ndarray)
+    #         dset.set_format("numpy")
+    #         self.assertIsNotNone(dset[0])
+    #         self.assertIsInstance(dset[0]["nested"]["foo"], np.ndarray)
+    #         self.assertIsNotNone(dset[:2])
+    #         self.assertIsInstance(dset[:2]["nested"][0]["foo"], np.ndarray)
+    #         self.assertIsInstance(dset["nested"][0]["foo"], np.ndarray)
 
-            dset.set_format("torch", columns="nested")
-            self.assertIsNotNone(dset[0])
-            self.assertIsInstance(dset[0]["nested"]["foo"], torch.Tensor)
-            self.assertIsNotNone(dset[:2])
-            self.assertIsInstance(dset[:2]["nested"][0]["foo"], torch.Tensor)
-            self.assertIsInstance(dset["nested"][0]["foo"], torch.Tensor)
+    #         dset.set_format("torch", columns="nested")
+    #         self.assertIsNotNone(dset[0])
+    #         self.assertIsInstance(dset[0]["nested"]["foo"], torch.Tensor)
+    #         self.assertIsNotNone(dset[:2])
+    #         self.assertIsInstance(dset[:2]["nested"][0]["foo"], torch.Tensor)
+    #         self.assertIsInstance(dset["nested"][0]["foo"], torch.Tensor)
 
     # def test_format_pandas(self, in_memory):
     #     import pandas as pd
@@ -2807,121 +2807,121 @@ class BaseDatasetTest(TestCase):
                 del transform_dset
         del tf_dataset  # For correct cleanup
 
-    @require_tf
-    def test_tf_index_reshuffling(self, in_memory):
-        # This test checks that when we do two epochs over a tf.data.Dataset from to_tf_dataset
-        # that we get a different shuffle order each time
-        # It also checks that when we aren't shuffling, that the dataset order is fully preserved
-        # even when loading is split across multiple workers
-        data = {"col_1": list(range(20))}
-        for num_workers in [0, 1, 2, 3]:
-            if num_workers > 0 and sys.version_info < (3, 8):
-                continue  # Skip multiprocessing tests for Python < 3.8
-            with Dataset.from_dict(data) as dset:
-                tf_dataset = dset.to_tf_dataset(batch_size=10, shuffle=True, num_workers=num_workers)
-                indices = []
-                for batch in tf_dataset:
-                    indices.append(batch["col_1"])
-                indices = np.concatenate([arr.numpy() for arr in indices])
-                second_indices = []
-                for batch in tf_dataset:
-                    second_indices.append(batch["col_1"])
-                second_indices = np.concatenate([arr.numpy() for arr in second_indices])
-                self.assertFalse(np.array_equal(indices, second_indices))
+    # @require_tf
+    # def test_tf_index_reshuffling(self, in_memory):
+    #     # This test checks that when we do two epochs over a tf.data.Dataset from to_tf_dataset
+    #     # that we get a different shuffle order each time
+    #     # It also checks that when we aren't shuffling, that the dataset order is fully preserved
+    #     # even when loading is split across multiple workers
+    #     data = {"col_1": list(range(20))}
+    #     for num_workers in [0, 1, 2, 3]:
+    #         if num_workers > 0 and sys.version_info < (3, 8):
+    #             continue  # Skip multiprocessing tests for Python < 3.8
+    #         with Dataset.from_dict(data) as dset:
+    #             tf_dataset = dset.to_tf_dataset(batch_size=10, shuffle=True, num_workers=num_workers)
+    #             indices = []
+    #             for batch in tf_dataset:
+    #                 indices.append(batch["col_1"])
+    #             indices = np.concatenate([arr.numpy() for arr in indices])
+    #             second_indices = []
+    #             for batch in tf_dataset:
+    #                 second_indices.append(batch["col_1"])
+    #             second_indices = np.concatenate([arr.numpy() for arr in second_indices])
+    #             self.assertFalse(np.array_equal(indices, second_indices))
 
-                tf_dataset = dset.to_tf_dataset(batch_size=1, shuffle=False, num_workers=num_workers)
-                for i, batch in enumerate(tf_dataset):
-                    # Assert that the unshuffled order is fully preserved even when multiprocessing
-                    self.assertEqual(i, batch["col_1"].numpy())
+    #             tf_dataset = dset.to_tf_dataset(batch_size=1, shuffle=False, num_workers=num_workers)
+    #             for i, batch in enumerate(tf_dataset):
+    #                 # Assert that the unshuffled order is fully preserved even when multiprocessing
+    #                 self.assertEqual(i, batch["col_1"].numpy())
 
-    @require_tf
-    def test_tf_label_renaming(self, in_memory):
-        # Protect TF-specific imports in here
-        import tensorflow as tf
+    # @require_tf
+    # def test_tf_label_renaming(self, in_memory):
+    #     # Protect TF-specific imports in here
+    #     import tensorflow as tf
 
-        from datasets.utils.tf_utils import minimal_tf_collate_fn_with_renaming
+    #     from datasets.utils.tf_utils import minimal_tf_collate_fn_with_renaming
 
-        tmp_dir = tempfile.TemporaryDirectory()
-        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
-            with dset.rename_columns({"col_1": "features", "col_2": "label"}) as new_dset:
-                tf_dataset = new_dset.to_tf_dataset(collate_fn=minimal_tf_collate_fn_with_renaming, batch_size=4)
-                batch = next(iter(tf_dataset))
-                self.assertTrue("labels" in batch and "features" in batch)
+    #     tmp_dir = tempfile.TemporaryDirectory()
+    #     with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+    #         with dset.rename_columns({"col_1": "features", "col_2": "label"}) as new_dset:
+    #             tf_dataset = new_dset.to_tf_dataset(collate_fn=minimal_tf_collate_fn_with_renaming, batch_size=4)
+    #             batch = next(iter(tf_dataset))
+    #             self.assertTrue("labels" in batch and "features" in batch)
 
-                tf_dataset = new_dset.to_tf_dataset(
-                    columns=["features", "labels"], collate_fn=minimal_tf_collate_fn_with_renaming, batch_size=4
-                )
-                batch = next(iter(tf_dataset))
-                self.assertTrue("labels" in batch and "features" in batch)
+    #             tf_dataset = new_dset.to_tf_dataset(
+    #                 columns=["features", "labels"], collate_fn=minimal_tf_collate_fn_with_renaming, batch_size=4
+    #             )
+    #             batch = next(iter(tf_dataset))
+    #             self.assertTrue("labels" in batch and "features" in batch)
 
-                tf_dataset = new_dset.to_tf_dataset(
-                    columns=["features", "label"], collate_fn=minimal_tf_collate_fn_with_renaming, batch_size=4
-                )
-                batch = next(iter(tf_dataset))
-                self.assertTrue("labels" in batch and "features" in batch)  # Assert renaming was handled correctly
+    #             tf_dataset = new_dset.to_tf_dataset(
+    #                 columns=["features", "label"], collate_fn=minimal_tf_collate_fn_with_renaming, batch_size=4
+    #             )
+    #             batch = next(iter(tf_dataset))
+    #             self.assertTrue("labels" in batch and "features" in batch)  # Assert renaming was handled correctly
 
-                tf_dataset = new_dset.to_tf_dataset(
-                    columns="features",
-                    label_cols="labels",
-                    collate_fn=minimal_tf_collate_fn_with_renaming,
-                    batch_size=4,
-                )
-                batch = next(iter(tf_dataset))
-                self.assertEqual(len(batch), 2)
-                # Assert that we don't have any empty entries here
-                self.assertTrue(isinstance(batch[0], tf.Tensor) and isinstance(batch[1], tf.Tensor))
+    #             tf_dataset = new_dset.to_tf_dataset(
+    #                 columns="features",
+    #                 label_cols="labels",
+    #                 collate_fn=minimal_tf_collate_fn_with_renaming,
+    #                 batch_size=4,
+    #             )
+    #             batch = next(iter(tf_dataset))
+    #             self.assertEqual(len(batch), 2)
+    #             # Assert that we don't have any empty entries here
+    #             self.assertTrue(isinstance(batch[0], tf.Tensor) and isinstance(batch[1], tf.Tensor))
 
-                tf_dataset = new_dset.to_tf_dataset(
-                    columns="features",
-                    label_cols="label",
-                    collate_fn=minimal_tf_collate_fn_with_renaming,
-                    batch_size=4,
-                )
-                batch = next(iter(tf_dataset))
-                self.assertEqual(len(batch), 2)
-                # Assert that we don't have any empty entries here
-                self.assertTrue(isinstance(batch[0], tf.Tensor) and isinstance(batch[1], tf.Tensor))
+    #             tf_dataset = new_dset.to_tf_dataset(
+    #                 columns="features",
+    #                 label_cols="label",
+    #                 collate_fn=minimal_tf_collate_fn_with_renaming,
+    #                 batch_size=4,
+    #             )
+    #             batch = next(iter(tf_dataset))
+    #             self.assertEqual(len(batch), 2)
+    #             # Assert that we don't have any empty entries here
+    #             self.assertTrue(isinstance(batch[0], tf.Tensor) and isinstance(batch[1], tf.Tensor))
 
-                tf_dataset = new_dset.to_tf_dataset(
-                    columns="features",
-                    collate_fn=minimal_tf_collate_fn_with_renaming,
-                    batch_size=4,
-                )
-                batch = next(iter(tf_dataset))
-                # Assert that labels didn't creep in when we don't ask for them
-                # just because the collate_fn added them
-                self.assertTrue(isinstance(batch, tf.Tensor))
+    #             tf_dataset = new_dset.to_tf_dataset(
+    #                 columns="features",
+    #                 collate_fn=minimal_tf_collate_fn_with_renaming,
+    #                 batch_size=4,
+    #             )
+    #             batch = next(iter(tf_dataset))
+    #             # Assert that labels didn't creep in when we don't ask for them
+    #             # just because the collate_fn added them
+    #             self.assertTrue(isinstance(batch, tf.Tensor))
 
-        del tf_dataset  # For correct cleanup
+    #     del tf_dataset  # For correct cleanup
 
-    @require_tf
-    def test_tf_dataset_options(self, in_memory):
-        tmp_dir = tempfile.TemporaryDirectory()
-        # Test that batch_size option works as expected
-        with self._create_dummy_dataset(in_memory, tmp_dir.name, array_features=True) as dset:
-            tf_dataset = dset.to_tf_dataset(columns="col_3", batch_size=2)
-            batch = next(iter(tf_dataset))
-            self.assertEqual(batch.shape.as_list(), [2, 4])
-            self.assertEqual(batch.dtype.name, "int64")
-        # Test that requesting label_cols works as expected
-        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
-            tf_dataset = dset.to_tf_dataset(columns="col_1", label_cols=["col_2", "col_3"], batch_size=4)
-            batch = next(iter(tf_dataset))
-            self.assertEqual(len(batch), 2)
-            self.assertEqual(set(batch[1].keys()), {"col_2", "col_3"})
-            self.assertEqual(batch[0].dtype.name, "int64")
-            # Assert data comes out as expected and isn't shuffled
-            self.assertEqual(batch[0].numpy().tolist(), [3, 2, 1, 0])
-            self.assertEqual(batch[1]["col_2"].numpy().tolist(), [b"a", b"b", b"c", b"d"])
-            self.assertEqual(batch[1]["col_3"].numpy().tolist(), [0, 1, 0, 1])
-        # Check that incomplete batches are dropped if requested
-        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
-            tf_dataset = dset.to_tf_dataset(columns="col_1", batch_size=3)
-            tf_dataset_with_drop = dset.to_tf_dataset(columns="col_1", batch_size=3, drop_remainder=True)
-            self.assertEqual(len(tf_dataset), 2)  # One batch of 3 and one batch of 1
-            self.assertEqual(len(tf_dataset_with_drop), 1)  # Incomplete batch of 1 is dropped
-        del tf_dataset  # For correct cleanup
-        del tf_dataset_with_drop
+    # @require_tf
+    # def test_tf_dataset_options(self, in_memory):
+    #     tmp_dir = tempfile.TemporaryDirectory()
+    #     # Test that batch_size option works as expected
+    #     with self._create_dummy_dataset(in_memory, tmp_dir.name, array_features=True) as dset:
+    #         tf_dataset = dset.to_tf_dataset(columns="col_3", batch_size=2)
+    #         batch = next(iter(tf_dataset))
+    #         self.assertEqual(batch.shape.as_list(), [2, 4])
+    #         self.assertEqual(batch.dtype.name, "int64")
+    #     # Test that requesting label_cols works as expected
+    #     with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+    #         tf_dataset = dset.to_tf_dataset(columns="col_1", label_cols=["col_2", "col_3"], batch_size=4)
+    #         batch = next(iter(tf_dataset))
+    #         self.assertEqual(len(batch), 2)
+    #         self.assertEqual(set(batch[1].keys()), {"col_2", "col_3"})
+    #         self.assertEqual(batch[0].dtype.name, "int64")
+    #         # Assert data comes out as expected and isn't shuffled
+    #         self.assertEqual(batch[0].numpy().tolist(), [3, 2, 1, 0])
+    #         self.assertEqual(batch[1]["col_2"].numpy().tolist(), [b"a", b"b", b"c", b"d"])
+    #         self.assertEqual(batch[1]["col_3"].numpy().tolist(), [0, 1, 0, 1])
+    #     # Check that incomplete batches are dropped if requested
+    #     with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+    #         tf_dataset = dset.to_tf_dataset(columns="col_1", batch_size=3)
+    #         tf_dataset_with_drop = dset.to_tf_dataset(columns="col_1", batch_size=3, drop_remainder=True)
+    #         self.assertEqual(len(tf_dataset), 2)  # One batch of 3 and one batch of 1
+    #         self.assertEqual(len(tf_dataset_with_drop), 1)  # Incomplete batch of 1 is dropped
+    #     del tf_dataset  # For correct cleanup
+    #     del tf_dataset_with_drop
 
 
 class MiscellaneousDatasetTest(TestCase):

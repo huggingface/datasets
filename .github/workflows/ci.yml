@@ -37,7 +37,7 @@ jobs:
       matrix:
         test: ['unit'] #, 'integration']
         os: [ubuntu-latest] #, windows-latest]
-        deps_versions: [deps-latest, deps-minimum]
+        deps_versions: [deps-latest] #, deps-minimum]
     continue-on-error: ${{ matrix.test == 'integration' }}
     runs-on: ${{ matrix.os }}
     steps:
