@@ -57,14 +57,14 @@ class BatchedNearestExamplesResults(NamedTuple):
 class BaseIndex:
     """Base class for indexing"""
 
-    def search(self, query, k: int = 10) -> SearchResults:
+    def search(self, query, k: int = 10, **kwargs) -> SearchResults:
         """
         To implement.
         This method has to return the scores and the indices of the retrieved examples given a certain query.
         """
         raise NotImplementedError
 
-    def search_batch(self, queries, k: int = 10) -> BatchedSearchResults:
+    def search_batch(self, queries, k: int = 10, **kwargs) -> BatchedSearchResults:
         """Find the nearest examples indices to the query.
 
         Args:
@@ -176,7 +176,7 @@ class ElasticSearchIndex(BaseIndex):
             )
         logger.info(f"Indexed {successes:d} documents")
 
-    def search(self, query: str, k=10) -> SearchResults:
+    def search(self, query: str, k=10, **kwargs) -> SearchResults:
         """Find the nearest examples indices to the query.
 
         Args:
@@ -190,16 +190,17 @@ class ElasticSearchIndex(BaseIndex):
         response = self.es_client.search(
             index=self.es_index_name,
             body={"query": {"multi_match": {"query": query, "fields": ["text"], "type": "cross_fields"}}, "size": k},
+            **kwargs
         )
         hits = response["hits"]["hits"]
         return SearchResults([hit["_score"] for hit in hits], [int(hit["_id"]) for hit in hits])
 
-    def search_batch(self, queries, k: int = 10, max_workers=10) -> BatchedSearchResults:
+    def search_batch(self, queries, k: int = 10, max_workers=10, **kwargs) -> BatchedSearchResults:
         import concurrent.futures
 
         total_scores, total_indices = [None] * len(queries), [None] * len(queries)
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            future_to_index = {executor.submit(self.search, query, k): i for i, query in enumerate(queries)}
+            future_to_index = {executor.submit(self.search, query, k, **kwargs): i for i, query in enumerate(queries)}
             for future in concurrent.futures.as_completed(future_to_index):
                 index = future_to_index[future]
                 results: SearchResults = future.result()
@@ -337,7 +338,7 @@ class FaissIndex(BaseIndex):
 
         return index
 
-    def search(self, query: np.array, k=10) -> SearchResults:
+    def search(self, query: np.array, k=10, **kwargs) -> SearchResults:
         """Find the nearest examples indices to the query.
 
         Args:
@@ -354,10 +355,10 @@ class FaissIndex(BaseIndex):
         queries = query.reshape(1, -1)
         if not queries.flags.c_contiguous:
             queries = np.asarray(queries, order="C")
-        scores, indices = self.faiss_index.search(queries, k)
+        scores, indices = self.faiss_index.search(queries, k, **kwargs)
         return SearchResults(scores[0], indices[0].astype(int))
 
-    def search_batch(self, queries: np.array, k=10) -> BatchedSearchResults:
+    def search_batch(self, queries: np.array, k=10, **kwargs) -> BatchedSearchResults:
         """Find the nearest examples indices to the queries.
 
         Args:
@@ -372,7 +373,7 @@ class FaissIndex(BaseIndex):
             raise ValueError("Shape of query must be 2D")
         if not queries.flags.c_contiguous:
             queries = np.asarray(queries, order="C")
-        scores, indices = self.faiss_index.search(queries, k)
+        scores, indices = self.faiss_index.search(queries, k, **kwargs)
         return BatchedSearchResults(scores, indices.astype(int))
 
     def save(self, file: Union[str, PurePath]):
@@ -667,7 +668,7 @@ class IndexableMixin:
         """
         del self._indexes[index_name]
 
-    def search(self, index_name: str, query: Union[str, np.array], k: int = 10) -> SearchResults:
+    def search(self, index_name: str, query: Union[str, np.array], k: int = 10, **kwargs) -> SearchResults:
         """Find the nearest examples indices in the dataset to the query.
 
         Args:
@@ -683,9 +684,9 @@ class IndexableMixin:
             - indices (`List[List[int]]`): The indices of the retrieved examples.
         """
         self._check_index_is_initialized(index_name)
-        return self._indexes[index_name].search(query, k)
+        return self._indexes[index_name].search(query, k, **kwargs)
 
-    def search_batch(self, index_name: str, queries: Union[List[str], np.array], k: int = 10) -> BatchedSearchResults:
+    def search_batch(self, index_name: str, queries: Union[List[str], np.array], k: int = 10, **kwargs) -> BatchedSearchResults:
         """Find the nearest examples indices in the dataset to the query.
 
         Args:
@@ -701,10 +702,10 @@ class IndexableMixin:
             - total_indices (`List[List[int]]`): The indices of the retrieved examples per query.
         """
         self._check_index_is_initialized(index_name)
-        return self._indexes[index_name].search_batch(queries, k)
+        return self._indexes[index_name].search_batch(queries, k, **kwargs)
 
     def get_nearest_examples(
-        self, index_name: str, query: Union[str, np.array], k: int = 10
+        self, index_name: str, query: Union[str, np.array], k: int = 10, **kwargs
     ) -> NearestExamplesResults:
         """Find the nearest examples in the dataset to the query.
 
@@ -721,12 +722,12 @@ class IndexableMixin:
             - examples (`dict`): The retrieved examples.
         """
         self._check_index_is_initialized(index_name)
-        scores, indices = self.search(index_name, query, k)
+        scores, indices = self.search(index_name, query, k, **kwargs)
         top_indices = [i for i in indices if i >= 0]
         return NearestExamplesResults(scores[: len(top_indices)], self[top_indices])
 
     def get_nearest_examples_batch(
-        self, index_name: str, queries: Union[List[str], np.array], k: int = 10
+        self, index_name: str, queries: Union[List[str], np.array], k: int = 10, **kwargs
     ) -> BatchedNearestExamplesResults:
         """Find the nearest examples in the dataset to the query.
 
@@ -743,7 +744,7 @@ class IndexableMixin:
             - total_examples (`List[dict]`): The retrieved examples per query.
         """
         self._check_index_is_initialized(index_name)
-        total_scores, total_indices = self.search_batch(index_name, queries, k)
+        total_scores, total_indices = self.search_batch(index_name, queries, k, **kwargs)
         total_scores = [
             scores_i[: len([i for i in indices_i if i >= 0])]
             for scores_i, indices_i in zip(total_scores, total_indices)
