@@ -344,7 +344,7 @@ def fsspec_get(url, temp_file, timeout=10.0, desc=None):
     callback = fsspec.callbacks.TqdmCallback(
         tqdm_kwargs={
             "desc": desc or "Downloading",
-            "disable": logging.is_progress_bar_enabled(),
+            "disable": not logging.is_progress_bar_enabled(),
         }
     )
     fs.get_file(paths[0], temp_file.name, callback=callback)
