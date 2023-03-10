@@ -2733,7 +2733,7 @@ class BaseDatasetTest(TestCase):
                 tf_dataset = dset.to_tf_dataset(columns="col_1", batch_size=2, num_workers=num_workers)
                 batch = next(iter(tf_dataset))
                 self.assertEqual(batch.shape.as_list(), [2])
-                del tf_dataset
+            del tf_dataset
 
             with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
                 # Returns: {"col_1": .}
@@ -2742,7 +2742,7 @@ class BaseDatasetTest(TestCase):
                 self.assertIsInstance(batch, dict)
                 self.assertTrue(len(batch) == 1)
                 self.assertEqual(batch["col_1"].shape.as_list(), [2])
-                del tf_dataset
+            del tf_dataset
 
             with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
                 # Returns: (., .)
@@ -2753,7 +2753,7 @@ class BaseDatasetTest(TestCase):
                 self.assertTrue(len(batch) == 2)
                 self.assertEqual(batch[0].shape.as_list(), [2])
                 self.assertEqual(batch[1].shape.as_list(), [2])
-                del tf_dataset
+            del tf_dataset
 
             with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
                 # Returns: ({"col_1": ., "col_2": .}, .)
@@ -2767,7 +2767,7 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(batch[0]["col_1"].shape.as_list(), [2])
                 self.assertEqual(batch[0]["col_2"].shape.as_list(), [2])
                 self.assertEqual(batch[1].shape.as_list(), [2])
-                del tf_dataset
+            del tf_dataset
 
             with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
                 # Returns: ({"col_1": ., "col_2": .}, {"col_3": .})
@@ -2780,7 +2780,7 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(batch[0]["col_1"].shape.as_list(), [2])
                 self.assertEqual(batch[0]["col_2"].shape.as_list(), [2])
                 self.assertEqual(batch[1]["col_3"].shape.as_list(), [2])
-                del tf_dataset
+            del tf_dataset
 
             with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
                 # Returns: (., {"col_2": .})
@@ -2792,7 +2792,7 @@ class BaseDatasetTest(TestCase):
                 self.assertIsInstance(batch[1], dict)
                 self.assertEqual(batch[0].shape.as_list(), [2])
                 self.assertEqual(batch[1]["col_2"].shape.as_list(), [2])
-                del tf_dataset
+            del tf_dataset
 
             with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
                 # Check that when we use a transform that creates a new column from existing column values
