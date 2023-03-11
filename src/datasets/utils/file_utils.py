@@ -500,7 +500,6 @@ def get_from_cache(
             connected = ftp_head(url)
         elif scheme not in ("http", "https"):
             response = fsspec_head(url)
-            # use the hash of the response as a pseudo ETag to detect changes
             # s3fs uses "ETag", gcsfs uses "etag"
             etag = (response.get("ETag", None) or response.get("etag", None)) if use_etag else None
             connected = True
