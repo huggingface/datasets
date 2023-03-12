@@ -62,6 +62,8 @@ def init_hf_modules(hf_modules_cache: Optional[Union[Path, str]] = None) -> str:
 
 
 def is_remote_url(url_or_filename: str) -> bool:
+    if isinstance(url_or_filename, os.PathLike):
+        return False
     parsed = urlparse(url_or_filename)
     return parsed.scheme in ("http", "https", "s3", "gs", "hdfs", "ftp")
 
