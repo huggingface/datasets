@@ -966,6 +966,8 @@ def test_iterable_dataset_add_column(dataset_with_several_columns):
     assert list(new_dataset) == [
         {**example, "new_column": idx} for idx, example in enumerate(dataset_with_several_columns)
     ]
+    new_dataset = new_dataset._resolve_features()
+    assert "new_column" in new_dataset.column_names
 
 
 def test_iterable_dataset_rename_column(dataset_with_several_columns):
@@ -974,9 +976,13 @@ def test_iterable_dataset_rename_column(dataset_with_several_columns):
         {("new_id" if k == "id" else k): v for k, v in example.items()} for example in dataset_with_several_columns
     ]
     assert new_dataset.features is None
+    assert new_dataset.column_names is None
     # rename the column if ds.features was not None
     new_dataset = dataset_with_several_columns._resolve_features().rename_column("id", "new_id")
     assert new_dataset.features is not None
+    assert new_dataset.column_names is not None
+    assert "id" not in new_dataset.column_names
+    assert "new_id" in new_dataset.column_names
 
 
 def test_iterable_dataset_rename_columns(dataset_with_several_columns):
@@ -986,9 +992,13 @@ def test_iterable_dataset_rename_columns(dataset_with_several_columns):
         {column_mapping.get(k, k): v for k, v in example.items()} for example in dataset_with_several_columns
     ]
     assert new_dataset.features is None
+    assert new_dataset.column_names is None
     # rename the columns if ds.features was not None
     new_dataset = dataset_with_several_columns._resolve_features().rename_columns(column_mapping)
     assert new_dataset.features is not None
+    assert new_dataset.column_names is not None
+    assert all(c not in new_dataset.column_names for c in ["id", "filepath"])
+    assert all(c in new_dataset.column_names for c in ["new_id", "filename"])
 
 
 def test_iterable_dataset_remove_columns(dataset_with_several_columns):
@@ -1002,10 +1012,13 @@ def test_iterable_dataset_remove_columns(dataset_with_several_columns):
         {k: v for k, v in example.items() if k != "id" and k != "filepath"} for example in dataset_with_several_columns
     ]
     assert new_dataset.features is None
+    assert new_dataset.column_names is None
     # remove the columns if ds.features was not None
     new_dataset = dataset_with_several_columns._resolve_features().remove_columns(["id", "filepath"])
     assert new_dataset.features is not None
+    assert new_dataset.column_names is not None
     assert all(c not in new_dataset.features for c in ["id", "filepath"])
+    assert all(c not in new_dataset.column_names for c in ["id", "filepath"])
 
 
 def test_iterable_dataset_select_columns(dataset_with_several_columns):
@@ -1019,10 +1032,12 @@ def test_iterable_dataset_select_columns(dataset_with_several_columns):
         {k: v for k, v in example.items() if k in ("id", "filepath")} for example in dataset_with_several_columns
     ]
     assert new_dataset.features is None
-    # remove the columns if ds.features was not None
+    # select the columns if ds.features was not None
     new_dataset = dataset_with_several_columns._resolve_features().select_columns(["id", "filepath"])
     assert new_dataset.features is not None
+    assert new_dataset.column_names is not None
     assert all(c in new_dataset.features for c in ["id", "filepath"])
+    assert all(c in new_dataset.column_names for c in ["id", "filepath"])
 
 
 def test_iterable_dataset_cast_column():
@@ -1046,12 +1061,16 @@ def test_iterable_dataset_cast():
 
 def test_iterable_dataset_resolve_features():
     ex_iterable = ExamplesIterable(generate_examples_fn, {})
-    dataset = IterableDataset(ex_iterable)._resolve_features()
+    dataset = IterableDataset(ex_iterable)
+    assert dataset.features is None
+    assert dataset.column_names is None
+    dataset = dataset._resolve_features()
     assert dataset.features == Features(
         {
             "id": Value("int64"),
         }
     )
+    assert dataset.column_names == ["id"]
 
 
 def test_iterable_dataset_resolve_features_keep_order():
@@ -1062,6 +1081,7 @@ def test_iterable_dataset_resolve_features_keep_order():
     dataset = IterableDataset(ex_iterable)._resolve_features()
     # columns appear in order of appearance in the dataset
     assert list(dataset.features) == ["a", "c", "b"]
+    assert dataset.column_names == ["a", "c", "b"]
 
 
 def test_iterable_dataset_with_features_fill_with_none():
