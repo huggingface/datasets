@@ -638,6 +638,7 @@ class DatasetBuilder:
         max_shard_size: Optional[Union[int, str]] = None,
         num_proc: Optional[int] = None,
         storage_options: Optional[dict] = None,
+        split: Optional[str] = None,
         **download_and_prepare_kwargs,
     ):
         """Downloads and prepares dataset for reading.
@@ -879,6 +880,9 @@ class DatasetBuilder:
                             logger.warning("HF google storage unreachable. Downloading and preparing it from source")
                     if not downloaded_from_gcs:
                         prepare_split_kwargs = {"file_format": file_format}
+                        # if "split" in download_and_prepare_kwargs:
+                        if split:
+                            prepare_split_kwargs = {**prepare_split_kwargs, "split": split}
                         if max_shard_size is not None:
                             prepare_split_kwargs["max_shard_size"] = max_shard_size
                         if num_proc is not None:
@@ -955,8 +959,9 @@ class DatasetBuilder:
         """
         # Generating data for all splits
         split_dict = SplitDict(dataset_name=self.name)
-        split_generators_kwargs = self._make_split_generators_kwargs(prepare_split_kwargs)
-        split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
+        # split_generators_kwargs = self._make_split_generators_kwargs(prepare_split_kwargs)
+        split_generators = self._split_generators(dl_manager, **prepare_split_kwargs)
+        prepare_split_kwargs.pop("split", None)
 
         # Checksums verification
         if verification_mode == VerificationMode.ALL_CHECKS and dl_manager.record_checksums:
@@ -1301,7 +1306,7 @@ class DatasetBuilder:
         return None
 
     @abc.abstractmethod
-    def _split_generators(self, dl_manager: DownloadManager):
+    def _split_generators(self, dl_manager: DownloadManager, **split_generators_kwargs):
         """Specify feature dictionary generators and dataset splits.
 
         This function returns a list of `SplitGenerator`s defining how to generate

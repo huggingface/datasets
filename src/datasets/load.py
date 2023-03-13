@@ -1785,6 +1785,7 @@ def load_dataset(
         verification_mode=verification_mode,
         try_from_hf_gcs=try_from_hf_gcs,
         num_proc=num_proc,
+        split=split,
     )
 
     # Build dataset for splits
