@@ -153,11 +153,11 @@ class _InitializeParameterizedDatasetBuilder:
         return obj
 
 
-def parametrize_packaged_dataset_builder(
-    builder_cls: Type[DatasetBuilder], metadata_configs: MetadataConfigs, parametrized_name_suffix: str
+def configure_builder_class(
+    builder_cls: Type[DatasetBuilder], metadata_configs: MetadataConfigs, dataset_name: str
 ) -> Type[DatasetBuilder]:
     """
-    Dynamically create packaged builder class with custom configs parsed from README.md file,
+    Dynamically create a builder class with custom configs parsed from README.md file,
     i.e. set BUILDER_CONFIGS class variable of a packaged builder class to custom configs list.
     """
     config_cls = builder_cls.BUILDER_CONFIG_CLASS
@@ -1843,7 +1843,7 @@ def load_dataset(
             Save the dataset information (checksums/size/splits/...).
         revision ([`Version`] or `str`, *optional*):
             Version of the dataset script to load.
-            As datasets have their own git repository on the Datasets HubF, the default version "main" corresponds to their "main" branch.
+            As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
             You can specify a different version than the default "main" by using a commit SHA or a git tag of the dataset repository.
         use_auth_token (`str` or `bool`, *optional*):
             Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
