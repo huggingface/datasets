@@ -19,8 +19,8 @@ jobs:
           pip install setuptools wheel
           pip install -e .[benchmarks]
 
-          # pyarrow==6.0.0
-          pip install pyarrow==6.0.0
+          # pyarrow==8.0.0
+          pip install pyarrow==8.0.0
 
           dvc repro --force
 
@@ -29,7 +29,7 @@ jobs:
 
           python ./benchmarks/format.py report.json report.md
 
-          echo "<details>\n<summary>Show benchmarks</summary>\n\nPyArrow==6.0.0\n" > final_report.md
+          echo "<details>\n<summary>Show benchmarks</summary>\n\nPyArrow==8.0.0\n" > final_report.md
           cat report.md >> final_report.md
 
           # pyarrow

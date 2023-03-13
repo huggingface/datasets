@@ -15,25 +15,6 @@ from datasets.utils.file_utils import readline
 logger = datasets.utils.logging.get_logger(__name__)
 
 
-if datasets.config.PYARROW_VERSION.major >= 7:
-
-    def pa_table_from_pylist(mapping):
-        return pa.Table.from_pylist(mapping)
-
-else:
-
-    def pa_table_from_pylist(mapping):
-        # Copied from: https://github.com/apache/arrow/blob/master/python/pyarrow/table.pxi#L5193
-        arrays = []
-        names = []
-        if mapping:
-            names = list(mapping[0].keys())
-        for n in names:
-            v = [row[n] if n in row else None for row in mapping]
-            arrays.append(v)
-        return pa.Table.from_arrays(arrays, names)
-
-
 @dataclass
 class JsonConfig(datasets.BuilderConfig):
     """BuilderConfig for JSON."""
@@ -156,7 +137,7 @@ class Json(datasets.ArrowBasedBuilder):
                             # If possible, parse the file as a list of json objects and exit the loop
                             if isinstance(dataset, list):  # list is the only sequence type supported in JSON
                                 try:
-                                    pa_table = pa_table_from_pylist(dataset)
+                                    pa_table = pa.Table.from_pylist(dataset)
                                 except (pa.ArrowInvalid, AttributeError) as e:
                                     logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                                     raise ValueError(f"Not able to read records in the JSON file at {file}.") from None

@@ -255,6 +255,11 @@ class DatasetBuilder:
             `os.path.join(data_dir, "**")` as `data_files`.
             For builders that require manual download, it must be the path to the local directory containing the
             manually downloaded data.
+        writer_batch_size (`int`, *optional*):
+            Batch size used by the ArrowWriter.
+            It defines the number of samples that are kept in memory before writing them
+            and also the length of the arrow chunks.
+            None means that the ArrowWriter will use its default value.
         name (`str`): Configuration name for the dataset.
 
             <Deprecated version="2.3.0">
@@ -280,6 +285,12 @@ class DatasetBuilder:
     # Optional default config name to be used when name is None
     DEFAULT_CONFIG_NAME = None
 
+    # Default batch size used by the ArrowWriter
+    # It defines the number of samples that are kept in memory before writing them
+    # and also the length of the arrow chunks
+    # None means that the ArrowWriter will use its default value
+    DEFAULT_WRITER_BATCH_SIZE = None
+
     def __init__(
         self,
         cache_dir: Optional[str] = None,
@@ -293,6 +304,7 @@ class DatasetBuilder:
         repo_id: Optional[str] = None,
         data_files: Optional[Union[str, list, dict, DataFilesDict]] = None,
         data_dir: Optional[str] = None,
+        writer_batch_size: Optional[int] = None,
         name="deprecated",
         **config_kwargs,
     ):
@@ -309,6 +321,7 @@ class DatasetBuilder:
         self.use_auth_token = use_auth_token
         self.repo_id = repo_id
         self.dataset_name = camelcase_to_snakecase(dataset_name) if dataset_name else self.name
+        self._writer_batch_size = writer_batch_size or self.DEFAULT_WRITER_BATCH_SIZE
 
         if data_files is not None and not isinstance(data_files, DataFilesDict):
             data_files = DataFilesDict.from_local_or_remote(
@@ -367,8 +380,9 @@ class DatasetBuilder:
             with FileLock(lock_path):
                 if os.path.exists(self._cache_dir):  # check if data exist
                     if len(os.listdir(self._cache_dir)) > 0:
-                        logger.info("Overwrite dataset info from restored data version.")
-                        self.info = DatasetInfo.from_directory(self._cache_dir)
+                        if os.path.exists(path_join(self._cache_dir, config.DATASET_INFO_FILENAME)):
+                            logger.info("Overwrite dataset info from restored data version if exists.")
+                            self.info = DatasetInfo.from_directory(self._cache_dir)
                     else:  # dir exists but no data, remove the empty dir as data aren't available anymore
                         logger.warning(
                             f"Old caching folder {self._cache_dir} for dataset {self.dataset_name} exists but not data were found. Removing it. "
@@ -382,7 +396,7 @@ class DatasetBuilder:
         # Set download manager
         self.dl_manager = None
 
-        # Record infos even if verification_mode="none"; used by "datasets-cli test" to generate file checksums for (deprecated) dataset_infos.json
+        # Set to True by "datasets-cli test" to generate file checksums for (deprecated) dataset_infos.json independently of verification_mode value.
         self._record_infos = False
 
         # Enable streaming (e.g. it patches "open" to work with remote files)
@@ -728,10 +742,10 @@ class DatasetBuilder:
         ```
         """
         if ignore_verifications != "deprecated":
-            verification_mode = "none" if ignore_verifications else "full"
+            verification_mode = VerificationMode.NO_CHECKS if ignore_verifications else VerificationMode.ALL_CHECKS
             warnings.warn(
                 "'ignore_verifications' was deprecated in favor of 'verification_mode' in version 2.9.1 and will be removed in 3.0.0.\n"
-                f"You can remove this warning by passing 'verification_mode={verification_mode}' instead.",
+                f"You can remove this warning by passing 'verification_mode={verification_mode.value}' instead.",
                 FutureWarning,
             )
         if use_auth_token != "deprecated":
@@ -1086,10 +1100,10 @@ class DatasetBuilder:
         ```
         """
         if ignore_verifications != "deprecated":
-            verification_mode = "none" if ignore_verifications else "full"
+            verification_mode = verification_mode.NO_CHECKS if ignore_verifications else VerificationMode.ALL_CHECKS
             warnings.warn(
                 "'ignore_verifications' was deprecated in favor of 'verification' in version 2.9.1 and will be removed in 3.0.0.\n"
-                f"You can remove this warning by passing 'verification_mode={verification_mode}' instead.",
+                f"You can remove this warning by passing 'verification_mode={verification_mode.value}' instead.",
                 FutureWarning,
             )
         is_local = not is_remote_filesystem(self._fs)
@@ -1391,23 +1405,6 @@ class GeneratorBasedBuilder(DatasetBuilder):
     (`_split_generators`). See the method docstrings for details.
     """
 
-    # GeneratorBasedBuilder should have dummy data for tests by default
-    test_dummy_data = True
-
-    # Default batch size used by the ArrowWriter
-    # It defines the number of samples that are kept in memory before writing them
-    # and also the length of the arrow chunks
-    # None means that the ArrowWriter will use its default value
-    DEFAULT_WRITER_BATCH_SIZE = None
-
-    def __init__(self, *args, writer_batch_size=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Batch size used by the ArrowWriter
-        # It defines the number of samples that are kept in memory before writing them
-        # and also the length of the arrow chunks
-        # None means that the ArrowWriter will use its default value
-        self._writer_batch_size = writer_batch_size or self.DEFAULT_WRITER_BATCH_SIZE
-
     @abc.abstractmethod
     def _generate_examples(self, **kwargs):
         """Default function generating examples for each `SplitGenerator`.
@@ -1669,9 +1666,6 @@ class GeneratorBasedBuilder(DatasetBuilder):
 class ArrowBasedBuilder(DatasetBuilder):
     """Base class for datasets with data generation based on Arrow loading functions (CSV/JSON/Parquet)."""
 
-    # ArrowBasedBuilder should have dummy data for tests by default
-    test_dummy_data = True
-
     @abc.abstractmethod
     def _generate_tables(self, **kwargs):
         """Default function generating examples for each `SplitGenerator`.
@@ -1860,6 +1854,7 @@ class ArrowBasedBuilder(DatasetBuilder):
             writer = writer_class(
                 features=self.info.features,
                 path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                writer_batch_size=self._writer_batch_size,
                 storage_options=self._fs.storage_options,
                 embed_local_files=embed_local_files,
             )
@@ -1876,6 +1871,7 @@ class ArrowBasedBuilder(DatasetBuilder):
                         writer = writer_class(
                             features=writer._features,
                             path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("JJJJJ", f"{job_id:05d}"),
+                            writer_batch_size=self._writer_batch_size,
                             storage_options=self._fs.storage_options,
                             embed_local_files=embed_local_files,
                         )
@@ -1913,9 +1909,6 @@ class MissingBeamOptions(ValueError):
 
 class BeamBasedBuilder(DatasetBuilder):
     """Beam-based Builder."""
-
-    # BeamBasedBuilder does not have dummy data for tests yet
-    test_dummy_data = False
 
     def __init__(self, *args, beam_runner=None, beam_options=None, **kwargs):
         self._beam_runner = beam_runner
@@ -1994,6 +1987,10 @@ class BeamBasedBuilder(DatasetBuilder):
                 "Dataset is small enough, you can use the local beam runner called "
                 "`DirectRunner` (you may run out of memory). \nExample of usage: "
                 f"\n\t`{usage_example}`"
+            )
+        if self._writer_batch_size is not None:
+            logger.warning(
+                "`writer_batch_size` is not supported for beam pipelines yet. Using the default chunk size for writing."
             )
 
         # Beam type checking assumes transforms multiple outputs are of same type,
