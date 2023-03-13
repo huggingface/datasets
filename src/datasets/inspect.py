@@ -335,7 +335,7 @@ def get_dataset_config_names(
         data_files=data_files,
         **download_kwargs,
     )
-    builder_cls = get_dataset_builder_class(dataset_module, parametrized_name_suffix=os.path.basename(path))
+    builder_cls = get_dataset_builder_class(dataset_module, dataset_name=os.path.basename(path))
     return list(builder_cls.builder_configs.keys()) or [dataset_module.builder_kwargs.get("config_name", "default")]
 
 

@@ -689,7 +689,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
 
         self.path = path
         self.name = Path(path).stem
-        self.config_name = config_name if config_name else "default"
+        self.config_name = config_name  # if config_name else "default"
         self.data_files = data_files
         self.data_dir = data_dir
         self.download_mode = download_mode
@@ -704,25 +704,21 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         metadata_configs_dict = (
             MetadataConfigs.from_metadata(dataset_metadata) if dataset_metadata else MetadataConfigs()
         )
-        config_kwargs = copy.deepcopy(metadata_configs_dict.get(self.config_name, {}))
-        if config_kwargs:
-            # setting / updating data_files and data_dir if found
-            data_files, data_dir = config_kwargs.pop("data_files", None), config_kwargs.pop("data_dir", None)
-            if data_files:
-                if self.data_files:
-                    logger.warning(
-                        f"`data_files` is both provided as an argument and found in README.md config metadata,"
-                        f"setting config's value from metadata: data_files={data_files}. "
-                    )
-                self.data_files = data_files
-            if data_dir:
-                if self.data_dir:
-                    logger.warning(
-                        f"`data_dir` is both provided as an argument and found in README.md's configs,"
-                        f"setting config's value from metadata: data_dir={data_dir}. "
-                    )
-                self.data_dir = data_dir
+        for metadata_config in metadata_configs_dict.values():
+            config_data_files = metadata_config.pop("data_files", None)
+            config_data_dir = metadata_config.pop("data_dir", None)
+            config_base_path = os.path.join(self.path, config_data_dir) if config_data_dir else self.path
+            config_patterns = (
+                sanitize_patterns(config_data_files)
+                if config_data_files
+                else get_data_patterns_locally(config_base_path)
+            )
+            metadata_config["data_files"] = DataFilesDict.from_local_or_remote(
+                config_patterns, base_path=config_base_path, allowed_extensions=ALL_ALLOWED_EXTENSIONS
+            )
 
+        # even if metadata_configs_dict is not None we cannot skip resolving files again
+        # because we need to infer module name by files extensions
         base_path = os.path.join(self.path, self.data_dir) if self.data_dir else self.path
         patterns = (
             sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns_locally(base_path)
@@ -783,7 +779,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             ):
                 builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
 
-        return DatasetModule(module_path, hash, {**builder_kwargs, **config_kwargs}, metadata_configs_dict)
+        return DatasetModule(module_path, hash, builder_kwargs, metadata_configs_dict)
 
 
 class PackagedDatasetModuleFactory(_DatasetModuleFactory):
@@ -837,10 +833,11 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
             MetadataConfigs.from_metadata(dataset_metadata) if dataset_metadata else MetadataConfigs()
         )
         config_kwargs = copy.deepcopy(metadata_configs_dict.get(self.config_name, {}))
-        if config_kwargs:
-            # setting / updating data_files and data_dir if found
-            self.data_files = config_kwargs.pop("data_files", None)
-            self.data_dir = config_kwargs.pop("data_dir", None)
+        # setting / updating data_files and data_dir if found since they must be resolved below
+        if config_kwargs and "data_files" in config_kwargs:
+            self.data_files = config_kwargs.pop("data_files")
+        if config_kwargs and "data_dir" in config_kwargs:
+            self.data_dir = config_kwargs.pop("data_dir")
 
         base_path = str(Path(self.data_dir).resolve()) if self.data_dir is not None else str(Path().resolve())
         patterns = (
@@ -939,24 +936,11 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         )
         config_kwargs = copy.deepcopy(metadata_configs_dict.get(self.config_name, {}))
 
-        if config_kwargs:
-            data_files = config_kwargs.pop("data_files", None)
-            data_dir = config_kwargs.pop("data_dir", None)
-
-            if data_files:
-                if self.data_files:
-                    logger.warning(
-                        f"`data_files` is both provided as an argument and found in README.md config metadata,"
-                        f"setting config's value: data_files={data_files}. "
-                    )
-                self.data_files = data_files
-            if data_dir:
-                if self.data_dir:
-                    logger.warning(
-                        f"`data_dir` is both provided as an argument and found in README.md's configs,"
-                        f"setting config's value: data_dir={data_dir}. "
-                    )
-                self.data_dir = data_dir
+        # setting / updating data_files and data_dir if found since they must be resolved below
+        if config_kwargs and "data_files" in config_kwargs:
+            self.data_files = config_kwargs.pop("data_files")
+        if config_kwargs and "data_dir" in config_kwargs:
+            self.data_dir = config_kwargs.pop("data_dir")
 
         patterns = (
             sanitize_patterns(self.data_files)
@@ -1698,6 +1682,7 @@ def load_dataset_builder(
     data_files = builder_kwargs.pop("data_files", data_files)
     config_name = builder_kwargs.pop("config_name", name)
     hash = builder_kwargs.pop("hash")
+    builder_kwargs = builder_kwargs if not dataset_module.metadata_configs else {}
 
     if path in _PACKAGED_DATASETS_MODULES and data_files is None:
         error_msg = f"Please specify the data files or data directory to load for the {path} dataset builder."
@@ -1713,8 +1698,8 @@ def load_dataset_builder(
         cache_dir=cache_dir,
         dataset_name=dataset_name,
         config_name=config_name,
-        data_dir=data_dir,
-        data_files=data_files,
+        data_dir=data_dir if not dataset_module.metadata_configs else None,
+        data_files=data_files if not dataset_module.metadata_configs else None,
         hash=hash,
         features=features,
         use_auth_token=use_auth_token,

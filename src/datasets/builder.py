@@ -385,7 +385,7 @@ class DatasetBuilder:
                             self.info = DatasetInfo.from_directory(self._cache_dir)
                     else:  # dir exists but no data, remove the empty dir as data aren't available anymore
                         logger.warning(
-                            f"Old caching folder {self._cache_dir} for dataset {self.dataset_name} exists but not data were found. Removing it. "
+                            f"Old caching folder {self._cache_dir} for dataset {self.dataset_name} exists but no data were found. Removing it. "
                         )
                         os.rmdir(self._cache_dir)
 
