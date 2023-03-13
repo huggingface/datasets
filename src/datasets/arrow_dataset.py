@@ -5115,7 +5115,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, use_auth_token=token)
         data_dir = f"{config_name}/data" if config_name != "default" else "data"  # for backward compatibility
-        data_files = [file for file in files if file.startswith(data_dir)]
+        data_files = [file for file in files if file.startswith(data_dir + "/")]
 
         def path_in_repo(_index, shard):
             return f"{data_dir}/{split}-{_index:05d}-of-{num_shards:05d}-{shard._fingerprint}.parquet"
@@ -5285,7 +5285,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         elif config.DATASETDICT_INFOS_FILENAME in repo_files:
             dataset_metadata = DatasetMetadata()
             download_config = DownloadConfig()
-            download_config.download_desc = "Downloading metadata from deprecated dataset_infos.json"
+            download_config.download_desc = "Downloading metadata"
             download_config.use_auth_token = token
             dataset_infos_path = cached_path(
                 hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME),
