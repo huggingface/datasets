@@ -4981,7 +4981,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def _push_parquet_shards_to_hub(
         self,
         repo_id: str,
-        config_name: str = "default",
+        data_dir: str = "default",
         split: Optional[str] = None,
         private: Optional[bool] = False,
         token: Optional[str] = None,
@@ -4998,7 +4998,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The ID of the repository to push to in the following format: `<user>/<dataset_name>` or
                 `<org>/<dataset_name>`. Also accepts `<dataset_name>`, which will default to the namespace
                 of the logged-in user.
-            config_name (`str`):
+            data_dir (`str`):
                 The name of dataset configuration. Defaults to "default".
             split (Optional, `str`):
                 The name of the split that will be given to that dataset. Defaults to `self.split`.
@@ -5114,7 +5114,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             shards = shards_with_embedded_external_files(shards)
 
         files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, use_auth_token=token)
-        data_dir = f"{config_name}/data" if config_name != "default" else "data"  # for backward compatibility
+        # data_dir = f"{config_name}/data" if config_name != "default" else "data"  # for backward compatibility
         data_files = [file for file in files if file.startswith(data_dir + "/")]
 
         def path_in_repo(_index, shard):
@@ -5247,10 +5247,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             raise ValueError(
                 "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
             )
-
+        data_dir = f"{config_name}/data" if config_name != "default" else "data"  # for backward compatibility
         repo_id, split, uploaded_size, dataset_nbytes, repo_files, deleted_size = self._push_parquet_shards_to_hub(
             repo_id=repo_id,
-            config_name=config_name,
+            data_dir=data_dir,
             split=split,
             private=private,
             token=token,

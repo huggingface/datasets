@@ -149,7 +149,7 @@ class _InitializeParameterizedDatasetBuilder:
     def __call__(self, builder_cls, metadata_configs, name):
         # make a simple object which has no complex __init__ (this one will do)
         obj = _InitializeParameterizedDatasetBuilder()
-        obj.__class__ = parametrize_packaged_dataset_builder(builder_cls, metadata_configs, name)
+        obj.__class__ = configure_builder_class(builder_cls, metadata_configs, name)
         return obj
 
 
@@ -163,7 +163,7 @@ def configure_builder_class(
     config_cls = builder_cls.BUILDER_CONFIG_CLASS
     configs = metadata_configs.to_builder_configs_list(builder_config_cls=config_cls)
 
-    class ParametrizedDatasetBuilder(builder_cls):
+    class ConfiguredDatasetBuilder(builder_cls):
         BUILDER_CONFIGS = configs
 
         __module__ = builder_cls.__module__  # so that the actual packaged builder can be imported
@@ -181,21 +181,23 @@ def configure_builder_class(
                 self.__dict__.copy(),
             )
 
-    ParametrizedDatasetBuilder.__name__ = (
-        f"{builder_cls.__name__.lower().capitalize()}{snakecase_to_camelcase(parametrized_name_suffix)}"
+    ConfiguredDatasetBuilder.__name__ = (
+        f"{builder_cls.__name__.lower().capitalize()}{snakecase_to_camelcase(dataset_name)}"
     )
-    ParametrizedDatasetBuilder.__qualname__ = (
-        f"{builder_cls.__name__.lower().capitalize()}{snakecase_to_camelcase(parametrized_name_suffix)}"
+    ConfiguredDatasetBuilder.__qualname__ = (
+        f"{builder_cls.__name__.lower().capitalize()}{snakecase_to_camelcase(dataset_name)}"
     )
 
-    return ParametrizedDatasetBuilder
+    return ConfiguredDatasetBuilder
 
 
-def get_dataset_builder_class(dataset_module, parametrized_name_suffix: Optional[str] = None) -> Type[DatasetBuilder]:
+def get_dataset_builder_class(dataset_module, dataset_name: Optional[str] = None) -> Type[DatasetBuilder]:
     builder_cls = import_main_class(dataset_module.module_path)
     if dataset_module.metadata_configs:
-        builder_cls = parametrize_packaged_dataset_builder(
-            builder_cls, dataset_module.metadata_configs, parametrized_name_suffix=parametrized_name_suffix
+        builder_cls = configure_builder_class(
+            builder_cls,
+            dataset_module.metadata_configs,
+            dataset_name=dataset_name,
         )
     return builder_cls
 
@@ -1690,7 +1692,7 @@ def load_dataset_builder(
         else None
     )
     # Get dataset builder class from the processing script
-    builder_cls = get_dataset_builder_class(dataset_module, parametrized_name_suffix=dataset_name)
+    builder_cls = get_dataset_builder_class(dataset_module, dataset_name=dataset_name)
     builder_kwargs = dataset_module.builder_kwargs
     data_dir = builder_kwargs.pop("data_dir", data_dir)
     data_files = builder_kwargs.pop("data_files", data_files)
