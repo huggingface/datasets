@@ -1374,6 +1374,21 @@ class IterableDataset(DatasetInfoMixin):
             token_per_repo_id=self._token_per_repo_id,
         )
 
+    @property
+    def column_names(self) -> Optional[List[str]]:
+        """Names of the columns in the dataset.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="validation", streaming=True)
+        >>> ds.column_names
+        ['text', 'label']
+        ```
+        """
+        return list(self._info.features.keys()) if self._info.features is not None else None
+
     def add_column(self, name: str, column: Union[list, np.array]) -> "IterableDataset":
         """Add column to Dataset.
 
