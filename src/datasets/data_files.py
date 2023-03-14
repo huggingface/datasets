@@ -244,7 +244,7 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], List[PurePath]]) 
     raise FileNotFoundError(f"Couldn't resolve pattern {pattern} with resolver {pattern_resolver}")
 
 
-def _get_metadata_files_patterns(pattern_resolver: Callable[[str], List[PurePath]]) -> Dict[str, List[str]]:
+def _get_metadata_files_patterns(pattern_resolver: Callable[[str], List[PurePath]]) -> List[str]:
     """
     Get the supported metadata patterns from a directory or repository.
     """
