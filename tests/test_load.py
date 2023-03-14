@@ -444,9 +444,8 @@ class ModuleFactoryTest(TestCase):
         assert module_factory_result.metadata_configs is not None
         assert len(module_factory_result.metadata_configs) == 1
         assert next(iter(module_factory_result.metadata_configs.keys())) == "default"
-        # assert that config param from metadata is passed to builder:
-        assert "drop_labels" in module_factory_result.builder_kwargs
-        assert module_factory_result.builder_kwargs["drop_labels"] is True
+        assert module_factory_result.builder_kwargs["config_name"] is None
+        # TODO: add passing "default"
 
     def test_LocalDatasetModuleFactoryWithoutScript_with_one_nondefault_config_in_metadata(self):
         for config_name in [None, "custom"]:
@@ -458,15 +457,9 @@ class ModuleFactoryTest(TestCase):
             assert module_factory_result.metadata_configs is not None
             assert len(module_factory_result.metadata_configs) == 1
             assert next(iter(module_factory_result.metadata_configs.keys())) == "custom"
-            if config_name == "custom":
-                assert module_factory_result.builder_kwargs["config_name"] == "custom"
-                assert "drop_labels" in module_factory_result.builder_kwargs
-                assert module_factory_result.builder_kwargs["drop_labels"] is True
-            else:  # None
-                assert module_factory_result.builder_kwargs["config_name"] == "default"
-                # if configs are found in metadata but none is requested,
-                # config values shouldn't be passed to builder
-                assert "drop_labels" not in module_factory_result.builder_kwargs
+            assert module_factory_result.builder_kwargs["config_name"] == config_name
+            # we don't pass config parameters to builder_kwargs, they are stored in builder_configs  only
+            assert "drop_labels" not in module_factory_result.builder_kwargs
 
     def test_LocalDatasetModuleFactoryWithoutScript_with_two_configs_in_metadata(self):
         config_names_and_expected_drop_labels = [(None, None), ("v1", True), ("v2", False)]
@@ -481,11 +474,8 @@ class ModuleFactoryTest(TestCase):
             assert len(module_factory_result.metadata_configs) == 2
             assert list(module_factory_result.metadata_configs.keys()) == ["v1", "v2"]
             # assert that config param from metadata is passed to builder:
-            assert module_factory_result.builder_kwargs["config_name"] == config_name if config_name else "default"
-            if not config_name:
-                assert "drop_labels" not in module_factory_result.builder_kwargs
-            else:
-                assert module_factory_result.builder_kwargs["drop_labels"] == expected_drop_labels
+            assert module_factory_result.builder_kwargs["config_name"] == config_name
+            assert "drop_labels" not in module_factory_result.builder_kwargs
 
     def test_PackagedDatasetModuleFactory(self):
         factory = PackagedDatasetModuleFactory(
