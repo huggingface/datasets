@@ -8,9 +8,9 @@ import numpy as np
 import pytest
 
 from datasets.arrow_dataset import Dataset
-from datasets.search import ElasticSearchIndex, FaissIndex, MissingIndex
+from datasets.search import ElasticSearchIndex, FaissIndex, MilvusIndex, MissingIndex
 
-from .utils import require_elasticsearch, require_faiss
+from .utils import require_elasticsearch, require_faiss, require_milvus
 
 
 pytestmark = pytest.mark.integration
@@ -196,3 +196,56 @@ class ElasticSearchIndexTest(TestCase):
             best_indices = [indices[0] for indices in total_indices]
             self.assertGreater(np.min(best_scores), 0)
             self.assertListEqual([1, 1, 1], best_indices)
+
+
+@require_milvus
+class MilvusIndexTest(TestCase):
+    def test_milvus(self):
+        from pymilvus import Collection
+
+        class MockScores:
+            def __init__(self, distance, id):
+                self.distance = distance
+                self.id = id
+
+        with patch("pymilvus.utility.has_collection") as mocked_has_collection, patch(
+            "pymilvus.connections.connect"
+        ) as mocked_connect, patch("pymilvus.Collection.insert") as mocked_insert, patch(
+            "pymilvus.Collection.create_index"
+        ) as mocked_index, patch(
+            "pymilvus.Collection.load"
+        ) as mocked_load, patch(
+            "pymilvus.Collection.search"
+        ) as mocked_search, patch(
+            "pymilvus.Collection"
+        ) as mocked_collection:
+            mocked_connect.return_value = True
+            mocked_has_collection.return_value = False
+            mocked_collection.return_value = Collection
+            mocked_index.return_value = True
+            mocked_load.return_value = True
+            mocked_insert.return_value = True
+            # Create index and insert
+            index = MilvusIndex()
+            index.add_vectors(np.random.rand(3, 10))
+
+            mocked_load.return_value = True
+            mocked_search.return_value = [[MockScores(0, 0), MockScores(1, 1), MockScores(2, 2)]]
+            # single query
+            query = np.random.rand(10)
+            res = index.search(query)
+            self.assertEqual(res.scores, [0, 1, 2])
+            self.assertEqual(res.indices, [0, 1, 2])
+
+            mocked_load.return_value = True
+            mocked_search.return_value = [
+                [MockScores(0, 0), MockScores(1, 1), MockScores(2, 2)],
+                [MockScores(3, 3), MockScores(4, 4), MockScores(5, 5)],
+            ]
+            # batched queries
+            np.random.rand(2, 10)
+            res = index.search_batch(query)
+            self.assertEqual(res.total_scores[0], [0, 1, 2])
+            self.assertEqual(res.total_indices[0], [0, 1, 2])
+            self.assertEqual(res.total_scores[1], [3, 4, 5])
+            self.assertEqual(res.total_indices[1], [3, 4, 5])
