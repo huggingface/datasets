@@ -6,7 +6,7 @@ target_version = ['py37']
 # Ignored rules:
 #   "E501" -> line length violation
 #   "F821" -> undefined named in type annotation (e.g. Literal["something"])
-#   "C901" -> `function_name` is too complex (introduced in version 0.0.255)
+#   "C901" -> `function_name` is too complex
 ignore = ["E501", "F821", "C901"]
 select = ["C", "E", "F", "I", "W"]
 line-length = 119
