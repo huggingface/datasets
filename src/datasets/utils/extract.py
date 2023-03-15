@@ -8,7 +8,7 @@ import warnings
 import zipfile
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 from .. import config
 from .filelock import FileLock
@@ -61,7 +61,7 @@ class BaseExtractor(ABC):
 
 
 class MagicNumberBaseExtractor(BaseExtractor, ABC):
-    magic_number = b""
+    magic_numbers: List[bytes] = []
 
     @staticmethod
     def read_magic_number(path: Union[Path, str], magic_number_length: int):
@@ -71,11 +71,12 @@ class MagicNumberBaseExtractor(BaseExtractor, ABC):
     @classmethod
     def is_extractable(cls, path: Union[Path, str], magic_number: bytes = b"") -> bool:
         if not magic_number:
+            magic_number_length = max(len(cls_magic_number) for cls_magic_number in cls.magic_numbers)
             try:
-                magic_number = cls.read_magic_number(path, len(cls.magic_number))
+                magic_number = cls.read_magic_number(path, magic_number_length)
             except OSError:
                 return False
-        return magic_number.startswith(cls.magic_number)
+        return any(magic_number.startswith(cls_magic_number) for cls_magic_number in cls.magic_numbers)
 
 
 class TarExtractor(BaseExtractor):
@@ -128,7 +129,7 @@ class TarExtractor(BaseExtractor):
 
 
 class GzipExtractor(MagicNumberBaseExtractor):
-    magic_number = b"\x1F\x8B"
+    magic_numbers = [b"\x1F\x8B"]
 
     @staticmethod
     def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:
@@ -137,10 +138,12 @@ class GzipExtractor(MagicNumberBaseExtractor):
                 shutil.copyfileobj(gzip_file, extracted_file)
 
 
-class ZipExtractor(BaseExtractor):
-    @classmethod
-    def is_extractable(cls, path: Union[Path, str], **kwargs) -> bool:
-        return zipfile.is_zipfile(path)
+class ZipExtractor(MagicNumberBaseExtractor):
+    magic_numbers = [
+        b"PK\x03\x04",
+        b"PK\x05\x06",  # empty archive
+        b"PK\x07\x08",  # spanned archive
+    ]
 
     @staticmethod
     def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:
@@ -151,7 +154,7 @@ class ZipExtractor(BaseExtractor):
 
 
 class XzExtractor(MagicNumberBaseExtractor):
-    magic_number = b"\xFD\x37\x7A\x58\x5A\x00"
+    magic_numbers = [b"\xFD\x37\x7A\x58\x5A\x00"]
 
     @staticmethod
     def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:
@@ -160,16 +163,8 @@ class XzExtractor(MagicNumberBaseExtractor):
                 shutil.copyfileobj(compressed_file, extracted_file)
 
 
-class RarExtractor(BaseExtractor):
-    RAR_ID = b"Rar!\x1a\x07\x00"
-    RAR5_ID = b"Rar!\x1a\x07\x01\x00"
-
-    @classmethod
-    def is_extractable(cls, path: Union[Path, str], **kwargs) -> bool:
-        """https://github.com/markokr/rarfile/blob/master/rarfile.py"""
-        with open(path, "rb") as f:
-            magic_number = f.read(len(cls.RAR5_ID))
-        return magic_number == cls.RAR5_ID or magic_number.startswith(cls.RAR_ID)
+class RarExtractor(MagicNumberBaseExtractor):
+    magic_numbers = [b"Rar!\x1a\x07\x00", b"Rar!\x1a\x07\x01\x00"]  # RAR_ID  # RAR5_ID
 
     @staticmethod
     def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:
@@ -184,7 +179,7 @@ class RarExtractor(BaseExtractor):
 
 
 class ZstdExtractor(MagicNumberBaseExtractor):
-    magic_number = b"\x28\xb5\x2F\xFD"
+    magic_numbers = [b"\x28\xb5\x2F\xFD"]
 
     @staticmethod
     def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:
@@ -198,7 +193,7 @@ class ZstdExtractor(MagicNumberBaseExtractor):
 
 
 class Bzip2Extractor(MagicNumberBaseExtractor):
-    magic_number = b"\x42\x5A\x68"
+    magic_numbers = [b"\x42\x5A\x68"]
 
     @staticmethod
     def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:
@@ -208,7 +203,7 @@ class Bzip2Extractor(MagicNumberBaseExtractor):
 
 
 class SevenZipExtractor(MagicNumberBaseExtractor):
-    magic_number = b"\x37\x7A\xBC\xAF\x27\x1C"
+    magic_numbers = [b"\x37\x7A\xBC\xAF\x27\x1C"]
 
     @staticmethod
     def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:
@@ -222,7 +217,7 @@ class SevenZipExtractor(MagicNumberBaseExtractor):
 
 
 class Lz4Extractor(MagicNumberBaseExtractor):
-    magic_number = b"\x04\x22\x4D\x18"
+    magic_numbers = [b"\x04\x22\x4D\x18"]
 
     @staticmethod
     def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:
@@ -251,14 +246,12 @@ class Extractor:
 
     @classmethod
     def _get_magic_number_max_length(cls):
-        magic_number_max_length = 0
-        for extractor in cls.extractors.values():
-            if hasattr(extractor, "magic_number"):
-                magic_number_length = len(extractor.magic_number)
-                magic_number_max_length = (
-                    magic_number_length if magic_number_length > magic_number_max_length else magic_number_max_length
-                )
-        return magic_number_max_length
+        return max(
+            len(extractor_magic_number)
+            for extractor in cls.extractors.values()
+            if issubclass(extractor, MagicNumberBaseExtractor)
+            for extractor_magic_number in extractor.magic_numbers
+        )
 
     @staticmethod
     def _read_magic_number(path: Union[Path, str], magic_number_length: int):
