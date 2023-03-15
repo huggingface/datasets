@@ -138,7 +138,7 @@ def import_main_class(module_path, dataset=True) -> Optional[Union[Type[DatasetB
 class _InitializeParameterizedDatasetBuilder:
     """
     From https://stackoverflow.com/questions/4647566/pickle-a-dynamically-parameterized-sub-class
-    See also ParametrizedBuilder.__reduce__
+    See also ConfiguredDatasetBuilder.__reduce__
 
     When called with the param value as the only argument, returns an
     un-initialized instance of the parameterized class. Subsequent __setstate__
@@ -153,28 +153,25 @@ class _InitializeParameterizedDatasetBuilder:
 
 
 def configure_builder_class(
-    builder_cls: Type[DatasetBuilder], metadata_configs: MetadataConfigs, dataset_name: str
+    builder_cls: Type[DatasetBuilder], builder_configs: List["BulderConfig"], dataset_name: str
 ) -> Type[DatasetBuilder]:
     """
-    Dynamically create a builder class with custom configs parsed from README.md file,
-    i.e. set BUILDER_CONFIGS class variable of a packaged builder class to custom configs list.
+    Dynamically create a builder class with custom builder configs parsed from README.md file,
+    i.e. set BUILDER_CONFIGS class variable of a builder class to custom configs list.
     """
-    config_cls = builder_cls.BUILDER_CONFIG_CLASS
-    configs = metadata_configs.to_builder_configs_list(builder_config_cls=config_cls)
 
     class ConfiguredDatasetBuilder(builder_cls):
-        BUILDER_CONFIGS = configs
+        BUILDER_CONFIGS = builder_configs
 
         __module__ = builder_cls.__module__  # so that the actual packaged builder can be imported
 
-        def __reduce__(self):  # to make dynamically created class pickable
+        def __reduce__(self):  # to make dynamically created class pickable, see _InitializeParameterizedDatasetBuilder
             parent_builder_cls = self.__class__.__mro__[1]
-            metadata_configs_dict = MetadataConfigs.from_builder_configs_list(self.BUILDER_CONFIGS)
             return (
                 _InitializeParameterizedDatasetBuilder(),
                 (
                     parent_builder_cls,
-                    metadata_configs_dict,
+                    self.BUILDER_CONFIGS,
                     self.dataset_name,
                 ),
                 self.__dict__.copy(),
@@ -193,9 +190,11 @@ def configure_builder_class(
 def get_dataset_builder_class(dataset_module, dataset_name: Optional[str] = None) -> Type[DatasetBuilder]:
     builder_cls = import_main_class(dataset_module.module_path)
     if dataset_module.metadata_configs:
+        config_cls = builder_cls.BUILDER_CONFIG_CLASS
+        builder_configs_list = dataset_module.metadata_configs.to_builder_configs_list(builder_config_cls=config_cls)
         builder_cls = configure_builder_class(
             builder_cls,
-            dataset_module.metadata_configs,
+            builder_configs=builder_configs_list,
             dataset_name=dataset_name,
         )
     return builder_cls
