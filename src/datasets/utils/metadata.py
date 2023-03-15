@@ -166,6 +166,7 @@ class MetadataConfigs(Dict[str, dict]):
 
     @classmethod
     def from_builder_configs_list(cls, builder_configs_list) -> "MetadataConfigs":
+        # might fail for complex parameter
         builder_configs_dict = {builder_config.name: asdict(builder_config) for builder_config in builder_configs_list}
         for builder_config in builder_configs_dict.values():
             builder_config["config_name"] = builder_config.pop("name", "default")
