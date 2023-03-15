@@ -194,14 +194,13 @@ class BuilderConfig:
             return self.name
 
     def update_hash_with_config_parameters(self, hash):
+        fields_to_drop = {"name", "version", "description"}
         params_to_add_to_hash = {
             f.name: getattr(self, f.name)
             for f in fields(self)
+            if f.name not in fields_to_drop
             # if getattr(self.config, f.name)  ??
         }
-        params_to_add_to_hash.pop("name")
-        params_to_add_to_hash.pop("version", None)
-        params_to_add_to_hash.pop("description", None)
         params_to_add_to_hash = {k: params_to_add_to_hash[k] for k in sorted(params_to_add_to_hash)}
         m = Hasher()
         m.update(hash)
