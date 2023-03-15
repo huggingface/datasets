@@ -3,12 +3,13 @@ import gzip
 import lzma
 import os
 import shutil
+import struct
 import tarfile
 import warnings
 import zipfile
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Type, Union
 
 from .. import config
 from .filelock import FileLock
@@ -145,6 +146,42 @@ class ZipExtractor(MagicNumberBaseExtractor):
         b"PK\x07\x08",  # spanned archive
     ]
 
+    @classmethod
+    def is_extractable(cls, path: Union[Path, str], magic_number: bytes = b"") -> bool:
+        if super().is_extractable(path, magic_number=magic_number):
+            return True
+        try:
+            # Alternative version of zipfile.is_zipfile that has less false positives, but misses executable zip archives.
+            # From: https://github.com/python/cpython/pull/5053
+            from zipfile import (
+                _CD_SIGNATURE,
+                _ECD_DISK_NUMBER,
+                _ECD_DISK_START,
+                _ECD_ENTRIES_TOTAL,
+                _ECD_OFFSET,
+                _ECD_SIZE,
+                _EndRecData,
+                sizeCentralDir,
+                stringCentralDir,
+                structCentralDir,
+            )
+
+            with open(path, "rb") as fp:
+                endrec = _EndRecData(fp)
+                if endrec:
+                    if endrec[_ECD_ENTRIES_TOTAL] == 0 and endrec[_ECD_SIZE] == 0 and endrec[_ECD_OFFSET] == 0:
+                        return True  # Empty zipfiles are still zipfiles
+                    elif endrec[_ECD_DISK_NUMBER] == endrec[_ECD_DISK_START]:
+                        fp.seek(endrec[_ECD_OFFSET])  # Central directory is on the same disk
+                        if fp.tell() == endrec[_ECD_OFFSET] and endrec[_ECD_SIZE] >= sizeCentralDir:
+                            data = fp.read(sizeCentralDir)  # CD is where we expect it to be
+                            if len(data) == sizeCentralDir:
+                                centdir = struct.unpack(structCentralDir, data)  # CD is the right size
+                                if centdir[_CD_SIGNATURE] == stringCentralDir:
+                                    return True  # First central directory entry  has correct magic number
+        except Exception:  # catch all errors in case future python versions change the zipfile internals
+            return False
+
     @staticmethod
     def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:
         os.makedirs(output_path, exist_ok=True)
@@ -232,7 +269,7 @@ class Lz4Extractor(MagicNumberBaseExtractor):
 
 class Extractor:
     #  Put zip file to the last, b/c it is possible wrongly detected as zip (I guess it means: as tar or gzip)
-    extractors = {
+    extractors: Dict[str, Type[BaseExtractor]] = {
         "tar": TarExtractor,
         "gzip": GzipExtractor,
         "zip": ZipExtractor,
