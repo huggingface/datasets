@@ -1808,6 +1808,22 @@ class Features(dict):
         example = cast_to_python_objects(example)
         return encode_nested_example(self, example)
 
+    def encode_column(self, column, column_name: str):
+        """
+        Encode column into a format for Arrow.
+
+        Args:
+            column (`list[Any]`):
+                Data in a Dataset column.
+            column_name (`str`):
+                Dataset column name.
+
+        Returns:
+            `list[Any]`
+        """
+        column = cast_to_python_objects(column)
+        return [encode_nested_example(self[column_name], obj) for obj in column]
+
     def encode_batch(self, batch):
         """
         Encode batch into a format for Arrow.
