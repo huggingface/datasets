@@ -52,6 +52,7 @@ def test_image_feature_type_to_arrow():
     "build_example",
     [
         lambda image_path: image_path,
+        lambda image_path: open(image_path, "rb").read(),
         lambda image_path: {"path": image_path},
         lambda image_path: {"path": image_path, "bytes": None},
         lambda image_path: {"path": image_path, "bytes": open(image_path, "rb").read()},
@@ -261,6 +262,7 @@ def test_dataset_with_image_feature_with_none():
     "build_data",
     [
         lambda image_path: {"image": [image_path]},
+        lambda image_path: {"image": [open(image_path, "rb").read()]},
         lambda image_path: {"image": [{"path": image_path}]},
         lambda image_path: {"image": [{"path": image_path, "bytes": None}]},
         lambda image_path: {"image": [{"path": image_path, "bytes": open(image_path, "rb").read()}]},

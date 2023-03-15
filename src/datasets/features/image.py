@@ -88,7 +88,7 @@ class Image:
     def __call__(self):
         return self.pa_type
 
-    def encode_example(self, value: Union[str, dict, np.ndarray, "PIL.Image.Image"]) -> dict:
+    def encode_example(self, value: Union[str, bytes, dict, np.ndarray, "PIL.Image.Image"]) -> dict:
         """Encode example into a format for Arrow.
 
         Args:
@@ -108,6 +108,8 @@ class Image:
 
         if isinstance(value, str):
             return {"path": value, "bytes": None}
+        elif isinstance(value, bytes):
+            return {"path": None, "bytes": value}
         elif isinstance(value, np.ndarray):
             # convert the image array to PNG/TIFF bytes
             return encode_np_array(value)
@@ -194,6 +196,7 @@ class Image:
         The Arrow types that can be converted to the Image pyarrow storage type are:
 
         - `pa.string()` - it must contain the "path" data
+        - `pa.binary()` - it must contain the image bytes
         - `pa.struct({"bytes": pa.binary()})`
         - `pa.struct({"path": pa.string()})`
         - `pa.struct({"bytes": pa.binary(), "path": pa.string()})`  - order doesn't matter
@@ -210,6 +213,9 @@ class Image:
         if pa.types.is_string(storage.type):
             bytes_array = pa.array([None] * len(storage), type=pa.binary())
             storage = pa.StructArray.from_arrays([bytes_array, storage], ["bytes", "path"], mask=storage.is_null())
+        elif pa.types.is_binary(storage.type):
+            path_array = pa.array([None] * len(storage), type=pa.string())
+            storage = pa.StructArray.from_arrays([storage, path_array], ["bytes", "path"], mask=storage.is_null())
         elif pa.types.is_struct(storage.type):
             if storage.type.get_field_index("bytes") >= 0:
                 bytes_array = storage.field("bytes")
