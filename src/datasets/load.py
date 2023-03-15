@@ -819,27 +819,17 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         module_name, default_builder_kwargs = next(iter(module_names.values()))
         if not module_name:
             raise FileNotFoundError(f"No data files found in {self.path}")
-        # # Collect metadata files if the module supports them
+
+        # Collect metadata files if the module supports them
         supports_metadata = module_name in _MODULE_SUPPORTS_METADATA
         if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
             update_data_files_with_metadata_files_locally(base_path=base_path, data_files=data_files)
-        #     try:
-        #         metadata_patterns = get_metadata_patterns_locally(base_path)
-        #     except FileNotFoundError:
-        #         metadata_patterns = None
-        #     if metadata_patterns is not None:
-        #         metadata_files = DataFilesList.from_local_or_remote(metadata_patterns, base_path=base_path)
-        #         for key in data_files:
-        #             data_files[key] = DataFilesList(
-        #                 data_files[key] + metadata_files,
-        #                 data_files[key].origin_metadata + metadata_files.origin_metadata,
-        #             )
-        # data_files, module_name, default_builder_kwargs = resolve_files_locally(base_path=base_path, data_files=self.data_files)
+
         module_path, hash = _PACKAGED_DATASETS_MODULES[module_name]
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
-            "config_name": self.config_name,
+            "config_name": self.config_name if metadata_configs_dict else "default",
             "base_path": self.path,
             **default_builder_kwargs,
         }
@@ -848,9 +838,6 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             get_data_files_for_metadata_configs_locally(
                 metadata_configs_dict, base_path=self.path, supports_metadata=supports_metadata
             )
-
-        print(f"{metadata_configs_dict=}")
-        #     resolve_data_files_for_metadata_configs(metadata_configs_dict, base_path=self.path, remote=False, supports_metadata=module_name in _MODULE_SUPPORTS_METADATA)
 
         if os.path.isfile(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME)):
             with open(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
@@ -935,7 +922,11 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
             update_data_files_with_metadata_files_locally(data_files, base_path=base_path)
 
         module_path, hash = _PACKAGED_DATASETS_MODULES[self.name]
-        builder_kwargs = {"hash": hash, "data_files": data_files, "config_name": self.config_name}
+        builder_kwargs = {
+            "hash": hash,
+            "data_files": data_files,
+            "config_name": self.config_name if metadata_configs_dict else "default",
+        }
         if metadata_configs_dict:
             get_data_files_for_metadata_configs_locally(
                 metadata_configs_dict, base_path=base_path, supports_metadata=supports_metadata
@@ -1060,7 +1051,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
-            "config_name": self.config_name,
+            "config_name": self.config_name if metadata_configs_dict else "default",
             "base_path": hf_hub_url(self.name, "", revision=self.revision),
             "repo_id": self.name,
             **default_builder_kwargs,  # from _EXTENSION_TO_MODULE
