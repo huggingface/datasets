@@ -1154,7 +1154,6 @@ def dataset_module_factory(
             hf_api = HfApi(config.HF_ENDPOINT)
             try:
                 dataset_info = hf_api.dataset_info(
-                    hf_api,
                     repo_id=path,
                     revision=revision,
                     use_auth_token=download_config.use_auth_token,
