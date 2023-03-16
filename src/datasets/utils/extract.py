@@ -179,6 +179,7 @@ class ZipExtractor(MagicNumberBaseExtractor):
                                 centdir = struct.unpack(structCentralDir, data)  # CD is the right size
                                 if centdir[_CD_SIGNATURE] == stringCentralDir:
                                     return True  # First central directory entry  has correct magic number
+            return False
         except Exception:  # catch all errors in case future python versions change the zipfile internals
             return False
 
