@@ -563,12 +563,39 @@ def get_data_files_for_metadata_configs_in_dataset_repository(
             )
 
 
-# for metadata_config in metadata_configs_dict.values():
-#     config_data_files_dict, config_patterns = get_data_files_locally(base_path=config_base_path, data_files=config_data_files)
-#     metadata_config["data_files"] = config_data_files_dict
-#
-#     if config_data_files is None and supports_metadata and config_patterns != DEFAULT_PATTERNS_ALL:
-#         update_data_files_with_metadata_files_locally(metadata_config["data_files"], base_path=config_base_path)
+def get_builder_info_from_dataset_metadata(
+    dataset_metadata: DatasetMetadata, config_name: Optional[str]
+) -> Optional[DatasetInfo]:
+    dataset_info = dataset_metadata.get("dataset_info", None)
+    if dataset_info and isinstance(dataset_info, list):
+        # if it's a list, info must have "config_name" and we take the one that is equal to the requested config_name
+        dataset_info_dicts = {info["config_name"]: info for info in dataset_info}
+        dataset_info_dict = dataset_info_dicts.get(config_name, {})
+        if dataset_info_dict:
+            return DatasetInfo._from_yaml_dict(dataset_info_dict)
+
+    elif dataset_info and isinstance(dataset_info, dict):  # only one info
+        dataset_info_dict = dataset_info
+        # there is no "config_name" in info -> it's a default one, take it independently of requested config_name
+        # there is "config_name" in info -> take it either if no config_name is requested or config_name matches the one in the info
+        if ("config_name" not in dataset_info_dict) or (
+            "config_name" in dataset_info_dict and config_name in [None, dataset_info_dict["config_name"]]
+        ):
+            return DatasetInfo._from_yaml_dict(dataset_info_dict)
+
+
+def get_builder_info_from_dataset_infos_json(path: str, config_name: Optional[str]) -> Optional[DatasetInfo]:
+    with open(path, encoding="utf-8") as f:
+        dataset_infos: DatasetInfosDict = json.load(f)
+    if len(dataset_infos) == 1:
+        dataset_info_config_name, dataset_info = next(iter(dataset_infos.items()))
+        # if config_name is not requested -> take info  one independently of it's name
+        # if it's requested -> take info only if config names are equal
+        if config_name is None or config_name == dataset_info_config_name:
+            return DatasetInfo.from_dict(dataset_info)
+    elif len(dataset_infos) > 1:
+        if config_name is not None and config_name in dataset_infos:
+            return DatasetInfo.from_dict(dataset_infos[config_name])
 
 
 @dataclass
@@ -798,18 +825,10 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         metadata_configs_dict = (
             MetadataConfigs.from_metadata(dataset_metadata) if dataset_metadata else MetadataConfigs()
         )
-        # even if metadata_configs_dict is not None we cannot skip resolving files again
-        # because we need to infer module name by files extensions
+        # even if metadata_configs_dict is not None (which means that we will resolve files for each config later)
+        # we cannot skip resolving all files because we need to infer module name by files extensions
         base_path = os.path.join(self.path, self.data_dir) if self.data_dir else self.path
         data_files, patterns = get_data_files_locally(base_path=base_path, data_files=self.data_files)
-        # patterns = (
-        #     sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns_locally(base_path)
-        # )
-        # data_files = DataFilesDict.from_local_or_remote(
-        #     patterns,
-        #     base_path=base_path,
-        #     allowed_extensions=ALL_ALLOWED_EXTENSIONS,
-        # )
         module_names = {
             key: infer_module_for_data_files(data_files_list) for key, data_files_list in data_files.items()
         }
@@ -838,27 +857,15 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 metadata_configs_dict, base_path=self.path, supports_metadata=supports_metadata
             )
 
-        if os.path.isfile(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME)):
-            with open(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
-                dataset_infos: DatasetInfosDict = json.load(f)
-            dataset_info = dataset_infos.get(self.config_name, None)
-            if dataset_info:
-                builder_kwargs["info"] = DatasetInfo.from_dict(dataset_info)
+        dataset_infos_json_path = os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME)
+        if os.path.isfile(dataset_infos_json_path):
+            info = get_builder_info_from_dataset_infos_json(dataset_infos_json_path, config_name=self.config_name)
+            if info:
+                builder_kwargs["info"] = info
 
-        if isinstance(dataset_metadata.get("dataset_info", None), list) and dataset_metadata["dataset_info"]:
-            dataset_info_dicts = {info["config_name"]: info for info in dataset_metadata["dataset_info"]}
-            dataset_info_dict = dataset_info_dicts.get(self.config_name, {})
-            if dataset_info_dict:
-                builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
-
-        elif isinstance(dataset_metadata.get("dataset_info"), dict) and dataset_metadata["dataset_info"]:
-            dataset_info_dict = dataset_metadata["dataset_info"]
-            if (
-                dataset_info_dict
-                and (dataset_info_dict.get("config_name", None) == self.config_name)
-                or (self.config_name == "default" and "config_name" not in dataset_info_dict)
-            ):
-                builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
+        info = get_builder_info_from_dataset_metadata(dataset_metadata, config_name=self.config_name)
+        if info:
+            builder_kwargs["info"] = info
 
         return DatasetModule(module_path, hash, builder_kwargs, metadata_configs_dict)
 
@@ -978,11 +985,10 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 hf_hub_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=self.revision),
                 download_config=download_config,
             )
-            with open(dataset_infos_path, encoding="utf-8") as f:
-                dataset_infos: DatasetInfosDict = json.load(f)
-            dataset_info = dataset_infos.get(self.config_name, None)
-            if dataset_info:
-                builder_kwargs["info"] = DatasetInfo.from_dict(dataset_info)
+            if os.path.isfile(dataset_infos_path):
+                info = get_builder_info_from_dataset_infos_json(dataset_infos_path, config_name=self.config_name)
+                if info:
+                    builder_kwargs["info"] = info
         except FileNotFoundError:
             pass
 
@@ -1032,20 +1038,9 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 supports_metadata=supports_metadata,
             )
 
-        if isinstance(dataset_metadata.get("dataset_info", None), list) and dataset_metadata["dataset_info"]:
-            dataset_info_dicts = {info["config_name"]: info for info in dataset_metadata["dataset_info"]}
-            dataset_info_dict = dataset_info_dicts.get(self.config_name, {})
-            if dataset_info_dict:
-                builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
-
-        elif isinstance(dataset_metadata.get("dataset_info"), dict) and dataset_metadata["dataset_info"]:
-            dataset_info_dict = dataset_metadata["dataset_info"]
-            if (
-                dataset_info_dict
-                and (dataset_info_dict.get("config_name", None) == self.config_name)
-                or (self.config_name == "default" and "config_name" not in dataset_info_dict)
-            ):
-                builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
+        info = get_builder_info_from_dataset_metadata(dataset_metadata, config_name=self.config_name)
+        if info:
+            builder_kwargs["info"] = info
 
         builder_kwargs = {
             "hash": hash,
