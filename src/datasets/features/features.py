@@ -1559,8 +1559,12 @@ class Features(dict):
         - [`~datasets.Translation`] and [`~datasets.TranslationVariableLanguages`], the two features specific to Machine Translation.
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(*args, **kwargs):
+        # self not in the signature to allow passing self as a kwarg
+        if not args:
+            raise TypeError("descriptor '__init__' of 'Features' object needs an argument")
+        self, *args = args
+        super(Features, self).__init__(*args, **kwargs)
         self._column_requires_decoding: Dict[str, bool] = {
             col: require_decoding(feature) for col, feature in self.items()
         }
