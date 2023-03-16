@@ -63,7 +63,6 @@ from .packaged_modules import (
 )
 from .splits import Split
 from .tasks import TaskTemplate
-from .utils._hf_hub_fixes import dataset_info as hf_api_dataset_info
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import (
     OfflineModeIsEnabled,
@@ -754,11 +753,10 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
-        hfh_dataset_info = hf_api_dataset_info(
-            HfApi(config.HF_ENDPOINT),
+        hfh_dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
             self.name,
             revision=self.revision,
-            use_auth_token=self.download_config.use_auth_token,
+            token=self.download_config.use_auth_token,
             timeout=100.0,
         )
         patterns = (
@@ -1155,7 +1153,7 @@ def dataset_module_factory(
             _raise_if_offline_mode_is_enabled()
             hf_api = HfApi(config.HF_ENDPOINT)
             try:
-                dataset_info = hf_api_dataset_info(
+                dataset_info = hf_api.dataset_info(
                     hf_api,
                     repo_id=path,
                     revision=revision,

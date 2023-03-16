@@ -106,8 +106,6 @@ from .table import (
 )
 from .tasks import TaskTemplate
 from .utils import logging
-from .utils._hf_hub_fixes import create_repo
-from .utils._hf_hub_fixes import list_repo_files as hf_api_list_repo_files
 from .utils.file_utils import _retry, cached_path, estimate_dataset_size
 from .utils.hub import hf_hub_url
 from .utils.info_utils import is_small_dataset
@@ -5067,8 +5065,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             organization_or_username = api.whoami(token)["name"]
             repo_id = f"{organization_or_username}/{dataset_name}"
 
-        create_repo(
-            api,
+        api.create_repo(
             repo_id,
             token=token,
             repo_type="dataset",
@@ -5110,7 +5107,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
             shards = shards_with_embedded_external_files(shards)
 
-        files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, use_auth_token=token)
+        files = api.list_repo_files(repo_id, repo_type="dataset", revision=branch, token=token)
         data_files = [file for file in files if file.startswith("data/")]
 
         def path_in_repo(_index, shard):
