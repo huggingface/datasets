@@ -4637,6 +4637,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             batched (`bool`):
                 Set to `True` to return a generator that yields the dataset as batches
                 of `batch_size` rows. Defaults to `False` (returns the whole datasets once).
+
+            <Deprecated>
+            Use `Dataset.iter(batch_size=batch_size)` instead.
+            </Deprecated>
+
             batch_size (`int`, *optional*): The size (number of rows) of the batches if `batched` is `True`.
                 Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
@@ -4656,6 +4661,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 indices=self._indices if self._indices is not None else None,
             ).to_pydict()
         else:
+            warnings.warn(
+                "'batched' was deprecated. Use `Dataset.iter(batch_size=batch_size)` instead.",
+                FutureWarning,
+            )
             batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
             return (
                 query_table(
