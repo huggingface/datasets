@@ -1,9 +1,15 @@
-from typing import List, Optional, Union
+from pathlib import Path
+from typing import Any, BinaryIO, List, Optional, Tuple, Union
 
 import huggingface_hub
 from huggingface_hub import HfApi, HfFolder
 from huggingface_hub.hf_api import DatasetInfo
 from packaging import version
+
+from . import logging
+
+
+logger = logging.get_logger(__name__)
 
 
 def create_repo(
@@ -39,7 +45,11 @@ def create_repo(
         `str`: URL to the newly created repo.
     """
     if version.parse(huggingface_hub.__version__) < version.parse("0.5.0"):
-        organization, name = repo_id.split("/")
+        repo_id_split = repo_id.split("/")
+        if len(repo_id_split) > 1:
+            organization, name = repo_id_split
+        else:
+            organization, name = None, repo_id_split[0]
         return hf_api.create_repo(
             name=name,
             organization=organization,
@@ -58,6 +68,128 @@ def create_repo(
             exist_ok=exist_ok,
             space_sdk=space_sdk,
         )
+
+
+def get_repo_id_from_repo_url(repo_url: Union[str, Any], repo_type: Optional[str]) -> str:
+    """
+    In 0.12.0 the output of `huggingface_hub.hf_api.create_repo` change output from `str` containing the
+    repo_url, to `RepoUrl` object. This function checks the huggingface_hub version to get the repo_id from
+    the repo_url, in the correct way.
+
+    Args:
+        repo_url (`str` or `huggingface_hub.hf_api.RepoUrl`): URL to the repo.
+        repo_type (`str`): Set to `"dataset"` or `"space"` if uploading to a dataset or
+            space, `None` or `"model"` if uploading to a model. Default is
+            `None`.
+
+    Returns:
+        `str`: repo_id, the ID of the repository to push to in the following format: `<user>/<dataset_name>` or
+            `<org>/<dataset_name>`.
+
+    Raises:
+        ValueError: If `repo_type` is not valid.
+    """
+    if version.parse(huggingface_hub.__version__) < version.parse("0.12.0"):
+        # This is a fix for the fact that the repo_id is not the same for datasets and models
+        # For datasets, the repo_url is of the form https://huggingface.co/datasets/<user>/<dataset_name>
+        # For models and spaces, the repo_url is of the form https://huggingface.co/<user>/<model_name>
+        # If the repo_type is not specified, huggingface_hub assumes it's a model
+        from urllib.parse import urlparse
+
+        if repo_type == "dataset":
+            repo_id = "/".join(urlparse(repo_url).path.split("/")[-2:])
+        elif repo_type in ["model", "space", None]:
+            repo_id = urlparse(repo_url).path[1:]
+        else:
+            raise ValueError(f"repo_type {repo_type} is not valid.")
+
+        repo_id = urlparse(repo_url).path[1:]
+        return repo_id
+    else:
+        return repo_url.repo_id
+
+
+def create_pr_it_does_not_exist(
+    hf_api: HfApi,
+    repo_id: str,
+    token: Optional[str] = None,
+    private: Optional[bool] = False,
+    repo_type: Optional[str] = "dataset",
+    create_pr: Optional[bool] = False,
+    branch: Optional[str] = None,
+) -> Tuple[str, bool]:
+    """
+    This function creates a PR for a dataset if it does not exist safely. The RepositoryNotFoundError was introduced in
+    huggingface_hub 0.7.0. This function checks the huggingface_hub version to call the right parameters.
+    The `create_pr` parameter was introduced in huggingface_hub 0.9.0. This function checks the huggingface_hub version
+    to call the right parameters.
+
+    Args:
+        hf_api (`huggingface_hub.HfApi`): Hub client
+        repo_id (`str`): The ID of the repository to push to in the following format: `<user>/<dataset_name>` or
+            `<org>/<dataset_name>`.
+        token (`str`, *optional*): user or organization token. Defaults to None.
+        private (`bool`, *optional*):
+            Whether the model repo should be private.
+        repo_type (`str`, *optional*):
+            Set to `"dataset"` or `"space"` if uploading to a dataset or
+            space, `None` or `"model"` if uploading to a model. Default is
+            `None`.
+        create_pr (`bool`, *optional*):
+            Whether to create a PR if the branch does not exist. Defaults to False.
+        branch (`str`, *optional*):
+            The branch to create the PR on. Defaults to None.
+
+    Returns:
+        branch (`str`): The branch reference, either for the existing PR or for the newly created one.
+    """
+    # By version huggingface_hub 0.7.0 HTTPError was replaced by RepositoryNotFoundError
+    # so we need to check the version to use the right exception
+    if version.parse(huggingface_hub.__version__) <= version.parse("0.7.0"):
+        from requests.exceptions import HTTPError
+
+        repo_not_found_exception = HTTPError
+    else:
+        from huggingface_hub.hf_api import RepositoryNotFoundError
+
+        repo_not_found_exception = RepositoryNotFoundError
+
+    # Try to find the repo before creating it
+    try:
+        hf_api.repo_info(repo_id, repo_type=repo_type, token=token)
+
+    except (repo_not_found_exception, AttributeError):
+        create_repo(hf_api=hf_api, repo_id=repo_id, private=private, token=token, exist_ok=True, repo_type=repo_type)
+
+    # Try to find PR branch if branch is supplied
+    pr_was_found = False
+    if create_pr and branch is not None:
+        if version.parse(huggingface_hub.__version__) < version.parse("0.9.0"):
+            raise ValueError(
+                "Using `create_pr` requires `huggingface-hub>=0.9.0`. Please use a more recent version of `huggingface-hub`."
+            )
+        else:
+            from huggingface_hub import get_repo_discussions
+
+            for discussion in get_repo_discussions(repo_id, repo_type="dataset"):
+                if discussion.is_pull_request and discussion.git_reference == branch:
+                    pr_was_found = True
+                    break
+            else:
+                raise ValueError("Provided branch not found")
+
+    # Create PR if we didn't find it before
+    if create_pr and not pr_was_found:
+        pr = hf_api.create_pull_request(
+            repo_id,
+            repo_type=repo_type,
+            title=f"Add {repo_id} dataset",
+            token=token,
+        )
+        branch = pr.git_reference
+        logger.info(f"Created PR {branch} for {repo_id} dataset")
+
+    return branch
 
 
 def delete_repo(
@@ -171,4 +303,94 @@ def list_repo_files(
     else:  # the `token` parameter is deprecated in huggingface_hub>=0.10.0
         return hf_api.list_repo_files(
             repo_id, revision=revision, repo_type=repo_type, use_auth_token=use_auth_token, timeout=timeout
+        )
+
+
+def upload_file(
+    hf_api: HfApi,
+    path_or_fileobj: Union[str, Path, bytes, BinaryIO],
+    path_in_repo: str,
+    repo_id: str,
+    token: Optional[str] = None,
+    repo_type: Optional[str] = None,
+    revision: Optional[str] = None,
+    commit_message: Optional[str] = None,
+    commit_description: Optional[str] = None,
+    create_pr: Optional[bool] = None,
+    parent_commit: Optional[str] = None,
+    identical_ok: Optional[bool] = True,
+) -> List[str]:
+    """
+    Several new parameters for huggingface_hub.HfApi.upload_file were introduced in 0.8.1 and some of them were deprecated.
+    This function checks the huggingface_hub version to call the right parameters. `commit_message`, `commit_description`, and `create_pr` were introduced in
+    huggingface_hub>=0.8.1.
+    """
+    # If we are using a version of huggingface_hub that does not support the `commit_message`, `commit_description`, and `create_pr` parameters, we raise an error, if they are used.
+    for param in [commit_message, commit_description, create_pr]:
+        if param is not None and version.parse(huggingface_hub.__version__) < version.parse("0.8.1"):
+            raise TypeError(
+                "The `commit_message`, `commit_description`, and `create_pr` parameters are not supported in huggingface_hub<0.8.1. Please update huggingface_hub to >=0.8.1 to use this parameter, or exclude `commit_message`, `commit_description` and `create_pr` from the keyword arguments."
+            )
+
+    # If we are using a version of huggingface_hub that does not support the `commit_message`, `commit_description`, and `create_pr` parameters, BUT they are not used, we call the function without them.
+    if version.parse(huggingface_hub.__version__) < version.parse("0.8.1"):
+        return hf_api.upload_file(
+            path_or_fileobj=path_or_fileobj,
+            path_in_repo=path_in_repo,
+            repo_id=repo_id,
+            token=token,
+            repo_type=repo_type,
+            revision=revision,
+            identical_ok=identical_ok,
+        )
+    else:
+        return hf_api.upload_file(
+            path_or_fileobj=path_or_fileobj,
+            path_in_repo=path_in_repo,
+            repo_id=repo_id,
+            token=token,
+            repo_type=repo_type,
+            revision=revision,
+            commit_message=commit_message,
+            commit_description=commit_description,
+            create_pr=create_pr,
+            parent_commit=parent_commit,
+        )
+
+
+def get_repo_discussions(
+    hf_api: HfApi,
+    repo_id: str,
+    repo_type: Optional[str] = None,
+    token: Optional[str] = None,
+) -> Any:
+    """
+    The method `huggingface_hub.HfApi.get_repo_discussions` was introduced in 0.9.0, this function checks the version before calling it.
+
+    Args:
+        hf_api (`huggingface_hub.HfApi`): Hub client
+        repo_id (`str`):
+            The ID of the repository to push to in the following format: `<user>/<dataset_name>` or
+            `<org>/<dataset_name>`. Also accepts `<dataset_name>`, which will default to the namespace
+            of the logged-in user.
+        repo_type (`str`, *optional*):
+            The type of repository to push to. Can be either `dataset` or `model`.
+        token (`str`, *optional*):
+            The token to use to authenticate to the Hugging Face Hub. If not provided, will use the token
+            stored in your `~/.huggingface` folder.
+    Returns:
+        Iterator[`huggingface_hub.hf_api.Discussion`]: The discussion(s) of the repository.
+
+    Raises:
+        TypeError: If the version of huggingface_hub is <0.9.0
+    """
+    if version.parse(huggingface_hub.__version__) < version.parse("0.9.0"):
+        raise TypeError(
+            "The method `get_repo_discussions` was introduced in huggingface_hub 0.9.0. Please update huggingface_hub to >=0.9.0 to use this method."
+        )
+    else:
+        return hf_api.get_repo_discussions(
+            repo_id=repo_id,
+            repo_type=repo_type,
+            token=token,
         )

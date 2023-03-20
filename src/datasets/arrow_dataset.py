@@ -108,8 +108,9 @@ from .table import (
 )
 from .tasks import TaskTemplate
 from .utils import logging
-from .utils._hf_hub_fixes import create_repo
+from .utils._hf_hub_fixes import create_pr_it_does_not_exist, create_repo
 from .utils._hf_hub_fixes import list_repo_files as hf_api_list_repo_files
+from .utils._hf_hub_fixes import upload_file as hf_api_upload_file
 from .utils.file_utils import _retry, cached_path, estimate_dataset_size
 from .utils.hub import hf_hub_url
 from .utils.info_utils import is_small_dataset
@@ -5152,8 +5153,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 shard.to_parquet(buffer)
                 uploaded_size += buffer.tell()
                 _retry(
-                    api.upload_file,
+                    hf_api_upload_file,
                     func_kwargs={
+                        "hf_api": api,
                         "path_or_fileobj": buffer.getvalue(),
                         "path_in_repo": shard_path_in_repo,
                         "repo_id": repo_id,
@@ -5176,7 +5178,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if data_file.startswith(f"data/{split}-") and data_file not in shards_path_in_repo
         ]
         deleted_size = sum(
-            xgetsize(hf_hub_url(repo_id, data_file), use_auth_token=token) for data_file in data_files_to_delete
+            xgetsize(hf_hub_url(repo_id, data_file, revision=branch), use_auth_token=token)
+            for data_file in data_files_to_delete
         )
 
         def delete_file(file):
@@ -5205,6 +5208,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         max_shard_size: Optional[Union[int, str]] = None,
         num_shards: Optional[int] = None,
         embed_external_files: bool = True,
+        create_pr: bool = False,
     ):
         """Pushes the dataset to the hub as a Parquet dataset.
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
@@ -5234,6 +5238,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by
                 a unit (like `"5MB"`).
             num_shards (`int`, *optional*): Number of shards to write. By default the number of shards depends on `max_shard_size`.
+            create_pr (`bool`, *optional*, defaults to `False`):
+                If `branch` is not set, PR is opened against the `"main"` branch. If
+                `branch` is set and is a branch, PR is opened against this branch. If
+                `branch` is set and is not a branch name (example: a commit oid), an
+                `RevisionNotFoundError` is returned by the server.
 
                 <Added version="2.8.0"/>
             embed_external_files (`bool`, defaults to `True`):
@@ -5255,6 +5264,25 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             raise ValueError(
                 "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
             )
+
+        api = HfApi(endpoint=config.HF_ENDPOINT)
+
+        # Create repo if it doesn't exist safely, i.e. search for an existing PR and create one if none is found.
+        # If create_pr is False we neither create nor search.
+        branch = create_pr_it_does_not_exist(
+            hf_api=api,
+            repo_id=repo_id,
+            private=private,
+            token=token,
+            repo_type="dataset",
+            create_pr=create_pr,
+            branch=branch,
+        )
+
+        # If create_pr is True, we have at this point either created or found a PR to push to.
+        # Hence we don't want to create a PR, in the following file uploads. For this we set create_pr to None,
+        # which also handles the where case where huggingface_hub is of version <0.8.1, hence create_pr does not exist.
+        create_pr = None
 
         repo_id, split, uploaded_size, dataset_nbytes, repo_files, deleted_size = self._push_parquet_shards_to_hub(
             repo_id=repo_id,
@@ -5281,7 +5309,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             download_config.download_desc = "Downloading metadata"
             download_config.use_auth_token = token
             dataset_readme_path = cached_path(
-                hf_hub_url(repo_id, "README.md"),
+                hf_hub_url(repo_id, "README.md", revision=branch),
                 download_config=download_config,
             )
             dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
@@ -5297,7 +5325,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             download_config.download_desc = "Downloading metadata"
             download_config.use_auth_token = token
             dataset_infos_path = cached_path(
-                hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME),
+                hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME, revision=branch),
                 download_config=download_config,
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
@@ -5336,13 +5364,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             buffer.write(b'{"default": ')
             info_to_dump._dump_info(buffer, pretty_print=True)
             buffer.write(b"}")
-            HfApi(endpoint=config.HF_ENDPOINT).upload_file(
+            hf_api_upload_file(
+                hf_api=api,
                 path_or_fileobj=buffer.getvalue(),
                 path_in_repo=config.DATASETDICT_INFOS_FILENAME,
                 repo_id=repo_id,
                 token=token,
                 repo_type="dataset",
                 revision=branch,
+                create_pr=create_pr,
             )
         # push to README
         DatasetInfosDict({"default": info_to_dump}).to_metadata(dataset_metadata)
@@ -5351,13 +5381,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 readme_content = readme_file.read()
         else:
             readme_content = f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
-        HfApi(endpoint=config.HF_ENDPOINT).upload_file(
+        hf_api_upload_file(
+            hf_api=api,
             path_or_fileobj=dataset_metadata._to_readme(readme_content).encode(),
             path_in_repo="README.md",
             repo_id=repo_id,
             token=token,
             repo_type="dataset",
             revision=branch,
+            create_pr=create_pr,
         )
 
     @transmit_format

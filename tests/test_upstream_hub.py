@@ -6,12 +6,15 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+import huggingface_hub
 import numpy as np
 import pytest
 from huggingface_hub import HfApi
+from packaging import version
 
 from datasets import Audio, ClassLabel, Dataset, DatasetDict, Features, Image, Value, load_dataset
 from datasets.utils._hf_hub_fixes import list_repo_files
+from datasets.utils._hf_hub_fixes import upload_file as hf_api_upload_file
 from tests.fixtures.hub import CI_HUB_ENDPOINT, CI_HUB_USER, CI_HUB_USER_TOKEN
 from tests.utils import for_all_test_methods, require_pil, require_sndfile, xfail_if_500_502_http_error
 
@@ -231,7 +234,8 @@ class TestPushToHub:
                 with open(path, "w") as f:
                     f.write("Bogus file")
 
-                self._api.upload_file(
+                hf_api_upload_file(
+                    self._api,
                     path_or_fileobj=str(path),
                     path_in_repo="datafile.txt",
                     repo_id=ds_name,
@@ -278,7 +282,8 @@ class TestPushToHub:
                 with open(path, "w") as f:
                     f.write("Bogus file")
 
-                self._api.upload_file(
+                hf_api_upload_file(
+                    self._api,
                     path_or_fileobj=str(path),
                     path_in_repo="datafile.txt",
                     repo_id=ds_name,
@@ -321,6 +326,26 @@ class TestPushToHub:
             local_ds.push_to_hub(ds_name, split="train", token=self._token)
             local_ds_dict = {"train": local_ds}
             hub_ds_dict = load_dataset(ds_name, download_mode="force_redownload")
+
+            assert list(local_ds_dict.keys()) == list(hub_ds_dict.keys())
+
+            for ds_split_name in local_ds_dict.keys():
+                local_ds = local_ds_dict[ds_split_name]
+                hub_ds = hub_ds_dict[ds_split_name]
+                assert local_ds.column_names == hub_ds.column_names
+                assert list(local_ds.features.keys()) == list(hub_ds.features.keys())
+                assert local_ds.features == hub_ds.features
+
+    @pytest.mark.skipif(
+        version.parse(huggingface_hub.__version__) < version.parse("0.8.1"), reason="Requires huggingface_hub>=0.8.1"
+    )
+    def test_push_dataset_to_hub_with_pull_request(self, temporary_repo):
+        local_ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            local_ds.push_to_hub(ds_name, split="train", token=self._token, create_pr=True)
+            local_ds_dict = {"train": local_ds}
+            hub_ds_dict = load_dataset(ds_name, download_mode="force_redownload", revision="refs/pr/1")
 
             assert list(local_ds_dict.keys()) == list(hub_ds_dict.keys())
 
