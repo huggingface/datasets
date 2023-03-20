@@ -183,7 +183,7 @@ class DatasetInfoMixin:
 
     @property
     def features(self) -> Features:
-        return self._info.features
+        return self._info.features.copy()
 
     @property
     def homepage(self) -> Optional[str]:
