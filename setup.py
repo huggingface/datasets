@@ -132,8 +132,8 @@ REQUIRED_PKGS = [
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    # minimum 0.2.0 for set_access_token
-    "huggingface-hub>=0.2.0,<1.0.0",
+    # minimum 0.11.0 to fix 400 Client Error issues
+    "huggingface-hub>=0.11.0,<1.0.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     "responses<0.19",
