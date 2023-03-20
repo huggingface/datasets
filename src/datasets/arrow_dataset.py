@@ -182,8 +182,8 @@ class DatasetInfoMixin:
         return self._info.download_size
 
     @property
-    def features(self) -> Features:
-        return self._info.features.copy()
+    def features(self) -> Optional[Features]:
+        return self._info.features.copy() if self._info.features is not None else None
 
     @property
     def homepage(self) -> Optional[str]:
@@ -693,6 +693,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         _check_column_names(self._data.column_names)
 
         self._data = update_metadata_with_features(self._data, self.features)
+
+    @property
+    def features(self) -> Features:
+        features = super().features
+        if features is None:  # this is already checked in __init__
+            raise ValueError("Features can't be None in a Dataset object")
+        return features
 
     @classmethod
     def from_file(
