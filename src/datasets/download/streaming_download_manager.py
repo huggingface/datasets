@@ -440,7 +440,10 @@ def _prepare_http_url_kwargs(url: str, use_auth_token: Optional[Union[str, bool]
 
     In particular it resolves google drive URLs and it adds the authentication headers for the Hugging Face Hub.
     """
-    kwargs = {"headers": get_authentication_headers_for_url(url, use_auth_token=use_auth_token)}
+    kwargs = {
+        "headers": get_authentication_headers_for_url(url, use_auth_token=use_auth_token),
+        "client_kwargs": {"trust_env": True},  # Enable reading proxy env variables.
+    }
     if "drive.google.com" in url:
         response = http_head(url)
         cookies = None
