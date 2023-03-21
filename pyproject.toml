@@ -1,13 +1,12 @@
 [tool.black]
 line-length = 119
 target_version = ['py37']
-ignore = ["C901"]
 
 [tool.ruff]
 # Ignored rules:
 #   "E501" -> line length violation
 #   "F821" -> undefined named in type annotation (e.g. Literal["something"])
-ignore = ["E501", "F821", "C901"]
+ignore = ["E501", "F821"]
 select = ["C", "E", "F", "I", "W"]
 line-length = 119
 
