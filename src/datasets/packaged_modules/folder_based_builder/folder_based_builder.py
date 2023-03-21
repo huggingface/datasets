@@ -52,11 +52,6 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
 
     METADATA_FILENAMES: List[str] = ["metadata.csv", "metadata.jsonl"]
 
-    def __int__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.config.metadata_filename:
-            self.METADATA_FILENAMES = [self.config.metadata_filename]
-
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
 

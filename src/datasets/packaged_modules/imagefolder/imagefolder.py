@@ -23,6 +23,12 @@ class ImageFolder(folder_based_builder.FolderBasedBuilder):
     EXTENSIONS: List[str]  # definition at the bottom of the script
     CLASSIFICATION_TASK = ImageClassification(image_column="image", label_column="label")
 
+    def __int__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.config.metadata_filename:
+            logger.info(f"Using custom metadata filename: {self.config.metadata_filename}")
+            self.METADATA_FILENAMES = [self.config.metadata_filename]
+
 
 # Obtained with:
 # ```
