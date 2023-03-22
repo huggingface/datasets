@@ -4638,9 +4638,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Set to `True` to return a generator that yields the dataset as batches
                 of `batch_size` rows. Defaults to `False` (returns the whole datasets once).
 
-            <Deprecated>
-            Use `Dataset.iter(batch_size=batch_size)` instead.
-            </Deprecated>
+                <Deprecated version="2.11.0">
+                
+                Use `.iter(batch_size=batch_size)` followed by `.to_dict()` on the individual batches instead.
+            
+                </Deprecated>
 
             batch_size (`int`, *optional*): The size (number of rows) of the batches if `batched` is `True`.
                 Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
