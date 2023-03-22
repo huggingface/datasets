@@ -4663,10 +4663,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 indices=self._indices if self._indices is not None else None,
             ).to_pydict()
         else:
-            warnings.warn(
-                "'batched' was deprecated. Use `Dataset.iter(batch_size=batch_size)` instead.",
-                FutureWarning,
-            )
+            if batched != "deprecated":
+                warnings.warn(
+                    "'batched' was deprecated in version 2.11.0 and will be removed in version 3.0.0. Use `.iter(batch_size=batch_size)` followed by `.to_dict()` on the individual batches instead.",
+                    FutureWarning,
+                )
+            else:
+                batched = False 
             batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
             return (
                 query_table(
