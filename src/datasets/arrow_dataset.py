@@ -5386,14 +5386,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         })
         ```
         """
-        column_table = InMemoryTable.from_pydict({name: column})
+        ts = OptimizedTypedSequence(column, type=None, col=name)
+        column_table = InMemoryTable.from_pydict({name: ts})
         _check_column_names(self._data.column_names + column_table.column_names)
         dataset = self.flatten_indices() if self._indices is not None else self
         # Concatenate tables horizontally
         table = concat_tables([dataset._data, column_table], axis=1)
         # Update features
         info = dataset.info.copy()
-        info.features.update(Features.from_arrow_schema(column_table.schema))
+        info.features.update(Features({name: ts.get_inferred_type()}))
         table = update_metadata_with_features(table, info.features)
         return Dataset(table, info=info, split=self.split, indices_table=None, fingerprint=new_fingerprint)
 
@@ -5629,9 +5630,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         {'label': 0, 'text': 'this movie is the absolute worst thing I have ever seen'}
         ```
         """
-        item_table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
+        item = {k: OptimizedTypedSequence([v], type=None, col=k) for k, v in item.items()}
+        item_table = InMemoryTable.from_pydict(item)
         # We don't call _check_if_features_can_be_aligned here so this cast is "unsafe"
-        dset_features, item_features = _align_features([self.features, Features.from_arrow_schema(item_table.schema)])
+        dset_features, item_features = _align_features(
+            [self.features, Features({k: v.get_inferred_type() for k, v in item.items()})]
+        )
         # Cast to align the schemas of the tables and concatenate the tables
         table = concat_tables(
             [

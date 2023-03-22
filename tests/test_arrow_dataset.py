@@ -3226,6 +3226,18 @@ def test_dataset_add_column(column, expected_dtype, in_memory, transform, datase
     assert_arrow_metadata_are_synced_with_dataset_features(dataset)
 
 
+@require_pil
+def test_dataset_add_column_complex_features(image_file):
+    import PIL.Image
+
+    pil_image = PIL.Image.open(image_file)
+    dataset = Dataset.from_dict({"col_1": ["a", "b"]})
+    dataset = dataset.add_column("col_2", [pil_image, None])
+    assert dataset.data.shape == (2, 2)
+    assert dataset.features == Features({"col_1": Value("string"), "col_2": Image()})
+    assert dataset[:] == {"col_1": ["a", "b"], "col_2": [pil_image, None]}
+
+
 @pytest.mark.parametrize(
     "transform",
     [None, ("shuffle", (42,), {}), ("with_format", ("pandas",), {}), ("class_encode_column", ("col_2",), {})],
@@ -3290,6 +3302,18 @@ def test_dataset_add_item_introduce_feature_type():
     assert dataset.data.shape == (4, 1)
     assert dataset.features == Features({"col_1": Value("string")})
     assert dataset[:] == {"col_1": [None, None, None, "a"]}
+
+
+@require_pil
+def test_dataset_add_item_complex_features(image_file):
+    import PIL.Image
+
+    pil_image = PIL.Image.open(image_file)
+    dataset = Dataset.from_dict({"col_1": [pil_image, None]})
+    dataset = dataset.add_item({"col_1": pil_image})
+    assert dataset.data.shape == (3, 1)
+    assert dataset.features == Features({"col_1": Image()})
+    assert dataset[:] == {"col_1": [pil_image, None, pil_image]}
 
 
 def test_dataset_filter_batched_indices():
