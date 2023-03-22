@@ -42,6 +42,7 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
             client_kwargs={
                 "requote_redirect_url": False,  # see https://github.com/huggingface/datasets/pull/5459
                 "trust_env": True,  # Enable reading proxy env variables.
+                **(target_options or {}).pop("client_kwargs", {}),  # To avoid issues if it was already passed.
             },
             **(target_options or {}),
         )
