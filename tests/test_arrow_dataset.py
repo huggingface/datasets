@@ -4309,16 +4309,20 @@ def test_dataset_estimate_nbytes():
     assert 0.9 * ds._estimate_nbytes() < 100 * 100, "must be smaller than one chunk"
 
 
-def test_dataset_to_iterable_dataset(dataset):
+def test_dataset_to_iterable_dataset(dataset: Dataset):
     iterable_dataset = dataset.to_iterable_dataset()
     assert isinstance(iterable_dataset, IterableDataset)
     assert list(iterable_dataset) == list(dataset)
+    assert iterable_dataset.features == dataset.features
     iterable_dataset = dataset.to_iterable_dataset(num_shards=3)
     assert isinstance(iterable_dataset, IterableDataset)
     assert list(iterable_dataset) == list(dataset)
+    assert iterable_dataset.features == dataset.features
     assert iterable_dataset.n_shards == 3
     with pytest.raises(ValueError):
         dataset.to_iterable_dataset(num_shards=len(dataset) + 1)
+    with pytest.raises(NotImplementedError):
+        dataset.with_format("torch").to_iterable_dataset()
 
 
 @pytest.mark.parametrize("batch_size", [1, 4])
