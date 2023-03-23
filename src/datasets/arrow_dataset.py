@@ -3264,7 +3264,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 return None  # Nothing to update, let's move on
             if shard._format_type or input_columns:
                 # TODO(QL, MS): ideally the behavior should be the same even if the dataset is formatted (may require major release)
-                inputs_to_merge = {k: v for k, v in zip(pa_inputs.column_names, pa_inputs.itercolumns())}
+                inputs_to_merge = dict(zip(pa_inputs.column_names, pa_inputs.itercolumns()))
             elif isinstance(inputs, LazyDict):
                 inputs_to_merge = {
                     k: (v if k not in inputs.keys_to_format else pa_inputs[k]) for k, v in inputs.data.items()
