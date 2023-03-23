@@ -1,4 +1,5 @@
 import os
+import zipfile
 
 import pytest
 
@@ -183,3 +184,20 @@ def test_tar_extract_insecure_files(
     for record in caplog.records:
         assert record.levelname == "ERROR"
         assert error_log in record.msg
+
+
+def test_is_zipfile_false_positive(tmpdir):
+    # We should have less false positives than zipfile.is_zipfile
+    # We do that by checking only the magic number
+    not_a_zip_file = tmpdir / "not_a_zip_file"
+    # From: https://github.com/python/cpython/pull/5053
+    data = (
+        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00"
+        b"\x00\x02\x08\x06\x00\x00\x00\x99\x81\xb6'\x00\x00\x00\x15I"
+        b"DATx\x01\x01\n\x00\xf5\xff\x00PK\x05\x06\x00PK\x06\x06\x07"
+        b"\xac\x01N\xc6|a\r\x00\x00\x00\x00IEND\xaeB`\x82"
+    )
+    with not_a_zip_file.open("wb") as f:
+        f.write(data)
+    assert zipfile.is_zipfile(str(not_a_zip_file))  # is a false positive for `zipfile`
+    assert not ZipExtractor.is_extractable(not_a_zip_file)  # but we're right

@@ -1559,8 +1559,12 @@ class Features(dict):
         - [`~datasets.Translation`] and [`~datasets.TranslationVariableLanguages`], the two features specific to Machine Translation.
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(*args, **kwargs):
+        # self not in the signature to allow passing self as a kwarg
+        if not args:
+            raise TypeError("descriptor '__init__' of 'Features' object needs an argument")
+        self, *args = args
+        super(Features, self).__init__(*args, **kwargs)
         self._column_requires_decoding: Dict[str, bool] = {
             col: require_decoding(feature) for col, feature in self.items()
         }
@@ -1807,6 +1811,22 @@ class Features(dict):
         """
         example = cast_to_python_objects(example)
         return encode_nested_example(self, example)
+
+    def encode_column(self, column, column_name: str):
+        """
+        Encode column into a format for Arrow.
+
+        Args:
+            column (`list[Any]`):
+                Data in a Dataset column.
+            column_name (`str`):
+                Dataset column name.
+
+        Returns:
+            `list[Any]`
+        """
+        column = cast_to_python_objects(column)
+        return [encode_nested_example(self[column_name], obj) for obj in column]
 
     def encode_batch(self, batch):
         """
