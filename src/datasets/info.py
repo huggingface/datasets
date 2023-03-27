@@ -497,7 +497,7 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
                     dataset_metadata["dataset_info"] = {"config_name": config_name, **dataset_metadata["dataset_info"]}
             else:
                 dataset_metadata["dataset_info"] = []
-                for config_name, dataset_info_yaml_dict in sorted(total_dataset_infos.items(), key=lambda x: x[0]):
+                for config_name, dataset_info_yaml_dict in sorted(total_dataset_infos.items()):
                     # add the config_name field in first position
                     dataset_info_yaml_dict.pop("config_name", None)
                     dataset_info_yaml_dict = {"config_name": config_name, **dataset_info_yaml_dict}

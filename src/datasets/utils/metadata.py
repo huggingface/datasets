@@ -41,7 +41,7 @@ class DatasetMetadata(dict):
 
     @classmethod
     def from_readme(cls, path: Union[Path, str]) -> "DatasetMetadata":
-        """Loads and validates the dataset metadat from its dataset card (README.md)
+        """Loads and validates the dataset metadata from its dataset card (README.md)
 
         Args:
             path (:obj:`Path`): Path to the dataset card (its README.md file)
@@ -120,24 +120,22 @@ class MetadataConfigs(Dict[str, dict]):
     def from_metadata(cls, dataset_metadata: DatasetMetadata) -> "MetadataConfigs":
         if cls.__configs_field_name in dataset_metadata:
             metadata_configs = dataset_metadata.get(cls.__configs_field_name)
-            if isinstance(metadata_configs, dict):
-                config_name = metadata_configs.pop("config_name", "default")
-                return cls({config_name: metadata_configs})
-            if isinstance(metadata_configs, list):
-                return cls(
-                    {
-                        config["config_name"]: {
-                            param: value for param, value in config.items() if param != "config_name"
-                        }
-                        for config in metadata_configs
-                    }
-                )
+            if isinstance(metadata_configs, dict):  # single configuration
+                if "config_name" not in metadata_configs:
+                    metadata_configs["config_name"] = "default"
+                metadata_configs = [metadata_configs]
+            return cls(
+                {
+                    config["config_name"]: {param: value for param, value in config.items() if param != "config_name"}
+                    for config in metadata_configs
+                }
+            )
         return cls()
 
     def to_metadata(self, dataset_metadata: DatasetMetadata) -> None:
         if self:
             current_metadata_configs = self.from_metadata(dataset_metadata)
-            total_metadata_configs = dict(sorted({**current_metadata_configs, **self}.items(), key=lambda x: x[0]))
+            total_metadata_configs = dict(sorted({**current_metadata_configs, **self}.items()))
             if len(total_metadata_configs) > 1:
                 for config_name, config_metadata in total_metadata_configs.items():
                     config_metadata.pop("config_name", None)

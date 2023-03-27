@@ -134,7 +134,7 @@ def import_main_class(module_path, dataset=True) -> Optional[Union[Type[DatasetB
     return module_main_cls
 
 
-class _InitializeParameterizedDatasetBuilder:
+class _InitializeConfiguredDatasetBuilder:
     """
     From https://stackoverflow.com/questions/4647566/pickle-a-dynamically-parameterized-sub-class
     See also ConfiguredDatasetBuilder.__reduce__
@@ -146,7 +146,7 @@ class _InitializeParameterizedDatasetBuilder:
 
     def __call__(self, builder_cls, metadata_configs, name):
         # make a simple object which has no complex __init__ (this one will do)
-        obj = _InitializeParameterizedDatasetBuilder()
+        obj = _InitializeConfiguredDatasetBuilder()
         obj.__class__ = configure_builder_class(builder_cls, metadata_configs, name)
         return obj
 
@@ -167,7 +167,7 @@ def configure_builder_class(
         def __reduce__(self):  # to make dynamically created class pickable, see _InitializeParameterizedDatasetBuilder
             parent_builder_cls = self.__class__.__mro__[1]
             return (
-                _InitializeParameterizedDatasetBuilder(),
+                _InitializeConfiguredDatasetBuilder(),
                 (
                     parent_builder_cls,
                     self.BUILDER_CONFIGS,
@@ -562,7 +562,7 @@ def get_data_files_for_metadata_configs_in_dataset_repository(
             )
 
 
-def get_builder_info_from_dataset_metadata(
+def get_dataset_info_from_dataset_metadata(
     dataset_metadata: DatasetMetadata, config_name: Optional[str]
 ) -> Optional[DatasetInfo]:
     dataset_info = dataset_metadata.get("dataset_info", None)
@@ -583,7 +583,7 @@ def get_builder_info_from_dataset_metadata(
             return DatasetInfo._from_yaml_dict(dataset_info_dict)
 
 
-def get_builder_info_from_dataset_infos_json(path: str, config_name: Optional[str]) -> Optional[DatasetInfo]:
+def get_dataset_info_from_dataset_infos_json(path: str, config_name: Optional[str]) -> Optional[DatasetInfo]:
     with open(path, encoding="utf-8") as f:
         dataset_infos: DatasetInfosDict = json.load(f)
     if len(dataset_infos) == 1:
@@ -858,11 +858,11 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
 
         dataset_infos_json_path = os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME)
         if os.path.isfile(dataset_infos_json_path):
-            info = get_builder_info_from_dataset_infos_json(dataset_infos_json_path, config_name=self.config_name)
+            info = get_dataset_info_from_dataset_infos_json(dataset_infos_json_path, config_name=self.config_name)
             if info:
                 builder_kwargs["info"] = info
 
-        info = get_builder_info_from_dataset_metadata(dataset_metadata, config_name=self.config_name)
+        info = get_dataset_info_from_dataset_metadata(dataset_metadata, config_name=self.config_name)
         if info:
             builder_kwargs["info"] = info
 
@@ -984,7 +984,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 download_config=download_config,
             )
             if os.path.isfile(dataset_infos_path):
-                info = get_builder_info_from_dataset_infos_json(dataset_infos_path, config_name=self.config_name)
+                info = get_dataset_info_from_dataset_infos_json(dataset_infos_path, config_name=self.config_name)
                 if info:
                     builder_kwargs["info"] = info
         except FileNotFoundError:
@@ -1036,7 +1036,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 supports_metadata=supports_metadata,
             )
 
-        info = get_builder_info_from_dataset_metadata(dataset_metadata, config_name=self.config_name)
+        info = get_dataset_info_from_dataset_metadata(dataset_metadata, config_name=self.config_name)
         if info:
             builder_kwargs["info"] = info
 
