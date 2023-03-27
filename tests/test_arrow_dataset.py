@@ -404,56 +404,56 @@ class BaseDatasetTest(TestCase):
     #             self.assertIsInstance(dset[0]["col_2"], np.str_)
     #             self.assertEqual(dset[0]["col_2"].item(), "a")
 
-    # @require_torch
-    # def test_set_format_torch(self, in_memory):
-    #     import torch
-
-    #     with tempfile.TemporaryDirectory() as tmp_dir:
-    #         with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
-    #             dset.set_format(type="torch", columns=["col_1"])
-    #             self.assertEqual(len(dset[0]), 1)
-    #             self.assertIsInstance(dset[0]["col_1"], torch.Tensor)
-    #             self.assertIsInstance(dset["col_1"], torch.Tensor)
-    #             self.assertListEqual(list(dset[0]["col_1"].shape), [])
-    #             self.assertEqual(dset[0]["col_1"].item(), 3)
-
-    #             dset.set_format(type="torch", columns=["col_1"], output_all_columns=True)
-    #             self.assertEqual(len(dset[0]), 3)
-    #             self.assertIsInstance(dset[0]["col_2"], str)
-    #             self.assertEqual(dset[0]["col_2"], "a")
-
-    #             dset.set_format(type="torch")
-    #             self.assertEqual(len(dset[0]), 3)
-    #             self.assertIsInstance(dset[0]["col_1"], torch.Tensor)
-    #             self.assertIsInstance(dset["col_1"], torch.Tensor)
-    #             self.assertListEqual(list(dset[0]["col_1"].shape), [])
-    #             self.assertEqual(dset[0]["col_1"].item(), 3)
-    #             self.assertIsInstance(dset[0]["col_2"], str)
-    #             self.assertEqual(dset[0]["col_2"], "a")
-    #             self.assertIsInstance(dset[0]["col_3"], torch.Tensor)
-    #             self.assertIsInstance(dset["col_3"], torch.Tensor)
-    #             self.assertListEqual(list(dset[0]["col_3"].shape), [])
-
-    @require_tf
-    def test_set_format_tf(self, in_memory):
-        import tensorflow as tf
+    @require_torch
+    def test_set_format_torch(self, in_memory):
+        import torch
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
-                dset.set_format(type="tensorflow", columns=["col_1"])
+                dset.set_format(type="torch", columns=["col_1"])
                 self.assertEqual(len(dset[0]), 1)
-                self.assertIsInstance(dset[0]["col_1"], tf.Tensor)
+                self.assertIsInstance(dset[0]["col_1"], torch.Tensor)
+                self.assertIsInstance(dset["col_1"], torch.Tensor)
                 self.assertListEqual(list(dset[0]["col_1"].shape), [])
-                self.assertEqual(dset[0]["col_1"].numpy().item(), 3)
+                self.assertEqual(dset[0]["col_1"].item(), 3)
 
-                dset.set_format(type="tensorflow", columns=["col_1"], output_all_columns=True)
+                dset.set_format(type="torch", columns=["col_1"], output_all_columns=True)
                 self.assertEqual(len(dset[0]), 3)
                 self.assertIsInstance(dset[0]["col_2"], str)
                 self.assertEqual(dset[0]["col_2"], "a")
 
-                dset.set_format(type="tensorflow", columns=["col_1", "col_2"])
-                self.assertEqual(len(dset[0]), 2)
-                self.assertEqual(dset[0]["col_2"].numpy().decode("utf-8"), "a")
+                dset.set_format(type="torch")
+                self.assertEqual(len(dset[0]), 3)
+                self.assertIsInstance(dset[0]["col_1"], torch.Tensor)
+                self.assertIsInstance(dset["col_1"], torch.Tensor)
+                self.assertListEqual(list(dset[0]["col_1"].shape), [])
+                self.assertEqual(dset[0]["col_1"].item(), 3)
+                self.assertIsInstance(dset[0]["col_2"], str)
+                self.assertEqual(dset[0]["col_2"], "a")
+                self.assertIsInstance(dset[0]["col_3"], torch.Tensor)
+                self.assertIsInstance(dset["col_3"], torch.Tensor)
+                self.assertListEqual(list(dset[0]["col_3"].shape), [])
+
+    # @require_tf
+    # def test_set_format_tf(self, in_memory):
+    #     import tensorflow as tf
+
+    #     with tempfile.TemporaryDirectory() as tmp_dir:
+    #         with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+    #             dset.set_format(type="tensorflow", columns=["col_1"])
+    #             self.assertEqual(len(dset[0]), 1)
+    #             self.assertIsInstance(dset[0]["col_1"], tf.Tensor)
+    #             self.assertListEqual(list(dset[0]["col_1"].shape), [])
+    #             self.assertEqual(dset[0]["col_1"].numpy().item(), 3)
+
+    #             dset.set_format(type="tensorflow", columns=["col_1"], output_all_columns=True)
+    #             self.assertEqual(len(dset[0]), 3)
+    #             self.assertIsInstance(dset[0]["col_2"], str)
+    #             self.assertEqual(dset[0]["col_2"], "a")
+
+    #             dset.set_format(type="tensorflow", columns=["col_1", "col_2"])
+    #             self.assertEqual(len(dset[0]), 2)
+    #             self.assertEqual(dset[0]["col_2"].numpy().decode("utf-8"), "a")
 
     # def test_set_format_pandas(self, in_memory):
     #     with tempfile.TemporaryDirectory() as tmp_dir:
