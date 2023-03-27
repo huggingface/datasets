@@ -100,7 +100,7 @@ JAX_VERSION = "N/A"
 JAX_AVAILABLE = False
 
 if USE_JAX in ENV_VARS_TRUE_AND_AUTO_VALUES:
-    JAX_AVAILABLE = importlib.util.find_spec("jax") is not None
+    JAX_AVAILABLE = importlib.util.find_spec("jax") is not None and importlib.util.find_spec("jaxlib") is not None
     if JAX_AVAILABLE:
         try:
             JAX_VERSION = version.parse(importlib_metadata.version("jax"))

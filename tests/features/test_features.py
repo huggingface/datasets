@@ -102,6 +102,13 @@ class FeaturesTest(TestCase):
         reloaded_features = Features.from_dict(asdict(ds_info)["features"])
         assert features == reloaded_features
 
+    def test_feature_named_self_as_kwarg(self):
+        """reference: issue #5641"""
+        features = Features(self=Value("string"))
+        ds_info = DatasetInfo(features=features)
+        reloaded_features = Features.from_dict(asdict(ds_info)["features"])
+        assert features == reloaded_features
+
     def test_class_label_feature_with_no_labels(self):
         """reference: issue #4681"""
         features = Features({"label": ClassLabel(names=[])})

@@ -2171,6 +2171,24 @@ class BaseDatasetTest(TestCase):
                         self.assertIsInstance(dset_to_dict[col_name], list)
                         self.assertEqual(len(dset_to_dict[col_name]), len(dset))
 
+    def test_to_list(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                dset_to_list = dset.to_list()
+                self.assertIsInstance(dset_to_list, list)
+                for row in dset_to_list:
+                    self.assertIsInstance(row, dict)
+                    self.assertListEqual(sorted(row.keys()), sorted(dset.column_names))
+
+                # With index mapping
+                with dset.select([1, 0, 3]) as dset:
+                    dset_to_list = dset.to_list()
+                    self.assertIsInstance(dset_to_list, list)
+                    self.assertEqual(len(dset_to_list), 3)
+                    for row in dset_to_list:
+                        self.assertIsInstance(row, dict)
+                        self.assertListEqual(sorted(row.keys()), sorted(dset.column_names))
+
     def test_to_pandas(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Batched
@@ -2867,36 +2885,48 @@ class MiscellaneousDatasetTest(TestCase):
         self.assertRaises(TypeError, Dataset.from_pandas, df, features=features)
 
     def test_from_dict(self):
-        data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}
+        data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"], "col_3": pa.array([True, False, True, False])}
         with Dataset.from_dict(data) as dset:
             self.assertListEqual(dset["col_1"], data["col_1"])
             self.assertListEqual(dset["col_2"], data["col_2"])
-            self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
-            self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("string")}))
+            self.assertListEqual(dset["col_3"], data["col_3"].to_pylist())
+            self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2", "col_3"])
+            self.assertDictEqual(
+                dset.features, Features({"col_1": Value("int64"), "col_2": Value("string"), "col_3": Value("bool")})
+            )
 
-        features = Features({"col_1": Value("int64"), "col_2": Value("string")})
+        features = Features({"col_1": Value("int64"), "col_2": Value("string"), "col_3": Value("bool")})
         with Dataset.from_dict(data, features=features) as dset:
             self.assertListEqual(dset["col_1"], data["col_1"])
             self.assertListEqual(dset["col_2"], data["col_2"])
-            self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
-            self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("string")}))
+            self.assertListEqual(dset["col_3"], data["col_3"].to_pylist())
+            self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2", "col_3"])
+            self.assertDictEqual(
+                dset.features, Features({"col_1": Value("int64"), "col_2": Value("string"), "col_3": Value("bool")})
+            )
 
-        features = Features({"col_1": Value("int64"), "col_2": Value("string")})
+        features = Features({"col_1": Value("int64"), "col_2": Value("string"), "col_3": Value("bool")})
         with Dataset.from_dict(data, features=features, info=DatasetInfo(features=features)) as dset:
             self.assertListEqual(dset["col_1"], data["col_1"])
             self.assertListEqual(dset["col_2"], data["col_2"])
-            self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
-            self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("string")}))
+            self.assertListEqual(dset["col_3"], data["col_3"].to_pylist())
+            self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2", "col_3"])
+            self.assertDictEqual(
+                dset.features, Features({"col_1": Value("int64"), "col_2": Value("string"), "col_3": Value("bool")})
+            )
 
-        features = Features({"col_1": Value("string"), "col_2": Value("string")})
+        features = Features({"col_1": Value("string"), "col_2": Value("string"), "col_3": Value("int32")})
         with Dataset.from_dict(data, features=features) as dset:
             # the integers are converted to strings
             self.assertListEqual(dset["col_1"], [str(x) for x in data["col_1"]])
             self.assertListEqual(dset["col_2"], data["col_2"])
-            self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
-            self.assertDictEqual(dset.features, Features({"col_1": Value("string"), "col_2": Value("string")}))
+            self.assertListEqual(dset["col_3"], [int(x) for x in data["col_3"].to_pylist()])
+            self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2", "col_3"])
+            self.assertDictEqual(
+                dset.features, Features({"col_1": Value("string"), "col_2": Value("string"), "col_3": Value("int32")})
+            )
 
-        features = Features({"col_1": Value("int64"), "col_2": Value("int64")})
+        features = Features({"col_1": Value("int64"), "col_2": Value("int64"), "col_3": Value("bool")})
         self.assertRaises(ValueError, Dataset.from_dict, data, features=features)
 
     def test_concatenate_mixed_memory_and_disk(self):
@@ -4297,16 +4327,20 @@ def test_dataset_estimate_nbytes():
     assert 0.9 * ds._estimate_nbytes() < 100 * 100, "must be smaller than one chunk"
 
 
-def test_dataset_to_iterable_dataset(dataset):
+def test_dataset_to_iterable_dataset(dataset: Dataset):
     iterable_dataset = dataset.to_iterable_dataset()
     assert isinstance(iterable_dataset, IterableDataset)
     assert list(iterable_dataset) == list(dataset)
+    assert iterable_dataset.features == dataset.features
     iterable_dataset = dataset.to_iterable_dataset(num_shards=3)
     assert isinstance(iterable_dataset, IterableDataset)
     assert list(iterable_dataset) == list(dataset)
+    assert iterable_dataset.features == dataset.features
     assert iterable_dataset.n_shards == 3
     with pytest.raises(ValueError):
         dataset.to_iterable_dataset(num_shards=len(dataset) + 1)
+    with pytest.raises(NotImplementedError):
+        dataset.with_format("torch").to_iterable_dataset()
 
 
 @pytest.mark.parametrize("batch_size", [1, 4])

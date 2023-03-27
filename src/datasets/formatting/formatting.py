@@ -218,7 +218,7 @@ class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFr
 
 
 class PythonFeaturesDecoder:
-    def __init__(self, features: Features):
+    def __init__(self, features: Optional[Features]):
         self.features = features
 
     def decode_row(self, row: dict) -> dict:
@@ -232,7 +232,7 @@ class PythonFeaturesDecoder:
 
 
 class PandasFeaturesDecoder:
-    def __init__(self, features: Features):
+    def __init__(self, features: Optional[Features]):
         self.features = features
 
     def decode_row(self, row: pd.DataFrame) -> pd.DataFrame:
@@ -396,7 +396,7 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     numpy_arrow_extractor = NumpyArrowExtractor
     pandas_arrow_extractor = PandasArrowExtractor
 
-    def __init__(self, features=None):
+    def __init__(self, features: Optional[Features] = None):
         self.features = features
         self.python_features_decoder = PythonFeaturesDecoder(self.features)
         self.pandas_features_decoder = PandasFeaturesDecoder(self.features)
