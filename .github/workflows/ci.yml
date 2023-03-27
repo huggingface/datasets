@@ -36,7 +36,7 @@ jobs:
     strategy:
       matrix:
         test: ['unit'] #, 'integration']
-        os: [windows-latest] #[ubuntu-latest] #, windows-latest]
+        os: [windows-latest, ubuntu-latest] #, windows-latest]
         deps_versions: [deps-latest] #, deps-minimum]
     continue-on-error: ${{ matrix.test == 'integration' }}
     runs-on: ${{ matrix.os }}
@@ -74,7 +74,7 @@ jobs:
     strategy:
       matrix:
         test: ['unit']
-        os: [windows-latest] #[ubuntu-latest] #, windows-latest]
+        os: [windows-latest, ubuntu-latest] #, windows-latest]
         deps_versions: [deps-latest]
     continue-on-error: false
     runs-on: ${{ matrix.os }}
