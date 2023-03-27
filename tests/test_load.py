@@ -16,6 +16,7 @@ import datasets
 from datasets import config, load_dataset, load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.builder import DatasetBuilder
+from datasets.config import METADATA_CONFIGS_FIELD
 from datasets.data_files import DataFilesDict
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.download.download_config import DownloadConfig
@@ -143,9 +144,9 @@ def data_dir_with_one_default_config_in_metadata(tmp_path):
         f.write(b"this_is_a_dog_image_bytes")
     with open(data_dir / "README.md", "w") as f:
         f.write(
-            """\
+            f"""\
 ---
-configs_kwargs:
+{METADATA_CONFIGS_FIELD}:
   drop_labels: true
 ---
         """
@@ -168,9 +169,9 @@ def data_dir_with_one_nondefault_config_in_metadata(tmp_path):
 
     with open(data_dir / "README.md", "w") as f:
         f.write(
-            """\
+            f"""\
 ---
-configs_kwargs:
+{METADATA_CONFIGS_FIELD}:
   - config_name: "custom"
     drop_labels: true
 ---
@@ -194,9 +195,9 @@ def data_dir_with_two_config_in_metadata(tmp_path):
 
     with open(data_dir / "README.md", "w") as f:
         f.write(
-            """\
+            f"""\
 ---
-configs_kwargs:
+{METADATA_CONFIGS_FIELD}:
   - config_name: "v1"
     drop_labels: true
   - config_name: "v2"
