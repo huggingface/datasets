@@ -1530,6 +1530,8 @@ class DatasetDict(dict):
             private (`bool`, *optional*):
                 Whether the dataset repository should be set to private or not. Only affects repository creation:
                 a repository that already exists will not be affected by that parameter.
+            config_name (`str`):
+                Configuration name of a dataset. Defaults to "default".
             token (`str`, *optional*):
                 An optional authentication token for the Hugging Face Hub. If no token is passed, will default
                 to the token saved locally when logging in with `huggingface-cli login`. Will raise an error
@@ -1579,7 +1581,7 @@ class DatasetDict(dict):
             if not re.match(_split_re, split):
                 raise ValueError(f"Split name should match '{_split_re}' but got '{split}'.")
 
-        data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
+        data_dir = f"{config_name}/data" if config_name != "default" else "data"  # for backward compatibility
         for split in self.keys():
             logger.warning(f"Pushing split {split} to the Hub.")
             # The split=key needs to be removed before merging
@@ -1641,7 +1643,9 @@ class DatasetDict(dict):
             dataset_metadata = DatasetMetadata()
             readme_content = f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
         DatasetInfosDict({config_name: info_to_dump}).to_metadata(dataset_metadata)
-        MetadataConfigs({config_name: {"data_dir": data_dir}}).to_metadata(dataset_metadata)
+        MetadataConfigs({config_name: {"data_dir": config_name if config_name != "default" else "./"}}).to_metadata(
+            dataset_metadata
+        )
         HfApi(endpoint=config.HF_ENDPOINT).upload_file(
             path_or_fileobj=dataset_metadata._to_readme(readme_content).encode(),
             path_in_repo="README.md",

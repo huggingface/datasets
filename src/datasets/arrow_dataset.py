@@ -4999,7 +4999,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 `<org>/<dataset_name>`. Also accepts `<dataset_name>`, which will default to the namespace
                 of the logged-in user.
             data_dir (`str`):
-                The name of dataset configuration. Defaults to "default".
+                The name of directory to store parquet files. Defaults to "data".
             split (Optional, `str`):
                 The name of the split that will be given to that dataset. Defaults to `self.split`.
             private (Optional `bool`, defaults to `False`):
@@ -5114,7 +5114,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             shards = shards_with_embedded_external_files(shards)
 
         files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, use_auth_token=token)
-        # data_dir = f"{config_name}/data" if config_name != "default" else "data"  # for backward compatibility
         data_files = [file for file in files if file.startswith(data_dir + "/")]
 
         def path_in_repo(_index, shard):
@@ -5243,11 +5242,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> dataset.push_to_hub("<organization>/<dataset_id>", num_shards=1024)
         ```
         """
+        if config_name == "data":
+            raise ValueError("`config_name` cannot be 'data'. Please, choose another name for configuration.")
+
         if max_shard_size is not None and num_shards is not None:
             raise ValueError(
                 "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
             )
-        data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
+        data_dir = f"{config_name}/data" if config_name != "default" else "data"  # for backward compatibility
         repo_id, split, uploaded_size, dataset_nbytes, repo_files, deleted_size = self._push_parquet_shards_to_hub(
             repo_id=repo_id,
             data_dir=data_dir,
@@ -5343,7 +5345,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
         # push to README
         DatasetInfosDict({config_name: info_to_dump}).to_metadata(dataset_metadata)
-        MetadataConfigs({config_name: {"data_dir": data_dir}}).to_metadata(dataset_metadata)
+        MetadataConfigs({config_name: {"data_dir": config_name if config_name != "default" else "./"}}).to_metadata(
+            dataset_metadata
+        )
         if "README.md" in repo_files:
             with open(dataset_readme_path, encoding="utf-8") as readme_file:
                 readme_content = readme_file.read()
