@@ -86,13 +86,15 @@ class TestPushToHub:
             assert local_ds_second["train"].num_rows == hub_ds_second["train"].num_rows == 2
 
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset"))
-            expected_files = [
-                ".gitattributes",
-                "README.md",
-                "data/train-00000-of-00001-*.parquet",
-                "first/data/train-00000-of-00001-*.parquet",
-                "second/data/train-00000-of-00001-*.parquet",
-            ]
+            expected_files = sorted(
+                [
+                    ".gitattributes",
+                    "README.md",
+                    "data/train-00000-of-00001-*.parquet",
+                    "first/data/train-00000-of-00001-*.parquet",
+                    "second/data/train-00000-of-00001-*.parquet",
+                ]
+            )
             assert all(fnmatch.fnmatch(file, expected_file) for file, expected_file in zip(files, expected_files))
 
             # check that configs args was successfully pushed to README.md
@@ -100,10 +102,57 @@ class TestPushToHub:
             dataset_metadata = DatasetMetadata.from_readme(Path(ds_readme_path))
             assert METADATA_CONFIGS_FIELD in dataset_metadata
             assert isinstance(dataset_metadata[METADATA_CONFIGS_FIELD], list)
-            assert dataset_metadata[METADATA_CONFIGS_FIELD] == [
+            assert sorted(dataset_metadata[METADATA_CONFIGS_FIELD], key=lambda x: x["config_name"]) == [
                 {"config_name": "default", "data_dir": "./"},
                 {"config_name": "first", "data_dir": "first"},
                 {"config_name": "second", "data_dir": "second"},
+            ]
+
+    def test_push_to_hub_custom_configs_custom_splits(self, temporary_repo):
+        ds = Dataset.from_dict({"x": list(range(100)), "y": list(range(100))})
+        ds2 = Dataset.from_dict({"x": list(range(50)), "y": list(range(50))})
+        ds3 = Dataset.from_dict({"x": list(range(10)), "y": list(range(10))})
+
+        local_ds_default = DatasetDict({"train": ds, "random": ds2})
+        local_ds_custom = DatasetDict({"train": ds, "random": ds3})
+
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            local_ds_default.push_to_hub(ds_name)
+            hub_ds_default = load_dataset(ds_name, download_mode="force_redownload")
+            local_ds_custom.push_to_hub(ds_name, "custom")
+            hub_ds_custom = load_dataset(ds_name, "custom", download_mode="force_redownload")
+
+            assert sorted(local_ds_default) == sorted(hub_ds_default) == sorted(["train", "random"])
+            assert sorted(local_ds_custom) == sorted(hub_ds_custom) == sorted(["train", "random"])
+
+            assert local_ds_default["random"].column_names == hub_ds_default["random"].column_names
+            assert list(local_ds_default["random"].features) == list(hub_ds_default["random"].features)
+            assert local_ds_default["random"].features == local_ds_default["random"].features
+
+            assert local_ds_custom["random"].column_names == hub_ds_custom["random"].column_names
+            assert list(local_ds_custom["random"].features) == list(hub_ds_custom["random"].features)
+            assert local_ds_custom["random"].features == hub_ds_custom["random"].features
+
+            files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset"))
+            expected_files = sorted(
+                [
+                    ".gitattributes",
+                    "README.md",
+                    "data/train-00000-of-00001-*.parquet",
+                    "data/random-00000-of-00001-*.parquet",
+                    "custom/data/train-00000-of-00001-*.parquet",
+                    "custom/data/random-00000-of-00001-*.parquet",
+                ]
+            )
+            assert all(fnmatch.fnmatch(file, expected_file) for file, expected_file in zip(files, expected_files))
+
+            ds_readme_path = cached_path(hf_hub_url(ds_name, "README.md"))
+            dataset_metadata = DatasetMetadata.from_readme(Path(ds_readme_path))
+            assert METADATA_CONFIGS_FIELD in dataset_metadata
+            assert isinstance(dataset_metadata[METADATA_CONFIGS_FIELD], list)
+            assert sorted(dataset_metadata[METADATA_CONFIGS_FIELD], key=lambda x: x["config_name"]) == [
+                {"config_name": "custom", "data_dir": "custom"},
+                {"config_name": "default", "data_dir": "./"},
             ]
 
     def test_push_dataset_dict_to_hub_name_without_namespace(self, temporary_repo):
