@@ -4981,7 +4981,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def _push_parquet_shards_to_hub(
         self,
         repo_id: str,
-        data_dir: str = "default",
+        data_dir: str = "data",
         split: Optional[str] = None,
         private: Optional[bool] = False,
         token: Optional[str] = None,
@@ -5247,7 +5247,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             raise ValueError(
                 "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
             )
-        data_dir = f"{config_name}/data" if config_name != "default" else "data"  # for backward compatibility
+        data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
         repo_id, split, uploaded_size, dataset_nbytes, repo_files, deleted_size = self._push_parquet_shards_to_hub(
             repo_id=repo_id,
             data_dir=data_dir,
@@ -5343,9 +5343,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
         # push to README
         DatasetInfosDict({config_name: info_to_dump}).to_metadata(dataset_metadata)
-        MetadataConfigs({config_name: {"data_dir": config_name if config_name != "default" else "./"}}).to_metadata(
-            dataset_metadata
-        )
+        MetadataConfigs({config_name: {"data_dir": data_dir}}).to_metadata(dataset_metadata)
         if "README.md" in repo_files:
             with open(dataset_readme_path, encoding="utf-8") as readme_file:
                 readme_content = readme_file.read()
