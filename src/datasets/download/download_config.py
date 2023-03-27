@@ -43,7 +43,7 @@ class DownloadConfig:
             Whether to strip all query parameters and fragments from
             the download URL before using it for caching the file.
         storage_options (`dict`, *optional*):
-            Key/value pairs to be passed on to the file-system backend, if any.
+            Key/value pairs to be passed on to the dataset file-system backend, if any.
         download_desc (`str`, *optional*):
             A description to be displayed alongside with the progress bar while downloading the files.
     """
