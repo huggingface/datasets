@@ -4653,13 +4653,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         return CsvDatasetWriter(self, path_or_buf, batch_size=batch_size, num_proc=num_proc, **to_csv_kwargs).write()
 
-    def to_dict(self, batch_size: Optional[int] = None, batched: bool = False) -> Union[dict, Iterator[dict]]:
+    def to_dict(self, batch_size: Optional[int] = None, batched="deprecated") -> Union[dict, Iterator[dict]]:
         """Returns the dataset as a Python dict. Can also return a generator for large datasets.
 
         Args:
             batched (`bool`):
                 Set to `True` to return a generator that yields the dataset as batches
                 of `batch_size` rows. Defaults to `False` (returns the whole datasets once).
+
+                <Deprecated version="2.11.0">
+
+                Use `.iter(batch_size=batch_size)` followed by `.to_dict()` on the individual batches instead.
+
+                </Deprecated>
+
             batch_size (`int`, *optional*): The size (number of rows) of the batches if `batched` is `True`.
                 Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
@@ -4672,6 +4679,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds.to_dict()
         ```
         """
+        if batched != "deprecated":
+            warnings.warn(
+                "'batched' was deprecated in version 2.11.0 and will be removed in version 3.0.0. Use `.iter(batch_size=batch_size)` followed by `.to_dict()` on the individual batches instead.",
+                FutureWarning,
+            )
+        else:
+            batched = False
+
         if not batched:
             return query_table(
                 table=self._data,
@@ -4688,6 +4703,24 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 ).to_pydict()
                 for offset in range(0, len(self), batch_size)
             )
+
+    def to_list(self) -> list:
+        """Returns the dataset as a Python list.
+
+        Returns:
+            `list`
+
+        Example:
+
+        ```py
+        >>> ds.to_list()
+        ```
+        """
+        return query_table(
+            table=self._data,
+            key=slice(0, len(self)),
+            indices=self._indices if self._indices is not None else None,
+        ).to_pylist()
 
     def to_json(
         self,
