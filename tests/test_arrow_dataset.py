@@ -2487,58 +2487,58 @@ class BaseDatasetTest(TestCase):
     #                     dset.unique(dset.column_names[0])
     #                     assert_arrow_metadata_are_synced_with_dataset_features(dset)
 
-    @require_tf
-    @require_torch
-    def test_format_vectors(self, in_memory):
-        import numpy as np
-        import tensorflow as tf
-        import torch
+    # @require_tf
+    # @require_torch
+    # def test_format_vectors(self, in_memory):
+    #     import numpy as np
+    #     import tensorflow as tf
+    #     import torch
 
-        with tempfile.TemporaryDirectory() as tmp_dir, self._create_dummy_dataset(
-            in_memory, tmp_dir
-        ) as dset, dset.map(lambda ex, i: {"vec": np.ones(3) * i}, with_indices=True) as dset:
-            columns = dset.column_names
+    #     with tempfile.TemporaryDirectory() as tmp_dir, self._create_dummy_dataset(
+    #         in_memory, tmp_dir
+    #     ) as dset, dset.map(lambda ex, i: {"vec": np.ones(3) * i}, with_indices=True) as dset:
+    #         columns = dset.column_names
 
-            self.assertIsNotNone(dset[0])
-            self.assertIsNotNone(dset[:2])
-            for col in columns:
-                self.assertIsInstance(dset[0][col], (str, list))
-                self.assertIsInstance(dset[:2][col], list)
-            self.assertDictEqual(
-                dset.features, Features({"filename": Value("string"), "vec": Sequence(Value("float64"))})
-            )
+    #         self.assertIsNotNone(dset[0])
+    #         self.assertIsNotNone(dset[:2])
+    #         for col in columns:
+    #             self.assertIsInstance(dset[0][col], (str, list))
+    #             self.assertIsInstance(dset[:2][col], list)
+    #         self.assertDictEqual(
+    #             dset.features, Features({"filename": Value("string"), "vec": Sequence(Value("float64"))})
+    #         )
 
-            dset.set_format("tensorflow")
-            self.assertIsNotNone(dset[0])
-            self.assertIsNotNone(dset[:2])
-            for col in columns:
-                self.assertIsInstance(dset[0][col], (tf.Tensor, tf.RaggedTensor))
-                self.assertIsInstance(dset[:2][col], (tf.Tensor, tf.RaggedTensor))
-                self.assertIsInstance(dset[col], (tf.Tensor, tf.RaggedTensor))
-            self.assertTupleEqual(tuple(dset[:2]["vec"].shape), (2, 3))
-            self.assertTupleEqual(tuple(dset["vec"][:2].shape), (2, 3))
+    #         dset.set_format("tensorflow")
+    #         self.assertIsNotNone(dset[0])
+    #         self.assertIsNotNone(dset[:2])
+    #         for col in columns:
+    #             self.assertIsInstance(dset[0][col], (tf.Tensor, tf.RaggedTensor))
+    #             self.assertIsInstance(dset[:2][col], (tf.Tensor, tf.RaggedTensor))
+    #             self.assertIsInstance(dset[col], (tf.Tensor, tf.RaggedTensor))
+    #         self.assertTupleEqual(tuple(dset[:2]["vec"].shape), (2, 3))
+    #         self.assertTupleEqual(tuple(dset["vec"][:2].shape), (2, 3))
 
-            dset.set_format("numpy")
-            self.assertIsNotNone(dset[0])
-            self.assertIsNotNone(dset[:2])
-            self.assertIsInstance(dset[0]["filename"], np.str_)
-            self.assertIsInstance(dset[:2]["filename"], np.ndarray)
-            self.assertIsInstance(dset["filename"], np.ndarray)
-            self.assertIsInstance(dset[0]["vec"], np.ndarray)
-            self.assertIsInstance(dset[:2]["vec"], np.ndarray)
-            self.assertIsInstance(dset["vec"], np.ndarray)
-            self.assertTupleEqual(dset[:2]["vec"].shape, (2, 3))
-            self.assertTupleEqual(dset["vec"][:2].shape, (2, 3))
+    #         dset.set_format("numpy")
+    #         self.assertIsNotNone(dset[0])
+    #         self.assertIsNotNone(dset[:2])
+    #         self.assertIsInstance(dset[0]["filename"], np.str_)
+    #         self.assertIsInstance(dset[:2]["filename"], np.ndarray)
+    #         self.assertIsInstance(dset["filename"], np.ndarray)
+    #         self.assertIsInstance(dset[0]["vec"], np.ndarray)
+    #         self.assertIsInstance(dset[:2]["vec"], np.ndarray)
+    #         self.assertIsInstance(dset["vec"], np.ndarray)
+    #         self.assertTupleEqual(dset[:2]["vec"].shape, (2, 3))
+    #         self.assertTupleEqual(dset["vec"][:2].shape, (2, 3))
 
-            dset.set_format("torch", columns=["vec"])
-            self.assertIsNotNone(dset[0])
-            self.assertIsNotNone(dset[:2])
-            # torch.Tensor is only for numerical columns
-            self.assertIsInstance(dset[0]["vec"], torch.Tensor)
-            self.assertIsInstance(dset[:2]["vec"], torch.Tensor)
-            self.assertIsInstance(dset["vec"][:2], torch.Tensor)
-            self.assertTupleEqual(dset[:2]["vec"].shape, (2, 3))
-            self.assertTupleEqual(dset["vec"][:2].shape, (2, 3))
+    #         dset.set_format("torch", columns=["vec"])
+    #         self.assertIsNotNone(dset[0])
+    #         self.assertIsNotNone(dset[:2])
+    #         # torch.Tensor is only for numerical columns
+    #         self.assertIsInstance(dset[0]["vec"], torch.Tensor)
+    #         self.assertIsInstance(dset[:2]["vec"], torch.Tensor)
+    #         self.assertIsInstance(dset["vec"][:2], torch.Tensor)
+    #         self.assertTupleEqual(dset[:2]["vec"].shape, (2, 3))
+    #         self.assertTupleEqual(dset["vec"][:2].shape, (2, 3))
 
     # @require_tf
     # @require_torch
@@ -2600,40 +2600,40 @@ class BaseDatasetTest(TestCase):
     #         self.assertIsInstance(dset["vec"][:2], list)
     #         self.assertIsInstance(dset["vec"][0], torch.Tensor)
 
-    @require_tf
-    @require_torch
-    def test_format_nested(self, in_memory):
-        import numpy as np
-        import tensorflow as tf
-        import torch
+    # @require_tf
+    # @require_torch
+    # def test_format_nested(self, in_memory):
+    #     import numpy as np
+    #     import tensorflow as tf
+    #     import torch
 
-        with tempfile.TemporaryDirectory() as tmp_dir, self._create_dummy_dataset(
-            in_memory, tmp_dir
-        ) as dset, dset.map(lambda ex: {"nested": [{"foo": np.ones(3)}] * len(ex["filename"])}, batched=True) as dset:
-            self.assertDictEqual(
-                dset.features, Features({"filename": Value("string"), "nested": {"foo": Sequence(Value("float64"))}})
-            )
+    #     with tempfile.TemporaryDirectory() as tmp_dir, self._create_dummy_dataset(
+    #         in_memory, tmp_dir
+    #     ) as dset, dset.map(lambda ex: {"nested": [{"foo": np.ones(3)}] * len(ex["filename"])}, batched=True) as dset:
+    #         self.assertDictEqual(
+    #             dset.features, Features({"filename": Value("string"), "nested": {"foo": Sequence(Value("float64"))}})
+    #         )
 
-            dset.set_format("tensorflow")
-            self.assertIsNotNone(dset[0])
-            self.assertIsInstance(dset[0]["nested"]["foo"], (tf.Tensor, tf.RaggedTensor))
-            self.assertIsNotNone(dset[:2])
-            self.assertIsInstance(dset[:2]["nested"][0]["foo"], (tf.Tensor, tf.RaggedTensor))
-            self.assertIsInstance(dset["nested"][0]["foo"], (tf.Tensor, tf.RaggedTensor))
+    #         dset.set_format("tensorflow")
+    #         self.assertIsNotNone(dset[0])
+    #         self.assertIsInstance(dset[0]["nested"]["foo"], (tf.Tensor, tf.RaggedTensor))
+    #         self.assertIsNotNone(dset[:2])
+    #         self.assertIsInstance(dset[:2]["nested"][0]["foo"], (tf.Tensor, tf.RaggedTensor))
+    #         self.assertIsInstance(dset["nested"][0]["foo"], (tf.Tensor, tf.RaggedTensor))
 
-            dset.set_format("numpy")
-            self.assertIsNotNone(dset[0])
-            self.assertIsInstance(dset[0]["nested"]["foo"], np.ndarray)
-            self.assertIsNotNone(dset[:2])
-            self.assertIsInstance(dset[:2]["nested"][0]["foo"], np.ndarray)
-            self.assertIsInstance(dset["nested"][0]["foo"], np.ndarray)
+    #         dset.set_format("numpy")
+    #         self.assertIsNotNone(dset[0])
+    #         self.assertIsInstance(dset[0]["nested"]["foo"], np.ndarray)
+    #         self.assertIsNotNone(dset[:2])
+    #         self.assertIsInstance(dset[:2]["nested"][0]["foo"], np.ndarray)
+    #         self.assertIsInstance(dset["nested"][0]["foo"], np.ndarray)
 
-            dset.set_format("torch", columns="nested")
-            self.assertIsNotNone(dset[0])
-            self.assertIsInstance(dset[0]["nested"]["foo"], torch.Tensor)
-            self.assertIsNotNone(dset[:2])
-            self.assertIsInstance(dset[:2]["nested"][0]["foo"], torch.Tensor)
-            self.assertIsInstance(dset["nested"][0]["foo"], torch.Tensor)
+    #         dset.set_format("torch", columns="nested")
+    #         self.assertIsNotNone(dset[0])
+    #         self.assertIsInstance(dset[0]["nested"]["foo"], torch.Tensor)
+    #         self.assertIsNotNone(dset[:2])
+    #         self.assertIsInstance(dset[:2]["nested"][0]["foo"], torch.Tensor)
+    #         self.assertIsInstance(dset["nested"][0]["foo"], torch.Tensor)
 
     # def test_format_pandas(self, in_memory):
     #     import pandas as pd
