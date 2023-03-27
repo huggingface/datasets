@@ -167,6 +167,25 @@ class FaissIndexTest(TestCase):
         self.assertEqual(indices[0], 1)
 
 
+@require_faiss
+def test_serialization_fs(mockfs):
+    import faiss
+
+    index = FaissIndex(metric_type=faiss.METRIC_INNER_PRODUCT)
+    index.add_vectors(np.eye(5, dtype=np.float32))
+
+    index_name = "index.faiss"
+    path = f"mock://{index_name}"
+    index.save(path, storage_options=mockfs.storage_options)
+    index = FaissIndex.load(path, storage_options=mockfs.storage_options)
+
+    query = np.zeros(5, dtype=np.float32)
+    query[1] = 1
+    scores, indices = index.search(query)
+    assert scores[0] > 0
+    assert indices[0] == 1
+
+
 @require_elasticsearch
 class ElasticSearchIndexTest(TestCase):
     def test_elasticsearch(self):
