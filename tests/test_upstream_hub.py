@@ -12,6 +12,8 @@ from huggingface_hub import HfApi
 
 from datasets import Audio, ClassLabel, Dataset, DatasetDict, Features, Image, Value, load_dataset
 from datasets.config import METADATA_CONFIGS_FIELD
+from datasets.utils.file_utils import cached_path
+from datasets.utils.hub import hf_hub_url
 from datasets.utils.metadata import DatasetMetadata
 from tests.fixtures.hub import CI_HUB_ENDPOINT, CI_HUB_USER, CI_HUB_USER_TOKEN
 from tests.utils import for_all_test_methods, require_pil, require_sndfile, xfail_if_500_502_http_error
