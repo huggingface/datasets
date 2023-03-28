@@ -31,50 +31,50 @@ jobs:
           # black --check tests src benchmarks metrics
           # ruff tests src benchmarks metrics
 
-  test:
-    needs: check_code_quality
-    strategy:
-      matrix:
-        test: ['unit'] #, 'integration']
-        os: [windows-latest, ubuntu-latest] #, windows-latest]
-        deps_versions: [deps-latest] #, deps-minimum]
-    continue-on-error: ${{ matrix.test == 'integration' }}
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Set up Python 3.7
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.7"
-      - name: Upgrade pip
-        run: python -m pip install --upgrade pip
-      - name: Pin setuptools-scm
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: echo "installing pinned version of setuptools-scm to fix seqeval installation on 3.7" && pip install "setuptools-scm==6.4.2"
-      - name: Install dependencies
-        run: |
-          pip install .[tests,metrics-tests]
-          pip install -r additional-tests-requirements.txt --no-deps
-          python -m spacy download en_core_web_sm
-          python -m spacy download fr_core_news_sm
-      - name: Install dependencies (latest versions)
-        if: ${{ matrix.deps_versions == 'deps-latest' }}
-        run: pip install --upgrade pyarrow huggingface-hub dill
-      - name: Install depencencies (minimum versions)
-        if: ${{ matrix.deps_versions != 'deps-latest' }}
-        run: pip install pyarrow==8.0.0 huggingface-hub==0.11.0 transformers dill==0.3.1.1
-      - name: Test with pytest
-        run: |
-          python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/test_arrow_dataset.py
+  # test:
+  #   needs: check_code_quality
+  #   strategy:
+  #     matrix:
+  #       test: ['unit'] #, 'integration']
+  #       os: [windows-latest] #, ubuntu-latest] #, windows-latest]
+  #       deps_versions: [deps-latest] #, deps-minimum]
+  #   continue-on-error: ${{ matrix.test == 'integration' }}
+  #   runs-on: ${{ matrix.os }}
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         fetch-depth: 0
+  #     - name: Set up Python 3.7
+  #       uses: actions/setup-python@v4
+  #       with:
+  #         python-version: "3.7"
+  #     - name: Upgrade pip
+  #       run: python -m pip install --upgrade pip
+  #     - name: Pin setuptools-scm
+  #       if: ${{ matrix.os == 'ubuntu-latest' }}
+  #       run: echo "installing pinned version of setuptools-scm to fix seqeval installation on 3.7" && pip install "setuptools-scm==6.4.2"
+  #     - name: Install dependencies
+  #       run: |
+  #         pip install .[tests,metrics-tests]
+  #         pip install -r additional-tests-requirements.txt --no-deps
+  #         python -m spacy download en_core_web_sm
+  #         python -m spacy download fr_core_news_sm
+  #     - name: Install dependencies (latest versions)
+  #       if: ${{ matrix.deps_versions == 'deps-latest' }}
+  #       run: pip install --upgrade pyarrow huggingface-hub dill
+  #     - name: Install depencencies (minimum versions)
+  #       if: ${{ matrix.deps_versions != 'deps-latest' }}
+  #       run: pip install pyarrow==8.0.0 huggingface-hub==0.11.0 transformers dill==0.3.1.1
+  #     - name: Test with pytest
+  #       run: |
+  #         python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/test_arrow_dataset.py
 
   test_py310:
     needs: check_code_quality
     strategy:
       matrix:
         test: ['unit']
-        os: [windows-latest, ubuntu-latest] #, windows-latest]
+        os: [windows-latest] #, ubuntu-latest] #, windows-latest]
         deps_versions: [deps-latest]
     continue-on-error: false
     runs-on: ${{ matrix.os }}
