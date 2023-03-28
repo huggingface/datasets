@@ -42,9 +42,9 @@ from .data_files import (
     EmptyDatasetError,
     get_data_patterns_in_dataset_repository,
     get_data_patterns_locally,
-    get_metadata_patterns_in_dataset_repository,
-    get_metadata_patterns_locally,
     sanitize_patterns,
+    update_data_files_with_metadata_files_in_dataset_repository,
+    update_data_files_with_metadata_files_locally,
 )
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download.download_config import DownloadConfig
@@ -482,36 +482,6 @@ def get_data_files_locally(base_path: str, data_files: Optional[Union[str, List,
     return data_files_dict, patterns
 
 
-def update_data_files_with_metadata_files_locally(data_files: DataFilesDict, base_path: str):
-    try:
-        metadata_patterns = get_metadata_patterns_locally(base_path)
-    except FileNotFoundError:
-        metadata_patterns = None
-    if metadata_patterns is not None:
-        metadata_files = DataFilesList.from_local_or_remote(metadata_patterns, base_path=base_path)
-        for key in data_files:
-            data_files[key] = DataFilesList(
-                data_files[key] + metadata_files,
-                data_files[key].origin_metadata + metadata_files.origin_metadata,
-            )
-
-
-def get_data_files_for_metadata_configs_locally(
-    metadata_configs_dict: MetadataConfigs, base_path: str, supports_metadata: bool
-):
-    for metadata_config in metadata_configs_dict.values():
-        config_data_files = metadata_config.pop("data_files", None)
-        config_data_dir = metadata_config.pop("data_dir", None)
-        config_base_path = os.path.join(base_path, config_data_dir) if config_data_dir else base_path
-        config_data_files_dict, config_patterns = get_data_files_locally(
-            base_path=config_base_path, data_files=config_data_files
-        )
-        metadata_config["data_files"] = config_data_files_dict
-
-        if config_data_files is None and supports_metadata and config_patterns != DEFAULT_PATTERNS_ALL:
-            update_data_files_with_metadata_files_locally(metadata_config["data_files"], base_path=config_base_path)
-
-
 def get_data_files_in_dataset_repository(
     hfh_dataset_info, base_path: str, data_files: Optional[Union[str, List, Dict]] = None
 ):
@@ -526,45 +496,11 @@ def get_data_files_in_dataset_repository(
     return data_files, patterns
 
 
-def update_data_files_with_metadata_files_in_dataset_repository(
-    hfh_dataset_info, data_files: DataFilesDict, base_path: str
-):
-    try:
-        metadata_patterns = get_metadata_patterns_in_dataset_repository(hfh_dataset_info, base_path=base_path)
-    except FileNotFoundError:
-        metadata_patterns = None
-    if metadata_patterns is not None:
-        metadata_files = DataFilesList.from_hf_repo(
-            metadata_patterns, dataset_info=hfh_dataset_info, base_path=base_path
-        )
-        for key in data_files:
-            data_files[key] = DataFilesList(
-                data_files[key] + metadata_files,
-                data_files[key].origin_metadata + metadata_files.origin_metadata,
-            )
-
-
-def get_data_files_for_metadata_configs_in_dataset_repository(
-    hfh_dataset_info, metadata_configs_dict: MetadataConfigs, base_path: str, supports_metadata: bool
-):
-    for metadata_config in metadata_configs_dict.values():
-        config_data_files = metadata_config.pop("data_files", None)
-        config_data_dir = metadata_config.pop("data_dir", None)
-        config_base_path = os.path.join(base_path, config_data_dir) if config_data_dir else base_path
-        config_data_files_dict, config_patterns = get_data_files_in_dataset_repository(
-            hfh_dataset_info, base_path=config_base_path, data_files=config_data_files
-        )
-        metadata_config["data_files"] = config_data_files_dict
-
-        if config_data_files is None and supports_metadata and config_patterns != DEFAULT_PATTERNS_ALL:
-            update_data_files_with_metadata_files_in_dataset_repository(
-                hfh_dataset_info, data_files=metadata_config["data_files"], base_path=config_base_path
-            )
-
-
 def get_dataset_info_from_dataset_metadata(
     dataset_metadata: DatasetMetadata, config_name: Optional[str]
 ) -> Optional[DatasetInfo]:
+    """Parse dataset info from README.md file."""
+
     dataset_info = dataset_metadata.get("dataset_info", None)
     if dataset_info and isinstance(dataset_info, list):
         # if it's a list, info must have "config_name" and we take the one that is equal to the requested config_name
@@ -584,6 +520,8 @@ def get_dataset_info_from_dataset_metadata(
 
 
 def get_dataset_info_from_dataset_infos_json(path: str, config_name: Optional[str]) -> Optional[DatasetInfo]:
+    """Parse dataset info from dataset_infos.json file."""
+
     with open(path, encoding="utf-8") as f:
         dataset_infos: DatasetInfosDict = json.load(f)
     if len(dataset_infos) == 1:
@@ -852,8 +790,10 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         }
 
         if metadata_configs_dict:
-            get_data_files_for_metadata_configs_locally(
-                metadata_configs_dict, base_path=self.path, supports_metadata=supports_metadata
+            metadata_configs_dict.resolve_data_files_locally(
+                base_path=self.path,
+                with_metadata_files=supports_metadata,
+                allowed_extensions=ALL_ALLOWED_EXTENSIONS,
             )
 
         dataset_infos_json_path = os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME)
@@ -933,8 +873,10 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
             "config_name": self.config_name if metadata_configs_dict else "default",
         }
         if metadata_configs_dict:
-            get_data_files_for_metadata_configs_locally(
-                metadata_configs_dict, base_path=base_path, supports_metadata=supports_metadata
+            metadata_configs_dict.resolve_data_files_locally(
+                base_path=base_path,
+                with_metadata_files=supports_metadata,
+                allowed_extensions=ALL_ALLOWED_EXTENSIONS,
             )
 
         return DatasetModule(module_path, hash, builder_kwargs, metadata_configs_dict)
@@ -1029,11 +971,11 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         module_path, hash = _PACKAGED_DATASETS_MODULES[module_name]
 
         if metadata_configs_dict:
-            get_data_files_for_metadata_configs_in_dataset_repository(
+            metadata_configs_dict.resolve_data_files_in_dataset_repository(
                 hfh_dataset_info,
-                metadata_configs_dict,
                 base_path=self.data_dir if self.data_dir else "",
-                supports_metadata=supports_metadata,
+                with_metadata_files=supports_metadata,
+                allowed_extensions=ALL_ALLOWED_EXTENSIONS,
             )
 
         info = get_dataset_info_from_dataset_metadata(dataset_metadata, config_name=self.config_name)
