@@ -192,6 +192,7 @@ def cached_path(
             max_retries=download_config.max_retries,
             use_auth_token=download_config.use_auth_token,
             ignore_url_params=download_config.ignore_url_params,
+            storage_options=download_config.storage_options,
             download_desc=download_config.download_desc,
         )
     elif os.path.exists(url_or_filename):
@@ -328,17 +329,17 @@ def _request_with_retry(
     return response
 
 
-def fsspec_head(url, timeout=10.0):
+def fsspec_head(url, storage_options=None):
     _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
-    fs, _, paths = fsspec.get_fs_token_paths(url, storage_options={"requests_timeout": timeout})
+    fs, _, paths = fsspec.get_fs_token_paths(url, storage_options=storage_options)
     if len(paths) > 1:
         raise ValueError(f"HEAD can be called with at most one path but was called with {paths}")
     return fs.info(paths[0])
 
 
-def fsspec_get(url, temp_file, timeout=10.0, desc=None):
+def fsspec_get(url, temp_file, storage_options=None, desc=None):
     _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
-    fs, _, paths = fsspec.get_fs_token_paths(url, storage_options={"requests_timeout": timeout})
+    fs, _, paths = fsspec.get_fs_token_paths(url, storage_options=storage_options)
     if len(paths) > 1:
         raise ValueError(f"GET can be called with at most one path but was called with {paths}")
     callback = fsspec.callbacks.TqdmCallback(
@@ -445,6 +446,7 @@ def get_from_cache(
     max_retries=0,
     use_auth_token=None,
     ignore_url_params=False,
+    storage_options=None,
     download_desc=None,
 ) -> str:
     """
@@ -499,7 +501,7 @@ def get_from_cache(
         if scheme == "ftp":
             connected = ftp_head(url)
         elif scheme not in ("http", "https"):
-            response = fsspec_head(url)
+            response = fsspec_head(url, storage_options=storage_options)
             # s3fs uses "ETag", gcsfs uses "etag"
             etag = (response.get("ETag", None) or response.get("etag", None)) if use_etag else None
             connected = True
@@ -604,7 +606,7 @@ def get_from_cache(
             if scheme == "ftp":
                 ftp_get(url, temp_file)
             elif scheme not in ("http", "https"):
-                fsspec_get(url, temp_file, desc=download_desc)
+                fsspec_get(url, temp_file, storage_options=storage_options, desc=download_desc)
             else:
                 http_get(
                     url,

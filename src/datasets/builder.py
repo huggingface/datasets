@@ -255,6 +255,8 @@ class DatasetBuilder:
             `os.path.join(data_dir, "**")` as `data_files`.
             For builders that require manual download, it must be the path to the local directory containing the
             manually downloaded data.
+        storage_options (`dict`, *optional*):
+            Key/value pairs to be passed on to the dataset file-system backend, if any.
         writer_batch_size (`int`, *optional*):
             Batch size used by the ArrowWriter.
             It defines the number of samples that are kept in memory before writing them
@@ -304,6 +306,7 @@ class DatasetBuilder:
         repo_id: Optional[str] = None,
         data_files: Optional[Union[str, list, dict, DataFilesDict]] = None,
         data_dir: Optional[str] = None,
+        storage_options: Optional[dict] = None,
         writer_batch_size: Optional[int] = None,
         name="deprecated",
         **config_kwargs,
@@ -320,6 +323,7 @@ class DatasetBuilder:
         self.base_path = base_path
         self.use_auth_token = use_auth_token
         self.repo_id = repo_id
+        self.storage_options = storage_options
         self.dataset_name = camelcase_to_snakecase(dataset_name) if dataset_name else self.name
         self._writer_batch_size = writer_batch_size or self.DEFAULT_WRITER_BATCH_SIZE
 
@@ -786,6 +790,7 @@ class DatasetBuilder:
                     use_etag=False,
                     num_proc=num_proc,
                     use_auth_token=use_auth_token,
+                    storage_options=self.storage_options,
                 )  # We don't use etag for data files to speed up the process
 
             dl_manager = DownloadManager(
@@ -1257,7 +1262,7 @@ class DatasetBuilder:
 
         dl_manager = StreamingDownloadManager(
             base_path=base_path or self.base_path,
-            download_config=DownloadConfig(use_auth_token=self.use_auth_token),
+            download_config=DownloadConfig(use_auth_token=self.use_auth_token, storage_options=self.storage_options),
             dataset_name=self.dataset_name,
             data_dir=self.config.data_dir,
         )

@@ -1610,6 +1610,7 @@ def load_dataset_builder(
     download_mode: Optional[Union[DownloadMode, str]] = None,
     revision: Optional[Union[str, Version]] = None,
     use_auth_token: Optional[Union[bool, str]] = None,
+    storage_options: Optional[Dict] = None,
     **config_kwargs,
 ) -> DatasetBuilder:
     """Load a dataset builder from the Hugging Face Hub, or a local dataset. A dataset builder can be used to inspect general information that is required to build a dataset (cache directory, config, dataset info, etc.)
@@ -1670,6 +1671,10 @@ def load_dataset_builder(
         use_auth_token (`str` or `bool`, *optional*):
             Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If `True`, or not specified, will get token from `"~/.huggingface"`.
+        storage_options (`dict`, *optional*, defaults to `None`):
+            **Experimental**. Key/value pairs to be passed on to the dataset file-system backend, if any.
+
+            <Added version="2.11.0"/>
         **config_kwargs (additional keyword arguments):
             Keyword arguments to be passed to the [`BuilderConfig`]
             and used in the [`DatasetBuilder`].
@@ -1732,6 +1737,7 @@ def load_dataset_builder(
         hash=hash,
         features=features,
         use_auth_token=use_auth_token,
+        storage_options=storage_options,
         **builder_kwargs,
     )
 
@@ -1757,6 +1763,7 @@ def load_dataset(
     task: Optional[Union[str, TaskTemplate]] = None,
     streaming: bool = False,
     num_proc: Optional[int] = None,
+    storage_options: Optional[Dict] = None,
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset, IterableDatasetDict, IterableDataset]:
     """Load a dataset from the Hugging Face Hub, or a local dataset.
@@ -1878,6 +1885,10 @@ def load_dataset(
             Multiprocessing is disabled by default.
 
             <Added version="2.7.0"/>
+        storage_options (`dict`, *optional*, defaults to `None`):
+            **Experimental**. Key/value pairs to be passed on to the dataset file-system backend, if any.
+
+            <Added version="2.11.0"/>
         **config_kwargs (additional keyword arguments):
             Keyword arguments to be passed to the `BuilderConfig`
             and used in the [`DatasetBuilder`].
@@ -1971,6 +1982,7 @@ def load_dataset(
         download_mode=download_mode,
         revision=revision,
         use_auth_token=use_auth_token,
+        storage_options=storage_options,
         **config_kwargs,
     )
 
@@ -1989,6 +2001,7 @@ def load_dataset(
         verification_mode=verification_mode,
         try_from_hf_gcs=try_from_hf_gcs,
         num_proc=num_proc,
+        storage_options=storage_options,
     )
 
     # Build dataset for splits
