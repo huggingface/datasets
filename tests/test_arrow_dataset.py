@@ -2806,7 +2806,8 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(batch.shape.as_list(), [2])
                 self.assertEqual(batch.dtype.name, "int64")
                 del transform_dset
-        del tf_dataset  # For correct cleanup
+
+            del tf_dataset  # For correct cleanup
 
     # @require_tf
     # def test_tf_index_reshuffling(self, in_memory):
