@@ -1471,7 +1471,9 @@ def load_dataset_builder(
             Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If `True`, or not specified, will get token from `"~/.huggingface"`.
         storage_options (`dict`, *optional*, defaults to `None`):
-            Key/value pairs to be passed on to the dataset file-system backend, if any.
+            **Experimental**. Key/value pairs to be passed on to the dataset file-system backend, if any.
+
+            <Added version="2.11.0"/>
         **config_kwargs (additional keyword arguments):
             Keyword arguments to be passed to the [`BuilderConfig`]
             and used in the [`DatasetBuilder`].
