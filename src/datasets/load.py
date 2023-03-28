@@ -830,12 +830,6 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[Union[DownloadMode, str]] = None,
     ):
-        if config_name and not (data_dir or data_files):
-            raise ValueError(
-                "You should specify `data_dir` or `data_files` (with README.md inside) "
-                "when providing a `config_name`, otherwise resolving is not possible. "
-            )
-
         self.name = name
         self.config_name = config_name
         self.data_files = data_files
