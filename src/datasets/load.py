@@ -52,6 +52,7 @@ from .download.download_manager import DownloadMode
 from .download.streaming_download_manager import StreamingDownloadManager, xglob, xjoin
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
+from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict
 from .iterable_dataset import IterableDataset
 from .metric import Metric
@@ -535,6 +536,22 @@ def get_dataset_info_from_dataset_infos_json(path: str, config_name: Optional[st
             return DatasetInfo.from_dict(dataset_infos[config_name])
 
 
+def update_hash_with_config_parameters(hash: str, config_parameters: dict) -> str:
+    """
+    Used to update hash of packaged modules which is used for creating unique cache directories to reflect
+    different config parameters which are passed in metadata from readme.
+    """
+    params_to_exclude = {"config_name", "version", "description"}
+    params_to_add_to_hash = {
+        param: value for param, value in config_parameters.items() if param not in params_to_exclude
+    }
+    params_to_add_to_hash = {k: params_to_add_to_hash[k] for k in sorted(params_to_add_to_hash)}
+    m = Hasher()
+    m.update(hash)
+    m.update(params_to_add_to_hash)
+    return m.hexdigest()
+
+
 @dataclass
 class DatasetModule:
     module_path: str
@@ -781,13 +798,6 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             update_data_files_with_metadata_files_locally(base_path=base_path, data_files=data_files)
 
         module_path, hash = _PACKAGED_DATASETS_MODULES[module_name]
-        builder_kwargs = {
-            "hash": hash,
-            "data_files": data_files,
-            "config_name": self.config_name if metadata_configs_dict else "default",
-            "base_path": self.path,
-            **default_builder_kwargs,
-        }
 
         if metadata_configs_dict:
             metadata_configs_dict.resolve_data_files_locally(
@@ -795,6 +805,22 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 with_metadata_files=supports_metadata,
                 allowed_extensions=ALL_ALLOWED_EXTENSIONS,
             )
+            # config_name is provided, and it exists in metadata - update module hash with corresponding params
+            if self.config_name and self.config_name in metadata_configs_dict:
+                config_params = metadata_configs_dict[self.config_name]
+                hash = update_hash_with_config_parameters(hash, config_params)
+            # config_name is not provided but there is a single config in meta, so we take it's params to update module hash
+            elif not self.config_name and len(metadata_configs_dict) == 1:
+                config_params = next(iter(metadata_configs_dict.values()))
+                hash = update_hash_with_config_parameters(hash, config_params)
+
+        builder_kwargs = {
+            "hash": hash,
+            "data_files": data_files,
+            "config_name": self.config_name if metadata_configs_dict else "default",
+            "base_path": self.path,
+            **default_builder_kwargs,
+        }
 
         dataset_infos_json_path = os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME)
         if os.path.isfile(dataset_infos_json_path):
@@ -867,17 +893,27 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
             update_data_files_with_metadata_files_locally(data_files, base_path=base_path)
 
         module_path, hash = _PACKAGED_DATASETS_MODULES[self.name]
-        builder_kwargs = {
-            "hash": hash,
-            "data_files": data_files,
-            "config_name": self.config_name if metadata_configs_dict else "default",
-        }
+
         if metadata_configs_dict:
             metadata_configs_dict.resolve_data_files_locally(
                 base_path=base_path,
                 with_metadata_files=supports_metadata,
                 allowed_extensions=ALL_ALLOWED_EXTENSIONS,
             )
+            # config_name is provided, and it exists in metadata - update module hash with corresponding params
+            if self.config_name and self.config_name in metadata_configs_dict:
+                config_params = metadata_configs_dict[self.config_name]
+                hash = update_hash_with_config_parameters(hash, config_params)
+            # config_name is not provided but there is a single config in meta, so we take it's params to update module hash
+            elif not self.config_name and len(metadata_configs_dict) == 1:
+                config_params = next(iter(metadata_configs_dict.values()))
+                hash = update_hash_with_config_parameters(hash, config_params)
+
+        builder_kwargs = {
+            "hash": hash,
+            "data_files": data_files,
+            "config_name": self.config_name if metadata_configs_dict else "default",
+        }
 
         return DatasetModule(module_path, hash, builder_kwargs, metadata_configs_dict)
 
@@ -977,6 +1013,14 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 with_metadata_files=supports_metadata,
                 allowed_extensions=ALL_ALLOWED_EXTENSIONS,
             )
+            # config_name is provided, and it exists in metadata - update module hash with corresponding params
+            if self.config_name and self.config_name in metadata_configs_dict:
+                config_params = metadata_configs_dict[self.config_name]
+                hash = update_hash_with_config_parameters(hash, config_params)
+            # config_name is not provided but there is a single config in meta, so we take it's params to update module hash
+            elif not self.config_name and len(metadata_configs_dict) == 1:
+                config_params = next(iter(metadata_configs_dict.values()))
+                hash = update_hash_with_config_parameters(hash, config_params)
 
         info = get_dataset_info_from_dataset_metadata(dataset_metadata, config_name=self.config_name)
         if info:
@@ -1668,7 +1712,6 @@ def load_dataset_builder(
     data_files = builder_kwargs.pop("data_files", data_files)
     config_name = builder_kwargs.pop("config_name", name)
     hash = builder_kwargs.pop("hash")
-    # builder_kwargs = builder_kwargs if not dataset_module.metadata_configs else {}
 
     if path in _PACKAGED_DATASETS_MODULES and data_files is None:
         error_msg = f"Please specify the data files or data directory to load for the {path} dataset builder."

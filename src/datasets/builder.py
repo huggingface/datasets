@@ -26,7 +26,7 @@ import textwrap
 import time
 import urllib
 import warnings
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 from typing import Dict, Iterable, Mapping, Optional, Tuple, Union
@@ -193,20 +193,6 @@ class BuilderConfig:
         else:
             return self.name
 
-    def update_hash_with_config_parameters(self, hash):
-        fields_to_drop = {"name", "version", "description"}
-        params_to_add_to_hash = {
-            f.name: getattr(self, f.name)
-            for f in fields(self)
-            if f.name not in fields_to_drop
-            # if getattr(self.config, f.name)  ??
-        }
-        params_to_add_to_hash = {k: params_to_add_to_hash[k] for k in sorted(params_to_add_to_hash)}
-        m = Hasher()
-        m.update(hash)
-        m.update(params_to_add_to_hash)
-        return m.hexdigest()
-
 
 class DatasetBuilder:
     """Abstract base class for all datasets.
@@ -354,9 +340,6 @@ class DatasetBuilder:
             custom_features=features,
             **config_kwargs,
         )
-        # updating hash for packaged modules with configs - to make it different from standard packaged builder hash
-        if self.dataset_name != self.name and self.config.name in self.builder_configs:
-            self.hash = self.config.update_hash_with_config_parameters(self.hash)
 
         # prepare info: DatasetInfo are a standardized dataclass across all datasets
         # Prefill datasetinfo
