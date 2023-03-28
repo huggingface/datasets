@@ -485,11 +485,9 @@ class TensorflowDatasetMixin:
             # If columns or labels are passed in as a string instead of a list of strings, there is
             # only one element and the raw tensor is returned
             if not column_as_dict:
-            # if len(features) == 1:
                 features = list(features.values())[0]
 
             if not labels_as_dict:
-            # if len(labels) == 1:
                 labels = list(labels.values())[0]
 
             if isinstance(labels, dict) and len(labels) == 0:
