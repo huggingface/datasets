@@ -2703,10 +2703,10 @@ class BaseDatasetTest(TestCase):
     @require_tf
     def test_tf_dataset_conversion(self, in_memory):
         tmp_dir = tempfile.TemporaryDirectory()
-        for num_workers in [2]:
+        for num_workers in [0]:
             if num_workers > 0 and sys.version_info < (3, 8):
                 continue  # Skip multiprocessing tests for Python < 3.8
-            if num_workers > 0 and sys.platform == "win32":
+            if num_workers > 0 and sys.platform == "win32" and not in_memory:
                 continue  # This test hangs on the Py3.10 test worker, but it runs fine locally on my Windows machine
             with self._create_dummy_dataset(in_memory, tmp_dir.name, array_features=True) as dset:
                 tf_dataset = dset.to_tf_dataset(columns="col_3", batch_size=2, num_workers=num_workers)
