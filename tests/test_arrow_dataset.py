@@ -2703,7 +2703,7 @@ class BaseDatasetTest(TestCase):
     @require_tf
     def test_tf_dataset_conversion(self, in_memory):
         tmp_dir = tempfile.TemporaryDirectory()
-        for num_workers in [0, 1]:
+        for num_workers in [0, 1, 2]:
             if num_workers > 0 and sys.version_info < (3, 8):
                 continue  # Skip multiprocessing tests for Python < 3.8
             if num_workers > 0 and sys.platform == "win32" and not in_memory:
