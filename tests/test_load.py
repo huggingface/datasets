@@ -452,6 +452,9 @@ class ModuleFactoryTest(TestCase):
             assert module_factory_result.builder_kwargs["config_name"] == config_name
             # we don't pass config params to builder in builder_kwargs, they are stored in builder_configs only
             assert "drop_labels" not in module_factory_result.builder_kwargs
+            # check that data_files are resolved
+            assert "data_files" in list(module_factory_result.metadata_configs.values())[0]
+            assert isinstance(list(module_factory_result.metadata_configs.values())[0]["data_files"], DataFilesDict)
 
     def test_LocalDatasetModuleFactoryWithoutScript_with_one_nondefault_config_in_metadata(self):
         for config_name in [None, "custom"]:
@@ -466,6 +469,9 @@ class ModuleFactoryTest(TestCase):
             assert module_factory_result.builder_kwargs["config_name"] == config_name
             # we don't pass config params to builder in builder_kwargs, they are stored in builder_configs only
             assert "drop_labels" not in module_factory_result.builder_kwargs
+            # check that data_files are resolved
+            assert "data_files" in list(module_factory_result.metadata_configs.values())[0]
+            assert isinstance(list(module_factory_result.metadata_configs.values())[0]["data_files"], DataFilesDict)
 
     def test_LocalDatasetModuleFactoryWithoutScript_with_two_configs_in_metadata(self):
         for config_name in [None, "v1", "v2"]:
@@ -481,6 +487,12 @@ class ModuleFactoryTest(TestCase):
             assert module_factory_result.builder_kwargs["config_name"] == config_name
             # we don't pass config params to builder in builder_kwargs, they are stored in builder_configs only
             assert "drop_labels" not in module_factory_result.builder_kwargs
+            # check that data_files are resolved for all configs
+            assert all("data_files" in config for config in module_factory_result.metadata_configs.values())
+            assert all(
+                isinstance(config["data_files"], DataFilesDict)
+                for config in module_factory_result.metadata_configs.values()
+            )
 
     def test_PackagedDatasetModuleFactory(self):
         factory = PackagedDatasetModuleFactory(
@@ -543,6 +555,9 @@ class ModuleFactoryTest(TestCase):
             assert module_factory_result.builder_kwargs["config_name"] == config_name
             # we don't pass config params to builder in builder_kwargs, they are stored in builder_configs only
             assert "drop_labels" not in module_factory_result.builder_kwargs
+            # check that data_files are resolved
+            assert "data_files" in list(module_factory_result.metadata_configs.values())[0]
+            assert isinstance(list(module_factory_result.metadata_configs.values())[0]["data_files"], DataFilesDict)
 
     def test_PackagedDatasetModuleFactory_with_one_nondefault_config_in_metadata(self):
         for config_name in [None, "custom"]:
@@ -560,6 +575,9 @@ class ModuleFactoryTest(TestCase):
             assert module_factory_result.builder_kwargs["config_name"] == config_name
             # we don't pass config params to builder in builder_kwargs, they are stored in builder_configs only
             assert "drop_labels" not in module_factory_result.builder_kwargs
+            # check that data_files are resolved
+            assert "data_files" in list(module_factory_result.metadata_configs.values())[0]
+            assert isinstance(list(module_factory_result.metadata_configs.values())[0]["data_files"], DataFilesDict)
 
     def test_PackagedDatasetModuleFactory_with_two_configs_in_metadata(self):
         for config_name in [None, "v1", "v2"]:
@@ -577,6 +595,9 @@ class ModuleFactoryTest(TestCase):
             assert module_factory_result.builder_kwargs["config_name"] == config_name
             # we don't pass config params to builder in builder_kwargs, they are stored in builder_configs only
             assert "drop_labels" not in module_factory_result.builder_kwargs
+            # check that data_files are resolved
+            assert "data_files" in list(module_factory_result.metadata_configs.values())[0]
+            assert isinstance(list(module_factory_result.metadata_configs.values())[0]["data_files"], DataFilesDict)
 
     @pytest.mark.integration
     def test_HubDatasetModuleFactoryWithoutScript(self):
@@ -646,6 +667,9 @@ class ModuleFactoryTest(TestCase):
             assert module_factory_result.builder_kwargs["config_name"] == config_name
             # we don't pass config params to builder in builder_kwargs, they are stored in builder_configs only
             assert "drop_labels" not in module_factory_result.builder_kwargs
+            # check that data_files are resolved
+            assert "data_files" in list(module_factory_result.metadata_configs.values())[0]
+            assert isinstance(list(module_factory_result.metadata_configs.values())[0]["data_files"], DataFilesDict)
 
     @pytest.mark.integration
     def test_HubDatasetModuleFactoryWithoutScript_with_one_nondefault_config_in_metadata(self):
@@ -663,6 +687,9 @@ class ModuleFactoryTest(TestCase):
             assert module_factory_result.builder_kwargs["config_name"] == config_name
             # we don't pass config params to builder in builder_kwargs, they are stored in builder_configs only
             assert "drop_labels" not in module_factory_result.builder_kwargs
+            # check that data_files are resolved
+            assert "data_files" in list(module_factory_result.metadata_configs.values())[0]
+            assert isinstance(list(module_factory_result.metadata_configs.values())[0]["data_files"], DataFilesDict)
 
     @pytest.mark.integration
     def test_HubDatasetModuleFactoryWithoutScript_with_two_configs_in_metadata(self):
@@ -678,6 +705,9 @@ class ModuleFactoryTest(TestCase):
             assert module_factory_result.builder_kwargs["config_name"] == config_name
             # we don't pass config params to builder in builder_kwargs, they are stored in builder_configs only
             assert "drop_labels" not in module_factory_result.builder_kwargs
+            # check that data_files are resolved
+            assert "data_files" in list(module_factory_result.metadata_configs.values())[0]
+            assert isinstance(list(module_factory_result.metadata_configs.values())[0]["data_files"], DataFilesDict)
 
     @pytest.mark.integration
     def test_HubDatasetModuleFactoryWithScript(self):
