@@ -473,30 +473,6 @@ def infer_module_for_data_files_in_archives(
             return _EXTENSION_TO_MODULE[most_common]
 
 
-def get_data_files_locally(base_path: str, data_files: Optional[Union[str, List, Dict]] = None):
-    patterns = sanitize_patterns(data_files) if data_files is not None else get_data_patterns_locally(base_path)
-    data_files_dict = DataFilesDict.from_local_or_remote(
-        patterns,
-        base_path=base_path,
-        allowed_extensions=ALL_ALLOWED_EXTENSIONS,
-    )
-    return data_files_dict, patterns
-
-
-def get_data_files_in_dataset_repository(
-    hfh_dataset_info, base_path: str, data_files: Optional[Union[str, List, Dict]] = None
-):
-    patterns = (
-        sanitize_patterns(data_files)
-        if data_files is not None
-        else get_data_patterns_in_dataset_repository(hfh_dataset_info, base_path)
-    )
-    data_files = DataFilesDict.from_hf_repo(
-        patterns, dataset_info=hfh_dataset_info, base_path=base_path, allowed_extensions=ALL_ALLOWED_EXTENSIONS
-    )
-    return data_files, patterns
-
-
 def get_dataset_info_from_dataset_metadata(
     dataset_metadata: DatasetMetadata, config_name: Optional[str]
 ) -> Optional[DatasetInfo]:
@@ -782,7 +758,14 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         # even if metadata_configs_dict is not None (which means that we will resolve files for each config later)
         # we cannot skip resolving all files because we need to infer module name by files extensions
         base_path = os.path.join(self.path, self.data_dir) if self.data_dir else self.path
-        data_files, patterns = get_data_files_locally(base_path=base_path, data_files=self.data_files)
+        patterns = (
+            sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns_locally(base_path)
+        )
+        data_files = DataFilesDict.from_local_or_remote(
+            patterns,
+            base_path=base_path,
+            allowed_extensions=ALL_ALLOWED_EXTENSIONS,
+        )
         module_names = {
             key: infer_module_for_data_files(data_files_list) for key, data_files_list in data_files.items()
         }
@@ -887,7 +870,14 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         )
 
         base_path = str(Path(self.data_dir).resolve()) if self.data_dir is not None else str(Path().resolve())
-        data_files, patterns = get_data_files_locally(base_path=base_path, data_files=self.data_files)
+        patterns = (
+            sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns_locally(base_path)
+        )
+        data_files = DataFilesDict.from_local_or_remote(
+            patterns,
+            use_auth_token=self.download_config.use_auth_token,
+            base_path=base_path,
+        )
         supports_metadata = self.name in _MODULE_SUPPORTS_METADATA
         if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
             update_data_files_with_metadata_files_locally(data_files, base_path=base_path)
@@ -983,8 +973,16 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             MetadataConfigs.from_metadata(dataset_metadata) if dataset_metadata else MetadataConfigs()
         )
 
-        data_files, patterns = get_data_files_in_dataset_repository(
-            hfh_dataset_info, base_path=self.data_dir, data_files=self.data_files
+        patterns = (
+            sanitize_patterns(self.data_files)
+            if self.data_files is not None
+            else get_data_patterns_in_dataset_repository(hfh_dataset_info, self.data_dir)
+        )
+        data_files = DataFilesDict.from_hf_repo(
+            patterns,
+            dataset_info=hfh_dataset_info,
+            base_path=self.data_dir,
+            allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
 
         module_names = {
