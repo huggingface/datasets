@@ -2701,6 +2701,65 @@ class BaseDatasetTest(TestCase):
                     self.assertNotEqual(dset._fingerprint, dset2._fingerprint)
 
     @require_tf
+    def test_to_tf_dataset_return_structure(self, in_memory):
+        tmp_dir = tempfile.TemporaryDirectory()
+
+        # Check return data structure based on the columns and label_cols arguments
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+            # Returns: .
+            tf_dataset = dset.to_tf_dataset(columns="col_1", batch_size=2)
+            batch = next(iter(tf_dataset))
+            self.assertEqual(batch.shape.as_list(), [2])
+
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+            # Returns: {"col_1": .}
+            tf_dataset = dset.to_tf_dataset(columns=["col_1"], batch_size=2)
+            batch = next(iter(tf_dataset))
+            self.assertIsInstance(batch, dict)
+            self.assertTrue(len(batch) == 1)
+            self.assertEqual(batch["col_1"].shape.as_list(), [2])
+
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+            # Returns: (., .)
+            tf_dataset = dset.to_tf_dataset(columns="col_1", label_cols="col_2", batch_size=2)
+            batch = next(iter(tf_dataset))
+            self.assertTrue(len(batch) == 2)
+            self.assertEqual(batch[0].shape.as_list(), [2])
+            self.assertEqual(batch[1].shape.as_list(), [2])
+
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+            # Returns: ({"col_1": ., "col_2": .}, .)
+            tf_dataset = dset.to_tf_dataset(columns=["col_1", "col_2"], label_cols="col_3", batch_size=2)
+            batch = next(iter(tf_dataset))
+            self.assertTrue(len(batch) == 2)
+            self.assertIsInstance(batch[0], dict)
+            self.assertTrue(len(batch[0]) == 2)
+            self.assertEqual(batch[0]["col_1"].shape.as_list(), [2])
+            self.assertEqual(batch[0]["col_2"].shape.as_list(), [2])
+            self.assertEqual(batch[1].shape.as_list(), [2])
+
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+            # Returns: ({"col_1": ., "col_2": .}, {"col_3": .})
+            tf_dataset = dset.to_tf_dataset(columns=["col_1", "col_2"], label_cols=["col_3"], batch_size=2)
+            batch = next(iter(tf_dataset))
+            self.assertTrue(len(batch) == 2)
+            self.assertIsInstance(batch[0], dict)
+            self.assertEqual(batch[0]["col_1"].shape.as_list(), [2])
+            self.assertEqual(batch[0]["col_2"].shape.as_list(), [2])
+            self.assertEqual(batch[1]["col_3"].shape.as_list(), [2])
+
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+            # Returns: (., {"col_2": .})
+            tf_dataset = dset.to_tf_dataset(columns="col_1", label_cols=["col_2"], batch_size=2)
+            batch = next(iter(tf_dataset))
+            self.assertTrue(len(batch) == 2)
+            self.assertIsInstance(batch[1], dict)
+            self.assertEqual(batch[0].shape.as_list(), [2])
+            self.assertEqual(batch[1]["col_2"].shape.as_list(), [2])
+
+        del tf_dataset  # For correct cleanup
+
+    @require_tf
     def test_tf_dataset_conversion(self, in_memory):
         tmp_dir = tempfile.TemporaryDirectory()
         for num_workers in [0, 1, 2]:
@@ -2726,68 +2785,6 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(batch["col_2"].shape.as_list(), [2])
                 self.assertEqual(batch["col_1"].dtype.name, "int64")
                 self.assertEqual(batch["col_2"].dtype.name, "string")  # Assert that we're converting strings properly
-
-            # Check return data structure based on the columns and label_cols arguments
-            with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
-                # Returns: .
-                tf_dataset = dset.to_tf_dataset(columns="col_1", batch_size=2, num_workers=num_workers)
-                batch = next(iter(tf_dataset))
-                self.assertEqual(batch.shape.as_list(), [2])
-
-            with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
-                # Returns: {"col_1": .}
-                tf_dataset = dset.to_tf_dataset(columns=["col_1"], batch_size=2, num_workers=num_workers)
-                batch = next(iter(tf_dataset))
-                self.assertIsInstance(batch, dict)
-                self.assertTrue(len(batch) == 1)
-                self.assertEqual(batch["col_1"].shape.as_list(), [2])
-
-            with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
-                # Returns: (., .)
-                tf_dataset = dset.to_tf_dataset(
-                    columns="col_1", label_cols="col_2", batch_size=2, num_workers=num_workers
-                )
-                batch = next(iter(tf_dataset))
-                self.assertTrue(len(batch) == 2)
-                self.assertEqual(batch[0].shape.as_list(), [2])
-                self.assertEqual(batch[1].shape.as_list(), [2])
-
-            with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
-                # Returns: ({"col_1": ., "col_2": .}, .)
-                tf_dataset = dset.to_tf_dataset(
-                    columns=["col_1", "col_2"], label_cols="col_3", batch_size=2, num_workers=num_workers
-                )
-                batch = next(iter(tf_dataset))
-                self.assertTrue(len(batch) == 2)
-                self.assertIsInstance(batch[0], dict)
-                self.assertTrue(len(batch[0]) == 2)
-                self.assertEqual(batch[0]["col_1"].shape.as_list(), [2])
-                self.assertEqual(batch[0]["col_2"].shape.as_list(), [2])
-                self.assertEqual(batch[1].shape.as_list(), [2])
-
-            with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
-                # Returns: ({"col_1": ., "col_2": .}, {"col_3": .})
-                tf_dataset = dset.to_tf_dataset(
-                    columns=["col_1", "col_2"], label_cols=["col_3"], batch_size=2, num_workers=num_workers
-                )
-                batch = next(iter(tf_dataset))
-                self.assertTrue(len(batch) == 2)
-                self.assertIsInstance(batch[0], dict)
-                self.assertEqual(batch[0]["col_1"].shape.as_list(), [2])
-                self.assertEqual(batch[0]["col_2"].shape.as_list(), [2])
-                self.assertEqual(batch[1]["col_3"].shape.as_list(), [2])
-
-            with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
-                # Returns: (., {"col_2": .})
-                tf_dataset = dset.to_tf_dataset(
-                    columns="col_1", label_cols=["col_2"], batch_size=2, num_workers=num_workers
-                )
-                batch = next(iter(tf_dataset))
-                self.assertTrue(len(batch) == 2)
-                self.assertIsInstance(batch[1], dict)
-                self.assertEqual(batch[0].shape.as_list(), [2])
-                self.assertEqual(batch[1]["col_2"].shape.as_list(), [2])
-
             with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
                 # Check that when we use a transform that creates a new column from existing column values
                 # but don't load the old columns that the new column depends on in the final dataset,
