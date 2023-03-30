@@ -71,6 +71,7 @@ from .features.features import (
     FeatureType,
     _align_features,
     _check_if_features_can_be_aligned,
+    generate_from_arrow_type,
     pandas_types_mapper,
     require_decoding,
 )
@@ -87,7 +88,7 @@ from .fingerprint import (
     update_fingerprint,
     validate_fingerprint,
 )
-from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
+from .formatting import PythonFormatter, format_table, get_format_type_from_alias, get_formatter, query_table
 from .formatting.formatting import LazyDict, _is_range_contiguous
 from .info import DatasetInfo, DatasetInfosDict
 from .naming import _split_re
@@ -97,6 +98,7 @@ from .table import (
     InMemoryTable,
     MemoryMappedTable,
     Table,
+    cast_array_to_feature,
     concat_tables,
     embed_table_storage,
     list_table_cache_files,
@@ -106,8 +108,6 @@ from .table import (
 )
 from .tasks import TaskTemplate
 from .utils import logging
-from .utils._hf_hub_fixes import create_repo
-from .utils._hf_hub_fixes import list_repo_files as hf_api_list_repo_files
 from .utils.file_utils import _retry, cached_path, estimate_dataset_size
 from .utils.hub import hf_hub_url
 from .utils.info_utils import is_small_dataset
@@ -182,8 +182,8 @@ class DatasetInfoMixin:
         return self._info.download_size
 
     @property
-    def features(self) -> Features:
-        return self._info.features
+    def features(self) -> Optional[Features]:
+        return self._info.features.copy() if self._info.features is not None else None
 
     @property
     def homepage(self) -> Optional[str]:
@@ -568,7 +568,10 @@ def transmit_tasks(func):
                 dataset.info.task_templates = [
                     template
                     for template in self.info.task_templates
-                    if all(dataset.features.get(k) == self.features.get(k) for k in template.column_mapping.keys())
+                    if all(
+                        dataset._info.features.get(k) == self._info.features.get(k)
+                        for k in template.column_mapping.keys()
+                    )
                 ]
         return out
 
@@ -676,7 +679,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # Sanity checks
 
-        if self.features is None:
+        if self._info.features is None:
             raise ValueError("Features can't be None in a Dataset object")
         if self._fingerprint is None:
             raise ValueError("Fingerprint can't be None in a Dataset object")
@@ -692,7 +695,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
         _check_column_names(self._data.column_names)
 
-        self._data = update_metadata_with_features(self._data, self.features)
+        self._data = update_metadata_with_features(self._data, self._info.features)
+
+    @property
+    def features(self) -> Features:
+        features = super().features
+        if features is None:  # this is already checked in __init__
+            raise ValueError("Features can't be None in a Dataset object")
+        return features
 
     @classmethod
     def from_file(
@@ -857,18 +867,31 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"Features specified in `features` and `info.features` can't be different:\n{features}\n{info.features}"
             )
         features = features if features is not None else info.features if info is not None else None
+        arrow_typed_mapping = {}
+        for col, data in mapping.items():
+            if isinstance(data, (pa.Array, pa.ChunkedArray)):
+                data = cast_array_to_feature(data, features[col]) if features is not None else data
+            else:
+                data = OptimizedTypedSequence(
+                    features.encode_column(data, col) if features is not None else data,
+                    type=features[col] if features is not None else None,
+                    col=col,
+                )
+            arrow_typed_mapping[col] = data
+        mapping = arrow_typed_mapping
+        pa_table = InMemoryTable.from_pydict(mapping=mapping)
         if info is None:
             info = DatasetInfo()
         info.features = features
-        if features is not None:
-            mapping = features.encode_batch(mapping)
-        mapping = {
-            col: OptimizedTypedSequence(data, type=features[col] if features is not None else None, col=col)
-            for col, data in mapping.items()
-        }
-        pa_table = InMemoryTable.from_pydict(mapping=mapping)
         if info.features is None:
-            info.features = Features({col: ts.get_inferred_type() for col, ts in mapping.items()})
+            info.features = Features(
+                {
+                    col: generate_from_arrow_type(data.type)
+                    if isinstance(data, (pa.Array, pa.ChunkedArray))
+                    else data.get_inferred_type()
+                    for col, data in mapping.items()
+                }
+            )
         return cls(pa_table, info=info, split=split)
 
     @classmethod
@@ -1295,7 +1318,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
                 (like `"50MB"`).
             num_shards (`int`, *optional*):
-                Number of shards to write. By default the number of shards depends on `max_shard_size`.
+                Number of shards to write. By default the number of shards depends on `max_shard_size` and `num_proc`.
 
                 <Added version="2.8.0"/>
             num_proc (`int`, *optional*):
@@ -1781,7 +1804,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Sanity checks
         if column not in self._data.column_names:
             raise ValueError(f"Column ({column}) not in table columns ({self._data.column_names}).")
-        src_feat = self.features[column]
+        src_feat = self._info.features[column]
         if not isinstance(src_feat, Value):
             raise ValueError(
                 f"Class encoding is only supported for {Value.__name__} column, and column {column} is {type(src_feat).__name__}."
@@ -1864,7 +1887,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 dataset._data = dataset._data.flatten()
             else:
                 break
-        dataset.info.features = self.features.flatten(max_depth=max_depth)
+        dataset.info.features = self._info.features.flatten(max_depth=max_depth)
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         logger.info(f'Flattened dataset from depth {depth} to depth {1 if depth + 1 < max_depth else "unknown"}.')
         dataset._fingerprint = new_fingerprint
@@ -1985,13 +2008,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         if hasattr(feature, "decode_example"):
             dataset = copy.deepcopy(self)
-            dataset.features[column] = feature
+            dataset._info.features[column] = feature
             dataset._fingerprint = new_fingerprint
             dataset._data = dataset._data.cast(dataset.features.arrow_schema)
             dataset._data = update_metadata_with_features(dataset._data, dataset.features)
             return dataset
         else:
-            features = self.features.copy()
+            features = self.features
             features[column] = feature
             return self.cast(features)
 
@@ -2262,7 +2285,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # Fast iteration
             # Benchmark: https://gist.github.com/mariosasko/0248288a2e3a7556873969717c1fe52b (fast_iter_batch)
             format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
-            formatter = get_formatter(self._format_type, features=self.features, **format_kwargs)
+            formatter = get_formatter(self._format_type, features=self._info.features, **format_kwargs)
             batch_size = config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER
             for pa_subtable in table_iter(self.data, batch_size=batch_size):
                 for i in range(pa_subtable.num_rows):
@@ -2292,11 +2315,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             drop_last_batch (:obj:`bool`, default `False`): Whether a last batch smaller than the batch_size should be
                 dropped
         """
-        if self._indices is None and config.PYARROW_VERSION.major >= 8:
+        if self._indices is None:
             # Fast iteration
             # Benchmark: https://gist.github.com/mariosasko/0248288a2e3a7556873969717c1fe52b (fast_iter_batch)
             format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
-            formatter = get_formatter(self._format_type, features=self.features, **format_kwargs)
+            formatter = get_formatter(self._format_type, features=self._info.features, **format_kwargs)
             for pa_subtable in table_iter(self.data, batch_size=batch_size, drop_last_batch=drop_last_batch):
                 formatted_batch = format_table(
                     pa_subtable,
@@ -2314,7 +2337,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
 
     def __repr__(self):
-        return f"Dataset({{\n    features: {list(self.features.keys())},\n    num_rows: {self.num_rows}\n}})"
+        return f"Dataset({{\n    features: {list(self._info.features.keys())},\n    num_rows: {self.num_rows}\n}})"
 
     @property
     def format(self):
@@ -2408,7 +2431,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # Check that the format_type and format_kwargs are valid and make it possible to have a Formatter
         type = get_format_type_from_alias(type)
-        get_formatter(type, features=self.features, **format_kwargs)
+        get_formatter(type, features=self._info.features, **format_kwargs)
 
         # Check filter column
         if isinstance(columns, str):
@@ -2666,7 +2689,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
         format_kwargs = kwargs["format_kwargs"] if "format_kwargs" in kwargs else self._format_kwargs
         format_kwargs = format_kwargs if format_kwargs is not None else {}
-        formatter = get_formatter(format_type, features=self.features, **format_kwargs)
+        formatter = get_formatter(format_type, features=self._info.features, **format_kwargs)
         pa_subtable = query_table(self._data, key, indices=self._indices if self._indices is not None else None)
         formatted_output = format_table(
             pa_subtable, key, formatter=formatter, format_columns=format_columns, output_all_columns=output_all_columns
@@ -3251,7 +3274,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 return None  # Nothing to update, let's move on
             if shard._format_type or input_columns:
                 # TODO(QL, MS): ideally the behavior should be the same even if the dataset is formatted (may require major release)
-                inputs_to_merge = {k: v for k, v in zip(pa_inputs.column_names, pa_inputs.itercolumns())}
+                inputs_to_merge = dict(zip(pa_inputs.column_names, pa_inputs.itercolumns()))
             elif isinstance(inputs, LazyDict):
                 inputs_to_merge = {
                     k: (v if k not in inputs.keys_to_format else pa_inputs[k]) for k, v in inputs.data.items()
@@ -4373,11 +4396,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         else:
             # stratified partition
             if stratify_by_column is not None:
-                if stratify_by_column not in self.features.keys():
-                    raise ValueError(f"Key {stratify_by_column} not found in {self.features.keys()}")
-                if not isinstance(self.features[stratify_by_column], ClassLabel):
+                if stratify_by_column not in self._info.features.keys():
+                    raise ValueError(f"Key {stratify_by_column} not found in {self._info.features.keys()}")
+                if not isinstance(self._info.features[stratify_by_column], ClassLabel):
                     raise ValueError(
-                        f"Stratifying by column is only supported for {ClassLabel.__name__} column, and column {stratify_by_column} is {type(self.features[stratify_by_column]).__name__}."
+                        f"Stratifying by column is only supported for {ClassLabel.__name__} column, and column {stratify_by_column} is {type(self._info.features[stratify_by_column]).__name__}."
                     )
                 try:
                     train_indices, test_indices = next(
@@ -4630,13 +4653,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         return CsvDatasetWriter(self, path_or_buf, batch_size=batch_size, num_proc=num_proc, **to_csv_kwargs).write()
 
-    def to_dict(self, batch_size: Optional[int] = None, batched: bool = False) -> Union[dict, Iterator[dict]]:
+    def to_dict(self, batch_size: Optional[int] = None, batched="deprecated") -> Union[dict, Iterator[dict]]:
         """Returns the dataset as a Python dict. Can also return a generator for large datasets.
 
         Args:
             batched (`bool`):
                 Set to `True` to return a generator that yields the dataset as batches
                 of `batch_size` rows. Defaults to `False` (returns the whole datasets once).
+
+                <Deprecated version="2.11.0">
+
+                Use `.iter(batch_size=batch_size)` followed by `.to_dict()` on the individual batches instead.
+
+                </Deprecated>
+
             batch_size (`int`, *optional*): The size (number of rows) of the batches if `batched` is `True`.
                 Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
@@ -4649,6 +4679,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds.to_dict()
         ```
         """
+        if batched != "deprecated":
+            warnings.warn(
+                "'batched' was deprecated in version 2.11.0 and will be removed in version 3.0.0. Use `.iter(batch_size=batch_size)` followed by `.to_dict()` on the individual batches instead.",
+                FutureWarning,
+            )
+        else:
+            batched = False
+
         if not batched:
             return query_table(
                 table=self._data,
@@ -4665,6 +4703,24 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 ).to_pydict()
                 for offset in range(0, len(self), batch_size)
             )
+
+    def to_list(self) -> list:
+        """Returns the dataset as a Python list.
+
+        Returns:
+            `list`
+
+        Example:
+
+        ```py
+        >>> ds.to_list()
+        ```
+        """
+        return query_table(
+            table=self._data,
+            key=slice(0, len(self)),
+            indices=self._indices if self._indices is not None else None,
+        ).to_pylist()
 
     def to_json(
         self,
@@ -4835,7 +4891,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # Find decodable columns, because if there are any, we need to
         # adjust the dataset size computation (needed for sharding) to account for possible external files
-        decodable_columns = [k for k, v in self.features.items() if require_decoding(v, ignore_decode_attribute=True)]
+        decodable_columns = [
+            k for k, v in self._info.features.items() if require_decoding(v, ignore_decode_attribute=True)
+        ]
 
         if decodable_columns:
             # Approximate the space needed to store the bytes from the external files by analyzing the first 1000 examples
@@ -4861,9 +4919,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return dataset_nbytes
 
     @staticmethod
-    def _iter_shards(shards: List["Dataset"]):
-        for shard in shards:
-            yield from shard
+    def _generate_examples_from_shards(shards: List["Dataset"]):
+        python_formatter = PythonFormatter()
+        for shards_idx, shard in enumerate(shards):
+            example_idx = 0
+            for pa_table in shard.with_format("arrow").iter(config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER):
+                batch = python_formatter.format_batch(pa_table)
+                for i in range(len(pa_table)):
+                    example = {col: array[i] for col, array in batch.items()}
+                    yield f"{shards_idx}_{example_idx}", example
+                    example_idx += 1
 
     def to_iterable_dataset(self, num_shards: Optional[int] = 1) -> "IterableDataset":
         """Get an [`datasets.IterableDataset`] from a map-style [`datasets.Dataset`].
@@ -4956,8 +5021,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         Feel free to also use [`IterableDataset.set_epoch`] when using a PyTorch DataLoader or in distributed setups.
         """
-        from .iterable_dataset import IterableDataset
+        from .iterable_dataset import ExamplesIterable, IterableDataset
 
+        if self._format_type is not None:
+            raise NotImplementedError(
+                "Converting a formatted dataset to a formatted iterable dataset is not implemented yet. Please run `my_dataset = my_dataset.with_format(None)` before calling to_iterable_dataset"
+            )
         if num_shards > len(self):
             raise ValueError(
                 f"Unable to shard a dataset of size {len(self)} into {num_shards} shards (the number of shards exceeds the number of samples)."
@@ -4974,9 +5043,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 self.shard(num_shards=num_shards, index=shard_idx, contiguous=True) for shard_idx in range(num_shards)
             ]
         )
-        return IterableDataset.from_generator(
-            Dataset._iter_shards, features=self.features, gen_kwargs={"shards": shards}
-        )
+        ex_iterable = ExamplesIterable(Dataset._generate_examples_from_shards, kwargs={"shards": shards})
+        return IterableDataset(ex_iterable, info=DatasetInfo(features=self.features))
 
     def _push_parquet_shards_to_hub(
         self,
@@ -5067,8 +5135,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             organization_or_username = api.whoami(token)["name"]
             repo_id = f"{organization_or_username}/{dataset_name}"
 
-        create_repo(
-            api,
+        api.create_repo(
             repo_id,
             token=token,
             repo_type="dataset",
@@ -5079,7 +5146,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Find decodable columns, because if there are any, we need to:
         # embed the bytes from the files in the shards
         decodable_columns = (
-            [k for k, v in self.features.items() if require_decoding(v, ignore_decode_attribute=True)]
+            [k for k, v in self._info.features.items() if require_decoding(v, ignore_decode_attribute=True)]
             if embed_external_files
             else []
         )
@@ -5110,7 +5177,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
             shards = shards_with_embedded_external_files(shards)
 
-        files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, use_auth_token=token)
+        files = api.list_repo_files(repo_id, repo_type="dataset", revision=branch, token=token)
         data_files = [file for file in files if file.startswith("data/")]
 
         def path_in_repo(_index, shard):
@@ -5271,8 +5338,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
             dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
             dataset_infos: DatasetInfosDict = DatasetInfosDict.from_metadata(dataset_metadata)
-            repo_info = dataset_infos[next(iter(dataset_infos))]
-        # get the deprecated dataset_infos.json to uodate them
+            if dataset_infos:
+                repo_info = dataset_infos[next(iter(dataset_infos))]
+            else:
+                repo_info = None
+        # get the deprecated dataset_infos.json to update them
         elif config.DATASETDICT_INFOS_FILENAME in repo_files:
             dataset_metadata = DatasetMetadata()
             download_config = DownloadConfig()
@@ -5284,7 +5354,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
                 dataset_infos: DatasetInfosDict = json.load(f)
-                repo_info = DatasetInfo.from_dict(dataset_infos[next(iter(dataset_infos))])
+                if dataset_infos:
+                    repo_info = DatasetInfo.from_dict(dataset_infos[next(iter(dataset_infos))])
+                else:
+                    repo_info = None
         else:
             dataset_metadata = DatasetMetadata()
             repo_info = None
@@ -5292,9 +5365,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if repo_info is not None:
             logger.warning("Updating downloaded metadata with the new split.")
             if repo_info.splits and list(repo_info.splits) != [split]:
-                if self.features != repo_info.features:
+                if self._info.features != repo_info.features:
                     raise ValueError(
-                        f"Features of the new split don't match the features of the existing splits on the hub: {self.features} != {repo_info.features}"
+                        f"Features of the new split don't match the features of the existing splits on the hub: {self._info.features} != {repo_info.features}"
                     )
 
                 if split in repo_info.splits:
@@ -5613,11 +5686,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         item_table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
         # We don't call _check_if_features_can_be_aligned here so this cast is "unsafe"
-        dset_features, item_features = _align_features([self.features, Features.from_arrow_schema(item_table.schema)])
+        dset_features, item_features = _align_features(
+            [self._info.features, Features.from_arrow_schema(item_table.schema)]
+        )
         # Cast to align the schemas of the tables and concatenate the tables
         table = concat_tables(
             [
-                self._data.cast(dset_features.arrow_schema) if self.features != dset_features else self._data,
+                self._data.cast(dset_features.arrow_schema) if self._info.features != dset_features else self._data,
                 item_table.cast(item_features.arrow_schema),
             ]
         )
@@ -5664,7 +5739,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if label_column not in self._data.column_names:
             raise ValueError(f"Column ({label_column}) not in table columns ({self._data.column_names}).")
 
-        label_feature = self.features[label_column]
+        label_feature = self._info.features[label_column]
         if not (
             isinstance(label_feature, ClassLabel)
             or (isinstance(label_feature, Sequence) and isinstance(label_feature.feature, ClassLabel))
@@ -5707,7 +5782,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 ]
                 return batch
 
-        features = self.features.copy()
+        features = self.features
         features[label_column] = (
             ClassLabel(num_classes=len(label_names), names=label_names)
             if isinstance(label_feature, ClassLabel)

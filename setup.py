@@ -110,8 +110,8 @@ REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
     # Backend and serialization.
-    # Minimum 6.0.0 to support wrap_array which is needed for ArrayND features
-    "pyarrow>=6.0.0",
+    # Minimum 8.0.0 to be able to use .to_reader()
+    "pyarrow>=8.0.0",
     # For smart caching dataset processing
     "dill>=0.3.0,<0.3.7",  # tmp pin until next 0.3.7 release: see https://github.com/huggingface/datasets/pull/5166
     # For performance gains with apache arrow
@@ -132,8 +132,8 @@ REQUIRED_PKGS = [
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    # minimum 0.2.0 for set_access_token
-    "huggingface-hub>=0.2.0,<1.0.0",
+    # minimum 0.11.0 to fix 400 Client Error issues
+    "huggingface-hub>=0.11.0,<1.0.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     "responses<0.19",
@@ -242,7 +242,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.10.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.11.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

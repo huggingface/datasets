@@ -6,8 +6,6 @@ import pytest
 import requests
 from huggingface_hub.hf_api import HfApi, HfFolder
 
-from datasets.utils._hf_hub_fixes import create_repo, delete_repo
-
 
 CI_HUB_USER = "__DUMMY_TRANSFORMERS_USER__"
 CI_HUB_USER_FULL_NAME = "Dummy User"
@@ -39,12 +37,9 @@ def ci_hub_token_path(monkeypatch):
 
 @pytest.fixture
 def set_ci_hub_access_token(ci_hub_config, ci_hub_token_path):
-    _api = HfApi(endpoint=CI_HUB_ENDPOINT)
-    _api.set_access_token(CI_HUB_USER_TOKEN)
     HfFolder.save_token(CI_HUB_USER_TOKEN)
     yield
     HfFolder.delete_token()
-    _api.unset_access_token()
 
 
 @pytest.fixture(scope="session")
@@ -54,20 +49,17 @@ def hf_api():
 
 @pytest.fixture(scope="session")
 def hf_token(hf_api: HfApi):
-    hf_api.set_access_token(CI_HUB_USER_TOKEN)
+    previous_token = HfFolder.get_token()
     HfFolder.save_token(CI_HUB_USER_TOKEN)
-
     yield CI_HUB_USER_TOKEN
-    try:
-        hf_api.unset_access_token()
-    except requests.exceptions.HTTPError:
-        pass
+    if previous_token is not None:
+        HfFolder.save_token(previous_token)
 
 
 @pytest.fixture
 def cleanup_repo(hf_api):
     def _cleanup_repo(repo_id):
-        delete_repo(hf_api, repo_id, token=CI_HUB_USER_TOKEN, repo_type="dataset")
+        hf_api.delete_repo(repo_id, token=CI_HUB_USER_TOKEN, repo_type="dataset")
 
     return _cleanup_repo
 
@@ -88,7 +80,7 @@ def temporary_repo(cleanup_repo):
 def hf_private_dataset_repo_txt_data_(hf_api: HfApi, hf_token, text_file):
     repo_name = f"repo_txt_data-{int(time.time() * 10e3)}"
     repo_id = f"{CI_HUB_USER}/{repo_name}"
-    create_repo(hf_api, repo_id, token=hf_token, repo_type="dataset", private=True)
+    hf_api.create_repo(repo_id, token=hf_token, repo_type="dataset", private=True)
     hf_api.upload_file(
         token=hf_token,
         path_or_fileobj=str(text_file),
@@ -98,7 +90,7 @@ def hf_private_dataset_repo_txt_data_(hf_api: HfApi, hf_token, text_file):
     )
     yield repo_id
     try:
-        delete_repo(hf_api, repo_id, token=hf_token, repo_type="dataset")
+        hf_api.delete_repo(repo_id, token=hf_token, repo_type="dataset")
     except (requests.exceptions.HTTPError, ValueError):  # catch http error and token invalid error
         pass
 
@@ -112,7 +104,7 @@ def hf_private_dataset_repo_txt_data(hf_private_dataset_repo_txt_data_, ci_hub_c
 def hf_private_dataset_repo_zipped_txt_data_(hf_api: HfApi, hf_token, zip_csv_with_dir_path):
     repo_name = f"repo_zipped_txt_data-{int(time.time() * 10e3)}"
     repo_id = f"{CI_HUB_USER}/{repo_name}"
-    create_repo(hf_api, repo_id, token=hf_token, repo_type="dataset", private=True)
+    hf_api.create_repo(repo_id, token=hf_token, repo_type="dataset", private=True)
     hf_api.upload_file(
         token=hf_token,
         path_or_fileobj=str(zip_csv_with_dir_path),
@@ -122,7 +114,7 @@ def hf_private_dataset_repo_zipped_txt_data_(hf_api: HfApi, hf_token, zip_csv_wi
     )
     yield repo_id
     try:
-        delete_repo(hf_api, repo_id, token=hf_token, repo_type="dataset")
+        hf_api.delete_repo(repo_id, token=hf_token, repo_type="dataset")
     except (requests.exceptions.HTTPError, ValueError):  # catch http error and token invalid error
         pass
 
@@ -138,7 +130,7 @@ def hf_private_dataset_repo_zipped_txt_data(
 def hf_private_dataset_repo_zipped_img_data_(hf_api: HfApi, hf_token, zip_image_path):
     repo_name = f"repo_zipped_img_data-{int(time.time() * 10e3)}"
     repo_id = f"{CI_HUB_USER}/{repo_name}"
-    create_repo(hf_api, repo_id, token=hf_token, repo_type="dataset", private=True)
+    hf_api.create_repo(repo_id, token=hf_token, repo_type="dataset", private=True)
     hf_api.upload_file(
         token=hf_token,
         path_or_fileobj=str(zip_image_path),
@@ -148,7 +140,7 @@ def hf_private_dataset_repo_zipped_img_data_(hf_api: HfApi, hf_token, zip_image_
     )
     yield repo_id
     try:
-        delete_repo(hf_api, repo_id, token=hf_token, repo_type="dataset")
+        hf_api.delete_repo(repo_id, token=hf_token, repo_type="dataset")
     except (requests.exceptions.HTTPError, ValueError):  # catch http error and token invalid error
         pass
 

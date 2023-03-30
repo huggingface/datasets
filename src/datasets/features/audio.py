@@ -76,7 +76,7 @@ class Audio:
     def __call__(self):
         return self.pa_type
 
-    def encode_example(self, value: Union[str, dict]) -> dict:
+    def encode_example(self, value: Union[str, bytes, dict]) -> dict:
         """Encode example into a format for Arrow.
 
         Args:
@@ -92,6 +92,8 @@ class Audio:
             raise ImportError("To support encoding audio data, please install 'soundfile'.") from err
         if isinstance(value, str):
             return {"bytes": None, "path": value}
+        elif isinstance(value, bytes):
+            return {"bytes": value, "path": None}
         elif "array" in value:
             # convert the audio array to wav bytes
             buffer = BytesIO()
@@ -207,6 +209,7 @@ class Audio:
         The Arrow types that can be converted to the Audio pyarrow storage type are:
 
         - `pa.string()` - it must contain the "path" data
+        - `pa.binary()` - it must contain the audio bytes
         - `pa.struct({"bytes": pa.binary()})`
         - `pa.struct({"path": pa.string()})`
         - `pa.struct({"bytes": pa.binary(), "path": pa.string()})`  - order doesn't matter
@@ -222,6 +225,9 @@ class Audio:
         if pa.types.is_string(storage.type):
             bytes_array = pa.array([None] * len(storage), type=pa.binary())
             storage = pa.StructArray.from_arrays([bytes_array, storage], ["bytes", "path"], mask=storage.is_null())
+        elif pa.types.is_binary(storage.type):
+            path_array = pa.array([None] * len(storage), type=pa.string())
+            storage = pa.StructArray.from_arrays([storage, path_array], ["bytes", "path"], mask=storage.is_null())
         elif pa.types.is_struct(storage.type) and storage.type.get_all_field_indices("array"):
             storage = pa.array([Audio().encode_example(x) if x is not None else None for x in storage.to_pylist()])
         elif pa.types.is_struct(storage.type):

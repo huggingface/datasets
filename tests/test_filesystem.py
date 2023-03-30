@@ -4,7 +4,6 @@ import fsspec
 import pytest
 
 from datasets.filesystems import COMPRESSION_FILESYSTEMS, HfFileSystem, extract_path_from_uri, is_remote_filesystem
-from datasets.utils._hf_hub_fixes import dataset_info as hf_api_dataset_info
 
 from .utils import require_lz4, require_zstandard
 
@@ -45,7 +44,7 @@ def test_compression_filesystems(compression_fs_class, gz_file, bz2_file, lz4_fi
     assert isinstance(fs, compression_fs_class)
     expected_filename = os.path.basename(input_path)
     expected_filename = expected_filename[: expected_filename.rindex(".")]
-    assert fs.ls("/") == [expected_filename]
+    assert fs.glob("*") == [expected_filename]
     with fs.open(expected_filename, "r", encoding="utf-8") as f, open(text_file, encoding="utf-8") as expected_file:
         assert f.read() == expected_file.read()
 
@@ -63,7 +62,7 @@ def test_fs_isfile(protocol, zip_jsonl_path, jsonl_gz_path):
 
 @pytest.mark.integration
 def test_hf_filesystem(hf_token, hf_api, hf_private_dataset_repo_txt_data, text_file):
-    repo_info = hf_api_dataset_info(hf_api, hf_private_dataset_repo_txt_data, use_auth_token=hf_token)
+    repo_info = hf_api.dataset_info(hf_private_dataset_repo_txt_data, token=hf_token)
     hffs = HfFileSystem(repo_info=repo_info, token=hf_token)
     assert sorted(hffs.glob("*")) == [".gitattributes", "data"]
     assert hffs.isdir("data")

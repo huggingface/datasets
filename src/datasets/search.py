@@ -4,6 +4,7 @@ import tempfile
 from pathlib import PurePath
 from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Union
 
+import fsspec
 import numpy as np
 
 from .utils import logging
@@ -57,14 +58,14 @@ class BatchedNearestExamplesResults(NamedTuple):
 class BaseIndex:
     """Base class for indexing"""
 
-    def search(self, query, k: int = 10) -> SearchResults:
+    def search(self, query, k: int = 10, **kwargs) -> SearchResults:
         """
         To implement.
         This method has to return the scores and the indices of the retrieved examples given a certain query.
         """
         raise NotImplementedError
 
-    def search_batch(self, queries, k: int = 10) -> BatchedSearchResults:
+    def search_batch(self, queries, k: int = 10, **kwargs) -> BatchedSearchResults:
         """Find the nearest examples indices to the query.
 
         Args:
@@ -176,7 +177,7 @@ class ElasticSearchIndex(BaseIndex):
             )
         logger.info(f"Indexed {successes:d} documents")
 
-    def search(self, query: str, k=10) -> SearchResults:
+    def search(self, query: str, k=10, **kwargs) -> SearchResults:
         """Find the nearest examples indices to the query.
 
         Args:
@@ -190,16 +191,17 @@ class ElasticSearchIndex(BaseIndex):
         response = self.es_client.search(
             index=self.es_index_name,
             body={"query": {"multi_match": {"query": query, "fields": ["text"], "type": "cross_fields"}}, "size": k},
+            **kwargs,
         )
         hits = response["hits"]["hits"]
         return SearchResults([hit["_score"] for hit in hits], [int(hit["_id"]) for hit in hits])
 
-    def search_batch(self, queries, k: int = 10, max_workers=10) -> BatchedSearchResults:
+    def search_batch(self, queries, k: int = 10, max_workers=10, **kwargs) -> BatchedSearchResults:
         import concurrent.futures
 
         total_scores, total_indices = [None] * len(queries), [None] * len(queries)
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            future_to_index = {executor.submit(self.search, query, k): i for i, query in enumerate(queries)}
+            future_to_index = {executor.submit(self.search, query, k, **kwargs): i for i, query in enumerate(queries)}
             for future in concurrent.futures.as_completed(future_to_index):
                 index = future_to_index[future]
                 results: SearchResults = future.result()
@@ -337,7 +339,7 @@ class FaissIndex(BaseIndex):
 
         return index
 
-    def search(self, query: np.array, k=10) -> SearchResults:
+    def search(self, query: np.array, k=10, **kwargs) -> SearchResults:
         """Find the nearest examples indices to the query.
 
         Args:
@@ -354,10 +356,10 @@ class FaissIndex(BaseIndex):
         queries = query.reshape(1, -1)
         if not queries.flags.c_contiguous:
             queries = np.asarray(queries, order="C")
-        scores, indices = self.faiss_index.search(queries, k)
+        scores, indices = self.faiss_index.search(queries, k, **kwargs)
         return SearchResults(scores[0], indices[0].astype(int))
 
-    def search_batch(self, queries: np.array, k=10) -> BatchedSearchResults:
+    def search_batch(self, queries: np.array, k=10, **kwargs) -> BatchedSearchResults:
         """Find the nearest examples indices to the queries.
 
         Args:
@@ -372,10 +374,10 @@ class FaissIndex(BaseIndex):
             raise ValueError("Shape of query must be 2D")
         if not queries.flags.c_contiguous:
             queries = np.asarray(queries, order="C")
-        scores, indices = self.faiss_index.search(queries, k)
+        scores, indices = self.faiss_index.search(queries, k, **kwargs)
         return BatchedSearchResults(scores, indices.astype(int))
 
-    def save(self, file: Union[str, PurePath]):
+    def save(self, file: Union[str, PurePath], storage_options: Optional[Dict] = None):
         """Serialize the FaissIndex on disk"""
         import faiss  # noqa: F811
 
@@ -384,20 +386,23 @@ class FaissIndex(BaseIndex):
         else:
             index = self.faiss_index
 
-        faiss.write_index(index, str(file))
+        with fsspec.open(str(file), "wb", **(storage_options or {})) as f:
+            faiss.write_index(index, faiss.BufferedIOWriter(faiss.PyCallbackIOWriter(f.write)))
 
     @classmethod
     def load(
         cls,
         file: Union[str, PurePath],
         device: Optional[Union[int, List[int]]] = None,
+        storage_options: Optional[Dict] = None,
     ) -> "FaissIndex":
         """Deserialize the FaissIndex from disk"""
         import faiss  # noqa: F811
 
         # Instances of FaissIndex is essentially just a wrapper for faiss indices.
         faiss_index = cls(device=device)
-        index = faiss.read_index(str(file))
+        with fsspec.open(str(file), "rb", **(storage_options or {})) as f:
+            index = faiss.read_index(faiss.BufferedIOReader(faiss.PyCallbackIOReader(f.read)))
         faiss_index.faiss_index = faiss_index._faiss_index_to_device(index, faiss_index.device)
         return faiss_index
 
@@ -520,17 +525,22 @@ class IndexableMixin:
         )
         self._indexes[index_name] = faiss_index
 
-    def save_faiss_index(self, index_name: str, file: Union[str, PurePath]):
+    def save_faiss_index(self, index_name: str, file: Union[str, PurePath], storage_options: Optional[Dict] = None):
         """Save a FaissIndex on disk.
 
         Args:
             index_name (`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
-            file (`str`): The path to the serialized faiss index on disk.
+            file (`str`): The path to the serialized faiss index on disk or remote URI (e.g. `"s3://my-bucket/index.faiss"`).
+            storage_options (`dict`, *optional*):
+                Key/value pairs to be passed on to the file-system backend, if any.
+
+                <Added version="2.11.0"/>
+
         """
         index = self.get_index(index_name)
         if not isinstance(index, FaissIndex):
             raise ValueError(f"Index '{index_name}' is not a FaissIndex but a '{type(index)}'")
-        index.save(file)
+        index.save(file, storage_options=storage_options)
         logger.info(f"Saved FaissIndex {index_name} at {file}")
 
     def load_faiss_index(
@@ -538,6 +548,7 @@ class IndexableMixin:
         index_name: str,
         file: Union[str, PurePath],
         device: Optional[Union[int, List[int]]] = None,
+        storage_options: Optional[Dict] = None,
     ):
         """Load a FaissIndex from disk.
 
@@ -547,11 +558,16 @@ class IndexableMixin:
         Args:
             index_name (`str`): The index_name/identifier of the index. This is the index_name that is used to
                 call `.get_nearest` or `.search`.
-            file (`str`): The path to the serialized faiss index on disk.
+            file (`str`): The path to the serialized faiss index on disk or remote URI (e.g. `"s3://my-bucket/index.faiss"`).
             device (Optional `Union[int, List[int]]`): If positive integer, this is the index of the GPU to use. If negative integer, use all GPUs.
                 If a list of positive integers is passed in, run only on those GPUs. By default it uses the CPU.
+            storage_options (`dict`, *optional*):
+                Key/value pairs to be passed on to the file-system backend, if any.
+
+                <Added version="2.11.0"/>
+
         """
-        index = FaissIndex.load(file, device=device)
+        index = FaissIndex.load(file, device=device, storage_options=storage_options)
         if index.faiss_index.ntotal != len(self):
             raise ValueError(
                 f"Index size should match Dataset size, but Index '{index_name}' at {file} has {index.faiss_index.ntotal} elements while the dataset has {len(self)} examples."
@@ -667,7 +683,7 @@ class IndexableMixin:
         """
         del self._indexes[index_name]
 
-    def search(self, index_name: str, query: Union[str, np.array], k: int = 10) -> SearchResults:
+    def search(self, index_name: str, query: Union[str, np.array], k: int = 10, **kwargs) -> SearchResults:
         """Find the nearest examples indices in the dataset to the query.
 
         Args:
@@ -683,9 +699,11 @@ class IndexableMixin:
             - indices (`List[List[int]]`): The indices of the retrieved examples.
         """
         self._check_index_is_initialized(index_name)
-        return self._indexes[index_name].search(query, k)
+        return self._indexes[index_name].search(query, k, **kwargs)
 
-    def search_batch(self, index_name: str, queries: Union[List[str], np.array], k: int = 10) -> BatchedSearchResults:
+    def search_batch(
+        self, index_name: str, queries: Union[List[str], np.array], k: int = 10, **kwargs
+    ) -> BatchedSearchResults:
         """Find the nearest examples indices in the dataset to the query.
 
         Args:
@@ -701,10 +719,10 @@ class IndexableMixin:
             - total_indices (`List[List[int]]`): The indices of the retrieved examples per query.
         """
         self._check_index_is_initialized(index_name)
-        return self._indexes[index_name].search_batch(queries, k)
+        return self._indexes[index_name].search_batch(queries, k, **kwargs)
 
     def get_nearest_examples(
-        self, index_name: str, query: Union[str, np.array], k: int = 10
+        self, index_name: str, query: Union[str, np.array], k: int = 10, **kwargs
     ) -> NearestExamplesResults:
         """Find the nearest examples in the dataset to the query.
 
@@ -721,12 +739,12 @@ class IndexableMixin:
             - examples (`dict`): The retrieved examples.
         """
         self._check_index_is_initialized(index_name)
-        scores, indices = self.search(index_name, query, k)
+        scores, indices = self.search(index_name, query, k, **kwargs)
         top_indices = [i for i in indices if i >= 0]
         return NearestExamplesResults(scores[: len(top_indices)], self[top_indices])
 
     def get_nearest_examples_batch(
-        self, index_name: str, queries: Union[List[str], np.array], k: int = 10
+        self, index_name: str, queries: Union[List[str], np.array], k: int = 10, **kwargs
     ) -> BatchedNearestExamplesResults:
         """Find the nearest examples in the dataset to the query.
 
@@ -743,7 +761,7 @@ class IndexableMixin:
             - total_examples (`List[dict]`): The retrieved examples per query.
         """
         self._check_index_is_initialized(index_name)
-        total_scores, total_indices = self.search_batch(index_name, queries, k)
+        total_scores, total_indices = self.search_batch(index_name, queries, k, **kwargs)
         total_scores = [
             scores_i[: len([i for i in indices_i if i >= 0])]
             for scores_i, indices_i in zip(total_scores, total_indices)

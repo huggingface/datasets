@@ -167,6 +167,25 @@ class FaissIndexTest(TestCase):
         self.assertEqual(indices[0], 1)
 
 
+@require_faiss
+def test_serialization_fs(mockfs):
+    import faiss
+
+    index = FaissIndex(metric_type=faiss.METRIC_INNER_PRODUCT)
+    index.add_vectors(np.eye(5, dtype=np.float32))
+
+    index_name = "index.faiss"
+    path = f"mock://{index_name}"
+    index.save(path, storage_options=mockfs.storage_options)
+    index = FaissIndex.load(path, storage_options=mockfs.storage_options)
+
+    query = np.zeros(5, dtype=np.float32)
+    query[1] = 1
+    scores, indices = index.search(query)
+    assert scores[0] > 0
+    assert indices[0] == 1
+
+
 @require_elasticsearch
 class ElasticSearchIndexTest(TestCase):
     def test_elasticsearch(self):
@@ -188,10 +207,26 @@ class ElasticSearchIndexTest(TestCase):
             self.assertEqual(scores[0], 1)
             self.assertEqual(indices[0], 0)
 
+            # single query with timeout
+            query = "foo"
+            mocked_search.return_value = {"hits": {"hits": [{"_score": 1, "_id": 0}]}}
+            scores, indices = index.search(query, request_timeout=30)
+            self.assertEqual(scores[0], 1)
+            self.assertEqual(indices[0], 0)
+
             # batched queries
             queries = ["foo", "bar", "foobar"]
             mocked_search.return_value = {"hits": {"hits": [{"_score": 1, "_id": 1}]}}
             total_scores, total_indices = index.search_batch(queries)
+            best_scores = [scores[0] for scores in total_scores]
+            best_indices = [indices[0] for indices in total_indices]
+            self.assertGreater(np.min(best_scores), 0)
+            self.assertListEqual([1, 1, 1], best_indices)
+
+            # batched queries with timeout
+            queries = ["foo", "bar", "foobar"]
+            mocked_search.return_value = {"hits": {"hits": [{"_score": 1, "_id": 1}]}}
+            total_scores, total_indices = index.search_batch(queries, request_timeout=30)
             best_scores = [scores[0] for scores in total_scores]
             best_indices = [indices[0] for indices in total_indices]
             self.assertGreater(np.min(best_scores), 0)

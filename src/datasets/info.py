@@ -403,7 +403,7 @@ class DatasetInfo:
 
 
 class DatasetInfosDict(Dict[str, DatasetInfo]):
-    def write_to_directory(self, dataset_infos_dir, overwrite=False, pretty_print=False):
+    def write_to_directory(self, dataset_infos_dir, overwrite=False, pretty_print=False) -> None:
         total_dataset_infos = {}
         dataset_infos_path = os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME)
         dataset_readme_path = os.path.join(dataset_infos_dir, "README.md")
@@ -427,7 +427,7 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
             dataset_metadata.to_readme(Path(dataset_readme_path))
 
     @classmethod
-    def from_directory(cls, dataset_infos_dir):
+    def from_directory(cls, dataset_infos_dir) -> "DatasetInfosDict":
         logger.info(f"Loading Dataset Infos from {dataset_infos_dir}")
         # Load the info from the YAML part of README.md
         if os.path.exists(os.path.join(dataset_infos_dir, "README.md")):
@@ -447,7 +447,7 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
             return cls()
 
     @classmethod
-    def from_metadata(cls, dataset_metadata: DatasetMetadata):
+    def from_metadata(cls, dataset_metadata: DatasetMetadata) -> "DatasetInfosDict":
         if isinstance(dataset_metadata.get("dataset_info"), (list, dict)):
             if isinstance(dataset_metadata["dataset_info"], list):
                 return cls(

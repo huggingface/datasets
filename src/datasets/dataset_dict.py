@@ -27,7 +27,6 @@ from .splits import NamedSplit, Split, SplitDict, SplitInfo
 from .table import Table
 from .tasks import TaskTemplate
 from .utils import logging
-from .utils._hf_hub_fixes import list_repo_files as hf_api_list_repo_files
 from .utils.doc_utils import is_documented_by
 from .utils.file_utils import cached_path
 from .utils.hub import hf_hub_url
@@ -1173,7 +1172,7 @@ class DatasetDict(dict):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
                 (like `"50MB"`).
             num_shards (`Dict[str, int]`, *optional*):
-                Number of shards to write. By default the number of shards depends on `max_shard_size`.
+                Number of shards to write. By default the number of shards depends on `max_shard_size` and `num_proc`.
                 You need to provide the number of shards for each dataset in the dataset dictionary.
                 Use a dictionary to define a different num_shards for each split.
 
@@ -1598,7 +1597,7 @@ class DatasetDict(dict):
         info_to_dump.size_in_bytes = total_uploaded_size + total_dataset_nbytes
 
         api = HfApi(endpoint=config.HF_ENDPOINT)
-        repo_files = hf_api_list_repo_files(api, repo_id, repo_type="dataset", revision=branch, use_auth_token=token)
+        repo_files = api.list_repo_files(repo_id, repo_type="dataset", revision=branch, token=token)
 
         # push to the deprecated dataset_infos.json
         if config.DATASETDICT_INFOS_FILENAME in repo_files:

@@ -6,21 +6,40 @@ import pytest
 import zstandard as zstd
 
 from datasets.download.download_config import DownloadConfig
-from datasets.utils.file_utils import OfflineModeIsEnabled, cached_path, ftp_get, ftp_head, http_get, http_head
+from datasets.utils.file_utils import (
+    OfflineModeIsEnabled,
+    cached_path,
+    fsspec_get,
+    fsspec_head,
+    ftp_get,
+    ftp_head,
+    get_from_cache,
+    http_get,
+    http_head,
+)
 
 
 FILE_CONTENT = """\
     Text data.
     Second line of data."""
 
+FILE_PATH = "file"
+
 
 @pytest.fixture(scope="session")
 def zstd_path(tmp_path_factory):
-    path = tmp_path_factory.mktemp("data") / "file.zstd"
+    path = tmp_path_factory.mktemp("data") / (FILE_PATH + ".zstd")
     data = bytes(FILE_CONTENT, "utf-8")
     with zstd.open(path, "wb") as f:
         f.write(data)
     return path
+
+
+@pytest.fixture
+def tmpfs_file(tmpfs):
+    with open(os.path.join(tmpfs.local_root_dir, FILE_PATH), "w") as f:
+        f.write(FILE_CONTENT)
+    return FILE_PATH
 
 
 @pytest.mark.parametrize("compression_format", ["gzip", "xz", "zstd"])
@@ -80,6 +99,13 @@ def test_cached_path_missing_local(tmp_path):
         cached_path(missing_file)
 
 
+def test_get_from_cache_fsspec(tmpfs_file):
+    output_path = get_from_cache(f"tmp://{tmpfs_file}")
+    with open(output_path) as f:
+        output_file_content = f.read()
+    assert output_file_content == FILE_CONTENT
+
+
 @patch("datasets.config.HF_DATASETS_OFFLINE", True)
 def test_cached_path_offline():
     with pytest.raises(OfflineModeIsEnabled):
@@ -102,3 +128,12 @@ def test_ftp_offline(tmp_path_factory):
         ftp_get("ftp://huggingface.co", temp_file=filename)
     with pytest.raises(OfflineModeIsEnabled):
         ftp_head("ftp://huggingface.co")
+
+
+@patch("datasets.config.HF_DATASETS_OFFLINE", True)
+def test_fsspec_offline(tmp_path_factory):
+    filename = tmp_path_factory.mktemp("data") / "file.html"
+    with pytest.raises(OfflineModeIsEnabled):
+        fsspec_get("s3://huggingface.co", temp_file=filename)
+    with pytest.raises(OfflineModeIsEnabled):
+        fsspec_head("s3://huggingface.co")
