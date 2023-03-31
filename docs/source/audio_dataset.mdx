@@ -54,7 +54,13 @@ my_dataset/
 ## AudioFolder
 
 The `AudioFolder` is a dataset builder designed to quickly load an audio dataset with several thousand audio files without requiring you to write any code.
-Any additional information about your dataset - such as transcription, speaker accent, or speaker intent - is automatically loaded by `AudioFolder` as long as you include this information in a metadata file (`metadata.csv`/`metadata.jsonl`). 
+Any additional information about your dataset - such as transcription, speaker accent, or speaker intent - is automatically loaded by `AudioFolder` as long as you include this information in a metadata file (`metadata.csv`/`metadata.jsonl`).
+
+<Tip>
+
+💡 Take a look at the [Split pattern hierarchy](repository_structure#split-pattern-hierarchy) to learn more about how `AudioFolder` creates dataset splits based on your dataset repository structure.
+
+</Tip>
 
 Create a dataset repository on the Hugging Face Hub and upload your dataset directory following the `AudioFolder` structure:
 
