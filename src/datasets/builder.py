@@ -1245,9 +1245,6 @@ class DatasetBuilder:
         split: Optional[str] = None,
         base_path: Optional[str] = None,
     ) -> Union[Dict[str, IterableDataset], IterableDataset]:
-        if not isinstance(self, (GeneratorBasedBuilder, ArrowBasedBuilder)):
-            raise ValueError(f"Builder {self.name} is not streamable.")
-
         is_local = not is_remote_filesystem(self._fs)
         if not is_local:
             raise NotImplementedError(
