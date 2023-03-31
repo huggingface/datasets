@@ -2078,3 +2078,56 @@ class BeamBasedBuilder(DatasetBuilder):
 
         # Add the PCollection to the pipeline
         _ = pipeline | split_name >> _build_pcollection()  # pylint: disable=no-value-for-parameter max_bytes_per_shard
+
+    def as_streaming_dataset(
+        self,
+        split: Optional[str] = None,
+    ) -> Union[Dict[str, IterableDataset], IterableDataset]:
+        self._request_info_from_hf_gcs()
+        datasets = {
+            split: IterableDataset(self._get_examples_iterable_for_split(split), info=self.info, split=split)
+            for split in self.info.splits
+        }
+        if split:
+            try:
+                datasets = datasets[split]
+            except KeyError:
+                raise ValueError(f"Bad split: {split}. Available splits: {list(datasets)}")
+        if isinstance(datasets, dict):
+            datasets = IterableDatasetDict(datasets)
+        return datasets
+
+    def _get_examples_iterable_for_split(self, split: str) -> ExamplesIterable:
+        return ExamplesIterable(self._generate_examples_from_hf_gcs, {"split": split})
+
+    def _generate_examples_from_hf_gcs(self, split):  # , split_name):
+        import pyarrow as pa
+
+        from .download.streaming_download_manager import xopen
+
+        remote_prepared_filename = f"{self._remote_cache_dir_from_hf_gcs}/{self.name}-{split}.arrow"
+        with xopen(remote_prepared_filename, "rb") as f:
+            with pa.ipc.open_stream(f) as reader:
+                key = 0
+                for record_batch in reader:
+                    for record in record_batch.to_pylist():
+                        yield key, record
+                        key += 1
+
+    def _request_info_from_hf_gcs(self):
+        from .download.streaming_download_manager import xopen
+
+        remote_dataset_info = f"{self._remote_cache_dir_from_hf_gcs}/dataset_info.json"
+        try:
+            with xopen(remote_dataset_info) as f:
+                import json
+
+                _info = json.load(f)
+        except FileNotFoundError as err:
+            raise DatasetNotOnHfGcsError(err) from None
+        self.info.update(DatasetInfo.from_dict(_info))
+
+    @property
+    def _remote_cache_dir_from_hf_gcs(self):
+        relative_data_dir = self._relative_data_dir(with_version=True, with_hash=False)
+        return HF_GCP_BASE_URL + "/" + relative_data_dir.replace(os.sep, "/")
