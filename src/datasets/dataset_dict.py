@@ -18,7 +18,7 @@ from datasets.utils.metadata import DatasetMetadata, MetadataConfigs
 
 from . import config
 from .arrow_dataset import Dataset
-from .data_files import SPLIT_PATTERN_SHARDED, sanitize_patterns
+from .data_files import SPLIT_PATTERN_SHARDED
 from .download import DownloadConfig
 from .features import Features
 from .features.features import FeatureType
@@ -1605,6 +1605,8 @@ class DatasetDict(dict):
         info_to_dump.dataset_size = total_dataset_nbytes
         info_to_dump.size_in_bytes = total_uploaded_size + total_dataset_nbytes
 
+        metadata_config_to_dump = {"data_files": [{"split": split, "pattern": f"{data_dir}/{split}-*"}]}
+
         api = HfApi(endpoint=config.HF_ENDPOINT)
         repo_files = api.list_repo_files(repo_id, repo_type="dataset", revision=branch, token=token)
 
@@ -1651,34 +1653,8 @@ class DatasetDict(dict):
                         for _resolved_split in _resolved_splits
                     ]
                 }
-        # update the metadata configs
-        if config_name in metadata_configs:
-            metadata_config = metadata_configs[config_name]
-            if "data_files" in metadata_config:
-                data_files_to_dump = sanitize_patterns(metadata_config["data_files"])
-            else:
-                data_files_to_dump = {}
-            data_files_to_dump[split] = f"{data_dir}/{split}-*"
-            metadata_config_to_dump = {
-                "data_files": [
-                    {
-                        "split": _split,
-                        "pattern": _pattern[0] if isinstance(_pattern, list) and len(_pattern) == 1 else _pattern,
-                    }
-                    for _split, _pattern in data_files_to_dump.items()
-                ]
-            }
-        else:
-            metadata_config_to_dump = {"data_files": [{"split": split, "pattern": f"{data_dir}/{split}-*"}]}
         # push to the deprecated dataset_infos.json
         if config.DATASETDICT_INFOS_FILENAME in repo_files:
-            download_config = DownloadConfig()
-            download_config.download_desc = "Updating deprecated dataset_infos.json"
-            download_config.use_auth_token = token
-            dataset_infos_path = cached_path(
-                hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME),
-                download_config=download_config,
-            )
             with open(dataset_infos_path, encoding="utf-8") as f:
                 dataset_infos: DatasetInfosDict = json.load(f)
             dataset_infos[config_name] = asdict(info_to_dump)
