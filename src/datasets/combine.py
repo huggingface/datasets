@@ -88,7 +88,7 @@ def interleave_datasets(
         [0, 10, 20, 1, 11, 21, 2, 12, 22]
         >>> dataset = interleave_datasets([d1, d2, d3], stopping_strategy="all_exhausted")
         >>> dataset["a"]
-        [0, 10, 20, 1, 11, 21, 2, 12, 22, 0, 13, 23, 1, 0, 24]
+        [0, 10, 20, 1, 11, 21, 2, 12, 22, 0, 13, 23, 1, 10, 24]
         >>> dataset = interleave_datasets([d1, d2, d3], probabilities=[0.7, 0.2, 0.1], seed=42)
         >>> dataset["a"]
         [10, 0, 11, 1, 2]
