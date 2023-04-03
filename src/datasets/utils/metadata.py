@@ -162,7 +162,7 @@ class MetadataConfigs(Dict[str, dict]):
                 )
                 dataset_metadata[self.__configs_field_name] = metadata_config
 
-    def to_builder_configs_list(self, builder_config_cls):
+    def to_builder_configs(self, builder_config_cls):
         """Convert configurations parsed from metadata file to list of BuilderConfig objects."""
         metadata_configs = copy.deepcopy(self)
         for config_name, metadata_config in metadata_configs.items():
