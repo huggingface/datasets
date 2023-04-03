@@ -31,6 +31,7 @@ import weakref
 from collections import Counter
 from collections.abc import Mapping
 from copy import deepcopy
+from fnmatch import fnmatch
 from functools import partial, wraps
 from io import BytesIO
 from math import ceil, floor
@@ -64,6 +65,7 @@ from requests import HTTPError
 from . import config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
+from .data_files import SPLIT_PATTERN_SHARDED, sanitize_patterns
 from .download.download_config import DownloadConfig
 from .download.streaming_download_manager import xgetsize
 from .features import Audio, ClassLabel, Features, Image, Sequence, Value
@@ -112,7 +114,7 @@ from .utils.file_utils import _retry, cached_path, estimate_dataset_size
 from .utils.hub import hf_hub_url
 from .utils.info_utils import is_small_dataset
 from .utils.metadata import DatasetMetadata, MetadataConfigs
-from .utils.py_utils import asdict, convert_file_size_to_int, iflatmap_unordered, unique_values
+from .utils.py_utils import asdict, convert_file_size_to_int, iflatmap_unordered, string_to_dict, unique_values
 from .utils.stratify import stratified_shuffle_split_generate_indices
 from .utils.tf_utils import dataset_to_tf, minimal_tf_collate_fn, multiprocess_dataset_to_tf
 from .utils.typing import PathLike
@@ -5316,7 +5318,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             raise ValueError(
                 "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
             )
-        data_dir = f"{config_name}/data" if config_name != "default" else "data"  # for backward compatibility
+        data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
+
         repo_id, split, uploaded_size, dataset_nbytes, repo_files, deleted_size = self._push_parquet_shards_to_hub(
             repo_id=repo_id,
             data_dir=data_dir,
@@ -5349,10 +5352,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
             dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
             dataset_infos: DatasetInfosDict = DatasetInfosDict.from_metadata(dataset_metadata)
+            metadata_configs = MetadataConfigs.from_metadata(dataset_metadata)
             repo_info = dataset_infos.get(config_name, None)
         # get the deprecated dataset_infos.json to update them
         elif config.DATASETDICT_INFOS_FILENAME in repo_files:
             dataset_metadata = DatasetMetadata()
+            metadata_configs = MetadataConfigs()
             download_config = DownloadConfig()
             download_config.download_desc = "Downloading metadata"
             download_config.use_auth_token = token
@@ -5366,6 +5371,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 repo_info = DatasetInfo.from_dict(dataset_info) if dataset_info else None
         else:
             dataset_metadata = DatasetMetadata()
+            metadata_configs = MetadataConfigs()
             repo_info = None
         # update the total info to dump from existing info
         if repo_info is not None:
@@ -5388,6 +5394,39 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name
                 )
                 info_to_dump = repo_info
+        # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
+        if not metadata_configs:
+            _matched_paths = [p for p in repo_files if fnmatch(p, SPLIT_PATTERN_SHARDED.replace("{split}", "*"))]
+            if len(_matched_paths) > 0:
+                # it was uploaded with push_to_hub before metadata configs existed
+                _resolved_splits = {
+                    string_to_dict(p.as_posix(), SPLIT_PATTERN_SHARDED)["split"] for p in _matched_paths
+                }
+                metadata_configs["default"] = {
+                    "data_files": [
+                        {"split": _resolved_split, "pattern": f"data/{_resolved_split}-*"}
+                        for _resolved_split in _resolved_splits
+                    ]
+                }
+        # update the metadata configs
+        if config_name in metadata_configs:
+            metadata_config = metadata_configs[config_name]
+            if "data_files" in metadata_config:
+                data_files_to_dump = sanitize_patterns(metadata_config["data_files"])
+            else:
+                data_files_to_dump = {}
+            data_files_to_dump[split] = f"{data_dir}/{split}-*"
+            metadata_config_to_dump = {
+                "data_files": [
+                    {
+                        "split": _split,
+                        "pattern": _pattern[0] if isinstance(_pattern, list) and len(_pattern) == 1 else _pattern,
+                    }
+                    for _split, _pattern in data_files_to_dump.items()
+                ]
+            }
+        else:
+            metadata_config_to_dump = {"data_files": [{"split": split, "pattern": f"{data_dir}/{split}-*"}]}
         # push to the deprecated dataset_infos.json
         if config.DATASETDICT_INFOS_FILENAME in repo_files:
             download_config = DownloadConfig()
@@ -5412,9 +5451,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
         # push to README
         DatasetInfosDict({config_name: info_to_dump}).to_metadata(dataset_metadata)
-        MetadataConfigs({config_name: {"data_dir": config_name if config_name != "default" else "./"}}).to_metadata(
-            dataset_metadata
-        )
+        MetadataConfigs({config_name: metadata_config_to_dump}).to_metadata(dataset_metadata)
         if "README.md" in repo_files:
             with open(dataset_readme_path, encoding="utf-8") as readme_file:
                 readme_content = readme_file.read()
