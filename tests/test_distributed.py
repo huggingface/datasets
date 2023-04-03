@@ -55,15 +55,23 @@ def test_split_dataset_by_node_iterable_sharded(shards_per_node):
     assert len({tuple(x.values()) for ds in datasets_per_rank for x in ds}) == full_size
 
 
-def test_missing_distributed_seed():
+def test_distributed_shuffle_iterable():
     def gen():
         return ({"i": i} for i in range(17))
 
+    world_size = 2
     full_ds = IterableDataset.from_generator(gen)
+    full_size = len(list(full_ds))
+
+    ds_rank0 = split_dataset_by_node(full_ds, rank=0, world_size=world_size).shuffle(seed=42)
+    assert len(list(ds_rank0)) == 1 + full_size // world_size
     with pytest.raises(RuntimeError):
-        split_dataset_by_node(full_ds, rank=0, world_size=2).shuffle()
+        split_dataset_by_node(full_ds, rank=0, world_size=world_size).shuffle()
+
+    ds_rank0 = split_dataset_by_node(full_ds.shuffle(seed=42), rank=0, world_size=world_size)
+    assert len(list(ds_rank0)) == 1 + full_size // world_size
     with pytest.raises(RuntimeError):
-        split_dataset_by_node(full_ds.shuffle(), rank=0, world_size=2)
+        split_dataset_by_node(full_ds.shuffle(), rank=0, world_size=world_size)
 
 
 @pytest.mark.parametrize("streaming", [False, True])
