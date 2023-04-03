@@ -2100,7 +2100,7 @@ class BeamBasedBuilder(DatasetBuilder):
     def _get_examples_iterable_for_split(self, split: str) -> ExamplesIterable:
         return ExamplesIterable(self._generate_examples_from_hf_gcs, {"split": split})
 
-    def _generate_examples_from_hf_gcs(self, split):  # , split_name):
+    def _generate_examples_from_hf_gcs(self, split):
         import pyarrow as pa
 
         from .download.streaming_download_manager import xopen
