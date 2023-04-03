@@ -26,7 +26,7 @@ my_dataset_repository/
 
 ### Custom filename split
 
-The most flexible pattern to accomodate other split types in addition to the traditional train, validation, and test sets, is to name your data files like `data/<split_name>-xxxxx-of-xxxxx.csv`.
+If your dataset splits have custom names that aren't `train`, `test`, or `validation`, then you should name your data files like `data/<split_name>-xxxxx-of-xxxxx.csv`.
 
 Here is an example with three splits, `train`, `test`, and `random`:
 
@@ -82,11 +82,11 @@ my_dataset_repository/
 
 ### Single split
 
-When 🤗 Datasets can't find any of the above patterns, then it'll treat all the files as a single train split. If your dataset splits aren't loading as expected, this may be why!
+When 🤗 Datasets can't find any of the above patterns, then it'll treat all the files as a single train split. If your dataset splits aren't loading as expected, it may be due to an incorrect pattern.
 
 ## Split name keywords
 
-There are several acceptable ways to name splits. Validation splits are sometimes called "dev", and test splits may be referred to as "eval".
+There are several ways to name splits. Validation splits are sometimes called "dev", and test splits may be referred to as "eval".
 These other split names are also supported, and the following keywords are equivalent:
 
 - train, training
