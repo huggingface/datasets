@@ -127,13 +127,29 @@ class MetadataConfigs(Dict[str, dict]):
     __configs_field_name: ClassVar[str] = METADATA_CONFIGS_FIELD
 
     @classmethod
+    def _raise_if_not_valid(self, metadata_config: dict):
+        if isinstance(metadata_config.get("data_files"), dict):
+            raise ValueError(
+                f"Expected data_files in YAML to be a string or a list, but got {metadata_config['data_files']}\nExamples:\n"
+                "    data_files: data.csv\n    data_files: data/*.png\n"
+                "    data_files:\n    - part0/*\n    - part1/*\n"
+                "    data_files:\n    - split: train\n      pattern: train/*\n    - split: test\n      pattern: test/*"
+            )
+
+    @classmethod
     def from_metadata(cls, dataset_metadata: DatasetMetadata) -> "MetadataConfigs":
-        if cls.__configs_field_name in dataset_metadata:
-            metadata_configs = dataset_metadata.get(cls.__configs_field_name)
+        if dataset_metadata.get(cls.__configs_field_name):
+            metadata_configs = dataset_metadata[cls.__configs_field_name]
             if isinstance(metadata_configs, dict):  # single configuration
                 if "config_name" not in metadata_configs:
                     metadata_configs["config_name"] = "default"
                 metadata_configs = [metadata_configs]
+            elif not isinstance(metadata_configs, list):
+                raise ValueError(
+                    f"Expected {cls.__configs_field_name} to be a dict or a list, but got' {metadata_configs}'"
+                )
+            for metadata_config in metadata_configs:
+                cls._raise_if_not_valid(metadata_config)
             return cls(
                 {
                     config["config_name"]: {param: value for param, value in config.items() if param != "config_name"}
@@ -144,6 +160,8 @@ class MetadataConfigs(Dict[str, dict]):
 
     def to_metadata(self, dataset_metadata: DatasetMetadata) -> None:
         if self:
+            for metadata_config in self.values():
+                self._raise_if_not_valid(metadata_config)
             current_metadata_configs = self.from_metadata(dataset_metadata)
             total_metadata_configs = dict(sorted({**current_metadata_configs, **self}.items()))
             if len(total_metadata_configs) > 1:
