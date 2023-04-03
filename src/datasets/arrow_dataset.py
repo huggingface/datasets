@@ -21,6 +21,7 @@ import itertools
 import json
 import os
 import posixpath
+import pyspark
 import re
 import shutil
 import sys
@@ -1224,6 +1225,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             num_proc=num_proc,
             **kwargs,
         ).read()
+
+    @staticmethod
+    def from_spark(df: pyspark.sql.DataFrame):
+        """Create Dataset from Spark DataFrame.
+
+        Args:
+            df (`pyspark.sql.DataFrame`):
+                The DataFrame containing the desired data.
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.spark import SparkDatasetReader
+
+        return SparkDatasetReader(df).read()
 
     @staticmethod
     def from_sql(

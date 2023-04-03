@@ -4,6 +4,7 @@ import itertools
 import json
 import os
 import pickle
+import pyspark
 import re
 import sys
 import tempfile
@@ -3616,6 +3617,18 @@ def test_dataset_from_generator_features(features, data_generator, tmp_path):
     )
     dataset = Dataset.from_generator(data_generator, features=features, cache_dir=cache_dir)
     _check_generator_dataset(dataset, expected_features)
+
+
+def test_from_spark():
+    spark = pyspark.sql.SparkSession.builder.appName("pyspark").getOrCreate()
+    data = [
+        ("0", 0, 0.0),
+        ("1", 1, 1.0),
+        ("2", 2, 2.0),
+        ("3", 3, 3.0),
+    ]
+    df = spark.createDataFrame(data, "col_1: string, col_2: int, col_3: float")
+    dataset = Dataset.from_spark(df)
 
 
 def _check_sql_dataset(dataset, expected_features):
