@@ -55,6 +55,17 @@ def test_split_dataset_by_node_iterable_sharded(shards_per_node):
     assert len({tuple(x.values()) for ds in datasets_per_rank for x in ds}) == full_size
 
 
+def test_missing_distributed_seed():
+    def gen():
+        return ({"i": i} for i in range(17))
+
+    full_ds = IterableDataset.from_generator(gen)
+    with pytest.raises(RuntimeError):
+        split_dataset_by_node(full_ds, rank=0, world_size=2).shuffle()
+    with pytest.raises(RuntimeError):
+        split_dataset_by_node(full_ds.shuffle(), rank=0, world_size=2)
+
+
 @pytest.mark.parametrize("streaming", [False, True])
 @require_torch
 @pytest.mark.skipif(os.name == "nt", reason="execute_subprocess_async doesn't support windows")

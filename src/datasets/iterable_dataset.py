@@ -771,6 +771,7 @@ def _generate_examples_from_tables_wrapper(generate_tables_fn):
 @dataclass
 class ShufflingConfig:
     generator: np.random.Generator
+    _original_seed: Optional[int] = None
 
 
 @dataclass
@@ -801,6 +802,12 @@ class IterableDataset(DatasetInfoMixin):
         distributed: Optional[DistributedConfig] = None,
         token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None,
     ):
+        if distributed and distributed.world_size > 1 and shuffling and shuffling._original_seed is None:
+            raise RuntimeError(
+                "The dataset doesn't have a fixed random seed across nodes to shuffle and split the list of dataset shards by node. "
+                "Please pass e.g. `seed=42` in `.shuffle()` to make all the nodes use the same seed. "
+            )
+
         info = info.copy() if info is not None else DatasetInfo()
         DatasetInfoMixin.__init__(self, info=info, split=split)
 
@@ -1287,7 +1294,7 @@ class IterableDataset(DatasetInfoMixin):
             generator = np.random.default_rng(seed)
         else:
             generator = deepcopy(generator)
-        shuffling = ShufflingConfig(generator=generator)
+        shuffling = ShufflingConfig(generator=generator, _original_seed=seed)
         return IterableDataset(
             ex_iterable=BufferShuffledExamplesIterable(
                 self._ex_iterable, buffer_size=buffer_size, generator=generator
