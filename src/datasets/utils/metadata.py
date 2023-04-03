@@ -10,11 +10,11 @@ import yaml
 from datasets.data_files import (
     DEFAULT_PATTERNS_ALL,
     DataFilesDict,
+    extend_data_files_with_metadata_files_in_dataset_repository,
+    extend_data_files_with_metadata_files_locally,
     get_data_patterns_in_dataset_repository,
     get_data_patterns_locally,
     sanitize_patterns,
-    update_data_files_with_metadata_files_in_dataset_repository,
-    update_data_files_with_metadata_files_locally,
 )
 
 from ..config import METADATA_CONFIGS_FIELD
@@ -208,7 +208,7 @@ class MetadataConfigs(Dict[str, dict]):
             metadata_config["data_files"] = config_data_files_dict
 
             if config_data_files is None and with_metadata_files and config_patterns != DEFAULT_PATTERNS_ALL:
-                update_data_files_with_metadata_files_locally(
+                extend_data_files_with_metadata_files_locally(
                     metadata_config["data_files"], base_path=config_base_path
                 )
 
@@ -241,7 +241,7 @@ class MetadataConfigs(Dict[str, dict]):
             metadata_config["data_files"] = config_data_files_dict
 
             if config_data_files is None and with_metadata_files and config_patterns != DEFAULT_PATTERNS_ALL:
-                update_data_files_with_metadata_files_in_dataset_repository(
+                extend_data_files_with_metadata_files_in_dataset_repository(
                     hfh_dataset_info, data_files=metadata_config["data_files"], base_path=config_base_path
                 )
 
