@@ -105,16 +105,27 @@ def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[
     The default split is "train".
 
     Returns:
-        patterns: dictionary of split_name -> list_of _atterns
+        patterns: dictionary of split_name -> list_of patterns
     """
     if isinstance(patterns, dict):
         return {str(key): value if isinstance(value, list) else [value] for key, value in patterns.items()}
     elif isinstance(patterns, str):
         return {SANITIZED_DEFAULT_SPLIT: [patterns]}
     elif isinstance(patterns, list):
-        return {SANITIZED_DEFAULT_SPLIT: patterns}
+        if any(isinstance(pattern, dict) for pattern in patterns):
+            splits = [pattern["split"] for pattern in patterns]
+            if len(set(splits)) != len(splits):
+                raise ValueError(f"Some splits are duplicated in data_files: {splits}")
+            return {
+                str(pattern["split"]): pattern["pattern"]
+                if isinstance(pattern["pattern"], list)
+                else [pattern["pattern"]]
+                for pattern in patterns
+            }
+        else:
+            return {SANITIZED_DEFAULT_SPLIT: patterns}
     else:
-        return {SANITIZED_DEFAULT_SPLIT: list(patterns)}
+        return sanitize_patterns(list(patterns))
 
 
 def _is_inside_unrequested_special_dir(matched_rel_path: str, pattern: str) -> bool:
