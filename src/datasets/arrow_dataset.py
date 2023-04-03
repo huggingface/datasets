@@ -5415,6 +5415,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 data_files_to_dump = sanitize_patterns(metadata_config["data_files"])
             else:
                 data_files_to_dump = {}
+            # add the new split
             data_files_to_dump[split] = f"{data_dir}/{split}-*"
             metadata_config_to_dump = {
                 "data_files": [
