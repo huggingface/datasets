@@ -113,6 +113,14 @@ def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[
         return {SANITIZED_DEFAULT_SPLIT: [patterns]}
     elif isinstance(patterns, list):
         if any(isinstance(pattern, dict) for pattern in patterns):
+            for pattern in patterns:
+                if not isinstance(pattern, dict) or sorted(pattern) != ["pattern", "split"]:
+                    raise ValueError(
+                        f"Expected data_files in YAML to be a string or a list, but got {pattern}\nExamples:\n"
+                        "    data_files: data.csv\n    data_files: data/*.png\n"
+                        "    data_files:\n    - part0/*\n    - part1/*\n"
+                        "    data_files:\n    - split: train\n      pattern: train/*\n    - split: test\n      pattern: test/*"
+                    )
             splits = [pattern["split"] for pattern in patterns]
             if len(set(splits)) != len(splits):
                 raise ValueError(f"Some splits are duplicated in data_files: {splits}")
