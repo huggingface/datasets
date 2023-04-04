@@ -34,6 +34,7 @@ from copy import deepcopy
 from functools import partial, wraps
 from io import BytesIO
 from math import ceil, floor
+from multiprocessing import Pool
 from pathlib import Path
 from random import sample
 from typing import (
@@ -58,7 +59,6 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 from huggingface_hub import HfApi, HfFolder
-from multiprocess import Pool
 from requests import HTTPError
 
 from . import config

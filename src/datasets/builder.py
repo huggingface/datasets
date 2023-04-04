@@ -28,11 +28,11 @@ import urllib
 import warnings
 from dataclasses import dataclass
 from functools import partial
+from multiprocessing import Pool
 from pathlib import Path
 from typing import Dict, Iterable, Mapping, Optional, Tuple, Union
 
 import fsspec
-from multiprocess import Pool
 from tqdm.contrib.concurrent import thread_map
 
 from . import config, utils

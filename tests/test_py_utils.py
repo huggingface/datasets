@@ -1,10 +1,10 @@
+import multiprocessing
 import time
 from dataclasses import dataclass
 from multiprocessing import Pool
 from unittest import TestCase
 from unittest.mock import patch
 
-import multiprocess
 import numpy as np
 import pytest
 
@@ -257,8 +257,8 @@ def test_iflatmap_unordered():
         assert out.count("there") == 10
         assert len(out) == 20
 
-    # check multiprocess from pathos (uses dill for pickling)
-    with multiprocess.Pool(2) as pool:
+    # check multiprocessing from pathos (uses dill for pickling)
+    with multiprocessing.Pool(2) as pool:
         out = list(iflatmap_unordered(pool, _split_text, kwargs_iterable=[{"text": "hello there"}] * 10))
         assert out.count("hello") == 10
         assert out.count("there") == 10

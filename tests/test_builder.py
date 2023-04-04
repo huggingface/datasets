@@ -4,6 +4,7 @@ import tempfile
 import types
 from contextlib import nullcontext as does_not_raise
 from multiprocessing import Process
+from multiprocessing.pool import Pool
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
@@ -12,7 +13,6 @@ import numpy as np
 import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
-from multiprocess.pool import Pool
 
 from datasets.arrow_dataset import Dataset
 from datasets.arrow_writer import ArrowWriter

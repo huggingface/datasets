@@ -36,8 +36,6 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, TypeVar
 from urllib.parse import urlparse
 
 import dill
-import multiprocess
-import multiprocess.pool
 import numpy as np
 from packaging import version
 from tqdm.auto import tqdm
@@ -1356,12 +1354,12 @@ def _write_generator_to_queue(queue: queue.Queue, func: Callable[..., Iterable[Y
 
 
 def iflatmap_unordered(
-    pool: Union[multiprocessing.pool.Pool, multiprocess.pool.Pool],
+    pool: multiprocessing.pool.Pool,
     func: Callable[..., Iterable[Y]],
     *,
     kwargs_iterable: Iterable[dict],
 ) -> Iterable[Y]:
-    manager_cls = Manager if isinstance(pool, multiprocessing.pool.Pool) else multiprocess.Manager
+    manager_cls = Manager
     with manager_cls() as manager:
         queue = manager.Queue()
         async_results = [

@@ -841,7 +841,7 @@ class IterableDataset(DatasetInfoMixin):
         return self._ex_iterable.n_shards
 
     def _iter_pytorch(self, ex_iterable: _BaseExamplesIterable):
-        # fix for fsspec when using multiprocess
+        # fix for fsspec when using multiprocessing
         _reset_fsspec_lock()
         # check if there aren't too many workers
         import torch.utils.data

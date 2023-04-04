@@ -17,15 +17,15 @@
 import os
 from functools import partial
 from math import ceil
+from multiprocessing import get_context
 from uuid import uuid4
 
 import numpy as np
 import pyarrow as pa
-from multiprocess import get_context
 
 
 try:
-    from multiprocess.shared_memory import SharedMemory
+    from multiprocessing.shared_memory import SharedMemory
 except ImportError:
     SharedMemory = None  # Version checks should prevent this being called on older Python versions
 

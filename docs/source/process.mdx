@@ -267,7 +267,7 @@ Notice how the subfields are now their own independent columns: `answers.text` a
 
 Some of the more powerful applications of 🤗 Datasets come from using the [`~Dataset.map`] function. The primary purpose of [`~Dataset.map`] is to speed up processing functions. It allows you to apply a processing function to each example in a dataset, independently or in batches. This function can even create new rows and columns.
 
-In the following example, prefix each `sentence1` value in the dataset with `'My sentence: '`. 
+In the following example, prefix each `sentence1` value in the dataset with `'My sentence: '`.
 
 Start by creating a function that adds `'My sentence: '` to the beginning of each sentence. The function needs to accept and output a `dict`:
 
@@ -318,10 +318,10 @@ You can also use [`~Dataset.map`] with indices if you set `with_indices=True`. T
 ]
 ```
 
-The [`~Dataset.map`] also works with the rank of the process if you set `with_rank=True`. This is analogous to the `with_indices` parameter. The `with_rank` parameter in the mapped function goes after the `index` one if it is already present. 
+The [`~Dataset.map`] also works with the rank of the process if you set `with_rank=True`. This is analogous to the `with_indices` parameter. The `with_rank` parameter in the mapped function goes after the `index` one if it is already present.
 
 ```py
->>> from multiprocess import set_start_method
+>>> from multiprocessing import set_start_method
 >>> import torch
 >>> import os
 >>>
@@ -335,7 +335,7 @@ The [`~Dataset.map`] also works with the rank of the process if you set `with_ra
 >>> updated_dataset = dataset.map(gpu_computation, with_rank=True)
 ```
 
-The main use-case for rank is to parallelize computation across several GPUs. This requires setting `multiprocess.set_start_method("spawn")`. If you don't you'll receive the following CUDA error: 
+The main use-case for rank is to parallelize computation across several GPUs. This requires setting `multiprocessing.set_start_method("spawn")`. If you don't you'll receive the following CUDA error:
 
 ```bash
 RuntimeError: Cannot re-initialize CUDA in forked subprocess. To use CUDA with multiprocessing, you must use the 'spawn' start method.

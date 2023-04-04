@@ -22,7 +22,6 @@ requirements:
     - requests >=2.19.0
     - tqdm >=4.62.1
     - dataclasses
-    - multiprocess
     - importlib_metadata
     - fsspec
     - huggingface_hub >=0.1.0,<1.0.0
@@ -39,7 +38,6 @@ requirements:
     - requests >=2.19.0
     - tqdm >=4.62.1
     - dataclasses
-    - multiprocess
     - importlib_metadata
     - fsspec
     - huggingface_hub >=0.1.0,<1.0.0

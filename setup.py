@@ -122,8 +122,6 @@ REQUIRED_PKGS = [
     "tqdm>=4.62.1",
     # for fast hashing
     "xxhash",
-    # for better multiprocessing
-    "multiprocess",
     # to get metadata of optional dependencies such as torch or tensorflow for Python versions that don't have it
     "importlib_metadata;python_version<'3.8'",
     # to save datasets locally or on any filesystem

@@ -3,6 +3,7 @@ import os
 import pickle
 import subprocess
 from hashlib import md5
+from multiprocessing import Pool
 from pathlib import Path
 from tempfile import gettempdir
 from textwrap import dedent
@@ -11,7 +12,6 @@ from unittest import TestCase
 from unittest.mock import patch
 
 import pytest
-from multiprocess import Pool
 from packaging import version
 
 import datasets
