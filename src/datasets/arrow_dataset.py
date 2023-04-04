@@ -65,7 +65,7 @@ from requests import HTTPError
 from . import config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
-from .data_files import SPLIT_PATTERN_SHARDED, sanitize_patterns
+from .data_files import sanitize_patterns
 from .download.download_config import DownloadConfig
 from .download.streaming_download_manager import xgetsize
 from .features import Audio, ClassLabel, Features, Image, Sequence, Value
@@ -134,6 +134,10 @@ if TYPE_CHECKING:
     from .iterable_dataset import IterableDataset
 
 logger = logging.get_logger(__name__)
+
+PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED = (
+    "data/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.parquet"
+)
 
 
 class DatasetInfoMixin:
@@ -5396,18 +5400,24 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 info_to_dump = repo_info
         # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
         if not metadata_configs:
-            _matched_paths = [p for p in repo_files if fnmatch(p, SPLIT_PATTERN_SHARDED.replace("{split}", "*"))]
+            _matched_paths = [
+                p
+                for p in repo_files
+                if fnmatch(p, PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*"))
+            ]
             if len(_matched_paths) > 0:
                 # it was uploaded with push_to_hub before metadata configs existed
                 _resolved_splits = {
-                    string_to_dict(p.as_posix(), SPLIT_PATTERN_SHARDED)["split"] for p in _matched_paths
+                    string_to_dict(p, PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)["split"]
+                    for p in _matched_paths
                 }
-                metadata_configs["default"] = {
+                default_metadata_configs_to_dump = {
                     "data_files": [
                         {"split": _resolved_split, "pattern": f"data/{_resolved_split}-*"}
                         for _resolved_split in _resolved_splits
                     ]
                 }
+                MetadataConfigs({"default": default_metadata_configs_to_dump}).to_metadata(dataset_metadata)
         # update the metadata configs
         if config_name in metadata_configs:
             metadata_config = metadata_configs[config_name]

@@ -17,8 +17,7 @@ from huggingface_hub import HfApi
 from datasets.utils.metadata import DatasetMetadata, MetadataConfigs
 
 from . import config
-from .arrow_dataset import Dataset
-from .data_files import SPLIT_PATTERN_SHARDED
+from .arrow_dataset import PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED, Dataset
 from .download import DownloadConfig
 from .features import Features
 from .features.features import FeatureType
@@ -1641,18 +1640,24 @@ class DatasetDict(dict):
             metadata_configs = MetadataConfigs()
         # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
         if not metadata_configs:
-            _matched_paths = [p for p in repo_files if fnmatch(p, SPLIT_PATTERN_SHARDED.replace("{split}", "*"))]
+            _matched_paths = [
+                p
+                for p in repo_files
+                if fnmatch(p, PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*"))
+            ]
             if len(_matched_paths) > 0:
                 # it was uploaded with push_to_hub before metadata configs existed
                 _resolved_splits = {
-                    string_to_dict(p.as_posix(), SPLIT_PATTERN_SHARDED)["split"] for p in _matched_paths
+                    string_to_dict(p, PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)["split"]
+                    for p in _matched_paths
                 }
-                metadata_configs["default"] = {
+                default_metadata_configs_to_dump = {
                     "data_files": [
                         {"split": _resolved_split, "pattern": f"data/{_resolved_split}-*"}
                         for _resolved_split in _resolved_splits
                     ]
                 }
+                MetadataConfigs({"default": default_metadata_configs_to_dump}).to_metadata(dataset_metadata)
         # push to the deprecated dataset_infos.json
         if config.DATASETDICT_INFOS_FILENAME in repo_files:
             with open(dataset_infos_path, encoding="utf-8") as f:
