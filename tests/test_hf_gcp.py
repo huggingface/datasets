@@ -8,6 +8,8 @@ from absl.testing import parameterized
 from datasets import config
 from datasets.arrow_reader import HF_GCP_BASE_URL
 from datasets.builder import DatasetBuilder
+from datasets.dataset_dict import IterableDatasetDict
+from datasets.iterable_dataset import IterableDataset
 from datasets.load import dataset_module_factory, import_main_class
 from datasets.utils.file_utils import cached_path
 
@@ -87,3 +89,20 @@ def test_wikipedia_frr(tmp_path_factory):
     builder_instance.download_and_prepare()
     ds = builder_instance.as_dataset()
     assert ds is not None
+
+
+@pytest.mark.integration
+def test_as_streaming_dataset_from_hf_gcs(tmp_path):
+    dataset_module = dataset_module_factory("wikipedia", cache_dir=tmp_path)
+    builder_cls = import_main_class(dataset_module.module_path, dataset=True)
+    builder_instance: DatasetBuilder = builder_cls(
+        cache_dir=tmp_path,
+        config_name="20220301.frr",
+        hash=dataset_module.hash,
+    )
+    ds = builder_instance.as_streaming_dataset()
+    assert ds
+    assert isinstance(ds, IterableDatasetDict)
+    assert "train" in ds
+    assert isinstance(ds["train"], IterableDataset)
+    assert next(iter(ds["train"]))
