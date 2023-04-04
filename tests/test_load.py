@@ -1002,3 +1002,40 @@ def test_load_dataset_distributed(tmp_path, csv_path):
         assert all(len(dataset) == len(datasets[0]) > 0 for dataset in datasets)
         assert len(datasets[0].cache_files) > 0
         assert all(dataset.cache_files == datasets[0].cache_files for dataset in datasets)
+
+
+def test_load_times():
+    import pandas as pd
+    source = "/Users/jameskelly/Documents/hf/datasets2/src/datasets/filesystems/debug_load_data.csv"
+    df = pd.read_csv(source, sep='\t')
+    runnable_datasets = df['dataset'].to_list()
+
+    import time
+
+    all_results = []
+
+    print()
+    for ds in runnable_datasets:
+        print(ds)
+
+        old_start = time.perf_counter()
+        old_config = load_dataset(ds, testing=False, return_config=True)
+        old_end = time.perf_counter()
+        old_diff = old_end - old_start
+
+        new_start = time.perf_counter()
+        new_config = load_dataset(ds, testing=True, return_config=True)
+        new_end = time.perf_counter()
+        new_diff = new_end - new_start
+
+        assert old_config == new_config
+
+        diff = old_diff - new_diff
+        pct_diff = (diff / old_diff) * 100
+        result = {'dataset': ds, 'old': old_diff, 'new': new_diff, 'diff': diff, 'pct_diff': pct_diff}
+        all_results.append(result)
+
+    results_df = pd.DataFrame(all_results)
+    results_df.to_csv('load_opt_results.csv', sep='\t')
+
+    print(results_df.describe())

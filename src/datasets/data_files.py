@@ -269,6 +269,7 @@ def _resolve_single_pattern_locally(
     It also supports absolute paths in patterns.
     If an URL is passed, it is returned as is.
     """
+
     if is_relative_path(pattern):
         pattern = os.path.join(base_path, pattern)
     else:
@@ -477,13 +478,18 @@ def _resolve_single_pattern_in_dataset_repository(
     pattern: str,
     base_path: Optional[str] = None,
     allowed_extensions: Optional[list] = None,
+    testing: bool = False,
 ) -> List[PurePath]:
-    fs = HfFileSystem(repo_info=dataset_info)
+    
+    fs = HfFileSystem(repo_info=dataset_info)     
+
     if base_path:
         pattern = f"{base_path}/{pattern}"
     else:
         base_path = "/"
-    glob_iter = [PurePath(filepath) for filepath in fs.glob(PurePath(pattern).as_posix()) if fs.isfile(filepath)]
+
+    glob_func = fs._glob if testing else fs.glob
+    glob_iter = [PurePath(filepath) for filepath in glob_func(PurePath(pattern).as_posix()) if fs.isfile(filepath)]
     matched_paths = [
         filepath
         for filepath in glob_iter
@@ -513,6 +519,7 @@ def _resolve_single_pattern_in_dataset_repository(
         if allowed_extensions is not None:
             error_msg += f" with any supported extension {list(allowed_extensions)}"
         raise FileNotFoundError(error_msg)
+    
     return sorted(out)
 
 
@@ -521,6 +528,7 @@ def resolve_patterns_in_dataset_repository(
     patterns: List[str],
     base_path: Optional[str] = None,
     allowed_extensions: Optional[list] = None,
+    testing: bool = False,
 ) -> List[Url]:
     """
     Resolve the URLs of the data files from the patterns passed by the user.
@@ -570,10 +578,11 @@ def resolve_patterns_in_dataset_repository(
     Returns:
         List[Url]: List of URLs to the files in the dataset repository that match the patterns.
     """
+
     data_files_urls: List[Url] = []
     for pattern in patterns:
         for rel_path in _resolve_single_pattern_in_dataset_repository(
-            dataset_info, pattern, base_path, allowed_extensions
+            dataset_info, pattern, base_path, allowed_extensions, testing=testing
         ):
             data_files_urls.append(Url(hf_hub_url(dataset_info.id, rel_path.as_posix(), revision=dataset_info.sha)))
     if not data_files_urls:
@@ -585,7 +594,7 @@ def resolve_patterns_in_dataset_repository(
 
 
 def get_data_patterns_in_dataset_repository(
-    dataset_info: huggingface_hub.hf_api.DatasetInfo, base_path: str
+    dataset_info: huggingface_hub.hf_api.DatasetInfo, base_path: str, testing: bool = False
 ) -> Dict[str, List[str]]:
     """
     Get the default pattern from a repository by testing all the supported patterns.
@@ -670,7 +679,7 @@ def get_data_patterns_in_dataset_repository(
 
     In order, it first tests if SPLIT_PATTERN_SHARDED works, otherwise it tests the patterns in ALL_DEFAULT_PATTERNS.
     """
-    resolver = partial(_resolve_single_pattern_in_dataset_repository, dataset_info, base_path=base_path)
+    resolver = partial(_resolve_single_pattern_in_dataset_repository, dataset_info, base_path=base_path, testing=testing)
     try:
         return _get_data_files_patterns(resolver)
     except FileNotFoundError:

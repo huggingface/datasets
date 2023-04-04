@@ -743,6 +743,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         data_files: Optional[Union[str, List, Dict]] = None,
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[Union[DownloadMode, str]] = None,
+        testing: bool = False,
     ):
         self.name = name
         self.revision = revision
@@ -751,6 +752,8 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         increase_load_count(name, resource_type="dataset")
+
+        self.testing= testing
 
     def get_module(self) -> DatasetModule:
         hfh_dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
@@ -762,7 +765,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         patterns = (
             sanitize_patterns(self.data_files)
             if self.data_files is not None
-            else get_data_patterns_in_dataset_repository(hfh_dataset_info, self.data_dir)
+            else get_data_patterns_in_dataset_repository(hfh_dataset_info, self.data_dir, self.testing)
         )
         data_files = DataFilesDict.from_hf_repo(
             patterns,
@@ -1048,6 +1051,7 @@ def dataset_module_factory(
     dynamic_modules_path: Optional[str] = None,
     data_dir: Optional[str] = None,
     data_files: Optional[Union[Dict, List, str, DataFilesDict]] = None,
+    testing: bool = False,
     **download_kwargs,
 ) -> DatasetModule:
     """
@@ -1196,6 +1200,7 @@ def dataset_module_factory(
                     data_files=data_files,
                     download_config=download_config,
                     download_mode=download_mode,
+                    testing=testing,
                 ).get_module()
         except (
             Exception
@@ -1410,6 +1415,7 @@ def load_dataset_builder(
     revision: Optional[Union[str, Version]] = None,
     use_auth_token: Optional[Union[bool, str]] = None,
     storage_options: Optional[Dict] = None,
+    testing: bool = False,
     **config_kwargs,
 ) -> DatasetBuilder:
     """Load a dataset builder from the Hugging Face Hub, or a local dataset. A dataset builder can be used to inspect general information that is required to build a dataset (cache directory, config, dataset info, etc.)
@@ -1502,6 +1508,7 @@ def load_dataset_builder(
         download_mode=download_mode,
         data_dir=data_dir,
         data_files=data_files,
+        testing=testing,
     )
 
     # Get dataset builder class from the processing script
@@ -1557,6 +1564,8 @@ def load_dataset(
     streaming: bool = False,
     num_proc: Optional[int] = None,
     storage_options: Optional[Dict] = None,
+    testing: bool = False,
+    return_config: bool = False,
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset, IterableDatasetDict, IterableDataset]:
     """Load a dataset from the Hugging Face Hub, or a local dataset.
@@ -1776,8 +1785,12 @@ def load_dataset(
         revision=revision,
         use_auth_token=use_auth_token,
         storage_options=storage_options,
+        testing=testing,
         **config_kwargs,
     )
+
+    if return_config:
+        return builder_instance.config
 
     # Return iterable dataset in case of streaming
     if streaming:

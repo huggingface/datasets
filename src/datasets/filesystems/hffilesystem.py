@@ -1,5 +1,7 @@
 from pathlib import PurePosixPath
 from typing import Optional
+from glob import has_magic
+import re
 
 import fsspec
 from fsspec import AbstractFileSystem
@@ -35,6 +37,7 @@ class HfFileSystem(AbstractFileSystem):
         self.repo_info = repo_info
         self.token = token
         self.dir_cache = None
+        self.root_results = {}
 
     def _get_dirs(self):
         if self.dir_cache is None:
@@ -91,3 +94,89 @@ class HfFileSystem(AbstractFileSystem):
             return out
         else:
             return sorted(f["name"] for f in out)
+        
+    def _glob(self, path, **kwargs):
+        """
+        **copied with minor revisions from https://github.com/fsspec/filesystem_spec/blob/master/fsspec/spec.py, with BSD 3-Clause License**
+        Find files by glob-matching.
+        If the path ends with '/' and does not contain "*", it is essentially
+        the same as ``ls(path)``, returning only files.
+        We support ``"**"``,
+        ``"?"`` and ``"[..]"``. We do not support ^ for pattern negation.
+        Search path names that contain embedded characters special to this
+        implementation of glob may not produce expected results;
+        e.g., 'foo/bar/*starredfilename*'.
+        kwargs are passed to ``ls``.
+        """
+
+        ends = path.endswith("/")
+        path = self._strip_protocol(path)
+        indstar = path.find("*") if path.find("*") >= 0 else len(path)
+        indques = path.find("?") if path.find("?") >= 0 else len(path)
+        indbrace = path.find("[") if path.find("[") >= 0 else len(path)
+
+        ind = min(indstar, indques, indbrace)
+
+        detail = kwargs.pop("detail", False)
+
+        if not has_magic(path):
+            root = path
+            depth = 1
+            if ends:
+                path += "/*"
+            elif self.exists(path):
+                if not detail:
+                    return [path]
+                else:
+                    return {path: self.info(path)}
+            else:
+                if not detail:
+                    return []  # glob of non-existent returns empty
+                else:
+                    return {}
+        elif "/" in path[:ind]:
+            ind2 = path[:ind].rindex("/")
+            root = path[: ind2 + 1]
+            depth = None if "**" in path else path[ind2 + 1 :].count("/") + 1
+        else:
+            root = ""
+            depth = None if "**" in path else path[ind + 1 :].count("/") + 1
+
+        if self.dir_cache is not None:
+            allpaths = self.dir_cache
+        else:
+            allpaths = self.find(root, maxdepth=depth, withdirs=True, detail=True, **kwargs)
+        
+        # Escape characters special to python regex, leaving our supported
+        # special characters in place.
+        # See https://www.gnu.org/software/bash/manual/html_node/Pattern-Matching.html
+        # for shell globbing details.
+        pattern = (
+            "^"
+            + (
+                path.replace("\\", r"\\")
+                .replace(".", r"\.")
+                .replace("+", r"\+")
+                .replace("//", "/")
+                .replace("(", r"\(")
+                .replace(")", r"\)")
+                .replace("|", r"\|")
+                .replace("^", r"\^")
+                .replace("$", r"\$")
+                .replace("{", r"\{")
+                .replace("}", r"\}")
+                .rstrip("/")
+                .replace("?", ".")
+            )
+            + "$"
+        )
+        pattern = re.sub("[*]{2}", "=PLACEHOLDER=", pattern)
+        pattern = re.sub("[*]", "[^/]*", pattern)
+        pattern = re.compile(pattern.replace("=PLACEHOLDER=", ".*"))
+
+        out = {p: allpaths[p] for p in sorted(allpaths) if pattern.match(p.replace("//", "/").rstrip("/"))}
+        if detail:
+            return out
+        else:
+            return list(out)
+
