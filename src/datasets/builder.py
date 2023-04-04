@@ -2114,7 +2114,7 @@ class BeamBasedBuilder(DatasetBuilder):
     def _request_info_from_hf_gcs(self):
         from .download.streaming_download_manager import xopen
 
-        remote_dataset_info = f"{self._remote_cache_dir_from_hf_gcs}/dataset_info.json"
+        remote_dataset_info = f"{self._remote_cache_dir_from_hf_gcs}/{config.DATASET_INFO_FILENAME}"
         try:
             with xopen(remote_dataset_info) as f:
                 import json
@@ -2126,5 +2126,5 @@ class BeamBasedBuilder(DatasetBuilder):
 
     @property
     def _remote_cache_dir_from_hf_gcs(self):
-        relative_data_dir = self._relative_data_dir(with_version=True, with_hash=False)
+        relative_data_dir = self._relative_data_dir(with_hash=False)
         return HF_GCP_BASE_URL + "/" + relative_data_dir.replace(os.sep, "/")
