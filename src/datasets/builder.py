@@ -32,6 +32,7 @@ from pathlib import Path
 from typing import Dict, Iterable, Mapping, Optional, Tuple, Union
 
 import fsspec
+import pyarrow as pa
 from multiprocess import Pool
 from tqdm.contrib.concurrent import thread_map
 
@@ -50,7 +51,7 @@ from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadManager, DownloadMode
 from .download.mock_download_manager import MockDownloadManager
-from .download.streaming_download_manager import StreamingDownloadManager
+from .download.streaming_download_manager import StreamingDownloadManager, xopen
 from .features import Features
 from .filesystems import is_remote_filesystem
 from .fingerprint import Hasher
@@ -2101,10 +2102,6 @@ class BeamBasedBuilder(DatasetBuilder):
         return ExamplesIterable(self._generate_examples_from_hf_gcs, {"split": split})
 
     def _generate_examples_from_hf_gcs(self, split):
-        import pyarrow as pa
-
-        from .download.streaming_download_manager import xopen
-
         remote_prepared_filename = f"{self._remote_cache_dir_from_hf_gcs}/{self.name}-{split}.arrow"
         with xopen(remote_prepared_filename, "rb") as f:
             with pa.ipc.open_stream(f) as reader:
