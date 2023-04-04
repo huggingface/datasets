@@ -13,7 +13,15 @@ You can control access to your dataset by requiring users to share their contact
 
 ## ImageFolder
 
-The `ImageFolder` is a dataset builder designed to quickly load an image dataset with several thousand images without requiring you to write any code. `ImageFolder` automatically infers the class labels of your dataset based on the directory name. Just store your dataset in a directory structure like:
+The `ImageFolder` is a dataset builder designed to quickly load an image dataset with several thousand images without requiring you to write any code.
+
+<Tip>
+
+💡 Take a look at the [Split pattern hierarchy](repository_structure#split-pattern-hierarchy) to learn more about how `ImageFolder` creates dataset splits based on your dataset repository structure.
+
+</Tip>
+
+`ImageFolder` automatically infers the class labels of your dataset based on the directory name. Store your dataset in a directory structure like:
 
 ```
 folder/train/dog/golden_retriever.png
