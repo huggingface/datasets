@@ -857,7 +857,7 @@ class DataFilesDict(Dict[str, DataFilesList]):
         return DataFilesDict, (dict(sorted(self.items())),)
 
 
-def update_data_files_with_metadata_files_locally(data_files: DataFilesDict, base_path: str) -> None:
+def extend_data_files_with_metadata_files_locally(data_files: DataFilesDict, base_path: str) -> None:
     """
     Search for metadata files in provided `base_path` for local datasets and add it to provided `data_files` object.
     """
@@ -874,7 +874,7 @@ def update_data_files_with_metadata_files_locally(data_files: DataFilesDict, bas
             )
 
 
-def update_data_files_with_metadata_files_in_dataset_repository(
+def extend_data_files_with_metadata_files_in_dataset_repository(
     hfh_dataset_info, data_files: DataFilesDict, base_path: str
 ) -> None:
     """

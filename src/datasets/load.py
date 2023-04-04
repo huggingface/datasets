@@ -40,11 +40,11 @@ from .data_files import (
     DataFilesDict,
     DataFilesList,
     EmptyDatasetError,
+    extend_data_files_with_metadata_files_in_dataset_repository,
+    extend_data_files_with_metadata_files_locally,
     get_data_patterns_in_dataset_repository,
     get_data_patterns_locally,
     sanitize_patterns,
-    update_data_files_with_metadata_files_in_dataset_repository,
-    update_data_files_with_metadata_files_locally,
 )
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download.download_config import DownloadConfig
@@ -197,7 +197,7 @@ def get_dataset_builder_class(
     builder_cls = import_main_class(dataset_module.module_path)
     if dataset_module.metadata_configs:
         config_cls = builder_cls.BUILDER_CONFIG_CLASS
-        builder_configs_list = dataset_module.metadata_configs.to_builder_configs_list(builder_config_cls=config_cls)
+        builder_configs_list = dataset_module.metadata_configs.to_builder_configs(builder_config_cls=config_cls)
         default_config_name = dataset_module.metadata_configs.get_default_config_name()
         builder_cls = configure_builder_class(
             builder_cls,
@@ -786,7 +786,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         # Collect metadata files if the module supports them
         supports_metadata = module_name in _MODULE_SUPPORTS_METADATA
         if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
-            update_data_files_with_metadata_files_locally(base_path=base_path, data_files=data_files)
+            extend_data_files_with_metadata_files_locally(base_path=base_path, data_files=data_files)
 
         module_path, hash = _PACKAGED_DATASETS_MODULES[module_name]
 
@@ -882,7 +882,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         )
         supports_metadata = self.name in _MODULE_SUPPORTS_METADATA
         if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
-            update_data_files_with_metadata_files_locally(data_files, base_path=base_path)
+            extend_data_files_with_metadata_files_locally(data_files, base_path=base_path)
 
         module_path, hash = _PACKAGED_DATASETS_MODULES[self.name]
 
@@ -1000,7 +1000,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         # Collect metadata files if the module supports them
         supports_metadata = module_name in _MODULE_SUPPORTS_METADATA
         if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
-            update_data_files_with_metadata_files_in_dataset_repository(
+            extend_data_files_with_metadata_files_in_dataset_repository(
                 hfh_dataset_info, data_files=data_files, base_path=self.data_dir
             )
 
@@ -1947,10 +1947,10 @@ def load_dataset(
     ```
     """
     if ignore_verifications != "deprecated":
-        verification_mode = "none" if ignore_verifications else "full"
+        verification_mode = VerificationMode.NO_CHECKS if ignore_verifications else VerificationMode.ALL_CHECKS
         warnings.warn(
             "'ignore_verifications' was deprecated in favor of 'verification_mode' in version 2.9.1 and will be removed in 3.0.0.\n"
-            "To ignore verifications, you can pass `verification_mode='no_checks'` instead.",
+            f"You can remove this warning by passing 'verification_mode={verification_mode.value}' instead.",
             FutureWarning,
         )
     if Path(path, config.DATASET_STATE_JSON_FILENAME).exists():

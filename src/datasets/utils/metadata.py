@@ -11,11 +11,11 @@ from ..config import METADATA_CONFIGS_FIELD
 from ..data_files import (
     DEFAULT_PATTERNS_ALL,
     DataFilesDict,
+    extend_data_files_with_metadata_files_in_dataset_repository,
+    extend_data_files_with_metadata_files_locally,
     get_data_patterns_in_dataset_repository,
     get_data_patterns_locally,
     sanitize_patterns,
-    update_data_files_with_metadata_files_in_dataset_repository,
-    update_data_files_with_metadata_files_locally,
 )
 from ..utils.logging import get_logger
 
@@ -183,7 +183,7 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
                 )
                 dataset_metadata[self.__configs_field_name] = metadata_config
 
-    def to_builder_configs_list(self, builder_config_cls):
+    def to_builder_configs(self, builder_config_cls):
         """Convert configurations parsed from metadata file to list of BuilderConfig objects."""
         metadata_configs = copy.deepcopy(self)
         for config_name, metadata_config in metadata_configs.items():
@@ -257,7 +257,7 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
             metadata_config["data_files"] = config_data_files_dict
 
             if config_data_files is None and with_metadata_files and config_patterns != DEFAULT_PATTERNS_ALL:
-                update_data_files_with_metadata_files_locally(
+                extend_data_files_with_metadata_files_locally(
                     metadata_config["data_files"], base_path=config_base_path
                 )
 
@@ -290,7 +290,7 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
             metadata_config["data_files"] = config_data_files_dict
 
             if config_data_files is None and with_metadata_files and config_patterns != DEFAULT_PATTERNS_ALL:
-                update_data_files_with_metadata_files_in_dataset_repository(
+                extend_data_files_with_metadata_files_in_dataset_repository(
                     hfh_dataset_info, data_files=metadata_config["data_files"], base_path=config_base_path
                 )
 
