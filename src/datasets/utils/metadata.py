@@ -218,6 +218,18 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
             for name, meta_config in metadata_configs.items()
         ]
 
+    def get_default_config_name(self) -> Optional[str]:
+        default_config_name = None
+        for config_name, metadata_config in self.items():
+            if config_name == "default" or metadata_config.get("default"):
+                if default_config_name is None:
+                    default_config_name = config_name
+                else:
+                    raise ValueError(
+                        f"Dataset has several default configs: '{default_config_name}' and '{config_name}'."
+                    )
+        return default_config_name
+
     def resolve_data_files_locally(
         self,
         base_path: str,
