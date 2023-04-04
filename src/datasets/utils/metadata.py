@@ -2,12 +2,13 @@ import copy
 import os
 from collections import Counter
 from pathlib import Path
-from typing import ClassVar, Dict, List, Optional, Tuple, Union
+from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
 
 import huggingface_hub
 import yaml
 
-from datasets.data_files import (
+from ..config import METADATA_CONFIGS_FIELD
+from ..data_files import (
     DEFAULT_PATTERNS_ALL,
     DataFilesDict,
     get_data_patterns_in_dataset_repository,
@@ -16,8 +17,10 @@ from datasets.data_files import (
     update_data_files_with_metadata_files_in_dataset_repository,
     update_data_files_with_metadata_files_locally,
 )
+from ..utils.logging import get_logger
 
-from ..config import METADATA_CONFIGS_FIELD
+
+logger = get_logger(__name__)
 
 
 class _NoDuplicateSafeLoader(yaml.SafeLoader):
@@ -121,7 +124,7 @@ class DatasetMetadata(dict):
         ).decode("utf-8")
 
 
-class MetadataConfigs(Dict[str, dict]):
+class MetadataConfigs(Dict[str, Dict[str, Any]]):
     """Should be in format {config_name: {**config_params}}."""
 
     __configs_field_name: ClassVar[str] = METADATA_CONFIGS_FIELD
@@ -191,10 +194,26 @@ class MetadataConfigs(Dict[str, dict]):
                     You can resolve data files with either .resolve_data_files_locally() or
                     .resolve_data_files_in_dataset_repository() method."""
                 )
+        ignored_params = [
+            param
+            for meta_config in metadata_configs.values()
+            for param in meta_config
+            if hasattr(builder_config_cls, param) and param != "default"
+        ]
+        if ignored_params:
+            logger.warning(
+                f"Some datasets params were ignored: {ignored_params}. "
+                "Make sure to use only valid params for the dataset builder and to have "
+                "a up-to-date version of the `datasets` library."
+            )
         return [
             builder_config_cls(
                 name=name,
-                **{param: value for param, value in meta_config.items() if hasattr(builder_config_cls, param)},
+                **{
+                    param: value
+                    for param, value in meta_config.items()
+                    if hasattr(builder_config_cls, param) and param != "default"
+                },
             )
             for name, meta_config in metadata_configs.items()
         ]
