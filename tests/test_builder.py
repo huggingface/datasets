@@ -938,7 +938,7 @@ def test_builder_as_streaming_dataset(tmp_path):
 
 @require_beam
 def test_beam_based_builder_as_streaming_dataset(tmp_path):
-    builder = DummyBeamBasedBuilder(cache_dir=tmp_path, beam_runner="DirectRunner")
+    builder = DummyBeamBasedBuilder(cache_dir=tmp_path)
     check_streaming(builder)
     with pytest.raises(DatasetNotOnHfGcsError):
         builder.as_streaming_dataset()
