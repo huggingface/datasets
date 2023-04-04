@@ -480,8 +480,7 @@ def _resolve_single_pattern_in_dataset_repository(
     allowed_extensions: Optional[list] = None,
     testing: bool = False,
 ) -> List[PurePath]:
-    
-    fs = HfFileSystem(repo_info=dataset_info)     
+    fs = HfFileSystem(repo_info=dataset_info)
 
     if base_path:
         pattern = f"{base_path}/{pattern}"
@@ -519,7 +518,7 @@ def _resolve_single_pattern_in_dataset_repository(
         if allowed_extensions is not None:
             error_msg += f" with any supported extension {list(allowed_extensions)}"
         raise FileNotFoundError(error_msg)
-    
+
     return sorted(out)
 
 
@@ -679,7 +678,9 @@ def get_data_patterns_in_dataset_repository(
 
     In order, it first tests if SPLIT_PATTERN_SHARDED works, otherwise it tests the patterns in ALL_DEFAULT_PATTERNS.
     """
-    resolver = partial(_resolve_single_pattern_in_dataset_repository, dataset_info, base_path=base_path, testing=testing)
+    resolver = partial(
+        _resolve_single_pattern_in_dataset_repository, dataset_info, base_path=base_path, testing=testing
+    )
     try:
         return _get_data_files_patterns(resolver)
     except FileNotFoundError:

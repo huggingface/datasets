@@ -1,7 +1,7 @@
+import re
+from glob import has_magic
 from pathlib import PurePosixPath
 from typing import Optional
-from glob import has_magic
-import re
 
 import fsspec
 from fsspec import AbstractFileSystem
@@ -94,7 +94,7 @@ class HfFileSystem(AbstractFileSystem):
             return out
         else:
             return sorted(f["name"] for f in out)
-        
+
     def _glob(self, path, **kwargs):
         """
         **copied with minor revisions from https://github.com/fsspec/filesystem_spec/blob/master/fsspec/spec.py, with BSD 3-Clause License**
@@ -146,7 +146,7 @@ class HfFileSystem(AbstractFileSystem):
             allpaths = self.dir_cache
         else:
             allpaths = self.find(root, maxdepth=depth, withdirs=True, detail=True, **kwargs)
-        
+
         # Escape characters special to python regex, leaving our supported
         # special characters in place.
         # See https://www.gnu.org/software/bash/manual/html_node/Pattern-Matching.html
@@ -179,4 +179,3 @@ class HfFileSystem(AbstractFileSystem):
             return out
         else:
             return list(out)
-

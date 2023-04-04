@@ -753,7 +753,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self.download_mode = download_mode
         increase_load_count(name, resource_type="dataset")
 
-        self.testing= testing
+        self.testing = testing
 
     def get_module(self) -> DatasetModule:
         hfh_dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(

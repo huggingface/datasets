@@ -1005,12 +1005,13 @@ def test_load_dataset_distributed(tmp_path, csv_path):
 
 
 def test_load_times():
-    import pandas as pd
-    source = "/Users/jameskelly/Documents/hf/datasets2/src/datasets/filesystems/debug_load_data.csv"
-    df = pd.read_csv(source, sep='\t')
-    runnable_datasets = df['dataset'].to_list()
-
     import time
+
+    import pandas as pd
+
+    source = "/Users/jameskelly/Documents/hf/datasets2/src/datasets/filesystems/debug_load_data.csv"
+    df = pd.read_csv(source, sep="\t")
+    runnable_datasets = df["dataset"].to_list()
 
     all_results = []
 
@@ -1032,10 +1033,10 @@ def test_load_times():
 
         diff = old_diff - new_diff
         pct_diff = (diff / old_diff) * 100
-        result = {'dataset': ds, 'old': old_diff, 'new': new_diff, 'diff': diff, 'pct_diff': pct_diff}
+        result = {"dataset": ds, "old": old_diff, "new": new_diff, "diff": diff, "pct_diff": pct_diff}
         all_results.append(result)
 
     results_df = pd.DataFrame(all_results)
-    results_df.to_csv('load_opt_results.csv', sep='\t')
+    results_df.to_csv("load_opt_results.csv", sep="\t")
 
     print(results_df.describe())
