@@ -620,6 +620,56 @@ class TestPushToHub:
                 assert list(local_ds["train"].features.keys()) == list(hub_ds["train"].features.keys())
                 assert local_ds["train"].features == hub_ds["train"].features
 
+    def test_push_multiple_dataset_configs_to_hub(self, temporary_repo):
+        ds_config1 = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+        ds_config2 = Dataset.from_dict({"foo": [1, 2], "bar": [4, 5]})
+
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            ds_config1.push_to_hub(ds_name, "config1", token=self._token)
+            ds_config2.push_to_hub(ds_name, "config2", token=self._token)
+            ds_builder = load_dataset_builder(ds_name, "config1", download_mode="force_redownload")
+            assert len(ds_builder.BUILDER_CONFIGS) == 2
+            assert len(ds_builder.config.data_files["train"]) == 1
+            assert fnmatch.fnmatch(
+                ds_builder.config.data_files["train"][0],
+                "*/config1/train-*",
+            )
+            ds_builder = load_dataset_builder(ds_name, "config2", download_mode="force_redownload")
+            assert len(ds_builder.BUILDER_CONFIGS) == 2
+            assert len(ds_builder.config.data_files["train"]) == 1
+            assert fnmatch.fnmatch(
+                ds_builder.config.data_files["train"][0],
+                "*/config2/train-*",
+            )
+            with pytest.raises(ValueError):  # no config
+                load_dataset_builder(ds_name, download_mode="force_redownload")
+
+    def test_push_multiple_dataset_dict_configs_to_hub(self, temporary_repo):
+        ds_config1 = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+        ds_config2 = Dataset.from_dict({"foo": [1, 2], "bar": [4, 5]})
+        ds_config1 = DatasetDict({"random": ds_config1})
+        ds_config2 = DatasetDict({"random": ds_config2})
+
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            ds_config1.push_to_hub(ds_name, "config1", token=self._token)
+            ds_config2.push_to_hub(ds_name, "config2", token=self._token)
+            ds_builder = load_dataset_builder(ds_name, "config1", download_mode="force_redownload")
+            assert len(ds_builder.BUILDER_CONFIGS) == 2
+            assert len(ds_builder.config.data_files["random"]) == 1
+            assert fnmatch.fnmatch(
+                ds_builder.config.data_files["random"][0],
+                "*/config1/random-*",
+            )
+            ds_builder = load_dataset_builder(ds_name, "config2", download_mode="force_redownload")
+            assert len(ds_builder.BUILDER_CONFIGS) == 2
+            assert len(ds_builder.config.data_files["random"]) == 1
+            assert fnmatch.fnmatch(
+                ds_builder.config.data_files["random"][0],
+                "*/config2/random-*",
+            )
+            with pytest.raises(ValueError):  # no config
+                load_dataset_builder(ds_name, download_mode="force_redownload")
+
     def test_push_dataset_to_hub_with_config_no_metadata_configs(self, temporary_repo):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
         ds_another_config = Dataset.from_dict({"foo": [1, 2], "bar": [4, 5]})
