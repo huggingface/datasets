@@ -1227,7 +1227,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ).read()
 
     @staticmethod
-    def from_spark(df: pyspark.sql.DataFrame):
+    def from_spark(
+        df: pyspark.sql.DataFrame,
+        cache_dir: str = None,
+        **kwargs,
+    ):
         """Create Dataset from Spark DataFrame.
 
         Args:
@@ -1237,7 +1241,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Dynamic import to avoid circular dependency
         from .io.spark import SparkDatasetReader
 
-        return SparkDatasetReader(df).read()
+        return SparkDatasetReader(
+            df,
+            cache_dir=cache_dir,
+            **kwargs,
+        ).read()
 
     @staticmethod
     def from_sql(
