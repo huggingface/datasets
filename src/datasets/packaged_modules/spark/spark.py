@@ -112,7 +112,7 @@ class Spark(datasets.DatasetBuilder):
 
     def _prepare_split(
         self,
-        split_generator: datasets.SplitGenerator,
+        split_generator: "datasets.SplitGenerator",
         file_format: str = "arrow",
         max_shard_size: Optional[Union[str, int]] = None,
         num_proc: Optional[int] = None,
