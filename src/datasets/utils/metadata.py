@@ -198,7 +198,7 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
             param
             for meta_config in metadata_configs.values()
             for param in meta_config
-            if hasattr(builder_config_cls, param) and param != "default"
+            if not hasattr(builder_config_cls, param) and param != "default"
         ]
         if ignored_params:
             logger.warning(
