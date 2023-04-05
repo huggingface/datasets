@@ -2,6 +2,7 @@ import pyspark
 
 from ..download import DownloadMode
 from ..packaged_modules.spark.spark import Spark
+from ..splits import Split
 from .abc import AbstractDatasetReader
 
 
@@ -29,4 +30,4 @@ class SparkDatasetReader(AbstractDatasetReader):
         download_mode = DownloadMode.FORCE_REDOWNLOAD if self._redownload else None
         self.builder.download_and_prepare(download_mode=download_mode)
         # TODO: Support as_streaming_dataset.
-        return self.builder.as_dataset()
+        return self.builder.as_dataset()[Split.TRAIN]

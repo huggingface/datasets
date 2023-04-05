@@ -105,7 +105,7 @@ class Spark(datasets.DatasetBuilder):
             pyspark.sql.functions.sum("num_examples").alias("total_num_examples"),
             pyspark.sql.functions.sum("num_bytes").alias("total_num_bytes"),
             pyspark.sql.functions.count("num_bytes").alias("num_shards"),
-            pyspark.sql.functions.collect_list("num_bytes").alias("shard_lengths"),
+            pyspark.sql.functions.collect_list("num_examples").alias("shard_lengths"),
         ).collect()
         for row in stats:
             yield row.task_id, (row.total_num_examples, row.total_num_bytes, row.num_shards, row.shard_lengths)

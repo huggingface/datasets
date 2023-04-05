@@ -3629,6 +3629,10 @@ def test_from_spark():
     ]
     df = spark.createDataFrame(data, "col_1: string, col_2: int, col_3: float")
     dataset = Dataset.from_spark(df)
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == 4
+    assert dataset.num_columns == 3
+    assert dataset.column_names == ["col_1", "col_2", "col_3"]
 
 
 def _check_sql_dataset(dataset, expected_features):
