@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import os
 import pyspark
-from typing import Iterable, Tuple, Union
+from typing import Iterable, Optional, Tuple, Union
 import uuid
 
 import pyarrow as pa
@@ -9,6 +9,10 @@ import pyarrow as pa
 import datasets
 from datasets.arrow_writer import ArrowWriter
 from datasets.features import Features
+from datasets.filesystems import is_remote_filesystem
+
+
+logger = datasets.utils.logging.get_logger(__name__)
 
 
 @dataclass
@@ -18,7 +22,7 @@ class SparkConfig(datasets.BuilderConfig):
     pass
 
 
-class Spark(datasets.ArrowBasedBuilder):
+class Spark(datasets.DatasetBuilder):
     BUILDER_CONFIG_CLASS = SparkConfig
 
     def __init__(
@@ -67,53 +71,107 @@ class Spark(datasets.ArrowBasedBuilder):
     def _split_generators(self, dl_manager: datasets.download.download_manager.DownloadManager):
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN)]
 
-    def _prepare_split_single(
-        self,
-        gen_kwargs: dict,
-        fpath: str,
-        file_format: str,
-        max_shard_size: int,
-        job_id: int
-    ) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
+    def _prepare_split_single(self, fpath: str) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
         # Declare these so that we don't reference self in write_arrow, which will result in a pickling error due to
         # pickling the SparkContext.
         writer_batch_size = self._writer_batch_size
         storage_options = self._fs.storage_options
 
         def write_arrow(it):
-            partition_id = pyspark.TaskContext().partitionId()
-            batch_id = 0
+            # Within the same SparkContext, no two task attempts will share the same attempt ID.
+            task_id = pyspark.TaskContext().taskAttemptId()
+            shard_id = 0
             for batch in it:
                 table = pa.Table.from_batches([batch])
                 writer = ArrowWriter(
                     features=Features.from_arrow_schema(batch.schema),
-                    path=fpath.replace("SSSSS", f"{batch_id:05d}").replace("JJJJJ", f"{partition_id:05d}"),
+                    path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
                     writer_batch_size=writer_batch_size,
                     storage_options=storage_options,
                 )
                 writer.write_table(table)
                 num_examples, num_bytes = writer.finalize()
                 writer.close()
-                batch_id += 1
+                shard_id += 1
                 yield pa.RecordBatch.from_arrays(
-                    [[partition_id], [num_examples], [num_bytes]],
-                    names=["partition_id", "num_examples", "num_bytes"],
+                    [[task_id], [num_examples], [num_bytes]],
+                    names=["task_id", "num_examples", "num_bytes"],
                 )
-
-        total_num_examples = 0
-        total_num_bytes = 0
-        max_partition_id = 0
-        shard_lengths = []
 
         stats = self.df.mapInArrow(
             write_arrow,
-            "partition_id: long, num_examples: long, num_bytes: long"
+            "task_id: long, num_examples: long, num_bytes: long"
+        ).groupBy("task_id").agg(
+            pyspark.sql.functions.sum("num_examples").alias("total_num_examples"),
+            pyspark.sql.functions.sum("num_bytes").alias("total_num_bytes"),
+            pyspark.sql.functions.count("num_bytes").alias("num_shards"),
+            pyspark.sql.functions.collect_list("num_bytes").alias("shard_lengths"),
         ).collect()
         for row in stats:
-            if row.partition_id > max_partition_id:
-                max_partition_id = row.partition_id
-            total_num_examples += row.num_examples
-            total_num_bytes += row.num_bytes
-            shard_lengths.append(row.num_bytes)
+            yield row.task_id, (row.total_num_examples, row.total_num_bytes, row.num_shards, row.shard_lengths)
 
-        yield 0, True, (total_num_examples, total_num_bytes, None, max_partition_id, shard_lengths)
+    def _prepare_split(
+        self,
+        split_generator: datasets.SplitGenerator,
+        file_format: str = "arrow",
+        max_shard_size: Optional[Union[str, int]] = None,
+        num_proc: Optional[int] = None,
+        **kwargs,
+    ):
+        is_local = not is_remote_filesystem(self._fs)
+        path_join = os.path.join if is_local else posixpath.join
+
+        if self.info.splits is not None:
+            split_info = self.info.splits[split_generator.name]
+        else:
+            split_info = split_generator.split_info
+
+        SUFFIX = "-TTTTT-SSSSS-of-NNNNN"
+        fname = f"{self.name}-{split_generator.name}{SUFFIX}.{file_format}"
+        fpath = path_join(self._output_dir, fname)
+
+        gen_kwargs = split_generator.gen_kwargs
+
+        total_num_examples = 0
+        total_num_bytes = 0
+        total_shards = 0
+        num_shards_by_task_id = dict()
+        all_shard_lengths = []
+
+        for task_id, content in self._prepare_split_single(fpath):
+            (
+                num_examples,
+                num_bytes,
+                num_shards,
+                shard_lengths,
+            ) = content
+            total_num_examples += num_examples
+            total_num_bytes += num_bytes
+            total_shards += num_shards
+            num_shards_by_task_id[task_id] = num_shards
+            all_shard_lengths.extend(shard_lengths)
+
+        split_generator.split_info.num_examples = total_num_examples
+        split_generator.split_info.num_bytes = total_num_bytes
+
+        # should rename everything at the end
+        logger.debug(f"Renaming {total_shards} shards.")
+        if total_shards > 1:
+            split_generator.split_info.shard_lengths = all_shard_lengths
+
+            # use the -SSSSS-of-NNNNN pattern
+            global_shard_id = 0
+            for task_id, num_shards in num_shards_by_task_id.items():
+                for shard_id in range(num_shards):
+                    self._rename(
+                        fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
+                        fpath.replace("TTTTT-SSSSS", f"{global_shard_id:05d}").replace("NNNNN", f"{total_shards:05d}"),
+                    )
+                    global_shard_id += 1
+        else:
+            # don't use any pattern
+            shard_id, task_id = 0, 0
+            self._rename(
+                fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
+                fpath.replace(SUFFIX, ""),
+            )

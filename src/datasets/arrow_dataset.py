@@ -1230,6 +1230,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def from_spark(
         df: pyspark.sql.DataFrame,
         cache_dir: str = None,
+        redownload: bool = False,
         **kwargs,
     ):
         """Create Dataset from Spark DataFrame.
@@ -1237,6 +1238,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Args:
             df (`pyspark.sql.DataFrame`):
                 The DataFrame containing the desired data.
+            cache_dir (`str`, *optional*, defaults to `"~/.cache/huggingface/datasets"`):
+                Directory to cache data. When using a multi-node Spark cluster, the cache_dir must be accessible to both
+                workers and the driver.
+            redownload (`bool`):
+                Whether to redownload the dataset. When not redownloading, if a dataset is present in the cache, it will
+                be reused.
         """
         # Dynamic import to avoid circular dependency
         from .io.spark import SparkDatasetReader
@@ -1244,6 +1251,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return SparkDatasetReader(
             df,
             cache_dir=cache_dir,
+            redownload=redownload,
             **kwargs,
         ).read()
 
