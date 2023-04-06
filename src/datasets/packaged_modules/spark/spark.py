@@ -170,7 +170,8 @@ class Spark(datasets.DatasetBuilder):
                     global_shard_id += 1
         else:
             # don't use any pattern
-            shard_id, task_id = 0, 0
+            shard_id = 0
+            task_id = list(num_shards_by_task_id.keys())[0]
             self._rename(
                 fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
                 fpath.replace(SUFFIX, ""),
