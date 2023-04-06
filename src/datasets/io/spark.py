@@ -1,10 +1,10 @@
-import pyspark
 from typing import Optional
+
+import pyspark
 
 from .. import Features, NamedSplit
 from ..download import DownloadMode
 from ..packaged_modules.spark.spark import Spark
-from ..splits import Split
 from .abc import AbstractDatasetReader
 
 

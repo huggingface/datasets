@@ -4,7 +4,6 @@ import itertools
 import json
 import os
 import pickle
-import pyspark
 import re
 import sys
 import tempfile
@@ -17,6 +16,7 @@ import numpy as np
 import numpy.testing as npt
 import pandas as pd
 import pyarrow as pa
+import pyspark
 import pytest
 from absl.testing import parameterized
 from packaging import version

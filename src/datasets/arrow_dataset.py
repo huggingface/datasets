@@ -21,7 +21,6 @@ import itertools
 import json
 import os
 import posixpath
-import pyspark
 import re
 import shutil
 import sys
@@ -58,6 +57,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
+import pyspark
 from huggingface_hub import HfApi, HfFolder
 from multiprocess import Pool
 from requests import HTTPError

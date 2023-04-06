@@ -1,14 +1,13 @@
-from dataclasses import dataclass
 import os
-import pyspark
-from typing import Iterable, Optional, Tuple, Union
 import uuid
+from dataclasses import dataclass
+from typing import Iterable, Optional, Tuple, Union
 
 import pyarrow as pa
+import pyspark
 
 import datasets
 from datasets.arrow_writer import ArrowWriter
-from datasets.features import Features
 from datasets.filesystems import is_remote_filesystem
 
 
@@ -59,11 +58,15 @@ class Spark(datasets.DatasetBuilder):
         # accessible to the driver.
         # TODO: Stream batches to the driver using ArrowCollectSerializer instead of throwing an error.
         if cache_dir:
-            probe = self._spark.sparkContext.parallelize(range(1), 1).mapPartitions(create_cache_and_write_probe).collect()
+            probe = (
+                self._spark.sparkContext.parallelize(range(1), 1).mapPartitions(create_cache_and_write_probe).collect()
+            )
             if os.path.isfile(probe[0]):
                 return
 
-        raise ValueError("When using Dataset.from_spark on a multi-node cluster, the driver and all workers should be able to access cache_dir")
+        raise ValueError(
+            "When using Dataset.from_spark on a multi-node cluster, the driver and all workers should be able to access cache_dir"
+        )
 
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
@@ -99,15 +102,17 @@ class Spark(datasets.DatasetBuilder):
                     names=["task_id", "num_examples", "num_bytes"],
                 )
 
-        stats = self.df.mapInArrow(
-            write_arrow,
-            "task_id: long, num_examples: long, num_bytes: long"
-        ).groupBy("task_id").agg(
-            pyspark.sql.functions.sum("num_examples").alias("total_num_examples"),
-            pyspark.sql.functions.sum("num_bytes").alias("total_num_bytes"),
-            pyspark.sql.functions.count("num_bytes").alias("num_shards"),
-            pyspark.sql.functions.collect_list("num_examples").alias("shard_lengths"),
-        ).collect()
+        stats = (
+            self.df.mapInArrow(write_arrow, "task_id: long, num_examples: long, num_bytes: long")
+            .groupBy("task_id")
+            .agg(
+                pyspark.sql.functions.sum("num_examples").alias("total_num_examples"),
+                pyspark.sql.functions.sum("num_bytes").alias("total_num_bytes"),
+                pyspark.sql.functions.count("num_bytes").alias("num_shards"),
+                pyspark.sql.functions.collect_list("num_examples").alias("shard_lengths"),
+            )
+            .collect()
+        )
         for row in stats:
             yield row.task_id, (row.total_num_examples, row.total_num_bytes, row.num_shards, row.shard_lengths)
 
@@ -123,20 +128,19 @@ class Spark(datasets.DatasetBuilder):
         path_join = os.path.join if is_local else posixpath.join
 
         if self.info.splits is not None:
-            split_info = self.info.splits[split_generator.name]
+            self.info.splits[split_generator.name]
         else:
-            split_info = split_generator.split_info
+            pass
 
         SUFFIX = "-TTTTT-SSSSS-of-NNNNN"
         fname = f"{self.name}-{split_generator.name}{SUFFIX}.{file_format}"
         fpath = path_join(self._output_dir, fname)
 
-        gen_kwargs = split_generator.gen_kwargs
 
         total_num_examples = 0
         total_num_bytes = 0
         total_shards = 0
-        num_shards_by_task_id = dict()
+        num_shards_by_task_id = {}
         all_shard_lengths = []
 
         for task_id, content in self._prepare_split_single(fpath):
