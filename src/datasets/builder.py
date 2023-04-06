@@ -2086,8 +2086,8 @@ class BeamBasedBuilder(DatasetBuilder):
     ) -> Union[Dict[str, IterableDataset], IterableDataset]:
         self._request_info_from_hf_gcs()
         datasets = {
-            split: IterableDataset(self._get_examples_iterable_for_split(split), info=self.info, split=split)
-            for split in self.info.splits
+            split.name: IterableDataset(self._get_examples_iterable_for_split(split), info=self.info, split=split.name)
+            for split in self.info.splits.values()
         }
         if split:
             try:
@@ -2098,18 +2098,26 @@ class BeamBasedBuilder(DatasetBuilder):
             datasets = IterableDatasetDict(datasets)
         return datasets
 
-    def _get_examples_iterable_for_split(self, split: str) -> ExamplesIterable:
+    def _get_examples_iterable_for_split(self, split: SplitInfo) -> ExamplesIterable:
         return ExamplesIterable(self._generate_examples_from_hf_gcs, {"split": split})
 
-    def _generate_examples_from_hf_gcs(self, split):
-        remote_prepared_filename = f"{self._remote_cache_dir_from_hf_gcs}/{self.name}-{split}.arrow"
-        with xopen(remote_prepared_filename, "rb") as f:
-            with pa.ipc.open_stream(f) as reader:
-                key = 0
-                for record_batch in reader:
-                    for record in record_batch.to_pylist():
-                        yield key, record
-                        key += 1
+    def _generate_examples_from_hf_gcs(self, split: SplitInfo):
+        if split.shard_lengths:
+            num_shards = len(split.shard_lengths)
+            remote_prepared_urls = [
+                f"{self._remote_cache_dir_from_hf_gcs}/{self.name}-{split.name}-{shard_id:05d}-of-{num_shards:05d}.arrow"
+                for shard_id in range(num_shards)
+            ]
+        else:
+            remote_prepared_urls = [f"{self._remote_cache_dir_from_hf_gcs}/{self.name}-{split.name}.arrow"]
+        key = 0
+        for remote_prepared_url in remote_prepared_urls:
+            with xopen(remote_prepared_url, "rb") as f:
+                with pa.ipc.open_stream(f) as reader:
+                    for record_batch in reader:
+                        for record in record_batch.to_pylist():
+                            yield key, record
+                            key += 1
 
     def _request_info_from_hf_gcs(self):
         from .download.streaming_download_manager import xopen
