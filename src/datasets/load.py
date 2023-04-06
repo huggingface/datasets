@@ -153,7 +153,10 @@ class _InitializeConfiguredDatasetBuilder:
 
 
 def configure_builder_class(
-    builder_cls: Type[DatasetBuilder], builder_configs: List["BulderConfig"], dataset_name: str
+    builder_cls: Type[DatasetBuilder],
+    builder_configs: List["BulderConfig"],
+    default_config_name: Optional[str],
+    dataset_name: str,
 ) -> Type[DatasetBuilder]:
     """
     Dynamically create a builder class with custom builder configs parsed from README.md file,
@@ -162,6 +165,7 @@ def configure_builder_class(
 
     class ConfiguredDatasetBuilder(builder_cls):
         BUILDER_CONFIGS = builder_configs
+        DEFAULT_CONFIG_NAME = default_config_name
 
         __module__ = builder_cls.__module__  # so that the actual packaged builder can be imported
 
@@ -187,14 +191,18 @@ def configure_builder_class(
     return ConfiguredDatasetBuilder
 
 
-def get_dataset_builder_class(dataset_module, dataset_name: Optional[str] = None) -> Type[DatasetBuilder]:
+def get_dataset_builder_class(
+    dataset_module: "DatasetModule", dataset_name: Optional[str] = None
+) -> Type[DatasetBuilder]:
     builder_cls = import_main_class(dataset_module.module_path)
     if dataset_module.metadata_configs:
         config_cls = builder_cls.BUILDER_CONFIG_CLASS
         builder_configs_list = dataset_module.metadata_configs.to_builder_configs(builder_config_cls=config_cls)
+        default_config_name = dataset_module.metadata_configs.get_default_config_name()
         builder_cls = configure_builder_class(
             builder_cls,
             builder_configs=builder_configs_list,
+            default_config_name=default_config_name,
             dataset_name=dataset_name,
         )
     return builder_cls

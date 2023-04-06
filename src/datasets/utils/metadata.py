@@ -2,12 +2,13 @@ import copy
 import os
 from collections import Counter
 from pathlib import Path
-from typing import ClassVar, Dict, List, Optional, Tuple, Union
+from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
 
 import huggingface_hub
 import yaml
 
-from datasets.data_files import (
+from ..config import METADATA_CONFIGS_FIELD
+from ..data_files import (
     DEFAULT_PATTERNS_ALL,
     DataFilesDict,
     extend_data_files_with_metadata_files_in_dataset_repository,
@@ -16,8 +17,10 @@ from datasets.data_files import (
     get_data_patterns_locally,
     sanitize_patterns,
 )
+from ..utils.logging import get_logger
 
-from ..config import METADATA_CONFIGS_FIELD
+
+logger = get_logger(__name__)
 
 
 class _NoDuplicateSafeLoader(yaml.SafeLoader):
@@ -121,19 +124,35 @@ class DatasetMetadata(dict):
         ).decode("utf-8")
 
 
-class MetadataConfigs(Dict[str, dict]):
+class MetadataConfigs(Dict[str, Dict[str, Any]]):
     """Should be in format {config_name: {**config_params}}."""
 
     __configs_field_name: ClassVar[str] = METADATA_CONFIGS_FIELD
 
     @classmethod
+    def _raise_if_not_valid(self, metadata_config: dict):
+        if isinstance(metadata_config.get("data_files"), dict):
+            raise ValueError(
+                f"Expected data_files in YAML to be a string or a list, but got {metadata_config['data_files']}\nExamples:\n"
+                "    data_files: data.csv\n    data_files: data/*.png\n"
+                "    data_files:\n    - part0/*\n    - part1/*\n"
+                "    data_files:\n    - split: train\n      pattern: train/*\n    - split: test\n      pattern: test/*"
+            )
+
+    @classmethod
     def from_metadata(cls, dataset_metadata: DatasetMetadata) -> "MetadataConfigs":
-        if cls.__configs_field_name in dataset_metadata:
-            metadata_configs = dataset_metadata.get(cls.__configs_field_name)
+        if dataset_metadata.get(cls.__configs_field_name):
+            metadata_configs = dataset_metadata[cls.__configs_field_name]
             if isinstance(metadata_configs, dict):  # single configuration
                 if "config_name" not in metadata_configs:
                     metadata_configs["config_name"] = "default"
                 metadata_configs = [metadata_configs]
+            elif not isinstance(metadata_configs, list):
+                raise ValueError(
+                    f"Expected {cls.__configs_field_name} to be a dict or a list, but got' {metadata_configs}'"
+                )
+            for metadata_config in metadata_configs:
+                cls._raise_if_not_valid(metadata_config)
             return cls(
                 {
                     config["config_name"]: {param: value for param, value in config.items() if param != "config_name"}
@@ -144,6 +163,8 @@ class MetadataConfigs(Dict[str, dict]):
 
     def to_metadata(self, dataset_metadata: DatasetMetadata) -> None:
         if self:
+            for metadata_config in self.values():
+                self._raise_if_not_valid(metadata_config)
             current_metadata_configs = self.from_metadata(dataset_metadata)
             total_metadata_configs = dict(sorted({**current_metadata_configs, **self}.items()))
             if len(total_metadata_configs) > 1:
@@ -173,13 +194,41 @@ class MetadataConfigs(Dict[str, dict]):
                     You can resolve data files with either .resolve_data_files_locally() or
                     .resolve_data_files_in_dataset_repository() method."""
                 )
+        ignored_params = [
+            param
+            for meta_config in metadata_configs.values()
+            for param in meta_config
+            if not hasattr(builder_config_cls, param) and param != "default"
+        ]
+        if ignored_params:
+            logger.warning(
+                f"Some datasets params were ignored: {ignored_params}. "
+                "Make sure to use only valid params for the dataset builder and to have "
+                "a up-to-date version of the `datasets` library."
+            )
         return [
             builder_config_cls(
                 name=name,
-                **{param: value for param, value in meta_config.items() if hasattr(builder_config_cls, param)},
+                **{
+                    param: value
+                    for param, value in meta_config.items()
+                    if hasattr(builder_config_cls, param) and param != "default"
+                },
             )
             for name, meta_config in metadata_configs.items()
         ]
+
+    def get_default_config_name(self) -> Optional[str]:
+        default_config_name = None
+        for config_name, metadata_config in self.items():
+            if config_name == "default" or metadata_config.get("default"):
+                if default_config_name is None:
+                    default_config_name = config_name
+                else:
+                    raise ValueError(
+                        f"Dataset has several default configs: '{default_config_name}' and '{config_name}'."
+                    )
+        return default_config_name
 
     def resolve_data_files_locally(
         self,

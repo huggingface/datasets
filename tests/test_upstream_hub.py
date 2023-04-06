@@ -3,6 +3,7 @@ import os
 import tempfile
 import time
 import unittest
+from io import BytesIO
 from pathlib import Path
 from unittest.mock import patch
 
@@ -10,7 +11,17 @@ import numpy as np
 import pytest
 from huggingface_hub import HfApi
 
-from datasets import Audio, ClassLabel, Dataset, DatasetDict, Features, Image, Value, load_dataset
+from datasets import (
+    Audio,
+    ClassLabel,
+    Dataset,
+    DatasetDict,
+    Features,
+    Image,
+    Value,
+    load_dataset,
+    load_dataset_builder,
+)
 from datasets.config import METADATA_CONFIGS_FIELD
 from datasets.utils.file_utils import cached_path
 from datasets.utils.hub import hf_hub_url
@@ -608,3 +619,117 @@ class TestPushToHub:
                 assert local_ds.column_names == hub_ds.column_names
                 assert list(local_ds["train"].features.keys()) == list(hub_ds["train"].features.keys())
                 assert local_ds["train"].features == hub_ds["train"].features
+
+    def test_push_multiple_dataset_configs_to_hub(self, temporary_repo):
+        ds_config1 = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+        ds_config2 = Dataset.from_dict({"foo": [1, 2], "bar": [4, 5]})
+
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            ds_config1.push_to_hub(ds_name, "config1", token=self._token)
+            ds_config2.push_to_hub(ds_name, "config2", token=self._token)
+            ds_builder = load_dataset_builder(ds_name, "config1", download_mode="force_redownload")
+            assert len(ds_builder.BUILDER_CONFIGS) == 2
+            assert len(ds_builder.config.data_files["train"]) == 1
+            assert fnmatch.fnmatch(
+                ds_builder.config.data_files["train"][0],
+                "*/config1/train-*",
+            )
+            ds_builder = load_dataset_builder(ds_name, "config2", download_mode="force_redownload")
+            assert len(ds_builder.BUILDER_CONFIGS) == 2
+            assert len(ds_builder.config.data_files["train"]) == 1
+            assert fnmatch.fnmatch(
+                ds_builder.config.data_files["train"][0],
+                "*/config2/train-*",
+            )
+            with pytest.raises(ValueError):  # no config
+                load_dataset_builder(ds_name, download_mode="force_redownload")
+
+    def test_push_multiple_dataset_dict_configs_to_hub(self, temporary_repo):
+        ds_config1 = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+        ds_config2 = Dataset.from_dict({"foo": [1, 2], "bar": [4, 5]})
+        ds_config1 = DatasetDict({"random": ds_config1})
+        ds_config2 = DatasetDict({"random": ds_config2})
+
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            ds_config1.push_to_hub(ds_name, "config1", token=self._token)
+            ds_config2.push_to_hub(ds_name, "config2", token=self._token)
+            ds_builder = load_dataset_builder(ds_name, "config1", download_mode="force_redownload")
+            assert len(ds_builder.BUILDER_CONFIGS) == 2
+            assert len(ds_builder.config.data_files["random"]) == 1
+            assert fnmatch.fnmatch(
+                ds_builder.config.data_files["random"][0],
+                "*/config1/random-*",
+            )
+            ds_builder = load_dataset_builder(ds_name, "config2", download_mode="force_redownload")
+            assert len(ds_builder.BUILDER_CONFIGS) == 2
+            assert len(ds_builder.config.data_files["random"]) == 1
+            assert fnmatch.fnmatch(
+                ds_builder.config.data_files["random"][0],
+                "*/config2/random-*",
+            )
+            with pytest.raises(ValueError):  # no config
+                load_dataset_builder(ds_name, download_mode="force_redownload")
+
+    def test_push_dataset_to_hub_with_config_no_metadata_configs(self, temporary_repo):
+        ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+        ds_another_config = Dataset.from_dict({"foo": [1, 2], "bar": [4, 5]})
+        parquet_buf = BytesIO()
+        ds.to_parquet(parquet_buf)
+        parquet_content = parquet_buf.getvalue()
+
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            self._api.create_repo(ds_name, token=self._token, repo_type="dataset")
+            # old push_to_hub was uploading the pqrauet fiels only - without metadata configs
+            self._api.upload_file(
+                path_or_fileobj=parquet_content,
+                path_in_repo="data/train-00000-of-00001.parquet",
+                repo_id=ds_name,
+                repo_type="dataset",
+            )
+            ds_another_config.push_to_hub(ds_name, "another_config", token=self._token)
+            ds_builder = load_dataset_builder(ds_name, download_mode="force_redownload")
+            assert len(ds_builder.config.data_files["train"]) == 1
+            assert len(ds_builder.config.data_files) == 1
+            assert fnmatch.fnmatch(ds_builder.config.data_files["train"][0], "*/data/train-00000-of-00001.parquet")
+            ds_another_config_builder = load_dataset_builder(
+                ds_name, "another_config", download_mode="force_redownload"
+            )
+            assert len(ds_another_config_builder.config.data_files) == 1
+            assert len(ds_another_config_builder.config.data_files["train"]) == 1
+            assert fnmatch.fnmatch(
+                ds_another_config_builder.config.data_files["train"][0],
+                "*/another_config/train-00000-of-00001-*.parquet",
+            )
+
+    def test_push_dataset_dict_to_hub_with_config_no_metadata_configs(self, temporary_repo):
+        ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+        ds_another_config = Dataset.from_dict({"foo": [1, 2], "bar": [4, 5]})
+        parquet_buf = BytesIO()
+        ds.to_parquet(parquet_buf)
+        parquet_content = parquet_buf.getvalue()
+
+        local_ds_another_config = DatasetDict({"random": ds_another_config})
+
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            self._api.create_repo(ds_name, token=self._token, repo_type="dataset")
+            # old push_to_hub was uploading the pqrauet fiels only - without metadata configs
+            self._api.upload_file(
+                path_or_fileobj=parquet_content,
+                path_in_repo="data/random-00000-of-00001.parquet",
+                repo_id=ds_name,
+                repo_type="dataset",
+            )
+            local_ds_another_config.push_to_hub(ds_name, "another_config", token=self._token)
+            ds_builder = load_dataset_builder(ds_name, download_mode="force_redownload")
+            assert len(ds_builder.config.data_files) == 1
+            assert len(ds_builder.config.data_files["random"]) == 1
+            assert fnmatch.fnmatch(ds_builder.config.data_files["random"][0], "*/data/random-00000-of-00001.parquet")
+            ds_another_config_builder = load_dataset_builder(
+                ds_name, "another_config", download_mode="force_redownload"
+            )
+            assert len(ds_another_config_builder.config.data_files) == 1
+            assert len(ds_another_config_builder.config.data_files["random"]) == 1
+            assert fnmatch.fnmatch(
+                ds_another_config_builder.config.data_files["random"][0],
+                "*/another_config/random-00000-of-00001-*.parquet",
+            )

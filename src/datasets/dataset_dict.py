@@ -5,6 +5,7 @@ import os
 import posixpath
 import re
 import warnings
+from fnmatch import fnmatch
 from io import BytesIO
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
@@ -16,7 +17,7 @@ from huggingface_hub import HfApi
 from datasets.utils.metadata import DatasetMetadata, MetadataConfigs
 
 from . import config
-from .arrow_dataset import Dataset
+from .arrow_dataset import PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED, Dataset
 from .download import DownloadConfig
 from .features import Features
 from .features.features import FeatureType
@@ -30,7 +31,7 @@ from .utils import logging
 from .utils.doc_utils import is_documented_by
 from .utils.file_utils import cached_path
 from .utils.hub import hf_hub_url
-from .utils.py_utils import asdict
+from .utils.py_utils import asdict, string_to_dict
 from .utils.typing import PathLike
 
 
@@ -1580,7 +1581,7 @@ class DatasetDict(dict):
             if not re.match(_split_re, split):
                 raise ValueError(f"Split name should match '{_split_re}' but got '{split}'.")
 
-        data_dir = f"{config_name}/data" if config_name != "default" else "data"  # for backward compatibility
+        data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
         for split in self.keys():
             logger.warning(f"Pushing split {split} to the Hub.")
             # The split=key needs to be removed before merging
@@ -1603,18 +1604,62 @@ class DatasetDict(dict):
         info_to_dump.dataset_size = total_dataset_nbytes
         info_to_dump.size_in_bytes = total_uploaded_size + total_dataset_nbytes
 
+        metadata_config_to_dump = {"data_files": [{"split": split, "pattern": f"{data_dir}/{split}-*"}]}
+
         api = HfApi(endpoint=config.HF_ENDPOINT)
         repo_files = api.list_repo_files(repo_id, repo_type="dataset", revision=branch, token=token)
 
-        # push to the deprecated dataset_infos.json
-        if config.DATASETDICT_INFOS_FILENAME in repo_files:
+        # get the info from the README to update them
+        if "README.md" in repo_files:
             download_config = DownloadConfig()
-            download_config.download_desc = "Updating deprecated dataset_infos.json"
+            download_config.download_desc = "Downloading metadata"
+            download_config.use_auth_token = token
+            dataset_readme_path = cached_path(
+                hf_hub_url(repo_id, "README.md"),
+                download_config=download_config,
+            )
+            dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
+            dataset_infos: DatasetInfosDict = DatasetInfosDict.from_metadata(dataset_metadata)
+            metadata_configs = MetadataConfigs.from_metadata(dataset_metadata)
+        # get the deprecated dataset_infos.json to update them
+        elif config.DATASETDICT_INFOS_FILENAME in repo_files:
+            dataset_metadata = DatasetMetadata()
+            metadata_configs = MetadataConfigs()
+            download_config = DownloadConfig()
+            download_config.download_desc = "Downloading metadata"
             download_config.use_auth_token = token
             dataset_infos_path = cached_path(
                 hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME),
                 download_config=download_config,
             )
+            with open(dataset_infos_path, encoding="utf-8") as f:
+                dataset_infos: dict = json.load(f)
+                dataset_infos.get(config_name, None) if dataset_infos else None
+        else:
+            dataset_metadata = DatasetMetadata()
+            metadata_configs = MetadataConfigs()
+        # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
+        if not metadata_configs:
+            _matched_paths = [
+                p
+                for p in repo_files
+                if fnmatch(p, PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*"))
+            ]
+            if len(_matched_paths) > 0:
+                # it was uploaded with push_to_hub before metadata configs existed
+                _resolved_splits = {
+                    string_to_dict(p, PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)["split"]
+                    for p in _matched_paths
+                }
+                default_metadata_configs_to_dump = {
+                    "data_files": [
+                        {"split": _resolved_split, "pattern": f"data/{_resolved_split}-*"}
+                        for _resolved_split in _resolved_splits
+                    ]
+                }
+                MetadataConfigs({"default": default_metadata_configs_to_dump}).to_metadata(dataset_metadata)
+        # push to the deprecated dataset_infos.json
+        if config.DATASETDICT_INFOS_FILENAME in repo_files:
             with open(dataset_infos_path, encoding="utf-8") as f:
                 dataset_infos: DatasetInfosDict = json.load(f)
             dataset_infos[config_name] = asdict(info_to_dump)
@@ -1629,24 +1674,13 @@ class DatasetDict(dict):
                 revision=branch,
             )
         # push to README
+        DatasetInfosDict({config_name: info_to_dump}).to_metadata(dataset_metadata)
+        MetadataConfigs({config_name: metadata_config_to_dump}).to_metadata(dataset_metadata)
         if "README.md" in repo_files:
-            download_config = DownloadConfig()
-            download_config.download_desc = "Downloading metadata"
-            download_config.use_auth_token = token
-            dataset_readme_path = cached_path(
-                hf_hub_url(repo_id, "README.md"),
-                download_config=download_config,
-            )
-            dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
             with open(dataset_readme_path, encoding="utf-8") as readme_file:
                 readme_content = readme_file.read()
         else:
-            dataset_metadata = DatasetMetadata()
             readme_content = f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
-        DatasetInfosDict({config_name: info_to_dump}).to_metadata(dataset_metadata)
-        MetadataConfigs({config_name: {"data_dir": config_name if config_name != "default" else "./"}}).to_metadata(
-            dataset_metadata
-        )
         HfApi(endpoint=config.HF_ENDPOINT).upload_file(
             path_or_fileobj=dataset_metadata._to_readme(readme_content).encode(),
             path_in_repo="README.md",
