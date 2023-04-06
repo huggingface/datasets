@@ -19,7 +19,7 @@ logger = datasets.utils.logging.get_logger(__name__)
 class SparkConfig(datasets.BuilderConfig):
     """BuilderConfig for Spark."""
 
-    pass
+    features: Optional[datasets.Features] = None
 
 
 class Spark(datasets.DatasetBuilder):
@@ -63,10 +63,10 @@ class Spark(datasets.DatasetBuilder):
             if os.path.isfile(probe[0]):
                 return
 
-        raise ValueError("When using Dataset.from_spark on a multi-node cluster, cache_dir must specify an NFS")
+        raise ValueError("When using Dataset.from_spark on a multi-node cluster, the driver and all workers should be able to access cache_dir")
 
     def _info(self):
-        return datasets.DatasetInfo()
+        return datasets.DatasetInfo(features=self.config.features)
 
     def _split_generators(self, dl_manager: datasets.download.download_manager.DownloadManager):
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN)]
@@ -74,6 +74,7 @@ class Spark(datasets.DatasetBuilder):
     def _prepare_split_single(self, fpath: str) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
         # Declare these so that we don't reference self in write_arrow, which will result in a pickling error due to
         # pickling the SparkContext.
+        features = self.config.features
         writer_batch_size = self._writer_batch_size
         storage_options = self._fs.storage_options
 
@@ -84,7 +85,7 @@ class Spark(datasets.DatasetBuilder):
             for batch in it:
                 table = pa.Table.from_batches([batch])
                 writer = ArrowWriter(
-                    features=Features.from_arrow_schema(batch.schema),
+                    features=features,
                     path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
                     writer_batch_size=writer_batch_size,
                     storage_options=storage_options,
