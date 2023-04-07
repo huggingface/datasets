@@ -546,18 +546,18 @@ def mock_fs(file_paths: List[str]):
     [
         # === Main cases ===
         # file named after split at the root
-        {"train": "train.txt", "test": "test.txt", "validation": "valid.txt"},
+        {"train": "train.txt", "validation": "valid.txt", "test": "test.txt"},
         # file named after split in a directory
         {
             "train": "data/train.txt",
-            "test": "data/test.txt",
             "validation": "data/valid.txt",
+            "test": "data/test.txt",
         },
         # directory named after split
         {
             "train": "train/split.txt",
-            "test": "test/split.txt",
             "validation": "valid/split.txt",
+            "test": "test/split.txt",
         },
         # sharded splits
         {
@@ -594,7 +594,7 @@ def mock_fs(file_paths: List[str]):
         {"validation": "val.txt"},
         {"validation": "data/val.txt"},
         # With other extensions
-        {"train": "train.parquet", "test": "test.parquet", "validation": "valid.parquet"},
+        {"train": "train.parquet", "validation": "valid.parquet", "test": "test.parquet"},
         # With "dev" or "eval" without separators
         {"train": "developers_list.txt"},
         {"train": "data/seqeval_results.txt"},
@@ -616,7 +616,7 @@ def test_get_data_files_patterns(data_file_per_split):
         return [PurePath(file_path) for file_path in fs.glob(pattern) if fs.isfile(file_path)]
 
     patterns_per_split = _get_data_files_patterns(resolver)
-    assert patterns_per_split.keys() == data_file_per_split.keys()
+    assert list(patterns_per_split.keys()) == list(data_file_per_split.keys())  # Test split order with list()
     for split, patterns in patterns_per_split.items():
         matched = [file_path.as_posix() for pattern in patterns for file_path in resolver(pattern)]
         assert matched == data_file_per_split[split]
