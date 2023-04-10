@@ -363,7 +363,7 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
     def n_shards(self) -> int:
         return 1
 
-    def shard_data_sources(self, worker_id: int, num_workers: int)\
+    def shard_data_sources(self, worker_id: int, num_workers: int) \
             -> "HorizontallyConcatenatedMultiSourcesExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
         return HorizontallyConcatenatedMultiSourcesExamplesIterable([iterable.shard_data_sources(worker_id, num_workers)
@@ -697,6 +697,22 @@ class TakeExamplesIterable(_BaseExamplesIterable):
     def shuffle_data_sources(self, generator: np.random.Generator) -> "TakeExamplesIterable":
         """Doesn't shuffle the wrapped examples iterable since it would take examples from other shards instead."""
         return self
+
+    @staticmethod
+    def split_number(num, n):
+        quotient = num // n
+        remainder = num % n
+        result = [quotient] * n
+        for i in range(remainder):
+            result[i] += 1
+        return result
+
+    def shard_data_sources(self, worker_id: int, num_workers: int) -> "TakeExamplesIterable":
+        """Keep only the requested shard."""
+        return TakeExamplesIterable(
+            self.ex_iterable.shard_data_sources(worker_id, num_workers),
+            n=self.split_number(self.n, num_workers)[worker_id]
+        )
 
     @property
     def n_shards(self) -> int:
