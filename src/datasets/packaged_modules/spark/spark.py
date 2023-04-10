@@ -74,7 +74,14 @@ class Spark(datasets.DatasetBuilder):
     def _split_generators(self, dl_manager: datasets.download.download_manager.DownloadManager):
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN)]
 
-    def _prepare_split_single(self, fpath: str) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
+    def _prepare_split_single(
+        self,
+        fpath: str,
+        file_format: str,
+    ) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
+        writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
+        embed_local_files = file_format == "parquet"
+
         # Declare these so that we don't reference self in write_arrow, which will result in a pickling error due to
         # pickling the SparkContext.
         features = self.config.features
@@ -87,11 +94,12 @@ class Spark(datasets.DatasetBuilder):
             shard_id = 0
             for batch in it:
                 table = pa.Table.from_batches([batch])
-                writer = ArrowWriter(
+                writer = writer_class(
                     features=features,
                     path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
                     writer_batch_size=writer_batch_size,
                     storage_options=storage_options,
+                    embed_local_files=embed_local_files,
                 )
                 writer.write_table(table)
                 num_examples, num_bytes = writer.finalize()
@@ -136,14 +144,13 @@ class Spark(datasets.DatasetBuilder):
         fname = f"{self.name}-{split_generator.name}{SUFFIX}.{file_format}"
         fpath = path_join(self._output_dir, fname)
 
-
         total_num_examples = 0
         total_num_bytes = 0
         total_shards = 0
         num_shards_by_task_id = {}
         all_shard_lengths = []
 
-        for task_id, content in self._prepare_split_single(fpath):
+        for task_id, content in self._prepare_split_single(fpath, file_format):
             (
                 num_examples,
                 num_bytes,
