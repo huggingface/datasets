@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - main
+      - ci-*
 
 env:
   HF_ALLOW_CODE_EVAL: 1
