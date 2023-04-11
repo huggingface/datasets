@@ -93,8 +93,8 @@ class TmpDirFileSystem(MockFileSystem):
 @pytest.fixture
 def mock_fsspec():
     original_registry = fsspec.registry.copy()
-    fsspec.register_implementation("mock", MockFileSystem)
-    fsspec.register_implementation("tmp", TmpDirFileSystem)
+    fsspec.register_implementation("mock", MockFileSystem, clobber=True)
+    fsspec.register_implementation("tmp", TmpDirFileSystem, clobber=True)
     yield
     fsspec.registry = original_registry
 
