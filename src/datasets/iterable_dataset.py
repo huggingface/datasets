@@ -22,6 +22,7 @@ from .table import table_cast
 from .utils.logging import get_logger
 from .utils.sharding import _merge_gen_kwargs, _number_of_shards_in_gen_kwargs, _shuffle_gen_kwargs, _split_gen_kwargs
 
+
 logger = get_logger(__name__)
 
 
@@ -201,7 +202,7 @@ class StepExamplesIterable(_BaseExamplesIterable):
 
 class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
     def __init__(
-            self, ex_iterables: List[_BaseExamplesIterable], stopping_strategy: Optional[str] = "first_exhausted"
+        self, ex_iterables: List[_BaseExamplesIterable], stopping_strategy: Optional[str] = "first_exhausted"
     ):
         self.ex_iterables = ex_iterables
         self.stopping_strategy = stopping_strategy
@@ -254,9 +255,10 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
 
     def shard_data_sources(self, worker_id: int, num_workers: int) -> "CyclingMultiSourcesExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
-        return CyclingMultiSourcesExamplesIterable([iterable.shard_data_sources(worker_id, num_workers) for
-                                                    iterable in self.ex_iterables],
-                                                   stopping_strategy=self.stopping_strategy)
+        return CyclingMultiSourcesExamplesIterable(
+            [iterable.shard_data_sources(worker_id, num_workers) for iterable in self.ex_iterables],
+            stopping_strategy=self.stopping_strategy,
+        )
 
 
 class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
@@ -280,7 +282,7 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
             yield from ex_iterable
 
     def shuffle_data_sources(
-            self, generator: np.random.Generator
+        self, generator: np.random.Generator
     ) -> "VerticallyConcatenatedMultiSourcesExamplesIterable":
         """Shuffle the list of examples iterable, as well as each underlying examples iterable."""
         rng = deepcopy(generator)
@@ -293,12 +295,13 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
     def n_shards(self) -> int:
         return sum(ex_iterable.n_shards for ex_iterable in self.ex_iterables)
 
-    def shard_data_sources(self, worker_id: int,
-                           num_workers: int) -> "VerticallyConcatenatedMultiSourcesExamplesIterable":
+    def shard_data_sources(
+        self, worker_id: int, num_workers: int
+    ) -> "VerticallyConcatenatedMultiSourcesExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
         return VerticallyConcatenatedMultiSourcesExamplesIterable(
-            [iterable.shard_data_sources(worker_id, num_workers) for
-             iterable in self.ex_iterables])
+            [iterable.shard_data_sources(worker_id, num_workers) for iterable in self.ex_iterables]
+        )
 
 
 def _check_column_names(column_names: List[str]):
@@ -354,7 +357,7 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
                 break
 
     def shuffle_data_sources(
-            self, generator: np.random.Generator
+        self, generator: np.random.Generator
     ) -> "HorizontallyConcatenatedMultiSourcesExamplesIterable":
         """Doesn't shuffle the wrapped examples iterable since it would break the alignment between them."""
         return self
@@ -363,20 +366,22 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
     def n_shards(self) -> int:
         return 1
 
-    def shard_data_sources(self, worker_id: int, num_workers: int) \
-            -> "HorizontallyConcatenatedMultiSourcesExamplesIterable":
+    def shard_data_sources(
+        self, worker_id: int, num_workers: int
+    ) -> "HorizontallyConcatenatedMultiSourcesExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
-        return HorizontallyConcatenatedMultiSourcesExamplesIterable([iterable.shard_data_sources(worker_id, num_workers)
-                                                                     for iterable in self.ex_iterables])
+        return HorizontallyConcatenatedMultiSourcesExamplesIterable(
+            [iterable.shard_data_sources(worker_id, num_workers) for iterable in self.ex_iterables]
+        )
 
 
 class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIterable):
     def __init__(
-            self,
-            ex_iterables,
-            generator: np.random.Generator,
-            probabilities: Optional[List[float]] = None,
-            stopping_strategy: Optional[str] = "first_exhausted",
+        self,
+        ex_iterables,
+        generator: np.random.Generator,
+        probabilities: Optional[List[float]] = None,
+        stopping_strategy: Optional[str] = "first_exhausted",
     ):
         super().__init__(ex_iterables, stopping_strategy)
         self.generator = deepcopy(generator)
@@ -384,10 +389,10 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
 
     @staticmethod
     def _iter_random_indices(
-            rng: np.random.Generator,
-            num_sources: int,
-            random_batch_size=1000,
-            p: Optional[List[float]] = None,
+        rng: np.random.Generator,
+        num_sources: int,
+        random_batch_size=1000,
+        p: Optional[List[float]] = None,
     ) -> Iterator[int]:
         """Get an infinite iterator that randomly samples the index of the source to pick examples from."""
         if p is None:
@@ -412,26 +417,25 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
     def shard_data_sources(self, worker_id: int, num_workers: int) -> "RandomlyCyclingMultiSourcesExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
         return RandomlyCyclingMultiSourcesExamplesIterable(
-            [iterable.shard_data_sources(worker_id, num_workers)
-             for iterable in self.ex_iterables],
+            [iterable.shard_data_sources(worker_id, num_workers) for iterable in self.ex_iterables],
             self.generator,
             self.probabilities,
-            self.stopping_strategy
+            self.stopping_strategy,
         )
 
 
 class MappedExamplesIterable(_BaseExamplesIterable):
     def __init__(
-            self,
-            ex_iterable: _BaseExamplesIterable,
-            function: Callable,
-            with_indices: bool = False,
-            input_columns: Optional[List[str]] = None,
-            batched: bool = False,
-            batch_size: Optional[int] = 1000,
-            drop_last_batch: bool = False,
-            remove_columns: Optional[List[str]] = None,
-            fn_kwargs: Optional[dict] = None,
+        self,
+        ex_iterable: _BaseExamplesIterable,
+        function: Callable,
+        with_indices: bool = False,
+        input_columns: Optional[List[str]] = None,
+        batched: bool = False,
+        batch_size: Optional[int] = 1000,
+        drop_last_batch: bool = False,
+        remove_columns: Optional[List[str]] = None,
+        fn_kwargs: Optional[dict] = None,
     ):
         self.ex_iterable = ex_iterable
         self.function = function
@@ -457,10 +461,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 key_examples_list = [(key, example)] + [(key, example) for key, example in iterator_batch]
                 keys, examples = zip(*key_examples_list)
                 if (
-                        self.drop_last_batch
-                        and self.batch_size is not None
-                        and self.batch_size > 0
-                        and len(examples) < self.batch_size
+                    self.drop_last_batch
+                    and self.batch_size is not None
+                    and self.batch_size > 0
+                    and len(examples) < self.batch_size
                 ):  # ignore last batch
                     return
                 batch = _examples_to_batch(examples)
@@ -544,13 +548,13 @@ class MappedExamplesIterable(_BaseExamplesIterable):
 
 class FilteredExamplesIterable(_BaseExamplesIterable):
     def __init__(
-            self,
-            ex_iterable: _BaseExamplesIterable,
-            function: Callable,
-            with_indices: bool = False,
-            input_columns: Optional[List[str]] = None,
-            batched: bool = False,
-            batch_size: Optional[int] = 1000,
+        self,
+        ex_iterable: _BaseExamplesIterable,
+        function: Callable,
+        with_indices: bool = False,
+        input_columns: Optional[List[str]] = None,
+        batched: bool = False,
+        batch_size: Optional[int] = 1000,
     ):
         self.ex_iterable = ex_iterable
         self.function = function
@@ -661,7 +665,8 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
         """Keep only the requested shard."""
         return BufferShuffledExamplesIterable(
             self.ex_iterable.shard_data_sources(worker_id, num_workers),
-            buffer_size=self.buffer_size, generator=self.generator
+            buffer_size=self.buffer_size,
+            generator=self.generator,
         )
 
     @property
@@ -711,7 +716,7 @@ class TakeExamplesIterable(_BaseExamplesIterable):
         """Keep only the requested shard."""
         return TakeExamplesIterable(
             self.ex_iterable.shard_data_sources(worker_id, num_workers),
-            n=self.split_number(self.n, num_workers)[worker_id]
+            n=self.split_number(self.n, num_workers)[worker_id],
         )
 
     @property
@@ -720,7 +725,7 @@ class TakeExamplesIterable(_BaseExamplesIterable):
 
 
 def _apply_feature_types_on_example(
-        example: dict, features: Features, token_per_repo_id: Dict[str, Union[str, bool, None]]
+    example: dict, features: Features, token_per_repo_id: Dict[str, Union[str, bool, None]]
 ) -> dict:
     example = dict(example)
     # add missing columns
@@ -735,7 +740,7 @@ def _apply_feature_types_on_example(
 
 
 def _apply_feature_types_on_batch(
-        batch: dict, features: Features, token_per_repo_id: Dict[str, Union[str, bool, None]]
+    batch: dict, features: Features, token_per_repo_id: Dict[str, Union[str, bool, None]]
 ) -> dict:
     batch = dict(batch)
     # add missing columns
@@ -752,10 +757,10 @@ def _apply_feature_types_on_batch(
 
 class TypedExamplesIterable(_BaseExamplesIterable):
     def __init__(
-            self,
-            ex_iterable: _BaseExamplesIterable,
-            features: Features,
-            token_per_repo_id: Dict[str, Union[str, bool, None]],
+        self,
+        ex_iterable: _BaseExamplesIterable,
+        features: Features,
+        token_per_repo_id: Dict[str, Union[str, bool, None]],
     ):
         self.ex_iterable = ex_iterable
         self.features = features
@@ -826,14 +831,14 @@ class IterableDataset(DatasetInfoMixin):
     """A Dataset backed by an iterable."""
 
     def __init__(
-            self,
-            ex_iterable: _BaseExamplesIterable,
-            info: Optional[DatasetInfo] = None,
-            split: Optional[NamedSplit] = None,
-            format_type: Optional[str] = None,
-            shuffling: Optional[ShufflingConfig] = None,
-            distributed: Optional[DistributedConfig] = None,
-            token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None,
+        self,
+        ex_iterable: _BaseExamplesIterable,
+        info: Optional[DatasetInfo] = None,
+        split: Optional[NamedSplit] = None,
+        format_type: Optional[str] = None,
+        shuffling: Optional[ShufflingConfig] = None,
+        distributed: Optional[DistributedConfig] = None,
+        token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None,
     ):
         if distributed and distributed.world_size > 1 and shuffling and shuffling._original_seed is None:
             raise RuntimeError(
@@ -1008,9 +1013,9 @@ class IterableDataset(DatasetInfoMixin):
 
     @staticmethod
     def from_generator(
-            generator: Callable,
-            features: Optional[Features] = None,
-            gen_kwargs: Optional[dict] = None,
+        generator: Callable,
+        features: Optional[Features] = None,
+        gen_kwargs: Optional[dict] = None,
     ) -> "IterableDataset":
         """Create an Iterable Dataset from a generator.
 
@@ -1061,8 +1066,8 @@ class IterableDataset(DatasetInfoMixin):
         ).read()
 
     def with_format(
-            self,
-            type: Optional[str] = None,
+        self,
+        type: Optional[str] = None,
     ) -> "IterableDataset":
         """
         Return a dataset with the specified format.
@@ -1089,16 +1094,16 @@ class IterableDataset(DatasetInfoMixin):
         )
 
     def map(
-            self,
-            function: Optional[Callable] = None,
-            with_indices: bool = False,
-            input_columns: Optional[Union[str, List[str]]] = None,
-            batched: bool = False,
-            batch_size: Optional[int] = 1000,
-            drop_last_batch: bool = False,
-            remove_columns: Optional[Union[str, List[str]]] = None,
-            features: Optional[Features] = None,
-            fn_kwargs: Optional[dict] = None,
+        self,
+        function: Optional[Callable] = None,
+        with_indices: bool = False,
+        input_columns: Optional[Union[str, List[str]]] = None,
+        batched: bool = False,
+        batch_size: Optional[int] = 1000,
+        drop_last_batch: bool = False,
+        remove_columns: Optional[Union[str, List[str]]] = None,
+        features: Optional[Features] = None,
+        fn_kwargs: Optional[dict] = None,
     ) -> "IterableDataset":
         """
         Apply a function to all the examples in the iterable dataset (individually or in batches) and update them.
@@ -1201,12 +1206,12 @@ class IterableDataset(DatasetInfoMixin):
         )
 
     def filter(
-            self,
-            function: Optional[Callable] = None,
-            with_indices=False,
-            input_columns: Optional[Union[str, List[str]]] = None,
-            batched: bool = False,
-            batch_size: Optional[int] = 1000,
+        self,
+        function: Optional[Callable] = None,
+        with_indices=False,
+        input_columns: Optional[Union[str, List[str]]] = None,
+        batched: bool = False,
+        batch_size: Optional[int] = 1000,
     ) -> "IterableDataset":
         """Apply a filter function to all the elements so that the dataset only includes examples according to the filter function.
         The filtering is done on-the-fly when iterating over the dataset.
@@ -1274,7 +1279,7 @@ class IterableDataset(DatasetInfoMixin):
         )
 
     def shuffle(
-            self, seed=None, generator: Optional[np.random.Generator] = None, buffer_size: int = 1000
+        self, seed=None, generator: Optional[np.random.Generator] = None, buffer_size: int = 1000
     ) -> "IterableDataset":
         """
         Randomly shuffles the elements of this dataset.
@@ -1672,8 +1677,8 @@ class IterableDataset(DatasetInfoMixin):
         )
 
     def cast(
-            self,
-            features: Features,
+        self,
+        features: Features,
     ) -> "IterableDataset":
         """
         Cast the dataset to a new set of features.
@@ -1755,10 +1760,10 @@ class IterableDataset(DatasetInfoMixin):
 
 
 def _concatenate_iterable_datasets(
-        dsets: List[IterableDataset],
-        info: Optional[DatasetInfo] = None,
-        split: Optional[NamedSplit] = None,
-        axis: int = 0,
+    dsets: List[IterableDataset],
+    info: Optional[DatasetInfo] = None,
+    split: Optional[NamedSplit] = None,
+    axis: int = 0,
 ) -> IterableDataset:
     """
     Converts a list of `IterableDataset` with the same schema into a single `IterableDataset`.
@@ -1815,12 +1820,12 @@ def _concatenate_iterable_datasets(
 
 
 def _interleave_iterable_datasets(
-        datasets: List[IterableDataset],
-        probabilities: Optional[List[float]] = None,
-        seed: Optional[int] = None,
-        info: Optional[DatasetInfo] = None,
-        split: Optional[NamedSplit] = None,
-        stopping_strategy: Optional[str] = "first_exhausted",
+    datasets: List[IterableDataset],
+    probabilities: Optional[List[float]] = None,
+    seed: Optional[int] = None,
+    info: Optional[DatasetInfo] = None,
+    split: Optional[NamedSplit] = None,
+    stopping_strategy: Optional[str] = "first_exhausted",
 ) -> IterableDataset:
     """
     Interleave several iterable datasets (sources) into a single iterable dataset.
