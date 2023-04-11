@@ -38,6 +38,7 @@ NON_WORDS_CHARS = "-._ 0-9"
 KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**[{sep}/]{keyword}[{sep}]*", "{keyword}[{sep}]*"]
 KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**[{sep}/]{keyword}[{sep}/]**"]
 
+DEFAULT_SPLITS = [Split.TRAIN, Split.TEST, Split.VALIDATION]
 DEFAULT_PATTERNS_SPLIT_IN_FILENAME = {
     Split.TRAIN: [
         pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
@@ -226,7 +227,10 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], List[PurePath]]) 
         if len(data_files) > 0:
             data_files = [p.as_posix() for p in data_files]
             splits: Set[str] = {string_to_dict(p, split_pattern)["split"] for p in data_files}
-            return {split: [split_pattern.format(split=split)] for split in splits}
+            sorted_splits = [str(split) for split in DEFAULT_SPLITS if split in splits] + sorted(
+                splits - set(DEFAULT_SPLITS)
+            )
+            return {split: [split_pattern.format(split=split)] for split in sorted_splits}
     # then check the default patterns based on train/valid/test splits
     for patterns_dict in ALL_DEFAULT_PATTERNS:
         non_empty_splits = []
