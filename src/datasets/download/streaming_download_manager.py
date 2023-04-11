@@ -774,8 +774,7 @@ def xnumpy_load(filepath_or_buffer, *args, use_auth_token: Optional[Union[str, b
         return np.load(filepath_or_buffer, *args, **kwargs)
     else:
         filepath_or_buffer = str(filepath_or_buffer)
-        with xopen(filepath_or_buffer, "rb", use_auth_token=use_auth_token) as f:
-            return np.load(f, *args, **kwargs)
+        return np.load(xopen(filepath_or_buffer, "rb", use_auth_token=use_auth_token), *args, **kwargs)
 
 
 def xpandas_read_csv(filepath_or_buffer, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
