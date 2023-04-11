@@ -5,6 +5,7 @@ from typing import Iterable, Optional, Tuple, Union
 
 import pyarrow as pa
 import pyspark
+from tqdm.contrib.concurrent import thread_map
 
 import datasets
 from datasets.arrow_writer import ArrowWriter
@@ -147,7 +148,7 @@ class Spark(datasets.DatasetBuilder):
         total_num_examples = 0
         total_num_bytes = 0
         total_shards = 0
-        num_shards_by_task_id = {}
+        task_id_and_num_shards = []
         all_shard_lengths = []
 
         for task_id, content in self._prepare_split_single(fpath, file_format):
@@ -160,7 +161,7 @@ class Spark(datasets.DatasetBuilder):
             total_num_examples += num_examples
             total_num_bytes += num_bytes
             total_shards += num_shards
-            num_shards_by_task_id[task_id] = num_shards
+            task_id_and_num_shards.append((task_id, num_shards))
             all_shard_lengths.extend(shard_lengths)
 
         split_generator.split_info.num_examples = total_num_examples
@@ -172,18 +173,25 @@ class Spark(datasets.DatasetBuilder):
             split_generator.split_info.shard_lengths = all_shard_lengths
 
             # use the -SSSSS-of-NNNNN pattern
+            def _rename_shard(args: Tuple[int]):
+                task_id, shard_id, global_shard_id = args
+                self._rename(
+                    fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
+                    fpath.replace("TTTTT-SSSSS", f"{global_shard_id:05d}").replace("NNNNN", f"{total_shards:05d}"),
+                )
+
+            args = []
             global_shard_id = 0
-            for task_id, num_shards in num_shards_by_task_id.items():
-                for shard_id in range(num_shards):
-                    self._rename(
-                        fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
-                        fpath.replace("TTTTT-SSSSS", f"{global_shard_id:05d}").replace("NNNNN", f"{total_shards:05d}"),
-                    )
+            for i in range(len(task_id_and_num_shards)):
+                task_id, num_shards = task_id_and_num_shards[i]
+                for s in range(num_shards):
+                    args.append((task_id, s, global_shard_id))
                     global_shard_id += 1
+            thread_map(_rename_shard, args, disable=True, max_workers=64)
         else:
             # don't use any pattern
             shard_id = 0
-            task_id = list(num_shards_by_task_id.keys())[0]
+            task_id = task_id_and_num_shards[0][0]
             self._rename(
                 fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
                 fpath.replace(SUFFIX, ""),
