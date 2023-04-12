@@ -57,7 +57,6 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
-import pyspark
 from huggingface_hub import HfApi, HfFolder
 from multiprocess import Pool
 from requests import HTTPError
@@ -125,6 +124,7 @@ except ImportError:
     from typing_extensions import Literal
 
 if TYPE_CHECKING:
+    import pyspark
     import sqlite3
 
     import sqlalchemy
@@ -1228,14 +1228,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def from_spark(
-        df: pyspark.sql.DataFrame,
+        df: "pyspark.sql.DataFrame",
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
         force_download: bool = False,
         **kwargs,
     ):
-        """Create Dataset from Spark DataFrame.
+        """Create Dataset from Spark DataFrame. Dataset downloading is distributed over Spark workers.
 
         Args:
             df (`pyspark.sql.DataFrame`):

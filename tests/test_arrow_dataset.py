@@ -4,6 +4,7 @@ import itertools
 import json
 import os
 import pickle
+import PIL.Image
 import re
 import sys
 import tempfile
@@ -3638,8 +3639,8 @@ def test_from_spark():
 def test_from_spark_features():
     spark = pyspark.sql.SparkSession.builder.appName("pyspark").getOrCreate()
     data = [(0, np.arange(4 * 4 * 3).reshape(4, 4, 3).tolist())]
-    df = spark.createDataFrame(data, "idx: int, img_bytes: array<array<array<int>>>")
-    features = Features({"idx": Value("int64"), "img_bytes": Image()})
+    df = spark.createDataFrame(data, "idx: int, image: array<array<array<int>>>")
+    features = Features({"idx": Value("int64"), "image": Image()})
     dataset = Dataset.from_spark(
         df,
         features=features,
@@ -3647,7 +3648,8 @@ def test_from_spark_features():
     assert isinstance(dataset, Dataset)
     assert dataset.num_rows == 1
     assert dataset.num_columns == 2
-    assert dataset.column_names == ["idx", "img_bytes"]
+    assert dataset.column_names == ["idx", "image"]
+    assert isinstance(dataset[0]["image"], PIL.Image.Image)
     assert dataset.features == features
     assert_arrow_metadata_are_synced_with_dataset_features(dataset)
 

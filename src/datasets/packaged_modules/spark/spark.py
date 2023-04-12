@@ -9,7 +9,9 @@ from tqdm.contrib.concurrent import thread_map
 
 import datasets
 from datasets.arrow_writer import ArrowWriter
+from datasets.config import MAX_SHARD_SIZE
 from datasets.filesystems import is_remote_filesystem
+from datasets.utils.py_utils import convert_file_size_to_int
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -79,6 +81,7 @@ class Spark(datasets.DatasetBuilder):
         self,
         fpath: str,
         file_format: str,
+        max_shard_size: int,
     ) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"
@@ -93,19 +96,36 @@ class Spark(datasets.DatasetBuilder):
             # Within the same SparkContext, no two task attempts will share the same attempt ID.
             task_id = pyspark.TaskContext().taskAttemptId()
             shard_id = 0
+            writer = writer_class(
+                features=features,
+                path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
+                writer_batch_size=writer_batch_size,
+                storage_options=storage_options,
+                embed_local_files=embed_local_files,
+            )
             for batch in it:
+                if max_shard_size is not None and writer._num_bytes >= max_shard_size:
+                    num_examples, num_bytes = writer.finalize()
+                    writer.close()
+                    yield pa.RecordBatch.from_arrays(
+                        [[task_id], [num_examples], [num_bytes]],
+                        names=["task_id", "num_examples", "num_bytes"],
+                    )
+                    shard_id += 1
+                    writer = writer_class(
+                        features=writer._features,
+                        path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
+                        writer_batch_size=writer_batch_size,
+                        storage_options=storage_options,
+                        embed_local_files=embed_local_files,
+                    )
                 table = pa.Table.from_batches([batch])
-                writer = writer_class(
-                    features=features,
-                    path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
-                    writer_batch_size=writer_batch_size,
-                    storage_options=storage_options,
-                    embed_local_files=embed_local_files,
-                )
                 writer.write_table(table)
+
+            # Some partitions might not receive any data.
+            if writer._num_bytes > 0:
                 num_examples, num_bytes = writer.finalize()
                 writer.close()
-                shard_id += 1
                 yield pa.RecordBatch.from_arrays(
                     [[task_id], [num_examples], [num_bytes]],
                     names=["task_id", "num_examples", "num_bytes"],
@@ -133,6 +153,7 @@ class Spark(datasets.DatasetBuilder):
         num_proc: Optional[int] = None,
         **kwargs,
     ):
+        max_shard_size = convert_file_size_to_int(max_shard_size or MAX_SHARD_SIZE)
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
 
@@ -151,7 +172,7 @@ class Spark(datasets.DatasetBuilder):
         task_id_and_num_shards = []
         all_shard_lengths = []
 
-        for task_id, content in self._prepare_split_single(fpath, file_format):
+        for task_id, content in self._prepare_split_single(fpath, file_format, max_shard_size):
             (
                 num_examples,
                 num_bytes,

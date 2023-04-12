@@ -19,7 +19,6 @@ class SparkDatasetReader(AbstractDatasetReader):
         **kwargs,
     ):
         super().__init__(
-            path_or_paths="unused",
             split=split,
             features=features,
             cache_dir=cache_dir,
@@ -34,7 +33,9 @@ class SparkDatasetReader(AbstractDatasetReader):
         )
 
     def read(self):
+        if self.streaming:
+            # TODO: Support as_streaming_dataset.
+            raise ValueError("SparkDatasetReader is not streamable.")
         download_mode = DownloadMode.FORCE_REDOWNLOAD if self._force_download else None
         self.builder.download_and_prepare(download_mode=download_mode)
-        # TODO: Support as_streaming_dataset.
         return self.builder.as_dataset(split=self.split)
