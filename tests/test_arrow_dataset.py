@@ -113,7 +113,7 @@ IN_MEMORY_PARAMETERS = [
 @parameterized.named_parameters(IN_MEMORY_PARAMETERS)
 class BaseDatasetTest(TestCase):
     @pytest.fixture(autouse=True)
-    def inject_fixtures(self, caplog):
+    def inject_fixtures(self, caplog, set_sqlalchemy_silence_uber_warning):
         self._caplog = caplog
 
     def _create_dummy_dataset(
