@@ -131,7 +131,7 @@ class DummyTestFS(AbstractFileSystem):
 @pytest.fixture
 def mock_fsspec():
     original_registry = fsspec.registry.copy()
-    fsspec.register_implementation("mock", DummyTestFS, clobber=True)
+    fsspec.register_implementation("mock", DummyTestFS)
     yield
     fsspec.registry = original_registry
 
