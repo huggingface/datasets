@@ -4,7 +4,6 @@ import itertools
 import json
 import os
 import pickle
-import PIL.Image
 import re
 import sys
 import tempfile
@@ -16,6 +15,7 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import numpy.testing as npt
 import pandas as pd
+import PIL.Image
 import pyarrow as pa
 import pyspark
 import pytest

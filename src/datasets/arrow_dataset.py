@@ -124,9 +124,9 @@ except ImportError:
     from typing_extensions import Literal
 
 if TYPE_CHECKING:
-    import pyspark
     import sqlite3
 
+    import pyspark
     import sqlalchemy
 
     from .dataset_dict import DatasetDict
