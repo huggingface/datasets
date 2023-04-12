@@ -5,12 +5,14 @@ from typing import Iterable, Optional, Tuple, Union
 
 import pyarrow as pa
 import pyspark
-from tqdm.contrib.concurrent import thread_map
 
 import datasets
 from datasets.arrow_writer import ArrowWriter
 from datasets.config import MAX_SHARD_SIZE
-from datasets.filesystems import is_remote_filesystem
+from datasets.filesystems import (
+    is_remote_filesystem,
+    rename,
+)
 from datasets.utils.py_utils import convert_file_size_to_int
 
 
@@ -87,7 +89,7 @@ class Spark(datasets.DatasetBuilder):
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"
 
-        # Declare these so that we don't reference self in write_arrow, which will result in a pickling error due to
+        # Define these so that we don't reference self in write_arrow, which will result in a pickling error due to
         # pickling the SparkContext.
         features = self.config.features
         writer_batch_size = self._writer_batch_size
@@ -194,10 +196,18 @@ class Spark(datasets.DatasetBuilder):
         if total_shards > 1:
             split_generator.split_info.shard_lengths = all_shard_lengths
 
+            # Define fs outside of _rename_shard so that we don't reference self in the function, which will result in a
+            # pickling error due to pickling the SparkContext.
+            fs = self._fs
+
             # use the -SSSSS-of-NNNNN pattern
-            def _rename_shard(args: Tuple[int]):
-                task_id, shard_id, global_shard_id = args
-                self._rename(
+            def _rename_shard(
+                task_id: int,
+                shard_id: int,
+                global_shard_id: int,
+            ):
+                rename(
+                    fs,
                     fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
                     fpath.replace("TTTTT-SSSSS", f"{global_shard_id:05d}").replace("NNNNN", f"{total_shards:05d}"),
                 )
@@ -206,10 +216,10 @@ class Spark(datasets.DatasetBuilder):
             global_shard_id = 0
             for i in range(len(task_id_and_num_shards)):
                 task_id, num_shards = task_id_and_num_shards[i]
-                for s in range(num_shards):
-                    args.append((task_id, s, global_shard_id))
+                for shard_id in range(num_shards):
+                    args.append([task_id, shard_id, global_shard_id])
                     global_shard_id += 1
-            thread_map(_rename_shard, args, disable=True, max_workers=64)
+            self._spark.sparkContext.parallelize(args, len(args)).map(lambda args: _rename_shard(*args)).collect()
         else:
             # don't use any pattern
             shard_id = 0
