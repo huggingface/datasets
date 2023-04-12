@@ -251,7 +251,7 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
 
     @property
     def n_shards(self) -> int:
-        return sum(ex_iterable.n_shards for ex_iterable in self.ex_iterables)
+        return min(ex_iterable.n_shards for ex_iterable in self.ex_iterables)
 
     def shard_data_sources(self, worker_id: int, num_workers: int) -> "CyclingMultiSourcesExamplesIterable":
         """Either keep only the requested shard, or propagate the request to the underlying iterable."""
@@ -293,7 +293,7 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
 
     @property
     def n_shards(self) -> int:
-        return sum(ex_iterable.n_shards for ex_iterable in self.ex_iterables)
+        return min(ex_iterable.n_shards for ex_iterable in self.ex_iterables)
 
     def shard_data_sources(
         self, worker_id: int, num_workers: int
