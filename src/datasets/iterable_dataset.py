@@ -951,8 +951,7 @@ class IterableDataset(DatasetInfoMixin):
                     logger.warning(
                         f"Assigning {n_shards_per_node} shard{plural} (or data source{plural}) of the dataset to each node."
                     )
-                shards_indices = list(range(rank, ex_iterable.n_shards, world_size))
-                ex_iterable = ex_iterable.shard_data_sources(shards_indices)
+                ex_iterable = ex_iterable.shard_data_sources(rank, world_size)
             else:
                 if self._is_main_process():
                     logger.warning(
