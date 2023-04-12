@@ -31,7 +31,7 @@ class Spark(datasets.DatasetBuilder):
         self,
         df: pyspark.sql.DataFrame,
         cache_dir: str = None,
-        **kwargs,
+        **config_kwargs,
     ):
         self._spark = pyspark.sql.SparkSession.builder.getOrCreate()
         self.df = df
@@ -39,7 +39,8 @@ class Spark(datasets.DatasetBuilder):
 
         super().__init__(
             cache_dir=cache_dir,
-            **kwargs,
+            config_name=str(self.df.semanticHash()),
+            **config_kwargs,
         )
 
     def _validate_cache_dir(self, cache_dir):

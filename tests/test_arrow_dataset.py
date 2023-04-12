@@ -3654,6 +3654,19 @@ def test_from_spark_features():
     assert_arrow_metadata_are_synced_with_dataset_features(dataset)
 
 
+def test_from_spark_different_cache():
+    spark = pyspark.sql.SparkSession.builder.appName("pyspark").getOrCreate()
+    df = spark.createDataFrame([("0", 0)], "col_1: string, col_2: int")
+    dataset = Dataset.from_spark(df)
+    assert isinstance(dataset, Dataset)
+    different_df = spark.createDataFrame([("1", 1)], "col_1: string, col_2: int")
+    different_dataset = Dataset.from_spark(different_df)
+    assert isinstance(different_dataset, Dataset)
+    assert dataset[0]["col_1"] == "0"
+    # Check to make sure that the second dataset wasn't read from the cache.
+    assert different_dataset[0]["col_1"] == "1"
+
+
 def _check_sql_dataset(dataset, expected_features):
     assert isinstance(dataset, Dataset)
     assert dataset.num_rows == 4
