@@ -832,14 +832,12 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
     def __init__(
         self,
         name: str,
-        config_name: Optional[str] = None,
         data_dir: Optional[str] = None,
         data_files: Optional[Union[str, List, Dict]] = None,
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[Union[DownloadMode, str]] = None,
     ):
         self.name = name
-        self.config_name = config_name
         self.data_files = data_files
         self.data_dir = data_dir
         self.download_config = download_config
@@ -847,30 +845,6 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
-        def find_readme_in_files(files):
-            readme_candidates = [filename for filename in files if os.path.split(filename)[1] == "README.md"]
-            if len(readme_candidates) == 1 and Path(readme_candidates[0]).resolve().exists():
-                return Path(readme_candidates[0]).resolve()
-            if len(readme_candidates) > 1:
-                raise ValueError("Found more then one README.md file. ")
-            return None
-
-        if self.data_files:
-            readme_path = find_readme_in_files(self.data_files)
-        elif self.data_dir and (Path(self.data_dir) / "README.md").resolve().exists():
-            readme_path = (Path(self.data_dir) / "README.md").resolve()
-        else:
-            readme_path = None
-
-        dataset_metadata = (
-            DatasetMetadata.from_readme(readme_path)
-            if readme_path and os.path.isfile(readme_path)
-            else DatasetMetadata()
-        )
-        metadata_configs_dict = (
-            MetadataConfigs.from_metadata(dataset_metadata) if dataset_metadata else MetadataConfigs()
-        )
-
         base_path = str(Path(self.data_dir).resolve()) if self.data_dir is not None else str(Path().resolve())
         patterns = (
             sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns_locally(base_path)
@@ -886,28 +860,13 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
 
         module_path, hash = _PACKAGED_DATASETS_MODULES[self.name]
 
-        if metadata_configs_dict:
-            metadata_configs_dict.resolve_data_files_locally(
-                base_path=base_path,
-                with_metadata_files=supports_metadata,
-                allowed_extensions=ALL_ALLOWED_EXTENSIONS,
-            )
-            # config_name is provided, and it exists in metadata - update module hash with corresponding params
-            if self.config_name and self.config_name in metadata_configs_dict:
-                config_params = metadata_configs_dict[self.config_name]
-                hash = update_hash_with_config_parameters(hash, config_params)
-            # config_name is not provided but there is a single config in meta, so we take it's params to update module hash
-            elif not self.config_name and len(metadata_configs_dict) == 1:
-                config_params = next(iter(metadata_configs_dict.values()))
-                hash = update_hash_with_config_parameters(hash, config_params)
-
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
-            "config_name": self.config_name if metadata_configs_dict else "default",
+            "config_name": "default",
         }
 
-        return DatasetModule(module_path, hash, builder_kwargs, metadata_configs_dict)
+        return DatasetModule(module_path, hash, builder_kwargs, None)
 
 
 class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
