@@ -42,6 +42,7 @@ from .utils import (
     assert_arrow_memory_increases,
     offline,
     require_pil,
+    require_sndfile,
     set_current_working_directory_to_temp_dir,
 )
 
@@ -78,6 +79,7 @@ SAMPLE_DATASET_IDENTIFIER3 = "mariosasko/test_multi_dir_dataset"  # has multiple
 SAMPLE_DATASET_IDENTIFIER4 = "mariosasko/test_imagefolder_with_metadata"  # imagefolder with a metadata file outside of the train/test directories
 SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER = "lhoestq/_dummy"
 SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST = "_dummy"
+SAMPLE_DATASET_NO_CONFIGS_IN_METADATA = "polinaeterna/audiofolder_no_configs_in_metadata"
 SAMPLE_DATASET_ONE_DEFAULT_CONFIG_IN_METADATA = "polinaeterna/audiofolder_one_default_config_in_metadata"
 SAMPLE_DATASET_ONE_NONDEFAULT_CONFIG_IN_METADATA = "polinaeterna/audiofolder_one_nondefault_config_in_metadata"
 SAMPLE_DATASET_TWO_CONFIG_IN_METADATA = "polinaeterna/audiofolder_two_configs_in_metadata"
@@ -1102,8 +1104,65 @@ def test_load_streaming_private_dataset_with_zipped_data(hf_token, hf_private_da
     assert next(iter(ds)) is not None
 
 
+@require_sndfile
 @pytest.mark.integration
-def test_load_packaged_dataset_with_metadata_config_in_parallel():
+def test_load_hub_dataset_without_script_with_one_default_config_in_metadata():
+    # load the same dataset but with no configurations (=with default parameters)
+    ds = load_dataset(SAMPLE_DATASET_NO_CONFIGS_IN_METADATA)
+    assert list(ds["train"].features) == ["audio", "label"]  # assert label feature is here as expected by default
+    assert len(ds["train"]) == 5 and len(ds["test"]) == 4
+
+    ds2 = load_dataset(SAMPLE_DATASET_ONE_DEFAULT_CONFIG_IN_METADATA)
+    assert list(ds2["train"].features) == ["audio"]  # assert param `drop_labels=True` from metadata is passed
+    assert len(ds2["train"]) == 3 and len(ds2["test"]) == 3
+
+    ds3 = load_dataset(SAMPLE_DATASET_ONE_DEFAULT_CONFIG_IN_METADATA, "default")
+    assert list(ds3["train"].features) == ["audio"]  # assert param `drop_labels=True` from metadata is passed
+    assert len(ds3["train"]) == 3 and len(ds3["test"]) == 3
+
+
+@require_sndfile
+@pytest.mark.integration
+def test_load_hub_dataset_without_script_with_one_nondefault_config_in_metadata():
+    ds = load_dataset(SAMPLE_DATASET_ONE_NONDEFAULT_CONFIG_IN_METADATA)
+    assert list(ds["train"].features) == ["audio"]  # assert param `drop_labels=True` from metadata is passed
+    assert len(ds["train"]) == 3 and len(ds["test"]) == 3
+
+    ds2 = load_dataset(SAMPLE_DATASET_ONE_NONDEFAULT_CONFIG_IN_METADATA, "custom")
+    assert list(ds2["train"].features) == ["audio"]  # assert param `drop_labels=True` from metadata is passed
+    assert len(ds2["train"]) == 3 and len(ds2["test"]) == 3
+
+    with pytest.raises(ValueError):
+        # no config named "default"
+        _ = load_dataset(SAMPLE_DATASET_ONE_NONDEFAULT_CONFIG_IN_METADATA, "default")
+
+
+@require_sndfile
+@pytest.mark.integration
+def test_load_hub_dataset_without_script_with_two_config_in_metadata():
+    ds = load_dataset(SAMPLE_DATASET_TWO_CONFIG_IN_METADATA, "v1")
+    assert list(ds["train"].features) == ["audio"]  # assert param `drop_labels=True` from metadata is passed
+    assert len(ds["train"]) == 3 and len(ds["test"]) == 3
+
+    ds2 = load_dataset(SAMPLE_DATASET_TWO_CONFIG_IN_METADATA, "v2")
+    assert list(ds2["train"].features) == [
+        "audio",
+        "label",
+    ]  # assert param `drop_labels=False` from metadata is passed
+    assert len(ds2["train"]) == 2 and len(ds2["test"]) == 1
+
+    with pytest.raises(ValueError):
+        # config is required but not specified
+        _ = load_dataset(SAMPLE_DATASET_TWO_CONFIG_IN_METADATA)
+
+    with pytest.raises(ValueError):
+        # no config named "default"
+        _ = load_dataset(SAMPLE_DATASET_TWO_CONFIG_IN_METADATA, "default")
+
+
+@require_sndfile
+@pytest.mark.integration
+def test_load_hub_dataset_without_script_with_metadata_config_in_parallel():
     # assert it doesn't fail (pickling of dynamically created class works)
     ds = load_dataset(SAMPLE_DATASET_TWO_CONFIG_IN_METADATA, "v1", num_proc=2)
     assert "label" not in ds["train"].features  # assert param `drop_labels=True` from metadata is passed
