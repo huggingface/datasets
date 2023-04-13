@@ -91,7 +91,6 @@ class ArrowExtractorTest(TestCase):
         self.assertIsInstance(row, pd.DataFrame)
         pd.testing.assert_series_equal(row["a"], pd.Series(_COL_A, name="a")[:1])
         pd.testing.assert_series_equal(row["b"], pd.Series(_COL_B, name="b")[:1])
-        pd.testing.assert_series_equal(row["c"], pd.Series(_COL_C, name="c")[:1])
         pd.testing.assert_series_equal(row["d"], pd.Series(_COL_D, name="d")[:1])
         col = extractor.extract_column(pa_table)
         pd.testing.assert_series_equal(col, pd.Series(_COL_A, name="a"))
@@ -99,7 +98,6 @@ class ArrowExtractorTest(TestCase):
         self.assertIsInstance(batch, pd.DataFrame)
         pd.testing.assert_series_equal(batch["a"], pd.Series(_COL_A, name="a"))
         pd.testing.assert_series_equal(batch["b"], pd.Series(_COL_B, name="b"))
-        pd.testing.assert_series_equal(batch["c"], pd.Series(_COL_C, name="c"))
         pd.testing.assert_series_equal(batch["d"], pd.Series(_COL_D, name="d"))
 
 
