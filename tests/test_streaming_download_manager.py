@@ -3,7 +3,6 @@ import os
 import re
 from pathlib import Path
 
-import fsspec
 import pytest
 from fsspec.registry import _registry as _fsspec_registry
 from fsspec.spec import AbstractBufferedFile, AbstractFileSystem
@@ -131,7 +130,7 @@ class DummyTestFS(AbstractFileSystem):
 
 @pytest.fixture
 def mock_fsspec():
-    fsspec.register_implementation("mock", DummyTestFS)
+    _fsspec_registry["mock"] = DummyTestFS
     yield
     del _fsspec_registry["mock"]
 
