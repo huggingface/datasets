@@ -23,12 +23,9 @@ COMPRESSION_FILESYSTEMS: List[compression.BaseCompressedFileFileSystem] = [
 ]
 
 
-def _register_custom_filesystems():
-    for fs_class in COMPRESSION_FILESYSTEMS + [HfFileSystem]:
-        fsspec.register_implementation(fs_class.protocol, fs_class)
-
-
-_register_custom_filesystems()
+# Register custom filesystems
+for fs_class in COMPRESSION_FILESYSTEMS + [HfFileSystem]:
+    fsspec.register_implementation(fs_class.protocol, fs_class)
 
 
 def extract_path_from_uri(dataset_path: str) -> str:
