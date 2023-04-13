@@ -3,8 +3,8 @@ import os
 import re
 from pathlib import Path
 
-import fsspec
 import pytest
+from fsspec.registry import _registry as _fsspec_registry
 from fsspec.spec import AbstractBufferedFile, AbstractFileSystem
 
 from datasets.download.streaming_download_manager import (
@@ -130,10 +130,9 @@ class DummyTestFS(AbstractFileSystem):
 
 @pytest.fixture
 def mock_fsspec():
-    original_registry = fsspec.registry.copy()
-    fsspec.register_implementation("mock", DummyTestFS, clobber=True)
+    _fsspec_registry["mock"] = DummyTestFS
     yield
-    fsspec.registry = original_registry
+    del _fsspec_registry["mock"]
 
 
 def _readd_double_slash_removed_by_path(path_as_posix: str) -> str:

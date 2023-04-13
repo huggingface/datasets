@@ -159,7 +159,7 @@ def test_dataset_with_image_feature_from_pil_image(infer_feature, shared_datadir
 def test_dataset_with_image_feature_from_np_array():
     import PIL.Image
 
-    image_array = np.arange(640 * 480).reshape(480, 640)
+    image_array = np.arange(640 * 480, dtype=np.int32).reshape(480, 640)
     data = {"image": [image_array]}
     features = Features({"image": Image()})
     dset = Dataset.from_dict(data, features=features)

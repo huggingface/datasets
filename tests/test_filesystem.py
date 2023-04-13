@@ -2,10 +2,21 @@ import os
 
 import fsspec
 import pytest
+from fsspec.registry import _registry as _fsspec_registry
 
 from datasets.filesystems import COMPRESSION_FILESYSTEMS, HfFileSystem, extract_path_from_uri, is_remote_filesystem
 
 from .utils import require_lz4, require_zstandard
+
+
+def test_mockfs(mockfs):
+    assert "mock" in _fsspec_registry
+    assert "bz2" in _fsspec_registry
+
+
+def test_non_mockfs():
+    assert "mock" not in _fsspec_registry
+    assert "bz2" in _fsspec_registry
 
 
 def test_extract_path_from_uri():

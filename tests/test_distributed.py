@@ -81,7 +81,7 @@ def test_distributed_shuffle_iterable():
 def test_torch_distributed_launch(streaming):
     nproc_per_node = 2
     master_port = get_torch_dist_unique_port()
-    test_script = Path(__file__).resolve().parent / "distributed_scripts" / "test_torch_distributed_launch.py"
+    test_script = Path(__file__).resolve().parent / "distributed_scripts" / "launch_torch_distributed.py"
     distributed_args = f"""
         -m torch.distributed.launch
         --nproc_per_node={nproc_per_node}
@@ -108,7 +108,7 @@ def test_torch_distributed_launch(streaming):
 def test_torch_distributed_launch_streaming_with_num_workers(nproc_per_node, num_workers):
     streaming = True
     master_port = get_torch_dist_unique_port()
-    test_script = Path(__file__).resolve().parent / "distributed_scripts" / "test_torch_distributed_launch.py"
+    test_script = Path(__file__).resolve().parent / "distributed_scripts" / "launch_torch_distributed.py"
     distributed_args = f"""
         -m torch.distributed.launch
         --nproc_per_node={nproc_per_node}

@@ -44,3 +44,10 @@ def disable_tqdm_output():
 def set_update_download_counts_to_false(monkeypatch):
     # don't take tests into account when counting downloads
     monkeypatch.setattr("datasets.config.HF_UPDATE_DOWNLOAD_COUNTS", False)
+
+
+@pytest.fixture
+def set_sqlalchemy_silence_uber_warning(monkeypatch):
+    # Required to suppress RemovedIn20Warning when feature(s) are not compatible with SQLAlchemy 2.0
+    # To be removed once SQLAlchemy 2.0 supported
+    monkeypatch.setattr("sqlalchemy.util.deprecations.SILENCE_UBER_WARNING", True)

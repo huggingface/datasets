@@ -696,6 +696,7 @@ def test_iterable_dataset_torch_dataloader_parallel():
 
 
 @require_torch
+@pytest.mark.filterwarnings("ignore:This DataLoader will create:UserWarning")
 @pytest.mark.parametrize("n_shards, num_workers", [(2, 1), (2, 2), (3, 2), (2, 3)])
 def test_sharded_iterable_dataset_torch_dataloader_parallel(n_shards, num_workers):
     from torch.utils.data import DataLoader
