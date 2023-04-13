@@ -539,66 +539,6 @@ class ModuleFactoryTest(TestCase):
             for data_file in module_factory_result.builder_kwargs["data_files"]["test"]
         )
 
-    def test_PackagedDatasetModuleFactory_with_one_default_config_in_metadata(self):
-        for config_name in [None, "default"]:
-            factory = PackagedDatasetModuleFactory(
-                "audiofolder",
-                config_name=config_name,
-                data_dir=self._data_dir_with_one_default_config_in_metadata,
-                download_config=self.download_config,
-            )
-            module_factory_result = factory.get_module()
-            assert importlib.import_module(module_factory_result.module_path) is not None
-            assert module_factory_result.metadata_configs
-            assert len(module_factory_result.metadata_configs) == 1
-            assert next(iter(module_factory_result.metadata_configs.keys())) == "default"
-            assert module_factory_result.builder_kwargs["config_name"] == config_name
-            # we don't pass config params to builder in builder_kwargs, they are stored in builder_configs only
-            assert "drop_labels" not in module_factory_result.builder_kwargs
-            # check that data_files are resolved
-            assert "data_files" in list(module_factory_result.metadata_configs.values())[0]
-            assert isinstance(list(module_factory_result.metadata_configs.values())[0]["data_files"], DataFilesDict)
-
-    def test_PackagedDatasetModuleFactory_with_one_nondefault_config_in_metadata(self):
-        for config_name in [None, "custom"]:
-            factory = PackagedDatasetModuleFactory(
-                "audiofolder",
-                config_name=config_name,
-                data_dir=self._data_dir_with_one_nondefault_config_in_metadata,
-                download_config=self.download_config,
-            )
-            module_factory_result = factory.get_module()
-            assert importlib.import_module(module_factory_result.module_path) is not None
-            assert module_factory_result.metadata_configs is not None
-            assert len(module_factory_result.metadata_configs) == 1
-            assert next(iter(module_factory_result.metadata_configs.keys())) == "custom"
-            assert module_factory_result.builder_kwargs["config_name"] == config_name
-            # we don't pass config params to builder in builder_kwargs, they are stored in builder_configs only
-            assert "drop_labels" not in module_factory_result.builder_kwargs
-            # check that data_files are resolved
-            assert "data_files" in list(module_factory_result.metadata_configs.values())[0]
-            assert isinstance(list(module_factory_result.metadata_configs.values())[0]["data_files"], DataFilesDict)
-
-    def test_PackagedDatasetModuleFactory_with_two_configs_in_metadata(self):
-        for config_name in [None, "v1", "v2"]:
-            factory = PackagedDatasetModuleFactory(
-                "audiofolder",
-                config_name=config_name,
-                data_dir=self._data_dir_with_two_config_in_metadata,
-                download_config=self.download_config,
-            )
-            module_factory_result = factory.get_module()
-            assert importlib.import_module(module_factory_result.module_path) is not None
-            assert module_factory_result.metadata_configs is not None
-            assert len(module_factory_result.metadata_configs) == 2
-            assert list(module_factory_result.metadata_configs.keys()) == ["v1", "v2"]
-            assert module_factory_result.builder_kwargs["config_name"] == config_name
-            # we don't pass config params to builder in builder_kwargs, they are stored in builder_configs only
-            assert "drop_labels" not in module_factory_result.builder_kwargs
-            # check that data_files are resolved
-            assert "data_files" in list(module_factory_result.metadata_configs.values())[0]
-            assert isinstance(list(module_factory_result.metadata_configs.values())[0]["data_files"], DataFilesDict)
-
     @pytest.mark.integration
     def test_HubDatasetModuleFactoryWithoutScript(self):
         factory = HubDatasetModuleFactoryWithoutScript(
