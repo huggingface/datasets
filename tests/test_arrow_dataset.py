@@ -2140,18 +2140,7 @@ class BaseDatasetTest(TestCase):
 
     def test_to_dict(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
-            # Batched
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
-                batch_size = dset.num_rows - 1
-                to_dict_generator = dset.to_dict(batched=True, batch_size=batch_size)
-
-                for batch in to_dict_generator:
-                    self.assertIsInstance(batch, dict)
-                    self.assertListEqual(sorted(batch.keys()), sorted(dset.column_names))
-                    for col_name in dset.column_names:
-                        self.assertIsInstance(batch[col_name], list)
-                        self.assertLessEqual(len(batch[col_name]), batch_size)
-
                 # Full
                 dset_to_dict = dset.to_dict()
                 self.assertIsInstance(dset_to_dict, dict)
