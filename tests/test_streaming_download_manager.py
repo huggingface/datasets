@@ -3,8 +3,8 @@ import os
 import re
 from pathlib import Path
 
-import fsspec
 import pytest
+from fsspec.registry import _registry as _fsspec_registry
 from fsspec.spec import AbstractBufferedFile, AbstractFileSystem
 
 from datasets.download.streaming_download_manager import (
@@ -18,6 +18,7 @@ from datasets.download.streaming_download_manager import (
     xisfile,
     xjoin,
     xlistdir,
+    xnumpy_load,
     xopen,
     xPath,
     xrelpath,
@@ -129,10 +130,9 @@ class DummyTestFS(AbstractFileSystem):
 
 @pytest.fixture
 def mock_fsspec():
-    original_registry = fsspec.registry.copy()
-    fsspec.register_implementation("mock", DummyTestFS)
+    _fsspec_registry["mock"] = DummyTestFS
     yield
-    fsspec.registry = original_registry
+    del _fsspec_registry["mock"]
 
 
 def _readd_double_slash_removed_by_path(path_as_posix: str) -> str:
@@ -914,3 +914,19 @@ def test_iter_files(data_dir_with_hidden_files):
     for num_file, file in enumerate(dl_manager.iter_files(data_dir_with_hidden_files), start=1):
         assert os.path.basename(file) == ("test.txt" if num_file == 1 else "train.txt")
     assert num_file == 2
+
+
+def test_xnumpy_load(tmp_path):
+    import numpy as np
+
+    expected_x = np.arange(10)
+    npy_path = tmp_path / "data-x.npy"
+    np.save(npy_path, expected_x)
+    x = xnumpy_load(npy_path)
+    assert np.array_equal(x, expected_x)
+
+    npz_path = tmp_path / "data.npz"
+    np.savez(npz_path, x=expected_x)
+    with xnumpy_load(npz_path) as f:
+        x = f["x"]
+    assert np.array_equal(x, expected_x)

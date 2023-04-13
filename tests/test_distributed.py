@@ -55,6 +55,25 @@ def test_split_dataset_by_node_iterable_sharded(shards_per_node):
     assert len({tuple(x.values()) for ds in datasets_per_rank for x in ds}) == full_size
 
 
+def test_distributed_shuffle_iterable():
+    def gen():
+        return ({"i": i} for i in range(17))
+
+    world_size = 2
+    full_ds = IterableDataset.from_generator(gen)
+    full_size = len(list(full_ds))
+
+    ds_rank0 = split_dataset_by_node(full_ds, rank=0, world_size=world_size).shuffle(seed=42)
+    assert len(list(ds_rank0)) == 1 + full_size // world_size
+    with pytest.raises(RuntimeError):
+        split_dataset_by_node(full_ds, rank=0, world_size=world_size).shuffle()
+
+    ds_rank0 = split_dataset_by_node(full_ds.shuffle(seed=42), rank=0, world_size=world_size)
+    assert len(list(ds_rank0)) == 1 + full_size // world_size
+    with pytest.raises(RuntimeError):
+        split_dataset_by_node(full_ds.shuffle(), rank=0, world_size=world_size)
+
+
 @pytest.mark.parametrize("streaming", [False, True])
 @require_torch
 @pytest.mark.skipif(os.name == "nt", reason="execute_subprocess_async doesn't support windows")
@@ -62,7 +81,7 @@ def test_split_dataset_by_node_iterable_sharded(shards_per_node):
 def test_torch_distributed_launch(streaming):
     nproc_per_node = 2
     master_port = get_torch_dist_unique_port()
-    test_script = Path(__file__).resolve().parent / "distributed_scripts" / "test_torch_distributed_launch.py"
+    test_script = Path(__file__).resolve().parent / "distributed_scripts" / "launch_torch_distributed.py"
     distributed_args = f"""
         -m torch.distributed.launch
         --nproc_per_node={nproc_per_node}
@@ -89,7 +108,7 @@ def test_torch_distributed_launch(streaming):
 def test_torch_distributed_launch_streaming_with_num_workers(nproc_per_node, num_workers):
     streaming = True
     master_port = get_torch_dist_unique_port()
-    test_script = Path(__file__).resolve().parent / "distributed_scripts" / "test_torch_distributed_launch.py"
+    test_script = Path(__file__).resolve().parent / "distributed_scripts" / "launch_torch_distributed.py"
     distributed_args = f"""
         -m torch.distributed.launch
         --nproc_per_node={nproc_per_node}

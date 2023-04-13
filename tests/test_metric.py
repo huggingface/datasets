@@ -130,6 +130,7 @@ def metric_add_and_compute(arg):
         properly_del_metric(metric)
 
 
+@pytest.mark.filterwarnings("ignore:Metric is deprecated:FutureWarning")
 class TestMetric(TestCase):
     def test_dummy_metric(self):
         preds, refs = DummyMetric.predictions_and_references()
