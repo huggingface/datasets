@@ -3629,7 +3629,7 @@ def _check_sql_dataset(dataset, expected_features):
 
 @require_sqlalchemy
 @pytest.mark.parametrize("con_type", ["string", "engine"])
-def test_dataset_from_sql_con_type(con_type, sqlite_path, tmp_path):
+def test_dataset_from_sql_con_type(con_type, sqlite_path, tmp_path, set_sqlalchemy_silence_uber_warning):
     cache_dir = tmp_path / "cache"
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     if con_type == "string":

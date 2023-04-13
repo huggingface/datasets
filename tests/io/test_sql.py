@@ -42,7 +42,7 @@ def test_dataset_from_sql_keep_in_memory(keep_in_memory, sqlite_path, tmp_path, 
         {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
     ],
 )
-def test_dataset_from_sql_features(features, sqlite_path, tmp_path):
+def test_dataset_from_sql_features(features, sqlite_path, tmp_path, set_sqlalchemy_silence_uber_warning):
     cache_dir = tmp_path / "cache"
     default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
