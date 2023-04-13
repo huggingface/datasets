@@ -115,7 +115,7 @@ REQUIRED_PKGS = [
     # For smart caching dataset processing
     "dill>=0.3.0,<0.3.7",  # tmp pin until next 0.3.7 release: see https://github.com/huggingface/datasets/pull/5166
     # For performance gains with apache arrow
-    "pandas",
+    "pandas==1.5.3",
     # for downloading datasets over HTTPS
     "requests>=2.19.0",
     # progress bars in download and scripts
