@@ -145,10 +145,12 @@ class _InitializeConfiguredDatasetBuilder:
     will be called by pickle.
     """
 
-    def __call__(self, builder_cls, metadata_configs, name):
+    def __call__(self, builder_cls, metadata_configs, default_config_name, name):
         # make a simple object which has no complex __init__ (this one will do)
         obj = _InitializeConfiguredDatasetBuilder()
-        obj.__class__ = configure_builder_class(builder_cls, metadata_configs, name)
+        obj.__class__ = configure_builder_class(
+            builder_cls, metadata_configs, default_config_name=default_config_name, dataset_name=name
+        )
         return obj
 
 
@@ -176,6 +178,7 @@ def configure_builder_class(
                 (
                     parent_builder_cls,
                     self.BUILDER_CONFIGS,
+                    self.DEFAULT_CONFIG_NAME,
                     self.dataset_name,
                 ),
                 self.__dict__.copy(),
