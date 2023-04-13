@@ -22,7 +22,6 @@ COMPRESSION_FILESYSTEMS: List[compression.BaseCompressedFileFileSystem] = [
     compression.ZstdFileSystem,
 ]
 
-
 # Register custom filesystems
 for fs_class in COMPRESSION_FILESYSTEMS + [HfFileSystem]:
     fsspec.register_implementation(fs_class.protocol, fs_class)
