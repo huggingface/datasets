@@ -7,8 +7,6 @@ import pytest
 from fsspec.implementations.local import AbstractFileSystem, LocalFileSystem, stringify_path
 from fsspec.registry import _registry as _fsspec_registry
 
-from datasets.filesystems import _register_custom_filesystems
-
 
 class MockFileSystem(AbstractFileSystem):
     protocol = "mock"
@@ -98,8 +96,8 @@ def mock_fsspec():
     fsspec.register_implementation("mock", MockFileSystem)
     fsspec.register_implementation("tmp", TmpDirFileSystem)
     yield
-    _fsspec_registry.clear()
-    _register_custom_filesystems()
+    del _fsspec_registry["mock"]
+    del _fsspec_registry["tmp"]
 
 
 @pytest.fixture

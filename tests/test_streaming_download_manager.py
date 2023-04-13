@@ -27,7 +27,7 @@ from datasets.download.streaming_download_manager import (
     xsplitext,
     xwalk,
 )
-from datasets.filesystems import COMPRESSION_FILESYSTEMS, _register_custom_filesystems
+from datasets.filesystems import COMPRESSION_FILESYSTEMS
 from datasets.utils.hub import hf_hub_url
 
 from .utils import require_lz4, require_zstandard, slow
@@ -133,8 +133,7 @@ class DummyTestFS(AbstractFileSystem):
 def mock_fsspec():
     fsspec.register_implementation("mock", DummyTestFS)
     yield
-    _fsspec_registry.clear()
-    _register_custom_filesystems()
+    del _fsspec_registry["mock"]
 
 
 def _readd_double_slash_removed_by_path(path_as_posix: str) -> str:
