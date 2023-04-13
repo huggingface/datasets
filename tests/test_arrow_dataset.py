@@ -898,7 +898,7 @@ class BaseDatasetTest(TestCase):
         # decoding turned on
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict(
-                {"a": [np.arange(4 * 4 * 3).reshape(4, 4, 3)] * 10, "foo": [1] * 10},
+                {"a": [np.arange(4 * 4 * 3, dtype=np.uint8).reshape(4, 4, 3)] * 10, "foo": [1] * 10},
                 features=Features({"a": Image(), "foo": Value("int64")}),
             ) as dset:
                 with self._to(in_memory, tmp_dir, dset) as dset:
@@ -913,7 +913,7 @@ class BaseDatasetTest(TestCase):
         # decoding turned on + nesting
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict(
-                {"a": [{"b": np.arange(4 * 4 * 3).reshape(4, 4, 3)}] * 10, "foo": [1] * 10},
+                {"a": [{"b": np.arange(4 * 4 * 3, dtype=np.uint8).reshape(4, 4, 3)}] * 10, "foo": [1] * 10},
                 features=Features({"a": {"b": Image()}, "foo": Value("int64")}),
             ) as dset:
                 with self._to(in_memory, tmp_dir, dset) as dset:
@@ -928,7 +928,7 @@ class BaseDatasetTest(TestCase):
         # decoding turned off
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict(
-                {"a": [np.arange(4 * 4 * 3).reshape(4, 4, 3)] * 10, "foo": [1] * 10},
+                {"a": [np.arange(4 * 4 * 3, dtype=np.uint8).reshape(4, 4, 3)] * 10, "foo": [1] * 10},
                 features=Features({"a": Image(decode=False), "foo": Value("int64")}),
             ) as dset:
                 with self._to(in_memory, tmp_dir, dset) as dset:
@@ -946,7 +946,7 @@ class BaseDatasetTest(TestCase):
         # decoding turned off + nesting
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict(
-                {"a": [{"b": np.arange(4 * 4 * 3).reshape(4, 4, 3)}] * 10, "foo": [1] * 10},
+                {"a": [{"b": np.arange(4 * 4 * 3, dtype=np.uint8).reshape(4, 4, 3)}] * 10, "foo": [1] * 10},
                 features=Features({"a": {"b": Image(decode=False)}, "foo": Value("int64")}),
             ) as dset:
                 with self._to(in_memory, tmp_dir, dset) as dset:
