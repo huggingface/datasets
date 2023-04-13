@@ -62,7 +62,7 @@ def iter_sql_file(sqlite_path):
 
 
 @require_sqlalchemy
-def test_dataset_to_sql(sqlite_path, tmp_path):
+def test_dataset_to_sql(sqlite_path, tmp_path, set_sqlalchemy_silence_uber_warning):
     cache_dir = tmp_path / "cache"
     output_sqlite_path = os.path.join(cache_dir, "tmp.sql")
     dataset = SqlDatasetReader("dataset", "sqlite:///" + sqlite_path, cache_dir=cache_dir).read()
@@ -76,7 +76,7 @@ def test_dataset_to_sql(sqlite_path, tmp_path):
 
 
 @require_sqlalchemy
-def test_dataset_to_sql_multiproc(sqlite_path, tmp_path):
+def test_dataset_to_sql_multiproc(sqlite_path, tmp_path, set_sqlalchemy_silence_uber_warning):
     cache_dir = tmp_path / "cache"
     output_sqlite_path = os.path.join(cache_dir, "tmp.sql")
     dataset = SqlDatasetReader("dataset", "sqlite:///" + sqlite_path, cache_dir=cache_dir).read()
@@ -90,7 +90,7 @@ def test_dataset_to_sql_multiproc(sqlite_path, tmp_path):
 
 
 @require_sqlalchemy
-def test_dataset_to_sql_invalidproc(sqlite_path, tmp_path):
+def test_dataset_to_sql_invalidproc(sqlite_path, tmp_path, set_sqlalchemy_silence_uber_warning):
     cache_dir = tmp_path / "cache"
     output_sqlite_path = os.path.join(cache_dir, "tmp.sql")
     dataset = SqlDatasetReader("dataset", "sqlite:///" + sqlite_path, cache_dir=cache_dir).read()
