@@ -4906,6 +4906,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         return ParquetDatasetWriter(self, path_or_buf, batch_size=batch_size, **parquet_writer_kwargs).write()
 
+    def to_spark(self) -> pyspark.sql.DataFrame:
+        """Creates a Spark DataFrame from the dataset.
+        The DataFrame is backed by the datasets underlying cache files, so if those files change or are cleaned up, the
+        it will become invalid.
+        """
+        files = [entry["filename"] for entry in self.cache_files]
+        for entry in self.cache_files:
+            file = entry["filename"]
+            if not file.endswith(".parquet"):
+                return ValueError("Cached files must be parquet format for to_spark")
+            files.append(file)
+        return spark.read.parquet(files)
+
     def to_sql(
         self,
         name: str,
