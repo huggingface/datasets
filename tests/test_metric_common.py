@@ -93,6 +93,8 @@ class LocalMetricTest(parameterized.TestCase):
     INTENSIVE_CALLS_PATCHER = {}
     metric_name = None
 
+    @pytest.mark.filterwarnings("ignore:metric_module_factory is deprecated:FutureWarning")
+    @pytest.mark.filterwarnings("ignore:load_metric is deprecated:FutureWarning")
     def test_load_metric(self, metric_name):
         doctest.ELLIPSIS_MARKER = "[...]"
         metric_module = importlib.import_module(

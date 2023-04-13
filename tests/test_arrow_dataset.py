@@ -113,7 +113,7 @@ IN_MEMORY_PARAMETERS = [
 @parameterized.named_parameters(IN_MEMORY_PARAMETERS)
 class BaseDatasetTest(TestCase):
     @pytest.fixture(autouse=True)
-    def inject_fixtures(self, caplog):
+    def inject_fixtures(self, caplog, set_sqlalchemy_silence_uber_warning):
         self._caplog = caplog
 
     def _create_dummy_dataset(
@@ -898,7 +898,7 @@ class BaseDatasetTest(TestCase):
         # decoding turned on
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict(
-                {"a": [np.arange(4 * 4 * 3).reshape(4, 4, 3)] * 10, "foo": [1] * 10},
+                {"a": [np.arange(4 * 4 * 3, dtype=np.uint8).reshape(4, 4, 3)] * 10, "foo": [1] * 10},
                 features=Features({"a": Image(), "foo": Value("int64")}),
             ) as dset:
                 with self._to(in_memory, tmp_dir, dset) as dset:
@@ -913,7 +913,7 @@ class BaseDatasetTest(TestCase):
         # decoding turned on + nesting
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict(
-                {"a": [{"b": np.arange(4 * 4 * 3).reshape(4, 4, 3)}] * 10, "foo": [1] * 10},
+                {"a": [{"b": np.arange(4 * 4 * 3, dtype=np.uint8).reshape(4, 4, 3)}] * 10, "foo": [1] * 10},
                 features=Features({"a": {"b": Image()}, "foo": Value("int64")}),
             ) as dset:
                 with self._to(in_memory, tmp_dir, dset) as dset:
@@ -928,7 +928,7 @@ class BaseDatasetTest(TestCase):
         # decoding turned off
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict(
-                {"a": [np.arange(4 * 4 * 3).reshape(4, 4, 3)] * 10, "foo": [1] * 10},
+                {"a": [np.arange(4 * 4 * 3, dtype=np.uint8).reshape(4, 4, 3)] * 10, "foo": [1] * 10},
                 features=Features({"a": Image(decode=False), "foo": Value("int64")}),
             ) as dset:
                 with self._to(in_memory, tmp_dir, dset) as dset:
@@ -946,7 +946,7 @@ class BaseDatasetTest(TestCase):
         # decoding turned off + nesting
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict(
-                {"a": [{"b": np.arange(4 * 4 * 3).reshape(4, 4, 3)}] * 10, "foo": [1] * 10},
+                {"a": [{"b": np.arange(4 * 4 * 3, dtype=np.uint8).reshape(4, 4, 3)}] * 10, "foo": [1] * 10},
                 features=Features({"a": {"b": Image(decode=False)}, "foo": Value("int64")}),
             ) as dset:
                 with self._to(in_memory, tmp_dir, dset) as dset:
@@ -2140,18 +2140,7 @@ class BaseDatasetTest(TestCase):
 
     def test_to_dict(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
-            # Batched
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
-                batch_size = dset.num_rows - 1
-                to_dict_generator = dset.to_dict(batched=True, batch_size=batch_size)
-
-                for batch in to_dict_generator:
-                    self.assertIsInstance(batch, dict)
-                    self.assertListEqual(sorted(batch.keys()), sorted(dset.column_names))
-                    for col_name in dset.column_names:
-                        self.assertIsInstance(batch[col_name], list)
-                        self.assertLessEqual(len(batch[col_name]), batch_size)
-
                 # Full
                 dset_to_dict = dset.to_dict()
                 self.assertIsInstance(dset_to_dict, dict)
@@ -3640,7 +3629,7 @@ def _check_sql_dataset(dataset, expected_features):
 
 @require_sqlalchemy
 @pytest.mark.parametrize("con_type", ["string", "engine"])
-def test_dataset_from_sql_con_type(con_type, sqlite_path, tmp_path):
+def test_dataset_from_sql_con_type(con_type, sqlite_path, tmp_path, set_sqlalchemy_silence_uber_warning):
     cache_dir = tmp_path / "cache"
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     if con_type == "string":
@@ -3679,7 +3668,7 @@ def test_dataset_from_sql_con_type(con_type, sqlite_path, tmp_path):
         {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
     ],
 )
-def test_dataset_from_sql_features(features, sqlite_path, tmp_path):
+def test_dataset_from_sql_features(features, sqlite_path, tmp_path, set_sqlalchemy_silence_uber_warning):
     cache_dir = tmp_path / "cache"
     default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
@@ -3692,7 +3681,7 @@ def test_dataset_from_sql_features(features, sqlite_path, tmp_path):
 
 @require_sqlalchemy
 @pytest.mark.parametrize("keep_in_memory", [False, True])
-def test_dataset_from_sql_keep_in_memory(keep_in_memory, sqlite_path, tmp_path):
+def test_dataset_from_sql_keep_in_memory(keep_in_memory, sqlite_path, tmp_path, set_sqlalchemy_silence_uber_warning):
     cache_dir = tmp_path / "cache"
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
