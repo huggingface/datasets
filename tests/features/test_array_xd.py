@@ -314,12 +314,34 @@ class ArrayXDDynamicTest(unittest.TestCase):
             self.assertIsInstance(single_arr, list)
             self.assertTupleEqual(np.array(single_arr).shape, (first_dim, *fixed_shape))
 
-    def test_to_pandas_fail(self):
+    def test_to_pandas(self):
         fixed_shape = (2, 2)
+
+        # ragged
         first_dim_list = [1, 3, 10]
         dataset = self.get_one_col_dataset(first_dim_list, fixed_shape)
-        with self.assertRaises(NotImplementedError):
-            dataset.to_pandas()
+        df = dataset.to_pandas()
+        self.assertEqual(type(df.image.dtype), PandasArrayExtensionDtype)
+        numpy_arr = df.image.to_numpy()
+
+        self.assertIsInstance(numpy_arr, np.ndarray)
+        self.assertEqual(numpy_arr.dtype, object)
+        for first_dim, single_arr in zip(first_dim_list, numpy_arr):
+            self.assertIsInstance(single_arr, np.ndarray)
+            self.assertTupleEqual(single_arr.shape, (first_dim, *fixed_shape))
+
+        # non-ragged
+        first_dim_list = [4, 4, 4]
+        dataset = self.get_one_col_dataset(first_dim_list, fixed_shape)
+        df = dataset.to_pandas()
+        self.assertEqual(type(df.image.dtype), PandasArrayExtensionDtype)
+        numpy_arr = df.image.to_numpy()
+
+        self.assertIsInstance(numpy_arr, np.ndarray)
+        self.assertNotEqual(numpy_arr.dtype, object)
+        for first_dim, single_arr in zip(first_dim_list, numpy_arr):
+            self.assertIsInstance(single_arr, np.ndarray)
+            self.assertTupleEqual(single_arr.shape, (first_dim, *fixed_shape))
 
     def test_map_dataset(self):
         fixed_shape = (2, 2)

@@ -771,16 +771,10 @@ class PandasArrayExtensionDtype(PandasExtensionDtype):
         self._value_type = value_type
 
     def __from_arrow__(self, array: Union[pa.Array, pa.ChunkedArray]):
-        if array.type.shape[0] is None:
-            raise NotImplementedError(
-                "Dynamic first dimension is not supported for "
-                f"PandasArrayExtensionDtype, dimension: {array.type.shape}"
-            )
-        zero_copy_only = _is_zero_copy_only(array.type, unnest=True)
         if isinstance(array, pa.ChunkedArray):
-            numpy_arr = np.vstack([chunk.to_numpy(zero_copy_only=zero_copy_only) for chunk in array.chunks])
-        else:
-            numpy_arr = array.to_numpy(zero_copy_only=zero_copy_only)
+            array = array.type.wrap_array(pa.concat_arrays([chunk.storage for chunk in array.chunks]))
+        zero_copy_only = _is_zero_copy_only(array.storage.type, unnest=True)
+        numpy_arr = array.to_numpy(zero_copy_only=zero_copy_only)
         return PandasArrayExtensionArray(numpy_arr)
 
     @classmethod
@@ -821,8 +815,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         """
         if dtype == object:
             out = np.empty(len(self._data), dtype=object)
-            for i in range(len(self._data)):
-                out[i] = self._data[i]
+            out[:] = self._data
             return out
         if dtype is None:
             return self._data
@@ -836,12 +829,25 @@ class PandasArrayExtensionArray(PandasExtensionArray):
     def _from_sequence(
         cls, scalars, dtype: Optional[PandasArrayExtensionDtype] = None, copy: bool = False
     ) -> "PandasArrayExtensionArray":
-        data = np.array(scalars, dtype=dtype if dtype is None else dtype.value_type, copy=copy)
+        if len(scalars) > 1 and all(
+            isinstance(x, np.ndarray) and x.shape == scalars[0].shape and x.dtype == scalars[0].dtype for x in scalars
+        ):
+            data = np.array(scalars, dtype=dtype if dtype is None else dtype.value_type, copy=copy)
+        else:
+            data = np.empty(len(scalars), dtype=object)
+            data[:] = scalars
         return cls(data, copy=copy)
 
     @classmethod
     def _concat_same_type(cls, to_concat: Sequence_["PandasArrayExtensionArray"]) -> "PandasArrayExtensionArray":
-        data = np.vstack([va._data for va in to_concat])
+        if len(to_concat) > 1 and all(
+            va._data.shape == to_concat[0]._data.shape and va._data.dtype == to_concat[0]._data.dtype
+            for va in to_concat
+        ):
+            data = np.vstack([va._data for va in to_concat])
+        else:
+            data = np.empty(len(to_concat), dtype=object)
+            data[:] = to_concat
         return cls(data, copy=False)
 
     @property
