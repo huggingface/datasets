@@ -218,7 +218,7 @@ Recent versions of PyTorch use a list of indices, so a `BatchSampler` is not nee
 ### Stream data
 
 Stream a dataset by loading it as an [`IterableDataset`]. This allows you to progressively iterate over a remote dataset without downloading it on disk and or over local data files.
-Learn more about which type of dataset is best for your use case in the (choosing between a regular dataset or an iterable dataset)[./dataset_vs_iterable_dataset] guide.
+Learn more about which type of dataset is best for your use case in the [choosing between a regular dataset or an iterable dataset](./about_mapstyle_vs_iterable) guide.
 
 
 An iterable dataset from `datasets` inherits from `torch.utils.data.IterableDataset` so you can pass it to a `torch.utils.data.DataLoader`:
