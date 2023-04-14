@@ -755,7 +755,7 @@ class ArrayExtensionArray(pa.ExtensionArray):
     def to_pylist(self):
         zero_copy_only = _is_zero_copy_only(self.storage.type, unnest=True)
         if self.type.shape[0] is None:
-            return self.to_list_of_numpy(zero_copy_only=zero_copy_only)
+            return [numpy_arr.tolist() for numpy_arr in self.to_list_of_numpy(zero_copy_only=zero_copy_only)]
         else:
             return self.to_numpy(zero_copy_only=zero_copy_only).tolist()
 

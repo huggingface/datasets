@@ -267,8 +267,8 @@ class ArrayXDDynamicTest(unittest.TestCase):
         pylist = arr_xd.to_pylist()
 
         for first_dim, single_arr in zip(first_dim_list, pylist):
-            self.assertIsInstance(single_arr, np.ndarray)
-            self.assertTupleEqual(single_arr.shape, (first_dim, *fixed_shape))
+            self.assertIsInstance(single_arr, list)
+            self.assertTupleEqual(np.array(single_arr).shape, (first_dim, *fixed_shape))
 
     def test_iter_dataset(self):
         fixed_shape = (2, 2)
@@ -277,8 +277,8 @@ class ArrayXDDynamicTest(unittest.TestCase):
 
         for first_dim, ds_row in zip(first_dim_list, dataset):
             single_arr = ds_row["image"]
-            self.assertIsInstance(single_arr, np.ndarray)
-            self.assertTupleEqual(single_arr.shape, (first_dim, *fixed_shape))
+            self.assertIsInstance(single_arr, list)
+            self.assertTupleEqual(np.array(single_arr).shape, (first_dim, *fixed_shape))
 
     def test_to_pandas_fail(self):
         fixed_shape = (2, 2)
@@ -297,8 +297,8 @@ class ArrayXDDynamicTest(unittest.TestCase):
         # check also if above function resulted with 2x bigger first dim
         for first_dim, ds_row in zip(first_dim_list, dataset):
             single_arr = ds_row["image"]
-            self.assertIsInstance(single_arr, np.ndarray)
-            self.assertTupleEqual(single_arr.shape, (first_dim * 2, *fixed_shape))
+            self.assertIsInstance(single_arr, list)
+            self.assertTupleEqual(np.array(single_arr).shape, (first_dim * 2, *fixed_shape))
 
 
 @pytest.mark.parametrize("dtype, dummy_value", [("int32", 1), ("bool", True), ("float64", 1)])
