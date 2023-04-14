@@ -155,7 +155,7 @@ def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
     Raises:
         ValueError: if the string doesn't match the pattern
     """
-    regex = re.sub(r"{(.+?)}", r"(?P<_\1>.+)", pattern)
+    regex = re.sub(r"{(.+?)}", r"(?P<_\1>[^\/]+)", pattern)
     result = re.search(regex, string)
     if result is None:
         raise ValueError(f"String {string} doesn't match the pattern {pattern}")
