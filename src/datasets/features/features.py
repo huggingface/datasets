@@ -815,7 +815,8 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         """
         if dtype == object:
             out = np.empty(len(self._data), dtype=object)
-            out[:] = self._data
+            for i in range(len(self._data)):
+                out[i] = self._data[i]
             return out
         if dtype is None:
             return self._data
@@ -847,7 +848,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
             data = np.vstack([va._data for va in to_concat])
         else:
             data = np.empty(len(to_concat), dtype=object)
-            data[:] = to_concat
+            data[:] = [va._data for va in to_concat]
         return cls(data, copy=False)
 
     @property
