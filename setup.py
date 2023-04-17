@@ -170,6 +170,7 @@ TESTS_REQUIRE = [
     "faiss-cpu>=1.6.4",
     "lz4",
     "py7zr",
+    "pyspark",
     "rarfile>=4.0",
     "sqlalchemy<2.0.0",
     "s3fs>=2021.11.1;python_version<'3.8'",  # aligned with fsspec[http]>=2021.11.1; test only on python 3.7 for now

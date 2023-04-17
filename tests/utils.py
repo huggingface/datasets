@@ -64,6 +64,12 @@ require_beam = pytest.mark.skipif(
     reason="test requires apache-beam and a compatible dill version",
 )
 
+# Integrations
+require_spark = pytest.mark.skipif(
+    not config.SPARK_AVAILABLE,
+    reason="test requires spark",
+)
+
 
 def require_faiss(test_case):
     """

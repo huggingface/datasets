@@ -126,6 +126,7 @@ except ImportError:
 if TYPE_CHECKING:
     import sqlite3
 
+    import pyspark
     import sqlalchemy
 
     from .dataset_dict import DatasetDict
@@ -837,6 +838,41 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # needed to support the str to Audio conversion for instance
             table = table.cast(features.arrow_schema)
         return cls(table, info=info, split=split)
+
+    @classmethod
+    def from_spark(
+        cls,
+        spark_df: "pyspark.sql.DataFrame",
+        features: Optional[Features] = None,
+        info: Optional[DatasetInfo] = None,
+        split: Optional[NamedSplit] = None,
+    ) -> "Dataset":
+        """Construct Dataset from Spark DataFrame.
+
+        <Tip warning={true}>
+
+        This method should only be used if the resulting Dataset is expected to be small, as all the data is loaded
+        into the Spark driver's memory.
+
+        </Tip>
+
+        Args:
+            spark_df (`pyspark.sql.DataFrame`): Spark DataFrame to be converted to dataset.
+            features ([`Features`], *optional*): Dataset features.
+            info ([`DatasetInfo`], *optional*): Dataset information, like description, citation, etc.
+            split ([`NamedSplit`], *optional*): Name of the dataset split.
+
+        Returns:
+            [`Dataset`]
+
+         Example:
+
+        ```py
+        >>> ds = Dataset.from_spark(spark_df)
+        ```
+        """
+        spark_df.sparkSession.conf.set("spark.sql.execution.arrow.pyspark.enabled", "true")
+        return cls.from_pandas(spark_df.toPandas(), features=features, info=info, split=split)
 
     @classmethod
     def from_dict(
@@ -4772,6 +4808,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     ) -> Union[pd.DataFrame, Iterator[pd.DataFrame]]:
         """Returns the dataset as a `pandas.DataFrame`. Can also return a generator for large datasets.
 
+        <Tip warning={true}>
+
+        This method should only be used if the Dataset is small enough, since all the data is loaded into RAM.
+
+        </Tip>
+
         Args:
             batched (`bool`):
                 Set to `True` to return a generator that yields the dataset as batches
@@ -4805,6 +4847,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 ).to_pandas(types_mapper=pandas_types_mapper)
                 for offset in range(0, len(self), batch_size)
             )
+
+    def to_spark(self, spark_session: "Optional[pyspark.sql.SparkSession]" = None) -> "pyspark.sql.DataFrame":
+        """Convert to Spark DataFrame.
+
+        <Tip warning={true}>
+
+        This method should only be used if the Dataset is small enough, since all the data is loaded into RAM.
+
+        </Tip>
+
+        Args:
+            spark_session (`pyspark.sql.SparkSession`, *optional*): Spark session to create the Spark DataFrame.
+
+        Returns:
+            `pyspark.sql.DataFrame`
+        """
+        if not spark_session:
+            from pyspark.sql import SparkSession
+
+            spark_session = SparkSession.builder.getOrCreate()
+        spark_session.conf.set("spark.sql.execution.arrow.pyspark.enabled", "true")
+        return spark_session.createDataFrame(self.to_pandas())
 
     def to_parquet(
         self,
