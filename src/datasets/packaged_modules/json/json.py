@@ -84,10 +84,11 @@ class Json(datasets.ArrowBasedBuilder):
 
                 # We accept two format: a list of dicts or a dict of lists
                 if isinstance(dataset, (list, tuple)):
-                    mapping = {col: [dataset[i][col] for i in range(len(dataset))] for col in dataset[0].keys()}
+                    keys = set().union(*[row.keys() for row in dataset])
+                    mapping = {col: [row.get(col) for row in dataset] for col in keys}
                 else:
                     mapping = dataset
-                pa_table = pa.Table.from_pydict(mapping=mapping)
+                pa_table = pa.Table.from_pydict(mapping)
                 yield file_idx, self._cast_table(pa_table)
 
             # If the file has one json object per line
@@ -137,7 +138,9 @@ class Json(datasets.ArrowBasedBuilder):
                             # If possible, parse the file as a list of json objects and exit the loop
                             if isinstance(dataset, list):  # list is the only sequence type supported in JSON
                                 try:
-                                    pa_table = pa.Table.from_pylist(dataset)
+                                    keys = set().union(*[row.keys() for row in dataset])
+                                    mapping = {col: [row.get(col) for row in dataset] for col in keys}
+                                    pa_table = pa.Table.from_pydict(mapping)
                                 except (pa.ArrowInvalid, AttributeError) as e:
                                     logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                                     raise ValueError(f"Not able to read records in the JSON file at {file}.") from None
