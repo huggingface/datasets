@@ -1232,7 +1232,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
-        force_download: bool = False,
+        load_from_cache_file: bool = True,
         **kwargs,
     ):
         """Create Dataset from Spark DataFrame. Dataset downloading is distributed over Spark workers.
@@ -1247,9 +1247,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             cache_dir (`str`, *optional*, defaults to `"~/.cache/huggingface/datasets"`):
                 Directory to cache data. When using a multi-node Spark cluster, the cache_dir must be accessible to both
                 workers and the driver.
-            force_download (`bool`):
-                Whether to force download of the dataset. When not forcing download, if a dataset is present in the
-                cache, it will be reused.
+            load_from_cache_file (`bool`):
+                Whether to load the dataset from the cache if possible.
         """
         # Dynamic import to avoid circular dependency
         from .io.spark import SparkDatasetReader
@@ -1259,7 +1258,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             split=split,
             features=features,
             cache_dir=cache_dir,
-            force_download=force_download,
+            load_from_cache_file=load_from_cache_file,
             **kwargs,
         ).read()
 

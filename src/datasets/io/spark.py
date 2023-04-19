@@ -15,7 +15,7 @@ class SparkDatasetReader(AbstractDatasetReader):
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
-        force_download: bool = False,
+        load_from_cache_file: bool = True,
         file_format: str = "arrow",
         **kwargs,
     ):
@@ -25,7 +25,7 @@ class SparkDatasetReader(AbstractDatasetReader):
             cache_dir=cache_dir,
             **kwargs,
         )
-        self._force_download = force_download
+        self._load_from_cache_file = load_from_cache_file
         self._file_format = file_format
         self.builder = Spark(
             df=df,
@@ -38,7 +38,7 @@ class SparkDatasetReader(AbstractDatasetReader):
         if self.streaming:
             # TODO: Support as_streaming_dataset.
             raise ValueError("SparkDatasetReader is not streamable.")
-        download_mode = DownloadMode.FORCE_REDOWNLOAD if self._force_download else None
+        download_mode = None if self._load_from_cache_file else DownloadMode.FORCE_REDOWNLOAD
         self.builder.download_and_prepare(
             download_mode=download_mode,
             file_format=self._file_format,
