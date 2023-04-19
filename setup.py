@@ -137,8 +137,6 @@ REQUIRED_PKGS = [
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     "responses<0.19",
-    # For from_spark
-    "pyspark",
     # To parse YAML metadata from dataset cards
     "pyyaml>=5.1",
 ]
@@ -171,6 +169,7 @@ TESTS_REQUIRE = [
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch()
     "faiss-cpu>=1.6.4",
     "lz4",
+    "pyspark",
     "py7zr",
     "rarfile>=4.0",
     "sqlalchemy<2.0.0",
