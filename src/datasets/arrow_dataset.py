@@ -1249,6 +1249,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 workers and the driver.
             load_from_cache_file (`bool`):
                 Whether to load the dataset from the cache if possible.
+
+        Returns:
+            [`Dataset`]
+
+        Example:
+
+        ```py
+        >>> df = spark.createDataFrame(
+        >>>     data=[[1, "Elia"], [2, "Teo"], [3, "Fang"]],
+        >>>     columns=["id", "name"],
+        >>> )
+        >>> ds = Dataset.from_spark(df)
+        ```
         """
         # Dynamic import to avoid circular dependency
         from .io.spark import SparkDatasetReader
