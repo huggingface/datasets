@@ -701,7 +701,9 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
-        base_path = str(Path(self.data_dir).expanduser().resolve()) if self.data_dir is not None else str(Path().resolve())
+        base_path = (
+            str(Path(self.data_dir).expanduser().resolve()) if self.data_dir is not None else str(Path().resolve())
+        )
         patterns = (
             sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns_locally(base_path)
         )
