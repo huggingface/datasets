@@ -1437,8 +1437,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         else:
                             pbar.update(content)
         else:
-            for kwargs in kwargs_per_job:
-                with pbar:
+            with pbar:
+                for kwargs in kwargs_per_job:
                     for job_id, done, content in Dataset._save_to_disk_single(**kwargs):
                         if done:
                             shards_done += 1
