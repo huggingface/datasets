@@ -101,7 +101,7 @@ def compute_exact(a_gold, a_pred):
 
 
 def compute_em(predictions, references):
-    scores = [any([compute_exact(ref, pred) for ref in refs]) for pred, refs in zip(predictions, references)]
+    scores = [any(compute_exact(ref, pred) for ref in refs) for pred, refs in zip(predictions, references)]
     return (sum(scores) / len(scores)) * 100
 
 
