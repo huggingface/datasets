@@ -381,6 +381,20 @@ class TensorflowDatasetMixin:
         else:
             raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
 
+        if (isinstance(columns, list) and len(columns) == 1) or (
+            isinstance(label_cols, list) and len(label_cols) == 1
+        ):
+            warnings.warn(
+                "The output of `to_tf_dataset` will change when a passing single element list for `labels` or "
+                "`columns` in the next datasets version. To return a tuple structure rather than dict, pass a "
+                "single string.\n"
+                "Old behaviour: columns=['a'], labels=['labels'] -> (tf.Tensor, tf.Tensor)  \n"
+                "             : columns='a', labels='labels' -> (tf.Tensor, tf.Tensor)  \n"
+                "New behaviour: columns=['a'],labels=['labels'] -> ({'a': tf.Tensor}, {'labels': tf.Tensor})  \n"
+                "             : columns='a', labels='labels' -> (tf.Tensor, tf.Tensor) ",
+                FutureWarning,
+            )
+
         if isinstance(tf.distribute.get_strategy(), tf.distribute.TPUStrategy):
             logger.warning(
                 "Note that to_tf_dataset() loads the data with a generator rather than a full tf.data "
