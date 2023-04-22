@@ -9,6 +9,12 @@ from .abc import AbstractDatasetReader
 
 
 class SparkDatasetReader(AbstractDatasetReader):
+    """A dataset reader that reads from a Spark DataFrame.
+
+    When caching, cache materialization is parallelized over Spark; an NFS that is accessible to the driver must be
+    provided. Streaming is not currently supported.
+    """
+
     def __init__(
         self,
         df: pyspark.sql.DataFrame,
