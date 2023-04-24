@@ -634,6 +634,9 @@ class _ArrayXDExtensionType(pa.PyExtensionType):
             raise ValueError("You must instantiate an array type with a value for dim that is > 1")
         if len(shape) != self.ndims:
             raise ValueError(f"shape={shape} and ndims={self.ndims} don't match")
+        for dim in range(1, self.ndims):
+            if shape[dim] is None:
+                raise ValueError(f"Support only dynamic size on first dimension. Got: {shape}")
         self.shape = tuple(shape)
         self.value_type = dtype
         self.storage_dtype = self._generate_dtype(self.value_type)
@@ -711,53 +714,54 @@ class ArrayExtensionArray(pa.ExtensionArray):
 
     def to_numpy(self, zero_copy_only=True):
         storage: pa.ListArray = self.storage
-        size = 1
 
-        null_indices = np.arange(len(storage))[storage.is_null().to_numpy(zero_copy_only=False)]
+        if self.type.shape[0] is not None:
+            size = 1
+            null_indices = np.arange(len(storage))[storage.is_null().to_numpy(zero_copy_only=False)]
 
-        for i in range(self.type.ndims):
-            size *= self.type.shape[i]
-            storage = storage.flatten()
-        numpy_arr = storage.to_numpy(zero_copy_only=zero_copy_only)
-        numpy_arr = numpy_arr.reshape(len(self) - len(null_indices), *self.type.shape)
+            for i in range(self.type.ndims):
+                size *= self.type.shape[i]
+                storage = storage.flatten()
+            numpy_arr = storage.to_numpy(zero_copy_only=zero_copy_only)
+            numpy_arr = numpy_arr.reshape(len(self) - len(null_indices), *self.type.shape)
 
-        if len(null_indices):
-            numpy_arr = np.insert(numpy_arr.astype(np.float64), null_indices, np.nan, axis=0)
+            if len(null_indices):
+                numpy_arr = np.insert(numpy_arr.astype(np.float64), null_indices, np.nan, axis=0)
+
+        else:
+            shape = self.type.shape
+            ndims = self.type.ndims
+            arrays = []
+            first_dim_offsets = np.array([off.as_py() for off in storage.offsets])
+            for i, is_null in enumerate(storage.is_null().to_numpy(zero_copy_only=False)):
+                if is_null:
+                    arrays.append(np.nan)
+                else:
+                    storage_el = storage[i : i + 1]
+                    first_dim = first_dim_offsets[i + 1] - first_dim_offsets[i]
+                    # flatten storage
+                    for _ in range(ndims):
+                        storage_el = storage_el.flatten()
+
+                    numpy_arr = storage_el.to_numpy(zero_copy_only=zero_copy_only)
+                    arrays.append(numpy_arr.reshape(first_dim, *shape[1:]))
+
+            if len(np.unique(np.diff(first_dim_offsets))) > 1:
+                # ragged
+                numpy_arr = np.empty(len(arrays), dtype=object)
+                numpy_arr[:] = arrays
+            else:
+                numpy_arr = np.array(arrays)
 
         return numpy_arr
 
-    def to_list_of_numpy(self, zero_copy_only=True):
-        storage: pa.ListArray = self.storage
-        shape = self.type.shape
-        ndims = self.type.ndims
-
-        for dim in range(1, ndims):
-            if shape[dim] is None:
-                raise ValueError(f"Support only dynamic size on first dimension. Got: {shape}")
-
-        arrays = []
-        first_dim_offsets = np.array([off.as_py() for off in storage.offsets])
-        for i, is_null in enumerate(storage.is_null().to_numpy(zero_copy_only=False)):
-            if is_null:
-                arrays.append(np.nan)
-            else:
-                storage_el = storage[i : i + 1]
-                first_dim = first_dim_offsets[i + 1] - first_dim_offsets[i]
-                # flatten storage
-                for _ in range(ndims):
-                    storage_el = storage_el.flatten()
-
-                numpy_arr = storage_el.to_numpy(zero_copy_only=zero_copy_only)
-                arrays.append(numpy_arr.reshape(first_dim, *shape[1:]))
-
-        return arrays
-
     def to_pylist(self):
         zero_copy_only = _is_zero_copy_only(self.storage.type, unnest=True)
-        if self.type.shape[0] is None:
-            return self.to_list_of_numpy(zero_copy_only=zero_copy_only)
+        numpy_arr = self.to_numpy(zero_copy_only=zero_copy_only)
+        if self.type.shape[0] is None and numpy_arr.dtype == object:
+            return [arr.tolist() for arr in numpy_arr.tolist()]
         else:
-            return self.to_numpy(zero_copy_only=zero_copy_only).tolist()
+            return numpy_arr.tolist()
 
 
 class PandasArrayExtensionDtype(PandasExtensionDtype):
@@ -767,16 +771,10 @@ class PandasArrayExtensionDtype(PandasExtensionDtype):
         self._value_type = value_type
 
     def __from_arrow__(self, array: Union[pa.Array, pa.ChunkedArray]):
-        if array.type.shape[0] is None:
-            raise NotImplementedError(
-                "Dynamic first dimension is not supported for "
-                f"PandasArrayExtensionDtype, dimension: {array.type.shape}"
-            )
-        zero_copy_only = _is_zero_copy_only(array.type, unnest=True)
         if isinstance(array, pa.ChunkedArray):
-            numpy_arr = np.vstack([chunk.to_numpy(zero_copy_only=zero_copy_only) for chunk in array.chunks])
-        else:
-            numpy_arr = array.to_numpy(zero_copy_only=zero_copy_only)
+            array = array.type.wrap_array(pa.concat_arrays([chunk.storage for chunk in array.chunks]))
+        zero_copy_only = _is_zero_copy_only(array.storage.type, unnest=True)
+        numpy_arr = array.to_numpy(zero_copy_only=zero_copy_only)
         return PandasArrayExtensionArray(numpy_arr)
 
     @classmethod
@@ -832,12 +830,25 @@ class PandasArrayExtensionArray(PandasExtensionArray):
     def _from_sequence(
         cls, scalars, dtype: Optional[PandasArrayExtensionDtype] = None, copy: bool = False
     ) -> "PandasArrayExtensionArray":
-        data = np.array(scalars, dtype=dtype if dtype is None else dtype.value_type, copy=copy)
+        if len(scalars) > 1 and all(
+            isinstance(x, np.ndarray) and x.shape == scalars[0].shape and x.dtype == scalars[0].dtype for x in scalars
+        ):
+            data = np.array(scalars, dtype=dtype if dtype is None else dtype.value_type, copy=copy)
+        else:
+            data = np.empty(len(scalars), dtype=object)
+            data[:] = scalars
         return cls(data, copy=copy)
 
     @classmethod
     def _concat_same_type(cls, to_concat: Sequence_["PandasArrayExtensionArray"]) -> "PandasArrayExtensionArray":
-        data = np.vstack([va._data for va in to_concat])
+        if len(to_concat) > 1 and all(
+            va._data.shape == to_concat[0]._data.shape and va._data.dtype == to_concat[0]._data.dtype
+            for va in to_concat
+        ):
+            data = np.vstack([va._data for va in to_concat])
+        else:
+            data = np.empty(len(to_concat), dtype=object)
+            data[:] = [va._data for va in to_concat]
         return cls(data, copy=False)
 
     @property
