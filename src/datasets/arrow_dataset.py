@@ -1266,9 +1266,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Dynamic import to avoid circular dependency
         from .io.spark import SparkDatasetReader
 
-        if sys.version.startswith("3.7"):
-            raise EnvironmentError("Datasets.from_spark is not supported in Python 3.7.")
-
         return SparkDatasetReader(
             df,
             split=split,

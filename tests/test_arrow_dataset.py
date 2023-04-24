@@ -3629,12 +3629,7 @@ def test_from_spark():
         ("3", 3, 3.0),
     ]
     df = spark.createDataFrame(data, "col_1: string, col_2: int, col_3: float")
-    try:
-        dataset = Dataset.from_spark(df)
-    except EnvironmentError as e:
-        if sys.version.startswith("3.7"):
-            return
-        raise e
+    dataset = Dataset.from_spark(df)
     assert isinstance(dataset, Dataset)
     assert dataset.num_rows == 4
     assert dataset.num_columns == 3
@@ -3646,15 +3641,10 @@ def test_from_spark_features():
     data = [(0, np.arange(4 * 4 * 3).reshape(4, 4, 3).tolist())]
     df = spark.createDataFrame(data, "idx: int, image: array<array<array<int>>>")
     features = Features({"idx": Value("int64"), "image": Image()})
-    try:
-        dataset = Dataset.from_spark(
-            df,
-            features=features,
-        )
-    except EnvironmentError as e:
-        if sys.version.startswith("3.7"):
-            return
-        raise e
+    dataset = Dataset.from_spark(
+        df,
+        features=features,
+    )
     assert isinstance(dataset, Dataset)
     assert dataset.num_rows == 1
     assert dataset.num_columns == 2
@@ -3667,12 +3657,7 @@ def test_from_spark_features():
 def test_from_spark_different_cache():
     spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
     df = spark.createDataFrame([("0", 0)], "col_1: string, col_2: int")
-    try:
-        dataset = Dataset.from_spark(df)
-    except EnvironmentError as e:
-        if sys.version.startswith("3.7"):
-            return
-        raise e
+    dataset = Dataset.from_spark(df)
     assert isinstance(dataset, Dataset)
     different_df = spark.createDataFrame([("1", 1)], "col_1: string, col_2: int")
     different_dataset = Dataset.from_spark(different_df)

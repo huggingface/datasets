@@ -169,7 +169,7 @@ TESTS_REQUIRE = [
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch()
     "faiss-cpu>=1.6.4",
     "lz4",
-    "pyspark",
+    "pyspark>=3.4",  # https://issues.apache.org/jira/browse/SPARK-40991 fixed in 3.4.0
     "py7zr",
     "rarfile>=4.0",
     "sqlalchemy<2.0.0",
