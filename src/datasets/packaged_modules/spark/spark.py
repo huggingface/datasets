@@ -180,11 +180,6 @@ class Spark(datasets.DatasetBuilder):
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
 
-        if self.info.splits is not None:
-            self.info.splits[split_generator.name]
-        else:
-            split_info = split_generator.split_info
-
         SUFFIX = "-TTTTT-SSSSS-of-NNNNN"
         fname = f"{self.name}-{split_generator.name}{SUFFIX}.{file_format}"
         fpath = path_join(self._output_dir, fname)
