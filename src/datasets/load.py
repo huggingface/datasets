@@ -634,14 +634,14 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             base_path=base_path,
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
-        module_names = {
-            key: infer_module_for_data_files(data_files_list) for key, data_files_list in data_files.items()
+        split_modules = {
+            split: infer_module_for_data_files(data_files_list) for split, data_files_list in data_files.items()
         }
-        if len(set(list(zip(*module_names.values()))[0])) > 1:
-            raise ValueError(f"Couldn't infer the same data file format for all splits. Got {module_names}")
-        module_name, builder_kwargs = next(iter(module_names.values()))
+        module_name, builder_kwargs = next(iter(split_modules.values()))
+        if any((module_name, builder_kwargs) != split_module for split_module in split_modules.values()):
+            raise ValueError(f"Couldn't infer the same data file format for all splits. Got {split_modules}")
         if not module_name:
-            raise FileNotFoundError(f"No data files or dataset script found in {self.path}")
+            raise FileNotFoundError(f"No (supported) data files or dataset script found in {self.path}")
         # Collect metadata files if the module supports them
         if self.data_files is None and module_name in _MODULE_SUPPORTS_METADATA and patterns != DEFAULT_PATTERNS_ALL:
             try:
@@ -774,15 +774,15 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             base_path=self.data_dir,
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
-        module_names = {
-            key: infer_module_for_data_files(data_files_list, use_auth_token=self.download_config.use_auth_token)
-            for key, data_files_list in data_files.items()
+        split_modules = {
+            split: infer_module_for_data_files(data_files_list, use_auth_token=self.download_config.use_auth_token)
+            for split, data_files_list in data_files.items()
         }
-        if len(set(list(zip(*module_names.values()))[0])) > 1:
-            raise ValueError(f"Couldn't infer the same data file format for all splits. Got {module_names}")
-        module_name, builder_kwargs = next(iter(module_names.values()))
+        module_name, builder_kwargs = next(iter(split_modules.values()))
+        if any((module_name, builder_kwargs) != split_module for split_module in split_modules.values()):
+            raise ValueError(f"Couldn't infer the same data file format for all splits. Got {split_modules}")
         if not module_name:
-            raise FileNotFoundError(f"No data files or dataset script found in {self.name}")
+            raise FileNotFoundError(f"No (supported) data files or dataset script found in {self.name}")
         # Collect metadata files if the module supports them
         if self.data_files is None and module_name in _MODULE_SUPPORTS_METADATA and patterns != DEFAULT_PATTERNS_ALL:
             try:
