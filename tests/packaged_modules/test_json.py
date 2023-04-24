@@ -12,6 +12,7 @@ def jsonl_file(tmp_path):
     filename = tmp_path / "file.jsonl"
     data = textwrap.dedent(
         """\
+        {"col_1": -1}
         {"col_1": 1, "col_2": 2}
         {"col_1": 10, "col_2": 20}
         """
@@ -27,6 +28,7 @@ def json_file_with_list_of_dicts(tmp_path):
     data = textwrap.dedent(
         """\
         [
+            {"col_1": -1},
             {"col_1": 1, "col_2": 2},
             {"col_1": 10, "col_2": 20}
         ]
@@ -46,6 +48,7 @@ def json_file_with_list_of_dicts_field(tmp_path):
             "field1": 1,
             "field2": "aabb",
             "field3": [
+                {"col_1": -1},
                 {"col_1": 1, "col_2": 2},
                 {"col_1": 10, "col_2": 20}
             ]
@@ -69,7 +72,7 @@ def test_json_generate_tables(file_fixture, config_kwargs, request):
     json = Json(**config_kwargs)
     generator = json._generate_tables([[request.getfixturevalue(file_fixture)]])
     pa_table = pa.concat_tables([table for _, table in generator])
-    assert pa_table.to_pydict() == {"col_1": [1, 10], "col_2": [2, 20]}
+    assert pa_table.to_pydict() == {"col_1": [-1, 1, 10], "col_2": [None, 2, 20]}
 
 
 @pytest.mark.parametrize(
@@ -98,4 +101,4 @@ def test_json_generate_tables_with_missing_features(file_fixture, config_kwargs,
     json = Json(**config_kwargs)
     generator = json._generate_tables([[request.getfixturevalue(file_fixture)]])
     pa_table = pa.concat_tables([table for _, table in generator])
-    assert pa_table.to_pydict() == {"col_1": [1, 10], "col_2": [2, 20], "missing_col": [None, None]}
+    assert pa_table.to_pydict() == {"col_1": [-1, 1, 10], "col_2": [None, 2, 20], "missing_col": [None, None, None]}
