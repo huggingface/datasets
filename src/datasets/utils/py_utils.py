@@ -28,7 +28,7 @@ import types
 from contextlib import contextmanager
 from dataclasses import fields, is_dataclass
 from io import BytesIO as StringIO
-from multiprocessing import Manager, Pool, RLock, TimeoutError
+from multiprocessing import Manager, Pool, RLock
 from queue import Empty
 from shutil import disk_usage
 from types import CodeType, FunctionType
@@ -1362,7 +1362,6 @@ def iflatmap_unordered(
     kwargs_iterable: Iterable[dict],
 ) -> Iterable[Y]:
     manager_cls = Manager if isinstance(pool, multiprocessing.pool.Pool) else multiprocess.Manager
-    TimeoutError_ = TimeoutError if isinstance(pool, multiprocessing.pool.Pool) else multiprocess.TimeoutError
     with manager_cls() as manager:
         queue = manager.Queue()
         async_results = [
@@ -1377,7 +1376,4 @@ def iflatmap_unordered(
                         break
         finally:
             # we get the result in case there's an error to raise
-            try:
-                [async_result.get(timeout=0.05) for async_result in async_results]
-            except TimeoutError_:
-                pass
+            [async_result.get(timeout=0.05) for async_result in async_results]
