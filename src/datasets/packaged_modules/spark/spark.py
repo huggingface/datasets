@@ -98,6 +98,13 @@ class Spark(datasets.DatasetBuilder):
         def write_arrow(it):
             # Within the same SparkContext, no two task attempts will share the same attempt ID.
             task_id = pyspark.TaskContext().taskAttemptId()
+            first_batch = next(it, None)
+            if first_batch is None:
+                # Some partitions might not receive any data.
+                return pa.RecordBatch.from_arrays(
+                    [[task_id], [0], [0]],
+                    names=["task_id", "num_examples", "num_bytes"],
+                )
             shard_id = 0
             writer = writer_class(
                 features=features,
@@ -106,6 +113,8 @@ class Spark(datasets.DatasetBuilder):
                 storage_options=storage_options,
                 embed_local_files=embed_local_files,
             )
+            table = pa.Table.from_batches([first_batch])
+            writer.write_table(table)
             for batch in it:
                 if max_shard_size is not None and writer._num_bytes >= max_shard_size:
                     num_examples, num_bytes = writer.finalize()
@@ -125,7 +134,6 @@ class Spark(datasets.DatasetBuilder):
                 table = pa.Table.from_batches([batch])
                 writer.write_table(table)
 
-            # Some partitions might not receive any data.
             if writer._num_bytes > 0:
                 num_examples, num_bytes = writer.finalize()
                 writer.close()
@@ -175,7 +183,7 @@ class Spark(datasets.DatasetBuilder):
         if self.info.splits is not None:
             self.info.splits[split_generator.name]
         else:
-            pass
+            split_info = split_generator.split_info
 
         SUFFIX = "-TTTTT-SSSSS-of-NNNNN"
         fname = f"{self.name}-{split_generator.name}{SUFFIX}.{file_format}"
@@ -194,11 +202,12 @@ class Spark(datasets.DatasetBuilder):
                 num_shards,
                 shard_lengths,
             ) = content
-            total_num_examples += num_examples
-            total_num_bytes += num_bytes
-            total_shards += num_shards
-            task_id_and_num_shards.append((task_id, num_shards))
-            all_shard_lengths.extend(shard_lengths)
+            if num_bytes > 0:
+                total_num_examples += num_examples
+                total_num_bytes += num_bytes
+                total_shards += num_shards
+                task_id_and_num_shards.append((task_id, num_shards))
+                all_shard_lengths.extend(shard_lengths)
 
         split_generator.split_info.num_examples = total_num_examples
         split_generator.split_info.num_bytes = total_num_bytes
