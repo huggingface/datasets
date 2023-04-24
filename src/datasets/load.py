@@ -368,6 +368,7 @@ def infer_module_for_data_files(
                 return _EXTENSION_TO_MODULE[ext]
             elif ext == "zip":
                 return infer_module_for_data_files_in_archives(data_files_list, use_auth_token=use_auth_token)
+    return None, {}
 
 
 def infer_module_for_data_files_in_archives(
@@ -404,6 +405,7 @@ def infer_module_for_data_files_in_archives(
         most_common = extensions_counter.most_common(1)[0][0]
         if most_common in _EXTENSION_TO_MODULE:
             return _EXTENSION_TO_MODULE[most_common]
+    return None, {}
 
 
 @dataclass
