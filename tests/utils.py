@@ -65,6 +65,12 @@ require_beam = pytest.mark.skipif(
     reason="test requires apache-beam and a compatible dill version",
 )
 
+# Dill-cloudpickle compatibility
+require_dill_gt_0_3_2 = pytest.mark.skipif(
+    config.DILL_VERSION <= version.parse("0.3.2"),
+    reason="test requires dill>0.3.2 for cloudpickle compatibility",
+)
+
 
 def require_faiss(test_case):
     """

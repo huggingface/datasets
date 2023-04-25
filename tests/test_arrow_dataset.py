@@ -56,6 +56,7 @@ from datasets.utils.py_utils import temp_seed
 from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
+    require_dill_gt_0_3_2,
     require_jax,
     require_pil,
     require_sqlalchemy,
@@ -3620,6 +3621,7 @@ def test_dataset_from_generator_features(features, data_generator, tmp_path):
     _check_generator_dataset(dataset, expected_features)
 
 
+@require_dill_gt_0_3_2
 def test_from_spark():
     spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
     data = [
@@ -3636,6 +3638,7 @@ def test_from_spark():
     assert dataset.column_names == ["col_1", "col_2", "col_3"]
 
 
+@require_dill_gt_0_3_2
 def test_from_spark_features():
     spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
     data = [(0, np.arange(4 * 4 * 3).reshape(4, 4, 3).tolist())]
@@ -3654,6 +3657,7 @@ def test_from_spark_features():
     assert_arrow_metadata_are_synced_with_dataset_features(dataset)
 
 
+@require_dill_gt_0_3_2
 def test_from_spark_different_cache():
     spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
     df = spark.createDataFrame([("0", 0)], "col_1: string, col_2: int")
