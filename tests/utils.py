@@ -71,6 +71,12 @@ require_dill_gt_0_3_2 = pytest.mark.skipif(
     reason="test requires dill>0.3.2 for cloudpickle compatibility",
 )
 
+# Windows
+require_not_windows = pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="test should not be run on Windows",
+)
+
 
 def require_faiss(test_case):
     """

@@ -58,6 +58,7 @@ from .utils import (
     assert_arrow_memory_increases,
     require_dill_gt_0_3_2,
     require_jax,
+    require_not_windows,
     require_pil,
     require_sqlalchemy,
     require_tf,
@@ -3621,6 +3622,7 @@ def test_dataset_from_generator_features(features, data_generator, tmp_path):
     _check_generator_dataset(dataset, expected_features)
 
 
+@require_not_windows
 @require_dill_gt_0_3_2
 def test_from_spark():
     spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
@@ -3638,6 +3640,7 @@ def test_from_spark():
     assert dataset.column_names == ["col_1", "col_2", "col_3"]
 
 
+@require_not_windows
 @require_dill_gt_0_3_2
 def test_from_spark_features():
     spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
@@ -3657,6 +3660,7 @@ def test_from_spark_features():
     assert_arrow_metadata_are_synced_with_dataset_features(dataset)
 
 
+@require_not_windows
 @require_dill_gt_0_3_2
 def test_from_spark_different_cache():
     spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()

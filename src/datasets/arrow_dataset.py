@@ -1266,6 +1266,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Dynamic import to avoid circular dependency
         from .io.spark import SparkDatasetReader
 
+        if sys.platform == "win32":
+            raise EnvironmentError("Datasets.from_spark is not currently supported on Windows")
+
         return SparkDatasetReader(
             df,
             split=split,
