@@ -142,31 +142,20 @@ class Spark(datasets.DatasetBuilder):
                     names=["task_id", "num_examples", "num_bytes"],
                 )
 
-        stats = (
-            self.df.mapInArrow(write_arrow, "task_id: long, num_examples: long, num_bytes: long")
-            .orderBy("task_id")
+        stats = self.df.mapInArrow(write_arrow, "task_id: long, num_examples: long, num_bytes: long").collect()
+        accumulated_stats = (
+            self._spark.createDataFrame(stats)
+            .groupBy("task_id")
+            .agg(
+                pyspark.sql.functions.sum("num_examples").alias("total_num_examples"),
+                pyspark.sql.functions.sum("num_bytes").alias("total_num_bytes"),
+                pyspark.sql.functions.count("num_bytes").alias("num_shards"),
+                pyspark.sql.functions.collect_list("num_examples").alias("shard_lengths"),
+            )
             .collect()
         )
-        curr_task_id = None
-        total_num_examples = 0
-        total_num_bytes = 0
-        num_shards = 0
-        shard_lengths = []
-        for row in stats:
-            if row.task_id != curr_task_id:
-                if curr_task_id is not None:
-                    yield curr_task_id, (total_num_examples, total_num_bytes, num_shards, shard_lengths)
-                curr_task_id = row.task_id
-                total_num_examples = 0
-                total_num_bytes = 0
-                num_shards = 0
-                shard_lengths = []
-            total_num_examples += row.num_examples
-            total_num_bytes += row.num_bytes
-            num_shards += 1
-            shard_lengths.append(row.num_examples)
-        if curr_task_id is not None:
-            yield curr_task_id, (total_num_examples, total_num_bytes, num_shards, shard_lengths)
+        for row in accumulated_stats:
+            yield row.task_id, (row.total_num_examples, row.total_num_bytes, row.num_shards, row.shard_lengths)
 
     def _prepare_split(
         self,
