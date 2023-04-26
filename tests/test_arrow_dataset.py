@@ -15,9 +15,7 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import numpy.testing as npt
 import pandas as pd
-import PIL.Image
 import pyarrow as pa
-import pyspark
 import pytest
 from absl.testing import parameterized
 from packaging import version
@@ -60,6 +58,7 @@ from .utils import (
     require_jax,
     require_not_windows,
     require_pil,
+    require_pyspark,
     require_sqlalchemy,
     require_tf,
     require_torch,
@@ -3624,7 +3623,10 @@ def test_dataset_from_generator_features(features, data_generator, tmp_path):
 
 @require_not_windows
 @require_dill_gt_0_3_2
+@require_pyspark
 def test_from_spark():
+    import pyspark
+
     spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
     data = [
         ("0", 0, 0.0),
@@ -3642,7 +3644,11 @@ def test_from_spark():
 
 @require_not_windows
 @require_dill_gt_0_3_2
+@require_pyspark
 def test_from_spark_features():
+    import PIL.Image
+    import pyspark
+
     spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
     data = [(0, np.arange(4 * 4 * 3).reshape(4, 4, 3).tolist())]
     df = spark.createDataFrame(data, "idx: int, image: array<array<array<int>>>")
@@ -3662,7 +3668,10 @@ def test_from_spark_features():
 
 @require_not_windows
 @require_dill_gt_0_3_2
+@require_pyspark
 def test_from_spark_different_cache():
+    import pyspark
+
     spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
     df = spark.createDataFrame([("0", 0)], "col_1: string, col_2: int")
     dataset = Dataset.from_spark(df)
