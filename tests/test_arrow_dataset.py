@@ -54,8 +54,11 @@ from datasets.utils.py_utils import temp_seed
 from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
+    require_dill_gt_0_3_2,
     require_jax,
+    require_not_windows,
     require_pil,
+    require_pyspark,
     require_sqlalchemy,
     require_tf,
     require_torch,
@@ -3616,6 +3619,69 @@ def test_dataset_from_generator_features(features, data_generator, tmp_path):
     )
     dataset = Dataset.from_generator(data_generator, features=features, cache_dir=cache_dir)
     _check_generator_dataset(dataset, expected_features)
+
+
+@require_not_windows
+@require_dill_gt_0_3_2
+@require_pyspark
+def test_from_spark():
+    import pyspark
+
+    spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
+    data = [
+        ("0", 0, 0.0),
+        ("1", 1, 1.0),
+        ("2", 2, 2.0),
+        ("3", 3, 3.0),
+    ]
+    df = spark.createDataFrame(data, "col_1: string, col_2: int, col_3: float")
+    dataset = Dataset.from_spark(df)
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == 4
+    assert dataset.num_columns == 3
+    assert dataset.column_names == ["col_1", "col_2", "col_3"]
+
+
+@require_not_windows
+@require_dill_gt_0_3_2
+@require_pyspark
+def test_from_spark_features():
+    import PIL.Image
+    import pyspark
+
+    spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
+    data = [(0, np.arange(4 * 4 * 3).reshape(4, 4, 3).tolist())]
+    df = spark.createDataFrame(data, "idx: int, image: array<array<array<int>>>")
+    features = Features({"idx": Value("int64"), "image": Image()})
+    dataset = Dataset.from_spark(
+        df,
+        features=features,
+    )
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == 1
+    assert dataset.num_columns == 2
+    assert dataset.column_names == ["idx", "image"]
+    assert isinstance(dataset[0]["image"], PIL.Image.Image)
+    assert dataset.features == features
+    assert_arrow_metadata_are_synced_with_dataset_features(dataset)
+
+
+@require_not_windows
+@require_dill_gt_0_3_2
+@require_pyspark
+def test_from_spark_different_cache():
+    import pyspark
+
+    spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
+    df = spark.createDataFrame([("0", 0)], "col_1: string, col_2: int")
+    dataset = Dataset.from_spark(df)
+    assert isinstance(dataset, Dataset)
+    different_df = spark.createDataFrame([("1", 1)], "col_1: string, col_2: int")
+    different_dataset = Dataset.from_spark(different_df)
+    assert isinstance(different_dataset, Dataset)
+    assert dataset[0]["col_1"] == "0"
+    # Check to make sure that the second dataset wasn't read from the cache.
+    assert different_dataset[0]["col_1"] == "1"
 
 
 def _check_sql_dataset(dataset, expected_features):

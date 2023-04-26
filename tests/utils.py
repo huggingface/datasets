@@ -65,6 +65,18 @@ require_beam = pytest.mark.skipif(
     reason="test requires apache-beam and a compatible dill version",
 )
 
+# Dill-cloudpickle compatibility
+require_dill_gt_0_3_2 = pytest.mark.skipif(
+    config.DILL_VERSION <= version.parse("0.3.2"),
+    reason="test requires dill>0.3.2 for cloudpickle compatibility",
+)
+
+# Windows
+require_not_windows = pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="test should not be run on Windows",
+)
+
 
 def require_faiss(test_case):
     """
@@ -235,6 +247,21 @@ def require_spacy_model(model):
             return test_case
 
     return _require_spacy_model
+
+
+def require_pyspark(test_case):
+    """
+    Decorator marking a test that requires pyspark.
+
+    These tests are skipped when pyspark isn't installed.
+
+    """
+    try:
+        import pyspark  # noqa F401
+    except ImportError:
+        return unittest.skip("test requires pyspark")(test_case)
+    else:
+        return test_case
 
 
 def slow(test_case):
