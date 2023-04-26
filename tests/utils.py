@@ -249,6 +249,21 @@ def require_spacy_model(model):
     return _require_spacy_model
 
 
+def require_pyspark(test_case):
+    """
+    Decorator marking a test that requires pyspark.
+
+    These tests are skipped when pyspark isn't installed.
+
+    """
+    try:
+        import pyspark  # noqa F401
+    except ImportError:
+        return unittest.skip("test requires pyspark")(test_case)
+    else:
+        return test_case
+
+
 def slow(test_case):
     """
     Decorator marking a test as slow.
