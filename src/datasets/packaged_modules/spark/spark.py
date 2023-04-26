@@ -142,9 +142,8 @@ class Spark(datasets.DatasetBuilder):
                     names=["task_id", "num_examples", "num_bytes"],
                 )
 
-        stats = self.df.mapInArrow(write_arrow, "task_id: long, num_examples: long, num_bytes: long").collect()
-        accumulated_stats = (
-            self._spark.createDataFrame(stats)
+        stats = (
+            self.df.mapInArrow(write_arrow, "task_id: long, num_examples: long, num_bytes: long")
             .groupBy("task_id")
             .agg(
                 pyspark.sql.functions.sum("num_examples").alias("total_num_examples"),
@@ -154,7 +153,7 @@ class Spark(datasets.DatasetBuilder):
             )
             .collect()
         )
-        for row in accumulated_stats:
+        for row in stats:
             yield row.task_id, (row.total_num_examples, row.total_num_bytes, row.num_shards, row.shard_lengths)
 
     def _prepare_split(
