@@ -32,9 +32,11 @@ class SparkConfig(datasets.BuilderConfig):
 
 
 def _generate_iterable_examples(
-    df: pyspark.sql.DataFrame,
+    df: "pyspark.sql.DataFrame",
     partition_order: List[int] = None,
 ):
+    import pyspark
+
     def generate_fn():
         df_with_partition_id = df.select("*", pyspark.sql.functions.spark_partition_id().alias("part_id"))
         for partition_id in partition_order:
@@ -51,7 +53,7 @@ def _generate_iterable_examples(
 class SparkExamplesIterable(_BaseExamplesIterable):
     def __init__(
         self,
-        df: pyspark.sql.DataFrame,
+        df: "pyspark.sql.DataFrame",
         partition_order=None,
     ):
         self.df = df
