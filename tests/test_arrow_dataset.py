@@ -3642,12 +3642,13 @@ def test_from_spark():
     assert dataset.column_names == ["col_1", "col_2", "col_3"]
 
 
+@require_not_windows
 @require_dill_gt_0_3_2
 @require_pyspark
 def test_from_spark_streaming():
     import pyspark
 
-    spark = pyspark.sql.SparkSession.builder.appName("pyspark").getOrCreate()
+    spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
     data = [
         ("0", 0, 0.0),
         ("1", 1, 1.0),
@@ -3661,10 +3662,10 @@ def test_from_spark_streaming():
     for ex in dataset:
         results.append(ex)
     assert results == [
-        {'col_1': '0', 'col_2': 0, 'col_3': 0.0},
-        {'col_1': '1', 'col_2': 1, 'col_3': 1.0},
-        {'col_1': '2', 'col_2': 2, 'col_3': 2.0},
-        {'col_1': '3', 'col_2': 3, 'col_3': 3.0},
+        {"col_1": "0", "col_2": 0, "col_3": 0.0},
+        {"col_1": "1", "col_2": 1, "col_3": 1.0},
+        {"col_1": "2", "col_2": 2, "col_3": 2.0},
+        {"col_1": "3", "col_2": 3, "col_3": 3.0},
     ]
 
 
@@ -3693,13 +3694,14 @@ def test_from_spark_features():
     assert_arrow_metadata_are_synced_with_dataset_features(dataset)
 
 
+@require_not_windows
 @require_dill_gt_0_3_2
 @require_pyspark
 def test_from_spark_streaming_features():
     import PIL.Image
     import pyspark
 
-    spark = pyspark.sql.SparkSession.builder.appName("pyspark").getOrCreate()
+    spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
     data = [(0, np.arange(4 * 4 * 3).reshape(4, 4, 3).tolist())]
     df = spark.createDataFrame(data, "idx: int, image: array<array<array<int>>>")
     features = Features({"idx": Value("int64"), "image": Image()})

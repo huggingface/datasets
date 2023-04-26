@@ -9,7 +9,6 @@ from .imagefolder import imagefolder
 from .json import json
 from .pandas import pandas
 from .parquet import parquet
-from .spark import spark
 from .sql import sql  # noqa F401
 from .text import text
 
@@ -33,7 +32,6 @@ _PACKAGED_DATASETS_MODULES = {
     "json": (json.__name__, _hash_python_lines(inspect.getsource(json).splitlines())),
     "pandas": (pandas.__name__, _hash_python_lines(inspect.getsource(pandas).splitlines())),
     "parquet": (parquet.__name__, _hash_python_lines(inspect.getsource(parquet).splitlines())),
-    "spark": (spark.__name__, _hash_python_lines(inspect.getsource(spark).splitlines())),
     "text": (text.__name__, _hash_python_lines(inspect.getsource(text).splitlines())),
     "imagefolder": (imagefolder.__name__, _hash_python_lines(inspect.getsource(imagefolder).splitlines())),
     "audiofolder": (audiofolder.__name__, _hash_python_lines(inspect.getsource(audiofolder).splitlines())),
