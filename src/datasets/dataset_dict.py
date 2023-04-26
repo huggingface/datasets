@@ -1606,7 +1606,9 @@ class DatasetDict(dict):
         info_to_dump.dataset_size = total_dataset_nbytes
         info_to_dump.size_in_bytes = total_uploaded_size + total_dataset_nbytes
 
-        metadata_config_to_dump = {"data_files": [{"split": split, "pattern": f"{data_dir}/{split}-*"}]}
+        metadata_config_to_dump = {
+            "data_files": [{"split": split, "pattern": f"{data_dir}/{split}-*"} for split in self.keys()],
+        }
 
         api = HfApi(endpoint=config.HF_ENDPOINT)
         repo_files = api.list_repo_files(repo_id, repo_type="dataset", revision=branch, token=token)
