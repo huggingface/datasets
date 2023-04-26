@@ -1,13 +1,13 @@
 import os
+import posixpath
 import uuid
 from dataclasses import dataclass
-from typing import Iterable, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Iterable, Optional, Tuple, Union
 
 import pyarrow as pa
-import pyspark
 
 import datasets
-from datasets.arrow_writer import ArrowWriter
+from datasets.arrow_writer import ArrowWriter, ParquetWriter
 from datasets.config import MAX_SHARD_SIZE
 from datasets.filesystems import (
     is_remote_filesystem,
@@ -17,6 +17,9 @@ from datasets.utils.py_utils import convert_file_size_to_int
 
 
 logger = datasets.utils.logging.get_logger(__name__)
+
+if TYPE_CHECKING:
+    import pyspark
 
 
 @dataclass
@@ -31,10 +34,12 @@ class Spark(datasets.DatasetBuilder):
 
     def __init__(
         self,
-        df: pyspark.sql.DataFrame,
+        df: "pyspark.sql.DataFrame",
         cache_dir: str = None,
         **config_kwargs,
     ):
+        import pyspark
+
         self._spark = pyspark.sql.SparkSession.builder.getOrCreate()
         self.df = df
         self._validate_cache_dir(cache_dir)
@@ -86,6 +91,8 @@ class Spark(datasets.DatasetBuilder):
         file_format: str,
         max_shard_size: int,
     ) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
+        import pyspark
+
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"
 
