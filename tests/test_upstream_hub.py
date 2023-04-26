@@ -101,8 +101,8 @@ class TestPushToHub:
                     ".gitattributes",
                     "README.md",
                     "data/train-00000-of-00001-*.parquet",
-                    "first/data/train-00000-of-00001-*.parquet",
-                    "second/data/train-00000-of-00001-*.parquet",
+                    "first/train-00000-of-00001-*.parquet",
+                    "second/train-00000-of-00001-*.parquet",
                 ]
             )
             assert all(fnmatch.fnmatch(file, expected_file) for file, expected_file in zip(files, expected_files))
@@ -113,9 +113,24 @@ class TestPushToHub:
             assert METADATA_CONFIGS_FIELD in dataset_metadata
             assert isinstance(dataset_metadata[METADATA_CONFIGS_FIELD], list)
             assert sorted(dataset_metadata[METADATA_CONFIGS_FIELD], key=lambda x: x["config_name"]) == [
-                {"config_name": "default", "data_dir": "./"},
-                {"config_name": "first", "data_dir": "first"},
-                {"config_name": "second", "data_dir": "second"},
+                {
+                    "config_name": "default",
+                    "data_files": [
+                        {"split": "train", "pattern": "data/train-*"},
+                    ],
+                },
+                {
+                    "config_name": "first",
+                    "data_files": [
+                        {"split": "train", "pattern": "first/train-*"},
+                    ],
+                },
+                {
+                    "config_name": "second",
+                    "data_files": [
+                        {"split": "train", "pattern": "second/train-*"},
+                    ],
+                },
             ]
 
     def test_push_to_hub_custom_configs_custom_splits(self, temporary_repo):
@@ -150,8 +165,8 @@ class TestPushToHub:
                     "README.md",
                     "data/train-00000-of-00001-*.parquet",
                     "data/random-00000-of-00001-*.parquet",
-                    "custom/data/train-00000-of-00001-*.parquet",
-                    "custom/data/random-00000-of-00001-*.parquet",
+                    "custom/train-00000-of-00001-*.parquet",
+                    "custom/random-00000-of-00001-*.parquet",
                 ]
             )
             assert all(fnmatch.fnmatch(file, expected_file) for file, expected_file in zip(files, expected_files))
@@ -160,9 +175,21 @@ class TestPushToHub:
             dataset_metadata = DatasetMetadata.from_readme(Path(ds_readme_path))
             assert METADATA_CONFIGS_FIELD in dataset_metadata
             assert isinstance(dataset_metadata[METADATA_CONFIGS_FIELD], list)
-            assert sorted(dataset_metadata[METADATA_CONFIGS_FIELD], key=lambda x: x["config_name"]) == [
-                {"config_name": "custom", "data_dir": "custom"},
-                {"config_name": "default", "data_dir": "./"},
+            assert dataset_metadata[METADATA_CONFIGS_FIELD] == [
+                {
+                    "config_name": "custom",
+                    "data_files": [
+                        {"split": "train", "pattern": "custom/train-*"},
+                        {"split": "random", "pattern": "custom/random-*"},
+                    ],
+                },
+                {
+                    "config_name": "default",
+                    "data_files": [
+                        {"split": "train", "pattern": "data/train-*"},
+                        {"split": "random", "pattern": "data/random-*"},
+                    ],
+                },
             ]
 
     def test_push_dataset_dict_to_hub_name_without_namespace(self, temporary_repo):
