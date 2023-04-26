@@ -1398,6 +1398,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 raise PermissionError(
                     f"Tried to overwrite {Path(dataset_path).resolve()} but a dataset can't overwrite itself."
                 )
+        else:
+            fs.makedirs(dataset_path, exist_ok=True)
 
         # Get json serializable state
         state = {

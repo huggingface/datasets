@@ -1080,19 +1080,19 @@ def test_loading_from_the_datasets_hub():
 
 @pytest.mark.integration
 def test_loading_from_the_datasets_hub_with_use_auth_token():
-    from requests import get
+    true_request = requests.Session().request
 
-    def assert_auth(url, *args, headers, **kwargs):
+    def assert_auth(method, url, *args, headers, **kwargs):
         assert headers["authorization"] == "Bearer foo"
-        return get(url, *args, headers=headers, **kwargs)
+        return true_request(method, url, *args, headers=headers, **kwargs)
 
-    with patch("requests.get") as mock_head:
-        mock_head.side_effect = assert_auth
+    with patch("requests.Session.request") as mock_request:
+        mock_request.side_effect = assert_auth
         with tempfile.TemporaryDirectory() as tmp_dir:
             with offline():
                 with pytest.raises((ConnectionError, requests.exceptions.ConnectionError)):
                     load_dataset(SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER, cache_dir=tmp_dir, use_auth_token="foo")
-        mock_head.assert_called()
+        mock_request.assert_called()
 
 
 @pytest.mark.integration

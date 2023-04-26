@@ -1219,6 +1219,8 @@ class DatasetDict(dict):
 
         if is_local:
             Path(dataset_dict_path).resolve().mkdir(parents=True, exist_ok=True)
+        else:
+            fs.makedirs(dataset_dict_path, exist_ok=True)
 
         with fs.open(path_join(dataset_dict_path, config.DATASETDICT_JSON_FILENAME), "w", encoding="utf-8") as f:
             json.dump({"splits": list(self)}, f)
