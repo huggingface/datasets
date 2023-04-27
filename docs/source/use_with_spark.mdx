@@ -25,8 +25,8 @@ The Spark workers write the dataset on disk in a cache directory as Arrow files,
 
 ### Caching
 
-The resulting [`Dataset`] is cached: if you call [`Dataset.from_spark`] multiple times on the say DataFrame it won't re-run the Spark
-job that writes the dataset as Arrow fiels on disk.
+The resulting [`Dataset`] is cached: if you call [`Dataset.from_spark`] multiple times on the same DataFrame it won't re-run the Spark
+job that writes the dataset as Arrow files on disk.
 
 You can set the location by passing `cache_dir=` to [`Dataset.from_spark`].
 Make sure to use a disk that is available to both your workers and your current machine (the driver).
