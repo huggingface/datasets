@@ -270,6 +270,7 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
 
+    @pytest.mark.filterwarnings("ignore:GithubMetricModuleFactory is deprecated:FutureWarning")
     def test_GithubMetricModuleFactory_with_external_import(self):
         # "bleu" requires additional imports (external from github)
         factory = GithubMetricModuleFactory(
@@ -456,6 +457,8 @@ class ModuleFactoryTest(TestCase):
                 module_factory_result = factory.get_module()
                 assert importlib.import_module(module_factory_result.module_path) is not None
 
+    @pytest.mark.filterwarnings("ignore:LocalMetricModuleFactory is deprecated:FutureWarning")
+    @pytest.mark.filterwarnings("ignore:CachedMetricModuleFactory is deprecated:FutureWarning")
     def test_CachedMetricModuleFactory(self):
         path = os.path.join(self._metric_loading_script_dir, f"{METRIC_LOADING_SCRIPT_NAME}.py")
         factory = LocalMetricModuleFactory(
@@ -849,19 +852,19 @@ def test_loading_from_the_datasets_hub():
 
 @pytest.mark.integration
 def test_loading_from_the_datasets_hub_with_use_auth_token():
-    from requests import get
+    true_request = requests.Session().request
 
-    def assert_auth(url, *args, headers, **kwargs):
+    def assert_auth(method, url, *args, headers, **kwargs):
         assert headers["authorization"] == "Bearer foo"
-        return get(url, *args, headers=headers, **kwargs)
+        return true_request(method, url, *args, headers=headers, **kwargs)
 
-    with patch("requests.get") as mock_head:
-        mock_head.side_effect = assert_auth
+    with patch("requests.Session.request") as mock_request:
+        mock_request.side_effect = assert_auth
         with tempfile.TemporaryDirectory() as tmp_dir:
             with offline():
                 with pytest.raises((ConnectionError, requests.exceptions.ConnectionError)):
                     load_dataset(SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER, cache_dir=tmp_dir, use_auth_token="foo")
-        mock_head.assert_called()
+        mock_request.assert_called()
 
 
 @pytest.mark.integration

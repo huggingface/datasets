@@ -15,6 +15,7 @@ import pytest
 from multiprocess.pool import Pool
 
 from datasets.arrow_dataset import Dataset
+from datasets.arrow_reader import DatasetNotOnHfGcsError
 from datasets.arrow_writer import ArrowWriter
 from datasets.builder import ArrowBasedBuilder, BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
@@ -933,6 +934,14 @@ def test_builder_as_streaming_dataset(tmp_path):
     dset = dummy_builder.as_streaming_dataset(split="train")
     assert isinstance(dset, IterableDataset)
     assert len(list(dset)) == 100
+
+
+@require_beam
+def test_beam_based_builder_as_streaming_dataset(tmp_path):
+    builder = DummyBeamBasedBuilder(cache_dir=tmp_path)
+    check_streaming(builder)
+    with pytest.raises(DatasetNotOnHfGcsError):
+        builder.as_streaming_dataset()
 
 
 def _run_test_builder_streaming_works_in_subprocesses(builder):

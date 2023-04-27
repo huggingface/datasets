@@ -54,8 +54,11 @@ from datasets.utils.py_utils import temp_seed
 from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
+    require_dill_gt_0_3_2,
     require_jax,
+    require_not_windows,
     require_pil,
+    require_pyspark,
     require_sqlalchemy,
     require_tf,
     require_torch,
@@ -113,7 +116,7 @@ IN_MEMORY_PARAMETERS = [
 @parameterized.named_parameters(IN_MEMORY_PARAMETERS)
 class BaseDatasetTest(TestCase):
     @pytest.fixture(autouse=True)
-    def inject_fixtures(self, caplog):
+    def inject_fixtures(self, caplog, set_sqlalchemy_silence_uber_warning):
         self._caplog = caplog
 
     def _create_dummy_dataset(
@@ -898,7 +901,7 @@ class BaseDatasetTest(TestCase):
         # decoding turned on
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict(
-                {"a": [np.arange(4 * 4 * 3).reshape(4, 4, 3)] * 10, "foo": [1] * 10},
+                {"a": [np.arange(4 * 4 * 3, dtype=np.uint8).reshape(4, 4, 3)] * 10, "foo": [1] * 10},
                 features=Features({"a": Image(), "foo": Value("int64")}),
             ) as dset:
                 with self._to(in_memory, tmp_dir, dset) as dset:
@@ -913,7 +916,7 @@ class BaseDatasetTest(TestCase):
         # decoding turned on + nesting
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict(
-                {"a": [{"b": np.arange(4 * 4 * 3).reshape(4, 4, 3)}] * 10, "foo": [1] * 10},
+                {"a": [{"b": np.arange(4 * 4 * 3, dtype=np.uint8).reshape(4, 4, 3)}] * 10, "foo": [1] * 10},
                 features=Features({"a": {"b": Image()}, "foo": Value("int64")}),
             ) as dset:
                 with self._to(in_memory, tmp_dir, dset) as dset:
@@ -928,7 +931,7 @@ class BaseDatasetTest(TestCase):
         # decoding turned off
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict(
-                {"a": [np.arange(4 * 4 * 3).reshape(4, 4, 3)] * 10, "foo": [1] * 10},
+                {"a": [np.arange(4 * 4 * 3, dtype=np.uint8).reshape(4, 4, 3)] * 10, "foo": [1] * 10},
                 features=Features({"a": Image(decode=False), "foo": Value("int64")}),
             ) as dset:
                 with self._to(in_memory, tmp_dir, dset) as dset:
@@ -946,7 +949,7 @@ class BaseDatasetTest(TestCase):
         # decoding turned off + nesting
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict(
-                {"a": [{"b": np.arange(4 * 4 * 3).reshape(4, 4, 3)}] * 10, "foo": [1] * 10},
+                {"a": [{"b": np.arange(4 * 4 * 3, dtype=np.uint8).reshape(4, 4, 3)}] * 10, "foo": [1] * 10},
                 features=Features({"a": {"b": Image(decode=False)}, "foo": Value("int64")}),
             ) as dset:
                 with self._to(in_memory, tmp_dir, dset) as dset:
@@ -2140,18 +2143,7 @@ class BaseDatasetTest(TestCase):
 
     def test_to_dict(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
-            # Batched
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
-                batch_size = dset.num_rows - 1
-                to_dict_generator = dset.to_dict(batched=True, batch_size=batch_size)
-
-                for batch in to_dict_generator:
-                    self.assertIsInstance(batch, dict)
-                    self.assertListEqual(sorted(batch.keys()), sorted(dset.column_names))
-                    for col_name in dset.column_names:
-                        self.assertIsInstance(batch[col_name], list)
-                        self.assertLessEqual(len(batch[col_name]), batch_size)
-
                 # Full
                 dset_to_dict = dset.to_dict()
                 self.assertIsInstance(dset_to_dict, dict)
@@ -3629,6 +3621,69 @@ def test_dataset_from_generator_features(features, data_generator, tmp_path):
     _check_generator_dataset(dataset, expected_features)
 
 
+@require_not_windows
+@require_dill_gt_0_3_2
+@require_pyspark
+def test_from_spark():
+    import pyspark
+
+    spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
+    data = [
+        ("0", 0, 0.0),
+        ("1", 1, 1.0),
+        ("2", 2, 2.0),
+        ("3", 3, 3.0),
+    ]
+    df = spark.createDataFrame(data, "col_1: string, col_2: int, col_3: float")
+    dataset = Dataset.from_spark(df)
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == 4
+    assert dataset.num_columns == 3
+    assert dataset.column_names == ["col_1", "col_2", "col_3"]
+
+
+@require_not_windows
+@require_dill_gt_0_3_2
+@require_pyspark
+def test_from_spark_features():
+    import PIL.Image
+    import pyspark
+
+    spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
+    data = [(0, np.arange(4 * 4 * 3).reshape(4, 4, 3).tolist())]
+    df = spark.createDataFrame(data, "idx: int, image: array<array<array<int>>>")
+    features = Features({"idx": Value("int64"), "image": Image()})
+    dataset = Dataset.from_spark(
+        df,
+        features=features,
+    )
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == 1
+    assert dataset.num_columns == 2
+    assert dataset.column_names == ["idx", "image"]
+    assert isinstance(dataset[0]["image"], PIL.Image.Image)
+    assert dataset.features == features
+    assert_arrow_metadata_are_synced_with_dataset_features(dataset)
+
+
+@require_not_windows
+@require_dill_gt_0_3_2
+@require_pyspark
+def test_from_spark_different_cache():
+    import pyspark
+
+    spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
+    df = spark.createDataFrame([("0", 0)], "col_1: string, col_2: int")
+    dataset = Dataset.from_spark(df)
+    assert isinstance(dataset, Dataset)
+    different_df = spark.createDataFrame([("1", 1)], "col_1: string, col_2: int")
+    different_dataset = Dataset.from_spark(different_df)
+    assert isinstance(different_dataset, Dataset)
+    assert dataset[0]["col_1"] == "0"
+    # Check to make sure that the second dataset wasn't read from the cache.
+    assert different_dataset[0]["col_1"] == "1"
+
+
 def _check_sql_dataset(dataset, expected_features):
     assert isinstance(dataset, Dataset)
     assert dataset.num_rows == 4
@@ -3640,7 +3695,7 @@ def _check_sql_dataset(dataset, expected_features):
 
 @require_sqlalchemy
 @pytest.mark.parametrize("con_type", ["string", "engine"])
-def test_dataset_from_sql_con_type(con_type, sqlite_path, tmp_path):
+def test_dataset_from_sql_con_type(con_type, sqlite_path, tmp_path, set_sqlalchemy_silence_uber_warning):
     cache_dir = tmp_path / "cache"
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     if con_type == "string":
@@ -3679,7 +3734,7 @@ def test_dataset_from_sql_con_type(con_type, sqlite_path, tmp_path):
         {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
     ],
 )
-def test_dataset_from_sql_features(features, sqlite_path, tmp_path):
+def test_dataset_from_sql_features(features, sqlite_path, tmp_path, set_sqlalchemy_silence_uber_warning):
     cache_dir = tmp_path / "cache"
     default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
@@ -3692,7 +3747,7 @@ def test_dataset_from_sql_features(features, sqlite_path, tmp_path):
 
 @require_sqlalchemy
 @pytest.mark.parametrize("keep_in_memory", [False, True])
-def test_dataset_from_sql_keep_in_memory(keep_in_memory, sqlite_path, tmp_path):
+def test_dataset_from_sql_keep_in_memory(keep_in_memory, sqlite_path, tmp_path, set_sqlalchemy_silence_uber_warning):
     cache_dir = tmp_path / "cache"
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():

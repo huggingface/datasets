@@ -2,9 +2,9 @@ import posixpath
 from pathlib import Path
 from unittest.mock import patch
 
-import fsspec
 import pytest
 from fsspec.implementations.local import AbstractFileSystem, LocalFileSystem, stringify_path
+from fsspec.registry import _registry as _fsspec_registry
 
 
 class MockFileSystem(AbstractFileSystem):
@@ -92,11 +92,11 @@ class TmpDirFileSystem(MockFileSystem):
 
 @pytest.fixture
 def mock_fsspec():
-    original_registry = fsspec.registry.copy()
-    fsspec.register_implementation("mock", MockFileSystem)
-    fsspec.register_implementation("tmp", TmpDirFileSystem)
+    _fsspec_registry["mock"] = MockFileSystem
+    _fsspec_registry["tmp"] = TmpDirFileSystem
     yield
-    fsspec.registry = original_registry
+    del _fsspec_registry["mock"]
+    del _fsspec_registry["tmp"]
 
 
 @pytest.fixture

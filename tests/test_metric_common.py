@@ -93,6 +93,8 @@ class LocalMetricTest(parameterized.TestCase):
     INTENSIVE_CALLS_PATCHER = {}
     metric_name = None
 
+    @pytest.mark.filterwarnings("ignore:metric_module_factory is deprecated:FutureWarning")
+    @pytest.mark.filterwarnings("ignore:load_metric is deprecated:FutureWarning")
     def test_load_metric(self, metric_name):
         doctest.ELLIPSIS_MARKER = "[...]"
         metric_module = importlib.import_module(
@@ -101,7 +103,7 @@ class LocalMetricTest(parameterized.TestCase):
         metric = datasets.load.import_main_class(metric_module.__name__, dataset=False)
         # check parameters
         parameters = inspect.signature(metric._compute).parameters
-        self.assertTrue(all([p.kind != p.VAR_KEYWORD for p in parameters.values()]))  # no **kwargs
+        self.assertTrue(all(p.kind != p.VAR_KEYWORD for p in parameters.values()))  # no **kwargs
         # run doctest
         with self.patch_intensive_calls(metric_name, metric_module.__name__):
             with self.use_local_metrics():
