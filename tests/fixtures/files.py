@@ -481,6 +481,15 @@ def zip_text_with_dir_path(text_path, text2_path, tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
+def zip_unsupported_ext_path(text_path, text2_path, tmp_path_factory):
+    path = tmp_path_factory.mktemp("data") / "dataset.ext.zip"
+    with zipfile.ZipFile(path, "w") as f:
+        f.write(text_path, arcname=os.path.basename("unsupported.ext"))
+        f.write(text2_path, arcname=os.path.basename("unsupported_2.ext"))
+    return path
+
+
+@pytest.fixture(scope="session")
 def text_path_with_unicode_new_lines(tmp_path_factory):
     text = "\n".join(["First", "Second\u2029with Unicode new line", "Third"])
     path = str(tmp_path_factory.mktemp("data") / "dataset_with_unicode_new_lines.txt")
