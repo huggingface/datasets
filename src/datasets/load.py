@@ -626,7 +626,9 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
 
     def get_module(self) -> DatasetModule:
         base_path = os.path.join(self.path, self.data_dir) if self.data_dir else self.path
-        patterns = sanitize_patterns(self.data_files) if self.data_files else get_data_patterns_locally(base_path)
+        patterns = (
+            sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns_locally(base_path)
+        )
         data_files = DataFilesDict.from_local_or_remote(
             patterns,
             base_path=base_path,
@@ -763,7 +765,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         )
         patterns = (
             sanitize_patterns(self.data_files)
-            if self.data_files
+            if self.data_files is not None
             else get_data_patterns_in_dataset_repository(hfh_dataset_info, self.data_dir)
         )
         data_files = DataFilesDict.from_hf_repo(
