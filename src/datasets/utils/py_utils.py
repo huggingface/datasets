@@ -155,6 +155,20 @@ def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
     Raises:
         ValueError: if the string doesn't match the pattern
     """
+    pattern = (
+        pattern.replace("\\", r"\\")
+        .replace(".", r"\.")
+        .replace("+", r"\+")
+        .replace("//", "/")
+        .replace("(", r"\(")
+        .replace(")", r"\)")
+        .replace("|", r"\|")
+        .replace("^", r"\^")
+        .replace("$", r"\$")
+        .rstrip("/")
+        .replace("?", ".")
+    )
+
     regex = re.sub(r"{(.+?)}", r"(?P<_\1>.+)", pattern)
     result = re.search(regex, string)
     if result is None:
