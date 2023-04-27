@@ -446,6 +446,7 @@ def infer_module_for_data_files(
                 return _EXTENSION_TO_MODULE[ext]
             elif ext == "zip":
                 return infer_module_for_data_files_in_archives(data_files_list, use_auth_token=use_auth_token)
+    return None, {}
 
 
 def infer_module_for_data_files_in_archives(
@@ -482,6 +483,7 @@ def infer_module_for_data_files_in_archives(
         most_common = extensions_counter.most_common(1)[0][0]
         if most_common in _EXTENSION_TO_MODULE:
             return _EXTENSION_TO_MODULE[most_common]
+    return None, {}
 
 
 def get_dataset_info_from_dataset_metadata(
@@ -777,15 +779,14 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             base_path=base_path,
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
-        module_names = {
-            key: infer_module_for_data_files(data_files_list) for key, data_files_list in data_files.items()
+        split_modules = {
+            split: infer_module_for_data_files(data_files_list) for split, data_files_list in data_files.items()
         }
-        if len(set(list(zip(*module_names.values()))[0])) > 1:
-            raise ValueError(f"Couldn't infer the same data file format for all splits. Got {module_names}")
-        module_name, default_builder_kwargs = next(iter(module_names.values()))
+        module_name, default_builder_kwargs = next(iter(split_modules.values()))
+        if any((module_name, default_builder_kwargs) != split_module for split_module in split_modules.values()):
+            raise ValueError(f"Couldn't infer the same data file format for all splits. Got {split_modules}")
         if not module_name:
-            raise FileNotFoundError(f"No data files found in {self.path}")
-
+            raise FileNotFoundError(f"No (supported) data files or dataset script found in {self.path}")
         # Collect metadata files if the module supports them
         supports_metadata = module_name in _MODULE_SUPPORTS_METADATA
         if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
@@ -950,17 +951,15 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             base_path=self.data_dir,
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
-
-        module_names = {
-            key: infer_module_for_data_files(data_files_list, use_auth_token=self.download_config.use_auth_token)
-            for key, data_files_list in data_files.items()
+        split_modules = {
+            split: infer_module_for_data_files(data_files_list, use_auth_token=self.download_config.use_auth_token)
+            for split, data_files_list in data_files.items()
         }
-        if len(set(list(zip(*module_names.values()))[0])) > 1:
-            raise ValueError(f"Couldn't infer the same data file format for all splits. Got {module_names}")
-        module_name, default_builder_kwargs = next(iter(module_names.values()))
+        module_name, default_builder_kwargs = next(iter(split_modules.values()))
+        if any((module_name, default_builder_kwargs) != split_module for split_module in split_modules.values()):
+            raise ValueError(f"Couldn't infer the same data file format for all splits. Got {split_modules}")
         if not module_name:
-            raise FileNotFoundError(f"No data files or dataset script found in {self.name}")
-
+            raise FileNotFoundError(f"No (supported) data files or dataset script found in {self.name}")
         # Collect metadata files if the module supports them
         supports_metadata = module_name in _MODULE_SUPPORTS_METADATA
         if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
@@ -1917,6 +1916,8 @@ def load_dataset(
             f"You can remove this warning by passing 'verification_mode={verification_mode.value}' instead.",
             FutureWarning,
         )
+    if data_files is not None and not data_files:
+        raise ValueError(f"Empty 'data_files': '{data_files}'. It should be either non-empty or None (default).")
     if Path(path, config.DATASET_STATE_JSON_FILENAME).exists():
         raise ValueError(
             "You are trying to load a dataset that was saved using `save_to_disk`. "

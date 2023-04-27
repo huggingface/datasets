@@ -33,6 +33,11 @@ def interleave_datasets(
     The resulting dataset ends when one of the source datasets runs out of examples except when `oversampling` is `True`,
     in which case, the resulting dataset ends when all datasets have ran out of examples at least one time.
 
+    Note for iterable datasets:
+
+    In a distributed setup or in PyTorch DataLoader workers, the stopping strategy is applied per process.
+    Therefore the "first_exhausted" strategy on an sharded iterable dataset can generate less samples in total (up to 1 missing sample per subdataset per worker).
+
     Args:
         datasets (`List[Dataset]` or `List[IterableDataset]`):
             List of datasets to interleave.

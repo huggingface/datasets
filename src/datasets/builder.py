@@ -53,7 +53,10 @@ from .download.download_manager import DownloadManager, DownloadMode
 from .download.mock_download_manager import MockDownloadManager
 from .download.streaming_download_manager import StreamingDownloadManager, xopen
 from .features import Features
-from .filesystems import is_remote_filesystem
+from .filesystems import (
+    is_remote_filesystem,
+    rename,
+)
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
 from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
@@ -629,12 +632,7 @@ class DatasetBuilder:
         return os.path.dirname(inspect.getfile(inspect.getmodule(cls)))
 
     def _rename(self, src: str, dst: str):
-        is_local = not is_remote_filesystem(self._fs)
-        if is_local:
-            # LocalFileSystem.mv does copy + rm, it is more efficient to simply move a local directory
-            shutil.move(self._fs._strip_protocol(src), self._fs._strip_protocol(dst))
-        else:
-            self._fs.mv(src, dst, recursive=True)
+        rename(self._fs, src, dst)
 
     def download_and_prepare(
         self,

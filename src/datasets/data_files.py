@@ -31,47 +31,31 @@ class EmptyDatasetError(FileNotFoundError):
 
 SPLIT_PATTERN_SHARDED = "data/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"
 
-TRAIN_KEYWORDS = ["train", "training"]
-TEST_KEYWORDS = ["test", "testing", "eval", "evaluation"]
-VALIDATION_KEYWORDS = ["validation", "valid", "dev", "val"]
+SPLIT_KEYWORDS = {
+    Split.TRAIN: ["train", "training"],
+    Split.VALIDATION: ["validation", "valid", "dev", "val"],
+    Split.TEST: ["test", "testing", "eval", "evaluation"],
+}
 NON_WORDS_CHARS = "-._ 0-9"
 KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**[{sep}/]{keyword}[{sep}]*", "{keyword}[{sep}]*"]
 KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**[{sep}/]{keyword}[{sep}/]**"]
 
+DEFAULT_SPLITS = [Split.TRAIN, Split.VALIDATION, Split.TEST]
 DEFAULT_PATTERNS_SPLIT_IN_FILENAME = {
-    Split.TRAIN: [
+    split: [
         pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
-        for keyword in TRAIN_KEYWORDS
+        for keyword in SPLIT_KEYWORDS[split]
         for pattern in KEYWORDS_IN_FILENAME_BASE_PATTERNS
-    ],
-    Split.TEST: [
-        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
-        for keyword in TEST_KEYWORDS
-        for pattern in KEYWORDS_IN_FILENAME_BASE_PATTERNS
-    ],
-    Split.VALIDATION: [
-        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
-        for keyword in VALIDATION_KEYWORDS
-        for pattern in KEYWORDS_IN_FILENAME_BASE_PATTERNS
-    ],
+    ]
+    for split in DEFAULT_SPLITS
 }
-
 DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME = {
-    Split.TRAIN: [
+    split: [
         pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
-        for keyword in TRAIN_KEYWORDS
+        for keyword in SPLIT_KEYWORDS[split]
         for pattern in KEYWORDS_IN_DIR_NAME_BASE_PATTERNS
-    ],
-    Split.TEST: [
-        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
-        for keyword in TEST_KEYWORDS
-        for pattern in KEYWORDS_IN_DIR_NAME_BASE_PATTERNS
-    ],
-    Split.VALIDATION: [
-        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
-        for keyword in VALIDATION_KEYWORDS
-        for pattern in KEYWORDS_IN_DIR_NAME_BASE_PATTERNS
-    ],
+    ]
+    for split in DEFAULT_SPLITS
 }
 
 DEFAULT_PATTERNS_ALL = {
@@ -245,7 +229,10 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], List[PurePath]]) 
         if len(data_files) > 0:
             data_files = [p.as_posix() for p in data_files]
             splits: Set[str] = {string_to_dict(p, split_pattern)["split"] for p in data_files}
-            return {split: [split_pattern.format(split=split)] for split in splits}
+            sorted_splits = [str(split) for split in DEFAULT_SPLITS if split in splits] + sorted(
+                splits - set(DEFAULT_SPLITS)
+            )
+            return {split: [split_pattern.format(split=split)] for split in sorted_splits}
     # then check the default patterns based on train/valid/test splits
     for patterns_dict in ALL_DEFAULT_PATTERNS:
         non_empty_splits = []

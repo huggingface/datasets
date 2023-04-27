@@ -8,7 +8,7 @@ from ..utils.typing import NestedDataStructureLike, PathLike
 class AbstractDatasetReader(ABC):
     def __init__(
         self,
-        path_or_paths: NestedDataStructureLike[PathLike],
+        path_or_paths: Optional[NestedDataStructureLike[PathLike]] = None,
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
         cache_dir: str = None,
