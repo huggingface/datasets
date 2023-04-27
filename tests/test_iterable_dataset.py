@@ -1266,3 +1266,24 @@ def test_interleave_datasets_with_oversampling():
     ]
 
     assert values == expected_values
+
+
+@require_torch
+@pytest.mark.parametrize("n_shards1, nshards2, num_workers", [(2, 1, 1), (2, 2, 2), (1, 3, 1), (4, 3, 3)])
+def test_interleave_dataset_with_sharding(n_shards1, nshards2, num_workers):
+    from torch.utils.data import DataLoader
+
+    ex_iterable1 = ExamplesIterable(generate_examples_fn, {"filepaths": [f"{i}-1.txt" for i in range(n_shards1)]})
+    dataset1 = IterableDataset(ex_iterable1).with_format("torch")
+    ex_iterable2 = ExamplesIterable(generate_examples_fn, {"filepaths": [f"{i}-2.txt" for i in range(nshards2)]})
+    dataset2 = IterableDataset(ex_iterable2).with_format("torch")
+
+    dataset_merged = interleave_datasets([dataset1, dataset2], stopping_strategy="first_exhausted")
+    assert dataset_merged.n_shards == min(n_shards1, nshards2)
+    dataloader = DataLoader(dataset_merged, batch_size=None, num_workers=num_workers)
+    result = list(dataloader)
+    expected_length = 2 * min(
+        len([example for _, example in ex_iterable1]), len([example for _, example in ex_iterable2])
+    )
+    assert expected_length - num_workers <= len(result) <= expected_length
+    assert len(result) == len({str(x) for x in result})
