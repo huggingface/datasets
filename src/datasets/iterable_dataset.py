@@ -1070,6 +1070,49 @@ class IterableDataset(DatasetInfoMixin):
             streaming=True,
         ).read()
 
+    @staticmethod
+    def from_spark(
+        df: "pyspark.sql.DataFrame",
+        split: Optional[NamedSplit] = None,
+        features: Optional[Features] = None,
+        **kwargs,
+    ) -> "IterableDataset":
+        """Create an IterableDataset from Spark DataFrame. The dataset is streamed to the driver in batches.
+
+        Args:
+            df (`pyspark.sql.DataFrame`):
+                The DataFrame containing the desired data.
+            split (`NamedSplit`, *optional*):
+                Split name to be assigned to the dataset.
+            features (`Features`, *optional*):
+                Dataset features.
+
+        Returns:
+            [`IterableDataset`]
+
+        Example:
+
+        ```py
+        >>> df = spark.createDataFrame(
+        >>>     data=[[1, "Elia"], [2, "Teo"], [3, "Fang"]],
+        >>>     columns=["id", "name"],
+        >>> )
+        >>> ds = IterableDataset.from_spark(df)
+        ```
+        """
+        from .io.spark import SparkDatasetReader
+
+        if sys.platform == "win32":
+            raise EnvironmentError("IterableDataset.from_spark is not currently supported on Windows")
+
+        return SparkDatasetReader(
+            df,
+            split=split,
+            features=features,
+            streaming=True,
+            **kwargs,
+        ).read()
+
     def with_format(
         self,
         type: Optional[str] = None,

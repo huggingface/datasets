@@ -3635,38 +3635,11 @@ def test_from_spark():
         ("3", 3, 3.0),
     ]
     df = spark.createDataFrame(data, "col_1: string, col_2: int, col_3: float")
-    dataset = Dataset.from_spark(df, streaming=False)
+    dataset = Dataset.from_spark(df)
     assert isinstance(dataset, Dataset)
     assert dataset.num_rows == 4
     assert dataset.num_columns == 3
     assert dataset.column_names == ["col_1", "col_2", "col_3"]
-
-
-@require_not_windows
-@require_dill_gt_0_3_2
-@require_pyspark
-def test_from_spark_streaming():
-    import pyspark
-
-    spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
-    data = [
-        ("0", 0, 0.0),
-        ("1", 1, 1.0),
-        ("2", 2, 2.0),
-        ("3", 3, 3.0),
-    ]
-    df = spark.createDataFrame(data, "col_1: string, col_2: int, col_3: float")
-    dataset = Dataset.from_spark(df, streaming=True)
-    assert isinstance(dataset, IterableDataset)
-    results = []
-    for ex in dataset:
-        results.append(ex)
-    assert results == [
-        {"col_1": "0", "col_2": 0, "col_3": 0.0},
-        {"col_1": "1", "col_2": 1, "col_3": 1.0},
-        {"col_1": "2", "col_2": 2, "col_3": 2.0},
-        {"col_1": "3", "col_2": 3, "col_3": 3.0},
-    ]
 
 
 @require_not_windows
@@ -3683,7 +3656,6 @@ def test_from_spark_features():
     dataset = Dataset.from_spark(
         df,
         features=features,
-        streaming=False,
     )
     assert isinstance(dataset, Dataset)
     assert dataset.num_rows == 1
@@ -3697,39 +3669,15 @@ def test_from_spark_features():
 @require_not_windows
 @require_dill_gt_0_3_2
 @require_pyspark
-def test_from_spark_streaming_features():
-    import PIL.Image
-    import pyspark
-
-    spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
-    data = [(0, np.arange(4 * 4 * 3).reshape(4, 4, 3).tolist())]
-    df = spark.createDataFrame(data, "idx: int, image: array<array<array<int>>>")
-    features = Features({"idx": Value("int64"), "image": Image()})
-    dataset = Dataset.from_spark(
-        df,
-        features=features,
-        streaming=True,
-    )
-    assert isinstance(dataset, IterableDataset)
-    results = []
-    for ex in dataset:
-        results.append(ex)
-    assert len(results) == 1
-    isinstance(results[0]["image"], PIL.Image.Image)
-
-
-@require_not_windows
-@require_dill_gt_0_3_2
-@require_pyspark
 def test_from_spark_different_cache():
     import pyspark
 
     spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
     df = spark.createDataFrame([("0", 0)], "col_1: string, col_2: int")
-    dataset = Dataset.from_spark(df, streaming=False)
+    dataset = Dataset.from_spark(df)
     assert isinstance(dataset, Dataset)
     different_df = spark.createDataFrame([("1", 1)], "col_1: string, col_2: int")
-    different_dataset = Dataset.from_spark(different_df, streaming=False)
+    different_dataset = Dataset.from_spark(different_df)
     assert isinstance(different_dataset, Dataset)
     assert dataset[0]["col_1"] == "0"
     # Check to make sure that the second dataset wasn't read from the cache.
