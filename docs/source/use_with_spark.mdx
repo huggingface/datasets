@@ -1,14 +1,13 @@
 # Use with Spark
 
-This document is a quick introduction to using `datasets` with Spark, with a particular focus on how to get
-a data loader to train models from a Spark DataFrame.
+This document is a quick introduction to using 🤗 Datasets with Spark, with a particular focus on how to load a Spark DataFrame into a [`Dataset`] object.
 
 From there, you have fast access to any element and you can use it as a data loader to train models.
 
 ## Load from Spark
 
 A [`Dataset`] object is a wrapper of an Arrow table, which allows fast reads from arrays in the dataset to PyTorch, TensorFlow and JAX tensors.
-The Arrow table is memory mapped from disk, which allows to load datasets bigger than RAM.
+The Arrow table is memory mapped from disk, which can load datasets bigger than your available RAM.
 
 You can get a [`Dataset`] from a Spark DataFrame using [`Dataset.from_spark`]:
 
@@ -25,13 +24,17 @@ The Spark workers write the dataset on disk in a cache directory as Arrow files,
 
 ### Caching
 
-The resulting [`Dataset`] is cached: if you call [`Dataset.from_spark`] multiple times on the same DataFrame it won't re-run the Spark
+The resulting [`Dataset`] is cached; if you call [`Dataset.from_spark`] multiple times on the same DataFrame it won't re-run the Spark
 job that writes the dataset as Arrow files on disk.
 
-You can set the location by passing `cache_dir=` to [`Dataset.from_spark`].
+You can set the cache location by passing `cache_dir=` to [`Dataset.from_spark`].
 Make sure to use a disk that is available to both your workers and your current machine (the driver).
 
-Note that in a different session, the Spark DataFrame doesn't have the same [semantic hash](https://spark.apache.org/docs/3.2.0/api/python/reference/api/pyspark.sql.DataFrame.semanticHash.html) and therefore it would use a new cache.
+<Tip warning={true}>
+
+In a different session, a Spark DataFrame doesn't have the same [semantic hash](https://spark.apache.org/docs/3.2.0/api/python/reference/api/pyspark.sql.DataFrame.semanticHash.html), and it will rerun a Spark job and store it in a new cache.
+
+</Tip>
 
 ### Feature types
 
