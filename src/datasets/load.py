@@ -1748,6 +1748,8 @@ def load_dataset(
             f"You can remove this warning by passing 'verification_mode={verification_mode.value}' instead.",
             FutureWarning,
         )
+    if data_files is not None and not data_files:
+        raise ValueError(f"Empty 'data_files': '{data_files}'. It should be either non-empty or None (default).")
     if Path(path, config.DATASET_STATE_JSON_FILENAME).exists():
         raise ValueError(
             "You are trying to load a dataset that was saved using `save_to_disk`. "
