@@ -85,13 +85,15 @@ class Spark(datasets.DatasetBuilder):
         self,
         df: "pyspark.sql.DataFrame",
         cache_dir: str = None,
+        streaming: bool = True,
         **config_kwargs,
     ):
         import pyspark
 
         self._spark = pyspark.sql.SparkSession.builder.getOrCreate()
         self.df = df
-        self._validate_cache_dir(cache_dir)
+        if not streaming:
+            self._validate_cache_dir(cache_dir)
 
         super().__init__(
             cache_dir=cache_dir,
