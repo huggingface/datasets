@@ -22,10 +22,21 @@ You can get a [`Dataset`] from a Spark DataFrame using [`Dataset.from_spark`]:
 
 The Spark workers write the dataset on disk in a cache directory as Arrow files, and the [`Dataset`] is loaded from there.
 
+Alternatively, you can skip materialization by using [`IterableDataset.from_spark`], which returns an [`IterableDataset`]:
+
+ ```py
+ >>> from datasets import IterableDataset
+ >>> df = spark.createDataFrame(
+ ...     data=[[1, "Elia"], [2, "Teo"], [3, "Fang"]],
+ ...     columns=["id", "name"],
+ ... )
+ >>> ds = IterableDataset.from_spark(df)
+ ```
+
 ### Caching
 
-The resulting [`Dataset`] is cached; if you call [`Dataset.from_spark`] multiple times on the same DataFrame it won't re-run the Spark
-job that writes the dataset as Arrow files on disk.
+When using [`Dataset.from_spark`], the resulting [`Dataset`] is cached; if you call [`Dataset.from_spark`] multiple
+times on the same DataFrame it won't re-run the Spark job that writes the dataset as Arrow files on disk.
 
 You can set the cache location by passing `cache_dir=` to [`Dataset.from_spark`].
 Make sure to use a disk that is available to both your workers and your current machine (the driver).
@@ -38,7 +49,8 @@ In a different session, a Spark DataFrame doesn't have the same [semantic hash](
 
 ### Feature types
 
-If your dataset is made of images, audio data or N-dimensional arrays, you can specify the `features=` argument in [`Dataset.from_spark`]:
+If your dataset is made of images, audio data or N-dimensional arrays, you can specify the `features=` argument in
+[`Dataset.from_spark`] (or [`IterableDataset.from_spark`]):
 
 ```py
 >>> from datasets import Dataset, Features, Image, Value
@@ -54,4 +66,3 @@ If your dataset is made of images, audio data or N-dimensional arrays, you can s
 ```
 
 You can check the [`Features`] documentation to know about all the feature types available.
-
