@@ -38,7 +38,7 @@ NON_WORDS_CHARS = "-._ 0-9"
 KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**[{sep}/]{keyword}[{sep}]*", "{keyword}[{sep}]*"]
 KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**[{sep}/]{keyword}[{sep}/]**"]
 
-DEFAULT_SPLITS = [Split.TRAIN, Split.TEST, Split.VALIDATION]
+DEFAULT_SPLITS = [Split.TRAIN, Split.VALIDATION, Split.TEST]
 DEFAULT_PATTERNS_SPLIT_IN_FILENAME = {
     Split.TRAIN: [
         pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
