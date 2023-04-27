@@ -546,27 +546,30 @@ def mock_fs(file_paths: List[str]):
     [
         # === Main cases ===
         # file named after split at the root
-        {"train": "train.txt", "test": "test.txt", "validation": "valid.txt"},
+        {"train": "train.txt", "validation": "valid.txt", "test": "test.txt"},
         # file named after split in a directory
         {
             "train": "data/train.txt",
-            "test": "data/test.txt",
             "validation": "data/valid.txt",
+            "test": "data/test.txt",
         },
         # directory named after split
         {
             "train": "train/split.txt",
-            "test": "test/split.txt",
             "validation": "valid/split.txt",
+            "test": "test/split.txt",
         },
         # sharded splits
         {
             "train": [f"data/train_{i}.txt" for i in range(3)],
+            "validation": [f"data/validation_{i}.txt" for i in range(3)],
             "test": [f"data/test_{i}.txt" for i in range(3)],
         },
         # sharded splits with standard format (+ custom split name)
         {
             "train": [f"data/train-0000{i}-of-00003.txt" for i in range(3)],
+            "validation": [f"data/validation-0000{i}-of-00003.txt" for i in range(3)],
+            "test": [f"data/test-0000{i}-of-00003.txt" for i in range(3)],
             "random": [f"data/random-0000{i}-of-00003.txt" for i in range(3)],
         },
         # === Secondary cases ===
@@ -594,7 +597,7 @@ def mock_fs(file_paths: List[str]):
         {"validation": "val.txt"},
         {"validation": "data/val.txt"},
         # With other extensions
-        {"train": "train.parquet", "test": "test.parquet", "validation": "valid.parquet"},
+        {"train": "train.parquet", "validation": "valid.parquet", "test": "test.parquet"},
         # With "dev" or "eval" without separators
         {"train": "developers_list.txt"},
         {"train": "data/seqeval_results.txt"},
