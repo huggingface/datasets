@@ -1231,13 +1231,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         df: "pyspark.sql.DataFrame",
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
-        streaming: bool = True,
         keep_in_memory: bool = False,
         cache_dir: str = None,
         load_from_cache_file: bool = True,
         **kwargs,
     ):
-        """Create Dataset from Spark DataFrame. Dataset downloading is distributed over Spark workers.
+        """Create a Dataset from Spark DataFrame. Dataset downloading is distributed over Spark workers.
 
         Args:
             df (`pyspark.sql.DataFrame`):
@@ -1246,16 +1245,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Split name to be assigned to the dataset.
             features (`Features`, *optional*):
                 Dataset features.
-            streaming (`bool`):
-                Whether to stream the dataset from the dataframe by returning an IterableDataset. Otherwise, the
-                dataframe will be materialized to `cache_dir`, and a Dataset will be returned.
             cache_dir (`str`, *optional*, defaults to `"~/.cache/huggingface/datasets"`):
-                Directory to cache data (if not streaming). When using a multi-node Spark cluster, the cache_dir must be
-                accessible to both workers and the driver.
+                Directory to cache data. When using a multi-node Spark cluster, the cache_dir must be accessible to both
+                workers and the driver.
             keep_in_memory (`bool`):
-                When not streaming, whether to copy the data in-memory.
+                Whether to copy the data in-memory.
             load_from_cache_file (`bool`):
-                When not streaming, whether to load the dataset from the cache if possible.
+                Whether to load the dataset from the cache if possible.
 
         Returns:
             [`Dataset`]
@@ -1274,13 +1270,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         from .io.spark import SparkDatasetReader
 
         if sys.platform == "win32":
-            raise EnvironmentError("Datasets.from_spark is not currently supported on Windows")
+            raise EnvironmentError("Dataset.from_spark is not currently supported on Windows")
 
         return SparkDatasetReader(
             df,
             split=split,
             features=features,
-            streaming=streaming,
+            streaming=False,
             cache_dir=cache_dir,
             keep_in_memory=keep_in_memory,
             load_from_cache_file=load_from_cache_file,
