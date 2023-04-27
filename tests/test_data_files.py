@@ -562,11 +562,14 @@ def mock_fs(file_paths: List[str]):
         # sharded splits
         {
             "train": [f"data/train_{i}.txt" for i in range(3)],
+            "validation": [f"data/validation_{i}.txt" for i in range(3)],
             "test": [f"data/test_{i}.txt" for i in range(3)],
         },
         # sharded splits with standard format (+ custom split name)
         {
             "train": [f"data/train-0000{i}-of-00003.txt" for i in range(3)],
+            "validation": [f"data/validation-0000{i}-of-00003.txt" for i in range(3)],
+            "test": [f"data/test-0000{i}-of-00003.txt" for i in range(3)],
             "random": [f"data/random-0000{i}-of-00003.txt" for i in range(3)],
         },
         # === Secondary cases ===
