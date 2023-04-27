@@ -136,7 +136,7 @@ if TYPE_CHECKING:
 logger = logging.get_logger(__name__)
 
 PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED = (
-    "data/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*\\.parquet"
+    "data/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]-*.parquet"
 )
 
 
