@@ -1285,5 +1285,6 @@ def test_interleave_dataset_with_sharding(n_shards1, nshards2, num_workers):
     expected_length = 2 * min(
         len([example for _, example in ex_iterable1]), len([example for _, example in ex_iterable2])
     )
+    # some samples may be missing because the stopping strategy is applied per process
     assert expected_length - num_workers <= len(result) <= expected_length
     assert len(result) == len({str(x) for x in result})
