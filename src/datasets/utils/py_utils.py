@@ -158,6 +158,7 @@ def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
     pattern = (
         pattern.replace("\\", r"\\")
         .replace(".", r"\.")
+        .replace("*", ".*")
         .replace("+", r"\+")
         .replace("//", "/")
         .replace("(", r"\(")
