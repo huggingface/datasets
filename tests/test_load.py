@@ -452,7 +452,6 @@ class ModuleFactoryTest(TestCase):
         )
 
     def test_LocalDatasetModuleFactoryWithoutScript_with_one_default_config_in_metadata(self):
-        # cannot parametrize inside unittest.TestCase, don't know how to do it less ugly
         for config_name in [None, "default"]:
             factory = LocalDatasetModuleFactoryWithoutScript(
                 self._data_dir_with_one_default_config_in_metadata,

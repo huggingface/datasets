@@ -774,7 +774,7 @@ class TestPushToHub:
             # old push_to_hub was uploading the parquet files only - without metadata configs
             self._api.upload_file(
                 path_or_fileobj=parquet_content,
-                path_in_repo="data/train-00000-of-00001-rndmltrs.parquet",
+                path_in_repo="data/train-00000-of-00001.parquet",
                 repo_id=ds_name,
                 repo_type="dataset",
             )
@@ -782,7 +782,7 @@ class TestPushToHub:
             ds_builder = load_dataset_builder(ds_name, download_mode="force_redownload")
             assert len(ds_builder.config.data_files) == 1
             assert len(ds_builder.config.data_files["train"]) == 1
-            assert fnmatch.fnmatch(ds_builder.config.data_files["train"][0], "*/data/train-00000-of-00001-*.parquet")
+            assert fnmatch.fnmatch(ds_builder.config.data_files["train"][0], "*/data/train-00000-of-00001.parquet")
             ds_another_config_builder = load_dataset_builder(
                 ds_name, "another_config", download_mode="force_redownload"
             )
@@ -807,7 +807,7 @@ class TestPushToHub:
             # old push_to_hub was uploading the parquet files only - without metadata configs
             self._api.upload_file(
                 path_or_fileobj=parquet_content,
-                path_in_repo="data/random-00000-of-00001-rndmltrs.parquet",
+                path_in_repo="data/random-00000-of-00001.parquet",
                 repo_id=ds_name,
                 repo_type="dataset",
             )
@@ -815,7 +815,7 @@ class TestPushToHub:
             ds_builder = load_dataset_builder(ds_name, download_mode="force_redownload")
             assert len(ds_builder.config.data_files) == 1
             assert len(ds_builder.config.data_files["random"]) == 1
-            assert fnmatch.fnmatch(ds_builder.config.data_files["random"][0], "*/data/random-00000-of-00001-*.parquet")
+            assert fnmatch.fnmatch(ds_builder.config.data_files["random"][0], "*/data/random-00000-of-00001.parquet")
             ds_another_config_builder = load_dataset_builder(
                 ds_name, "another_config", download_mode="force_redownload"
             )
