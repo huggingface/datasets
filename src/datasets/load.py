@@ -26,7 +26,7 @@ import warnings
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Type, Union
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Type, Union
 
 import fsspec
 import requests
@@ -419,7 +419,7 @@ def _create_importable_file(
 
 def infer_module_for_data_files(
     data_files_list: DataFilesList, use_auth_token: Optional[Union[bool, str]] = None
-) -> Optional[Tuple[str, str]]:
+) -> Tuple[Optional[str], Dict[str, Any]]:
     """Infer module (and builder kwargs) from list of data files.
 
     Args:
@@ -448,7 +448,7 @@ def infer_module_for_data_files(
 
 def infer_module_for_data_files_in_archives(
     data_files_list: DataFilesList, use_auth_token: Optional[Union[bool, str]]
-) -> Optional[Tuple[str, str]]:
+) -> Tuple[Optional[str], Dict[str, Any]]:
     """Infer module (and builder kwargs) from list of archive data files.
 
     Args:
