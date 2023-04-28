@@ -281,12 +281,10 @@ def test_metadata_configs_resolve_data_files_locally(data_dir_with_two_subdirs):
             "dogs": {"data_dir": "dogs"},
         }
     )
-    metadata_configs_dict.resolve_data_files_locally(
-        base_path=data_dir_with_two_subdirs, with_metadata_files=False, allowed_extensions=["jpg"]
-    )
-    for config_name, config in metadata_configs_dict.items():
-        assert "data_files" in config
-        config_data_files = config["data_files"]
+    for config_name in metadata_configs_dict:
+        config_data_files = metadata_configs_dict.resolve_data_files_locally(
+            config_name, base_path=data_dir_with_two_subdirs, with_metadata_files=False, allowed_extensions=["jpg"]
+        )
         assert isinstance(config_data_files, DataFilesDict)
         assert len(config_data_files) == 1  # there is a single split
         assert len(config_data_files["train"]) == 1
@@ -310,12 +308,9 @@ def test_metadata_configs_resolve_data_files_in_dataset_repository(
         SAMPLE_DATASET_TWO_CONFIG_IN_METADATA,
         timeout=100.0,
     )
-    metadata_configs_dict.resolve_data_files_in_dataset_repository(
-        hfh_dataset_info, base_path="", with_metadata_files=False, allowed_extensions=["flac"]
+    config_data_files = metadata_configs_dict.resolve_data_files_in_dataset_repository(
+        config_name, hfh_dataset_info, base_path="", with_metadata_files=False, allowed_extensions=["flac"]
     )
-    config = metadata_configs_dict[config_name]
-    assert "data_files" in config
-    config_data_files = config["data_files"]
     assert isinstance(config_data_files, DataFilesDict)
     assert len(config_data_files["train"]) == expected_train_samples
     assert len(config_data_files["test"]) == expected_test_samples
