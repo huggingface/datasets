@@ -1647,9 +1647,12 @@ def load_dataset_builder(
     builder_kwargs = dataset_module.builder_kwargs
     data_dir = builder_kwargs.pop("data_dir", data_dir)
     data_files = builder_kwargs.pop("data_files", data_files)
-    config_name = builder_kwargs.pop("config_name", name or dataset_module.default_config_name)
+    config_name = builder_kwargs.pop("config_name", name or dataset_module.default_config_name or "default")
     hash = builder_kwargs.pop("hash")
-
+    if dataset_module.dataset_infos and config_name in dataset_module.dataset_infos:
+        info = dataset_module.dataset_infos[config_name]
+    else:
+        info = None
     if dataset_module.metadata_configs and config_name in dataset_module.metadata_configs:
         hash = update_hash_with_config_parameters(hash, dataset_module.metadata_configs[config_name])
 
@@ -1670,6 +1673,7 @@ def load_dataset_builder(
         data_dir=data_dir,
         data_files=data_files,
         hash=hash,
+        info=info,
         features=features,
         use_auth_token=use_auth_token,
         storage_options=storage_options,
