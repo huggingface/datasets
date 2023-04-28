@@ -192,7 +192,7 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
         builder_config_cls: Type["BuilderConfig"],
         data_files: Optional[DataFilesDict],
         data_dir: Optional[str],
-        default_builder_kwargs: Optional[Dict[str, Any]],
+        default_builder_kwargs: Dict[str, Any],
     ) -> "BuilderConfig":
         """Convert configurations parsed from metadata file to list of BuilderConfig objects."""
         meta_config = self[config_name]
