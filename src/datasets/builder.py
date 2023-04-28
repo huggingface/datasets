@@ -641,6 +641,7 @@ class DatasetBuilder:
         max_shard_size: Optional[Union[int, str]] = None,
         num_proc: Optional[int] = None,
         storage_options: Optional[dict] = None,
+        use_spark: bool = False,
         **download_and_prepare_kwargs,
     ):
         """Downloads and prepares dataset for reading.
@@ -705,6 +706,8 @@ class DatasetBuilder:
                 Key/value pairs to be passed on to the caching file-system backend, if any.
 
                 <Added version="2.5.0"/>
+            use_spark (`bool`, defaults to `False`):
+                If set to `True`, uses Spark to download/extract files in parallel.
             **download_and_prepare_kwargs (additional keyword arguments): Keyword arguments.
 
         Example:
@@ -782,6 +785,7 @@ class DatasetBuilder:
                     num_proc=num_proc,
                     use_auth_token=use_auth_token,
                     storage_options=self.storage_options,
+                    use_spark=use_spark,
                 )  # We don't use etag for data files to speed up the process
 
             dl_manager = DownloadManager(

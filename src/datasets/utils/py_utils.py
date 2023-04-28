@@ -381,6 +381,7 @@ def map_nested(
     types: Optional[tuple] = None,
     disable_tqdm: bool = True,
     desc: Optional[str] = None,
+    use_spark: bool = False,
 ) -> Any:
     """Apply a function recursively to each element of a nested data struct.
 
@@ -439,11 +440,29 @@ def map_nested(
 
     if num_proc is None:
         num_proc = 1
-    if num_proc <= 1 or len(iterable) < parallel_min_length:
+
+    if (num_proc <= 1 and not use_spark) or len(iterable) < parallel_min_length:
         mapped = [
             _single_map_nested((function, obj, types, None, True, None))
             for obj in logging.tqdm(iterable, disable=disable_tqdm, desc=desc)
         ]
+    elif use_spark:
+        try:
+            import pyspark
+
+            spark = pyspark.sql.SparkSession.builder.getOrCreate()
+            mapped = (
+                spark.sparkContext.parallelize(iterable)
+                .map(lambda obj: _single_map_nested((function, obj, types, None, True, None)))
+                .collect()
+            )
+
+        except Exception:
+            # No parallelization
+            mapped = [
+                _single_map_nested((function, obj, types, None, True, None))
+                for obj in logging.tqdm(iterable, disable=disable_tqdm, desc=desc)
+            ]
     else:
         num_proc = num_proc if num_proc <= len(iterable) else len(iterable)
         split_kwds = []  # We organize the splits ourselve (contiguous splits)

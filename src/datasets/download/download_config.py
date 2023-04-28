@@ -46,6 +46,8 @@ class DownloadConfig:
             Key/value pairs to be passed on to the dataset file-system backend, if any.
         download_desc (`str`, *optional*):
             A description to be displayed alongside with the progress bar while downloading the files.
+        use_spark (`bool`, defaults to `False`):
+            Whether to use Spark for parallelized downloading
     """
 
     cache_dir: Optional[Union[str, Path]] = None
@@ -64,6 +66,7 @@ class DownloadConfig:
     ignore_url_params: bool = False
     storage_options: Optional[Dict] = None
     download_desc: Optional[str] = None
+    use_spark: bool = False
 
     def copy(self) -> "DownloadConfig":
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})

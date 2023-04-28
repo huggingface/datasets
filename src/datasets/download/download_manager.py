@@ -421,6 +421,10 @@ class DownloadManager:
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading data"
 
+        if download_config.use_spark:
+            # TODO: probe and set download_config=False if multi-node with non-NFS cache_dir
+            pass
+
         download_func = partial(self._download, download_config=download_config)
 
         start_time = datetime.now()
@@ -431,6 +435,7 @@ class DownloadManager:
             num_proc=download_config.num_proc,
             disable_tqdm=not is_progress_bar_enabled(),
             desc="Downloading data files",
+            use_spark=download_config.use_spark,
         )
         duration = datetime.now() - start_time
         logger.info(f"Downloading took {duration.total_seconds() // 60} min")
@@ -533,12 +538,18 @@ class DownloadManager:
         # Extract downloads the file first if it is not already downloaded
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading data"
+
+        if download_config.use_spark:
+            # TODO: probe and set download_config=False if multi-node with non-NFS cache_dir
+            pass
+
         extracted_paths = map_nested(
             partial(cached_path, download_config=download_config),
             path_or_paths,
             num_proc=download_config.num_proc,
             disable_tqdm=not is_progress_bar_enabled(),
             desc="Extracting data files",
+            use_spark=download_config.use_spark,
         )
         path_or_paths = NestedDataStructure(path_or_paths)
         extracted_paths = NestedDataStructure(extracted_paths)

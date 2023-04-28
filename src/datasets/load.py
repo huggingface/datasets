@@ -1561,6 +1561,7 @@ def load_dataset(
     streaming: bool = False,
     num_proc: Optional[int] = None,
     storage_options: Optional[Dict] = None,
+    use_spark: bool = False,
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset, IterableDatasetDict, IterableDataset]:
     """Load a dataset from the Hugging Face Hub, or a local dataset.
@@ -1686,6 +1687,8 @@ def load_dataset(
             **Experimental**. Key/value pairs to be passed on to the dataset file-system backend, if any.
 
             <Added version="2.11.0"/>
+        use_spark (`bool`, defaults to `False`):
+            If set to `True`, uses Spark to download/extract files in parallel.
         **config_kwargs (additional keyword arguments):
             Keyword arguments to be passed to the `BuilderConfig`
             and used in the [`DatasetBuilder`].
@@ -1801,6 +1804,7 @@ def load_dataset(
         try_from_hf_gcs=try_from_hf_gcs,
         num_proc=num_proc,
         storage_options=storage_options,
+        use_spark=use_spark,
     )
 
     # Build dataset for splits
