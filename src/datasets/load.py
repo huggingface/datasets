@@ -786,6 +786,8 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 legacy_dataset_infos: DatasetInfosDict = json.load(f)
             legacy_dataset_infos.update(dataset_infos)
             dataset_infos = legacy_dataset_infos
+        if default_config_name is None and len(dataset_infos) == 1:
+            default_config_name = next(iter(dataset_infos))
 
         return DatasetModule(
             module_path,
@@ -962,6 +964,8 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             dataset_infos = legacy_dataset_infos
         except FileNotFoundError:
             pass
+        if default_config_name is None and len(dataset_infos) == 1:
+            default_config_name = next(iter(dataset_infos))
 
         return DatasetModule(
             module_path,
