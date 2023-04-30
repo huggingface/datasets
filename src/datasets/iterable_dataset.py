@@ -1237,6 +1237,8 @@ class IterableDataset(DatasetInfoMixin):
                 Provide batch of examples to `function`.
             batch_size (`int`, *optional*, default `1000`):
                 Number of examples per batch provided to `function` if `batched=True`.
+            fn_kwargs (`Dict`, *optional*, default `None`):
+                Keyword arguments to be passed to `function`.
 
         Example:
 
@@ -1269,6 +1271,7 @@ class IterableDataset(DatasetInfoMixin):
             input_columns=input_columns,
             batched=batched,
             batch_size=batch_size,
+            fn_kwargs=fn_kwargs,
         )
         return IterableDataset(
             ex_iterable=ex_iterable,
