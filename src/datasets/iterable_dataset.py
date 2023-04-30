@@ -555,6 +555,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
         input_columns: Optional[List[str]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
+        fn_kwargs: Optional[dict] = None,
     ):
         self.ex_iterable = ex_iterable
         self.function = function
@@ -562,6 +563,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
         self.batch_size = batch_size
         self.with_indices = with_indices
         self.input_columns = input_columns
+        self.fn_kwargs = fn_kwargs or {}
 
     def __iter__(self):
         iterator = iter(self.ex_iterable)
@@ -582,7 +584,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                 function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
                 if self.with_indices:
                     function_args.append([current_idx + i for i in range(len(key_examples_list))])
-                mask = self.function(*function_args)
+                mask = self.function(*function_args, **self.fn_kwargs)
                 # yield one example at a time from the batch
                 for batch_idx, (key_example, to_keep) in enumerate(zip(key_examples_list, mask)):
                     if to_keep:
@@ -595,7 +597,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                 function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
                 if self.with_indices:
                     function_args.append(current_idx)
-                to_keep = self.function(*function_args)
+                to_keep = self.function(*function_args, **self.fn_kwargs)
                 if to_keep:
                     yield key, example
                 current_idx += 1
@@ -1211,6 +1213,7 @@ class IterableDataset(DatasetInfoMixin):
         input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
+        fn_kwargs: Optional[dict] = None,
     ) -> "IterableDataset":
         """Apply a filter function to all the elements so that the dataset only includes examples according to the filter function.
         The filtering is done on-the-fly when iterating over the dataset.
