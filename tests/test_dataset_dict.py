@@ -339,17 +339,16 @@ class DatasetDictTest(TestCase):
             del dsets, filtered_dsets_1, filtered_dsets_2, filtered_dsets_3
 
     def test_iterable_filter(self):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dsets = self._create_dummy_iterable_dataset_dict()
-            example = next(iter(dsets))
-            fn_kwargs = {"n": 3}
-            filtered_dsets: IterableDatasetDict = dsets.filter(
-                lambda ex, n: int(ex["filename"].split("_")[-1]) < n, fn_kwargs=fn_kwargs
-            )
-            filtered_example = next(iter(filtered_dsets["train"]))
-            self.assertListEqual(list(example.keys()), list(filtered_example.keys()))
-            self.assertEqual(filtered_example["filename"].split("_")[-1], 3)
-            del dsets, filtered_dsets
+        dsets = self._create_dummy_iterable_dataset_dict()
+        example = next(iter(dsets))
+        fn_kwargs = {"n": 3}
+        filtered_dsets: IterableDatasetDict = dsets.filter(
+            lambda ex, n: int(ex["filename"].split("_")[-1]) < n, fn_kwargs=fn_kwargs
+        )
+        filtered_example = next(iter(filtered_dsets["train"]))
+        self.assertListEqual(list(example.keys()), list(filtered_example.keys()))
+        self.assertEqual(filtered_example["filename"].split("_")[-1], 3)
+        del dsets, filtered_dsets
 
     def test_sort(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
