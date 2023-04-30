@@ -877,6 +877,27 @@ def test_iterable_dataset_map_with_features(dataset: IterableDataset) -> None:
     assert dataset.info.features == features_after_map
 
 
+def test_iterable_dataset_map_with_fn_kwargs(dataset: IterableDataset) -> None:
+    fn_kwargs = {"y": 1}
+    with dataset.map(lambda x, y: {"id+y": x["id"] + y}, fn_kwargs=fn_kwargs) as mapped_dataset:
+        assert mapped_dataset._ex_iterable.batched is False
+        assert next(iter(mapped_dataset)) == {"id": 0, "id+y": 1}
+    batch_size = 3
+    with dataset.map(
+        lambda x, y: {"id+y": x["id"] + y}, batched=True, batch_size=batch_size, fn_kwargs=fn_kwargs
+    ) as mapped_dataset:
+        assert isinstance(mapped_dataset._ex_iterable, MappedExamplesIterable)
+        assert mapped_dataset._ex_iterable.batch_size == batch_size
+        assert next(iter(mapped_dataset)) == {"id": 0, "id+y": 1}
+
+
+def test_iterable_dataset_filter(dataset: IterableDataset) -> None:
+    fn_kwargs = {"y": 1}
+    with dataset.filter(lambda x, y: x["id"] == y, fn_kwargs=fn_kwargs) as filtered_dataset:
+        assert filtered_dataset._ex_iterable.batched is False
+        assert next(iter(filtered_dataset)) == {"id": 1}
+
+
 @pytest.mark.parametrize("seed", [42, 1337, 101010, 123456])
 @pytest.mark.parametrize("epoch", [None, 0, 1])
 def test_iterable_dataset_shuffle(dataset: IterableDataset, seed, epoch):
