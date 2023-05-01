@@ -758,6 +758,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             builder_configs = []
             for config_name in metadata_configs:
                 config_data_files = metadata_configs.resolve_data_files_locally(
+                    config_name=config_name,
                     base_path=self.path,
                     with_metadata_files=supports_metadata,
                     allowed_extensions=ALL_ALLOWED_EXTENSIONS,
