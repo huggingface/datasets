@@ -88,7 +88,7 @@ from .fingerprint import (
     update_fingerprint,
     validate_fingerprint,
 )
-from .formatting import PythonFormatter, format_table, get_format_type_from_alias, get_formatter, query_table
+from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
 from .formatting.formatting import LazyDict, _is_range_contiguous
 from .info import DatasetInfo, DatasetInfosDict
 from .naming import _split_re
@@ -4933,16 +4933,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return dataset_nbytes
 
     @staticmethod
-    def _generate_examples_from_shards(shards: List["Dataset"]):
-        python_formatter = PythonFormatter()
-        for shards_idx, shard in enumerate(shards):
-            example_idx = 0
-            for pa_table in shard.with_format("arrow").iter(config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER):
-                batch = python_formatter.format_batch(pa_table)
-                for i in range(len(pa_table)):
-                    example = {col: array[i] for col, array in batch.items()}
-                    yield f"{shards_idx}_{example_idx}", example
-                    example_idx += 1
+    def _generate_tables_from_shards(shards: List["Dataset"], batch_size: int):
+        for shard_idx, shard in enumerate(shards):
+            for pa_table in shard.with_format("arrow").iter(batch_size):
+                yield shard_idx, pa_table
 
     def to_iterable_dataset(self, num_shards: Optional[int] = 1) -> "IterableDataset":
         """Get an [`datasets.IterableDataset`] from a map-style [`datasets.Dataset`].
@@ -5035,7 +5029,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         Feel free to also use [`IterableDataset.set_epoch`] when using a PyTorch DataLoader or in distributed setups.
         """
-        from .iterable_dataset import ExamplesIterable, IterableDataset
+        from .iterable_dataset import ArrowExamplesIterable, IterableDataset
 
         if self._format_type is not None:
             raise NotImplementedError(
@@ -5057,7 +5051,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 self.shard(num_shards=num_shards, index=shard_idx, contiguous=True) for shard_idx in range(num_shards)
             ]
         )
-        ex_iterable = ExamplesIterable(Dataset._generate_examples_from_shards, kwargs={"shards": shards})
+        ex_iterable = ArrowExamplesIterable(
+            Dataset._generate_tables_from_shards,
+            kwargs={"shards": shards, "batch_size": config.DEFAULT_MAX_BATCH_SIZE},
+        )
         return IterableDataset(ex_iterable, info=DatasetInfo(features=self.features))
 
     def _push_parquet_shards_to_hub(
