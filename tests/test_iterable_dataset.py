@@ -505,7 +505,7 @@ def test_filtered_examples_iterable_with_indices(n, func, batched, batch_size):
 @pytest.mark.parametrize(
     "n, func, batched, batch_size, fn_kwargs",
     [
-        (3, lambda x, y: x["id"] == y, False, None, {"y": 1}),  # keep even number
+        (3, lambda x, y: x["id"] == y, False, None, {"y": 1}),
         (25, lambda x, y: [i == y for i in x["id"]], True, 10, {"y": 1}),  # same with bs=10
         (5, lambda x, y: [i == y for i in x["id"]], True, None, {"y": 1}),  # same with bs=None
     ],
