@@ -35,7 +35,6 @@ from datasets.iterable_dataset import (
 from .utils import (
     is_rng_equal,
     require_dill_gt_0_3_2,
-    require_not_windows,
     require_pyspark,
     require_torch,
 )
@@ -656,7 +655,6 @@ def test_iterable_dataset_from_generator_with_shards():
     assert dataset.n_shards == len(shard_names)
 
 
-@require_not_windows
 @require_dill_gt_0_3_2
 @require_pyspark
 def test_from_spark_streaming():
@@ -683,7 +681,6 @@ def test_from_spark_streaming():
     ]
 
 
-@require_not_windows
 @require_dill_gt_0_3_2
 @require_pyspark
 def test_from_spark_streaming_features():
