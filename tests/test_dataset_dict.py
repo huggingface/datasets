@@ -7,7 +7,8 @@ import pandas as pd
 import pytest
 
 from datasets import load_from_disk
-from datasets.arrow_dataset import Dataset, IterableDataset
+from datasets.arrow_dataset import Dataset
+from datasets.iterable_dataset import IterableDataset
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.features import ClassLabel, Features, Sequence, Value
 from datasets.splits import NamedSplit
