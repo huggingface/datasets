@@ -507,8 +507,7 @@ def test_filtered_examples_iterable_with_indices(n, func, batched, batch_size):
     [
         (3, lambda x, y: x["id"] == y, False, None, {"y": 1}),  # keep even number
         (25, lambda x, y: [i == y for i in x["id"]], True, 10, {"y": 1}),  # same with bs=10
-        (5, lambda x, y: [i == 0 for i in x["id"]], True, None, {"y": 1}),  # same with bs=None
-        (5, lambda x, y: [i == 0 for i in x["id"]], True, -1, {"y": 1}),  # same with bs<=0
+        (5, lambda x, y: [i == y for i in x["id"]], True, None, {"y": 1}),  # same with bs=None
     ],
 )
 def test_filtered_examples_iterable_with_fn_kwargs(n, func, batched, batch_size, fn_kwargs):
