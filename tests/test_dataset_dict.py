@@ -311,7 +311,7 @@ class DatasetDictTest(TestCase):
         mapped_example = next(iter(mapped_dsets["train"]))
         self.assertListEqual(list(example.keys()), list(mapped_example.keys()))
         self.assertListEqual(mapped_dsets["train"].column_names, ["filename", "foo"])
-        self.assertLessEqual(len(mapped_example["foo"]), 3)
+        self.assertLessEqual(mapped_example["foo"][0], 3)
         del dsets, mapped_dsets
 
     def test_filter(self):
@@ -348,7 +348,7 @@ class DatasetDictTest(TestCase):
         )
         filtered_example = next(iter(filtered_dsets["train"]))
         self.assertListEqual(list(example.keys()), list(filtered_example.keys()))
-        self.assertEqual(filtered_example["filename"].split("_")[-1], 3)
+        self.assertEqual(len(filtered_example["filename"]), 3)
         del dsets, filtered_dsets
 
     def test_sort(self):
