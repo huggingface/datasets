@@ -878,16 +878,16 @@ def test_iterable_dataset_map_with_features(dataset: IterableDataset) -> None:
 
 def test_iterable_dataset_map_with_fn_kwargs(dataset: IterableDataset) -> None:
     fn_kwargs = {"y": 1}
-    with dataset.map(lambda x, y: {"id+y": x["id"] + y}, fn_kwargs=fn_kwargs) as mapped_dataset:
-        assert mapped_dataset._ex_iterable.batched is False
-        assert next(iter(mapped_dataset)) == {"id": 0, "id+y": 1}
+    mapped_dataset = dataset.map(lambda x, y: {"id+y": x["id"] + y}, fn_kwargs=fn_kwargs)
+    assert mapped_dataset._ex_iterable.batched is False
+    assert next(iter(mapped_dataset)) == {"id": 0, "id+y": 1}
     batch_size = 3
-    with dataset.map(
+    mapped_dataset = dataset.map(
         lambda x, y: {"id+y": x["id"] + y}, batched=True, batch_size=batch_size, fn_kwargs=fn_kwargs
-    ) as mapped_dataset:
-        assert isinstance(mapped_dataset._ex_iterable, MappedExamplesIterable)
-        assert mapped_dataset._ex_iterable.batch_size == batch_size
-        assert next(iter(mapped_dataset)) == {"id": 0, "id+y": 1}
+    )
+    assert isinstance(mapped_dataset._ex_iterable, MappedExamplesIterable)
+    assert mapped_dataset._ex_iterable.batch_size == batch_size
+    assert next(iter(mapped_dataset)) == {"id": 0, "id+y": 1}
 
 
 def test_iterable_dataset_filter(dataset: IterableDataset) -> None:
