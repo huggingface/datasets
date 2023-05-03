@@ -8,6 +8,8 @@ from datasets.download.download_config import DownloadConfig
 from datasets.download.download_manager import DownloadManager
 from datasets.utils.file_utils import hash_url_to_filename
 
+from .utils import require_pyspark
+
 
 URL = "http://www.mocksite.com/file1.txt"
 CONTENT = '"text": ["foo", "foo"]'
@@ -56,6 +58,53 @@ def test_download_manager_download(urls_type, tmp_path, monkeypatch):
             input_urls = [urls]
         elif isinstance(urls, dict):
             assert "train" in downloaded_paths.keys()
+            downloaded_paths = downloaded_paths.values()
+            input_urls = urls.values()
+        assert downloaded_paths
+        for downloaded_path, input_url in zip(downloaded_paths, input_urls):
+            assert downloaded_path == dl_manager.downloaded_paths[input_url]
+            downloaded_path = Path(downloaded_path)
+            parts = downloaded_path.parts
+            assert parts[-1] == HASH
+            assert parts[-2] == cache_subdir
+            assert downloaded_path.exists()
+            content = downloaded_path.read_text()
+            assert content == CONTENT
+            metadata_downloaded_path = downloaded_path.with_suffix(".json")
+            assert metadata_downloaded_path.exists()
+            metadata_content = json.loads(metadata_downloaded_path.read_text())
+            assert metadata_content == {"url": URL, "etag": None}
+
+
+@require_pyspark
+@pytest.mark.parametrize("urls_type", [str, dict])
+def test_download_manager_download_with_spark(urls_type, tmp_path, monkeypatch):
+    import requests
+
+    monkeypatch.setattr(requests, "request", mock_request)
+
+    url = URL
+    if issubclass(urls_type, str):
+        urls = url
+    elif issubclass(urls_type, dict):
+        urls = {"train": url, "test": url}
+    dataset_name = "dummy"
+    cache_subdir = "downloads"
+    cache_dir_root = tmp_path
+    download_config = DownloadConfig(
+        cache_dir=os.path.join(cache_dir_root, cache_subdir),
+        use_etag=False,
+        use_spark=True,
+    )
+    dl_manager = DownloadManager(dataset_name=dataset_name, download_config=download_config)
+    downloaded_paths = dl_manager.download(urls)
+    input_urls = urls
+    for downloaded_paths in [downloaded_paths]:
+        if isinstance(urls, str):
+            downloaded_paths = [downloaded_paths]
+            input_urls = [urls]
+        elif isinstance(urls, dict):
+            assert "train" in downloaded_paths.keys() and "test" in downloaded_paths.keys()
             downloaded_paths = downloaded_paths.values()
             input_urls = urls.values()
         assert downloaded_paths

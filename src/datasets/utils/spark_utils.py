@@ -1,6 +1,8 @@
 import os
 import uuid
 
+import pyspark
+
 
 def validate_cache_dir(cache_dir, spark_function_name):
     # Returns the path of the created file.
@@ -13,8 +15,6 @@ def validate_cache_dir(cache_dir, spark_function_name):
         # change the file contents.
         open(probe_file, "a")
         return [probe_file]
-
-    import pyspark
 
     spark = pyspark.sql.SparkSession.builder.getOrCreate()
 
