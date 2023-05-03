@@ -35,8 +35,8 @@ from datasets.load import (
     infer_module_for_data_files,
     infer_module_for_data_files_in_archives,
 )
-from datasets.packaged_modules.audiofolder.audiofolder import AudioFolderConfig
-from datasets.packaged_modules.imagefolder.imagefolder import ImageFolderConfig
+from datasets.packaged_modules.audiofolder.audiofolder import AudioFolder, AudioFolderConfig
+from datasets.packaged_modules.imagefolder.imagefolder import ImageFolder, ImageFolderConfig
 
 from .utils import (
     OfflineSimulationMode,
@@ -939,6 +939,39 @@ class LoadTest(TestCase):
                 with self.assertRaises(ConnectionError) as context:
                     datasets.load_dataset("lhoestq/_dummy")
                 self.assertIn("lhoestq/_dummy", str(context.exception))
+
+
+@pytest.mark.integration
+def test_load_dataset_builder_with_metadata():
+    builder = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER4)
+    assert isinstance(builder, ImageFolder)
+    assert builder.config.name == "default"
+    assert builder.config.data_files is not None
+    builder = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER4, "non-existing-config")
+    assert isinstance(builder, ImageFolder)
+    assert builder.config.name == "non-existing-config"
+
+
+@pytest.mark.integration
+def test_load_dataset_builder_with_one_nondefault_config_in_metadata():
+    builder = datasets.load_dataset_builder(SAMPLE_DATASET_ONE_NONDEFAULT_CONFIG_IN_METADATA)
+    assert isinstance(builder, AudioFolder)
+    assert builder.config.name == "custom"
+    assert builder.config.data_files is not None
+    with pytest.raises(ValueError):
+        datasets.load_dataset_builder(SAMPLE_DATASET_ONE_NONDEFAULT_CONFIG_IN_METADATA, "non-existing-config")
+
+
+@pytest.mark.integration
+def test_load_dataset_builder_with_two_configs_in_metadata():
+    builder = datasets.load_dataset_builder(SAMPLE_DATASET_TWO_CONFIG_IN_METADATA, "v1")
+    assert isinstance(builder, AudioFolder)
+    assert builder.config.name == "v1"
+    assert builder.config.data_files is not None
+    with pytest.raises(ValueError):
+        datasets.load_dataset_builder(SAMPLE_DATASET_TWO_CONFIG_IN_METADATA)
+    with pytest.raises(ValueError):
+        datasets.load_dataset_builder(SAMPLE_DATASET_TWO_CONFIG_IN_METADATA, "non-existing-config")
 
 
 def test_load_dataset_builder_for_absolute_script_dir(dataset_loading_script_dir, data_dir):
