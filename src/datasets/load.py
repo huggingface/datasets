@@ -1652,7 +1652,7 @@ def load_dataset_builder(
     builder_kwargs = dataset_module.builder_kwargs
     data_dir = builder_kwargs.pop("data_dir", data_dir)
     data_files = builder_kwargs.pop("data_files", data_files)
-    config_name = builder_kwargs.pop("config_name", name or dataset_module.default_config_name or "default")
+    config_name = builder_kwargs.pop("config_name", name or dataset_module.default_config_name or None)
     hash = builder_kwargs.pop("hash")
     if dataset_module.dataset_infos and config_name in dataset_module.dataset_infos:
         info = dataset_module.dataset_infos[config_name]
