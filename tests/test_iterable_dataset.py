@@ -521,7 +521,7 @@ def test_filtered_examples_iterable_with_fn_kwargs(n, func, batched, batch_size,
     )
     all_examples = [x for _, x in generate_examples_fn(n=n)]
     if batched is False:
-        expected = [x for x in enumerate(all_examples) if func(x, **fn_kwargs)]
+        expected = [x for x in all_examples if func(x, **fn_kwargs)]
     else:
         # For batched filter we have to format the examples as a batch (i.e. in one single dictionary) to pass the batch to the function
         expected = []
@@ -883,7 +883,7 @@ def test_iterable_dataset_map_with_fn_kwargs(dataset: IterableDataset) -> None:
     assert next(iter(mapped_dataset)) == {"id": 0, "id+y": 1}
     batch_size = 3
     mapped_dataset = dataset.map(
-        lambda x, y: {"id+y": x["id"] + y}, batched=True, batch_size=batch_size, fn_kwargs=fn_kwargs
+        lambda x, y: {"id+y": [i + y for i in x["id"]]}, batched=True, batch_size=batch_size, fn_kwargs=fn_kwargs
     )
     assert isinstance(mapped_dataset._ex_iterable, MappedExamplesIterable)
     assert mapped_dataset._ex_iterable.batch_size == batch_size
@@ -892,9 +892,9 @@ def test_iterable_dataset_map_with_fn_kwargs(dataset: IterableDataset) -> None:
 
 def test_iterable_dataset_filter(dataset: IterableDataset) -> None:
     fn_kwargs = {"y": 1}
-    with dataset.filter(lambda x, y: x["id"] == y, fn_kwargs=fn_kwargs) as filtered_dataset:
-        assert filtered_dataset._ex_iterable.batched is False
-        assert next(iter(filtered_dataset)) == {"id": 1}
+    filtered_dataset = dataset.filter(lambda x, y: x["id"] == y, fn_kwargs=fn_kwargs)
+    assert filtered_dataset._ex_iterable.batched is False
+    assert next(iter(filtered_dataset)) == {"id": 1}
 
 
 @pytest.mark.parametrize("seed", [42, 1337, 101010, 123456])

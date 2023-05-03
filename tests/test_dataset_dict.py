@@ -301,17 +301,15 @@ class DatasetDictTest(TestCase):
 
     def test_iterable_map(self):
         dsets = self._create_dummy_iterable_dataset_dict()
-        example = next(iter(dsets))
         fn_kwargs = {"n": 3}
         mapped_dsets: IterableDatasetDict = dsets.map(
-            lambda x, n: x.update({"foo": n}),
+            lambda x, n: {"foo": [n] * len(x["filename"])},
             batched=True,
             fn_kwargs=fn_kwargs,
         )
         mapped_example = next(iter(mapped_dsets["train"]))
-        self.assertListEqual(list(example.keys()), list(mapped_example.keys()))
-        self.assertListEqual(mapped_dsets["train"].column_names, ["filename", "foo"])
-        self.assertLessEqual(mapped_example["foo"][0], 3)
+        self.assertListEqual(sorted(mapped_example.keys()), sorted(["filename", "foo"]))
+        self.assertLessEqual(mapped_example["foo"], 3)
         del dsets, mapped_dsets
 
     def test_filter(self):
@@ -341,14 +339,14 @@ class DatasetDictTest(TestCase):
 
     def test_iterable_filter(self):
         dsets = self._create_dummy_iterable_dataset_dict()
-        example = next(iter(dsets))
+        example = next(iter(dsets["train"]))
         fn_kwargs = {"n": 3}
         filtered_dsets: IterableDatasetDict = dsets.filter(
-            lambda ex, n: int(ex["filename"].split("_")[-1]) < n, fn_kwargs=fn_kwargs
+            lambda ex, n: n < int(ex["filename"].split("_")[-1]), fn_kwargs=fn_kwargs
         )
         filtered_example = next(iter(filtered_dsets["train"]))
         self.assertListEqual(list(example.keys()), list(filtered_example.keys()))
-        self.assertEqual(len(filtered_example["filename"]), 3)
+        self.assertEqual(int(filtered_example["filename"].split("_")[-1]), 4)  # id starts from 3
         del dsets, filtered_dsets
 
     def test_sort(self):
