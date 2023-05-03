@@ -35,17 +35,11 @@ def _generate_iterable_examples(
     df: "pyspark.sql.DataFrame",
     partition_order: List[int] = None,
 ):
-    import pyspark
-
     def generate_fn():
-        df_with_partition_id = df.select("*", pyspark.sql.functions.spark_partition_id().alias("part_id"))
-        for partition_id in partition_order:
-            partition_df = df_with_partition_id.select("*").where(f"part_id = {partition_id}").drop("part_id")
-            rows = partition_df.collect()
-            row_id = 0
-            for row in rows:
-                yield f"{partition_id}_{row_id}", row.asDict()
-                row_id += 1
+        row_id = 0
+        for row in df.rdd.toLocalIterator(True):
+            yield row_id, row.asDict()
+            row_id += 1
 
     return generate_fn
 
@@ -85,15 +79,12 @@ class Spark(datasets.DatasetBuilder):
         self,
         df: "pyspark.sql.DataFrame",
         cache_dir: str = None,
-        streaming: bool = True,
         **config_kwargs,
     ):
         import pyspark
 
         self._spark = pyspark.sql.SparkSession.builder.getOrCreate()
         self.df = df
-        if not streaming:
-            self._validate_cache_dir(cache_dir)
 
         super().__init__(
             cache_dir=cache_dir,
@@ -101,13 +92,13 @@ class Spark(datasets.DatasetBuilder):
             **config_kwargs,
         )
 
-    def _validate_cache_dir(self, cache_dir):
+    def _validate_cache_dir(self):
         # Returns the path of the created file.
         def create_cache_and_write_probe(context):
             # makedirs with exist_ok will recursively create the directory. It will not throw an error if directories
             # already exist.
-            os.makedirs(cache_dir, exist_ok=True)
-            probe_file = os.path.join(cache_dir, "fs_test" + uuid.uuid4().hex)
+            os.makedirs(self._cache_dir, exist_ok=True)
+            probe_file = os.path.join(self._cache_dir, "fs_test" + uuid.uuid4().hex)
             # Opening the file in append mode will create a new file unless it already exists, in which case it will not
             # change the file contents.
             open(probe_file, "a")
@@ -119,7 +110,7 @@ class Spark(datasets.DatasetBuilder):
         # If the cluster is multi-node, make sure that the user provided a cache_dir and that it is on an NFS
         # accessible to the driver.
         # TODO: Stream batches to the driver using ArrowCollectSerializer instead of throwing an error.
-        if cache_dir:
+        if self._cache_dir:
             probe = (
                 self._spark.sparkContext.parallelize(range(1), 1).mapPartitions(create_cache_and_write_probe).collect()
             )
@@ -222,6 +213,8 @@ class Spark(datasets.DatasetBuilder):
         num_proc: Optional[int] = None,
         **kwargs,
     ):
+        self._validate_cache_dir()
+
         max_shard_size = convert_file_size_to_int(max_shard_size or MAX_SHARD_SIZE)
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join

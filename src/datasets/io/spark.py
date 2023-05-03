@@ -41,7 +41,6 @@ class SparkDatasetReader(AbstractDatasetReader):
             df=df,
             features=features,
             cache_dir=cache_dir,
-            streaming=streaming,
             **kwargs,
         )
 
