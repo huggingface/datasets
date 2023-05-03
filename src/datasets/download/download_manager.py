@@ -33,6 +33,7 @@ from ..utils.file_utils import cached_path, get_from_cache, hash_url_to_filename
 from ..utils.info_utils import get_size_checksum_dict
 from ..utils.logging import get_logger, is_progress_bar_enabled, tqdm
 from ..utils.py_utils import NestedDataStructure, map_nested, size_str
+from ..utils.spark_utils import validate_cache_dir
 from .download_config import DownloadConfig
 
 
@@ -422,8 +423,12 @@ class DownloadManager:
             download_config.download_desc = "Downloading data"
 
         if download_config.use_spark:
-            # TODO: probe and set download_config=False if multi-node with non-NFS cache_dir
-            pass
+            try:
+                validate_cache_dir(download_config.cache_dir, "DownloadManager.download")
+            except ValueError:
+                logger.warning("Setting use_spark as False because cache_dir is not shared among driver and workers")
+                download_config.use_spark = False
+                self.download_config.use_spark = False
 
         download_func = partial(self._download, download_config=download_config)
 
@@ -538,10 +543,6 @@ class DownloadManager:
         # Extract downloads the file first if it is not already downloaded
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading data"
-
-        if download_config.use_spark:
-            # TODO: probe and set download_config=False if multi-node with non-NFS cache_dir
-            pass
 
         extracted_paths = map_nested(
             partial(cached_path, download_config=download_config),
