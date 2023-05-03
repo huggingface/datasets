@@ -20,6 +20,7 @@ from .info import DatasetInfo
 from .splits import NamedSplit
 from .table import table_cast
 from .utils.logging import get_logger
+from .utils.py_utils import Literal
 from .utils.sharding import _merge_gen_kwargs, _number_of_shards_in_gen_kwargs, _shuffle_gen_kwargs, _split_gen_kwargs
 
 
@@ -202,7 +203,9 @@ class StepExamplesIterable(_BaseExamplesIterable):
 
 class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
     def __init__(
-        self, ex_iterables: List[_BaseExamplesIterable], stopping_strategy: Optional[str] = "first_exhausted"
+        self,
+        ex_iterables: List[_BaseExamplesIterable],
+        stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
     ):
         self.ex_iterables = ex_iterables
         self.stopping_strategy = stopping_strategy
@@ -381,7 +384,7 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         ex_iterables,
         generator: np.random.Generator,
         probabilities: Optional[List[float]] = None,
-        stopping_strategy: Optional[str] = "first_exhausted",
+        stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
     ):
         super().__init__(ex_iterables, stopping_strategy)
         self.generator = deepcopy(generator)
@@ -411,7 +414,10 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         """Shuffle the data sources of each wrapped examples iterable."""
         ex_iterables = [ex_iterable.shuffle_data_sources(generator) for ex_iterable in self.ex_iterables]
         return RandomlyCyclingMultiSourcesExamplesIterable(
-            ex_iterables, generator=generator, probabilities=self.probabilities, stopping_strategy=self.stopping_strategy
+            ex_iterables,
+            generator=generator,
+            probabilities=self.probabilities,
+            stopping_strategy=self.stopping_strategy,
         )
 
     def shard_data_sources(self, worker_id: int, num_workers: int) -> "RandomlyCyclingMultiSourcesExamplesIterable":
@@ -1824,7 +1830,7 @@ def _interleave_iterable_datasets(
     seed: Optional[int] = None,
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
-    stopping_strategy: Optional[str] = "first_exhausted",
+    stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
 ) -> IterableDataset:
     """
     Interleave several iterable datasets (sources) into a single iterable dataset.
@@ -1839,7 +1845,7 @@ def _interleave_iterable_datasets(
         probabilities (`List[float]`, optional, default None): If specified, the new iterable dataset samples
             examples from one source at a time according to these probabilities.
         seed (`int`, optional, default None): The random seed used to choose a source for each example.
-        stopping_strategy (Optional `str`, defaults to `first_exhausted`):
+        stopping_strategy (`str`, defaults to `first_exhausted`):
             Two strategies are proposed right now.
             By default, `first_exhausted` is an undersampling strategy, i.e the dataset construction is stopped as soon as one dataset has ran out of samples.
             If the strategy is `all_exhausted`,  we use an oversampling strategy, i.e the dataset construction is stopped as soon as every samples of every dataset has been added at least once.
