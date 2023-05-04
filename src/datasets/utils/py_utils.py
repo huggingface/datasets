@@ -457,7 +457,7 @@ def map_nested(
                 .collect()
             )
 
-        except Exception:
+        except ImportError:
             # No parallelization
             mapped = [
                 _single_map_nested((function, obj, types, None, True, None))

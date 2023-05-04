@@ -1,10 +1,22 @@
 import os
 import uuid
+from typing import Optional
 
 import pyspark
 
 
-def validate_cache_dir(cache_dir, spark_function_name):
+def validate_cache_dir(cache_dir: str, spark_function_name: str, spark: Optional[pyspark.sql.SparkSession] = None):
+    """When using a multi-node cluster, validates that `cache_dir` can be accessed by both the driver and worker nodes.
+
+    Args:
+        cache_dir (`str`): Path to a directory in which temporary data will be stored
+        spark_function_name (`str`): Used in error message to show the Spark-related function name
+        spark (`SparkSession`): Entry point to access Spark configuration and run Spark jobs
+
+    Raises:
+        ValueError: if Spark is run on a multi-node cluster, and cache_dir is not shared among nodes
+    """
+
     # Returns the path of the created file.
     def create_cache_and_write_probe(context):
         # makedirs with exist_ok will recursively create the directory. It will not throw an error if directories
@@ -16,7 +28,8 @@ def validate_cache_dir(cache_dir, spark_function_name):
         open(probe_file, "a")
         return [probe_file]
 
-    spark = pyspark.sql.SparkSession.builder.getOrCreate()
+    if spark is None:
+        spark = pyspark.sql.SparkSession.builder.getOrCreate()
 
     if spark.conf.get("spark.master", "").startswith("local"):
         return

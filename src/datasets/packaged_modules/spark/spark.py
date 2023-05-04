@@ -43,7 +43,7 @@ class Spark(datasets.DatasetBuilder):
         self._spark = pyspark.sql.SparkSession.builder.getOrCreate()
         self.df = df
 
-        validate_cache_dir(cache_dir, "Dataset.from_spark")
+        validate_cache_dir(cache_dir, "Dataset.from_spark", self._spark)
 
         super().__init__(
             cache_dir=cache_dir,
