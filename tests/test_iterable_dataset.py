@@ -22,10 +22,16 @@ from datasets.iterable_dataset import (
     MappedExamplesIterable,
     PythonToArrowExamplesIterable,
     RandomlyCyclingMultiSourcesExamplesIterable,
+    SelectColumnsIterable,
+    ShuffledDataSourcesArrowExamplesIterable,
+    ShuffledDataSourcesExamplesIterable,
     ShufflingConfig,
     SkipExamplesIterable,
+    StepExamplesIterable,
     TakeExamplesIterable,
+    TypedExamplesIterable,
     VerticallyConcatenatedMultiSourcesExamplesIterable,
+    _BaseExamplesIterable,
     _batch_arrow_tables,
     _batch_to_examples,
     _examples_to_batch,
@@ -700,6 +706,64 @@ def test_horizontally_concatenated_examples_iterable():
     assert (
         concatenated_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is concatenated_ex_iterable
     ), "horizontally concatenated examples makes the shards order fixed"
+
+
+@pytest.mark.parametrize(
+    "ex_iterable",
+    [
+        ExamplesIterable(generate_examples_fn, {}),
+        ShuffledDataSourcesExamplesIterable(generate_examples_fn, {}, np.random.default_rng(42)),
+        SelectColumnsIterable(ExamplesIterable(generate_examples_fn, {}), ["id"]),
+        StepExamplesIterable(ExamplesIterable(generate_examples_fn, {}), 2, 0),
+        CyclingMultiSourcesExamplesIterable([ExamplesIterable(generate_examples_fn, {})]),
+        VerticallyConcatenatedMultiSourcesExamplesIterable([ExamplesIterable(generate_examples_fn, {})]),
+        HorizontallyConcatenatedMultiSourcesExamplesIterable([ExamplesIterable(generate_examples_fn, {})]),
+        RandomlyCyclingMultiSourcesExamplesIterable(
+            [ExamplesIterable(generate_examples_fn, {})], np.random.default_rng(42)
+        ),
+        MappedExamplesIterable(ExamplesIterable(generate_examples_fn, {}), lambda x: x),
+        MappedExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), lambda x: x),
+        FilteredExamplesIterable(ExamplesIterable(generate_examples_fn, {}), lambda x: True),
+        FilteredExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), lambda x: True),
+        BufferShuffledExamplesIterable(ExamplesIterable(generate_examples_fn, {}), 10, np.random.default_rng(42)),
+        SkipExamplesIterable(ExamplesIterable(generate_examples_fn, {}), 10),
+        TakeExamplesIterable(ExamplesIterable(generate_examples_fn, {}), 10),
+        TypedExamplesIterable(
+            ExamplesIterable(generate_examples_fn, {}), Features({"id": Value("int32")}), token_per_repo_id={}
+        ),
+    ],
+)
+def test_no_iter_arrow(ex_iterable: _BaseExamplesIterable):
+    assert ex_iterable.iter_arrow is None
+
+
+@pytest.mark.parametrize(
+    "ex_iterable",
+    [
+        ArrowExamplesIterable(generate_tables_fn, {}),
+        ShuffledDataSourcesArrowExamplesIterable(generate_tables_fn, {}, np.random.default_rng(42)),
+        SelectColumnsIterable(ArrowExamplesIterable(generate_tables_fn, {}), ["id"]),
+        # StepExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), 2, 0),  # not implemented
+        # CyclingMultiSourcesExamplesIterable([ArrowExamplesIterable(generate_tables_fn, {})]),  # not implemented
+        VerticallyConcatenatedMultiSourcesExamplesIterable([ArrowExamplesIterable(generate_tables_fn, {})]),
+        # HorizontallyConcatenatedMultiSourcesExamplesIterable([ArrowExamplesIterable(generate_tables_fn, {})]),  # not implemented
+        # RandomlyCyclingMultiSourcesExamplesIterable([ArrowExamplesIterable(generate_tables_fn, {})], np.random.default_rng(42)),  # not implemented
+        MappedExamplesIterable(ExamplesIterable(generate_examples_fn, {}), lambda t: t, format_type="arrow"),
+        MappedExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), lambda t: t, format_type="arrow"),
+        FilteredExamplesIterable(ExamplesIterable(generate_examples_fn, {}), lambda t: True, format_type="arrow"),
+        FilteredExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), lambda t: True, format_type="arrow"),
+        # BufferShuffledExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), 10, np.random.default_rng(42)),  # not implemented
+        # SkipExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), 10),  # not implemented
+        # TakeExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), 10),  # not implemented
+        TypedExamplesIterable(
+            ArrowExamplesIterable(generate_tables_fn, {}), Features({"id": Value("int32")}), token_per_repo_id={}
+        ),
+    ],
+)
+def test_iter_arrow(ex_iterable: _BaseExamplesIterable):
+    assert ex_iterable.iter_arrow is not None
+    key, pa_table = next(ex_iterable.iter_arrow())
+    assert isinstance(pa_table, pa.Table)
 
 
 ############################
