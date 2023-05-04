@@ -31,6 +31,8 @@ def mock_request(*args, **kwargs):
 
 
 def mock_internal_download(*args, **kwargs):
+    # The patch scope of Spark map function is not as direct as normal functions, so we need to patch request here
+    # https://stackoverflow.com/questions/69936939/pyspark-rdd-map-function-mock-scope
     with patch("requests.request") as request_mock:
         request_mock.return_value = MockResponse()
         return DownloadManager._download(*args, **kwargs)
@@ -86,8 +88,6 @@ def test_download_manager_download(urls_type, tmp_path, monkeypatch):
 @require_pyspark
 @pytest.mark.parametrize("urls_type", [list, dict])
 def test_download_manager_download_with_spark(urls_type, tmp_path, monkeypatch):
-
-    # monkeypatch.setattr(requests, "request", mock_request)
     monkeypatch.setattr(DownloadManager, "_download", mock_internal_download)
 
     url = URL

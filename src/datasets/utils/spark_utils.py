@@ -2,7 +2,11 @@ import os
 import uuid
 from typing import Optional
 
-import pyspark
+
+try:
+    import pyspark
+except ImportError:
+    pass
 
 
 def validate_cache_dir(cache_dir: str, spark_function_name: str, spark: Optional[pyspark.sql.SparkSession] = None):

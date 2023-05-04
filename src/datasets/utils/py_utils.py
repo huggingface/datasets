@@ -459,6 +459,7 @@ def map_nested(
 
         except ImportError:
             # No parallelization
+            logger.warning("pyspark module is not found, running single process without Spark parallelization")
             mapped = [
                 _single_map_nested((function, obj, types, None, True, None))
                 for obj in logging.tqdm(iterable, disable=disable_tqdm, desc=desc)
