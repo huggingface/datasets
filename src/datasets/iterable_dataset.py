@@ -431,11 +431,16 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
     def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
         super().__init__()
         self.ex_iterables = ex_iterables
-        # TODO(QL): implement iter_arrow
+        if all(ex_iterable.iter_arrow is not None for ex_iterable in ex_iterables):
+            self.iter_arrow = self._iter_arrow
 
     def __iter__(self):
         for ex_iterable in self.ex_iterables:
             yield from ex_iterable
+
+    def _iter_arrow(self):
+        for ex_iterable in self.ex_iterables:
+            yield from ex_iterable.iter_arrow()
 
     def shuffle_data_sources(
         self, generator: np.random.Generator
@@ -818,8 +823,11 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                     function_args.append(current_idx)
             # then apply the transform
             mask = self.function(*function_args)
-            # yield one example at a time from the batch
-            yield key, pa_table.filter(mask)
+            # yield the filtered table
+            if self.batched:
+                yield key, pa_table.filter(mask)
+            elif mask.as_py() if isinstance(mask, pa.BooleanScalar) else mask:
+                yield key, pa_table
             current_idx += len(pa_table)
 
     def shuffle_data_sources(self, seed: Optional[int]) -> "FilteredExamplesIterable":
