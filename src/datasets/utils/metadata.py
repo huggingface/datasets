@@ -1,8 +1,7 @@
-import copy
 import os
 from collections import Counter
 from pathlib import Path
-from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Type, Union
 
 import huggingface_hub
 import yaml
@@ -18,6 +17,10 @@ from ..data_files import (
     sanitize_patterns,
 )
 from ..utils.logging import get_logger
+
+
+if TYPE_CHECKING:
+    from ..builder import BuilderConfig
 
 
 logger = get_logger(__name__)
@@ -183,22 +186,18 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
                 )
                 dataset_metadata[self.__configs_field_name] = metadata_config
 
-    def to_builder_configs(self, builder_config_cls):
+    def get_builder_config(
+        self,
+        config_name: str,
+        builder_config_cls: Type["BuilderConfig"],
+        data_files: Optional[DataFilesDict],
+        data_dir: Optional[str],
+        default_builder_kwargs: Dict[str, Any],
+    ) -> "BuilderConfig":
         """Convert configurations parsed from metadata file to list of BuilderConfig objects."""
-        metadata_configs = copy.deepcopy(self)
-        for config_name, metadata_config in metadata_configs.items():
-            if "data_files" in metadata_config and not isinstance(metadata_config["data_files"], DataFilesDict):
-                raise ValueError(
-                    f"""`data_files` parameter of config {config_name} should be an instance of DataFilesDict
-                    but it's {type(metadata_config["data_files"])}.
-                    You can resolve data files with either .resolve_data_files_locally() or
-                    .resolve_data_files_in_dataset_repository() method."""
-                )
+        meta_config = self[config_name]
         ignored_params = [
-            param
-            for meta_config in metadata_configs.values()
-            for param in meta_config
-            if not hasattr(builder_config_cls, param) and param != "default"
+            param for param in meta_config if not hasattr(builder_config_cls, param) and param != "default"
         ]
         if ignored_params:
             logger.warning(
@@ -206,17 +205,16 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
                 "Make sure to use only valid params for the dataset builder and to have "
                 "a up-to-date version of the `datasets` library."
             )
-        return [
-            builder_config_cls(
-                name=name,
-                **{
-                    param: value
-                    for param, value in meta_config.items()
-                    if hasattr(builder_config_cls, param) and param != "default"
-                },
-            )
-            for name, meta_config in metadata_configs.items()
-        ]
+        return builder_config_cls(
+            name=config_name,
+            data_files=data_files,
+            data_dir=data_dir,
+            **{
+                param: value
+                for param, value in {**default_builder_kwargs, **meta_config}.items()
+                if hasattr(builder_config_cls, param) and param not in ("default", "data_files", "data_dir")
+            },
+        )
 
     def get_default_config_name(self) -> Optional[str]:
         default_config_name = None
@@ -232,67 +230,65 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
 
     def resolve_data_files_locally(
         self,
+        config_name: str,
         base_path: str,
         with_metadata_files: bool,
         allowed_extensions: List[str],
-    ) -> None:
+    ) -> DataFilesDict:
         """
         Find patterns and resolve data files for local datasets for each config in-place (i.e. modifying `self`).
         Drop initial `data_dir` and `data_files` values and set `data_files` to DataFilesDict object with resolved data files.
         """
-        for metadata_config in self.values():
-            config_data_files = metadata_config.pop("data_files", None)
-            config_data_dir = metadata_config.pop("data_dir", None)
-            config_base_path = os.path.join(base_path, config_data_dir) if config_data_dir else base_path
-            config_patterns = (
-                sanitize_patterns(config_data_files)
-                if config_data_files is not None
-                else get_data_patterns_locally(config_base_path)
-            )
-            config_data_files_dict = DataFilesDict.from_local_or_remote(
-                config_patterns,
-                base_path=config_base_path,
-                allowed_extensions=allowed_extensions,
-            )
-            metadata_config["data_files"] = config_data_files_dict
-
-            if config_data_files is None and with_metadata_files and config_patterns != DEFAULT_PATTERNS_ALL:
-                extend_data_files_with_metadata_files_locally(
-                    metadata_config["data_files"], base_path=config_base_path
-                )
+        metadata_config = self[config_name]
+        config_data_files = metadata_config.get("data_files")
+        config_data_dir = metadata_config.get("data_dir")
+        config_base_path = os.path.join(base_path, config_data_dir) if config_data_dir else base_path
+        config_patterns = (
+            sanitize_patterns(config_data_files)
+            if config_data_files is not None
+            else get_data_patterns_locally(config_base_path)
+        )
+        config_data_files_dict = DataFilesDict.from_local_or_remote(
+            config_patterns,
+            base_path=config_base_path,
+            allowed_extensions=allowed_extensions,
+        )
+        if config_data_files is None and with_metadata_files and config_patterns != DEFAULT_PATTERNS_ALL:
+            extend_data_files_with_metadata_files_locally(config_data_files_dict, base_path=config_base_path)
+        return config_data_files_dict
 
     def resolve_data_files_in_dataset_repository(
         self,
+        config_name: str,
         hfh_dataset_info: huggingface_hub.hf_api.DatasetInfo,
         base_path: str,
         with_metadata_files: bool,
         allowed_extensions: List[str],
-    ) -> None:
+    ) -> DataFilesDict:
         """
         Find patterns and resolve data files for Hub datasets for each config in-place (i.e. modifying `self`).
         Drop initial `data_dir` and `data_files` values and set `data_files` to DataFilesDict object with resolved data files.
         """
-        for metadata_config in self.values():
-            config_data_files = metadata_config.pop("data_files", None)
-            config_data_dir = metadata_config.pop("data_dir", None)
-            config_base_path = os.path.join(base_path, config_data_dir) if config_data_dir else base_path
-            config_patterns = (
-                sanitize_patterns(config_data_files)
-                if config_data_files is not None
-                else get_data_patterns_in_dataset_repository(hfh_dataset_info, config_base_path)
+        metadata_config = self[config_name]
+        config_data_files = metadata_config.get("data_files")
+        config_data_dir = metadata_config.get("data_dir")
+        config_base_path = os.path.join(base_path, config_data_dir) if config_data_dir else base_path
+        config_patterns = (
+            sanitize_patterns(config_data_files)
+            if config_data_files is not None
+            else get_data_patterns_in_dataset_repository(hfh_dataset_info, config_base_path)
+        )
+        config_data_files_dict = DataFilesDict.from_hf_repo(
+            config_patterns,
+            dataset_info=hfh_dataset_info,
+            base_path=config_base_path,
+            allowed_extensions=allowed_extensions,
+        )
+        if config_data_files is None and with_metadata_files and config_patterns != DEFAULT_PATTERNS_ALL:
+            extend_data_files_with_metadata_files_in_dataset_repository(
+                hfh_dataset_info, data_files=config_data_files_dict, base_path=config_base_path
             )
-            config_data_files_dict = DataFilesDict.from_hf_repo(
-                config_patterns,
-                dataset_info=hfh_dataset_info,
-                base_path=config_base_path,
-                allowed_extensions=allowed_extensions,
-            )
-            metadata_config["data_files"] = config_data_files_dict
-
-            if config_data_files is None and with_metadata_files and config_patterns != DEFAULT_PATTERNS_ALL:
-                extend_data_files_with_metadata_files_in_dataset_repository(
-                    hfh_dataset_info, data_files=metadata_config["data_files"], base_path=config_base_path
-                )
+        return config_data_files_dict
 
 
 # DEPRECATED - just here to support old versions of evaluate like 0.2.2
