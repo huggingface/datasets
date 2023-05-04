@@ -1,6 +1,7 @@
 import json
 import os
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -27,6 +28,12 @@ class MockResponse:
 
 def mock_request(*args, **kwargs):
     return MockResponse()
+
+
+def mock_internal_download(*args, **kwargs):
+    with patch("requests.request") as request_mock:
+        request_mock.return_value = MockResponse()
+        return DownloadManager._download(*args, **kwargs)
 
 
 @pytest.mark.parametrize("urls_type", [str, list, dict])
@@ -77,15 +84,15 @@ def test_download_manager_download(urls_type, tmp_path, monkeypatch):
 
 
 @require_pyspark
-@pytest.mark.parametrize("urls_type", [str, dict])
+@pytest.mark.parametrize("urls_type", [list, dict])
 def test_download_manager_download_with_spark(urls_type, tmp_path, monkeypatch):
-    import requests
 
-    monkeypatch.setattr(requests, "request", mock_request)
+    # monkeypatch.setattr(requests, "request", mock_request)
+    monkeypatch.setattr(DownloadManager, "_download", mock_internal_download)
 
     url = URL
-    if issubclass(urls_type, str):
-        urls = url
+    if issubclass(urls_type, list):
+        urls = [url, url]
     elif issubclass(urls_type, dict):
         urls = {"train": url, "test": url}
     dataset_name = "dummy"
@@ -98,12 +105,10 @@ def test_download_manager_download_with_spark(urls_type, tmp_path, monkeypatch):
     )
     dl_manager = DownloadManager(dataset_name=dataset_name, download_config=download_config)
     downloaded_paths = dl_manager.download(urls)
+
     input_urls = urls
     for downloaded_paths in [downloaded_paths]:
-        if isinstance(urls, str):
-            downloaded_paths = [downloaded_paths]
-            input_urls = [urls]
-        elif isinstance(urls, dict):
+        if isinstance(urls, dict):
             assert "train" in downloaded_paths.keys() and "test" in downloaded_paths.keys()
             downloaded_paths = downloaded_paths.values()
             input_urls = urls.values()
