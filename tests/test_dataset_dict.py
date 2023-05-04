@@ -8,9 +8,9 @@ import pytest
 
 from datasets import load_from_disk
 from datasets.arrow_dataset import Dataset
-from datasets.iterable_dataset import IterableDataset
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.features import ClassLabel, Features, Sequence, Value
+from datasets.iterable_dataset import IterableDataset
 from datasets.splits import NamedSplit
 
 from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, require_tf, require_torch
