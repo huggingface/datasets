@@ -9,7 +9,11 @@ from datasets.download.download_config import DownloadConfig
 from datasets.download.download_manager import DownloadManager
 from datasets.utils.file_utils import hash_url_to_filename
 
-from .utils import require_pyspark
+from .utils import (
+    require_dill_gt_0_3_2,
+    require_not_windows,
+    require_pyspark,
+)
 
 
 URL = "http://www.mocksite.com/file1.txt"
@@ -85,6 +89,8 @@ def test_download_manager_download(urls_type, tmp_path, monkeypatch):
             assert metadata_content == {"url": URL, "etag": None}
 
 
+@require_not_windows
+@require_dill_gt_0_3_2
 @require_pyspark
 @pytest.mark.parametrize("urls_type", [list, dict])
 def test_download_manager_download_with_spark(urls_type, tmp_path, monkeypatch):
