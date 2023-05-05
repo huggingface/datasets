@@ -113,15 +113,15 @@ def test_batch_arrow_tables(tables, batch_size, drop_last_batch):
     full_table = pa.concat_tables(tables)
     num_rows = len(full_table) if not drop_last_batch else len(full_table) // batch_size * batch_size
     num_batches = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
-    subtables = list(_batch_arrow_tables(tables, batch_size=batch_size, drop_last_batch=drop_last_batch))
+    subtables = list(_batch_arrow_tables([(i, table) for i, table in enumerate(tables)], batch_size=batch_size, drop_last_batch=drop_last_batch))
     assert len(subtables) == num_batches
     if drop_last_batch:
-        assert all(len(subtable) == batch_size for subtable in subtables)
+        assert all(len(subtable) == batch_size for _, subtable in subtables)
     else:
-        assert all(len(subtable) == batch_size for subtable in subtables[:-1])
-        assert len(subtables[-1]) <= batch_size
+        assert all(len(subtable) == batch_size for _, subtable in subtables[:-1])
+        assert len(subtables[-1][1]) <= batch_size
     if num_rows > 0:
-        reloaded = pa.concat_tables(subtables)
+        reloaded = pa.concat_tables([subtable for _, subtable in subtables])
         assert full_table.slice(0, num_rows).to_pydict() == reloaded.to_pydict()
 
 
