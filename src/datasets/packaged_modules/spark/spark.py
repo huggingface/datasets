@@ -136,18 +136,23 @@ class Spark(datasets.DatasetBuilder):
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN)]
 
     def _repartition_df_if_needed(self, max_shard_size):
+        import pyspark
+
         def get_arrow_batch_size(it):
-            total_bytes = 0
             for batch in it:
-                total_bytes += batch.nbytes
-            return total_bytes
+                yield pa.RecordBatch.from_pydict({"batch_bytes": [batch.nbytes]})
 
         df_num_rows = self.df.count()
         # Approximate the size of each row (in Arrow format) by averaging over a 100-row sample.
-        approx_bytes_per_row = self.df.limit(100).repartition(1) \
-            .mapInArrow(get_arrow_batch_size, "total_bytes: long") \
-            .collect()[0] \
-            .total_bytes / 100
+        approx_bytes_per_row = (
+            self.df.limit(100)
+            .repartition(1)
+            .mapInArrow(get_arrow_batch_size, "batch_bytes: long")
+            .agg(pyspark.sql.functions.sum("batch_bytes").alias("sample_bytes"))
+            .collect()[0]
+            .sample_bytes
+            / 100
+        )
         approx_total_size = approx_bytes_per_row * df_num_rows
         if approx_total_size > max_shard_size:
             self.df = self.df.repartition(int(approx_total_size / max_shard_size))
@@ -161,6 +166,7 @@ class Spark(datasets.DatasetBuilder):
         import pyspark
 
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
+        working_fpath = os.path.join(self._working_dir, os.path.basename(fpath)) if self._working_dir else fpath
         embed_local_files = file_format == "parquet"
 
         # Define these so that we don't reference self in write_arrow, which will result in a pickling error due to
@@ -182,7 +188,7 @@ class Spark(datasets.DatasetBuilder):
             shard_id = 0
             writer = writer_class(
                 features=features,
-                path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
+                path=working_fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
                 writer_batch_size=writer_batch_size,
                 storage_options=storage_options,
                 embed_local_files=embed_local_files,
@@ -200,7 +206,7 @@ class Spark(datasets.DatasetBuilder):
                     shard_id += 1
                     writer = writer_class(
                         features=writer._features,
-                        path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
+                        path=working_fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
                         writer_batch_size=writer_batch_size,
                         storage_options=storage_options,
                         embed_local_files=embed_local_files,
@@ -215,6 +221,11 @@ class Spark(datasets.DatasetBuilder):
                     [[task_id], [num_examples], [num_bytes]],
                     names=["task_id", "num_examples", "num_bytes"],
                 )
+
+            if working_fpath != fpath:
+                for file in os.listdir(os.path.dirname(working_fpath)):
+                    dest = os.path.join(os.path.dirname(fpath), os.path.basename(file))
+                    os.rename(file, dest)
 
         stats = (
             self.df.mapInArrow(write_arrow, "task_id: long, num_examples: long, num_bytes: long")
