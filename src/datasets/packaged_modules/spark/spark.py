@@ -135,6 +135,23 @@ class Spark(datasets.DatasetBuilder):
     def _split_generators(self, dl_manager: datasets.download.download_manager.DownloadManager):
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN)]
 
+    def _repartition_df_if_needed(self, max_shard_size):
+        def get_arrow_batch_size(it):
+            total_bytes = 0
+            for batch in it:
+                total_bytes += batch.nbytes
+            return total_bytes
+
+        df_num_rows = self.df.count()
+        # Approximate the size of each row (in Arrow format) by averaging over a 100-row sample.
+        approx_bytes_per_row = self.df.limit(100).repartition(1) \
+            .mapInArrow(get_arrow_batch_size, "total_bytes: long") \
+            .collect()[0] \
+            .total_bytes / 100
+        approx_total_size = approx_bytes_per_row * df_num_rows
+        if approx_total_size > max_shard_size:
+            self.df = self.df.repartition(int(approx_total_size / max_shard_size))
+
     def _prepare_split_single(
         self,
         fpath: str,
@@ -224,6 +241,7 @@ class Spark(datasets.DatasetBuilder):
         self._validate_cache_dir()
 
         max_shard_size = convert_file_size_to_int(max_shard_size or MAX_SHARD_SIZE)
+        self._repartition_df_if_needed(max_shard_size)
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
 
