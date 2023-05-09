@@ -4,6 +4,7 @@ from itertools import chain, islice
 import numpy as np
 import pandas as pd
 import pyarrow as pa
+import pyarrow.compute as pc
 import pytest
 
 from datasets import load_dataset
@@ -20,7 +21,6 @@ from datasets.iterable_dataset import (
     HorizontallyConcatenatedMultiSourcesExamplesIterable,
     IterableDataset,
     MappedExamplesIterable,
-    PythonToArrowExamplesIterable,
     RandomlyCyclingMultiSourcesExamplesIterable,
     SelectColumnsIterable,
     ShuffledDataSourcesArrowExamplesIterable,
@@ -34,6 +34,7 @@ from datasets.iterable_dataset import (
     _BaseExamplesIterable,
     _batch_arrow_tables,
     _batch_to_examples,
+    _convert_to_arrow,
     _examples_to_batch,
 )
 
@@ -99,6 +100,31 @@ def dataset_with_several_columns():
 ################################
 
 
+@pytest.mark.parametrize("batch_size", [1, 2, 3, 9, 10, 11, 20])
+@pytest.mark.parametrize("drop_last_batch", [False, True])
+def test_convert_to_arrow(batch_size, drop_last_batch):
+    examples = [{"foo": i} for i in range(10)]
+    full_table = pa.Table.from_pylist(examples)
+    num_rows = len(full_table) if not drop_last_batch else len(full_table) // batch_size * batch_size
+    num_batches = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
+    subtables = list(
+        _convert_to_arrow(
+            [(i, example) for i, example in enumerate(examples)],
+            batch_size=batch_size,
+            drop_last_batch=drop_last_batch,
+        )
+    )
+    assert len(subtables) == num_batches
+    if drop_last_batch:
+        assert all(len(subtable) == batch_size for _, subtable in subtables)
+    else:
+        assert all(len(subtable) == batch_size for _, subtable in subtables[:-1])
+        assert len(subtables[-1][1]) <= batch_size
+    if num_rows > 0:
+        reloaded = pa.concat_tables([subtable for _, subtable in subtables])
+        assert full_table.slice(0, num_rows).to_pydict() == reloaded.to_pydict()
+
+
 @pytest.mark.parametrize(
     "tables",
     [
@@ -113,7 +139,11 @@ def test_batch_arrow_tables(tables, batch_size, drop_last_batch):
     full_table = pa.concat_tables(tables)
     num_rows = len(full_table) if not drop_last_batch else len(full_table) // batch_size * batch_size
     num_batches = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
-    subtables = list(_batch_arrow_tables([(i, table) for i, table in enumerate(tables)], batch_size=batch_size, drop_last_batch=drop_last_batch))
+    subtables = list(
+        _batch_arrow_tables(
+            [(i, table) for i, table in enumerate(tables)], batch_size=batch_size, drop_last_batch=drop_last_batch
+        )
+    )
     assert len(subtables) == num_batches
     if drop_last_batch:
         assert all(len(subtable) == batch_size for _, subtable in subtables)
@@ -204,15 +234,6 @@ def test_arrow_examples_iterable_shuffle_data_sources():
     assert [example for _, example in ex_iterable] == expected
     expected = list(generate_tables_fn(filepaths=["1.txt", "0.txt"]))
     assert list(ex_iterable.iter_arrow()) == expected
-
-
-def test_python_to_arrow_examples_iterable():
-    python_ex_iterable = ExamplesIterable(generate_examples_fn, {})
-    arrow_ex_iterable = PythonToArrowExamplesIterable(python_ex_iterable)
-    assert list(python_ex_iterable) == list(arrow_ex_iterable)
-    tables = [pa_table for _, pa_table in arrow_ex_iterable.iter_arrow()]
-    assert 1 < len(tables) < len(list(python_ex_iterable))
-    assert pa.Table.from_pylist([example for _, example in python_ex_iterable]) == pa.concat_tables(tables)
 
 
 @pytest.mark.parametrize("seed", [42, 1337, 101010, 123456])
@@ -536,6 +557,254 @@ def test_mapped_examples_iterable_input_columns(n, func, batched, batch_size, in
         expected = _examples_to_batch(all_examples)
         expected.update(_examples_to_batch(all_transformed_examples))
         expected = list(_batch_to_examples(expected))
+    assert next(iter(ex_iterable))[1] == expected[0]
+    assert [x for _, x in ex_iterable] == expected
+
+
+@pytest.mark.parametrize(
+    "n, func, batched, batch_size",
+    [
+        (3, lambda t: t.append_column("id+1", pc.add(t["id"], 1)), False, None),  # just add 1 to the id
+        (3, lambda t: t.append_column("id+1", pc.add(t["id"], 1)), True, 1),  # same with bs=1
+        (5, lambda t: t.append_column("id+1", pc.add(t["id"], 1)), True, 10),  # same with bs=10
+        (25, lambda t: t.append_column("id+1", pc.add(t["id"], 1)), True, 10),  # same with bs=10
+        (5, lambda t: t.append_column("id+1", pc.add(t["id"], 1)), True, None),  # same with bs=None
+        (5, lambda t: t.append_column("id+1", pc.add(t["id"], 1)), True, -1),  # same with bs<=0
+        (3, lambda t: pa.concat_tables([t] * 2), True, 1),  # make a duplicate of each example
+    ],
+)
+def test_mapped_examples_iterable_arrow_format(n, func, batched, batch_size):
+    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
+    ex_iterable = MappedExamplesIterable(
+        base_ex_iterable, func, batched=batched, batch_size=batch_size, format_type="arrow"
+    )
+    all_examples = [x for _, x in generate_examples_fn(n=n)]
+    if batched is False:
+        expected = [func(pa.Table.from_pylist([x])).to_pylist()[0] for x in all_examples]
+    else:
+        expected = []
+        # If batch_size is None or <=0, we use the whole dataset as a single batch
+        if batch_size is None or batch_size <= 0:
+            batch_size = len(all_examples)
+        for batch_offset in range(0, len(all_examples), batch_size):
+            examples = all_examples[batch_offset : batch_offset + batch_size]
+            batch = pa.Table.from_pylist(examples)
+            expected.extend(func(batch).to_pylist())
+    assert next(iter(ex_iterable))[1] == expected[0]
+    assert [x for _, x in ex_iterable] == expected
+
+
+@pytest.mark.parametrize(
+    "n, func, batched, batch_size",
+    [
+        (3, lambda t: t.append_column("id+1", pc.add(t["id"], 1)), False, None),  # just add 1 to the id
+        (3, lambda t: t.append_column("id+1", pc.add(t["id"], 1)), True, 1),  # same with bs=1
+        (5, lambda t: t.append_column("id+1", pc.add(t["id"], 1)), True, 10),  # same with bs=10
+        (25, lambda t: t.append_column("id+1", pc.add(t["id"], 1)), True, 10),  # same with bs=10
+        (5, lambda t: t.append_column("id+1", pc.add(t["id"], 1)), True, None),  # same with bs=None
+        (5, lambda t: t.append_column("id+1", pc.add(t["id"], 1)), True, -1),  # same with bs<=0
+        (3, lambda t: pa.concat_tables([t] * 2), True, 1),  # make a duplicate of each example
+    ],
+)
+def test_mapped_examples_iterable_drop_last_batch_and_arrow_format(n, func, batched, batch_size):
+    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
+    ex_iterable = MappedExamplesIterable(
+        base_ex_iterable, func, batched=batched, batch_size=batch_size, drop_last_batch=True, format_type="arrow"
+    )
+    all_examples = [x for _, x in generate_examples_fn(n=n)]
+    is_empty = False
+    if batched is False:
+        # `drop_last_batch` has no effect here
+        expected = [func(pa.Table.from_pylist([x])).to_pylist()[0] for x in all_examples]
+    else:
+        all_transformed_examples = []
+        # If batch_size is None or <=0, we use the whole dataset as a single batch
+        if batch_size is None or batch_size <= 0:
+            batch_size = len(all_examples)
+        for batch_offset in range(0, len(all_examples), batch_size):
+            examples = all_examples[batch_offset : batch_offset + batch_size]
+            if len(examples) < batch_size:  # ignore last batch
+                break
+            batch = pa.Table.from_pylist(examples)
+            out = func(batch)
+            all_transformed_examples.extend(
+                out.to_pylist()
+            )  # we don't merge with input since they're arrow tables and not dictionaries
+        all_examples = all_examples if n % batch_size == 0 else all_examples[: n // batch_size * batch_size]
+        if all_examples:
+            expected = all_transformed_examples
+        else:
+            is_empty = True
+
+    if not is_empty:
+        assert next(iter(ex_iterable))[1] == expected[0]
+        assert [x for _, x in ex_iterable] == expected
+    else:
+        with pytest.raises(StopIteration):
+            next(iter(ex_iterable))
+
+
+@pytest.mark.parametrize(
+    "n, func, batched, batch_size",
+    [
+        (
+            3,
+            lambda t, index: t.append_column("id+idx", pc.add(t["id"], index)),
+            False,
+            None,
+        ),  # add the index to the id
+        (
+            25,
+            lambda t, indices: t.append_column("id+idx", pc.add(t["id"], indices)),
+            True,
+            10,
+        ),  # add the index to the id
+        (5, lambda t, indices: t.append_column("id+idx", pc.add(t["id"], indices)), True, None),  # same with bs=None
+        (5, lambda t, indices: t.append_column("id+idx", pc.add(t["id"], indices)), True, -1),  # same with bs<=0
+    ],
+)
+def test_mapped_examples_iterable_with_indices_and_arrow_format(n, func, batched, batch_size):
+    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
+    ex_iterable = MappedExamplesIterable(
+        base_ex_iterable, func, batched=batched, batch_size=batch_size, with_indices=True, format_type="arrow"
+    )
+    all_examples = [x for _, x in generate_examples_fn(n=n)]
+    if batched is False:
+        expected = [func(pa.Table.from_pylist([x]), i).to_pylist()[0] for i, x in enumerate(all_examples)]
+    else:
+        expected = []
+        # If batch_size is None or <=0, we use the whole dataset as a single batch
+        if batch_size is None or batch_size <= 0:
+            batch_size = len(all_examples)
+        for batch_offset in range(0, len(all_examples), batch_size):
+            examples = all_examples[batch_offset : batch_offset + batch_size]
+            batch = pa.Table.from_pylist(examples)
+            expected.extend(func(batch, list(range(batch_offset, batch_offset + len(batch)))).to_pylist())
+    assert next(iter(ex_iterable))[1] == expected[0]
+    assert [x for _, x in ex_iterable] == expected
+
+
+@pytest.mark.parametrize(
+    "n, func, batched, batch_size, remove_columns",
+    [
+        (
+            3,
+            lambda t: t.append_column("id+1", pc.add(t["id"], 1)),
+            False,
+            None,
+            ["extra_column"],
+        ),  # just add 1 to the id
+        (25, lambda t: t.append_column("id+1", pc.add(t["id"], 1)), True, 10, ["extra_column"]),  # same with bs=10
+        (
+            50,
+            lambda t: pa.table({"foo": ["bar"] * np.random.default_rng(t["id"][0].as_py()).integers(0, 10)}),
+            True,
+            8,
+            ["extra_column", "id"],
+        ),  # make a duplicate of each example
+        (5, lambda t: t.append_column("id+1", pc.add(t["id"], 1)), True, None, ["extra_column"]),  # same with bs=None
+        (5, lambda t: t.append_column("id+1", pc.add(t["id"], 1)), True, -1, ["extra_column"]),  # same with bs<=0
+    ],
+)
+def test_mapped_examples_iterable_remove_columns_arrow_format(n, func, batched, batch_size, remove_columns):
+    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n, "extra_column": "foo"})
+    ex_iterable = MappedExamplesIterable(
+        base_ex_iterable,
+        func,
+        batched=batched,
+        batch_size=batch_size,
+        remove_columns=remove_columns,
+        format_type="arrow",
+    )
+    all_examples = [x for _, x in generate_examples_fn(n=n)]
+    columns_to_remove = remove_columns if isinstance(remove_columns, list) else [remove_columns]
+    if batched is False:
+        expected = [
+            {**{k: v for k, v in func(pa.Table.from_pylist([x])).to_pylist()[0].items() if k not in columns_to_remove}}
+            for x in all_examples
+        ]
+    else:
+        expected = []
+        # If batch_size is None or <=0, we use the whole dataset as a single batch
+        if batch_size is None or batch_size <= 0:
+            batch_size = len(all_examples)
+        for batch_offset in range(0, len(all_examples), batch_size):
+            examples = all_examples[batch_offset : batch_offset + batch_size]
+            batch = pa.Table.from_pylist(examples)
+            expected.extend(
+                [{k: v for k, v in x.items() if k not in columns_to_remove} for x in func(batch).to_pylist()]
+            )
+    assert next(iter(ex_iterable))[1] == expected[0]
+    assert [x for _, x in ex_iterable] == expected
+
+
+@pytest.mark.parametrize(
+    "n, func, batched, batch_size, fn_kwargs",
+    [
+        (3, lambda t, y=0: t.append_column("id+idx", pc.add(t["id"], y)), False, None, None),
+        (3, lambda t, y=0: t.append_column("id+idx", pc.add(t["id"], y)), False, None, {"y": 3}),
+        (25, lambda t, y=0: t.append_column("id+idx", pc.add(t["id"], y)), True, 10, {"y": 3}),
+        (5, lambda t, y=0: t.append_column("id+idx", pc.add(t["id"], y)), True, None, {"y": 3}),  # same with bs=None
+        (5, lambda t, y=0: t.append_column("id+idx", pc.add(t["id"], y)), True, -1, {"y": 3}),  # same with bs<=0
+    ],
+)
+def test_mapped_examples_iterable_fn_kwargs_and_arrow_format(n, func, batched, batch_size, fn_kwargs):
+    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
+    ex_iterable = MappedExamplesIterable(
+        base_ex_iterable, func, batched=batched, batch_size=batch_size, fn_kwargs=fn_kwargs, format_type="arrow"
+    )
+    all_examples = [x for _, x in generate_examples_fn(n=n)]
+    if fn_kwargs is None:
+        fn_kwargs = {}
+    if batched is False:
+        expected = [func(pa.Table.from_pylist([x]), **fn_kwargs).to_pylist()[0] for x in all_examples]
+    else:
+        expected = []
+        # If batch_size is None or <=0, we use the whole dataset as a single batch
+        if batch_size is None or batch_size <= 0:
+            batch_size = len(all_examples)
+        for batch_offset in range(0, len(all_examples), batch_size):
+            examples = all_examples[batch_offset : batch_offset + batch_size]
+            batch = pa.Table.from_pylist(examples)
+            expected.extend(func(batch, **fn_kwargs).to_pylist())
+    assert next(iter(ex_iterable))[1] == expected[0]
+    assert [x for _, x in ex_iterable] == expected
+
+
+@pytest.mark.parametrize(
+    "n, func, batched, batch_size, input_columns",
+    [
+        (3, lambda id_: pa.table({"id+1": pc.add(id_, 1)}), False, None, ["id"]),  # just add 1 to the id
+        (25, lambda ids_: pa.table({"id+1": pc.add(ids_, 1)}), True, 10, ["id"]),  # same with bs=10
+        (5, lambda ids_: pa.table({"id+1": pc.add(ids_, 1)}), True, None, ["id"]),  # same with bs=None
+        (5, lambda ids_: pa.table({"id+1": pc.add(ids_, 1)}), True, -1, ["id"]),  # same with bs<=0
+    ],
+)
+def test_mapped_examples_iterable_input_columns_and_arrow_format(n, func, batched, batch_size, input_columns):
+    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
+    ex_iterable = MappedExamplesIterable(
+        base_ex_iterable,
+        func,
+        batched=batched,
+        batch_size=batch_size,
+        input_columns=input_columns,
+        format_type="arrow",
+    )
+    all_examples = [x for _, x in generate_examples_fn(n=n)]
+    columns_to_input = input_columns if isinstance(input_columns, list) else [input_columns]
+    if batched is False:
+        expected = [
+            func(*[pa.Table.from_pylist([x])[col] for col in columns_to_input]).to_pylist()[0] for x in all_examples
+        ]
+    else:
+        expected = []
+        # If batch_size is None or <=0, we use the whole dataset as a single batch
+        if batch_size is None or batch_size <= 0:
+            batch_size = len(all_examples)
+        for batch_offset in range(0, len(all_examples), batch_size):
+            examples = all_examples[batch_offset : batch_offset + batch_size]
+            batch = pa.Table.from_pylist(examples)
+            expected.extend(func(*[batch[col] for col in columns_to_input]).to_pylist())
     assert next(iter(ex_iterable))[1] == expected[0]
     assert [x for _, x in ex_iterable] == expected
 

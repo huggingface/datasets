@@ -5,7 +5,7 @@ from collections import Counter
 from copy import deepcopy
 from dataclasses import dataclass
 from itertools import cycle, islice
-from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 import numpy as np
 import pyarrow as pa
@@ -24,6 +24,8 @@ from .utils.sharding import _merge_gen_kwargs, _number_of_shards_in_gen_kwargs, 
 
 
 logger = get_logger(__name__)
+
+Key = Union[int, str]
 
 
 def _infer_features_from_batch(batch: Dict[str, list], try_features: Optional[Features] = None) -> Features:
@@ -81,23 +83,57 @@ class HasNextIterator(Iterator):
         return self._hasnext
 
 
-def _batch_arrow_tables(
-    iterator: Iterator[Tuple[Any, pa.Table]],
+def _convert_to_arrow(
+    iterable: Iterable[Tuple[Key, dict]],
     batch_size: int,
     drop_last_batch=False,
-) -> Iterator[Tuple[Any, pa.Table]]:
+) -> Iterator[Tuple[Key, pa.Table]]:
     """Iterate over sub-tables of size `batch_size`.
 
     Args:
-        batch_size (`int`):
-            Size of each sub-table to yield.
+        iterable (`Iterable[Tuple[Key, dict]]`):
+            An examples iterable containing tuples (example_key, example) of type (int/str, dict)
+        batch_size (`Optional[int]`):
+            Size of each sub-table to yield. If None or <= 0, yields the full table.
         drop_last_batch (`bool`, defaults to `False`):
             Drop the last batch if it is smaller than `batch_size`.
     """
+    if batch_size is None or batch_size <= 0:
+        yield "all", pa.Table.from_pylist([example for _, example in iterable])
+        return
+    iterator = iter(iterable)
+    for key, example in iterator:
+        iterator_batch = islice(iterator, batch_size - 1)
+        key_examples_list = [(key, example)] + [(key, example) for key, example in iterator_batch]
+        if len(key_examples_list) < batch_size and drop_last_batch:
+            return
+        keys, examples = zip(*key_examples_list)
+        new_key = "_".join(str(key) for key in keys)
+        yield new_key, pa.Table.from_pylist(examples)
+
+
+def _batch_arrow_tables(
+    iterable: Iterable[Tuple[Key, pa.Table]],
+    batch_size: Optional[int],
+    drop_last_batch=False,
+) -> Iterator[Tuple[Key, pa.Table]]:
+    """Iterate over sub-tables of size `batch_size`.
+
+    Args:
+        iterable (`Iterable[Tuple[Key, pa.Table]]`):
+            A tables iterable containing tuples (table_key, table) of type (int/str, pa.Table)
+        batch_size (`Optional[int]`):
+            Size of each sub-table to yield. If None or <= 0, yields the full table.
+        drop_last_batch (`bool`, defaults to `False`):
+            Drop the last batch if it is smaller than `batch_size`.
+    """
+    if batch_size is None or batch_size <= 0:
+        yield "all", pa.concat_tables([pa_table for _, pa_table in iterable])
+        return
     keys_buffer = []
     chunks_buffer = []
     chunks_buffer_size = 0
-    for key, pa_table in iterator:
+    for key, pa_table in iterable:
         for chunk in pa_table.to_reader(max_chunksize=batch_size):
             if len(chunk) == 0:
                 continue
@@ -132,9 +168,9 @@ class _BaseExamplesIterable:
     """Base class for the examples iterable used by an IterableDataset"""
 
     def __init__(self) -> None:
-        self.iter_arrow: Optional[Callable[[], Iterator[Tuple[Any, pa.Table]]]] = None
+        self.iter_arrow: Optional[Callable[[], Iterator[Tuple[Key, pa.Table]]]] = None
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Tuple[Key, dict]]:
         """An examples iterable should yield tuples (example_key, example) of type (int/str, dict)"""
         raise NotImplementedError(f"{type(self)} doesn't implement __iter__ yet")
 
@@ -155,7 +191,7 @@ class _BaseExamplesIterable:
 
 
 class ExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, generate_examples_fn: Callable, kwargs: dict):
+    def __init__(self, generate_examples_fn: Callable[..., Tuple[Key, dict]], kwargs: dict):
         super().__init__()
         self.generate_examples_fn = generate_examples_fn
         self.kwargs = kwargs
@@ -178,7 +214,9 @@ class ExamplesIterable(_BaseExamplesIterable):
 
 
 class ShuffledDataSourcesExamplesIterable(ExamplesIterable):
-    def __init__(self, generate_examples_fn: Callable, kwargs: dict, generator: np.random.Generator):
+    def __init__(
+        self, generate_examples_fn: Callable[..., Tuple[Key, dict]], kwargs: dict, generator: np.random.Generator
+    ):
         super().__init__(generate_examples_fn, kwargs)
         self.generator = deepcopy(generator)
 
@@ -198,7 +236,7 @@ class ShuffledDataSourcesExamplesIterable(ExamplesIterable):
 
 
 class ArrowExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, generate_tables_fn: Callable, kwargs: dict):
+    def __init__(self, generate_tables_fn: Callable[..., Tuple[Key, pa.Table]], kwargs: dict):
         super().__init__()
         self.generate_tables_fn = generate_tables_fn
         self.kwargs = kwargs
@@ -234,7 +272,7 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
 class ShuffledDataSourcesArrowExamplesIterable(ArrowExamplesIterable):
     def __init__(
         self,
-        generate_tables_fn: Callable,
+        generate_tables_fn: Callable[..., Tuple[Key, pa.Table]],
         kwargs: dict,
         generator: np.random.Generator,
     ):
@@ -266,36 +304,6 @@ class ShuffledDataSourcesArrowExamplesIterable(ArrowExamplesIterable):
         )
 
 
-class PythonToArrowExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, ex_iterable: _BaseExamplesIterable):
-        super().__init__()
-        self.ex_iterable = ex_iterable
-        self.iter_arrow = self._iter_arrow
-
-    def __iter__(self):
-        yield from self.ex_iterable
-
-    def _iter_arrow(self) -> Iterator[Tuple[Any, pa.Table]]:
-        iterator = iter(self.ex_iterable)
-        batch_size = config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER
-        for key, example in iterator:
-            iterator_batch = islice(iterator, batch_size - 1)
-            key_examples_list = [(key, example)] + [(key, example) for key, example in iterator_batch]
-            keys, examples = zip(*key_examples_list)
-            new_key = "_".join(str(key) for key in keys)
-            yield new_key, pa.Table.from_pylist(examples)
-
-    def shuffle_data_sources(self, generator: np.random.Generator) -> "PythonToArrowExamplesIterable":
-        return PythonToArrowExamplesIterable(self.ex_iterable.shuffle_data_sources(generator))
-
-    def shard_data_sources(self, shard_indices: List[int]) -> "PythonToArrowExamplesIterable":
-        return PythonToArrowExamplesIterable(self.ex_iterable.shard_data_sources(shard_indices))
-
-    @property
-    def n_shards(self) -> int:
-        return self.ex_iterable.n_shards
-
-
 class SelectColumnsIterable(_BaseExamplesIterable):
     def __init__(self, ex_iterable: _BaseExamplesIterable, column_names: List[str]):
         super().__init__()
@@ -308,7 +316,7 @@ class SelectColumnsIterable(_BaseExamplesIterable):
         for idx, row in self.ex_iterable:
             yield idx, {c: row[c] for c in self.column_names}
 
-    def _iter_arrow(self) -> Iterator[Tuple[Any, pa.Table]]:
+    def _iter_arrow(self) -> Iterator[Tuple[Key, pa.Table]]:
         for idx, pa_table in self.ex_iterable.iter_arrow():
             yield idx, pa_table.select(self.column_names)
 
@@ -677,11 +685,19 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 yield key, transformed_example
                 current_idx += 1
 
-    def _iter_arrow(self) -> Iterator[Tuple[Any, pa.Table]]:
-        ex_iterable = (
-            self.ex_iterable if self.ex_iterable.iter_arrow else PythonToArrowExamplesIterable(self.ex_iterable)
-        )
-        iterator = _batch_arrow_tables(ex_iterable.iter_arrow(), batch_size=self.batch_size if self.batched else 1)
+    def _iter_arrow(self) -> Iterator[Tuple[Key, pa.Table]]:
+        if self.ex_iterable.iter_arrow:
+            iterator = _batch_arrow_tables(
+                self.ex_iterable.iter_arrow(),
+                batch_size=self.batch_size if self.batched else 1,
+                drop_last_batch=self.drop_last_batch,
+            )
+        else:
+            iterator = _convert_to_arrow(
+                self.ex_iterable,
+                batch_size=self.batch_size if self.batched else 1,
+                drop_last_batch=self.drop_last_batch,
+            )
         current_idx = 0
         for key, pa_table in iterator:
             # first build the batch
@@ -692,22 +708,18 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 else:
                     function_args.append(current_idx)
             # then apply the transform
-            transformed_table = self.function(*function_args, **self.fn_kwargs)
-            if not isinstance(transformed_table, pa.Table):
+            output_table = self.function(*function_args, **self.fn_kwargs)
+            if not isinstance(output_table, pa.Table):
                 raise TypeError(
-                    f"Provided `function` which is applied to pyarrow tables returns a variable of type {type(transformed_table)}. Make sure provided `function` returns a a pyarrow table to update the dataset."
+                    f"Provided `function` which is applied to pyarrow tables returns a variable of type {type(output_table)}. Make sure provided `function` returns a a pyarrow table to update the dataset."
                 )
-            # merge results
-            merged_output = dict(zip(pa_table.column_names, pa_table.itercolumns()))
-            merged_output.update(dict(zip(transformed_table.column_names, transformed_table.itercolumns())))
+            # we don't need to merge results for consistency with Dataset.map which merges iif both input and output are dicts
             # then remove the unwanted columns
             if self.remove_columns:
                 for column in self.remove_columns:
-                    if column in merged_output:
-                        del merged_output[column]
+                    if column in output_table.column_names:
+                        output_table = output_table.remove_column(output_table.column_names.index(column))
             # return output
-            names, arrays = zip(*merged_output.items())
-            output_table = pa.Table.from_arrays(arrays=arrays, names=names)
             yield key, output_table
             current_idx += len(pa_table)
 
@@ -808,10 +820,12 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                 current_idx += 1
 
     def _iter_arrow(self):
-        ex_iterable = (
-            self.ex_iterable if self.ex_iterable.iter_arrow else PythonToArrowExamplesIterable(self.ex_iterable)
-        )
-        iterator = _batch_arrow_tables(ex_iterable.iter_arrow(), batch_size=self.batch_size if self.batched else 1)
+        if self.ex_iterable.iter_arrow:
+            iterator = _batch_arrow_tables(
+                self.ex_iterable.iter_arrow(), batch_size=self.batch_size if self.batched else 1
+            )
+        else:
+            iterator = _convert_to_arrow(self.ex_iterable, batch_size=self.batch_size if self.batched else 1)
         current_idx = 0
         for key, pa_table in iterator:
             # first build the batch
@@ -995,7 +1009,7 @@ class TypedExamplesIterable(_BaseExamplesIterable):
                 example, self.features, token_per_repo_id=self.token_per_repo_id
             )
 
-    def _iter_arrow(self) -> Iterator[Tuple[Any, pa.Table]]:
+    def _iter_arrow(self) -> Iterator[Tuple[Key, pa.Table]]:
         schema = self.features.arrow_schema
         for key, pa_table in self.ex_iterable.iter_arrow():
             columns = set(pa_table.column_names)
@@ -1237,10 +1251,13 @@ class IterableDataset(DatasetInfoMixin):
         """
         ex_iterable = self._prepare_ex_iterable_for_iteration()
         if self._format_type == "arrow":
-            ex_iterable = ex_iterable if ex_iterable.iter_arrow else PythonToArrowExamplesIterable(ex_iterable)
-            for key, pa_table in _batch_arrow_tables(
-                ex_iterable.iter_arrow(), batch_size=batch_size, drop_last_batch=drop_last_batch
-            ):
+            if ex_iterable.iter_arrow:
+                iterator = _batch_arrow_tables(
+                    ex_iterable.iter_arrow(), batch_size=batch_size, drop_last_batch=drop_last_batch
+                )
+            else:
+                iterator = _convert_to_arrow(ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch)
+            for key, pa_table in iterator:
                 if self.features:
                     columns = set(pa_table.colum_names)
                     # add missing columns
