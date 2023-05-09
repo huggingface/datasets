@@ -594,6 +594,18 @@ The [`~Dataset.set_transform`] function applies a custom formatting transform on
 {'type': 'custom', 'format_kwargs': {'transform': <function __main__.encode(batch)>}, 'columns': ['idx', 'label', 'sentence1', 'sentence2'], 'output_all_columns': False}
 ```
 
+You can also use the [`~Dataset.set_transform`] function to decode audio formats not supported by the `soundfile` library. You'll need to create a custom decoding function to decode the audio files not supported by `soundfile`. For example, you can use the `read_ffmpeg` function from the `ffmpeg` library to read the audio files and decode them into an acceptable format. Then use [`~Dataset.set_transform`] to apply the custom decoding transform on the dataset:
+
+```py
+audio_dataset_amr = Dataset.from_dict({"audio": ["audio_samples/audio.amr"]})
+
+def decode_audio(batch):
+    batch["audio"] = [read_ffmpeg(audio_path) for audio_path in batch["audio"]]
+    return batch
+
+audio_dataset_amr.set_transform(decode_amr)
+```
+
 ## Save
 
 Once you are done processing your dataset, you can save and reuse it later with [`~Dataset.save_to_disk`].
