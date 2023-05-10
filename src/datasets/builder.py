@@ -340,6 +340,14 @@ class DatasetBuilder:
                 sanitize_patterns(data_files), base_path=base_path, use_auth_token=use_auth_token
             )
 
+        # Prepare root data dir:
+        # cache_dir can be a remote bucket on GCS or S3 (when using BeamBasedBuilder for distributed data processing)
+        self._cache_dir_root = str(cache_dir or config.HF_DATASETS_CACHE)
+        self._cache_dir_root = (
+            self._cache_dir_root if is_remote_url(self._cache_dir_root) else os.path.expanduser(self._cache_dir_root)
+        )
+        path_join = posixpath.join if is_remote_url(self._cache_dir_root) else os.path.join
+
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
         if "features" in inspect.signature(self.BUILDER_CONFIG_CLASS.__init__).parameters and features is not None:
             config_kwargs["features"] = features
@@ -347,6 +355,11 @@ class DatasetBuilder:
             config_kwargs["data_files"] = data_files
         if data_dir is not None:
             config_kwargs["data_dir"] = data_dir
+
+        # Check for the legacy cache directory template (datasets<3.0.0)
+        if config_name == "default" and self._has_legacy_cache():
+            config_name, self.dataset_name = self._get_legacy_names()
+
         self.config, self.config_id = self._create_builder_config(
             config_name=config_name,
             custom_features=features,
@@ -369,12 +382,6 @@ class DatasetBuilder:
             self.info.features = features
 
         # Prepare data dirs:
-        # cache_dir can be a remote bucket on GCS or S3 (when using BeamBasedBuilder for distributed data processing)
-        self._cache_dir_root = str(cache_dir or config.HF_DATASETS_CACHE)
-        self._cache_dir_root = (
-            self._cache_dir_root if is_remote_url(self._cache_dir_root) else os.path.expanduser(self._cache_dir_root)
-        )
-        path_join = posixpath.join if is_remote_url(self._cache_dir_root) else os.path.join
         self._cache_downloaded_dir = (
             path_join(self._cache_dir_root, config.DOWNLOADED_DATASETS_DIR)
             if cache_dir
@@ -431,6 +438,25 @@ class DatasetBuilder:
     @property
     def manual_download_instructions(self) -> Optional[str]:
         return None
+
+    def _has_legacy_cache(self) -> bool:
+        """Check for the old cache directory template {cache_dir}/{namespace}___{builder_name}"""
+        if (
+            self.__module__.startswith("datasets.")
+            and not is_remote_url(self._cache_dir_root)
+            and self.repo_id is not None
+        ):
+            namespace = self.repo_id.split("/")[0]
+            legacy_cache_dir = os.path.join(self._cache_dir_root, f"{namespace}___{self.name}")
+            return os.path.isdir(legacy_cache_dir)
+        else:
+            return False
+
+    def _get_legacy_names(self):
+        """Get the legacy config and dataset names, used when the old cache directory template was used (see `_has_legacy_cache`)"""
+        legacy_config_name = self.repo_id.replace("/", "--")
+        legacy_dataset_name = self.name
+        return legacy_config_name, legacy_dataset_name
 
     @classmethod
     def get_all_exported_dataset_infos(cls) -> DatasetInfosDict:
