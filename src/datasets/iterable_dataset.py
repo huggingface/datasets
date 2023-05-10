@@ -1043,17 +1043,6 @@ class TypedExamplesIterable(_BaseExamplesIterable):
         return self.ex_iterable.n_shards
 
 
-def _generate_examples_from_tables_wrapper(generate_tables_fn):
-    def wrapper(**kwargs):
-        python_formatter = PythonFormatter()
-        for key, table in generate_tables_fn(**kwargs):
-            batch = python_formatter.format_batch(table)
-            for i, example in enumerate(_batch_to_examples(batch)):
-                yield f"{key}_{i}", example
-
-    return wrapper
-
-
 @dataclass
 class ShufflingConfig:
     generator: np.random.Generator
