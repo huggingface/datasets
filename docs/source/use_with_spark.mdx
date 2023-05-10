@@ -31,6 +31,8 @@ Alternatively, you can skip materialization by using [`IterableDataset.from_spar
  ...     columns=["id", "name"],
  ... )
  >>> ds = IterableDataset.from_spark(df)
+ >>> print(next(iter(ds)))
+ {"id": 1, "name": "Elia"}
  ```
 
 ### Caching

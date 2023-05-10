@@ -33,13 +33,19 @@ class SparkConfig(datasets.BuilderConfig):
 
 def _generate_iterable_examples(
     df: "pyspark.sql.DataFrame",
-    partition_order: List[int] = None,
+    partition_order: List[int],
 ):
+    import pyspark
+
     def generate_fn():
-        row_id = 0
-        for row in df.rdd.toLocalIterator(True):
-            yield row_id, row.asDict()
-            row_id += 1
+        df_with_partition_id = df.select("*", pyspark.sql.functions.spark_partition_id().alias("part_id"))
+        for partition_id in partition_order:
+            partition_df = df_with_partition_id.select("*").where(f"part_id = {partition_id}").drop("part_id")
+            rows = partition_df.collect()
+            row_id = 0
+            for row in rows:
+                yield f"{partition_id}_{row_id}", row.asDict()
+                row_id += 1
 
     return generate_fn
 
@@ -51,25 +57,24 @@ class SparkExamplesIterable(_BaseExamplesIterable):
         partition_order=None,
     ):
         self.df = df
-        self.generate_examples_fn = _generate_iterable_examples(
-            self.df,
-            partition_order or range(self.df.rdd.getNumPartitions()),
-        )
+        self.partition_order = partition_order or range(self.df.rdd.getNumPartitions())
+        self.generate_examples_fn = _generate_iterable_examples(self.df, self.partition_order)
 
     def __iter__(self):
         yield from self.generate_examples_fn()
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "SparkExamplesIterable":
-        partition_ids = range(self.df.rdd.getNumPartitions())
-        generator.shuffle(partition_ids)
-        return SparkExamplesIterable(self.df, partition_order=partition_ids)
+        partition_order = list(range(self.df.rdd.getNumPartitions()))
+        generator.shuffle(partition_order)
+        return SparkExamplesIterable(self.df, partition_order=partition_order)
 
-    def shard_data_sources(self, shard_indices: List[int]) -> "SparkExamplesIterable":
-        return SparkExamplesIterable(self.df, partition_order=shard_indices)
+    def shard_data_sources(self, worker_id: int, num_workers: int) -> "SparkExamplesIterable":
+        partition_order = self.split_shard_indices_by_worker(worker_id, num_workers)
+        return SparkExamplesIterable(self.df, partition_order=partition_order)
 
     @property
     def n_shards(self) -> int:
-        return self.df.rdd.getNumPartitions()
+        return len(self.partition_order)
 
 
 class Spark(datasets.DatasetBuilder):
