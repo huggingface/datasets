@@ -594,16 +594,30 @@ The [`~Dataset.set_transform`] function applies a custom formatting transform on
 {'type': 'custom', 'format_kwargs': {'transform': <function __main__.encode(batch)>}, 'columns': ['idx', 'label', 'sentence1', 'sentence2'], 'output_all_columns': False}
 ```
 
-You can also use the [`~Dataset.set_transform`] function to decode audio formats not supported by the `soundfile` library. You'll need to create a custom decoding function to decode the audio files not supported by `soundfile`. For example, you can use the `read_ffmpeg` function from the `ffmpeg` library to read the audio files and decode them into an acceptable format. Then use [`~Dataset.set_transform`] to apply the custom decoding transform on the dataset:
+You can also use the [`~Dataset.set_transform`] function to decode formats not supported by [`Features`]. For example, the [`Audio`] feature uses [`soundfile`](https://python-soundfile.readthedocs.io/en/0.11.0/) - a fast and simple library to install - but it does not provide support for less common audio formats. Here is where you can use [`~Dataset.set_transform`] to apply a custom decoding transform on the fly. You're free to use any library you like to decode the audio files.
+
+The example below uses the [`pydub`](http://pydub.com/) package to open an audio format not supported by `soundfile`:
 
 ```py
-audio_dataset_amr = Dataset.from_dict({"audio": ["audio_samples/audio.amr"]})
+import numpy as np
+from pydub import AudioSegment
 
-def decode_audio(batch):
-    batch["audio"] = [read_ffmpeg(audio_path) for audio_path in batch["audio"]]
+audio_dataset_amr = Dataset.from_dict({"audio": [""audio_samples/audio.amr""]})
+
+def decode_audio_with_pydub(batch, sampling_rate=16_000):
+    def pydub_decode_file(audio_path):
+      sound = AudioSegment.from_file(audio_path)
+      if sound.frame_rate != sampling_rate:
+        sound = sound.set_frame_rate(sampling_rate)
+      channel_sounds = sound.split_to_mono()
+      samples = [s.get_array_of_samples() for s in channel_sounds]
+      fp_arr = np.array(samples).T.astype(np.float32)
+      fp_arr /= np.iinfo(samples[0].typecode).max
+      return fp_arr
+    batch["audio"] = [pydub_decode_file(audio_path) for audio_path in batch["audio"]]
     return batch
 
-audio_dataset_amr.set_transform(decode_amr)
+audio_dataset_amr.set_transform(decode_audio_with_pydub)
 ```
 
 ## Save
