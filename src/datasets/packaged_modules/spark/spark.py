@@ -143,19 +143,22 @@ class Spark(datasets.DatasetBuilder):
                 yield pa.RecordBatch.from_pydict({"batch_bytes": [batch.nbytes]})
 
         df_num_rows = self.df.count()
-        # Approximate the size of each row (in Arrow format) by averaging over a 100-row sample.
+        sample_num_rows = df_num_rows if df_num_rows <= 100 else 100
+        # Approximate the size of each row (in Arrow format) by averaging over a max-100-row sample.
         approx_bytes_per_row = (
-            self.df.limit(100)
+            self.df.limit(sample_num_rows)
             .repartition(1)
             .mapInArrow(get_arrow_batch_size, "batch_bytes: long")
             .agg(pyspark.sql.functions.sum("batch_bytes").alias("sample_bytes"))
             .collect()[0]
             .sample_bytes
-            / 100
+            / sample_num_rows
         )
         approx_total_size = approx_bytes_per_row * df_num_rows
         if approx_total_size > max_shard_size:
-            self.df = self.df.repartition(int(approx_total_size / max_shard_size))
+            # Make sure there is at least one row per partition.
+            new_num_partitions = min(df_num_rows, int(approx_total_size / max_shard_size))
+            self.df = self.df.repartition(new_num_partitions)
 
     def _prepare_split_single(
         self,
