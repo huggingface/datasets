@@ -602,7 +602,7 @@ The example below uses the [`pydub`](http://pydub.com/) package to open an audio
 import numpy as np
 from pydub import AudioSegment
 
-audio_dataset_amr = Dataset.from_dict({"audio": [""audio_samples/audio.amr""]})
+audio_dataset_amr = Dataset.from_dict({"audio": ["audio_samples/audio.amr"]})
 
 def decode_audio_with_pydub(batch, sampling_rate=16_000):
     def pydub_decode_file(audio_path):
