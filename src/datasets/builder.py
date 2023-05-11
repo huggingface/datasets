@@ -53,7 +53,10 @@ from .download.download_manager import DownloadManager, DownloadMode
 from .download.mock_download_manager import MockDownloadManager
 from .download.streaming_download_manager import StreamingDownloadManager, xopen
 from .features import Features
-from .filesystems import is_remote_filesystem
+from .filesystems import (
+    is_remote_filesystem,
+    rename,
+)
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
 from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
@@ -106,11 +109,15 @@ class BuilderConfig:
 
     Attributes:
         name (`str`, defaults to `default`):
-        version (`Version` or `str`, *optional*):
+            The name of the configuration.
+        version (`Version` or `str`, defaults to `0.0.0`):
+            The version of the configuration.
         data_dir (`str`, *optional*):
+            Path to the directory containing the source data.
         data_files (`str` or `Sequence` or `Mapping`, *optional*):
             Path(s) to source data file(s).
         description (`str`, *optional*):
+            A human description of the configuration.
     """
 
     name: str = "default"
@@ -621,12 +628,7 @@ class DatasetBuilder:
         return os.path.dirname(inspect.getfile(inspect.getmodule(cls)))
 
     def _rename(self, src: str, dst: str):
-        is_local = not is_remote_filesystem(self._fs)
-        if is_local:
-            # LocalFileSystem.mv does copy + rm, it is more efficient to simply move a local directory
-            shutil.move(self._fs._strip_protocol(src), self._fs._strip_protocol(dst))
-        else:
-            self._fs.mv(src, dst, recursive=True)
+        rename(self._fs, src, dst)
 
     def download_and_prepare(
         self,
@@ -1485,13 +1487,14 @@ class GeneratorBasedBuilder(DatasetBuilder):
             result = None
             gen_kwargs = split_generator.gen_kwargs
             job_id = 0
-            for job_id, done, content in self._prepare_split_single(
-                gen_kwargs=gen_kwargs, job_id=job_id, **_prepare_split_args
-            ):
-                if done:
-                    result = content
-                else:
-                    pbar.update(content)
+            with pbar:
+                for job_id, done, content in self._prepare_split_single(
+                    gen_kwargs=gen_kwargs, job_id=job_id, **_prepare_split_args
+                ):
+                    if done:
+                        result = content
+                    else:
+                        pbar.update(content)
             # wrapping everything into lists for consistency with the multiprocessed code path
             assert result is not None, "Failed to retrieve results from prepare_split"
             examples_per_job, bytes_per_job, features_per_job, shards_per_job, shard_lengths_per_job = [
@@ -1513,21 +1516,22 @@ class GeneratorBasedBuilder(DatasetBuilder):
             shard_lengths_per_job = [None] * num_jobs
 
             with Pool(num_proc) as pool:
-                for job_id, done, content in iflatmap_unordered(
-                    pool, self._prepare_split_single, kwargs_iterable=kwargs_per_job
-                ):
-                    if done:
-                        # the content is the result of the job
-                        (
-                            examples_per_job[job_id],
-                            bytes_per_job[job_id],
-                            features_per_job[job_id],
-                            shards_per_job[job_id],
-                            shard_lengths_per_job[job_id],
-                        ) = content
-                    else:
-                        # the content is the number of examples progress update
-                        pbar.update(content)
+                with pbar:
+                    for job_id, done, content in iflatmap_unordered(
+                        pool, self._prepare_split_single, kwargs_iterable=kwargs_per_job
+                    ):
+                        if done:
+                            # the content is the result of the job
+                            (
+                                examples_per_job[job_id],
+                                bytes_per_job[job_id],
+                                features_per_job[job_id],
+                                shards_per_job[job_id],
+                                shard_lengths_per_job[job_id],
+                            ) = content
+                        else:
+                            # the content is the number of examples progress update
+                            pbar.update(content)
 
             assert (
                 None not in examples_per_job

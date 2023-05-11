@@ -38,6 +38,8 @@
       title: Use with PyTorch
     - local: use_with_jax
       title: Use with JAX
+    - local: use_with_spark
+      title: Use with Spark
     - local: cache
       title: Cache management
     - local: filesystems

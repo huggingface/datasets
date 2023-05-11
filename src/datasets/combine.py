@@ -5,6 +5,7 @@ from .info import DatasetInfo
 from .iterable_dataset import IterableDataset, _concatenate_iterable_datasets, _interleave_iterable_datasets
 from .splits import NamedSplit
 from .utils import logging
+from .utils.py_utils import Literal
 
 
 logger = logging.get_logger(__name__)
@@ -19,7 +20,7 @@ def interleave_datasets(
     seed: Optional[int] = None,
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
-    stopping_strategy: Optional[str] = "first_exhausted",
+    stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
 ) -> DatasetType:
     """
     Interleave several datasets (sources) into a single dataset.
@@ -32,6 +33,11 @@ def interleave_datasets(
 
     The resulting dataset ends when one of the source datasets runs out of examples except when `oversampling` is `True`,
     in which case, the resulting dataset ends when all datasets have ran out of examples at least one time.
+
+    Note for iterable datasets:
+
+    In a distributed setup or in PyTorch DataLoader workers, the stopping strategy is applied per process.
+    Therefore the "first_exhausted" strategy on an sharded iterable dataset can generate less samples in total (up to 1 missing sample per subdataset per worker).
 
     Args:
         datasets (`List[Dataset]` or `List[IterableDataset]`):
@@ -47,7 +53,7 @@ def interleave_datasets(
         split ([`NamedSplit`], *optional*):
             Name of the dataset split.
             <Added version="2.4.0"/>
-        stopping_strategy (`str`, *optional*, defaults to `first_exhausted`):
+        stopping_strategy (`str`, defaults to `first_exhausted`):
             Two strategies are proposed right now, `first_exhausted` and `all_exhausted`.
             By default, `first_exhausted` is an undersampling strategy, i.e the dataset construction is stopped as soon as one dataset has ran out of samples.
             If the strategy is `all_exhausted`,  we use an oversampling strategy, i.e the dataset construction is stopped as soon as every samples of every dataset has been added at least once.

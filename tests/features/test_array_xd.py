@@ -5,6 +5,7 @@ import unittest
 
 import numpy as np
 import pandas as pd
+import pyarrow as pa
 import pytest
 from absl.testing import parameterized
 
@@ -267,6 +268,39 @@ class ArrayXDDynamicTest(unittest.TestCase):
         pylist = arr_xd.to_pylist()
 
         for first_dim, single_arr in zip(first_dim_list, pylist):
+            self.assertIsInstance(single_arr, list)
+            self.assertTupleEqual(np.array(single_arr).shape, (first_dim, *fixed_shape))
+
+    def test_to_numpy(self):
+        fixed_shape = (2, 2)
+
+        # ragged
+        first_dim_list = [1, 3, 10]
+        dataset = self.get_one_col_dataset(first_dim_list, fixed_shape)
+        arr_xd = SimpleArrowExtractor().extract_column(dataset._data)
+        self.assertIsInstance(arr_xd.type, Array3DExtensionType)
+        # replace with arr_xd = arr_xd.combine_chunks() when 12.0.0 will be the minimal required PyArrow version
+        arr_xd = arr_xd.type.wrap_array(pa.concat_arrays([chunk.storage for chunk in arr_xd.chunks]))
+        numpy_arr = arr_xd.to_numpy()
+
+        self.assertIsInstance(numpy_arr, np.ndarray)
+        self.assertEqual(numpy_arr.dtype, object)
+        for first_dim, single_arr in zip(first_dim_list, numpy_arr):
+            self.assertIsInstance(single_arr, np.ndarray)
+            self.assertTupleEqual(single_arr.shape, (first_dim, *fixed_shape))
+
+        # non-ragged
+        first_dim_list = [4, 4, 4]
+        dataset = self.get_one_col_dataset(first_dim_list, fixed_shape)
+        arr_xd = SimpleArrowExtractor().extract_column(dataset._data)
+        self.assertIsInstance(arr_xd.type, Array3DExtensionType)
+        # replace with arr_xd = arr_xd.combine_chunks() when 12.0.0 will be the minimal required PyArrow version
+        arr_xd = arr_xd.type.wrap_array(pa.concat_arrays([chunk.storage for chunk in arr_xd.chunks]))
+        numpy_arr = arr_xd.to_numpy()
+
+        self.assertIsInstance(numpy_arr, np.ndarray)
+        self.assertNotEqual(numpy_arr.dtype, object)
+        for first_dim, single_arr in zip(first_dim_list, numpy_arr):
             self.assertIsInstance(single_arr, np.ndarray)
             self.assertTupleEqual(single_arr.shape, (first_dim, *fixed_shape))
 
@@ -277,15 +311,37 @@ class ArrayXDDynamicTest(unittest.TestCase):
 
         for first_dim, ds_row in zip(first_dim_list, dataset):
             single_arr = ds_row["image"]
+            self.assertIsInstance(single_arr, list)
+            self.assertTupleEqual(np.array(single_arr).shape, (first_dim, *fixed_shape))
+
+    def test_to_pandas(self):
+        fixed_shape = (2, 2)
+
+        # ragged
+        first_dim_list = [1, 3, 10]
+        dataset = self.get_one_col_dataset(first_dim_list, fixed_shape)
+        df = dataset.to_pandas()
+        self.assertEqual(type(df.image.dtype), PandasArrayExtensionDtype)
+        numpy_arr = df.image.to_numpy()
+
+        self.assertIsInstance(numpy_arr, np.ndarray)
+        self.assertEqual(numpy_arr.dtype, object)
+        for first_dim, single_arr in zip(first_dim_list, numpy_arr):
             self.assertIsInstance(single_arr, np.ndarray)
             self.assertTupleEqual(single_arr.shape, (first_dim, *fixed_shape))
 
-    def test_to_pandas_fail(self):
-        fixed_shape = (2, 2)
-        first_dim_list = [1, 3, 10]
+        # non-ragged
+        first_dim_list = [4, 4, 4]
         dataset = self.get_one_col_dataset(first_dim_list, fixed_shape)
-        with self.assertRaises(NotImplementedError):
-            dataset.to_pandas()
+        df = dataset.to_pandas()
+        self.assertEqual(type(df.image.dtype), PandasArrayExtensionDtype)
+        numpy_arr = df.image.to_numpy()
+
+        self.assertIsInstance(numpy_arr, np.ndarray)
+        self.assertNotEqual(numpy_arr.dtype, object)
+        for first_dim, single_arr in zip(first_dim_list, numpy_arr):
+            self.assertIsInstance(single_arr, np.ndarray)
+            self.assertTupleEqual(single_arr.shape, (first_dim, *fixed_shape))
 
     def test_map_dataset(self):
         fixed_shape = (2, 2)
@@ -297,8 +353,8 @@ class ArrayXDDynamicTest(unittest.TestCase):
         # check also if above function resulted with 2x bigger first dim
         for first_dim, ds_row in zip(first_dim_list, dataset):
             single_arr = ds_row["image"]
-            self.assertIsInstance(single_arr, np.ndarray)
-            self.assertTupleEqual(single_arr.shape, (first_dim * 2, *fixed_shape))
+            self.assertIsInstance(single_arr, list)
+            self.assertTupleEqual(np.array(single_arr).shape, (first_dim * 2, *fixed_shape))
 
 
 @pytest.mark.parametrize("dtype, dummy_value", [("int32", 1), ("bool", True), ("float64", 1)])

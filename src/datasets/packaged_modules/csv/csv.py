@@ -4,12 +4,12 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 import pandas as pd
 import pyarrow as pa
-from typing_extensions import Literal
 
 import datasets
 import datasets.config
 from datasets.features.features import require_storage_cast
 from datasets.table import table_cast
+from datasets.utils.py_utils import Literal
 
 
 logger = datasets.utils.logging.get_logger(__name__)
