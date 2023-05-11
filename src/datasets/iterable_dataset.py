@@ -13,9 +13,9 @@ import pyarrow as pa
 from . import config
 from .arrow_dataset import DatasetInfoMixin
 from .features import Features
-from .features.features import FeatureType, _align_features, _check_if_features_can_be_aligned
+from .features.features import FeatureType, _align_features, _check_if_features_can_be_aligned, cast_to_python_objects
 from .filesystems import _reset_fsspec_lock
-from .formatting import PythonFormatter, get_format_type_from_alias
+from .formatting import PythonFormatter, TensorFormatter, get_format_type_from_alias, get_formatter
 from .info import DatasetInfo
 from .splits import NamedSplit
 from .table import cast_table_to_features, table_cast
@@ -1044,6 +1044,17 @@ class TypedExamplesIterable(_BaseExamplesIterable):
 
 
 @dataclass
+class FormattingConfig:
+    format_type: Optional[str]
+
+    def __post_init__(self):
+        if self.format_type == "pandas":
+            raise NotImplementedError(
+                "The 'pandas' formatting is not implemented for iterable datasets. You can use 'numpy' or 'arrow' instead."
+            )
+
+
+@dataclass
 class ShufflingConfig:
     generator: np.random.Generator
     _original_seed: Optional[int] = None
@@ -1072,22 +1083,25 @@ class IterableDataset(DatasetInfoMixin):
         ex_iterable: _BaseExamplesIterable,
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
-        format_type: Optional[str] = None,
+        formatting: Optional[FormattingConfig] = None,
         shuffling: Optional[ShufflingConfig] = None,
         distributed: Optional[DistributedConfig] = None,
         token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None,
+        format_type="deprecated",
     ):
         if distributed and distributed.world_size > 1 and shuffling and shuffling._original_seed is None:
             raise RuntimeError(
                 "The dataset doesn't have a fixed random seed across nodes to shuffle and split the list of dataset shards by node. "
                 "Please pass e.g. `seed=42` in `.shuffle()` to make all the nodes use the same seed. "
             )
+        if format_type != "deprecated":
+            formatting = FormattingConfig(format_type=format_type)
 
         info = info.copy() if info is not None else DatasetInfo()
         DatasetInfoMixin.__init__(self, info=info, split=split)
 
         self._ex_iterable = ex_iterable
-        self._format_type = format_type
+        self._formatting = formatting
         self._shuffling = shuffling
         self._distributed = distributed
         self._epoch = 0
@@ -1146,13 +1160,33 @@ class IterableDataset(DatasetInfoMixin):
             logger.debug(
                 f"{_log_prefix}dataloader worker#{worker_info.id}, ': Starting to iterate over {len(shards_indices)}/{ex_iterable.n_shards} shards."
             )
-            for key, example in ex_iterable.shard_data_sources(shards_indices):
-                if self.features:
-                    yield _apply_feature_types_on_example(
-                        example, self.features, token_per_repo_id=self._token_per_repo_id
-                    )
+            ex_iterable = ex_iterable.shard_data_sources(shards_indices)
+
+            if self._formatting:
+                formatter = get_formatter(self._formatting.format_type, features=self.features)
+                format_dict = (
+                    formatter.recursize_tensorize if isinstance(formatter, TensorFormatter) else cast_to_python_objects
+                )
+            else:
+                format_dict = None
+
+            if self._formatting and (ex_iterable.iter_arrow or self._formatting == "arrow"):
+                if ex_iterable.iter_arrow:
+                    iterator = _batch_arrow_tables(ex_iterable.iter_arrow(), batch_size=1)
                 else:
-                    yield example
+                    iterator = _convert_to_arrow(ex_iterable, batch_size=1)
+                for key, pa_table in iterator:
+                    yield formatter.format_row(pa_table)
+                return
+            else:
+                for key, example in ex_iterable:
+                    if self.features:
+                        # `IterableDataset` automatically fills missing columns with None.
+                        # This is done with `_apply_feature_types_on_example`.
+                        example = _apply_feature_types_on_example(
+                            example, self.features, token_per_repo_id=self._token_per_repo_id
+                        )
+                    yield format_dict(example) if format_dict else example
             logger.debug(
                 f"{_log_prefix}dataloader worker#{worker_info.id}, ': Finished iterating over {len(shards_indices)}/{ex_iterable.n_shards} shards."
             )
@@ -1205,12 +1239,6 @@ class IterableDataset(DatasetInfoMixin):
         return ex_iterable
 
     def __iter__(self):
-        if self._format_type == "arrow":
-            yield from self.iter(batch_size=1)
-            return
-
-        ex_iterable = self._prepare_ex_iterable_for_iteration()
-
         if "torch" in sys.modules:
             import torch.utils.data
 
@@ -1220,15 +1248,32 @@ class IterableDataset(DatasetInfoMixin):
                 yield from self._iter_pytorch(ex_iterable)
                 return
 
+        ex_iterable = self._prepare_ex_iterable_for_iteration()
+        if self._formatting:
+            formatter = get_formatter(self._formatting.format_type, features=self.features)
+            format_dict = (
+                formatter.recursize_tensorize if isinstance(formatter, TensorFormatter) else cast_to_python_objects
+            )
+        else:
+            format_dict = None
+
+        if self._formatting and (ex_iterable.iter_arrow or self._formatting == "arrow"):
+            if ex_iterable.iter_arrow:
+                iterator = _batch_arrow_tables(ex_iterable.iter_arrow(), batch_size=1)
+            else:
+                iterator = _convert_to_arrow(ex_iterable, batch_size=1)
+            for key, pa_table in iterator:
+                yield formatter.format_row(pa_table)
+            return
+
         for key, example in ex_iterable:
             if self.features:
                 # `IterableDataset` automatically fills missing columns with None.
                 # This is done with `_apply_feature_types_on_example`.
-                yield _apply_feature_types_on_example(
+                example = _apply_feature_types_on_example(
                     example, self.features, token_per_repo_id=self._token_per_repo_id
                 )
-            else:
-                yield example
+            yield format_dict(example) if format_dict else example
 
     def iter(self, batch_size: int, drop_last_batch: bool = False):
         """Iterate through the batches of size `batch_size`.
@@ -1238,8 +1283,17 @@ class IterableDataset(DatasetInfoMixin):
             drop_last_batch (:obj:`bool`, default `False`): Whether a last batch smaller than the batch_size should be
                 dropped
         """
+
+        if self._formatting:
+            formatter = get_formatter(self._formatting.format_type, features=self.features)
+            format_dict = (
+                formatter.recursize_tensorize if isinstance(formatter, TensorFormatter) else cast_to_python_objects
+            )
+        else:
+            format_dict = None
+
         ex_iterable = self._prepare_ex_iterable_for_iteration()
-        if self._format_type == "arrow":
+        if self._formatting and (ex_iterable.iter_arrow or self._formatting == "arrow"):
             if ex_iterable.iter_arrow:
                 iterator = _batch_arrow_tables(
                     ex_iterable.iter_arrow(), batch_size=batch_size, drop_last_batch=drop_last_batch
@@ -1247,17 +1301,9 @@ class IterableDataset(DatasetInfoMixin):
             else:
                 iterator = _convert_to_arrow(ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch)
             for key, pa_table in iterator:
-                if self.features:
-                    columns = set(pa_table.colum_names)
-                    # add missing columns
-                    for column_name in self.features:
-                        if column_name not in columns:
-                            col = pa.NullArray.from_buffers(pa.null(), len(pa_table), [None])
-                            pa_table = pa_table.append_column(column_name, col)
-                    yield cast_table_to_features(pa_table, self.features)
-                else:
-                    yield pa_table
+                yield formatter.format_batch(pa_table)
             return
+
         iterator = iter(ex_iterable)
         for key, example in iterator:
             # If batched, first build the batch
@@ -1268,9 +1314,8 @@ class IterableDataset(DatasetInfoMixin):
             if self.features:
                 # `IterableDataset` automatically fills missing columns with None.
                 # This is done with `_apply_feature_types_on_batch`.
-                yield _apply_feature_types_on_batch(batch, self.features, token_per_repo_id=self._token_per_repo_id)
-            else:
-                yield batch
+                batch = _apply_feature_types_on_batch(batch, self.features, token_per_repo_id=self._token_per_repo_id)
+            yield format_dict(batch) if format_dict else batch
 
     @staticmethod
     def from_generator(

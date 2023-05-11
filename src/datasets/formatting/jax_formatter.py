@@ -23,7 +23,7 @@ import pyarrow as pa
 from .. import config
 from ..utils.logging import get_logger
 from ..utils.py_utils import map_nested
-from .formatting import Formatter
+from .formatting import TensorFormatter
 
 
 if TYPE_CHECKING:
@@ -35,7 +35,7 @@ logger = get_logger()
 DEVICE_MAPPING: Optional[dict] = None
 
 
-class JaxFormatter(Formatter[Mapping, "jax.Array", Mapping]):
+class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
     def __init__(self, features=None, device=None, **jnp_array_kwargs):
         super().__init__(features=features)
         import jax
@@ -62,6 +62,9 @@ class JaxFormatter(Formatter[Mapping, "jax.Array", Mapping]):
             )
             self.device = str(jax.devices()[0])
         self.jnp_array_kwargs = jnp_array_kwargs
+        self.expected_dtype = jnp_array_kwargs.get("dtype")
+        if isinstance(self.expected_dtype, str):
+            self.expected_dtype = np.dtype(self.expected_dtype)
 
     @staticmethod
     def _map_devices_to_str() -> Dict[str, "jaxlib.xla_extension.Device"]:
@@ -117,15 +120,28 @@ class JaxFormatter(Formatter[Mapping, "jax.Array", Mapping]):
             # see https://github.com/google/jax/issues/4486
             return jnp.array(value, **{**default_dtype, **self.jnp_array_kwargs})
 
-    def _recursive_tensorize(self, data_struct: dict):
+    def _recursive_tensorize(self, data_struct):
+        import jax
+
+        # check if already in expected format
+        if isinstance(data_struct, jax.Array) and (
+            data_struct.dtype == self.expected_dtype or self.expected_dtype is None
+        ):
+            return data_struct
+
+        # support for torch, tf, jax etc.
+        if hasattr(data_struct, "__array__") and not isinstance(data_struct, jax.Array):
+            data_struct = data_struct.__array__()
         # support for nested types like struct of list of struct
         if isinstance(data_struct, np.ndarray):
             if data_struct.dtype == object:  # jax arrays cannot be instantied from an array of objects
                 return self._consolidate([self.recursive_tensorize(substruct) for substruct in data_struct])
+        elif isinstance(data_struct, (list, tuple)):
+            return self._consolidate([self.recursive_tensorize(substruct) for substruct in data_struct])
         return self._tensorize(data_struct)
 
     def recursive_tensorize(self, data_struct: dict):
-        return map_nested(self._recursive_tensorize, data_struct)
+        return map_nested(self._recursive_tensorize, data_struct, map_list=False)
 
     def format_row(self, pa_table: pa.Table) -> Mapping:
         row = self.numpy_arrow_extractor().extract_row(pa_table)

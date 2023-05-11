@@ -409,6 +409,11 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
         raise NotImplementedError
 
 
+class TensorFormatter(Formatter[RowFormat, ColumnFormat, BatchFormat]):
+    def recursize_tensorize(self, data_struct: dict):
+        raise NotImplementedError
+
+
 class ArrowFormatter(Formatter[pa.Table, pa.Array, pa.Table]):
     def format_row(self, pa_table: pa.Table) -> pa.Table:
         return self.simple_arrow_extractor().extract_row(pa_table)
