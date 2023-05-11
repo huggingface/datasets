@@ -112,6 +112,7 @@ class CsvConfig(datasets.BuilderConfig):
             "chunksize": self.chunksize,
             "encoding_errors": self.encoding_errors,
             "on_bad_lines": self.on_bad_lines,
+            "date_format": self.date_format,
         }
 
         # some kwargs must not be passed if they don't have a default value
