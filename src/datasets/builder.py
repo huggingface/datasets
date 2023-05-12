@@ -432,6 +432,24 @@ class DatasetBuilder:
     def manual_download_instructions(self) -> Optional[str]:
         return None
 
+    def _has_legacy_cache(self) -> bool:
+        """Check for the old cache directory template {cache_dir}/{namespace}___{builder_name}"""
+        if (
+            self.__module__.startswith("datasets.")
+            and not is_remote_url(self._cache_dir_root)
+            and self.config.name == "default"
+        ):
+            namespace = self.repo_id.split("/")[0] if self.repo_id and self.repo_id.count("/") > 0 else None
+            legacy_config_name = self.repo_id.replace("/", "--")
+            legacy_config_id = legacy_config_name + self.config_id[len(self.config.name) :]
+            legacy_cache_dir = os.path.join(
+                self._cache_dir_root,
+                self.name if namespace is None else f"{namespace}___{self.name}",
+                legacy_config_id,
+            )
+            return os.path.isdir(legacy_cache_dir)
+        return False
+
     @classmethod
     def get_all_exported_dataset_infos(cls) -> DatasetInfosDict:
         """Empty dict if doesn't exist
@@ -564,18 +582,26 @@ class DatasetBuilder:
             self.namespace___self.dataset_name/self.config.version/self.hash/
         If any of these element is missing or if ``with_version=False`` the corresponding subfolders are dropped.
         """
-        namespace = self.repo_id.split("/")[0] if self.repo_id and self.repo_id.count("/") > 0 else None
-        builder_data_dir = self.dataset_name if namespace is None else f"{namespace}___{self.dataset_name}"
-        builder_config = self.config
-        hash = self.hash
+
+        # Check for the legacy cache directory template (datasets<3.0.0)
+        if self._has_legacy_cache():
+            # use legacy names
+            dataset_name = self.name
+            config_name = self.repo_id.replace("/", "--") if self.repo_id is not None else dataset_name
+            config_id = config_name + self.config_id[len(self.config.name) :]
+        else:
+            dataset_name = self.dataset_name
+            config_name = self.config.name
+            config_id = self.config_id
+
         path_join = os.path.join if is_local else posixpath.join
-        if builder_config:
-            # use the enriched name instead of the name to make it unique
-            builder_data_dir = path_join(builder_data_dir, self.config_id)
+        namespace = self.repo_id.split("/")[0] if self.repo_id and self.repo_id.count("/") > 0 else None
+        builder_data_dir = dataset_name if namespace is None else f"{namespace}___{dataset_name}"
+        builder_data_dir = path_join(builder_data_dir, config_id)
         if with_version:
             builder_data_dir = path_join(builder_data_dir, str(self.config.version))
-        if with_hash and hash and isinstance(hash, str):
-            builder_data_dir = path_join(builder_data_dir, hash)
+        if with_hash and self.hash and isinstance(self.hash, str):
+            builder_data_dir = path_join(builder_data_dir, self.hash)
         return builder_data_dir
 
     def _build_cache_dir(self):
@@ -1232,8 +1258,11 @@ class DatasetBuilder:
             `Dataset`
         """
         cache_dir = self._fs._strip_protocol(self._output_dir)
+        dataset_name = self.dataset_name
+        if self._has_legacy_cache():
+            dataset_name = self.name
         dataset_kwargs = ArrowReader(cache_dir, self.info).read(
-            name=self.dataset_name,
+            name=dataset_name,
             instructions=split,
             split_infos=self.info.splits.values(),
             in_memory=in_memory,
