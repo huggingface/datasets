@@ -444,7 +444,7 @@ class DatasetBuilder:
             legacy_config_id = legacy_config_name + self.config_id[len(self.config.name) :]
             legacy_cache_dir = os.path.join(
                 self._cache_dir_root,
-                self.dataset_name if namespace is None else f"{namespace}___{self.name}",
+                self.name if namespace is None else f"{namespace}___{self.name}",
                 legacy_config_id,
             )
             return os.path.isdir(legacy_cache_dir)
@@ -587,7 +587,7 @@ class DatasetBuilder:
         if self._has_legacy_cache():
             # use legacy names
             dataset_name = self.name
-            config_name = self.repo_id.replace("/", "--") if self.repo_id is not None else dataset_name
+            config_name = self.repo_id.replace("/", "--") if self.repo_id is not None else self.dataset_name
             config_id = config_name + self.config_id[len(self.config.name) :]
         else:
             dataset_name = self.dataset_name
