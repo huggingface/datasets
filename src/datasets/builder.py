@@ -448,8 +448,7 @@ class DatasetBuilder:
                 legacy_config_id,
             )
             return os.path.isdir(legacy_cache_dir)
-        else:
-            return False
+        return False
 
     @classmethod
     def get_all_exported_dataset_infos(cls) -> DatasetInfosDict:
