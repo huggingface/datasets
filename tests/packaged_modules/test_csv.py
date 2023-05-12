@@ -130,3 +130,11 @@ def test_csv_convert_int_list(csv_file_with_int_list):
     assert pa.types.is_list(pa_table.schema.field("int_list").type)
     generated_content = pa_table.to_pydict()["int_list"]
     assert generated_content == [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+
+
+def test_csv_reads_only_csv_files(csv_file, image_file):
+    csv = Csv()
+    generator = csv._generate_tables([[csv_file, image_file]])
+    # Test that it does not raise UnicodeDecodeError
+    for _ in generator:
+        pass
