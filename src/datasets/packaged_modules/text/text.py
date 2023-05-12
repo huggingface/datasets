@@ -1,7 +1,7 @@
 import itertools
-import os.path
 from dataclasses import dataclass
 from io import StringIO
+from pathlib import Path
 from typing import Optional
 
 import pyarrow as pa
@@ -72,7 +72,7 @@ class Text(datasets.ArrowBasedBuilder):
     def _generate_tables(self, files):
         pa_table_names = list(self.config.features) if self.config.features is not None else ["text"]
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
-            extension = os.path.splitext(file)[1]
+            extension = Path(file).suffix
             if extension and extension not in self.EXTENSIONS:  # Keep files without extension
                 continue
             # open in text mode, by default translates universal newlines ("\n", "\r\n" and "\r") into "\n"

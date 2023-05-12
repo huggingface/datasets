@@ -1,8 +1,8 @@
 import io
 import itertools
 import json
-import os.path
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 
 import pyarrow as pa
@@ -76,7 +76,7 @@ class Json(datasets.ArrowBasedBuilder):
 
     def _generate_tables(self, files):
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
-            extension = os.path.splitext(file)[1]
+            extension = Path(file).suffix
             if extension and extension not in self.EXTENSIONS:  # Keep files without extension
                 continue
             # If the file is one json object and if we need to look at the list of items in one specific field

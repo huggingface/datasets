@@ -1,6 +1,6 @@
 import itertools
-import os.path
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 
 import pandas as pd
@@ -176,7 +176,7 @@ class Csv(datasets.ArrowBasedBuilder):
             else None
         )
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
-            extension = os.path.splitext(file)[1]
+            extension = Path(file).suffix
             if extension and extension not in self.EXTENSIONS:  # Keep files without extension
                 continue
             csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **self.config.pd_read_csv_kwargs)

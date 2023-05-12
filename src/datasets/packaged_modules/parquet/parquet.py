@@ -1,6 +1,6 @@
 import itertools
-import os.path
 from dataclasses import dataclass
+from pathlib import Path
 from typing import List, Optional
 
 import pyarrow as pa
@@ -65,7 +65,7 @@ class Parquet(datasets.ArrowBasedBuilder):
                     f"Tried to load parquet data with columns '{self.config.columns}' with mismatching features '{self.config.features}'"
                 )
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
-            extension = os.path.splitext(file)[1]
+            extension = Path(file).suffix
             if extension and extension not in self.EXTENSIONS:  # Keep files without extension
                 continue
             with open(file, "rb") as f:
