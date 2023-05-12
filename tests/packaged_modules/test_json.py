@@ -107,6 +107,6 @@ def test_json_generate_tables_with_missing_features(file_fixture, config_kwargs,
 def test_json_reads_only_supported_files(jsonl_file, image_file):
     json = Json()
     generator = json._generate_tables([[jsonl_file, image_file]])
-    # Test that it does not raise UnicodeDecodeError
+    # Test that it does not raise UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte
     for _ in generator:
         pass
