@@ -1,4 +1,5 @@
 import itertools
+import os.path
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Union
 
@@ -128,6 +129,7 @@ class CsvConfig(datasets.BuilderConfig):
 
 class Csv(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = CsvConfig
+    _EXTENSIONS = [".csv", ".tsv"]
 
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
@@ -174,6 +176,8 @@ class Csv(datasets.ArrowBasedBuilder):
             else None
         )
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
+            if os.path.splitext(file)[1] not in self._EXTENSIONS:
+                continue
             csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **self.config.pd_read_csv_kwargs)
             try:
                 for batch_idx, df in enumerate(csv_file_reader):
