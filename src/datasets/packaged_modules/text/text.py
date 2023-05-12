@@ -1,4 +1,5 @@
 import itertools
+import os.path
 from dataclasses import dataclass
 from io import StringIO
 from typing import Optional
@@ -27,6 +28,7 @@ class TextConfig(datasets.BuilderConfig):
 
 class Text(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = TextConfig
+    EXTENSIONS = [".txt"]
 
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
@@ -70,6 +72,9 @@ class Text(datasets.ArrowBasedBuilder):
     def _generate_tables(self, files):
         pa_table_names = list(self.config.features) if self.config.features is not None else ["text"]
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
+            extension = os.path.splitext(file)[1]
+            if extension and extension not in self.EXTENSIONS:  # Keep files without extension
+                continue
             # open in text mode, by default translates universal newlines ("\n", "\r\n" and "\r") into "\n"
             with open(file, encoding=self.config.encoding, errors=self.config.errors) as f:
                 if self.config.sample_by == "line":
