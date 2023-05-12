@@ -133,8 +133,8 @@ def test_csv_convert_int_list(csv_file_with_int_list):
 
 
 def test_csv_reads_only_supported_files(csv_file, image_file):
-    csv = Csv()
-    generator = csv._generate_tables([[csv_file, image_file]])
+    builder = Csv()
+    generator = builder._generate_tables([[csv_file, image_file]])
     # Test that it does not raise UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte
     for _ in generator:
         pass
