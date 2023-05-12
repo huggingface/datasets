@@ -1,6 +1,7 @@
 import io
 import itertools
 import json
+import os.path
 from dataclasses import dataclass
 from typing import Optional
 
@@ -29,6 +30,7 @@ class JsonConfig(datasets.BuilderConfig):
 
 class Json(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = JsonConfig
+    EXTENSIONS = [".json", ".jsonl"]
 
     def _info(self):
         if self.config.block_size is not None:
@@ -74,6 +76,9 @@ class Json(datasets.ArrowBasedBuilder):
 
     def _generate_tables(self, files):
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
+            extension = os.path.splitext(file)[1]
+            if extension and extension not in self.EXTENSIONS:  # Keep files without extension
+                continue
             # If the file is one json object and if we need to look at the list of items in one specific field
             if self.config.field is not None:
                 with open(file, encoding="utf-8") as f:
