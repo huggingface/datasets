@@ -410,7 +410,7 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
 
 
 class TensorFormatter(Formatter[RowFormat, ColumnFormat, BatchFormat]):
-    def recursize_tensorize(self, data_struct: dict):
+    def recursive_tensorize(self, data_struct: dict):
         raise NotImplementedError
 
 

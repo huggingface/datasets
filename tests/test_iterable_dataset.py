@@ -18,6 +18,7 @@ from datasets.iterable_dataset import (
     CyclingMultiSourcesExamplesIterable,
     ExamplesIterable,
     FilteredExamplesIterable,
+    FormattingConfig,
     HorizontallyConcatenatedMultiSourcesExamplesIterable,
     IterableDataset,
     MappedExamplesIterable,
@@ -38,7 +39,7 @@ from datasets.iterable_dataset import (
     _examples_to_batch,
 )
 
-from .utils import is_rng_equal, require_torch
+from .utils import is_rng_equal, require_tf, require_torch
 
 
 DEFAULT_N_EXAMPLES = 20
@@ -1017,10 +1018,24 @@ def test_no_iter_arrow(ex_iterable: _BaseExamplesIterable):
         VerticallyConcatenatedMultiSourcesExamplesIterable([ArrowExamplesIterable(generate_tables_fn, {})]),
         # HorizontallyConcatenatedMultiSourcesExamplesIterable([ArrowExamplesIterable(generate_tables_fn, {})]),  # not implemented
         # RandomlyCyclingMultiSourcesExamplesIterable([ArrowExamplesIterable(generate_tables_fn, {})], np.random.default_rng(42)),  # not implemented
-        MappedExamplesIterable(ExamplesIterable(generate_examples_fn, {}), lambda t: t, format_type="arrow"),
-        MappedExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), lambda t: t, format_type="arrow"),
-        FilteredExamplesIterable(ExamplesIterable(generate_examples_fn, {}), lambda t: True, format_type="arrow"),
-        FilteredExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), lambda t: True, format_type="arrow"),
+        MappedExamplesIterable(
+            ExamplesIterable(generate_examples_fn, {}), lambda t: t, formatting=FormattingConfig(format_type="arrow")
+        ),
+        MappedExamplesIterable(
+            ArrowExamplesIterable(generate_tables_fn, {}),
+            lambda t: t,
+            formatting=FormattingConfig(format_type="arrow"),
+        ),
+        FilteredExamplesIterable(
+            ExamplesIterable(generate_examples_fn, {}),
+            lambda t: True,
+            formatting=FormattingConfig(format_type="arrow"),
+        ),
+        FilteredExamplesIterable(
+            ArrowExamplesIterable(generate_tables_fn, {}),
+            lambda t: True,
+            formatting=FormattingConfig(format_type="arrow"),
+        ),
         # BufferShuffledExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), 10, np.random.default_rng(42)),  # not implemented
         # SkipExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), 10),  # not implemented
         # TakeExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), 10),  # not implemented
@@ -1699,3 +1714,71 @@ def test_interleave_datasets_with_oversampling():
     ]
 
     assert values == expected_values
+
+
+@require_torch
+def test_with_format_torch(dataset_with_several_columns: IterableDataset):
+    import torch
+
+    dset = dataset_with_several_columns.with_format(type="torch")
+    example = next(iter(dset))
+    batch = next(iter(dset.iter(batch_size=3)))
+    assert len(example) == 3
+    assert isinstance(example["id"], torch.Tensor)
+    assert list(example["id"].shape) == []
+    assert example["id"].item() == 0
+    assert isinstance(batch["id"], torch.Tensor)
+    assert isinstance(example["filepath"], list)
+    assert isinstance(example["filepath"][0], str)
+    assert example["filepath"][0] == "data0.txt"
+    assert isinstance(batch["filepath"], list)
+    assert isinstance(example["metadata"], dict)
+    assert isinstance(example["metadata"]["sources"], list)
+    assert isinstance(example["metadata"]["sources"][0], str)
+    assert isinstance(batch["metadata"], list)
+
+
+@require_tf
+def test_with_format_tf(dataset_with_several_columns: IterableDataset):
+    import tensorflow as tf
+
+    dset = dataset_with_several_columns.with_format(type="tensorflow")
+    example = next(iter(dset))
+    batch = next(iter(dset.iter(batch_size=3)))
+    assert isinstance(example["id"], tf.Tensor)
+    assert list(example["id"].shape) == []
+    assert example["id"].numpy().item() == 0
+    assert isinstance(batch["id"], tf.Tensor)
+    assert isinstance(example["filepath"], tf.Tensor)
+    assert example["filepath"][0] == b"data0.txt"
+    assert isinstance(batch["filepath"], tf.Tensor)
+    assert isinstance(example["metadata"], dict)
+    assert isinstance(example["metadata"]["sources"], tf.Tensor)
+    assert isinstance(batch["metadata"], tf.Tensor)
+
+
+def test_map_array_are_not_converted_back_to_lists(dataset: IterableDataset):
+    def func(example):
+        return {"array": np.array([1, 2, 3])}
+
+    dset_test = dataset.map(func)
+    example = next(iter(dset_test))
+    # not aligned with Dataset.map because we don't convert back to lists after map()
+    assert isinstance(example["array"], np.ndarray)
+
+
+def test_formatted_map(dataset: IterableDataset):
+    dataset = dataset.with_format("np")
+    assert isinstance(next(dataset.iter(batch_size=3))["id"], np.ndarray)
+    dataset = dataset.with_format(None)
+    assert isinstance(next(dataset.iter(batch_size=3))["id"], list)
+
+    def add_one_numpy(example):
+        assert isinstance(example["id"], np.ndarray)
+        return {"id": example["id"] + 1}
+
+    dataset = dataset.with_format("np")
+    dataset = dataset.map(add_one_numpy, batched=True)
+    assert isinstance(next(dataset.iter(batch_size=3))["id"], np.ndarray)
+    dataset = dataset.with_format(None)
+    assert isinstance(next(dataset.iter(batch_size=3))["id"], list)
