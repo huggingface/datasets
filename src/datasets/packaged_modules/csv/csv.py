@@ -176,7 +176,8 @@ class Csv(datasets.ArrowBasedBuilder):
             else None
         )
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
-            if os.path.splitext(file)[1] not in self.EXTENSIONS:
+            extension = os.path.splitext(file)[1]
+            if extension and extension not in self.EXTENSIONS:  # Keep files without extension
                 continue
             csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **self.config.pd_read_csv_kwargs)
             try:
