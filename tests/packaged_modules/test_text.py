@@ -75,3 +75,11 @@ def test_text_sample_by(sample_by, text_file):
     generator = text._generate_tables([[text_file]])
     generated_content = pa.concat_tables([table for _, table in generator]).to_pydict()["text"]
     assert generated_content == expected_content
+
+
+def test_text_reads_only_supported_files(text_file, image_file):
+    builder = Text()
+    generator = builder._generate_tables([[text_file, image_file]])
+    # Test that it does not raise UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte
+    for _ in generator:
+        pass
