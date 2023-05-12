@@ -38,15 +38,15 @@ _PACKAGED_DATASETS_MODULES = {
 }
 
 _EXTENSION_TO_MODULE = {
-    "csv": ("csv", {}),
-    "tsv": ("csv", {"sep": "\t"}),
-    "json": ("json", {}),
-    "jsonl": ("json", {}),
-    "parquet": ("parquet", {}),
-    "txt": ("text", {}),
+    ".csv": ("csv", {}),
+    ".tsv": ("csv", {"sep": "\t"}),
+    ".json": ("json", {}),
+    ".jsonl": ("json", {}),
+    ".parquet": ("parquet", {}),
+    ".txt": ("text", {}),
 }
-_EXTENSION_TO_MODULE.update({ext[1:]: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
-_EXTENSION_TO_MODULE.update({ext[1:].upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
-_EXTENSION_TO_MODULE.update({ext[1:]: ("audiofolder", {}) for ext in audiofolder.AudioFolder.EXTENSIONS})
-_EXTENSION_TO_MODULE.update({ext[1:].upper(): ("audiofolder", {}) for ext in audiofolder.AudioFolder.EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext.upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext: ("audiofolder", {}) for ext in audiofolder.AudioFolder.EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext.upper(): ("audiofolder", {}) for ext in audiofolder.AudioFolder.EXTENSIONS})
 _MODULE_SUPPORTS_METADATA = {"imagefolder", "audiofolder"}
