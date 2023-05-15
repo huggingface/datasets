@@ -199,7 +199,7 @@ def dataset_to_tf(
     tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder)
 
     if shuffle:
-        base_seed = tf.fill((3,), value=-1, dtype=tf.int64)
+        base_seed = tf.fill((3,), value=tf.cast(-1, dtype=tf.int64))
 
         def scan_random_indices(state, indices):
             if tf.reduce_all(state == -1):
