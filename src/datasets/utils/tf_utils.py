@@ -15,6 +15,7 @@
 """TF-specific utils import."""
 
 import os
+import warnings
 from functools import partial
 from math import ceil
 from uuid import uuid4
@@ -173,6 +174,19 @@ def dataset_to_tf(
     else:
         raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
 
+    if hasattr(tf, "random_index_shuffle"):
+        random_index_shuffle = tf.random_index_shuffle
+    elif hasattr(tf.random.experimental, "index_shuffle"):
+        random_index_shuffle = tf.random.experimental.index_shuffle
+    else:
+        if len(dataset) > 10_000_000:
+            warnings.warn(
+                "to_tf_dataset() can be memory-inefficient on versions of TensorFlow older than 2.9. "
+                "If you are iterating over a dataset with a very large number of samples, consider "
+                "upgrading to TF >= 2.9."
+            )
+        random_index_shuffle = None
+
     getter_fn = partial(
         np_get_batch,
         dataset=dataset,
@@ -196,9 +210,9 @@ def dataset_to_tf(
         return {key: output[i] for i, key in enumerate(columns_to_np_types.keys())}
 
     tf_dataset = tf.data.Dataset.range(len(dataset))
-    tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder)
 
-    if shuffle:
+    if shuffle and random_index_shuffle is not None:
+        tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder)
         base_seed = tf.fill((3,), value=tf.cast(-1, dtype=tf.int64))
 
         def scan_random_indices(state, indices):
@@ -211,6 +225,11 @@ def dataset_to_tf(
             return state, shuffled_indices
 
         tf_dataset = tf_dataset.scan(base_seed, scan_random_indices)
+    elif shuffle:
+        tf_dataset = tf_dataset.shuffle(len(tf_dataset))
+        tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder)
+    else:
+        tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder)
 
     if batch_size is not None:
         tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder)
