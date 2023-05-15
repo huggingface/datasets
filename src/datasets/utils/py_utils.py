@@ -606,13 +606,20 @@ class Pickler(dill.Pickler):
     def save(self, obj, save_persistent_id=True):
         # lazy registration of reduction functions
         obj_type = type(obj)
+
+        # Access the original function/module of a function/module optimized with `torch.compile`
+        if obj_type is FunctionType:
+            obj = getattr(obj, "_torchdynamo_orig_callable", obj)
+        elif obj_type.__module__.startswith("torch") and "OptimizedModule" in obj_type.__name__:
+            obj = getattr(obj, "_orig_mod", obj)
+
         if obj_type not in Pickler.dispatch:
             if config.DILL_VERSION < version.parse("0.3.6"):
 
                 def dill_log(pickler, msg):
                     dill._dill.log.info(msg)
 
-            elif config.DILL_VERSION.release[:3] == version.parse("0.3.6").release:
+            else:
 
                 def dill_log(pickler, msg):
                     dill._dill.logger.trace(pickler, msg)
@@ -687,7 +694,6 @@ class Pickler(dill.Pickler):
 
                 except ImportError:
                     pass
-
         dill.Pickler.save(self, obj, save_persistent_id=save_persistent_id)
 
     def memoize(self, obj):
@@ -991,7 +997,6 @@ if config.DILL_VERSION < version.parse("0.3.5"):
         the keys in the output dictionary of globalvars can change.
         """
         # Access the original function if the function is optimized with `torch.compile`
-        obj = getattr(obj, "_torchdynamo_orig_callable", obj)
         if not dill._dill._locate_function(obj):
             dill._dill.log.info(f"F1: {obj}")
             if getattr(pickler, "_recurse", False):
@@ -1062,8 +1067,6 @@ elif config.DILL_VERSION.release[:3] == version.parse("0.3.5").release:  # 0.3.5
     # https://github.com/uqfoundation/dill/blob/dill-0.3.5.1/dill/_dill.py
     @pklregister(FunctionType)
     def save_function(pickler, obj):
-        # Access the original function if the function is optimized with `torch.compile`
-        obj = getattr(obj, "_torchdynamo_orig_callable", obj)
         if not dill._dill._locate_function(obj, pickler):
             dill._dill.log.info("F1: %s" % obj)
             _recurse = getattr(pickler, "_recurse", None)

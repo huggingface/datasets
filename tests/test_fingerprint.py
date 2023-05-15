@@ -328,6 +328,42 @@ class HashingTest(TestCase):
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)
 
+    @require_torch
+    def test_hash_torch_compiled_function(self):
+        import torch
+
+        def f(x):
+            return torch.sin(x) + torch.cos(x)
+
+        f1 = f
+        hash1 = md5(datasets.utils.py_utils.dumps(f1)).hexdigest()
+        f2 = torch.compile(f)
+        hash2 = md5(datasets.utils.py_utils.dumps(f2)).hexdigest()
+        self.assertEqual(hash1, hash2)
+
+    @require_torch
+    def test_hash_torch_compiled_module(self):
+        import torch
+        import torch.nn as nn
+        import torch.nn.functional as F
+
+        class Model(nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.conv1 = nn.Conv2d(1, 20, 5)
+                self.conv2 = nn.Conv2d(20, 20, 5)
+
+            def forward(self, x):
+                x = F.relu(self.conv1(x))
+                return F.relu(self.conv2(x))
+
+        m = Model()
+        m1 = m
+        hash1 = md5(datasets.utils.py_utils.dumps(m1)).hexdigest()
+        m2 = torch.compile(m)
+        hash2 = md5(datasets.utils.py_utils.dumps(m2)).hexdigest()
+        self.assertEqual(hash1, hash2)
+
     @require_spacy
     @require_spacy_model("en_core_web_sm")
     @require_spacy_model("fr_core_news_sm")
