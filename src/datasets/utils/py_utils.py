@@ -990,6 +990,8 @@ if config.DILL_VERSION < version.parse("0.3.5"):
         This is a modified version that make globs deterministic since the order of
         the keys in the output dictionary of globalvars can change.
         """
+        # Access the original function if the function is optimized with `torch.compile`
+        obj = getattr(obj, "_torchdynamo_orig_callable", obj)
         if not dill._dill._locate_function(obj):
             dill._dill.log.info(f"F1: {obj}")
             if getattr(pickler, "_recurse", False):
@@ -1060,6 +1062,8 @@ elif config.DILL_VERSION.release[:3] == version.parse("0.3.5").release:  # 0.3.5
     # https://github.com/uqfoundation/dill/blob/dill-0.3.5.1/dill/_dill.py
     @pklregister(FunctionType)
     def save_function(pickler, obj):
+        # Access the original function if the function is optimized with `torch.compile`
+        obj = getattr(obj, "_torchdynamo_orig_callable", obj)
         if not dill._dill._locate_function(obj, pickler):
             dill._dill.log.info("F1: %s" % obj)
             _recurse = getattr(pickler, "_recurse", None)
@@ -1203,6 +1207,8 @@ elif config.DILL_VERSION.release[:3] == version.parse("0.3.6").release:
     # From: https://github.com/uqfoundation/dill/blob/dill-0.3.6/dill/_dill.py#L1739
     @pklregister(FunctionType)
     def save_function(pickler, obj):
+        # Access the original function if the function is optimized with `torch.compile`
+        obj = getattr(obj, "_torchdynamo_orig_callable", obj)
         if not dill._dill._locate_function(obj, pickler):
             if type(obj.__code__) is not CodeType:
                 # Some PyPy builtin functions have no module name, and thus are not
