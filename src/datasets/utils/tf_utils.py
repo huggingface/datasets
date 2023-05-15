@@ -195,10 +195,22 @@ def dataset_to_tf(
         )
         return {key: output[i] for i, key in enumerate(columns_to_np_types.keys())}
 
-    tf_dataset = tf.data.Dataset.from_tensor_slices(np.arange(len(dataset), dtype=np.int64))
+    tf_dataset = tf.data.Dataset.range(len(dataset))
+    tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder)
 
     if shuffle:
-        tf_dataset = tf_dataset.shuffle(len(dataset))
+        base_seed = tf.fill((3,), fill_value=-1, dtype=tf.int64)
+
+        def scan_random_indices(state, indices):
+            if tf.reduce_all(state == -1):
+                # This generates a new random seed once per epoch only,
+                # to ensure that we iterate over each sample exactly once per epoch
+                state = tf.random.uniform(shape=(3,), maxval=2**62, dtype=tf.int64)
+            state = tf.ensure_shape(state, (3,))
+            shuffled_indices = tf.random_index_shuffle(index=indices, seed=state, max_index=len(dataset) - 1)
+            return state, shuffled_indices
+
+        tf_dataset = tf_dataset.scan(base_seed, scan_random_indices)
 
     if batch_size is not None:
         tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder)
