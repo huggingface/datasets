@@ -220,8 +220,7 @@ def dataset_to_tf(
                 # This generates a new random seed once per epoch only,
                 # to ensure that we iterate over each sample exactly once per epoch
                 state = tf.random.uniform(shape=(3,), maxval=2**62, dtype=tf.int64)
-            state = tf.ensure_shape(state, (3,))
-            shuffled_indices = tf.random_index_shuffle(index=indices, seed=state, max_index=len(dataset) - 1)
+            shuffled_indices = random_index_shuffle(index=indices, seed=state, max_index=len(dataset) - 1)
             return state, shuffled_indices
 
         tf_dataset = tf_dataset.scan(base_seed, scan_random_indices)
