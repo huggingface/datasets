@@ -1,6 +1,7 @@
 from typing import List, Optional, TypeVar
 
 from .arrow_dataset import Dataset, _concatenate_map_style_datasets, _interleave_map_style_datasets
+from .dataset_dict import DatasetDict, IterableDatasetDict
 from .info import DatasetInfo
 from .iterable_dataset import IterableDataset, _concatenate_iterable_datasets, _interleave_iterable_datasets
 from .splits import NamedSplit
@@ -119,6 +120,17 @@ def interleave_datasets(
 
     if not datasets:
         raise ValueError("Unable to interleave an empty list of datasets.")
+    for i, dataset in enumerate(datasets):
+        if isinstance(dataset, (DatasetDict, IterableDatasetDict)):
+            if not datasets[i]:
+                raise ValueError(
+                    f"Expected a list of Dataset objects or a list of IterableDataset objects, but element at position {i} "
+                    "is an empty dataset dictionary."
+                )
+            raise ValueError(
+                f"Dataset at position {i} has at least one split: {list(datasets[i])}\n"
+                f"Please pick one to interleave with the other datasets, for example: dataset['{next(iter(datasets[i]))}']"
+            )
     iterable = isinstance(datasets[0], IterableDataset)
     map_style = isinstance(datasets[0], Dataset)
     if not (iterable ^ map_style):
@@ -173,6 +185,17 @@ def concatenate_datasets(
 
     if not dsets:
         raise ValueError("Unable to concatenate an empty list of datasets.")
+    for i, dataset in enumerate(dsets):
+        if isinstance(dataset, (DatasetDict, IterableDatasetDict)):
+            if not dsets[i]:
+                raise ValueError(
+                    f"Expected a list of Dataset objects or a list of IterableDataset objects, but element at position {i} "
+                    "is an empty dataset dictionary."
+                )
+            raise ValueError(
+                f"Dataset at position {i} has at least one split: {list(dsets[i])}\n"
+                f"Please pick one to concatenate with the other datasets, for example: dataset['{next(iter(dsets[i]))}']"
+            )
     iterable = isinstance(dsets[0], IterableDataset)
     map_style = isinstance(dsets[0], Dataset)
     if not (iterable ^ map_style):
