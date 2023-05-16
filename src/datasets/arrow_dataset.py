@@ -115,7 +115,7 @@ from .utils.info_utils import is_small_dataset
 from .utils.metadata import DatasetMetadata
 from .utils.py_utils import Literal, asdict, convert_file_size_to_int, iflatmap_unordered, unique_values
 from .utils.stratify import stratified_shuffle_split_generate_indices
-from .utils.tf_utils import dataset_to_tf, minimal_tf_collate_fn, multiprocess_dataset_to_tf
+from .utils.tf_utils import minimal_tf_collate_fn, multiprocess_dataset_to_tf
 from .utils.typing import ListLike, PathLike
 
 
@@ -457,38 +457,20 @@ class TensorflowDatasetMixin:
             if col not in output_signature:
                 raise ValueError(f"Label column {col} not found in dataset!")
 
-        if num_workers == 0:
-            tf_dataset = dataset_to_tf(
-                dataset=dataset,
-                cols_to_retain=cols_to_retain,
-                collate_fn=collate_fn,
-                collate_fn_args=collate_fn_args,
-                columns_to_np_types=columns_to_np_types,
-                output_signature=output_signature,
-                shuffle=shuffle,
-                batch_size=batch_size,
-                drop_remainder=drop_remainder,
-            )
-        elif num_workers > 0:
-            if batch_size is None:
-                raise NotImplementedError(
-                    "`batch_size` must be specified when using multiple workers, as unbatched multiprocessing "
-                    "is not supported yet. Please provide a `batch_size` if `num_workers` is greater than 0."
-                )
-            tf_dataset = multiprocess_dataset_to_tf(
-                dataset=dataset,
-                cols_to_retain=cols_to_retain,
-                collate_fn=collate_fn,
-                collate_fn_args=collate_fn_args,
-                columns_to_np_types=columns_to_np_types,
-                output_signature=output_signature,
-                shuffle=shuffle,
-                batch_size=batch_size,
-                drop_remainder=drop_remainder,
-                num_workers=num_workers,
-            )
-        else:
-            raise ValueError("num_workers must be >= 0")
+        if num_workers <= 0:
+            num_workers = 1
+        tf_dataset = multiprocess_dataset_to_tf(
+            dataset=dataset,
+            cols_to_retain=cols_to_retain,
+            collate_fn=collate_fn,
+            collate_fn_args=collate_fn_args,
+            columns_to_np_types=columns_to_np_types,
+            output_signature=output_signature,
+            shuffle=shuffle,
+            batch_size=batch_size,
+            drop_remainder=drop_remainder,
+            num_workers=num_workers,
+        )
 
         def split_features_and_labels(input_batch):
             # TODO(Matt, QL): deprecate returning the dict content when there's only one key
