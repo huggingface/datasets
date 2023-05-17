@@ -209,6 +209,7 @@ def metric_loading_script_dir(tmp_path):
         (["train.jsonl"], "json", {}),
         (["train.parquet"], "parquet", {}),
         (["train.txt"], "text", {}),
+        (["uppercase.TXT"], "text", {}),
         (["unsupported.ext"], None, {}),
         ([""], None, {}),
     ],
