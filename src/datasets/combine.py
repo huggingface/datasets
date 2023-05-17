@@ -122,7 +122,7 @@ def interleave_datasets(
         raise ValueError("Unable to interleave an empty list of datasets.")
     for i, dataset in enumerate(datasets):
         if isinstance(dataset, (DatasetDict, IterableDatasetDict)):
-            if not datasets[i]:
+            if not dataset:
                 raise ValueError(
                     f"Expected a list of Dataset objects or a list of IterableDataset objects, but element at position {i} "
                     "is an empty dataset dictionary."
@@ -187,7 +187,7 @@ def concatenate_datasets(
         raise ValueError("Unable to concatenate an empty list of datasets.")
     for i, dataset in enumerate(dsets):
         if isinstance(dataset, (DatasetDict, IterableDatasetDict)):
-            if not dsets[i]:
+            if not dataset:
                 raise ValueError(
                     f"Expected a list of Dataset objects or a list of IterableDataset objects, but element at position {i} "
                     "is an empty dataset dictionary."
