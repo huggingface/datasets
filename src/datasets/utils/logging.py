@@ -201,8 +201,8 @@ _tqdm_active = True
 
 
 class _tqdm_cls:
-    def __call__(self, *args, **kwargs):
-        if _tqdm_active:
+    def __call__(self, *args, disable=False, **kwargs):
+        if _tqdm_active and not disable:
             return tqdm_lib.tqdm(*args, **kwargs)
         else:
             return EmptyTqdm(*args, **kwargs)
