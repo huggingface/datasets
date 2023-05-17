@@ -358,7 +358,7 @@ def infer_module_for_data_files(
             - builder kwargs
     """
     extensions_counter = Counter(
-        suffix[1:]
+        suffix[1:].lower()
         for filepath in data_files_list[: config.DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE]
         for suffix in Path(filepath).suffixes
     )
@@ -400,7 +400,9 @@ def infer_module_for_data_files_in_archives(
                     : config.ARCHIVED_DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE
                 ]
             ]
-    extensions_counter = Counter(suffix[1:] for filepath in archived_files for suffix in Path(filepath).suffixes)
+    extensions_counter = Counter(
+        suffix[1:].lower() for filepath in archived_files for suffix in Path(filepath).suffixes
+    )
     if extensions_counter:
         most_common = extensions_counter.most_common(1)[0][0]
         if most_common in _EXTENSION_TO_MODULE:

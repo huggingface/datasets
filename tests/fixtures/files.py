@@ -297,6 +297,15 @@ def zip_csv_path(csv_path, csv2_path, tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
+def zip_uppercase_csv_path(csv_path, csv2_path, tmp_path_factory):
+    path = tmp_path_factory.mktemp("data") / "dataset.csv.zip"
+    with zipfile.ZipFile(path, "w") as f:
+        f.write(csv_path, arcname=os.path.basename(csv_path.replace(".csv", ".CSV")))
+        f.write(csv2_path, arcname=os.path.basename(csv2_path.replace(".csv", ".CSV")))
+    return path
+
+
+@pytest.fixture(scope="session")
 def zip_csv_with_dir_path(csv_path, csv2_path, tmp_path_factory):
     path = tmp_path_factory.mktemp("data") / "dataset_with_dir.csv.zip"
     with zipfile.ZipFile(path, "w") as f:
