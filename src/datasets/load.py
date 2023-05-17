@@ -358,7 +358,7 @@ def infer_module_for_data_files(
             - builder kwargs
     """
     extensions_counter = Counter(
-        suffix[1:]
+        suffix[1:].lower()
         for filepath in data_files_list[: config.DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE]
         for suffix in Path(filepath).suffixes
     )
