@@ -2,8 +2,9 @@ import os
 import posixpath
 import uuid
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Iterable, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
 
+import numpy as np
 import pyarrow as pa
 
 import datasets
@@ -13,6 +14,7 @@ from datasets.filesystems import (
     is_remote_filesystem,
     rename,
 )
+from datasets.iterable_dataset import _BaseExamplesIterable
 from datasets.utils.py_utils import convert_file_size_to_int
 
 
@@ -29,6 +31,52 @@ class SparkConfig(datasets.BuilderConfig):
     features: Optional[datasets.Features] = None
 
 
+def _generate_iterable_examples(
+    df: "pyspark.sql.DataFrame",
+    partition_order: List[int],
+):
+    import pyspark
+
+    def generate_fn():
+        df_with_partition_id = df.select("*", pyspark.sql.functions.spark_partition_id().alias("part_id"))
+        for partition_id in partition_order:
+            partition_df = df_with_partition_id.select("*").where(f"part_id = {partition_id}").drop("part_id")
+            rows = partition_df.collect()
+            row_id = 0
+            for row in rows:
+                yield f"{partition_id}_{row_id}", row.asDict()
+                row_id += 1
+
+    return generate_fn
+
+
+class SparkExamplesIterable(_BaseExamplesIterable):
+    def __init__(
+        self,
+        df: "pyspark.sql.DataFrame",
+        partition_order=None,
+    ):
+        self.df = df
+        self.partition_order = partition_order or range(self.df.rdd.getNumPartitions())
+        self.generate_examples_fn = _generate_iterable_examples(self.df, self.partition_order)
+
+    def __iter__(self):
+        yield from self.generate_examples_fn()
+
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "SparkExamplesIterable":
+        partition_order = list(range(self.df.rdd.getNumPartitions()))
+        generator.shuffle(partition_order)
+        return SparkExamplesIterable(self.df, partition_order=partition_order)
+
+    def shard_data_sources(self, worker_id: int, num_workers: int) -> "SparkExamplesIterable":
+        partition_order = self.split_shard_indices_by_worker(worker_id, num_workers)
+        return SparkExamplesIterable(self.df, partition_order=partition_order)
+
+    @property
+    def n_shards(self) -> int:
+        return len(self.partition_order)
+
+
 class Spark(datasets.DatasetBuilder):
     BUILDER_CONFIG_CLASS = SparkConfig
 
@@ -42,7 +90,6 @@ class Spark(datasets.DatasetBuilder):
 
         self._spark = pyspark.sql.SparkSession.builder.getOrCreate()
         self.df = df
-        self._validate_cache_dir(cache_dir)
 
         super().__init__(
             cache_dir=cache_dir,
@@ -50,13 +97,13 @@ class Spark(datasets.DatasetBuilder):
             **config_kwargs,
         )
 
-    def _validate_cache_dir(self, cache_dir):
+    def _validate_cache_dir(self):
         # Returns the path of the created file.
         def create_cache_and_write_probe(context):
             # makedirs with exist_ok will recursively create the directory. It will not throw an error if directories
             # already exist.
-            os.makedirs(cache_dir, exist_ok=True)
-            probe_file = os.path.join(cache_dir, "fs_test" + uuid.uuid4().hex)
+            os.makedirs(self._cache_dir, exist_ok=True)
+            probe_file = os.path.join(self._cache_dir, "fs_test" + uuid.uuid4().hex)
             # Opening the file in append mode will create a new file unless it already exists, in which case it will not
             # change the file contents.
             open(probe_file, "a")
@@ -68,7 +115,7 @@ class Spark(datasets.DatasetBuilder):
         # If the cluster is multi-node, make sure that the user provided a cache_dir and that it is on an NFS
         # accessible to the driver.
         # TODO: Stream batches to the driver using ArrowCollectSerializer instead of throwing an error.
-        if cache_dir:
+        if self._cache_dir:
             probe = (
                 self._spark.sparkContext.parallelize(range(1), 1).mapPartitions(create_cache_and_write_probe).collect()
             )
@@ -171,6 +218,8 @@ class Spark(datasets.DatasetBuilder):
         num_proc: Optional[int] = None,
         **kwargs,
     ):
+        self._validate_cache_dir()
+
         max_shard_size = convert_file_size_to_int(max_shard_size or MAX_SHARD_SIZE)
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
@@ -239,3 +288,9 @@ class Spark(datasets.DatasetBuilder):
                 fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
                 fpath.replace(SUFFIX, ""),
             )
+
+    def _get_examples_iterable_for_split(
+        self,
+        split_generator: "datasets.SplitGenerator",
+    ) -> SparkExamplesIterable:
+        return SparkExamplesIterable(self.df)
