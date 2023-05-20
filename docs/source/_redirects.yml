@@ -1,0 +1,13 @@
+# This first_section was backported from nginx
+loading_datasets: loading
+share_dataset: share
+quicktour: quickstart
+dataset_streaming: stream
+torch_tensorflow: use_dataset
+splits: loading#slice-splits
+processing: process
+faiss_and_ea: faiss_es
+features: about_dataset_features
+using_metrics: how_to_metrics
+exploring: access
+# end of first_section

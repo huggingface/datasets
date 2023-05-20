@@ -109,11 +109,15 @@ class BuilderConfig:
 
     Attributes:
         name (`str`, defaults to `default`):
-        version (`Version` or `str`, *optional*):
+            The name of the configuration.
+        version (`Version` or `str`, defaults to `0.0.0`):
+            The version of the configuration.
         data_dir (`str`, *optional*):
+            Path to the directory containing the source data.
         data_files (`str` or `Sequence` or `Mapping`, *optional*):
             Path(s) to source data file(s).
         description (`str`, *optional*):
+            A human description of the configuration.
     """
 
     name: str = "default"

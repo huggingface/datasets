@@ -20,6 +20,7 @@ from .info import DatasetInfo
 from .splits import NamedSplit
 from .table import table_cast
 from .utils.logging import get_logger
+from .utils.py_utils import Literal
 from .utils.sharding import _merge_gen_kwargs, _number_of_shards_in_gen_kwargs, _shuffle_gen_kwargs, _split_gen_kwargs
 
 
@@ -52,7 +53,7 @@ def _batch_to_examples(batch: Dict[str, list]) -> List[Dict[str, Any]]:
         yield {col: array[i] for col, array in batch.items()}
 
 
-class HasNextIterator(Iterator):
+class _HasNextIterator(Iterator):
     """Iterator with an hasnext() function. Taken from https://stackoverflow.com/questions/1966591/has-next-in-python-iterators."""
 
     def __init__(self, it):
@@ -202,7 +203,9 @@ class StepExamplesIterable(_BaseExamplesIterable):
 
 class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
     def __init__(
-        self, ex_iterables: List[_BaseExamplesIterable], stopping_strategy: Optional[str] = "first_exhausted"
+        self,
+        ex_iterables: List[_BaseExamplesIterable],
+        stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
     ):
         self.ex_iterables = ex_iterables
         self.stopping_strategy = stopping_strategy
@@ -211,14 +214,14 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
         # if oversampling ("all_exhausted"), we stop as soons as every dataset is exhausted, i.e as soon as every samples of every dataset has been visited at least once
         self.bool_strategy_func = np.all if (stopping_strategy == "all_exhausted") else np.any
 
-    def _give_indice_iterator(self):
+    def _get_indices_iterator(self):
         # this is an infinite iterator to keep track of which iterator we want to pick examples from
         return cycle(range(len(self.ex_iterables)))
 
     def __iter__(self):
-        iterators = [HasNextIterator(ex_iterable) for ex_iterable in self.ex_iterables]
+        iterators = [_HasNextIterator(ex_iterable) for ex_iterable in self.ex_iterables]
 
-        indices_iterator = self._give_indice_iterator()
+        indices_iterator = self._get_indices_iterator()
 
         is_exhausted = np.full(len(self.ex_iterables), False)
         for i in indices_iterator:
@@ -233,7 +236,7 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
                         # if the stopping criteria is met, break the main for loop
                         break
                     # otherwise reinitialise the iterator and yield the first example
-                    iterators[i] = HasNextIterator(self.ex_iterables[i])
+                    iterators[i] = _HasNextIterator(self.ex_iterables[i])
 
             except StopIteration:
                 # here it means that the i-th iterabledataset is empty, i.e we never have the occasion to yield an element of the i-th dataset.
@@ -381,7 +384,7 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         ex_iterables,
         generator: np.random.Generator,
         probabilities: Optional[List[float]] = None,
-        stopping_strategy: Optional[str] = "first_exhausted",
+        stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
     ):
         super().__init__(ex_iterables, stopping_strategy)
         self.generator = deepcopy(generator)
@@ -402,7 +405,7 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
             while True:
                 yield from (int(i) for i in rng.choice(num_sources, size=random_batch_size, p=p))
 
-    def _give_indice_iterator(self):
+    def _get_indices_iterator(self):
         rng = deepcopy(self.generator)
         # this is an infinite iterator that randomly samples the index of the source to pick examples from
         return self._iter_random_indices(rng, len(self.ex_iterables), p=self.probabilities)
@@ -411,7 +414,10 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         """Shuffle the data sources of each wrapped examples iterable."""
         ex_iterables = [ex_iterable.shuffle_data_sources(generator) for ex_iterable in self.ex_iterables]
         return RandomlyCyclingMultiSourcesExamplesIterable(
-            ex_iterables, generator=generator, probabilities=self.probabilities
+            ex_iterables,
+            generator=generator,
+            probabilities=self.probabilities,
+            stopping_strategy=self.stopping_strategy,
         )
 
     def shard_data_sources(self, worker_id: int, num_workers: int) -> "RandomlyCyclingMultiSourcesExamplesIterable":
@@ -1064,6 +1070,49 @@ class IterableDataset(DatasetInfoMixin):
             features=features,
             gen_kwargs=gen_kwargs,
             streaming=True,
+        ).read()
+
+    @staticmethod
+    def from_spark(
+        df: "pyspark.sql.DataFrame",
+        split: Optional[NamedSplit] = None,
+        features: Optional[Features] = None,
+        **kwargs,
+    ) -> "IterableDataset":
+        """Create an IterableDataset from Spark DataFrame. The dataset is streamed to the driver in batches.
+
+        Args:
+            df (`pyspark.sql.DataFrame`):
+                The DataFrame containing the desired data.
+            split (`NamedSplit`, *optional*):
+                Split name to be assigned to the dataset.
+            features (`Features`, *optional*):
+                Dataset features.
+
+        Returns:
+            [`IterableDataset`]
+
+        Example:
+
+        ```py
+        >>> df = spark.createDataFrame(
+        >>>     data=[[1, "Elia"], [2, "Teo"], [3, "Fang"]],
+        >>>     columns=["id", "name"],
+        >>> )
+        >>> ds = IterableDataset.from_spark(df)
+        ```
+        """
+        from .io.spark import SparkDatasetReader
+
+        if sys.platform == "win32":
+            raise EnvironmentError("IterableDataset.from_spark is not currently supported on Windows")
+
+        return SparkDatasetReader(
+            df,
+            split=split,
+            features=features,
+            streaming=True,
+            **kwargs,
         ).read()
 
     def with_format(
@@ -1830,7 +1879,7 @@ def _interleave_iterable_datasets(
     seed: Optional[int] = None,
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
-    stopping_strategy: Optional[str] = "first_exhausted",
+    stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
 ) -> IterableDataset:
     """
     Interleave several iterable datasets (sources) into a single iterable dataset.
@@ -1845,7 +1894,7 @@ def _interleave_iterable_datasets(
         probabilities (`List[float]`, optional, default None): If specified, the new iterable dataset samples
             examples from one source at a time according to these probabilities.
         seed (`int`, optional, default None): The random seed used to choose a source for each example.
-        stopping_strategy (Optional `str`, defaults to `first_exhausted`):
+        stopping_strategy (`str`, defaults to `first_exhausted`):
             Two strategies are proposed right now.
             By default, `first_exhausted` is an undersampling strategy, i.e the dataset construction is stopped as soon as one dataset has ran out of samples.
             If the strategy is `all_exhausted`,  we use an oversampling strategy, i.e the dataset construction is stopped as soon as every samples of every dataset has been added at least once.
@@ -1869,7 +1918,7 @@ def _interleave_iterable_datasets(
 
     ex_iterables = [d._ex_iterable for d in datasets]
 
-    # Use cycling or random cycling or sources
+    # Use cycling or random cycling of sources
     if probabilities is None:
         ex_iterable = CyclingMultiSourcesExamplesIterable(ex_iterables, stopping_strategy=stopping_strategy)
     else:

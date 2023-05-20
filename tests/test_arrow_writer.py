@@ -351,3 +351,11 @@ def test_writer_embed_local_files(tmp_path, embed_local_files):
     else:
         assert out["image"][0]["path"] == image_path
         assert out["image"][0]["bytes"] is None
+
+
+def test_always_nullable():
+    non_nullable_schema = pa.schema([pa.field("col_1", pa.string(), nullable=False)])
+    output = pa.BufferOutputStream()
+    with ArrowWriter(stream=output) as writer:
+        writer._build_writer(inferred_schema=non_nullable_schema)
+        assert writer._schema == pa.schema([pa.field("col_1", pa.string())])

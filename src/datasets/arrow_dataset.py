@@ -112,16 +112,11 @@ from .utils.file_utils import _retry, cached_path, estimate_dataset_size
 from .utils.hub import hf_hub_url
 from .utils.info_utils import is_small_dataset
 from .utils.metadata import DatasetMetadata
-from .utils.py_utils import asdict, convert_file_size_to_int, iflatmap_unordered, unique_values
+from .utils.py_utils import Literal, asdict, convert_file_size_to_int, iflatmap_unordered, unique_values
 from .utils.stratify import stratified_shuffle_split_generate_indices
 from .utils.tf_utils import dataset_to_tf, minimal_tf_collate_fn, multiprocess_dataset_to_tf
 from .utils.typing import PathLike
 
-
-try:
-    from typing import Literal
-except ImportError:
-    from typing_extensions import Literal
 
 if TYPE_CHECKING:
     import sqlite3
@@ -1231,11 +1226,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         df: "pyspark.sql.DataFrame",
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
+        keep_in_memory: bool = False,
         cache_dir: str = None,
         load_from_cache_file: bool = True,
         **kwargs,
     ):
-        """Create Dataset from Spark DataFrame. Dataset downloading is distributed over Spark workers.
+        """Create a Dataset from Spark DataFrame. Dataset downloading is distributed over Spark workers.
 
         Args:
             df (`pyspark.sql.DataFrame`):
@@ -1247,6 +1243,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             cache_dir (`str`, *optional*, defaults to `"~/.cache/huggingface/datasets"`):
                 Directory to cache data. When using a multi-node Spark cluster, the cache_dir must be accessible to both
                 workers and the driver.
+            keep_in_memory (`bool`):
+                Whether to copy the data in-memory.
             load_from_cache_file (`bool`):
                 Whether to load the dataset from the cache if possible.
 
@@ -1267,13 +1265,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         from .io.spark import SparkDatasetReader
 
         if sys.platform == "win32":
-            raise EnvironmentError("Datasets.from_spark is not currently supported on Windows")
+            raise EnvironmentError("Dataset.from_spark is not currently supported on Windows")
 
         return SparkDatasetReader(
             df,
             split=split,
             features=features,
+            streaming=False,
             cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
             load_from_cache_file=load_from_cache_file,
             **kwargs,
         ).read()
@@ -3085,7 +3085,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         else:
 
             def format_cache_file_name(
-                cache_file_name: Optional[str], rank: Union[int, Literal["*"]]
+                cache_file_name: Optional[str], rank: Union[int, Literal["*"]]  # noqa: F722
             ) -> Optional[str]:
                 if not cache_file_name:
                     return cache_file_name
@@ -5980,7 +5980,7 @@ def _interleave_map_style_datasets(
     seed: Optional[int] = None,
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
-    stopping_strategy: Optional[str] = "first_exhausted",
+    stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
     **kwargs,
 ) -> "Dataset":
     """
@@ -5996,7 +5996,7 @@ def _interleave_map_style_datasets(
         seed (`int`, optional, default None): The random seed used to choose a source for each example.
         info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
         split (:class:`NamedSplit`, optional): Name of the dataset split.
-        stopping_strategy (Optional `str`, defaults to `first_exhausted`):
+        stopping_strategy (`str`, defaults to `first_exhausted`):
             Two strategies are proposed right now.
             By default, `first_exhausted` is an undersampling strategy, i.e the dataset construction is stopped as soon as one dataset has ran out of samples.
             If the strategy is `all_exhausted`,  we use an oversampling strategy, i.e the dataset construction is stopped as soon as every samples of every dataset has been added at least once.

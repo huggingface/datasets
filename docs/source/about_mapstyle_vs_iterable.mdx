@@ -197,7 +197,7 @@ for example in enumerate(shuffled_iterable_dataset):  # still as fast as before
 ```
 
 If you're using your dataset on multiple epochs, the effective seed to shuffle the shards order in the shuffle buffer is `seed + epoch`.
-It makes it easy to reshuffle a dataset betwen epochs:
+It makes it easy to reshuffle a dataset between epochs:
 ```python
 for epoch in range(n_epochs):
     my_iterable_dataset.set_epoch(epoch)
