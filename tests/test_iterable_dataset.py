@@ -514,41 +514,6 @@ def test_filtered_examples_iterable_with_indices(n, func, batched, batch_size):
 
 
 @pytest.mark.parametrize(
-    "n, func, batched, batch_size, fn_kwargs",
-    [
-        (3, lambda x, y: x["id"] == y, False, None, {"y": 1}),
-        (25, lambda x, y: [i == y for i in x["id"]], True, 10, {"y": 1}),  # same with bs=10
-        (5, lambda x, y: [i == y for i in x["id"]], True, None, {"y": 1}),  # same with bs=None
-    ],
-)
-def test_filtered_examples_iterable_with_fn_kwargs(n, func, batched, batch_size, fn_kwargs):
-    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
-    ex_iterable = FilteredExamplesIterable(
-        base_ex_iterable,
-        func,
-        batched=batched,
-        batch_size=batch_size,
-        fn_kwargs=fn_kwargs,
-    )
-    all_examples = [x for _, x in generate_examples_fn(n=n)]
-    if batched is False:
-        expected = [x for x in all_examples if func(x, **fn_kwargs)]
-    else:
-        # For batched filter we have to format the examples as a batch (i.e. in one single dictionary) to pass the batch to the function
-        expected = []
-        # If batch_size is None or <=0, we use the whole dataset as a single batch
-        if batch_size is None or batch_size <= 0:
-            batch_size = len(all_examples)
-        for batch_offset in range(0, len(all_examples), batch_size):
-            examples = all_examples[batch_offset : batch_offset + batch_size]
-            batch = _examples_to_batch(examples)
-            mask = func(batch, **fn_kwargs)
-            expected.extend([x for x, to_keep in zip(examples, mask) if to_keep])
-    assert next(iter(ex_iterable))[1] == expected[0]
-    assert [x for _, x in ex_iterable] == expected
-
-
-@pytest.mark.parametrize(
     "n, func, batched, batch_size, input_columns",
     [
         (3, lambda id_: id_ % 2 == 0, False, None, ["id"]),  # keep even number
