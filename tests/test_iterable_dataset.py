@@ -511,6 +511,7 @@ def test_filtered_examples_iterable_with_indices(n, func, batched, batch_size):
             expected.extend([x for x, to_keep in zip(examples, mask) if to_keep])
     assert next(iter(ex_iterable))[1] == expected[0]
     assert [x for _, x in ex_iterable] == expected
+    
 
 
 @pytest.mark.parametrize(
