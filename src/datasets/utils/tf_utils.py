@@ -86,7 +86,8 @@ def np_get_batch(
     indices, dataset, cols_to_retain, collate_fn, collate_fn_args, columns_to_np_types, return_dict=False
 ):
     # Optimization - if we're loading a sequential batch, do it with slicing instead of a list of indices
-    if isinstance(indices, (list, np.ndarray)):
+    indices = indices.numpy()
+    if isinstance(indices, np.ndarray):
         if np.all(np.diff(indices) == 1):
             batch = dataset[indices[0] : indices[-1] + 1]
         else:
@@ -170,7 +171,7 @@ def dataset_to_tf(
         collate_fn=collate_fn,
         collate_fn_args=collate_fn_args,
         columns_to_np_types=columns_to_np_types,
-        return_dict=False,  # TF expects numpy_function to return a list and will not accept a dict
+        return_dict=False,
     )
 
     # This works because dictionaries always output in the same order
@@ -178,7 +179,7 @@ def dataset_to_tf(
 
     @tf.function(input_signature=[tf.TensorSpec(None, tf.int64)])
     def fetch_function(indices):
-        output = tf.numpy_function(
+        output = tf.py_function(
             getter_fn,
             inp=[indices],
             Tout=tout,
