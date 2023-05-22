@@ -22,6 +22,7 @@ def _get_expected_row_ids_and_row_dicts_for_partition_order(df, partition_order)
             expected_row_ids_and_row_dicts.append((f"{part_id}_{row_idx}", row.asDict()))
     return expected_row_ids_and_row_dicts
 
+
 @require_not_windows
 @require_dill_gt_0_3_2
 def test_repartition_df_if_needed():
@@ -104,6 +105,9 @@ def test_spark_examples_iterable_shard():
         assert row_id == expected_row_id
         assert row_dict == expected_row_dict
 
+
+@require_not_windows
+@require_dill_gt_0_3_2
 def test_repartition_df_if_needed_max_num_df_rows():
     spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
     df = spark.range(100).repartition(1)

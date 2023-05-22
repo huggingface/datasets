@@ -91,7 +91,6 @@ class Spark(datasets.DatasetBuilder):
 
         self._spark = pyspark.sql.SparkSession.builder.getOrCreate()
         self.df = df
-        self._validate_cache_dir(cache_dir)
         self._working_dir = working_dir
 
         super().__init__(
@@ -169,7 +168,8 @@ class Spark(datasets.DatasetBuilder):
         import pyspark
 
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
-        working_fpath = os.path.join(self._working_dir, os.path.basename(fpath)) if self._working_dir else fpath
+        working_dir = self._working_dir or os.environ.get("HF_WORKING_DIR")
+        working_fpath = os.path.join(working_dir, os.path.basename(fpath)) if working_dir else fpath
         embed_local_files = file_format == "parquet"
 
         # Define these so that we don't reference self in write_arrow, which will result in a pickling error due to
