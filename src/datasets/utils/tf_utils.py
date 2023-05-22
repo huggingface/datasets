@@ -85,8 +85,10 @@ def is_numeric_feature(feature):
 def np_get_batch(
     indices, dataset, cols_to_retain, collate_fn, collate_fn_args, columns_to_np_types, return_dict=False
 ):
+    if not isinstance(indices, np.ndarray):
+        indices = indices.numpy()
+
     # Optimization - if we're loading a sequential batch, do it with slicing instead of a list of indices
-    indices = indices.numpy()
     if isinstance(indices, np.ndarray):
         if np.all(np.diff(indices) == 1):
             batch = dataset[indices[0] : indices[-1] + 1]
@@ -295,7 +297,7 @@ class NumpyMultiprocessingGenerator:
         with SharedMemoryContext() as shm_ctx:
             for i in range(num_workers):
                 worker_random_id = str(uuid4())
-                worker_name = f"datasets_tf_worker_{i}_{worker_random_id}"
+                worker_name = f"dw_{i}_{worker_random_id}"[:10]
                 names.append(worker_name)
 
                 worker_shape_arrays = {
