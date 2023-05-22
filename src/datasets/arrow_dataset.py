@@ -426,7 +426,7 @@ class TensorflowDatasetMixin:
             cols_to_retain = None  # Indicates keeping all valid columns
             columns = []
 
-        if self.format["type"] != "custom":
+        if self.format["type"] not in ["custom", "numpy"]:
             dataset = self.with_format("numpy")
         else:
             dataset = self
