@@ -309,7 +309,7 @@ class TensorflowDatasetMixin:
 
     def to_tf_dataset(
         self,
-        batch_size: int,
+        batch_size: Optional[int] = None,
         columns: Optional[Union[str, List[str]]] = None,
         shuffle: bool = False,
         collate_fn: Optional[Callable] = None,
@@ -326,8 +326,9 @@ class TensorflowDatasetMixin:
         `tf.Tensor` is yielded instead.
 
         Args:
-            batch_size (`int`):
-                Size of batches to load from the dataset.
+            batch_size (`int`, *optional*):
+                Size of batches to load from the dataset. Defaults to `None`, which implies that the dataset won't be
+                batched, but the returned dataset can be batched later with `tf_dataset.batch(batch_size)`.
             columns (`List[str]` or `str`, *optional*):
                 Dataset column(s) to load in the `tf.data.Dataset`.
                 Column names that are created by the `collate_fn` and that do not exist in the original dataset can be used.
@@ -437,7 +438,7 @@ class TensorflowDatasetMixin:
             collate_fn=collate_fn,
             collate_fn_args=collate_fn_args,
             cols_to_retain=cols_to_retain,
-            batch_size=batch_size if drop_remainder else None,
+            batch_size=batch_size if drop_remainder and batch_size is not None else None,
             num_test_batches=num_test_batches,
         )
 

@@ -86,10 +86,13 @@ def np_get_batch(
     indices, dataset, cols_to_retain, collate_fn, collate_fn_args, columns_to_np_types, return_dict=False
 ):
     # Optimization - if we're loading a sequential batch, do it with slicing instead of a list of indices
-    if np.all(np.diff(indices) == 1):
-        batch = dataset[indices[0] : indices[-1] + 1]
+    if isinstance(indices, (list, np.ndarray)):
+        if np.all(np.diff(indices) == 1):
+            batch = dataset[indices[0] : indices[-1] + 1]
+        else:
+            batch = dataset[indices]
     else:
-        batch = dataset[indices]
+        batch = dataset[[indices]]
 
     if cols_to_retain is not None:
         batch = {
@@ -147,7 +150,8 @@ def dataset_to_tf(
                     `tf.TensorSpec` objects.
                 shuffle(`bool`): Shuffle the dataset order when loading. Recommended True for training, False for
                     validation/evaluation.
-                batch_size (`int`): Size of batches to load from the dataset.
+                batch_size (`int`, default `None`): Size of batches to load from the dataset. Defaults to `None`, which implies that 
+                    the dataset won't be batched, but the returned dataset can be batched later with `tf_dataset.batch(batch_size)`.
                 drop_remainder(`bool`, default `None`): Drop the last incomplete batch when loading. If not provided,
                     defaults to the same setting as shuffle.
 
@@ -184,7 +188,10 @@ def dataset_to_tf(
     if shuffle:
         tf_dataset = tf_dataset.shuffle(len(dataset))
 
-    tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder).map(fetch_function)
+    if batch_size is not None:
+        tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder)
+    
+    tf_dataset = tf_dataset.map(fetch_function)
 
     def ensure_shapes(input_dict):
         return {key: tf.ensure_shape(val, output_signature[key].shape) for key, val in input_dict.items()}
@@ -493,7 +500,8 @@ def multiprocess_dataset_to_tf(
                     `tf.TensorSpec` objects.
                 shuffle(`bool`): Shuffle the dataset order when loading. Recommended True for training, False for
                     validation/evaluation.
-                batch_size (`int`): Size of batches to load from the dataset.
+                batch_size (`int`, default `None`): Size of batches to load from the dataset. Defaults to `None`, which implies that 
+                    the dataset won't be batched, but the returned dataset can be batched later with `tf_dataset.batch(batch_size)`.
                 drop_remainder(`bool`, default `None`): Drop the last incomplete batch when loading. If not provided,
                     defaults to the same setting as shuffle.
                 num_workers (`int`): Number of workers to use for loading the dataset. Should be >= 1.
@@ -521,7 +529,7 @@ def multiprocess_dataset_to_tf(
 
     tf_dataset = tf.data.Dataset.from_generator(data_generator, output_signature=output_signature)
     if drop_remainder:
-        dataset_length = int(len(dataset) // batch_size)
+        dataset_length = int(len(dataset) // (batch_size or 1))
     else:
-        dataset_length = int(ceil(len(dataset) / batch_size))
+        dataset_length = int(ceil(len(dataset) / (batch_size or 1)))
     return tf_dataset.apply(tf.data.experimental.assert_cardinality(dataset_length))
