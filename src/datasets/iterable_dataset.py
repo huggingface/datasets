@@ -11,7 +11,7 @@ import numpy as np
 import pyarrow as pa
 
 from . import config
-from .arrow_dataset import DatasetInfoMixin, Dataset
+from .arrow_dataset import Dataset, DatasetInfoMixin
 from .arrow_reader import ArrowReader
 from .features import Features
 from .features.features import FeatureType, _align_features, _check_if_features_can_be_aligned
