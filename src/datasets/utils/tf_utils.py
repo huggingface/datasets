@@ -173,6 +173,10 @@ def dataset_to_tf(
     else:
         raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
 
+    # Matt: There are a few version dependencies here - ideally we'd move everything to the multiprocessing path for
+    # simplicity, but that depends on SharedMemory that only arrived in Py3.8. We also have a reasonably efficient
+    # solution without Python multiprocessing, but it depends on TF >= 2.9. If we're on an older version of TF,
+    # we fall back to the slowest path. Hopefully when our minimum versions move up a bit more we can clean this all up.
     if hasattr(tf, "random_index_shuffle"):
         random_index_shuffle = tf.random_index_shuffle
     elif hasattr(tf.random.experimental, "index_shuffle"):
