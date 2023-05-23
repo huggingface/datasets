@@ -1643,9 +1643,7 @@ def load_dataset_builder(
         data_files=data_files,
     )
     dataset_name = (
-        camelcase_to_snakecase(os.path.basename(path))
-        if dataset_module.module_path.split(".")[-1] in _PACKAGED_DATASETS_MODULES
-        else None
+        camelcase_to_snakecase(Path(path).name) if dataset_module.module_path.startswith("datasets.") else None
     )
     # Get dataset builder class from the processing script
     builder_cls = get_dataset_builder_class(dataset_module, dataset_name=dataset_name)
