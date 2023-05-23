@@ -41,6 +41,25 @@ def extract_path_from_uri(dataset_path: str) -> str:
     return dataset_path
 
 
+def is_fuse_mounted_path(filepath):
+    """
+    Determine whether a given file path resides on a FUSE-mounted filesystem.
+
+    Args:
+        filepath (`str`):
+            Path to a file.
+    """
+    filepath = os.path.abspath(filepath)
+
+    partitions = psutil.disk_partitions(all=True)
+    fuse_partitions = [p.mountpoint for p in partitions if "fuse" in p.fstype]
+
+    for fuse_path in fuse_partitions:
+        if filepath.startswith(fuse_path):
+            return True
+    return False
+
+
 def is_remote_filesystem(fs: fsspec.AbstractFileSystem) -> bool:
     """
     Validates if filesystem has remote protocol.

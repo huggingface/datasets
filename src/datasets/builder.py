@@ -54,6 +54,7 @@ from .download.mock_download_manager import MockDownloadManager
 from .download.streaming_download_manager import StreamingDownloadManager, xopen
 from .features import Features
 from .filesystems import (
+    is_fuse_mounted_path,
     is_remote_filesystem,
     rename,
 )
@@ -757,6 +758,8 @@ class DatasetBuilder:
         # output_dir can be a remote bucket on GCS or S3 (when using BeamBasedBuilder for distributed data processing)
         fs_token_paths = fsspec.get_fs_token_paths(output_dir, storage_options=storage_options)
         self._fs: fsspec.AbstractFileSystem = fs_token_paths[0]
+        if is_fuse_mounted_path(output_dir):
+            self._fs = create_fuse_file_system(self._fs)
         is_local = not is_remote_filesystem(self._fs)
         self._output_dir = fs_token_paths[2][0] if is_local else self._fs.unstrip_protocol(fs_token_paths[2][0])
 
