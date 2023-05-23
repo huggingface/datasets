@@ -1,12 +1,15 @@
 import importlib
+import os
 import shutil
 import threading
 from typing import List
 
 import fsspec
 import fsspec.asyn
+import psutil
 
 from . import compression
+from .fusefilesystem import FuseFileSystem
 from .hffilesystem import HfFileSystem
 
 
