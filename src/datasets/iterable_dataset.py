@@ -11,7 +11,8 @@ import numpy as np
 import pyarrow as pa
 
 from . import config
-from .arrow_dataset import DatasetInfoMixin
+from .arrow_dataset import DatasetInfoMixin, Dataset
+from .arrow_reader import ArrowReader
 from .features import Features
 from .features.features import FeatureType, _align_features, _check_if_features_can_be_aligned
 from .filesystems import _reset_fsspec_lock
@@ -1413,6 +1414,24 @@ class IterableDataset(DatasetInfoMixin):
             streaming=True,
             **kwargs,
         ).read()
+
+    @staticmethod
+    def from_file(filename: str, in_memory: bool = False) -> "IterableDataset":
+        """Instantiate a IterableDataset from Arrow table at filename.
+
+        Args:
+            filename (`str`):
+                File name of the dataset.
+            in_memory (`bool`, defaults to `False`):
+                Whether to copy the data in-memory.
+
+        Returns:
+            [`IterableDataset`]
+        """
+        pa_table = ArrowReader.read_table(filename, in_memory=in_memory)
+        inferred_features = Features.from_arrow_schema(pa_table.schema)
+        ex_iterable = ExamplesIterable(Dataset._generate_examples_from_table, kwargs={"arrow_table": pa_table})
+        return IterableDataset(ex_iterable=ex_iterable, info=DatasetInfo(features=inferred_features))
 
     def with_format(
         self,
