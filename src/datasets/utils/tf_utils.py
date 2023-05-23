@@ -15,6 +15,8 @@
 """TF-specific utils import."""
 
 import os
+import warnings
+from functools import partial
 from math import ceil
 from uuid import uuid4
 
@@ -129,6 +131,108 @@ def np_get_batch(
             array = array.astype(cast_dtype)
             out_batch.append(array)
     return out_batch
+
+
+def dataset_to_tf(
+    dataset,
+    cols_to_retain,
+    collate_fn,
+    collate_fn_args,
+    columns_to_np_types,
+    output_signature,
+    shuffle,
+    batch_size,
+    drop_remainder,
+):
+    """Create a tf.data.Dataset from the underlying Dataset. This is a single-process method - the multiprocess
+    equivalent is multiprocess_dataset_to_tf.
+
+            Args:
+                dataset (`Dataset`): Dataset to wrap with tf.data.Dataset.
+                cols_to_retain (`List[str]`): Dataset column(s) to load in the
+                    tf.data.Dataset. It is acceptable to include column names that are created by the `collate_fn` and
+                    that do not exist in the original dataset.
+                collate_fn(`Callable`): A function or callable object (such as a `DataCollator`) that will collate
+                    lists of samples into a batch.
+                collate_fn_args (`Dict`): A  `dict` of keyword arguments to be passed to the
+                    `collate_fn`. Can be empty.
+                columns_to_np_types (`Dict[str, np.dtype]`): A `dict` mapping column names to numpy dtypes.
+                output_signature (`Dict[str, tf.TensorSpec]`): A `dict` mapping column names to
+                    `tf.TensorSpec` objects.
+                shuffle(`bool`): Shuffle the dataset order when loading. Recommended True for training, False for
+                    validation/evaluation.
+                batch_size (`int`): Size of batches to load from the dataset.
+                drop_remainder(`bool`, default `None`): Drop the last incomplete batch when loading. If not provided,
+                    defaults to the same setting as shuffle.
+
+            Returns:
+                `tf.data.Dataset`
+    """
+    if config.TF_AVAILABLE:
+        import tensorflow as tf
+    else:
+        raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
+
+    if hasattr(tf, "random_index_shuffle"):
+        random_index_shuffle = tf.random_index_shuffle
+    elif hasattr(tf.random.experimental, "index_shuffle"):
+        random_index_shuffle = tf.random.experimental.index_shuffle
+    else:
+        if len(dataset) > 10_000_000:
+            warnings.warn(
+                "to_tf_dataset() can be memory-inefficient on versions of TensorFlow older than 2.9. "
+                "If you are iterating over a dataset with a very large number of samples, consider "
+                "upgrading to TF >= 2.9."
+            )
+        random_index_shuffle = None
+
+    getter_fn = partial(
+        np_get_batch,
+        dataset=dataset,
+        cols_to_retain=cols_to_retain,
+        collate_fn=collate_fn,
+        collate_fn_args=collate_fn_args,
+        columns_to_np_types=columns_to_np_types,
+        return_dict=False,  # TF expects numpy_function to return a list and will not accept a dict
+    )
+
+    @tf.function(input_signature=[tf.TensorSpec(None, tf.int64)])
+    def fetch_function(indices):
+        output = tf.numpy_function(
+            getter_fn,
+            inp=[indices],
+            # This works because dictionaries always output in the same order
+            Tout=[tf.dtypes.as_dtype(dtype) for dtype in columns_to_np_types.values()],
+        )
+        return {key: output[i] for i, key in enumerate(columns_to_np_types.keys())}
+
+    tf_dataset = tf.data.Dataset.range(len(dataset))
+
+    if shuffle and random_index_shuffle is not None:
+        tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder)
+        base_seed = tf.fill((3,), value=tf.cast(-1, dtype=tf.int64))
+
+        def scan_random_indices(state, indices):
+            if tf.reduce_all(state == -1):
+                # This generates a new random seed once per epoch only,
+                # to ensure that we iterate over each sample exactly once per epoch
+                state = tf.random.uniform(shape=(3,), maxval=2**62, dtype=tf.int64)
+            shuffled_indices = random_index_shuffle(index=indices, seed=state, max_index=len(dataset) - 1)
+            return state, shuffled_indices
+
+        tf_dataset = tf_dataset.scan(base_seed, scan_random_indices)
+    elif shuffle:
+        tf_dataset = tf_dataset.shuffle(len(tf_dataset))
+        tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder)
+    else:
+        tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder)
+
+    tf_dataset = tf_dataset.map(fetch_function)
+
+    def ensure_shapes(input_dict):
+        return {key: tf.ensure_shape(val, output_signature[key].shape) for key, val in input_dict.items()}
+
+    return tf_dataset.map(ensure_shapes)
 
 
 class SharedMemoryContext:
