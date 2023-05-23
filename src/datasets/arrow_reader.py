@@ -467,16 +467,13 @@ def _rel_to_abs_instr(rel_instr, name2len):
     else:
         from_ = 0 if from_ is None else from_
         to = num_examples if to is None else to
-    if abs(from_) > num_examples or abs(to) > num_examples:
-        msg = f'Requested slice [{from_ or ""}:{to or ""}] incompatible with {num_examples} examples.'
-        raise ValueError(msg)
     if from_ < 0:
         from_ = num_examples + from_
-    elif from_ == 0:
+    if from_ <= 0:
         from_ = None
     if to < 0:
         to = num_examples + to
-    elif to == num_examples:
+    if to >= num_examples:
         to = None
     return _AbsoluteInstruction(split, from_, to)
 
