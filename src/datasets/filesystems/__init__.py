@@ -1,4 +1,5 @@
 import importlib
+import shutil
 import threading
 from typing import List
 
@@ -52,6 +53,18 @@ def is_remote_filesystem(fs: fsspec.AbstractFileSystem) -> bool:
         return True
     else:
         return False
+
+
+def rename(fs: fsspec.AbstractFileSystem, src: str, dst: str):
+    """
+    Renames the file `src` in `fs` to `dst`.
+    """
+    is_local = not is_remote_filesystem(fs)
+    if is_local:
+        # LocalFileSystem.mv does copy + rm, it is more efficient to simply move a local directory
+        shutil.move(fs._strip_protocol(src), fs._strip_protocol(dst))
+    else:
+        fs.mv(src, dst, recursive=True)
 
 
 def _reset_fsspec_lock() -> None:

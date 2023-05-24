@@ -1217,6 +1217,8 @@ class DatasetDict(dict):
 
         if is_local:
             Path(dataset_dict_path).resolve().mkdir(parents=True, exist_ok=True)
+        else:
+            fs.makedirs(dataset_dict_path, exist_ok=True)
 
         with fs.open(path_join(dataset_dict_path, config.DATASETDICT_JSON_FILENAME), "w", encoding="utf-8") as f:
             json.dump({"splits": list(self)}, f)
@@ -1678,6 +1680,7 @@ class IterableDatasetDict(dict):
         batch_size: int = 1000,
         drop_last_batch: bool = False,
         remove_columns: Optional[Union[str, List[str]]] = None,
+        fn_kwargs: Optional[dict] = None,
     ) -> "IterableDatasetDict":
         """
         Apply a function to all the examples in the iterable dataset (individually or in batches) and update them.
@@ -1724,6 +1727,8 @@ class IterableDatasetDict(dict):
                 Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
+            fn_kwargs (`Dict`, *optional*, defaults to `None`):
+                Keyword arguments to be passed to `function`
 
         Example:
 
@@ -1749,6 +1754,7 @@ class IterableDatasetDict(dict):
                     batch_size=batch_size,
                     drop_last_batch=drop_last_batch,
                     remove_columns=remove_columns,
+                    fn_kwargs=fn_kwargs,
                 )
                 for k, dataset in self.items()
             }
@@ -1761,6 +1767,7 @@ class IterableDatasetDict(dict):
         input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
+        fn_kwargs: Optional[dict] = None,
     ) -> "IterableDatasetDict":
         """Apply a filter function to all the elements so that the dataset only includes examples according to the filter function.
         The filtering is done on-the-fly when iterating over the dataset.
@@ -1785,6 +1792,8 @@ class IterableDatasetDict(dict):
                 Provide batch of examples to `function`
             batch_size (`int`, *optional*, defaults to `1000`):
                 Number of examples per batch provided to `function` if `batched=True`.
+            fn_kwargs (`Dict`, *optional*, defaults to `None`):
+                Keyword arguments to be passed to `function`
 
         Example:
 
@@ -1808,6 +1817,7 @@ class IterableDatasetDict(dict):
                     input_columns=input_columns,
                     batched=batched,
                     batch_size=batch_size,
+                    fn_kwargs=fn_kwargs,
                 )
                 for k, dataset in self.items()
             }

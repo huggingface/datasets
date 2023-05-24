@@ -1,10 +1,12 @@
 from typing import List, Optional, TypeVar
 
 from .arrow_dataset import Dataset, _concatenate_map_style_datasets, _interleave_map_style_datasets
+from .dataset_dict import DatasetDict, IterableDatasetDict
 from .info import DatasetInfo
 from .iterable_dataset import IterableDataset, _concatenate_iterable_datasets, _interleave_iterable_datasets
 from .splits import NamedSplit
 from .utils import logging
+from .utils.py_utils import Literal
 
 
 logger = logging.get_logger(__name__)
@@ -19,7 +21,7 @@ def interleave_datasets(
     seed: Optional[int] = None,
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
-    stopping_strategy: Optional[str] = "first_exhausted",
+    stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
 ) -> DatasetType:
     """
     Interleave several datasets (sources) into a single dataset.
@@ -32,6 +34,11 @@ def interleave_datasets(
 
     The resulting dataset ends when one of the source datasets runs out of examples except when `oversampling` is `True`,
     in which case, the resulting dataset ends when all datasets have ran out of examples at least one time.
+
+    Note for iterable datasets:
+
+    In a distributed setup or in PyTorch DataLoader workers, the stopping strategy is applied per process.
+    Therefore the "first_exhausted" strategy on an sharded iterable dataset can generate less samples in total (up to 1 missing sample per subdataset per worker).
 
     Args:
         datasets (`List[Dataset]` or `List[IterableDataset]`):
@@ -47,7 +54,7 @@ def interleave_datasets(
         split ([`NamedSplit`], *optional*):
             Name of the dataset split.
             <Added version="2.4.0"/>
-        stopping_strategy (`str`, *optional*, defaults to `first_exhausted`):
+        stopping_strategy (`str`, defaults to `first_exhausted`):
             Two strategies are proposed right now, `first_exhausted` and `all_exhausted`.
             By default, `first_exhausted` is an undersampling strategy, i.e the dataset construction is stopped as soon as one dataset has ran out of samples.
             If the strategy is `all_exhausted`,  we use an oversampling strategy, i.e the dataset construction is stopped as soon as every samples of every dataset has been added at least once.
@@ -113,20 +120,32 @@ def interleave_datasets(
 
     if not datasets:
         raise ValueError("Unable to interleave an empty list of datasets.")
-    iterable = isinstance(datasets[0], IterableDataset)
-    map_style = isinstance(datasets[0], Dataset)
-    if not (iterable ^ map_style):
-        raise ValueError(
-            f"Expected a list of Dataset objects or a list of IterableDataset objects, but first element is a {type(datasets[0])}"
-        )
-    for dataset in datasets[1:]:
-        if (map_style and not isinstance(dataset, Dataset)) or (iterable and not isinstance(dataset, IterableDataset)):
+    for i, dataset in enumerate(datasets):
+        if not isinstance(dataset, (Dataset, IterableDataset)):
+            if isinstance(dataset, (DatasetDict, IterableDatasetDict)):
+                if not dataset:
+                    raise ValueError(
+                        f"Expected a list of Dataset objects or a list of IterableDataset objects, but element at position {i} "
+                        "is an empty dataset dictionary."
+                    )
+                raise ValueError(
+                    f"Dataset at position {i} has at least one split: {list(dataset)}\n"
+                    f"Please pick one to interleave with the other datasets, for example: dataset['{next(iter(dataset))}']"
+                )
             raise ValueError(
-                f"Unable to interleave a {type(datasets[0])} with a {type(dataset)}. Expected a list of Dataset objects or a list of IterableDataset objects."
+                f"Expected a list of Dataset objects or a list of IterableDataset objects, but element at position {i} is a {type(dataset).__name__}."
+            )
+        if i == 0:
+            dataset_type, other_type = (
+                (Dataset, IterableDataset) if isinstance(dataset, Dataset) else (IterableDataset, Dataset)
+            )
+        elif not isinstance(dataset, dataset_type):
+            raise ValueError(
+                f"Unable to interleave a {dataset_type.__name__} (at position 0) with a {other_type.__name__} (at position {i}). Expected a list of Dataset objects or a list of IterableDataset objects."
             )
     if stopping_strategy not in ["first_exhausted", "all_exhausted"]:
         raise ValueError(f"{stopping_strategy} is not supported. Please enter a valid stopping_strategy.")
-    if map_style:
+    if dataset_type is Dataset:
         return _interleave_map_style_datasets(
             datasets, probabilities, seed, info=info, split=split, stopping_strategy=stopping_strategy
         )
@@ -167,18 +186,30 @@ def concatenate_datasets(
 
     if not dsets:
         raise ValueError("Unable to concatenate an empty list of datasets.")
-    iterable = isinstance(dsets[0], IterableDataset)
-    map_style = isinstance(dsets[0], Dataset)
-    if not (iterable ^ map_style):
-        raise ValueError(
-            f"Expected a list of Dataset objects or a list of IterableDataset objects, but first element is a {type(dsets[0])}"
-        )
-    for dataset in dsets[1:]:
-        if (map_style and not isinstance(dataset, Dataset)) or (iterable and not isinstance(dataset, IterableDataset)):
+    for i, dataset in enumerate(dsets):
+        if not isinstance(dataset, (Dataset, IterableDataset)):
+            if isinstance(dataset, (DatasetDict, IterableDatasetDict)):
+                if not dataset:
+                    raise ValueError(
+                        f"Expected a list of Dataset objects or a list of IterableDataset objects, but element at position {i} "
+                        "is an empty dataset dictionary."
+                    )
+                raise ValueError(
+                    f"Dataset at position {i} has at least one split: {list(dataset)}\n"
+                    f"Please pick one to interleave with the other datasets, for example: dataset['{next(iter(dataset))}']"
+                )
             raise ValueError(
-                f"Unable to concatenate a {type(dsets[0])} with a {type(dataset)}. Expected a list of Dataset objects or a list of IterableDataset objects."
+                f"Expected a list of Dataset objects or a list of IterableDataset objects, but element at position {i} is a {type(dataset).__name__}."
             )
-    if map_style:
+        if i == 0:
+            dataset_type, other_type = (
+                (Dataset, IterableDataset) if isinstance(dataset, Dataset) else (IterableDataset, Dataset)
+            )
+        elif not isinstance(dataset, dataset_type):
+            raise ValueError(
+                f"Unable to interleave a {dataset_type.__name__} (at position 0) with a {other_type.__name__} (at position {i}). Expected a list of Dataset objects or a list of IterableDataset objects."
+            )
+    if dataset_type is Dataset:
         return _concatenate_map_style_datasets(dsets, info=info, split=split, axis=axis)
     else:
         return _concatenate_iterable_datasets(dsets, info=info, split=split, axis=axis)
