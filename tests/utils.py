@@ -14,6 +14,7 @@ from unittest.mock import patch
 
 import pyarrow as pa
 import pytest
+import requests
 from packaging import version
 
 from datasets import config
@@ -62,6 +63,18 @@ require_sndfile = pytest.mark.skipif(
 require_beam = pytest.mark.skipif(
     not config.BEAM_AVAILABLE or config.DILL_VERSION >= version.parse("0.3.2"),
     reason="test requires apache-beam and a compatible dill version",
+)
+
+# Dill-cloudpickle compatibility
+require_dill_gt_0_3_2 = pytest.mark.skipif(
+    config.DILL_VERSION <= version.parse("0.3.2"),
+    reason="test requires dill>0.3.2 for cloudpickle compatibility",
+)
+
+# Windows
+require_not_windows = pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="test should not be run on Windows",
 )
 
 
@@ -236,6 +249,21 @@ def require_spacy_model(model):
     return _require_spacy_model
 
 
+def require_pyspark(test_case):
+    """
+    Decorator marking a test that requires pyspark.
+
+    These tests are skipped when pyspark isn't installed.
+
+    """
+    try:
+        import pyspark  # noqa F401
+    except ImportError:
+        return unittest.skip("test requires pyspark")(test_case)
+    else:
+        return test_case
+
+
 def slow(test_case):
     """
     Decorator marking a test as slow.
@@ -322,9 +350,9 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
     HF_DATASETS_OFFLINE_SET_TO_1: the HF_DATASETS_OFFLINE environment variable is set to 1.
         This makes the http/ftp calls of the library instantly fail and raise an OfflineModeEmabled error.
     """
-    from requests import request as online_request
+    online_request = requests.Session().request
 
-    def timeout_request(method, url, **kwargs):
+    def timeout_request(session, method, url, **kwargs):
         # Change the url to an invalid url so that the connection hangs
         invalid_url = "https://10.255.255.1"
         if kwargs.get("timeout") is None:
@@ -342,18 +370,16 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
             e.args = (max_retry_error,)
             raise
 
-    def offline_socket(*args, **kwargs):
-        raise OSError("Offline mode is enabled.")
+    def raise_connection_error(session, prepared_request, **kwargs):
+        raise requests.ConnectionError("Offline mode is enabled.", request=prepared_request)
 
     if mode is OfflineSimulationMode.CONNECTION_FAILS:
-        # inspired from https://stackoverflow.com/a/18601897
-        with patch("socket.socket", offline_socket):
+        with patch("requests.Session.send", raise_connection_error):
             yield
     elif mode is OfflineSimulationMode.CONNECTION_TIMES_OUT:
         # inspired from https://stackoverflow.com/a/904609
-        with patch("requests.request", timeout_request):
-            with patch("requests.api.request", timeout_request):
-                yield
+        with patch("requests.Session.request", timeout_request):
+            yield
     elif mode is OfflineSimulationMode.HF_DATASETS_OFFLINE_SET_TO_1:
         with patch("datasets.config.HF_DATASETS_OFFLINE", True):
             yield

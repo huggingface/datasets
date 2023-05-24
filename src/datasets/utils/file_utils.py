@@ -621,6 +621,9 @@ def get_from_cache(
 
         logger.info(f"storing {url} in cache at {cache_path}")
         shutil.move(temp_file.name, cache_path)
+        umask = os.umask(0o666)
+        os.umask(umask)
+        os.chmod(cache_path, 0o666 & ~umask)
 
         logger.info(f"creating metadata file for {cache_path}")
         meta = {"url": url, "etag": etag}

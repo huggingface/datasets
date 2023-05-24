@@ -297,6 +297,15 @@ def zip_csv_path(csv_path, csv2_path, tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
+def zip_uppercase_csv_path(csv_path, csv2_path, tmp_path_factory):
+    path = tmp_path_factory.mktemp("data") / "dataset.csv.zip"
+    with zipfile.ZipFile(path, "w") as f:
+        f.write(csv_path, arcname=os.path.basename(csv_path.replace(".csv", ".CSV")))
+        f.write(csv2_path, arcname=os.path.basename(csv2_path.replace(".csv", ".CSV")))
+    return path
+
+
+@pytest.fixture(scope="session")
 def zip_csv_with_dir_path(csv_path, csv2_path, tmp_path_factory):
     path = tmp_path_factory.mktemp("data") / "dataset_with_dir.csv.zip"
     with zipfile.ZipFile(path, "w") as f:
@@ -477,6 +486,15 @@ def zip_text_with_dir_path(text_path, text2_path, tmp_path_factory):
     with zipfile.ZipFile(path, "w") as f:
         f.write(text_path, arcname=os.path.join("main_dir", os.path.basename(text_path)))
         f.write(text2_path, arcname=os.path.join("main_dir", os.path.basename(text2_path)))
+    return path
+
+
+@pytest.fixture(scope="session")
+def zip_unsupported_ext_path(text_path, text2_path, tmp_path_factory):
+    path = tmp_path_factory.mktemp("data") / "dataset.ext.zip"
+    with zipfile.ZipFile(path, "w") as f:
+        f.write(text_path, arcname=os.path.basename("unsupported.ext"))
+        f.write(text2_path, arcname=os.path.basename("unsupported_2.ext"))
     return path
 
 

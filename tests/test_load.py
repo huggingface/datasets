@@ -209,6 +209,9 @@ def metric_loading_script_dir(tmp_path):
         (["train.jsonl"], "json", {}),
         (["train.parquet"], "parquet", {}),
         (["train.txt"], "text", {}),
+        (["uppercase.TXT"], "text", {}),
+        (["unsupported.ext"], None, {}),
+        ([""], None, {}),
     ],
 )
 def test_infer_module_for_data_files(data_files, expected_module, expected_builder_kwargs):
@@ -217,9 +220,24 @@ def test_infer_module_for_data_files(data_files, expected_module, expected_build
     assert builder_kwargs == expected_builder_kwargs
 
 
-@pytest.mark.parametrize("data_file, expected_module", [("zip_csv_path", "csv"), ("zip_csv_with_dir_path", "csv")])
-def test_infer_module_for_data_files_in_archives(data_file, expected_module, zip_csv_path, zip_csv_with_dir_path):
-    data_file_paths = {"zip_csv_path": zip_csv_path, "zip_csv_with_dir_path": zip_csv_with_dir_path}
+@pytest.mark.parametrize(
+    "data_file, expected_module",
+    [
+        ("zip_csv_path", "csv"),
+        ("zip_csv_with_dir_path", "csv"),
+        ("zip_uppercase_csv_path", "csv"),
+        ("zip_unsupported_ext_path", None),
+    ],
+)
+def test_infer_module_for_data_files_in_archives(
+    data_file, expected_module, zip_csv_path, zip_csv_with_dir_path, zip_uppercase_csv_path, zip_unsupported_ext_path
+):
+    data_file_paths = {
+        "zip_csv_path": zip_csv_path,
+        "zip_csv_with_dir_path": zip_csv_with_dir_path,
+        "zip_uppercase_csv_path": zip_uppercase_csv_path,
+        "zip_unsupported_ext_path": zip_unsupported_ext_path,
+    }
     data_files = [str(data_file_paths[data_file])]
     inferred_module, _ = infer_module_for_data_files_in_archives(data_files, False)
     assert inferred_module == expected_module
@@ -852,19 +870,19 @@ def test_loading_from_the_datasets_hub():
 
 @pytest.mark.integration
 def test_loading_from_the_datasets_hub_with_use_auth_token():
-    from requests import get
+    true_request = requests.Session().request
 
-    def assert_auth(url, *args, headers, **kwargs):
+    def assert_auth(method, url, *args, headers, **kwargs):
         assert headers["authorization"] == "Bearer foo"
-        return get(url, *args, headers=headers, **kwargs)
+        return true_request(method, url, *args, headers=headers, **kwargs)
 
-    with patch("requests.get") as mock_head:
-        mock_head.side_effect = assert_auth
+    with patch("requests.Session.request") as mock_request:
+        mock_request.side_effect = assert_auth
         with tempfile.TemporaryDirectory() as tmp_dir:
             with offline():
                 with pytest.raises((ConnectionError, requests.exceptions.ConnectionError)):
                     load_dataset(SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER, cache_dir=tmp_dir, use_auth_token="foo")
-        mock_head.assert_called()
+        mock_request.assert_called()
 
 
 @pytest.mark.integration
