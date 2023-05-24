@@ -864,7 +864,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                 else:
                     function_args.append(current_idx)
             # then apply the transform
-            mask = self.function(*function_args)
+            mask = self.function(*function_args, **self.fn_kwargs)
             # yield the filtered table
             if self.batched:
                 yield key, pa_table.filter(mask)
