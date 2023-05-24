@@ -1248,7 +1248,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Whether to copy the data in-memory.
             working_dir (`str`, *optional*)
                 Intermediate directory for each Spark worker to write data to before moving it to `cache_dir`. Setting
-                a non-NFS intermediate directory may improve performance. Can also be set via env var HF_WORKING_DIR.
+                a non-NFS intermediate directory may improve performance.
             load_from_cache_file (`bool`):
                 Whether to load the dataset from the cache if possible.
 

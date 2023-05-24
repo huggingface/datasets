@@ -168,8 +168,7 @@ class Spark(datasets.DatasetBuilder):
         import pyspark
 
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
-        working_dir = self._working_dir or os.environ.get("HF_WORKING_DIR")
-        working_fpath = os.path.join(working_dir, os.path.basename(fpath)) if working_dir else fpath
+        working_fpath = os.path.join(self._working_dir, os.path.basename(fpath)) if self._working_dir else fpath
         embed_local_files = file_format == "parquet"
 
         # Define these so that we don't reference self in write_arrow, which will result in a pickling error due to
@@ -228,7 +227,7 @@ class Spark(datasets.DatasetBuilder):
             if working_fpath != fpath:
                 for file in os.listdir(os.path.dirname(working_fpath)):
                     dest = os.path.join(os.path.dirname(fpath), os.path.basename(file))
-                    os.rename(file, dest)
+                    shutil.move(file, dest)
 
         stats = (
             self.df.mapInArrow(write_arrow, "task_id: long, num_examples: long, num_bytes: long")
