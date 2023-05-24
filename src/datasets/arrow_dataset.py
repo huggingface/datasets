@@ -41,6 +41,7 @@ from typing import (
     Any,
     BinaryIO,
     Callable,
+    Collection,
     Dict,
     Iterable,
     Iterator,
@@ -2742,12 +2743,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset = dataset.cast(features=template.features)
         return dataset
 
-    def _getitem(self, key: Union[int, slice, str, Sequence_[int], Sequence_[bool]], **kwargs) -> Union[Dict, List]:
+    def _getitem(self, key: Union[int, slice, str, Collection[int]], **kwargs) -> Union[Dict, List]:
         """
-        Can be used to index columns (by string names) or rows (by integer index, slices, or sequence of indices or bools)
+        Can be used to index columns (by string names) or rows (by integer index, slices, or collection of integer indices)
         """
         if isinstance(key, bool):
-            raise TypeError("dataset index must be int, str, slice or a sequence of int or bool, not bool")
+            raise TypeError("dataset index must be int, str, slice or collection of int, not bool")
         format_type = kwargs["format_type"] if "format_type" in kwargs else self._format_type
         format_columns = kwargs["format_columns"] if "format_columns" in kwargs else self._format_columns
         output_all_columns = (
