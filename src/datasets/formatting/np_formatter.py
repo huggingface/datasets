@@ -76,7 +76,7 @@ class NumpyFormatter(TensorFormatter[Mapping, np.ndarray, Mapping]):
                 return data_struct
 
         # support for torch, tf, jax etc.
-        if hasattr(data_struct, "__array__") and not isinstance(data_struct, np.ndarray):
+        if hasattr(data_struct, "__array__") and not isinstance(data_struct, (np.ndarray, np.character, np.number)):
             data_struct = data_struct.__array__()
         # support for nested types like struct of list of struct
         if isinstance(data_struct, (list, tuple)):

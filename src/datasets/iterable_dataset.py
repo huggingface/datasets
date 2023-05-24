@@ -2334,7 +2334,7 @@ def _split_by_node_iterable_dataset(dataset: IterableDataset, rank: int, world_s
         ex_iterable=dataset._ex_iterable,
         info=dataset._info.copy(),
         split=dataset._split,
-        format_type=dataset._format_type,
+        formatting=dataset._formatting,
         shuffling=copy.deepcopy(dataset._shuffling),
         distributed=distributed,
         token_per_repo_id=dataset._token_per_repo_id,

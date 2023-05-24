@@ -1215,7 +1215,7 @@ def test_iterable_dataset_torch_dataloader_parallel():
     from torch.utils.data import DataLoader
 
     ex_iterable = ExamplesIterable(generate_examples_fn, {})
-    dataset = IterableDataset(ex_iterable).with_format("torch")
+    dataset = IterableDataset(ex_iterable)
     dataloader = DataLoader(dataset, num_workers=2, batch_size=None)
     result = list(dataloader)
     expected = [example for _, example in ex_iterable]
@@ -1230,7 +1230,7 @@ def test_sharded_iterable_dataset_torch_dataloader_parallel(n_shards, num_worker
     from torch.utils.data import DataLoader
 
     ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": [f"{i}.txt" for i in range(n_shards)]})
-    dataset = IterableDataset(ex_iterable).with_format("torch")
+    dataset = IterableDataset(ex_iterable)
     dataloader = DataLoader(dataset, batch_size=None, num_workers=num_workers)
     result = list(dataloader)
     expected = [example for _, example in ex_iterable]
@@ -1244,9 +1244,7 @@ def test_sharded_iterable_dataset_torch_dataloader_parallel(n_shards, num_worker
 def test_iterable_dataset_from_hub_torch_dataloader_parallel(num_workers, tmp_path):
     from torch.utils.data import DataLoader
 
-    dataset = load_dataset(
-        SAMPLE_DATASET_IDENTIFIER, cache_dir=str(tmp_path), streaming=True, split="train"
-    ).with_format("torch")
+    dataset = load_dataset(SAMPLE_DATASET_IDENTIFIER, cache_dir=str(tmp_path), streaming=True, split="train")
     dataloader = DataLoader(dataset, batch_size=None, num_workers=num_workers)
     result = list(dataloader)
     assert len(result) == 2
