@@ -2730,6 +2730,16 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(batch.shape.as_list(), [2])
                 self.assertEqual(batch.dtype.name, "int64")
                 del transform_dset
+            with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+                tf_dataset = dset.to_tf_dataset(columns="col_3", num_workers=num_workers) # batch_size=None, optional
+                single_example = next(iter(tf_dataset))
+                self.assertEqual(single_example.shape.as_list(), [1])
+                self.assertEqual(single_example.dtype.name, "int64")
+                # Assert that we can easily batch it with `tf.data.Dataset.batch` method
+                batched_dataset = tf_dataset.batch(batch_size=2)
+                batch = next(iter(batched_dataset))
+                self.assertEqual(batch.shape.as_list(), [2, 1])
+                self.assertEqual(batch.dtype.name, "int64")
         del tf_dataset  # For correct cleanup
 
     @require_tf
