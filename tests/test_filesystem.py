@@ -1,11 +1,12 @@
+import importlib
 import os
 
 import fsspec
 import pytest
+from fsspec import register_implementation
 from fsspec.registry import _registry as _fsspec_registry
 
 from datasets.filesystems import COMPRESSION_FILESYSTEMS, HfFileSystem, extract_path_from_uri, is_remote_filesystem
-
 from .utils import require_lz4, require_zstandard
 
 
@@ -80,3 +81,13 @@ def test_hf_filesystem(hf_token, hf_api, hf_private_dataset_repo_txt_data, text_
     assert hffs.isfile(".gitattributes") and hffs.isfile("data/text_data.txt")
     with open(text_file) as f:
         assert hffs.open("data/text_data.txt", "r").read() == f.read()
+
+
+def test_fs_overwrites():
+
+    # Import module
+    import datasets.filesystems
+
+    # Overwrite protocol and reload
+    register_implementation("bz2", None, clobber=True)
+    importlib.reload(datasets.filesystems)
