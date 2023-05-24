@@ -85,9 +85,15 @@ def test_hf_filesystem(hf_token, hf_api, hf_private_dataset_repo_txt_data, text_
 
 def test_fs_overwrites():
 
+    protocol = "bz2"
+
     # Import module
     import datasets.filesystems
 
     # Overwrite protocol and reload
-    register_implementation("bz2", None, clobber=True)
-    importlib.reload(datasets.filesystems)
+    register_implementation(protocol, None, clobber=True)
+    with pytest.warns(UserWarning) as warning_info:
+        importlib.reload(datasets.filesystems)
+
+    assert len(warning_info) == 1
+    assert str(warning_info[0].message) == f"A filesystem protocol was already set for {protocol} and will be overwritten."
