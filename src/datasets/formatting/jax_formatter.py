@@ -123,20 +123,17 @@ class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
     def _recursive_tensorize(self, data_struct):
         import jax
 
-        # check if already in expected format
-        if isinstance(data_struct, jax.Array) and (
-            data_struct.dtype == self.expected_dtype or self.expected_dtype is None
-        ):
-            return data_struct
+        if isinstance(data_struct, np.ndarray):
+            if data_struct.dtype == object:
+                return self._consolidate([self.recursive_tensorize(substruct) for substruct in data_struct])
+            elif data_struct.dtype == self.expected_dtype or self.expected_dtype is None:
+                return data_struct
 
         # support for torch, tf, jax etc.
         if hasattr(data_struct, "__array__") and not isinstance(data_struct, jax.Array):
             data_struct = data_struct.__array__()
         # support for nested types like struct of list of struct
-        if isinstance(data_struct, np.ndarray):
-            if data_struct.dtype == object:  # jax arrays cannot be instantied from an array of objects
-                return self._consolidate([self.recursive_tensorize(substruct) for substruct in data_struct])
-        elif isinstance(data_struct, (list, tuple)):
+        if isinstance(data_struct, (list, tuple)):
             return self._consolidate([self.recursive_tensorize(substruct) for substruct in data_struct])
         return self._tensorize(data_struct)
 

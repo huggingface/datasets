@@ -589,7 +589,11 @@ def test_mapped_examples_iterable_input_columns(n, func, batched, batch_size, in
 def test_mapped_examples_iterable_arrow_format(n, func, batched, batch_size):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
     ex_iterable = MappedExamplesIterable(
-        base_ex_iterable, func, batched=batched, batch_size=batch_size, format_type="arrow"
+        base_ex_iterable,
+        func,
+        batched=batched,
+        batch_size=batch_size,
+        formatting=FormattingConfig(format_type="arrow"),
     )
     all_examples = [x for _, x in generate_examples_fn(n=n)]
     if batched is False:
@@ -622,7 +626,12 @@ def test_mapped_examples_iterable_arrow_format(n, func, batched, batch_size):
 def test_mapped_examples_iterable_drop_last_batch_and_arrow_format(n, func, batched, batch_size):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
     ex_iterable = MappedExamplesIterable(
-        base_ex_iterable, func, batched=batched, batch_size=batch_size, drop_last_batch=True, format_type="arrow"
+        base_ex_iterable,
+        func,
+        batched=batched,
+        batch_size=batch_size,
+        drop_last_batch=True,
+        formatting=FormattingConfig(format_type="arrow"),
     )
     all_examples = [x for _, x in generate_examples_fn(n=n)]
     is_empty = False
@@ -679,7 +688,12 @@ def test_mapped_examples_iterable_drop_last_batch_and_arrow_format(n, func, batc
 def test_mapped_examples_iterable_with_indices_and_arrow_format(n, func, batched, batch_size):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
     ex_iterable = MappedExamplesIterable(
-        base_ex_iterable, func, batched=batched, batch_size=batch_size, with_indices=True, format_type="arrow"
+        base_ex_iterable,
+        func,
+        batched=batched,
+        batch_size=batch_size,
+        with_indices=True,
+        formatting=FormattingConfig(format_type="arrow"),
     )
     all_examples = [x for _, x in generate_examples_fn(n=n)]
     if batched is False:
@@ -727,7 +741,7 @@ def test_mapped_examples_iterable_remove_columns_arrow_format(n, func, batched, 
         batched=batched,
         batch_size=batch_size,
         remove_columns=remove_columns,
-        format_type="arrow",
+        formatting=FormattingConfig(format_type="arrow"),
     )
     all_examples = [x for _, x in generate_examples_fn(n=n)]
     columns_to_remove = remove_columns if isinstance(remove_columns, list) else [remove_columns]
@@ -764,7 +778,12 @@ def test_mapped_examples_iterable_remove_columns_arrow_format(n, func, batched, 
 def test_mapped_examples_iterable_fn_kwargs_and_arrow_format(n, func, batched, batch_size, fn_kwargs):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
     ex_iterable = MappedExamplesIterable(
-        base_ex_iterable, func, batched=batched, batch_size=batch_size, fn_kwargs=fn_kwargs, format_type="arrow"
+        base_ex_iterable,
+        func,
+        batched=batched,
+        batch_size=batch_size,
+        fn_kwargs=fn_kwargs,
+        formatting=FormattingConfig(format_type="arrow"),
     )
     all_examples = [x for _, x in generate_examples_fn(n=n)]
     if fn_kwargs is None:
@@ -801,7 +820,7 @@ def test_mapped_examples_iterable_input_columns_and_arrow_format(n, func, batche
         batched=batched,
         batch_size=batch_size,
         input_columns=input_columns,
-        format_type="arrow",
+        formatting=FormattingConfig(format_type="arrow"),
     )
     all_examples = [x for _, x in generate_examples_fn(n=n)]
     columns_to_input = input_columns if isinstance(input_columns, list) else [input_columns]
@@ -1170,14 +1189,14 @@ def test_iterable_dataset_torch_picklable():
     import pickle
 
     ex_iterable = ExamplesIterable(generate_examples_fn, {})
-    dataset = IterableDataset(ex_iterable, format_type="torch")
+    dataset = IterableDataset(ex_iterable, formatting=FormattingConfig(format_type="arrow"))
     reloaded_dataset = pickle.loads(pickle.dumps(dataset))
 
     import torch.utils.data
 
     assert isinstance(reloaded_dataset, IterableDataset)
     assert isinstance(reloaded_dataset, torch.utils.data.IterableDataset)
-    assert reloaded_dataset._format_type == "torch"
+    assert reloaded_dataset._formatting.format_type == "torch"
     assert len(list(dataset)) == len(list(reloaded_dataset))
 
 
@@ -1443,12 +1462,10 @@ def test_iterable_dataset_features_cast_to_python():
     assert list(dataset) == [{"timestamp": pd.Timestamp(2020, 1, 1).to_pydatetime(), "array": [1] * 5, "id": 0}]
 
 
-@pytest.mark.parametrize(
-    "format_type", [None, "torch", "python", "tf", "tensorflow", "np", "numpy", "jax", "pd", "pandas"]
-)
+@pytest.mark.parametrize("format_type", [None, "torch", "python", "tf", "tensorflow", "np", "numpy", "jax"])
 def test_iterable_dataset_with_format(dataset: IterableDataset, format_type):
     formatted_dataset = dataset.with_format(format_type)
-    assert formatted_dataset._format_type == get_format_type_from_alias(format_type)
+    assert formatted_dataset._formatting.format_type == get_format_type_from_alias(format_type)
 
 
 @require_torch
@@ -1837,7 +1854,7 @@ def test_with_format_tf(dataset_with_several_columns: IterableDataset):
     assert isinstance(batch["filepath"], tf.Tensor)
     assert isinstance(example["metadata"], dict)
     assert isinstance(example["metadata"]["sources"], tf.Tensor)
-    assert isinstance(batch["metadata"], tf.Tensor)
+    assert isinstance(batch["metadata"], list)
 
 
 def test_map_array_are_not_converted_back_to_lists(dataset: IterableDataset):

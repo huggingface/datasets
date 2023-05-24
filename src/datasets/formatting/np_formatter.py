@@ -69,20 +69,17 @@ class NumpyFormatter(TensorFormatter[Mapping, np.ndarray, Mapping]):
         return np.array(value, **{**default_dtype, **self.np_array_kwargs})
 
     def _recursive_tensorize(self, data_struct):
-        # check if already in expected format
-        if isinstance(data_struct, np.ndarray) and (
-            data_struct.dtype == self.expected_dtype or self.expected_dtype is None
-        ):
-            return data_struct
+        if isinstance(data_struct, np.ndarray):
+            if data_struct.dtype == object:
+                return self._consolidate([self.recursive_tensorize(substruct) for substruct in data_struct])
+            elif data_struct.dtype == self.expected_dtype or self.expected_dtype is None:
+                return data_struct
 
         # support for torch, tf, jax etc.
         if hasattr(data_struct, "__array__") and not isinstance(data_struct, np.ndarray):
             data_struct = data_struct.__array__()
         # support for nested types like struct of list of struct
-        if isinstance(data_struct, np.ndarray):
-            if data_struct.dtype == object:  # torch tensors cannot be instantied from an array of objects
-                return self._consolidate([self.recursive_tensorize(substruct) for substruct in data_struct])
-        elif isinstance(data_struct, (list, tuple)):
+        if isinstance(data_struct, (list, tuple)):
             return self._consolidate([self.recursive_tensorize(substruct) for substruct in data_struct])
         return self._tensorize(data_struct)
 

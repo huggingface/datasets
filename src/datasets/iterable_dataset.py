@@ -671,7 +671,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 ):  # ignore last batch
                     return
                 batch = _examples_to_batch(examples)
-                batch = format_dict(batch if format_dict else batch)
+                batch = format_dict(batch) if format_dict else batch
                 # then apply the transform
                 inputs = batch
                 function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
@@ -1226,7 +1226,7 @@ class IterableDataset(DatasetInfoMixin):
             logger.debug(
                 f"{_log_prefix}dataloader worker#{worker_info.id}, ': Starting to iterate over {len(shards_indices)}/{ex_iterable.n_shards} shards."
             )
-            ex_iterable = ex_iterable.shard_data_sources(shards_indices)
+            ex_iterable = ex_iterable.shard_data_sources(worker_id=worker_info.id, num_workers=worker_info.num_workers)
 
             if self._formatting:
                 formatter = get_formatter(self._formatting.format_type, features=self.features)
@@ -2165,7 +2165,7 @@ class IterableDataset(DatasetInfoMixin):
         elif isinstance(self._ex_iterable, TypedExamplesIterable):
             features = self._ex_iterable.features
         else:
-            features = _infer_features_from_batch(self._head())
+            features = _infer_features_from_batch(self.with_format(None)._head())
         info = self.info.copy()
         info.features = features
         return IterableDataset(
