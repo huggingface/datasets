@@ -262,7 +262,8 @@ class NumpyMultiprocessingGenerator:
         }
         self.output_signature = output_signature
         self.shuffle = shuffle
-        self.batch_size = batch_size
+        # Make sure that we set the `batch_size=1` if `batch_size=None`
+        self.batch_size = batch_size or 1
         self.drop_remainder = drop_remainder
         self.num_workers = num_workers
         # Because strings are converted to characters, we need to add one extra dimension to the shape
