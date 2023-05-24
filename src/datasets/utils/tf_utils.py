@@ -226,7 +226,7 @@ def dataset_to_tf(
 
         tf_dataset = tf_dataset.scan(base_seed, scan_random_indices)
     elif shuffle:
-        tf_dataset = tf_dataset.shuffle(len(tf_dataset))
+        tf_dataset = tf_dataset.shuffle(tf_dataset.cardinality())
         tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder)
     else:
         tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder)
