@@ -1,5 +1,6 @@
 import importlib
 import os
+import pickle
 import shutil
 import tempfile
 import time
@@ -975,7 +976,7 @@ def test_load_dataset_builder_with_two_configs_in_metadata():
         datasets.load_dataset_builder(SAMPLE_DATASET_TWO_CONFIG_IN_METADATA, "non-existing-config")
 
 
-def test_load_dataset_builder_with_metadata_configs_pickable():
+def test_load_dataset_builder_with_metadata_configs_pickable_with_dill():
     builder = datasets.load_dataset_builder(SAMPLE_DATASET_ONE_DEFAULT_CONFIG_IN_METADATA)
     builder_class_unpickled = dill.loads(dill.dumps(builder.__class__))
     assert builder.__class__.BUILDER_CONFIGS == builder_class_unpickled.BUILDER_CONFIGS
@@ -984,6 +985,25 @@ def test_load_dataset_builder_with_metadata_configs_pickable():
 
     builder2 = datasets.load_dataset_builder(SAMPLE_DATASET_TWO_CONFIG_IN_METADATA, "v1")
     builder2_class_unpickled = dill.loads(dill.dumps(builder2.__class__))
+    assert (
+        builder2.__class__.BUILDER_CONFIGS
+        == builder2_class_unpickled.BUILDER_CONFIGS
+        != builder_class_unpickled.BUILDER_CONFIGS
+    )
+    assert list(builder2_class_unpickled.builder_configs) == ["v1", "v2"]
+    assert isinstance(builder2_class_unpickled.builder_configs["v1"], AudioFolderConfig)
+    assert isinstance(builder2_class_unpickled.builder_configs["v2"], AudioFolderConfig)
+
+
+def test_load_dataset_builder_with_metadata_configs_pickable_with_pickle():
+    builder = datasets.load_dataset_builder(SAMPLE_DATASET_ONE_DEFAULT_CONFIG_IN_METADATA)
+    builder_class_unpickled = pickle.loads(pickle.dumps(builder.__class__))
+    assert builder.__class__.BUILDER_CONFIGS == builder_class_unpickled.BUILDER_CONFIGS
+    assert list(builder_class_unpickled.builder_configs) == ["default"]
+    assert isinstance(builder_class_unpickled.builder_configs["default"], AudioFolderConfig)
+
+    builder2 = datasets.load_dataset_builder(SAMPLE_DATASET_TWO_CONFIG_IN_METADATA, "v1")
+    builder2_class_unpickled = pickle.loads(pickle.dumps(builder2.__class__))
     assert (
         builder2.__class__.BUILDER_CONFIGS
         == builder2_class_unpickled.BUILDER_CONFIGS
