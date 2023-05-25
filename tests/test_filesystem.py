@@ -7,6 +7,7 @@ from fsspec import register_implementation
 from fsspec.registry import _registry as _fsspec_registry
 
 from datasets.filesystems import COMPRESSION_FILESYSTEMS, HfFileSystem, extract_path_from_uri, is_remote_filesystem
+
 from .utils import require_lz4, require_zstandard
 
 
@@ -84,7 +85,6 @@ def test_hf_filesystem(hf_token, hf_api, hf_private_dataset_repo_txt_data, text_
 
 
 def test_fs_overwrites():
-
     protocol = "bz2"
 
     # Import module
@@ -96,4 +96,7 @@ def test_fs_overwrites():
         importlib.reload(datasets.filesystems)
 
     assert len(warning_info) == 1
-    assert str(warning_info[0].message) == f"A filesystem protocol was already set for {protocol} and will be overwritten."
+    assert (
+        str(warning_info[0].message)
+        == f"A filesystem protocol was already set for {protocol} and will be overwritten."
+    )
