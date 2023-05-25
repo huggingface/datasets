@@ -198,8 +198,15 @@ def dataset_to_tf(
 
     tf_dataset = tf_dataset.map(fetch_function)
 
-    def ensure_shapes(input_dict):
-        return {key: tf.ensure_shape(val, output_signature[key].shape) for key, val in input_dict.items()}
+    if batch_size is not None:
+
+        def ensure_shapes(input_dict):
+            return {key: tf.ensure_shape(val, output_signature[key].shape) for key, val in input_dict.items()}
+
+    else:
+        # Ensure shape but remove batch dimension of output_signature[key].shape
+        def ensure_shapes(input_dict):
+            return {key: tf.ensure_shape(val, output_signature[key].shape[1:]) for key, val in input_dict.items()}
 
     return tf_dataset.map(ensure_shapes)
 
