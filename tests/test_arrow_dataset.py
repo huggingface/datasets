@@ -2832,19 +2832,19 @@ class BaseDatasetTest(TestCase):
         with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
             tf_dataset = dset.to_tf_dataset(columns="col_3", batch_size=None)
             single_example = next(iter(tf_dataset))
-            self.assertEqual(single_example.shape.as_list(), [1])
+            self.assertEqual(single_example.shape.as_list(), [])
             self.assertEqual(single_example.dtype.name, "int64")
             # Assert that we can batch it with `tf.data.Dataset.batch` method
             batched_dataset = tf_dataset.batch(batch_size=2)
             batch = next(iter(batched_dataset))
-            self.assertEqual(batch.shape.as_list(), [2, 1])
+            self.assertEqual(batch.shape.as_list(), [2])
             self.assertEqual(batch.dtype.name, "int64")
         # Test that batching a batch_size=None dataset produces the same results as using batch_size arg
         with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
             batch_size = 2
             tf_dataset_no_batch = dset.to_tf_dataset(columns="col_3")
             tf_dataset_batch = dset.to_tf_dataset(columns="col_3", batch_size=batch_size)
-            self.assertEqual(tf_dataset_no_batch.element_spec, tf_dataset_batch.element_spec)
+            self.assertEqual(tf_dataset_no_batch.element_spec, tf_dataset_batch.unbatch().element_spec)
             self.assertEqual(tf_dataset_no_batch.cardinality(), tf_dataset_batch.cardinality() * batch_size)
             for batch_1, batch_2 in zip(tf_dataset_no_batch.batch(batch_size=batch_size), tf_dataset_batch):
                 self.assertEqual(batch_1.shape, batch_2.shape)
