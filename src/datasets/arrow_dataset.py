@@ -469,6 +469,11 @@ class TensorflowDatasetMixin:
                 drop_remainder=drop_remainder,
             )
         elif num_workers > 0:
+            if batch_size is None:
+                raise NotImplementedError(
+                    "`batch_size` must be specified when using multiple workers, as unbatched multiprocessing "
+                    "is not supported yet. Please provide a `batch_size` if `num_workers` is greater than 0."
+                )
             tf_dataset = multiprocess_dataset_to_tf(
                 dataset=dataset,
                 cols_to_retain=cols_to_retain,
