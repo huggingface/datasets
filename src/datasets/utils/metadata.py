@@ -130,10 +130,10 @@ class DatasetMetadata(dict):
 class MetadataConfigs(Dict[str, Dict[str, Any]]):
     """Should be in format {config_name: {**config_params}}."""
 
-    __configs_field_name: ClassVar[str] = METADATA_CONFIGS_FIELD
+    FIELD_NAME: ClassVar[str] = METADATA_CONFIGS_FIELD
 
-    @classmethod
-    def _raise_if_not_valid(self, metadata_config: dict):
+    @staticmethod
+    def _raise_if_not_valid(metadata_config: dict):
         if isinstance(metadata_config.get("data_files"), dict):
             raise ValueError(
                 f"Expected data_files in YAML to be a string or a list, but got {metadata_config['data_files']}\nExamples:\n"
@@ -152,7 +152,7 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
                 metadata_configs = [metadata_configs]
             elif not isinstance(metadata_configs, list):
                 raise ValueError(
-                    f"Expected {cls.__configs_field_name} to be a dict or a list, but got' {metadata_configs}'"
+                    f"Expected {cls.__configs_field_name} to be a dict or a list, but got '{metadata_configs}'"
                 )
             for metadata_config in metadata_configs:
                 cls._raise_if_not_valid(metadata_config)

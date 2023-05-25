@@ -89,7 +89,7 @@ def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[
     The default split is "train".
 
     Returns:
-        patterns: dictionary of split_name -> list_of patterns
+        patterns: dictionary of split_name -> list of patterns
     """
     if isinstance(patterns, dict):
         return {str(key): value if isinstance(value, list) else [value] for key, value in patterns.items()}
