@@ -546,7 +546,7 @@ def multiprocess_dataset_to_tf(
 
     tf_dataset = tf.data.Dataset.from_generator(data_generator, output_signature=output_signature)
     if drop_remainder:
-        dataset_length = int(len(dataset) // (batch_size))
+        dataset_length = int(len(dataset) // batch_size)
     else:
-        dataset_length = int(ceil(len(dataset) // (batch_size)))
+        dataset_length = int(ceil(len(dataset) / batch_size))
     return tf_dataset.apply(tf.data.experimental.assert_cardinality(dataset_length))
