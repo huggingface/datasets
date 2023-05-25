@@ -9,6 +9,7 @@ from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
 
+import dill
 import pytest
 import requests
 
@@ -974,6 +975,25 @@ def test_load_dataset_builder_with_two_configs_in_metadata():
         datasets.load_dataset_builder(SAMPLE_DATASET_TWO_CONFIG_IN_METADATA, "non-existing-config")
 
 
+def test_load_dataset_builder_with_metadata_configs_pickable():
+    builder = datasets.load_dataset_builder(SAMPLE_DATASET_ONE_DEFAULT_CONFIG_IN_METADATA)
+    builder_class_unpickled = dill.loads(dill.dumps(builder.__class__))
+    assert builder.__class__.BUILDER_CONFIGS == builder_class_unpickled.BUILDER_CONFIGS
+    assert list(builder_class_unpickled.builder_configs) == ["default"]
+    assert isinstance(builder_class_unpickled.builder_configs["default"], AudioFolderConfig)
+
+    builder2 = datasets.load_dataset_builder(SAMPLE_DATASET_TWO_CONFIG_IN_METADATA, "v1")
+    builder2_class_unpickled = dill.loads(dill.dumps(builder2.__class__))
+    assert (
+        builder2.__class__.BUILDER_CONFIGS
+        == builder2_class_unpickled.BUILDER_CONFIGS
+        != builder_class_unpickled.BUILDER_CONFIGS
+    )
+    assert list(builder2_class_unpickled.builder_configs) == ["v1", "v2"]
+    assert isinstance(builder2_class_unpickled.builder_configs["v1"], AudioFolderConfig)
+    assert isinstance(builder2_class_unpickled.builder_configs["v2"], AudioFolderConfig)
+
+
 def test_load_dataset_builder_for_absolute_script_dir(dataset_loading_script_dir, data_dir):
     builder = datasets.load_dataset_builder(dataset_loading_script_dir, data_dir=data_dir)
     assert isinstance(builder, DatasetBuilder)
@@ -1306,6 +1326,10 @@ def test_load_hub_dataset_without_script_with_two_config_in_metadata():
 @pytest.mark.integration
 def test_load_hub_dataset_without_script_with_metadata_config_in_parallel():
     # assert it doesn't fail (pickling of dynamically created class works)
+    ds = load_dataset(SAMPLE_DATASET_ONE_DEFAULT_CONFIG_IN_METADATA, num_poc=2)
+    assert "label" not in ds["train"].features  # assert param `drop_labels=True` from metadata is passed
+    assert len(ds["train"]) == 3 and len(ds["test"]) == 3
+
     ds = load_dataset(SAMPLE_DATASET_TWO_CONFIG_IN_METADATA, "v1", num_proc=2)
     assert "label" not in ds["train"].features  # assert param `drop_labels=True` from metadata is passed
     assert len(ds["train"]) == 3 and len(ds["test"]) == 3

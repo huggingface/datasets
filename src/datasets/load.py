@@ -135,25 +135,6 @@ def import_main_class(module_path, dataset=True) -> Optional[Union[Type[DatasetB
     return module_main_cls
 
 
-class _InitializeConfiguredDatasetBuilder:
-    """
-    From https://stackoverflow.com/questions/4647566/pickle-a-dynamically-parameterized-sub-class
-    See also ConfiguredDatasetBuilder.__reduce__
-
-    When called with the param value as the only argument, returns an
-    un-initialized instance of the parameterized class. Subsequent __setstate__
-    will be called by pickle.
-    """
-
-    def __call__(self, builder_cls, metadata_configs, default_config_name, name):
-        # make a simple object which has no complex __init__ (this one will do)
-        obj = _InitializeConfiguredDatasetBuilder()
-        obj.__class__ = configure_builder_class(
-            builder_cls, metadata_configs, default_config_name=default_config_name, dataset_name=name
-        )
-        return obj
-
-
 def configure_builder_class(
     builder_cls: Type[DatasetBuilder],
     builder_configs: List[BuilderConfig],
@@ -170,19 +151,6 @@ def configure_builder_class(
         DEFAULT_CONFIG_NAME = default_config_name
 
         __module__ = builder_cls.__module__  # so that the actual packaged builder can be imported
-
-        def __reduce__(self):  # to make dynamically created class pickable, see _InitializeParameterizedDatasetBuilder
-            parent_builder_cls = self.__class__.__mro__[1]
-            return (
-                _InitializeConfiguredDatasetBuilder(),
-                (
-                    parent_builder_cls,
-                    self.BUILDER_CONFIGS,
-                    self.DEFAULT_CONFIG_NAME,
-                    self.dataset_name,
-                ),
-                self.__dict__.copy(),
-            )
 
     ConfiguredDatasetBuilder.__name__ = (
         f"{builder_cls.__name__.lower().capitalize()}{snakecase_to_camelcase(dataset_name)}"
