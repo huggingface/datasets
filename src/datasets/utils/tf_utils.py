@@ -88,14 +88,17 @@ def np_get_batch(
     if not isinstance(indices, np.ndarray):
         indices = indices.numpy()
 
+    is_batched = True
     # Optimization - if we're loading a sequential batch, do it with slicing instead of a list of indices
-    if isinstance(indices, np.ndarray):
-        if np.all(np.diff(indices) == 1):
-            batch = dataset[indices[0] : indices[-1] + 1]
-        else:
-            batch = dataset[indices]
+    if isinstance(indices, np.integer):
+        batch = dataset[indices.item()]
+        is_batched = False
+    elif np.all(np.diff(indices) == 1):
+        batch = dataset[indices[0] : indices[-1] + 1]
+    elif isinstance(indices, np.ndarray):
+        batch = dataset[indices]
     else:
-        batch = dataset[[indices]]
+        raise RuntimeError("Unexpected type for indices: {}".format(type(indices)))
 
     if cols_to_retain is not None:
         batch = {
@@ -104,10 +107,12 @@ def np_get_batch(
             if key in cols_to_retain or key in ("label", "label_ids", "labels")
         }
 
-    actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
-    # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
-    batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
-    batch = collate_fn(batch, **collate_fn_args)
+    if is_batched:
+        actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
+        # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
+        batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
+        batch = collate_fn(batch, **collate_fn_args)
+
     if return_dict:
         out_batch = {}
         for col, cast_dtype in columns_to_np_types.items():
