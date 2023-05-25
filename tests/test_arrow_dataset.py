@@ -2973,6 +2973,23 @@ class MiscellaneousDatasetTest(TestCase):
             dset.set_transform(transform=encode)
             self.assertEqual(str(dset[:2]), str(encode({"text": ["hello there", "foo"]})))
 
+    @require_tf
+    def test_tf_string_encoding(self):
+        data = {"col_1": ["á", "é", "í", "ó", "ú"], "col_2": ["à", "è", "ì", "ò", "ù"]}
+        with Dataset.from_dict(data) as dset:
+            tf_dset_wo_batch = dset.to_tf_dataset(columns=["col_1", "col_2"])
+            for tf_row, row in zip(tf_dset_wo_batch, dset):
+                self.assertEqual(tf_row["col_1"].numpy().decode("utf-8"), row["col_1"])
+                self.assertEqual(tf_row["col_2"].numpy().decode("utf-8"), row["col_2"])
+
+            tf_dset_w_batch = dset.to_tf_dataset(columns=["col_1", "col_2"], batch_size=2)
+            for tf_row, row in zip(tf_dset_w_batch.unbatch(), dset):
+                self.assertEqual(tf_row["col_1"].numpy().decode("utf-8"), row["col_1"])
+                self.assertEqual(tf_row["col_2"].numpy().decode("utf-8"), row["col_2"])
+
+            self.assertEqual(tf_dset_w_batch.unbatch().element_spec, tf_dset_wo_batch.element_spec)
+            self.assertEqual(tf_dset_w_batch.element_spec, tf_dset_wo_batch.batch(2).element_spec)
+
 
 def test_cast_with_sliced_list():
     old_features = Features({"foo": Sequence(Value("int64"))})
