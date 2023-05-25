@@ -2869,7 +2869,9 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(len(tf_dataset_with_drop), 1)  # Incomplete batch of 1 is dropped
         # Test that `NotImplementedError` is raised `batch_size` is None and `num_workers` is > 0
         with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
-            with self.assertRaisesRegex(NotImplementedError, "`batch_size` must be specified when using multiple workers"):
+            with self.assertRaisesRegex(
+                NotImplementedError, "`batch_size` must be specified when using multiple workers"
+            ):
                 dset.to_tf_dataset(columns="col_1", batch_size=None, num_workers=2)
         del tf_dataset  # For correct cleanup
         del tf_dataset_with_drop
