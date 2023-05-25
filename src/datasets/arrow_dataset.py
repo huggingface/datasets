@@ -41,7 +41,6 @@ from typing import (
     Any,
     BinaryIO,
     Callable,
-    Collection,
     Dict,
     Iterable,
     Iterator,
@@ -116,7 +115,7 @@ from .utils.metadata import DatasetMetadata
 from .utils.py_utils import Literal, asdict, convert_file_size_to_int, iflatmap_unordered, unique_values
 from .utils.stratify import stratified_shuffle_split_generate_indices
 from .utils.tf_utils import dataset_to_tf, minimal_tf_collate_fn, multiprocess_dataset_to_tf
-from .utils.typing import PathLike
+from .utils.typing import ListLike, PathLike
 
 
 if TYPE_CHECKING:
@@ -2743,9 +2742,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset = dataset.cast(features=template.features)
         return dataset
 
-    def _getitem(self, key: Union[int, slice, str, Collection[int]], **kwargs) -> Union[Dict, List]:
+    def _getitem(self, key: Union[int, slice, str, ListLike[int]], **kwargs) -> Union[Dict, List]:
         """
-        Can be used to index columns (by string names) or rows (by integer index, slices, or collection of integer indices)
+        Can be used to index columns (by string names) or rows (by integer, slice, or list-like of integer indices)
         """
         if isinstance(key, bool):
             raise TypeError("dataset index must be int, str, slice or collection of int, not bool")
