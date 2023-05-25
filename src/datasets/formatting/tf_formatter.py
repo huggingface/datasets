@@ -33,11 +33,7 @@ class TFFormatter(TensorFormatter[Mapping, "tf.Tensor", Mapping]):
     def __init__(self, features=None, **tf_tensor_kwargs):
         super().__init__(features=features)
         self.tf_tensor_kwargs = tf_tensor_kwargs
-        self.expected_dtype = tf_tensor_kwargs.get("dtype")
         import tensorflow as tf  # noqa: import tf at initialization
-
-        if self.expected_dtype is not None and not isinstance(self.expected_dtype, tf.DType):
-            self.expected_dtype = tf.as_dtype(self.expected_dtype)
 
     def _consolidate(self, column):
         import tensorflow as tf
@@ -78,12 +74,6 @@ class TFFormatter(TensorFormatter[Mapping, "tf.Tensor", Mapping]):
 
     def _recursive_tensorize(self, data_struct):
         import tensorflow as tf
-
-        # check if already in expected format
-        if isinstance(data_struct, tf.Tensor) and (
-            data_struct.dtype == self.expected_dtype or self.expected_dtype is None
-        ):
-            return data_struct
 
         # support for torch, tf, jax etc.
         if hasattr(data_struct, "__array__") and not isinstance(data_struct, tf.Tensor):

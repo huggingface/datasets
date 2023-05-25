@@ -62,9 +62,6 @@ class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
             )
             self.device = str(jax.devices()[0])
         self.jnp_array_kwargs = jnp_array_kwargs
-        self.expected_dtype = jnp_array_kwargs.get("dtype")
-        if isinstance(self.expected_dtype, str):
-            self.expected_dtype = np.dtype(self.expected_dtype)
 
     @staticmethod
     def _map_devices_to_str() -> Dict[str, "jaxlib.xla_extension.Device"]:
@@ -122,12 +119,6 @@ class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
 
     def _recursive_tensorize(self, data_struct):
         import jax
-
-        # check if already in expected format
-        if isinstance(data_struct, jax.Array) and (
-            data_struct.dtype == self.expected_dtype or self.expected_dtype is None
-        ):
-            return data_struct
 
         # support for torch, tf, jax etc.
         if hasattr(data_struct, "__array__") and not isinstance(data_struct, jax.Array):

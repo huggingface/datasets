@@ -33,7 +33,6 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
     def __init__(self, features=None, **torch_tensor_kwargs):
         super().__init__(features=features)
         self.torch_tensor_kwargs = torch_tensor_kwargs
-        self.expected_dtype = torch_tensor_kwargs.get("dtype")
         import torch  # noqa import torch at initialization
 
     def _consolidate(self, column):
@@ -70,12 +69,6 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
 
     def _recursive_tensorize(self, data_struct):
         import torch
-
-        # check if already in expected format
-        if isinstance(data_struct, torch.Tensor) and (
-            data_struct.dtype == self.expected_dtype or self.expected_dtype is None
-        ):
-            return data_struct
 
         # support for torch, tf, jax etc.
         if hasattr(data_struct, "__array__") and not isinstance(data_struct, torch.Tensor):

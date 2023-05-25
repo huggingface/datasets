@@ -27,9 +27,6 @@ class NumpyFormatter(TensorFormatter[Mapping, np.ndarray, Mapping]):
     def __init__(self, features=None, **np_array_kwargs):
         super().__init__(features=features)
         self.np_array_kwargs = np_array_kwargs
-        self.expected_dtype = np_array_kwargs.get("dtype")
-        if isinstance(self.expected_dtype, str):
-            self.expected_dtype = np.dtype(self.expected_dtype)
 
     def _consolidate(self, column):
         if isinstance(column, list):
@@ -66,19 +63,16 @@ class NumpyFormatter(TensorFormatter[Mapping, np.ndarray, Mapping]):
             if isinstance(value, PIL.Image.Image):
                 return np.asarray(value, **self.np_array_kwargs)
 
-        return np.array(value, **{**default_dtype, **self.np_array_kwargs})
+        return np.asarray(value, **{**default_dtype, **self.np_array_kwargs})
 
     def _recursive_tensorize(self, data_struct):
-        if isinstance(data_struct, np.ndarray):
-            if data_struct.dtype == object:
-                return self._consolidate([self.recursive_tensorize(substruct) for substruct in data_struct])
-            elif data_struct.dtype == self.expected_dtype or self.expected_dtype is None:
-                return data_struct
-
         # support for torch, tf, jax etc.
         if hasattr(data_struct, "__array__") and not isinstance(data_struct, (np.ndarray, np.character, np.number)):
             data_struct = data_struct.__array__()
         # support for nested types like struct of list of struct
+        if isinstance(data_struct, np.ndarray):
+            if data_struct.dtype == object:
+                return self._consolidate([self.recursive_tensorize(substruct) for substruct in data_struct])
         if isinstance(data_struct, (list, tuple)):
             return self._consolidate([self.recursive_tensorize(substruct) for substruct in data_struct])
         return self._tensorize(data_struct)

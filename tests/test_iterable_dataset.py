@@ -1189,7 +1189,7 @@ def test_iterable_dataset_torch_picklable():
     import pickle
 
     ex_iterable = ExamplesIterable(generate_examples_fn, {})
-    dataset = IterableDataset(ex_iterable, formatting=FormattingConfig(format_type="arrow"))
+    dataset = IterableDataset(ex_iterable, formatting=FormattingConfig(format_type="torch"))
     reloaded_dataset = pickle.loads(pickle.dumps(dataset))
 
     import torch.utils.data
