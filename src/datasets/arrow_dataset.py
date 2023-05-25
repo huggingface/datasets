@@ -1228,6 +1228,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
         cache_dir: str = None,
+        working_dir: str = None,
         load_from_cache_file: bool = True,
         **kwargs,
     ):
@@ -1245,6 +1246,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 workers and the driver.
             keep_in_memory (`bool`):
                 Whether to copy the data in-memory.
+            working_dir (`str`, *optional*)
+                Intermediate directory for each Spark worker to write data to before moving it to `cache_dir`. Setting
+                a non-NFS intermediate directory may improve performance.
             load_from_cache_file (`bool`):
                 Whether to load the dataset from the cache if possible.
 
@@ -1274,6 +1278,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             streaming=False,
             cache_dir=cache_dir,
             keep_in_memory=keep_in_memory,
+            working_dir=working_dir,
             load_from_cache_file=load_from_cache_file,
             **kwargs,
         ).read()
