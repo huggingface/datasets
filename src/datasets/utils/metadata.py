@@ -144,16 +144,14 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
 
     @classmethod
     def from_metadata(cls, dataset_metadata: DatasetMetadata) -> "MetadataConfigs":
-        if dataset_metadata.get(cls.__configs_field_name):
-            metadata_configs = dataset_metadata[cls.__configs_field_name]
+        if dataset_metadata.get(cls.FIELD_NAME):
+            metadata_configs = dataset_metadata[cls.FIELD_NAME]
             if isinstance(metadata_configs, dict):  # single configuration
                 if "config_name" not in metadata_configs:
                     metadata_configs["config_name"] = "default"
                 metadata_configs = [metadata_configs]
             elif not isinstance(metadata_configs, list):
-                raise ValueError(
-                    f"Expected {cls.__configs_field_name} to be a dict or a list, but got '{metadata_configs}'"
-                )
+                raise ValueError(f"Expected {cls.FIELD_NAME} to be a dict or a list, but got '{metadata_configs}'")
             for metadata_config in metadata_configs:
                 cls._raise_if_not_valid(metadata_config)
             return cls(
@@ -173,7 +171,7 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
             if len(total_metadata_configs) > 1:
                 for config_name, config_metadata in total_metadata_configs.items():
                     config_metadata.pop("config_name", None)
-                dataset_metadata[self.__configs_field_name] = [
+                dataset_metadata[self.FIELD_NAME] = [
                     {"config_name": config_name, **config_metadata}
                     for config_name, config_metadata in total_metadata_configs.items()
                 ]
@@ -184,7 +182,7 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
                     if metadata_config_name != "default"
                     else {**metadata_config}
                 )
-                dataset_metadata[self.__configs_field_name] = metadata_config
+                dataset_metadata[self.FIELD_NAME] = metadata_config
 
     def get_builder_config(
         self,
