@@ -107,6 +107,10 @@ def make_file_instructions(
     Returns:
         file_intructions: FileInstructions instance
     """
+    if not isinstance(name, str):
+        raise TypeError(f"Expected str 'name', but got: {type(name).__name__}")
+    elif not name:
+        raise ValueError("Expected non-empty str 'name'")
     name2len = {info.name: info.num_examples for info in split_infos}
     name2shard_lengths = {info.name: info.shard_lengths for info in split_infos}
     name2filenames = {
