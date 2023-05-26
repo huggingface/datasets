@@ -304,7 +304,7 @@ Select specific rows of the `train` split:
 ```py
 >>> train_10_20_ds = datasets.load_dataset("bookcorpus", split="train[10:20]")
 ===STRINGAPI-READINSTRUCTION-SPLIT===
->>> train_10_20_ds = datasets.load_dataset("bookcorpu"', split=datasets.ReadInstruction("train", from_=10, to=20, unit="abs"))
+>>> train_10_20_ds = datasets.load_dataset("bookcorpu", split=datasets.ReadInstruction("train", from_=10, to=20, unit="abs"))
 ```
 
 Or select a percentage of a split with:
