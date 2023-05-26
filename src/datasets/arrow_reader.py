@@ -99,13 +99,14 @@ def make_file_instructions(
     """Returns instructions of the split dict.
 
     Args:
-        name: Name of the dataset.
-        split_infos: `List[SplitInfo]`, Dataset splits information
-        instruction: `ReadInstruction` or `str`
-        filetype_suffix: :obj:`str`, optional suffix of dataset files, e.g. 'arrow' or 'parquet'
+        name (`str`): Name of the dataset.
+        split_infos (`list` of `[SplitInfo]`): Dataset splits information.
+        instruction ([`ReadInstruction`] or `str`): Reading instruction for a dataset.
+        filetype_suffix (`str`, *optional*): Suffix of dataset files, e.g. 'arrow' or 'parquet'.
+        prefix_path (`str`, *optional*): Prefix of dataset files, e.g. directory name.
 
     Returns:
-        file_intructions: FileInstructions instance
+        [`FileInstructions`]
     """
     if not isinstance(name, str):
         raise TypeError(f"Expected str 'name', but got: {type(name).__name__}")
