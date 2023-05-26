@@ -95,7 +95,7 @@ def make_file_instructions(
     instruction: Union[str, "ReadInstruction"],
     filetype_suffix: Optional[str] = None,
     prefix_path: Optional[str] = None,
-):
+) -> FileInstructions:
     """Returns instructions of the split dict.
 
     Args:
