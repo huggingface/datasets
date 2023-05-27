@@ -5013,15 +5013,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     example = {col: array[i] for col, array in batch.items()}
                     yield i, example
 
-    @staticmethod
-    def _generate_examples_from_table(arrow_table: Table):
-        python_formatter = PythonFormatter()
-        for pa_table in arrow_table.to_reader(max_chunksize=config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER):
-            batch = python_formatter.format_batch(pa_table)
-            for i in range(len(pa_table)):
-                example = {col: array[i] for col, array in batch.items()}
-                yield i, example
-
     def to_iterable_dataset(self, num_shards: Optional[int] = 1) -> "IterableDataset":
         """Get an [`datasets.IterableDataset`] from a map-style [`datasets.Dataset`].
         This is equivalent to loading a dataset in streaming mode with [`datasets.load_dataset`], but much faster since the data is streamed from local files.
