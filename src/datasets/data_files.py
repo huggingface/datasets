@@ -736,7 +736,7 @@ class DataFilesList(List[Union[Path, Url]]):
         allowed_extensions: Optional[List[str]] = None,
     ) -> "DataFilesList":
         data_files = resolve_patterns_in_dataset_repository(dataset_info, patterns, base_path, allowed_extensions)
-        origin_metadata = [(dataset_info.id, dataset_info.sha) for _ in patterns]
+        origin_metadata = [(dataset_info.id, dataset_info.sha)] * len(patterns)
         return cls(data_files, origin_metadata)
 
     @classmethod
