@@ -48,9 +48,11 @@ def _in_memory_arrow_table_from_buffer(buffer: pa.Buffer) -> pa.Table:
 
 def _memory_mapped_arrow_stream_from_file(filename: str):
     # To more efficiently read big data from disk, we can memory map the file,
-    # so that Arrow can directly referee able to page in the mapped memory lazily and page it out without
-    # any write back cost when under pressure,nce the data mapped from disk and avoid having to allocate its own memory.
-    # In such case the operating system will b allowing to more easily read arrays bigger than the total memory
+    # so that Arrow can directly reference the data mapped from disk and avoid
+    # having to allocate its own memory. In such case the operating system will
+    # be able to page in the mapped memory lazily and page it out without any
+    # write back cost when under pressure, allowing to more easily read arrays
+    # bigger than the total memory.
     return pa.memory_map(filename)
 
 
