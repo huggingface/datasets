@@ -98,6 +98,7 @@ from .table import (
     InMemoryTable,
     MemoryMappedTable,
     Table,
+    arrow_table_batches_from_file,
     cast_array_to_feature,
     concat_tables,
     embed_table_storage,
@@ -4999,6 +5000,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         for shard_idx, shard in enumerate(shards):
             for pa_table in shard.with_format("arrow").iter(batch_size):
                 yield shard_idx, pa_table
+
+    @staticmethod
+    def _generate_examples_from_cache_file(filename: str):
+        python_formatter = PythonFormatter()
+        with arrow_table_batches_from_file(
+            filename=filename, max_chunksize=config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER
+        ) as batches:
+            for pa_table in batches:
+                batch = python_formatter.format_batch(pa_table)
+                for i in range(len(pa_table)):
+                    example = {col: array[i] for col, array in batch.items()}
+                    yield i, example
 
     @staticmethod
     def _generate_examples_from_table(arrow_table: Table):
