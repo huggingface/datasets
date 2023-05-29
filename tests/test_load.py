@@ -949,9 +949,18 @@ def test_load_dataset_builder_with_metadata():
     assert isinstance(builder, ImageFolder)
     assert builder.config.name == "default"
     assert builder.config.data_files is not None
+    assert builder.config.drop_metadata is None
     builder = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER4, "non-existing-config")
     assert isinstance(builder, ImageFolder)
     assert builder.config.name == "non-existing-config"
+
+
+@pytest.mark.integration
+def test_load_dataset_builder_config_kwargs_passed_as_arguments():
+    builder_default = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER4)
+    builder_custom = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER4, drop_metadata=True)
+    assert builder_custom.config.drop_metadata != builder_default.config.drop_metadata
+    assert builder_custom.config.drop_metadata is True
 
 
 @pytest.mark.integration
@@ -1262,6 +1271,14 @@ def test_load_streaming_private_dataset(hf_token, hf_private_dataset_repo_txt_da
 def test_load_streaming_private_dataset_with_zipped_data(hf_token, hf_private_dataset_repo_zipped_txt_data):
     ds = load_dataset(hf_private_dataset_repo_zipped_txt_data, streaming=True)
     assert next(iter(ds)) is not None
+
+
+@pytest.mark.integration
+def test_load_dataset_config_kwargs_passed_as_arguments():
+    ds_default = load_dataset(SAMPLE_DATASET_IDENTIFIER4)
+    ds_custom = load_dataset(SAMPLE_DATASET_IDENTIFIER4, drop_metadata=True)
+    assert list(ds_default["train"].features) == ["image", "caption"]
+    assert list(ds_custom["train"].features) == ["image"]
 
 
 @require_sndfile

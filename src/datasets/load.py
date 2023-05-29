@@ -1704,6 +1704,7 @@ def load_dataset_builder(
         use_auth_token=use_auth_token,
         storage_options=storage_options,
         **builder_kwargs,
+        **config_kwargs,
     )
 
     return builder_instance
