@@ -1,4 +1,5 @@
 import os
+import textwrap
 from collections import Counter
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Union
@@ -136,10 +137,26 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
     def _raise_if_not_valid(metadata_config: dict):
         if isinstance(metadata_config.get("data_files"), dict):
             raise ValueError(
-                f"Expected data_files in YAML to be a string or a list, but got {metadata_config['data_files']}\nExamples:\n"
-                "    data_files: data.csv\n    data_files: data/*.png\n"
-                "    data_files:\n    - part0/*\n    - part1/*\n"
-                "    data_files:\n    - split: train\n      pattern: train/*\n    - split: test\n      pattern: test/*"
+                textwrap.dedent(
+                    f"""
+                    Expected data_files in YAML to be a string or a list, but got {metadata_config['data_files']}
+                    Examples of data_files in YAML:
+
+                       data_files: data.csv
+
+                       data_files: data/*.png
+
+                       data_files:
+                        - part0/*
+                        - part1/*
+
+                       data_files:
+                        - split: train
+                          pattern: train/*
+                        - split: test
+                          pattern: test/*
+                    """
+                )
             )
 
     @classmethod
