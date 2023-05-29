@@ -792,6 +792,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         builder_kwargs = {
             "hash": hash,
             "base_path": self.path,
+            "dataset_name": camelcase_to_snakecase(Path(self.path).name),
         }
         if self.data_files is not None or not metadata_configs:
             builder_kwargs["data_files"] = data_files
@@ -854,6 +855,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
+            "dataset_name": self.name,
         }
 
         return DatasetModule(module_path, hash, builder_kwargs, None)
@@ -975,6 +977,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             "hash": hash,
             "base_path": hf_hub_url(self.name, "", revision=self.revision),
             "repo_id": self.name,
+            "dataset_name": camelcase_to_snakecase(Path(self.name).name),
         }
         if self.data_files is not None or not metadata_configs:
             builder_kwargs["data_files"] = data_files
@@ -1670,15 +1673,12 @@ def load_dataset_builder(
         data_dir=data_dir,
         data_files=data_files,
     )
-    dataset_name = (
-        camelcase_to_snakecase(Path(path).name) if dataset_module.module_path.startswith("datasets.") else None
-    )
     # Get dataset builder class from the processing script
-    builder_cls = get_dataset_builder_class(dataset_module, dataset_name=dataset_name)
     builder_kwargs = dataset_module.builder_kwargs
     data_dir = builder_kwargs.pop("data_dir", data_dir)
     data_files = builder_kwargs.pop("data_files", data_files)
     config_name = builder_kwargs.pop("config_name", name or dataset_module.default_config_name)
+    dataset_name = builder_kwargs.pop("dataset_name", None)
     hash = builder_kwargs.pop("hash")
     info = dataset_module.dataset_infos.get(config_name) if dataset_module.dataset_infos else None
     if dataset_module.metadata_configs and config_name in dataset_module.metadata_configs:
@@ -1693,6 +1693,7 @@ def load_dataset_builder(
             error_msg += f'\nFor example `data_files={{"train": "path/to/data/train/*.{example_extensions[0]}"}}`'
         raise ValueError(error_msg)
 
+    builder_cls = get_dataset_builder_class(dataset_module, dataset_name=dataset_name)
     # Instantiate the dataset builder
     builder_instance: DatasetBuilder = builder_cls(
         cache_dir=cache_dir,
