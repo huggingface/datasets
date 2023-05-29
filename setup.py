@@ -186,6 +186,7 @@ TESTS_REQUIRE = [
 
 METRICS_TESTS_REQUIRE = [
     # metrics dependencies
+    "accelerate",  # for frugalscore (calls transformers' Trainer)
     "bert_score>=0.3.6",
     "jiwer",
     "langdetect",

@@ -1617,6 +1617,7 @@ class Features(dict):
         """
         Construct [`Features`] from Arrow Schema.
         It also checks the schema metadata for Hugging Face Datasets features.
+        Non-nullable fields are not supported and set to nullable.
 
         Args:
             pa_schema (`pyarrow.Schema`):

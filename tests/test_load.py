@@ -312,6 +312,7 @@ def metric_loading_script_dir(tmp_path):
         (["train.jsonl"], "json", {}),
         (["train.parquet"], "parquet", {}),
         (["train.txt"], "text", {}),
+        (["uppercase.TXT"], "text", {}),
         (["unsupported.ext"], None, {}),
         ([""], None, {}),
     ],
@@ -324,14 +325,20 @@ def test_infer_module_for_data_files(data_files, expected_module, expected_build
 
 @pytest.mark.parametrize(
     "data_file, expected_module",
-    [("zip_csv_path", "csv"), ("zip_csv_with_dir_path", "csv"), ("zip_unsupported_ext_path", None)],
+    [
+        ("zip_csv_path", "csv"),
+        ("zip_csv_with_dir_path", "csv"),
+        ("zip_uppercase_csv_path", "csv"),
+        ("zip_unsupported_ext_path", None),
+    ],
 )
 def test_infer_module_for_data_files_in_archives(
-    data_file, expected_module, zip_csv_path, zip_csv_with_dir_path, zip_unsupported_ext_path
+    data_file, expected_module, zip_csv_path, zip_csv_with_dir_path, zip_uppercase_csv_path, zip_unsupported_ext_path
 ):
     data_file_paths = {
         "zip_csv_path": zip_csv_path,
         "zip_csv_with_dir_path": zip_csv_with_dir_path,
+        "zip_uppercase_csv_path": zip_uppercase_csv_path,
         "zip_unsupported_ext_path": zip_unsupported_ext_path,
     }
     data_files = [str(data_file_paths[data_file])]

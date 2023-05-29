@@ -561,6 +561,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
         input_columns: Optional[List[str]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
+        fn_kwargs: Optional[dict] = None,
     ):
         self.ex_iterable = ex_iterable
         self.function = function
@@ -568,6 +569,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
         self.batch_size = batch_size
         self.with_indices = with_indices
         self.input_columns = input_columns
+        self.fn_kwargs = fn_kwargs or {}
 
     def __iter__(self):
         iterator = iter(self.ex_iterable)
@@ -588,7 +590,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                 function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
                 if self.with_indices:
                     function_args.append([current_idx + i for i in range(len(key_examples_list))])
-                mask = self.function(*function_args)
+                mask = self.function(*function_args, **self.fn_kwargs)
                 # yield one example at a time from the batch
                 for batch_idx, (key_example, to_keep) in enumerate(zip(key_examples_list, mask)):
                     if to_keep:
@@ -601,7 +603,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                 function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
                 if self.with_indices:
                     function_args.append(current_idx)
-                to_keep = self.function(*function_args)
+                to_keep = self.function(*function_args, **self.fn_kwargs)
                 if to_keep:
                     yield key, example
                 current_idx += 1
@@ -1070,6 +1072,49 @@ class IterableDataset(DatasetInfoMixin):
             streaming=True,
         ).read()
 
+    @staticmethod
+    def from_spark(
+        df: "pyspark.sql.DataFrame",
+        split: Optional[NamedSplit] = None,
+        features: Optional[Features] = None,
+        **kwargs,
+    ) -> "IterableDataset":
+        """Create an IterableDataset from Spark DataFrame. The dataset is streamed to the driver in batches.
+
+        Args:
+            df (`pyspark.sql.DataFrame`):
+                The DataFrame containing the desired data.
+            split (`NamedSplit`, *optional*):
+                Split name to be assigned to the dataset.
+            features (`Features`, *optional*):
+                Dataset features.
+
+        Returns:
+            [`IterableDataset`]
+
+        Example:
+
+        ```py
+        >>> df = spark.createDataFrame(
+        >>>     data=[[1, "Elia"], [2, "Teo"], [3, "Fang"]],
+        >>>     columns=["id", "name"],
+        >>> )
+        >>> ds = IterableDataset.from_spark(df)
+        ```
+        """
+        from .io.spark import SparkDatasetReader
+
+        if sys.platform == "win32":
+            raise EnvironmentError("IterableDataset.from_spark is not currently supported on Windows")
+
+        return SparkDatasetReader(
+            df,
+            split=split,
+            features=features,
+            streaming=True,
+            **kwargs,
+        ).read()
+
     def with_format(
         self,
         type: Optional[str] = None,
@@ -1217,6 +1262,7 @@ class IterableDataset(DatasetInfoMixin):
         input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
+        fn_kwargs: Optional[dict] = None,
     ) -> "IterableDataset":
         """Apply a filter function to all the elements so that the dataset only includes examples according to the filter function.
         The filtering is done on-the-fly when iterating over the dataset.
@@ -1240,6 +1286,8 @@ class IterableDataset(DatasetInfoMixin):
                 Provide batch of examples to `function`.
             batch_size (`int`, *optional*, default `1000`):
                 Number of examples per batch provided to `function` if `batched=True`.
+            fn_kwargs (`Dict`, *optional*, default `None`):
+                Keyword arguments to be passed to `function`.
 
         Example:
 
@@ -1272,6 +1320,7 @@ class IterableDataset(DatasetInfoMixin):
             input_columns=input_columns,
             batched=batched,
             batch_size=batch_size,
+            fn_kwargs=fn_kwargs,
         )
         return IterableDataset(
             ex_iterable=ex_iterable,
