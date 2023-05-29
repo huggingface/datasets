@@ -976,42 +976,20 @@ def test_load_dataset_builder_with_two_configs_in_metadata():
         datasets.load_dataset_builder(SAMPLE_DATASET_TWO_CONFIG_IN_METADATA, "non-existing-config")
 
 
-def test_load_dataset_builder_with_metadata_configs_pickable_with_dill():
+@pytest.mark.parametrize("serializer", [pickle, dill])
+def test_load_dataset_builder_with_metadata_configs_pickable(serializer):
     builder = datasets.load_dataset_builder(SAMPLE_DATASET_ONE_DEFAULT_CONFIG_IN_METADATA)
-    builder_class_unpickled = dill.loads(dill.dumps(builder.__class__))
-    assert builder.__class__.BUILDER_CONFIGS == builder_class_unpickled.BUILDER_CONFIGS
-    assert list(builder_class_unpickled.builder_configs) == ["default"]
-    assert isinstance(builder_class_unpickled.builder_configs["default"], AudioFolderConfig)
+    builder_unpickled = serializer.loads(serializer.dumps(builder))
+    assert builder.BUILDER_CONFIGS == builder_unpickled.BUILDER_CONFIGS
+    assert list(builder_unpickled.builder_configs) == ["default"]
+    assert isinstance(builder_unpickled.builder_configs["default"], AudioFolderConfig)
 
     builder2 = datasets.load_dataset_builder(SAMPLE_DATASET_TWO_CONFIG_IN_METADATA, "v1")
-    builder2_class_unpickled = dill.loads(dill.dumps(builder2.__class__))
-    assert (
-        builder2.__class__.BUILDER_CONFIGS
-        == builder2_class_unpickled.BUILDER_CONFIGS
-        != builder_class_unpickled.BUILDER_CONFIGS
-    )
-    assert list(builder2_class_unpickled.builder_configs) == ["v1", "v2"]
-    assert isinstance(builder2_class_unpickled.builder_configs["v1"], AudioFolderConfig)
-    assert isinstance(builder2_class_unpickled.builder_configs["v2"], AudioFolderConfig)
-
-
-def test_load_dataset_builder_with_metadata_configs_pickable_with_pickle():
-    builder = datasets.load_dataset_builder(SAMPLE_DATASET_ONE_DEFAULT_CONFIG_IN_METADATA)
-    builder_class_unpickled = pickle.loads(pickle.dumps(builder.__class__))
-    assert builder.__class__.BUILDER_CONFIGS == builder_class_unpickled.BUILDER_CONFIGS
-    assert list(builder_class_unpickled.builder_configs) == ["default"]
-    assert isinstance(builder_class_unpickled.builder_configs["default"], AudioFolderConfig)
-
-    builder2 = datasets.load_dataset_builder(SAMPLE_DATASET_TWO_CONFIG_IN_METADATA, "v1")
-    builder2_class_unpickled = pickle.loads(pickle.dumps(builder2.__class__))
-    assert (
-        builder2.__class__.BUILDER_CONFIGS
-        == builder2_class_unpickled.BUILDER_CONFIGS
-        != builder_class_unpickled.BUILDER_CONFIGS
-    )
-    assert list(builder2_class_unpickled.builder_configs) == ["v1", "v2"]
-    assert isinstance(builder2_class_unpickled.builder_configs["v1"], AudioFolderConfig)
-    assert isinstance(builder2_class_unpickled.builder_configs["v2"], AudioFolderConfig)
+    builder2_unpickled = serializer.loads(serializer.dumps(builder2))
+    assert builder2.BUILDER_CONFIGS == builder2_unpickled.BUILDER_CONFIGS != builder_unpickled.BUILDER_CONFIGS
+    assert list(builder2_unpickled.builder_configs) == ["v1", "v2"]
+    assert isinstance(builder2_unpickled.builder_configs["v1"], AudioFolderConfig)
+    assert isinstance(builder2_unpickled.builder_configs["v2"], AudioFolderConfig)
 
 
 def test_load_dataset_builder_for_absolute_script_dir(dataset_loading_script_dir, data_dir):
