@@ -1341,7 +1341,7 @@ def test_load_hub_dataset_without_script_with_two_config_in_metadata():
 @pytest.mark.integration
 def test_load_hub_dataset_without_script_with_metadata_config_in_parallel():
     # assert it doesn't fail (pickling of dynamically created class works)
-    ds = load_dataset(SAMPLE_DATASET_ONE_DEFAULT_CONFIG_IN_METADATA, num_poc=2)
+    ds = load_dataset(SAMPLE_DATASET_ONE_DEFAULT_CONFIG_IN_METADATA, num_proc=2)
     assert "label" not in ds["train"].features  # assert param `drop_labels=True` from metadata is passed
     assert len(ds["train"]) == 3 and len(ds["test"]) == 3
 
