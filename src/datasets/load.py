@@ -754,20 +754,34 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             builder_config_cls = builder_cls.BUILDER_CONFIG_CLASS
             default_config_name = metadata_configs.get_default_config_name()
             builder_configs = []
-            for config_name in metadata_configs:
+            for config_name, config_params in metadata_configs.items():
                 config_data_files = metadata_configs.resolve_data_files_locally(
                     config_name=config_name,
                     base_path=self.path,
                     with_metadata_files=supports_metadata,
                     allowed_extensions=ALL_ALLOWED_EXTENSIONS,
                 )
+                ignored_params = [
+                    param for param in config_params if not hasattr(builder_config_cls, param) and param != "default"
+                ]
+                if ignored_params:
+                    logger.warning(
+                        f"Some datasets params were ignored: {ignored_params}. "
+                        "Make sure to use only valid params for the dataset builder and to have "
+                        "a up-to-date version of the `datasets` library."
+                    )
+
                 builder_configs.append(
-                    metadata_configs.get_builder_config(
-                        config_name,
-                        builder_config_cls=builder_config_cls,
+                    builder_config_cls(
+                        name=config_name,
                         data_files=config_data_files,
                         data_dir=self.data_dir,
-                        default_builder_kwargs=default_builder_kwargs,
+                        **{
+                            param: value
+                            for param, value in {**default_builder_kwargs, **config_params}.items()
+                            if hasattr(builder_config_cls, param)
+                            and param not in ("default", "data_files", "data_dir")
+                        },
                     )
                 )
         else:
@@ -921,7 +935,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             builder_config_cls = builder_cls.BUILDER_CONFIG_CLASS
             default_config_name = metadata_configs.get_default_config_name()
             builder_configs = []
-            for config_name in metadata_configs:
+            for config_name, config_params in metadata_configs.items():
                 config_data_files = metadata_configs.resolve_data_files_in_dataset_repository(
                     config_name,
                     hfh_dataset_info,
@@ -929,13 +943,27 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                     with_metadata_files=supports_metadata,
                     allowed_extensions=ALL_ALLOWED_EXTENSIONS,
                 )
+                ignored_params = [
+                    param for param in config_params if not hasattr(builder_config_cls, param) and param != "default"
+                ]
+                if ignored_params:
+                    logger.warning(
+                        f"Some datasets params were ignored: {ignored_params}. "
+                        "Make sure to use only valid params for the dataset builder and to have "
+                        "a up-to-date version of the `datasets` library."
+                    )
+
                 builder_configs.append(
-                    metadata_configs.get_builder_config(
-                        config_name,
-                        builder_config_cls=builder_config_cls,
+                    builder_config_cls(
+                        name=config_name,
                         data_files=config_data_files,
                         data_dir=self.data_dir,
-                        default_builder_kwargs=default_builder_kwargs,
+                        **{
+                            param: value
+                            for param, value in {**default_builder_kwargs, **config_params}.items()
+                            if hasattr(builder_config_cls, param)
+                            and param not in ("default", "data_files", "data_dir")
+                        },
                     )
                 )
         else:

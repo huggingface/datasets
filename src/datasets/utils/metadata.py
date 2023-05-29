@@ -1,7 +1,7 @@
 import os
 from collections import Counter
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Type, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Union
 
 import huggingface_hub
 import yaml
@@ -20,7 +20,7 @@ from ..utils.logging import get_logger
 
 
 if TYPE_CHECKING:
-    from ..builder import BuilderConfig
+    pass
 
 
 logger = get_logger(__name__)
@@ -183,36 +183,6 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
                     else {**metadata_config}
                 )
                 dataset_metadata[self.FIELD_NAME] = metadata_config
-
-    def get_builder_config(
-        self,
-        config_name: str,
-        builder_config_cls: Type["BuilderConfig"],
-        data_files: Optional[DataFilesDict],
-        data_dir: Optional[str],
-        default_builder_kwargs: Dict[str, Any],
-    ) -> "BuilderConfig":
-        """Convert configurations parsed from metadata file to list of BuilderConfig objects."""
-        meta_config = self[config_name]
-        ignored_params = [
-            param for param in meta_config if not hasattr(builder_config_cls, param) and param != "default"
-        ]
-        if ignored_params:
-            logger.warning(
-                f"Some datasets params were ignored: {ignored_params}. "
-                "Make sure to use only valid params for the dataset builder and to have "
-                "a up-to-date version of the `datasets` library."
-            )
-        return builder_config_cls(
-            name=config_name,
-            data_files=data_files,
-            data_dir=data_dir,
-            **{
-                param: value
-                for param, value in {**default_builder_kwargs, **meta_config}.items()
-                if hasattr(builder_config_cls, param) and param not in ("default", "data_files", "data_dir")
-            },
-        )
 
     def get_default_config_name(self) -> Optional[str]:
         default_config_name = None
