@@ -40,10 +40,10 @@ from .data_files import (
     DataFilesDict,
     DataFilesList,
     EmptyDatasetError,
-    extend_data_files_with_metadata_files_in_dataset_repository,
-    extend_data_files_with_metadata_files_locally,
     get_data_patterns_in_dataset_repository,
     get_data_patterns_locally,
+    maybe_extend_data_files_with_metadata_files_in_dataset_repository,
+    maybe_extend_data_files_with_metadata_files_locally,
     sanitize_patterns,
 )
 from .dataset_dict import DatasetDict, IterableDatasetDict
@@ -748,7 +748,9 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         # Collect metadata files if the module supports them
         supports_metadata = module_name in _MODULE_SUPPORTS_METADATA
         if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
-            extend_data_files_with_metadata_files_locally(base_path=base_path, data_files=data_files)
+            data_files = maybe_extend_data_files_with_metadata_files_locally(
+                base_path=base_path, data_files=data_files
+            )
 
         module_path, hash = _PACKAGED_DATASETS_MODULES[module_name]
         if metadata_configs:
@@ -848,7 +850,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         )
         supports_metadata = self.name in _MODULE_SUPPORTS_METADATA
         if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
-            extend_data_files_with_metadata_files_locally(data_files, base_path=base_path)
+            data_files = maybe_extend_data_files_with_metadata_files_locally(data_files, base_path=base_path)
 
         module_path, hash = _PACKAGED_DATASETS_MODULES[self.name]
 
@@ -929,7 +931,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         # Collect metadata files if the module supports them
         supports_metadata = module_name in _MODULE_SUPPORTS_METADATA
         if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
-            extend_data_files_with_metadata_files_in_dataset_repository(
+            data_files = maybe_extend_data_files_with_metadata_files_in_dataset_repository(
                 hfh_dataset_info, data_files=data_files, base_path=self.data_dir
             )
 

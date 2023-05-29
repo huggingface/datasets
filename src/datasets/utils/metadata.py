@@ -11,10 +11,10 @@ from ..config import METADATA_CONFIGS_FIELD
 from ..data_files import (
     DEFAULT_PATTERNS_ALL,
     DataFilesDict,
-    extend_data_files_with_metadata_files_in_dataset_repository,
-    extend_data_files_with_metadata_files_locally,
     get_data_patterns_in_dataset_repository,
     get_data_patterns_locally,
+    maybe_extend_data_files_with_metadata_files_in_dataset_repository,
+    maybe_extend_data_files_with_metadata_files_locally,
     sanitize_patterns,
 )
 from ..utils.logging import get_logger
@@ -239,7 +239,7 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
             allowed_extensions=allowed_extensions,
         )
         if config_data_files is None and with_metadata_files and config_patterns != DEFAULT_PATTERNS_ALL:
-            extend_data_files_with_metadata_files_locally(config_data_files_dict, base_path=config_base_path)
+            maybe_extend_data_files_with_metadata_files_locally(config_data_files_dict, base_path=config_base_path)
         return config_data_files_dict
 
     def resolve_data_files_in_dataset_repository(
@@ -270,7 +270,7 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
             allowed_extensions=allowed_extensions,
         )
         if config_data_files is None and with_metadata_files and config_patterns != DEFAULT_PATTERNS_ALL:
-            extend_data_files_with_metadata_files_in_dataset_repository(
+            maybe_extend_data_files_with_metadata_files_in_dataset_repository(
                 hfh_dataset_info, data_files=config_data_files_dict, base_path=config_base_path
             )
         return config_data_files_dict

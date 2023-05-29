@@ -746,6 +746,9 @@ class DataFilesList(List[Union[Path, Url]]):
         super().__init__(data_files)
         self.origin_metadata = origin_metadata
 
+    def __add__(self, other):
+        return DataFilesList([*self, *other], self.origin_metadata + other.origin_metadata)
+
     @classmethod
     def from_hf_repo(
         cls,
@@ -844,7 +847,7 @@ class DataFilesDict(Dict[str, DataFilesList]):
         return DataFilesDict, (dict(sorted(self.items())),)
 
 
-def extend_data_files_with_metadata_files_locally(data_files: DataFilesDict, base_path: str) -> None:
+def maybe_extend_data_files_with_metadata_files_locally(data_files: DataFilesDict, base_path: str) -> None:
     """
     Search for metadata files in provided `base_path` for local datasets and add it to provided `data_files` object.
     """
@@ -854,14 +857,11 @@ def extend_data_files_with_metadata_files_locally(data_files: DataFilesDict, bas
         metadata_patterns = None
     if metadata_patterns is not None:
         metadata_files = DataFilesList.from_local_or_remote(metadata_patterns, base_path=base_path)
-        for key in data_files:
-            data_files[key] = DataFilesList(
-                data_files[key] + metadata_files,
-                data_files[key].origin_metadata + metadata_files.origin_metadata,
-            )
+        data_files = DataFilesDict({split: data_files + metadata_files for split, data_files in data_files.items()})
+    return data_files
 
 
-def extend_data_files_with_metadata_files_in_dataset_repository(
+def maybe_extend_data_files_with_metadata_files_in_dataset_repository(
     hfh_dataset_info, data_files: DataFilesDict, base_path: str
 ) -> None:
     """
@@ -875,8 +875,5 @@ def extend_data_files_with_metadata_files_in_dataset_repository(
         metadata_files = DataFilesList.from_hf_repo(
             metadata_patterns, dataset_info=hfh_dataset_info, base_path=base_path
         )
-        for key in data_files:
-            data_files[key] = DataFilesList(
-                data_files[key] + metadata_files,
-                data_files[key].origin_metadata + metadata_files.origin_metadata,
-            )
+        data_files = DataFilesDict({split: data_files + metadata_files for split, data_files in data_files.items()})
+    return data_files
