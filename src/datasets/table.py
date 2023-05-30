@@ -57,8 +57,9 @@ def arrow_table_schema_from_file(filename: str) -> pa.Schema:
 
 
 def _memory_mapped_arrow_table_from_file(filename: str) -> pa.Table:
-    with pa.memory_map(filename) as memory_mapped_stream:
-        pa_table = pa.ipc.open_stream(memory_mapped_stream).read_all()
+    memory_mapped_stream = pa.memory_map(filename)
+    opened_stream = pa.ipc.open_stream(memory_mapped_stream)
+    pa_table = opened_stream.read_all()
     return pa_table
 
 
