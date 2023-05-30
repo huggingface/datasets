@@ -136,7 +136,6 @@ REQUIRED_PKGS = [
     "huggingface-hub>=0.11.0,<1.0.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
-    "responses<0.19",
     # To parse YAML metadata from dataset cards
     "pyyaml>=5.1",
 ]
