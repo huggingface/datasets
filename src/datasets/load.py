@@ -416,7 +416,7 @@ def _create_importable_file(
     return module_path, hash
 
 
-def infer_module_for_data_files(
+def infer_module_for_data_files_list(
     data_files_list: DataFilesList, use_auth_token: Optional[Union[bool, str]] = None
 ) -> Tuple[Optional[str], Dict[str, Any]]:
     """Infer module (and builder kwargs) from list of data files.
@@ -427,9 +427,9 @@ def infer_module_for_data_files(
             for private remote files.
 
     Returns:
-        tuple[str, str]: Tuple with
+        tuple[str, dict[str, Any]]: Tuple with
             - inferred module name
-            - builder kwargs
+            - dict of builder kwargs
     """
     extensions_counter = Counter(
         suffix[1:].lower()
@@ -441,11 +441,11 @@ def infer_module_for_data_files(
             if ext in _EXTENSION_TO_MODULE:
                 return _EXTENSION_TO_MODULE[ext]
             elif ext == "zip":
-                return infer_module_for_data_files_in_archives(data_files_list, use_auth_token=use_auth_token)
+                return infer_module_for_data_files_list_in_archives(data_files_list, use_auth_token=use_auth_token)
     return None, {}
 
 
-def infer_module_for_data_files_in_archives(
+def infer_module_for_data_files_list_in_archives(
     data_files_list: DataFilesList, use_auth_token: Optional[Union[bool, str]]
 ) -> Tuple[Optional[str], Dict[str, Any]]:
     """Infer module (and builder kwargs) from list of archive data files.
@@ -456,9 +456,9 @@ def infer_module_for_data_files_in_archives(
             for private remote files.
 
     Returns:
-        tuple[str, str]: Tuple with
+        tuple[str, dict[str, Any]]: Tuple with
             - inferred module name
-            - builder kwargs
+            - dict of builder kwargs
     """
     archived_files = []
     archive_files_counter = 0
@@ -482,6 +482,35 @@ def infer_module_for_data_files_in_archives(
         if most_common in _EXTENSION_TO_MODULE:
             return _EXTENSION_TO_MODULE[most_common]
     return None, {}
+
+
+def infer_module_for_data_files(
+    data_files: DataFilesDict, path: Optional[str] = None, use_auth_token: Optional[Union[bool, str]] = None
+) -> Tuple[Optional[str], Dict[str, Any]]:
+    """Infer module (and builder kwargs) from data files. Raise if module names for different splits don't match.
+
+    Args:
+        data_files (DataFilesDict): List of data files.
+        path (str, optional): Dataset name or path.
+        use_auth_token (bool or str, optional): Whether to use token or token to authenticate on the Hugging Face Hub
+            for private remote files.
+
+    Returns:
+        tuple[str, dict[str, Any]]: Tuple with
+            - inferred module name
+            - builder kwargs
+    """
+    split_modules = {
+        split: infer_module_for_data_files_list(data_files_list, use_auth_token=use_auth_token)
+        for split, data_files_list in data_files.items()
+    }
+    module_name, default_builder_kwargs = next(iter(split_modules.values()))
+    if any((module_name, default_builder_kwargs) != split_module for split_module in split_modules.values()):
+        raise ValueError(f"Couldn't infer the same data file format for all splits. Got {split_modules}")
+    if not module_name:
+        path = f" in {path}. " if path else ". "
+        raise FileNotFoundError(f"No (supported) data files or dataset script found{path}")
+    return module_name, default_builder_kwargs
 
 
 def update_hash_with_config_parameters(hash: str, config_parameters: dict) -> str:
@@ -737,14 +766,10 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             base_path=base_path,
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
-        split_modules = {
-            split: infer_module_for_data_files(data_files_list) for split, data_files_list in data_files.items()
-        }
-        module_name, default_builder_kwargs = next(iter(split_modules.values()))
-        if any((module_name, default_builder_kwargs) != split_module for split_module in split_modules.values()):
-            raise ValueError(f"Couldn't infer the same data file format for all splits. Got {split_modules}")
-        if not module_name:
-            raise FileNotFoundError(f"No (supported) data files or dataset script found in {self.path}")
+        module_name, default_builder_kwargs = infer_module_for_data_files(
+            data_files=data_files,
+            path=self.path,
+        )
         # Collect metadata files if the module supports them
         supports_metadata = module_name in _MODULE_SUPPORTS_METADATA
         if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
@@ -935,15 +960,11 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             base_path=self.data_dir,
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
-        split_modules = {
-            split: infer_module_for_data_files(data_files_list, use_auth_token=self.download_config.use_auth_token)
-            for split, data_files_list in data_files.items()
-        }
-        module_name, default_builder_kwargs = next(iter(split_modules.values()))
-        if any((module_name, default_builder_kwargs) != split_module for split_module in split_modules.values()):
-            raise ValueError(f"Couldn't infer the same data file format for all splits. Got {split_modules}")
-        if not module_name:
-            raise FileNotFoundError(f"No (supported) data files or dataset script found in {self.name}")
+        module_name, default_builder_kwargs = infer_module_for_data_files(
+            data_files=data_files,
+            path=self.name,
+            use_auth_token=self.download_config.use_auth_token,
+        )
         # Collect metadata files if the module supports them
         supports_metadata = module_name in _MODULE_SUPPORTS_METADATA
         if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
