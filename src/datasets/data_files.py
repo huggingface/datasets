@@ -847,9 +847,10 @@ class DataFilesDict(Dict[str, DataFilesList]):
         return DataFilesDict, (dict(sorted(self.items())),)
 
 
-def maybe_extend_data_files_with_metadata_files_locally(data_files: DataFilesDict, base_path: str) -> None:
+def maybe_extend_data_files_with_metadata_files_locally(data_files: DataFilesDict, base_path: str) -> DataFilesDict:
     """
-    Search for metadata files in provided `base_path` for local datasets and add it to provided `data_files` object.
+    Search for metadata files in provided `base_path` for local datasets
+    and add it to provided `data_files` object if they are found.
     """
     try:
         metadata_patterns = get_metadata_patterns_locally(base_path)
@@ -857,15 +858,18 @@ def maybe_extend_data_files_with_metadata_files_locally(data_files: DataFilesDic
         metadata_patterns = None
     if metadata_patterns is not None:
         metadata_files = DataFilesList.from_local_or_remote(metadata_patterns, base_path=base_path)
-        data_files = DataFilesDict({split: data_files + metadata_files for split, data_files in data_files.items()})
+        data_files = DataFilesDict(
+            {split: data_files_list + metadata_files for split, data_files_list in data_files.items()}
+        )
     return data_files
 
 
 def maybe_extend_data_files_with_metadata_files_in_dataset_repository(
     hfh_dataset_info, data_files: DataFilesDict, base_path: str
-) -> None:
+) -> DataFilesDict:
     """
-    Search for metadata files in provided `base_path` for Hub datasets and add it to provided `data_files` object.
+    Search for metadata files in provided `base_path` for Hub datasets
+    and add it to provided `data_files` object if they are found.
     """
     try:
         metadata_patterns = get_metadata_patterns_in_dataset_repository(hfh_dataset_info, base_path=base_path)
@@ -875,5 +879,7 @@ def maybe_extend_data_files_with_metadata_files_in_dataset_repository(
         metadata_files = DataFilesList.from_hf_repo(
             metadata_patterns, dataset_info=hfh_dataset_info, base_path=base_path
         )
-        data_files = DataFilesDict({split: data_files + metadata_files for split, data_files in data_files.items()})
+        data_files = DataFilesDict(
+            {split: data_files_list + metadata_files for split, data_files_list in data_files.items()}
+        )
     return data_files

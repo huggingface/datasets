@@ -1,22 +1,11 @@
-import os
 import textwrap
 from collections import Counter
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Tuple, Union
 
-import huggingface_hub
 import yaml
 
 from ..config import METADATA_CONFIGS_FIELD
-from ..data_files import (
-    DEFAULT_PATTERNS_ALL,
-    DataFilesDict,
-    get_data_patterns_in_dataset_repository,
-    get_data_patterns_locally,
-    maybe_extend_data_files_with_metadata_files_in_dataset_repository,
-    maybe_extend_data_files_with_metadata_files_locally,
-    sanitize_patterns,
-)
 from ..utils.logging import get_logger
 
 
@@ -212,68 +201,6 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
                         f"Dataset has several default configs: '{default_config_name}' and '{config_name}'."
                     )
         return default_config_name
-
-    def resolve_data_files_locally(
-        self,
-        config_name: str,
-        base_path: str,
-        with_metadata_files: bool,
-        allowed_extensions: List[str],
-    ) -> DataFilesDict:
-        """
-        Find patterns and resolve data files for local datasets for each config in-place (i.e. modifying `self`).
-        Drop initial `data_dir` and `data_files` values and set `data_files` to DataFilesDict object with resolved data files.
-        """
-        metadata_config = self[config_name]
-        config_data_files = metadata_config.get("data_files")
-        config_data_dir = metadata_config.get("data_dir")
-        config_base_path = os.path.join(base_path, config_data_dir) if config_data_dir else base_path
-        config_patterns = (
-            sanitize_patterns(config_data_files)
-            if config_data_files is not None
-            else get_data_patterns_locally(config_base_path)
-        )
-        config_data_files_dict = DataFilesDict.from_local_or_remote(
-            config_patterns,
-            base_path=config_base_path,
-            allowed_extensions=allowed_extensions,
-        )
-        if config_data_files is None and with_metadata_files and config_patterns != DEFAULT_PATTERNS_ALL:
-            maybe_extend_data_files_with_metadata_files_locally(config_data_files_dict, base_path=config_base_path)
-        return config_data_files_dict
-
-    def resolve_data_files_in_dataset_repository(
-        self,
-        config_name: str,
-        hfh_dataset_info: huggingface_hub.hf_api.DatasetInfo,
-        base_path: str,
-        with_metadata_files: bool,
-        allowed_extensions: List[str],
-    ) -> DataFilesDict:
-        """
-        Find patterns and resolve data files for Hub datasets for each config in-place (i.e. modifying `self`).
-        Drop initial `data_dir` and `data_files` values and set `data_files` to DataFilesDict object with resolved data files.
-        """
-        metadata_config = self[config_name]
-        config_data_files = metadata_config.get("data_files")
-        config_data_dir = metadata_config.get("data_dir")
-        config_base_path = os.path.join(base_path, config_data_dir) if config_data_dir else base_path
-        config_patterns = (
-            sanitize_patterns(config_data_files)
-            if config_data_files is not None
-            else get_data_patterns_in_dataset_repository(hfh_dataset_info, config_base_path)
-        )
-        config_data_files_dict = DataFilesDict.from_hf_repo(
-            config_patterns,
-            dataset_info=hfh_dataset_info,
-            base_path=config_base_path,
-            allowed_extensions=allowed_extensions,
-        )
-        if config_data_files is None and with_metadata_files and config_patterns != DEFAULT_PATTERNS_ALL:
-            maybe_extend_data_files_with_metadata_files_in_dataset_repository(
-                hfh_dataset_info, data_files=config_data_files_dict, base_path=config_base_path
-            )
-        return config_data_files_dict
 
 
 # DEPRECATED - just here to support old versions of evaluate like 0.2.2

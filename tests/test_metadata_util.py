@@ -4,13 +4,9 @@ import unittest
 from pathlib import Path
 
 import pytest
-from huggingface_hub import HfApi
 
-from datasets.config import HF_ENDPOINT, METADATA_CONFIGS_FIELD
-from datasets.data_files import DataFilesDict
+from datasets.config import METADATA_CONFIGS_FIELD
 from datasets.utils.metadata import DatasetMetadata, MetadataConfigs
-
-from .test_load import SAMPLE_DATASET_TWO_CONFIG_IN_METADATA
 
 
 def _dedent(string: str) -> str:
@@ -272,51 +268,6 @@ def test_metadata_configs_from_metadata(readme_content, expected_metadata_config
         metadata_dict = DatasetMetadata.from_readme(path)
         metadata_configs_dict = MetadataConfigs.from_metadata(metadata_dict)
         assert metadata_configs_dict == expected_metadata_configs_dict
-
-
-def test_metadata_configs_resolve_data_files_locally(data_dir_with_two_subdirs):
-    metadata_configs_dict = MetadataConfigs(
-        {
-            "cats": {"data_dir": "cats"},
-            "dogs": {"data_dir": "dogs"},
-        }
-    )
-    for config_name in metadata_configs_dict:
-        config_data_files = metadata_configs_dict.resolve_data_files_locally(
-            config_name, base_path=data_dir_with_two_subdirs, with_metadata_files=False, allowed_extensions=["jpg"]
-        )
-        assert isinstance(config_data_files, DataFilesDict)
-        assert len(config_data_files) == 1  # there is a single split
-        assert len(config_data_files["train"]) == 1
-        if config_name == "cats":
-            assert config_data_files["train"][0].name == "cat.jpg"
-        else:
-            assert config_data_files["train"][0].name == "dog.jpg"
-
-
-@pytest.mark.parametrize("config_name, expected_train_samples, expected_test_samples", [("v1", 3, 3), ("v2", 2, 1)])
-def test_metadata_configs_resolve_data_files_in_dataset_repository(
-    config_name, expected_train_samples, expected_test_samples
-):
-    metadata_configs_dict = MetadataConfigs(
-        {
-            "v1": {"data_dir": "v1"},
-            "v2": {"data_dir": "v2"},
-        }
-    )
-    hfh_dataset_info = HfApi(HF_ENDPOINT).dataset_info(
-        SAMPLE_DATASET_TWO_CONFIG_IN_METADATA,
-        timeout=100.0,
-    )
-    config_data_files = metadata_configs_dict.resolve_data_files_in_dataset_repository(
-        config_name, hfh_dataset_info, base_path="", with_metadata_files=False, allowed_extensions=["flac"]
-    )
-    assert isinstance(config_data_files, DataFilesDict)
-    assert len(config_data_files["train"]) == expected_train_samples
-    assert len(config_data_files["test"]) == expected_test_samples
-    assert all(
-        data_file.split("/")[-3] == config_name for data_file in config_data_files["train"] + config_data_files["test"]
-    )
 
 
 # TODO
