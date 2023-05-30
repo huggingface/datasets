@@ -1114,7 +1114,7 @@ class DatasetBuilder:
                 f"You can remove this warning by passing 'verification_mode={verification_mode.value}' instead.",
                 FutureWarning,
             )
-        if self._file_format != "arrow":
+        if self._file_format is not None and self._file_format != "arrow":
             raise FileFormatError('Loading a dataset not written in the "arrow" format is not supported.')
         is_local = not is_remote_filesystem(self._fs)
         if not is_local:
