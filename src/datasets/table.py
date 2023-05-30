@@ -46,28 +46,18 @@ def _in_memory_arrow_table_from_buffer(buffer: pa.Buffer) -> pa.Table:
     return table
 
 
-def _memory_mapped_arrow_stream_from_file(filename: str):
-    # To more efficiently read big data from disk, we can memory map the file,
-    # so that Arrow can directly reference the data mapped from disk and avoid
-    # having to allocate its own memory. In such case the operating system will
-    # be able to page in the mapped memory lazily and page it out without any
-    # write back cost when under pressure, allowing to more easily read arrays
-    # bigger than the total memory.
-    return pa.memory_map(filename)
-
-
 def arrow_table_schema_from_file(filename: str) -> pa.Schema:
     """
     Infer arrow table schema from file without loading whole file into memory.
     Usefull especially while having very big files.
     """
-    with _memory_mapped_arrow_stream_from_file(filename) as memory_mapped_stream:
+    with pa.memory_map(filename) as memory_mapped_stream:
         schema = pa.ipc.open_stream(memory_mapped_stream).schema
     return schema
 
 
 def _memory_mapped_arrow_table_from_file(filename: str) -> pa.Table:
-    with _memory_mapped_arrow_stream_from_file(filename) as memory_mapped_stream:
+    with pa.memory_map(filename) as memory_mapped_stream:
         pa_table = pa.ipc.open_stream(memory_mapped_stream).read_all()
     return pa_table
 
