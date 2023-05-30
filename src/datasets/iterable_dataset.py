@@ -1420,7 +1420,8 @@ class IterableDataset(DatasetInfoMixin):
     ) -> "IterableDataset":
         """
         Return a dataset with the specified format.
-        This method only supports the "torch" format for now.
+        Supported formats: "arrow", or None for regular python objects.
+        The other formats are currently not implemented.
 
         Args:
 
