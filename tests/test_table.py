@@ -1183,6 +1183,13 @@ def test_cast_array_to_features_sequence_classlabel():
         assert cast_array_to_feature(arr, Sequence(ClassLabel(names=["foo", "bar"])))
 
 
+def test_cast_sliced_fixed_size_array_to_features():
+    arr = pa.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]], pa.list_(pa.int32(), 3))
+    casted_array = cast_array_to_feature(arr[1:], Sequence(Value("int64"), length=3))
+    assert casted_array.type == pa.list_(pa.int64(), 3)
+    assert casted_array.to_pylist() == arr[1:].to_pylist()
+
+
 def test_embed_array_storage(image_file):
     array = pa.array([{"bytes": None, "path": image_file}], type=Image.pa_type)
     embedded_images_array = embed_array_storage(array, Image())

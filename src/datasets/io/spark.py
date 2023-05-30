@@ -23,6 +23,7 @@ class SparkDatasetReader(AbstractDatasetReader):
         streaming: bool = True,
         cache_dir: str = None,
         keep_in_memory: bool = False,
+        working_dir: str = None,
         load_from_cache_file: bool = True,
         file_format: str = "arrow",
         **kwargs,
@@ -41,6 +42,7 @@ class SparkDatasetReader(AbstractDatasetReader):
             df=df,
             features=features,
             cache_dir=cache_dir,
+            working_dir=working_dir,
             **kwargs,
         )
 
