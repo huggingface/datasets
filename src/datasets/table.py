@@ -72,7 +72,7 @@ def _memory_mapped_arrow_table_from_file(filename: str) -> pa.Table:
     return pa_table
 
 
-def arrow_table_batches_from_file(filename: str, max_chunksize: Optional[int] = None):
+def _memory_mapped_record_batch_reader_from_file(filename: str, max_chunksize: Optional[int] = None):
     pa_table = _memory_mapped_arrow_table_from_file(filename)
     return pa_table.to_reader(max_chunksize=config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER)
 
