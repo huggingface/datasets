@@ -87,9 +87,9 @@ class _HasNextIterator(Iterator):
 def _convert_to_arrow(
     iterable: Iterable[Tuple[Key, dict]],
     batch_size: int,
-    drop_last_batch=False,
+    drop_last_batch: bool = False,
 ) -> Iterator[Tuple[Key, pa.Table]]:
-    """Iterate over sub-tables of size `batch_size`.
+    """Convert and group examples in Arrow tables of size `batch_size`.
 
     Args:
         iterable (`Iterable[Tuple[Key, dict]]`):
@@ -116,7 +116,7 @@ def _convert_to_arrow(
 def _batch_arrow_tables(
     iterable: Iterable[Tuple[Key, pa.Table]],
     batch_size: Optional[int],
-    drop_last_batch=False,
+    drop_last_batch: bool = False,
 ) -> Iterator[Tuple[Key, pa.Table]]:
     """Iterate over sub-tables of size `batch_size`.
 
@@ -1485,7 +1485,8 @@ class IterableDataset(DatasetInfoMixin):
     ) -> "IterableDataset":
         """
         Return a dataset with the specified format.
-        This method only supports the "torch" format for now.
+        Supported formats: "arrow", or None for regular python objects.
+        The other formats are currently not implemented.
 
         Args:
 

@@ -182,3 +182,13 @@ def test_make_file_instructions():
         {"filename": os.path.join(prefix_path, f"{name}-train-00002-of-00010.arrow"), "skip": 0, "take": -1},
         {"filename": os.path.join(prefix_path, f"{name}-train-00003-of-00010.arrow"), "skip": 0, "take": 3},
     ]
+
+
+@pytest.mark.parametrize("name, expected_exception", [(None, TypeError), ("", ValueError)])
+def test_make_file_instructions_raises(name, expected_exception):
+    split_infos = [SplitInfo(name="train", num_examples=100)]
+    instruction = "train"
+    filetype_suffix = "arrow"
+    prefix_path = "prefix_path"
+    with pytest.raises(expected_exception):
+        _ = make_file_instructions(name, split_infos, instruction, filetype_suffix, prefix_path)
