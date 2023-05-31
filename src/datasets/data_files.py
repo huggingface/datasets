@@ -847,39 +847,67 @@ class DataFilesDict(Dict[str, DataFilesList]):
         return DataFilesDict, (dict(sorted(self.items())),)
 
 
-def maybe_extend_data_files_with_metadata_files_locally(data_files: DataFilesDict, base_path: str) -> DataFilesDict:
+def get_patterns_and_data_files(
+    is_repo: bool,
+    base_path: Optional[str] = None,
+    data_files: Optional[Union[str, List, Dict]] = None,
+    hfh_dataset_info: Optional["huggingface_hub.hf_api.DatasetInfo"] = None,
+    allowed_extensions: Optional[List[str]] = None,
+) -> Tuple[Dict[str, List[str]], DataFilesDict]:
     """
-    Search for metadata files in provided `base_path` for local datasets
-    and add it to provided `data_files` object if they are found.
+    Search for file patterns in dataset repository or local/remote files
+    and resolve data files according to this patterns.
     """
-    try:
-        metadata_patterns = get_metadata_patterns_locally(base_path)
-    except FileNotFoundError:
-        metadata_patterns = None
-    if metadata_patterns is not None:
-        metadata_files = DataFilesList.from_local_or_remote(metadata_patterns, base_path=base_path)
-        data_files = DataFilesDict(
-            {split: data_files_list + metadata_files for split, data_files_list in data_files.items()}
+    if is_repo:
+        if hfh_dataset_info is None:
+            raise ValueError("`hfh_dataset_info` must be provided for Hub datasets. ")
+        patterns = (
+            sanitize_patterns(data_files)
+            if data_files is not None
+            else get_data_patterns_in_dataset_repository(hfh_dataset_info, base_path=base_path)
         )
-    return data_files
+        data_files = DataFilesDict.from_hf_repo(
+            patterns,
+            dataset_info=hfh_dataset_info,
+            base_path=base_path,
+            allowed_extensions=allowed_extensions,
+        )
+        return patterns, data_files
+
+    patterns = (
+        sanitize_patterns(data_files) if data_files is not None else get_data_patterns_locally(base_path=base_path)
+    )
+    data_files = DataFilesDict.from_local_or_remote(
+        patterns,
+        base_path=base_path,
+        allowed_extensions=allowed_extensions,
+    )
+    return patterns, data_files
 
 
-def maybe_extend_data_files_with_metadata_files_in_dataset_repository(
-    hfh_dataset_info, data_files: DataFilesDict, base_path: str
-) -> DataFilesDict:
+def get_metadata_data_files_list(
+    is_repo: bool,
+    base_path: Optional[str] = None,
+    hfh_dataset_info: Optional[huggingface_hub.hf_api.DatasetInfo] = None,
+) -> DataFilesList:
     """
-    Search for metadata files in provided `base_path` for Hub datasets
-    and add it to provided `data_files` object if they are found.
+    Search for metadata file patterns in a dataset repository or local/remote files
+    and resolve data files according to this patterns to get the list of metadata files.
     """
-    try:
-        metadata_patterns = get_metadata_patterns_in_dataset_repository(hfh_dataset_info, base_path=base_path)
-    except FileNotFoundError:
-        metadata_patterns = None
-    if metadata_patterns is not None:
-        metadata_files = DataFilesList.from_hf_repo(
-            metadata_patterns, dataset_info=hfh_dataset_info, base_path=base_path
-        )
-        data_files = DataFilesDict(
-            {split: data_files_list + metadata_files for split, data_files_list in data_files.items()}
-        )
-    return data_files
+    if is_repo:
+        if hfh_dataset_info is None:
+            raise ValueError("`hfh_dataset_info` must be provided for Hub datasets. ")
+        try:
+            metadata_patterns = get_metadata_patterns_in_dataset_repository(hfh_dataset_info, base_path=base_path)
+        except FileNotFoundError:
+            metadata_patterns = None
+        if metadata_patterns is not None:
+            return DataFilesList.from_hf_repo(metadata_patterns, dataset_info=hfh_dataset_info, base_path=base_path)
+
+    else:
+        try:
+            metadata_patterns = get_metadata_patterns_locally(base_path)
+        except FileNotFoundError:
+            metadata_patterns = None
+        if metadata_patterns is not None:
+            return DataFilesList.from_local_or_remote(metadata_patterns, base_path=base_path)

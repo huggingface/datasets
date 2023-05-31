@@ -40,11 +40,8 @@ from .data_files import (
     DataFilesDict,
     DataFilesList,
     EmptyDatasetError,
-    get_data_patterns_in_dataset_repository,
-    get_data_patterns_locally,
-    maybe_extend_data_files_with_metadata_files_in_dataset_repository,
-    maybe_extend_data_files_with_metadata_files_locally,
-    sanitize_patterns,
+    get_metadata_data_files_list,
+    get_patterns_and_data_files,
 )
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download.download_config import DownloadConfig
@@ -528,6 +525,70 @@ def update_hash_with_config_parameters(hash: str, config_parameters: dict) -> st
     return m.hexdigest()
 
 
+def create_builder_configs_from_metadata_configs(
+    module_path: str,
+    metadata_configs: MetadataConfigs,
+    is_repo: bool,
+    supports_metadata: bool,
+    base_path: Optional[str] = None,
+    hfh_dataset_info: Optional["huggingface_hub.hf_api.DatasetInfo"] = None,
+    default_builder_kwargs: Dict[str, Any] = None,
+    allowed_extensions: Optional[List[str]] = None,
+) -> Tuple[List[BuilderConfig], str]:
+    builder_cls = import_main_class(module_path)
+    builder_config_cls = builder_cls.BUILDER_CONFIG_CLASS
+    default_config_name = metadata_configs.get_default_config_name()
+    builder_configs = []
+
+    base_path = base_path if base_path is not None else ""
+    for config_name, config_params in metadata_configs.items():
+        config_data_files = config_params.get("data_files")
+        config_data_dir = config_params.get("data_dir")
+        config_base_path = os.path.join(base_path, config_data_dir) if config_data_dir else base_path
+        config_patterns, config_data_files_dict = get_patterns_and_data_files(
+            is_repo,
+            base_path=config_base_path,
+            data_files=config_data_files,
+            hfh_dataset_info=hfh_dataset_info,
+            allowed_extensions=allowed_extensions,
+        )
+        if config_data_files is None and supports_metadata and config_patterns != DEFAULT_PATTERNS_ALL:
+            config_metadata_data_files_list = get_metadata_data_files_list(
+                is_repo=is_repo,
+                base_path=config_base_path,
+                hfh_dataset_info=hfh_dataset_info,
+            )
+            if config_metadata_data_files_list:
+                config_data_files_dict = DataFilesDict(
+                    {
+                        split: data_files_list + config_metadata_data_files_list
+                        for split, data_files_list in config_data_files_dict.items()
+                    }
+                )
+        ignored_params = [
+            param for param in config_params if not hasattr(builder_config_cls, param) and param != "default"
+        ]
+        if ignored_params:
+            logger.warning(
+                f"Some datasets params were ignored: {ignored_params}. "
+                "Make sure to use only valid params for the dataset builder and to have "
+                "a up-to-date version of the `datasets` library."
+            )
+        builder_configs.append(
+            builder_config_cls(
+                name=config_name,
+                data_files=config_data_files_dict,
+                data_dir=config_data_dir,
+                **{
+                    param: value
+                    for param, value in {**default_builder_kwargs, **config_params}.items()
+                    if hasattr(builder_config_cls, param) and param not in ("default", "data_files", "data_dir")
+                },
+            )
+        )
+    return builder_configs, default_config_name
+
+
 @dataclass
 class DatasetModule:
     module_path: str
@@ -758,12 +819,11 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         # even if metadata_configs_dict is not None (which means that we will resolve files for each config later)
         # we cannot skip resolving all files because we need to infer module name by files extensions
         base_path = os.path.join(self.path, self.data_dir) if self.data_dir else self.path
-        patterns = (
-            sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns_locally(base_path)
-        )
-        data_files = DataFilesDict.from_local_or_remote(
-            patterns,
+        is_repo = False
+        patterns, data_files = get_patterns_and_data_files(
+            is_repo=is_repo,
             base_path=base_path,
+            data_files=self.data_files,
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
         module_name, default_builder_kwargs = infer_module_for_data_files(
@@ -773,65 +833,30 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         # Collect metadata files if the module supports them
         supports_metadata = module_name in _MODULE_SUPPORTS_METADATA
         if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
-            data_files = maybe_extend_data_files_with_metadata_files_locally(
-                data_files=data_files,
+            metadata_data_files_list = get_metadata_data_files_list(
+                is_repo=is_repo,
                 base_path=base_path,
             )
+            if metadata_data_files_list:
+                data_files = DataFilesDict(
+                    {
+                        split: data_files_list + metadata_data_files_list
+                        for split, data_files_list in data_files.items()
+                    }
+                )
 
         module_path, hash = _PACKAGED_DATASETS_MODULES[module_name]
         if metadata_configs:
-            builder_cls = import_main_class(module_path)
-            builder_config_cls = builder_cls.BUILDER_CONFIG_CLASS
-            default_config_name = metadata_configs.get_default_config_name()
-            builder_configs = []
-
-            for config_name, metadata_config_params in metadata_configs.items():
-                config_data_files = metadata_config_params.get("data_files")
-                config_data_dir = metadata_config_params.get("data_dir")
-                config_base_path = os.path.join(base_path, config_data_dir) if config_data_dir else base_path
-                config_patterns = (
-                    sanitize_patterns(config_data_files)
-                    if config_data_files is not None
-                    else get_data_patterns_locally(config_base_path)
-                )
-                config_data_files_dict = DataFilesDict.from_local_or_remote(
-                    config_patterns,
-                    base_path=config_base_path,
-                    allowed_extensions=ALL_ALLOWED_EXTENSIONS,
-                )
-                if config_data_files is None and supports_metadata and config_patterns != DEFAULT_PATTERNS_ALL:
-                    config_data_files_dict = maybe_extend_data_files_with_metadata_files_locally(
-                        data_files=config_data_files_dict, base_path=config_base_path
-                    )
-
-                ignored_params = [
-                    param
-                    for param in metadata_config_params
-                    if not hasattr(builder_config_cls, param) and param != "default"
-                ]
-                if ignored_params:
-                    logger.warning(
-                        f"Some datasets params were ignored: {ignored_params}. "
-                        "Make sure to use only valid params for the dataset builder and to have "
-                        "a up-to-date version of the `datasets` library."
-                    )
-
-                builder_configs.append(
-                    builder_config_cls(
-                        name=config_name,
-                        data_files=config_data_files_dict,
-                        data_dir=self.data_dir,
-                        **{
-                            param: value
-                            for param, value in {**default_builder_kwargs, **metadata_config_params}.items()
-                            if hasattr(builder_config_cls, param)
-                            and param not in ("default", "data_files", "data_dir")
-                        },
-                    )
-                )
+            builder_configs, default_config_name = create_builder_configs_from_metadata_configs(
+                module_path,
+                metadata_configs,
+                is_repo=is_repo,
+                base_path=base_path,
+                supports_metadata=supports_metadata,
+                default_builder_kwargs=default_builder_kwargs,
+            )
         else:
-            builder_configs = None
-            default_config_name = None
+            builder_configs, default_config_name = None, None
         builder_kwargs = {
             "hash": hash,
             "base_path": self.path,
@@ -881,17 +906,23 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         base_path = (
             str(Path(self.data_dir).expanduser().resolve()) if self.data_dir is not None else str(Path().resolve())
         )
-        patterns = (
-            sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns_locally(base_path)
-        )
-        data_files = DataFilesDict.from_local_or_remote(
-            patterns,
-            use_auth_token=self.download_config.use_auth_token,
+        is_repo = False
+        patterns, data_files = get_patterns_and_data_files(
+            is_repo=is_repo,
             base_path=base_path,
+            data_files=self.data_files,
+            allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
         supports_metadata = self.name in _MODULE_SUPPORTS_METADATA
         if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
-            data_files = maybe_extend_data_files_with_metadata_files_locally(data_files, base_path=base_path)
+            metadata_data_files_list = get_metadata_data_files_list(is_repo=is_repo, base_path=base_path)
+            if metadata_data_files_list:
+                data_files = DataFilesDict(
+                    {
+                        split: data_files_list + metadata_data_files_list
+                        for split, data_files_list in data_files.items()
+                    }
+                )
 
         module_path, hash = _PACKAGED_DATASETS_MODULES[self.name]
 
@@ -922,7 +953,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self.name = name
         self.revision = revision
         self.data_files = data_files
-        self.data_dir = data_dir if data_dir else ""
+        self.data_dir = data_dir
         self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         increase_load_count(name, resource_type="dataset")
@@ -949,15 +980,12 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         dataset_infos = DatasetInfosDict.from_metadata(dataset_metadata)
         # even if metadata_configs is not None (which means that we will resolve files for each config later)
         # we cannot skip resolving all files because we need to infer module name by files extensions
-        patterns = (
-            sanitize_patterns(self.data_files)
-            if self.data_files is not None
-            else get_data_patterns_in_dataset_repository(hfh_dataset_info, self.data_dir)
-        )
-        data_files = DataFilesDict.from_hf_repo(
-            patterns,
-            dataset_info=hfh_dataset_info,
+        is_repo = True
+        patterns, data_files = get_patterns_and_data_files(
+            is_repo=is_repo,
             base_path=self.data_dir,
+            data_files=self.data_files,
+            hfh_dataset_info=hfh_dataset_info,
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
         module_name, default_builder_kwargs = infer_module_for_data_files(
@@ -968,68 +996,32 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         # Collect metadata files if the module supports them
         supports_metadata = module_name in _MODULE_SUPPORTS_METADATA
         if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
-            data_files = maybe_extend_data_files_with_metadata_files_in_dataset_repository(
-                hfh_dataset_info, data_files=data_files, base_path=self.data_dir
+            metadata_data_files_list = get_metadata_data_files_list(
+                is_repo=is_repo,
+                base_path=self.data_dir,
+                hfh_dataset_info=hfh_dataset_info,
             )
+            if metadata_data_files_list:
+                data_files = DataFilesDict(
+                    {
+                        split: data_files_list + metadata_data_files_list
+                        for split, data_files_list in data_files.items()
+                    }
+                )
 
         module_path, hash = _PACKAGED_DATASETS_MODULES[module_name]
         if metadata_configs:
-            builder_cls = import_main_class(module_path)
-            builder_config_cls = builder_cls.BUILDER_CONFIG_CLASS
-            default_config_name = metadata_configs.get_default_config_name()
-            builder_configs = []
-            for config_name, metadata_config_params in metadata_configs.items():
-                config_data_files = metadata_config_params.get("data_files")
-                config_data_dir = metadata_config_params.get("data_dir")
-                config_base_path = os.path.join(self.data_dir, config_data_dir) if config_data_dir else self.data_dir
-                config_patterns = (
-                    sanitize_patterns(config_data_files)
-                    if config_data_files is not None
-                    else get_data_patterns_in_dataset_repository(
-                        dataset_info=hfh_dataset_info, base_path=self.data_dir
-                    )
-                )
-                config_data_files_dict = DataFilesDict.from_hf_repo(
-                    config_patterns,
-                    dataset_info=hfh_dataset_info,
-                    base_path=config_base_path,
-                    allowed_extensions=ALL_ALLOWED_EXTENSIONS,
-                )
-                if config_data_files is None and supports_metadata and config_patterns != DEFAULT_PATTERNS_ALL:
-                    config_data_files_dict = maybe_extend_data_files_with_metadata_files_in_dataset_repository(
-                        hfh_dataset_info=hfh_dataset_info,
-                        data_files=config_data_files_dict,
-                        base_path=config_base_path,
-                    )
-
-                ignored_params = [
-                    param
-                    for param in metadata_config_params
-                    if not hasattr(builder_config_cls, param) and param != "default"
-                ]
-                if ignored_params:
-                    logger.warning(
-                        f"Some datasets params were ignored: {ignored_params}. "
-                        "Make sure to use only valid params for the dataset builder and to have "
-                        "a up-to-date version of the `datasets` library."
-                    )
-
-                builder_configs.append(
-                    builder_config_cls(
-                        name=config_name,
-                        data_files=config_data_files_dict,
-                        data_dir=self.data_dir,
-                        **{
-                            param: value
-                            for param, value in {**default_builder_kwargs, **metadata_config_params}.items()
-                            if hasattr(builder_config_cls, param)
-                            and param not in ("default", "data_files", "data_dir")
-                        },
-                    )
-                )
+            builder_configs, default_config_name = create_builder_configs_from_metadata_configs(
+                module_path,
+                metadata_configs,
+                is_repo=is_repo,
+                base_path=self.data_dir,
+                hfh_dataset_info=hfh_dataset_info,
+                supports_metadata=supports_metadata,
+                default_builder_kwargs=default_builder_kwargs,
+            )
         else:
-            builder_configs = None
-            default_config_name = None
+            builder_configs, default_config_name = None, None
         builder_kwargs = {
             "hash": hash,
             "base_path": hf_hub_url(self.name, "", revision=self.revision),
