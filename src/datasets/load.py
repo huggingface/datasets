@@ -85,7 +85,7 @@ from .utils.version import Version
 
 logger = get_logger(__name__)
 
-ALL_ALLOWED_EXTENSIONS = list(_EXTENSION_TO_MODULE.keys()) + ["zip"]
+ALL_ALLOWED_EXTENSIONS = list(_EXTENSION_TO_MODULE.keys()) + [".zip"]
 
 
 def init_dynamic_modules(
@@ -429,7 +429,7 @@ def infer_module_for_data_files_list(
             - dict of builder kwargs
     """
     extensions_counter = Counter(
-        suffix[1:].lower()
+        suffix.lower()
         for filepath in data_files_list[: config.DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE]
         for suffix in Path(filepath).suffixes
     )
@@ -437,7 +437,7 @@ def infer_module_for_data_files_list(
         for ext, _ in extensions_counter.most_common():
             if ext in _EXTENSION_TO_MODULE:
                 return _EXTENSION_TO_MODULE[ext]
-            elif ext == "zip":
+            elif ext == ".zip":
                 return infer_module_for_data_files_list_in_archives(data_files_list, use_auth_token=use_auth_token)
     return None, {}
 
@@ -471,9 +471,7 @@ def infer_module_for_data_files_list_in_archives(
                     : config.ARCHIVED_DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE
                 ]
             ]
-    extensions_counter = Counter(
-        suffix[1:].lower() for filepath in archived_files for suffix in Path(filepath).suffixes
-    )
+    extensions_counter = Counter(suffix.lower() for filepath in archived_files for suffix in Path(filepath).suffixes)
     if extensions_counter:
         most_common = extensions_counter.most_common(1)[0][0]
         if most_common in _EXTENSION_TO_MODULE:

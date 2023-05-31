@@ -59,7 +59,7 @@ from .filesystems import (
 )
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
-from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
+from .iterable_dataset import ArrowExamplesIterable, ExamplesIterable, IterableDataset
 from .keyhash import DuplicatedKeysError
 from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH, camelcase_to_snakecase
 from .splits import Split, SplitDict, SplitGenerator, SplitInfo
@@ -97,6 +97,10 @@ class ManualDownloadError(DatasetBuildError):
 
 
 class DatasetGenerationError(DatasetBuildError):
+    pass
+
+
+class FileFormatError(DatasetBuildError):
     pass
 
 
@@ -410,6 +414,9 @@ class DatasetBuilder:
 
         # Set to True by "datasets-cli test" to generate file checksums for (deprecated) dataset_infos.json independently of verification_mode value.
         self._record_infos = False
+
+        # Set in `.download_and_prepare` once the format of the generated dataset is known
+        self._file_format = None
 
         # Enable streaming (e.g. it patches "open" to work with remote files)
         extend_dataset_builder_for_streaming(self)
@@ -752,7 +759,7 @@ class DatasetBuilder:
         ```py
         >>> from datasets import load_dataset_builder
         >>> builder = load_dataset_builder("rotten_tomatoes")
-        >>> ds = builder.download_and_prepare()
+        >>> builder.download_and_prepare()
         ```
 
         Download and prepare the dataset as sharded Parquet files locally:
@@ -760,7 +767,7 @@ class DatasetBuilder:
         ```py
         >>> from datasets import load_dataset_builder
         >>> builder = load_dataset_builder("rotten_tomatoes")
-        >>> ds = builder.download_and_prepare("./output_dir", file_format="parquet")
+        >>> builder.download_and_prepare("./output_dir", file_format="parquet")
         ```
 
         Download and prepare the dataset as sharded Parquet files in a cloud storage:
@@ -769,7 +776,7 @@ class DatasetBuilder:
         >>> from datasets import load_dataset_builder
         >>> storage_options = {"key": aws_access_key_id, "secret": aws_secret_access_key}
         >>> builder = load_dataset_builder("rotten_tomatoes")
-        >>> ds = builder.download_and_prepare("s3://my-bucket/my_rotten_tomatoes", storage_options=storage_options, file_format="parquet")
+        >>> builder.download_and_prepare("s3://my-bucket/my_rotten_tomatoes", storage_options=storage_options, file_format="parquet")
         ```
         """
         if ignore_verifications != "deprecated":
@@ -800,6 +807,7 @@ class DatasetBuilder:
 
         if file_format is not None and file_format not in ["arrow", "parquet"]:
             raise ValueError(f"Unsupported file_format: {file_format}. Expected 'arrow' or 'parquet'")
+        self._file_format = file_format
 
         if self._fs._strip_protocol(self._output_dir) == "":
             # We don't support the root directory, because it has no dirname,
@@ -1122,7 +1130,7 @@ class DatasetBuilder:
         ```py
         >>> from datasets import load_dataset_builder
         >>> builder = load_dataset_builder('rotten_tomatoes')
-        >>> ds = builder.download_and_prepare()
+        >>> builder.download_and_prepare()
         >>> ds = builder.as_dataset(split='train')
         >>> ds
         Dataset({
@@ -1138,6 +1146,8 @@ class DatasetBuilder:
                 f"You can remove this warning by passing 'verification_mode={verification_mode.value}' instead.",
                 FutureWarning,
             )
+        if self._file_format is not None and self._file_format != "arrow":
+            raise FileFormatError('Loading a dataset not written in the "arrow" format is not supported.')
         is_local = not is_remote_filesystem(self._fs)
         if not is_local:
             raise NotImplementedError(f"Loading a dataset cached in a {type(self._fs).__name__} is not supported.")
@@ -1932,9 +1942,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         yield job_id, True, (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths)
 
     def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
-        return ExamplesIterable(
-            _generate_examples_from_tables_wrapper(self._generate_tables), kwargs=split_generator.gen_kwargs
-        )
+        return ArrowExamplesIterable(self._generate_tables, kwargs=split_generator.gen_kwargs)
 
 
 class MissingBeamOptions(ValueError):
