@@ -127,7 +127,8 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
         yaml_data_files = metadata_config.get("data_files")
         yaml_error_message = textwrap.dedent(
             f"""
-            Expected data_files in YAML to be a string or a list, but got {yaml_data_files}
+            Expected data_files in YAML to be either a string or a list of strings
+            or a list of dicts with two keys: 'split' and 'pattern', but got {yaml_data_files}
             Examples of data_files in YAML:
 
                data_files: data.csv
