@@ -124,29 +124,40 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
 
     @staticmethod
     def _raise_if_not_valid(metadata_config: dict):
-        if isinstance(metadata_config.get("data_files"), dict):
-            raise ValueError(
-                textwrap.dedent(
-                    f"""
-                    Expected data_files in YAML to be a string or a list, but got {metadata_config['data_files']}
-                    Examples of data_files in YAML:
+        yaml_data_files = metadata_config.get("data_files")
+        yaml_error_message = textwrap.dedent(
+            f"""
+            Expected data_files in YAML to be a string or a list, but got {yaml_data_files}
+            Examples of data_files in YAML:
 
-                       data_files: data.csv
+               data_files: data.csv
 
-                       data_files: data/*.png
+               data_files: data/*.png
 
-                       data_files:
-                        - part0/*
-                        - part1/*
+               data_files:
+                - part0/*
+                - part1/*
 
-                       data_files:
-                        - split: train
-                          pattern: train/*
-                        - split: test
-                          pattern: test/*
-                    """
-                )
-            )
+               data_files:
+                - split: train
+                  pattern: train/*
+                - split: test
+                  pattern: test/*
+            """
+        )
+        if not isinstance(yaml_data_files, (list, str)):
+            raise yaml_error_message
+        if isinstance(yaml_data_files, list):
+            for yaml_data_files_item in yaml_data_files:
+                if not isinstance(yaml_data_files_item, str) or not (
+                    isinstance(yaml_data_files_item, dict)
+                    and sorted(yaml_data_files_item)
+                    == [
+                        "pattern",
+                        "split",
+                    ]
+                ):
+                    raise ValueError(yaml_error_message)
 
     @classmethod
     def from_metadata(cls, dataset_metadata: DatasetMetadata) -> "MetadataConfigs":

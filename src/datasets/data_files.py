@@ -100,10 +100,7 @@ def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[
             for pattern in patterns:
                 if not isinstance(pattern, dict) or sorted(pattern) != ["pattern", "split"]:
                     raise ValueError(
-                        f"Expected data_files in YAML to be a string or a list, but got {pattern}\nExamples:\n"
-                        "    data_files: data.csv\n    data_files: data/*.png\n"
-                        "    data_files:\n    - part0/*\n    - part1/*\n"
-                        "    data_files:\n    - split: train\n      pattern: train/*\n    - split: test\n      pattern: test/*"
+                        f"Expected each pattern in a list of patterns to be a string or a list, but got {pattern}"
                     )
             splits = [pattern["split"] for pattern in patterns]
             if len(set(splits)) != len(splits):
