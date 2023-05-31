@@ -59,7 +59,7 @@ from .filesystems import (
 )
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
-from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
+from .iterable_dataset import ArrowExamplesIterable, ExamplesIterable, IterableDataset
 from .keyhash import DuplicatedKeysError
 from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH, camelcase_to_snakecase
 from .splits import Split, SplitDict, SplitGenerator, SplitInfo
@@ -1897,9 +1897,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         yield job_id, True, (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths)
 
     def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
-        return ExamplesIterable(
-            _generate_examples_from_tables_wrapper(self._generate_tables), kwargs=split_generator.gen_kwargs
-        )
+        return ArrowExamplesIterable(self._generate_tables, kwargs=split_generator.gen_kwargs)
 
 
 class MissingBeamOptions(ValueError):
