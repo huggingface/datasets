@@ -83,10 +83,10 @@ SAMPLE_DATASET_IDENTIFIER3 = "mariosasko/test_multi_dir_dataset"  # has multiple
 SAMPLE_DATASET_IDENTIFIER4 = "mariosasko/test_imagefolder_with_metadata"  # imagefolder with a metadata file outside of the train/test directories
 SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER = "lhoestq/_dummy"
 SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST = "_dummy"
-SAMPLE_DATASET_NO_CONFIGS_IN_METADATA = "polinaeterna/audiofolder_no_configs_in_metadata"
-SAMPLE_DATASET_ONE_DEFAULT_CONFIG_IN_METADATA = "polinaeterna/audiofolder_one_default_config_in_metadata"
-SAMPLE_DATASET_ONE_NONDEFAULT_CONFIG_IN_METADATA = "polinaeterna/audiofolder_one_nondefault_config_in_metadata"
-SAMPLE_DATASET_TWO_CONFIG_IN_METADATA = "polinaeterna/audiofolder_two_configs_in_metadata"
+SAMPLE_DATASET_NO_CONFIGS_IN_METADATA = "datasets-maintainers/audiofolder_no_configs_in_metadata"
+SAMPLE_DATASET_ONE_DEFAULT_CONFIG_IN_METADATA = "datasets-maintainers/audiofolder_one_default_config_in_metadata"
+SAMPLE_DATASET_ONE_NONDEFAULT_CONFIG_IN_METADATA = "datasets-maintainers/audiofolder_one_nondefault_config_in_metadata"
+SAMPLE_DATASET_TWO_CONFIG_IN_METADATA = "datasets-maintainers/audiofolder_two_configs_in_metadata"
 
 
 METRIC_LOADING_SCRIPT_NAME = "__dummy_metric1__"
