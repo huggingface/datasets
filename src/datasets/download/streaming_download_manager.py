@@ -77,6 +77,8 @@ MAGIC_NUMBER_MAX_LENGTH = max(
     for magic_number in chain(MAGIC_NUMBER_TO_COMPRESSION_PROTOCOL, MAGIC_NUMBER_TO_UNSUPPORTED_COMPRESSION_PROTOCOL)
 )
 
+SUPPORTED_REMOTE_SERVER_TYPE = ["http", "https", "s3"]
+
 
 class NonStreamableDatasetError(Exception):
     pass
@@ -140,13 +142,12 @@ def xdirname(a):
     return "::".join([a] + b)
 
 
-def xexists(urlpath: str, token: Optional[Union[str, bool]] = None):
+def xexists(urlpath: str, download_config: Optional[DownloadConfig] = None):
     """Extend `os.path.exists` function to support both local and remote files.
 
     Args:
         urlpath (`str`): URL path.
-        token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
-            Hugging Face Hub for private remote files.
+        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
 
     Returns:
         `bool`
@@ -156,16 +157,7 @@ def xexists(urlpath: str, token: Optional[Union[str, bool]] = None):
     if is_local_path(main_hop):
         return os.path.exists(main_hop)
     else:
-        if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
-            main_hop, http_kwargs = _prepare_http_url_kwargs(main_hop, token=token)
-            storage_options = http_kwargs
-        elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
-            url = rest_hops[0]
-            url, http_kwargs = _prepare_http_url_kwargs(url, token=token)
-            storage_options = {"https": http_kwargs}
-            urlpath = "::".join([main_hop, url, *rest_hops[1:]])
-        else:
-            storage_options = None
+        urlpath, storage_options = _prepare_server_config(urlpath, download_config=download_config)
         fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
         return fs.exists(main_hop)
 
@@ -250,13 +242,12 @@ def xsplitext(a):
         return "::".join([a] + b), ext
 
 
-def xisfile(path, token: Optional[Union[str, bool]] = None) -> bool:
+def xisfile(path, download_config: Optional[DownloadConfig] = None) -> bool:
     """Extend `os.path.isfile` function to support remote files.
 
     Args:
         path (`str`): URL path.
-        token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
-            Hugging Face Hub for private remote files.
+        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
 
     Returns:
         `bool`
@@ -265,27 +256,17 @@ def xisfile(path, token: Optional[Union[str, bool]] = None) -> bool:
     if is_local_path(main_hop):
         return os.path.isfile(path)
     else:
-        if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
-            main_hop, http_kwargs = _prepare_http_url_kwargs(main_hop, token=token)
-            storage_options = http_kwargs
-        elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
-            url = rest_hops[0]
-            url, http_kwargs = _prepare_http_url_kwargs(url, token=token)
-            storage_options = {"https": http_kwargs}
-            path = "::".join([main_hop, url, *rest_hops[1:]])
-        else:
-            storage_options = None
+        path, storage_options = _prepare_server_config(path, download_config=download_config)
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
         return fs.isfile(main_hop)
 
 
-def xgetsize(path, token: Optional[Union[str, bool]] = None) -> int:
+def xgetsize(path, download_config: Optional[DownloadConfig] = None) -> int:
     """Extend `os.path.getsize` function to support remote files.
 
     Args:
         path (`str`): URL path.
-        token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
-            Hugging Face Hub for private remote files.
+        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
 
     Returns:
         `int`: optional
@@ -294,32 +275,22 @@ def xgetsize(path, token: Optional[Union[str, bool]] = None) -> int:
     if is_local_path(main_hop):
         return os.path.getsize(path)
     else:
-        if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
-            main_hop, http_kwargs = _prepare_http_url_kwargs(main_hop, token=token)
-            storage_options = http_kwargs
-        elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
-            url = rest_hops[0]
-            url, http_kwargs = _prepare_http_url_kwargs(url, token=token)
-            storage_options = {"https": http_kwargs}
-            path = "::".join([main_hop, url, *rest_hops[1:]])
-        else:
-            storage_options = None
+        path, storage_options = _prepare_server_config(path, download_config=download_config)
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
         size = fs.size(main_hop)
         if size is None:
             # use xopen instead of fs.open to make data fetching more robust
-            with xopen(path, token=token) as f:
+            with xopen(path, download_config=download_config) as f:
                 size = len(f.read())
         return size
 
 
-def xisdir(path, token: Optional[Union[str, bool]] = None) -> bool:
+def xisdir(path, download_config: Optional[DownloadConfig] = None) -> bool:
     """Extend `os.path.isdir` function to support remote files.
 
     Args:
         path (`str`): URL path.
-        token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
-            Hugging Face Hub for private remote files.
+        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
 
     Returns:
         `bool`
@@ -328,15 +299,7 @@ def xisdir(path, token: Optional[Union[str, bool]] = None) -> bool:
     if is_local_path(main_hop):
         return os.path.isdir(path)
     else:
-        if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
-            raise NotImplementedError("os.path.isdir is not extended to support URLs in streaming mode")
-        elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
-            url = rest_hops[0]
-            url, http_kwargs = _prepare_http_url_kwargs(url, token=token)
-            storage_options = {"https": http_kwargs}
-            path = "::".join([main_hop, url, *rest_hops[1:]])
-        else:
-            storage_options = None
+        path, storage_options = _prepare_server_config(path, download_config=download_config, implemented=False)
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
         inner_path = main_hop.split("://")[1]
         if not inner_path.strip("/"):
@@ -412,7 +375,7 @@ def _get_extraction_protocol_with_magic_number(f) -> Optional[str]:
             raise NotImplementedError(f"Compression protocol '{compression}' not implemented.")
 
 
-def _get_extraction_protocol(urlpath: str, token: Optional[Union[str, bool]] = None) -> Optional[str]:
+def _get_extraction_protocol(urlpath: str, download_config: Optional[DownloadConfig] = None) -> Optional[str]:
     # get inner file: zip://train-00000.json.gz::https://foo.bar/data.zip -> zip://train-00000.json.gz
     urlpath = str(urlpath)
     path = urlpath.split("::")[0]
@@ -427,7 +390,7 @@ def _get_extraction_protocol(urlpath: str, token: Optional[Union[str, bool]] = N
         return COMPRESSION_EXTENSION_TO_PROTOCOL[extension]
     if is_remote_url(urlpath):
         # get headers and cookies for authentication on the HF Hub and for Google Drive
-        urlpath, kwargs = _prepare_http_url_kwargs(urlpath, token=token)
+        urlpath, kwargs = _prepare_http_url_kwargs(urlpath, download_config=download_config)
     else:
         urlpath, kwargs = urlpath, {}
     try:
@@ -442,12 +405,40 @@ def _get_extraction_protocol(urlpath: str, token: Optional[Union[str, bool]] = N
             raise
 
 
-def _prepare_http_url_kwargs(url: str, token: Optional[Union[str, bool]] = None) -> Tuple[str, dict]:
+def _validate_servers(urlpath: str):
+    server = urlpath.split("://")[0]
+    return server in SUPPORTED_REMOTE_SERVER_TYPE
+
+
+def _prepare_server_config(
+    path: str, download_config: Optional[DownloadConfig] = None, implemented: bool = True
+) -> Tuple[str, dict]:
+    main_hop, *rest_hops = str(path).split("::")
+    if not rest_hops and _validate_servers(main_hop):
+        if not implemented:
+            raise NotImplementedError("Currently not extended to support URLs in streaming mode")
+        main_hop, http_kwargs = _prepare_http_url_kwargs(main_hop, download_config=download_config)
+        storage_options = http_kwargs
+    elif rest_hops and _validate_servers(rest_hops[0]):
+        url = rest_hops[0]
+        url, http_kwargs = _prepare_http_url_kwargs(url, download_config=download_config)
+        storage_options = {"https": http_kwargs}
+        path = "::".join([main_hop, url, *rest_hops[1:]])
+    else:
+        storage_options = None
+    return path, storage_options
+
+
+def _prepare_http_url_kwargs(url: str, download_config: Optional[DownloadConfig] = None) -> Tuple[str, dict]:
     """
     Prepare the URL and the kwargs that must be passed to the HttpFileSystem or to requests.get/head
 
     In particular it resolves google drive URLs and it adds the authentication headers for the Hugging Face Hub.
+
+    it also needs to resolve the S3 file system specifically due to the S3 file system stores it parameters in
+     storage_options field.
     """
+    use_auth_token = None if download_config is None else download_config.use_auth_token
     kwargs = {
         "headers": get_authentication_headers_for_url(url, token=token),
         "client_kwargs": {"trust_env": True},  # Enable reading proxy env variables.
@@ -466,10 +457,13 @@ def _prepare_http_url_kwargs(url: str, token: Optional[Union[str, bool]] = None)
     if url.startswith("https://raw.githubusercontent.com/"):
         # Workaround for served data with gzip content-encoding: https://github.com/fsspec/filesystem_spec/issues/389
         kwargs["block_size"] = 0
+    # Fix S3 file system
+    if url.startswith("s3://"):
+        kwargs = None if download_config is None else download_config.storage_options
     return url, kwargs
 
 
-def xopen(file: str, mode="r", *args, token: Optional[Union[str, bool]] = None, **kwargs):
+def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] = None, **kwargs):
     """Extend `open` function to support remote files using `fsspec`.
 
     It also has a retry mechanism in case connection fails.
@@ -479,8 +473,7 @@ def xopen(file: str, mode="r", *args, token: Optional[Union[str, bool]] = None, 
         file (`str`): Path name of the file to be opened.
         mode (`str`, *optional*, default "r"): Mode in which the file is opened.
         *args: Arguments to be passed to `fsspec.open`.
-        token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
-            Hugging Face Hub for private remote files.
+        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
         **kwargs: Keyword arguments to be passed to `fsspec.open`.
 
     Returns:
@@ -492,14 +485,8 @@ def xopen(file: str, mode="r", *args, token: Optional[Union[str, bool]] = None, 
     if is_local_path(main_hop):
         return open(main_hop, mode, *args, **kwargs)
     # add headers and cookies for authentication on the HF Hub and for Google Drive
-    if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
-        file, new_kwargs = _prepare_http_url_kwargs(file_str, token=token)
-    elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
-        url = rest_hops[0]
-        url, http_kwargs = _prepare_http_url_kwargs(url, token=token)
-        new_kwargs = {"https": http_kwargs}
-        file = "::".join([main_hop, url, *rest_hops[1:]])
-    else:
+    file, new_kwargs = _prepare_server_config(file_str, download_config=download_config)
+    if new_kwargs is None:
         new_kwargs = {}
     kwargs = {**kwargs, **new_kwargs}
     try:
@@ -523,13 +510,12 @@ def xopen(file: str, mode="r", *args, token: Optional[Union[str, bool]] = None, 
     return file_obj
 
 
-def xlistdir(path: str, token: Optional[Union[str, bool]] = None) -> List[str]:
+def xlistdir(path: str, download_config: Optional[DownloadConfig] = None) -> List[str]:
     """Extend `os.listdir` function to support remote files.
 
     Args:
         path (`str`): URL path.
-        token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
-            Hugging Face Hub for private remote files.
+        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
 
     Returns:
         `list` of `str`
@@ -539,15 +525,7 @@ def xlistdir(path: str, token: Optional[Union[str, bool]] = None) -> List[str]:
         return os.listdir(path)
     else:
         # globbing inside a zip in a private repo requires authentication
-        if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
-            raise NotImplementedError("os.listdir is not extended to support URLs in streaming mode")
-        elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
-            url = rest_hops[0]
-            url, http_kwargs = _prepare_http_url_kwargs(url, token=token)
-            storage_options = {"https": http_kwargs}
-            path = "::".join([main_hop, url, *rest_hops[1:]])
-        else:
-            storage_options = None
+        path, storage_options = _prepare_server_config(path, download_config=download_config, implemented=False)
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
         inner_path = main_hop.split("://")[1]
         if inner_path.strip("/") and not fs.isdir(inner_path):
@@ -556,15 +534,14 @@ def xlistdir(path: str, token: Optional[Union[str, bool]] = None) -> List[str]:
         return [os.path.basename(obj["name"]) for obj in objects]
 
 
-def xglob(urlpath, *, recursive=False, token: Optional[Union[str, bool]] = None):
+def xglob(urlpath, *, recursive=False, download_config: Optional[DownloadConfig] = None):
     """Extend `glob.glob` function to support remote files.
 
     Args:
         urlpath (`str`): URL path with shell-style wildcard patterns.
         recursive (`bool`, default `False`): Whether to match the "**" pattern recursively to zero or more
             directories or subdirectories.
-        token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
-            Hugging Face Hub for private remote files.
+        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
 
     Returns:
         `list` of `str`
@@ -574,15 +551,7 @@ def xglob(urlpath, *, recursive=False, token: Optional[Union[str, bool]] = None)
         return glob.glob(main_hop, recursive=recursive)
     else:
         # globbing inside a zip in a private repo requires authentication
-        if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
-            raise NotImplementedError("glob.glob is not extended to support URLs in streaming mode")
-        elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
-            url = rest_hops[0]
-            url, kwargs = _prepare_http_url_kwargs(url, token=token)
-            storage_options = {"https": kwargs}
-            urlpath = "::".join([main_hop, url, *rest_hops[1:]])
-        else:
-            storage_options = None
+        urlpath, storage_options = _prepare_server_config(urlpath, download_config=download_config, implemented=False)
         fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
         # - If there's no "*" in the pattern, get_fs_token_paths() doesn't do any pattern matching
         #   so to be able to glob patterns like "[0-9]", we have to call `fs.glob`.
@@ -594,13 +563,12 @@ def xglob(urlpath, *, recursive=False, token: Optional[Union[str, bool]] = None)
         return ["::".join([f"{protocol}://{globbed_path}"] + rest_hops) for globbed_path in globbed_paths]
 
 
-def xwalk(urlpath, token: Optional[Union[str, bool]] = None, **kwargs):
+def xwalk(urlpath, download_config: Optional[DownloadConfig] = None, **kwargs):
     """Extend `os.walk` function to support remote files.
 
     Args:
         urlpath (`str`): URL root path.
-        token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
-            Hugging Face Hub for private remote files.
+        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
         **kwargs: Additional keyword arguments forwarded to the underlying filesystem.
 
 
@@ -612,15 +580,7 @@ def xwalk(urlpath, token: Optional[Union[str, bool]] = None, **kwargs):
         yield from os.walk(main_hop, **kwargs)
     else:
         # walking inside a zip in a private repo requires authentication
-        if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
-            raise NotImplementedError("os.walk is not extended to support URLs in streaming mode")
-        elif rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
-            url = rest_hops[0]
-            url, kwargs = _prepare_http_url_kwargs(url, token=token)
-            storage_options = {"https": kwargs}
-            urlpath = "::".join([main_hop, url, *rest_hops[1:]])
-        else:
-            storage_options = None
+        urlpath, storage_options = _prepare_server_config(urlpath, download_config=download_config, implemented=False)
         fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
         inner_path = main_hop.split("://")[1]
         if inner_path.strip("/") and not fs.isdir(inner_path):
@@ -643,25 +603,23 @@ class xPath(type(Path())):
         path_as_posix += "//" if path_as_posix.endswith(":") else ""  # Add slashes to root of the protocol
         return path_as_posix
 
-    def exists(self, token: Optional[Union[str, bool]] = None):
+    def exists(self, download_config: Optional[DownloadConfig] = None):
         """Extend `pathlib.Path.exists` method to support both local and remote files.
 
         Args:
-            token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
-                Hugging Face Hub for private remote files.
+            download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
 
         Returns:
             `bool`
         """
-        return xexists(str(self), token=token)
+        return xexists(str(self), download_config=download_config)
 
-    def glob(self, pattern, token: Optional[Union[str, bool]] = None):
+    def glob(self, pattern, download_config: Optional[DownloadConfig] = None):
         """Glob function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
 
         Args:
             pattern (`str`): Pattern that resulting paths must match.
-            token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
-                Hugging Face Hub for private remote files.
+            download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
 
         Yields:
             [`xPath`]
@@ -672,9 +630,9 @@ class xPath(type(Path())):
             yield from Path(main_hop).glob(pattern)
         else:
             # globbing inside a zip in a private repo requires authentication
-            if rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
+            if rest_hops and _validate_servers(rest_hops[0]):
                 url = rest_hops[0]
-                url, kwargs = _prepare_http_url_kwargs(url, token=token)
+                url, kwargs = _prepare_http_url_kwargs(url, download_config=download_config)
                 storage_options = {"https": kwargs}
                 posix_path = "::".join([main_hop, url, *rest_hops[1:]])
             else:
@@ -772,27 +730,27 @@ def _as_str(path: Union[str, Path, xPath]):
     return str(path) if isinstance(path, xPath) else str(xPath(str(path)))
 
 
-def xgzip_open(filepath_or_buffer, *args, token: Optional[Union[str, bool]] = None, **kwargs):
+def xgzip_open(filepath_or_buffer, *args, download_config: Optional[DownloadConfig] = None, **kwargs):
     import gzip
 
     if hasattr(filepath_or_buffer, "read"):
         return gzip.open(filepath_or_buffer, *args, **kwargs)
     else:
         filepath_or_buffer = str(filepath_or_buffer)
-        return gzip.open(xopen(filepath_or_buffer, "rb", token=token), *args, **kwargs)
+        return gzip.open(xopen(filepath_or_buffer, "rb", download_config=download_config), *args, **kwargs)
 
 
-def xnumpy_load(filepath_or_buffer, *args, token: Optional[Union[str, bool]] = None, **kwargs):
+def xnumpy_load(filepath_or_buffer, *args, download_config: Optional[DownloadConfig] = None, **kwargs):
     import numpy as np
 
     if hasattr(filepath_or_buffer, "read"):
         return np.load(filepath_or_buffer, *args, **kwargs)
     else:
         filepath_or_buffer = str(filepath_or_buffer)
-        return np.load(xopen(filepath_or_buffer, "rb", token=token), *args, **kwargs)
+        return np.load(xopen(filepath_or_buffer, "rb", download_config=download_config), *args, **kwargs)
 
 
-def xpandas_read_csv(filepath_or_buffer, token: Optional[Union[str, bool]] = None, **kwargs):
+def xpandas_read_csv(filepath_or_buffer, download_config: Optional[DownloadConfig] = None, **kwargs):
     import pandas as pd
 
     if hasattr(filepath_or_buffer, "read"):
@@ -800,11 +758,11 @@ def xpandas_read_csv(filepath_or_buffer, token: Optional[Union[str, bool]] = Non
     else:
         filepath_or_buffer = str(filepath_or_buffer)
         if kwargs.get("compression", "infer") == "infer":
-            kwargs["compression"] = _get_extraction_protocol(filepath_or_buffer, token=token)
-        return pd.read_csv(xopen(filepath_or_buffer, "rb", token=token), **kwargs)
+            kwargs["compression"] = _get_extraction_protocol(filepath_or_buffer, download_config=download_config)
+        return pd.read_csv(xopen(filepath_or_buffer, "rb", download_config=download_config), **kwargs)
 
 
-def xpandas_read_excel(filepath_or_buffer, token: Optional[Union[str, bool]] = None, **kwargs):
+def xpandas_read_excel(filepath_or_buffer, download_config: Optional[DownloadConfig] = None, **kwargs):
     import pandas as pd
 
     if hasattr(filepath_or_buffer, "read"):
@@ -815,28 +773,29 @@ def xpandas_read_excel(filepath_or_buffer, token: Optional[Union[str, bool]] = N
     else:
         filepath_or_buffer = str(filepath_or_buffer)
         try:
-            return pd.read_excel(xopen(filepath_or_buffer, "rb", token=token), **kwargs)
+            return pd.read_excel(xopen(filepath_or_buffer, "rb", download_config=download_config), **kwargs)
         except ValueError:  # Cannot seek streaming HTTP file
-            return pd.read_excel(BytesIO(xopen(filepath_or_buffer, "rb", token=token).read()), **kwargs)
+            return pd.read_excel(
+                BytesIO(xopen(filepath_or_buffer, "rb", download_config=download_config).read()), **kwargs
+            )
 
 
-def xsio_loadmat(filepath_or_buffer, token: Optional[Union[str, bool]] = None, **kwargs):
+def xsio_loadmat(filepath_or_buffer, download_config: Optional[DownloadConfig] = None, **kwargs):
     import scipy.io as sio
 
     if hasattr(filepath_or_buffer, "read"):
         return sio.loadmat(filepath_or_buffer, **kwargs)
     else:
-        return sio.loadmat(xopen(filepath_or_buffer, "rb", token=token), **kwargs)
+        return sio.loadmat(xopen(filepath_or_buffer, "rb", download_config=download_config), **kwargs)
 
 
-def xet_parse(source, parser=None, token: Optional[Union[str, bool]] = None):
+def xet_parse(source, parser=None, download_config: Optional[DownloadConfig] = None):
     """Extend `xml.etree.ElementTree.parse` function to support remote files.
 
     Args:
         source: File path or file object.
         parser (`XMLParser`, *optional*, default `XMLParser`): Parser instance.
-        token (`bool` or `str`, optional): Whether to use token or token to authenticate on the
-            Hugging Face Hub for private remote files.
+        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
 
     Returns:
         `xml.etree.ElementTree.Element`: Root element of the given source document.
@@ -844,17 +803,16 @@ def xet_parse(source, parser=None, token: Optional[Union[str, bool]] = None):
     if hasattr(source, "read"):
         return ET.parse(source, parser=parser)
     else:
-        with xopen(source, "rb", token=token) as f:
+        with xopen(source, "rb", download_config=download_config) as f:
             return ET.parse(f, parser=parser)
 
 
-def xxml_dom_minidom_parse(filename_or_file, token: Optional[Union[str, bool]] = None, **kwargs):
+def xxml_dom_minidom_parse(filename_or_file, download_config: Optional[DownloadConfig] = None, **kwargs):
     """Extend `xml.dom.minidom.parse` function to support remote files.
 
     Args:
         filename_or_file (`str` or file): File path or file object.
-        token (`bool` or `str`, *optional*): Whether to use token or token to authenticate on the
-            Hugging Face Hub for private remote files.
+        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
         **kwargs (optional): Additional keyword arguments passed to `xml.dom.minidom.parse`.
 
     Returns:
@@ -863,7 +821,7 @@ def xxml_dom_minidom_parse(filename_or_file, token: Optional[Union[str, bool]] =
     if hasattr(filename_or_file, "read"):
         return xml.dom.minidom.parse(filename_or_file, **kwargs)
     else:
-        with xopen(filename_or_file, "rb", token=token) as f:
+        with xopen(filename_or_file, "rb", download_config=download_config) as f:
             return xml.dom.minidom.parse(f, **kwargs)
 
 
@@ -924,10 +882,10 @@ class ArchiveIterable(_IterableFromGenerator):
 
     @classmethod
     def _iter_from_urlpath(
-        cls, urlpath: str, token: Optional[Union[str, bool]] = None
+        cls, urlpath: str, download_config: Optional[DownloadConfig] = None
     ) -> Generator[Tuple, None, None]:
-        compression = _get_extraction_protocol(urlpath, token=token)
-        with xopen(urlpath, "rb", token=token) as f:
+        compression = _get_extraction_protocol(urlpath, download_config=download_config)
+        with xopen(urlpath, "rb", download_config=download_config) as f:
             if compression == "zip":
                 yield from cls._iter_zip(f)
             else:
@@ -938,8 +896,8 @@ class ArchiveIterable(_IterableFromGenerator):
         return cls(cls._iter_from_fileobj, fileobj)
 
     @classmethod
-    def from_urlpath(cls, urlpath_or_buf, token: Optional[Union[str, bool]] = None) -> "ArchiveIterable":
-        return cls(cls._iter_from_urlpath, urlpath_or_buf, token)
+    def from_urlpath(cls, urlpath_or_buf, download_config: Optional[DownloadConfig] = None) -> "ArchiveIterable":
+        return cls(cls._iter_from_urlpath, urlpath_or_buf, download_config)
 
 
 class FilesIterable(_IterableFromGenerator):
@@ -947,18 +905,18 @@ class FilesIterable(_IterableFromGenerator):
 
     @classmethod
     def _iter_from_urlpaths(
-        cls, urlpaths: Union[str, List[str]], token: Optional[Union[str, bool]] = None
+        cls, urlpaths: Union[str, List[str]], download_config: Optional[DownloadConfig] = None
     ) -> Generator[str, None, None]:
         if not isinstance(urlpaths, list):
             urlpaths = [urlpaths]
         for urlpath in urlpaths:
-            if xisfile(urlpath, token=token):
+            if xisfile(urlpath, download_config=download_config):
                 if xbasename(urlpath).startswith((".", "__")):
                     # skipping hidden files
                     return
                 yield urlpath
-            elif xisdir(urlpath, token=token):
-                for dirpath, dirnames, filenames in xwalk(urlpath, token=token):
+            elif xisdir(urlpath, download_config=download_config):
+                for dirpath, dirnames, filenames in xwalk(urlpath, download_config=download_config):
                     # skipping hidden directories; prune the search
                     # [:] for the in-place list modification required by os.walk
                     # (only works for local paths as fsspec's walk doesn't support the in-place modification)
@@ -975,8 +933,8 @@ class FilesIterable(_IterableFromGenerator):
                 raise FileNotFoundError(urlpath)
 
     @classmethod
-    def from_urlpaths(cls, urlpaths, token: Optional[Union[str, bool]] = None) -> "FilesIterable":
-        return cls(cls._iter_from_urlpaths, urlpaths, token)
+    def from_urlpaths(cls, urlpaths, download_config: Optional[DownloadConfig] = None) -> "FilesIterable":
+        return cls(cls._iter_from_urlpaths, urlpaths, download_config)
 
 
 class StreamingDownloadManager:
@@ -1056,7 +1014,7 @@ class StreamingDownloadManager:
 
     def _extract(self, urlpath: str) -> str:
         urlpath = str(urlpath)
-        protocol = _get_extraction_protocol(urlpath, token=self.download_config.token)
+        protocol = _get_extraction_protocol(urlpath, download_config=self.download_config)
         # get inner file: zip://train-00000.json.gz::https://foo.bar/data.zip -> zip://train-00000.json.gz
         path = urlpath.split("::")[0]
         extension = _get_path_extension(path)
@@ -1124,7 +1082,7 @@ class StreamingDownloadManager:
         if hasattr(urlpath_or_buf, "read"):
             return ArchiveIterable.from_buf(urlpath_or_buf)
         else:
-            return ArchiveIterable.from_urlpath(urlpath_or_buf, token=self.download_config.token)
+            return ArchiveIterable.from_urlpath(urlpath_or_buf, download_config=self.download_config)
 
     def iter_files(self, urlpaths: Union[str, List[str]]) -> Iterable[str]:
         """Iterate over files.
@@ -1143,4 +1101,4 @@ class StreamingDownloadManager:
         >>> files = dl_manager.iter_files(files)
         ```
         """
-        return FilesIterable.from_urlpaths(urlpaths, token=self.download_config.token)
+        return FilesIterable.from_urlpaths(urlpaths, download_config=self.download_config)
