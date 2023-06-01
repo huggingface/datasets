@@ -151,7 +151,7 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
                 raise ValueError(yaml_error_message)
             if isinstance(yaml_data_files, list):
                 for yaml_data_files_item in yaml_data_files:
-                    if not isinstance(yaml_data_files_item, str) or not (
+                    if not isinstance(yaml_data_files_item, str) and not (
                         isinstance(yaml_data_files_item, dict)
                         and sorted(yaml_data_files_item)
                         == [
