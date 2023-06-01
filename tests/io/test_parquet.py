@@ -145,4 +145,4 @@ def test_dataset_to_parquet_keeps_features(shared_datadir, tmp_path):
     assert dataset.features == reloaded_dataset.features
 
     reloaded_iterable_dataset = ParquetDatasetReader(str(tmp_path / "foo.parquet"), streaming=True).read()
-    assert reloaded_iterable_dataset.features == reloaded_dataset.features
+    assert dataset.features == reloaded_iterable_dataset.features
