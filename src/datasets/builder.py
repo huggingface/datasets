@@ -1716,9 +1716,9 @@ class ArrowBasedBuilder(DatasetBuilder):
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
 
-        if self.info.splits is not None:
+        try:
             split_info = self.info.splits[split_generator.name]
-        else:
+        except Exception:
             split_info = split_generator.split_info
 
         SUFFIX = "-JJJJJ-SSSSS-of-NNNNN"
