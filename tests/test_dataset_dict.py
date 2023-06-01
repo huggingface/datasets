@@ -431,6 +431,28 @@ class DatasetDictTest(TestCase):
             del dsets, dsets_shuffled, dsets_shuffled_2, dsets_shuffled_3
             del dsets_shuffled_int, dsets_shuffled_alias, dsets_shuffled_none
 
+    def test_flatten_indices(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dsets = self._create_dummy_dataset_dict()
+
+            indices_cache_file_names = {
+                "train": os.path.join(tmp_dir, "train.arrow"),
+                "test": os.path.join(tmp_dir, "test.arrow"),
+            }
+            dsets_shuffled = dsets.shuffle(
+                seed=42, indices_cache_file_names=indices_cache_file_names, load_from_cache_file=False
+            )
+
+            self.assertIsNotNone(dsets_shuffled["train"]._indices)
+            self.assertIsNotNone(dsets_shuffled["test"]._indices)
+
+            dsets_flat = dsets_shuffled.flatten_indices()
+
+            self.assertIsNone(dsets_flat["train"]._indices)
+            self.assertIsNone(dsets_flat["test"]._indices)
+
+            del dsets, dsets_shuffled, dsets_flat
+
     def test_check_values_type(self):
         dsets = self._create_dummy_dataset_dict()
         dsets["bad_split"] = None
