@@ -7,7 +7,7 @@ import pyarrow as pa
 import pyarrow.compute as pc
 import pytest
 
-from datasets import load_dataset
+from datasets import Dataset, load_dataset
 from datasets.combine import concatenate_datasets, interleave_datasets
 from datasets.features import (
     ClassLabel,
@@ -44,6 +44,7 @@ from datasets.iterable_dataset import (
 )
 
 from .utils import (
+    assert_arrow_memory_doesnt_increase,
     is_rng_equal,
     require_dill_gt_0_3_2,
     require_not_windows,
@@ -102,6 +103,13 @@ def dataset_with_several_columns():
         {"filepath": ["data0.txt", "data1.txt", "data2.txt"], "metadata": {"sources": ["https://foo.bar"]}},
     )
     return IterableDataset(ex_iterable, info=DatasetInfo(description="dummy"), split="train")
+
+
+@pytest.fixture
+def arrow_file(tmp_path_factory, dataset: IterableDataset):
+    filename = str(tmp_path_factory.mktemp("data") / "file.arrow")
+    Dataset.from_generator(dataset.__iter__).map(cache_file_name=filename)
+    return filename
 
 
 ################################
@@ -1086,6 +1094,16 @@ def test_iterable_dataset_from_generator_with_shards():
     dataset = IterableDataset.from_generator(gen, gen_kwargs={"shard_names": shard_names})
     assert isinstance(dataset, IterableDataset)
     assert dataset.n_shards == len(shard_names)
+
+
+def test_iterable_dataset_from_file(dataset: IterableDataset, arrow_file: str):
+    with assert_arrow_memory_doesnt_increase():
+        dataset_from_file = IterableDataset.from_file(arrow_file)
+    expected_features = dataset._resolve_features().features
+    assert dataset_from_file.features.type == expected_features.type
+    assert dataset_from_file.features == expected_features
+    assert isinstance(dataset_from_file, IterableDataset)
+    assert list(dataset_from_file) == list(dataset)
 
 
 @require_not_windows

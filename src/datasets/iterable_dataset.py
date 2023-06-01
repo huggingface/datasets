@@ -18,7 +18,7 @@ from .filesystems import _reset_fsspec_lock
 from .formatting import PythonFormatter, get_format_type_from_alias
 from .info import DatasetInfo
 from .splits import NamedSplit
-from .table import arrow_table_schema_from_file, cast_table_to_features, table_cast
+from .table import cast_table_to_features, read_schema_from_file, table_cast
 from .utils.logging import get_logger
 from .utils.py_utils import Literal
 from .utils.sharding import _merge_gen_kwargs, _number_of_shards_in_gen_kwargs, _shuffle_gen_kwargs, _split_gen_kwargs
@@ -1425,9 +1425,9 @@ class IterableDataset(DatasetInfoMixin):
         Returns:
             [`IterableDataset`]
         """
-        pa_table_schema = arrow_table_schema_from_file(filename)
+        pa_table_schema = read_schema_from_file(filename)
         inferred_features = Features.from_arrow_schema(pa_table_schema)
-        ex_iterable = ExamplesIterable(Dataset._generate_examples_from_cache_file, kwargs={"filename": filename})
+        ex_iterable = ArrowExamplesIterable(Dataset._generate_tables_from_cache_file, kwargs={"filename": filename})
         return IterableDataset(ex_iterable=ex_iterable, info=DatasetInfo(features=inferred_features))
 
     def with_format(
