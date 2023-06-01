@@ -46,11 +46,26 @@ def _in_memory_arrow_table_from_buffer(buffer: pa.Buffer) -> pa.Table:
     return table
 
 
+def arrow_table_schema_from_file(filename: str) -> pa.Schema:
+    """
+    Infer arrow table schema from file without loading whole file into memory.
+    Usefull especially while having very big files.
+    """
+    with pa.memory_map(filename) as memory_mapped_stream:
+        schema = pa.ipc.open_stream(memory_mapped_stream).schema
+    return schema
+
+
 def _memory_mapped_arrow_table_from_file(filename: str) -> pa.Table:
     memory_mapped_stream = pa.memory_map(filename)
     opened_stream = pa.ipc.open_stream(memory_mapped_stream)
     pa_table = opened_stream.read_all()
     return pa_table
+
+
+def _memory_mapped_record_batch_reader_from_file(filename: str, max_chunksize: Optional[int] = None):
+    pa_table = _memory_mapped_arrow_table_from_file(filename)
+    return pa_table.to_reader(max_chunksize=config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER)
 
 
 def _write_table_to_file(table: pa.Table, filename: str) -> int:

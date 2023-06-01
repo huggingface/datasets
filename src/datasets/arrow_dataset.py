@@ -88,7 +88,7 @@ from .fingerprint import (
     update_fingerprint,
     validate_fingerprint,
 )
-from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
+from .formatting import PythonFormatter, format_table, get_format_type_from_alias, get_formatter, query_table
 from .formatting.formatting import LazyDict, _is_range_contiguous
 from .info import DatasetInfo, DatasetInfosDict
 from .naming import _split_re
@@ -98,6 +98,7 @@ from .table import (
     InMemoryTable,
     MemoryMappedTable,
     Table,
+    _memory_mapped_record_batch_reader_from_file,
     cast_array_to_feature,
     concat_tables,
     embed_table_storage,
@@ -4999,6 +5000,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         for shard_idx, shard in enumerate(shards):
             for pa_table in shard.with_format("arrow").iter(batch_size):
                 yield shard_idx, pa_table
+
+    @staticmethod
+    def _generate_examples_from_cache_file(filename: str):
+        python_formatter = PythonFormatter()
+        with _memory_mapped_record_batch_reader_from_file(
+            filename=filename, max_chunksize=config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER
+        ) as batches:
+            for pa_table in batches:
+                batch = python_formatter.format_batch(pa_table)
+                for i in range(len(pa_table)):
+                    example = {col: array[i] for col, array in batch.items()}
+                    yield i, example
 
     def to_iterable_dataset(self, num_shards: Optional[int] = 1) -> "IterableDataset":
         """Get an [`datasets.IterableDataset`] from a map-style [`datasets.Dataset`].

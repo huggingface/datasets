@@ -4400,6 +4400,16 @@ def test_dataset_to_iterable_dataset(dataset: Dataset):
         dataset.with_format("torch").to_iterable_dataset()
 
 
+def test_iterable_dataset_from_file(dataset, arrow_file):
+    filename = arrow_file
+    with assert_arrow_memory_doesnt_increase():
+        dataset_from_file = IterableDataset.from_file(filename)
+    assert dataset_from_file.features.type == dataset.features.type
+    assert dataset_from_file.features == dataset.features
+    assert isinstance(dataset_from_file, IterableDataset)
+    assert list(dataset_from_file) == list(dataset)
+
+
 @pytest.mark.parametrize("batch_size", [1, 4])
 @require_torch
 def test_dataset_with_torch_dataloader(dataset, batch_size):
