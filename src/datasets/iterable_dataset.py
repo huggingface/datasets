@@ -5,7 +5,7 @@ from collections import Counter
 from copy import deepcopy
 from dataclasses import dataclass
 from itertools import cycle, islice
-from typing import Any, Callable, Dict, Iterator, List, Optional, Union
+from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 import numpy as np
 import pyarrow as pa
@@ -18,13 +18,15 @@ from .filesystems import _reset_fsspec_lock
 from .formatting import PythonFormatter, get_format_type_from_alias
 from .info import DatasetInfo
 from .splits import NamedSplit
-from .table import table_cast
+from .table import cast_table_to_features, table_cast
 from .utils.logging import get_logger
 from .utils.py_utils import Literal
 from .utils.sharding import _merge_gen_kwargs, _number_of_shards_in_gen_kwargs, _shuffle_gen_kwargs, _split_gen_kwargs
 
 
 logger = get_logger(__name__)
+
+Key = Union[int, str]
 
 
 def _infer_features_from_batch(batch: Dict[str, list], try_features: Optional[Features] = None) -> Features:
@@ -82,10 +84,94 @@ class _HasNextIterator(Iterator):
         return self._hasnext
 
 
+def _convert_to_arrow(
+    iterable: Iterable[Tuple[Key, dict]],
+    batch_size: int,
+    drop_last_batch: bool = False,
+) -> Iterator[Tuple[Key, pa.Table]]:
+    """Convert and group examples in Arrow tables of size `batch_size`.
+
+    Args:
+        iterable (`Iterable[Tuple[Key, dict]]`):
+            An examples iterable containing tuples (example_key, example) of type (int/str, dict)
+        batch_size (`Optional[int]`):
+            Size of each sub-table to yield. If None or <= 0, yields the full table.
+        drop_last_batch (`bool`, defaults to `False`):
+            Drop the last batch if it is smaller than `batch_size`.
+    """
+    if batch_size is None or batch_size <= 0:
+        yield "all", pa.Table.from_pylist([example for _, example in iterable])
+        return
+    iterator = iter(iterable)
+    for key, example in iterator:
+        iterator_batch = islice(iterator, batch_size - 1)
+        key_examples_list = [(key, example)] + [(key, example) for key, example in iterator_batch]
+        if len(key_examples_list) < batch_size and drop_last_batch:
+            return
+        keys, examples = zip(*key_examples_list)
+        new_key = "_".join(str(key) for key in keys)
+        yield new_key, pa.Table.from_pylist(examples)
+
+
+def _batch_arrow_tables(
+    iterable: Iterable[Tuple[Key, pa.Table]],
+    batch_size: Optional[int],
+    drop_last_batch: bool = False,
+) -> Iterator[Tuple[Key, pa.Table]]:
+    """Iterate over sub-tables of size `batch_size`.
+
+    Args:
+        iterable (`Iterable[Tuple[Key, pa.Table]]`):
+            A tables iterable containing tuples (table_key, table) of type (int/str, pa.Table)
+        batch_size (`Optional[int]`):
+            Size of each sub-table to yield. If None or <= 0, yields the full table.
+        drop_last_batch (`bool`, defaults to `False`):
+            Drop the last batch if it is smaller than `batch_size`.
+    """
+    if batch_size is None or batch_size <= 0:
+        yield "all", pa.concat_tables([pa_table for _, pa_table in iterable])
+        return
+    keys_buffer = []
+    chunks_buffer = []
+    chunks_buffer_size = 0
+    for key, pa_table in iterable:
+        for chunk in pa_table.to_reader(max_chunksize=batch_size):
+            if len(chunk) == 0:
+                continue
+            elif chunks_buffer_size + len(chunk) < batch_size:
+                keys_buffer.append(key)
+                chunks_buffer.append(chunk)
+                chunks_buffer_size += len(chunk)
+                continue
+            elif chunks_buffer_size + len(chunk) == batch_size:
+                keys_buffer.append(key)
+                chunks_buffer.append(chunk)
+                new_key = "_".join(str(_key) for _key in keys_buffer)
+                yield new_key, pa.Table.from_batches(chunks_buffer)
+                keys_buffer = []
+                chunks_buffer = []
+                chunks_buffer_size = 0
+            else:
+                cropped_chunk_length = batch_size - chunks_buffer_size
+                keys_buffer.append(f"{key}[:{cropped_chunk_length}]")
+                chunks_buffer.append(chunk.slice(0, cropped_chunk_length))
+                new_key = "_".join(str(_key) for _key in keys_buffer)
+                yield new_key, pa.Table.from_batches(chunks_buffer)
+                keys_buffer = [f"{key}[{cropped_chunk_length}:]"]
+                chunks_buffer = [chunk.slice(cropped_chunk_length, len(chunk) - cropped_chunk_length)]
+                chunks_buffer_size = len(chunk) - cropped_chunk_length
+    if not drop_last_batch and chunks_buffer:
+        new_key = "_".join(str(_key) for _key in keys_buffer)
+        yield new_key, pa.Table.from_batches(chunks_buffer)
+
+
 class _BaseExamplesIterable:
     """Base class for the examples iterable used by an IterableDataset"""
 
-    def __iter__(self):
+    def __init__(self) -> None:
+        self.iter_arrow: Optional[Callable[[], Iterator[Tuple[Key, pa.Table]]]] = None
+
+    def __iter__(self) -> Iterator[Tuple[Key, dict]]:
         """An examples iterable should yield tuples (example_key, example) of type (int/str, dict)"""
         raise NotImplementedError(f"{type(self)} doesn't implement __iter__ yet")
 
@@ -109,7 +195,8 @@ class _BaseExamplesIterable:
 
 
 class ExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, generate_examples_fn: Callable, kwargs: dict):
+    def __init__(self, generate_examples_fn: Callable[..., Tuple[Key, dict]], kwargs: dict):
+        super().__init__()
         self.generate_examples_fn = generate_examples_fn
         self.kwargs = kwargs
 
@@ -132,7 +219,9 @@ class ExamplesIterable(_BaseExamplesIterable):
 
 
 class ShuffledDataSourcesExamplesIterable(ExamplesIterable):
-    def __init__(self, generate_examples_fn: Callable, kwargs: dict, generator: np.random.Generator):
+    def __init__(
+        self, generate_examples_fn: Callable[..., Tuple[Key, dict]], kwargs: dict, generator: np.random.Generator
+    ):
         super().__init__(generate_examples_fn, kwargs)
         self.generator = deepcopy(generator)
 
@@ -151,14 +240,90 @@ class ShuffledDataSourcesExamplesIterable(ExamplesIterable):
         )
 
 
+class ArrowExamplesIterable(_BaseExamplesIterable):
+    def __init__(self, generate_tables_fn: Callable[..., Tuple[Key, pa.Table]], kwargs: dict):
+        super().__init__()
+        self.generate_tables_fn = generate_tables_fn
+        self.kwargs = kwargs
+        self.iter_arrow = self._iter_arrow
+
+    def __iter__(self):
+        formatter = PythonFormatter()
+        for key, pa_table in self.generate_tables_fn(**self.kwargs):
+            for pa_subtable in pa_table.to_reader(max_chunksize=config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER):
+                formatted_batch = formatter.format_batch(pa_subtable)
+                for example in _batch_to_examples(formatted_batch):
+                    yield key, example
+
+    def _iter_arrow(self):
+        yield from self.generate_tables_fn(**self.kwargs)
+
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "ExamplesIterable":
+        return ShuffledDataSourcesArrowExamplesIterable(self.generate_tables_fn, self.kwargs, generator)
+
+    def shard_data_sources(self, shard_indices: List[int]) -> "ExamplesIterable":
+        """Keep only the requested shard."""
+        gen_kwargs_list = _split_gen_kwargs(self.kwargs, max_num_jobs=self.n_shards)
+        requested_gen_kwargs = _merge_gen_kwargs([gen_kwargs_list[i] for i in shard_indices])
+        return ArrowExamplesIterable(
+            self.generate_tables_fn, requested_gen_kwargs, generate_tables_fn=self.generate_tables_fn
+        )
+
+    @property
+    def n_shards(self) -> int:
+        return _number_of_shards_in_gen_kwargs(self.kwargs)
+
+
+class ShuffledDataSourcesArrowExamplesIterable(ArrowExamplesIterable):
+    def __init__(
+        self,
+        generate_tables_fn: Callable[..., Tuple[Key, pa.Table]],
+        kwargs: dict,
+        generator: np.random.Generator,
+    ):
+        super().__init__(generate_tables_fn, kwargs)
+        self.generator = deepcopy(generator)
+
+    def __iter__(self):
+        """Shuffle the kwargs order to shuffle shards"""
+        rng = deepcopy(self.generator)
+        kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
+        formatter = PythonFormatter()
+        for key, pa_table in self.generate_tables_fn(**kwargs_with_shuffled_shards):
+            for pa_subtable in pa_table.to_reader(max_chunksize=config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER):
+                formatted_batch = formatter.format_batch(pa_subtable)
+                for example in _batch_to_examples(formatted_batch):
+                    yield key, example
+
+    def _iter_arrow(self):
+        rng = deepcopy(self.generator)
+        kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
+        yield from self.generate_tables_fn(**kwargs_with_shuffled_shards)
+
+    def shard_data_sources(self, shard_indices: List[int]) -> "ExamplesIterable":
+        """Keep only the requested shard."""
+        rng = deepcopy(self.generator)
+        kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
+        return ArrowExamplesIterable(self.generate_tables_fn, kwargs_with_shuffled_shards).shard_data_sources(
+            shard_indices
+        )
+
+
 class SelectColumnsIterable(_BaseExamplesIterable):
     def __init__(self, ex_iterable: _BaseExamplesIterable, column_names: List[str]):
+        super().__init__()
         self.ex_iterable = ex_iterable
         self.column_names = column_names
+        if self.ex_iterable.iter_arrow:
+            self.iter_arrow = self._iter_arrow
 
     def __iter__(self):
         for idx, row in self.ex_iterable:
             yield idx, {c: row[c] for c in self.column_names}
+
+    def _iter_arrow(self) -> Iterator[Tuple[Key, pa.Table]]:
+        for idx, pa_table in self.ex_iterable.iter_arrow():
+            yield idx, pa_table.select(self.column_names)
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "SelectColumnsIterable":
         return SelectColumnsIterable(self.ex_iterable.shuffle_data_sources(generator), self.column_names)
@@ -173,9 +338,11 @@ class SelectColumnsIterable(_BaseExamplesIterable):
 
 class StepExamplesIterable(_BaseExamplesIterable):
     def __init__(self, ex_iterable: _BaseExamplesIterable, step: int, offset: int):
+        super().__init__()
         self.ex_iterable = ex_iterable
         self.step = step
         self.offset = offset
+        # TODO(QL): implement iter_arrow
 
     def __iter__(self):
         ex_iterator = iter(self.ex_iterable)
@@ -207,12 +374,14 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
         ex_iterables: List[_BaseExamplesIterable],
         stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
     ):
+        super().__init__()
         self.ex_iterables = ex_iterables
         self.stopping_strategy = stopping_strategy
 
         # if undersampling ("first_exhausted"), we stop as soon as one dataset is exhausted
         # if oversampling ("all_exhausted"), we stop as soons as every dataset is exhausted, i.e as soon as every samples of every dataset has been visited at least once
         self.bool_strategy_func = np.all if (stopping_strategy == "all_exhausted") else np.any
+        # TODO(QL): implement iter_arrow
 
     def _get_indices_iterator(self):
         # this is an infinite iterator to keep track of which iterator we want to pick examples from
@@ -278,11 +447,18 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
     """
 
     def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
+        super().__init__()
         self.ex_iterables = ex_iterables
+        if all(ex_iterable.iter_arrow is not None for ex_iterable in ex_iterables):
+            self.iter_arrow = self._iter_arrow
 
     def __iter__(self):
         for ex_iterable in self.ex_iterables:
             yield from ex_iterable
+
+    def _iter_arrow(self):
+        for ex_iterable in self.ex_iterables:
+            yield from ex_iterable.iter_arrow()
 
     def shuffle_data_sources(
         self, generator: np.random.Generator
@@ -334,7 +510,9 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
     """
 
     def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
+        super().__init__()
         self.ex_iterables = ex_iterables
+        # TODO(QL): implement iter_arrow
 
     def __iter__(self):
         ex_iterators = [iter(ex_iterable) for ex_iterable in self.ex_iterables]
@@ -381,7 +559,7 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
 class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIterable):
     def __init__(
         self,
-        ex_iterables,
+        ex_iterables: List[_BaseExamplesIterable],
         generator: np.random.Generator,
         probabilities: Optional[List[float]] = None,
         stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
@@ -389,6 +567,7 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         super().__init__(ex_iterables, stopping_strategy)
         self.generator = deepcopy(generator)
         self.probabilities = probabilities
+        # TODO(QL): implement iter_arrow
 
     @staticmethod
     def _iter_random_indices(
@@ -442,7 +621,9 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         drop_last_batch: bool = False,
         remove_columns: Optional[List[str]] = None,
         fn_kwargs: Optional[dict] = None,
+        format_type: Optional[str] = None,
     ):
+        super().__init__()
         self.ex_iterable = ex_iterable
         self.function = function
         self.batched = batched
@@ -452,8 +633,17 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         self.with_indices = with_indices
         self.input_columns = input_columns
         self.fn_kwargs = fn_kwargs or {}
+        self.format_type = get_format_type_from_alias(format_type)
+        if format_type == "arrow":
+            self.iter_arrow = self._iter_arrow
 
     def __iter__(self):
+        if self.format_type == "arrow":
+            yield from ArrowExamplesIterable(self._iter_arrow, {})
+        else:
+            yield from self._iter()
+
+    def _iter(self):
         iterator = iter(self.ex_iterable)
         current_idx = 0
         if self.batched:
@@ -521,6 +711,44 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 yield key, transformed_example
                 current_idx += 1
 
+    def _iter_arrow(self) -> Iterator[Tuple[Key, pa.Table]]:
+        if self.ex_iterable.iter_arrow:
+            iterator = _batch_arrow_tables(
+                self.ex_iterable.iter_arrow(),
+                batch_size=self.batch_size if self.batched else 1,
+                drop_last_batch=self.drop_last_batch,
+            )
+        else:
+            iterator = _convert_to_arrow(
+                self.ex_iterable,
+                batch_size=self.batch_size if self.batched else 1,
+                drop_last_batch=self.drop_last_batch,
+            )
+        current_idx = 0
+        for key, pa_table in iterator:
+            # first build the batch
+            function_args = [pa_table] if self.input_columns is None else [pa_table[col] for col in self.input_columns]
+            if self.with_indices:
+                if self.batched:
+                    function_args.append([current_idx + i for i in range(len(pa_table))])
+                else:
+                    function_args.append(current_idx)
+            # then apply the transform
+            output_table = self.function(*function_args, **self.fn_kwargs)
+            if not isinstance(output_table, pa.Table):
+                raise TypeError(
+                    f"Provided `function` which is applied to pyarrow tables returns a variable of type {type(output_table)}. Make sure provided `function` returns a a pyarrow table to update the dataset."
+                )
+            # we don't need to merge results for consistency with Dataset.map which merges iif both input and output are dicts
+            # then remove the unwanted columns
+            if self.remove_columns:
+                for column in self.remove_columns:
+                    if column in output_table.column_names:
+                        output_table = output_table.remove_column(output_table.column_names.index(column))
+            # return output
+            yield key, output_table
+            current_idx += len(pa_table)
+
     def shuffle_data_sources(self, generator: np.random.Generator) -> "MappedExamplesIterable":
         """Shuffle the wrapped examples iterable."""
         return MappedExamplesIterable(
@@ -562,7 +790,9 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
+        format_type: Optional[str] = None,
     ):
+        super().__init__()
         self.ex_iterable = ex_iterable
         self.function = function
         self.batched = batched
@@ -570,8 +800,17 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
         self.with_indices = with_indices
         self.input_columns = input_columns
         self.fn_kwargs = fn_kwargs or {}
+        self.format_type = get_format_type_from_alias(format_type)
+        if format_type == "arrow":
+            self.iter_arrow = self._iter_arrow
 
     def __iter__(self):
+        if self.format_type == "arrow":
+            yield from ArrowExamplesIterable(self._iter_arrow, {})
+        else:
+            yield from self._iter()
+
+    def _iter(self):
         iterator = iter(self.ex_iterable)
         current_idx = 0
         if self.batched:
@@ -608,6 +847,31 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                     yield key, example
                 current_idx += 1
 
+    def _iter_arrow(self):
+        if self.ex_iterable.iter_arrow:
+            iterator = _batch_arrow_tables(
+                self.ex_iterable.iter_arrow(), batch_size=self.batch_size if self.batched else 1
+            )
+        else:
+            iterator = _convert_to_arrow(self.ex_iterable, batch_size=self.batch_size if self.batched else 1)
+        current_idx = 0
+        for key, pa_table in iterator:
+            # first build the batch
+            function_args = [pa_table] if self.input_columns is None else [pa_table[col] for col in self.input_columns]
+            if self.with_indices:
+                if self.batched:
+                    function_args.append([current_idx + i for i in range(len(pa_table))])
+                else:
+                    function_args.append(current_idx)
+            # then apply the transform
+            mask = self.function(*function_args, **self.fn_kwargs)
+            # yield the filtered table
+            if self.batched:
+                yield key, pa_table.filter(mask)
+            elif mask.as_py() if isinstance(mask, pa.BooleanScalar) else mask:
+                yield key, pa_table
+            current_idx += len(pa_table)
+
     def shuffle_data_sources(self, seed: Optional[int]) -> "FilteredExamplesIterable":
         """Shuffle the wrapped examples iterable."""
         return FilteredExamplesIterable(
@@ -637,9 +901,11 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
 
 class BufferShuffledExamplesIterable(_BaseExamplesIterable):
     def __init__(self, ex_iterable: _BaseExamplesIterable, buffer_size: int, generator: np.random.Generator):
+        super().__init__()
         self.ex_iterable = ex_iterable
         self.buffer_size = buffer_size
         self.generator = generator
+        # TODO(QL): implement iter_arrow
 
     @staticmethod
     def _iter_random_indices(rng: np.random.Generator, buffer_size: int, random_batch_size=1000) -> Iterator[int]:
@@ -684,8 +950,10 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
 
 class SkipExamplesIterable(_BaseExamplesIterable):
     def __init__(self, ex_iterable: _BaseExamplesIterable, n: int):
+        super().__init__()
         self.ex_iterable = ex_iterable
         self.n = n
+        # TODO(QL): implement iter_arrow
 
     def __iter__(self):
         yield from islice(self.ex_iterable, self.n, None)
@@ -701,8 +969,10 @@ class SkipExamplesIterable(_BaseExamplesIterable):
 
 class TakeExamplesIterable(_BaseExamplesIterable):
     def __init__(self, ex_iterable: _BaseExamplesIterable, n: int):
+        super().__init__()
         self.ex_iterable = ex_iterable
         self.n = n
+        # TODO(QL): implement iter_arrow
 
     def __iter__(self):
         yield from islice(self.ex_iterable, self.n)
@@ -770,9 +1040,12 @@ class TypedExamplesIterable(_BaseExamplesIterable):
         features: Features,
         token_per_repo_id: Dict[str, Union[str, bool, None]],
     ):
+        super().__init__()
         self.ex_iterable = ex_iterable
         self.features = features
         self.token_per_repo_id = token_per_repo_id
+        if self.ex_iterable.iter_arrow is not None:
+            self.iter_arrow = self._iter_arrow
 
     def __iter__(self):
         # Then for each example, `TypedExamplesIterable` automatically fills missing columns with None.
@@ -781,6 +1054,19 @@ class TypedExamplesIterable(_BaseExamplesIterable):
             yield key, _apply_feature_types_on_example(
                 example, self.features, token_per_repo_id=self.token_per_repo_id
             )
+
+    def _iter_arrow(self) -> Iterator[Tuple[Key, pa.Table]]:
+        schema = self.features.arrow_schema
+        for key, pa_table in self.ex_iterable.iter_arrow():
+            columns = set(pa_table.column_names)
+            # add missing columns
+            for column_name in self.features:
+                if column_name not in columns:
+                    col = pa.NullArray.from_buffers(pa.null(), len(pa_table), [None])
+                    pa_table = pa_table.append_column(column_name, col)
+            if pa_table.schema != schema:
+                pa_table = cast_table_to_features(pa_table, self.features)
+            yield key, pa_table
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "TypedExamplesIterable":
         """Shuffle the wrapped examples iterable."""
@@ -801,17 +1087,6 @@ class TypedExamplesIterable(_BaseExamplesIterable):
     @property
     def n_shards(self) -> int:
         return self.ex_iterable.n_shards
-
-
-def _generate_examples_from_tables_wrapper(generate_tables_fn):
-    def wrapper(**kwargs):
-        python_formatter = PythonFormatter()
-        for key, table in generate_tables_fn(**kwargs):
-            batch = python_formatter.format_batch(table)
-            for i, example in enumerate(_batch_to_examples(batch)):
-                yield f"{key}_{i}", example
-
-    return wrapper
 
 
 @dataclass
@@ -975,6 +1250,10 @@ class IterableDataset(DatasetInfoMixin):
         return ex_iterable
 
     def __iter__(self):
+        if self._format_type == "arrow":
+            yield from self.iter(batch_size=1)
+            return
+
         ex_iterable = self._prepare_ex_iterable_for_iteration()
 
         if "torch" in sys.modules:
@@ -1004,7 +1283,27 @@ class IterableDataset(DatasetInfoMixin):
             drop_last_batch (:obj:`bool`, default `False`): Whether a last batch smaller than the batch_size should be
                 dropped
         """
-        iterator = iter(self._prepare_ex_iterable_for_iteration())
+        ex_iterable = self._prepare_ex_iterable_for_iteration()
+        if self._format_type == "arrow":
+            if ex_iterable.iter_arrow:
+                iterator = _batch_arrow_tables(
+                    ex_iterable.iter_arrow(), batch_size=batch_size, drop_last_batch=drop_last_batch
+                )
+            else:
+                iterator = _convert_to_arrow(ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch)
+            for key, pa_table in iterator:
+                if self.features:
+                    columns = set(pa_table.colum_names)
+                    # add missing columns
+                    for column_name in self.features:
+                        if column_name not in columns:
+                            col = pa.NullArray.from_buffers(pa.null(), len(pa_table), [None])
+                            pa_table = pa_table.append_column(column_name, col)
+                    yield cast_table_to_features(pa_table, self.features)
+                else:
+                    yield pa_table
+            return
+        iterator = iter(ex_iterable)
         for key, example in iterator:
             # If batched, first build the batch
             examples = [example] + [example for key, example in islice(iterator, batch_size - 1)]
@@ -1121,7 +1420,8 @@ class IterableDataset(DatasetInfoMixin):
     ) -> "IterableDataset":
         """
         Return a dataset with the specified format.
-        This method only supports the "torch" format for now.
+        Supported formats: "arrow", or None for regular python objects.
+        The other formats are currently not implemented.
 
         Args:
 
@@ -1242,6 +1542,7 @@ class IterableDataset(DatasetInfoMixin):
             drop_last_batch=drop_last_batch,
             remove_columns=remove_columns,
             fn_kwargs=fn_kwargs,
+            format_type=self._format_type,
         )
         info = self.info.copy()
         info.features = features
@@ -1321,6 +1622,7 @@ class IterableDataset(DatasetInfoMixin):
             batched=batched,
             batch_size=batch_size,
             fn_kwargs=fn_kwargs,
+            format_type=self._format_type,
         )
         return IterableDataset(
             ex_iterable=ex_iterable,
