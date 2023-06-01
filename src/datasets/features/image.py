@@ -9,6 +9,7 @@ import numpy as np
 import pyarrow as pa
 
 from .. import config
+from ..download.download_config import DownloadConfig
 from ..download.streaming_download_manager import xopen
 from ..table import array_cast
 from ..utils.file_utils import is_local_path
@@ -170,7 +171,8 @@ class Image:
                         use_auth_token = token_per_repo_id.get(repo_id)
                     except ValueError:
                         use_auth_token = None
-                    with xopen(path, "rb", use_auth_token=use_auth_token) as f:
+                    download_config = DownloadConfig(use_auth_token=use_auth_token)
+                    with xopen(path, "rb", download_config=download_config) as f:
                         bytes_ = BytesIO(f.read())
                     image = PIL.Image.open(bytes_)
         else:

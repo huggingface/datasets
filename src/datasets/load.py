@@ -343,14 +343,13 @@ def _create_importable_file(
 
 
 def infer_module_for_data_files(
-    data_files_list: DataFilesList, use_auth_token: Optional[Union[bool, str]] = None
+    data_files_list: DataFilesList, download_config: Optional[DownloadConfig] = None
 ) -> Optional[Tuple[str, str]]:
     """Infer module (and builder kwargs) from list of data files.
 
     Args:
         data_files_list (DataFilesList): List of data files.
-        use_auth_token (bool or str, optional): Whether to use token or token to authenticate on the Hugging Face Hub
-            for private remote files.
+        download_config (bool or str, optional): mainly use use_auth_token or storage_options to support different platforms and auth types.
 
     Returns:
         tuple[str, str]: Tuple with
@@ -367,19 +366,18 @@ def infer_module_for_data_files(
             if ext in _EXTENSION_TO_MODULE:
                 return _EXTENSION_TO_MODULE[ext]
             elif ext == "zip":
-                return infer_module_for_data_files_in_archives(data_files_list, use_auth_token=use_auth_token)
+                return infer_module_for_data_files_in_archives(data_files_list, download_config=download_config)
     return None, {}
 
 
 def infer_module_for_data_files_in_archives(
-    data_files_list: DataFilesList, use_auth_token: Optional[Union[bool, str]]
+    data_files_list: DataFilesList, download_config: Optional[DownloadConfig]
 ) -> Optional[Tuple[str, str]]:
     """Infer module (and builder kwargs) from list of archive data files.
 
     Args:
         data_files_list (DataFilesList): List of data files.
-        use_auth_token (bool or str, optional): Whether to use token or token to authenticate on the Hugging Face Hub
-            for private remote files.
+        download_config (bool or str, optional): mainly use use_auth_token or storage_options to support different platforms and auth types.
 
     Returns:
         tuple[str, str]: Tuple with
@@ -396,7 +394,7 @@ def infer_module_for_data_files_in_archives(
             extracted = xjoin(StreamingDownloadManager().extract(filepath), "**")
             archived_files += [
                 f.split("::")[0]
-                for f in xglob(extracted, recursive=True, use_auth_token=use_auth_token)[
+                for f in xglob(extracted, recursive=True, download_config=download_config)[
                     : config.ARCHIVED_DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE
                 ]
             ]
@@ -777,7 +775,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
         split_modules = {
-            split: infer_module_for_data_files(data_files_list, use_auth_token=self.download_config.use_auth_token)
+            split: infer_module_for_data_files(data_files_list, download_config=self.download_config)
             for split, data_files_list in data_files.items()
         }
         module_name, builder_kwargs = next(iter(split_modules.values()))
