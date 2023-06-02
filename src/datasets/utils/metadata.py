@@ -123,7 +123,7 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
     FIELD_NAME: ClassVar[str] = METADATA_CONFIGS_FIELD
 
     @staticmethod
-    def _raise_if_not_valid(metadata_config: dict):
+    def _raise_if_data_files_field_not_valid(metadata_config: dict):
         yaml_data_files = metadata_config.get("data_files")
         if yaml_data_files is not None:
             yaml_error_message = textwrap.dedent(
@@ -165,14 +165,15 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
     def from_metadata(cls, dataset_metadata: DatasetMetadata) -> "MetadataConfigs":
         if dataset_metadata.get(cls.FIELD_NAME):
             metadata_configs = dataset_metadata[cls.FIELD_NAME]
-            if isinstance(metadata_configs, dict):  # single configuration
-                if "config_name" not in metadata_configs:
-                    metadata_configs["config_name"] = "default"
-                metadata_configs = [metadata_configs]
-            elif not isinstance(metadata_configs, list):
-                raise ValueError(f"Expected {cls.FIELD_NAME} to be a dict or a list, but got '{metadata_configs}'")
+            if not isinstance(metadata_configs, list):
+                raise ValueError(f"Expected {cls.FIELD_NAME} to be a list, but got '{metadata_configs}'")
             for metadata_config in metadata_configs:
-                cls._raise_if_not_valid(metadata_config)
+                if "config_name" not in metadata_config:
+                    raise ValueError(
+                        f"Each config must include `config_name` field with a string name of a config, "
+                        f"but got {metadata_config}. "
+                    )
+                cls._raise_if_data_files_field_not_valid(metadata_config)
             return cls(
                 {
                     config["config_name"]: {param: value for param, value in config.items() if param != "config_name"}
@@ -184,24 +185,15 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
     def to_metadata(self, dataset_metadata: DatasetMetadata) -> None:
         if self:
             for metadata_config in self.values():
-                self._raise_if_not_valid(metadata_config)
+                self._raise_if_data_files_field_not_valid(metadata_config)
             current_metadata_configs = self.from_metadata(dataset_metadata)
             total_metadata_configs = dict(sorted({**current_metadata_configs, **self}.items()))
-            if len(total_metadata_configs) > 1:
-                for config_name, config_metadata in total_metadata_configs.items():
-                    config_metadata.pop("config_name", None)
-                dataset_metadata[self.FIELD_NAME] = [
-                    {"config_name": config_name, **config_metadata}
-                    for config_name, config_metadata in total_metadata_configs.items()
-                ]
-            elif len(total_metadata_configs) == 1:
-                metadata_config_name, metadata_config = next(iter(total_metadata_configs.items()))
-                metadata_config = (
-                    {"config_name": metadata_config_name, **metadata_config}
-                    if metadata_config_name != "default"
-                    else {**metadata_config}
-                )
-                dataset_metadata[self.FIELD_NAME] = metadata_config
+            for config_name, config_metadata in total_metadata_configs.items():
+                config_metadata.pop("config_name", None)
+            dataset_metadata[self.FIELD_NAME] = [
+                {"config_name": config_name, **config_metadata}
+                for config_name, config_metadata in total_metadata_configs.items()
+            ]
 
     def get_default_config_name(self) -> Optional[str]:
         default_config_name = None
