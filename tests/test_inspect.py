@@ -67,9 +67,9 @@ def test_get_dataset_config_info_error(path, config_name, expected_exception):
         ("lhoestq/test", ["default"]),
         ("lhoestq/demo1", ["default"]),
         ("dalle-mini/wit", ["default"]),
-        ("polinaeterna/audiofolder_one_default_config_in_metadata", ["default"]),
-        ("polinaeterna/audiofolder_one_nondefault_config_in_metadata", ["custom"]),
-        ("polinaeterna/audiofolder_two_configs_in_metadata", ["v1", "v2"]),
+        ("datasets-maintainers/audiofolder_no_configs_in_metadata", ["default"]),
+        ("datasets-maintainers/audiofolder_single_config_in_metadata", ["custom"]),
+        ("datasets-maintainers/audiofolder_two_configs_in_metadata", ["v1", "v2"]),
     ],
 )
 def test_get_dataset_config_names(path, expected):
