@@ -44,7 +44,7 @@ from tqdm.auto import tqdm
 
 from .. import config
 from . import logging
-from ..parallel import ParallelBackend
+from ..parallel import parallel_map
 
 
 try:  # pragma: no branch
@@ -382,7 +382,6 @@ def map_nested(
     types: Optional[tuple] = None,
     disable_tqdm: bool = True,
     desc: Optional[str] = None,
-    parallel_backend: Optional[ParallelBackend] = None,
 ) -> Any:
     """Apply a function recursively to each element of a nested data struct.
 
@@ -417,7 +416,6 @@ def map_nested(
             elements.
         disable_tqdm (`bool`, default `True`): Whether to disable the tqdm progressbar.
         desc (`str`, *optional*): Prefix for the tqdm progressbar.
-        parallel_backend (`ParallelBackend`, *optional*): Parallelization implementation backend.
 
     Returns:
         `Any`
@@ -448,12 +446,7 @@ def map_nested(
             for obj in logging.tqdm(iterable, disable=disable_tqdm, desc=desc)
         ]
     else:
-        if parallel_backend is None:
-            parallel_backend = ParallelBackend()
-
-        mapped = parallel_backend.parallel_map(
-            function, iterable, num_proc, types, disable_tqdm, desc, _single_map_nested
-        )
+        mapped = parallel_map(function, iterable, num_proc, types, disable_tqdm, desc, _single_map_nested)
 
     if isinstance(data_struct, dict):
         return dict(zip(data_struct.keys(), mapped))
