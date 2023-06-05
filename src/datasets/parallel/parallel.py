@@ -65,9 +65,6 @@ class ParallelBackend:
 
 @contextlib.contextmanager
 def parallel_backend(backend_name: str, steps: List[str]):
-    if backend_name not in ["spark", "multiprocessing"]:
-        raise ValueError(f"Unsupported parallel backend: {backend_name}")
-
     if backend_name == "spark":
         from joblibspark import register_spark
 
