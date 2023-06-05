@@ -4,11 +4,11 @@ from datasets.utils.py_utils import map_nested
 
 
 def test_parallel_backend_input():
-    with parallel_backend('spark', steps=['downloading']) as backend:
-        assert backend.backend_name == 'spark'
+    with parallel_backend("spark", steps=["downloading"]) as backend:
+        assert backend.backend_name == "spark"
 
     with pytest.raises(ValueError):
-        with parallel_backend('ray', steps=['downloading']):
+        with parallel_backend("ray", steps=["downloading"]):
             pass
 
 
@@ -33,7 +33,7 @@ def test_parallel_backend_map_nested():
     expected_map_nested_s7 = {"a": {"1": 2}, "b": 3}
     expected_map_nested_s8 = {"a": 2, "b": 3, "c": 4, "d": 5}
 
-    with parallel_backend('spark', steps=['downloading']) as backend:
+    with parallel_backend("spark", steps=["downloading"]) as backend:
         assert map_nested(add_one, s1, parallel_backend=backend) == expected_map_nested_s1
         assert map_nested(add_one, s2, parallel_backend=backend) == expected_map_nested_s2
         assert map_nested(add_one, s3, parallel_backend=backend) == expected_map_nested_s3
