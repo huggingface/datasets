@@ -8,9 +8,11 @@ import pyarrow as pa
 import datasets
 from datasets.table import table_cast
 
+from ..packaged_builder import PackagedBuilderConfig
+
 
 @dataclass
-class PandasConfig(datasets.BuilderConfig):
+class PandasConfig(PackagedBuilderConfig):
     """BuilderConfig for Pandas."""
 
     features: Optional[datasets.Features] = None

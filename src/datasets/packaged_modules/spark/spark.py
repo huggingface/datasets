@@ -17,6 +17,8 @@ from datasets.filesystems import (
 from datasets.iterable_dataset import _BaseExamplesIterable
 from datasets.utils.py_utils import convert_file_size_to_int
 
+from ..packaged_builder import PackagedBuilderConfig
+
 
 logger = datasets.utils.logging.get_logger(__name__)
 
@@ -25,7 +27,7 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class SparkConfig(datasets.BuilderConfig):
+class SparkConfig(PackagedBuilderConfig):
     """BuilderConfig for Spark."""
 
     features: Optional[datasets.Features] = None

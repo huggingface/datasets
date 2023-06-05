@@ -9,12 +9,14 @@ import pyarrow.parquet as pq
 import datasets
 from datasets.table import table_cast
 
+from ..packaged_builder import PackagedBuilderConfig
+
 
 logger = datasets.utils.logging.get_logger(__name__)
 
 
 @dataclass
-class ParquetConfig(datasets.BuilderConfig):
+class ParquetConfig(PackagedBuilderConfig):
     """BuilderConfig for Parquet."""
 
     batch_size: int = 10_000

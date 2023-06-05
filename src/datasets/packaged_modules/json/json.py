@@ -12,12 +12,14 @@ import datasets
 from datasets.table import table_cast
 from datasets.utils.file_utils import readline
 
+from ..packaged_builder import PackagedBuilderConfig
+
 
 logger = datasets.utils.logging.get_logger(__name__)
 
 
 @dataclass
-class JsonConfig(datasets.BuilderConfig):
+class JsonConfig(PackagedBuilderConfig):
     """BuilderConfig for JSON."""
 
     features: Optional[datasets.Features] = None

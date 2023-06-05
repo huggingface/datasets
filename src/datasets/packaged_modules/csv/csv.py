@@ -12,6 +12,8 @@ from datasets.features.features import require_storage_cast
 from datasets.table import table_cast
 from datasets.utils.py_utils import Literal
 
+from ..packaged_builder import PackagedBuilderConfig
+
 
 logger = datasets.utils.logging.get_logger(__name__)
 
@@ -22,7 +24,7 @@ _PANDAS_READ_CSV_NEW_2_0_0_PARAMETERS = ["date_format"]
 
 
 @dataclass
-class CsvConfig(datasets.BuilderConfig):
+class CsvConfig(PackagedBuilderConfig):
     """BuilderConfig for CSV."""
 
     sep: str = ","

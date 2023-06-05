@@ -10,12 +10,14 @@ import datasets
 from datasets.features.features import require_storage_cast
 from datasets.table import table_cast
 
+from ..packaged_builder import PackagedBuilderConfig
+
 
 logger = datasets.utils.logging.get_logger(__name__)
 
 
 @dataclass
-class TextConfig(datasets.BuilderConfig):
+class TextConfig(PackagedBuilderConfig):
     """BuilderConfig for text files."""
 
     features: Optional[datasets.Features] = None

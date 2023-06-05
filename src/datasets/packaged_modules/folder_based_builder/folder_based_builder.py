@@ -12,6 +12,8 @@ import datasets
 from datasets.features.features import FeatureType
 from datasets.tasks.base import TaskTemplate
 
+from ..packaged_builder import PackagedBuilderConfig
+
 
 logger = datasets.utils.logging.get_logger(__name__)
 
@@ -21,7 +23,7 @@ def count_path_segments(path):
 
 
 @dataclass
-class FolderBasedBuilderConfig(datasets.BuilderConfig):
+class FolderBasedBuilderConfig(PackagedBuilderConfig):
     """BuilderConfig for AutoFolder."""
 
     features: Optional[datasets.Features] = None

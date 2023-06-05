@@ -3,9 +3,11 @@ from typing import Callable, Optional
 
 import datasets
 
+from ..packaged_builder import PackagedBuilderConfig
+
 
 @dataclass
-class GeneratorConfig(datasets.BuilderConfig):
+class GeneratorConfig(PackagedBuilderConfig):
     generator: Optional[Callable] = None
     gen_kwargs: Optional[dict] = None
     features: Optional[datasets.Features] = None
