@@ -27,6 +27,7 @@ class FolderBasedBuilderConfig(datasets.BuilderConfig):
     features: Optional[datasets.Features] = None
     drop_labels: bool = None
     drop_metadata: bool = None
+    only_supported_extensions: bool = True
 
 
 class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
