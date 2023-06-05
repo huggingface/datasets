@@ -209,7 +209,9 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(dset["filename"][:-1][-1], "my_name-train_28")
 
                 self.assertListEqual(dset[[0, -1]]["filename"], ["my_name-train_0", "my_name-train_29"])
+                self.assertListEqual(dset[range(0, -2, -1)]["filename"], ["my_name-train_0", "my_name-train_29"])
                 self.assertListEqual(dset[np.array([0, -1])]["filename"], ["my_name-train_0", "my_name-train_29"])
+                self.assertListEqual(dset[pd.Series([0, -1])]["filename"], ["my_name-train_0", "my_name-train_29"])
 
                 with dset.select(range(2)) as dset_subset:
                     self.assertListEqual(dset_subset[-1:]["filename"], ["my_name-train_1"])
@@ -4520,3 +4522,11 @@ def test_map_cases(return_lazy_dict):
     ds = ds.map(f)
     outputs = ds[:]
     assert outputs == {"a": [{"nested": [[i]]} for i in [-1, -1, 2, 3]]}
+
+
+def test_dataset_getitem_raises():
+    ds = Dataset.from_dict({"a": [0, 1, 2, 3]})
+    with pytest.raises(TypeError):
+        ds[False]
+    with pytest.raises(TypeError):
+        ds._getitem(True)

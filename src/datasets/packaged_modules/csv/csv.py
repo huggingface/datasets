@@ -18,6 +18,7 @@ logger = datasets.utils.logging.get_logger(__name__)
 _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS = ["names", "prefix"]
 _PANDAS_READ_CSV_DEPRECATED_PARAMETERS = ["warn_bad_lines", "error_bad_lines", "mangle_dupe_cols"]
 _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS = ["encoding_errors", "on_bad_lines"]
+_PANDAS_READ_CSV_NEW_2_0_0_PARAMETERS = ["date_format"]
 
 
 @dataclass
@@ -33,7 +34,7 @@ class CsvConfig(datasets.BuilderConfig):
     usecols: Optional[Union[List[int], List[str]]] = None
     prefix: Optional[str] = None
     mangle_dupe_cols: bool = True
-    engine: Optional[str] = None
+    engine: Optional[Literal["c", "python", "pyarrow"]] = None
     converters: Dict[Union[int, str], Callable[[Any], Any]] = None
     true_values: Optional[list] = None
     false_values: Optional[list] = None
@@ -64,6 +65,7 @@ class CsvConfig(datasets.BuilderConfig):
     features: Optional[datasets.Features] = None
     encoding_errors: Optional[str] = "strict"
     on_bad_lines: Literal["error", "warn", "skip"] = "error"
+    date_format: Optional[str] = None
 
     def __post_init__(self):
         if self.delimiter is not None:
@@ -111,12 +113,18 @@ class CsvConfig(datasets.BuilderConfig):
             "chunksize": self.chunksize,
             "encoding_errors": self.encoding_errors,
             "on_bad_lines": self.on_bad_lines,
+            "date_format": self.date_format,
         }
 
         # some kwargs must not be passed if they don't have a default value
         # some others are deprecated and we can also not pass them if they are the default value
         for pd_read_csv_parameter in _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS + _PANDAS_READ_CSV_DEPRECATED_PARAMETERS:
             if pd_read_csv_kwargs[pd_read_csv_parameter] == getattr(CsvConfig(), pd_read_csv_parameter):
+                del pd_read_csv_kwargs[pd_read_csv_parameter]
+
+        # Remove 2.0 new arguments
+        if not (datasets.config.PANDAS_VERSION.major >= 2):
+            for pd_read_csv_parameter in _PANDAS_READ_CSV_NEW_2_0_0_PARAMETERS:
                 del pd_read_csv_kwargs[pd_read_csv_parameter]
 
         # Remove 1.3 new arguments

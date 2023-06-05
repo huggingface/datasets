@@ -136,7 +136,6 @@ REQUIRED_PKGS = [
     "huggingface-hub>=0.11.0,<1.0.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
-    "responses<0.19",
     # To parse YAML metadata from dataset cards
     "pyyaml>=5.1",
 ]
@@ -186,6 +185,7 @@ TESTS_REQUIRE = [
 
 METRICS_TESTS_REQUIRE = [
     # metrics dependencies
+    "accelerate",  # for frugalscore (calls transformers' Trainer)
     "bert_score>=0.3.6",
     "jiwer",
     "langdetect",

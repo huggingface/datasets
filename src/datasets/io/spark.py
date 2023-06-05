@@ -20,7 +20,10 @@ class SparkDatasetReader(AbstractDatasetReader):
         df: pyspark.sql.DataFrame,
         split: Optional[NamedSplit] = None,
         features: Optional[Features] = None,
+        streaming: bool = True,
         cache_dir: str = None,
+        keep_in_memory: bool = False,
+        working_dir: str = None,
         load_from_cache_file: bool = True,
         file_format: str = "arrow",
         **kwargs,
@@ -29,6 +32,8 @@ class SparkDatasetReader(AbstractDatasetReader):
             split=split,
             features=features,
             cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            streaming=streaming,
             **kwargs,
         )
         self._load_from_cache_file = load_from_cache_file
@@ -37,13 +42,13 @@ class SparkDatasetReader(AbstractDatasetReader):
             df=df,
             features=features,
             cache_dir=cache_dir,
+            working_dir=working_dir,
             **kwargs,
         )
 
     def read(self):
         if self.streaming:
-            # TODO: Support as_streaming_dataset.
-            raise ValueError("SparkDatasetReader is not streamable.")
+            return self.builder.as_streaming_dataset(split=self.split)
         download_mode = None if self._load_from_cache_file else DownloadMode.FORCE_REDOWNLOAD
         self.builder.download_and_prepare(
             download_mode=download_mode,
