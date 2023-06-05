@@ -33,7 +33,9 @@ from .. import config
 
 
 def minimal_tf_collate_fn(features):
-    if config.TF_AVAILABLE:
+    if isinstance(features, dict):  # case batch_size=None: nothing to collate
+        return features
+    elif config.TF_AVAILABLE:
         import tensorflow as tf
     else:
         raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
