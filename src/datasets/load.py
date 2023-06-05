@@ -663,6 +663,8 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             "base_path": self.path,
             **builder_kwargs,
         }
+        if not self.data_dir and not self.data_files:
+            builder_kwargs["only_supported_extensions"] = True
         if os.path.isfile(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME)):
             with open(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
                 dataset_infos: DatasetInfosDict = json.load(f)
@@ -807,6 +809,8 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             "repo_id": self.name,
             **builder_kwargs,
         }
+        if not self.data_dir and not self.data_files:
+            builder_kwargs["only_supported_extensions"] = True
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading metadata"
