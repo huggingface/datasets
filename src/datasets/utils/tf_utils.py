@@ -111,7 +111,7 @@ def np_get_batch(
         actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
         # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
         batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
-        batch = collate_fn(batch, **collate_fn_args)
+    batch = collate_fn(batch, **collate_fn_args)
 
     if return_dict:
         out_batch = {}
