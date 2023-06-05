@@ -1,4 +1,5 @@
 import textwrap
+from contextlib import nullcontext as does_not_raise
 
 import pyarrow as pa
 import pytest
@@ -77,9 +78,15 @@ def test_text_sample_by(sample_by, text_file):
     assert generated_content == expected_content
 
 
-def test_text_reads_only_supported_files(text_file, image_file):
-    builder = Text()
+@pytest.mark.parametrize("only_supported_extensions, raises", [(None, True), (False, True), (True, False)])
+def test_text_reads_only_supported_extensions(only_supported_extensions, raises, text_file, image_file):
+    config_kwargs = (
+        {"only_supported_extensions": only_supported_extensions} if only_supported_extensions is not None else {}
+    )
+    expectation = pytest.raises(UnicodeDecodeError) if raises else does_not_raise()
+    builder = Text(**config_kwargs)
     generator = builder._generate_tables([[text_file, image_file]])
-    # Test that it does not raise UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte
-    for _ in generator:
-        pass
+    # If image file is read, it raises UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte
+    with expectation:
+        for _ in generator:
+            pass

@@ -1,5 +1,6 @@
 import os
 import textwrap
+from contextlib import nullcontext as does_not_raise
 
 import pyarrow as pa
 import pytest
@@ -132,9 +133,15 @@ def test_csv_convert_int_list(csv_file_with_int_list):
     assert generated_content == [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
 
 
-def test_csv_reads_only_supported_files(csv_file, image_file):
-    builder = Csv()
-    generator = builder._generate_tables([[csv_file, image_file]])
-    # Test that it does not raise UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte
-    for _ in generator:
-        pass
+@pytest.mark.parametrize("only_supported_extensions, raises", [(None, True), (False, True), (True, False)])
+def test_csv_reads_only_supported_extensions(only_supported_extensions, raises, text_file, image_file):
+    config_kwargs = (
+        {"only_supported_extensions": only_supported_extensions} if only_supported_extensions is not None else {}
+    )
+    expectation = pytest.raises(UnicodeDecodeError) if raises else does_not_raise()
+    builder = Csv(**config_kwargs)
+    generator = builder._generate_tables([[text_file, image_file]])
+    # If image file is read, it raises UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte
+    with expectation:
+        for _ in generator:
+            pass
