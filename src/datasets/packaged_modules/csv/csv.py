@@ -66,6 +66,7 @@ class CsvConfig(datasets.BuilderConfig):
     encoding_errors: Optional[str] = "strict"
     on_bad_lines: Literal["error", "warn", "skip"] = "error"
     date_format: Optional[str] = None
+    only_supported_extensions: bool = False
 
     def __post_init__(self):
         if self.delimiter is not None:
@@ -185,7 +186,9 @@ class Csv(datasets.ArrowBasedBuilder):
         )
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             extension = Path(file).suffix
-            if extension and extension not in self.EXTENSIONS:  # Keep files without extension
+            if (
+                self.config.only_supported_extensions and extension and extension not in self.EXTENSIONS
+            ):  # Keep files without extension
                 continue
             csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **self.config.pd_read_csv_kwargs)
             try:

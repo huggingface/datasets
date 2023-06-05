@@ -26,6 +26,7 @@ class JsonConfig(datasets.BuilderConfig):
     block_size: Optional[int] = None  # deprecated
     chunksize: int = 10 << 20  # 10MB
     newlines_in_values: Optional[bool] = None
+    only_supported_extensions: bool = False
 
 
 class Json(datasets.ArrowBasedBuilder):
@@ -77,7 +78,9 @@ class Json(datasets.ArrowBasedBuilder):
     def _generate_tables(self, files):
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             extension = Path(file).suffix
-            if extension and extension not in self.EXTENSIONS:  # Keep files without extension
+            if (
+                self.config.only_supported_extensions and extension and extension not in self.EXTENSIONS
+            ):  # Keep files without extension
                 continue
             # If the file is one json object and if we need to look at the list of items in one specific field
             if self.config.field is not None:

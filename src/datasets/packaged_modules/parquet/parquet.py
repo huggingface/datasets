@@ -20,6 +20,7 @@ class ParquetConfig(datasets.BuilderConfig):
     batch_size: int = 10_000
     columns: Optional[List[str]] = None
     features: Optional[datasets.Features] = None
+    only_supported_extensions: bool = False
 
 
 class Parquet(datasets.ArrowBasedBuilder):
@@ -72,7 +73,9 @@ class Parquet(datasets.ArrowBasedBuilder):
                 )
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             extension = Path(file).suffix
-            if extension and extension not in self.EXTENSIONS:  # Keep files without extension
+            if (
+                self.config.only_supported_extensions and extension and extension not in self.EXTENSIONS
+            ):  # Keep files without extension
                 continue
             with open(file, "rb") as f:
                 parquet_file = pq.ParquetFile(f)
