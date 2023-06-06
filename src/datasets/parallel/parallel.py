@@ -20,7 +20,7 @@ def parallel_map(function, iterable, num_proc, types, disable_tqdm, desc, single
             function, iterable, num_proc, types, disable_tqdm, desc, single_map_nested_func
         )
 
-    return _map_with_joblib(function, iterable, types, single_map_nested_func)
+    return _map_with_joblib(function, iterable, num_proc, types, single_map_nested_func)
 
 
 def _map_with_multiprocessing_pool(function, iterable, num_proc, types, disable_tqdm, desc, single_map_nested_func):
@@ -55,9 +55,9 @@ def _map_with_multiprocessing_pool(function, iterable, num_proc, types, disable_
     return mapped
 
 
-def _map_with_joblib(function, iterable, types, single_map_nested_func):
+def _map_with_joblib(function, iterable, num_proc, types, single_map_nested_func):
     # TODO: take num_proc, tqdm args
-    with joblib.parallel_backend(ParallelBackendConfig.backend_name, n_jobs=-1):
+    with joblib.parallel_backend(ParallelBackendConfig.backend_name, n_jobs=num_proc):
         return joblib.Parallel()(
             joblib.delayed(single_map_nested_func)((function, obj, types, None, True, None)) for obj in iterable
         )
@@ -78,7 +78,8 @@ def parallel_backend(backend_name: str, steps: List[str]):
         from joblibspark import register_spark
 
         register_spark()
-        # TODO: probe file system
+
+        # TODO: call create_cache_and_write_probe if "download" in steps
 
     try:
         yield
