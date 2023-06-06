@@ -1,10 +1,12 @@
-from multiprocessing import Pool, RLock
-from tqdm.auto import tqdm
-from typing import List
 import contextlib
+from multiprocessing import Pool, RLock
+from typing import List
+
 import joblib
+from tqdm.auto import tqdm
 
 from ..utils import logging
+
 
 logger = logging.get_logger(__name__)
 

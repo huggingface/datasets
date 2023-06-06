@@ -43,8 +43,8 @@ from packaging import version
 from tqdm.auto import tqdm
 
 from .. import config
-from . import logging
 from ..parallel import parallel_map
+from . import logging
 
 
 try:  # pragma: no branch

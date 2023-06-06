@@ -1,6 +1,6 @@
 import pytest
 
-from datasets.parallel import parallel_backend, ParallelBackendConfig
+from datasets.parallel import ParallelBackendConfig, parallel_backend
 from datasets.utils.py_utils import map_nested
 
 from .utils import require_joblibspark
