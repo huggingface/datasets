@@ -1,14 +1,16 @@
 import pytest
-from unittest.mock import patch
 
 from datasets.parallel import parallel_backend, ParallelBackendConfig
 from datasets.utils.py_utils import map_nested
+
+from .utils import require_joblibspark
 
 
 def add_one(i):  # picklable for multiprocessing
     return i + 1
 
 
+@require_joblibspark
 def test_parallel_backend_input():
     with parallel_backend("spark", steps=["downloading"]):
         assert ParallelBackendConfig.backend_name == "spark"
@@ -23,6 +25,7 @@ def test_parallel_backend_input():
             map_nested(add_one, lst, num_proc=2)
 
 
+@require_joblibspark
 def test_parallel_backend_map_nested():
     s1 = [1, 2]
     s2 = {"a": 1, "b": 2}
