@@ -33,7 +33,9 @@ from .. import config
 
 
 def minimal_tf_collate_fn(features):
-    if config.TF_AVAILABLE:
+    if isinstance(features, dict):  # case batch_size=None: nothing to collate
+        return features
+    elif config.TF_AVAILABLE:
         import tensorflow as tf
     else:
         raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
@@ -85,11 +87,20 @@ def is_numeric_feature(feature):
 def np_get_batch(
     indices, dataset, cols_to_retain, collate_fn, collate_fn_args, columns_to_np_types, return_dict=False
 ):
+    if not isinstance(indices, np.ndarray):
+        indices = indices.numpy()
+
+    is_batched = True
     # Optimization - if we're loading a sequential batch, do it with slicing instead of a list of indices
-    if np.all(np.diff(indices) == 1):
+    if isinstance(indices, np.integer):
+        batch = dataset[indices.item()]
+        is_batched = False
+    elif np.all(np.diff(indices) == 1):
         batch = dataset[indices[0] : indices[-1] + 1]
-    else:
+    elif isinstance(indices, np.ndarray):
         batch = dataset[indices]
+    else:
+        raise RuntimeError("Unexpected type for indices: {}".format(type(indices)))
 
     if cols_to_retain is not None:
         batch = {
@@ -98,10 +109,12 @@ def np_get_batch(
             if key in cols_to_retain or key in ("label", "label_ids", "labels")
         }
 
-    actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
-    # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
-    batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
+    if is_batched:
+        actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
+        # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
+        batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
     batch = collate_fn(batch, **collate_fn_args)
+
     if return_dict:
         out_batch = {}
         for col, cast_dtype in columns_to_np_types.items():
@@ -133,26 +146,27 @@ def dataset_to_tf(
     """Create a tf.data.Dataset from the underlying Dataset. This is a single-process method - the multiprocess
     equivalent is multiprocess_dataset_to_tf.
 
-            Args:
-                dataset (`Dataset`): Dataset to wrap with tf.data.Dataset.
-                cols_to_retain (`List[str]`): Dataset column(s) to load in the
-                    tf.data.Dataset. It is acceptable to include column names that are created by the `collate_fn` and
-                    that do not exist in the original dataset.
-                collate_fn(`Callable`): A function or callable object (such as a `DataCollator`) that will collate
-                    lists of samples into a batch.
-                collate_fn_args (`Dict`): A  `dict` of keyword arguments to be passed to the
-                    `collate_fn`. Can be empty.
-                columns_to_np_types (`Dict[str, np.dtype]`): A `dict` mapping column names to numpy dtypes.
-                output_signature (`Dict[str, tf.TensorSpec]`): A `dict` mapping column names to
-                    `tf.TensorSpec` objects.
-                shuffle(`bool`): Shuffle the dataset order when loading. Recommended True for training, False for
-                    validation/evaluation.
-                batch_size (`int`): Size of batches to load from the dataset.
-                drop_remainder(`bool`, default `None`): Drop the last incomplete batch when loading. If not provided,
-                    defaults to the same setting as shuffle.
+    Args:
+        dataset (`Dataset`): Dataset to wrap with tf.data.Dataset.
+        cols_to_retain (`List[str]`): Dataset column(s) to load in the
+            tf.data.Dataset. It is acceptable to include column names that are created by the `collate_fn` and
+            that do not exist in the original dataset.
+        collate_fn(`Callable`): A function or callable object (such as a `DataCollator`) that will collate
+            lists of samples into a batch.
+        collate_fn_args (`Dict`): A  `dict` of keyword arguments to be passed to the
+            `collate_fn`. Can be empty.
+        columns_to_np_types (`Dict[str, np.dtype]`): A `dict` mapping column names to numpy dtypes.
+        output_signature (`Dict[str, tf.TensorSpec]`): A `dict` mapping column names to
+            `tf.TensorSpec` objects.
+        shuffle(`bool`): Shuffle the dataset order when loading. Recommended True for training, False for
+            validation/evaluation.
+        batch_size (`int`, default `None`): Size of batches to load from the dataset. Defaults to `None`, which implies that
+            the dataset won't be batched, but the returned dataset can be batched later with `tf_dataset.batch(batch_size)`.
+        drop_remainder(`bool`, default `None`): Drop the last incomplete batch when loading. If not provided,
+            defaults to the same setting as shuffle.
 
-            Returns:
-                `tf.data.Dataset`
+    Returns:
+        `tf.data.Dataset`
     """
     if config.TF_AVAILABLE:
         import tensorflow as tf
@@ -166,16 +180,18 @@ def dataset_to_tf(
         collate_fn=collate_fn,
         collate_fn_args=collate_fn_args,
         columns_to_np_types=columns_to_np_types,
-        return_dict=False,  # TF expects numpy_function to return a list and will not accept a dict
+        return_dict=False,
     )
+
+    # This works because dictionaries always output in the same order
+    tout = [tf.dtypes.as_dtype(dtype) for dtype in columns_to_np_types.values()]
 
     @tf.function(input_signature=[tf.TensorSpec(None, tf.int64)])
     def fetch_function(indices):
-        output = tf.numpy_function(
+        output = tf.py_function(
             getter_fn,
             inp=[indices],
-            # This works because dictionaries always output in the same order
-            Tout=[tf.dtypes.as_dtype(dtype) for dtype in columns_to_np_types.values()],
+            Tout=tout,
         )
         return {key: output[i] for i, key in enumerate(columns_to_np_types.keys())}
 
@@ -184,10 +200,20 @@ def dataset_to_tf(
     if shuffle:
         tf_dataset = tf_dataset.shuffle(len(dataset))
 
-    tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder).map(fetch_function)
+    if batch_size is not None:
+        tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder)
 
-    def ensure_shapes(input_dict):
-        return {key: tf.ensure_shape(val, output_signature[key].shape) for key, val in input_dict.items()}
+    tf_dataset = tf_dataset.map(fetch_function)
+
+    if batch_size is not None:
+
+        def ensure_shapes(input_dict):
+            return {key: tf.ensure_shape(val, output_signature[key].shape) for key, val in input_dict.items()}
+
+    else:
+        # Ensure shape but remove batch dimension of output_signature[key].shape
+        def ensure_shapes(input_dict):
+            return {key: tf.ensure_shape(val, output_signature[key].shape[1:]) for key, val in input_dict.items()}
 
     return tf_dataset.map(ensure_shapes)
 
@@ -285,7 +311,7 @@ class NumpyMultiprocessingGenerator:
         with SharedMemoryContext() as shm_ctx:
             for i in range(num_workers):
                 worker_random_id = str(uuid4())
-                worker_name = f"datasets_tf_worker_{i}_{worker_random_id}"
+                worker_name = f"dw_{i}_{worker_random_id}"[:10]
                 names.append(worker_name)
 
                 worker_shape_arrays = {
@@ -479,27 +505,28 @@ def multiprocess_dataset_to_tf(
     """Create a tf.data.Dataset from the underlying Dataset. This is a multi-process method - the single-process
     equivalent is dataset_to_tf.
 
-            Args:
-                dataset (`Dataset`): Dataset to wrap with tf.data.Dataset.
-                cols_to_retain (`List[str]`): Dataset column(s) to load in the
-                    tf.data.Dataset. It is acceptable to include column names that are created by the `collate_fn` and
-                    that do not exist in the original dataset.
-                collate_fn(`Callable`): A function or callable object (such as a `DataCollator`) that will collate
-                    lists of samples into a batch.
-                collate_fn_args (`Dict`): A  `dict` of keyword arguments to be passed to the
-                    `collate_fn`. Can be empty.
-                columns_to_np_types (`Dict[str, np.dtype]`): A `dict` mapping column names to numpy dtypes.
-                output_signature (`Dict[str, tf.TensorSpec]`): A `dict` mapping column names to
-                    `tf.TensorSpec` objects.
-                shuffle(`bool`): Shuffle the dataset order when loading. Recommended True for training, False for
-                    validation/evaluation.
-                batch_size (`int`): Size of batches to load from the dataset.
-                drop_remainder(`bool`, default `None`): Drop the last incomplete batch when loading. If not provided,
-                    defaults to the same setting as shuffle.
-                num_workers (`int`): Number of workers to use for loading the dataset. Should be >= 1.
+    Args:
+        dataset (`Dataset`): Dataset to wrap with tf.data.Dataset.
+        cols_to_retain (`List[str]`): Dataset column(s) to load in the
+            tf.data.Dataset. It is acceptable to include column names that are created by the `collate_fn` and
+            that do not exist in the original dataset.
+        collate_fn(`Callable`): A function or callable object (such as a `DataCollator`) that will collate
+            lists of samples into a batch.
+        collate_fn_args (`Dict`): A  `dict` of keyword arguments to be passed to the
+            `collate_fn`. Can be empty.
+        columns_to_np_types (`Dict[str, np.dtype]`): A `dict` mapping column names to numpy dtypes.
+        output_signature (`Dict[str, tf.TensorSpec]`): A `dict` mapping column names to
+            `tf.TensorSpec` objects.
+        shuffle(`bool`): Shuffle the dataset order when loading. Recommended True for training, False for
+            validation/evaluation.
+        batch_size (`int`, default `None`): Size of batches to load from the dataset. Defaults to `None`, which implies that
+            the dataset won't be batched, but the returned dataset can be batched later with `tf_dataset.batch(batch_size)`.
+        drop_remainder(`bool`, default `None`): Drop the last incomplete batch when loading. If not provided,
+            defaults to the same setting as shuffle.
+        num_workers (`int`): Number of workers to use for loading the dataset. Should be >= 1.
 
-            Returns:
-                `tf.data.Dataset`
+    Returns:
+        `tf.data.Dataset`
     """
     if config.TF_AVAILABLE:
         import tensorflow as tf
