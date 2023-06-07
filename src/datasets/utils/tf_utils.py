@@ -197,16 +197,18 @@ def dataset_to_tf(
         collate_fn=collate_fn,
         collate_fn_args=collate_fn_args,
         columns_to_np_types=columns_to_np_types,
-        return_dict=False,  # TF expects numpy_function to return a list and will not accept a dict
+        return_dict=False,
     )
+
+    # This works because dictionaries always output in the same order
+    tout = [tf.dtypes.as_dtype(dtype) for dtype in columns_to_np_types.values()]
 
     @tf.function(input_signature=[tf.TensorSpec(None, tf.int64)])
     def fetch_function(indices):
-        output = tf.numpy_function(
+        output = tf.py_function(
             getter_fn,
             inp=[indices],
-            # This works because dictionaries always output in the same order
-            Tout=[tf.dtypes.as_dtype(dtype) for dtype in columns_to_np_types.values()],
+            Tout=tout,
         )
         return {key: output[i] for i, key in enumerate(columns_to_np_types.keys())}
 
