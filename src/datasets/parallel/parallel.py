@@ -4,7 +4,7 @@ from multiprocessing import Pool, RLock
 import joblib
 from tqdm.auto import tqdm
 
-from ..utils import logging
+from ..utils import experimental, logging
 
 
 logger = logging.get_logger(__name__)
@@ -14,6 +14,7 @@ class ParallelBackendConfig:
     backend_name = None
 
 
+@experimental
 def parallel_map(function, iterable, num_proc, types, disable_tqdm, desc, single_map_nested_func):
     """
     **Experimental.** Apply a function to iterable elements in parallel, where the implementation uses either
@@ -69,6 +70,7 @@ def _map_with_joblib(function, iterable, num_proc, types, disable_tqdm, desc, si
         )
 
 
+@experimental
 @contextlib.contextmanager
 def parallel_backend(backend_name: str):
     """
