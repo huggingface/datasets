@@ -216,15 +216,15 @@ def dataset_to_tf(
     if shuffle and random_index_shuffle is not None:
         base_seed = tf.fill((3,), value=tf.cast(-1, dtype=tf.int64))
 
-        def scan_random_indices(state, indices):
+        def scan_random_index(state, index):
             if tf.reduce_all(state == -1):
                 # This generates a new random seed once per epoch only,
                 # to ensure that we iterate over each sample exactly once per epoch
                 state = tf.random.uniform(shape=(3,), maxval=2**62, dtype=tf.int64)
-            shuffled_indices = random_index_shuffle(index=indices, seed=state, max_index=len(dataset) - 1)
-            return state, shuffled_indices
+            shuffled_index = random_index_shuffle(index=index, seed=state, max_index=len(dataset) - 1)
+            return state, shuffled_index
 
-        tf_dataset = tf_dataset.scan(base_seed, scan_random_indices)
+        tf_dataset = tf_dataset.scan(base_seed, scan_random_index)
     elif shuffle:
         tf_dataset = tf_dataset.shuffle(tf_dataset.cardinality())
 
