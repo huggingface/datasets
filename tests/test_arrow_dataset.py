@@ -2755,6 +2755,8 @@ class BaseDatasetTest(TestCase):
                     second_indices.append(batch["col_1"])
                 second_indices = np.concatenate([arr.numpy() for arr in second_indices])
                 self.assertFalse(np.array_equal(indices, second_indices))
+                self.assertEqual(len(indices), len(np.unique(indices)))
+                self.assertEqual(len(second_indices), len(np.unique(second_indices)))
 
                 tf_dataset = dset.to_tf_dataset(batch_size=1, shuffle=False, num_workers=num_workers)
                 for i, batch in enumerate(tf_dataset):
