@@ -1,6 +1,5 @@
 import contextlib
 from multiprocessing import Pool, RLock
-from typing import List
 
 import joblib
 from tqdm.auto import tqdm
@@ -13,13 +12,12 @@ logger = logging.get_logger(__name__)
 
 class ParallelBackendConfig:
     backend_name = None
-    steps = []
 
 
 def parallel_map(function, iterable, num_proc, types, disable_tqdm, desc, single_map_nested_func):
     """
-    Apply a function to iterable elements in parallel, where the implementation uses either multiprocessing.Pool or
-    joblib for parallelization.
+    **Experimental.** Apply a function to iterable elements in parallel, where the implementation uses either
+    multiprocessing.Pool or joblib for parallelization.
     """
     if ParallelBackendConfig.backend_name is None:
         return _map_with_multiprocessing_pool(
@@ -72,24 +70,18 @@ def _map_with_joblib(function, iterable, num_proc, types, disable_tqdm, desc, si
 
 
 @contextlib.contextmanager
-def parallel_backend(backend_name: str, steps: List[str]):
+def parallel_backend(backend_name: str):
     """
-    Configures the parallel backend for parallelized dataset loading, steps including download and prepare.
+    **Experimental.**  Configures the parallel backend for parallelized dataset loading, which uses the parallelization
+    implemented by joblib.
 
-    Example usage:
-    ```py
-    with parallel_backend('spark', steps=["download"]):
-      dataset = load_dataset(..., num_proc=2)
-    ```
+     Example usage:
+     ```py
+     with parallel_backend('spark'):
+       dataset = load_dataset(..., num_proc=2)
+     ```
     """
-    if "prepare" in steps:
-        raise NotImplementedError(
-            "The 'prepare' step that converts the raw data files to Arrow is not compatible "
-            "with the parallel_backend context manager yet"
-        )
-
     ParallelBackendConfig.backend_name = backend_name
-    ParallelBackendConfig.steps = steps
 
     if backend_name == "spark":
         from joblibspark import register_spark
@@ -97,9 +89,9 @@ def parallel_backend(backend_name: str, steps: List[str]):
         register_spark()
 
         # TODO: call create_cache_and_write_probe if "download" in steps
+        # TODO: raise NotImplementedError when Dataset.map etc is called
 
     try:
         yield
     finally:
         ParallelBackendConfig.backend_name = None
-        ParallelBackendConfig.steps = []
