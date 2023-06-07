@@ -3,13 +3,14 @@ import pytest
 from datasets.parallel import ParallelBackendConfig, parallel_backend
 from datasets.utils.py_utils import map_nested
 
-from .utils import require_joblibspark, require_not_windows
+from .utils import require_dill_gt_0_3_2, require_joblibspark, require_not_windows
 
 
 def add_one(i):  # picklable for multiprocessing
     return i + 1
 
 
+@require_dill_gt_0_3_2
 @require_joblibspark
 @require_not_windows
 def test_parallel_backend_input():
@@ -26,6 +27,7 @@ def test_parallel_backend_input():
             map_nested(add_one, lst, num_proc=-1)
 
 
+@require_dill_gt_0_3_2
 @require_joblibspark
 @require_not_windows
 @pytest.mark.parametrize("num_proc", [2, -1])
