@@ -215,7 +215,6 @@ def dataset_to_tf(
     tf_dataset = tf.data.Dataset.range(len(dataset))
 
     if shuffle and random_index_shuffle is not None:
-        tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder)
         base_seed = tf.fill((3,), value=tf.cast(-1, dtype=tf.int64))
 
         def scan_random_indices(state, indices):
@@ -229,14 +228,21 @@ def dataset_to_tf(
         tf_dataset = tf_dataset.scan(base_seed, scan_random_indices)
     elif shuffle:
         tf_dataset = tf_dataset.shuffle(tf_dataset.cardinality())
-        tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder)
-    else:
+
+    if batch_size is not None:
         tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder)
 
     tf_dataset = tf_dataset.map(fetch_function)
 
-    def ensure_shapes(input_dict):
-        return {key: tf.ensure_shape(val, output_signature[key].shape) for key, val in input_dict.items()}
+    if batch_size is not None:
+
+        def ensure_shapes(input_dict):
+            return {key: tf.ensure_shape(val, output_signature[key].shape) for key, val in input_dict.items()}
+
+    else:
+        # Ensure shape but remove batch dimension of output_signature[key].shape
+        def ensure_shapes(input_dict):
+            return {key: tf.ensure_shape(val, output_signature[key].shape[1:]) for key, val in input_dict.items()}
 
     return tf_dataset.map(ensure_shapes)
 
