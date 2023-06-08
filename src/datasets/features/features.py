@@ -714,10 +714,11 @@ class ArrayExtensionArray(pa.ExtensionArray):
 
     def to_numpy(self, zero_copy_only=True):
         storage: pa.ListArray = self.storage
+        null_mask = storage.is_null().to_numpy(zero_copy_only=False)
 
         if self.type.shape[0] is not None:
             size = 1
-            null_indices = np.arange(len(storage))[storage.is_null().to_numpy(zero_copy_only=False)]
+            null_indices = np.arange(len(storage))[null_mask] - np.arange(np.sum(null_mask))
 
             for i in range(self.type.ndims):
                 size *= self.type.shape[i]
@@ -733,7 +734,7 @@ class ArrayExtensionArray(pa.ExtensionArray):
             ndims = self.type.ndims
             arrays = []
             first_dim_offsets = np.array([off.as_py() for off in storage.offsets])
-            for i, is_null in enumerate(storage.is_null().to_numpy(zero_copy_only=False)):
+            for i, is_null in enumerate(null_mask):
                 if is_null:
                     arrays.append(np.nan)
                 else:
