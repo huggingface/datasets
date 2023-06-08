@@ -15,6 +15,7 @@
 """TF-specific utils import."""
 
 import os
+import warnings
 from functools import partial
 from math import ceil
 from uuid import uuid4
@@ -173,6 +174,21 @@ def dataset_to_tf(
     else:
         raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
 
+    # TODO Matt: When our minimum Python version is 3.8 or higher, we can delete all of this and move everything
+    #            to the NumPy multiprocessing path.
+    if hasattr(tf, "random_index_shuffle"):
+        random_index_shuffle = tf.random_index_shuffle
+    elif hasattr(tf.random.experimental, "index_shuffle"):
+        random_index_shuffle = tf.random.experimental.index_shuffle
+    else:
+        if len(dataset) > 10_000_000:
+            warnings.warn(
+                "to_tf_dataset() can be memory-inefficient on versions of TensorFlow older than 2.9. "
+                "If you are iterating over a dataset with a very large number of samples, consider "
+                "upgrading to TF >= 2.9."
+            )
+        random_index_shuffle = None
+
     getter_fn = partial(
         np_get_batch,
         dataset=dataset,
@@ -195,10 +211,22 @@ def dataset_to_tf(
         )
         return {key: output[i] for i, key in enumerate(columns_to_np_types.keys())}
 
-    tf_dataset = tf.data.Dataset.from_tensor_slices(np.arange(len(dataset), dtype=np.int64))
+    tf_dataset = tf.data.Dataset.range(len(dataset))
 
-    if shuffle:
-        tf_dataset = tf_dataset.shuffle(len(dataset))
+    if shuffle and random_index_shuffle is not None:
+        base_seed = tf.fill((3,), value=tf.cast(-1, dtype=tf.int64))
+
+        def scan_random_index(state, index):
+            if tf.reduce_all(state == -1):
+                # This generates a new random seed once per epoch only,
+                # to ensure that we iterate over each sample exactly once per epoch
+                state = tf.random.uniform(shape=(3,), maxval=2**62, dtype=tf.int64)
+            shuffled_index = random_index_shuffle(index=index, seed=state, max_index=len(dataset) - 1)
+            return state, shuffled_index
+
+        tf_dataset = tf_dataset.scan(base_seed, scan_random_index)
+    elif shuffle:
+        tf_dataset = tf_dataset.shuffle(tf_dataset.cardinality())
 
     if batch_size is not None:
         tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder)
