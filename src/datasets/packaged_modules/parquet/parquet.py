@@ -45,22 +45,28 @@ class Parquet(datasets.ArrowBasedBuilder):
                 files = [files]
             # Use `dl_manager.iter_files` to skip hidden files in an extracted archive
             files = [dl_manager.iter_files(file) for file in files]
+            # Infer features is they are stoed in the arrow schema
+            if self.info.features is None:
+                for file in itertools.chain.from_iterable(files):
+                    with open(file, "rb") as f:
+                        self.info.features = datasets.Features.from_arrow_schema(pq.read_schema(f))
+                    break
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:
-        if self.config.features is not None:
+        if self.info.features is not None:
             # more expensive cast to support nested features with keys in a different order
             # allows str <-> int/float or str to Audio for example
-            pa_table = table_cast(pa_table, self.config.features.arrow_schema)
+            pa_table = table_cast(pa_table, self.info.features.arrow_schema)
         return pa_table
 
     def _generate_tables(self, files):
-        schema = self.config.features.arrow_schema if self.config.features is not None else None
-        if self.config.features is not None and self.config.columns is not None:
+        schema = self.info.features.arrow_schema if self.info.features is not None else None
+        if self.info.features is not None and self.config.columns is not None:
             if sorted(field.name for field in schema) != sorted(self.config.columns):
                 raise ValueError(
-                    f"Tried to load parquet data with columns '{self.config.columns}' with mismatching features '{self.config.features}'"
+                    f"Tried to load parquet data with columns '{self.config.columns}' with mismatching features '{self.info.features}'"
                 )
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             with open(file, "rb") as f:

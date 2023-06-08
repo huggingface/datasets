@@ -174,8 +174,15 @@ class BuilderConfig:
         # it was previously ignored before the introduction of config id because we didn't want
         # to change the config name. Now it's fine to take it into account for the config id.
         # config_kwargs_to_add_to_suffix.pop("data_dir", None)
-        if "data_dir" in config_kwargs_to_add_to_suffix and config_kwargs_to_add_to_suffix["data_dir"] is None:
-            config_kwargs_to_add_to_suffix.pop("data_dir", None)
+        if "data_dir" in config_kwargs_to_add_to_suffix:
+            if config_kwargs_to_add_to_suffix["data_dir"] is None:
+                config_kwargs_to_add_to_suffix.pop("data_dir", None)
+            else:
+                # canonicalize the data dir to avoid two paths to the same location having different
+                # hashes
+                data_dir = config_kwargs_to_add_to_suffix["data_dir"]
+                data_dir = os.path.normpath(data_dir)
+                config_kwargs_to_add_to_suffix["data_dir"] = data_dir
         if config_kwargs_to_add_to_suffix:
             # we don't care about the order of the kwargs
             config_kwargs_to_add_to_suffix = {
@@ -1716,9 +1723,9 @@ class ArrowBasedBuilder(DatasetBuilder):
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
 
-        if self.info.splits is not None:
+        try:
             split_info = self.info.splits[split_generator.name]
-        else:
+        except Exception:
             split_info = split_generator.split_info
 
         SUFFIX = "-JJJJJ-SSSSS-of-NNNNN"
