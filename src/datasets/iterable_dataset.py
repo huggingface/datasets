@@ -622,7 +622,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         remove_columns: Optional[List[str]] = None,
         fn_kwargs: Optional[dict] = None,
         formatting: Optional["FormattingConfig"] = None,
+        format_type="deprecated",
     ):
+        if format_type != "deprecated":
+            formatting = FormattingConfig(format_type=format_type)
         super().__init__()
         self.ex_iterable = ex_iterable
         self.function = function
@@ -802,7 +805,10 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
         batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
         formatting: Optional["FormattingConfig"] = None,
+        format_type="deprecated",
     ):
+        if format_type != "deprecated":
+            formatting = FormattingConfig(format_type=format_type)
         super().__init__()
         self.ex_iterable = ex_iterable
         self.function = function
