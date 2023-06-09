@@ -380,21 +380,21 @@ def test_array_xd_with_none():
     # Fixed shape
     features = datasets.Features({"foo": datasets.Array2D(dtype="int32", shape=(2, 2))})
     dummy_array = np.array([[1, 2], [3, 4]], dtype="int32")
-    dataset = datasets.Dataset.from_dict({"foo": [dummy_array, None, dummy_array]}, features=features)
+    dataset = datasets.Dataset.from_dict({"foo": [dummy_array, None, dummy_array, None]}, features=features)
     arr = NumpyArrowExtractor().extract_column(dataset._data)
-    assert isinstance(arr, np.ndarray) and arr.dtype == np.float64 and arr.shape == (3, 2, 2)
+    assert isinstance(arr, np.ndarray) and arr.dtype == np.float64 and arr.shape == (4, 2, 2)
     assert np.allclose(arr[0], dummy_array) and np.allclose(arr[2], dummy_array)
-    assert np.all(np.isnan(arr[1]))  # broadcasted np.nan - use np.all
+    assert np.all(np.isnan(arr[1])) and np.all(np.isnan(arr[3]))  # broadcasted np.nan - use np.all
 
     # Dynamic shape
     features = datasets.Features({"foo": datasets.Array2D(dtype="int32", shape=(None, 2))})
     dummy_array = np.array([[1, 2], [3, 4]], dtype="int32")
-    dataset = datasets.Dataset.from_dict({"foo": [dummy_array, None, dummy_array]}, features=features)
+    dataset = datasets.Dataset.from_dict({"foo": [dummy_array, None, dummy_array, None]}, features=features)
     arr = NumpyArrowExtractor().extract_column(dataset._data)
-    assert isinstance(arr, np.ndarray) and arr.dtype == object and arr.shape == (3,)
+    assert isinstance(arr, np.ndarray) and arr.dtype == object and arr.shape == (4,)
     np.testing.assert_equal(arr[0], dummy_array)
     np.testing.assert_equal(arr[2], dummy_array)
-    assert np.isnan(arr[1])  # a single np.nan value - np.all not needed
+    assert np.isnan(arr[1]) and np.isnan(arr[3])  # a single np.nan value - np.all not needed
 
 
 @pytest.mark.parametrize(
