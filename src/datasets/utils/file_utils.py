@@ -580,7 +580,7 @@ def get_from_cache(
     # Prevent parallel downloads of the same file with a lock.
     lock_path = cache_path + ".lock"
     with FileLock(lock_path):
-        # Retry in case previously locked processes just enter after the first process releases the lock
+        # Retry in case previously locked processes just enter after the precedent process releases the lock
         if os.path.exists(cache_path) and not force_download:
             return cache_path
 
