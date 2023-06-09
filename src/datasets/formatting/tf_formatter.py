@@ -76,6 +76,11 @@ class TFFormatter(TensorFormatter[Mapping, "tf.Tensor", Mapping]):
         import tensorflow as tf
 
         # support for torch, tf, jax etc.
+        if config.TORCH_AVAILABLE and "torch" in sys.modules:
+            import torch
+
+            if isinstance(data_struct, torch.Tensor):
+                return self._tensorize(data_struct.detach().cpu().numpy()[()])
         if hasattr(data_struct, "__array__") and not isinstance(data_struct, tf.Tensor):
             data_struct = data_struct.__array__()
         # support for nested types like struct of list of struct

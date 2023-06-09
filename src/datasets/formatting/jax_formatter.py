@@ -121,6 +121,11 @@ class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
         import jax
 
         # support for torch, tf, jax etc.
+        if config.TORCH_AVAILABLE and "torch" in sys.modules:
+            import torch
+
+            if isinstance(data_struct, torch.Tensor):
+                return self._tensorize(data_struct.detach().cpu().numpy()[()])
         if hasattr(data_struct, "__array__") and not isinstance(data_struct, jax.Array):
             data_struct = data_struct.__array__()
         # support for nested types like struct of list of struct

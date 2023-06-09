@@ -100,7 +100,9 @@ def _convert_to_arrow(
             Drop the last batch if it is smaller than `batch_size`.
     """
     if batch_size is None or batch_size <= 0:
-        yield "all", pa.Table.from_pylist([example for _, example in iterable])
+        yield "all", pa.Table.from_pylist(
+            cast_to_python_objects([example for _, example in iterable], only_1d_for_numpy=True)
+        )
         return
     iterator = iter(iterable)
     for key, example in iterator:
@@ -110,7 +112,7 @@ def _convert_to_arrow(
             return
         keys, examples = zip(*key_examples_list)
         new_key = "_".join(str(key) for key in keys)
-        yield new_key, pa.Table.from_pylist(examples)
+        yield new_key, pa.Table.from_pylist(cast_to_python_objects(examples, only_1d_for_numpy=True))
 
 
 def _batch_arrow_tables(
@@ -1322,7 +1324,7 @@ class IterableDataset(DatasetInfoMixin):
         else:
             format_dict = None
 
-        if self._formatting and (ex_iterable.iter_arrow or self._formatting == "arrow"):
+        if self._formatting and (ex_iterable.iter_arrow or self._formatting.format_type == "arrow"):
             if ex_iterable.iter_arrow:
                 iterator = _batch_arrow_tables(ex_iterable.iter_arrow(), batch_size=1)
             else:
