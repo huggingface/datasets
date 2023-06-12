@@ -23,7 +23,7 @@ from collections.abc import Sequence as SequenceABC
 from dataclasses import InitVar, dataclass, field, fields
 from functools import reduce, wraps
 from operator import mul
-from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, ClassVar, Dict, List, Optional, Tuple, Union
 from typing import Sequence as Sequence_
 
 import numpy as np
@@ -714,10 +714,11 @@ class ArrayExtensionArray(pa.ExtensionArray):
 
     def to_numpy(self, zero_copy_only=True):
         storage: pa.ListArray = self.storage
+        null_mask = storage.is_null().to_numpy(zero_copy_only=False)
 
         if self.type.shape[0] is not None:
             size = 1
-            null_indices = np.arange(len(storage))[storage.is_null().to_numpy(zero_copy_only=False)]
+            null_indices = np.arange(len(storage))[null_mask] - np.arange(np.sum(null_mask))
 
             for i in range(self.type.ndims):
                 size *= self.type.shape[i]
@@ -733,7 +734,7 @@ class ArrayExtensionArray(pa.ExtensionArray):
             ndims = self.type.ndims
             arrays = []
             first_dim_offsets = np.array([off.as_py() for off in storage.offsets])
-            for i, is_null in enumerate(storage.is_null().to_numpy(zero_copy_only=False)):
+            for i, is_null in enumerate(null_mask):
                 if is_null:
                     arrays.append(np.nan)
                 else:
@@ -1457,6 +1458,25 @@ def to_pyarrow_listarray(data: Any, pa_type: _ArrayXDExtensionType) -> pa.Array:
         return any_np_array_to_pyarrow_listarray(data, type=pa_type.value_type)
     else:
         return pa.array(data, pa_type.storage_dtype)
+
+
+def _visit(feature: FeatureType, func: Callable[[FeatureType], Optional[FeatureType]]) -> FeatureType:
+    """Visit a (possibly nested) feature.
+
+    Args:
+        feature (FeatureType): the feature type to be checked
+    Returns:
+        visited feature (FeatureType)
+    """
+    if isinstance(feature, dict):
+        out = func({k: _visit(f, func) for k, f in feature.items()})
+    elif isinstance(feature, (list, tuple)):
+        out = func([_visit(feature[0], func)])
+    elif isinstance(feature, Sequence):
+        out = func(Sequence(_visit(feature.feature, func), length=feature.length))
+    else:
+        out = func(feature)
+    return feature if out is None else out
 
 
 def require_decoding(feature: FeatureType, ignore_decode_attribute: bool = False) -> bool:
