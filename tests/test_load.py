@@ -9,12 +9,14 @@ from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
 
+import pyarrow as pa
 import pytest
 import requests
 
 import datasets
 from datasets import config, load_dataset, load_from_disk
 from datasets.arrow_dataset import Dataset
+from datasets.arrow_writer import ArrowWriter
 from datasets.builder import DatasetBuilder
 from datasets.data_files import DataFilesDict
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
@@ -104,6 +106,25 @@ def data_dir(tmp_path):
         f.write("foo\n" * 10)
     with open(data_dir / "test.txt", "w") as f:
         f.write("bar\n" * 10)
+    return str(data_dir)
+
+
+@pytest.fixture
+def data_dir_with_arrow(tmp_path):
+    data_dir = tmp_path / "data_dir"
+    data_dir.mkdir()
+    output_train = os.path.join(data_dir, "train.arrow")
+    with ArrowWriter(path=output_train) as writer:
+        writer.write_row(pa.Table.from_pydict({"col_1": ["foo"] * 10}))
+        num_examples, num_bytes = writer.finalize()
+    assert num_examples == 10
+    assert num_bytes > 0
+    output_test = os.path.join(data_dir, "test.arrow")
+    with ArrowWriter(path=output_test) as writer:
+        writer.write_row(pa.Table.from_pydict({"col_1": ["bar"] * 10}))
+        num_examples, num_bytes = writer.finalize()
+    assert num_examples == 10
+    assert num_bytes > 0
     return str(data_dir)
 
 
@@ -208,6 +229,7 @@ def metric_loading_script_dir(tmp_path):
         (["train.json"], "json", {}),
         (["train.jsonl"], "json", {}),
         (["train.parquet"], "parquet", {}),
+        (["train.arrow"], "arrow", {}),
         (["train.txt"], "text", {}),
         (["uppercase.TXT"], "text", {}),
         (["unsupported.ext"], None, {}),
@@ -851,6 +873,24 @@ def test_load_dataset_zip_text(data_file, streaming, zip_text_path, zip_text_wit
         assert ds.shape[0] == expected_size
         ds_item = next(iter(ds))
         assert ds_item == {"text": "0"}
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+def test_load_dataset_arrow(streaming, data_dir_with_arrow):
+    ds = load_dataset("arrow", split="train", data_dir=data_dir_with_arrow, streaming=streaming)
+    expected_size = 10
+    if streaming:
+        ds_item_counter = 0
+        for ds_item in ds:
+            if ds_item_counter == 0:
+                assert ds_item == {"col_1": "foo"}
+            ds_item_counter += 1
+        assert ds_item_counter == 10
+    else:
+        assert ds.num_rows == 10
+        assert ds.shape[0] == expected_size
+        ds_item = next(iter(ds))
+        assert ds_item == {"col_1": "foo"}
 
 
 def test_load_dataset_text_with_unicode_new_lines(text_path_with_unicode_new_lines):
