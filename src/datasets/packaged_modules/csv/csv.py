@@ -1,5 +1,6 @@
 import itertools
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 
 import pandas as pd
@@ -11,6 +12,8 @@ from datasets.features.features import require_storage_cast
 from datasets.table import table_cast
 from datasets.utils.py_utils import Literal
 
+from ..packaged_builder import PackagedBuilderConfig
+
 
 logger = datasets.utils.logging.get_logger(__name__)
 
@@ -21,7 +24,7 @@ _PANDAS_READ_CSV_NEW_2_0_0_PARAMETERS = ["date_format"]
 
 
 @dataclass
-class CsvConfig(datasets.BuilderConfig):
+class CsvConfig(PackagedBuilderConfig):
     """BuilderConfig for CSV."""
 
     sep: str = ","
@@ -65,6 +68,7 @@ class CsvConfig(datasets.BuilderConfig):
     encoding_errors: Optional[str] = "strict"
     on_bad_lines: Literal["error", "warn", "skip"] = "error"
     date_format: Optional[str] = None
+    only_supported_extensions: bool = False
 
     def __post_init__(self):
         if self.delimiter is not None:
@@ -136,6 +140,7 @@ class CsvConfig(datasets.BuilderConfig):
 
 class Csv(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = CsvConfig
+    EXTENSIONS = [".csv", ".tsv"]
 
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
@@ -182,6 +187,11 @@ class Csv(datasets.ArrowBasedBuilder):
             else None
         )
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
+            extension = Path(file).suffix
+            if (
+                self.config.only_supported_extensions and extension and extension not in self.EXTENSIONS
+            ):  # Keep files without extension
+                continue
             csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **self.config.pd_read_csv_kwargs)
             try:
                 for batch_idx, df in enumerate(csv_file_reader):

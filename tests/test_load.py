@@ -319,6 +319,7 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
         assert os.path.isdir(module_factory_result.builder_kwargs["base_path"])
+        assert module_factory_result.builder_kwargs["only_supported_extensions"] is True
 
     def test_LocalDatasetModuleFactoryWithoutScript_with_data_dir(self):
         factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir2, data_dir=self._sub_data_dir)
@@ -334,6 +335,7 @@ class ModuleFactoryTest(TestCase):
             for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
             + module_factory_result.builder_kwargs["data_files"]["test"]
         )
+        assert "only_supported_extensions" not in module_factory_result.builder_kwargs  # default is False
 
     def test_LocalDatasetModuleFactoryWithoutScript_with_metadata(self):
         factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir_with_metadata)
@@ -359,6 +361,7 @@ class ModuleFactoryTest(TestCase):
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
+        assert "only_supported_extensions" not in module_factory_result.builder_kwargs  # default is False
 
     def test_PackagedDatasetModuleFactory_with_data_dir(self):
         factory = PackagedDatasetModuleFactory("json", data_dir=self._data_dir, download_config=self.download_config)
@@ -371,6 +374,7 @@ class ModuleFactoryTest(TestCase):
         )
         assert Path(module_factory_result.builder_kwargs["data_files"]["train"][0]).parent.samefile(self._data_dir)
         assert Path(module_factory_result.builder_kwargs["data_files"]["test"][0]).parent.samefile(self._data_dir)
+        assert "only_supported_extensions" not in module_factory_result.builder_kwargs  # default is False
 
     def test_PackagedDatasetModuleFactory_with_data_dir_and_metadata(self):
         factory = PackagedDatasetModuleFactory(
@@ -406,6 +410,7 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
         assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
+        assert module_factory_result.builder_kwargs["only_supported_extensions"] is True
 
     @pytest.mark.integration
     def test_HubDatasetModuleFactoryWithoutScript_with_data_dir(self):
@@ -426,6 +431,7 @@ class ModuleFactoryTest(TestCase):
             for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
             + module_factory_result.builder_kwargs["data_files"]["test"]
         )
+        assert "only_supported_extensions" not in module_factory_result.builder_kwargs  # default is False
 
     @pytest.mark.integration
     def test_HubDatasetModuleFactoryWithoutScript_with_metadata(self):
@@ -857,6 +863,12 @@ def test_load_dataset_text_with_unicode_new_lines(text_path_with_unicode_new_lin
     data_files = str(text_path_with_unicode_new_lines)
     ds = load_dataset("text", split="train", data_files=data_files)
     assert ds.num_rows == 3
+
+
+def test_load_dataset_with_unsupported_extensions(text_path_with_unsupported_extension):
+    data_files = str(text_path_with_unsupported_extension)
+    ds = load_dataset("text", split="train", data_files=data_files)
+    assert ds.num_rows == 4
 
 
 @pytest.mark.integration

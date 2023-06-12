@@ -10,6 +10,8 @@ import datasets.config
 from datasets.features.features import require_storage_cast
 from datasets.table import table_cast
 
+from ..packaged_builder import PackagedBuilderConfig
+
 
 if TYPE_CHECKING:
     import sqlite3
@@ -21,7 +23,7 @@ logger = datasets.utils.logging.get_logger(__name__)
 
 
 @dataclass
-class SqlConfig(datasets.BuilderConfig):
+class SqlConfig(PackagedBuilderConfig):
     """BuilderConfig for SQL."""
 
     sql: Union[str, "sqlalchemy.sql.Selectable"] = None

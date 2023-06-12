@@ -1,4 +1,5 @@
 import textwrap
+from contextlib import nullcontext as does_not_raise
 
 import pyarrow as pa
 import pytest
@@ -102,3 +103,17 @@ def test_json_generate_tables_with_missing_features(file_fixture, config_kwargs,
     generator = json._generate_tables([[request.getfixturevalue(file_fixture)]])
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.to_pydict() == {"col_1": [-1, 1, 10], "col_2": [None, 2, 20], "missing_col": [None, None, None]}
+
+
+@pytest.mark.parametrize("only_supported_extensions, raises", [(None, True), (False, True), (True, False)])
+def test_json_reads_only_supported_extensions(only_supported_extensions, raises, text_file, image_file):
+    config_kwargs = (
+        {"only_supported_extensions": only_supported_extensions} if only_supported_extensions is not None else {}
+    )
+    expectation = pytest.raises(ValueError) if raises else does_not_raise()
+    builder = Json(**config_kwargs)
+    generator = builder._generate_tables([[text_file, image_file]])
+    # If image file is read, it raises pyarrow.lib.ArrowInvalid: JSON parse error: Invalid value. in row 0
+    with expectation:
+        for _ in generator:
+            pass

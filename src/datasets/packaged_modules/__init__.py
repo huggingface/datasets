@@ -40,11 +40,10 @@ _PACKAGED_DATASETS_MODULES = {
 _EXTENSION_TO_MODULE = {
     ".csv": ("csv", {}),
     ".tsv": ("csv", {"sep": "\t"}),
-    ".json": ("json", {}),
-    ".jsonl": ("json", {}),
-    ".parquet": ("parquet", {}),
-    ".txt": ("text", {}),
 }
+_EXTENSION_TO_MODULE.update({ext: ("json", {}) for ext in json.Json.EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext: ("parquet", {}) for ext in parquet.Parquet.EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext: ("text", {}) for ext in text.Text.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext: ("audiofolder", {}) for ext in audiofolder.AudioFolder.EXTENSIONS})

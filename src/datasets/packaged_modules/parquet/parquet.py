@@ -1,5 +1,6 @@
 import itertools
 from dataclasses import dataclass
+from pathlib import Path
 from typing import List, Optional
 
 import pyarrow as pa
@@ -8,21 +9,25 @@ import pyarrow.parquet as pq
 import datasets
 from datasets.table import table_cast
 
+from ..packaged_builder import PackagedBuilderConfig
+
 
 logger = datasets.utils.logging.get_logger(__name__)
 
 
 @dataclass
-class ParquetConfig(datasets.BuilderConfig):
+class ParquetConfig(PackagedBuilderConfig):
     """BuilderConfig for Parquet."""
 
     batch_size: int = 10_000
     columns: Optional[List[str]] = None
     features: Optional[datasets.Features] = None
+    only_supported_extensions: bool = False
 
 
 class Parquet(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = ParquetConfig
+    EXTENSIONS = [".parquet"]
 
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
@@ -69,6 +74,11 @@ class Parquet(datasets.ArrowBasedBuilder):
                     f"Tried to load parquet data with columns '{self.config.columns}' with mismatching features '{self.info.features}'"
                 )
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
+            extension = Path(file).suffix
+            if (
+                self.config.only_supported_extensions and extension and extension not in self.EXTENSIONS
+            ):  # Keep files without extension
+                continue
             with open(file, "rb") as f:
                 parquet_file = pq.ParquetFile(f)
                 try:
