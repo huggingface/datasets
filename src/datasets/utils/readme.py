@@ -4,6 +4,8 @@ from typing import Any, List, Tuple
 
 import yaml
 
+from .deprecation_utils import deprecated
+
 
 # loading package files: https://stackoverflow.com/a/20885799
 try:
@@ -173,6 +175,7 @@ class Section:
         }
 
 
+@deprecated("Use `huggingface_hub.DatasetCard` instead.")
 class ReadMe(Section):  # Level 0
     def __init__(self, name: str, lines: List[str], structure: dict = None, suppress_parsing_errors: bool = False):
         super().__init__(name=name, level="")  # Not using lines here as we need to use a child class parse
