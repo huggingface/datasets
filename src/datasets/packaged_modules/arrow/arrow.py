@@ -5,7 +5,7 @@ from typing import List, Optional
 import pyarrow as pa
 
 import datasets
-from datasets.table import _memory_mapped_record_batch_reader_from_file, read_schema_from_file, table_cast
+from datasets.table import table_cast
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -47,8 +47,8 @@ class Arrow(datasets.ArrowBasedBuilder):
             # Infer features is they are stoed in the arrow schema
             if self.info.features is None:
                 for file in itertools.chain.from_iterable(files):
-                    self.info.features = datasets.Features.from_arrow_schema(read_schema_from_file(file))
-                    # with open(file, "rb") as f:
+                    with open(file, "rb") as f:
+                        self.info.features = datasets.Features.from_arrow_schema(pa.ipc.open_stream(f).schema)
                     break
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
@@ -68,6 +68,16 @@ class Arrow(datasets.ArrowBasedBuilder):
                     f"Tried to load parquet data with columns '{self.config.columns}' with mismatching features '{self.info.features}'"
                 )
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
-            for batch_idx, record_batch in enumerate(_memory_mapped_record_batch_reader_from_file(file)):
-                pa_table = pa.Table.from_batches([record_batch])
-                yield f"{file_idx}_{batch_idx}", self._cast_table(pa_table)
+            with open(file, "rb") as f:
+                try:
+                    for batch_idx, record_batch in enumerate(
+                        pa.ipc.open_stream(f).read_all().to_reader(max_chunksize=self.config.batch_size)
+                    ):
+                        pa_table = pa.Table.from_batches([record_batch])
+                        # Uncomment for debugging (will print the Arrow table size and elements)
+                        # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
+                        # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
+                        yield f"{file_idx}_{batch_idx}", self._cast_table(pa_table)
+                except ValueError as e:
+                    logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
+                    raise
