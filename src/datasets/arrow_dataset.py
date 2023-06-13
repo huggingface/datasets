@@ -57,7 +57,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
-from huggingface_hub import HfApi, HfFolder
+from huggingface_hub import DatasetCard, DatasetCardData, HfApi, HfFolder
 from multiprocess import Pool
 from requests import HTTPError
 
@@ -111,7 +111,6 @@ from .utils import logging
 from .utils.file_utils import _retry, cached_path, estimate_dataset_size
 from .utils.hub import hf_hub_url
 from .utils.info_utils import is_small_dataset
-from .utils.metadata import DatasetMetadata
 from .utils.py_utils import Literal, asdict, convert_file_size_to_int, iflatmap_unordered, unique_values
 from .utils.stratify import stratified_shuffle_split_generate_indices
 from .utils.tf_utils import dataset_to_tf, minimal_tf_collate_fn, multiprocess_dataset_to_tf
@@ -5409,7 +5408,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 hf_hub_url(repo_id, "README.md"),
                 download_config=download_config,
             )
-            dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
+            dataset_card = DatasetCard.load(Path(dataset_readme_path))
+            dataset_metadata = dataset_card.data
             dataset_infos: DatasetInfosDict = DatasetInfosDict.from_metadata(dataset_metadata)
             if dataset_infos:
                 repo_info = dataset_infos[next(iter(dataset_infos))]
@@ -5417,7 +5417,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 repo_info = None
         # get the deprecated dataset_infos.json to update them
         elif config.DATASETDICT_INFOS_FILENAME in repo_files:
-            dataset_metadata = DatasetMetadata()
+            dataset_card = None
+            dataset_metadata = DatasetCardData()
             download_config = DownloadConfig()
             download_config.download_desc = "Downloading metadata"
             download_config.use_auth_token = token
@@ -5432,7 +5433,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 else:
                     repo_info = None
         else:
-            dataset_metadata = DatasetMetadata()
+            dataset_card = None
+            dataset_metadata = DatasetCardData()
             repo_info = None
         # update the total info to dump from existing info
         if repo_info is not None:
@@ -5471,13 +5473,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
         # push to README
         DatasetInfosDict({"default": info_to_dump}).to_metadata(dataset_metadata)
-        if "README.md" in repo_files:
-            with open(dataset_readme_path, encoding="utf-8") as readme_file:
-                readme_content = readme_file.read()
-        else:
-            readme_content = f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
+        dataset_card = (
+            DatasetCard(
+                "---\n"
+                + str(dataset_metadata)
+                + "\n---\n"
+                + f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
+            )
+            if dataset_card is None
+            else dataset_card
+        )
         HfApi(endpoint=config.HF_ENDPOINT).upload_file(
-            path_or_fileobj=dataset_metadata._to_readme(readme_content).encode(),
+            path_or_fileobj=str(dataset_card).encode(),
             path_in_repo="README.md",
             repo_id=repo_id,
             token=token,

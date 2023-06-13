@@ -11,9 +11,7 @@ from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import fsspec
 import numpy as np
-from huggingface_hub import HfApi
-
-from datasets.utils.metadata import DatasetMetadata
+from huggingface_hub import DatasetCard, DatasetCardData, HfApi
 
 from . import config
 from .arrow_dataset import Dataset
@@ -1624,15 +1622,25 @@ class DatasetDict(dict):
                 hf_hub_url(repo_id, "README.md"),
                 download_config=download_config,
             )
-            dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
-            with open(dataset_readme_path, encoding="utf-8") as readme_file:
-                readme_content = readme_file.read()
+            dataset_card = DatasetCard.load(Path(dataset_readme_path))
+            dataset_metadata = dataset_card.data
         else:
-            dataset_metadata = DatasetMetadata()
-            readme_content = f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
+            dataset_card = None
+            dataset_metadata = DatasetCardData()
+
         DatasetInfosDict({"default": info_to_dump}).to_metadata(dataset_metadata)
+        dataset_card = (
+            DatasetCard(
+                "---\n"
+                + str(dataset_metadata)
+                + "---\n"
+                + f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
+            )
+            if dataset_card is None
+            else dataset_card
+        )
         HfApi(endpoint=config.HF_ENDPOINT).upload_file(
-            path_or_fileobj=dataset_metadata._to_readme(readme_content).encode(),
+            path_or_fileobj=str(dataset_card).encode(),
             path_in_repo="README.md",
             repo_id=repo_id,
             token=token,

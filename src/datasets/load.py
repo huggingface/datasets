@@ -30,7 +30,7 @@ from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Type, Union
 
 import fsspec
 import requests
-from huggingface_hub import HfApi
+from huggingface_hub import DatasetCard, HfApi
 
 from . import config
 from .arrow_dataset import Dataset
@@ -79,7 +79,6 @@ from .utils.filelock import FileLock
 from .utils.hub import hf_hub_url
 from .utils.info_utils import VerificationMode, is_small_dataset
 from .utils.logging import get_logger
-from .utils.metadata import DatasetMetadata
 from .utils.py_utils import get_imports
 from .utils.version import Version
 
@@ -672,7 +671,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 builder_kwargs["config_name"] = next(iter(dataset_infos))
                 builder_kwargs["info"] = DatasetInfo.from_dict(next(iter(dataset_infos.values())))
         if os.path.isfile(os.path.join(self.path, "README.md")):
-            dataset_metadata = DatasetMetadata.from_readme(Path(self.path) / "README.md")
+            dataset_metadata = DatasetCard.load(Path(self.path) / "README.md").data
             if isinstance(dataset_metadata.get("dataset_info"), list) and dataset_metadata["dataset_info"]:
                 dataset_info_dict = dataset_metadata["dataset_info"][0]
                 builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
@@ -832,7 +831,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 hf_hub_url(self.name, "README.md", revision=self.revision),
                 download_config=download_config,
             )
-            dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
+            dataset_metadata = DatasetCard.load(Path(dataset_readme_path)).data
             if isinstance(dataset_metadata.get("dataset_info"), list) and dataset_metadata["dataset_info"]:
                 dataset_info_dict = dataset_metadata["dataset_info"][0]
                 builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
