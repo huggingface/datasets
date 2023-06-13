@@ -328,8 +328,8 @@ def resolve_patterns_locally_or_by_urls(
 
         >>> from datasets.data_files import resolve_patterns_locally_or_by_urls
         >>> base_path = "."
-        >>> resolve_patterns_locally_or_by_urls(base_path, ["src/**/*.yaml"])
-        [PosixPath('/Users/quentinlhoest/Desktop/hf/datasets/src/datasets/utils/resources/readme_structure.yaml')]
+        >>> resolve_patterns_locally_or_by_urls(base_path, ["docs/**/*.py"])
+        [PosixPath('/Users/mariosasko/Desktop/projects/datasets/docs/source/_config.py')]
 
     Args:
         base_path (str): Base path to use when resolving relative paths.
