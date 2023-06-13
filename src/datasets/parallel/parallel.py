@@ -1,7 +1,6 @@
 import contextlib
 from multiprocessing import Pool, RLock
 
-import joblib
 from tqdm.auto import tqdm
 
 from ..utils import experimental, logging
@@ -74,6 +73,7 @@ def _map_with_multiprocessing_pool(function, iterable, num_proc, types, disable_
 def _map_with_joblib(function, iterable, num_proc, types, disable_tqdm, desc, single_map_nested_func):
     # progress bar is not yet supported for _map_with_joblib, because tqdm couldn't accurately be applied to joblib,
     # and it requires monkey-patching joblib internal classes which is subject to change
+    import joblib
 
     with joblib.parallel_backend(ParallelBackendConfig.backend_name, n_jobs=num_proc):
         return joblib.Parallel()(
