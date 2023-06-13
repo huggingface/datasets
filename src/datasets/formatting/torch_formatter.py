@@ -22,14 +22,14 @@ import pyarrow as pa
 
 from .. import config
 from ..utils.py_utils import map_nested
-from .formatting import Formatter
+from .formatting import TensorFormatter
 
 
 if TYPE_CHECKING:
     import torch
 
 
-class TorchFormatter(Formatter[Mapping, "torch.Tensor", Mapping]):
+class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
     def __init__(self, features=None, **torch_tensor_kwargs):
         super().__init__(features=features)
         self.torch_tensor_kwargs = torch_tensor_kwargs
@@ -67,15 +67,22 @@ class TorchFormatter(Formatter[Mapping, "torch.Tensor", Mapping]):
                 value = np.asarray(value)
         return torch.tensor(value, **{**default_dtype, **self.torch_tensor_kwargs})
 
-    def _recursive_tensorize(self, data_struct: dict):
+    def _recursive_tensorize(self, data_struct):
+        import torch
+
+        # support for torch, tf, jax etc.
+        if hasattr(data_struct, "__array__") and not isinstance(data_struct, torch.Tensor):
+            data_struct = data_struct.__array__()
         # support for nested types like struct of list of struct
         if isinstance(data_struct, np.ndarray):
             if data_struct.dtype == object:  # torch tensors cannot be instantied from an array of objects
                 return self._consolidate([self.recursive_tensorize(substruct) for substruct in data_struct])
+        elif isinstance(data_struct, (list, tuple)):
+            return self._consolidate([self.recursive_tensorize(substruct) for substruct in data_struct])
         return self._tensorize(data_struct)
 
     def recursive_tensorize(self, data_struct: dict):
-        return map_nested(self._recursive_tensorize, data_struct)
+        return map_nested(self._recursive_tensorize, data_struct, map_list=False)
 
     def format_row(self, pa_table: pa.Table) -> Mapping:
         row = self.numpy_arrow_extractor().extract_row(pa_table)

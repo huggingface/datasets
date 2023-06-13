@@ -1,6 +1,7 @@
 import copy
 import itertools
 import sys
+import warnings
 from collections import Counter
 from copy import deepcopy
 from dataclasses import dataclass
@@ -13,9 +14,9 @@ import pyarrow as pa
 from . import config
 from .arrow_dataset import Dataset, DatasetInfoMixin
 from .features import Features
-from .features.features import FeatureType, _align_features, _check_if_features_can_be_aligned
+from .features.features import FeatureType, _align_features, _check_if_features_can_be_aligned, cast_to_python_objects
 from .filesystems import _reset_fsspec_lock
-from .formatting import PythonFormatter, get_format_type_from_alias
+from .formatting import PythonFormatter, TensorFormatter, get_format_type_from_alias, get_formatter
 from .info import DatasetInfo
 from .splits import NamedSplit
 from .table import cast_table_to_features, read_schema_from_file, table_cast
@@ -100,7 +101,9 @@ def _convert_to_arrow(
             Drop the last batch if it is smaller than `batch_size`.
     """
     if batch_size is None or batch_size <= 0:
-        yield "all", pa.Table.from_pylist([example for _, example in iterable])
+        yield "all", pa.Table.from_pylist(
+            cast_to_python_objects([example for _, example in iterable], only_1d_for_numpy=True)
+        )
         return
     iterator = iter(iterable)
     for key, example in iterator:
@@ -110,7 +113,7 @@ def _convert_to_arrow(
             return
         keys, examples = zip(*key_examples_list)
         new_key = "_".join(str(key) for key in keys)
-        yield new_key, pa.Table.from_pylist(examples)
+        yield new_key, pa.Table.from_pylist(cast_to_python_objects(examples, only_1d_for_numpy=True))
 
 
 def _batch_arrow_tables(
@@ -265,9 +268,7 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
         """Keep only the requested shard."""
         gen_kwargs_list = _split_gen_kwargs(self.kwargs, max_num_jobs=self.n_shards)
         requested_gen_kwargs = _merge_gen_kwargs([gen_kwargs_list[i] for i in shard_indices])
-        return ArrowExamplesIterable(
-            self.generate_tables_fn, requested_gen_kwargs, generate_tables_fn=self.generate_tables_fn
-        )
+        return ArrowExamplesIterable(self.generate_tables_fn, requested_gen_kwargs)
 
     @property
     def n_shards(self) -> int:
@@ -621,8 +622,14 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         drop_last_batch: bool = False,
         remove_columns: Optional[List[str]] = None,
         fn_kwargs: Optional[dict] = None,
-        format_type: Optional[str] = None,
+        formatting: Optional["FormattingConfig"] = None,
+        format_type="deprecated",
     ):
+        if format_type != "deprecated":
+            warning_msg = "'format_type' is deprecated and will be removed in the next major version of datasets. "
+            help_message = "Please use 'formatting=FormattingConfig(format_type=format_type)' instead."
+            warnings.warn(warning_msg + help_message, category=FutureWarning, stacklevel=2)
+            formatting = FormattingConfig(format_type=format_type)
         super().__init__()
         self.ex_iterable = ex_iterable
         self.function = function
@@ -633,12 +640,12 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         self.with_indices = with_indices
         self.input_columns = input_columns
         self.fn_kwargs = fn_kwargs or {}
-        self.format_type = get_format_type_from_alias(format_type)
-        if format_type == "arrow":
+        self.formatting = formatting
+        if self.formatting and self.formatting.format_type == "arrow":
             self.iter_arrow = self._iter_arrow
 
     def __iter__(self):
-        if self.format_type == "arrow":
+        if self.formatting and self.formatting.format_type == "arrow":
             yield from ArrowExamplesIterable(self._iter_arrow, {})
         else:
             yield from self._iter()
@@ -646,6 +653,15 @@ class MappedExamplesIterable(_BaseExamplesIterable):
     def _iter(self):
         iterator = iter(self.ex_iterable)
         current_idx = 0
+
+        if self.formatting:
+            formatter = get_formatter(self.formatting.format_type)
+            format_dict = (
+                formatter.recursive_tensorize if isinstance(formatter, TensorFormatter) else cast_to_python_objects
+            )
+        else:
+            format_dict = None
+
         if self.batched:
             for key, example in iterator:
                 # If `batched`, first build the batch, if `batch_size` is None or <=0, then the batch is the whole dataset
@@ -664,6 +680,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 ):  # ignore last batch
                     return
                 batch = _examples_to_batch(examples)
+                batch = format_dict(batch) if format_dict else batch
                 # then apply the transform
                 inputs = batch
                 function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
@@ -697,6 +714,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 # If not batched, we can apply the transform and yield the example directly
                 # first copy the example, since we might drop some keys
                 example = dict(example)
+                example = format_dict(example) if format_dict else example
                 # then apply the transform
                 inputs = example
                 function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
@@ -790,8 +808,14 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
-        format_type: Optional[str] = None,
+        formatting: Optional["FormattingConfig"] = None,
+        format_type="deprecated",
     ):
+        if format_type != "deprecated":
+            warning_msg = "'format_type' is deprecated and will be removed in the next major version of datasets. "
+            help_message = "Please use 'formatting=FormattingConfig(format_type=format_type)' instead."
+            warnings.warn(warning_msg + help_message, category=FutureWarning, stacklevel=2)
+            formatting = FormattingConfig(format_type=format_type)
         super().__init__()
         self.ex_iterable = ex_iterable
         self.function = function
@@ -800,17 +824,25 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
         self.with_indices = with_indices
         self.input_columns = input_columns
         self.fn_kwargs = fn_kwargs or {}
-        self.format_type = get_format_type_from_alias(format_type)
-        if format_type == "arrow":
+        self.formatting = formatting
+        if self.formatting and self.formatting.format_type == "arrow":
             self.iter_arrow = self._iter_arrow
 
     def __iter__(self):
-        if self.format_type == "arrow":
+        if self.formatting and self.formatting.format_type == "arrow":
             yield from ArrowExamplesIterable(self._iter_arrow, {})
         else:
             yield from self._iter()
 
     def _iter(self):
+        if self.formatting:
+            formatter = get_formatter(self.formatting.format_type)
+            format_dict = (
+                formatter.recursive_tensorize if isinstance(formatter, TensorFormatter) else cast_to_python_objects
+            )
+        else:
+            format_dict = None
+
         iterator = iter(self.ex_iterable)
         current_idx = 0
         if self.batched:
@@ -824,6 +856,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                 key_examples_list = [(key, example)] + [(key, example) for key, example in iterator_batch]
                 keys, examples = zip(*key_examples_list)
                 batch = _examples_to_batch(examples)
+                batch = format_dict(batch) if format_dict else batch
                 # then compute the mask for the batch
                 inputs = batch
                 function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
@@ -838,7 +871,8 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
         else:
             for key, example in iterator:
                 # If not batched, we can apply the filtering function direcly
-                inputs = dict(example)
+                example = dict(example)
+                inputs = format_dict(example) if format_dict else example
                 function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
                 if self.with_indices:
                     function_args.append(current_idx)
@@ -1090,6 +1124,17 @@ class TypedExamplesIterable(_BaseExamplesIterable):
 
 
 @dataclass
+class FormattingConfig:
+    format_type: Optional[str]
+
+    def __post_init__(self):
+        if self.format_type == "pandas":
+            raise NotImplementedError(
+                "The 'pandas' formatting is not implemented for iterable datasets. You can use 'numpy' or 'arrow' instead."
+            )
+
+
+@dataclass
 class ShufflingConfig:
     generator: np.random.Generator
     _original_seed: Optional[int] = None
@@ -1118,22 +1163,28 @@ class IterableDataset(DatasetInfoMixin):
         ex_iterable: _BaseExamplesIterable,
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
-        format_type: Optional[str] = None,
+        formatting: Optional[FormattingConfig] = None,
         shuffling: Optional[ShufflingConfig] = None,
         distributed: Optional[DistributedConfig] = None,
         token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None,
+        format_type="deprecated",
     ):
         if distributed and distributed.world_size > 1 and shuffling and shuffling._original_seed is None:
             raise RuntimeError(
                 "The dataset doesn't have a fixed random seed across nodes to shuffle and split the list of dataset shards by node. "
                 "Please pass e.g. `seed=42` in `.shuffle()` to make all the nodes use the same seed. "
             )
+        if format_type != "deprecated":
+            warning_msg = "'format_type' is deprecated and will be removed in the next major version of datasets. "
+            help_message = "Please use 'formatting=FormattingConfig(format_type=format_type)' instead."
+            warnings.warn(warning_msg + help_message, category=FutureWarning, stacklevel=2)
+            formatting = FormattingConfig(format_type=format_type)
 
         info = info.copy() if info is not None else DatasetInfo()
         DatasetInfoMixin.__init__(self, info=info, split=split)
 
         self._ex_iterable = ex_iterable
-        self._format_type = format_type
+        self._formatting = formatting
         self._shuffling = shuffling
         self._distributed = distributed
         self._epoch = 0
@@ -1168,7 +1219,8 @@ class IterableDataset(DatasetInfoMixin):
             return self._ex_iterable.n_shards // self._distributed.world_size
         return self._ex_iterable.n_shards
 
-    def _iter_pytorch(self, ex_iterable: _BaseExamplesIterable):
+    def _iter_pytorch(self):
+        ex_iterable = self._prepare_ex_iterable_for_iteration()
         # fix for fsspec when using multiprocess
         _reset_fsspec_lock()
         # check if there aren't too many workers
@@ -1192,13 +1244,33 @@ class IterableDataset(DatasetInfoMixin):
             logger.debug(
                 f"{_log_prefix}dataloader worker#{worker_info.id}, ': Starting to iterate over {len(shards_indices)}/{ex_iterable.n_shards} shards."
             )
-            for key, example in ex_iterable.shard_data_sources(worker_info.id, worker_info.num_workers):
-                if self.features:
-                    yield _apply_feature_types_on_example(
-                        example, self.features, token_per_repo_id=self._token_per_repo_id
-                    )
+            ex_iterable = ex_iterable.shard_data_sources(worker_id=worker_info.id, num_workers=worker_info.num_workers)
+
+            if self._formatting:
+                formatter = get_formatter(self._formatting.format_type, features=self.features)
+                format_dict = (
+                    formatter.recursive_tensorize if isinstance(formatter, TensorFormatter) else cast_to_python_objects
+                )
+            else:
+                format_dict = None
+
+            if self._formatting and (ex_iterable.iter_arrow or self._formatting == "arrow"):
+                if ex_iterable.iter_arrow:
+                    iterator = _batch_arrow_tables(ex_iterable.iter_arrow(), batch_size=1)
                 else:
-                    yield example
+                    iterator = _convert_to_arrow(ex_iterable, batch_size=1)
+                for key, pa_table in iterator:
+                    yield formatter.format_row(pa_table)
+                return
+            else:
+                for key, example in ex_iterable:
+                    if self.features:
+                        # `IterableDataset` automatically fills missing columns with None.
+                        # This is done with `_apply_feature_types_on_example`.
+                        example = _apply_feature_types_on_example(
+                            example, self.features, token_per_repo_id=self._token_per_repo_id
+                        )
+                    yield format_dict(example) if format_dict else example
             logger.debug(
                 f"{_log_prefix}dataloader worker#{worker_info.id}, ': Finished iterating over {len(shards_indices)}/{ex_iterable.n_shards} shards."
             )
@@ -1250,30 +1322,41 @@ class IterableDataset(DatasetInfoMixin):
         return ex_iterable
 
     def __iter__(self):
-        if self._format_type == "arrow":
-            yield from self.iter(batch_size=1)
-            return
-
-        ex_iterable = self._prepare_ex_iterable_for_iteration()
-
         if "torch" in sys.modules:
             import torch.utils.data
 
             worker_info = torch.utils.data.get_worker_info()
             if isinstance(self, torch.utils.data.IterableDataset) and worker_info is not None:
                 # We're a torch.utils.data.IterableDataset in a PyTorch worker process
-                yield from self._iter_pytorch(ex_iterable)
+                yield from self._iter_pytorch()
                 return
+
+        ex_iterable = self._prepare_ex_iterable_for_iteration()
+        if self._formatting:
+            formatter = get_formatter(self._formatting.format_type, features=self.features)
+            format_dict = (
+                formatter.recursive_tensorize if isinstance(formatter, TensorFormatter) else cast_to_python_objects
+            )
+        else:
+            format_dict = None
+
+        if self._formatting and (ex_iterable.iter_arrow or self._formatting.format_type == "arrow"):
+            if ex_iterable.iter_arrow:
+                iterator = _batch_arrow_tables(ex_iterable.iter_arrow(), batch_size=1)
+            else:
+                iterator = _convert_to_arrow(ex_iterable, batch_size=1)
+            for key, pa_table in iterator:
+                yield formatter.format_row(pa_table)
+            return
 
         for key, example in ex_iterable:
             if self.features:
                 # `IterableDataset` automatically fills missing columns with None.
                 # This is done with `_apply_feature_types_on_example`.
-                yield _apply_feature_types_on_example(
+                example = _apply_feature_types_on_example(
                     example, self.features, token_per_repo_id=self._token_per_repo_id
                 )
-            else:
-                yield example
+            yield format_dict(example) if format_dict else example
 
     def iter(self, batch_size: int, drop_last_batch: bool = False):
         """Iterate through the batches of size `batch_size`.
@@ -1283,8 +1366,17 @@ class IterableDataset(DatasetInfoMixin):
             drop_last_batch (:obj:`bool`, default `False`): Whether a last batch smaller than the batch_size should be
                 dropped
         """
+
+        if self._formatting:
+            formatter = get_formatter(self._formatting.format_type, features=self.features)
+            format_dict = (
+                formatter.recursive_tensorize if isinstance(formatter, TensorFormatter) else cast_to_python_objects
+            )
+        else:
+            format_dict = None
+
         ex_iterable = self._prepare_ex_iterable_for_iteration()
-        if self._format_type == "arrow":
+        if self._formatting and (ex_iterable.iter_arrow or self._formatting == "arrow"):
             if ex_iterable.iter_arrow:
                 iterator = _batch_arrow_tables(
                     ex_iterable.iter_arrow(), batch_size=batch_size, drop_last_batch=drop_last_batch
@@ -1292,17 +1384,9 @@ class IterableDataset(DatasetInfoMixin):
             else:
                 iterator = _convert_to_arrow(ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch)
             for key, pa_table in iterator:
-                if self.features:
-                    columns = set(pa_table.colum_names)
-                    # add missing columns
-                    for column_name in self.features:
-                        if column_name not in columns:
-                            col = pa.NullArray.from_buffers(pa.null(), len(pa_table), [None])
-                            pa_table = pa_table.append_column(column_name, col)
-                    yield cast_table_to_features(pa_table, self.features)
-                else:
-                    yield pa_table
+                yield formatter.format_batch(pa_table)
             return
+
         iterator = iter(ex_iterable)
         for key, example in iterator:
             # If batched, first build the batch
@@ -1313,9 +1397,8 @@ class IterableDataset(DatasetInfoMixin):
             if self.features:
                 # `IterableDataset` automatically fills missing columns with None.
                 # This is done with `_apply_feature_types_on_batch`.
-                yield _apply_feature_types_on_batch(batch, self.features, token_per_repo_id=self._token_per_repo_id)
-            else:
-                yield batch
+                batch = _apply_feature_types_on_batch(batch, self.features, token_per_repo_id=self._token_per_repo_id)
+            yield format_dict(batch) if format_dict else batch
 
     @staticmethod
     def from_generator(
@@ -1558,7 +1641,7 @@ class IterableDataset(DatasetInfoMixin):
             drop_last_batch=drop_last_batch,
             remove_columns=remove_columns,
             fn_kwargs=fn_kwargs,
-            format_type=self._format_type,
+            formatting=self._formatting,
         )
         info = self.info.copy()
         info.features = features
@@ -1566,7 +1649,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable=ex_iterable,
             info=info,
             split=self._split,
-            format_type=self._format_type,
+            formatting=self._formatting,
             shuffling=copy.deepcopy(self._shuffling),
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
@@ -1638,13 +1721,13 @@ class IterableDataset(DatasetInfoMixin):
             batched=batched,
             batch_size=batch_size,
             fn_kwargs=fn_kwargs,
-            format_type=self._format_type,
+            formatting=self._formatting,
         )
         return IterableDataset(
             ex_iterable=ex_iterable,
             info=info,
             split=self._split,
-            format_type=self._format_type,
+            formatting=self._formatting,
             shuffling=copy.deepcopy(self._shuffling),
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
@@ -1711,7 +1794,7 @@ class IterableDataset(DatasetInfoMixin):
             ).shuffle_data_sources(generator),
             info=self._info.copy(),
             split=self._split,
-            format_type=self._format_type,
+            formatting=self._formatting,
             shuffling=shuffling,
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
@@ -1753,7 +1836,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable=ex_iterable,
             info=self._info.copy(),
             split=self._split,
-            format_type=self._format_type,
+            formatting=self._formatting,
             shuffling=copy.deepcopy(self._shuffling),
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
@@ -1785,7 +1868,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable=ex_iterable,
             info=self._info.copy(),
             split=self._split,
-            format_type=self._format_type,
+            formatting=self._formatting,
             shuffling=copy.deepcopy(self._shuffling),
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
@@ -1991,7 +2074,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable=ex_iterable,
             info=info,
             split=self._split,
-            format_type=self._format_type,
+            formatting=self._formatting,
             shuffling=self._shuffling,
             distributed=self._distributed,
             token_per_repo_id=self._token_per_repo_id,
@@ -2042,7 +2125,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable=self._ex_iterable,
             info=info,
             split=self._split,
-            format_type=self._format_type,
+            formatting=self._formatting,
             shuffling=copy.deepcopy(self._shuffling),
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
@@ -2093,7 +2176,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable=self._ex_iterable,
             info=info,
             split=self._split,
-            format_type=self._format_type,
+            formatting=self._formatting,
             shuffling=copy.deepcopy(self._shuffling),
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
@@ -2105,7 +2188,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable=ex_iterable,
             info=self._info.copy(),
             split=self._split,
-            format_type=self._format_type,
+            formatting=self._formatting,
             shuffling=copy.deepcopy(self._shuffling),
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
@@ -2117,14 +2200,14 @@ class IterableDataset(DatasetInfoMixin):
         elif isinstance(self._ex_iterable, TypedExamplesIterable):
             features = self._ex_iterable.features
         else:
-            features = _infer_features_from_batch(self._head())
+            features = _infer_features_from_batch(self.with_format(None)._head())
         info = self.info.copy()
         info.features = features
         return IterableDataset(
             ex_iterable=self._ex_iterable,
             info=info,
             split=self._split,
-            format_type=self._format_type,
+            formatting=self._formatting,
             shuffling=copy.deepcopy(self._shuffling),
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
@@ -2286,7 +2369,7 @@ def _split_by_node_iterable_dataset(dataset: IterableDataset, rank: int, world_s
         ex_iterable=dataset._ex_iterable,
         info=dataset._info.copy(),
         split=dataset._split,
-        format_type=dataset._format_type,
+        formatting=dataset._formatting,
         shuffling=copy.deepcopy(dataset._shuffling),
         distributed=distributed,
         token_per_repo_id=dataset._token_per_repo_id,

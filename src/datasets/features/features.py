@@ -387,6 +387,13 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
             has_changed |= has_changed_v
             output[k] = casted_v
         return output if has_changed else obj, has_changed
+    elif hasattr(obj, "__array__"):
+        return (
+            _cast_to_python_objects(
+                obj.__array__(), only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+            )[0],
+            True,
+        )
     elif isinstance(obj, (list, tuple)):
         if len(obj) > 0:
             for first_elmt in obj:
