@@ -521,8 +521,6 @@ class _ArrayXD:
         return pa_type
 
     def encode_example(self, value):
-        if isinstance(value, np.ndarray):
-            value = value.tolist()
         return value
 
 
