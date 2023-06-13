@@ -1633,7 +1633,7 @@ class DatasetDict(dict):
             DatasetCard(
                 "---\n"
                 + str(dataset_metadata)
-                + "---\n"
+                + "\n---\n"
                 + f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
             )
             if dataset_card is None
