@@ -365,7 +365,7 @@ def infer_module_for_data_files(
         for ext, _ in extensions_counter.most_common():
             if ext in _EXTENSION_TO_MODULE:
                 return _EXTENSION_TO_MODULE[ext]
-            elif ext == "zip":
+            elif ext == ".zip":
                 return infer_module_for_data_files_in_archives(data_files_list, download_config=download_config)
     return None, {}
 
