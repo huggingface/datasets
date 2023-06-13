@@ -16,7 +16,6 @@ class ArrowConfig(datasets.BuilderConfig):
     """BuilderConfig for Arrow."""
 
     batch_size: int = 10_000
-    columns: Optional[List[str]] = None
     features: Optional[datasets.Features] = None
 
 
@@ -62,11 +61,6 @@ class Arrow(datasets.ArrowBasedBuilder):
 
     def _generate_tables(self, files):
         schema = self.info.features.arrow_schema if self.info.features is not None else None
-        if self.info.features is not None and self.config.columns is not None:
-            if sorted(field.name for field in schema) != sorted(self.config.columns):
-                raise ValueError(
-                    f"Tried to load parquet data with columns '{self.config.columns}' with mismatching features '{self.info.features}'"
-                )
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             with open(file, "rb") as f:
                 try:
