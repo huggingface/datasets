@@ -15,7 +15,6 @@ logger = datasets.utils.logging.get_logger(__name__)
 class ArrowConfig(datasets.BuilderConfig):
     """BuilderConfig for Arrow."""
 
-    batch_size: int = 10_000
     features: Optional[datasets.Features] = None
 
 
@@ -64,9 +63,7 @@ class Arrow(datasets.ArrowBasedBuilder):
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             with open(file, "rb") as f:
                 try:
-                    for batch_idx, record_batch in enumerate(
-                        pa.ipc.open_stream(f).read_all().to_reader(max_chunksize=self.config.batch_size)
-                    ):
+                    for batch_idx, record_batch in enumerate(pa.ipc.open_stream(f)):
                         pa_table = pa.Table.from_batches([record_batch])
                         # Uncomment for debugging (will print the Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
