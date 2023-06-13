@@ -1388,7 +1388,8 @@ def numpy_to_pyarrow_listarray(arr: np.ndarray, type: pa.DataType = None) -> pa.
 
 
 def list_of_pa_arrays_to_pyarrow_listarray(l_arr: List[Optional[pa.Array]]) -> pa.ListArray:
-    null_indices = [i for i, arr in enumerate(l_arr) if arr is None]
+    null_mask = np.array([arr is None for arr in l_arr])
+    null_indices = np.arange(len(null_mask))[null_mask] - np.arange(np.sum(null_mask))
     l_arr = [arr for arr in l_arr if arr is not None]
     offsets = np.cumsum(
         [0] + [len(arr) for arr in l_arr], dtype=object
