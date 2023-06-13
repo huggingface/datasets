@@ -1,6 +1,6 @@
 import itertools
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Optional
 
 import pyarrow as pa
 
@@ -59,7 +59,6 @@ class Arrow(datasets.ArrowBasedBuilder):
         return pa_table
 
     def _generate_tables(self, files):
-        schema = self.info.features.arrow_schema if self.info.features is not None else None
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             with open(file, "rb") as f:
                 try:
