@@ -3,6 +3,7 @@ import re
 from hashlib import sha256
 from typing import List
 
+from .arrow import arrow
 from .audiofolder import audiofolder
 from .csv import csv
 from .imagefolder import imagefolder
@@ -32,6 +33,7 @@ _PACKAGED_DATASETS_MODULES = {
     "json": (json.__name__, _hash_python_lines(inspect.getsource(json).splitlines())),
     "pandas": (pandas.__name__, _hash_python_lines(inspect.getsource(pandas).splitlines())),
     "parquet": (parquet.__name__, _hash_python_lines(inspect.getsource(parquet).splitlines())),
+    "arrow": (arrow.__name__, _hash_python_lines(inspect.getsource(arrow).splitlines())),
     "text": (text.__name__, _hash_python_lines(inspect.getsource(text).splitlines())),
     "imagefolder": (imagefolder.__name__, _hash_python_lines(inspect.getsource(imagefolder).splitlines())),
     "audiofolder": (audiofolder.__name__, _hash_python_lines(inspect.getsource(audiofolder).splitlines())),
@@ -43,6 +45,7 @@ _EXTENSION_TO_MODULE = {
     ".json": ("json", {}),
     ".jsonl": ("json", {}),
     ".parquet": ("parquet", {}),
+    ".arrow": ("arrow", {}),
     ".txt": ("text", {}),
 }
 _EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})

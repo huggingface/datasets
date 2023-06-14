@@ -430,8 +430,16 @@ def _get_extraction_protocol(urlpath: str, use_auth_token: Optional[Union[str, b
         urlpath, kwargs = _prepare_http_url_kwargs(urlpath, use_auth_token=use_auth_token)
     else:
         urlpath, kwargs = urlpath, {}
-    with fsspec.open(urlpath, **kwargs) as f:
-        return _get_extraction_protocol_with_magic_number(f)
+    try:
+        with fsspec.open(urlpath, **kwargs) as f:
+            return _get_extraction_protocol_with_magic_number(f)
+    except FileNotFoundError:
+        if urlpath.startswith(config.HF_ENDPOINT):
+            raise FileNotFoundError(
+                urlpath + "\nIf the repo is private or gated, make sure to log in with `huggingface-cli login`."
+            ) from None
+        else:
+            raise
 
 
 def _prepare_http_url_kwargs(url: str, use_auth_token: Optional[Union[str, bool]] = None) -> Tuple[str, dict]:
@@ -502,6 +510,13 @@ def xopen(file: str, mode="r", *args, use_auth_token: Optional[Union[str, bool]]
                 "Streaming is not possible for this dataset because data host server doesn't support HTTP range "
                 "requests. You can still load this dataset in non-streaming mode by passing `streaming=False` (default)"
             ) from e
+        else:
+            raise
+    except FileNotFoundError:
+        if file.startswith(config.HF_ENDPOINT):
+            raise FileNotFoundError(
+                file + "\nIf the repo is private or gated, make sure to log in with `huggingface-cli login`."
+            ) from None
         else:
             raise
     _add_retries_to_file_obj_read_method(file_obj)

@@ -28,7 +28,7 @@ import types
 from contextlib import contextmanager
 from dataclasses import fields, is_dataclass
 from io import BytesIO as StringIO
-from multiprocessing import Manager, Pool, RLock
+from multiprocessing import Manager
 from queue import Empty
 from shutil import disk_usage
 from types import CodeType, FunctionType
@@ -43,6 +43,7 @@ from packaging import version
 from tqdm.auto import tqdm
 
 from .. import config
+from ..parallel import parallel_map
 from . import logging
 
 
@@ -439,39 +440,13 @@ def map_nested(
 
     if num_proc is None:
         num_proc = 1
-    if num_proc <= 1 or len(iterable) < parallel_min_length:
+    if num_proc != -1 and num_proc <= 1 or len(iterable) < parallel_min_length:
         mapped = [
             _single_map_nested((function, obj, types, None, True, None))
             for obj in logging.tqdm(iterable, disable=disable_tqdm, desc=desc)
         ]
     else:
-        num_proc = num_proc if num_proc <= len(iterable) else len(iterable)
-        split_kwds = []  # We organize the splits ourselve (contiguous splits)
-        for index in range(num_proc):
-            div = len(iterable) // num_proc
-            mod = len(iterable) % num_proc
-            start = div * index + min(index, mod)
-            end = start + div + (1 if index < mod else 0)
-            split_kwds.append((function, iterable[start:end], types, index, disable_tqdm, desc))
-
-        if len(iterable) != sum(len(i[1]) for i in split_kwds):
-            raise ValueError(
-                f"Error dividing inputs iterable among processes. "
-                f"Total number of objects {len(iterable)}, "
-                f"length: {sum(len(i[1]) for i in split_kwds)}"
-            )
-
-        logger.info(
-            f"Spawning {num_proc} processes for {len(iterable)} objects in slices of {[len(i[1]) for i in split_kwds]}"
-        )
-        initargs, initializer = None, None
-        if not disable_tqdm:
-            initargs, initializer = (RLock(),), tqdm.set_lock
-        with Pool(num_proc, initargs=initargs, initializer=initializer) as pool:
-            mapped = pool.map(_single_map_nested, split_kwds)
-        logger.info(f"Finished {num_proc} processes")
-        mapped = [obj for proc_res in mapped for obj in proc_res]
-        logger.info(f"Unpacked {len(mapped)} objects")
+        mapped = parallel_map(function, iterable, num_proc, types, disable_tqdm, desc, _single_map_nested)
 
     if isinstance(data_struct, dict):
         return dict(zip(data_struct.keys(), mapped))

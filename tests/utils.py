@@ -264,6 +264,21 @@ def require_pyspark(test_case):
         return test_case
 
 
+def require_joblibspark(test_case):
+    """
+    Decorator marking a test that requires joblibspark.
+
+    These tests are skipped when pyspark isn't installed.
+
+    """
+    try:
+        import joblibspark  # noqa F401
+    except ImportError:
+        return unittest.skip("test requires joblibspark")(test_case)
+    else:
+        return test_case
+
+
 def slow(test_case):
     """
     Decorator marking a test as slow.

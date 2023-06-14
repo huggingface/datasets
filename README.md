@@ -124,7 +124,7 @@ for example in image_dataset["train"]:
     break
 ```
 
-For more details on using the library, check the quick start page in the documentation: https://huggingface.co/docs/datasets/quickstart.html and the specific pages on:
+For more details on using the library, check the quick start page in the documentation: https://huggingface.co/docs/datasets/quickstart and the specific pages on:
 
 - Loading a dataset: https://huggingface.co/docs/datasets/loading
 - What's in a Dataset: https://huggingface.co/docs/datasets/access
