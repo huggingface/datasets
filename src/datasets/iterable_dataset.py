@@ -16,7 +16,7 @@ from .arrow_dataset import Dataset, DatasetInfoMixin
 from .features import Features
 from .features.features import FeatureType, _align_features, _check_if_features_can_be_aligned, cast_to_python_objects
 from .filesystems import _reset_fsspec_lock
-from .formatting import PythonFormatter, TensorFormatter, get_formatter
+from .formatting import PythonFormatter, TensorFormatter, get_format_type_from_alias, get_formatter
 from .info import DatasetInfo
 from .splits import NamedSplit
 from .table import cast_table_to_features, read_schema_from_file, table_cast
@@ -1528,6 +1528,7 @@ class IterableDataset(DatasetInfoMixin):
             type (`str`, optional, default None): if set to "torch", the returned dataset
                 will be a subclass of torch.utils.data.IterableDataset to be used in a DataLoader
         """
+        type = get_format_type_from_alias(type)
         # TODO(QL): add format_kwargs
         # TODO(QL): add format_columns and return_all_columns
         # TODO(QL): add pandas format
