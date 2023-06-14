@@ -12,7 +12,6 @@ import posixpath
 import re
 import shutil
 import sys
-import tempfile
 import time
 import urllib
 from contextlib import closing, contextmanager
@@ -584,25 +583,21 @@ def get_from_cache(
         if os.path.exists(cache_path) and not force_download:
             return cache_path
 
+        incomplete_path = cache_path + ".incomplete"
+
+        @contextmanager
+        def temp_file_manager(mode="w+b"):
+            with open(incomplete_path, mode) as f:
+                yield f
+
+        resume_size = 0
         if resume_download:
-            incomplete_path = cache_path + ".incomplete"
-
-            @contextmanager
-            def _resumable_file_manager():
-                with open(incomplete_path, "a+b") as f:
-                    yield f
-
-            temp_file_manager = _resumable_file_manager
+            temp_file_manager = partial(temp_file_manager, mode="a+b")
             if os.path.exists(incomplete_path):
                 resume_size = os.stat(incomplete_path).st_size
-            else:
-                resume_size = 0
-        else:
-            temp_file_manager = partial(tempfile.NamedTemporaryFile, dir=cache_dir, delete=False)
-            resume_size = 0
 
-        # Download to temporary file, then copy to cache dir once finished.
-        # Otherwise you get corrupt cache entries if the download gets interrupted.
+        # Download to temporary file, then copy to cache path once finished.
+        # Otherwise, you get corrupt cache entries if the download gets interrupted.
         with temp_file_manager() as temp_file:
             logger.info(f"{url} not found in cache or force_download set to True, downloading to {temp_file.name}")
 
