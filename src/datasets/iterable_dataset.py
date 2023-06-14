@@ -16,7 +16,7 @@ from .arrow_dataset import Dataset, DatasetInfoMixin
 from .features import Features
 from .features.features import FeatureType, _align_features, _check_if_features_can_be_aligned, cast_to_python_objects
 from .filesystems import _reset_fsspec_lock
-from .formatting import PythonFormatter, TensorFormatter, get_format_type_from_alias, get_formatter
+from .formatting import PythonFormatter, TensorFormatter, get_formatter
 from .info import DatasetInfo
 from .splits import NamedSplit
 from .table import cast_table_to_features, read_schema_from_file, table_cast
@@ -261,12 +261,13 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
     def _iter_arrow(self):
         yield from self.generate_tables_fn(**self.kwargs)
 
-    def shuffle_data_sources(self, generator: np.random.Generator) -> "ExamplesIterable":
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "ArrowExamplesIterable":
         return ShuffledDataSourcesArrowExamplesIterable(self.generate_tables_fn, self.kwargs, generator)
 
-    def shard_data_sources(self, shard_indices: List[int]) -> "ExamplesIterable":
+    def shard_data_sources(self, worker_id: int, num_workers: int) -> "ArrowExamplesIterable":
         """Keep only the requested shard."""
         gen_kwargs_list = _split_gen_kwargs(self.kwargs, max_num_jobs=self.n_shards)
+        shard_indices = self.split_shard_indices_by_worker(worker_id, num_workers)
         requested_gen_kwargs = _merge_gen_kwargs([gen_kwargs_list[i] for i in shard_indices])
         return ArrowExamplesIterable(self.generate_tables_fn, requested_gen_kwargs)
 
@@ -301,12 +302,12 @@ class ShuffledDataSourcesArrowExamplesIterable(ArrowExamplesIterable):
         kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
         yield from self.generate_tables_fn(**kwargs_with_shuffled_shards)
 
-    def shard_data_sources(self, shard_indices: List[int]) -> "ExamplesIterable":
+    def shard_data_sources(self, worker_id: int, num_workers: int) -> "ArrowExamplesIterable":
         """Keep only the requested shard."""
         rng = deepcopy(self.generator)
         kwargs_with_shuffled_shards = _shuffle_gen_kwargs(rng, self.kwargs)
         return ArrowExamplesIterable(self.generate_tables_fn, kwargs_with_shuffled_shards).shard_data_sources(
-            shard_indices
+            worker_id, num_workers
         )
 
 
@@ -1527,16 +1528,14 @@ class IterableDataset(DatasetInfoMixin):
             type (`str`, optional, default None): if set to "torch", the returned dataset
                 will be a subclass of torch.utils.data.IterableDataset to be used in a DataLoader
         """
-        type = get_format_type_from_alias(type)
-        # TODO(QL): add examples formatting to get tensors when using the "torch" format
         # TODO(QL): add format_kwargs
         # TODO(QL): add format_columns and return_all_columns
-        # TODO(QL): add pandas, numpy and tf formats
+        # TODO(QL): add pandas format
         return IterableDataset(
             ex_iterable=self._ex_iterable,
             info=self._info.copy(),
             split=self._split,
-            format_type=type,
+            formatting=FormattingConfig(format_type=type),
             shuffling=copy.deepcopy(self._shuffling),
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
