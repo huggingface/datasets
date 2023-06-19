@@ -86,20 +86,18 @@ For more details on using the library with NumPy, pandas, PyTorch or TensorFlow,
 
 # Usage
 
-🤗 Datasets is made to be very simple to use. The main methods are:
-
-- `datasets.list_datasets()` to list the available datasets
-- `datasets.load_dataset(dataset_name, **kwargs)` to instantiate a dataset
+🤗 Datasets is made to be very simple to use - the API is centered around a single function, `datasets.load_dataset(dataset_name, **kwargs)`, that instantiates a dataset.
 
 This library can be used for text/image/audio/etc. datasets. Here is an example to load a text dataset:
 
 Here is a quick example:
 
 ```python
-from datasets import list_datasets, load_dataset
+from datasets import load_dataset
 
 # Print all the available datasets
-print(list_datasets())
+from huggingface_hub import list_datasets
+print([dataset.id for dataset in list_datasets()])
 
 # Load a dataset and print the first example in the training set
 squad_dataset = load_dataset('squad')
@@ -152,7 +150,6 @@ You can find:
 If you are familiar with the great TensorFlow Datasets, here are the main differences between 🤗 Datasets and `tfds`:
 
 - the scripts in 🤗 Datasets are not provided within the library but are queried, downloaded/cached and dynamically loaded upon request
-- 🤗 Datasets also provides evaluation metrics in a similar fashion to the datasets, i.e. as dynamically installed scripts with a unified API. This gives access to the pair of a benchmark dataset and a benchmark metric for instance for benchmarks like [SQuAD](https://rajpurkar.github.io/SQuAD-explorer/) or [GLUE](https://gluebenchmark.com/).
 - the backend serialization of 🤗 Datasets is based on [Apache Arrow](https://arrow.apache.org/) instead of TF Records and leverage python dataclasses for info and features with some diverging features (we mostly don't do encoding and store the raw data as much as possible in the backend serialization cache).
 - the user-facing dataset object of 🤗 Datasets is not a `tf.data.Dataset` but a built-in framework-agnostic dataset class with methods inspired by what we like in `tf.data` (like a `map()` method). It basically wraps a memory-mapped Arrow table cache.
 

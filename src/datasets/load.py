@@ -1075,7 +1075,7 @@ def dataset_module_factory(
               -> load the dataset builder from the dataset script
               e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``.
 
-            For datasets on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
+            For datasets on the Hugging Face Hub (list all available datasets with ``huggingface_hub.list_datasets()``)
 
             - if ``path`` is a dataset repository on the HF hub (containing data files only)
               -> load a generic dataset builder (csv, text etc.) based on the content of the repository
@@ -1421,7 +1421,7 @@ def load_dataset_builder(
     """Load a dataset builder from the Hugging Face Hub, or a local dataset. A dataset builder can be used to inspect general information that is required to build a dataset (cache directory, config, dataset info, etc.)
     without downloading the dataset itself.
 
-    You can find the list of datasets on the [Hub](https://huggingface.co/datasets) or with [`datasets.list_datasets`].
+    You can find the list of datasets on the [Hub](https://huggingface.co/datasets) or with [`huggingface_hub.list_datasets`].
 
     A dataset is a directory that contains:
 
@@ -1445,7 +1445,7 @@ def load_dataset_builder(
               -> load the dataset builder from the dataset script
               e.g. `'./dataset/squad'` or `'./dataset/squad/squad.py'`.
 
-            For datasets on the Hugging Face Hub (list all available datasets and ids with [`datasets.list_datasets`])
+            For datasets on the Hugging Face Hub (list all available datasets with [`huggingface_hub.list_datasets`])
 
             - if `path` is a dataset repository on the HF hub (containing data files only)
               -> load a generic dataset builder (csv, text etc.) based on the content of the repository
@@ -1567,7 +1567,7 @@ def load_dataset(
 ) -> Union[DatasetDict, Dataset, IterableDatasetDict, IterableDataset]:
     """Load a dataset from the Hugging Face Hub, or a local dataset.
 
-    You can find the list of datasets on the [Hub](https://huggingface.co/datasets) or with [`datasets.list_datasets`].
+    You can find the list of datasets on the [Hub](https://huggingface.co/datasets) or with [`huggingface_hub.list_datasets`].
 
     A dataset is a directory that contains:
 
@@ -1615,7 +1615,7 @@ def load_dataset(
               -> load the dataset builder from the dataset script
               e.g. `'./dataset/squad'` or `'./dataset/squad/squad.py'`.
 
-            For datasets on the Hugging Face Hub (list all available datasets and ids with [`datasets.list_datasets`])
+            For datasets on the Hugging Face Hub (list all available datasets with [`huggingface_hub.list_datasets`])
 
             - if `path` is a dataset repository on the HF hub (containing data files only)
               -> load a generic dataset builder (csv, text etc.) based on the content of the repository
