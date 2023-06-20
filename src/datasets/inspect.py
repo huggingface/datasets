@@ -41,6 +41,7 @@ class SplitsNotFoundError(ValueError):
     pass
 
 
+@deprecated("Use 'huggingface_hub.list_datasets' instead.")
 def list_datasets(with_community_datasets=True, with_details=False):
     """List all the datasets scripts available on the Hugging Face Hub.
 
@@ -70,7 +71,7 @@ def list_datasets(with_community_datasets=True, with_details=False):
         datasets = [dataset for dataset in datasets if "/" not in dataset.id]
     if not with_details:
         datasets = [dataset.id for dataset in datasets]
-    return datasets
+    return list(datasets)
 
 
 @deprecated(
@@ -112,6 +113,7 @@ def list_metrics(with_community_metrics=True, with_details=False):
     return metrics
 
 
+@deprecated("Clone the dataset repository from the Hugging Face Hub instead.")
 def inspect_dataset(path: str, local_path: str, download_config: Optional[DownloadConfig] = None, **download_kwargs):
     """
     Allow inspection/modification of a dataset script by copying on local drive at local_path.

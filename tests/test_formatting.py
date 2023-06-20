@@ -7,7 +7,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
-from datasets import Audio, Features, Image
+from datasets import Audio, Features, Image, IterableDataset
 from datasets.formatting import NumpyFormatter, PandasFormatter, PythonFormatter, query_table
 from datasets.formatting.formatting import (
     LazyBatch,
@@ -19,6 +19,24 @@ from datasets.formatting.formatting import (
 from datasets.table import InMemoryTable
 
 from .utils import require_jax, require_pil, require_sndfile, require_tf, require_torch
+
+
+class AnyArray:
+    def __init__(self, data) -> None:
+        self.data = data
+
+    def __array__(self) -> np.ndarray:
+        return np.asarray(self.data)
+
+
+def _gen_any_arrays():
+    for _ in range(10):
+        yield {"array": AnyArray(list(range(10)))}
+
+
+@pytest.fixture
+def any_arrays_dataset():
+    return IterableDataset.from_generator(_gen_any_arrays)
 
 
 _COL_A = [0, 1, 2]
@@ -852,3 +870,37 @@ def test_torch_formatter_sets_default_dtypes(cast_schema, arrow_table):
     batch = formatter.format_batch(arrow_table)
     torch.testing.assert_close(batch["col_int"], torch.tensor(list_int, dtype=torch.int64))
     torch.testing.assert_close(batch["col_float"], torch.tensor(list_float, dtype=torch.float32))
+
+
+def test_iterable_dataset_of_arrays_format_to_arrow(any_arrays_dataset: IterableDataset):
+    formatted = any_arrays_dataset.with_format("arrow")
+    assert all(isinstance(example, pa.Table) for example in formatted)
+
+
+def test_iterable_dataset_of_arrays_format_to_numpy(any_arrays_dataset: IterableDataset):
+    formatted = any_arrays_dataset.with_format("np")
+    assert all(isinstance(example["array"], np.ndarray) for example in formatted)
+
+
+@require_torch
+def test_iterable_dataset_of_arrays_format_to_torch(any_arrays_dataset: IterableDataset):
+    import torch
+
+    formatted = any_arrays_dataset.with_format("torch")
+    assert all(isinstance(example["array"], torch.Tensor) for example in formatted)
+
+
+@require_tf
+def test_iterable_dataset_of_arrays_format_to_tf(any_arrays_dataset: IterableDataset):
+    import tensorflow as tf
+
+    formatted = any_arrays_dataset.with_format("tf")
+    assert all(isinstance(example["array"], tf.Tensor) for example in formatted)
+
+
+@require_jax
+def test_iterable_dataset_of_arrays_format_to_jax(any_arrays_dataset: IterableDataset):
+    import jax.numpy as jnp
+
+    formatted = any_arrays_dataset.with_format("jax")
+    assert all(isinstance(example["array"], jnp.ndarray) for example in formatted)
