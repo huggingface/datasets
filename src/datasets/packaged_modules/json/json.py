@@ -20,6 +20,8 @@ class JsonConfig(datasets.BuilderConfig):
     """BuilderConfig for JSON."""
 
     features: Optional[datasets.Features] = None
+    encoding: str = "utf-8"
+    errors: Optional[str] = None
     field: Optional[str] = None
     use_threads: bool = True  # deprecated
     block_size: Optional[int] = None  # deprecated
@@ -76,7 +78,7 @@ class Json(datasets.ArrowBasedBuilder):
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             # If the file is one json object and if we need to look at the list of items in one specific field
             if self.config.field is not None:
-                with open(file, encoding="utf-8") as f:
+                with open(file, encoding=self.config.encoding, errors=self.config.errors) as f:
                     dataset = json.load(f)
 
                 # We keep only the field we are interested in
