@@ -86,7 +86,7 @@ from .utils.version import Version
 
 logger = get_logger(__name__)
 
-ALL_ALLOWED_EXTENSIONS = list(_EXTENSION_TO_MODULE.keys()) + ["zip"]
+ALL_ALLOWED_EXTENSIONS = list(_EXTENSION_TO_MODULE.keys()) + [".zip"]
 
 
 def init_dynamic_modules(
@@ -358,7 +358,7 @@ def infer_module_for_data_files(
             - builder kwargs
     """
     extensions_counter = Counter(
-        suffix[1:].lower()
+        suffix.lower()
         for filepath in data_files_list[: config.DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE]
         for suffix in Path(filepath).suffixes
     )
@@ -366,7 +366,7 @@ def infer_module_for_data_files(
         for ext, _ in extensions_counter.most_common():
             if ext in _EXTENSION_TO_MODULE:
                 return _EXTENSION_TO_MODULE[ext]
-            elif ext == "zip":
+            elif ext == ".zip":
                 return infer_module_for_data_files_in_archives(data_files_list, use_auth_token=use_auth_token)
     return None, {}
 
@@ -400,9 +400,7 @@ def infer_module_for_data_files_in_archives(
                     : config.ARCHIVED_DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE
                 ]
             ]
-    extensions_counter = Counter(
-        suffix[1:].lower() for filepath in archived_files for suffix in Path(filepath).suffixes
-    )
+    extensions_counter = Counter(suffix.lower() for filepath in archived_files for suffix in Path(filepath).suffixes)
     if extensions_counter:
         most_common = extensions_counter.most_common(1)[0][0]
         if most_common in _EXTENSION_TO_MODULE:
@@ -1075,7 +1073,7 @@ def dataset_module_factory(
               -> load the dataset builder from the dataset script
               e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``.
 
-            For datasets on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
+            For datasets on the Hugging Face Hub (list all available datasets with ``huggingface_hub.list_datasets()``)
 
             - if ``path`` is a dataset repository on the HF hub (containing data files only)
               -> load a generic dataset builder (csv, text etc.) based on the content of the repository
@@ -1421,7 +1419,7 @@ def load_dataset_builder(
     """Load a dataset builder from the Hugging Face Hub, or a local dataset. A dataset builder can be used to inspect general information that is required to build a dataset (cache directory, config, dataset info, etc.)
     without downloading the dataset itself.
 
-    You can find the list of datasets on the [Hub](https://huggingface.co/datasets) or with [`datasets.list_datasets`].
+    You can find the list of datasets on the [Hub](https://huggingface.co/datasets) or with [`huggingface_hub.list_datasets`].
 
     A dataset is a directory that contains:
 
@@ -1445,7 +1443,7 @@ def load_dataset_builder(
               -> load the dataset builder from the dataset script
               e.g. `'./dataset/squad'` or `'./dataset/squad/squad.py'`.
 
-            For datasets on the Hugging Face Hub (list all available datasets and ids with [`datasets.list_datasets`])
+            For datasets on the Hugging Face Hub (list all available datasets with [`huggingface_hub.list_datasets`])
 
             - if `path` is a dataset repository on the HF hub (containing data files only)
               -> load a generic dataset builder (csv, text etc.) based on the content of the repository
@@ -1567,7 +1565,7 @@ def load_dataset(
 ) -> Union[DatasetDict, Dataset, IterableDatasetDict, IterableDataset]:
     """Load a dataset from the Hugging Face Hub, or a local dataset.
 
-    You can find the list of datasets on the [Hub](https://huggingface.co/datasets) or with [`datasets.list_datasets`].
+    You can find the list of datasets on the [Hub](https://huggingface.co/datasets) or with [`huggingface_hub.list_datasets`].
 
     A dataset is a directory that contains:
 
@@ -1615,7 +1613,7 @@ def load_dataset(
               -> load the dataset builder from the dataset script
               e.g. `'./dataset/squad'` or `'./dataset/squad/squad.py'`.
 
-            For datasets on the Hugging Face Hub (list all available datasets and ids with [`datasets.list_datasets`])
+            For datasets on the Hugging Face Hub (list all available datasets with [`huggingface_hub.list_datasets`])
 
             - if `path` is a dataset repository on the HF hub (containing data files only)
               -> load a generic dataset builder (csv, text etc.) based on the content of the repository

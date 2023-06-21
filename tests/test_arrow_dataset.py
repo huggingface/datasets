@@ -209,7 +209,9 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(dset["filename"][:-1][-1], "my_name-train_28")
 
                 self.assertListEqual(dset[[0, -1]]["filename"], ["my_name-train_0", "my_name-train_29"])
+                self.assertListEqual(dset[range(0, -2, -1)]["filename"], ["my_name-train_0", "my_name-train_29"])
                 self.assertListEqual(dset[np.array([0, -1])]["filename"], ["my_name-train_0", "my_name-train_29"])
+                self.assertListEqual(dset[pd.Series([0, -1])]["filename"], ["my_name-train_0", "my_name-train_29"])
 
                 with dset.select(range(2)) as dset_subset:
                     self.assertListEqual(dset_subset[-1:]["filename"], ["my_name-train_1"])
@@ -2753,6 +2755,8 @@ class BaseDatasetTest(TestCase):
                     second_indices.append(batch["col_1"])
                 second_indices = np.concatenate([arr.numpy() for arr in second_indices])
                 self.assertFalse(np.array_equal(indices, second_indices))
+                self.assertEqual(len(indices), len(np.unique(indices)))
+                self.assertEqual(len(second_indices), len(np.unique(second_indices)))
 
                 tf_dataset = dset.to_tf_dataset(batch_size=1, shuffle=False, num_workers=num_workers)
                 for i, batch in enumerate(tf_dataset):
@@ -2828,6 +2832,28 @@ class BaseDatasetTest(TestCase):
             batch = next(iter(tf_dataset))
             self.assertEqual(batch.shape.as_list(), [2, 4])
             self.assertEqual(batch.dtype.name, "int64")
+        # Test that batch_size=None (optional) works as expected
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+            tf_dataset = dset.to_tf_dataset(columns="col_3", batch_size=None)
+            single_example = next(iter(tf_dataset))
+            self.assertEqual(single_example.shape.as_list(), [])
+            self.assertEqual(single_example.dtype.name, "int64")
+            # Assert that we can batch it with `tf.data.Dataset.batch` method
+            batched_dataset = tf_dataset.batch(batch_size=2)
+            batch = next(iter(batched_dataset))
+            self.assertEqual(batch.shape.as_list(), [2])
+            self.assertEqual(batch.dtype.name, "int64")
+        # Test that batching a batch_size=None dataset produces the same results as using batch_size arg
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+            batch_size = 2
+            tf_dataset_no_batch = dset.to_tf_dataset(columns="col_3")
+            tf_dataset_batch = dset.to_tf_dataset(columns="col_3", batch_size=batch_size)
+            self.assertEqual(tf_dataset_no_batch.element_spec, tf_dataset_batch.unbatch().element_spec)
+            self.assertEqual(tf_dataset_no_batch.cardinality(), tf_dataset_batch.cardinality() * batch_size)
+            for batch_1, batch_2 in zip(tf_dataset_no_batch.batch(batch_size=batch_size), tf_dataset_batch):
+                self.assertEqual(batch_1.shape, batch_2.shape)
+                self.assertEqual(batch_1.dtype, batch_2.dtype)
+                self.assertListEqual(batch_1.numpy().tolist(), batch_2.numpy().tolist())
         # Test that requesting label_cols works as expected
         with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
             tf_dataset = dset.to_tf_dataset(columns="col_1", label_cols=["col_2", "col_3"], batch_size=4)
@@ -2845,6 +2871,13 @@ class BaseDatasetTest(TestCase):
             tf_dataset_with_drop = dset.to_tf_dataset(columns="col_1", batch_size=3, drop_remainder=True)
             self.assertEqual(len(tf_dataset), 2)  # One batch of 3 and one batch of 1
             self.assertEqual(len(tf_dataset_with_drop), 1)  # Incomplete batch of 1 is dropped
+        # Test that `NotImplementedError` is raised `batch_size` is None and `num_workers` is > 0
+        if sys.version_info >= (3, 8):
+            with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+                with self.assertRaisesRegex(
+                    NotImplementedError, "`batch_size` must be specified when using multiple workers"
+                ):
+                    dset.to_tf_dataset(columns="col_1", batch_size=None, num_workers=2)
         del tf_dataset  # For correct cleanup
         del tf_dataset_with_drop
 
@@ -2950,6 +2983,23 @@ class MiscellaneousDatasetTest(TestCase):
         with Dataset.from_dict({"text": ["hello there", "foo"]}) as dset:
             dset.set_transform(transform=encode)
             self.assertEqual(str(dset[:2]), str(encode({"text": ["hello there", "foo"]})))
+
+    @require_tf
+    def test_tf_string_encoding(self):
+        data = {"col_1": ["á", "é", "í", "ó", "ú"], "col_2": ["à", "è", "ì", "ò", "ù"]}
+        with Dataset.from_dict(data) as dset:
+            tf_dset_wo_batch = dset.to_tf_dataset(columns=["col_1", "col_2"])
+            for tf_row, row in zip(tf_dset_wo_batch, dset):
+                self.assertEqual(tf_row["col_1"].numpy().decode("utf-8"), row["col_1"])
+                self.assertEqual(tf_row["col_2"].numpy().decode("utf-8"), row["col_2"])
+
+            tf_dset_w_batch = dset.to_tf_dataset(columns=["col_1", "col_2"], batch_size=2)
+            for tf_row, row in zip(tf_dset_w_batch.unbatch(), dset):
+                self.assertEqual(tf_row["col_1"].numpy().decode("utf-8"), row["col_1"])
+                self.assertEqual(tf_row["col_2"].numpy().decode("utf-8"), row["col_2"])
+
+            self.assertEqual(tf_dset_w_batch.unbatch().element_spec, tf_dset_wo_batch.element_spec)
+            self.assertEqual(tf_dset_w_batch.element_spec, tf_dset_wo_batch.batch(2).element_spec)
 
 
 def test_cast_with_sliced_list():
@@ -4520,3 +4570,11 @@ def test_map_cases(return_lazy_dict):
     ds = ds.map(f)
     outputs = ds[:]
     assert outputs == {"a": [{"nested": [[i]]} for i in [-1, -1, 2, 3]]}
+
+
+def test_dataset_getitem_raises():
+    ds = Dataset.from_dict({"a": [0, 1, 2, 3]})
+    with pytest.raises(TypeError):
+        ds[False]
+    with pytest.raises(TypeError):
+        ds._getitem(True)

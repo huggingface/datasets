@@ -88,7 +88,7 @@ from .fingerprint import (
     update_fingerprint,
     validate_fingerprint,
 )
-from .formatting import PythonFormatter, format_table, get_format_type_from_alias, get_formatter, query_table
+from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
 from .formatting.formatting import LazyDict, _is_range_contiguous
 from .info import DatasetInfo, DatasetInfosDict
 from .naming import _split_re
@@ -98,6 +98,7 @@ from .table import (
     InMemoryTable,
     MemoryMappedTable,
     Table,
+    _memory_mapped_record_batch_reader_from_file,
     cast_array_to_feature,
     concat_tables,
     embed_table_storage,
@@ -115,7 +116,7 @@ from .utils.metadata import DatasetMetadata
 from .utils.py_utils import Literal, asdict, convert_file_size_to_int, iflatmap_unordered, unique_values
 from .utils.stratify import stratified_shuffle_split_generate_indices
 from .utils.tf_utils import dataset_to_tf, minimal_tf_collate_fn, multiprocess_dataset_to_tf
-from .utils.typing import PathLike
+from .utils.typing import ListLike, PathLike
 
 
 if TYPE_CHECKING:
@@ -309,7 +310,7 @@ class TensorflowDatasetMixin:
 
     def to_tf_dataset(
         self,
-        batch_size: int,
+        batch_size: Optional[int] = None,
         columns: Optional[Union[str, List[str]]] = None,
         shuffle: bool = False,
         collate_fn: Optional[Callable] = None,
@@ -326,8 +327,9 @@ class TensorflowDatasetMixin:
         `tf.Tensor` is yielded instead.
 
         Args:
-            batch_size (`int`):
-                Size of batches to load from the dataset.
+            batch_size (`int`, *optional*):
+                Size of batches to load from the dataset. Defaults to `None`, which implies that the dataset won't be
+                batched, but the returned dataset can be batched later with `tf_dataset.batch(batch_size)`.
             columns (`List[str]` or `str`, *optional*):
                 Dataset column(s) to load in the `tf.data.Dataset`.
                 Column names that are created by the `collate_fn` and that do not exist in the original dataset can be used.
@@ -425,7 +427,7 @@ class TensorflowDatasetMixin:
             cols_to_retain = None  # Indicates keeping all valid columns
             columns = []
 
-        if self.format["type"] != "custom":
+        if self.format["type"] not in ["custom", "numpy"]:
             dataset = self.with_format("numpy")
         else:
             dataset = self
@@ -437,7 +439,7 @@ class TensorflowDatasetMixin:
             collate_fn=collate_fn,
             collate_fn_args=collate_fn_args,
             cols_to_retain=cols_to_retain,
-            batch_size=batch_size if drop_remainder else None,
+            batch_size=batch_size if drop_remainder and batch_size is not None else None,
             num_test_batches=num_test_batches,
         )
 
@@ -468,6 +470,11 @@ class TensorflowDatasetMixin:
                 drop_remainder=drop_remainder,
             )
         elif num_workers > 0:
+            if batch_size is None:
+                raise NotImplementedError(
+                    "`batch_size` must be specified when using multiple workers, as unbatched multiprocessing "
+                    "is not supported yet. Please provide a `batch_size` if `num_workers` is greater than 0."
+                )
             tf_dataset = multiprocess_dataset_to_tf(
                 dataset=dataset,
                 cols_to_retain=cols_to_retain,
@@ -1228,6 +1235,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         features: Optional[Features] = None,
         keep_in_memory: bool = False,
         cache_dir: str = None,
+        working_dir: str = None,
         load_from_cache_file: bool = True,
         **kwargs,
     ):
@@ -1245,6 +1253,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 workers and the driver.
             keep_in_memory (`bool`):
                 Whether to copy the data in-memory.
+            working_dir (`str`, *optional*)
+                Intermediate directory for each Spark worker to write data to before moving it to `cache_dir`. Setting
+                a non-NFS intermediate directory may improve performance.
             load_from_cache_file (`bool`):
                 Whether to load the dataset from the cache if possible.
 
@@ -1274,6 +1285,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             streaming=False,
             cache_dir=cache_dir,
             keep_in_memory=keep_in_memory,
+            working_dir=working_dir,
             load_from_cache_file=load_from_cache_file,
             **kwargs,
         ).read()
@@ -2747,10 +2759,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset = dataset.cast(features=template.features)
         return dataset
 
-    def _getitem(self, key: Union[int, slice, str], **kwargs) -> Union[Dict, List]:
+    def _getitem(self, key: Union[int, slice, str, ListLike[int]], **kwargs) -> Union[Dict, List]:
         """
-        Can be used to index columns (by string names) or rows (by integer index, slices, or iter of indices or bools)
+        Can be used to index columns (by string names) or rows (by integer, slice, or list-like of integer indices)
         """
+        if isinstance(key, bool):
+            raise TypeError("dataset index must be int, str, slice or collection of int, not bool")
         format_type = kwargs["format_type"] if "format_type" in kwargs else self._format_type
         format_columns = kwargs["format_columns"] if "format_columns" in kwargs else self._format_columns
         output_all_columns = (
@@ -4988,16 +5002,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return dataset_nbytes
 
     @staticmethod
-    def _generate_examples_from_shards(shards: List["Dataset"]):
-        python_formatter = PythonFormatter()
-        for shards_idx, shard in enumerate(shards):
-            example_idx = 0
-            for pa_table in shard.with_format("arrow").iter(config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER):
-                batch = python_formatter.format_batch(pa_table)
-                for i in range(len(pa_table)):
-                    example = {col: array[i] for col, array in batch.items()}
-                    yield f"{shards_idx}_{example_idx}", example
-                    example_idx += 1
+    def _generate_tables_from_shards(shards: List["Dataset"], batch_size: int):
+        for shard_idx, shard in enumerate(shards):
+            for pa_table in shard.with_format("arrow").iter(batch_size):
+                yield shard_idx, pa_table
+
+    @staticmethod
+    def _generate_tables_from_cache_file(filename: str):
+        for batch_idx, batch in enumerate(_memory_mapped_record_batch_reader_from_file(filename)):
+            yield batch_idx, pa.Table.from_batches([batch])
 
     def to_iterable_dataset(self, num_shards: Optional[int] = 1) -> "IterableDataset":
         """Get an [`datasets.IterableDataset`] from a map-style [`datasets.Dataset`].
@@ -5090,7 +5103,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         Feel free to also use [`IterableDataset.set_epoch`] when using a PyTorch DataLoader or in distributed setups.
         """
-        from .iterable_dataset import ExamplesIterable, IterableDataset
+        from .iterable_dataset import ArrowExamplesIterable, IterableDataset
 
         if self._format_type is not None:
             raise NotImplementedError(
@@ -5112,7 +5125,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 self.shard(num_shards=num_shards, index=shard_idx, contiguous=True) for shard_idx in range(num_shards)
             ]
         )
-        ex_iterable = ExamplesIterable(Dataset._generate_examples_from_shards, kwargs={"shards": shards})
+        ex_iterable = ArrowExamplesIterable(
+            Dataset._generate_tables_from_shards,
+            kwargs={"shards": shards, "batch_size": config.DEFAULT_MAX_BATCH_SIZE},
+        )
         return IterableDataset(ex_iterable, info=DatasetInfo(features=self.features))
 
     def _push_parquet_shards_to_hub(

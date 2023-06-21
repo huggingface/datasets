@@ -380,38 +380,55 @@ def test_array_xd_with_none():
     # Fixed shape
     features = datasets.Features({"foo": datasets.Array2D(dtype="int32", shape=(2, 2))})
     dummy_array = np.array([[1, 2], [3, 4]], dtype="int32")
-    dataset = datasets.Dataset.from_dict({"foo": [dummy_array, None, dummy_array]}, features=features)
+    dataset = datasets.Dataset.from_dict({"foo": [dummy_array, None, dummy_array, None]}, features=features)
     arr = NumpyArrowExtractor().extract_column(dataset._data)
-    assert isinstance(arr, np.ndarray) and arr.dtype == np.float64 and arr.shape == (3, 2, 2)
+    assert isinstance(arr, np.ndarray) and arr.dtype == np.float64 and arr.shape == (4, 2, 2)
     assert np.allclose(arr[0], dummy_array) and np.allclose(arr[2], dummy_array)
-    assert np.all(np.isnan(arr[1]))  # broadcasted np.nan - use np.all
+    assert np.all(np.isnan(arr[1])) and np.all(np.isnan(arr[3]))  # broadcasted np.nan - use np.all
 
     # Dynamic shape
     features = datasets.Features({"foo": datasets.Array2D(dtype="int32", shape=(None, 2))})
     dummy_array = np.array([[1, 2], [3, 4]], dtype="int32")
-    dataset = datasets.Dataset.from_dict({"foo": [dummy_array, None, dummy_array]}, features=features)
+    dataset = datasets.Dataset.from_dict({"foo": [dummy_array, None, dummy_array, None]}, features=features)
     arr = NumpyArrowExtractor().extract_column(dataset._data)
-    assert isinstance(arr, np.ndarray) and arr.dtype == object and arr.shape == (3,)
+    assert isinstance(arr, np.ndarray) and arr.dtype == object and arr.shape == (4,)
     np.testing.assert_equal(arr[0], dummy_array)
     np.testing.assert_equal(arr[2], dummy_array)
-    assert np.isnan(arr[1])  # a single np.nan value - np.all not needed
+    assert np.isnan(arr[1]) and np.isnan(arr[3])  # a single np.nan value - np.all not needed
 
 
+@pytest.mark.parametrize("seq_type", ["no_sequence", "sequence", "sequence_of_sequence"])
 @pytest.mark.parametrize(
-    "data, feature, expected",
+    "dtype",
     [
-        (np.zeros((2, 2)), None, [[0.0, 0.0], [0.0, 0.0]]),
-        (np.zeros((2, 3)), datasets.Array2D(shape=(2, 3), dtype="float32"), [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]),
-        ([np.zeros(2)], datasets.Array2D(shape=(1, 2), dtype="float32"), [[0.0, 0.0]]),
-        (
-            [np.zeros((2, 3))],
-            datasets.Array3D(shape=(1, 2, 3), dtype="float32"),
-            [[[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]],
-        ),
+        "bool",
+        "int8",
+        "int16",
+        "int32",
+        "int64",
+        "uint8",
+        "uint16",
+        "uint32",
+        "uint64",
+        "float16",
+        "float32",
+        "float64",
     ],
 )
-def test_array_xd_with_np(data, feature, expected):
-    ds = datasets.Dataset.from_dict({"col": [data]}, features=datasets.Features({"col": feature}) if feature else None)
+@pytest.mark.parametrize("shape, feature_class", [((2, 3), datasets.Array2D), ((2, 3, 4), datasets.Array3D)])
+def test_array_xd_with_np(seq_type, dtype, shape, feature_class):
+    feature = feature_class(dtype=dtype, shape=shape)
+    data = np.zeros(shape, dtype=dtype)
+    expected = data.tolist()
+    if seq_type == "sequence":
+        feature = datasets.Sequence(feature)
+        data = [data]
+        expected = [expected]
+    elif seq_type == "sequence_of_sequence":
+        feature = datasets.Sequence(datasets.Sequence(feature))
+        data = [[data]]
+        expected = [[expected]]
+    ds = datasets.Dataset.from_dict({"col": [data]}, features=datasets.Features({"col": feature}))
     assert ds[0]["col"] == expected
 
 

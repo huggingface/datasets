@@ -136,7 +136,6 @@ REQUIRED_PKGS = [
     "huggingface-hub>=0.11.0,<1.0.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
-    "responses<0.19",
     # To parse YAML metadata from dataset cards
     "pyyaml>=5.1",
 ]
@@ -161,6 +160,7 @@ BENCHMARKS_REQUIRE = [
 TESTS_REQUIRE = [
     # test dependencies
     "absl-py",
+    "joblibspark",
     "pytest",
     "pytest-datadir",
     "pytest-xdist",
@@ -244,7 +244,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.12.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.13.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
