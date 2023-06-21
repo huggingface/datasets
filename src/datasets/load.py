@@ -58,6 +58,7 @@ from .metric import Metric
 from .packaged_modules import (
     _EXTENSION_TO_MODULE,
     _MODULE_SUPPORTS_METADATA,
+    _MODULE_TO_EXTENSIONS,
     _PACKAGED_DATASETS_MODULES,
     _hash_python_lines,
 )
@@ -347,6 +348,9 @@ def infer_module_for_data_files(
 ) -> Optional[Tuple[str, str]]:
     """Infer module (and builder kwargs) from list of data files.
 
+    It picks the module based on the most common file extension.
+    In case of a draw ".parquet" is the favorite, and then alphabetical order.
+
     Args:
         data_files_list (DataFilesList): List of data files.
         use_auth_token (bool or str, optional): Whether to use token or token to authenticate on the Hugging Face Hub
@@ -363,7 +367,13 @@ def infer_module_for_data_files(
         for suffix in Path(filepath).suffixes
     )
     if extensions_counter:
-        for ext, _ in extensions_counter.most_common():
+
+        def sort_key(ext_count: Tuple[str, int]) -> Tuple[int, bool]:
+            """Sort by count and set ".parquet" as the favorite in case of a draw"""
+            ext, count = ext_count
+            return (count, ext == ".parquet", ext)
+
+        for ext, _ in sorted(extensions_counter.items(), key=sort_key, reverse=True):
             if ext in _EXTENSION_TO_MODULE:
                 return _EXTENSION_TO_MODULE[ext]
             elif ext == ".zip":
@@ -642,6 +652,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             raise ValueError(f"Couldn't infer the same data file format for all splits. Got {split_modules}")
         if not module_name:
             raise FileNotFoundError(f"No (supported) data files or dataset script found in {self.path}")
+        data_files = data_files.filter_extensions(_MODULE_TO_EXTENSIONS[module_name])
         # Collect metadata files if the module supports them
         if self.data_files is None and module_name in _MODULE_SUPPORTS_METADATA and patterns != DEFAULT_PATTERNS_ALL:
             try:
@@ -783,6 +794,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             raise ValueError(f"Couldn't infer the same data file format for all splits. Got {split_modules}")
         if not module_name:
             raise FileNotFoundError(f"No (supported) data files or dataset script found in {self.name}")
+        data_files = data_files.filter_extensions(_MODULE_TO_EXTENSIONS[module_name])
         # Collect metadata files if the module supports them
         if self.data_files is None and module_name in _MODULE_SUPPORTS_METADATA and patterns != DEFAULT_PATTERNS_ALL:
             try:

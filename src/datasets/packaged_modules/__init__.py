@@ -1,7 +1,7 @@
 import inspect
 import re
 from hashlib import sha256
-from typing import List
+from typing import Dict, List
 
 from .arrow import arrow
 from .audiofolder import audiofolder
@@ -53,3 +53,7 @@ _EXTENSION_TO_MODULE.update({ext.upper(): ("imagefolder", {}) for ext in imagefo
 _EXTENSION_TO_MODULE.update({ext: ("audiofolder", {}) for ext in audiofolder.AudioFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("audiofolder", {}) for ext in audiofolder.AudioFolder.EXTENSIONS})
 _MODULE_SUPPORTS_METADATA = {"imagefolder", "audiofolder"}
+
+_MODULE_TO_EXTENSIONS: Dict[str, List[str]] = {}
+for _ext, (_module, _) in _EXTENSION_TO_MODULE.items():
+    _MODULE_TO_EXTENSIONS.setdefault(_module, []).append(_ext)
