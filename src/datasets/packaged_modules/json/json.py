@@ -21,7 +21,7 @@ class JsonConfig(datasets.BuilderConfig):
 
     features: Optional[datasets.Features] = None
     encoding: str = "utf-8"
-    errors: Optional[str] = None
+    encoding_errors: Optional[str] = None
     field: Optional[str] = None
     use_threads: bool = True  # deprecated
     block_size: Optional[int] = None  # deprecated
@@ -78,7 +78,7 @@ class Json(datasets.ArrowBasedBuilder):
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             # If the file is one json object and if we need to look at the list of items in one specific field
             if self.config.field is not None:
-                with open(file, encoding=self.config.encoding, errors=self.config.errors) as f:
+                with open(file, encoding=self.config.encoding, errors=self.config.encoding_errors) as f:
                     dataset = json.load(f)
 
                 # We keep only the field we are interested in
@@ -100,7 +100,9 @@ class Json(datasets.ArrowBasedBuilder):
                     # Use block_size equal to the chunk size divided by 32 to leverage multithreading
                     # Set a default minimum value of 16kB if the chunk size is really small
                     block_size = max(self.config.chunksize // 32, 16 << 10)
-                    errors = self.config.errors if self.config.errors is not None else "strict"
+                    encoding_errors = (
+                        self.config.encoding_errors if self.config.encoding_errors is not None else "strict"
+                    )
                     while True:
                         batch = f.read(self.config.chunksize)
                         if not batch:
@@ -112,7 +114,7 @@ class Json(datasets.ArrowBasedBuilder):
                             batch += readline(f)
                         # PyArrow only accepts utf-8 encoded bytes
                         if self.config.encoding != "utf-8":
-                            batch = batch.decode(self.config.encoding, errors=errors).encode("utf-8")
+                            batch = batch.decode(self.config.encoding, errors=encoding_errors).encode("utf-8")
                         try:
                             while True:
                                 try:
@@ -136,7 +138,9 @@ class Json(datasets.ArrowBasedBuilder):
                                         block_size *= 2
                         except pa.ArrowInvalid as e:
                             try:
-                                with open(file, encoding=self.config.encoding, errors=self.config.errors) as f:
+                                with open(
+                                    file, encoding=self.config.encoding, errors=self.config.encoding_errors
+                                ) as f:
                                     dataset = json.load(f)
                             except json.JSONDecodeError:
                                 logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
