@@ -32,7 +32,7 @@ from multiprocessing import Manager
 from queue import Empty
 from shutil import disk_usage
 from types import CodeType, FunctionType
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, TypeVar, Union, Set
+from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, TypeVar, Union
 from urllib.parse import urlparse
 
 import dill
@@ -1331,7 +1331,7 @@ def _write_generator_to_queue(queue: queue.Queue, func: Callable[..., Iterable[Y
 
 
 def _get_pool_pid(pool: Union[multiprocessing.pool.Pool, multiprocess.pool.Pool]) -> Set[int]:
-    return set([f.pid for f in pool._pool])
+    return {f.pid for f in pool._pool}
 
 
 def iflatmap_unordered(

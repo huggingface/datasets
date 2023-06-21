@@ -1633,11 +1633,12 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(ex_cnt.cnt, len(dset))
 
     def test_map_crash_subprocess(self, in_memory):
-        # be sure that a crash in one of the subprocess will not 
+        # be sure that a crash in one of the subprocess will not
         # hang dataset.map() call forever
 
         def do_crash(row):
             import os
+
             os.kill(os.getpid(), 9)
             return row
 
