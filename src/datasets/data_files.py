@@ -751,7 +751,7 @@ class DataFilesList(List[Union[Path, Url]]):
 
     def filter_extensions(self, extensions: List[str]) -> "DataFilesList":
         pattern = "|".join("\\" + ext for ext in extensions)
-        pattern = re.compile(f".*({pattern})(\\..+)?")
+        pattern = re.compile(f".*({pattern})(\\..+)?$")
         return DataFilesList(
             [
                 data_file
