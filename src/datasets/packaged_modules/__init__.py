@@ -39,6 +39,7 @@ _PACKAGED_DATASETS_MODULES = {
     "audiofolder": (audiofolder.__name__, _hash_python_lines(inspect.getsource(audiofolder).splitlines())),
 }
 
+# Used to infer the module to use based on the data files extensions
 _EXTENSION_TO_MODULE = {
     ".csv": ("csv", {}),
     ".tsv": ("csv", {"sep": "\t"}),
@@ -54,6 +55,10 @@ _EXTENSION_TO_MODULE.update({ext: ("audiofolder", {}) for ext in audiofolder.Aud
 _EXTENSION_TO_MODULE.update({ext.upper(): ("audiofolder", {}) for ext in audiofolder.AudioFolder.EXTENSIONS})
 _MODULE_SUPPORTS_METADATA = {"imagefolder", "audiofolder"}
 
+# Used to filter data files based on extensions given a module name
 _MODULE_TO_EXTENSIONS: Dict[str, List[str]] = {}
 for _ext, (_module, _) in _EXTENSION_TO_MODULE.items():
     _MODULE_TO_EXTENSIONS.setdefault(_module, []).append(_ext)
+
+_MODULE_TO_EXTENSIONS["imagefolder"].append(".zip")
+_MODULE_TO_EXTENSIONS["audiofolder"].append(".zip")
