@@ -1631,6 +1631,18 @@ class BaseDatasetTest(TestCase):
                 ex_cnt = ExampleCounter(batched=True)
                 dset.map(ex_cnt)
                 self.assertEqual(ex_cnt.cnt, len(dset))
+    
+    def __test_map_crash_subprocess(self, in_memory):
+        # be sure that a crash in one of the subprocess will not 
+        # hang dataset.map() call forever
+
+        def do_crash(self, example):
+            raise SystemExit()
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with pytest.raises(ValueError):
+                    dset.map(do_crash)
 
     def test_filter(self, in_memory):
         # keep only first five examples
