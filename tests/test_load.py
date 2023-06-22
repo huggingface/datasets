@@ -899,6 +899,12 @@ def test_load_dataset_text_with_unicode_new_lines(text_path_with_unicode_new_lin
     assert ds.num_rows == 3
 
 
+def test_load_dataset_with_unsupported_extensions(text_dir_with_unsupported_extension):
+    data_files = str(text_dir_with_unsupported_extension)
+    ds = load_dataset("text", split="train", data_files=data_files)
+    assert ds.num_rows == 4
+
+
 @pytest.mark.integration
 def test_loading_from_the_datasets_hub():
     with tempfile.TemporaryDirectory() as tmp_dir:

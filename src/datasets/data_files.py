@@ -1,4 +1,5 @@
 import os
+import re
 from functools import partial
 from pathlib import Path, PurePath
 from typing import Callable, Dict, List, Optional, Set, Tuple, Union
@@ -748,6 +749,18 @@ class DataFilesList(List[Union[Path, Url]]):
         origin_metadata = _get_origin_metadata_locally_or_by_urls(data_files, use_auth_token=use_auth_token)
         return cls(data_files, origin_metadata)
 
+    def filter_extensions(self, extensions: List[str]) -> "DataFilesList":
+        pattern = "|".join("\\" + ext for ext in extensions)
+        pattern = re.compile(f".*({pattern})(\\..+)?$")
+        return DataFilesList(
+            [
+                data_file
+                for data_file in self
+                if pattern.match(data_file.name if isinstance(data_file, Path) else data_file)
+            ],
+            origin_metadata=self.origin_metadata,
+        )
+
 
 class DataFilesDict(Dict[str, DataFilesList]):
     """
@@ -819,3 +832,9 @@ class DataFilesDict(Dict[str, DataFilesList]):
 
         """
         return DataFilesDict, (dict(sorted(self.items())),)
+
+    def filter_extensions(self, extensions: List[str]) -> "DataFilesDict":
+        out = type(self)()
+        for key, data_files_list in self.items():
+            out[key] = data_files_list.filter_extensions(extensions)
+        return out
