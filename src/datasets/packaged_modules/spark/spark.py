@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 import pyarrow as pa
+import pyspark
 
 import datasets
 from datasets.arrow_writer import ArrowWriter, ParquetWriter
@@ -31,21 +32,38 @@ class SparkConfig(datasets.BuilderConfig):
     features: Optional[datasets.Features] = None
 
 
+def reorder_dataframe_by_partition(df: "pyspark.sql.DataFrame", new_partition_order: List[int]):
+    # get the first partition and place it in new dataframe
+    df_combined = df.select("*").where(f"part_id = {new_partition_order[0]}").drop("part_id")
+    # keep track of the sizes of each partition we are reordering so that we can return correct partition in the generator
+    partition_sizes = [df_combined.count()]
+    for partition_id in new_partition_order[1:]:
+        # filter out the current partition, combine it, and add its size to the list
+        partition_df = df.select("*").where(f"part_id = {partition_id}").drop("part_id")
+        df_combined = df_combined.union(partition_df)
+        partition_sizes.append(partition_df.count())
+    return df_combined, partition_sizes
+
+
 def _generate_iterable_examples(
     df: "pyspark.sql.DataFrame",
     partition_order: List[int],
 ):
-    import pyspark
-
     def generate_fn():
+        # gets all of the columns with an extra column called "part_id", but DOES NOT HIT NETWORK YET
         df_with_partition_id = df.select("*", pyspark.sql.functions.spark_partition_id().alias("part_id"))
-        for partition_id in partition_order:
-            partition_df = df_with_partition_id.select("*").where(f"part_id = {partition_id}").drop("part_id")
-            rows = partition_df.collect()
-            row_id = 0
-            for row in rows:
-                yield f"{partition_id}_{row_id}", row.asDict()
-                row_id += 1
+        partition_df, size_of_partitions = reorder_dataframe_by_partition(df_with_partition_id, partition_order)
+        row_id = 0
+        # get iterator to reordered df, prefetching the next df for better performance
+        rows = partition_df.toLocalIterator(prefetchPartitions=True)
+        partition_id_idx = 0
+        for row in rows:
+            yield f"{partition_order[partition_id_idx]}_{row_id}", row.asDict()
+            row_id += 1
+            # iterated through all the rows in a partition, reset row index and increment the partition_id_idx to use next partition
+            if row_id >= size_of_partitions[partition_id_idx]:
+                row_id = 0
+                partition_id_idx += 1
 
     return generate_fn
 
