@@ -61,7 +61,7 @@ def _generate_iterable_examples(
             if last_partition != part_id: # we are on new partition, reset row_id
                 last_partition = part_id
                 row_id = 0
-            yield f"{part_id}_{row_id}", row.asDict()
+            yield f"{part_id}_{row_id}", row_as_dict
             row_id += 1
 
     return generate_fn
