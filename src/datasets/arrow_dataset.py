@@ -1969,6 +1969,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             else:
                 break
         dataset.info.features = self._info.features.flatten(max_depth=max_depth)
+        dataset.info.features = Features({col: dataset.info.features[col] for col in dataset.data.column_names})
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         logger.info(f'Flattened dataset from depth {depth} to depth {1 if depth + 1 < max_depth else "unknown"}.')
         dataset._fingerprint = new_fingerprint
@@ -2333,8 +2334,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
 
         dataset = copy.deepcopy(self)
-        dataset._info.features = Features({k: v for k, v in dataset._info.features.items() if k in column_names})
         dataset._data = dataset._data.select(column_names)
+        dataset._info.features = Features({col: self._info.features[col] for col in dataset._data.column_names})
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         dataset._fingerprint = new_fingerprint
         return dataset

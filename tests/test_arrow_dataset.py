@@ -104,8 +104,10 @@ def assert_arrow_metadata_are_synced_with_dataset_features(dataset: Dataset):
     assert "info" in metadata
     features = DatasetInfo.from_dict(metadata["info"]).features
     assert features is not None
-    assert dataset.features is not None
-    assert sorted(features) == sorted(field.name for field in dataset.data.schema)
+    assert features == dataset.features
+    assert features == Features.from_arrow_schema(dataset.data.schema)
+    assert list(features) == dataset.data.column_names
+    assert list(features) == list(dataset.features)
 
 
 IN_MEMORY_PARAMETERS = [
@@ -648,6 +650,13 @@ class BaseDatasetTest(TestCase):
                 with dset.select_columns(column_names=["col_1", "col_2", "col_3"]) as new_dset:
                     self.assertEqual(new_dset.num_columns, 3)
                     self.assertListEqual(list(new_dset.column_names), ["col_1", "col_2", "col_3"])
+                    self.assertNotEqual(new_dset._fingerprint, fingerprint)
+                    assert_arrow_metadata_are_synced_with_dataset_features(new_dset)
+
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                with dset.select_columns(column_names=["col_3", "col_2", "col_1"]) as new_dset:
+                    self.assertEqual(new_dset.num_columns, 3)
+                    self.assertListEqual(list(new_dset.column_names), ["col_3", "col_2", "col_1"])
                     self.assertNotEqual(new_dset._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(new_dset)
 
