@@ -251,7 +251,7 @@ def test_resolve_patterns_locally_or_by_urls_special_base_path(tmp_path):
     assert len(resolved_data_files) == 1
 
 
-@pytest.mark.parametrize("pattern,size,extensions", [("**", 4, ["txt"]), ("**", 4, None), ("**", 0, ["blablabla"])])
+@pytest.mark.parametrize("pattern,size,extensions", [("**", 4, [".txt"]), ("**", 4, None), ("**", 0, [".blablabla"])])
 def test_resolve_patterns_locally_or_by_urls_with_extensions(complex_data_dir, pattern, size, extensions):
     if size > 0:
         resolved_data_files = resolve_patterns_locally_or_by_urls(
@@ -311,7 +311,7 @@ def test_resolve_patterns_in_dataset_repository_with_base_path(hub_dataset_info,
             )
 
 
-@pytest.mark.parametrize("pattern,size,extensions", [("**", 4, ["txt"]), ("**", 4, None), ("**", 0, ["blablabla"])])
+@pytest.mark.parametrize("pattern,size,extensions", [("**", 4, [".txt"]), ("**", 4, None), ("**", 0, [".blablabla"])])
 def test_resolve_patterns_in_dataset_repository_with_extensions(hub_dataset_info, pattern, size, extensions):
     if size > 0:
         resolved_data_files = resolve_patterns_in_dataset_repository(

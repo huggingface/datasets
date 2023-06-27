@@ -98,6 +98,7 @@ from .table import (
     InMemoryTable,
     MemoryMappedTable,
     Table,
+    _memory_mapped_record_batch_reader_from_file,
     cast_array_to_feature,
     concat_tables,
     embed_table_storage,
@@ -308,7 +309,7 @@ class TensorflowDatasetMixin:
 
     def to_tf_dataset(
         self,
-        batch_size: int,
+        batch_size: Optional[int] = None,
         columns: Optional[Union[str, List[str]]] = None,
         shuffle: bool = False,
         collate_fn: Optional[Callable] = None,
@@ -325,8 +326,9 @@ class TensorflowDatasetMixin:
         `tf.Tensor` is yielded instead.
 
         Args:
-            batch_size (`int`):
-                Size of batches to load from the dataset.
+            batch_size (`int`, *optional*):
+                Size of batches to load from the dataset. Defaults to `None`, which implies that the dataset won't be
+                batched, but the returned dataset can be batched later with `tf_dataset.batch(batch_size)`.
             columns (`List[str]` or `str`, *optional*):
                 Dataset column(s) to load in the `tf.data.Dataset`.
                 Column names that are created by the `collate_fn` and that do not exist in the original dataset can be used.
@@ -424,7 +426,7 @@ class TensorflowDatasetMixin:
             cols_to_retain = None  # Indicates keeping all valid columns
             columns = []
 
-        if self.format["type"] != "custom":
+        if self.format["type"] not in ["custom", "numpy"]:
             dataset = self.with_format("numpy")
         else:
             dataset = self
@@ -436,7 +438,7 @@ class TensorflowDatasetMixin:
             collate_fn=collate_fn,
             collate_fn_args=collate_fn_args,
             cols_to_retain=cols_to_retain,
-            batch_size=batch_size if drop_remainder else None,
+            batch_size=batch_size if drop_remainder and batch_size is not None else None,
             num_test_batches=num_test_batches,
         )
 
@@ -467,6 +469,11 @@ class TensorflowDatasetMixin:
                 drop_remainder=drop_remainder,
             )
         elif num_workers > 0:
+            if batch_size is None:
+                raise NotImplementedError(
+                    "`batch_size` must be specified when using multiple workers, as unbatched multiprocessing "
+                    "is not supported yet. Please provide a `batch_size` if `num_workers` is greater than 0."
+                )
             tf_dataset = multiprocess_dataset_to_tf(
                 dataset=dataset,
                 cols_to_retain=cols_to_retain,
@@ -4998,6 +5005,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         for shard_idx, shard in enumerate(shards):
             for pa_table in shard.with_format("arrow").iter(batch_size):
                 yield shard_idx, pa_table
+
+    @staticmethod
+    def _generate_tables_from_cache_file(filename: str):
+        for batch_idx, batch in enumerate(_memory_mapped_record_batch_reader_from_file(filename)):
+            yield batch_idx, pa.Table.from_batches([batch])
 
     def to_iterable_dataset(self, num_shards: Optional[int] = 1) -> "IterableDataset":
         """Get an [`datasets.IterableDataset`] from a map-style [`datasets.Dataset`].

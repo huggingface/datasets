@@ -1,9 +1,8 @@
 import itertools
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Optional
 
 import pyarrow as pa
-import pyarrow.parquet as pq
 
 import datasets
 from datasets.table import table_cast
@@ -13,16 +12,14 @@ logger = datasets.utils.logging.get_logger(__name__)
 
 
 @dataclass
-class ParquetConfig(datasets.BuilderConfig):
-    """BuilderConfig for Parquet."""
+class ArrowConfig(datasets.BuilderConfig):
+    """BuilderConfig for Arrow."""
 
-    batch_size: int = 10_000
-    columns: Optional[List[str]] = None
     features: Optional[datasets.Features] = None
 
 
-class Parquet(datasets.ArrowBasedBuilder):
-    BUILDER_CONFIG_CLASS = ParquetConfig
+class Arrow(datasets.ArrowBasedBuilder):
+    BUILDER_CONFIG_CLASS = ArrowConfig
 
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
@@ -49,7 +46,7 @@ class Parquet(datasets.ArrowBasedBuilder):
             if self.info.features is None:
                 for file in itertools.chain.from_iterable(files):
                     with open(file, "rb") as f:
-                        self.info.features = datasets.Features.from_arrow_schema(pq.read_schema(f))
+                        self.info.features = datasets.Features.from_arrow_schema(pa.ipc.open_stream(f).schema)
                     break
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
@@ -62,19 +59,10 @@ class Parquet(datasets.ArrowBasedBuilder):
         return pa_table
 
     def _generate_tables(self, files):
-        schema = self.info.features.arrow_schema if self.info.features is not None else None
-        if self.info.features is not None and self.config.columns is not None:
-            if sorted(field.name for field in schema) != sorted(self.config.columns):
-                raise ValueError(
-                    f"Tried to load parquet data with columns '{self.config.columns}' with mismatching features '{self.info.features}'"
-                )
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             with open(file, "rb") as f:
-                parquet_file = pq.ParquetFile(f)
                 try:
-                    for batch_idx, record_batch in enumerate(
-                        parquet_file.iter_batches(batch_size=self.config.batch_size, columns=self.config.columns)
-                    ):
+                    for batch_idx, record_batch in enumerate(pa.ipc.open_stream(f)):
                         pa_table = pa.Table.from_batches([record_batch])
                         # Uncomment for debugging (will print the Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")

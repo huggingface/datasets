@@ -1,9 +1,9 @@
 import pyarrow.parquet as pq
 import pytest
 
-from datasets import Dataset, DatasetDict, Features, NamedSplit, Value
+from datasets import Audio, Dataset, DatasetDict, Features, NamedSplit, Sequence, Value, config
 from datasets.features.image import Image
-from datasets.io.parquet import ParquetDatasetReader, ParquetDatasetWriter
+from datasets.io.parquet import ParquetDatasetReader, ParquetDatasetWriter, get_writer_batch_size
 
 from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
 
@@ -142,5 +142,19 @@ def test_dataset_to_parquet_keeps_features(shared_datadir, tmp_path):
     assert writer.write() > 0
 
     reloaded_dataset = Dataset.from_parquet(str(tmp_path / "foo.parquet"))
-
     assert dataset.features == reloaded_dataset.features
+
+    reloaded_iterable_dataset = ParquetDatasetReader(str(tmp_path / "foo.parquet"), streaming=True).read()
+    assert dataset.features == reloaded_iterable_dataset.features
+
+
+@pytest.mark.parametrize(
+    "feature, expected",
+    [
+        (Features({"foo": Value("int32")}), None),
+        (Features({"image": Image(), "foo": Value("int32")}), config.PARQUET_ROW_GROUP_SIZE_FOR_IMAGE_DATASETS),
+        (Features({"nested": Sequence(Audio())}), config.PARQUET_ROW_GROUP_SIZE_FOR_AUDIO_DATASETS),
+    ],
+)
+def test_get_writer_batch_size(feature, expected):
+    assert get_writer_batch_size(feature) == expected

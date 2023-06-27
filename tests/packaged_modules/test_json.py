@@ -23,6 +23,21 @@ def jsonl_file(tmp_path):
 
 
 @pytest.fixture
+def jsonl_file_utf16_encoded(tmp_path):
+    filename = tmp_path / "file_utf16_encoded.jsonl"
+    data = textwrap.dedent(
+        """\
+        {"col_1": -1}
+        {"col_1": 1, "col_2": 2}
+        {"col_1": 10, "col_2": 20}
+        """
+    )
+    with open(filename, "w", encoding="utf-16") as f:
+        f.write(data)
+    return str(filename)
+
+
+@pytest.fixture
 def json_file_with_list_of_dicts(tmp_path):
     filename = tmp_path / "file_with_list_of_dicts.json"
     data = textwrap.dedent(
@@ -64,6 +79,7 @@ def json_file_with_list_of_dicts_field(tmp_path):
     "file_fixture, config_kwargs",
     [
         ("jsonl_file", {}),
+        ("jsonl_file_utf16_encoded", {"encoding": "utf-16"}),
         ("json_file_with_list_of_dicts", {}),
         ("json_file_with_list_of_dicts_field", {"field": "field3"}),
     ],
