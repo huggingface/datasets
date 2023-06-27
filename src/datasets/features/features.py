@@ -1416,6 +1416,16 @@ def list_of_np_array_to_pyarrow_listarray(l_arr: List[np.ndarray], type: pa.Data
     else:
         return pa.array([], type=type)
 
+def list_of_list_of_np_array_to_pyarrow_listlistarray(
+    l_arr: List[List[np.ndarray]], type: pa.DataType = None
+) -> pa.ListArray:
+    """Build a PyArrow ListArray from a possibly nested list of NumPy arrays"""
+    if len(l_arr) > 0:
+        return list_of_pa_arrays_to_pyarrow_listarray(
+            [list_of_np_array_to_pyarrow_listarray(arr, type=type) if arr is not None else None for arr in l_arr]
+        )
+    else:
+        return pa.array([], type=type)
 
 def contains_any_np_array(data: Any):
     """Return `True` if data is a NumPy ndarray or (recursively) if first non-null value in list is a NumPy ndarray.

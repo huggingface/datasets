@@ -32,6 +32,7 @@ from .features.features import (
     generate_from_arrow_type,
     get_nested_type,
     list_of_np_array_to_pyarrow_listarray,
+    list_of_list_of_np_array_to_pyarrow_listlistarray,
     numpy_to_pyarrow_listarray,
     to_pyarrow_listarray,
 )
@@ -182,8 +183,15 @@ class TypedSequence:
             # efficient np array to pyarrow array
             if isinstance(data, np.ndarray):
                 out = numpy_to_pyarrow_listarray(data)
-            elif isinstance(data, list) and data and isinstance(first_non_null_value(data)[1], np.ndarray):
-                out = list_of_np_array_to_pyarrow_listarray(data)
+            elif isinstance(data, list) and data:
+                v = first_non_null_value(data)[1]
+                if isinstance(first_non_null_value(data)[1], np.ndarray):
+                    out = list_of_np_array_to_pyarrow_listarray(data)
+                elif isinstance(v, list) and isinstance(first_non_null_value(v)[1], np.ndarray):
+                    out = list_of_list_of_np_array_to_pyarrow_listlistarray(data)
+                else:
+                    trying_cast_to_python_objects = True
+                    out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True))
             else:
                 trying_cast_to_python_objects = True
                 out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True))
