@@ -438,7 +438,7 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
         if os.path.exists(os.path.join(dataset_infos_dir, "README.md")):
             dataset_card_data = DatasetCard.load(Path(dataset_infos_dir) / "README.md").data
             if "dataset_info" in dataset_card_data:
-                return cls.from_metadata(dataset_card_data)
+                return cls.from_dataset_card_data(dataset_card_data)
         if os.path.exists(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME)):
             # this is just to have backward compatibility with dataset_infos.json files
             with open(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
