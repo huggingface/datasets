@@ -1181,7 +1181,7 @@ class BaseDatasetTest(TestCase):
                     self.assertNotEqual(dset_test._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
 
-    def test_new_features(self, in_memory):
+    def test_map_new_features(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 features = Features({"filename": Value("string"), "label": ClassLabel(names=["positive", "negative"])})
@@ -1387,6 +1387,84 @@ class BaseDatasetTest(TestCase):
                                     self.assertIn("tmp", dset_test2.cache_files[0]["filename"])
             finally:
                 datasets.enable_caching()
+
+    def test_map_return_pa_table(self, in_memory):
+        def func_return_single_row_pa_table(x):
+            return pa.table({"id": [0], "text": ["a"]})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.map(func_return_single_row_pa_table) as dset_test:
+                    self.assertEqual(len(dset_test), 30)
+                    self.assertDictEqual(
+                        dset_test.features,
+                        Features({"id": Value("int64"), "text": Value("string")}),
+                    )
+                    self.assertEqual(dset_test[0]["id"], 0)
+                    self.assertEqual(dset_test[0]["text"], "a")
+
+        # Batched
+        def func_return_single_row_pa_table_batched(x):
+            batch_size = len(x[next(iter(x))])
+            return pa.table({"id": [0] * batch_size, "text": ["a"] * batch_size})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.map(func_return_single_row_pa_table_batched, batched=True) as dset_test:
+                    self.assertEqual(len(dset_test), 30)
+                    self.assertDictEqual(
+                        dset_test.features,
+                        Features({"id": Value("int64"), "text": Value("string")}),
+                    )
+                    self.assertEqual(dset_test[0]["id"], 0)
+                    self.assertEqual(dset_test[0]["text"], "a")
+
+        # Error when returning a table with more than one row in the non-batched mode
+        def func_return_multi_row_pa_table(x):
+            return pa.table({"id": [0, 1], "text": ["a", "b"]})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                self.assertRaises(ValueError, dset.map, func_return_multi_row_pa_table)
+
+    def test_map_return_pd_dataframe(self, in_memory):
+        def func_return_single_row_pd_dataframe(x):
+            return pd.DataFrame({"id": [0], "text": ["a"]})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.map(func_return_single_row_pd_dataframe) as dset_test:
+                    self.assertEqual(len(dset_test), 30)
+                    self.assertDictEqual(
+                        dset_test.features,
+                        Features({"id": Value("int64"), "text": Value("string")}),
+                    )
+                    self.assertEqual(dset_test[0]["id"], 0)
+                    self.assertEqual(dset_test[0]["text"], "a")
+
+        # Batched
+        def func_return_single_row_pd_dataframe_batched(x):
+            batch_size = len(x[next(iter(x))])
+            return pd.DataFrame({"id": [0] * batch_size, "text": ["a"] * batch_size})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.map(func_return_single_row_pd_dataframe_batched, batched=True) as dset_test:
+                    self.assertEqual(len(dset_test), 30)
+                    self.assertDictEqual(
+                        dset_test.features,
+                        Features({"id": Value("int64"), "text": Value("string")}),
+                    )
+                    self.assertEqual(dset_test[0]["id"], 0)
+                    self.assertEqual(dset_test[0]["text"], "a")
+
+        # Error when returning a table with more than one row in the non-batched mode
+        def func_return_multi_row_pd_dataframe(x):
+            return pd.DataFrame({"id": [0, 1], "text": ["a", "b"]})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                self.assertRaises(ValueError, dset.map, func_return_multi_row_pd_dataframe)
 
     @require_torch
     def test_map_torch(self, in_memory):
