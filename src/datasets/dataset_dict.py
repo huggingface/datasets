@@ -1623,16 +1623,16 @@ class DatasetDict(dict):
                 download_config=download_config,
             )
             dataset_card = DatasetCard.load(Path(dataset_readme_path))
-            dataset_metadata = dataset_card.data
+            dataset_card_data = dataset_card.data
         else:
             dataset_card = None
-            dataset_metadata = DatasetCardData()
+            dataset_card_data = DatasetCardData()
 
-        DatasetInfosDict({"default": info_to_dump}).to_metadata(dataset_metadata)
+        DatasetInfosDict({"default": info_to_dump}).to_dataset_card_data(dataset_card_data)
         dataset_card = (
             DatasetCard(
                 "---\n"
-                + str(dataset_metadata)
+                + str(dataset_card_data)
                 + "\n---\n"
                 + f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
             )

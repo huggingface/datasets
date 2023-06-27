@@ -671,14 +671,14 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 builder_kwargs["config_name"] = next(iter(dataset_infos))
                 builder_kwargs["info"] = DatasetInfo.from_dict(next(iter(dataset_infos.values())))
         if os.path.isfile(os.path.join(self.path, "README.md")):
-            dataset_metadata = DatasetCard.load(Path(self.path) / "README.md").data
-            if isinstance(dataset_metadata.get("dataset_info"), list) and dataset_metadata["dataset_info"]:
-                dataset_info_dict = dataset_metadata["dataset_info"][0]
+            dataset_card_data = DatasetCard.load(Path(self.path) / "README.md").data
+            if isinstance(dataset_card_data.get("dataset_info"), list) and dataset_card_data["dataset_info"]:
+                dataset_info_dict = dataset_card_data["dataset_info"][0]
                 builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
                 if "config_name" in dataset_info_dict:
                     builder_kwargs["config_name"] = dataset_info_dict["config_name"]
-            elif isinstance(dataset_metadata.get("dataset_info"), dict) and dataset_metadata["dataset_info"]:
-                dataset_info_dict = dataset_metadata["dataset_info"]
+            elif isinstance(dataset_card_data.get("dataset_info"), dict) and dataset_card_data["dataset_info"]:
+                dataset_info_dict = dataset_card_data["dataset_info"]
                 builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
                 if "config_name" in dataset_info_dict:
                     builder_kwargs["config_name"] = dataset_info_dict["config_name"]
@@ -831,14 +831,14 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 hf_hub_url(self.name, "README.md", revision=self.revision),
                 download_config=download_config,
             )
-            dataset_metadata = DatasetCard.load(Path(dataset_readme_path)).data
-            if isinstance(dataset_metadata.get("dataset_info"), list) and dataset_metadata["dataset_info"]:
-                dataset_info_dict = dataset_metadata["dataset_info"][0]
+            dataset_card_data = DatasetCard.load(Path(dataset_readme_path)).data
+            if isinstance(dataset_card_data.get("dataset_info"), list) and dataset_card_data["dataset_info"]:
+                dataset_info_dict = dataset_card_data["dataset_info"][0]
                 builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
                 if "config_name" in dataset_info_dict:
                     builder_kwargs["config_name"] = dataset_info_dict["config_name"]
-            elif isinstance(dataset_metadata.get("dataset_info"), dict) and dataset_metadata["dataset_info"]:
-                dataset_info_dict = dataset_metadata["dataset_info"]
+            elif isinstance(dataset_card_data.get("dataset_info"), dict) and dataset_card_data["dataset_info"]:
+                dataset_info_dict = dataset_card_data["dataset_info"]
                 builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
                 if "config_name" in dataset_info_dict:
                     builder_kwargs["config_name"] = dataset_info_dict["config_name"]

@@ -420,14 +420,14 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
         # Dump the infos in the YAML part of the README.md file
         if os.path.exists(dataset_readme_path):
             dataset_card = DatasetCard.load(dataset_readme_path)
-            dataset_metadata = dataset_card.data
+            dataset_card_data = dataset_card.data
         else:
             dataset_card = None
-            dataset_metadata = DatasetCardData()
+            dataset_card_data = DatasetCardData()
         if total_dataset_infos:
-            total_dataset_infos.to_metadata(dataset_metadata)
+            total_dataset_infos.to_dataset_card_data(dataset_card_data)
             dataset_card = (
-                DatasetCard("---\n" + str(dataset_metadata) + "\n---\n") if dataset_card is None else dataset_card
+                DatasetCard("---\n" + str(dataset_card_data) + "\n---\n") if dataset_card is None else dataset_card
             )
             dataset_card.save(Path(dataset_readme_path))
 
@@ -436,9 +436,9 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
         logger.info(f"Loading Dataset Infos from {dataset_infos_dir}")
         # Load the info from the YAML part of README.md
         if os.path.exists(os.path.join(dataset_infos_dir, "README.md")):
-            dataset_metadata = DatasetCard.load(Path(dataset_infos_dir) / "README.md").data
-            if "dataset_info" in dataset_metadata:
-                return cls.from_metadata(dataset_metadata)
+            dataset_card_data = DatasetCard.load(Path(dataset_infos_dir) / "README.md").data
+            if "dataset_info" in dataset_card_data:
+                return cls.from_metadata(dataset_card_data)
         if os.path.exists(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME)):
             # this is just to have backward compatibility with dataset_infos.json files
             with open(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
@@ -452,25 +452,25 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
             return cls()
 
     @classmethod
-    def from_metadata(cls, dataset_metadata: DatasetCardData) -> "DatasetInfosDict":
-        if isinstance(dataset_metadata.get("dataset_info"), (list, dict)):
-            if isinstance(dataset_metadata["dataset_info"], list):
+    def from_dataset_card_data(cls, dataset_card_data: DatasetCardData) -> "DatasetInfosDict":
+        if isinstance(dataset_card_data.get("dataset_info"), (list, dict)):
+            if isinstance(dataset_card_data["dataset_info"], list):
                 return cls(
                     {
                         dataset_info_yaml_dict.get("config_name", "default"): DatasetInfo._from_yaml_dict(
                             dataset_info_yaml_dict
                         )
-                        for dataset_info_yaml_dict in dataset_metadata["dataset_info"]
+                        for dataset_info_yaml_dict in dataset_card_data["dataset_info"]
                     }
                 )
             else:
-                dataset_info = DatasetInfo._from_yaml_dict(dataset_metadata["dataset_info"])
-                dataset_info.config_name = dataset_metadata["dataset_info"].get("config_name", "default")
+                dataset_info = DatasetInfo._from_yaml_dict(dataset_card_data["dataset_info"])
+                dataset_info.config_name = dataset_card_data["dataset_info"].get("config_name", "default")
                 return cls({dataset_info.config_name: dataset_info})
         else:
             return cls()
 
-    def to_metadata(self, dataset_metadata: DatasetCardData) -> None:
+    def to_dataset_card_data(self, dataset_card_data: DatasetCardData) -> None:
         if self:
             total_dataset_infos = {config_name: dset_info._to_yaml_dict() for config_name, dset_info in self.items()}
             # the config_name from the dataset_infos_dict takes over the config_name of the DatasetInfo
@@ -478,17 +478,17 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
                 dset_info_yaml_dict["config_name"] = config_name
             if len(total_dataset_infos) == 1:
                 # use a struct instead of a list of configurations, since there's only one
-                dataset_metadata["dataset_info"] = next(iter(total_dataset_infos.values()))
+                dataset_card_data["dataset_info"] = next(iter(total_dataset_infos.values()))
                 # no need to include the configuration name when there's only one configuration and it's called "default"
-                if dataset_metadata["dataset_info"].get("config_name") == "default":
-                    dataset_metadata["dataset_info"].pop("config_name", None)
+                if dataset_card_data["dataset_info"].get("config_name") == "default":
+                    dataset_card_data["dataset_info"].pop("config_name", None)
             else:
-                dataset_metadata["dataset_info"] = []
+                dataset_card_data["dataset_info"] = []
                 for config_name, dataset_info_yaml_dict in total_dataset_infos.items():
                     # add the config_name field in first position
                     dataset_info_yaml_dict.pop("config_name", None)
                     dataset_info_yaml_dict = {"config_name": config_name, **dataset_info_yaml_dict}
-                    dataset_metadata["dataset_info"].append(dataset_info_yaml_dict)
+                    dataset_card_data["dataset_info"].append(dataset_info_yaml_dict)
 
 
 @dataclass

@@ -5409,8 +5409,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 download_config=download_config,
             )
             dataset_card = DatasetCard.load(Path(dataset_readme_path))
-            dataset_metadata = dataset_card.data
-            dataset_infos: DatasetInfosDict = DatasetInfosDict.from_metadata(dataset_metadata)
+            dataset_card_data = dataset_card.data
+            dataset_infos: DatasetInfosDict = DatasetInfosDict.from_metadata(dataset_card_data)
             if dataset_infos:
                 repo_info = dataset_infos[next(iter(dataset_infos))]
             else:
@@ -5418,7 +5418,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # get the deprecated dataset_infos.json to update them
         elif config.DATASETDICT_INFOS_FILENAME in repo_files:
             dataset_card = None
-            dataset_metadata = DatasetCardData()
+            dataset_card_data = DatasetCardData()
             download_config = DownloadConfig()
             download_config.download_desc = "Downloading metadata"
             download_config.use_auth_token = token
@@ -5434,7 +5434,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     repo_info = None
         else:
             dataset_card = None
-            dataset_metadata = DatasetCardData()
+            dataset_card_data = DatasetCardData()
             repo_info = None
         # update the total info to dump from existing info
         if repo_info is not None:
@@ -5472,11 +5472,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 revision=branch,
             )
         # push to README
-        DatasetInfosDict({"default": info_to_dump}).to_metadata(dataset_metadata)
+        DatasetInfosDict({"default": info_to_dump}).to_dataset_card_data(dataset_card_data)
         dataset_card = (
             DatasetCard(
                 "---\n"
-                + str(dataset_metadata)
+                + str(dataset_card_data)
                 + "\n---\n"
                 + f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
             )
