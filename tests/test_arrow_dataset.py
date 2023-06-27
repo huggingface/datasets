@@ -104,9 +104,10 @@ def assert_arrow_metadata_are_synced_with_dataset_features(dataset: Dataset):
     assert "info" in metadata
     features = DatasetInfo.from_dict(metadata["info"]).features
     assert features is not None
-    assert dataset.features is not None
-    assert list(features) == [field.name for field in dataset.data.schema]
-    assert list(dataset.features) == [field.name for field in dataset.data.schema]
+    assert features == dataset.features
+    assert features == Features.from_arrow_schema(dataset.data.schema)
+    assert list(features) == list(dataset.features)
+    assert list(features) == list(Features.from_arrow_schema(dataset.data.schema))
 
 
 IN_MEMORY_PARAMETERS = [
