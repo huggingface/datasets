@@ -5422,7 +5422,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
             dataset_card = DatasetCard.load(Path(dataset_readme_path))
             dataset_card_data = dataset_card.data
-            dataset_infos: DatasetInfosDict = DatasetInfosDict.from_metadata(dataset_card_data)
+            dataset_infos: DatasetInfosDict = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
             if dataset_infos:
                 repo_info = dataset_infos[next(iter(dataset_infos))]
             else:
