@@ -32,10 +32,8 @@ class SparkConfig(datasets.BuilderConfig):
 
 
 def _reorder_dataframe_by_partition(df: "pyspark.sql.DataFrame", new_partition_order: List[int]):
-    # get the first partition and place it in new dataframe
     df_combined = df.select("*").where(f"part_id = {new_partition_order[0]}")
     for partition_id in new_partition_order[1:]:
-        # filter out the current partition, combine it, and add its size to the list
         partition_df = df.select("*").where(f"part_id = {partition_id}")
         df_combined = df_combined.union(partition_df)
     return df_combined
@@ -47,17 +45,16 @@ def _generate_iterable_examples(
 ):
     import pyspark
     def generate_fn():
-        # gets all of the columns with an extra column called "part_id", but DOES NOT HIT NETWORK YET
         df_with_partition_id = df.select("*", pyspark.sql.functions.spark_partition_id().alias("part_id"))
         partition_df = _reorder_dataframe_by_partition(df_with_partition_id, partition_order)
         row_id = 0
-        # get iterator to reordered df, prefetching the next df for better performance
+        # pipeline partitions to hide latency
         rows = partition_df.toLocalIterator(prefetchPartitions=True)
         last_partition = -1 # keep track of the last partition so that we can know when to reset row_id = 0
         for row in rows:
             row_as_dict = row.asDict()
             part_id = row_as_dict['part_id']
-            row_as_dict.pop('part_id') # remove it from the dictionary
+            row_as_dict.pop('part_id') 
             if last_partition != part_id: # we are on new partition, reset row_id
                 last_partition = part_id
                 row_id = 0
