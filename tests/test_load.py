@@ -915,7 +915,7 @@ def test_loading_from_the_datasets_hub():
 
 
 @pytest.mark.integration
-def test_loading_from_the_datasets_hub_with_use_auth_token():
+def test_loading_from_the_datasets_hub_with_token():
     true_request = requests.Session().request
 
     def assert_auth(method, url, *args, headers, **kwargs):
@@ -927,7 +927,7 @@ def test_loading_from_the_datasets_hub_with_use_auth_token():
         with tempfile.TemporaryDirectory() as tmp_dir:
             with offline():
                 with pytest.raises((ConnectionError, requests.exceptions.ConnectionError)):
-                    load_dataset(SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER, cache_dir=tmp_dir, use_auth_token="foo")
+                    load_dataset(SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER, cache_dir=tmp_dir, token="foo")
         mock_request.assert_called()
 
 
@@ -950,10 +950,8 @@ def test_load_streaming_private_dataset_with_zipped_data(hf_token, hf_private_da
 def test_load_dataset_private_zipped_images(
     hf_private_dataset_repo_zipped_img_data, hf_token, streaming, implicit_token
 ):
-    use_auth_token = None if implicit_token else hf_token
-    ds = load_dataset(
-        hf_private_dataset_repo_zipped_img_data, split="train", streaming=streaming, use_auth_token=use_auth_token
-    )
+    token = None if implicit_token else hf_token
+    ds = load_dataset(hf_private_dataset_repo_zipped_img_data, split="train", streaming=streaming, token=token)
     assert isinstance(ds, IterableDataset if streaming else Dataset)
     ds_items = list(ds)
     assert len(ds_items) == 2

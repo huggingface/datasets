@@ -39,7 +39,7 @@ if TYPE_CHECKING:
     from .builder import DatasetBuilder
 
 
-def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str, bool]] = None):
+def extend_module_for_streaming(module_path, token: Optional[Union[str, bool]] = None):
     """Extend the module to support streaming.
 
     We patch some functions in the module to use `fsspec` to support data streaming:
@@ -55,7 +55,7 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
 
     Args:
         module_path: Path to the module to be extended.
-        use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+        token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, or not specified, will get token from `"~/.huggingface"`.
     """
 
@@ -68,7 +68,7 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
     def wrap_auth(function):
         @wraps(function)
         def wrapper(*args, **kwargs):
-            return function(*args, use_auth_token=use_auth_token, **kwargs)
+            return function(*args, token=token, **kwargs)
 
         wrapper._decorator_name_ = "wrap_auth"
         return wrapper
@@ -109,14 +109,14 @@ def extend_dataset_builder_for_streaming(builder: "DatasetBuilder"):
         builder (:class:`DatasetBuilder`): Dataset builder instance.
     """
     # this extends the open and os.path.join functions for data streaming
-    extend_module_for_streaming(builder.__module__, use_auth_token=builder.use_auth_token)
+    extend_module_for_streaming(builder.__module__, token=builder.token)
     # if needed, we also have to extend additional internal imports (like wmt14 -> wmt_utils)
     if not builder.__module__.startswith("datasets."):  # check that it's not a packaged builder like csv
         for imports in get_imports(inspect.getfile(builder.__class__)):
             if imports[0] == "internal":
                 internal_import_name = imports[1]
                 internal_module_name = ".".join(builder.__module__.split(".")[:-1] + [internal_import_name])
-                extend_module_for_streaming(internal_module_name, use_auth_token=builder.use_auth_token)
+                extend_module_for_streaming(internal_module_name, token=builder.token)
 
     # builders can inherit from other builders that might use streaming functionality
     # (for example, ImageFolder and AudioFolder inherit from FolderBuilder which implements examples generation)
@@ -129,4 +129,4 @@ def extend_dataset_builder_for_streaming(builder: "DatasetBuilder"):
         if issubclass(cls, DatasetBuilder) and cls.__module__ != DatasetBuilder.__module__
     ]  # check it's not a standard builder from datasets.builder
     for module in parent_builder_modules:
-        extend_module_for_streaming(module, use_auth_token=builder.use_auth_token)
+        extend_module_for_streaming(module, token=builder.token)

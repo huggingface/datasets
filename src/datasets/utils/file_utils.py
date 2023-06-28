@@ -189,7 +189,7 @@ def cached_path(
             local_files_only=download_config.local_files_only,
             use_etag=download_config.use_etag,
             max_retries=download_config.max_retries,
-            use_auth_token=download_config.use_auth_token,
+            token=download_config.token,
             ignore_url_params=download_config.ignore_url_params,
             storage_options=download_config.storage_options,
             download_desc=download_config.download_desc,
@@ -235,14 +235,14 @@ def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> st
     return ua
 
 
-def get_authentication_headers_for_url(url: str, use_auth_token: Optional[Union[str, bool]] = None) -> dict:
+def get_authentication_headers_for_url(url: str, token: Optional[Union[str, bool]] = None) -> dict:
     """Handle the HF authentication"""
     headers = {}
     if url.startswith(config.HF_ENDPOINT):
-        if use_auth_token is False:
+        if token is False:
             token = None
-        elif isinstance(use_auth_token, str):
-            token = use_auth_token
+        elif isinstance(token, str):
+            token = token
         else:
             token = HfFolder.get_token()
 
@@ -422,10 +422,10 @@ def http_head(
     return response
 
 
-def request_etag(url: str, use_auth_token: Optional[Union[str, bool]] = None) -> Optional[str]:
+def request_etag(url: str, token: Optional[Union[str, bool]] = None) -> Optional[str]:
     if urlparse(url).scheme not in ("http", "https"):
         return None
-    headers = get_authentication_headers_for_url(url, use_auth_token=use_auth_token)
+    headers = get_authentication_headers_for_url(url, token=token)
     response = http_head(url, headers=headers, max_retries=3)
     response.raise_for_status()
     etag = response.headers.get("ETag") if response.ok else None
@@ -443,7 +443,7 @@ def get_from_cache(
     local_files_only=False,
     use_etag=True,
     max_retries=0,
-    use_auth_token=None,
+    token=None,
     ignore_url_params=False,
     storage_options=None,
     download_desc=None,
@@ -490,7 +490,7 @@ def get_from_cache(
         return cache_path
 
     # Prepare headers for authentication
-    headers = get_authentication_headers_for_url(url, use_auth_token=use_auth_token)
+    headers = get_authentication_headers_for_url(url, token=token)
     if user_agent is not None:
         headers["user-agent"] = user_agent
 
@@ -539,9 +539,9 @@ def get_from_cache(
             ):
                 connected = True
                 logger.info(f"Couldn't get ETag version for url {url}")
-            elif response.status_code == 401 and config.HF_ENDPOINT in url and use_auth_token is None:
+            elif response.status_code == 401 and config.HF_ENDPOINT in url and token is None:
                 raise ConnectionError(
-                    f"Unauthorized for URL {url}. Please use the parameter `use_auth_token=True` after logging in with `huggingface-cli login`"
+                    f"Unauthorized for URL {url}. Please use the parameter `token=True` after logging in with `huggingface-cli login`"
                 )
         except (OSError, requests.exceptions.Timeout) as e:
             # not connected
