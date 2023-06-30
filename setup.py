@@ -160,6 +160,7 @@ BENCHMARKS_REQUIRE = [
 TESTS_REQUIRE = [
     # test dependencies
     "absl-py",
+    "joblib<0.13.0",  # joblibspark doesn't support recent joblib versions
     "joblibspark",
     "pytest",
     "pytest-datadir",
