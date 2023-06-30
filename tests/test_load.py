@@ -115,13 +115,13 @@ def data_dir_with_arrow(tmp_path):
     data_dir.mkdir()
     output_train = os.path.join(data_dir, "train.arrow")
     with ArrowWriter(path=output_train) as writer:
-        writer.write_row(pa.Table.from_pydict({"col_1": ["foo"] * 10}))
+        writer.write_table(pa.Table.from_pydict({"col_1": ["foo"] * 10}))
         num_examples, num_bytes = writer.finalize()
     assert num_examples == 10
     assert num_bytes > 0
     output_test = os.path.join(data_dir, "test.arrow")
     with ArrowWriter(path=output_test) as writer:
-        writer.write_row(pa.Table.from_pydict({"col_1": ["bar"] * 10}))
+        writer.write_table(pa.Table.from_pydict({"col_1": ["bar"] * 10}))
         num_examples, num_bytes = writer.finalize()
     assert num_examples == 10
     assert num_bytes > 0

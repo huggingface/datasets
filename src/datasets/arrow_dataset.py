@@ -3296,7 +3296,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         def validate_function_output(processed_inputs, indices):
             """Validate output of the map function."""
-            if processed_inputs is not None and not isinstance(processed_inputs, (Mapping, pa.Table)):
+            if processed_inputs is not None and not isinstance(processed_inputs, (Mapping, pa.Table, pd.DataFrame)):
                 raise TypeError(
                     f"Provided `function` which is applied to all elements of table returns a variable of type {type(processed_inputs)}. Make sure provided `function` returns a variable of type `dict` (or a pyarrow table) to update the dataset or `None` if you are only interested in side effects."
                 )
@@ -3351,7 +3351,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 returned_lazy_dict = False
             if update_data is None:
                 # Check if the function returns updated examples
-                update_data = isinstance(processed_inputs, (Mapping, pa.Table))
+                update_data = isinstance(processed_inputs, (Mapping, pa.Table, pd.DataFrame))
                 validate_function_output(processed_inputs, indices)
             if not update_data:
                 return None  # Nothing to update, let's move on
@@ -3445,6 +3445,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                                 stack.enter_context(writer)
                             if isinstance(example, pa.Table):
                                 writer.write_row(example)
+                            elif isinstance(example, pd.DataFrame):
+                                writer.write_row(pa.Table.from_pandas(example))
                             else:
                                 writer.write(example)
                         num_examples_progress_update += 1
@@ -3476,6 +3478,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                                 stack.enter_context(writer)
                             if isinstance(batch, pa.Table):
                                 writer.write_table(batch)
+                            elif isinstance(batch, pd.DataFrame):
+                                writer.write_table(pa.Table.from_pandas(batch))
                             else:
                                 writer.write_batch(batch)
                         num_examples_progress_update += num_examples_in_batch
