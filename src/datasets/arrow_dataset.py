@@ -4051,7 +4051,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
 
         # Check proper format of and for duplicates in column_names
-        if not isinstance(column_names, list):
+        if not isinstance(column_names, Sequence_):
             column_names = [column_names]
 
         # Check proper format and length of reverse
