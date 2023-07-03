@@ -3,6 +3,7 @@
 Please note that as KLUE-MRC has the same task format as SQuAD 2.0, this evaluation script follows almost the same format as the official evaluation script for SQuAD 2.0.
 
 ## Metric description
+
 This metric wrap the unofficial scoring script for [Machine Machine Reading Comprehension task of
 Korean Language Understanding Evaluation (KLUE-MRC)](https://huggingface.co/datasets/klue/viewer/mrc/train).
 
@@ -31,6 +32,7 @@ from datasets import load_metric
 klue_mrc_metric = load_metric("klue_mrc")
 results = klue_mrc_metric.compute(predictions=predictions, references=references)
 ```
+
 ## Output values
 
 This metric outputs a dictionary with 13 values: 
@@ -89,6 +91,6 @@ This metric works only with the datasets in the same format as the [KLUE-MRC](ht
     
 ## Further References 
 
-- [LM Eval Harness](https://github.com/EleutherAI/lm-evaluation-harness) uses this scoring script for the evaluation of [KLUE-MRC](https://huggingface.co/datasets/klue/viewer/mrc/train).
+- [LM Eval Harness](https://github.com/EleutherAI/lm-evaluation-harness) leverages this scoring script for the evaluation of [KLUE-MRC](https://huggingface.co/datasets/klue/viewer/mrc/train).
 - [The Stanford Question Answering Dataset: Background, Challenges, Progress (blog post)](https://rajpurkar.github.io/mlx/qa-and-squad/)
 - [Hugging Face Course -- Question Answering](https://huggingface.co/course/chapter7/7)
