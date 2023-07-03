@@ -113,16 +113,16 @@ To set your dataset as private, set the `private` parameter to `True`. This para
 
 A private dataset is only accessible by you. Similarly, if you share a dataset within your organization, then members of the organization can also access the dataset.
 
-Load a private dataset by providing your authentication token to the `use_auth_token` parameter:
+Load a private dataset by providing your authentication token to the `token` parameter:
 
 ```py
 >>> from datasets import load_dataset
 
 # Load a private individual dataset
->>> dataset = load_dataset("stevhliu/demo", use_auth_token=True)
+>>> dataset = load_dataset("stevhliu/demo", token=True)
 
 # Load a private organization dataset
->>> dataset = load_dataset("organization/dataset_name", use_auth_token=True)
+>>> dataset = load_dataset("organization/dataset_name", token=True)
 ```
 
 ## What's next?

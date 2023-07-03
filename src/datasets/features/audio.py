@@ -174,11 +174,11 @@ class Audio:
             source_url = path.split("::")[-1]
             try:
                 repo_id = string_to_dict(source_url, config.HUB_DATASETS_URL)["repo_id"]
-                use_auth_token = token_per_repo_id[repo_id]
+                token = token_per_repo_id[repo_id]
             except (ValueError, KeyError):
-                use_auth_token = None
+                token = None
 
-            with xopen(path, "rb", use_auth_token=use_auth_token) as f:
+            with xopen(path, "rb", token=token) as f:
                 array, sampling_rate = sf.read(f)
 
         else:

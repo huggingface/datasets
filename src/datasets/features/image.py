@@ -167,10 +167,10 @@ class Image:
                     source_url = path.split("::")[-1]
                     try:
                         repo_id = string_to_dict(source_url, config.HUB_DATASETS_URL)["repo_id"]
-                        use_auth_token = token_per_repo_id.get(repo_id)
+                        token = token_per_repo_id.get(repo_id)
                     except ValueError:
-                        use_auth_token = None
-                    with xopen(path, "rb", use_auth_token=use_auth_token) as f:
+                        token = None
+                    with xopen(path, "rb", token=token) as f:
                         bytes_ = BytesIO(f.read())
                     image = PIL.Image.open(bytes_)
         else:

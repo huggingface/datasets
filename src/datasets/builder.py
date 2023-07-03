@@ -253,7 +253,7 @@ class DatasetBuilder:
         features ([`Features`], *optional*):
             Features types to use with this dataset.
             It can be used to change the [`Features`] types of a dataset, for example.
-        use_auth_token (`str` or `bool`, *optional*):
+        token (`str` or `bool`, *optional*):
             String or boolean to use as Bearer token for remote files on the
             Datasets Hub. If `True`, will get token from `"~/.huggingface"`.
         repo_id (`str`, *optional*):
@@ -316,7 +316,8 @@ class DatasetBuilder:
         base_path: Optional[str] = None,
         info: Optional[DatasetInfo] = None,
         features: Optional[Features] = None,
-        use_auth_token: Optional[Union[bool, str]] = None,
+        token: Optional[Union[bool, str]] = None,
+        use_auth_token="deprecated",
         repo_id: Optional[str] = None,
         data_files: Optional[Union[str, list, dict, DataFilesDict]] = None,
         data_dir: Optional[str] = None,
@@ -325,6 +326,13 @@ class DatasetBuilder:
         name="deprecated",
         **config_kwargs,
     ):
+        if use_auth_token != "deprecated":
+            warnings.warn(
+                "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
+                f"You can remove this warning by passing 'token={use_auth_token}' instead.",
+                FutureWarning,
+            )
+            token = use_auth_token
         if name != "deprecated":
             warnings.warn(
                 "Parameter 'name' was renamed to 'config_name' in version 2.3.0 and will be removed in 3.0.0.",
@@ -335,14 +343,16 @@ class DatasetBuilder:
         self.name: str = camelcase_to_snakecase(self.__module__.split(".")[-1])
         self.hash: Optional[str] = hash
         self.base_path = base_path
-        self.use_auth_token = use_auth_token
+        self.token = token
+        # For backwards compatibility (e.g. if accessed in a dataset script)
+        self.use_auth_token = token
         self.repo_id = repo_id
         self.storage_options = storage_options
         self._writer_batch_size = writer_batch_size or self.DEFAULT_WRITER_BATCH_SIZE
 
         if data_files is not None and not isinstance(data_files, DataFilesDict):
             data_files = DataFilesDict.from_local_or_remote(
-                sanitize_patterns(data_files), base_path=base_path, use_auth_token=use_auth_token
+                sanitize_patterns(data_files), base_path=base_path, token=token
             )
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
@@ -699,7 +709,7 @@ class DatasetBuilder:
 
                 <Deprecated version="2.7.1">
 
-                Pass `use_auth_token` to the initializer/`load_dataset_builder` instead.
+                Pass `use_auth_token` to `load_dataset_builder` instead.
 
                 </Deprecated>
             file_format (`str`, *optional*):
@@ -761,11 +771,12 @@ class DatasetBuilder:
             )
         if use_auth_token != "deprecated":
             warnings.warn(
-                "'use_auth_token' was deprecated in version 2.7.1 and will be removed in 3.0.0. Pass `use_auth_token` to the initializer/`load_dataset_builder` instead.",
+                "'use_auth_token' was deprecated in version 2.7.1 and will be removed in 3.0.0. Pass `token` to `load_dataset_builder` instead.",
                 FutureWarning,
             )
+            token = use_auth_token
         else:
-            use_auth_token = self.use_auth_token
+            token = self.token
 
         output_dir = output_dir if output_dir is not None else self._cache_dir
         # output_dir can be a remote bucket on GCS or S3 (when using BeamBasedBuilder for distributed data processing)
@@ -799,7 +810,7 @@ class DatasetBuilder:
                     force_extract=download_mode == DownloadMode.FORCE_REDOWNLOAD,
                     use_etag=False,
                     num_proc=num_proc,
-                    use_auth_token=use_auth_token,
+                    token=token,
                     storage_options=self.storage_options,
                 )  # We don't use etag for data files to speed up the process
 
@@ -1273,7 +1284,7 @@ class DatasetBuilder:
 
         dl_manager = StreamingDownloadManager(
             base_path=base_path or self.base_path,
-            download_config=DownloadConfig(use_auth_token=self.use_auth_token, storage_options=self.storage_options),
+            download_config=DownloadConfig(token=self.token, storage_options=self.storage_options),
             dataset_name=self.name,
             data_dir=self.config.data_dir,
         )
@@ -1303,7 +1314,7 @@ class DatasetBuilder:
     ) -> IterableDataset:
         ex_iterable = self._get_examples_iterable_for_split(splits_generator)
         # add auth to be able to access and decode audio/image files from private repositories.
-        token_per_repo_id = {self.repo_id: self.use_auth_token} if self.repo_id else {}
+        token_per_repo_id = {self.repo_id: self.token} if self.repo_id else {}
         return IterableDataset(
             ex_iterable, info=self.info, split=splits_generator.name, token_per_repo_id=token_per_repo_id
         )

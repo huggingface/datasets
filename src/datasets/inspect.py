@@ -18,6 +18,7 @@
 import inspect
 import os
 import shutil
+import warnings
 from pathlib import PurePath
 from typing import Dict, List, Mapping, Optional, Sequence, Union
 
@@ -205,7 +206,8 @@ def get_dataset_infos(
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[Union[DownloadMode, str]] = None,
     revision: Optional[Union[str, Version]] = None,
-    use_auth_token: Optional[Union[bool, str]] = None,
+    token: Optional[Union[bool, str]] = None,
+    use_auth_token="deprecated",
     **config_kwargs,
 ):
     """Get the meta information about a dataset, returned as a dict mapping config name to DatasetInfoDict.
@@ -229,9 +231,19 @@ def get_dataset_infos(
             Download/generate mode.
         data_files (`Union[Dict, List, str]`, *optional*):
             Defining the data_files of the dataset configuration.
+        token (`str` or `bool`, *optional*):
+            Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+            If `True`, or not specified, will get token from `"~/.huggingface"`.
         use_auth_token (`str` or `bool`, *optional*):
             Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If `True`, or not specified, will get token from `"~/.huggingface"`.
+
+            <Deprecated version="2.14.0">
+
+            `use_auth_token` was deprecated in favor of `token` in version 2.14.0 and will be removed in 3.0.0.
+
+            </Deprecated>
+
         **config_kwargs (additional keyword arguments):
             Optional attributes for builder class which will override the attributes if supplied.
 
@@ -243,13 +255,21 @@ def get_dataset_infos(
     {'default': DatasetInfo(description="Movie Review Dataset.\nThis is a dataset of containing 5,331 positive and 5,331 negative processed\nsentences from Rotten Tomatoes movie reviews...), ...}
     ```
     """
+    if use_auth_token != "deprecated":
+        warnings.warn(
+            "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
+            f"You can remove this warning by passing 'token={use_auth_token}' instead.",
+            FutureWarning,
+        )
+        token = use_auth_token
+
     config_names = get_dataset_config_names(
         path=path,
         revision=revision,
         download_config=download_config,
         download_mode=download_mode,
         data_files=data_files,
-        use_auth_token=use_auth_token,
+        token=token,
     )
     return {
         config_name: get_dataset_config_info(
@@ -259,7 +279,7 @@ def get_dataset_infos(
             download_config=download_config,
             download_mode=download_mode,
             revision=revision,
-            use_auth_token=use_auth_token,
+            token=token,
             **config_kwargs,
         )
         for config_name in config_names
@@ -301,7 +321,7 @@ def get_dataset_config_names(
             Defining the data_files of the dataset configuration.
         **download_kwargs (additional keyword arguments):
             Optional attributes for [`DownloadConfig`] which will override the attributes in `download_config` if supplied,
-            for example `use_auth_token`.
+            for example `token`.
 
     Example:
 
@@ -342,7 +362,8 @@ def get_dataset_config_info(
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[Union[DownloadMode, str]] = None,
     revision: Optional[Union[str, Version]] = None,
-    use_auth_token: Optional[Union[bool, str]] = None,
+    token: Optional[Union[bool, str]] = None,
+    use_auth_token="deprecated",
     **config_kwargs,
 ) -> DatasetInfo:
     """Get the meta information (DatasetInfo) about a dataset for a particular config
@@ -361,11 +382,28 @@ def get_dataset_config_info(
         revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load.
             As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
             You can specify a different version than the default "main" by using a commit SHA or a git tag of the dataset repository.
+        token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+            If True, or not specified, will get token from `"~/.huggingface"`.
         use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, or not specified, will get token from `"~/.huggingface"`.
+
+            <Deprecated version="2.14.0">
+
+            `use_auth_token` was deprecated in favor of `token` in version 2.14.0 and will be removed in 3.0.0.
+
+            </Deprecated>
+
         **config_kwargs (additional keyword arguments): optional attributes for builder class which will override the attributes if supplied.
 
     """
+    if use_auth_token != "deprecated":
+        warnings.warn(
+            "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
+            f"You can remove this warning by passing 'token={use_auth_token}' instead.",
+            FutureWarning,
+        )
+        token = use_auth_token
+
     builder = load_dataset_builder(
         path,
         name=config_name,
@@ -373,14 +411,14 @@ def get_dataset_config_info(
         download_config=download_config,
         download_mode=download_mode,
         revision=revision,
-        use_auth_token=use_auth_token,
+        token=token,
         **config_kwargs,
     )
     info = builder.info
     if info.splits is None:
         download_config = download_config.copy() if download_config else DownloadConfig()
-        if use_auth_token is not None:
-            download_config.use_auth_token = use_auth_token
+        if token is not None:
+            download_config.token = token
         builder._check_manual_download(
             StreamingDownloadManager(base_path=builder.base_path, download_config=download_config)
         )
@@ -403,7 +441,8 @@ def get_dataset_split_names(
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[Union[DownloadMode, str]] = None,
     revision: Optional[Union[str, Version]] = None,
-    use_auth_token: Optional[Union[bool, str]] = None,
+    token: Optional[Union[bool, str]] = None,
+    use_auth_token="deprecated",
     **config_kwargs,
 ):
     """Get the list of available splits for a particular config and dataset.
@@ -427,9 +466,19 @@ def get_dataset_split_names(
             Version of the dataset script to load.
             As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
             You can specify a different version than the default "main" by using a commit SHA or a git tag of the dataset repository.
+        token (`str` or `bool`, *optional*):
+            Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+            If `True`, or not specified, will get token from `"~/.huggingface"`.
         use_auth_token (`str` or `bool`, *optional*):
             Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If `True`, or not specified, will get token from `"~/.huggingface"`.
+
+            <Deprecated version="2.14.0">
+
+            `use_auth_token` was deprecated in favor of `token` in version 2.14.0 and will be removed in 3.0.0.
+
+            </Deprecated>
+
         **config_kwargs (additional keyword arguments):
             Optional attributes for builder class which will override the attributes if supplied.
 
@@ -441,6 +490,14 @@ def get_dataset_split_names(
     ['train', 'validation', 'test']
     ```
     """
+    if use_auth_token != "deprecated":
+        warnings.warn(
+            "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
+            f"You can remove this warning by passing 'token={use_auth_token}' instead.",
+            FutureWarning,
+        )
+        token = use_auth_token
+
     info = get_dataset_config_info(
         path,
         config_name=config_name,
@@ -448,7 +505,7 @@ def get_dataset_split_names(
         download_config=download_config,
         download_mode=download_mode,
         revision=revision,
-        use_auth_token=use_auth_token,
+        token=token,
         **config_kwargs,
     )
     return list(info.splits.keys())
