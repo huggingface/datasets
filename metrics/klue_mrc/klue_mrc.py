@@ -40,16 +40,17 @@ _CITATION = """
 """
 
 _DESCRIPTION = """
-This metric wrap the unofficial scoring script for Machine Reading Comprehension task of
+This metric wrap the unofficial scoring script for Machine Machine Reading Comprehension task of
 Korean Language Understanding Evaluation (KLUE-MRC).
 
-KLUE-MRC is a korean reading comprehension dataset, which has the same task format with SQuAD 2.0—consisting of questions where
-the answer to every question is a segment of text, or span, from the corresponding reading passage, or the question might be unanswerable.
+KLUE-MRC is a Korean reading comprehension dataset consisting of questionswhere the answer to every
+question is a segment of text, or span, from the corresponding reading passage, or the question might be unanswerable.
 
-As KLUE-MRC has the same task format with SQuAD 2.0, this evaluation script use the same metrics of SQuAD 2.0—F1 and EM.
+As KLUE-MRC has the same task format as SQuAD 2.0, this evaluation script uses
+the same metrics of SQuAD 2.0 (F1 and EM).
 
-KLUE-MRC consists of 12,286 question paraphrasing, 7,931 multi-sentence reasoning and 9,269 unanswerable questions.
-Totally, 29,313 examples are made with 22,343 documents, 23,717 passaages.
+KLUE-MRC consists of 12,286 question paraphrasing, 7,931 multi-sentence reasoning, and 9,269 unanswerable questions.
+Totally, 29,313 examples are made with 22,343 documents and 23,717 passages.
 """
 
 _KWARGS_DESCRIPTION = """

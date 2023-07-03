@@ -1,12 +1,12 @@
-"""Unofficial evaluation script for KLUE (MRC).
+"""Unofficial evaluation script for KLUE-MRC.
 
-Please note that this code is modified version of official evalution script for SQuAD 2.0.
+Please note that as KLUE-MRC has the same task format as SQuAD 2.0,
+this evaluation script follows almost the same format as the official evaluation script for SQuAD 2.0.
 """
 import argparse
 import collections
 import json
 import os
-import re
 import string
 import sys
 
@@ -17,7 +17,7 @@ OPTS = None
 
 
 def parse_args():
-    parser = argparse.ArgumentParser("Unofficial evaluation script for KLUE (MRC).")
+    parser = argparse.ArgumentParser("Unofficial evaluation script for KLUE-MRC.")
     parser.add_argument("data_file", metavar="data.json", help="Input data JSON file.")
     parser.add_argument("pred_file", metavar="pred.json", help="Model predictions.")
     parser.add_argument(
@@ -113,6 +113,7 @@ def get_raw_scores(dataset, preds):
                 exact_scores[qid] = max(compute_exact(a, a_pred) for a in gold_answers)
                 f1_scores[qid] = max(compute_f1(a, a_pred) for a in gold_answers)
     return exact_scores, f1_scores
+
 
 def apply_no_ans_threshold(scores, na_probs, qid_to_has_ans, na_prob_thresh):
     new_scores = {}
