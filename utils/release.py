@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import argparse
-import os
 import re
 
 import packaging.version
@@ -27,7 +26,6 @@ REPLACE_FILES = {
     "init": "src/datasets/__init__.py",
     "setup": "setup.py",
 }
-README_FILE = "README.md"
 
 
 def update_version_in_file(fname, version, pattern):
@@ -41,7 +39,7 @@ def update_version_in_file(fname, version, pattern):
         f.write(code)
 
 
-def global_version_update(version, patch=False):
+def global_version_update(version):
     """Update the version in all needed files."""
     for pattern, fname in REPLACE_FILES.items():
         update_version_in_file(fname, version, pattern)
@@ -74,7 +72,7 @@ def pre_release_work(patch=False):
         version = default_version
 
     print(f"Updating version to {version}.")
-    global_version_update(version, patch=patch)
+    global_version_update(version)
 
 
 def post_release_work():
