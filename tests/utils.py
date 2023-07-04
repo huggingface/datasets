@@ -1,4 +1,5 @@
 import asyncio
+import importlib.metadata
 import os
 import re
 import sys
@@ -18,12 +19,6 @@ import requests
 from packaging import version
 
 from datasets import config
-
-
-if config.PY_VERSION < version.parse("3.8"):
-    import importlib_metadata
-else:
-    import importlib.metadata as importlib_metadata
 
 
 def parse_flag_from_env(key, default=False):
@@ -55,7 +50,7 @@ require_zstandard = pytest.mark.skipif(not config.ZSTANDARD_AVAILABLE, reason="t
 # Audio
 require_sndfile = pytest.mark.skipif(
     # On Windows and OS X, soundfile installs sndfile
-    find_spec("soundfile") is None or version.parse(importlib_metadata.version("soundfile")) < version.parse("0.12.0"),
+    find_spec("soundfile") is None or version.parse(importlib.metadata.version("soundfile")) < version.parse("0.12.0"),
     reason="test requires sndfile>=0.12.1: 'pip install \"soundfile>=0.12.1\"'; ",
 )
 

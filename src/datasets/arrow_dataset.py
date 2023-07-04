@@ -400,9 +400,6 @@ class TensorflowDatasetMixin:
                 "Tensors instead of streaming with to_tf_dataset()."
             )
 
-        if num_workers > 0 and sys.version_info < (3, 8):
-            raise ValueError("Using multiple workers is only supported on Python versions >= 3.8.")
-
         if collate_fn is None:
             # Set a very simple default collator that just stacks things together
             collate_fn = minimal_tf_collate_fn

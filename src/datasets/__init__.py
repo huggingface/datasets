@@ -27,7 +27,7 @@ from packaging import version
 
 if version.parse(platform.python_version()) < version.parse("3.7"):
     raise ImportWarning(
-        "To use `datasets`, Python>=3.7 is required, and the current version of Python doesn't match this condition."
+        "To use `datasets`, Python>=3.8 is required, and the current version of Python doesn't match this condition."
     )
 
 if version.parse(pyarrow.__version__).major < 8:
