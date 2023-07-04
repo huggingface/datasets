@@ -152,7 +152,6 @@ class RecurseDumpTest(TestCase):
         self.assertNotEqual(hash1, hash2)
 
     def test_dump_ipython_function(self):
-
         def create_ipython_func(co_filename, returned_obj):
             def func():
                 return returned_obj
