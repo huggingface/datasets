@@ -148,11 +148,10 @@ VISION_REQUIRE = [
 ]
 
 BENCHMARKS_REQUIRE = [
-    "numpy==1.18.5",
-    "tensorflow==2.3.0",
-    "torch==1.7.1",
-    "transformers==3.0.2",
-    "protobuf==3.20.3",  # Fix tensorflow 2.3 import `TypeError: Descriptors cannot not be created directly.`
+    "numpy==1.25.0",
+    "tensorflow==2.13.0",
+    "torch==2.0.1",
+    "transformers==4.30.1",
 ]
 
 TESTS_REQUIRE = [
