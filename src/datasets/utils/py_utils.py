@@ -1330,24 +1330,20 @@ def _write_generator_to_queue(queue: queue.Queue, func: Callable[..., Iterable[Y
     return i
 
 
-def _get_pool_pid(pool: Union[multiprocessing.pool.Pool, multiprocess.pool.Pool]) -> Set[int]:
-    return {f.pid for f in pool._pool}
-
-
 def iflatmap_unordered(
     pool: Union[multiprocessing.pool.Pool, multiprocess.pool.Pool],
     func: Callable[..., Iterable[Y]],
     *,
     kwargs_iterable: Iterable[dict],
 ) -> Iterable[Y]:
-    initial_pool_pid = _get_pool_pid(pool)
+    original_pool = list(pool._pool)
+    pool_changed = False
     manager_cls = Manager if isinstance(pool, multiprocessing.pool.Pool) else multiprocess.Manager
     with manager_cls() as manager:
         queue = manager.Queue()
         async_results = [
             pool.apply_async(_write_generator_to_queue, (queue, func, kwargs)) for kwargs in kwargs_iterable
         ]
-        subproc_killed = False
         try:
             while True:
                 try:
@@ -1355,14 +1351,13 @@ def iflatmap_unordered(
                 except Empty:
                     if all(async_result.ready() for async_result in async_results) and queue.empty():
                         break
-                if _get_pool_pid(pool) != initial_pool_pid:
-                    subproc_killed = True
-                    # One of the subprocesses has died. We should not wait forever.
-                    raise RuntimeError(
-                        "One of the subprocesses has abruptly died during map operation."
-                        "To debug the error, disable multiprocessing."
-                    )
+                    if any(async_result._pool != original_pool for async_result in async_results) and queue.empty():
+                        pool_changed = True
+                        raise RuntimeError(
+                            "One of the subprocesses has abruptly died during map operation."
+                            "To debug the error, disable multiprocessing."
+                        )
         finally:
-            if not subproc_killed:
+            if not pool_changed:
                 # we get the result in case there's an error to raise
                 [async_result.get(timeout=0.05) for async_result in async_results]
