@@ -148,7 +148,7 @@ VISION_REQUIRE = [
 ]
 
 BENCHMARKS_REQUIRE = [
-    "tensorflow==2.13.0",
+    "tensorflow==2.12.0",
     "torch==2.0.1",
     "transformers==4.30.1",
 ]
