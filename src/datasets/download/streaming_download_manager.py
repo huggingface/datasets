@@ -242,6 +242,7 @@ def xsplitext(a):
         return "::".join([a] + b), ext
 
 
+
 def xisfile(path, download_config: Optional[DownloadConfig] = None) -> bool:
     """Extend `os.path.isfile` function to support remote files.
 
@@ -393,8 +394,16 @@ def _get_extraction_protocol(urlpath: str, download_config: Optional[DownloadCon
         urlpath, kwargs = _prepare_http_url_kwargs(urlpath, download_config=download_config)
     else:
         urlpath, kwargs = urlpath, {}
-    with fsspec.open(urlpath, **kwargs) as f:
-        return _get_extraction_protocol_with_magic_number(f)
+    try:
+        with fsspec.open(urlpath, **kwargs) as f:
+            return _get_extraction_protocol_with_magic_number(f)
+    except FileNotFoundError:
+        if urlpath.startswith(config.HF_ENDPOINT):
+            raise FileNotFoundError(
+                urlpath + "\nIf the repo is private or gated, make sure to log in with `huggingface-cli login`."
+            ) from None
+        else:
+            raise
 
 
 def _validate_servers(urlpath: str):
@@ -432,7 +441,7 @@ def _prepare_http_url_kwargs(url: str, download_config: Optional[DownloadConfig]
     """
     use_auth_token = None if download_config is None else download_config.use_auth_token
     kwargs = {
-        "headers": get_authentication_headers_for_url(url, use_auth_token=use_auth_token),
+        "headers": get_authentication_headers_for_url(url, token=token),
         "client_kwargs": {"trust_env": True},  # Enable reading proxy env variables.
     }
     if "drive.google.com" in url:
@@ -459,7 +468,7 @@ def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] 
     """Extend `open` function to support remote files using `fsspec`.
 
     It also has a retry mechanism in case connection fails.
-    The `args` and `kwargs` are passed to `fsspec.open`, except `use_auth_token` which is used for queries to private repos on huggingface.co
+    The `args` and `kwargs` are passed to `fsspec.open`, except `token` which is used for queries to private repos on huggingface.co
 
     Args:
         file (`str`): Path name of the file to be opened.
@@ -489,6 +498,13 @@ def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] 
                 "Streaming is not possible for this dataset because data host server doesn't support HTTP range "
                 "requests. You can still load this dataset in non-streaming mode by passing `streaming=False` (default)"
             ) from e
+        else:
+            raise
+    except FileNotFoundError:
+        if file.startswith(config.HF_ENDPOINT):
+            raise FileNotFoundError(
+                file + "\nIf the repo is private or gated, make sure to log in with `huggingface-cli login`."
+            ) from None
         else:
             raise
     _add_retries_to_file_obj_read_method(file_obj)
@@ -726,6 +742,7 @@ def xgzip_open(filepath_or_buffer, *args, download_config: Optional[DownloadConf
 
 
 def xnumpy_load(filepath_or_buffer, *args, download_config: Optional[DownloadConfig] = None, **kwargs):
+
     import numpy as np
 
     if hasattr(filepath_or_buffer, "read"):
@@ -918,7 +935,6 @@ class FilesIterable(_IterableFromGenerator):
     @classmethod
     def from_urlpaths(cls, urlpaths, download_config: Optional[DownloadConfig] = None) -> "FilesIterable":
         return cls(cls._iter_from_urlpaths, urlpaths, download_config)
-
 
 class StreamingDownloadManager:
     """

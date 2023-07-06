@@ -351,6 +351,7 @@ def test_xisdir(input_path, isdir, tmp_path, mock_fsspec):
 @pytest.mark.integration
 def test_xisdir_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
     root_url = hf_hub_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
+
     download_config = DownloadConfig(use_auth_token=hf_token)
     assert xisdir("zip://::" + root_url, download_config=download_config) is True
     assert xisdir("zip://main_dir::" + root_url, download_config=download_config) is True

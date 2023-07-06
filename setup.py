@@ -132,8 +132,8 @@ REQUIRED_PKGS = [
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    # minimum 0.11.0 to fix 400 Client Error issues
-    "huggingface-hub>=0.11.0,<1.0.0",
+    # minimum 0.13.0 to support dict-like modification of DatasetCard
+    "huggingface-hub>=0.13.0,<1.0.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     # To parse YAML metadata from dataset cards
@@ -160,6 +160,8 @@ BENCHMARKS_REQUIRE = [
 TESTS_REQUIRE = [
     # test dependencies
     "absl-py",
+    "joblib<1.3.0",  # joblibspark doesn't support recent joblib versions
+    "joblibspark",
     "pytest",
     "pytest-datadir",
     "pytest-xdist",
@@ -243,7 +245,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.12.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.13.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

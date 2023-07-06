@@ -25,7 +25,7 @@ jobs:
           dvc repro --force
 
           git fetch --prune
-          dvc metrics diff --show-json main > report.json
+          dvc metrics diff --json main > report.json
 
           python ./benchmarks/format.py report.json report.md
 
@@ -38,7 +38,7 @@ jobs:
           dvc repro --force
 
           git fetch --prune
-          dvc metrics diff --show-json main > report.json
+          dvc metrics diff --json main > report.json
 
           python ./benchmarks/format.py report.json report.md
 

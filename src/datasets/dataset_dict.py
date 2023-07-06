@@ -11,9 +11,7 @@ from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import fsspec
 import numpy as np
-from huggingface_hub import HfApi
-
-from datasets.utils.metadata import DatasetMetadata
+from huggingface_hub import DatasetCard, DatasetCardData, HfApi
 
 from . import config
 from .arrow_dataset import Dataset
@@ -974,6 +972,58 @@ class DatasetDict(dict):
             }
         )
 
+    def flatten_indices(
+        self,
+        keep_in_memory: bool = False,
+        cache_file_names: Optional[Dict[str, Optional[str]]] = None,
+        writer_batch_size: Optional[int] = 1000,
+        features: Optional[Features] = None,
+        disable_nullable: bool = False,
+        num_proc: Optional[int] = None,
+        new_fingerprint: Optional[str] = None,
+    ) -> "DatasetDict":
+        """Create and cache a new Dataset by flattening the indices mapping.
+
+        Args:
+            keep_in_memory (`bool`, defaults to `False`):
+                Keep the dataset in memory instead of writing it to a cache file.
+            cache_file_names (`Dict[str, str]`, *optional*, default `None`):
+                Provide the name of a path for the cache file. It is used to store the
+                results of the computation instead of the automatically generated cache file name.
+                You have to provide one `cache_file_name` per dataset in the dataset dictionary.
+            writer_batch_size (`int`, defaults to `1000`):
+                Number of rows per write operation for the cache file writer.
+                This value is a good trade-off between memory usage during the processing, and processing speed.
+                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `map`.
+            features (`Optional[datasets.Features]`, defaults to `None`):
+                Use a specific [`Features`] to store the cache file
+                instead of the automatically generated one.
+            disable_nullable (`bool`, defaults to `False`):
+                Allow null values in the table.
+            num_proc (`int`, optional, default `None`):
+                Max number of processes when generating cache. Already cached shards are loaded sequentially
+            new_fingerprint (`str`, *optional*, defaults to `None`):
+                The new fingerprint of the dataset after transform.
+                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
+        """
+        self._check_values_type()
+        if cache_file_names is None:
+            cache_file_names = {k: None for k in self}
+        return DatasetDict(
+            {
+                k: dataset.flatten_indices(
+                    keep_in_memory=keep_in_memory,
+                    cache_file_name=cache_file_names[k],
+                    writer_batch_size=writer_batch_size,
+                    features=features,
+                    disable_nullable=disable_nullable,
+                    num_proc=num_proc,
+                    new_fingerprint=new_fingerprint,
+                )
+                for k, dataset in self.items()
+            }
+        )
+
     def sort(
         self,
         column_names: Union[str, Sequence[str]],
@@ -1619,20 +1669,30 @@ class DatasetDict(dict):
         if "README.md" in repo_files:
             download_config = DownloadConfig()
             download_config.download_desc = "Downloading metadata"
-            download_config.use_auth_token = token
+            download_config.token = token
             dataset_readme_path = cached_path(
                 hf_hub_url(repo_id, "README.md"),
                 download_config=download_config,
             )
-            dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
-            with open(dataset_readme_path, encoding="utf-8") as readme_file:
-                readme_content = readme_file.read()
+            dataset_card = DatasetCard.load(Path(dataset_readme_path))
+            dataset_card_data = dataset_card.data
         else:
-            dataset_metadata = DatasetMetadata()
-            readme_content = f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
-        DatasetInfosDict({"default": info_to_dump}).to_metadata(dataset_metadata)
+            dataset_card = None
+            dataset_card_data = DatasetCardData()
+
+        DatasetInfosDict({"default": info_to_dump}).to_dataset_card_data(dataset_card_data)
+        dataset_card = (
+            DatasetCard(
+                "---\n"
+                + str(dataset_card_data)
+                + "\n---\n"
+                + f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
+            )
+            if dataset_card is None
+            else dataset_card
+        )
         HfApi(endpoint=config.HF_ENDPOINT).upload_file(
-            path_or_fileobj=dataset_metadata._to_readme(readme_content).encode(),
+            path_or_fileobj=str(dataset_card).encode(),
             path_in_repo="README.md",
             repo_id=repo_id,
             token=token,

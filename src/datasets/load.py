@@ -30,7 +30,7 @@ from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Type, Union
 
 import fsspec
 import requests
-from huggingface_hub import HfApi
+from huggingface_hub import DatasetCard, HfApi
 
 from . import config
 from .arrow_dataset import Dataset
@@ -58,6 +58,7 @@ from .metric import Metric
 from .packaged_modules import (
     _EXTENSION_TO_MODULE,
     _MODULE_SUPPORTS_METADATA,
+    _MODULE_TO_EXTENSIONS,
     _PACKAGED_DATASETS_MODULES,
     _hash_python_lines,
 )
@@ -79,7 +80,6 @@ from .utils.filelock import FileLock
 from .utils.hub import hf_hub_url
 from .utils.info_utils import VerificationMode, is_small_dataset
 from .utils.logging import get_logger
-from .utils.metadata import DatasetMetadata
 from .utils.py_utils import get_imports
 from .utils.version import Version
 
@@ -347,6 +347,9 @@ def infer_module_for_data_files(
 ) -> Optional[Tuple[str, str]]:
     """Infer module (and builder kwargs) from list of data files.
 
+    It picks the module based on the most common file extension.
+    In case of a draw ".parquet" is the favorite, and then alphabetical order.
+
     Args:
         data_files_list (DataFilesList): List of data files.
         download_config (bool or str, optional): mainly use use_auth_token or storage_options to support different platforms and auth types.
@@ -362,7 +365,13 @@ def infer_module_for_data_files(
         for suffix in Path(filepath).suffixes
     )
     if extensions_counter:
-        for ext, _ in extensions_counter.most_common():
+
+        def sort_key(ext_count: Tuple[str, int]) -> Tuple[int, bool]:
+            """Sort by count and set ".parquet" as the favorite in case of a draw"""
+            ext, count = ext_count
+            return (count, ext == ".parquet", ext)
+
+        for ext, _ in sorted(extensions_counter.items(), key=sort_key, reverse=True):
             if ext in _EXTENSION_TO_MODULE:
                 return _EXTENSION_TO_MODULE[ext]
             elif ext == ".zip":
@@ -640,6 +649,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             raise ValueError(f"Couldn't infer the same data file format for all splits. Got {split_modules}")
         if not module_name:
             raise FileNotFoundError(f"No (supported) data files or dataset script found in {self.path}")
+        data_files = data_files.filter_extensions(_MODULE_TO_EXTENSIONS[module_name])
         # Collect metadata files if the module supports them
         if self.data_files is None and module_name in _MODULE_SUPPORTS_METADATA and patterns != DEFAULT_PATTERNS_ALL:
             try:
@@ -668,14 +678,14 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 builder_kwargs["config_name"] = next(iter(dataset_infos))
                 builder_kwargs["info"] = DatasetInfo.from_dict(next(iter(dataset_infos.values())))
         if os.path.isfile(os.path.join(self.path, "README.md")):
-            dataset_metadata = DatasetMetadata.from_readme(Path(self.path) / "README.md")
-            if isinstance(dataset_metadata.get("dataset_info"), list) and dataset_metadata["dataset_info"]:
-                dataset_info_dict = dataset_metadata["dataset_info"][0]
+            dataset_card_data = DatasetCard.load(Path(self.path) / "README.md").data
+            if isinstance(dataset_card_data.get("dataset_info"), list) and dataset_card_data["dataset_info"]:
+                dataset_info_dict = dataset_card_data["dataset_info"][0]
                 builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
                 if "config_name" in dataset_info_dict:
                     builder_kwargs["config_name"] = dataset_info_dict["config_name"]
-            elif isinstance(dataset_metadata.get("dataset_info"), dict) and dataset_metadata["dataset_info"]:
-                dataset_info_dict = dataset_metadata["dataset_info"]
+            elif isinstance(dataset_card_data.get("dataset_info"), dict) and dataset_card_data["dataset_info"]:
+                dataset_info_dict = dataset_card_data["dataset_info"]
                 builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
                 if "config_name" in dataset_info_dict:
                     builder_kwargs["config_name"] = dataset_info_dict["config_name"]
@@ -709,7 +719,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         )
         data_files = DataFilesDict.from_local_or_remote(
             patterns,
-            use_auth_token=self.download_config.use_auth_token,
+            token=self.download_config.token,
             base_path=base_path,
         )
         if self.data_files is None and self.name in _MODULE_SUPPORTS_METADATA and patterns != DEFAULT_PATTERNS_ALL:
@@ -719,7 +729,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
                 metadata_patterns = None
             if metadata_patterns is not None:
                 metadata_files = DataFilesList.from_local_or_remote(
-                    metadata_patterns, use_auth_token=self.download_config.use_auth_token, base_path=base_path
+                    metadata_patterns, token=self.download_config.token, base_path=base_path
                 )
                 for key in data_files:
                     data_files[key] = DataFilesList(
@@ -758,7 +768,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         hfh_dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
             self.name,
             revision=self.revision,
-            token=self.download_config.use_auth_token,
+            token=self.download_config.token,
             timeout=100.0,
         )
         patterns = (
@@ -781,6 +791,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             raise ValueError(f"Couldn't infer the same data file format for all splits. Got {split_modules}")
         if not module_name:
             raise FileNotFoundError(f"No (supported) data files or dataset script found in {self.name}")
+        data_files = data_files.filter_extensions(_MODULE_TO_EXTENSIONS[module_name])
         # Collect metadata files if the module supports them
         if self.data_files is None and module_name in _MODULE_SUPPORTS_METADATA and patterns != DEFAULT_PATTERNS_ALL:
             try:
@@ -828,14 +839,14 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 hf_hub_url(self.name, "README.md", revision=self.revision),
                 download_config=download_config,
             )
-            dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
-            if isinstance(dataset_metadata.get("dataset_info"), list) and dataset_metadata["dataset_info"]:
-                dataset_info_dict = dataset_metadata["dataset_info"][0]
+            dataset_card_data = DatasetCard.load(Path(dataset_readme_path)).data
+            if isinstance(dataset_card_data.get("dataset_info"), list) and dataset_card_data["dataset_info"]:
+                dataset_info_dict = dataset_card_data["dataset_info"][0]
                 builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
                 if "config_name" in dataset_info_dict:
                     builder_kwargs["config_name"] = dataset_info_dict["config_name"]
-            elif isinstance(dataset_metadata.get("dataset_info"), dict) and dataset_metadata["dataset_info"]:
-                dataset_info_dict = dataset_metadata["dataset_info"]
+            elif isinstance(dataset_card_data.get("dataset_info"), dict) and dataset_card_data["dataset_info"]:
+                dataset_info_dict = dataset_card_data["dataset_info"]
                 builder_kwargs["info"] = DatasetInfo._from_yaml_dict(dataset_info_dict)
                 if "config_name" in dataset_info_dict:
                     builder_kwargs["config_name"] = dataset_info_dict["config_name"]
@@ -1071,7 +1082,7 @@ def dataset_module_factory(
               -> load the dataset builder from the dataset script
               e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``.
 
-            For datasets on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
+            For datasets on the Hugging Face Hub (list all available datasets with ``huggingface_hub.list_datasets()``)
 
             - if ``path`` is a dataset repository on the HF hub (containing data files only)
               -> load a generic dataset builder (csv, text etc.) based on the content of the repository
@@ -1158,7 +1169,7 @@ def dataset_module_factory(
                 dataset_info = hf_api.dataset_info(
                     repo_id=path,
                     revision=revision,
-                    use_auth_token=download_config.use_auth_token,
+                    token=download_config.token,
                     timeout=100.0,
                 )
             except Exception as e:  # noqa: catch any exception of hf_hub and consider that the dataset doesn't exist
@@ -1410,14 +1421,15 @@ def load_dataset_builder(
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[Union[DownloadMode, str]] = None,
     revision: Optional[Union[str, Version]] = None,
-    use_auth_token: Optional[Union[bool, str]] = None,
+    token: Optional[Union[bool, str]] = None,
+    use_auth_token="deprecated",
     storage_options: Optional[Dict] = None,
     **config_kwargs,
 ) -> DatasetBuilder:
     """Load a dataset builder from the Hugging Face Hub, or a local dataset. A dataset builder can be used to inspect general information that is required to build a dataset (cache directory, config, dataset info, etc.)
     without downloading the dataset itself.
 
-    You can find the list of datasets on the [Hub](https://huggingface.co/datasets) or with [`datasets.list_datasets`].
+    You can find the list of datasets on the [Hub](https://huggingface.co/datasets) or with [`huggingface_hub.list_datasets`].
 
     A dataset is a directory that contains:
 
@@ -1441,7 +1453,7 @@ def load_dataset_builder(
               -> load the dataset builder from the dataset script
               e.g. `'./dataset/squad'` or `'./dataset/squad/squad.py'`.
 
-            For datasets on the Hugging Face Hub (list all available datasets and ids with [`datasets.list_datasets`])
+            For datasets on the Hugging Face Hub (list all available datasets with [`huggingface_hub.list_datasets`])
 
             - if `path` is a dataset repository on the HF hub (containing data files only)
               -> load a generic dataset builder (csv, text etc.) based on the content of the repository
@@ -1469,9 +1481,18 @@ def load_dataset_builder(
             Version of the dataset script to load.
             As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
             You can specify a different version than the default "main" by using a commit SHA or a git tag of the dataset repository.
+        token (`str` or `bool`, *optional*):
+            Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+            If `True`, or not specified, will get token from `"~/.huggingface"`.
         use_auth_token (`str` or `bool`, *optional*):
             Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If `True`, or not specified, will get token from `"~/.huggingface"`.
+
+            <Deprecated version="2.14.0">
+
+            `use_auth_token` was deprecated in favor of `token` in version 2.14.0 and will be removed in 3.0.0.
+
+            </Deprecated>
         storage_options (`dict`, *optional*, defaults to `None`):
             **Experimental**. Key/value pairs to be passed on to the dataset file-system backend, if any.
 
@@ -1493,10 +1514,17 @@ def load_dataset_builder(
      'text': Value(dtype='string', id=None)}
     ```
     """
+    if use_auth_token != "deprecated":
+        warnings.warn(
+            "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
+            f"You can remove this warning by passing 'token={use_auth_token}' instead.",
+            FutureWarning,
+        )
+        token = use_auth_token
     download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
-    if use_auth_token is not None:
+    if token is not None:
         download_config = download_config.copy() if download_config else DownloadConfig()
-        download_config.use_auth_token = use_auth_token
+        download_config.token = token
     dataset_module = dataset_module_factory(
         path,
         revision=revision,
@@ -1530,7 +1558,7 @@ def load_dataset_builder(
         data_files=data_files,
         hash=hash,
         features=features,
-        use_auth_token=use_auth_token,
+        token=token,
         storage_options=storage_options,
         **builder_kwargs,
         **config_kwargs,
@@ -1554,7 +1582,8 @@ def load_dataset(
     keep_in_memory: Optional[bool] = None,
     save_infos: bool = False,
     revision: Optional[Union[str, Version]] = None,
-    use_auth_token: Optional[Union[bool, str]] = None,
+    token: Optional[Union[bool, str]] = None,
+    use_auth_token="deprecated",
     task: Optional[Union[str, TaskTemplate]] = None,
     streaming: bool = False,
     num_proc: Optional[int] = None,
@@ -1563,7 +1592,7 @@ def load_dataset(
 ) -> Union[DatasetDict, Dataset, IterableDatasetDict, IterableDataset]:
     """Load a dataset from the Hugging Face Hub, or a local dataset.
 
-    You can find the list of datasets on the [Hub](https://huggingface.co/datasets) or with [`datasets.list_datasets`].
+    You can find the list of datasets on the [Hub](https://huggingface.co/datasets) or with [`huggingface_hub.list_datasets`].
 
     A dataset is a directory that contains:
 
@@ -1611,7 +1640,7 @@ def load_dataset(
               -> load the dataset builder from the dataset script
               e.g. `'./dataset/squad'` or `'./dataset/squad/squad.py'`.
 
-            For datasets on the Hugging Face Hub (list all available datasets and ids with [`datasets.list_datasets`])
+            For datasets on the Hugging Face Hub (list all available datasets with [`huggingface_hub.list_datasets`])
 
             - if `path` is a dataset repository on the HF hub (containing data files only)
               -> load a generic dataset builder (csv, text etc.) based on the content of the repository
@@ -1663,9 +1692,18 @@ def load_dataset(
             Version of the dataset script to load.
             As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
             You can specify a different version than the default "main" by using a commit SHA or a git tag of the dataset repository.
+        token (`str` or `bool`, *optional*):
+            Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+            If `True`, or not specified, will get token from `"~/.huggingface"`.
         use_auth_token (`str` or `bool`, *optional*):
             Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If `True`, or not specified, will get token from `"~/.huggingface"`.
+
+            <Deprecated version="2.14.0">
+
+            `use_auth_token` was deprecated in favor of `token` in version 2.14.0 and will be removed in 3.0.0.
+
+            </Deprecated>
         task (`str`):
             The task to prepare the dataset for during training and evaluation. Casts the dataset's [`Features`] to standardized column names and types as detailed in `datasets.tasks`.
         streaming (`bool`, defaults to `False`):
@@ -1741,6 +1779,13 @@ def load_dataset(
     >>> ds = load_dataset('imagefolder', data_dir='/path/to/images', split='train')
     ```
     """
+    if use_auth_token != "deprecated":
+        warnings.warn(
+            "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
+            f"You can remove this warning by passing 'token={use_auth_token}' instead.",
+            FutureWarning,
+        )
+        token = use_auth_token
     if ignore_verifications != "deprecated":
         verification_mode = VerificationMode.NO_CHECKS if ignore_verifications else VerificationMode.ALL_CHECKS
         warnings.warn(
@@ -1778,7 +1823,7 @@ def load_dataset(
         download_config=download_config,
         download_mode=download_mode,
         revision=revision,
-        use_auth_token=use_auth_token,
+        token=token,
         storage_options=storage_options,
         **config_kwargs,
     )

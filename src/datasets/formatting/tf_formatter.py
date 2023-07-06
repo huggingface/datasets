@@ -22,14 +22,14 @@ import pyarrow as pa
 
 from .. import config
 from ..utils.py_utils import map_nested
-from .formatting import Formatter
+from .formatting import TensorFormatter
 
 
 if TYPE_CHECKING:
     import tensorflow as tf
 
 
-class TFFormatter(Formatter[Mapping, "tf.Tensor", Mapping]):
+class TFFormatter(TensorFormatter[Mapping, "tf.Tensor", Mapping]):
     def __init__(self, features=None, **tf_tensor_kwargs):
         super().__init__(features=features)
         self.tf_tensor_kwargs = tf_tensor_kwargs
@@ -72,15 +72,27 @@ class TFFormatter(Formatter[Mapping, "tf.Tensor", Mapping]):
 
         return tf.convert_to_tensor(value, **{**default_dtype, **self.tf_tensor_kwargs})
 
-    def _recursive_tensorize(self, data_struct: dict):
+    def _recursive_tensorize(self, data_struct):
+        import tensorflow as tf
+
+        # support for torch, tf, jax etc.
+        if config.TORCH_AVAILABLE and "torch" in sys.modules:
+            import torch
+
+            if isinstance(data_struct, torch.Tensor):
+                return self._tensorize(data_struct.detach().cpu().numpy()[()])
+        if hasattr(data_struct, "__array__") and not isinstance(data_struct, tf.Tensor):
+            data_struct = data_struct.__array__()
         # support for nested types like struct of list of struct
         if isinstance(data_struct, np.ndarray):
             if data_struct.dtype == object:  # tf tensors cannot be instantied from an array of objects
                 return self._consolidate([self.recursive_tensorize(substruct) for substruct in data_struct])
+        elif isinstance(data_struct, (list, tuple)):
+            return self._consolidate([self.recursive_tensorize(substruct) for substruct in data_struct])
         return self._tensorize(data_struct)
 
     def recursive_tensorize(self, data_struct: dict):
-        return map_nested(self._recursive_tensorize, data_struct)
+        return map_nested(self._recursive_tensorize, data_struct, map_list=False)
 
     def format_row(self, pa_table: pa.Table) -> Mapping:
         row = self.numpy_arrow_extractor().extract_row(pa_table)

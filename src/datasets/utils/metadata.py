@@ -4,6 +4,8 @@ from typing import Optional, Tuple
 
 import yaml
 
+from .deprecation_utils import deprecated
+
 
 class _NoDuplicateSafeLoader(yaml.SafeLoader):
     def _check_no_duplicates_on_constructed_node(self, node):
@@ -30,6 +32,7 @@ def _split_yaml_from_readme(readme_content: str) -> Tuple[Optional[str], str]:
     return None, "\n".join(full_content)
 
 
+@deprecated("Use `huggingface_hub.DatasetCardData` instead.")
 class DatasetMetadata(dict):
     # class attributes
     _FIELDS_WITH_DASHES = {"train_eval_index"}  # train-eval-index in the YAML metadata

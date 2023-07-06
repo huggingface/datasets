@@ -57,7 +57,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
-from huggingface_hub import HfApi, HfFolder
+from huggingface_hub import DatasetCard, DatasetCardData, HfApi, HfFolder
 from multiprocess import Pool
 from requests import HTTPError
 
@@ -98,6 +98,7 @@ from .table import (
     InMemoryTable,
     MemoryMappedTable,
     Table,
+    _memory_mapped_record_batch_reader_from_file,
     cast_array_to_feature,
     concat_tables,
     embed_table_storage,
@@ -111,7 +112,6 @@ from .utils import logging
 from .utils.file_utils import _retry, cached_path, estimate_dataset_size
 from .utils.hub import hf_hub_url
 from .utils.info_utils import is_small_dataset
-from .utils.metadata import DatasetMetadata
 from .utils.py_utils import Literal, asdict, convert_file_size_to_int, iflatmap_unordered, unique_values
 from .utils.stratify import stratified_shuffle_split_generate_indices
 from .utils.tf_utils import dataset_to_tf, minimal_tf_collate_fn, multiprocess_dataset_to_tf
@@ -309,7 +309,7 @@ class TensorflowDatasetMixin:
 
     def to_tf_dataset(
         self,
-        batch_size: int,
+        batch_size: Optional[int] = None,
         columns: Optional[Union[str, List[str]]] = None,
         shuffle: bool = False,
         collate_fn: Optional[Callable] = None,
@@ -326,8 +326,9 @@ class TensorflowDatasetMixin:
         `tf.Tensor` is yielded instead.
 
         Args:
-            batch_size (`int`):
-                Size of batches to load from the dataset.
+            batch_size (`int`, *optional*):
+                Size of batches to load from the dataset. Defaults to `None`, which implies that the dataset won't be
+                batched, but the returned dataset can be batched later with `tf_dataset.batch(batch_size)`.
             columns (`List[str]` or `str`, *optional*):
                 Dataset column(s) to load in the `tf.data.Dataset`.
                 Column names that are created by the `collate_fn` and that do not exist in the original dataset can be used.
@@ -425,7 +426,7 @@ class TensorflowDatasetMixin:
             cols_to_retain = None  # Indicates keeping all valid columns
             columns = []
 
-        if self.format["type"] != "custom":
+        if self.format["type"] not in ["custom", "numpy"]:
             dataset = self.with_format("numpy")
         else:
             dataset = self
@@ -437,7 +438,7 @@ class TensorflowDatasetMixin:
             collate_fn=collate_fn,
             collate_fn_args=collate_fn_args,
             cols_to_retain=cols_to_retain,
-            batch_size=batch_size if drop_remainder else None,
+            batch_size=batch_size if drop_remainder and batch_size is not None else None,
             num_test_batches=num_test_batches,
         )
 
@@ -468,6 +469,11 @@ class TensorflowDatasetMixin:
                 drop_remainder=drop_remainder,
             )
         elif num_workers > 0:
+            if batch_size is None:
+                raise NotImplementedError(
+                    "`batch_size` must be specified when using multiple workers, as unbatched multiprocessing "
+                    "is not supported yet. Please provide a `batch_size` if `num_workers` is greater than 0."
+                )
             tf_dataset = multiprocess_dataset_to_tf(
                 dataset=dataset,
                 cols_to_retain=cols_to_retain,
@@ -1962,6 +1968,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             else:
                 break
         dataset.info.features = self._info.features.flatten(max_depth=max_depth)
+        dataset.info.features = Features({col: dataset.info.features[col] for col in dataset.data.column_names})
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         logger.info(f'Flattened dataset from depth {depth} to depth {1 if depth + 1 < max_depth else "unknown"}.')
         dataset._fingerprint = new_fingerprint
@@ -2326,8 +2333,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
 
         dataset = copy.deepcopy(self)
-        dataset._info.features = Features({k: v for k, v in dataset._info.features.items() if k in column_names})
         dataset._data = dataset._data.select(column_names)
+        dataset._info.features = Features({col: self._info.features[col] for col in dataset._data.column_names})
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         dataset._fingerprint = new_fingerprint
         return dataset
@@ -3289,7 +3296,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         def validate_function_output(processed_inputs, indices):
             """Validate output of the map function."""
-            if processed_inputs is not None and not isinstance(processed_inputs, (Mapping, pa.Table)):
+            if processed_inputs is not None and not isinstance(processed_inputs, (Mapping, pa.Table, pd.DataFrame)):
                 raise TypeError(
                     f"Provided `function` which is applied to all elements of table returns a variable of type {type(processed_inputs)}. Make sure provided `function` returns a variable of type `dict` (or a pyarrow table) to update the dataset or `None` if you are only interested in side effects."
                 )
@@ -3344,7 +3351,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 returned_lazy_dict = False
             if update_data is None:
                 # Check if the function returns updated examples
-                update_data = isinstance(processed_inputs, (Mapping, pa.Table))
+                update_data = isinstance(processed_inputs, (Mapping, pa.Table, pd.DataFrame))
                 validate_function_output(processed_inputs, indices)
             if not update_data:
                 return None  # Nothing to update, let's move on
@@ -3438,6 +3445,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                                 stack.enter_context(writer)
                             if isinstance(example, pa.Table):
                                 writer.write_row(example)
+                            elif isinstance(example, pd.DataFrame):
+                                writer.write_row(pa.Table.from_pandas(example))
                             else:
                                 writer.write(example)
                         num_examples_progress_update += 1
@@ -3469,6 +3478,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                                 stack.enter_context(writer)
                             if isinstance(batch, pa.Table):
                                 writer.write_table(batch)
+                            elif isinstance(batch, pd.DataFrame):
+                                writer.write_table(pa.Table.from_pandas(batch))
                             else:
                                 writer.write_batch(batch)
                         num_examples_progress_update += num_examples_in_batch
@@ -4040,7 +4051,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
 
         # Check proper format of and for duplicates in column_names
-        if not isinstance(column_names, list):
+        if isinstance(column_names, str):
             column_names = [column_names]
 
         # Check proper format and length of reverse
@@ -5000,6 +5011,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             for pa_table in shard.with_format("arrow").iter(batch_size):
                 yield shard_idx, pa_table
 
+    @staticmethod
+    def _generate_tables_from_cache_file(filename: str):
+        for batch_idx, batch in enumerate(_memory_mapped_record_batch_reader_from_file(filename)):
+            yield batch_idx, pa.Table.from_batches([batch])
+
     def to_iterable_dataset(self, num_shards: Optional[int] = 1) -> "IterableDataset":
         """Get an [`datasets.IterableDataset`] from a map-style [`datasets.Dataset`].
         This is equivalent to loading a dataset in streaming mode with [`datasets.load_dataset`], but much faster since the data is streamed from local files.
@@ -5300,6 +5316,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             for data_file in data_files
             if data_file.startswith(f"data/{split}-") and data_file not in shards_path_in_repo
         ]
+
         download_config = DownloadConfig(use_auth_token=token)
         deleted_size = sum(
             xgetsize(hf_hub_url(repo_id, data_file), download_config=download_config)
@@ -5406,23 +5423,25 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if "README.md" in repo_files:
             download_config = DownloadConfig()
             download_config.download_desc = "Downloading metadata"
-            download_config.use_auth_token = token
+            download_config.token = token
             dataset_readme_path = cached_path(
                 hf_hub_url(repo_id, "README.md"),
                 download_config=download_config,
             )
-            dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
-            dataset_infos: DatasetInfosDict = DatasetInfosDict.from_metadata(dataset_metadata)
+            dataset_card = DatasetCard.load(Path(dataset_readme_path))
+            dataset_card_data = dataset_card.data
+            dataset_infos: DatasetInfosDict = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
             if dataset_infos:
                 repo_info = dataset_infos[next(iter(dataset_infos))]
             else:
                 repo_info = None
         # get the deprecated dataset_infos.json to update them
         elif config.DATASETDICT_INFOS_FILENAME in repo_files:
-            dataset_metadata = DatasetMetadata()
+            dataset_card = None
+            dataset_card_data = DatasetCardData()
             download_config = DownloadConfig()
             download_config.download_desc = "Downloading metadata"
-            download_config.use_auth_token = token
+            download_config.token = token
             dataset_infos_path = cached_path(
                 hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME),
                 download_config=download_config,
@@ -5434,7 +5453,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 else:
                     repo_info = None
         else:
-            dataset_metadata = DatasetMetadata()
+            dataset_card = None
+            dataset_card_data = DatasetCardData()
             repo_info = None
         # update the total info to dump from existing info
         if repo_info is not None:
@@ -5472,14 +5492,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 revision=branch,
             )
         # push to README
-        DatasetInfosDict({"default": info_to_dump}).to_metadata(dataset_metadata)
-        if "README.md" in repo_files:
-            with open(dataset_readme_path, encoding="utf-8") as readme_file:
-                readme_content = readme_file.read()
-        else:
-            readme_content = f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
+        DatasetInfosDict({"default": info_to_dump}).to_dataset_card_data(dataset_card_data)
+        dataset_card = (
+            DatasetCard(
+                "---\n"
+                + str(dataset_card_data)
+                + "\n---\n"
+                + f'# Dataset Card for "{repo_id.split("/")[-1]}"\n\n[More Information needed](https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)'
+            )
+            if dataset_card is None
+            else dataset_card
+        )
         HfApi(endpoint=config.HF_ENDPOINT).upload_file(
-            path_or_fileobj=dataset_metadata._to_readme(readme_content).encode(),
+            path_or_fileobj=str(dataset_card).encode(),
             path_in_repo="README.md",
             repo_id=repo_id,
             token=token,

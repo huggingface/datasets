@@ -175,9 +175,9 @@ class Audio:
             source_url = path.split("::")[-1]
             try:
                 repo_id = string_to_dict(source_url, config.HUB_DATASETS_URL)["repo_id"]
-                use_auth_token = token_per_repo_id[repo_id]
+                token = token_per_repo_id[repo_id]
             except (ValueError, KeyError):
-                use_auth_token = None
+                token = None
 
             download_config = DownloadConfig(use_auth_token=use_auth_token)
             with xopen(path, "rb", download_config=download_config) as f:
