@@ -32,7 +32,7 @@ from multiprocessing import Manager
 from queue import Empty
 from shutil import disk_usage
 from types import CodeType, FunctionType
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, TypeVar, Union
+from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, TypeVar, Union
 from urllib.parse import urlparse
 
 import dill
@@ -1330,13 +1330,17 @@ def _write_generator_to_queue(queue: queue.Queue, func: Callable[..., Iterable[Y
     return i
 
 
+def _get_pool_pid(pool: Union[multiprocessing.pool.Pool, multiprocess.pool.Pool]) -> Set[int]:
+    return {f.pid for f in pool._pool}
+
+
 def iflatmap_unordered(
     pool: Union[multiprocessing.pool.Pool, multiprocess.pool.Pool],
     func: Callable[..., Iterable[Y]],
     *,
     kwargs_iterable: Iterable[dict],
 ) -> Iterable[Y]:
-    original_pool = list(pool._pool)
+    initial_pool_pid = _get_pool_pid(pool)
     pool_changed = False
     manager_cls = Manager if isinstance(pool, multiprocessing.pool.Pool) else multiprocess.Manager
     with manager_cls() as manager:
@@ -1351,12 +1355,13 @@ def iflatmap_unordered(
                 except Empty:
                     if all(async_result.ready() for async_result in async_results) and queue.empty():
                         break
-                    if any(async_result._pool != original_pool for async_result in async_results) and queue.empty():
-                        pool_changed = True
-                        raise RuntimeError(
-                            "One of the subprocesses has abruptly died during map operation."
-                            "To debug the error, disable multiprocessing."
-                        )
+                if _get_pool_pid(pool) != initial_pool_pid:
+                    pool_changed = True
+                    # One of the subprocesses has died. We should not wait forever.
+                    raise RuntimeError(
+                        "One of the subprocesses has abruptly died during map operation."
+                        "To debug the error, disable multiprocessing."
+                    )
         finally:
             if not pool_changed:
                 # we get the result in case there's an error to raise
