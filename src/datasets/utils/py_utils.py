@@ -32,7 +32,7 @@ from multiprocessing import Manager
 from queue import Empty
 from shutil import disk_usage
 from types import CodeType, FunctionType
-from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, TypeVar, Union
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, TypeVar, Union
 from urllib.parse import urlparse
 
 import dill
