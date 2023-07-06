@@ -93,7 +93,7 @@ def post_release_work():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--post_release", action="store_true", help="Whether this is pre or post release.")
+    parser.add_argument("--post_release", action="store_true", help="Whether or not this is post release.")
     parser.add_argument("--patch", action="store_true", help="Whether or not this is a patch release.")
     args = parser.parse_args()
     if not args.post_release:
