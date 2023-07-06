@@ -44,18 +44,19 @@ def _generate_iterable_examples(
     partition_order: List[int],
 ):
     import pyspark
+
     def generate_fn():
         df_with_partition_id = df.select("*", pyspark.sql.functions.spark_partition_id().alias("part_id"))
         partition_df = _reorder_dataframe_by_partition(df_with_partition_id, partition_order)
         row_id = 0
         # pipeline partitions to hide latency
         rows = partition_df.toLocalIterator(prefetchPartitions=True)
-        last_partition = -1 # keep track of the last partition so that we can know when to reset row_id = 0
+        last_partition = -1  # keep track of the last partition so that we can know when to reset row_id = 0
         for row in rows:
             row_as_dict = row.asDict()
-            part_id = row_as_dict['part_id']
-            row_as_dict.pop('part_id') 
-            if last_partition != part_id: # we are on new partition, reset row_id
+            part_id = row_as_dict["part_id"]
+            row_as_dict.pop("part_id")
+            if last_partition != part_id:  # we are on new partition, reset row_id
                 last_partition = part_id
                 row_id = 0
             yield f"{part_id}_{row_id}", row_as_dict
