@@ -13,14 +13,16 @@
 # limitations under the License.
 """ METEOR metric. """
 
+import importlib.metadata
+
 import numpy as np
 from nltk.translate import meteor_score
+from packaging import version
 
 import datasets
-from datasets.config import importlib_metadata, version
 
 
-NLTK_VERSION = version.parse(importlib_metadata.version("nltk"))
+NLTK_VERSION = version.parse(importlib.metadata.version("nltk"))
 if NLTK_VERSION >= version.Version("3.6.4"):
     from nltk import word_tokenize
 

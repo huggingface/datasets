@@ -1,20 +1,13 @@
+# loading package files: https://stackoverflow.com/a/20885799
+import importlib.resources as pkg_resources
 import logging
 from pathlib import Path
 from typing import Any, List, Tuple
 
 import yaml
 
-from .deprecation_utils import deprecated
-
-
-# loading package files: https://stackoverflow.com/a/20885799
-try:
-    import importlib.resources as pkg_resources
-except ImportError:
-    # Try backported to PY<37 `importlib_resources`.
-    import importlib_resources as pkg_resources
-
 from . import resources
+from .deprecation_utils import deprecated
 
 
 BASE_REF_URL = "https://github.com/huggingface/datasets/tree/main/src/datasets/utils"

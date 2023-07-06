@@ -124,8 +124,6 @@ REQUIRED_PKGS = [
     "xxhash",
     # for better multiprocessing
     "multiprocess",
-    # to get metadata of optional dependencies such as torch or tensorflow for Python versions that don't have it
-    "importlib_metadata;python_version<'3.8'",
     # to save datasets locally or on any filesystem
     # minimum 2021.11.1 so that BlockSizeError is fixed: see https://github.com/fsspec/filesystem_spec/pull/830
     "fsspec[http]>=2021.11.1",
@@ -150,11 +148,9 @@ VISION_REQUIRE = [
 ]
 
 BENCHMARKS_REQUIRE = [
-    "numpy==1.18.5",
-    "tensorflow==2.3.0",
-    "torch==1.7.1",
-    "transformers==3.0.2",
-    "protobuf==3.20.3",  # Fix tensorflow 2.3 import `TypeError: Descriptors cannot not be created directly.`
+    "tensorflow==2.12.0",
+    "torch==2.0.1",
+    "transformers==4.30.1",
 ]
 
 TESTS_REQUIRE = [
@@ -166,7 +162,7 @@ TESTS_REQUIRE = [
     "pytest-datadir",
     "pytest-xdist",
     # optional dependencies
-    "apache-beam>=2.26.0,<2.44.0;python_version<'3.8'",  # doesn't support recent dill versions for recent python versions
+    "apache-beam>=2.26.0,<2.44.0;python_version<'3.10'",  # doesn't support recent dill versions for recent python versions
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch()
     "faiss-cpu>=1.6.4",
     "lz4",
@@ -174,10 +170,10 @@ TESTS_REQUIRE = [
     "py7zr",
     "rarfile>=4.0",
     "sqlalchemy<2.0.0",
-    "s3fs>=2021.11.1;python_version<'3.8'",  # aligned with fsspec[http]>=2021.11.1; test only on python 3.7 for now
+    "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1; test only on python 3.7 for now
     "tensorflow>=2.3,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
     "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
-    "tiktoken;python_version>='3.8'",
+    "tiktoken",
     "torch",
     "soundfile>=0.12.1",
     "transformers",
@@ -261,7 +257,7 @@ setup(
         "datasets.utils.resources": ["*.json", "*.yaml", "*.tsv"],
     },
     entry_points={"console_scripts": ["datasets-cli=datasets.commands.datasets_cli:main"]},
-    python_requires=">=3.7.0",
+    python_requires=">=3.8.0",
     install_requires=REQUIRED_PKGS,
     extras_require=EXTRAS_REQUIRE,
     classifiers=[
@@ -272,7 +268,6 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
