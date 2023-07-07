@@ -13,7 +13,7 @@ from .splits import Split
 from .utils import logging
 from .utils.file_utils import is_relative_path, is_remote_url, request_etag
 from .utils.hub import hf_hub_url
-from .utils.py_utils import string_to_dict
+from .utils.py_utils import glob_pattern_to_regex, string_to_dict
 
 
 SANITIZED_DEFAULT_SPLIT = str(Split.TRAIN)
@@ -226,7 +226,7 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], List[PurePath]]) 
         data_files = pattern_resolver(pattern)
         if len(data_files) > 0:
             data_files = [p.as_posix() for p in data_files]
-            splits: Set[str] = {string_to_dict(p, split_pattern)["split"] for p in data_files}
+            splits: Set[str] = {string_to_dict(p, glob_pattern_to_regex(split_pattern))["split"] for p in data_files}
             sorted_splits = [str(split) for split in DEFAULT_SPLITS if split in splits] + sorted(
                 splits - set(DEFAULT_SPLITS)
             )

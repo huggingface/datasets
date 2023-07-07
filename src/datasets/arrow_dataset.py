@@ -119,6 +119,7 @@ from .utils.py_utils import (
     Literal,
     asdict,
     convert_file_size_to_int,
+    glob_pattern_to_regex,
     iflatmap_unordered,
     string_to_dict,
     unique_values,
@@ -5505,7 +5506,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if len(_matched_paths) > 0:
                 # it was uploaded with push_to_hub before metadata configs existed
                 _resolved_splits = {
-                    string_to_dict(p, PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)["split"]
+                    string_to_dict(
+                        p, glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
+                    )["split"]
                     for p in _matched_paths
                 }
                 default_metadata_configs_to_dump = {

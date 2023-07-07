@@ -30,7 +30,7 @@ from .utils.doc_utils import is_documented_by
 from .utils.file_utils import cached_path
 from .utils.hub import hf_hub_url
 from .utils.metadata import MetadataConfigs
-from .utils.py_utils import asdict, string_to_dict
+from .utils.py_utils import asdict, glob_pattern_to_regex, string_to_dict
 from .utils.typing import PathLike
 
 
@@ -1706,7 +1706,9 @@ class DatasetDict(dict):
             if len(_matched_paths) > 0:
                 # it was uploaded with push_to_hub before metadata configs existed
                 _resolved_splits = {
-                    string_to_dict(p, PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)["split"]
+                    string_to_dict(
+                        p, glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
+                    )["split"]
                     for p in _matched_paths
                 }
                 default_metadata_configs_to_dump = {
