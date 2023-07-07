@@ -389,11 +389,13 @@ class ArrowWriter:
                 schema: pa.Schema = inferred_schema
         else:
             self._features = inferred_features
-            schema: pa.Schema = inferred_schema
+            schema: pa.Schema = inferred_features.arrow_schema
         if self.disable_nullable:
             schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in schema)
         if self.with_metadata:
             schema = schema.with_metadata(self._build_metadata(DatasetInfo(features=self._features), self.fingerprint))
+        else:
+            schema = schema.with_metadata({})
         self._schema = schema
         self.pa_writer = self._WRITER_CLASS(self.stream, schema)
 
@@ -508,6 +510,8 @@ class ArrowWriter:
         Args:
             row: the row to add.
         """
+        if len(row) != 1:
+            raise ValueError(f"Only single-row pyarrow tables are allowed but got table with {len(row)} rows.")
         self.current_rows.append(row)
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size

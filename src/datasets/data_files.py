@@ -1,4 +1,5 @@
 import os
+import re
 from functools import partial
 from pathlib import Path, PurePath
 from typing import Callable, Dict, List, Optional, Set, Tuple, Union
@@ -254,7 +255,7 @@ def _resolve_single_pattern_locally(
     """
     Return the absolute paths to all the files that match the given patterns.
     It also supports absolute paths in patterns.
-    If an URL is passed, it is returned as is.
+    If a URL is passed, it is returned as is.
     """
     if is_relative_path(pattern):
         pattern = os.path.join(base_path, pattern)
@@ -275,9 +276,7 @@ def _resolve_single_pattern_locally(
     ]  # ignore .ipynb and __pycache__, but keep /../
     if allowed_extensions is not None:
         out = [
-            filepath
-            for filepath in matched_paths
-            if any(suffix[1:] in allowed_extensions for suffix in filepath.suffixes)
+            filepath for filepath in matched_paths if any(suffix in allowed_extensions for suffix in filepath.suffixes)
         ]
         if len(out) < len(matched_paths):
             invalid_matched_files = list(set(matched_paths) - set(out))
@@ -328,15 +327,15 @@ def resolve_patterns_locally_or_by_urls(
 
         >>> from datasets.data_files import resolve_patterns_locally_or_by_urls
         >>> base_path = "."
-        >>> resolve_patterns_locally_or_by_urls(base_path, ["src/**/*.yaml"])
-        [PosixPath('/Users/quentinlhoest/Desktop/hf/datasets/src/datasets/utils/resources/readme_structure.yaml')]
+        >>> resolve_patterns_locally_or_by_urls(base_path, ["docs/**/*.py"])
+        [PosixPath('/Users/mariosasko/Desktop/projects/datasets/docs/source/_config.py')]
 
     Args:
         base_path (str): Base path to use when resolving relative paths.
         patterns (List[str]): Unix patterns or paths or URLs of the data files to resolve.
             The paths can be absolute or relative to base_path.
         allowed_extensions (Optional[list], optional): White-list of file extensions to use. Defaults to None (all extensions).
-            For example: allowed_extensions=["csv", "json", "txt", "parquet"]
+            For example: allowed_extensions=[".csv", ".json", ".txt", ".parquet"]
 
     Returns:
         List[Union[Path, Url]]: List of paths or URLs to the local or remote files that match the patterns.
@@ -484,9 +483,7 @@ def _resolve_single_pattern_in_dataset_repository(
     ]  # ignore .ipynb and __pycache__, but keep /../
     if allowed_extensions is not None:
         out = [
-            filepath
-            for filepath in matched_paths
-            if any(suffix[1:] in allowed_extensions for suffix in filepath.suffixes)
+            filepath for filepath in matched_paths if any(suffix in allowed_extensions for suffix in filepath.suffixes)
         ]
         if len(out) < len(matched_paths):
             invalid_matched_files = list(set(matched_paths) - set(out))
@@ -552,7 +549,7 @@ def resolve_patterns_in_dataset_repository(
             Defaults to None (search from a repository's root). Used if files only from a specific
             directory should be resolved.
         allowed_extensions (Optional[list], optional): White-list of file extensions to use. Defaults to None (all extensions).
-            For example: allowed_extensions=["csv", "json", "txt", "parquet"]
+            For example: allowed_extensions=[".csv", ".json", ".txt", ".parquet"]
 
     Returns:
         List[Url]: List of URLs to the files in the dataset repository that match the patterns.
@@ -682,21 +679,21 @@ def get_metadata_patterns_in_dataset_repository(
 
 
 def _get_single_origin_metadata_locally_or_by_urls(
-    data_file: Union[Path, Url], use_auth_token: Optional[Union[bool, str]] = None
+    data_file: Union[Path, Url], token: Optional[Union[bool, str]] = None
 ) -> Tuple[str]:
     if isinstance(data_file, Url):
         data_file = str(data_file)
-        return (request_etag(data_file, use_auth_token=use_auth_token),)
+        return (request_etag(data_file, token=token),)
     else:
         data_file = str(data_file.resolve())
         return (str(os.path.getmtime(data_file)),)
 
 
 def _get_origin_metadata_locally_or_by_urls(
-    data_files: List[Union[Path, Url]], max_workers=64, use_auth_token: Optional[Union[bool, str]] = None
+    data_files: List[Union[Path, Url]], max_workers=64, token: Optional[Union[bool, str]] = None
 ) -> Tuple[str]:
     return thread_map(
-        partial(_get_single_origin_metadata_locally_or_by_urls, use_auth_token=use_auth_token),
+        partial(_get_single_origin_metadata_locally_or_by_urls, token=token),
         data_files,
         max_workers=max_workers,
         tqdm_class=logging.tqdm,
@@ -736,7 +733,7 @@ class DataFilesList(List[Union[Path, Url]]):
         allowed_extensions: Optional[List[str]] = None,
     ) -> "DataFilesList":
         data_files = resolve_patterns_in_dataset_repository(dataset_info, patterns, base_path, allowed_extensions)
-        origin_metadata = [(dataset_info.id, dataset_info.sha) for _ in patterns]
+        origin_metadata = [(dataset_info.id, dataset_info.sha)] * len(patterns)
         return cls(data_files, origin_metadata)
 
     @classmethod
@@ -745,12 +742,24 @@ class DataFilesList(List[Union[Path, Url]]):
         patterns: List[str],
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
-        use_auth_token: Optional[Union[bool, str]] = None,
+        token: Optional[Union[bool, str]] = None,
     ) -> "DataFilesList":
         base_path = base_path if base_path is not None else str(Path().resolve())
         data_files = resolve_patterns_locally_or_by_urls(base_path, patterns, allowed_extensions)
-        origin_metadata = _get_origin_metadata_locally_or_by_urls(data_files, use_auth_token=use_auth_token)
+        origin_metadata = _get_origin_metadata_locally_or_by_urls(data_files, token=token)
         return cls(data_files, origin_metadata)
+
+    def filter_extensions(self, extensions: List[str]) -> "DataFilesList":
+        pattern = "|".join("\\" + ext for ext in extensions)
+        pattern = re.compile(f".*({pattern})(\\..+)?$")
+        return DataFilesList(
+            [
+                data_file
+                for data_file in self
+                if pattern.match(data_file.name if isinstance(data_file, Path) else data_file)
+            ],
+            origin_metadata=self.origin_metadata,
+        )
 
 
 class DataFilesDict(Dict[str, DataFilesList]):
@@ -775,7 +784,7 @@ class DataFilesDict(Dict[str, DataFilesList]):
         patterns: Dict[str, Union[List[str], DataFilesList]],
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
-        use_auth_token: Optional[Union[bool, str]] = None,
+        token: Optional[Union[bool, str]] = None,
     ) -> "DataFilesDict":
         out = cls()
         for key, patterns_for_key in patterns.items():
@@ -784,7 +793,7 @@ class DataFilesDict(Dict[str, DataFilesList]):
                     patterns_for_key,
                     base_path=base_path,
                     allowed_extensions=allowed_extensions,
-                    use_auth_token=use_auth_token,
+                    token=token,
                 )
                 if not isinstance(patterns_for_key, DataFilesList)
                 else patterns_for_key
@@ -823,3 +832,9 @@ class DataFilesDict(Dict[str, DataFilesList]):
 
         """
         return DataFilesDict, (dict(sorted(self.items())),)
+
+    def filter_extensions(self, extensions: List[str]) -> "DataFilesDict":
+        out = type(self)()
+        for key, data_files_list in self.items():
+            out[key] = data_files_list.filter_extensions(extensions)
+        return out

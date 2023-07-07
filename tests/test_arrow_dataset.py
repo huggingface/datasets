@@ -104,8 +104,10 @@ def assert_arrow_metadata_are_synced_with_dataset_features(dataset: Dataset):
     assert "info" in metadata
     features = DatasetInfo.from_dict(metadata["info"]).features
     assert features is not None
-    assert dataset.features is not None
-    assert sorted(features) == sorted(field.name for field in dataset.data.schema)
+    assert features == dataset.features
+    assert features == Features.from_arrow_schema(dataset.data.schema)
+    assert list(features) == dataset.data.column_names
+    assert list(features) == list(dataset.features)
 
 
 IN_MEMORY_PARAMETERS = [
@@ -209,7 +211,9 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(dset["filename"][:-1][-1], "my_name-train_28")
 
                 self.assertListEqual(dset[[0, -1]]["filename"], ["my_name-train_0", "my_name-train_29"])
+                self.assertListEqual(dset[range(0, -2, -1)]["filename"], ["my_name-train_0", "my_name-train_29"])
                 self.assertListEqual(dset[np.array([0, -1])]["filename"], ["my_name-train_0", "my_name-train_29"])
+                self.assertListEqual(dset[pd.Series([0, -1])]["filename"], ["my_name-train_0", "my_name-train_29"])
 
                 with dset.select(range(2)) as dset_subset:
                     self.assertListEqual(dset_subset[-1:]["filename"], ["my_name-train_1"])
@@ -646,6 +650,13 @@ class BaseDatasetTest(TestCase):
                 with dset.select_columns(column_names=["col_1", "col_2", "col_3"]) as new_dset:
                     self.assertEqual(new_dset.num_columns, 3)
                     self.assertListEqual(list(new_dset.column_names), ["col_1", "col_2", "col_3"])
+                    self.assertNotEqual(new_dset._fingerprint, fingerprint)
+                    assert_arrow_metadata_are_synced_with_dataset_features(new_dset)
+
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                with dset.select_columns(column_names=["col_3", "col_2", "col_1"]) as new_dset:
+                    self.assertEqual(new_dset.num_columns, 3)
+                    self.assertListEqual(list(new_dset.column_names), ["col_3", "col_2", "col_1"])
                     self.assertNotEqual(new_dset._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(new_dset)
 
@@ -1179,7 +1190,7 @@ class BaseDatasetTest(TestCase):
                     self.assertNotEqual(dset_test._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
 
-    def test_new_features(self, in_memory):
+    def test_map_new_features(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 features = Features({"filename": Value("string"), "label": ClassLabel(names=["positive", "negative"])})
@@ -1385,6 +1396,84 @@ class BaseDatasetTest(TestCase):
                                     self.assertIn("tmp", dset_test2.cache_files[0]["filename"])
             finally:
                 datasets.enable_caching()
+
+    def test_map_return_pa_table(self, in_memory):
+        def func_return_single_row_pa_table(x):
+            return pa.table({"id": [0], "text": ["a"]})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.map(func_return_single_row_pa_table) as dset_test:
+                    self.assertEqual(len(dset_test), 30)
+                    self.assertDictEqual(
+                        dset_test.features,
+                        Features({"id": Value("int64"), "text": Value("string")}),
+                    )
+                    self.assertEqual(dset_test[0]["id"], 0)
+                    self.assertEqual(dset_test[0]["text"], "a")
+
+        # Batched
+        def func_return_single_row_pa_table_batched(x):
+            batch_size = len(x[next(iter(x))])
+            return pa.table({"id": [0] * batch_size, "text": ["a"] * batch_size})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.map(func_return_single_row_pa_table_batched, batched=True) as dset_test:
+                    self.assertEqual(len(dset_test), 30)
+                    self.assertDictEqual(
+                        dset_test.features,
+                        Features({"id": Value("int64"), "text": Value("string")}),
+                    )
+                    self.assertEqual(dset_test[0]["id"], 0)
+                    self.assertEqual(dset_test[0]["text"], "a")
+
+        # Error when returning a table with more than one row in the non-batched mode
+        def func_return_multi_row_pa_table(x):
+            return pa.table({"id": [0, 1], "text": ["a", "b"]})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                self.assertRaises(ValueError, dset.map, func_return_multi_row_pa_table)
+
+    def test_map_return_pd_dataframe(self, in_memory):
+        def func_return_single_row_pd_dataframe(x):
+            return pd.DataFrame({"id": [0], "text": ["a"]})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.map(func_return_single_row_pd_dataframe) as dset_test:
+                    self.assertEqual(len(dset_test), 30)
+                    self.assertDictEqual(
+                        dset_test.features,
+                        Features({"id": Value("int64"), "text": Value("string")}),
+                    )
+                    self.assertEqual(dset_test[0]["id"], 0)
+                    self.assertEqual(dset_test[0]["text"], "a")
+
+        # Batched
+        def func_return_single_row_pd_dataframe_batched(x):
+            batch_size = len(x[next(iter(x))])
+            return pd.DataFrame({"id": [0] * batch_size, "text": ["a"] * batch_size})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.map(func_return_single_row_pd_dataframe_batched, batched=True) as dset_test:
+                    self.assertEqual(len(dset_test), 30)
+                    self.assertDictEqual(
+                        dset_test.features,
+                        Features({"id": Value("int64"), "text": Value("string")}),
+                    )
+                    self.assertEqual(dset_test[0]["id"], 0)
+                    self.assertEqual(dset_test[0]["text"], "a")
+
+        # Error when returning a table with more than one row in the non-batched mode
+        def func_return_multi_row_pd_dataframe(x):
+            return pd.DataFrame({"id": [0, 1], "text": ["a", "b"]})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                self.assertRaises(ValueError, dset.map, func_return_multi_row_pd_dataframe)
 
     @require_torch
     def test_map_torch(self, in_memory):
@@ -2696,8 +2785,6 @@ class BaseDatasetTest(TestCase):
     def test_tf_dataset_conversion(self, in_memory):
         tmp_dir = tempfile.TemporaryDirectory()
         for num_workers in [0, 1, 2]:
-            if num_workers > 0 and sys.version_info < (3, 8):
-                continue  # Skip multiprocessing tests for Python < 3.8
             if num_workers > 0 and sys.platform == "win32" and not in_memory:
                 continue  # This test hangs on the Py3.10 test worker, but it runs fine locally on my Windows machine
             with self._create_dummy_dataset(in_memory, tmp_dir.name, array_features=True) as dset:
@@ -2740,8 +2827,6 @@ class BaseDatasetTest(TestCase):
         # even when loading is split across multiple workers
         data = {"col_1": list(range(20))}
         for num_workers in [0, 1, 2, 3]:
-            if num_workers > 0 and sys.version_info < (3, 8):
-                continue  # Skip multiprocessing tests for Python < 3.8
             with Dataset.from_dict(data) as dset:
                 tf_dataset = dset.to_tf_dataset(batch_size=10, shuffle=True, num_workers=num_workers)
                 indices = []
@@ -2753,6 +2838,8 @@ class BaseDatasetTest(TestCase):
                     second_indices.append(batch["col_1"])
                 second_indices = np.concatenate([arr.numpy() for arr in second_indices])
                 self.assertFalse(np.array_equal(indices, second_indices))
+                self.assertEqual(len(indices), len(np.unique(indices)))
+                self.assertEqual(len(second_indices), len(np.unique(second_indices)))
 
                 tf_dataset = dset.to_tf_dataset(batch_size=1, shuffle=False, num_workers=num_workers)
                 for i, batch in enumerate(tf_dataset):
@@ -2828,6 +2915,28 @@ class BaseDatasetTest(TestCase):
             batch = next(iter(tf_dataset))
             self.assertEqual(batch.shape.as_list(), [2, 4])
             self.assertEqual(batch.dtype.name, "int64")
+        # Test that batch_size=None (optional) works as expected
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+            tf_dataset = dset.to_tf_dataset(columns="col_3", batch_size=None)
+            single_example = next(iter(tf_dataset))
+            self.assertEqual(single_example.shape.as_list(), [])
+            self.assertEqual(single_example.dtype.name, "int64")
+            # Assert that we can batch it with `tf.data.Dataset.batch` method
+            batched_dataset = tf_dataset.batch(batch_size=2)
+            batch = next(iter(batched_dataset))
+            self.assertEqual(batch.shape.as_list(), [2])
+            self.assertEqual(batch.dtype.name, "int64")
+        # Test that batching a batch_size=None dataset produces the same results as using batch_size arg
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+            batch_size = 2
+            tf_dataset_no_batch = dset.to_tf_dataset(columns="col_3")
+            tf_dataset_batch = dset.to_tf_dataset(columns="col_3", batch_size=batch_size)
+            self.assertEqual(tf_dataset_no_batch.element_spec, tf_dataset_batch.unbatch().element_spec)
+            self.assertEqual(tf_dataset_no_batch.cardinality(), tf_dataset_batch.cardinality() * batch_size)
+            for batch_1, batch_2 in zip(tf_dataset_no_batch.batch(batch_size=batch_size), tf_dataset_batch):
+                self.assertEqual(batch_1.shape, batch_2.shape)
+                self.assertEqual(batch_1.dtype, batch_2.dtype)
+                self.assertListEqual(batch_1.numpy().tolist(), batch_2.numpy().tolist())
         # Test that requesting label_cols works as expected
         with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
             tf_dataset = dset.to_tf_dataset(columns="col_1", label_cols=["col_2", "col_3"], batch_size=4)
@@ -2845,6 +2954,13 @@ class BaseDatasetTest(TestCase):
             tf_dataset_with_drop = dset.to_tf_dataset(columns="col_1", batch_size=3, drop_remainder=True)
             self.assertEqual(len(tf_dataset), 2)  # One batch of 3 and one batch of 1
             self.assertEqual(len(tf_dataset_with_drop), 1)  # Incomplete batch of 1 is dropped
+        # Test that `NotImplementedError` is raised `batch_size` is None and `num_workers` is > 0
+        if sys.version_info >= (3, 8):
+            with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+                with self.assertRaisesRegex(
+                    NotImplementedError, "`batch_size` must be specified when using multiple workers"
+                ):
+                    dset.to_tf_dataset(columns="col_1", batch_size=None, num_workers=2)
         del tf_dataset  # For correct cleanup
         del tf_dataset_with_drop
 
@@ -2950,6 +3066,23 @@ class MiscellaneousDatasetTest(TestCase):
         with Dataset.from_dict({"text": ["hello there", "foo"]}) as dset:
             dset.set_transform(transform=encode)
             self.assertEqual(str(dset[:2]), str(encode({"text": ["hello there", "foo"]})))
+
+    @require_tf
+    def test_tf_string_encoding(self):
+        data = {"col_1": ["á", "é", "í", "ó", "ú"], "col_2": ["à", "è", "ì", "ò", "ù"]}
+        with Dataset.from_dict(data) as dset:
+            tf_dset_wo_batch = dset.to_tf_dataset(columns=["col_1", "col_2"])
+            for tf_row, row in zip(tf_dset_wo_batch, dset):
+                self.assertEqual(tf_row["col_1"].numpy().decode("utf-8"), row["col_1"])
+                self.assertEqual(tf_row["col_2"].numpy().decode("utf-8"), row["col_2"])
+
+            tf_dset_w_batch = dset.to_tf_dataset(columns=["col_1", "col_2"], batch_size=2)
+            for tf_row, row in zip(tf_dset_w_batch.unbatch(), dset):
+                self.assertEqual(tf_row["col_1"].numpy().decode("utf-8"), row["col_1"])
+                self.assertEqual(tf_row["col_2"].numpy().decode("utf-8"), row["col_2"])
+
+            self.assertEqual(tf_dset_w_batch.unbatch().element_spec, tf_dset_wo_batch.element_spec)
+            self.assertEqual(tf_dset_w_batch.element_spec, tf_dset_wo_batch.batch(2).element_spec)
 
 
 def test_cast_with_sliced_list():
@@ -4520,3 +4653,11 @@ def test_map_cases(return_lazy_dict):
     ds = ds.map(f)
     outputs = ds[:]
     assert outputs == {"a": [{"nested": [[i]]} for i in [-1, -1, 2, 3]]}
+
+
+def test_dataset_getitem_raises():
+    ds = Dataset.from_dict({"a": [0, 1, 2, 3]})
+    with pytest.raises(TypeError):
+        ds[False]
+    with pytest.raises(TypeError):
+        ds._getitem(True)

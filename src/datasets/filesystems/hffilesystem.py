@@ -65,7 +65,7 @@ class HfFileSystem(AbstractFileSystem):
         return fsspec.open(
             url,
             mode=mode,
-            headers=get_authentication_headers_for_url(url, use_auth_token=self.token),
+            headers=get_authentication_headers_for_url(url, token=self.token),
             client_kwargs={"trust_env": True},  # Enable reading proxy env variables.
         ).open()
 
