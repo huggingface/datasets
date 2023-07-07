@@ -24,7 +24,7 @@ import shutil
 import time
 import warnings
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Type, Union
 
@@ -196,11 +196,11 @@ def get_dataset_builder_class(
     dataset_module: "DatasetModule", dataset_name: Optional[str] = None
 ) -> Type[DatasetBuilder]:
     builder_cls = import_main_class(dataset_module.module_path)
-    if dataset_module.builder_configs:
+    if dataset_module.builder_parameters.builder_configs:
         builder_cls = configure_builder_class(
             builder_cls,
-            builder_configs=dataset_module.builder_configs,
-            default_config_name=dataset_module.default_config_name,
+            builder_configs=dataset_module.builder_parameters.builder_configs,
+            default_config_name=dataset_module.builder_parameters.default_config_name,
             dataset_name=dataset_name,
         )
     return builder_cls
@@ -599,14 +599,19 @@ def create_builder_configs_from_metadata_configs(
 
 
 @dataclass
+class BuilderParameters:
+    metadata_configs: Optional[MetadataConfigs] = None
+    builder_configs: Optional[List[BuilderConfig]] = None
+    default_config_name: Optional[str] = None
+
+
+@dataclass
 class DatasetModule:
     module_path: str
     hash: str
     builder_kwargs: dict
+    builder_parameters: BuilderParameters = field(default_factory=BuilderParameters)
     dataset_infos: Optional[DatasetInfosDict] = None
-    metadata_configs: Optional[MetadataConfigs] = None
-    builder_configs: Optional[List[BuilderConfig]] = None
-    default_config_name: Optional[str] = None
 
 
 @dataclass
@@ -886,9 +891,11 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             hash,
             builder_kwargs,
             dataset_infos=dataset_infos,
-            metadata_configs=metadata_configs,
-            builder_configs=builder_configs,
-            default_config_name=default_config_name,
+            builder_parameters=BuilderParameters(
+                metadata_configs=metadata_configs,
+                builder_configs=builder_configs,
+                default_config_name=default_config_name,
+            ),
         )
 
 
@@ -939,7 +946,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
             "dataset_name": self.name,
         }
 
-        return DatasetModule(module_path, hash, builder_kwargs, None)
+        return DatasetModule(module_path, hash, builder_kwargs)
 
 
 class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
@@ -1061,9 +1068,11 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             hash,
             builder_kwargs,
             dataset_infos=dataset_infos,
-            metadata_configs=metadata_configs,
-            builder_configs=builder_configs,
-            default_config_name=default_config_name,
+            builder_parameters=BuilderParameters(
+                metadata_configs=metadata_configs,
+                builder_configs=builder_configs,
+                default_config_name=default_config_name,
+            ),
         )
 
 
@@ -1751,12 +1760,17 @@ def load_dataset_builder(
     builder_kwargs = dataset_module.builder_kwargs
     data_dir = builder_kwargs.pop("data_dir", data_dir)
     data_files = builder_kwargs.pop("data_files", data_files)
-    config_name = builder_kwargs.pop("config_name", name or dataset_module.default_config_name)
+    config_name = builder_kwargs.pop("config_name", name or dataset_module.builder_parameters.default_config_name)
     dataset_name = builder_kwargs.pop("dataset_name", None)
     hash = builder_kwargs.pop("hash")
     info = dataset_module.dataset_infos.get(config_name) if dataset_module.dataset_infos else None
-    if dataset_module.metadata_configs and config_name in dataset_module.metadata_configs:
-        hash = update_hash_with_config_parameters(hash, dataset_module.metadata_configs[config_name])
+    if (
+        dataset_module.builder_parameters.metadata_configs
+        and config_name in dataset_module.builder_parameters.metadata_configs
+    ):
+        hash = update_hash_with_config_parameters(
+            hash, dataset_module.builder_parameters.metadata_configs[config_name]
+        )
 
     if path in _PACKAGED_DATASETS_MODULES and data_files is None:
         error_msg = f"Please specify the data files or data directory to load for the {path} dataset builder."
