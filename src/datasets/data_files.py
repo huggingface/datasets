@@ -1,4 +1,5 @@
 import os
+import re
 from functools import partial
 from pathlib import Path, PurePath
 from typing import Callable, Dict, List, Optional, Set, Tuple, Union
@@ -342,8 +343,8 @@ def resolve_patterns_locally_or_by_urls(
 
         >>> from datasets.data_files import resolve_patterns_locally_or_by_urls
         >>> base_path = "."
-        >>> resolve_patterns_locally_or_by_urls(base_path, ["src/**/*.yaml"])
-        [PosixPath('/Users/quentinlhoest/Desktop/hf/datasets/src/datasets/utils/resources/readme_structure.yaml')]
+        >>> resolve_patterns_locally_or_by_urls(base_path, ["docs/**/*.py"])
+        [PosixPath('/Users/mariosasko/Desktop/projects/datasets/docs/source/_config.py')]
 
     Args:
         base_path (str): Base path to use when resolving relative paths.
@@ -694,21 +695,21 @@ def get_metadata_patterns_in_dataset_repository(
 
 
 def _get_single_origin_metadata_locally_or_by_urls(
-    data_file: Union[Path, Url], use_auth_token: Optional[Union[bool, str]] = None
+    data_file: Union[Path, Url], token: Optional[Union[bool, str]] = None
 ) -> Tuple[str]:
     if isinstance(data_file, Url):
         data_file = str(data_file)
-        return (request_etag(data_file, use_auth_token=use_auth_token),)
+        return (request_etag(data_file, token=token),)
     else:
         data_file = str(data_file.resolve())
         return (str(os.path.getmtime(data_file)),)
 
 
 def _get_origin_metadata_locally_or_by_urls(
-    data_files: List[Union[Path, Url]], max_workers=64, use_auth_token: Optional[Union[bool, str]] = None
+    data_files: List[Union[Path, Url]], max_workers=64, token: Optional[Union[bool, str]] = None
 ) -> Tuple[str]:
     return thread_map(
-        partial(_get_single_origin_metadata_locally_or_by_urls, use_auth_token=use_auth_token),
+        partial(_get_single_origin_metadata_locally_or_by_urls, token=token),
         data_files,
         max_workers=max_workers,
         tqdm_class=logging.tqdm,
@@ -760,12 +761,24 @@ class DataFilesList(List[Union[Path, Url]]):
         patterns: List[str],
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
-        use_auth_token: Optional[Union[bool, str]] = None,
+        token: Optional[Union[bool, str]] = None,
     ) -> "DataFilesList":
         base_path = base_path if base_path is not None else str(Path().resolve())
         data_files = resolve_patterns_locally_or_by_urls(base_path, patterns, allowed_extensions)
-        origin_metadata = _get_origin_metadata_locally_or_by_urls(data_files, use_auth_token=use_auth_token)
+        origin_metadata = _get_origin_metadata_locally_or_by_urls(data_files, token=token)
         return cls(data_files, origin_metadata)
+
+    def filter_extensions(self, extensions: List[str]) -> "DataFilesList":
+        pattern = "|".join("\\" + ext for ext in extensions)
+        pattern = re.compile(f".*({pattern})(\\..+)?$")
+        return DataFilesList(
+            [
+                data_file
+                for data_file in self
+                if pattern.match(data_file.name if isinstance(data_file, Path) else data_file)
+            ],
+            origin_metadata=self.origin_metadata,
+        )
 
 
 class DataFilesDict(Dict[str, DataFilesList]):
@@ -790,7 +803,7 @@ class DataFilesDict(Dict[str, DataFilesList]):
         patterns: Dict[str, Union[List[str], DataFilesList]],
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
-        use_auth_token: Optional[Union[bool, str]] = None,
+        token: Optional[Union[bool, str]] = None,
     ) -> "DataFilesDict":
         out = cls()
         for key, patterns_for_key in patterns.items():
@@ -799,7 +812,7 @@ class DataFilesDict(Dict[str, DataFilesList]):
                     patterns_for_key,
                     base_path=base_path,
                     allowed_extensions=allowed_extensions,
-                    use_auth_token=use_auth_token,
+                    token=token,
                 )
                 if not isinstance(patterns_for_key, DataFilesList)
                 else patterns_for_key
@@ -838,6 +851,12 @@ class DataFilesDict(Dict[str, DataFilesList]):
 
         """
         return DataFilesDict, (dict(sorted(self.items())),)
+
+    def filter_extensions(self, extensions: List[str]) -> "DataFilesDict":
+        out = type(self)()
+        for key, data_files_list in self.items():
+            out[key] = data_files_list.filter_extensions(extensions)
+        return out
 
 
 def get_patterns_and_data_files(

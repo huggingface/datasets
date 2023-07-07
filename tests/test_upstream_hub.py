@@ -104,7 +104,7 @@ class TestPushToHub:
 
         with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
             local_ds.push_to_hub(ds_name, token=self._token, private=True)
-            hub_ds = load_dataset(ds_name, download_mode="force_redownload", use_auth_token=self._token)
+            hub_ds = load_dataset(ds_name, download_mode="force_redownload", token=self._token)
 
             assert local_ds.column_names == hub_ds.column_names
             assert list(local_ds["train"].features.keys()) == list(hub_ds["train"].features.keys())

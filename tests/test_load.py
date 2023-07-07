@@ -11,12 +11,14 @@ from unittest import TestCase
 from unittest.mock import patch
 
 import dill
+import pyarrow as pa
 import pytest
 import requests
 
 import datasets
 from datasets import config, load_dataset, load_from_disk
 from datasets.arrow_dataset import Dataset
+from datasets.arrow_writer import ArrowWriter
 from datasets.builder import DatasetBuilder
 from datasets.config import METADATA_CONFIGS_FIELD
 from datasets.data_files import DataFilesDict
@@ -116,6 +118,25 @@ def data_dir(tmp_path):
         f.write("foo\n" * 10)
     with open(data_dir / "test.txt", "w") as f:
         f.write("bar\n" * 10)
+    return str(data_dir)
+
+
+@pytest.fixture
+def data_dir_with_arrow(tmp_path):
+    data_dir = tmp_path / "data_dir"
+    data_dir.mkdir()
+    output_train = os.path.join(data_dir, "train.arrow")
+    with ArrowWriter(path=output_train) as writer:
+        writer.write_table(pa.Table.from_pydict({"col_1": ["foo"] * 10}))
+        num_examples, num_bytes = writer.finalize()
+    assert num_examples == 10
+    assert num_bytes > 0
+    output_test = os.path.join(data_dir, "test.arrow")
+    with ArrowWriter(path=output_test) as writer:
+        writer.write_table(pa.Table.from_pydict({"col_1": ["bar"] * 10}))
+        num_examples, num_bytes = writer.finalize()
+    assert num_examples == 10
+    assert num_bytes > 0
     return str(data_dir)
 
 
@@ -289,6 +310,7 @@ def metric_loading_script_dir(tmp_path):
         (["train.json"], "json", {}),
         (["train.jsonl"], "json", {}),
         (["train.parquet"], "parquet", {}),
+        (["train.arrow"], "arrow", {}),
         (["train.txt"], "text", {}),
         (["uppercase.TXT"], "text", {}),
         (["unsupported.ext"], None, {}),
@@ -1140,10 +1162,34 @@ def test_load_dataset_zip_text(data_file, streaming, zip_text_path, zip_text_wit
         assert ds_item == {"text": "0"}
 
 
+@pytest.mark.parametrize("streaming", [False, True])
+def test_load_dataset_arrow(streaming, data_dir_with_arrow):
+    ds = load_dataset("arrow", split="train", data_dir=data_dir_with_arrow, streaming=streaming)
+    expected_size = 10
+    if streaming:
+        ds_item_counter = 0
+        for ds_item in ds:
+            if ds_item_counter == 0:
+                assert ds_item == {"col_1": "foo"}
+            ds_item_counter += 1
+        assert ds_item_counter == 10
+    else:
+        assert ds.num_rows == 10
+        assert ds.shape[0] == expected_size
+        ds_item = next(iter(ds))
+        assert ds_item == {"col_1": "foo"}
+
+
 def test_load_dataset_text_with_unicode_new_lines(text_path_with_unicode_new_lines):
     data_files = str(text_path_with_unicode_new_lines)
     ds = load_dataset("text", split="train", data_files=data_files)
     assert ds.num_rows == 3
+
+
+def test_load_dataset_with_unsupported_extensions(text_dir_with_unsupported_extension):
+    data_files = str(text_dir_with_unsupported_extension)
+    ds = load_dataset("text", split="train", data_files=data_files)
+    assert ds.num_rows == 4
 
 
 @pytest.mark.integration
@@ -1156,7 +1202,7 @@ def test_loading_from_the_datasets_hub():
 
 
 @pytest.mark.integration
-def test_loading_from_the_datasets_hub_with_use_auth_token():
+def test_loading_from_the_datasets_hub_with_token():
     true_request = requests.Session().request
 
     def assert_auth(method, url, *args, headers, **kwargs):
@@ -1168,7 +1214,7 @@ def test_loading_from_the_datasets_hub_with_use_auth_token():
         with tempfile.TemporaryDirectory() as tmp_dir:
             with offline():
                 with pytest.raises((ConnectionError, requests.exceptions.ConnectionError)):
-                    load_dataset(SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER, cache_dir=tmp_dir, use_auth_token="foo")
+                    load_dataset(SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER, cache_dir=tmp_dir, token="foo")
         mock_request.assert_called()
 
 
@@ -1265,10 +1311,8 @@ def test_load_hub_dataset_without_script_with_metadata_config_in_parallel():
 def test_load_dataset_private_zipped_images(
     hf_private_dataset_repo_zipped_img_data, hf_token, streaming, implicit_token
 ):
-    use_auth_token = None if implicit_token else hf_token
-    ds = load_dataset(
-        hf_private_dataset_repo_zipped_img_data, split="train", streaming=streaming, use_auth_token=use_auth_token
-    )
+    token = None if implicit_token else hf_token
+    ds = load_dataset(hf_private_dataset_repo_zipped_img_data, split="train", streaming=streaming, token=token)
     assert isinstance(ds, IterableDataset if streaming else Dataset)
     ds_items = list(ds)
     assert len(ds_items) == 2

@@ -510,6 +510,8 @@ class ArrowWriter:
         Args:
             row: the row to add.
         """
+        if len(row) != 1:
+            raise ValueError(f"Only single-row pyarrow tables are allowed but got table with {len(row)} rows.")
         self.current_rows.append(row)
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size

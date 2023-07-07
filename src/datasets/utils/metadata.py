@@ -1,16 +1,14 @@
 import textwrap
 from collections import Counter
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Tuple, Union
+from typing import Any, ClassVar, Dict, Optional, Tuple, Union
 
 import yaml
+from huggingface_hub import DatasetCardData
 
 from ..config import METADATA_CONFIGS_FIELD
 from ..utils.logging import get_logger
-
-
-if TYPE_CHECKING:
-    pass
+from .deprecation_utils import deprecated
 
 
 logger = get_logger(__name__)
@@ -41,6 +39,7 @@ def _split_yaml_from_readme(readme_content: str) -> Tuple[Optional[str], str]:
     return None, "\n".join(full_content)
 
 
+@deprecated("Use `huggingface_hub.DatasetCardData` instead.")
 class DatasetMetadata(dict):
     # class attributes
     _FIELDS_WITH_DASHES = {"train_eval_index"}  # train-eval-index in the YAML metadata
@@ -162,7 +161,7 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
                         raise ValueError(yaml_error_message)
 
     @classmethod
-    def from_metadata(cls, dataset_metadata: DatasetMetadata) -> "MetadataConfigs":
+    def from_dataset_card_data(cls, dataset_card_data: DatasetCardData) -> "MetadataConfigs":
         if dataset_metadata.get(cls.FIELD_NAME):
             metadata_configs = dataset_metadata[cls.FIELD_NAME]
             if not isinstance(metadata_configs, list):
@@ -182,15 +181,15 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
             )
         return cls()
 
-    def to_metadata(self, dataset_metadata: DatasetMetadata) -> None:
+    def to_dataset_card_data(self, dataset_card_data: DatasetCardData) -> None:
         if self:
             for metadata_config in self.values():
                 self._raise_if_data_files_field_not_valid(metadata_config)
-            current_metadata_configs = self.from_metadata(dataset_metadata)
+            current_metadata_configs = self.from_dataset_card_data(dataset_card_data)
             total_metadata_configs = dict(sorted({**current_metadata_configs, **self}.items()))
             for config_name, config_metadata in total_metadata_configs.items():
                 config_metadata.pop("config_name", None)
-            dataset_metadata[self.FIELD_NAME] = [
+            dataset_card_data[self.FIELD_NAME] = [
                 {"config_name": config_name, **config_metadata}
                 for config_name, config_metadata in total_metadata_configs.items()
             ]
