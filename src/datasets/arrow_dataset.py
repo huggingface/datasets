@@ -5458,7 +5458,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         elif config.DATASETDICT_INFOS_FILENAME in repo_files:
             dataset_card = None
             dataset_card_data = DatasetCardData()
-            dataset_metadata = DatasetMetadata()
             download_config = DownloadConfig()
             download_config.download_desc = "Downloading metadata"
             download_config.token = token
@@ -5515,7 +5514,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         for _resolved_split in _resolved_splits
                     ]
                 }
-                MetadataConfigs({"default": default_metadata_configs_to_dump}).to_metadata(dataset_metadata)
+                MetadataConfigs({"default": default_metadata_configs_to_dump}).to_dataset_card_data(dataset_card_data)
         # update the metadata configs
         if config_name in metadata_configs:
             metadata_config = metadata_configs[config_name]

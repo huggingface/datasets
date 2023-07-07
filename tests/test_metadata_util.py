@@ -228,7 +228,7 @@ class TestMetadataUtils(unittest.TestCase):
         (README_METADATA_TWO_CONFIGS_WITH_DEFAULT_NAME, EXPECTED_METADATA_TWO_CONFIGS_DEFAULT_NAME, "default"),
     ],
 )
-def test_metadata_configs_from_metadata(readme_content, expected_metadata_configs_dict, expected_default_config_name):
+def test_metadata_configs_dataset_card_data(readme_content, expected_metadata_configs_dict, expected_default_config_name):
     with tempfile.TemporaryDirectory() as tmp_dir:
         path = Path(tmp_dir) / "README.md"
         with open(path, "w+") as readme_file:
