@@ -499,7 +499,10 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
                 config_name = dataset_card_data["dataset_info"].pop("config_name", None)
                 if config_name != "default":
                     # if config_name is not "default" preserve it and put at the first position
-                    dataset_card_data["dataset_info"] = {"config_name": config_name, **dataset_card_data["dataset_info"]}
+                    dataset_card_data["dataset_info"] = {
+                        "config_name": config_name,
+                        **dataset_card_data["dataset_info"],
+                    }
             else:
                 dataset_card_data["dataset_info"] = []
                 for config_name, dataset_info_yaml_dict in sorted(total_dataset_infos.items()):

@@ -162,8 +162,8 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
 
     @classmethod
     def from_dataset_card_data(cls, dataset_card_data: DatasetCardData) -> "MetadataConfigs":
-        if dataset_metadata.get(cls.FIELD_NAME):
-            metadata_configs = dataset_metadata[cls.FIELD_NAME]
+        if dataset_card_data.get(cls.FIELD_NAME):
+            metadata_configs = dataset_card_data[cls.FIELD_NAME]
             if not isinstance(metadata_configs, list):
                 raise ValueError(f"Expected {cls.FIELD_NAME} to be a list, but got '{metadata_configs}'")
             for metadata_config in metadata_configs:

@@ -4,9 +4,11 @@ import unittest
 from pathlib import Path
 
 import pytest
+import yaml
+from huggingface_hub import DatasetCard, DatasetCardData
 
 from datasets.config import METADATA_CONFIGS_FIELD
-from datasets.utils.metadata import DatasetMetadata, MetadataConfigs
+from datasets.utils.metadata import MetadataConfigs
 
 
 def _dedent(string: str) -> str:
@@ -122,18 +124,20 @@ class TestMetadataUtils(unittest.TestCase):
             path = Path(tmp_dir) / "README.md"
             with open(path, "w+") as readme_file:
                 readme_file.write(README_YAML)
-            metadata_dict = DatasetMetadata.from_readme(path)
-            self.assertDictEqual(metadata_dict, {"language": ["zh", "en"], "task_ids": ["sentiment-classification"]})
+            dataset_card_data = DatasetCard.load(path).data
+            self.assertDictEqual(
+                dataset_card_data.to_dict(), {"language": ["zh", "en"], "task_ids": ["sentiment-classification"]}
+            )
 
             with open(path, "w+") as readme_file:
                 readme_file.write(README_EMPTY_YAML)
-            metadata_dict = DatasetMetadata.from_readme(path)
-            self.assertDictEqual(metadata_dict, {})
+            dataset_card_data = DatasetCard.load(path).data
+            self.assertDictEqual(dataset_card_data.to_dict(), {})
 
             with open(path, "w+") as readme_file:
                 readme_file.write(README_NO_YAML)
-            metadata_dict = DatasetMetadata.from_readme(path)
-            self.assertEqual(metadata_dict, {})
+            dataset_card_data = DatasetCard.load(path).data
+            self.assertEqual(dataset_card_data.to_dict(), {})
 
     def test_from_yaml_string(self):
         valid_yaml_string = _dedent(
@@ -159,33 +163,7 @@ class TestMetadataUtils(unittest.TestCase):
             - open-domain-qa
             """
         )
-        assert DatasetMetadata.from_yaml_string(valid_yaml_string)
-
-        duplicate_yaml_keys = _dedent(
-            """\
-            annotations_creators:
-            - found
-            language:
-            - en
-            license:
-            - unknown
-            multilinguality:
-            - monolingual
-            pretty_name: Test Dataset
-            size_categories:
-            - 10K<n<100K
-            source_datasets:
-            - extended|other-yahoo-webscope-l6
-            task_categories:
-            - question-answering
-            task_ids:
-            - open-domain-qa
-            task_ids:
-            - open-domain-qa
-            """
-        )
-        with self.assertRaises(TypeError):
-            DatasetMetadata.from_yaml_string(duplicate_yaml_keys)
+        assert DatasetCardData(**yaml.safe_load(valid_yaml_string)).to_dict()
 
         valid_yaml_with_optional_keys = _dedent(
             """\
@@ -235,7 +213,7 @@ class TestMetadataUtils(unittest.TestCase):
               I agree to use this model for non-commerical use ONLY: checkbox
             """
         )
-        assert DatasetMetadata.from_yaml_string(valid_yaml_with_optional_keys)
+        assert DatasetCardData(**yaml.safe_load(valid_yaml_with_optional_keys)).to_dict()
 
 
 @pytest.mark.parametrize(
@@ -251,8 +229,8 @@ def test_metadata_configs_from_metadata(readme_content, expected_metadata_config
         path = Path(tmp_dir) / "README.md"
         with open(path, "w+") as readme_file:
             readme_file.write(readme_content)
-        metadata_dict = DatasetMetadata.from_readme(path)
-        metadata_configs_dict = MetadataConfigs.from_metadata(metadata_dict)
+        dataset_card_data = DatasetCard.load(path).data
+        metadata_configs_dict = MetadataConfigs.from_dataset_card_data(dataset_card_data)
         assert metadata_configs_dict == expected_metadata_configs_dict
         assert metadata_configs_dict.get_default_config_name() == expected_default_config_name
 
@@ -262,6 +240,6 @@ def test_metadata_configs_incorrect_yaml():
         path = Path(tmp_dir) / "README.md"
         with open(path, "w+") as readme_file:
             readme_file.write(README_METADATA_CONFIG_INCORRECT_FORMAT)
-        metadata_dict = DatasetMetadata.from_readme(path)
+        dataset_card_data = DatasetCard.load(path).data
         with pytest.raises(ValueError):
-            _ = MetadataConfigs.from_metadata(metadata_dict)
+            _ = MetadataConfigs.from_dataset_card_data(dataset_card_data)

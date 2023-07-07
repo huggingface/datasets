@@ -819,7 +819,8 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self.download_mode = download_mode
 
     def get_module(self) -> DatasetModule:
-        dataset_card_data = DatasetCard.load(Path(self.path) / "README.md").data
+        readme_path = os.path.join(self.path, "README.md")
+        dataset_card_data = DatasetCard.load(readme_path).data if os.path.isfile(readme_path) else DatasetCardData()
         metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
         dataset_infos = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
         # even if metadata_configs_dict is not None (which means that we will resolve files for each config later)
@@ -918,7 +919,6 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
             is_repo=is_repo,
             base_path=base_path,
             data_files=self.data_files,
-            allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
         supports_metadata = self.name in _MODULE_SUPPORTS_METADATA
         if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
