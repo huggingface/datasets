@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import numpy as np
 import pytest
-from huggingface_hub import HfApi
+from huggingface_hub import DatasetCard, HfApi
 
 from datasets import (
     Audio,
@@ -25,7 +25,6 @@ from datasets import (
 from datasets.config import METADATA_CONFIGS_FIELD
 from datasets.utils.file_utils import cached_path
 from datasets.utils.hub import hf_hub_url
-from datasets.utils.metadata import DatasetMetadata
 from tests.fixtures.hub import CI_HUB_ENDPOINT, CI_HUB_USER, CI_HUB_USER_TOKEN
 from tests.utils import for_all_test_methods, require_pil, require_sndfile, xfail_if_500_502_http_error
 
@@ -608,10 +607,10 @@ class TestPushToHub:
 
             # check that configs args was correctly pushed to README.md
             ds_readme_path = cached_path(hf_hub_url(ds_name, "README.md"))
-            dataset_metadata = DatasetMetadata.from_readme(Path(ds_readme_path))
-            assert METADATA_CONFIGS_FIELD in dataset_metadata
-            assert isinstance(dataset_metadata[METADATA_CONFIGS_FIELD], list)
-            assert sorted(dataset_metadata[METADATA_CONFIGS_FIELD], key=lambda x: x["config_name"]) == [
+            dataset_card_data = DatasetCard.load(ds_readme_path).data
+            assert METADATA_CONFIGS_FIELD in dataset_card_data
+            assert isinstance(dataset_card_data[METADATA_CONFIGS_FIELD], list)
+            assert sorted(dataset_card_data[METADATA_CONFIGS_FIELD], key=lambda x: x["config_name"]) == [
                 {
                     "config_name": "config1",
                     "data_files": [
@@ -737,10 +736,10 @@ class TestPushToHub:
 
             # check that configs args was correctly pushed to README.md
             ds_readme_path = cached_path(hf_hub_url(ds_name, "README.md"))
-            dataset_metadata = DatasetMetadata.from_readme(Path(ds_readme_path))
-            assert METADATA_CONFIGS_FIELD in dataset_metadata
-            assert isinstance(dataset_metadata[METADATA_CONFIGS_FIELD], list)
-            assert sorted(dataset_metadata[METADATA_CONFIGS_FIELD], key=lambda x: x["config_name"]) == [
+            dataset_card_data = DatasetCard.load(ds_readme_path).data
+            assert METADATA_CONFIGS_FIELD in dataset_card_data
+            assert isinstance(dataset_card_data[METADATA_CONFIGS_FIELD], list)
+            assert sorted(dataset_card_data[METADATA_CONFIGS_FIELD], key=lambda x: x["config_name"]) == [
                 {
                     "config_name": "config1",
                     "data_files": [

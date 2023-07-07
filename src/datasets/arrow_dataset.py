@@ -114,7 +114,7 @@ from .utils import logging
 from .utils.file_utils import _retry, cached_path, estimate_dataset_size
 from .utils.hub import hf_hub_url
 from .utils.info_utils import is_small_dataset
-from .utils.metadata import DatasetMetadata, MetadataConfigs
+from .utils.metadata import MetadataConfigs
 from .utils.py_utils import (
     Literal,
     asdict,
