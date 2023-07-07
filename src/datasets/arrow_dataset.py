@@ -2962,9 +2962,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds = ds.map(add_prefix, num_proc=4)
         ```
         """
-        if keep_in_memory and cache_file_name is not None:
-            raise ValueError("Please use either `keep_in_memory` or `cache_file_name` but not both.")
-
         if num_proc is not None and num_proc <= 0:
             raise ValueError("num_proc must be an integer > 0.")
 
@@ -3759,9 +3756,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         })
         ```
         """
-        if keep_in_memory and indices_cache_file_name is not None:
-            raise ValueError("Please use either `keep_in_memory` or `indices_cache_file_name` but not both.")
-
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
                 "Using `.select` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
@@ -3897,9 +3891,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         })
         ```
         """
-        if keep_in_memory and indices_cache_file_name is not None:
-            raise ValueError("Please use either `keep_in_memory` or `indices_cache_file_name` but not both.")
-
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
                 "Using `.select` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
@@ -4204,9 +4195,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if len(self) == 0:
             return self
 
-        if keep_in_memory and indices_cache_file_name is not None:
-            raise ValueError("Please use either `keep_in_memory` or `indices_cache_file_name` but not both.")
-
         if seed is not None and generator is not None:
             raise ValueError("Both `seed` and `generator` were provided. Please specify just one of them.")
 
@@ -4450,25 +4438,31 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if train_indices_cache_file_name is None or test_indices_cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
 
-                if train_indices_cache_file_name is None:
-                    train_indices_cache_file_name = self._get_cache_file_path(train_new_fingerprint)
-                if test_indices_cache_file_name is None:
-                    test_indices_cache_file_name = self._get_cache_file_path(test_new_fingerprint)
+                train_indices_cache_file_name_ = (
+                    self._get_cache_file_path(train_new_fingerprint)
+                    if train_indices_cache_file_name is None
+                    else train_indices_cache_file_name
+                )
+                test_indices_cache_file_name_ = (
+                    self._get_cache_file_path(test_new_fingerprint)
+                    if test_indices_cache_file_name is None
+                    else test_indices_cache_file_name
+                )
             if (
-                os.path.exists(train_indices_cache_file_name)
-                and os.path.exists(test_indices_cache_file_name)
+                os.path.exists(train_indices_cache_file_name_)
+                and os.path.exists(test_indices_cache_file_name_)
                 and load_from_cache_file
             ):
                 logger.warning(
-                    f"Loading cached split indices for dataset at {train_indices_cache_file_name} and {test_indices_cache_file_name}"
+                    f"Loading cached split indices for dataset at {train_indices_cache_file_name_} and {test_indices_cache_file_name_}"
                 )
                 return DatasetDict(
                     {
                         "train": self._new_dataset_with_indices(
-                            fingerprint=train_new_fingerprint, indices_cache_file_name=train_indices_cache_file_name
+                            fingerprint=train_new_fingerprint, indices_cache_file_name=train_indices_cache_file_name_
                         ),
                         "test": self._new_dataset_with_indices(
-                            fingerprint=test_new_fingerprint, indices_cache_file_name=test_indices_cache_file_name
+                            fingerprint=test_new_fingerprint, indices_cache_file_name=test_indices_cache_file_name_
                         ),
                     }
                 )
