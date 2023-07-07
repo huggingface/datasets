@@ -1124,6 +1124,12 @@ def test_cast_array_to_features_nested():
     )
 
 
+def test_cast_array_to_features_to_nested_with_no_fields():
+    arr = pa.array([{}])
+    assert cast_array_to_feature(arr, {}).type == pa.struct({})
+    assert cast_array_to_feature(arr, {}).to_pylist() == arr.to_pylist()
+
+
 def test_cast_array_to_features_nested_with_null_values():
     # same type
     arr = pa.array([{"foo": [None, [0]]}], pa.struct({"foo": pa.list_(pa.list_(pa.int64()))}))
