@@ -1,4 +1,5 @@
 import re
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -131,8 +132,11 @@ class TestMetadataUtils(unittest.TestCase):
 
             with open(path, "w+") as readme_file:
                 readme_file.write(README_EMPTY_YAML)
-            dataset_card_data = DatasetCard.load(path).data
-            self.assertDictEqual(dataset_card_data.to_dict(), {})
+            if (
+                sys.platform != "win32"
+            ):  # there is a bug on windows, see https://github.com/huggingface/huggingface_hub/issues/1546
+                dataset_card_data = DatasetCard.load(path).data
+                self.assertDictEqual(dataset_card_data.to_dict(), {})
 
             with open(path, "w+") as readme_file:
                 readme_file.write(README_NO_YAML)
