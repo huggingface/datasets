@@ -1632,6 +1632,7 @@ class BaseDatasetTest(TestCase):
                 dset.map(ex_cnt)
                 self.assertEqual(ex_cnt.cnt, len(dset))
 
+    @require_not_windows
     def test_map_crash_subprocess(self, in_memory):
         # be sure that a crash in one of the subprocess will not
         # hang dataset.map() call forever
