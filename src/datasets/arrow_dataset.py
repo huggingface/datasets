@@ -114,6 +114,7 @@ from .table import (
 )
 from .tasks import TaskTemplate
 from .utils import logging
+from .utils.deprecation_utils import deprecated
 from .utils.file_utils import _retry, cached_path, estimate_dataset_size
 from .utils.hub import hf_hub_url
 from .utils.info_utils import is_small_dataset
@@ -437,11 +438,6 @@ class TensorflowDatasetMixin:
                 "pipeline and is not compatible with remote TPU connections. If you encounter errors, please "
                 "try using a TPU VM or, if your data can fit in memory, loading it into memory as a dict of "
                 "Tensors instead of streaming with to_tf_dataset()."
-            )
-
-        if num_workers > 0 and sys.version_info < (3, 8):
-            raise ValueError(
-                "Using multiple workers is only supported on Python versions >= 3.8."
             )
 
         if collate_fn is None:
@@ -3054,6 +3050,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
         return dataset
 
+    @deprecated()
     def prepare_for_task(
         self, task: Union[str, TaskTemplate], id: int = 0
     ) -> "Dataset":
@@ -6133,7 +6130,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             and data_file not in shards_path_in_repo
         ]
         deleted_size = sum(
-            xgetsize(hf_hub_url(repo_id, data_file), use_auth_token=token)
+            xgetsize(hf_hub_url(repo_id, data_file), token=token)
             for data_file in data_files_to_delete
         )
 
@@ -6264,7 +6261,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if "README.md" in repo_files:
             download_config = DownloadConfig()
             download_config.download_desc = "Downloading metadata"
-            download_config.use_auth_token = token
+            download_config.token = token
             dataset_readme_path = cached_path(
                 hf_hub_url(repo_id, "README.md"),
                 download_config=download_config,
@@ -6284,7 +6281,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dataset_card_data = DatasetCardData()
             download_config = DownloadConfig()
             download_config.download_desc = "Downloading metadata"
-            download_config.use_auth_token = token
+            download_config.token = token
             dataset_infos_path = cached_path(
                 hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME),
                 download_config=download_config,

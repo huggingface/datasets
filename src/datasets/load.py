@@ -63,7 +63,6 @@ from .packaged_modules import (
     _hash_python_lines,
 )
 from .splits import Split
-from .tasks import TaskTemplate
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import (
     OfflineModeIsEnabled,
@@ -343,7 +342,7 @@ def _create_importable_file(
 
 
 def infer_module_for_data_files(
-    data_files_list: DataFilesList, use_auth_token: Optional[Union[bool, str]] = None
+    data_files_list: DataFilesList, token: Optional[Union[bool, str]] = None
 ) -> Optional[Tuple[str, str]]:
     """Infer module (and builder kwargs) from list of data files.
 
@@ -352,7 +351,7 @@ def infer_module_for_data_files(
 
     Args:
         data_files_list (DataFilesList): List of data files.
-        use_auth_token (bool or str, optional): Whether to use token or token to authenticate on the Hugging Face Hub
+        token (bool or str, optional): Whether to use token or token to authenticate on the Hugging Face Hub
             for private remote files.
 
     Returns:
@@ -376,18 +375,18 @@ def infer_module_for_data_files(
             if ext in _EXTENSION_TO_MODULE:
                 return _EXTENSION_TO_MODULE[ext]
             elif ext == ".zip":
-                return infer_module_for_data_files_in_archives(data_files_list, use_auth_token=use_auth_token)
+                return infer_module_for_data_files_in_archives(data_files_list, token=token)
     return None, {}
 
 
 def infer_module_for_data_files_in_archives(
-    data_files_list: DataFilesList, use_auth_token: Optional[Union[bool, str]]
+    data_files_list: DataFilesList, token: Optional[Union[bool, str]]
 ) -> Optional[Tuple[str, str]]:
     """Infer module (and builder kwargs) from list of archive data files.
 
     Args:
         data_files_list (DataFilesList): List of data files.
-        use_auth_token (bool or str, optional): Whether to use token or token to authenticate on the Hugging Face Hub
+        token (bool or str, optional): Whether to use token or token to authenticate on the Hugging Face Hub
             for private remote files.
 
     Returns:
@@ -405,7 +404,7 @@ def infer_module_for_data_files_in_archives(
             extracted = xjoin(StreamingDownloadManager().extract(filepath), "**")
             archived_files += [
                 f.split("::")[0]
-                for f in xglob(extracted, recursive=True, use_auth_token=use_auth_token)[
+                for f in xglob(extracted, recursive=True, token=token)[
                     : config.ARCHIVED_DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE
                 ]
             ]
@@ -721,7 +720,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         )
         data_files = DataFilesDict.from_local_or_remote(
             patterns,
-            use_auth_token=self.download_config.use_auth_token,
+            token=self.download_config.token,
             base_path=base_path,
         )
         if self.data_files is None and self.name in _MODULE_SUPPORTS_METADATA and patterns != DEFAULT_PATTERNS_ALL:
@@ -731,7 +730,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
                 metadata_patterns = None
             if metadata_patterns is not None:
                 metadata_files = DataFilesList.from_local_or_remote(
-                    metadata_patterns, use_auth_token=self.download_config.use_auth_token, base_path=base_path
+                    metadata_patterns, token=self.download_config.token, base_path=base_path
                 )
                 for key in data_files:
                     data_files[key] = DataFilesList(
@@ -770,7 +769,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         hfh_dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
             self.name,
             revision=self.revision,
-            token=self.download_config.use_auth_token,
+            token=self.download_config.token,
             timeout=100.0,
         )
         patterns = (
@@ -785,7 +784,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
         split_modules = {
-            split: infer_module_for_data_files(data_files_list, use_auth_token=self.download_config.use_auth_token)
+            split: infer_module_for_data_files(data_files_list, token=self.download_config.token)
             for split, data_files_list in data_files.items()
         }
         module_name, builder_kwargs = next(iter(split_modules.values()))
@@ -1171,7 +1170,7 @@ def dataset_module_factory(
                 dataset_info = hf_api.dataset_info(
                     repo_id=path,
                     revision=revision,
-                    use_auth_token=download_config.use_auth_token,
+                    token=download_config.token,
                     timeout=100.0,
                 )
             except Exception as e:  # noqa: catch any exception of hf_hub and consider that the dataset doesn't exist
@@ -1423,7 +1422,8 @@ def load_dataset_builder(
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[Union[DownloadMode, str]] = None,
     revision: Optional[Union[str, Version]] = None,
-    use_auth_token: Optional[Union[bool, str]] = None,
+    token: Optional[Union[bool, str]] = None,
+    use_auth_token="deprecated",
     storage_options: Optional[Dict] = None,
     **config_kwargs,
 ) -> DatasetBuilder:
@@ -1482,9 +1482,18 @@ def load_dataset_builder(
             Version of the dataset script to load.
             As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
             You can specify a different version than the default "main" by using a commit SHA or a git tag of the dataset repository.
+        token (`str` or `bool`, *optional*):
+            Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+            If `True`, or not specified, will get token from `"~/.huggingface"`.
         use_auth_token (`str` or `bool`, *optional*):
             Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If `True`, or not specified, will get token from `"~/.huggingface"`.
+
+            <Deprecated version="2.14.0">
+
+            `use_auth_token` was deprecated in favor of `token` in version 2.14.0 and will be removed in 3.0.0.
+
+            </Deprecated>
         storage_options (`dict`, *optional*, defaults to `None`):
             **Experimental**. Key/value pairs to be passed on to the dataset file-system backend, if any.
 
@@ -1506,10 +1515,17 @@ def load_dataset_builder(
      'text': Value(dtype='string', id=None)}
     ```
     """
+    if use_auth_token != "deprecated":
+        warnings.warn(
+            "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
+            f"You can remove this warning by passing 'token={use_auth_token}' instead.",
+            FutureWarning,
+        )
+        token = use_auth_token
     download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
-    if use_auth_token is not None:
+    if token is not None:
         download_config = download_config.copy() if download_config else DownloadConfig()
-        download_config.use_auth_token = use_auth_token
+        download_config.token = token
     dataset_module = dataset_module_factory(
         path,
         revision=revision,
@@ -1543,7 +1559,7 @@ def load_dataset_builder(
         data_files=data_files,
         hash=hash,
         features=features,
-        use_auth_token=use_auth_token,
+        token=token,
         storage_options=storage_options,
         **builder_kwargs,
         **config_kwargs,
@@ -1567,8 +1583,9 @@ def load_dataset(
     keep_in_memory: Optional[bool] = None,
     save_infos: bool = False,
     revision: Optional[Union[str, Version]] = None,
-    use_auth_token: Optional[Union[bool, str]] = None,
-    task: Optional[Union[str, TaskTemplate]] = None,
+    token: Optional[Union[bool, str]] = None,
+    use_auth_token="deprecated",
+    task="deprecated",
     streaming: bool = False,
     num_proc: Optional[int] = None,
     storage_options: Optional[Dict] = None,
@@ -1676,11 +1693,26 @@ def load_dataset(
             Version of the dataset script to load.
             As datasets have their own git repository on the Datasets Hub, the default version "main" corresponds to their "main" branch.
             You can specify a different version than the default "main" by using a commit SHA or a git tag of the dataset repository.
+        token (`str` or `bool`, *optional*):
+            Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+            If `True`, or not specified, will get token from `"~/.huggingface"`.
         use_auth_token (`str` or `bool`, *optional*):
             Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If `True`, or not specified, will get token from `"~/.huggingface"`.
+
+            <Deprecated version="2.14.0">
+
+            `use_auth_token` was deprecated in favor of `token` in version 2.14.0 and will be removed in 3.0.0.
+
+            </Deprecated>
         task (`str`):
             The task to prepare the dataset for during training and evaluation. Casts the dataset's [`Features`] to standardized column names and types as detailed in `datasets.tasks`.
+
+            <Deprecated version="2.13.0">
+
+            `task` was deprecated in version 2.13.0 and will be removed in 3.0.0.
+
+            </Deprecated>
         streaming (`bool`, defaults to `False`):
             If set to `True`, don't download the data files. Instead, it streams the data progressively while
             iterating on the dataset. An [`IterableDataset`] or [`IterableDatasetDict`] is returned instead in this case.
@@ -1754,6 +1786,13 @@ def load_dataset(
     >>> ds = load_dataset('imagefolder', data_dir='/path/to/images', split='train')
     ```
     """
+    if use_auth_token != "deprecated":
+        warnings.warn(
+            "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
+            f"You can remove this warning by passing 'token={use_auth_token}' instead.",
+            FutureWarning,
+        )
+        token = use_auth_token
     if ignore_verifications != "deprecated":
         verification_mode = VerificationMode.NO_CHECKS if ignore_verifications else VerificationMode.ALL_CHECKS
         warnings.warn(
@@ -1761,6 +1800,13 @@ def load_dataset(
             f"You can remove this warning by passing 'verification_mode={verification_mode.value}' instead.",
             FutureWarning,
         )
+    if task != "deprecated":
+        warnings.warn(
+            "'task' was deprecated in version 2.13.0 and will be removed in 3.0.0.\n",
+            FutureWarning,
+        )
+    else:
+        task = None
     if data_files is not None and not data_files:
         raise ValueError(f"Empty 'data_files': '{data_files}'. It should be either non-empty or None (default).")
     if Path(path, config.DATASET_STATE_JSON_FILENAME).exists():
@@ -1791,7 +1837,7 @@ def load_dataset(
         download_config=download_config,
         download_mode=download_mode,
         revision=revision,
-        use_auth_token=use_auth_token,
+        token=token,
         storage_options=storage_options,
         **config_kwargs,
     )
@@ -1821,7 +1867,10 @@ def load_dataset(
     ds = builder_instance.as_dataset(split=split, verification_mode=verification_mode, in_memory=keep_in_memory)
     # Rename and cast features to match task schema
     if task is not None:
-        ds = ds.prepare_for_task(task)
+        # To avoid issuing the same warning twice
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", FutureWarning)
+            ds = ds.prepare_for_task(task)
     if save_infos:
         builder_instance._save_infos()
 

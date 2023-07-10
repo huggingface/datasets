@@ -25,6 +25,7 @@ from .splits import NamedSplit, Split, SplitDict, SplitInfo
 from .table import Table
 from .tasks import TaskTemplate
 from .utils import logging
+from .utils.deprecation_utils import deprecated
 from .utils.doc_utils import is_documented_by
 from .utils.file_utils import cached_path
 from .utils.hub import hf_hub_url
@@ -1537,6 +1538,7 @@ class DatasetDict(dict):
             path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
         ).read()
 
+    @deprecated()
     @is_documented_by(Dataset.prepare_for_task)
     def prepare_for_task(self, task: Union[str, TaskTemplate], id: int = 0) -> "DatasetDict":
         self._check_values_type()
@@ -1669,7 +1671,7 @@ class DatasetDict(dict):
         if "README.md" in repo_files:
             download_config = DownloadConfig()
             download_config.download_desc = "Downloading metadata"
-            download_config.use_auth_token = token
+            download_config.token = token
             dataset_readme_path = cached_path(
                 hf_hub_url(repo_id, "README.md"),
                 download_config=download_config,

@@ -31,6 +31,14 @@ class SparkConfig(datasets.BuilderConfig):
     features: Optional[datasets.Features] = None
 
 
+def _reorder_dataframe_by_partition(df: "pyspark.sql.DataFrame", new_partition_order: List[int]):
+    df_combined = df.select("*").where(f"part_id = {new_partition_order[0]}")
+    for partition_id in new_partition_order[1:]:
+        partition_df = df.select("*").where(f"part_id = {partition_id}")
+        df_combined = df_combined.union(partition_df)
+    return df_combined
+
+
 def _generate_iterable_examples(
     df: "pyspark.sql.DataFrame",
     partition_order: List[int],
@@ -39,13 +47,20 @@ def _generate_iterable_examples(
 
     def generate_fn():
         df_with_partition_id = df.select("*", pyspark.sql.functions.spark_partition_id().alias("part_id"))
-        for partition_id in partition_order:
-            partition_df = df_with_partition_id.select("*").where(f"part_id = {partition_id}").drop("part_id")
-            rows = partition_df.collect()
-            row_id = 0
-            for row in rows:
-                yield f"{partition_id}_{row_id}", row.asDict()
-                row_id += 1
+        partition_df = _reorder_dataframe_by_partition(df_with_partition_id, partition_order)
+        row_id = 0
+        # pipeline next partition in parallel to hide latency
+        rows = partition_df.toLocalIterator(prefetchPartitions=True)
+        curr_partition = -1
+        for row in rows:
+            row_as_dict = row.asDict()
+            part_id = row_as_dict["part_id"]
+            row_as_dict.pop("part_id")
+            if curr_partition != part_id:
+                curr_partition = part_id
+                row_id = 0
+            yield f"{part_id}_{row_id}", row_as_dict
+            row_id += 1
 
     return generate_fn
 

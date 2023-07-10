@@ -78,12 +78,12 @@ def test_distributed_shuffle_iterable():
 @require_torch
 @pytest.mark.skipif(os.name == "nt", reason="execute_subprocess_async doesn't support windows")
 @pytest.mark.integration
-def test_torch_distributed_launch(streaming):
+def test_torch_distributed_run(streaming):
     nproc_per_node = 2
     master_port = get_torch_dist_unique_port()
-    test_script = Path(__file__).resolve().parent / "distributed_scripts" / "launch_torch_distributed.py"
+    test_script = Path(__file__).resolve().parent / "distributed_scripts" / "run_torch_distributed.py"
     distributed_args = f"""
-        -m torch.distributed.launch
+        -m torch.distributed.run
         --nproc_per_node={nproc_per_node}
         --master_port={master_port}
         {test_script}
@@ -105,12 +105,12 @@ def test_torch_distributed_launch(streaming):
 @require_torch
 @pytest.mark.skipif(os.name == "nt", reason="execute_subprocess_async doesn't support windows")
 @pytest.mark.integration
-def test_torch_distributed_launch_streaming_with_num_workers(nproc_per_node, num_workers):
+def test_torch_distributed_run_streaming_with_num_workers(nproc_per_node, num_workers):
     streaming = True
     master_port = get_torch_dist_unique_port()
-    test_script = Path(__file__).resolve().parent / "distributed_scripts" / "launch_torch_distributed.py"
+    test_script = Path(__file__).resolve().parent / "distributed_scripts" / "run_torch_distributed.py"
     distributed_args = f"""
-        -m torch.distributed.launch
+        -m torch.distributed.run
         --nproc_per_node={nproc_per_node}
         --master_port={master_port}
         {test_script}

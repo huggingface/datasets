@@ -1632,6 +1632,26 @@ class BaseDatasetTest(TestCase):
                 dset.map(ex_cnt)
                 self.assertEqual(ex_cnt.cnt, len(dset))
 
+    @require_not_windows
+    def test_map_crash_subprocess(self, in_memory):
+        # be sure that a crash in one of the subprocess will not
+        # hang dataset.map() call forever
+
+        def do_crash(row):
+            import os
+
+            os.kill(os.getpid(), 9)
+            return row
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with pytest.raises(RuntimeError) as excinfo:
+                    dset.map(do_crash, num_proc=2)
+                assert str(excinfo.value) == (
+                    "One of the subprocesses has abruptly died during map operation."
+                    "To debug the error, disable multiprocessing."
+                )
+
     def test_filter(self, in_memory):
         # keep only first five examples
 
@@ -2785,8 +2805,6 @@ class BaseDatasetTest(TestCase):
     def test_tf_dataset_conversion(self, in_memory):
         tmp_dir = tempfile.TemporaryDirectory()
         for num_workers in [0, 1, 2]:
-            if num_workers > 0 and sys.version_info < (3, 8):
-                continue  # Skip multiprocessing tests for Python < 3.8
             if num_workers > 0 and sys.platform == "win32" and not in_memory:
                 continue  # This test hangs on the Py3.10 test worker, but it runs fine locally on my Windows machine
             with self._create_dummy_dataset(in_memory, tmp_dir.name, array_features=True) as dset:
@@ -2829,8 +2847,6 @@ class BaseDatasetTest(TestCase):
         # even when loading is split across multiple workers
         data = {"col_1": list(range(20))}
         for num_workers in [0, 1, 2, 3]:
-            if num_workers > 0 and sys.version_info < (3, 8):
-                continue  # Skip multiprocessing tests for Python < 3.8
             with Dataset.from_dict(data) as dset:
                 tf_dataset = dset.to_tf_dataset(batch_size=10, shuffle=True, num_workers=num_workers)
                 indices = []

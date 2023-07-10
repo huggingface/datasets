@@ -679,21 +679,21 @@ def get_metadata_patterns_in_dataset_repository(
 
 
 def _get_single_origin_metadata_locally_or_by_urls(
-    data_file: Union[Path, Url], use_auth_token: Optional[Union[bool, str]] = None
+    data_file: Union[Path, Url], token: Optional[Union[bool, str]] = None
 ) -> Tuple[str]:
     if isinstance(data_file, Url):
         data_file = str(data_file)
-        return (request_etag(data_file, use_auth_token=use_auth_token),)
+        return (request_etag(data_file, token=token),)
     else:
         data_file = str(data_file.resolve())
         return (str(os.path.getmtime(data_file)),)
 
 
 def _get_origin_metadata_locally_or_by_urls(
-    data_files: List[Union[Path, Url]], max_workers=64, use_auth_token: Optional[Union[bool, str]] = None
+    data_files: List[Union[Path, Url]], max_workers=64, token: Optional[Union[bool, str]] = None
 ) -> Tuple[str]:
     return thread_map(
-        partial(_get_single_origin_metadata_locally_or_by_urls, use_auth_token=use_auth_token),
+        partial(_get_single_origin_metadata_locally_or_by_urls, token=token),
         data_files,
         max_workers=max_workers,
         tqdm_class=logging.tqdm,
@@ -742,11 +742,11 @@ class DataFilesList(List[Union[Path, Url]]):
         patterns: List[str],
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
-        use_auth_token: Optional[Union[bool, str]] = None,
+        token: Optional[Union[bool, str]] = None,
     ) -> "DataFilesList":
         base_path = base_path if base_path is not None else str(Path().resolve())
         data_files = resolve_patterns_locally_or_by_urls(base_path, patterns, allowed_extensions)
-        origin_metadata = _get_origin_metadata_locally_or_by_urls(data_files, use_auth_token=use_auth_token)
+        origin_metadata = _get_origin_metadata_locally_or_by_urls(data_files, token=token)
         return cls(data_files, origin_metadata)
 
     def filter_extensions(self, extensions: List[str]) -> "DataFilesList":
@@ -784,7 +784,7 @@ class DataFilesDict(Dict[str, DataFilesList]):
         patterns: Dict[str, Union[List[str], DataFilesList]],
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
-        use_auth_token: Optional[Union[bool, str]] = None,
+        token: Optional[Union[bool, str]] = None,
     ) -> "DataFilesDict":
         out = cls()
         for key, patterns_for_key in patterns.items():
@@ -793,7 +793,7 @@ class DataFilesDict(Dict[str, DataFilesList]):
                     patterns_for_key,
                     base_path=base_path,
                     allowed_extensions=allowed_extensions,
-                    use_auth_token=use_auth_token,
+                    token=token,
                 )
                 if not isinstance(patterns_for_key, DataFilesList)
                 else patterns_for_key
