@@ -5881,9 +5881,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         :return: A unique metadata filename
         """
         # Sanitize input parameters
-        print(
-            f"repo_id: {repo_id}, split: {split}, branch: {branch}, max_shard_size: {max_shard_size}, num_shards: {num_shards}"
-        )
+
         sanitized_repo_id = repo_id.replace("/", "_")
 
         if split is None:
@@ -6042,6 +6040,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         starting_shard_index = 0
 
         if decodable_columns:
+            from huggingface_hub import hf_hub_download
+
             # Generate unique metadata filename
             unique_id = self.generate_unique_metadata_filename(
                 repo_id, split, branch, max_shard_size, num_shards
@@ -6051,7 +6051,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             metadata_path = f"metadata/last_processed_shard_{unique_id}.json"
             try:
                 last_processed_shard = json.loads(
-                    api.download_file(repo_id, metadata_path, token=token)
+                    hf_hub_download(repo_id, metadata_path, token=token)
                 )
             except HTTPError:
                 last_processed_shard = None
