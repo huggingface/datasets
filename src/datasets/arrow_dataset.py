@@ -6041,6 +6041,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if decodable_columns:
             from huggingface_hub import hf_hub_download
+            import yaml
 
             # Generate unique metadata filename
             unique_id = self.generate_unique_metadata_filename(
@@ -6048,19 +6049,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
 
             # Load the metadata of the last processed shard
-            metadata_path = f"metadata/last_processed_shard_{unique_id}.json"
+            metadata_path = f"metadata/{unique_id}.yaml"
             try:
-                last_processed_shard = json.loads(
+                uploaded_shards_meta_data = yaml.safe_load(
                     hf_hub_download(repo_id, metadata_path, token=token)
                 )
             except HTTPError:
-                last_processed_shard = None
+                uploaded_shards_meta_data = None
 
             # If metadata is available, use it to determine the starting shard index
-            if last_processed_shard:
-                starting_shard_index = last_processed_shard["shard_index"] + 1
-                uploaded_size = last_processed_shard.get("uploaded_size", 0)
-                shards_path_in_repo = last_processed_shard.get(
+            if uploaded_shards_meta_data:
+                starting_shard_index = (
+                    uploaded_shards_meta_data["shard_index"] + 1
+                )
+                uploaded_size = uploaded_shards_meta_data.get(
+                    "uploaded_size", 0
+                )
+                shards_path_in_repo = uploaded_shards_meta_data.get(
                     "shards_path_in_repo", []
                 )
 
@@ -6128,6 +6133,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
 
             if shard_path_in_repo not in shards_path_in_repo:
+                import yaml
+
                 # After each shard upload, update the metadata file
                 metadata = {
                     "shard_index": index + starting_shard_index,
@@ -6138,7 +6145,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 with tempfile.NamedTemporaryFile(
                     mode="w", delete=True
                 ) as temp:
-                    json.dump(metadata, temp)
+                    yaml.dump(metadata, temp)
                     temp_path = temp.name
 
                     _retry(
