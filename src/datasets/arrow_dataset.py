@@ -5884,8 +5884,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         sanitized_repo_id = repo_id.replace("/", "_")
         sanitized_split = split.replace("/", "_")
         sanitized_branch = branch.replace("/", "_")
-        sanitized_max_shard_size = str(max_shard_size).replace("/", "_")
-        sanitized_num_shards = str(num_shards).replace("/", "_")
+        if max_shard_size is None:
+            sanitized_max_shard_size = "none"
+        else:
+            sanitized_max_shard_size = str(max_shard_size).replace("/", "_")
+
+        if num_shards is None:
+            sanitized_num_shards = "none"
+        else:
+            sanitized_num_shards = str(num_shards).replace("/", "_")
 
         # Create a unique deterministic ID based on input parameters
         unique_id = f"{sanitized_repo_id}-{sanitized_split}-{sanitized_branch}-{sanitized_max_shard_size}-{sanitized_num_shards}"
