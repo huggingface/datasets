@@ -5886,7 +5886,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
         sanitized_repo_id = repo_id.replace("/", "_")
         sanitized_split = split.replace("/", "_")
-        sanitized_branch = branch.replace("/", "_")
+        
+        if branch is None:
+            sanitized_branch = "none"
+        else:
+            sanitized_branch = branch.replace("/", "_")
+        
+        
         if max_shard_size is None:
             sanitized_max_shard_size = "none"
         else:
