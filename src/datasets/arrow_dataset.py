@@ -6126,6 +6126,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     max_retries=5,
                     max_wait_time=20.0,
                 )
+
+            if shard_path_in_repo not in shards_path_in_repo:
                 # After each shard upload, update the metadata file
                 metadata = {
                     "shard_index": index + starting_shard_index,
@@ -6148,7 +6150,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     max_retries=5,
                     max_wait_time=20.0,
                 )
-            shards_path_in_repo.append(shard_path_in_repo)
+                shards_path_in_repo.append(shard_path_in_repo)
 
         # Cleanup to remove unused files
         data_files_to_delete = [
