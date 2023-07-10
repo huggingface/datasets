@@ -5881,6 +5881,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         :return: A unique metadata filename
         """
         # Sanitize input parameters
+        print(
+            f"repo_id: {repo_id}, split: {split}, branch: {branch}, max_shard_size: {max_shard_size}, num_shards: {num_shards}"
+        )
         sanitized_repo_id = repo_id.replace("/", "_")
         sanitized_split = split.replace("/", "_")
         sanitized_branch = branch.replace("/", "_")
