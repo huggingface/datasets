@@ -5863,6 +5863,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
 
     def generate_unique_metadata_filename(
+        self,
         repo_id: str,
         split: str,
         branch: str,
