@@ -6023,7 +6023,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if decodable_columns:
             # Generate unique metadata filename
-            unique_id = generate_unique_metadata_filename(
+            unique_id = self.generate_unique_metadata_filename(
                 repo_id, split, branch, max_shard_size, num_shards
             )
 
