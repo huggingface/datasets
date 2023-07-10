@@ -6132,13 +6132,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     "shard_path_in_repo": shards_path_in_repo,
                     "uploaded_size": uploaded_size,
                 }
-                api.upload_file(
-                    path_or_fileobj=json.dumps(metadata),
-                    path_in_repo=metadata_path,
-                    repo_id=repo_id,
-                    token=token,
-                    repo_type="dataset",
-                    revision=branch,
+                _retry(
+                    api.upload_file,
+                    func_kwargs={
+                        "path_or_fileobj": json.dumps(metadata),
+                        "path_in_repo": metadata_path,
+                        "repo_id": repo_id,
+                        "token": token,
+                        "repo_type": "dataset",
+                        "revision": branch,
+                    },
+                    exceptions=HTTPError,
+                    status_codes=[504],
+                    base_wait_time=2.0,
+                    max_retries=5,
+                    max_wait_time=20.0,
                 )
             shards_path_in_repo.append(shard_path_in_repo)
 
