@@ -63,7 +63,6 @@ from .packaged_modules import (
     _hash_python_lines,
 )
 from .splits import Split
-from .tasks import TaskTemplate
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import (
     OfflineModeIsEnabled,
@@ -1586,7 +1585,7 @@ def load_dataset(
     revision: Optional[Union[str, Version]] = None,
     token: Optional[Union[bool, str]] = None,
     use_auth_token="deprecated",
-    task: Optional[Union[str, TaskTemplate]] = None,
+    task="deprecated",
     streaming: bool = False,
     num_proc: Optional[int] = None,
     storage_options: Optional[Dict] = None,
@@ -1708,6 +1707,12 @@ def load_dataset(
             </Deprecated>
         task (`str`):
             The task to prepare the dataset for during training and evaluation. Casts the dataset's [`Features`] to standardized column names and types as detailed in `datasets.tasks`.
+
+            <Deprecated version="2.13.0">
+
+            `task` was deprecated in version 2.13.0 and will be removed in 3.0.0.
+
+            </Deprecated>
         streaming (`bool`, defaults to `False`):
             If set to `True`, don't download the data files. Instead, it streams the data progressively while
             iterating on the dataset. An [`IterableDataset`] or [`IterableDatasetDict`] is returned instead in this case.
@@ -1795,6 +1800,13 @@ def load_dataset(
             f"You can remove this warning by passing 'verification_mode={verification_mode.value}' instead.",
             FutureWarning,
         )
+    if task != "deprecated":
+        warnings.warn(
+            "'task' was deprecated in version 2.13.0 and will be removed in 3.0.0.\n",
+            FutureWarning,
+        )
+    else:
+        task = None
     if data_files is not None and not data_files:
         raise ValueError(f"Empty 'data_files': '{data_files}'. It should be either non-empty or None (default).")
     if Path(path, config.DATASET_STATE_JSON_FILENAME).exists():
@@ -1855,7 +1867,10 @@ def load_dataset(
     ds = builder_instance.as_dataset(split=split, verification_mode=verification_mode, in_memory=keep_in_memory)
     # Rename and cast features to match task schema
     if task is not None:
-        ds = ds.prepare_for_task(task)
+        # To avoid issuing the same warning twice
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", FutureWarning)
+            ds = ds.prepare_for_task(task)
     if save_infos:
         builder_instance._save_infos()
 
