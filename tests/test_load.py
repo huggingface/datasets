@@ -467,14 +467,14 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
 
-        module_metadata_configs = module_factory_result.builder_parameters.metadata_configs
+        module_metadata_configs = module_factory_result.builder_configs_parameters.metadata_configs
         assert module_metadata_configs is not None
         assert len(module_metadata_configs) == 1
         assert next(iter(module_metadata_configs)) == "custom"
         assert "drop_labels" in next(iter(module_metadata_configs.values()))
         assert next(iter(module_metadata_configs.values()))["drop_labels"] is True
 
-        module_builder_configs = module_factory_result.builder_parameters.builder_configs
+        module_builder_configs = module_factory_result.builder_configs_parameters.builder_configs
         assert module_builder_configs is not None
         assert len(module_builder_configs) == 1
         assert isinstance(module_builder_configs[0], ImageFolderConfig)
@@ -486,7 +486,7 @@ class ModuleFactoryTest(TestCase):
         assert module_builder_configs[0].drop_labels is True  # parameter is passed from metadata
 
         # config named "default" is automatically considered to be a default config
-        assert module_factory_result.builder_parameters.default_config_name is None
+        assert module_factory_result.builder_configs_parameters.default_config_name is None
 
         # we don't pass config params to builder in builder_kwargs, they are stored in builder_configs directly
         assert "drop_labels" not in module_factory_result.builder_kwargs
@@ -498,7 +498,7 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
 
-        module_metadata_configs = module_factory_result.builder_parameters.metadata_configs
+        module_metadata_configs = module_factory_result.builder_configs_parameters.metadata_configs
         assert module_metadata_configs is not None
         assert len(module_metadata_configs) == 2
         assert list(module_metadata_configs) == ["v1", "v2"]
@@ -507,7 +507,7 @@ class ModuleFactoryTest(TestCase):
         assert "drop_labels" in module_metadata_configs["v2"]
         assert module_metadata_configs["v2"]["drop_labels"] is False
 
-        module_builder_configs = module_factory_result.builder_parameters.builder_configs
+        module_builder_configs = module_factory_result.builder_configs_parameters.builder_configs
         assert module_builder_configs is not None
         assert len(module_builder_configs) == 2
         module_builder_config_v1, module_builder_config_v2 = module_builder_configs
@@ -525,7 +525,7 @@ class ModuleFactoryTest(TestCase):
         assert module_builder_config_v2.drop_labels is False  # parameter is passed from metadata
 
         assert (
-            module_factory_result.builder_parameters.default_config_name == "v1"
+            module_factory_result.builder_configs_parameters.default_config_name == "v1"
         )  # it's marked as a default one in yaml
 
         # we don't pass config params to builder in builder_kwargs, they are stored in builder_configs directly
@@ -637,14 +637,14 @@ class ModuleFactoryTest(TestCase):
         assert importlib.import_module(module_factory_result.module_path) is not None
         assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
 
-        module_metadata_configs = module_factory_result.builder_parameters.metadata_configs
+        module_metadata_configs = module_factory_result.builder_configs_parameters.metadata_configs
         assert module_metadata_configs is not None
         assert len(module_metadata_configs) == 1
         assert next(iter(module_metadata_configs)) == "custom"
         assert "drop_labels" in next(iter(module_metadata_configs.values()))
         assert next(iter(module_metadata_configs.values()))["drop_labels"] is True
 
-        module_builder_configs = module_factory_result.builder_parameters.builder_configs
+        module_builder_configs = module_factory_result.builder_configs_parameters.builder_configs
         assert module_builder_configs is not None
         assert len(module_builder_configs) == 1
         assert isinstance(module_builder_configs[0], AudioFolderConfig)
@@ -657,7 +657,7 @@ class ModuleFactoryTest(TestCase):
         assert module_builder_configs[0].drop_labels is True  # parameter is passed from metadata
 
         # config named "default" is automatically considered to be a default config
-        assert module_factory_result.builder_parameters.default_config_name is None
+        assert module_factory_result.builder_configs_parameters.default_config_name is None
 
         # we don't pass config params to builder in builder_kwargs, they are stored in builder_configs directly
         assert "drop_labels" not in module_factory_result.builder_kwargs
@@ -670,7 +670,7 @@ class ModuleFactoryTest(TestCase):
             module_factory_result = factory.get_module()
             assert importlib.import_module(module_factory_result.module_path) is not None
 
-            module_metadata_configs = module_factory_result.builder_parameters.metadata_configs
+            module_metadata_configs = module_factory_result.builder_configs_parameters.metadata_configs
             assert module_metadata_configs is not None
             assert len(module_metadata_configs) == 2
             assert list(module_metadata_configs) == ["v1", "v2"]
@@ -679,7 +679,7 @@ class ModuleFactoryTest(TestCase):
             assert "drop_labels" in module_metadata_configs["v2"]
             assert module_metadata_configs["v2"]["drop_labels"] is False
 
-            module_builder_configs = module_factory_result.builder_parameters.builder_configs
+            module_builder_configs = module_factory_result.builder_configs_parameters.builder_configs
             assert module_builder_configs is not None
             assert len(module_builder_configs) == 2
             module_builder_config_v1, module_builder_config_v2 = module_builder_configs
@@ -701,9 +701,9 @@ class ModuleFactoryTest(TestCase):
             assert "drop_labels" not in module_factory_result.builder_kwargs
 
             if dataset_name == SAMPLE_DATASET_TWO_CONFIG_IN_METADATA_WITH_DEFAULT:
-                assert module_factory_result.builder_parameters.default_config_name == "v1"
+                assert module_factory_result.builder_configs_parameters.default_config_name == "v1"
             else:
-                assert module_factory_result.builder_parameters.default_config_name is None
+                assert module_factory_result.builder_configs_parameters.default_config_name is None
 
     @pytest.mark.integration
     def test_HubDatasetModuleFactoryWithScript(self):
