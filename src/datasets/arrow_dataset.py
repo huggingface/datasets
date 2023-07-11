@@ -6058,7 +6058,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     f"Loading metadata from {uploaded_shards_meta_data_path}"
                 )
                 uploaded_shards_meta_data = yaml.safe_load(
-                    uploaded_shards_meta_data_path
+                     open(uploaded_shards_meta_data_path, 'r')
                 )
                 print(f"Loaded dict: {uploaded_shards_meta_data}")
             except Exception as e:
