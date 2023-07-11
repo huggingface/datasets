@@ -6051,12 +6051,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # Load the metadata of the last processed shard
             metadata_path = f"metadata/{unique_id}.yaml"
             try:
-                uploaded_shards_meta_data_path = hf_hub_download(repo_id, metadata_path, token=token)
-                print(f"Loading metadata from {uploaded_shards_meta_data_path}")
-                uploaded_shards_meta_data = yaml.safe_load(
-                   uploaded_shards_meta_data_path
+                uploaded_shards_meta_data_path = hf_hub_download(
+                    repo_id, metadata_path, token=token
                 )
-            except HTTPError:
+                print(
+                    f"Loading metadata from {uploaded_shards_meta_data_path}"
+                )
+                uploaded_shards_meta_data = yaml.safe_load(
+                    uploaded_shards_meta_data_path
+                )
+            except Exception as e:
+                print(f"Failed to load metadata from {metadata_path}: {e}")
                 uploaded_shards_meta_data = None
 
             # If metadata is available, use it to determine the starting shard index
