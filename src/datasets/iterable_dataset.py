@@ -1310,7 +1310,7 @@ class IterableDataset(DatasetInfoMixin):
                 ex_iterable = ex_iterable.shard_data_sources(rank, world_size)
             else:
                 if self._is_main_process():
-                    logger.ingo(
+                    logger.info(
                         f"Assigning 1 out of {world_size} examples of the dataset to each node. The others are skipped during the iteration."
                     )
                     logger.info(
