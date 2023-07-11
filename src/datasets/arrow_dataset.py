@@ -6060,6 +6060,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 uploaded_shards_meta_data = yaml.safe_load(
                     uploaded_shards_meta_data_path
                 )
+                print(f"Loaded dict: {uploaded_shards_meta_data}")
             except Exception as e:
                 print(f"Failed to load metadata from {metadata_path}: {e}")
                 uploaded_shards_meta_data = None
@@ -6151,6 +6152,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     uploaded_size += uploaded_size_shard
 
                 # After each shard upload, update the metadata file
+                shards_path_in_repo.append(shard_path_in_repo)
                 metadata = {
                     "shard_index": index + starting_shard_index,
                     "shard_path_in_repo": shards_path_in_repo,
@@ -6179,7 +6181,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         max_retries=5,
                         max_wait_time=20.0,
                     )
-            shards_path_in_repo.append(shard_path_in_repo)
 
         # Cleanup to remove unused files
         data_files_to_delete = [
