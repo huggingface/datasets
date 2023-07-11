@@ -6062,7 +6062,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
                 print(f"Loaded dict: {uploaded_shards_meta_data}")
             except Exception as e:
-                print(f"Failed to load metadata from {metadata_path}: {e}")
+                print(
+                    f"Failed to load metadata from {metadata_path}: {e.with_traceback()}"
+                )
                 uploaded_shards_meta_data = None
 
             # If metadata is available, use it to determine the starting shard index
