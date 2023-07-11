@@ -6051,8 +6051,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # Load the metadata of the last processed shard
             metadata_path = f"metadata/{unique_id}.yaml"
             try:
+                uploaded_shards_meta_data_path = hf_hub_download(repo_id, metadata_path, token=token)
+                print(f"Loading metadata from {uploaded_shards_meta_data_path}")
                 uploaded_shards_meta_data = yaml.safe_load(
-                    hf_hub_download(repo_id, metadata_path, token=token)
+                   uploaded_shards_meta_data_path
                 )
             except HTTPError:
                 uploaded_shards_meta_data = None
@@ -6143,7 +6145,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     uploaded_size_shard = buffer.tell()
                     uploaded_size += uploaded_size_shard
 
-                shards_path_in_repo.append(shard_path_in_repo)
                 # After each shard upload, update the metadata file
                 metadata = {
                     "shard_index": index + starting_shard_index,
@@ -6173,6 +6174,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         max_retries=5,
                         max_wait_time=20.0,
                     )
+            shards_path_in_repo.append(shard_path_in_repo)
 
         # Cleanup to remove unused files
         data_files_to_delete = [
