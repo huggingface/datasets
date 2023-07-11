@@ -8,6 +8,7 @@ import fsspec
 import numpy as np
 
 from .utils import logging
+from .utils.deprecation_utils import deprecated
 
 
 if TYPE_CHECKING:
@@ -419,6 +420,7 @@ class IndexableMixin:
     def __getitem__(self, key):
         raise NotImplementedError
 
+    @deprecated()
     def is_index_initialized(self, index_name: str) -> bool:
         return index_name in self._indexes
 
@@ -428,10 +430,12 @@ class IndexableMixin:
                 f"Index with index_name '{index_name}' not initialized yet. Please make sure that you call `add_faiss_index` or `add_elasticsearch_index` first."
             )
 
+    @deprecated()
     def list_indexes(self) -> List[str]:
         """List the `colindex_nameumns`/identifiers of all the attached indexes."""
         return list(self._indexes)
 
+    @deprecated()
     def get_index(self, index_name: str) -> BaseIndex:
         """List the `index_name`/identifiers of all the attached indexes.
 
@@ -444,6 +448,7 @@ class IndexableMixin:
         self._check_index_is_initialized(index_name)
         return self._indexes[index_name]
 
+    @deprecated()
     def add_faiss_index(
         self,
         column: str,
@@ -485,6 +490,7 @@ class IndexableMixin:
         )
         self._indexes[index_name] = faiss_index
 
+    @deprecated()
     def add_faiss_index_from_external_arrays(
         self,
         external_arrays: np.array,
@@ -525,6 +531,7 @@ class IndexableMixin:
         )
         self._indexes[index_name] = faiss_index
 
+    @deprecated()
     def save_faiss_index(self, index_name: str, file: Union[str, PurePath], storage_options: Optional[Dict] = None):
         """Save a FaissIndex on disk.
 
@@ -543,6 +550,7 @@ class IndexableMixin:
         index.save(file, storage_options=storage_options)
         logger.info(f"Saved FaissIndex {index_name} at {file}")
 
+    @deprecated()
     def load_faiss_index(
         self,
         index_name: str,
@@ -575,6 +583,7 @@ class IndexableMixin:
         self._indexes[index_name] = index
         logger.info(f"Loaded FaissIndex {index_name} from {file}")
 
+    @deprecated()
     def add_elasticsearch_index(
         self,
         column: str,
@@ -627,6 +636,7 @@ class IndexableMixin:
         es_index.add_documents(self, column=column)
         self._indexes[index_name] = es_index
 
+    @deprecated()
     def load_elasticsearch_index(
         self,
         index_name: str,
@@ -674,6 +684,7 @@ class IndexableMixin:
             host=host, port=port, es_client=es_client, es_index_name=es_index_name, es_index_config=es_index_config
         )
 
+    @deprecated()
     def drop_index(self, index_name: str):
         """Drop the index with the specified column.
 
@@ -683,6 +694,7 @@ class IndexableMixin:
         """
         del self._indexes[index_name]
 
+    @deprecated()
     def search(self, index_name: str, query: Union[str, np.array], k: int = 10, **kwargs) -> SearchResults:
         """Find the nearest examples indices in the dataset to the query.
 
@@ -701,6 +713,7 @@ class IndexableMixin:
         self._check_index_is_initialized(index_name)
         return self._indexes[index_name].search(query, k, **kwargs)
 
+    @deprecated()
     def search_batch(
         self, index_name: str, queries: Union[List[str], np.array], k: int = 10, **kwargs
     ) -> BatchedSearchResults:
@@ -721,6 +734,7 @@ class IndexableMixin:
         self._check_index_is_initialized(index_name)
         return self._indexes[index_name].search_batch(queries, k, **kwargs)
 
+    @deprecated()
     def get_nearest_examples(
         self, index_name: str, query: Union[str, np.array], k: int = 10, **kwargs
     ) -> NearestExamplesResults:
@@ -743,6 +757,7 @@ class IndexableMixin:
         top_indices = [i for i in indices if i >= 0]
         return NearestExamplesResults(scores[: len(top_indices)], self[top_indices])
 
+    @deprecated()
     def get_nearest_examples_batch(
         self, index_name: str, queries: Union[List[str], np.array], k: int = 10, **kwargs
     ) -> BatchedNearestExamplesResults:
