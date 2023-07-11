@@ -1486,7 +1486,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             disable=not logging.is_progress_bar_enabled(),
             unit=" examples",
             total=len(self),
-            leave=True,
             desc=f"Saving the dataset ({shards_done}/{num_shards} shards)",
         )
         kwargs_per_job = (
@@ -3078,7 +3077,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     disable=not logging.is_progress_bar_enabled(),
                     unit=" examples",
                     total=pbar_total,
-                    leave=True,
                     desc=desc or "Map",
                 ) as pbar:
                     for rank, done, content in Dataset._map_single(**dataset_kwargs):
@@ -3171,7 +3169,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         disable=not logging.is_progress_bar_enabled(),
                         unit=" examples",
                         total=pbar_total,
-                        leave=True,
                         desc=(desc or "Map") + f" (num_proc={num_proc})",
                     ) as pbar:
                         for rank, done, content in iflatmap_unordered(

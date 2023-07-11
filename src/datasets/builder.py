@@ -1499,7 +1499,6 @@ class GeneratorBasedBuilder(DatasetBuilder):
             disable=not logging.is_progress_bar_enabled(),
             unit=" examples",
             total=split_info.num_examples,
-            leave=True,
             desc=f"Generating {split_info.name} split",
         )
 
@@ -1760,7 +1759,6 @@ class ArrowBasedBuilder(DatasetBuilder):
             disable=not logging.is_progress_bar_enabled(),
             unit=" examples",
             total=split_info.num_examples,
-            leave=True,
             desc=f"Generating {split_info.name} split",
         )
 
