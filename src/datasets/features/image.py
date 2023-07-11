@@ -168,7 +168,7 @@ class Image:
                     source_url = path.split("::")[-1]
                     try:
                         repo_id = string_to_dict(source_url, config.HUB_DATASETS_URL)["repo_id"]
-                        token = token_per_repo_id.get(repo_id)
+                        token_per_repo_id.get(repo_id)
                     except ValueError:
                         use_auth_token = None
                     download_config = DownloadConfig(use_auth_token=use_auth_token)

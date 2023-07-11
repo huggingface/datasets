@@ -242,7 +242,6 @@ def xsplitext(a):
         return "::".join([a] + b), ext
 
 
-
 def xisfile(path, download_config: Optional[DownloadConfig] = None) -> bool:
     """Extend `os.path.isfile` function to support remote files.
 
@@ -439,7 +438,6 @@ def _prepare_http_url_kwargs(url: str, download_config: Optional[DownloadConfig]
     it also needs to resolve the S3 file system specifically due to the S3 file system stores it parameters in
      storage_options field.
     """
-    use_auth_token = None if download_config is None else download_config.use_auth_token
     kwargs = {
         "headers": get_authentication_headers_for_url(url, token=token),
         "client_kwargs": {"trust_env": True},  # Enable reading proxy env variables.
@@ -742,7 +740,6 @@ def xgzip_open(filepath_or_buffer, *args, download_config: Optional[DownloadConf
 
 
 def xnumpy_load(filepath_or_buffer, *args, download_config: Optional[DownloadConfig] = None, **kwargs):
-
     import numpy as np
 
     if hasattr(filepath_or_buffer, "read"):
@@ -935,6 +932,7 @@ class FilesIterable(_IterableFromGenerator):
     @classmethod
     def from_urlpaths(cls, urlpaths, download_config: Optional[DownloadConfig] = None) -> "FilesIterable":
         return cls(cls._iter_from_urlpaths, urlpaths, download_config)
+
 
 class StreamingDownloadManager:
     """
