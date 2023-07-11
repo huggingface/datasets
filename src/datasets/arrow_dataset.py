@@ -2415,7 +2415,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
 
     def __repr__(self):
-        return f"Dataset({{\n    features: {list(self._info.features.keys())},\n    num_rows: {self.num_rows}\n}})"
+        return f"Dataset({{\n    columns: {list(self._info.features.keys())},\n    num_rows: {self.num_rows},\n    features: {list(self._info.features.items())},\n    items: {self.__getitems__(list(range(2)))}\n}})"
+        
+    def __repr_html__(self):
+        html = "<h4>Dataset:</h4>"
+        html += f"<p><strong>Columns:</strong> {list(self._info.features.keys())}</p>"
+        html += f"<p><strong>Number of Rows:</strong> {self.num_rows}</p>"
+        html += f"<p><strong>Features:</strong> {list(self._info.features.items())}</p>"
+        html += f"<p><strong>Items:</strong> {self.__getitems__(list(range(2)))}</p>"
+        return html
 
     @property
     def format(self):
