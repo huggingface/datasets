@@ -6052,7 +6052,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             metadata_path = f"metadata/{unique_id}.yaml"
             try:
                 uploaded_shards_meta_data_path = hf_hub_download(
-                    repo_id, metadata_path, token=token
+                    repo_id, metadata_path, token=token, repo_type="dataset"
                 )
                 print(
                     f"Loading metadata from {uploaded_shards_meta_data_path}"
