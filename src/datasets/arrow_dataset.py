@@ -6063,7 +6063,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 print(f"Loaded dict: {uploaded_shards_meta_data}")
             except Exception as e:
                 print(
-                    f"Failed to load metadata from {metadata_path}: {e.with_traceback()}"
+                    f"Failed to load metadata from {metadata_path}: {e}"
                 )
                 uploaded_shards_meta_data = None
 
