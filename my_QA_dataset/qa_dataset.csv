@@ -1,0 +1,13 @@
+What is cryo-EM? A structural biology method
+What is air-water interface? The air-water interface (AWI) is the boundary where sample solution contacts the air.
+What are the steps in cryo-EM workflow? Sample preparation, grid preparation, data collection, data processing and modeling.
+What is radiation damage? Deposition of kinetic energy onto the sample due to inelastic scattering between electrons and the frozen specimen.
+What software package could be used for processing cryo-EM data? RELION, cryoSPARC, EMAN2, BSoft and many more
+How to get thinner ice on cryo-EM grids? Optimize grid making procedure, starting with longer blotting time.
+How does cryo-EM work? Cryo-EM works by freezing samples in vitreous ice, imaging them with an electron microscope, and reconstructing the structures from the collected images.
+Are there any limitations or drawbacks of cryo-EM? Limitations of cryo-EM include the need for high-quality samples, potential radiation damage, and challenges in resolving flexible or dynamic regions.
+How is the resolution of a cryo-EM structure determined? In cryo-EM, the resolution of the map is estimated by the correlation of two independently calculated structures in various resolution shells in Fourier space, termed the Fourier shell correlation (FSC).
+What are the requirements for sample preparation in cryo-EM? Sample preparation for cryo-EM requires isolating the macromolecule of interest, applying it to a grid, and vitrifying it by rapid freezing.
+What are the advantages of cryo-EM compared to other structural biology techniques? Cryo-EM offers advantages such as the ability to study large complexes, flexibility in sample preparation, and the potential to reach near-atomic resolution.
+How can I increase the number of particles in the holes of a cryo-EM grid? Concentrate your sample: Increase the concentration of your macromolecule of interest during sample preparation to enhance the number of particles loaded onto the grid.
+How can I reduce a beam-shift during data collection in cryo-electron microscopy? Utilize real-time beam-shift correction methods if available in your cryo-EM instrument.
