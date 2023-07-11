@@ -6110,11 +6110,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             disable=not logging.is_progress_bar_enabled(),
         ):
             shard_path_in_repo = path_in_repo(index, shard)
+            uploaded_size_shard = -1
             # Upload a shard only if it doesn't already exist in the repository
             if shard_path_in_repo not in data_files:
                 buffer = BytesIO()
                 shard.to_parquet(buffer)
-                uploaded_size += buffer.tell()
+                uploaded_size_shard = buffer.tell()
+                uploaded_size += uploaded_size_shard
                 _retry(
                     api.upload_file,
                     func_kwargs={
@@ -6135,6 +6137,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if shard_path_in_repo not in shards_path_in_repo:
                 import yaml
 
+                if uploaded_size_shard == -1:
+                    buffer = BytesIO()
+                    shard.to_parquet(buffer)
+                    uploaded_size_shard = buffer.tell()
+                    uploaded_size += uploaded_size_shard
+
+                shards_path_in_repo.append(shard_path_in_repo)
                 # After each shard upload, update the metadata file
                 metadata = {
                     "shard_index": index + starting_shard_index,
@@ -6164,7 +6173,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         max_retries=5,
                         max_wait_time=20.0,
                     )
-                shards_path_in_repo.append(shard_path_in_repo)
 
         # Cleanup to remove unused files
         data_files_to_delete = [
