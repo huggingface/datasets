@@ -6062,9 +6062,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
                 print(f"Loaded dict: {uploaded_shards_meta_data}")
             except Exception as e:
-                print(
-                    f"Failed to load metadata from {metadata_path}: {e}"
-                )
+                print(f"Failed to load metadata from {metadata_path}: {e}")
                 uploaded_shards_meta_data = None
 
             # If metadata is available, use it to determine the starting shard index
@@ -6077,7 +6075,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     "uploaded_size", 0
                 )
                 shards_path_in_repo = uploaded_shards_meta_data.get(
-                    "shards_path_in_repo", []
+                    "shard_path_in_repo", []
                 )
 
             def shards_with_embedded_external_files(shards):
