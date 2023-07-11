@@ -1,0 +1,22 @@
+{
+  "description": "My question-answering dataset",
+  "license": "FNLCR",
+  "citation": "Ognjenovic, J., et al.",
+  "features": {
+    "question": {
+      "type": "string",
+      "description": "The question"
+    },
+    "answer": {
+      "type": "string",
+      "description": "The answer to the question"
+    }
+  },
+  "splits": {
+    "train": {
+      "num_examples": 100,
+      "description": "Training split"
+    }
+  }
+}
+}
