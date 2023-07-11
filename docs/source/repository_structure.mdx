@@ -146,34 +146,6 @@ configs:
 ---
 ```
 
-Or specify if you want to load labels from a metadata file of your [`ImageFolder` dataset](.image_dataset#imagefolder):
-
-```
-my_dataset_repository/
-├── README.md
-├── metadata.csv
-├── images_with_labels/
-│   ├── image1.png
-│   ├── image2.png
-│   └── ...
-└── images_without_labels/
-    ├── image1.png
-    ├── image2.png
-    └── ...
-```
-
-```yaml
----
-configs:
-- config_name: labelled
-  data_dir: images_with_labels
-  drop_labels: false
-- config_name: unlabelled
-  data_dir: images_without_labels
-  drop_labels: true
----
-```
-
 Refer to [specific builders' documentation](.package_reference/builder_classes) to see what configuration parameters they have.
 
 <Tip>
