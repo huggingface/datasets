@@ -32,7 +32,108 @@ configs:
 ---
 ```
 
-## Split pattern hierarchy
+## Define your splits in YAML
+
+If you want to define yourself which file goes into which split, you can use the YAML `configs` field at the top of your README.md using glob patterns.
+
+For example, given a repository like this one:
+
+```
+my_dataset_repository/
+├── README.md
+├── directory1/
+│   └── bees.csv
+└── directory2/
+    └── more_bees.csv
+```
+
+You can define your splits by adding the YAML `configs` field in the YAML block at the top of your README.md:
+
+```yaml
+---
+configs:
+- config_name: default
+  data_files:
+  - split: train
+    pattern: "directory1/*.csv"
+  - split: test
+    pattern: "directory2/*.csv"
+---
+```
+
+Having several patterns per split is also supported:
+
+```
+my_dataset_repository/
+├── README.md
+├── directory1/
+│   └── bees.csv
+├── directory1bis/
+│   └── more_bees.csv
+└── directory2/
+    └── even_more_bees.csv
+```
+
+```yaml
+---
+configs:
+- config_name: default
+  data_files:
+  - split: train
+    pattern:
+    - "directory1/*.csv"
+    - "directory1bis/*.csv"
+  - split: test
+    pattern:
+    - "directory2/*.csv"
+---
+```
+
+## Dataset configurations and subsets
+
+Sometimes your dataset is made of several types of fiels that could represent different configurations or subsets of you dataset.
+In that case you can define one pattern per configuration:
+
+
+```
+my_dataset_repository/
+├── README.md
+├── main_data.csv
+└── additional_data.csv
+```
+
+```yaml
+---
+configs:
+- config_name: main_data
+  data_files: "main_data.csv"
+- config_name: additional_data
+  data_files: "additional_data.csv"
+---
+```
+
+Each configuration is shows separately on the Hugging Face Hub, and can be loaded using
+
+```python
+from datasets import load_dataset
+
+main_data = load_dataset("my_dataset_repository", "main_data")
+additional_data = load_dataset("my_dataset_repository", "additional_data")
+```
+
+<Tip>
+
+You can set a default configuration using `default: true`, e.g. you can run `main_data = load_dataset("my_dataset_repository")` if you set 
+
+```yaml
+- config_name: main_data
+  data_files: "main_data.csv"
+  default: true
+```
+
+</Tip>
+
+## Automatic splits detection
 
 If no YAML is provided, 🤗 Datasets searches for certain patterns in the dataset repository to automatically infer the dataset splits.
 There is an order to the patterns, beginning with the custom filename split format to treating all files as a single split if no pattern is found.
@@ -153,106 +254,5 @@ my_dataset_repository/
         ├── shard_0.csv
         └── shard_1.csv
 ```
-
-## Define your splits in YAML
-
-If you want to define yourself which file goes into which split, you can use the YAML `configs` field at the top of your README.md using glob patterns.
-
-For example, given a repository like this one:
-
-```
-my_dataset_repository/
-├── README.md
-├── directory1/
-│   └── bees.csv
-└── directory2/
-    └── more_bees.csv
-```
-
-You can define your splits by adding the YAML `configs` field in the YAML block at the top of your README.md:
-
-```yaml
----
-configs:
-- config_name: default
-  data_files:
-  - split: train
-    pattern: "directory1/*.csv"
-  - split: test
-    pattern: "directory2/*.csv"
----
-```
-
-Having several patterns per split is also supported:
-
-```
-my_dataset_repository/
-├── README.md
-├── directory1/
-│   └── bees.csv
-├── directory1bis/
-│   └── more_bees.csv
-└── directory2/
-    └── even_more_bees.csv
-```
-
-```yaml
----
-configs:
-- config_name: default
-  data_files:
-  - split: train
-    pattern:
-    - "directory1/*.csv"
-    - "directory1bis/*.csv"
-  - split: test
-    pattern:
-    - "directory2/*.csv"
----
-```
-
-## Dataset configurations and subsets
-
-Sometimes your dataset is made of several types of fiels that could represent different configurations or subsets of you dataset.
-In that case you can define one pattern per configuration:
-
-
-```
-my_dataset_repository/
-├── README.md
-├── main_data.csv
-└── additional_data.csv
-```
-
-```yaml
----
-configs:
-- config_name: main_data
-  data_files: "main_data.csv"
-- config_name: additional_data
-  data_files: "additional_data.csv"
----
-```
-
-Each configuration is shows separately on the Hugging Face Hub, and can be loaded using
-
-```python
-from datasets import load_dataset
-
-main_data = load_dataset("my_dataset_repository", "main_data")
-additional_data = load_dataset("my_dataset_repository", "additional_data")
-```
-
-<Tip>
-
-You can set a default configuration using `default: true`, e.g. you can run `main_data = load_dataset("my_dataset_repository")` if you set 
-
-```yaml
-- config_name: main_data
-  data_files: "main_data.csv"
-  default: true
-```
-
-</Tip>
 
 For more flexibility over how to load and generate a dataset, you can also write a [dataset loading script](./dataset_script).
