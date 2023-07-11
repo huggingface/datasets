@@ -6058,7 +6058,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     f"Loading metadata from {uploaded_shards_meta_data_path}"
                 )
                 uploaded_shards_meta_data = yaml.safe_load(
-                     open(uploaded_shards_meta_data_path, 'r')
+                    open(uploaded_shards_meta_data_path, "r")
                 )
                 print(f"Loaded dict: {uploaded_shards_meta_data}")
             except Exception as e:
@@ -6072,6 +6072,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 starting_shard_index = (
                     uploaded_shards_meta_data["shard_index"] + 1
                 )
+
                 uploaded_size = uploaded_shards_meta_data.get(
                     "uploaded_size", 0
                 )
@@ -6119,7 +6120,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             total=num_shards,
             disable=not logging.is_progress_bar_enabled(),
         ):
-            shard_path_in_repo = path_in_repo(index, shard)
+            actual_index = index + starting_shard_index
+            shard_path_in_repo = path_in_repo(actual_index, shard)
             uploaded_size_shard = -1
             # Upload a shard only if it doesn't already exist in the repository
             if shard_path_in_repo not in data_files:
@@ -6156,7 +6158,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 # After each shard upload, update the metadata file
                 shards_path_in_repo.append(shard_path_in_repo)
                 metadata = {
-                    "shard_index": index + starting_shard_index,
+                    "shard_index": actual_index,
                     "shard_path_in_repo": shards_path_in_repo,
                     "uploaded_size": uploaded_size,
                 }
