@@ -352,7 +352,7 @@ def infer_module_for_data_files(
 
     Args:
         data_files_list (DataFilesList): List of data files.
-        download_config (bool or str, optional): mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config (bool or str, optional): mainly use token or storage_options to support different platforms and auth types.
 
     Returns:
         tuple[str, str]: Tuple with
@@ -386,7 +386,7 @@ def infer_module_for_data_files_in_archives(
 
     Args:
         data_files_list (DataFilesList): List of data files.
-        download_config (bool or str, optional): mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config (bool or str, optional): mainly use token or storage_options to support different platforms and auth types.
 
     Returns:
         tuple[str, str]: Tuple with

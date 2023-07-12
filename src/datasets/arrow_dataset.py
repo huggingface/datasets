@@ -5317,7 +5317,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if data_file.startswith(f"data/{split}-") and data_file not in shards_path_in_repo
         ]
 
-        download_config = DownloadConfig(use_auth_token=token)
+        download_config = DownloadConfig(token=token)
         deleted_size = sum(
             xgetsize(hf_hub_url(repo_id, data_file), download_config=download_config)
             for data_file in data_files_to_delete

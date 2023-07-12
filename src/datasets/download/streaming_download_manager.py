@@ -147,7 +147,7 @@ def xexists(urlpath: str, download_config: Optional[DownloadConfig] = None):
 
     Args:
         urlpath (`str`): URL path.
-        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config : mainly use token or storage_options to support different platforms and auth types.
 
     Returns:
         `bool`
@@ -247,7 +247,7 @@ def xisfile(path, download_config: Optional[DownloadConfig] = None) -> bool:
 
     Args:
         path (`str`): URL path.
-        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config : mainly use token or storage_options to support different platforms and auth types.
 
     Returns:
         `bool`
@@ -266,7 +266,7 @@ def xgetsize(path, download_config: Optional[DownloadConfig] = None) -> int:
 
     Args:
         path (`str`): URL path.
-        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config : mainly use token or storage_options to support different platforms and auth types.
 
     Returns:
         `int`: optional
@@ -290,7 +290,7 @@ def xisdir(path, download_config: Optional[DownloadConfig] = None) -> bool:
 
     Args:
         path (`str`): URL path.
-        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config : mainly use token or storage_options to support different platforms and auth types.
 
     Returns:
         `bool`
@@ -439,7 +439,9 @@ def _prepare_http_url_kwargs(url: str, download_config: Optional[DownloadConfig]
      storage_options field.
     """
     kwargs = {
-        "headers": get_authentication_headers_for_url(url, token=token),
+        "headers": get_authentication_headers_for_url(
+            url, token=None if download_config is None else download_config.token
+        ),
         "client_kwargs": {"trust_env": True},  # Enable reading proxy env variables.
     }
     if "drive.google.com" in url:
@@ -472,7 +474,7 @@ def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] 
         file (`str`): Path name of the file to be opened.
         mode (`str`, *optional*, default "r"): Mode in which the file is opened.
         *args: Arguments to be passed to `fsspec.open`.
-        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config : mainly use token or storage_options to support different platforms and auth types.
         **kwargs: Keyword arguments to be passed to `fsspec.open`.
 
     Returns:
@@ -514,7 +516,7 @@ def xlistdir(path: str, download_config: Optional[DownloadConfig] = None) -> Lis
 
     Args:
         path (`str`): URL path.
-        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config : mainly use token or storage_options to support different platforms and auth types.
 
     Returns:
         `list` of `str`
@@ -540,7 +542,7 @@ def xglob(urlpath, *, recursive=False, download_config: Optional[DownloadConfig]
         urlpath (`str`): URL path with shell-style wildcard patterns.
         recursive (`bool`, default `False`): Whether to match the "**" pattern recursively to zero or more
             directories or subdirectories.
-        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config : mainly use token or storage_options to support different platforms and auth types.
 
     Returns:
         `list` of `str`
@@ -567,7 +569,7 @@ def xwalk(urlpath, download_config: Optional[DownloadConfig] = None, **kwargs):
 
     Args:
         urlpath (`str`): URL root path.
-        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config : mainly use token or storage_options to support different platforms and auth types.
         **kwargs: Additional keyword arguments forwarded to the underlying filesystem.
 
 
@@ -606,7 +608,7 @@ class xPath(type(Path())):
         """Extend `pathlib.Path.exists` method to support both local and remote files.
 
         Args:
-            download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+            download_config : mainly use token or storage_options to support different platforms and auth types.
 
         Returns:
             `bool`
@@ -618,7 +620,7 @@ class xPath(type(Path())):
 
         Args:
             pattern (`str`): Pattern that resulting paths must match.
-            download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+            download_config : mainly use token or storage_options to support different platforms and auth types.
 
         Yields:
             [`xPath`]
@@ -794,7 +796,7 @@ def xet_parse(source, parser=None, download_config: Optional[DownloadConfig] = N
     Args:
         source: File path or file object.
         parser (`XMLParser`, *optional*, default `XMLParser`): Parser instance.
-        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config : mainly use token or storage_options to support different platforms and auth types.
 
     Returns:
         `xml.etree.ElementTree.Element`: Root element of the given source document.
@@ -811,7 +813,7 @@ def xxml_dom_minidom_parse(filename_or_file, download_config: Optional[DownloadC
 
     Args:
         filename_or_file (`str` or file): File path or file object.
-        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config : mainly use token or storage_options to support different platforms and auth types.
         **kwargs (optional): Additional keyword arguments passed to `xml.dom.minidom.parse`.
 
     Returns:

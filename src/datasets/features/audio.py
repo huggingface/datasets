@@ -173,13 +173,14 @@ class Audio:
         if file is None:
             token_per_repo_id = token_per_repo_id or {}
             source_url = path.split("::")[-1]
+            repo_id = None
             try:
                 repo_id = string_to_dict(source_url, config.HUB_DATASETS_URL)["repo_id"]
                 token_per_repo_id[repo_id]
             except (ValueError, KeyError):
                 pass
 
-            download_config = DownloadConfig(use_auth_token=use_auth_token)
+            download_config = DownloadConfig(token=None if repo_id is None else token_per_repo_id[repo_id])
             with xopen(path, "rb", download_config=download_config) as f:
                 array, sampling_rate = sf.read(f)
 

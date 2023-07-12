@@ -169,9 +169,11 @@ class Image:
                     try:
                         repo_id = string_to_dict(source_url, config.HUB_DATASETS_URL)["repo_id"]
                         token_per_repo_id.get(repo_id)
+                        download_config = DownloadConfig(token=token_per_repo_id.get(repo_id))
                     except ValueError:
                         use_auth_token = None
-                    download_config = DownloadConfig(use_auth_token=use_auth_token)
+                        download_config = DownloadConfig(token=use_auth_token)
+
                     with xopen(path, "rb", download_config=download_config) as f:
                         bytes_ = BytesIO(f.read())
                     image = PIL.Image.open(bytes_)

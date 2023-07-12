@@ -56,7 +56,7 @@ def extend_module_for_streaming(module_path, download_config: Optional[DownloadC
 
     Args:
         module_path: Path to the module to be extended.
-        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config : mainly use token or storage_options to support different platforms and auth types.
     """
 
     module = importlib.import_module(module_path)
@@ -109,7 +109,7 @@ def extend_dataset_builder_for_streaming(builder: "DatasetBuilder"):
         builder (:class:`DatasetBuilder`): Dataset builder instance.
     """
     # this extends the open and os.path.join functions for data streaming
-    download_config = DownloadConfig(storage_options=builder.storage_options, use_auth_token=builder.use_auth_token)
+    download_config = DownloadConfig(storage_options=builder.storage_options, token=builder.use_auth_token)
     extend_module_for_streaming(builder.__module__, download_config=download_config)
     # if needed, we also have to extend additional internal imports (like wmt14 -> wmt_utils)
     if not builder.__module__.startswith("datasets."):  # check that it's not a packaged builder like csv
