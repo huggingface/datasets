@@ -1233,7 +1233,7 @@ class IterableDataset(DatasetInfoMixin):
                 f"Too many dataloader workers: {worker_info.num_workers} (max is dataset.n_shards={ex_iterable.n_shards}). "
                 f"Stopping {worker_info.num_workers - ex_iterable.n_shards} dataloader workers."
             )
-            logger.warning(
+            logger.info(
                 f"To parallelize data loading, we give each process some shards (or data sources) to process. "
                 f"Therefore it's unnecessary to have a number of workers greater than dataset.n_shards={ex_iterable.n_shards}. "
                 f"To enable more parallelism, please split the dataset in more files than {ex_iterable.n_shards}."
@@ -1304,13 +1304,13 @@ class IterableDataset(DatasetInfoMixin):
                 if self._is_main_process():
                     n_shards_per_node = ex_iterable.n_shards // world_size
                     plural = "s" if n_shards_per_node > 1 else ""
-                    logger.warning(
+                    logger.info(
                         f"Assigning {n_shards_per_node} shard{plural} (or data source{plural}) of the dataset to each node."
                     )
                 ex_iterable = ex_iterable.shard_data_sources(rank, world_size)
             else:
                 if self._is_main_process():
-                    logger.warning(
+                    logger.info(
                         f"Assigning 1 out of {world_size} examples of the dataset to each node. The others are skipped during the iteration."
                     )
                     logger.info(

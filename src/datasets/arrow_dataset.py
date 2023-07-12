@@ -1487,7 +1487,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             disable=not logging.is_progress_bar_enabled(),
             unit=" examples",
             total=len(self),
-            leave=False,
             desc=f"Saving the dataset ({shards_done}/{num_shards} shards)",
         )
         kwargs_per_job = (
@@ -3072,7 +3071,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             transformed_dataset = None
             try:
                 transformed_dataset = load_processed_shard_from_cache(dataset_kwargs)
-                logger.warning(f"Loading cached processed dataset at {dataset_kwargs['cache_file_name']}")
+                logger.info(f"Loading cached processed dataset at {dataset_kwargs['cache_file_name']}")
             except NonExistentDatasetError:
                 pass
             if transformed_dataset is None:
@@ -3080,7 +3079,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     disable=not logging.is_progress_bar_enabled(),
                     unit=" examples",
                     total=pbar_total,
-                    leave=False,
                     desc=desc or "Map",
                 ) as pbar:
                     for rank, done, content in Dataset._map_single(**dataset_kwargs):
@@ -3173,7 +3171,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         disable=not logging.is_progress_bar_enabled(),
                         unit=" examples",
                         total=pbar_total,
-                        leave=False,
                         desc=(desc or "Map") + f" (num_proc={num_proc})",
                     ) as pbar:
                         for rank, done, content in iflatmap_unordered(
@@ -3189,7 +3186,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 for kwargs in kwargs_per_job:
                     del kwargs["shard"]
             else:
-                logger.warning(f"Loading cached processed dataset at {format_cache_file_name(cache_file_name, '*')}")
+                logger.info(f"Loading cached processed dataset at {format_cache_file_name(cache_file_name, '*')}")
             assert (
                 None not in transformed_shards
             ), f"Failed to retrieve results from map: result list {transformed_shards} still contains None - at least one worker failed to return its results"
@@ -4088,7 +4085,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 # we create a unique hash from the function, current dataset file and the mapping args
                 indices_cache_file_name = self._get_cache_file_path(new_fingerprint)
             if os.path.exists(indices_cache_file_name) and load_from_cache_file:
-                logger.warning(f"Loading cached sorted indices for dataset at {indices_cache_file_name}")
+                logger.info(f"Loading cached sorted indices for dataset at {indices_cache_file_name}")
                 return self._new_dataset_with_indices(
                     fingerprint=new_fingerprint, indices_cache_file_name=indices_cache_file_name
                 )
@@ -4230,7 +4227,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 # we create a unique hash from the function, current dataset file and the mapping args
                 indices_cache_file_name = self._get_cache_file_path(new_fingerprint)
             if os.path.exists(indices_cache_file_name) and load_from_cache_file:
-                logger.warning(f"Loading cached shuffled indices for dataset at {indices_cache_file_name}")
+                logger.info(f"Loading cached shuffled indices for dataset at {indices_cache_file_name}")
                 return self._new_dataset_with_indices(
                     fingerprint=new_fingerprint, indices_cache_file_name=indices_cache_file_name
                 )
@@ -4461,7 +4458,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 and os.path.exists(test_indices_cache_file_name)
                 and load_from_cache_file
             ):
-                logger.warning(
+                logger.info(
                     f"Loading cached split indices for dataset at {train_indices_cache_file_name} and {test_indices_cache_file_name}"
                 )
                 return DatasetDict(
@@ -5275,7 +5272,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         first_shard = next(shards_iter)
         first_shard_path_in_repo = path_in_repo(0, first_shard)
         if first_shard_path_in_repo in data_files and num_shards < len(data_files):
-            logger.warning("Resuming upload of the dataset shards.")
+            logger.info("Resuming upload of the dataset shards.")
 
         uploaded_size = 0
         shards_path_in_repo = []
@@ -5452,7 +5449,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             repo_info = None
         # update the total info to dump from existing info
         if repo_info is not None:
-            logger.warning("Updating downloaded metadata with the new split.")
+            logger.info("Updating downloaded metadata with the new split.")
             if repo_info.splits and list(repo_info.splits) != [split]:
                 if self._info.features != repo_info.features:
                     raise ValueError(
