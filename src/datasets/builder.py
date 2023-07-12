@@ -1162,8 +1162,7 @@ class DatasetBuilder:
             ),
             split,
             map_tuple=True,
-            disable_tqdm=not logging.is_progress_bar_enabled(),
-            desc="Preparing splits",
+            disable_tqdm=True,
         )
         if isinstance(datasets, dict):
             datasets = DatasetDict(datasets)
