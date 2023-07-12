@@ -553,13 +553,20 @@ def create_builder_configs_from_metadata_configs(
         config_data_files = config_params.get("data_files")
         config_data_dir = config_params.get("data_dir")
         config_base_path = os.path.join(base_path, config_data_dir) if config_data_dir else base_path
-        config_patterns, config_data_files_dict = get_patterns_and_data_files(
-            is_repo,
-            base_path=config_base_path,
-            data_files=config_data_files,
-            hfh_dataset_info=hfh_dataset_info,
-            allowed_extensions=allowed_extensions,
-        )
+        try:
+            config_patterns, config_data_files_dict = get_patterns_and_data_files(
+                is_repo,
+                base_path=config_base_path,
+                data_files=config_data_files,
+                hfh_dataset_info=hfh_dataset_info,
+                allowed_extensions=allowed_extensions,
+            )
+        except EmptyDatasetError as e:
+            dataset_id = hfh_dataset_info.id if hfh_dataset_info else base_path
+            raise EmptyDatasetError(
+                f"Dataset at '{dataset_id}' doesn't contain data files matching the patterns for config '{config_name}',"
+                f" check `data_files` and `data_fir` parameters in the `configs` YAML field in README.md. "
+            ) from e
         if config_data_files is None and supports_metadata and config_patterns != DEFAULT_PATTERNS_ALL:
             config_metadata_data_files_list = get_metadata_data_files_list(
                 is_repo=is_repo,
