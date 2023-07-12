@@ -85,6 +85,8 @@ class DownloadConfig:
                 FutureWarning,
             )
             self.token = self.use_auth_token
+        if self.storage_options is None and self.token is not None:
+            self.storage_options = {"hf": {"token": self.token}}
 
     def copy(self) -> "DownloadConfig":
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})

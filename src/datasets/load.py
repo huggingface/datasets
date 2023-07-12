@@ -40,10 +40,8 @@ from .data_files import (
     DataFilesDict,
     DataFilesList,
     EmptyDatasetError,
-    get_data_patterns_in_dataset_repository,
-    get_data_patterns_locally,
-    get_metadata_patterns_in_dataset_repository,
-    get_metadata_patterns_locally,
+    get_data_patterns,
+    get_metadata_patterns,
     sanitize_patterns,
 )
 from .dataset_dict import DatasetDict, IterableDatasetDict
@@ -626,7 +624,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         if data_dir and os.path.isabs(data_dir):
             raise ValueError(f"`data_dir` must be relative to a dataset directory's root: {path}")
 
-        self.path = path
+        self.path = Path(path).as_posix()
         self.name = Path(path).stem
         self.data_files = data_files
         self.data_dir = data_dir
@@ -634,9 +632,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
 
     def get_module(self) -> DatasetModule:
         base_path = os.path.join(self.path, self.data_dir) if self.data_dir else self.path
-        patterns = (
-            sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns_locally(base_path)
-        )
+        patterns = sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns(base_path)
         data_files = DataFilesDict.from_local_or_remote(
             patterns,
             base_path=base_path,
@@ -654,7 +650,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         # Collect metadata files if the module supports them
         if self.data_files is None and module_name in _MODULE_SUPPORTS_METADATA and patterns != DEFAULT_PATTERNS_ALL:
             try:
-                metadata_patterns = get_metadata_patterns_locally(base_path)
+                metadata_patterns = get_metadata_patterns(base_path)
             except FileNotFoundError:
                 metadata_patterns = None
             if metadata_patterns is not None:
@@ -712,12 +708,8 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
-        base_path = (
-            str(Path(self.data_dir).expanduser().resolve()) if self.data_dir is not None else str(Path().resolve())
-        )
-        patterns = (
-            sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns_locally(base_path)
-        )
+        base_path = (Path(self.data_dir).expanduser() if self.data_dir is not None else Path()).resolve().as_posix()
+        patterns = sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns(base_path)
         data_files = DataFilesDict.from_local_or_remote(
             patterns,
             token=self.download_config.token,
@@ -725,7 +717,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         )
         if self.data_files is None and self.name in _MODULE_SUPPORTS_METADATA and patterns != DEFAULT_PATTERNS_ALL:
             try:
-                metadata_patterns = get_metadata_patterns_locally(base_path)
+                metadata_patterns = get_metadata_patterns(base_path)
             except FileNotFoundError:
                 metadata_patterns = None
             if metadata_patterns is not None:
@@ -772,16 +764,19 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             token=self.download_config.token,
             timeout=100.0,
         )
+        revision = hfh_dataset_info.sha
+        base_path = f"hf://datasets/{self.name}@{revision}/{self.data_dir or ''}".rstrip("/")
         patterns = (
             sanitize_patterns(self.data_files)
             if self.data_files is not None
-            else get_data_patterns_in_dataset_repository(hfh_dataset_info, self.data_dir)
+            else get_data_patterns(base_path, storage_options=self.download_config.storage_options)
         )
         data_files = DataFilesDict.from_hf_repo(
             patterns,
             dataset_info=hfh_dataset_info,
             base_path=self.data_dir,
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
+            token=self.download_config.token,
         )
         split_modules = {
             split: infer_module_for_data_files(data_files_list, token=self.download_config.token)
@@ -796,12 +791,17 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         # Collect metadata files if the module supports them
         if self.data_files is None and module_name in _MODULE_SUPPORTS_METADATA and patterns != DEFAULT_PATTERNS_ALL:
             try:
-                metadata_patterns = get_metadata_patterns_in_dataset_repository(hfh_dataset_info, self.data_dir)
+                metadata_patterns = get_metadata_patterns(
+                    base_path, storage_options=self.download_config.storage_options
+                )
             except FileNotFoundError:
                 metadata_patterns = None
             if metadata_patterns is not None:
                 metadata_files = DataFilesList.from_hf_repo(
-                    metadata_patterns, dataset_info=hfh_dataset_info, base_path=self.data_dir
+                    metadata_patterns,
+                    dataset_info=hfh_dataset_info,
+                    base_path=self.data_dir,
+                    token=self.download_config.token,
                 )
                 for key in data_files:
                     data_files[key] = DataFilesList(
@@ -813,7 +813,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             "hash": hash,
             "data_files": data_files,
             "config_name": self.name.replace("/", "--"),
-            "base_path": hf_hub_url(self.name, "", revision=self.revision),
+            "base_path": hf_hub_url(self.name, "", revision=revision),
             "repo_id": self.name,
             **builder_kwargs,
         }
@@ -822,7 +822,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             download_config.download_desc = "Downloading metadata"
         try:
             dataset_infos_path = cached_path(
-                hf_hub_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=self.revision),
+                hf_hub_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=revision),
                 download_config=download_config,
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
@@ -837,7 +837,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             download_config.download_desc = "Downloading readme"
         try:
             dataset_readme_path = cached_path(
-                hf_hub_url(self.name, "README.md", revision=self.revision),
+                hf_hub_url(self.name, "README.md", revision=revision),
                 download_config=download_config,
             )
             dataset_card_data = DatasetCard.load(Path(dataset_readme_path)).data
@@ -1214,6 +1214,7 @@ def dataset_module_factory(
         except (
             Exception
         ) as e1:  # noqa: all the attempts failed, before raising the error we should check if the module is already cached.
+            raise  # TODO: remove
             try:
                 return CachedDatasetModuleFactory(path, dynamic_modules_path=dynamic_modules_path).get_module()
             except Exception as e2:  # noqa: if it's not in the cache, then it doesn't exist.

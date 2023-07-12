@@ -957,7 +957,7 @@ class FilesIterable(_IterableFromGenerator):
                     # skipping hidden files
                     return
                 yield urlpath
-            else:
+            elif xisdir(urlpath, token=token):
                 for dirpath, dirnames, filenames in xwalk(urlpath, token=token):
                     # skipping hidden directories; prune the search
                     # [:] for the in-place list modification required by os.walk
@@ -971,6 +971,8 @@ class FilesIterable(_IterableFromGenerator):
                             # skipping hidden files
                             continue
                         yield xjoin(dirpath, filename)
+            else:
+                raise FileNotFoundError(urlpath)
 
     @classmethod
     def from_urlpaths(cls, urlpaths, token: Optional[Union[str, bool]] = None) -> "FilesIterable":
