@@ -16,8 +16,6 @@ from .download.streaming_download_manager import _prepare_path_and_storage_optio
 from .splits import Split
 from .utils import logging
 from .utils.file_utils import is_local_path, is_relative_path
-from .utils.py_utils import string_to_dict
-from .utils.file_utils import is_relative_path
 from .utils.py_utils import glob_pattern_to_regex, string_to_dict
 
 
@@ -242,14 +240,14 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], List[str]]) -> Di
     for patterns_dict in ALL_DEFAULT_PATTERNS:
         non_empty_splits = []
         for split, patterns in patterns_dict.items():
-            try:
-                for pattern in patterns:
+            for pattern in patterns:
+                try:
                     data_files = pattern_resolver(pattern)
-                    if len(data_files) > 0:
-                        non_empty_splits.append(split)
-                        break
-            except FileNotFoundError:
-                pass
+                except FileNotFoundError:
+                    continue
+                if len(data_files) > 0:
+                    non_empty_splits.append(split)
+                    break
         if non_empty_splits:
             return {split: patterns_dict[split] for split in non_empty_splits}
     raise FileNotFoundError(f"Couldn't resolve pattern {pattern} with resolver {pattern_resolver}")
