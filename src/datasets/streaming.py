@@ -61,8 +61,11 @@ def extend_module_for_streaming(module_path, download_config: Optional[DownloadC
 
     module = importlib.import_module(module_path)
 
-    # TODO(QL): always update the module to add subsequent new authentication
+    # TODO(QL): always update the module to add subsequent new authentication without removing old ones
     if hasattr(module, "_patched_for_streaming") and module._patched_for_streaming:
+        if isinstance(module._patched_for_streaming, DownloadConfig):
+            module._patched_for_streaming.token = download_config.token
+            module._patched_for_streaming.storage_options = download_config.storage_options
         return
 
     def wrap_auth(function):
@@ -99,7 +102,7 @@ def extend_module_for_streaming(module_path, download_config: Optional[DownloadC
     patch_submodule(module, "scipy.io.loadmat", wrap_auth(xsio_loadmat), attrs=["__version__"]).start()
     patch_submodule(module, "xml.etree.ElementTree.parse", wrap_auth(xet_parse)).start()
     patch_submodule(module, "xml.dom.minidom.parse", wrap_auth(xxml_dom_minidom_parse)).start()
-    module._patched_for_streaming = True
+    module._patched_for_streaming = download_config
 
 
 def extend_dataset_builder_for_streaming(builder: "DatasetBuilder"):
