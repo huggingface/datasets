@@ -276,6 +276,49 @@ def resolve_pattern(
     allowed_extensions: Optional[List[str]] = None,
     download_config: Optional[DownloadConfig] = None,
 ) -> List[str]:
+    """
+    Resolve the paths and URLs of the data files from the pattern passed by the user.
+
+    You can use patterns to resolve multiple local files. Here are a few examples:
+    - *.csv to match all the CSV files at the first level
+    - **.csv to match all the CSV files at any level
+    - data/* to match all the files inside "data"
+    - data/** to match all the files inside "data" and its subdirectories
+
+    The patterns are resolved using the fsspec glob.
+    Here are some behaviors specific to fsspec glob that are different from glob.glob, Path.glob, Path.match or fnmatch:
+    - '*' matches only first level items
+    - '**' matches all items
+    - '**/*' matches all at least second level items
+
+    More generally:
+    - '*' matches any character except a forward-slash (to match just the file or directory name)
+    - '**' matches any character including a forward-slash /
+
+    Hidden files and directories (i.e. whose names start with a dot) are ignored, unless they are explicitly requested.
+    The same applies to special directories that start with a double underscore like "__pycache__".
+    You can still include one if the pattern explicilty mentions it:
+    - to include a hidden file: "*/.hidden.txt" or "*/.*"
+    - to include a hidden directory: ".hidden/*" or ".*/*"
+    - to include a special directory: "__special__/*" or "__*/*"
+
+    Example::
+
+        >>> from datasets.data_files import resolve_pattern
+        >>> base_path = "."
+        >>> resolve_pattern("docs/**/*.py", base_path)
+        [/Users/mariosasko/Desktop/projects/datasets/docs/source/_config.py']
+
+    Args:
+        pattern (str): Unix pattern or paths or URLs of the data files to resolve.
+            The paths can be absolute or relative to base_path.
+            Remote filesystems using fsspec are supported, e.g. with the hf:// protocol.
+        base_path (str): Base path to use when resolving relative paths.
+        allowed_extensions (Optional[list], optional): White-list of file extensions to use. Defaults to None (all extensions).
+            For example: allowed_extensions=[".csv", ".json", ".txt", ".parquet"]
+    Returns:
+        List[Union[Path, Url]]: List of paths or URLs to the local or remote files that match the patterns.
+    """
     if is_relative_path(pattern):
         pattern = xjoin(base_path, pattern)
     elif is_local_path(pattern):
