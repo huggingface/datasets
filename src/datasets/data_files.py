@@ -620,7 +620,7 @@ class DataFilesDict(Dict[str, DataFilesList]):
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
         download_config: Optional[DownloadConfig] = None,
-    ) -> "DataFilesList":
+    ) -> "DataFilesDict":
         out = cls()
         for key, patterns_for_key in patterns.items():
             out[key] = (
@@ -651,69 +651,3 @@ class DataFilesDict(Dict[str, DataFilesList]):
         for key, data_files_list in self.items():
             out[key] = data_files_list.filter_extensions(extensions)
         return out
-
-
-def get_patterns_and_data_files(
-    is_repo: bool,
-    base_path: Optional[str] = None,
-    data_files: Optional[Union[str, List, Dict]] = None,
-    hfh_dataset_info: Optional["huggingface_hub.hf_api.DatasetInfo"] = None,
-    allowed_extensions: Optional[List[str]] = None,
-) -> Tuple[Dict[str, List[str]], DataFilesDict]:
-    """
-    Search for file patterns in dataset repository or local/remote files
-    and resolve data files according to this patterns.
-    """
-    if is_repo:
-        if hfh_dataset_info is None:
-            raise ValueError("`hfh_dataset_info` must be provided for Hub datasets. ")
-        patterns = (
-            sanitize_patterns(data_files)
-            if data_files is not None
-            else get_data_patterns_in_dataset_repository(hfh_dataset_info, base_path=base_path)
-        )
-        data_files = DataFilesDict.from_hf_repo(
-            patterns,
-            dataset_info=hfh_dataset_info,
-            base_path=base_path,
-            allowed_extensions=allowed_extensions,
-        )
-        return patterns, data_files
-
-    patterns = (
-        sanitize_patterns(data_files) if data_files is not None else get_data_patterns_locally(base_path=base_path)
-    )
-    data_files = DataFilesDict.from_local_or_remote(
-        patterns,
-        base_path=base_path,
-        allowed_extensions=allowed_extensions,
-    )
-    return patterns, data_files
-
-
-def get_metadata_data_files_list(
-    is_repo: bool,
-    base_path: Optional[str] = None,
-    hfh_dataset_info: Optional[huggingface_hub.hf_api.DatasetInfo] = None,
-) -> DataFilesList:
-    """
-    Search for metadata file patterns in a dataset repository or local/remote files
-    and resolve data files according to this patterns to get the list of metadata files.
-    """
-    if is_repo:
-        if hfh_dataset_info is None:
-            raise ValueError("`hfh_dataset_info` must be provided for Hub datasets. ")
-        try:
-            metadata_patterns = get_metadata_patterns_in_dataset_repository(hfh_dataset_info, base_path=base_path)
-        except FileNotFoundError:
-            metadata_patterns = None
-        if metadata_patterns is not None:
-            return DataFilesList.from_hf_repo(metadata_patterns, dataset_info=hfh_dataset_info, base_path=base_path)
-
-    else:
-        try:
-            metadata_patterns = get_metadata_patterns_locally(base_path)
-        except FileNotFoundError:
-            metadata_patterns = None
-        if metadata_patterns is not None:
-            return DataFilesList.from_local_or_remote(metadata_patterns, base_path=base_path)
