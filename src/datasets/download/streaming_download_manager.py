@@ -417,10 +417,8 @@ def _prepare_single_hop_path_and_storage_options(
     """
     Prepare the URL and the kwargs that must be passed to the HttpFileSystem or to requests.get/head
 
-    In particular it resolves google drive URLs and it adds the authentication headers for the Hugging Face Hub.
-
-    it also needs to resolve the S3 file system specifically due to the S3 file system stores it parameters in
-     storage_options field.
+    In particular it resolves google drive URLs
+    It also adds the authentication headers for the Hugging Face Hub, for both https:// and hf:// paths.
     """
     token = None if download_config is None else download_config.token
     protocol = urlpath.split("://")[0] if "://" in urlpath else "file"
