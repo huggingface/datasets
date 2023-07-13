@@ -5,6 +5,7 @@ import os
 import posixpath
 import re
 import warnings
+from fnmatch import fnmatch
 from io import BytesIO
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
@@ -14,7 +15,7 @@ import numpy as np
 from huggingface_hub import DatasetCard, DatasetCardData, HfApi
 
 from . import config
-from .arrow_dataset import Dataset
+from .arrow_dataset import PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED, Dataset
 from .download import DownloadConfig
 from .features import Features
 from .features.features import FeatureType
@@ -29,6 +30,8 @@ from .utils.deprecation_utils import deprecated
 from .utils.doc_utils import is_documented_by
 from .utils.file_utils import cached_path
 from .utils.hub import hf_hub_url
+from .utils.metadata import MetadataConfigs
+from .utils.py_utils import asdict, glob_pattern_to_regex, string_to_dict
 from .utils.typing import PathLike
 
 
@@ -1557,6 +1560,7 @@ class DatasetDict(dict):
     def push_to_hub(
         self,
         repo_id,
+        config_name: str = "default",
         private: Optional[bool] = False,
         token: Optional[str] = None,
         branch: Optional[None] = None,
@@ -1581,6 +1585,8 @@ class DatasetDict(dict):
             private (`bool`, *optional*):
                 Whether the dataset repository should be set to private or not. Only affects repository creation:
                 a repository that already exists will not be affected by that parameter.
+            config_name (`str`):
+                Configuration name of a dataset. Defaults to "default".
             token (`str`, *optional*):
                 An optional authentication token for the Hugging Face Hub. If no token is passed, will default
                 to the token saved locally when logging in with `huggingface-cli login`. Will raise an error
@@ -1623,17 +1629,20 @@ class DatasetDict(dict):
         total_uploaded_size = 0
         total_dataset_nbytes = 0
         info_to_dump: DatasetInfo = next(iter(self.values())).info.copy()
+        info_to_dump.config_name = config_name
         info_to_dump.splits = SplitDict()
 
         for split in self.keys():
             if not re.match(_split_re, split):
                 raise ValueError(f"Split name should match '{_split_re}' but got '{split}'.")
 
+        data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
         for split in self.keys():
             logger.info(f"Pushing split {split} to the Hub.")
             # The split=key needs to be removed before merging
             repo_id, split, uploaded_size, dataset_nbytes, _, _ = self[split]._push_parquet_shards_to_hub(
                 repo_id,
+                data_dir=data_dir,
                 split=split,
                 private=private,
                 token=token,
@@ -1650,24 +1659,14 @@ class DatasetDict(dict):
         info_to_dump.dataset_size = total_dataset_nbytes
         info_to_dump.size_in_bytes = total_uploaded_size + total_dataset_nbytes
 
+        metadata_config_to_dump = {
+            "data_files": [{"split": split, "pattern": f"{data_dir}/{split}-*"} for split in self.keys()],
+        }
+
         api = HfApi(endpoint=config.HF_ENDPOINT)
         repo_files = api.list_repo_files(repo_id, repo_type="dataset", revision=branch, token=token)
 
-        # push to the deprecated dataset_infos.json
-        if config.DATASETDICT_INFOS_FILENAME in repo_files:
-            buffer = BytesIO()
-            buffer.write(b'{"default": ')
-            info_to_dump._dump_info(buffer, pretty_print=True)
-            buffer.write(b"}")
-            HfApi(endpoint=config.HF_ENDPOINT).upload_file(
-                path_or_fileobj=buffer.getvalue(),
-                path_in_repo=config.DATASETDICT_INFOS_FILENAME,
-                repo_id=repo_id,
-                token=token,
-                repo_type="dataset",
-                revision=branch,
-            )
-        # push to README
+        # get the info from the README to update them
         if "README.md" in repo_files:
             download_config = DownloadConfig()
             download_config.download_desc = "Downloading metadata"
@@ -1678,11 +1677,67 @@ class DatasetDict(dict):
             )
             dataset_card = DatasetCard.load(Path(dataset_readme_path))
             dataset_card_data = dataset_card.data
+            dataset_infos: DatasetInfosDict = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
+            metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
+        # get the deprecated dataset_infos.json to update them
+        elif config.DATASETDICT_INFOS_FILENAME in repo_files:
+            dataset_card = None
+            dataset_card_data = DatasetCardData()
+            metadata_configs = MetadataConfigs()
+            download_config = DownloadConfig()
+            download_config.download_desc = "Downloading metadata"
+            download_config.token = token
+            dataset_infos_path = cached_path(
+                hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME),
+                download_config=download_config,
+            )
+            with open(dataset_infos_path, encoding="utf-8") as f:
+                dataset_infos: dict = json.load(f)
+                dataset_infos.get(config_name, None) if dataset_infos else None
         else:
             dataset_card = None
             dataset_card_data = DatasetCardData()
-
-        DatasetInfosDict({"default": info_to_dump}).to_dataset_card_data(dataset_card_data)
+            metadata_configs = MetadataConfigs()
+        # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
+        if not metadata_configs:
+            _matched_paths = [
+                p
+                for p in repo_files
+                if fnmatch(p, PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*"))
+            ]
+            if len(_matched_paths) > 0:
+                # it was uploaded with push_to_hub before metadata configs existed
+                _resolved_splits = {
+                    string_to_dict(
+                        p, glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
+                    )["split"]
+                    for p in _matched_paths
+                }
+                default_metadata_configs_to_dump = {
+                    "data_files": [
+                        {"split": _resolved_split, "pattern": f"data/{_resolved_split}-*"}
+                        for _resolved_split in _resolved_splits
+                    ]
+                }
+                MetadataConfigs({"default": default_metadata_configs_to_dump}).to_dataset_card_data(dataset_card_data)
+        # push to the deprecated dataset_infos.json
+        if config.DATASETDICT_INFOS_FILENAME in repo_files:
+            with open(dataset_infos_path, encoding="utf-8") as f:
+                dataset_infos: DatasetInfosDict = json.load(f)
+            dataset_infos[config_name] = asdict(info_to_dump)
+            buffer = BytesIO()
+            buffer.write(json.dumps(dataset_infos, indent=4).encode("utf-8"))
+            HfApi(endpoint=config.HF_ENDPOINT).upload_file(
+                path_or_fileobj=buffer.getvalue(),
+                path_in_repo=config.DATASETDICT_INFOS_FILENAME,
+                repo_id=repo_id,
+                token=token,
+                repo_type="dataset",
+                revision=branch,
+            )
+        # push to README
+        DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
+        MetadataConfigs({config_name: metadata_config_to_dump}).to_dataset_card_data(dataset_card_data)
         dataset_card = (
             DatasetCard(
                 "---\n"

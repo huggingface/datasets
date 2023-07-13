@@ -95,8 +95,8 @@ Note that if any files were formatted by `pre-commit` hooks during committing, y
 
 You can share your dataset on https://huggingface.co/datasets directly using your account, see the documentation:
 
-* [Create a dataset and upload files](https://huggingface.co/docs/datasets/upload_dataset)
-* [Advanced guide using dataset scripts](https://huggingface.co/docs/datasets/share)
+* [Create a dataset and upload files on the website](https://huggingface.co/docs/datasets/upload_dataset)
+* [Advanced guide using the CLI](https://huggingface.co/docs/datasets/share)
 
 ## How to contribute to the dataset cards
 
