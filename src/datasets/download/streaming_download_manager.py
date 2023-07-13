@@ -428,8 +428,10 @@ def _prepare_single_hop_path_and_storage_options(
         storage_options = {}
     if protocol in ["http", "https"]:
         storage_options[protocol] = {
-            "headers": get_authentication_headers_for_url(urlpath, token=token)
-            | {"user-agent": get_datasets_user_agent()},
+            "headers": {
+                **get_authentication_headers_for_url(urlpath, token=token),
+                "user-agent": get_datasets_user_agent(),
+            },
             "client_kwargs": {"trust_env": True},  # Enable reading proxy env variables.
             **(storage_options.get(protocol, {})),
         }

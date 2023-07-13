@@ -287,7 +287,7 @@ def resolve_pattern(
     fs_base_path = base_path.split("::")[0].split("://")[-1] or fs.root_marker
     fs_pattern = pattern.split("::")[0].split("://")[-1]
     protocol_prefix = fs.protocol + "://" if fs.protocol != "file" else ""
-    files_to_ignore = set(FILES_TO_IGNORE) - set(xbasename(pattern))
+    files_to_ignore = set(FILES_TO_IGNORE) - {xbasename(pattern)}
     matched_paths = [
         filepath if filepath.startswith(protocol_prefix) else protocol_prefix + filepath
         for filepath in fs.glob(pattern)
