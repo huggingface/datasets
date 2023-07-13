@@ -261,7 +261,7 @@ def test_infer_module_for_data_files_in_archives(
         "zip_unsupported_ext_path": zip_unsupported_ext_path,
     }
     data_files = [str(data_file_paths[data_file])]
-    inferred_module, _ = infer_module_for_data_files_in_archives(data_files, False)
+    inferred_module, _ = infer_module_for_data_files_in_archives(data_files)
     assert inferred_module == expected_module
 
 
@@ -367,11 +367,11 @@ class ModuleFactoryTest(TestCase):
             and len(module_factory_result.builder_kwargs["data_files"]["test"]) > 0
         )
         assert any(
-            data_file.name == "metadata.jsonl"
+            Path(data_file).name == "metadata.jsonl"
             for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
         )
         assert any(
-            data_file.name == "metadata.jsonl"
+            Path(data_file).name == "metadata.jsonl"
             for data_file in module_factory_result.builder_kwargs["data_files"]["test"]
         )
 
@@ -412,11 +412,11 @@ class ModuleFactoryTest(TestCase):
             self._data_dir_with_metadata
         )
         assert any(
-            data_file.name == "metadata.jsonl"
+            Path(data_file).name == "metadata.jsonl"
             for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
         )
         assert any(
-            data_file.name == "metadata.jsonl"
+            Path(data_file).name == "metadata.jsonl"
             for data_file in module_factory_result.builder_kwargs["data_files"]["test"]
         )
 
@@ -651,7 +651,7 @@ class LoadTest(TestCase):
             with offline(offline_simulation_mode):
                 with self.assertRaises(ConnectionError) as context:
                     datasets.load_dataset("lhoestq/_dummy")
-                self.assertIn("lhoestq/_dummy", str(context.exception))
+                self.assertIn("lhoestq/_dummy", str(context.exception), msg=offline_simulation_mode)
 
 
 def test_load_dataset_builder_for_absolute_script_dir(dataset_loading_script_dir, data_dir):
