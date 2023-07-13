@@ -327,7 +327,7 @@ def test_xlistdir_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
     assert len(xlistdir("zip://main_dir::" + root_url, download_config=download_config)) == 2
     with pytest.raises(FileNotFoundError):
         xlistdir("zip://qwertyuiop::" + root_url, download_config=download_config)
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(FileNotFoundError):
         xlistdir(root_url, download_config=download_config)
 
 
@@ -355,8 +355,7 @@ def test_xisdir_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
     assert xisdir("zip://::" + root_url, download_config=download_config) is True
     assert xisdir("zip://main_dir::" + root_url, download_config=download_config) is True
     assert xisdir("zip://qwertyuiop::" + root_url, download_config=download_config) is False
-    with pytest.raises(NotImplementedError):
-        xisdir(root_url, download_config=download_config)
+    assert xisdir(root_url, download_config=download_config) is False
 
 
 @pytest.mark.parametrize(
