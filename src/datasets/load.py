@@ -490,15 +490,14 @@ def infer_module_for_data_files_list_in_archives(
 
 
 def infer_module_for_data_files(
-    data_files: DataFilesDict, path: Optional[str] = None, token: Optional[Union[bool, str]] = None
+    data_files: DataFilesDict, path: Optional[str] = None, download_config: Optional[DownloadConfig] = None
 ) -> Tuple[Optional[str], Dict[str, Any]]:
     """Infer module (and builder kwargs) from data files. Raise if module names for different splits don't match.
 
     Args:
         data_files (DataFilesDict): List of data files.
         path (str, optional): Dataset name or path.
-        token (bool or str, optional): Whether to use token or token to authenticate on the Hugging Face Hub
-            for private remote files.
+        DownloadConfig (bool or str, optional): for authenticate on the Hugging Face Hub for private remote files.
 
     Returns:
         tuple[str, dict[str, Any]]: Tuple with
@@ -506,7 +505,7 @@ def infer_module_for_data_files(
             - builder kwargs
     """
     split_modules = {
-        split: infer_module_for_data_files_list(data_files_list, token=token)
+        split: infer_module_for_data_files_list(data_files_list, download_config=download_config)
         for split, data_files_list in data_files.items()
     }
     module_name, default_builder_kwargs = next(iter(split_modules.values()))
@@ -552,7 +551,11 @@ def create_builder_configs_from_metadata_configs(
         config_data_dir = config_params.get("data_dir")
         config_base_path = base_path + "/" + config_data_dir if config_data_dir else base_path
         try:
-            config_patterns = sanitize_patterns(config_data_files) if config_data_files is not None else get_data_patterns(base_path)
+            config_patterns = (
+                sanitize_patterns(config_data_files)
+                if config_data_files is not None
+                else get_data_patterns(config_base_path)
+            )
             config_data_files_dict = DataFilesDict.from_patterns(
                 config_patterns,
                 base_path=config_base_path,
@@ -569,14 +572,16 @@ def create_builder_configs_from_metadata_configs(
             except FileNotFoundError:
                 config_metadata_patterns = None
             if config_metadata_patterns is not None:
-                config_metadata_data_files_list = DataFilesList.from_patterns(config_metadata_patterns, base_path=base_path)
-            if config_metadata_data_files_list:
-                config_data_files_dict = DataFilesDict(
-                    {
-                        split: data_files_list + config_metadata_data_files_list
-                        for split, data_files_list in config_data_files_dict.items()
-                    }
+                config_metadata_data_files_list = DataFilesList.from_patterns(
+                    config_metadata_patterns, base_path=base_path
                 )
+                if config_metadata_data_files_list:
+                    config_data_files_dict = DataFilesDict(
+                        {
+                            split: data_files_list + config_metadata_data_files_list
+                            for split, data_files_list in config_data_files_dict.items()
+                        }
+                    )
         ignored_params = [
             param for param in config_params if not hasattr(builder_config_cls, param) and param != "default"
         ]
@@ -844,12 +849,11 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         dataset_infos = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
         # even if metadata_configs_dict is not None (which means that we will resolve files for each config later)
         # we cannot skip resolving all files because we need to infer module name by files extensions
-        base_path = Path(os.path.join(self.path, self.data_dir) if self.data_dir else self.path).resovle().as_posix()
+        base_path = Path(self.path, self.data_dir or "").expanduser().resolve().as_posix()
         patterns = sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns(base_path)
         data_files = DataFilesDict.from_patterns(
             patterns,
             base_path=base_path,
-            data_files=self.data_files,
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
         module_name, default_builder_kwargs = infer_module_for_data_files(
@@ -933,13 +937,12 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
-        base_path = (Path(self.data_dir).expanduser() if self.data_dir is not None else Path()).resolve().as_posix()
+        base_path = Path(self.data_dir or "").expanduser().resolve().as_posix()
         patterns = sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns(base_path)
         data_files = DataFilesDict.from_patterns(
             patterns,
             download_config=self.download_config,
             base_path=base_path,
-            data_files=self.data_files,
         )
         supports_metadata = self.name in _MODULE_SUPPORTS_METADATA
         if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
@@ -1000,6 +1003,11 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             token=self.download_config.token,
             timeout=100.0,
         )
+        # even if metadata_configs is not None (which means that we will resolve files for each config later)
+        # we cannot skip resolving all files because we need to infer module name by files extensions
+        revision = hfh_dataset_info.sha  # fix the revision in case there are new commits in the meantime
+        base_path = f"hf://datasets/{self.name}@{revision}/{self.data_dir or ''}".rstrip("/")
+
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading readme"
@@ -1013,10 +1021,6 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             dataset_card_data = DatasetCardData()
         metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
         dataset_infos = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
-        # even if metadata_configs is not None (which means that we will resolve files for each config later)
-        # we cannot skip resolving all files because we need to infer module name by files extensions
-        revision = hfh_dataset_info.sha  # fix the revision in case there are new commits in the meantime
-        base_path = f"hf://datasets/{self.name}@{revision}/{self.data_dir or ''}".rstrip("/")
         patterns = (
             sanitize_patterns(self.data_files)
             if self.data_files is not None
@@ -1031,7 +1035,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         module_name, default_builder_kwargs = infer_module_for_data_files(
             data_files=data_files,
             path=self.name,
-            token=self.download_config.token,
+            download_config=self.download_config,
         )
         data_files = data_files.filter_extensions(_MODULE_TO_EXTENSIONS[module_name])
         # Collect metadata files if the module supports them
