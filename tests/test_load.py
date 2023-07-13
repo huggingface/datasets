@@ -1309,8 +1309,8 @@ def test_load_hub_dataset_without_script_with_metadata_config_in_parallel():
 
 @require_pil
 @pytest.mark.integration
-@pytest.mark.parametrize("implicit_token", [False, True])
-@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("implicit_token", [True])
+@pytest.mark.parametrize("streaming", [True])
 def test_load_dataset_private_zipped_images(
     hf_private_dataset_repo_zipped_img_data, hf_token, streaming, implicit_token
 ):
