@@ -47,7 +47,7 @@ from .data_files import (
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadMode
-from .download.streaming_download_manager import StreamingDownloadManager, xglob, xjoin
+from .download.streaming_download_manager import StreamingDownloadManager, xbasename, xglob, xjoin
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .info import DatasetInfo, DatasetInfosDict
@@ -357,9 +357,9 @@ def infer_module_for_data_files(
             - builder kwargs
     """
     extensions_counter = Counter(
-        suffix.lower()
+        "." + suffix.lower()
         for filepath in data_files_list[: config.DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE]
-        for suffix in Path(filepath).suffixes
+        for suffix in xbasename(filepath).split(".")[1:]
     )
     if extensions_counter:
 
@@ -371,13 +371,13 @@ def infer_module_for_data_files(
         for ext, _ in sorted(extensions_counter.items(), key=sort_key, reverse=True):
             if ext in _EXTENSION_TO_MODULE:
                 return _EXTENSION_TO_MODULE[ext]
-            elif ext == "zip":
+            elif ext == ".zip":
                 return infer_module_for_data_files_in_archives(data_files_list, download_config=download_config)
     return None, {}
 
 
 def infer_module_for_data_files_in_archives(
-    data_files_list: DataFilesList, download_config: Optional[DownloadConfig]
+    data_files_list: DataFilesList, download_config: Optional[DownloadConfig] = None
 ) -> Optional[Tuple[str, str]]:
     """Infer module (and builder kwargs) from list of archive data files.
 
@@ -404,7 +404,9 @@ def infer_module_for_data_files_in_archives(
                     : config.ARCHIVED_DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE
                 ]
             ]
-    extensions_counter = Counter(suffix.lower() for filepath in archived_files for suffix in Path(filepath).suffixes)
+    extensions_counter = Counter(
+        "." + suffix.lower() for filepath in archived_files for suffix in xbasename(filepath).split(".")[1:]
+    )
     if extensions_counter:
         most_common = extensions_counter.most_common(1)[0][0]
         if most_common in _EXTENSION_TO_MODULE:
@@ -631,7 +633,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
     def get_module(self) -> DatasetModule:
         base_path = os.path.join(self.path, self.data_dir) if self.data_dir else self.path
         patterns = sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns(base_path)
-        data_files = DataFilesDict.from_local_or_remote(
+        data_files = DataFilesDict.from_patterns(
             patterns,
             base_path=base_path,
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
@@ -652,7 +654,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             except FileNotFoundError:
                 metadata_patterns = None
             if metadata_patterns is not None:
-                metadata_files = DataFilesList.from_local_or_remote(metadata_patterns, base_path=base_path)
+                metadata_files = DataFilesList.from_patterns(metadata_patterns, base_path=base_path)
                 for key in data_files:
                     data_files[key] = DataFilesList(
                         data_files[key] + metadata_files,
@@ -708,9 +710,9 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
     def get_module(self) -> DatasetModule:
         base_path = (Path(self.data_dir).expanduser() if self.data_dir is not None else Path()).resolve().as_posix()
         patterns = sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns(base_path)
-        data_files = DataFilesDict.from_local_or_remote(
+        data_files = DataFilesDict.from_patterns(
             patterns,
-            token=self.download_config.token,
+            download_config=self.download_config,
             base_path=base_path,
         )
         if self.data_files is None and self.name in _MODULE_SUPPORTS_METADATA and patterns != DEFAULT_PATTERNS_ALL:
@@ -719,8 +721,8 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
             except FileNotFoundError:
                 metadata_patterns = None
             if metadata_patterns is not None:
-                metadata_files = DataFilesList.from_local_or_remote(
-                    metadata_patterns, token=self.download_config.token, base_path=base_path
+                metadata_files = DataFilesList.from_patterns(
+                    metadata_patterns, download_config=self.download_config, base_path=base_path
                 )
                 for key in data_files:
                     data_files[key] = DataFilesList(
@@ -762,19 +764,18 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             token=self.download_config.token,
             timeout=100.0,
         )
-        revision = hfh_dataset_info.sha
+        revision = hfh_dataset_info.sha  # fix the revision in case there are new commits in the meantime
         base_path = f"hf://datasets/{self.name}@{revision}/{self.data_dir or ''}".rstrip("/")
         patterns = (
             sanitize_patterns(self.data_files)
             if self.data_files is not None
-            else get_data_patterns(base_path, storage_options=self.download_config.storage_options)
+            else get_data_patterns(base_path, download_config=self.download_config)
         )
-        data_files = DataFilesDict.from_hf_repo(
+        data_files = DataFilesDict.from_patterns(
             patterns,
-            dataset_info=hfh_dataset_info,
-            base_path=self.data_dir,
+            base_path=base_path,
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
-            token=self.download_config.token,
+            download_config=self.download_config,
         )
         split_modules = {
             split: infer_module_for_data_files(data_files_list, download_config=self.download_config)
@@ -789,17 +790,14 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         # Collect metadata files if the module supports them
         if self.data_files is None and module_name in _MODULE_SUPPORTS_METADATA and patterns != DEFAULT_PATTERNS_ALL:
             try:
-                metadata_patterns = get_metadata_patterns(
-                    base_path, storage_options=self.download_config.storage_options
-                )
+                metadata_patterns = get_metadata_patterns(base_path, download_config=self.download_config)
             except FileNotFoundError:
                 metadata_patterns = None
             if metadata_patterns is not None:
-                metadata_files = DataFilesList.from_hf_repo(
+                metadata_files = DataFilesList.from_patterns(
                     metadata_patterns,
-                    dataset_info=hfh_dataset_info,
-                    base_path=self.data_dir,
-                    token=self.download_config.token,
+                    base_path=base_path,
+                    download_config=self.download_config,
                 )
                 for key in data_files:
                     data_files[key] = DataFilesList(
@@ -1212,7 +1210,6 @@ def dataset_module_factory(
         except (
             Exception
         ) as e1:  # noqa: all the attempts failed, before raising the error we should check if the module is already cached.
-            raise  # TODO: remove
             try:
                 return CachedDatasetModuleFactory(path, dynamic_modules_path=dynamic_modules_path).get_module()
             except Exception as e2:  # noqa: if it's not in the cache, then it doesn't exist.

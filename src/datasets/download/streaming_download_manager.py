@@ -11,7 +11,7 @@ from asyncio import TimeoutError
 from io import BytesIO
 from itertools import chain
 from pathlib import Path, PurePosixPath
-from typing import Callable, Generator, Iterable, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
 from xml.etree import ElementTree as ET
 
 import fsspec
@@ -21,10 +21,10 @@ from .. import config
 from ..filesystems import COMPRESSION_FILESYSTEMS
 from ..utils.file_utils import (
     get_authentication_headers_for_url,
+    get_datasets_user_agent,
     http_head,
     is_local_path,
     is_relative_path,
-    is_remote_url,
     url_or_path_join,
 )
 from ..utils.logging import get_logger
@@ -76,8 +76,6 @@ MAGIC_NUMBER_MAX_LENGTH = max(
     len(magic_number)
     for magic_number in chain(MAGIC_NUMBER_TO_COMPRESSION_PROTOCOL, MAGIC_NUMBER_TO_UNSUPPORTED_COMPRESSION_PROTOCOL)
 )
-
-SUPPORTED_REMOTE_SERVER_TYPE = ["http", "https", "s3"]
 
 
 class NonStreamableDatasetError(Exception):
@@ -147,7 +145,7 @@ def xexists(urlpath: str, download_config: Optional[DownloadConfig] = None):
 
     Args:
         urlpath (`str`): URL path.
-        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config : mainly use token or storage_options to support different platforms and auth types.
 
     Returns:
         `bool`
@@ -157,7 +155,7 @@ def xexists(urlpath: str, download_config: Optional[DownloadConfig] = None):
     if is_local_path(main_hop):
         return os.path.exists(main_hop)
     else:
-        urlpath, storage_options = _prepare_server_config(urlpath, download_config=download_config)
+        urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config=download_config)
         fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
         return fs.exists(main_hop)
 
@@ -247,7 +245,7 @@ def xisfile(path, download_config: Optional[DownloadConfig] = None) -> bool:
 
     Args:
         path (`str`): URL path.
-        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config : mainly use token or storage_options to support different platforms and auth types.
 
     Returns:
         `bool`
@@ -256,7 +254,7 @@ def xisfile(path, download_config: Optional[DownloadConfig] = None) -> bool:
     if is_local_path(main_hop):
         return os.path.isfile(path)
     else:
-        path, storage_options = _prepare_server_config(path, download_config=download_config)
+        path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
         return fs.isfile(main_hop)
 
@@ -266,7 +264,7 @@ def xgetsize(path, download_config: Optional[DownloadConfig] = None) -> int:
 
     Args:
         path (`str`): URL path.
-        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config : mainly use token or storage_options to support different platforms and auth types.
 
     Returns:
         `int`: optional
@@ -275,7 +273,7 @@ def xgetsize(path, download_config: Optional[DownloadConfig] = None) -> int:
     if is_local_path(main_hop):
         return os.path.getsize(path)
     else:
-        path, storage_options = _prepare_server_config(path, download_config=download_config)
+        path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
         size = fs.size(main_hop)
         if size is None:
@@ -290,7 +288,7 @@ def xisdir(path, download_config: Optional[DownloadConfig] = None) -> bool:
 
     Args:
         path (`str`): URL path.
-        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config : mainly use token or storage_options to support different platforms and auth types.
 
     Returns:
         `bool`
@@ -299,7 +297,7 @@ def xisdir(path, download_config: Optional[DownloadConfig] = None) -> bool:
     if is_local_path(main_hop):
         return os.path.isdir(path)
     else:
-        path, storage_options = _prepare_server_config(path, download_config=download_config, implemented=False)
+        path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
         inner_path = main_hop.split("://")[1]
         if not inner_path.strip("/"):
@@ -388,13 +386,9 @@ def _get_extraction_protocol(urlpath: str, download_config: Optional[DownloadCon
         return None
     elif extension in COMPRESSION_EXTENSION_TO_PROTOCOL:
         return COMPRESSION_EXTENSION_TO_PROTOCOL[extension]
-    if is_remote_url(urlpath):
-        # get headers and cookies for authentication on the HF Hub and for Google Drive
-        urlpath, kwargs = _prepare_http_url_kwargs(urlpath, download_config=download_config)
-    else:
-        urlpath, kwargs = urlpath, {}
+    urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config=download_config)
     try:
-        with fsspec.open(urlpath, **kwargs) as f:
+        with fsspec.open(urlpath, **(storage_options or {})) as f:
             return _get_extraction_protocol_with_magic_number(f)
     except FileNotFoundError:
         if urlpath.startswith(config.HF_ENDPOINT):
@@ -405,31 +399,21 @@ def _get_extraction_protocol(urlpath: str, download_config: Optional[DownloadCon
             raise
 
 
-def _validate_servers(urlpath: str):
-    server = urlpath.split("://")[0]
-    return server in SUPPORTED_REMOTE_SERVER_TYPE
-
-
-def _prepare_server_config(
-    path: str, download_config: Optional[DownloadConfig] = None, implemented: bool = True
+def _prepare_path_and_storage_options(
+    urlpath: str, download_config: Optional[DownloadConfig] = None
 ) -> Tuple[str, dict]:
-    main_hop, *rest_hops = str(path).split("::")
-    if not rest_hops and _validate_servers(main_hop):
-        if not implemented:
-            raise NotImplementedError("Currently not extended to support URLs in streaming mode")
-        main_hop, http_kwargs = _prepare_http_url_kwargs(main_hop, download_config=download_config)
-        storage_options = http_kwargs
-    elif rest_hops and _validate_servers(rest_hops[0]):
-        url = rest_hops[0]
-        url, http_kwargs = _prepare_http_url_kwargs(url, download_config=download_config)
-        storage_options = {"https": http_kwargs}
-        path = "::".join([main_hop, url, *rest_hops[1:]])
-    else:
-        storage_options = None
-    return path, storage_options
+    prepared_urlpath = []
+    prepared_storage_options = {}
+    for hop in urlpath.split("::"):
+        hop, storage_options = _prepare_single_hop_path_and_storage_options(hop, download_config=download_config)
+        prepared_urlpath.append(hop)
+        prepared_storage_options.update(storage_options)
+    return "::".join(prepared_urlpath), storage_options
 
 
-def _prepare_http_url_kwargs(url: str, download_config: Optional[DownloadConfig] = None) -> Tuple[str, dict]:
+def _prepare_single_hop_path_and_storage_options(
+    urlpath: str, download_config: Optional[DownloadConfig] = None
+) -> Tuple[str, Dict[str, Dict[str, Any]]]:
     """
     Prepare the URL and the kwargs that must be passed to the HttpFileSystem or to requests.get/head
 
@@ -438,29 +422,36 @@ def _prepare_http_url_kwargs(url: str, download_config: Optional[DownloadConfig]
     it also needs to resolve the S3 file system specifically due to the S3 file system stores it parameters in
      storage_options field.
     """
-    use_auth_token = None if download_config is None else download_config.use_auth_token
-    kwargs = {
-        "headers": get_authentication_headers_for_url(url, token=token),
-        "client_kwargs": {"trust_env": True},  # Enable reading proxy env variables.
-    }
-    if "drive.google.com" in url:
-        response = http_head(url)
-        cookies = None
-        for k, v in response.cookies.items():
-            if k.startswith("download_warning"):
-                url += "&confirm=" + v
-                cookies = response.cookies
-                kwargs["cookies"] = cookies
-    # Fix Google Drive URL to avoid Virus scan warning
-    if "drive.google.com" in url and "confirm=" not in url:
-        url += "&confirm=t"
-    if url.startswith("https://raw.githubusercontent.com/"):
-        # Workaround for served data with gzip content-encoding: https://github.com/fsspec/filesystem_spec/issues/389
-        kwargs["block_size"] = 0
-    # Fix S3 file system
-    if url.startswith("s3://"):
-        kwargs = None if download_config is None else download_config.storage_options
-    return url, kwargs
+    token = None if download_config is None else download_config.token
+    protocol = urlpath.split("://")[0] if "://" in urlpath else "file"
+    if download_config is not None and protocol in download_config.storage_options:
+        storage_options = {protocol: download_config.storage_options[protocol]}
+    else:
+        storage_options = {}
+    if protocol in ["http", "https"]:
+        storage_options[protocol] = {
+            "headers": get_authentication_headers_for_url(urlpath, token=token)
+            | {"user-agent": get_datasets_user_agent()},
+            "client_kwargs": {"trust_env": True},  # Enable reading proxy env variables.
+            **(storage_options.get(protocol, {})),
+        }
+        if "drive.google.com" in urlpath:
+            response = http_head(urlpath)
+            cookies = None
+            for k, v in response.cookies.items():
+                if k.startswith("download_warning"):
+                    urlpath += "&confirm=" + v
+                    cookies = response.cookies
+                    storage_options[protocol] = {"cookies": cookies, **storage_options.get(protocol, {})}
+        # Fix Google Drive URL to avoid Virus scan warning
+        if "drive.google.com" in urlpath and "confirm=" not in urlpath:
+            urlpath += "&confirm=t"
+        if urlpath.startswith("https://raw.githubusercontent.com/"):
+            # Workaround for served data with gzip content-encoding: https://github.com/fsspec/filesystem_spec/issues/389
+            storage_options[protocol] = {"block_size": 0, **storage_options.get(protocol, {})}
+    elif protocol == "hf":
+        storage_options = {"token": token, "endpoint": config.HF_ENDPOINT, **(storage_options or {})}
+    return urlpath, storage_options
 
 
 def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] = None, **kwargs):
@@ -473,7 +464,7 @@ def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] 
         file (`str`): Path name of the file to be opened.
         mode (`str`, *optional*, default "r"): Mode in which the file is opened.
         *args: Arguments to be passed to `fsspec.open`.
-        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config : mainly use token or storage_options to support different platforms and auth types.
         **kwargs: Keyword arguments to be passed to `fsspec.open`.
 
     Returns:
@@ -485,10 +476,8 @@ def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] 
     if is_local_path(main_hop):
         return open(main_hop, mode, *args, **kwargs)
     # add headers and cookies for authentication on the HF Hub and for Google Drive
-    file, new_kwargs = _prepare_server_config(file_str, download_config=download_config)
-    if new_kwargs is None:
-        new_kwargs = {}
-    kwargs = {**kwargs, **new_kwargs}
+    file, storage_options = _prepare_path_and_storage_options(file_str, download_config=download_config)
+    kwargs = {**kwargs, **(storage_options or {})}
     try:
         file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
     except ValueError as e:
@@ -515,7 +504,7 @@ def xlistdir(path: str, download_config: Optional[DownloadConfig] = None) -> Lis
 
     Args:
         path (`str`): URL path.
-        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config : mainly use token or storage_options to support different platforms and auth types.
 
     Returns:
         `list` of `str`
@@ -525,7 +514,7 @@ def xlistdir(path: str, download_config: Optional[DownloadConfig] = None) -> Lis
         return os.listdir(path)
     else:
         # globbing inside a zip in a private repo requires authentication
-        path, storage_options = _prepare_server_config(path, download_config=download_config, implemented=False)
+        path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
         inner_path = main_hop.split("://")[1]
         if inner_path.strip("/") and not fs.isdir(inner_path):
@@ -541,7 +530,7 @@ def xglob(urlpath, *, recursive=False, download_config: Optional[DownloadConfig]
         urlpath (`str`): URL path with shell-style wildcard patterns.
         recursive (`bool`, default `False`): Whether to match the "**" pattern recursively to zero or more
             directories or subdirectories.
-        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config : mainly use token or storage_options to support different platforms and auth types.
 
     Returns:
         `list` of `str`
@@ -551,7 +540,7 @@ def xglob(urlpath, *, recursive=False, download_config: Optional[DownloadConfig]
         return glob.glob(main_hop, recursive=recursive)
     else:
         # globbing inside a zip in a private repo requires authentication
-        urlpath, storage_options = _prepare_server_config(urlpath, download_config=download_config, implemented=False)
+        urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config=download_config)
         fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
         # - If there's no "*" in the pattern, get_fs_token_paths() doesn't do any pattern matching
         #   so to be able to glob patterns like "[0-9]", we have to call `fs.glob`.
@@ -568,7 +557,7 @@ def xwalk(urlpath, download_config: Optional[DownloadConfig] = None, **kwargs):
 
     Args:
         urlpath (`str`): URL root path.
-        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config : mainly use token or storage_options to support different platforms and auth types.
         **kwargs: Additional keyword arguments forwarded to the underlying filesystem.
 
 
@@ -580,7 +569,7 @@ def xwalk(urlpath, download_config: Optional[DownloadConfig] = None, **kwargs):
         yield from os.walk(main_hop, **kwargs)
     else:
         # walking inside a zip in a private repo requires authentication
-        urlpath, storage_options = _prepare_server_config(urlpath, download_config=download_config, implemented=False)
+        urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config=download_config)
         fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
         inner_path = main_hop.split("://")[1]
         if inner_path.strip("/") and not fs.isdir(inner_path):
@@ -607,7 +596,7 @@ class xPath(type(Path())):
         """Extend `pathlib.Path.exists` method to support both local and remote files.
 
         Args:
-            download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+            download_config : mainly use token or storage_options to support different platforms and auth types.
 
         Returns:
             `bool`
@@ -619,7 +608,7 @@ class xPath(type(Path())):
 
         Args:
             pattern (`str`): Pattern that resulting paths must match.
-            download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+            download_config : mainly use token or storage_options to support different platforms and auth types.
 
         Yields:
             [`xPath`]
@@ -630,11 +619,11 @@ class xPath(type(Path())):
             yield from Path(main_hop).glob(pattern)
         else:
             # globbing inside a zip in a private repo requires authentication
-            if rest_hops and _validate_servers(rest_hops[0]):
-                url = rest_hops[0]
-                url, kwargs = _prepare_http_url_kwargs(url, download_config=download_config)
-                storage_options = {"https": kwargs}
-                posix_path = "::".join([main_hop, url, *rest_hops[1:]])
+            if rest_hops:
+                urlpath = rest_hops[0]
+                urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config=download_config)
+                storage_options = {urlpath.split("://")[0]: storage_options}
+                posix_path = "::".join([main_hop, urlpath, *rest_hops[1:]])
             else:
                 storage_options = None
             fs, *_ = fsspec.get_fs_token_paths(xjoin(posix_path, pattern), storage_options=storage_options)
@@ -795,7 +784,7 @@ def xet_parse(source, parser=None, download_config: Optional[DownloadConfig] = N
     Args:
         source: File path or file object.
         parser (`XMLParser`, *optional*, default `XMLParser`): Parser instance.
-        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config : mainly use token or storage_options to support different platforms and auth types.
 
     Returns:
         `xml.etree.ElementTree.Element`: Root element of the given source document.
@@ -812,7 +801,7 @@ def xxml_dom_minidom_parse(filename_or_file, download_config: Optional[DownloadC
 
     Args:
         filename_or_file (`str` or file): File path or file object.
-        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config : mainly use token or storage_options to support different platforms and auth types.
         **kwargs (optional): Additional keyword arguments passed to `xml.dom.minidom.parse`.
 
     Returns:

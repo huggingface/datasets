@@ -2,17 +2,20 @@ import os
 import re
 from functools import partial
 from pathlib import Path, PurePath
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
+from typing import Callable, Dict, List, Optional, Set, Tuple, Union
 
 import huggingface_hub
 from fsspec import get_fs_token_paths
-from huggingface_hub import HfApi, HfFileSystem
+from fsspec.implementations.http import HTTPFileSystem
+from huggingface_hub import HfFileSystem
 from tqdm.contrib.concurrent import thread_map
 
-from .download.streaming_download_manager import xbasename
+from . import config
+from .download import DownloadConfig
+from .download.streaming_download_manager import _prepare_path_and_storage_options, xbasename, xjoin
 from .splits import Split
 from .utils import logging
-from .utils.file_utils import is_relative_path
+from .utils.file_utils import is_local_path, is_relative_path
 from .utils.py_utils import string_to_dict
 
 
@@ -207,7 +210,10 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], List[str]]) -> Di
     # first check the split patterns like data/{split}-00000-of-00001.parquet
     for split_pattern in ALL_SPLIT_PATTERNS:
         pattern = split_pattern.replace("{split}", "*")
-        data_files = pattern_resolver(pattern)
+        try:
+            data_files = pattern_resolver(pattern)
+        except FileNotFoundError:
+            continue
         if len(data_files) > 0:
             splits: Set[str] = {string_to_dict(p, split_pattern)["split"] for p in data_files}
             sorted_splits = [str(split) for split in DEFAULT_SPLITS if split in splits] + sorted(
@@ -252,49 +258,54 @@ def resolve_pattern(
     pattern: str,
     base_path: str,
     allowed_extensions: Optional[List[str]] = None,
-    storage_options: Optional[Dict[str, Any]] = None,
+    download_config: Optional[DownloadConfig] = None,
 ) -> List[str]:
     if is_relative_path(pattern):
-        pattern = base_path + "/" + pattern
+        pattern = xjoin(base_path, pattern)
+    elif is_local_path(pattern):
+        base_path = os.path.splitdrive(pattern)[0] + os.sep
     else:
-        base_path = os.path.splitdrive(pattern)[0] + "/"
-    fs, _, (fs_base_path,) = get_fs_token_paths(base_path, storage_options=storage_options)
+        base_path = ""
+    pattern, storage_options = _prepare_path_and_storage_options(pattern, download_config=download_config)
+    fs, _, _ = get_fs_token_paths(pattern, storage_options=storage_options)
+    fs_base_path = base_path.split("::")[0].split("://")[-1] or fs.root_marker
+    fs_pattern = pattern.split("::")[0].split("://")[-1]
     protocol_prefix = fs.protocol + "://" if fs.protocol != "file" else ""
     files_to_ignore = set(FILES_TO_IGNORE) - set(xbasename(pattern))
     matched_paths = [
-        protocol_prefix + filepath
+        filepath if filepath.startswith(protocol_prefix) else protocol_prefix + filepath
         for filepath in fs.glob(pattern)
         if fs.isfile(filepath)
         and (xbasename(filepath) not in files_to_ignore)
         and not _is_inside_unrequested_special_dir(
-            os.path.relpath(filepath, fs_base_path), os.path.relpath(pattern, fs_base_path)
+            os.path.relpath(filepath, fs_base_path), os.path.relpath(fs_pattern, fs_base_path)
         )
         and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(
-            os.path.relpath(filepath, fs_base_path), os.path.relpath(pattern, fs_base_path)
+            os.path.relpath(filepath, fs_base_path), os.path.relpath(fs_pattern, fs_base_path)
         )
     ]  # ignore .ipynb and __pycache__, but keep /../
     if allowed_extensions is not None:
         out = [
             filepath
             for filepath in matched_paths
-            if any("." + suffix in allowed_extensions for suffix in xbasename(filepath).split("."))
+            if any("." + suffix in allowed_extensions for suffix in xbasename(filepath).split(".")[1:])
         ]
         if len(out) < len(matched_paths):
             invalid_matched_files = list(set(matched_paths) - set(out))
             logger.info(
-                f"Some files matched the pattern '{pattern}' at {base_path} but don't have valid data file extensions: {invalid_matched_files}"
+                f"Some files matched the pattern '{pattern}'but don't have valid data file extensions: {invalid_matched_files}"
             )
     else:
         out = matched_paths
-    if not out and not contains_wildcards(pattern):
-        error_msg = f"Unable to find '{pattern}' at {base_path}"
+    if not out:
+        error_msg = f"Unable to find '{pattern}'"
         if allowed_extensions is not None:
             error_msg += f" with any supported extension {list(allowed_extensions)}"
         raise FileNotFoundError(error_msg)
     return out
 
 
-def get_data_patterns(base_path: str, storage_options: Optional[Dict[str, Any]] = None) -> Dict[str, List[str]]:
+def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] = None) -> Dict[str, List[str]]:
     """
     Get the default pattern from a directory testing all the supported patterns.
     The first patterns to return a non-empty list of data files is returned.
@@ -378,18 +389,21 @@ def get_data_patterns(base_path: str, storage_options: Optional[Dict[str, Any]] 
 
     In order, it first tests if SPLIT_PATTERN_SHARDED works, otherwise it tests the patterns in ALL_DEFAULT_PATTERNS.
     """
-    resolver = partial(resolve_pattern, base_path=base_path, storage_options=storage_options)
+    resolver = partial(resolve_pattern, base_path=base_path, download_config=download_config)
     try:
         return _get_data_files_patterns(resolver)
     except FileNotFoundError:
         raise EmptyDatasetError(f"The directory at {base_path} doesn't contain any data files") from None
 
 
-def get_metadata_patterns(base_path: str, storage_options: Optional[Dict[str, Any]] = None) -> List[str]:
+def get_metadata_patterns(
+    base_path: str,
+    download_config: Optional[DownloadConfig] = None,
+) -> List[str]:
     """
     Get the supported metadata patterns from a local directory.
     """
-    resolver = partial(resolve_pattern, base_path=base_path, storage_options=storage_options)
+    resolver = partial(resolve_pattern, base_path=base_path, download_config=download_config)
     try:
         return _get_metadata_files_patterns(resolver)
     except FileNotFoundError:
@@ -398,20 +412,18 @@ def get_metadata_patterns(base_path: str, storage_options: Optional[Dict[str, An
 
 def _get_single_origin_metadata(
     data_file: str,
-    storage_options: Optional[Dict[str, Any]] = None,
-    hf_repos_sha_cache: Optional[dict] = None,
+    download_config: Optional[DownloadConfig] = None,
 ) -> Tuple[str]:
-    hf_repos_sha_cache = {} if hf_repos_sha_cache is None else hf_repos_sha_cache
+    data_file, storage_options = _prepare_path_and_storage_options(data_file, download_config=download_config)
     fs, _, _ = get_fs_token_paths(data_file, storage_options=storage_options)
     if isinstance(fs, HfFileSystem):
         resolved_path = fs.resolve_path(data_file)
-        hf_repos_sha_cache_key = (resolved_path.repo_type, resolved_path.repo_id, resolved_path.revision)
-        if hf_repos_sha_cache_key not in hf_repos_sha_cache:
-            repo_info = HfApi(endpoint=fs.endpoint, token=fs.token).repo_info(
-                resolved_path.repo_id, revision=resolved_path.revision, repo_type=resolved_path.repo_type
-            )
-            hf_repos_sha_cache[hf_repos_sha_cache_key] = (repo_info.id, repo_info.sha)
-        return hf_repos_sha_cache[hf_repos_sha_cache_key]
+        return (resolved_path.repo_id, resolved_path.revision)
+    elif isinstance(fs, HTTPFileSystem) and data_file.startswith(config.HF_ENDPOINT):
+        hffs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=download_config.token)
+        data_file = "hf://" + data_file[len(config.HF_ENDPOINT) + 1 :].replace("/resolve/", "@", 1)
+        resolved_path = hffs.resolve_path(data_file)
+        return (resolved_path.repo_id, resolved_path.revision)
     info = fs.info(data_file)
     # s3fs uses "ETag", gcsfs uses "etag", and for local we simply check mtime
     for key in ["ETag", "etag", "mtime"]:
@@ -423,10 +435,10 @@ def _get_single_origin_metadata(
 def _get_origin_metadata(
     data_files: List[str],
     max_workers=64,
-    storage_options: Optional[Dict[str, Any]] = None,
+    download_config: Optional[DownloadConfig] = None,
 ) -> Tuple[str]:
     return thread_map(
-        partial(_get_single_origin_metadata, storage_options=storage_options, hf_repos_sha_cache={}),
+        partial(_get_single_origin_metadata, download_config=download_config),
         data_files,
         max_workers=max_workers,
         tqdm_class=logging.tqdm,
@@ -464,12 +476,11 @@ class DataFilesList(List[str]):
         dataset_info: huggingface_hub.hf_api.DatasetInfo,
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
-        token: Optional[Union[bool, str]] = None,
+        download_config: Optional[DownloadConfig] = None,
     ) -> "DataFilesList":
         base_path = f"hf://datasets/{dataset_info.id}@{dataset_info.sha}/{base_path or ''}".rstrip("/")
-        storage_options = {"hf": {"token": token}}
         return cls.from_patterns(
-            patterns, base_path=base_path, allowed_extensions=allowed_extensions, storage_options=storage_options
+            patterns, base_path=base_path, allowed_extensions=allowed_extensions, download_config=download_config
         )
 
     @classmethod
@@ -478,12 +489,11 @@ class DataFilesList(List[str]):
         patterns: List[str],
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
-        token: Optional[Union[bool, str]] = None,
+        download_config: Optional[DownloadConfig] = None,
     ) -> "DataFilesList":
         base_path = base_path if base_path is not None else Path().resolve().as_posix()
-        storage_options = {"hf": {"token": token}}
         return cls.from_patterns(
-            patterns, base_path=base_path, allowed_extensions=allowed_extensions, storage_options=storage_options
+            patterns, base_path=base_path, allowed_extensions=allowed_extensions, download_config=download_config
         )
 
     @classmethod
@@ -492,17 +502,23 @@ class DataFilesList(List[str]):
         patterns: List[str],
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
-        storage_options: Optional[Dict[str, Any]] = None,
+        download_config: Optional[DownloadConfig] = None,
     ) -> "DataFilesList":
         base_path = base_path if base_path is not None else Path().resolve().as_posix()
-        data_files = [
-            path
-            for pattern in patterns
-            for path in resolve_pattern(
-                pattern, base_path=base_path, allowed_extensions=allowed_extensions, storage_options=storage_options
-            )
-        ]
-        origin_metadata = _get_origin_metadata(data_files, storage_options=storage_options)
+        data_files = []
+        for pattern in patterns:
+            try:
+                data_files.extend(
+                    resolve_pattern(
+                        pattern,
+                        base_path=base_path,
+                        allowed_extensions=allowed_extensions,
+                        download_config=download_config,
+                    )
+                )
+            except FileNotFoundError:
+                pass
+        origin_metadata = _get_origin_metadata(data_files, download_config=download_config)
         return cls(data_files, origin_metadata)
 
     def filter_extensions(self, extensions: List[str]) -> "DataFilesList":
@@ -536,7 +552,7 @@ class DataFilesDict(Dict[str, DataFilesList]):
         patterns: Dict[str, Union[List[str], DataFilesList]],
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
-        token: Optional[Union[bool, str]] = None,
+        download_config: Optional[DownloadConfig] = None,
     ) -> "DataFilesDict":
         out = cls()
         for key, patterns_for_key in patterns.items():
@@ -545,7 +561,7 @@ class DataFilesDict(Dict[str, DataFilesList]):
                     patterns_for_key,
                     base_path=base_path,
                     allowed_extensions=allowed_extensions,
-                    token=token,
+                    download_config=download_config,
                 )
                 if not isinstance(patterns_for_key, DataFilesList)
                 else patterns_for_key
@@ -559,7 +575,7 @@ class DataFilesDict(Dict[str, DataFilesList]):
         dataset_info: huggingface_hub.hf_api.DatasetInfo,
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
-        token: Optional[Union[bool, str]] = None,
+        download_config: Optional[DownloadConfig] = None,
     ) -> "DataFilesDict":
         out = cls()
         for key, patterns_for_key in patterns.items():
@@ -569,7 +585,7 @@ class DataFilesDict(Dict[str, DataFilesList]):
                     dataset_info=dataset_info,
                     base_path=base_path,
                     allowed_extensions=allowed_extensions,
-                    token=token,
+                    download_config=download_config,
                 )
                 if not isinstance(patterns_for_key, DataFilesList)
                 else patterns_for_key
@@ -582,7 +598,7 @@ class DataFilesDict(Dict[str, DataFilesList]):
         patterns: List[str],
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
-        storage_options: Optional[Dict[str, Any]] = None,
+        download_config: Optional[DownloadConfig] = None,
     ) -> "DataFilesList":
         out = cls()
         for key, patterns_for_key in patterns.items():
@@ -591,7 +607,7 @@ class DataFilesDict(Dict[str, DataFilesList]):
                     patterns_for_key,
                     base_path=base_path,
                     allowed_extensions=allowed_extensions,
-                    storage_options=storage_options,
+                    download_config=download_config,
                 )
                 if not isinstance(patterns_for_key, DataFilesList)
                 else patterns_for_key
