@@ -120,7 +120,7 @@ class ElasticSearchIndex(BaseIndex):
         host = host or "localhost"
         port = port or 9200
 
-        import elasticsearch.helpers  # noqa: need this to properly load all the es features
+        import elasticsearch.helpers  # noqa: F401  need this to properly load all the es features
         from elasticsearch import Elasticsearch  # noqa: F811
 
         self.es_client = es_client if es_client is not None else Elasticsearch([{"host": host, "port": str(port)}])

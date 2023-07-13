@@ -33,7 +33,7 @@ class TFFormatter(TensorFormatter[Mapping, "tf.Tensor", Mapping]):
     def __init__(self, features=None, **tf_tensor_kwargs):
         super().__init__(features=features)
         self.tf_tensor_kwargs = tf_tensor_kwargs
-        import tensorflow as tf  # noqa: import tf at initialization
+        import tensorflow as tf  # noqa: F401
 
     def _consolidate(self, column):
         import tensorflow as tf
