@@ -360,7 +360,7 @@ class DatasetBuilder:
             data_files = DataFilesDict.from_local_or_remote(
                 sanitize_patterns(data_files),
                 base_path=base_path,
-                download_config=DownloadConfig(token=token, storage_options=storage_options),
+                download_config=DownloadConfig(token=token, storage_options=self.storage_options),
             )
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
