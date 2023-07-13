@@ -1993,6 +1993,11 @@ class IterableDataset(DatasetInfoMixin):
                     for col, feature in original_features.items()
                 }
             )
+            # check that it's still valid, especially with regard to task templates
+            try:
+                ds_iterable._info.copy()
+            except ValueError:
+                ds_iterable._info.task_templates = None
         return ds_iterable
 
     def remove_columns(self, column_names: Union[str, List[str]]) -> "IterableDataset":
@@ -2027,6 +2032,12 @@ class IterableDataset(DatasetInfoMixin):
             for col, _ in original_features.items():
                 if col in column_names:
                     del ds_iterable._info.features[col]
+            # check that it's still valid, especially with regard to task templates
+            try:
+                ds_iterable._info.copy()
+            except ValueError:
+                ds_iterable._info.task_templates = None
+
         return ds_iterable
 
     def select_columns(self, column_names: Union[str, List[str]]) -> "IterableDataset":
@@ -2068,6 +2079,11 @@ class IterableDataset(DatasetInfoMixin):
                             f"{list(self._info.features.keys())}."
                         )
                 info.features = Features({c: info.features[c] for c in column_names})
+                # check that it's still valid, especially with regard to task templates
+                try:
+                    info.copy()
+                except ValueError:
+                    info.task_templates = None
 
         ex_iterable = SelectColumnsIterable(self._ex_iterable, column_names)
         return IterableDataset(
