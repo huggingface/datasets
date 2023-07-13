@@ -1095,7 +1095,7 @@ class ClassLabel:
         """
         if isinstance(storage, pa.IntegerArray) and len(storage) > 0:
             min_max = pc.min_max(storage).as_py()
-            if min_max["max"] >= self.num_classes:
+            if min_max["max"] is not None and min_max["max"] >= self.num_classes:
                 raise ValueError(
                     f"Class label {min_max['max']} greater than configured num_classes {self.num_classes}"
                 )

@@ -17,6 +17,8 @@ from .splits import Split
 from .utils import logging
 from .utils.file_utils import is_local_path, is_relative_path
 from .utils.py_utils import string_to_dict
+from .utils.file_utils import is_relative_path
+from .utils.py_utils import glob_pattern_to_regex, string_to_dict
 
 
 SANITIZED_DEFAULT_SPLIT = str(Split.TRAIN)
@@ -93,16 +95,32 @@ def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[
     The default split is "train".
 
     Returns:
-        patterns: dictionary of split_name -> list_of _atterns
+        patterns: dictionary of split_name -> list of patterns
     """
     if isinstance(patterns, dict):
         return {str(key): value if isinstance(value, list) else [value] for key, value in patterns.items()}
     elif isinstance(patterns, str):
         return {SANITIZED_DEFAULT_SPLIT: [patterns]}
     elif isinstance(patterns, list):
-        return {SANITIZED_DEFAULT_SPLIT: patterns}
+        if any(isinstance(pattern, dict) for pattern in patterns):
+            for pattern in patterns:
+                if not isinstance(pattern, dict) or sorted(pattern) != ["pattern", "split"]:
+                    raise ValueError(
+                        f"Expected each pattern in a list of patterns to be a string or a list, but got {pattern}"
+                    )
+            splits = [pattern["split"] for pattern in patterns]
+            if len(set(splits)) != len(splits):
+                raise ValueError(f"Some splits are duplicated in data_files: {splits}")
+            return {
+                str(pattern["split"]): pattern["pattern"]
+                if isinstance(pattern["pattern"], list)
+                else [pattern["pattern"]]
+                for pattern in patterns
+            }
+        else:
+            return {SANITIZED_DEFAULT_SPLIT: patterns}
     else:
-        return {SANITIZED_DEFAULT_SPLIT: list(patterns)}
+        return sanitize_patterns(list(patterns))
 
 
 def _is_inside_unrequested_special_dir(matched_rel_path: str, pattern: str) -> bool:
@@ -215,7 +233,7 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], List[str]]) -> Di
         except FileNotFoundError:
             continue
         if len(data_files) > 0:
-            splits: Set[str] = {string_to_dict(p, split_pattern)["split"] for p in data_files}
+            splits: Set[str] = {string_to_dict(p, glob_pattern_to_regex(split_pattern))["split"] for p in data_files}
             sorted_splits = [str(split) for split in DEFAULT_SPLITS if split in splits] + sorted(
                 splits - set(DEFAULT_SPLITS)
             )
@@ -237,7 +255,7 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], List[str]]) -> Di
     raise FileNotFoundError(f"Couldn't resolve pattern {pattern} with resolver {pattern_resolver}")
 
 
-def _get_metadata_files_patterns(pattern_resolver: Callable[[str], List[str]]) -> Dict[str, List[str]]:
+def _get_metadata_files_patterns(pattern_resolver: Callable[[str], List[str]]) -> List[str]:
     """
     Get the supported metadata patterns from a directory or repository.
     """
@@ -469,6 +487,9 @@ class DataFilesList(List[str]):
         super().__init__(data_files)
         self.origin_metadata = origin_metadata
 
+    def __add__(self, other):
+        return DataFilesList([*self, *other], self.origin_metadata + other.origin_metadata)
+
     @classmethod
     def from_hf_repo(
         cls,
@@ -630,3 +651,69 @@ class DataFilesDict(Dict[str, DataFilesList]):
         for key, data_files_list in self.items():
             out[key] = data_files_list.filter_extensions(extensions)
         return out
+
+
+def get_patterns_and_data_files(
+    is_repo: bool,
+    base_path: Optional[str] = None,
+    data_files: Optional[Union[str, List, Dict]] = None,
+    hfh_dataset_info: Optional["huggingface_hub.hf_api.DatasetInfo"] = None,
+    allowed_extensions: Optional[List[str]] = None,
+) -> Tuple[Dict[str, List[str]], DataFilesDict]:
+    """
+    Search for file patterns in dataset repository or local/remote files
+    and resolve data files according to this patterns.
+    """
+    if is_repo:
+        if hfh_dataset_info is None:
+            raise ValueError("`hfh_dataset_info` must be provided for Hub datasets. ")
+        patterns = (
+            sanitize_patterns(data_files)
+            if data_files is not None
+            else get_data_patterns_in_dataset_repository(hfh_dataset_info, base_path=base_path)
+        )
+        data_files = DataFilesDict.from_hf_repo(
+            patterns,
+            dataset_info=hfh_dataset_info,
+            base_path=base_path,
+            allowed_extensions=allowed_extensions,
+        )
+        return patterns, data_files
+
+    patterns = (
+        sanitize_patterns(data_files) if data_files is not None else get_data_patterns_locally(base_path=base_path)
+    )
+    data_files = DataFilesDict.from_local_or_remote(
+        patterns,
+        base_path=base_path,
+        allowed_extensions=allowed_extensions,
+    )
+    return patterns, data_files
+
+
+def get_metadata_data_files_list(
+    is_repo: bool,
+    base_path: Optional[str] = None,
+    hfh_dataset_info: Optional[huggingface_hub.hf_api.DatasetInfo] = None,
+) -> DataFilesList:
+    """
+    Search for metadata file patterns in a dataset repository or local/remote files
+    and resolve data files according to this patterns to get the list of metadata files.
+    """
+    if is_repo:
+        if hfh_dataset_info is None:
+            raise ValueError("`hfh_dataset_info` must be provided for Hub datasets. ")
+        try:
+            metadata_patterns = get_metadata_patterns_in_dataset_repository(hfh_dataset_info, base_path=base_path)
+        except FileNotFoundError:
+            metadata_patterns = None
+        if metadata_patterns is not None:
+            return DataFilesList.from_hf_repo(metadata_patterns, dataset_info=hfh_dataset_info, base_path=base_path)
+
+    else:
+        try:
+            metadata_patterns = get_metadata_patterns_locally(base_path)
+        except FileNotFoundError:
+            metadata_patterns = None
+        if metadata_patterns is not None:
+            return DataFilesList.from_local_or_remote(metadata_patterns, base_path=base_path)

@@ -28,7 +28,13 @@ from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadMode
 from .download.streaming_download_manager import StreamingDownloadManager
 from .info import DatasetInfo
-from .load import dataset_module_factory, import_main_class, load_dataset_builder, metric_module_factory
+from .load import (
+    dataset_module_factory,
+    get_dataset_builder_class,
+    import_main_class,
+    load_dataset_builder,
+    metric_module_factory,
+)
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import relative_to_absolute_path
 from .utils.logging import get_logger
@@ -136,7 +142,7 @@ def inspect_dataset(path: str, local_path: str, download_config: Optional[Downlo
             the attributes of `download_config` if supplied.
     """
     dataset_module = dataset_module_factory(path, download_config=download_config, **download_kwargs)
-    builder_cls = import_main_class(dataset_module.module_path, dataset=True)
+    builder_cls = get_dataset_builder_class(dataset_module)
     module_source_path = inspect.getsourcefile(builder_cls)
     module_source_dirpath = os.path.dirname(module_source_path)
     for dirpath, dirnames, filenames in os.walk(module_source_dirpath):
@@ -181,8 +187,8 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
         **download_kwargs (additional keyword arguments): optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
     """
     metric_module = metric_module_factory(path, download_config=download_config, **download_kwargs)
-    builder_cls = import_main_class(metric_module.module_path, dataset=False)
-    module_source_path = inspect.getsourcefile(builder_cls)
+    metric_cls = import_main_class(metric_module.module_path, dataset=False)
+    module_source_path = inspect.getsourcefile(metric_cls)
     module_source_dirpath = os.path.dirname(module_source_path)
     for dirpath, dirnames, filenames in os.walk(module_source_dirpath):
         dst_dirpath = os.path.join(local_path, os.path.relpath(dirpath, module_source_dirpath))
@@ -351,7 +357,7 @@ def get_dataset_config_names(
         data_files=data_files,
         **download_kwargs,
     )
-    builder_cls = import_main_class(dataset_module.module_path)
+    builder_cls = get_dataset_builder_class(dataset_module, dataset_name=os.path.basename(path))
     return list(builder_cls.builder_configs.keys()) or [dataset_module.builder_kwargs.get("config_name", "default")]
 
 

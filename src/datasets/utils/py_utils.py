@@ -133,6 +133,25 @@ def convert_file_size_to_int(size: Union[int, str]) -> int:
     raise ValueError(f"`size={size}` is not in a valid format. Use an integer followed by the unit, e.g., '5GB'.")
 
 
+def glob_pattern_to_regex(pattern):
+    # partially taken from fsspec:
+    # https://github.com/fsspec/filesystem_spec/blob/697d0f8133d8a5fbc3926e4761d7ecd51337ce50/fsspec/asyn.py#L735
+    return (
+        pattern.replace("\\", r"\\")
+        .replace(".", r"\.")
+        .replace("*", ".*")
+        .replace("+", r"\+")
+        .replace("//", "/")
+        .replace("(", r"\(")
+        .replace(")", r"\)")
+        .replace("|", r"\|")
+        .replace("^", r"\^")
+        .replace("$", r"\$")
+        .rstrip("/")
+        .replace("?", ".")
+    )
+
+
 def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
     """Un-format a string using a python f-string pattern.
     From https://stackoverflow.com/a/36838374
