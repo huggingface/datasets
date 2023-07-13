@@ -1412,7 +1412,7 @@ def dataset_module_factory(
                     token=download_config.token,
                     timeout=100.0,
                 )
-            except Exception as e:  # noqa: catch any exception of hf_hub and consider that the dataset doesn't exist
+            except Exception as e:  # noqa catch any exception of hf_hub and consider that the dataset doesn't exist
                 if isinstance(
                     e,
                     (
@@ -1452,10 +1452,10 @@ def dataset_module_factory(
                 ).get_module()
         except (
             Exception
-        ) as e1:  # noqa: all the attempts failed, before raising the error we should check if the module is already cached.
+        ) as e1:  # noqa all the attempts failed, before raising the error we should check if the module is already cached.
             try:
                 return CachedDatasetModuleFactory(path, dynamic_modules_path=dynamic_modules_path).get_module()
-            except Exception as e2:  # noqa: if it's not in the cache, then it doesn't exist.
+            except Exception:  # noqa if it's not in the cache, then it doesn't exist.
                 if isinstance(e1, OfflineModeIsEnabled):
                     raise ConnectionError(f"Couldn't reach the Hugging Face Hub for dataset '{path}': {e1}") from None
                 if isinstance(e1, EmptyDatasetError):
@@ -1557,10 +1557,10 @@ def metric_module_factory(
                 ).get_module()
             except (
                 Exception
-            ) as e1:  # noqa: all the attempts failed, before raising the error we should check if the module is already cached.
+            ) as e1:  # noqa all the attempts failed, before raising the error we should check if the module is already cached.
                 try:
                     return CachedMetricModuleFactory(path, dynamic_modules_path=dynamic_modules_path).get_module()
-                except Exception as e2:  # noqa: if it's not in the cache, then it doesn't exist.
+                except Exception:  # noqa if it's not in the cache, then it doesn't exist.
                     if not isinstance(e1, FileNotFoundError):
                         raise e1 from None
                     raise FileNotFoundError(
