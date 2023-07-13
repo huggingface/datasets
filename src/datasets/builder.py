@@ -357,7 +357,7 @@ class DatasetBuilder:
         self._writer_batch_size = writer_batch_size or self.DEFAULT_WRITER_BATCH_SIZE
 
         if data_files is not None and not isinstance(data_files, DataFilesDict):
-            data_files = DataFilesDict.from_local_or_remote(
+            data_files = DataFilesDict.from_patterns(
                 sanitize_patterns(data_files),
                 base_path=base_path,
                 download_config=DownloadConfig(token=token, storage_options=self.storage_options),

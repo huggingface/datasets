@@ -404,7 +404,7 @@ def test_DataFilesDict_from_patterns_in_dataset_repository_with_base_path(
 def test_DataFilesDict_from_patterns_locally(complex_data_dir, pattern_results, pattern):
     split_name = "train"
     try:
-        data_files = DataFilesDict.from_local_or_remote({split_name: [pattern]}, complex_data_dir)
+        data_files = DataFilesDict.from_patterns({split_name: [pattern]}, complex_data_dir)
         assert all(isinstance(data_files_list, DataFilesList) for data_files_list in data_files.values())
         assert sorted(data_files[split_name]) == pattern_results[pattern]
     except FileNotFoundError:

@@ -614,7 +614,7 @@ class DataFilesDict(Dict[str, DataFilesList]):
     @classmethod
     def from_patterns(
         cls,
-        patterns: List[str],
+        patterns: Dict[str, Union[List[str], DataFilesList]],
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
         download_config: Optional[DownloadConfig] = None,
