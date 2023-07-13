@@ -1638,7 +1638,7 @@ class DatasetDict(dict):
 
         data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
         for split in self.keys():
-            logger.warning(f"Pushing split {split} to the Hub.")
+            logger.info(f"Pushing split {split} to the Hub.")
             # The split=key needs to be removed before merging
             repo_id, split, uploaded_size, dataset_nbytes, _, _ = self[split]._push_parquet_shards_to_hub(
                 repo_id,

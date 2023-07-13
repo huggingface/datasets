@@ -516,7 +516,7 @@ class DatasetBuilder:
         if config_name is None and self.BUILDER_CONFIGS and not config_kwargs:
             if self.DEFAULT_CONFIG_NAME is not None:
                 builder_config = self.builder_configs.get(self.DEFAULT_CONFIG_NAME)
-                logger.warning(f"No config specified, defaulting to: {self.dataset_name}/{builder_config.name}")
+                logger.info(f"No config specified, defaulting to: {self.dataset_name}/{builder_config.name}")
             else:
                 if len(self.BUILDER_CONFIGS) > 1:
                     example_of_usage = f"load_dataset('{self.dataset_name}', '{self.BUILDER_CONFIGS[0].name}')"
@@ -877,7 +877,7 @@ class DatasetBuilder:
             path_join = os.path.join if is_local else posixpath.join
             data_exists = self._fs.exists(path_join(self._output_dir, config.DATASET_INFO_FILENAME))
             if data_exists and download_mode == DownloadMode.REUSE_DATASET_IF_EXISTS:
-                logger.warning(f"Found cached dataset {self.dataset_name} ({self._output_dir})")
+                logger.info(f"Found cached dataset {self.dataset_name} ({self._output_dir})")
                 # We need to update the info in case some splits were added in the meantime
                 # for example when calling load_dataset from multiple workers.
                 self.info = self._load_info()
@@ -916,7 +916,7 @@ class DatasetBuilder:
             # information needed to cancel download/preparation if needed.
             # This comes right before the progress bar.
             if self.info.size_in_bytes:
-                print(
+                logger.info(
                     f"Downloading and preparing dataset {self.dataset_name}/{self.config.name} "
                     f"(download: {size_str(self.info.download_size)}, generated: {size_str(self.info.dataset_size)}, "
                     f"post-processed: {size_str(self.info.post_processing_size)}, "
@@ -924,7 +924,7 @@ class DatasetBuilder:
                 )
             else:
                 _dest = self._fs._strip_protocol(self._output_dir) if is_local else self._output_dir
-                print(f"Downloading and preparing dataset {self.dataset_name}/{self.config.name} to {_dest}...")
+                logger.info(f"Downloading and preparing dataset {self.dataset_name}/{self.config.name} to {_dest}...")
 
             self._check_manual_download(dl_manager)
 
@@ -965,7 +965,7 @@ class DatasetBuilder:
             # Download post processing resources
             self.download_post_processing_resources(dl_manager)
 
-            print(
+            logger.info(
                 f"Dataset {self.dataset_name} downloaded and prepared to {self._output_dir}. "
                 f"Subsequent calls will reuse this data."
             )
@@ -1194,7 +1194,7 @@ class DatasetBuilder:
             ),
             split,
             map_tuple=True,
-            disable_tqdm=not logging.is_progress_bar_enabled(),
+            disable_tqdm=True,
         )
         if isinstance(datasets, dict):
             datasets = DatasetDict(datasets)
@@ -1525,7 +1525,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
                 )
                 num_proc = 1
             elif num_proc is not None and num_input_shards < num_proc:
-                logger.info(
+                logger.warning(
                     f"Setting num_proc from {num_proc} to {num_input_shards} for the {split_info.name} split as it only contains {num_input_shards} shards."
                 )
                 num_proc = num_input_shards
@@ -1534,7 +1534,6 @@ class GeneratorBasedBuilder(DatasetBuilder):
             disable=not logging.is_progress_bar_enabled(),
             unit=" examples",
             total=split_info.num_examples,
-            leave=False,
             desc=f"Generating {split_info.name} split",
         )
 
@@ -1786,7 +1785,7 @@ class ArrowBasedBuilder(DatasetBuilder):
                 )
                 num_proc = 1
             elif num_proc is not None and num_input_shards < num_proc:
-                logger.info(
+                logger.warning(
                     f"Setting num_proc from {num_proc} to {num_input_shards} for the {split_info.name} split as it only contains {num_input_shards} shards."
                 )
                 num_proc = num_input_shards
@@ -1795,7 +1794,6 @@ class ArrowBasedBuilder(DatasetBuilder):
             disable=not logging.is_progress_bar_enabled(),
             unit=" examples",
             total=split_info.num_examples,
-            leave=False,
             desc=f"Generating {split_info.name} split",
         )
 

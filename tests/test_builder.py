@@ -27,6 +27,7 @@ from datasets.splits import Split, SplitDict, SplitGenerator, SplitInfo
 from datasets.streaming import xjoin
 from datasets.utils.file_utils import is_local_path
 from datasets.utils.info_utils import VerificationMode
+from datasets.utils.logging import INFO, get_logger
 
 from .utils import (
     assert_arrow_memory_doesnt_increase,
@@ -1084,7 +1085,8 @@ def test_builder_with_filesystem_download_and_prepare_reload(tmp_path, mockfs, c
     DatasetInfo().write_to_directory("mock://my_dataset", storage_options=mockfs.storage_options)
     mockfs.touch(f"my_dataset/{builder.dataset_name}-train.arrow")
     caplog.clear()
-    builder.download_and_prepare("mock://my_dataset", storage_options=mockfs.storage_options)
+    with caplog.at_level(INFO, logger=get_logger().name):
+        builder.download_and_prepare("mock://my_dataset", storage_options=mockfs.storage_options)
     assert "Found cached dataset" in caplog.text
 
 
