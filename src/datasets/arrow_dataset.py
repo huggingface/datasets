@@ -32,6 +32,7 @@ from collections import Counter
 from collections.abc import Mapping
 from copy import deepcopy
 from functools import partial, wraps
+from html import escape
 from io import BytesIO
 from math import ceil, floor
 from pathlib import Path
@@ -52,15 +53,13 @@ from typing import (
 )
 from typing import Sequence as Sequence_
 
-from html import escape
-from IPython.display import display, HTML
-
 import fsspec
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 from huggingface_hub import DatasetCard, DatasetCardData, HfApi, HfFolder
+from IPython.display import HTML, display
 from multiprocess import Pool
 from requests import HTTPError
 
@@ -2419,17 +2418,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     def __repr__(self):
         return f"Dataset({{\n    columns: {list(self._info.features.keys())},\n    num_rows: {self.num_rows},\n    features: {list(self._info.features.items())},\n    items: {self.__getitems__(list(range(2)))}\n}})"
-    
-    
+
     def __repr__(self, block_width: int = 20, small_block_width: int = 10, rows_to_display: int = 5):
         column_names = list(self._info.features.keys())
         small_columns = ["idx"] + [col for col in ["label", "id"] if col in column_names]
 
         column_names = [col for col in column_names if col not in small_columns]
 
-        if len(column_names) > 4: 
+        if len(column_names) > 4:
             column_names = column_names[:2] + ["..."] + column_names[-2:]
-            num_columns = 5  
+            num_columns = 5
         else:
             num_columns = len(column_names)
 
@@ -2437,7 +2435,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         table += f"shape: ({self.num_rows}, {len(self.num_columns)})\n"
 
-        table += "┌" + "┬".join("─" * small_block_width for _ in small_columns) + "┬" + "┬".join("─" * block_width for _ in range(num_columns)) + "┐\n"
+        table += (
+            "┌"
+            + "┬".join("─" * small_block_width for _ in small_columns)
+            + "┬"
+            + "┬".join("─" * block_width for _ in range(num_columns))
+            + "┐\n"
+        )
 
         for name in small_columns:
             table += "│" + name.center(small_block_width)
@@ -2460,12 +2464,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 table += "│" + dtype.center(block_width)
         table += "│\n"
 
-        table += "├" + "┼".join("─" * small_block_width for _ in small_columns) + "┼" + "┼".join("─" * block_width for _ in range(num_columns)) + "┤\n"
+        table += (
+            "├"
+            + "┼".join("─" * small_block_width for _ in small_columns)
+            + "┼"
+            + "┼".join("─" * block_width for _ in range(num_columns))
+            + "┤\n"
+        )
 
         for i in range(min(rows_to_display, self.num_rows)):
             row = self.__getitem__(i)
             table += "│" + str(i).ljust(small_block_width)
-            for name in small_columns[1:]: 
+            for name in small_columns[1:]:
                 truncated_value = str(row[name])[:small_block_width]
                 table += "│" + truncated_value.ljust(small_block_width)
             for name in column_names:
@@ -2476,25 +2486,27 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     table += "│" + truncated_value.ljust(block_width)
             table += "│\n"
 
-        table += "└" + "┴".join("─" * small_block_width for _ in small_columns) + "┴" + "┴".join("─" * block_width for _ in range(num_columns)) + "┘\n"
+        table += (
+            "└"
+            + "┴".join("─" * small_block_width for _ in small_columns)
+            + "┴"
+            + "┴".join("─" * block_width for _ in range(num_columns))
+            + "┘\n"
+        )
 
         return table
-
 
     def _repr_html_(dataset, max_length: int = 50, num_rows: int = 5):
         column_names = list(dataset.features.keys())
         small_columns = ["idx"] + [col for col in ["label", "id"] if col in column_names]
 
-        
         column_names = [col for col in column_names if col not in small_columns]
 
-        if len(column_names) > 4: 
+        if len(column_names) > 4:
             column_names = column_names[:2] + ["..."] + column_names[-2:]
 
-        
         html = "<table>"
 
-        
         html += "<tr>"
         for name in small_columns:
             html += "<th>{}</th>".format(name.upper())
@@ -2516,7 +2528,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 dtype = str(dataset.features[name].dtype)
                 html += "<td>{}</td>".format(dtype)
         html += "</tr>"
-        
+
         for i in range(min(num_rows, len(dataset))):
             row = dataset[i]
             html += "<tr>"
@@ -2535,7 +2547,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         html += "</table>"
 
         display(HTML(html))
-    
 
     @property
     def format(self):
