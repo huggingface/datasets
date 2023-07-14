@@ -359,8 +359,8 @@ def test_DataFilesList_from_patterns_in_dataset_repository_(
 
 
 def test_DataFilesList_from_patterns_locally_with_extra_files(complex_data_dir, text_file):
-    data_files_list = DataFilesList.from_patterns([_TEST_URL, str(text_file)], complex_data_dir)
-    assert list(data_files_list) == [_TEST_URL, str(text_file)]
+    data_files_list = DataFilesList.from_patterns([_TEST_URL, text_file.as_posix()], complex_data_dir)
+    assert list(data_files_list) == [_TEST_URL, text_file.as_posix()]
     assert len(data_files_list.origin_metadata) == 2
 
 
