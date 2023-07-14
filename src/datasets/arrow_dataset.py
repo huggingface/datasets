@@ -4386,7 +4386,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         from .dataset_dict import DatasetDict  # import here because of circular dependency
 
-        with warnings.filterwarnings("ignore", category=FutureWarning):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", FutureWarning)
             if len(self.list_indexes()) > 0:
                 raise DatasetTransformationNotAllowedError(
                     "Using `.train_test_split` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
