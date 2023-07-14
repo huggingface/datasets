@@ -1440,7 +1440,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         is_local = not is_remote_filesystem(fs)
         path_join = os.path.join if is_local else posixpath.join
 
-        with warnings.filterwarnings("ignore", category=FutureWarning):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", FutureWarning)
             if self.list_indexes():
                 raise ValueError("please remove all the indexes using `dataset.drop_index` before saving a dataset")
 
@@ -3454,7 +3455,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             num_examples_progress_update = 0
                 else:
                     _time = time.time()
-                    with warnings.filterwarnings("ignore", category=FutureWarning):
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore", FutureWarning)
                         check_same_num_examples = len(shard.list_indexes()) > 0
                     for i, batch in shard_iterable:
                         num_examples_in_batch = len(batch)
@@ -3604,7 +3606,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         })
         ```
         """
-        with warnings.filterwarnings("ignore", category=FutureWarning):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", FutureWarning)
             if len(self.list_indexes()) > 0:
                 raise DatasetTransformationNotAllowedError(
                     "Using `.filter` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it.`"
@@ -3766,7 +3769,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if keep_in_memory and indices_cache_file_name is not None:
             raise ValueError("Please use either `keep_in_memory` or `indices_cache_file_name` but not both.")
 
-        with warnings.filterwarnings("ignore", category=FutureWarning):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", FutureWarning)
             if len(self.list_indexes()) > 0:
                 raise DatasetTransformationNotAllowedError(
                     "Using `.select` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
@@ -3905,7 +3909,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if keep_in_memory and indices_cache_file_name is not None:
             raise ValueError("Please use either `keep_in_memory` or `indices_cache_file_name` but not both.")
 
-        with warnings.filterwarnings("ignore", category=FutureWarning):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", FutureWarning)
             if len(self.list_indexes()) > 0:
                 raise DatasetTransformationNotAllowedError(
                     "Using `.select` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
@@ -4038,7 +4043,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         ```
         """
-        with warnings.filterwarnings("ignore", category=FutureWarning):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", FutureWarning)
             if len(self.list_indexes()) > 0:
                 raise DatasetTransformationNotAllowedError(
                     "Using `.sort` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
@@ -4203,7 +4209,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         [1, 0, 1, 1, 0, 0, 0, 0, 0, 0]
         ```
         """
-        with warnings.filterwarnings("ignore", category=FutureWarning):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", FutureWarning)
             if len(self.list_indexes()) > 0:
                 raise DatasetTransformationNotAllowedError(
                     "Using `.shuffle` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
