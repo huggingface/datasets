@@ -96,7 +96,7 @@ def pattern_results(complex_data_dir):
 
     return {
         pattern: sorted(
-            str(Path(os.path.abspath(path)))
+            Path(os.path.abspath(path)).as_posix()
             for path in fsspec.filesystem("file").glob(os.path.join(complex_data_dir, pattern))
             if Path(path).name not in _FILES_TO_IGNORE
             and not any(
