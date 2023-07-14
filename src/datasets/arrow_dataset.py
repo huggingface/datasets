@@ -2416,9 +2416,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     slice(i, i + batch_size),
                 )
 
-    def __repr__(self):
-        return f"Dataset({{\n    columns: {list(self._info.features.keys())},\n    num_rows: {self.num_rows},\n    features: {list(self._info.features.items())},\n    items: {self.__getitems__(list(range(2)))}\n}})"
-
     def __repr__(self, block_width: int = 20, small_block_width: int = 10, rows_to_display: int = 5):
         column_names = list(self._info.features.keys())
         small_columns = ["idx"] + [col for col in ["label", "id"] if col in column_names]
