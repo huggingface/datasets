@@ -3,12 +3,15 @@
 
 <Tip>
 
-The dataset script is optional if your dataset is in one of the following formats: CSV, JSON, JSON lines, text or Parquet.
-With those formats, you should be able to load your dataset automatically with [`~datasets.load_dataset`].
+The dataset script is likely not needed if your dataset is in one of the following formats: CSV, JSON, JSON lines, text or Parquet.
+With those formats, you should be able to load your dataset automatically with [`~datasets.load_dataset`],
+as long as your dataset repository has a [required structure](./repository_structure).
 
 </Tip>
 
-Write a dataset script to load and share your own datasets. It is a Python file that defines the different configurations and splits of your dataset, as well as how to download and process the data.
+Write a dataset script to load and share datasets that consist of data files in unsupported formats or require more complex data preparation.
+This is a more advanced way to define a dataset than using [YAML metadata in the dataset card](./repository_structure#define-your-splits-in-yaml).
+A dataset script is a Python file that defines the different configurations and splits of your dataset, as well as how to download and process the data.
 
 The script can download data files from any website, or from the same dataset repository.
 

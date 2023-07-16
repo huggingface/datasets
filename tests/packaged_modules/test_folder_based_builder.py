@@ -23,7 +23,7 @@ remote_files = [
 
 
 class DummyFolderBasedBuilder(FolderBasedBuilder):
-    BASE_FEATURE = None
+    BASE_FEATURE = dict
     BASE_COLUMN_NAME = "base"
     BUILDER_CONFIG_CLASS = FolderBasedBuilderConfig
     EXTENSIONS = [".txt"]
@@ -272,7 +272,7 @@ def test_inferring_labels_from_data_dirs(data_files_with_labels_no_metadata, cac
         data_files=data_files_with_labels_no_metadata, cache_dir=cache_dir, drop_labels=False
     )
     gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
-    assert autofolder.info.features == Features({"base": None, "label": ClassLabel(names=["class0", "class1"])})
+    assert autofolder.info.features == Features({"base": {}, "label": ClassLabel(names=["class0", "class1"])})
     generator = autofolder._generate_examples(**gen_kwargs)
     assert all(example["label"] in {"class0", "class1"} for _, example in generator)
 
@@ -324,7 +324,7 @@ def test_generate_examples_duplicated_label_key(
             assert all(example["label"] in ["CLASS_0", "CLASS_1"] for _, example in generator)
         else:
             # drop both labels and metadata
-            assert autofolder.info.features == Features({"base": None})
+            assert autofolder.info.features == Features({"base": {}})
             assert all(example.keys() == {"base"} for _, example in generator)
 
 

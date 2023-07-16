@@ -1,10 +1,17 @@
+import textwrap
 from collections import Counter
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Any, ClassVar, Dict, Optional, Tuple, Union
 
 import yaml
+from huggingface_hub import DatasetCardData
 
+from ..config import METADATA_CONFIGS_FIELD
+from ..utils.logging import get_logger
 from .deprecation_utils import deprecated
+
+
+logger = get_logger(__name__)
 
 
 class _NoDuplicateSafeLoader(yaml.SafeLoader):
@@ -38,8 +45,8 @@ class DatasetMetadata(dict):
     _FIELDS_WITH_DASHES = {"train_eval_index"}  # train-eval-index in the YAML metadata
 
     @classmethod
-    def from_readme(cls, path: Path) -> "DatasetMetadata":
-        """Loads and validates the dataset metadat from its dataset card (README.md)
+    def from_readme(cls, path: Union[Path, str]) -> "DatasetMetadata":
+        """Loads and validates the dataset metadata from its dataset card (README.md)
 
         Args:
             path (:obj:`Path`): Path to the dataset card (its README.md file)
@@ -107,6 +114,97 @@ class DatasetMetadata(dict):
             allow_unicode=True,
             encoding="utf-8",
         ).decode("utf-8")
+
+
+class MetadataConfigs(Dict[str, Dict[str, Any]]):
+    """Should be in format {config_name: {**config_params}}."""
+
+    FIELD_NAME: ClassVar[str] = METADATA_CONFIGS_FIELD
+
+    @staticmethod
+    def _raise_if_data_files_field_not_valid(metadata_config: dict):
+        yaml_data_files = metadata_config.get("data_files")
+        if yaml_data_files is not None:
+            yaml_error_message = textwrap.dedent(
+                f"""
+                Expected data_files in YAML to be either a string or a list of strings
+                or a list of dicts with two keys: 'split' and 'pattern', but got {yaml_data_files}
+                Examples of data_files in YAML:
+
+                   data_files: data.csv
+
+                   data_files: data/*.png
+
+                   data_files:
+                    - part0/*
+                    - part1/*
+
+                   data_files:
+                    - split: train
+                      pattern: train/*
+                    - split: test
+                      pattern: test/*
+                """
+            )
+            if not isinstance(yaml_data_files, (list, str)):
+                raise ValueError(yaml_error_message)
+            if isinstance(yaml_data_files, list):
+                for yaml_data_files_item in yaml_data_files:
+                    if not isinstance(yaml_data_files_item, str) and not (
+                        isinstance(yaml_data_files_item, dict)
+                        and sorted(yaml_data_files_item)
+                        == [
+                            "pattern",
+                            "split",
+                        ]
+                    ):
+                        raise ValueError(yaml_error_message)
+
+    @classmethod
+    def from_dataset_card_data(cls, dataset_card_data: DatasetCardData) -> "MetadataConfigs":
+        if dataset_card_data.get(cls.FIELD_NAME):
+            metadata_configs = dataset_card_data[cls.FIELD_NAME]
+            if not isinstance(metadata_configs, list):
+                raise ValueError(f"Expected {cls.FIELD_NAME} to be a list, but got '{metadata_configs}'")
+            for metadata_config in metadata_configs:
+                if "config_name" not in metadata_config:
+                    raise ValueError(
+                        f"Each config must include `config_name` field with a string name of a config, "
+                        f"but got {metadata_config}. "
+                    )
+                cls._raise_if_data_files_field_not_valid(metadata_config)
+            return cls(
+                {
+                    config["config_name"]: {param: value for param, value in config.items() if param != "config_name"}
+                    for config in metadata_configs
+                }
+            )
+        return cls()
+
+    def to_dataset_card_data(self, dataset_card_data: DatasetCardData) -> None:
+        if self:
+            for metadata_config in self.values():
+                self._raise_if_data_files_field_not_valid(metadata_config)
+            current_metadata_configs = self.from_dataset_card_data(dataset_card_data)
+            total_metadata_configs = dict(sorted({**current_metadata_configs, **self}.items()))
+            for config_name, config_metadata in total_metadata_configs.items():
+                config_metadata.pop("config_name", None)
+            dataset_card_data[self.FIELD_NAME] = [
+                {"config_name": config_name, **config_metadata}
+                for config_name, config_metadata in total_metadata_configs.items()
+            ]
+
+    def get_default_config_name(self) -> Optional[str]:
+        default_config_name = None
+        for config_name, metadata_config in self.items():
+            if config_name == "default" or metadata_config.get("default"):
+                if default_config_name is None:
+                    default_config_name = config_name
+                else:
+                    raise ValueError(
+                        f"Dataset has several default configs: '{default_config_name}' and '{config_name}'."
+                    )
+        return default_config_name
 
 
 # DEPRECATED - just here to support old versions of evaluate like 0.2.2

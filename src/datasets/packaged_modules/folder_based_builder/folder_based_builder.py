@@ -2,7 +2,7 @@ import collections
 import itertools
 import os
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Type
 
 import pandas as pd
 import pyarrow as pa
@@ -35,7 +35,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
 
 
     Abstract class attributes to be overridden by a child class:
-        BASE_FEATURE: feature object to decode data (i.e. datasets.Image(), datasets.Audio(), ...)
+        BASE_FEATURE: feature object to decode data (i.e. datasets.Image, datasets.Audio, ...)
         BASE_COLUMN_NAME: string key name of a base feature (i.e. "image", "audio", ...)
         BUILDER_CONFIG_CLASS: builder config inherited from `folder_based_builder.FolderBasedBuilderConfig`
         EXTENSIONS: list of allowed extensions (only files with these extensions and METADATA_FILENAME files
@@ -43,7 +43,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
         CLASSIFICATION_TASK: classification task to use if labels are obtained from the folder structure
     """
 
-    BASE_FEATURE: FeatureType
+    BASE_FEATURE: Type[FeatureType]
     BASE_COLUMN_NAME: str
     BUILDER_CONFIG_CLASS: FolderBasedBuilderConfig
     EXTENSIONS: List[str]
@@ -196,13 +196,13 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
             if add_labels:
                 self.info.features = datasets.Features(
                     {
-                        self.BASE_COLUMN_NAME: self.BASE_FEATURE,
+                        self.BASE_COLUMN_NAME: self.BASE_FEATURE(),
                         "label": datasets.ClassLabel(names=sorted(labels)),
                     }
                 )
                 self.info.task_templates = [self.CLASSIFICATION_TASK.align_with_features(self.info.features)]
             else:
-                self.info.features = datasets.Features({self.BASE_COLUMN_NAME: self.BASE_FEATURE})
+                self.info.features = datasets.Features({self.BASE_COLUMN_NAME: self.BASE_FEATURE()})
 
             if add_metadata:
                 # Warn if there are duplicated keys in metadata compared to the existing features

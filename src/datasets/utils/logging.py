@@ -69,6 +69,7 @@ def _get_library_root_logger() -> logging.Logger:
 def _configure_library_root_logger() -> None:
     # Apply our default configuration to the library root logger.
     library_root_logger = _get_library_root_logger()
+    library_root_logger.addHandler(logging.StreamHandler())
     library_root_logger.setLevel(_get_default_logging_level())
 
 

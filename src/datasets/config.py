@@ -203,6 +203,7 @@ DATASETDICT_INFOS_FILENAME = "dataset_infos.json"
 LICENSE_FILENAME = "LICENSE"
 METRIC_INFO_FILENAME = "metric_info.json"
 DATASETDICT_JSON_FILENAME = "dataset_dict.json"
+METADATA_CONFIGS_FIELD = "configs"
 
 MODULE_NAME_FOR_DYNAMIC_MODULES = "datasets_modules"
 
