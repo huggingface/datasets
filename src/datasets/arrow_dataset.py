@@ -59,7 +59,6 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 from huggingface_hub import DatasetCard, DatasetCardData, HfApi, HfFolder
-from IPython.display import HTML, display
 from multiprocess import Pool
 from requests import HTTPError
 
@@ -2493,8 +2492,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         return table
 
-    def _repr_html_(dataset, max_length: int = 50, num_rows: int = 5):
-        column_names = list(dataset.features.keys())
+    def _repr_html_(self, max_length: int = 50, num_rows: int = 5):
+        column_names = list(self._info.features.keys())
         small_columns = ["idx"] + [col for col in ["label", "id"] if col in column_names]
 
         column_names = [col for col in column_names if col not in small_columns]
@@ -2516,18 +2515,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if name == "idx":
                 html += "<td>int</td>"
             else:
-                dtype = str(dataset.features[name].dtype)
+                dtype = str(self._info.features[name].dtype)
                 html += "<td>{}</td>".format(dtype)
         for name in column_names:
             if name == "...":
                 html += "<td>...</td>"
             else:
-                dtype = str(dataset.features[name].dtype)
+                dtype = str(self._info.features[name].dtype)
                 html += "<td>{}</td>".format(dtype)
         html += "</tr>"
 
-        for i in range(min(num_rows, len(dataset))):
-            row = dataset[i]
+        for i in range(min(num_rows, self.num_rows)):
+            row = self.__getitem__(i)
             html += "<tr>"
             html += "<td>{}</td>".format(i)
             for name in small_columns[1:]:
@@ -2543,7 +2542,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         html += "</table>"
 
-        display(HTML(html))
+        return html
 
     @property
     def format(self):
