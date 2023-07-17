@@ -405,7 +405,7 @@ def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] 
 
     Output:
 
-        {"train": [**train*], "test": ["**test*"]}
+        {"train": ["**train*"], "test": ["**test*"]}
 
     Input:
 
