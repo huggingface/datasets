@@ -1677,23 +1677,12 @@ class DatasetDict(dict):
             )
             dataset_card = DatasetCard.load(Path(dataset_readme_path))
             dataset_card_data = dataset_card.data
-            dataset_infos: DatasetInfosDict = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
             metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
         # get the deprecated dataset_infos.json to update them
         elif config.DATASETDICT_INFOS_FILENAME in repo_files:
             dataset_card = None
             dataset_card_data = DatasetCardData()
             metadata_configs = MetadataConfigs()
-            download_config = DownloadConfig()
-            download_config.download_desc = "Downloading metadata"
-            download_config.token = token
-            dataset_infos_path = cached_path(
-                hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME),
-                download_config=download_config,
-            )
-            with open(dataset_infos_path, encoding="utf-8") as f:
-                dataset_infos: dict = json.load(f)
-                dataset_infos.get(config_name, None) if dataset_infos else None
         else:
             dataset_card = None
             dataset_card_data = DatasetCardData()
@@ -1722,8 +1711,15 @@ class DatasetDict(dict):
                 MetadataConfigs({"default": default_metadata_configs_to_dump}).to_dataset_card_data(dataset_card_data)
         # push to the deprecated dataset_infos.json
         if config.DATASETDICT_INFOS_FILENAME in repo_files:
+            download_config = DownloadConfig()
+            download_config.download_desc = "Downloading metadata"
+            download_config.token = token
+            dataset_infos_path = cached_path(
+                hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME),
+                download_config=download_config,
+            )
             with open(dataset_infos_path, encoding="utf-8") as f:
-                dataset_infos: DatasetInfosDict = json.load(f)
+                dataset_infos: dict = json.load(f)
             dataset_infos[config_name] = asdict(info_to_dump)
             buffer = BytesIO()
             buffer.write(json.dumps(dataset_infos, indent=4).encode("utf-8"))
