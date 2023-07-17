@@ -335,7 +335,6 @@ def resolve_pattern(
         filepath if filepath.startswith(protocol_prefix) else protocol_prefix + filepath
         for filepath, info in fs.glob(pattern, detail=True).items()
         if info["type"] == "file"
-        
         and (xbasename(filepath) not in files_to_ignore)
         and not _is_inside_unrequested_special_dir(
             os.path.relpath(filepath, fs_base_path), os.path.relpath(fs_pattern, fs_base_path)
