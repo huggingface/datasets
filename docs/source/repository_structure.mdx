@@ -22,7 +22,7 @@ In this simple case, you'll get a dataset with two splits: `train` (containing e
 
 ## Define your splits and subsets in YAML
 
-## Splits in YAML
+## Splits
 
 If you have multiple files and want to define which file goes into which split, you can use the YAML `configs` field at the top of your README.md using glob patterns.
 
@@ -100,7 +100,7 @@ configs:
 ---
 ```
 
-### Configurations in YAML
+## Configurations
 
 Your dataset might have several subsets of data that you want to be able to load separately. In that case you can define a list of configurations inside the `configs` field in YAML:
 
@@ -130,7 +130,7 @@ main_data = load_dataset("my_dataset_repository", "main_data")
 additional_data = load_dataset("my_dataset_repository", "additional_data")
 ```
 
-### Builder configurations
+## Builder parameters
 
 Not only `data_files`, but other builder-specific parameters can be passed via YAML, allowing for more flexibility on how to load the data while not requiring any custom code. For example, define which separator to use in which configuration to load your `csv` files:
 
