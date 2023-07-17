@@ -31,10 +31,8 @@ For example, given a repository like this one:
 ```
 my_dataset_repository/
 ├── README.md
-├── directory1/
-│   └── bees.csv
-└── directory2/
-    └── more_bees.csv
+├── data.csv
+└── holdout.csv
 ```
 
 You can define your splits by adding the `configs` field in the YAML block at the top of your README.md:
@@ -45,57 +43,56 @@ configs:
 - config_name: default
   data_files:
   - split: train
-    path: "directory1/*.csv"
+    path: "data.csv"
   - split: test
-    path: "directory2/*.csv"
+    path: "holdout.csv"
+---
+```
+
+
+You can select multiple files per split using a list of paths:
+
+```
+my_dataset_repository/
+├── README.md
+├── data/
+│   ├── abc.csv
+│   └── def.csv
+└── holdout/
+    └── ghi.csv
+```
+
+```yaml
+---
+configs:
+- config_name: default
+  data_files:
+  - split: train
+    paths:
+    - "data/abc.csv"
+    - "data/def.csv"
+  - split: test
+    path: "holdout/ghi.csv"
+---
+```
+
+Or you can use glob patterns to not have to manually list all the files:
+
+```yaml
+---
+configs:
+- config_name: default
+  data_files:
+  - split: train
+    path: "data/*.csv"
+  - split: test
+    path: "holdout/*.csv"
 ---
 ```
 
 <Tip warning={true}>
 Note that `config_name` field is required even if you have a single configuration.
 </Tip>
-
-Having several paths per split is also supported:
-
-```
-my_dataset_repository/
-├── README.md
-├── directory1/
-│   └── bees.csv
-├── directory1bis/
-│   └── more_bees.csv
-└── directory2/
-    └── even_more_bees.csv
-```
-
-```yaml
----
-configs:
-- config_name: default
-  data_files:
-  - split: train
-    paths:
-    - "directory1/*.csv"
-    - "directory1bis/*.csv"
-  - split: test
-    paths:
-    - "directory2/*.csv"
----
-```
-
-Custom split names are also supported:
-```yaml
-configs:
-- config_name: default
-  data_files:
-  - split: random
-    path: "directory1bis/*.csv"
-  - split: train
-    path: "directory1/*.csv"
-  - split: test
-    path: "directory2/*.csv"
----
-```
 
 ## Configurations
 
