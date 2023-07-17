@@ -51,7 +51,7 @@ from .download.streaming_download_manager import StreamingDownloadManager, xglob
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import Hasher
-from .info import DatasetInfosDict
+from .info import DatasetInfo, DatasetInfosDict
 from .iterable_dataset import IterableDataset
 from .metric import Metric
 from .naming import camelcase_to_snakecase, snakecase_to_camelcase
@@ -897,7 +897,12 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             builder_kwargs.update(default_builder_kwargs)  # from _EXTENSION_TO_MODULE
         if os.path.isfile(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME)):
             with open(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
-                legacy_dataset_infos: DatasetInfosDict = json.load(f)
+                legacy_dataset_infos = DatasetInfosDict(
+                    {
+                        config_name: DatasetInfo.from_dict(dataset_info_dict)
+                        for config_name, dataset_info_dict in json.load(f).items()
+                    }
+                )
             legacy_dataset_infos.update(dataset_infos)
             dataset_infos = legacy_dataset_infos
         if default_config_name is None and len(dataset_infos) == 1:
@@ -1072,7 +1077,12 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 download_config=download_config,
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
-                legacy_dataset_infos: DatasetInfosDict = json.load(f)
+                legacy_dataset_infos = DatasetInfosDict(
+                    {
+                        config_name: DatasetInfo.from_dict(dataset_info_dict)
+                        for config_name, dataset_info_dict in json.load(f).items()
+                    }
+                )
             legacy_dataset_infos.update(dataset_infos)
             dataset_infos = legacy_dataset_infos
         except FileNotFoundError:
