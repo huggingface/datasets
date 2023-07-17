@@ -128,7 +128,7 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
             yaml_error_message = textwrap.dedent(
                 f"""
                 Expected data_files in YAML to be either a string or a list of strings
-                or a list of dicts with two keys: 'split' and 'pattern', but got {yaml_data_files}
+                or a list of dicts with two keys: 'split' and 'path', but got {yaml_data_files}
                 Examples of data_files in YAML:
 
                    data_files: data.csv
@@ -141,9 +141,9 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
 
                    data_files:
                     - split: train
-                      pattern: train/*
+                      path: train/*
                     - split: test
-                      pattern: test/*
+                      path: test/*
                 """
             )
             if not isinstance(yaml_data_files, (list, str)):
@@ -154,7 +154,7 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
                         isinstance(yaml_data_files_item, dict)
                         and sorted(yaml_data_files_item)
                         == [
-                            "pattern",
+                            "path",
                             "split",
                         ]
                     ):

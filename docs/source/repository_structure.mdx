@@ -24,7 +24,7 @@ In this simple case, you'll get a dataset with two splits: `train` (containing e
 
 ## Splits
 
-If you have multiple files and want to define which file goes into which split, you can use the YAML `configs` field at the top of your README.md using glob patterns.
+If you have multiple files and want to define which file goes into which split, you can use the YAML `configs` field at the top of your README.md.
 
 For example, given a repository like this one:
 
@@ -45,9 +45,9 @@ configs:
 - config_name: default
   data_files:
   - split: train
-    pattern: "directory1/*.csv"
+    path: "directory1/*.csv"
   - split: test
-    pattern: "directory2/*.csv"
+    path: "directory2/*.csv"
 ---
 ```
 
@@ -55,7 +55,7 @@ configs:
 Note that `config_name` field is required even if you have a single configuration.
 </Tip>
 
-Having several patterns per split is also supported:
+Having several paths per split is also supported:
 
 ```
 my_dataset_repository/
@@ -74,11 +74,11 @@ configs:
 - config_name: default
   data_files:
   - split: train
-    pattern:
+    paths:
     - "directory1/*.csv"
     - "directory1bis/*.csv"
   - split: test
-    pattern:
+    paths:
     - "directory2/*.csv"
 ---
 ```
@@ -89,14 +89,11 @@ configs:
 - config_name: default
   data_files:
   - split: random
-    pattern:
-    - "directory1bis/*.csv"
+    path: "directory1bis/*.csv"
   - split: train
-    pattern:
-    - "directory1/*.csv"
+    path: "directory1/*.csv"
   - split: test
-    pattern:
-    - "directory2/*.csv"
+    path: "directory2/*.csv"
 ---
 ```
 
