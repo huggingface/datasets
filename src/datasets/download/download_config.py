@@ -1,8 +1,10 @@
 import copy
 import warnings
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Any, Dict, Optional, Union
+
+from .. import config
 
 
 @dataclass
@@ -74,7 +76,7 @@ class DownloadConfig:
     token: Optional[Union[str, bool]] = None
     use_auth_token = "deprecated"
     ignore_url_params: bool = False
-    storage_options: Optional[Dict] = None
+    storage_options: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     download_desc: Optional[str] = None
 
     def __post_init__(self):
@@ -85,6 +87,8 @@ class DownloadConfig:
                 FutureWarning,
             )
             self.token = self.use_auth_token
+        if "hf" not in self.storage_options:
+            self.storage_options["hf"] = {"token": self.token, "endpoint": config.HF_ENDPOINT}
 
     def copy(self) -> "DownloadConfig":
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})

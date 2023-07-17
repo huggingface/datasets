@@ -110,3 +110,4 @@ def tmpfs(tmp_path_factory, mock_fsspec):
     tmp_fs_dir = tmp_path_factory.mktemp("tmpfs")
     with patch.object(TmpDirFileSystem, "tmp_dir", tmp_fs_dir):
         yield TmpDirFileSystem()
+        TmpDirFileSystem.clear_instance_cache()

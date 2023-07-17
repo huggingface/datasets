@@ -61,8 +61,7 @@ def init_hf_modules(hf_modules_cache: Optional[Union[Path, str]] = None) -> str:
 
 
 def is_remote_url(url_or_filename: str) -> bool:
-    parsed = urlparse(url_or_filename)
-    return parsed.scheme in ("http", "https", "s3", "gs", "hdfs", "ftp")
+    return urlparse(url_or_filename).scheme != "" and not os.path.ismount(urlparse(url_or_filename).scheme + ":/")
 
 
 def is_local_path(url_or_filename: str) -> bool:
@@ -336,15 +335,23 @@ def fsspec_head(url, storage_options=None):
     return fs.info(paths[0])
 
 
+class TqdmCallback(fsspec.callbacks.TqdmCallback):
+    def __init__(self, tqdm_kwargs=None, *args, **kwargs):
+        super().__init__(tqdm_kwargs, *args, **kwargs)
+        self._tqdm = logging  # replace tqdm.tqdm by datasets.logging.tqdm
+
+
 def fsspec_get(url, temp_file, storage_options=None, desc=None):
     _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
     fs, _, paths = fsspec.get_fs_token_paths(url, storage_options=storage_options)
     if len(paths) > 1:
         raise ValueError(f"GET can be called with at most one path but was called with {paths}")
-    callback = fsspec.callbacks.TqdmCallback(
+    callback = TqdmCallback(
         tqdm_kwargs={
             "desc": desc or "Downloading",
             "disable": not logging.is_progress_bar_enabled(),
+            "unit": "B",
+            "unit_scale": True,
         }
     )
     fs.get_file(paths[0], temp_file.name, callback=callback)
