@@ -333,8 +333,9 @@ def resolve_pattern(
     files_to_ignore = set(FILES_TO_IGNORE) - {xbasename(pattern)}
     matched_paths = [
         filepath if filepath.startswith(protocol_prefix) else protocol_prefix + filepath
-        for filepath in fs.glob(pattern)
-        if fs.isfile(filepath)
+        for filepath, info in fs.glob(pattern, detail=True).items()
+        if info["type"] == "file"
+        
         and (xbasename(filepath) not in files_to_ignore)
         and not _is_inside_unrequested_special_dir(
             os.path.relpath(filepath, fs_base_path), os.path.relpath(fs_pattern, fs_base_path)
@@ -352,7 +353,7 @@ def resolve_pattern(
         if len(out) < len(matched_paths):
             invalid_matched_files = list(set(matched_paths) - set(out))
             logger.info(
-                f"Some files matched the pattern '{pattern}'but don't have valid data file extensions: {invalid_matched_files}"
+                f"Some files matched the pattern '{pattern}' but don't have valid data file extensions: {invalid_matched_files}"
             )
     else:
         out = matched_paths
