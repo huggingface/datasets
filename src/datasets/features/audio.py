@@ -7,6 +7,7 @@ import numpy as np
 import pyarrow as pa
 
 from .. import config
+from ..download.download_config import DownloadConfig
 from ..download.streaming_download_manager import xopen, xsplitext
 from ..table import array_cast
 from ..utils.py_utils import no_op_if_value_is_null, string_to_dict
@@ -178,7 +179,8 @@ class Audio:
             except (ValueError, KeyError):
                 token = None
 
-            with xopen(path, "rb", token=token) as f:
+            download_config = DownloadConfig(token=token)
+            with xopen(path, "rb", download_config=download_config) as f:
                 array, sampling_rate = sf.read(f)
 
         else:

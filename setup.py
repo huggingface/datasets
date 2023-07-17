@@ -130,8 +130,8 @@ REQUIRED_PKGS = [
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    # minimum 0.13.0 to support dict-like modification of DatasetCard
-    "huggingface-hub>=0.13.0,<1.0.0",
+    # minimum 0.14.0 to support HfFileSystem
+    "huggingface-hub>=0.14.0,<1.0.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     # To parse YAML metadata from dataset cards

@@ -29,7 +29,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Type, Union
 
 import fsspec
-import huggingface_hub
 import requests
 from huggingface_hub import DatasetCard, DatasetCardData, HfApi
 
@@ -41,13 +40,14 @@ from .data_files import (
     DataFilesDict,
     DataFilesList,
     EmptyDatasetError,
-    get_metadata_data_files_list,
-    get_patterns_and_data_files,
+    get_data_patterns,
+    get_metadata_patterns,
+    sanitize_patterns,
 )
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadMode
-from .download.streaming_download_manager import StreamingDownloadManager, xglob, xjoin
+from .download.streaming_download_manager import StreamingDownloadManager, xbasename, xglob, xjoin
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import Hasher
@@ -415,8 +415,8 @@ def _create_importable_file(
 
 
 def infer_module_for_data_files_list(
-    data_files_list: DataFilesList, token: Optional[Union[bool, str]] = None
-) -> Tuple[Optional[str], Dict[str, Any]]:
+    data_files_list: DataFilesList, download_config: Optional[DownloadConfig] = None
+) -> Optional[Tuple[str, str]]:
     """Infer module (and builder kwargs) from list of data files.
 
     It picks the module based on the most common file extension.
@@ -424,8 +424,7 @@ def infer_module_for_data_files_list(
 
     Args:
         data_files_list (DataFilesList): List of data files.
-        token (bool or str, optional): Whether to use token or token to authenticate on the Hugging Face Hub
-            for private remote files.
+        download_config (bool or str, optional): mainly use use_auth_token or storage_options to support different platforms and auth types.
 
     Returns:
         tuple[str, dict[str, Any]]: Tuple with
@@ -433,9 +432,9 @@ def infer_module_for_data_files_list(
             - dict of builder kwargs
     """
     extensions_counter = Counter(
-        suffix.lower()
+        "." + suffix.lower()
         for filepath in data_files_list[: config.DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE]
-        for suffix in Path(filepath).suffixes
+        for suffix in xbasename(filepath).split(".")[1:]
     )
     if extensions_counter:
 
@@ -448,19 +447,18 @@ def infer_module_for_data_files_list(
             if ext in _EXTENSION_TO_MODULE:
                 return _EXTENSION_TO_MODULE[ext]
             elif ext == ".zip":
-                return infer_module_for_data_files_list_in_archives(data_files_list, token=token)
+                return infer_module_for_data_files_list_in_archives(data_files_list, download_config=download_config)
     return None, {}
 
 
 def infer_module_for_data_files_list_in_archives(
-    data_files_list: DataFilesList, token: Optional[Union[bool, str]]
-) -> Tuple[Optional[str], Dict[str, Any]]:
+    data_files_list: DataFilesList, download_config: Optional[DownloadConfig] = None
+) -> Optional[Tuple[str, str]]:
     """Infer module (and builder kwargs) from list of archive data files.
 
     Args:
         data_files_list (DataFilesList): List of data files.
-        token (bool or str, optional): Whether to use token or token to authenticate on the Hugging Face Hub
-            for private remote files.
+        download_config (bool or str, optional): mainly use use_auth_token or storage_options to support different platforms and auth types.
 
     Returns:
         tuple[str, dict[str, Any]]: Tuple with
@@ -477,11 +475,13 @@ def infer_module_for_data_files_list_in_archives(
             extracted = xjoin(StreamingDownloadManager().extract(filepath), "**")
             archived_files += [
                 f.split("::")[0]
-                for f in xglob(extracted, recursive=True, token=token)[
+                for f in xglob(extracted, recursive=True, download_config=download_config)[
                     : config.ARCHIVED_DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE
                 ]
             ]
-    extensions_counter = Counter(suffix.lower() for filepath in archived_files for suffix in Path(filepath).suffixes)
+    extensions_counter = Counter(
+        "." + suffix.lower() for filepath in archived_files for suffix in xbasename(filepath).split(".")[1:]
+    )
     if extensions_counter:
         most_common = extensions_counter.most_common(1)[0][0]
         if most_common in _EXTENSION_TO_MODULE:
@@ -490,15 +490,14 @@ def infer_module_for_data_files_list_in_archives(
 
 
 def infer_module_for_data_files(
-    data_files: DataFilesDict, path: Optional[str] = None, token: Optional[Union[bool, str]] = None
+    data_files: DataFilesDict, path: Optional[str] = None, download_config: Optional[DownloadConfig] = None
 ) -> Tuple[Optional[str], Dict[str, Any]]:
     """Infer module (and builder kwargs) from data files. Raise if module names for different splits don't match.
 
     Args:
         data_files (DataFilesDict): List of data files.
         path (str, optional): Dataset name or path.
-        token (bool or str, optional): Whether to use token or token to authenticate on the Hugging Face Hub
-            for private remote files.
+        DownloadConfig (bool or str, optional): for authenticate on the Hugging Face Hub for private remote files.
 
     Returns:
         tuple[str, dict[str, Any]]: Tuple with
@@ -506,7 +505,7 @@ def infer_module_for_data_files(
             - builder kwargs
     """
     split_modules = {
-        split: infer_module_for_data_files_list(data_files_list, token=token)
+        split: infer_module_for_data_files_list(data_files_list, download_config=download_config)
         for split, data_files_list in data_files.items()
     }
     module_name, default_builder_kwargs = next(iter(split_modules.values()))
@@ -536,10 +535,8 @@ def update_hash_with_config_parameters(hash: str, config_parameters: dict) -> st
 def create_builder_configs_from_metadata_configs(
     module_path: str,
     metadata_configs: MetadataConfigs,
-    is_repo: bool,
     supports_metadata: bool,
     base_path: Optional[str] = None,
-    hfh_dataset_info: Optional["huggingface_hub.hf_api.DatasetInfo"] = None,
     default_builder_kwargs: Dict[str, Any] = None,
     allowed_extensions: Optional[List[str]] = None,
 ) -> Tuple[List[BuilderConfig], str]:
@@ -552,34 +549,39 @@ def create_builder_configs_from_metadata_configs(
     for config_name, config_params in metadata_configs.items():
         config_data_files = config_params.get("data_files")
         config_data_dir = config_params.get("data_dir")
-        config_base_path = os.path.join(base_path, config_data_dir) if config_data_dir else base_path
+        config_base_path = base_path + "/" + config_data_dir if config_data_dir else base_path
         try:
-            config_patterns, config_data_files_dict = get_patterns_and_data_files(
-                is_repo,
+            config_patterns = (
+                sanitize_patterns(config_data_files)
+                if config_data_files is not None
+                else get_data_patterns(config_base_path)
+            )
+            config_data_files_dict = DataFilesDict.from_patterns(
+                config_patterns,
                 base_path=config_base_path,
-                data_files=config_data_files,
-                hfh_dataset_info=hfh_dataset_info,
-                allowed_extensions=allowed_extensions,
+                allowed_extensions=ALL_ALLOWED_EXTENSIONS,
             )
         except EmptyDatasetError as e:
-            dataset_id = hfh_dataset_info.id if hfh_dataset_info else base_path
             raise EmptyDatasetError(
-                f"Dataset at '{dataset_id}' doesn't contain data files matching the patterns for config '{config_name}',"
+                f"Dataset at '{base_path}' doesn't contain data files matching the patterns for config '{config_name}',"
                 f" check `data_files` and `data_fir` parameters in the `configs` YAML field in README.md. "
             ) from e
         if config_data_files is None and supports_metadata and config_patterns != DEFAULT_PATTERNS_ALL:
-            config_metadata_data_files_list = get_metadata_data_files_list(
-                is_repo=is_repo,
-                base_path=config_base_path,
-                hfh_dataset_info=hfh_dataset_info,
-            )
-            if config_metadata_data_files_list:
-                config_data_files_dict = DataFilesDict(
-                    {
-                        split: data_files_list + config_metadata_data_files_list
-                        for split, data_files_list in config_data_files_dict.items()
-                    }
+            try:
+                config_metadata_patterns = get_metadata_patterns(base_path)
+            except FileNotFoundError:
+                config_metadata_patterns = None
+            if config_metadata_patterns is not None:
+                config_metadata_data_files_list = DataFilesList.from_patterns(
+                    config_metadata_patterns, base_path=base_path
                 )
+                if config_metadata_data_files_list:
+                    config_data_files_dict = DataFilesDict(
+                        {
+                            split: data_files_list + config_metadata_data_files_list
+                            for split, data_files_list in config_data_files_dict.items()
+                        }
+                    )
         ignored_params = [
             param for param in config_params if not hasattr(builder_config_cls, param) and param != "default"
         ]
@@ -834,7 +836,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         if data_dir and os.path.isabs(data_dir):
             raise ValueError(f"`data_dir` must be relative to a dataset directory's root: {path}")
 
-        self.path = path
+        self.path = Path(path).as_posix()
         self.name = Path(path).stem
         self.data_files = data_files
         self.data_dir = data_dir
@@ -847,12 +849,11 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         dataset_infos = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
         # even if metadata_configs_dict is not None (which means that we will resolve files for each config later)
         # we cannot skip resolving all files because we need to infer module name by files extensions
-        base_path = os.path.join(self.path, self.data_dir) if self.data_dir else self.path
-        is_repo = False
-        patterns, data_files = get_patterns_and_data_files(
-            is_repo=is_repo,
+        base_path = Path(self.path, self.data_dir or "").expanduser().resolve().as_posix()
+        patterns = sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns(base_path)
+        data_files = DataFilesDict.from_patterns(
+            patterns,
             base_path=base_path,
-            data_files=self.data_files,
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
         module_name, default_builder_kwargs = infer_module_for_data_files(
@@ -863,24 +864,25 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         # Collect metadata files if the module supports them
         supports_metadata = module_name in _MODULE_SUPPORTS_METADATA
         if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
-            metadata_data_files_list = get_metadata_data_files_list(
-                is_repo=is_repo,
-                base_path=base_path,
-            )
-            if metadata_data_files_list:
-                data_files = DataFilesDict(
-                    {
-                        split: data_files_list + metadata_data_files_list
-                        for split, data_files_list in data_files.items()
-                    }
-                )
+            try:
+                metadata_patterns = get_metadata_patterns(base_path)
+            except FileNotFoundError:
+                metadata_patterns = None
+            if metadata_patterns is not None:
+                metadata_data_files_list = DataFilesList.from_patterns(metadata_patterns, base_path=base_path)
+                if metadata_data_files_list:
+                    data_files = DataFilesDict(
+                        {
+                            split: data_files_list + metadata_data_files_list
+                            for split, data_files_list in data_files.items()
+                        }
+                    )
 
         module_path, hash = _PACKAGED_DATASETS_MODULES[module_name]
         if metadata_configs:
             builder_configs, default_config_name = create_builder_configs_from_metadata_configs(
                 module_path,
                 metadata_configs,
-                is_repo=is_repo,
                 base_path=base_path,
                 supports_metadata=supports_metadata,
                 default_builder_kwargs=default_builder_kwargs,
@@ -940,25 +942,30 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
-        base_path = (
-            str(Path(self.data_dir).expanduser().resolve()) if self.data_dir is not None else str(Path().resolve())
-        )
-        is_repo = False
-        patterns, data_files = get_patterns_and_data_files(
-            is_repo=is_repo,
+        base_path = Path(self.data_dir or "").expanduser().resolve().as_posix()
+        patterns = sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns(base_path)
+        data_files = DataFilesDict.from_patterns(
+            patterns,
+            download_config=self.download_config,
             base_path=base_path,
-            data_files=self.data_files,
         )
         supports_metadata = self.name in _MODULE_SUPPORTS_METADATA
         if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
-            metadata_data_files_list = get_metadata_data_files_list(is_repo=is_repo, base_path=base_path)
-            if metadata_data_files_list:
-                data_files = DataFilesDict(
-                    {
-                        split: data_files_list + metadata_data_files_list
-                        for split, data_files_list in data_files.items()
-                    }
+            try:
+                metadata_patterns = get_metadata_patterns(base_path)
+            except FileNotFoundError:
+                metadata_patterns = None
+            if metadata_patterns is not None:
+                metadata_data_files_list = DataFilesList.from_patterns(
+                    metadata_patterns, download_config=self.download_config, base_path=base_path
                 )
+                if metadata_data_files_list:
+                    data_files = DataFilesDict(
+                        {
+                            split: data_files_list + metadata_data_files_list
+                            for split, data_files_list in data_files.items()
+                        }
+                    )
 
         module_path, hash = _PACKAGED_DATASETS_MODULES[self.name]
 
@@ -1001,12 +1008,17 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             token=self.download_config.token,
             timeout=100.0,
         )
+        # even if metadata_configs is not None (which means that we will resolve files for each config later)
+        # we cannot skip resolving all files because we need to infer module name by files extensions
+        revision = hfh_dataset_info.sha  # fix the revision in case there are new commits in the meantime
+        base_path = f"hf://datasets/{self.name}@{revision}/{self.data_dir or ''}".rstrip("/")
+
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading readme"
         try:
             dataset_readme_path = cached_path(
-                hf_hub_url(self.name, "README.md", revision=self.revision),
+                hf_hub_url(self.name, "README.md", revision=revision),
                 download_config=download_config,
             )
             dataset_card_data = DatasetCard.load(Path(dataset_readme_path)).data
@@ -1014,46 +1026,48 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             dataset_card_data = DatasetCardData()
         metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
         dataset_infos = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
-        # even if metadata_configs is not None (which means that we will resolve files for each config later)
-        # we cannot skip resolving all files because we need to infer module name by files extensions
-        is_repo = True
-        patterns, data_files = get_patterns_and_data_files(
-            is_repo=is_repo,
-            base_path=self.data_dir,
-            data_files=self.data_files,
-            hfh_dataset_info=hfh_dataset_info,
+        patterns = (
+            sanitize_patterns(self.data_files)
+            if self.data_files is not None
+            else get_data_patterns(base_path, download_config=self.download_config)
+        )
+        data_files = DataFilesDict.from_patterns(
+            patterns,
+            base_path=base_path,
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
+            download_config=self.download_config,
         )
         module_name, default_builder_kwargs = infer_module_for_data_files(
             data_files=data_files,
             path=self.name,
-            token=self.download_config.token,
+            download_config=self.download_config,
         )
         data_files = data_files.filter_extensions(_MODULE_TO_EXTENSIONS[module_name])
         # Collect metadata files if the module supports them
         supports_metadata = module_name in _MODULE_SUPPORTS_METADATA
         if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
-            metadata_data_files_list = get_metadata_data_files_list(
-                is_repo=is_repo,
-                base_path=self.data_dir,
-                hfh_dataset_info=hfh_dataset_info,
-            )
-            if metadata_data_files_list:
-                data_files = DataFilesDict(
-                    {
-                        split: data_files_list + metadata_data_files_list
-                        for split, data_files_list in data_files.items()
-                    }
+            try:
+                metadata_patterns = get_metadata_patterns(base_path)
+            except FileNotFoundError:
+                metadata_patterns = None
+            if metadata_patterns is not None:
+                metadata_data_files_list = DataFilesList.from_patterns(
+                    metadata_patterns, download_config=self.download_config, base_path=base_path
                 )
+                if metadata_data_files_list:
+                    data_files = DataFilesDict(
+                        {
+                            split: data_files_list + metadata_data_files_list
+                            for split, data_files_list in data_files.items()
+                        }
+                    )
 
         module_path, hash = _PACKAGED_DATASETS_MODULES[module_name]
         if metadata_configs:
             builder_configs, default_config_name = create_builder_configs_from_metadata_configs(
                 module_path,
                 metadata_configs,
-                is_repo=is_repo,
-                base_path=self.data_dir,
-                hfh_dataset_info=hfh_dataset_info,
+                base_path=base_path,
                 supports_metadata=supports_metadata,
                 default_builder_kwargs=default_builder_kwargs,
             )
