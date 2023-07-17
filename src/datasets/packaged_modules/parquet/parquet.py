@@ -40,13 +40,12 @@ class Parquet(datasets.ArrowBasedBuilder):
             files = [dl_manager.iter_files(file) for file in files]
             return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": files})]
         splits = []
-        self.info.features = self.config.features
         for split_name, files in data_files.items():
             if isinstance(files, str):
                 files = [files]
             # Use `dl_manager.iter_files` to skip hidden files in an extracted archive
             files = [dl_manager.iter_files(file) for file in files]
-            # If features are not specified, try to infer them from the file's arrow schema
+            # Infer features if they are stored in the arrow schema
             if self.info.features is None:
                 for file in itertools.chain.from_iterable(files):
                     with open(file, "rb") as f:
@@ -55,15 +54,16 @@ class Parquet(datasets.ArrowBasedBuilder):
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
 
-    def _cast_table(self, pa_table: pa.Table) -> pa.Table:
-        if self.info.features is not None:
+    def _cast_table(self, pa_table: pa.Table, schema: pa.Schema) -> pa.Table:
+        if schema is not None:
             # more expensive cast to support nested features with keys in a different order
             # allows str <-> int/float or str to Audio for example
-            pa_table = table_cast(pa_table, self.info.features.arrow_schema)
+            pa_table = table_cast(pa_table, schema)
         return pa_table
 
     def _generate_tables(self, files):
-        schema = self.info.features.arrow_schema if self.info.features is not None else None
+        features = self.config.features if self.config.features is not None else self.info.features
+        schema = features.arrow_schema
         if self.config.features is not None and self.config.columns is not None:
             if sorted(field.name for field in schema) != sorted(self.config.columns):
                 raise ValueError(
@@ -80,7 +80,7 @@ class Parquet(datasets.ArrowBasedBuilder):
                         # Uncomment for debugging (will print the Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                        yield f"{file_idx}_{batch_idx}", self._cast_table(pa_table)
+                        yield f"{file_idx}_{batch_idx}", self._cast_table(pa_table, schema)
                 except ValueError as e:
                     logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                     raise
