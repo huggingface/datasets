@@ -273,6 +273,7 @@ def _resolve_single_pattern_locally(
     It also supports absolute paths in patterns.
     If a URL is passed, it is returned as is.
     """
+
     if is_relative_path(pattern):
         pattern = os.path.join(base_path, pattern)
     else:
@@ -481,11 +482,13 @@ def _resolve_single_pattern_in_dataset_repository(
     allowed_extensions: Optional[list] = None,
 ) -> List[PurePath]:
     fs = HfFileSystem(repo_info=dataset_info)
+
     if base_path:
         pattern = f"{base_path}/{pattern}"
     else:
         base_path = "/"
-    glob_iter = [PurePath(filepath) for filepath in fs.glob(PurePath(pattern).as_posix()) if fs.isfile(filepath)]
+
+    glob_iter = [PurePath(filepath) for filepath in fs._glob(PurePath(pattern).as_posix()) if fs.isfile(filepath)]
     matched_paths = [
         filepath
         for filepath in glob_iter
@@ -513,6 +516,7 @@ def _resolve_single_pattern_in_dataset_repository(
         if allowed_extensions is not None:
             error_msg += f" with any supported extension {list(allowed_extensions)}"
         raise FileNotFoundError(error_msg)
+
     return sorted(out)
 
 
@@ -570,6 +574,7 @@ def resolve_patterns_in_dataset_repository(
     Returns:
         List[Url]: List of URLs to the files in the dataset repository that match the patterns.
     """
+
     data_files_urls: List[Url] = []
     for pattern in patterns:
         for rel_path in _resolve_single_pattern_in_dataset_repository(
