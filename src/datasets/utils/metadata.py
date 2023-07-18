@@ -158,13 +158,16 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
                 raise ValueError(yaml_error_message)
             if isinstance(yaml_data_files, list):
                 for yaml_data_files_item in yaml_data_files:
-                    if not isinstance(yaml_data_files_item, str) or (
-                        isinstance(yaml_data_files_item, dict)
-                        and len(yaml_data_files_item) == 2
-                        and "split" in yaml_data_files_item
-                        and (
-                            isinstance(yaml_data_files_item.get("path"), str)
-                            or isinstance(yaml_data_files_item.get("paths"), list)
+                    if (
+                        not isinstance(yaml_data_files_item, (str, dict))
+                        or isinstance(yaml_data_files_item, dict)
+                        and not (
+                            len(yaml_data_files_item) == 2
+                            and "split" in yaml_data_files_item
+                            and (
+                                isinstance(yaml_data_files_item.get("path"), str)
+                                or isinstance(yaml_data_files_item.get("paths"), list)
+                            )
                         )
                     ):
                         raise ValueError(yaml_error_message)
