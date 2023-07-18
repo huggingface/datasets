@@ -5530,7 +5530,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 "data_files": [
                     {
                         "split": _split,
-                        "path" if len(_pattern) == 1 else "paths": _pattern[0] if len(_pattern) == 1 else _pattern,
+                        "path": _pattern[0] if len(_pattern) == 1 else _pattern,
                     }
                     for _split, _pattern in data_files_to_dump.items()
                 ]
