@@ -105,7 +105,7 @@ def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[
                     and "split" in pattern
                     and isinstance(pattern.get("path"), (str, list))
                 ):
-                    raise ValueError(f"Expected each split to have a 'path' (which can be a list), but got {pattern}")
+                    raise ValueError(f"Expected each split to have a 'path' key which can be a string or a list of strings, but got {pattern}")
             splits = [pattern["split"] for pattern in patterns]
             if len(set(splits)) != len(splits):
                 raise ValueError(f"Some splits are duplicated in data_files: {splits}")
