@@ -5525,7 +5525,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             else:
                 data_files_to_dump = {}
             # add the new split
-            data_files_to_dump[split] = f"{data_dir}/{split}-*"
+            data_files_to_dump[split] = [f"{data_dir}/{split}-*"]
             metadata_config_to_dump = {
                 "data_files": [
                     {
