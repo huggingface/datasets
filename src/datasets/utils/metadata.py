@@ -128,7 +128,7 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
             yaml_error_message = textwrap.dedent(
                 f"""
                 Expected data_files in YAML to be either a string or a list of strings
-                or a list of dicts with two keys: 'split' and 'pattern', but got {yaml_data_files}
+                or a list of dicts with two keys: 'split' and 'path', but got {yaml_data_files}
                 Examples of data_files in YAML:
 
                    data_files: data.csv
@@ -141,22 +141,31 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
 
                    data_files:
                     - split: train
-                      pattern: train/*
+                      path: train/*
                     - split: test
-                      pattern: test/*
+                      path: test/*
+
+                   data_files:
+                    - split: train
+                      path:
+                      - train/part1/*
+                      - train/part2/*
+                    - split: test
+                      path: test/*
                 """
             )
             if not isinstance(yaml_data_files, (list, str)):
                 raise ValueError(yaml_error_message)
             if isinstance(yaml_data_files, list):
                 for yaml_data_files_item in yaml_data_files:
-                    if not isinstance(yaml_data_files_item, str) and not (
-                        isinstance(yaml_data_files_item, dict)
-                        and sorted(yaml_data_files_item)
-                        == [
-                            "pattern",
-                            "split",
-                        ]
+                    if (
+                        not isinstance(yaml_data_files_item, (str, dict))
+                        or isinstance(yaml_data_files_item, dict)
+                        and not (
+                            len(yaml_data_files_item) == 2
+                            and "split" in yaml_data_files_item
+                            and isinstance(yaml_data_files_item.get("path"), (str, list))
+                        )
                     ):
                         raise ValueError(yaml_error_message)
 
