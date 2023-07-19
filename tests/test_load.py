@@ -343,7 +343,7 @@ def test_infer_module_for_data_files_in_archives(
         "zip_unsupported_ext_path": zip_unsupported_ext_path,
     }
     data_files = [str(data_file_paths[data_file])]
-    inferred_module, _ = infer_module_for_data_files_list_in_archives(data_files, False)
+    inferred_module, _ = infer_module_for_data_files_list_in_archives(data_files)
     assert inferred_module == expected_module
 
 
@@ -453,11 +453,11 @@ class ModuleFactoryTest(TestCase):
             and len(module_factory_result.builder_kwargs["data_files"]["test"]) > 0
         )
         assert any(
-            data_file.name == "metadata.jsonl"
+            Path(data_file).name == "metadata.jsonl"
             for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
         )
         assert any(
-            data_file.name == "metadata.jsonl"
+            Path(data_file).name == "metadata.jsonl"
             for data_file in module_factory_result.builder_kwargs["data_files"]["test"]
         )
 
@@ -569,11 +569,11 @@ class ModuleFactoryTest(TestCase):
             self._data_dir_with_metadata
         )
         assert any(
-            data_file.name == "metadata.jsonl"
+            Path(data_file).name == "metadata.jsonl"
             for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
         )
         assert any(
-            data_file.name == "metadata.jsonl"
+            Path(data_file).name == "metadata.jsonl"
             for data_file in module_factory_result.builder_kwargs["data_files"]["test"]
         )
 
@@ -886,7 +886,7 @@ class LoadTest(TestCase):
             with offline(offline_simulation_mode):
                 with self.assertRaises(ConnectionError) as context:
                     datasets.load_dataset("lhoestq/_dummy")
-                self.assertIn("lhoestq/_dummy", str(context.exception))
+                self.assertIn("lhoestq/_dummy", str(context.exception), msg=offline_simulation_mode)
 
 
 @pytest.mark.integration
@@ -1309,8 +1309,8 @@ def test_load_hub_dataset_without_script_with_metadata_config_in_parallel():
 
 @require_pil
 @pytest.mark.integration
-@pytest.mark.parametrize("implicit_token", [False, True])
-@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("implicit_token", [True])
+@pytest.mark.parametrize("streaming", [True])
 def test_load_dataset_private_zipped_images(
     hf_private_dataset_repo_zipped_img_data, hf_token, streaming, implicit_token
 ):

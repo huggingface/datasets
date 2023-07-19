@@ -352,13 +352,15 @@ class DatasetBuilder:
         # For backwards compatibility (e.g. if accessed in a dataset script)
         self.use_auth_token = token
         self.repo_id = repo_id
-        self.storage_options = storage_options
+        self.storage_options = storage_options or {}
         self.dataset_name = camelcase_to_snakecase(dataset_name) if dataset_name else self.name
         self._writer_batch_size = writer_batch_size or self.DEFAULT_WRITER_BATCH_SIZE
 
         if data_files is not None and not isinstance(data_files, DataFilesDict):
-            data_files = DataFilesDict.from_local_or_remote(
-                sanitize_patterns(data_files), base_path=base_path, token=token
+            data_files = DataFilesDict.from_patterns(
+                sanitize_patterns(data_files),
+                base_path=base_path,
+                download_config=DownloadConfig(token=token, storage_options=self.storage_options),
             )
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
