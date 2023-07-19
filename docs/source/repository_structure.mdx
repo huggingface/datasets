@@ -24,17 +24,15 @@ In this simple case, you'll get a dataset with two splits: `train` (containing e
 
 ## Splits
 
-If you have multiple files and want to define which file goes into which split, you can use the YAML `configs` field at the top of your README.md using glob patterns.
+If you have multiple files and want to define which file goes into which split, you can use the YAML `configs` field at the top of your README.md.
 
 For example, given a repository like this one:
 
 ```
 my_dataset_repository/
 ├── README.md
-├── directory1/
-│   └── bees.csv
-└── directory2/
-    └── more_bees.csv
+├── data.csv
+└── holdout.csv
 ```
 
 You can define your splits by adding the `configs` field in the YAML block at the top of your README.md:
@@ -45,27 +43,23 @@ configs:
 - config_name: default
   data_files:
   - split: train
-    pattern: "directory1/*.csv"
+    path: "data.csv"
   - split: test
-    pattern: "directory2/*.csv"
+    path: "holdout.csv"
 ---
 ```
 
-<Tip warning={true}>
-Note that `config_name` field is required even if you have a single configuration.
-</Tip>
 
-Having several patterns per split is also supported:
+You can select multiple files per split using a list of paths:
 
 ```
 my_dataset_repository/
 ├── README.md
-├── directory1/
-│   └── bees.csv
-├── directory1bis/
-│   └── more_bees.csv
-└── directory2/
-    └── even_more_bees.csv
+├── data/
+│   ├── abc.csv
+│   └── def.csv
+└── holdout/
+    └── ghi.csv
 ```
 
 ```yaml
@@ -74,31 +68,33 @@ configs:
 - config_name: default
   data_files:
   - split: train
-    pattern:
-    - "directory1/*.csv"
-    - "directory1bis/*.csv"
+    path:
+    - "data/abc.csv"
+    - "data/def.csv"
   - split: test
-    pattern:
-    - "directory2/*.csv"
+    path: "holdout/ghi.csv"
 ---
 ```
 
-Custom split names are also supported:
+Or you can use glob patterns to automatically list all the files you need:
+
 ```yaml
+---
 configs:
 - config_name: default
   data_files:
-  - split: random
-    pattern:
-    - "directory1bis/*.csv"
   - split: train
-    pattern:
-    - "directory1/*.csv"
+    path: "data/*.csv"
   - split: test
-    pattern:
-    - "directory2/*.csv"
+    path: "holdout/*.csv"
 ---
 ```
+
+<Tip warning={true}>
+
+Note that `config_name` field is required even if you have a single configuration.
+
+</Tip>
 
 ## Configurations
 
