@@ -48,7 +48,7 @@ from datasets.tasks import (
     Summarization,
     TextClassification,
 )
-from datasets.utils.logging import WARNING
+from datasets.utils.logging import INFO, get_logger
 from datasets.utils.py_utils import temp_seed
 
 from .utils import (
@@ -1320,7 +1320,7 @@ class BaseDatasetTest(TestCase):
     def test_map_caching(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             self._caplog.clear()
-            with self._caplog.at_level(WARNING):
+            with self._caplog.at_level(INFO, logger=get_logger().name):
                 with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                     with patch(
                         "datasets.arrow_dataset.Dataset._map_single",
@@ -1338,7 +1338,7 @@ class BaseDatasetTest(TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             self._caplog.clear()
-            with self._caplog.at_level(WARNING):
+            with self._caplog.at_level(INFO, logger=get_logger().name):
                 with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                     with dset.map(lambda x: {"foo": "bar"}) as dset_test1:
                         dset_test1_data_files = list(dset_test1.cache_files)
@@ -1349,7 +1349,7 @@ class BaseDatasetTest(TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             self._caplog.clear()
-            with self._caplog.at_level(WARNING):
+            with self._caplog.at_level(INFO, logger=get_logger().name):
                 with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                     with patch(
                         "datasets.arrow_dataset.Pool",
@@ -1369,7 +1369,7 @@ class BaseDatasetTest(TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             self._caplog.clear()
-            with self._caplog.at_level(WARNING):
+            with self._caplog.at_level(INFO, logger=get_logger().name):
                 with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                     with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test1:
                         dset_test1_data_files = list(dset_test1.cache_files)
@@ -1382,7 +1382,7 @@ class BaseDatasetTest(TestCase):
             try:
                 self._caplog.clear()
                 with tempfile.TemporaryDirectory() as tmp_dir:
-                    with self._caplog.at_level(WARNING):
+                    with self._caplog.at_level(INFO, logger=get_logger().name):
                         with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                             datasets.disable_caching()
                             with dset.map(lambda x: {"foo": "bar"}) as dset_test1:
@@ -1632,6 +1632,26 @@ class BaseDatasetTest(TestCase):
                 dset.map(ex_cnt)
                 self.assertEqual(ex_cnt.cnt, len(dset))
 
+    @require_not_windows
+    def test_map_crash_subprocess(self, in_memory):
+        # be sure that a crash in one of the subprocess will not
+        # hang dataset.map() call forever
+
+        def do_crash(row):
+            import os
+
+            os.kill(os.getpid(), 9)
+            return row
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with pytest.raises(RuntimeError) as excinfo:
+                    dset.map(do_crash, num_proc=2)
+                assert str(excinfo.value) == (
+                    "One of the subprocesses has abruptly died during map operation."
+                    "To debug the error, disable multiprocessing."
+                )
+
     def test_filter(self, in_memory):
         # keep only first five examples
 
@@ -1733,7 +1753,7 @@ class BaseDatasetTest(TestCase):
     def test_filter_caching(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             self._caplog.clear()
-            with self._caplog.at_level(WARNING):
+            with self._caplog.at_level(INFO, logger=get_logger().name):
                 with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                     with dset.filter(lambda x, i: i < 5, with_indices=True) as dset_filter_first_five1:
                         dset_test1_data_files = list(dset_filter_first_five1.cache_files)

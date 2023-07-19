@@ -150,6 +150,7 @@ class DatasetInfo:
 
     # Set later by the builder
     builder_name: Optional[str] = None
+    dataset_name: Optional[str] = None  # for packaged builders, to be different from builder_name
     config_name: Optional[str] = None
     version: Optional[Union[str, Version]] = None
     # Set later by `download_and_prepare`
@@ -472,19 +473,39 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
 
     def to_dataset_card_data(self, dataset_card_data: DatasetCardData) -> None:
         if self:
-            total_dataset_infos = {config_name: dset_info._to_yaml_dict() for config_name, dset_info in self.items()}
+            # first get existing metadata info
+            if "dataset_info" in dataset_card_data and isinstance(dataset_card_data["dataset_info"], dict):
+                dataset_metadata_infos = {
+                    dataset_card_data["dataset_info"].get("config_name", "default"): dataset_card_data["dataset_info"]
+                }
+            elif "dataset_info" in dataset_card_data and isinstance(dataset_card_data["dataset_info"], list):
+                dataset_metadata_infos = {
+                    config_metadata["config_name"]: config_metadata
+                    for config_metadata in dataset_card_data["dataset_info"]
+                }
+            else:
+                dataset_metadata_infos = {}
+            # update/rewrite existing metadata info with the one to dump
+            total_dataset_infos = {
+                **dataset_metadata_infos,
+                **{config_name: dset_info._to_yaml_dict() for config_name, dset_info in self.items()},
+            }
             # the config_name from the dataset_infos_dict takes over the config_name of the DatasetInfo
             for config_name, dset_info_yaml_dict in total_dataset_infos.items():
                 dset_info_yaml_dict["config_name"] = config_name
             if len(total_dataset_infos) == 1:
                 # use a struct instead of a list of configurations, since there's only one
                 dataset_card_data["dataset_info"] = next(iter(total_dataset_infos.values()))
-                # no need to include the configuration name when there's only one configuration and it's called "default"
-                if dataset_card_data["dataset_info"].get("config_name") == "default":
-                    dataset_card_data["dataset_info"].pop("config_name", None)
+                config_name = dataset_card_data["dataset_info"].pop("config_name", None)
+                if config_name != "default":
+                    # if config_name is not "default" preserve it and put at the first position
+                    dataset_card_data["dataset_info"] = {
+                        "config_name": config_name,
+                        **dataset_card_data["dataset_info"],
+                    }
             else:
                 dataset_card_data["dataset_info"] = []
-                for config_name, dataset_info_yaml_dict in total_dataset_infos.items():
+                for config_name, dataset_info_yaml_dict in sorted(total_dataset_infos.items()):
                     # add the config_name field in first position
                     dataset_info_yaml_dict.pop("config_name", None)
                     dataset_info_yaml_dict = {"config_name": config_name, **dataset_info_yaml_dict}
