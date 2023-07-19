@@ -2429,7 +2429,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         table = ""
 
-        table += f"shape: ({self.num_rows}, {len(self.num_columns)})\n"
+        table += f"shape: ({self.num_rows}, {self.num_columns})\n"
 
         table += (
             "┌"
