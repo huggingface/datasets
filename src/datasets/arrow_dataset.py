@@ -1383,8 +1383,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         storage_options: Optional[dict] = None,
     ):
         """
-        Saves a dataset to a dataset directory, or in a filesystem using either `s3fs.S3FileSystem` or
-        any implementation of `fsspec.spec.AbstractFileSystem`.
+        Saves a dataset to a dataset directory, or in a filesystem using any implementation of `fsspec.spec.AbstractFileSystem`.
 
         For [`Image`] and [`Audio`] data:
 
@@ -1601,8 +1600,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     ) -> "Dataset":
         """
         Loads a dataset that was previously saved using [`save_to_disk`] from a dataset directory, or from a
-        filesystem using either `s3fs.S3FileSystem` or any implementation of
-        `fsspec.spec.AbstractFileSystem`.
+        filesystem using any implementation of `fsspec.spec.AbstractFileSystem`.
 
         Args:
             dataset_path (`str`):
