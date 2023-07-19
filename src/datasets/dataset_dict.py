@@ -1199,8 +1199,7 @@ class DatasetDict(dict):
         storage_options: Optional[dict] = None,
     ):
         """
-        Saves a dataset dict to a filesystem using either [`~filesystems.S3FileSystem`] or
-        `fsspec.spec.AbstractFileSystem`.
+        Saves a dataset dict to a filesystem using `fsspec.spec.AbstractFileSystem`.
 
         For [`Image`] and [`Audio`] data:
 
@@ -1293,8 +1292,7 @@ class DatasetDict(dict):
         storage_options: Optional[dict] = None,
     ) -> "DatasetDict":
         """
-        Load a dataset that was previously saved using [`save_to_disk`] from a filesystem using either
-        [`~filesystems.S3FileSystem`] or `fsspec.spec.AbstractFileSystem`.
+        Load a dataset that was previously saved using [`save_to_disk`] from a filesystem using `fsspec.spec.AbstractFileSystem`.
 
         Args:
             dataset_dict_path (`str`):
