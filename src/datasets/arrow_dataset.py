@@ -6087,7 +6087,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
 
             def shards_with_embedded_external_files(
-                shards, start_index: int = 0
+                shards, start_index: int = 0, num_shards: int = 1
             ):
                 """
                 🧩 A generator function that yields processed shards from a list of shards, starting from a specific index.
@@ -6104,11 +6104,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         "🚨 start_index must be a non-negative integer"
                     )
 
-                if start_index >= len(shards):
+                if start_index >= num_shards:
                     return None
 
                 # 🔄 Starting from the desired index
-                for idx in range(start_index, len(shards)):
+                for idx in range(start_index, num_shards):
                     shard = shards[idx]
 
                     original_format = shard.format
@@ -6129,7 +6129,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     yield shard
 
             shards = shards_with_embedded_external_files(
-                shards, start_index=starting_shard_index
+                shards, start_index=starting_shard_index, num_shards=num_shards
             )
 
         files = api.list_repo_files(
