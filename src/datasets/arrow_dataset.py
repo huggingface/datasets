@@ -6149,9 +6149,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         print(f"Shards are {shards}")
 
-        if shards is not None:
-            shards_iter = iter(shards)
+        shards_iter = iter(shards)
+        try:
             first_shard = next(shards_iter)
+        except StopIteration:
+            first_shard = None
+
+        if first_shard is not None:
             first_shard_path_in_repo = path_in_repo(0, first_shard)
             if first_shard_path_in_repo in data_files and num_shards < len(
                 data_files
