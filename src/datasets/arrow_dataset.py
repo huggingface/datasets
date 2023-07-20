@@ -6144,75 +6144,36 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         def path_in_repo(_index, shard):
             return f"{data_dir}/{split}-{_index:05d}-of-{num_shards:05d}-{shard._fingerprint}.parquet"
+        
         if shards is not None:
-        shards_iter = iter(shards)
-        first_shard = next(shards_iter)
-        first_shard_path_in_repo = path_in_repo(0, first_shard)
-        if first_shard_path_in_repo in data_files and num_shards < len(
-            data_files
-        ):
-            logger.info("Resuming upload of the dataset shards.")
+            shards_iter = iter(shards)
+            first_shard = next(shards_iter)
+            first_shard_path_in_repo = path_in_repo(0, first_shard)
+            if first_shard_path_in_repo in data_files and num_shards < len(
+                data_files
+            ):
+                logger.info("Resuming upload of the dataset shards.")
 
-        for index, shard in logging.tqdm(
-            enumerate(itertools.chain([first_shard], shards_iter)),
-            desc="Pushing dataset shards to the dataset hub",
-            total=num_shards,
-            disable=not logging.is_progress_bar_enabled(),
-        ):
-            actual_index = index + starting_shard_index
-            shard_path_in_repo = path_in_repo(actual_index, shard)
-            uploaded_size_shard = -1
-            # Upload a shard only if it doesn't already exist in the repository
-            if shard_path_in_repo not in data_files:
-                buffer = BytesIO()
-                shard.to_parquet(buffer)
-                uploaded_size_shard = buffer.tell()
-                uploaded_size += uploaded_size_shard
-                _retry(
-                    api.upload_file,
-                    func_kwargs={
-                        "path_or_fileobj": buffer.getvalue(),
-                        "path_in_repo": shard_path_in_repo,
-                        "repo_id": repo_id,
-                        "token": token,
-                        "repo_type": "dataset",
-                        "revision": branch,
-                    },
-                    exceptions=HTTPError,
-                    status_codes=[504],
-                    base_wait_time=2.0,
-                    max_retries=5,
-                    max_wait_time=20.0,
-                )
-
-            if shard_path_in_repo not in shards_path_in_repo:
-                import yaml
-
-                if uploaded_size_shard == -1:
+            for index, shard in logging.tqdm(
+                enumerate(itertools.chain([first_shard], shards_iter)),
+                desc="Pushing dataset shards to the dataset hub",
+                total=num_shards,
+                disable=not logging.is_progress_bar_enabled(),
+            ):
+                actual_index = index + starting_shard_index
+                shard_path_in_repo = path_in_repo(actual_index, shard)
+                uploaded_size_shard = -1
+                # Upload a shard only if it doesn't already exist in the repository
+                if shard_path_in_repo not in data_files:
                     buffer = BytesIO()
                     shard.to_parquet(buffer)
                     uploaded_size_shard = buffer.tell()
                     uploaded_size += uploaded_size_shard
-
-                # After each shard upload, update the metadata file
-                shards_path_in_repo.append(shard_path_in_repo)
-                metadata = {
-                    "shard_index": actual_index,
-                    "shard_path_in_repo": shards_path_in_repo,
-                    "uploaded_size": uploaded_size,
-                }
-                # Create a temporary file and write the metadata to it
-                with tempfile.NamedTemporaryFile(
-                    mode="w", delete=True
-                ) as temp:
-                    yaml.dump(metadata, temp)
-                    temp_path = temp.name
-
                     _retry(
                         api.upload_file,
                         func_kwargs={
-                            "path_or_fileobj": temp_path,
-                            "path_in_repo": metadata_path,
+                            "path_or_fileobj": buffer.getvalue(),
+                            "path_in_repo": shard_path_in_repo,
                             "repo_id": repo_id,
                             "token": token,
                             "repo_type": "dataset",
@@ -6224,6 +6185,46 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         max_retries=5,
                         max_wait_time=20.0,
                     )
+
+                if shard_path_in_repo not in shards_path_in_repo:
+                    import yaml
+
+                    if uploaded_size_shard == -1:
+                        buffer = BytesIO()
+                        shard.to_parquet(buffer)
+                        uploaded_size_shard = buffer.tell()
+                        uploaded_size += uploaded_size_shard
+
+                    # After each shard upload, update the metadata file
+                    shards_path_in_repo.append(shard_path_in_repo)
+                    metadata = {
+                        "shard_index": actual_index,
+                        "shard_path_in_repo": shards_path_in_repo,
+                        "uploaded_size": uploaded_size,
+                    }
+                    # Create a temporary file and write the metadata to it
+                    with tempfile.NamedTemporaryFile(
+                        mode="w", delete=True
+                    ) as temp:
+                        yaml.dump(metadata, temp)
+                        temp_path = temp.name
+
+                        _retry(
+                            api.upload_file,
+                            func_kwargs={
+                                "path_or_fileobj": temp_path,
+                                "path_in_repo": metadata_path,
+                                "repo_id": repo_id,
+                                "token": token,
+                                "repo_type": "dataset",
+                                "revision": branch,
+                            },
+                            exceptions=HTTPError,
+                            status_codes=[504],
+                            base_wait_time=2.0,
+                            max_retries=5,
+                            max_wait_time=20.0,
+                        )
 
         # Cleanup to remove unused files
         data_files_to_delete = [
