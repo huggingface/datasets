@@ -6035,11 +6035,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             num_shards = int(dataset_nbytes / max_shard_size) + 1
             num_shards = max(num_shards, 1)
 
-        shards = (
-            self.shard(num_shards=num_shards, index=i, contiguous=True)
-            for i in range(num_shards)
-        )
-
         uploaded_size = 0
         shards_path_in_repo = []
         starting_shard_index = 0
@@ -6087,7 +6082,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
 
             def shards_with_embedded_external_files(
-                shards, start_index: int = 0, num_shards: int = 1
+                shards, num_shards: int = 1
             ):
                 """
                 🧩 A generator function that yields processed shards from a list of shards, starting from a specific index.
@@ -6098,24 +6093,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 :type start_index: int
                 """
 
-                # 👮 Input validation
-                if not isinstance(start_index, int) or start_index < 0:
-                    raise ValueError(
-                        "🚨 start_index must be a non-negative integer"
-                    )
-                print(
-                    f"Starting from shard index {start_index}, num_shards {num_shards}"
-                )
-                if start_index >= num_shards:
-                    print(
-                        f"start_index {start_index} >= num_shards {num_shards} so returning None"
-                    )
-                    return None
-
                 # 🔄 Starting from the desired index
-                for idx in range(start_index, num_shards):
-                    shard = shards[idx]
-
+                for shard in shards:
                     original_format = shard.format
                     shard = shard.with_format("arrow")
 
@@ -6133,8 +6112,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     # 🎁 Yield the processed shard
                     yield shard
 
+            shards = (
+                self.shard(num_shards=num_shards, index=i, contiguous=True)
+                for i in range(starting_shard_index, num_shards)
+            )
+
             shards = shards_with_embedded_external_files(
                 shards, start_index=starting_shard_index, num_shards=num_shards
+            )
+        else:
+            shards = (
+                self.shard(num_shards=num_shards, index=i, contiguous=True)
+                for i in range(starting_shard_index, num_shards)
             )
 
         files = api.list_repo_files(
