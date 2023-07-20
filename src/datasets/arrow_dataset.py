@@ -6107,6 +6107,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     f"Starting from shard index {start_index}, num_shards {num_shards}"
                 )
                 if start_index >= num_shards:
+                    print(
+                        f"start_index {start_index} >= num_shards {num_shards} so returning None"
+                    )
                     return None
 
                 # 🔄 Starting from the desired index
