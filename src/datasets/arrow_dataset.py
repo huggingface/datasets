@@ -6099,15 +6099,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 """
 
                 # 👮 Input validation
-                if (
-                    not isinstance(start_index, int)
-                    or start_index < 0
-                ):
+                if not isinstance(start_index, int) or start_index < 0:
                     raise ValueError(
                         "🚨 start_index must be a non-negative integer"
                     )
-                
-                if start_index >= len(shards)
+
+                if start_index >= len(shards):
                     return None
 
                 # 🔄 Starting from the desired index
@@ -6144,7 +6141,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         def path_in_repo(_index, shard):
             return f"{data_dir}/{split}-{_index:05d}-of-{num_shards:05d}-{shard._fingerprint}.parquet"
-        
+
         if shards is not None:
             shards_iter = iter(shards)
             first_shard = next(shards_iter)
