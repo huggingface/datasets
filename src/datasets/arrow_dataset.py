@@ -6144,6 +6144,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         def path_in_repo(_index, shard):
             return f"{data_dir}/{split}-{_index:05d}-of-{num_shards:05d}-{shard._fingerprint}.parquet"
 
+        print(shards)
+        
         if shards is not None:
             shards_iter = iter(shards)
             first_shard = next(shards_iter)
