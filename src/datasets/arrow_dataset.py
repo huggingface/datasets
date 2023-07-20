@@ -6086,20 +6086,54 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     "shard_path_in_repo", []
                 )
 
-            def shards_with_embedded_external_files(shards):
-                for shard in shards:
-                    format = shard.format
+            def shards_with_embedded_external_files(
+                shards, start_index: int = 0
+            ):
+                """
+                🧩 A generator function that yields processed shards from a list of shards, starting from a specific index.
+
+                :param shards: The input shards list.
+                :type shards: list
+                :param start_index: The index to start from.
+                :type start_index: int
+                """
+
+                # 👮 Input validation
+                if (
+                    not isinstance(start_index, int)
+                    or start_index < 0
+                ):
+                    raise ValueError(
+                        "🚨 start_index must be a non-negative integer"
+                    )
+                
+                if start_index >= len(shards)
+                    return None
+
+                # 🔄 Starting from the desired index
+                for idx in range(start_index, len(shards)):
+                    shard = shards[idx]
+
+                    original_format = shard.format
                     shard = shard.with_format("arrow")
+
+                    # 🔌 Embed external files within the shard
                     shard = shard.map(
                         embed_table_storage,
                         batched=True,
                         batch_size=1000,
                         keep_in_memory=True,
                     )
-                    shard = shard.with_format(**format)
+
+                    # 🔄 Restore the original format
+                    shard = shard.with_format(**original_format)
+
+                    # 🎁 Yield the processed shard
                     yield shard
 
-            shards = shards_with_embedded_external_files(shards)
+            shards = shards_with_embedded_external_files(
+                shards, start_index=starting_shard_index
+            )
 
         files = api.list_repo_files(
             repo_id, repo_type="dataset", revision=branch, token=token
@@ -6110,10 +6144,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         def path_in_repo(_index, shard):
             return f"{data_dir}/{split}-{_index:05d}-of-{num_shards:05d}-{shard._fingerprint}.parquet"
-
-        # Skip shards that have already been processed
-        shards = itertools.islice(shards, starting_shard_index, None)
-
+        if shards is not None:
         shards_iter = iter(shards)
         first_shard = next(shards_iter)
         first_shard_path_in_repo = path_in_repo(0, first_shard)
