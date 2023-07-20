@@ -1383,8 +1383,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         storage_options: Optional[dict] = None,
     ):
         """
-        Saves a dataset to a dataset directory, or in a filesystem using either `s3fs.S3FileSystem` or
-        any implementation of `fsspec.spec.AbstractFileSystem`.
+        Saves a dataset to a dataset directory, or in a filesystem using any implementation of `fsspec.spec.AbstractFileSystem`.
 
         For [`Image`] and [`Audio`] data:
 
@@ -1601,8 +1600,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     ) -> "Dataset":
         """
         Loads a dataset that was previously saved using [`save_to_disk`] from a dataset directory, or from a
-        filesystem using either `s3fs.S3FileSystem` or any implementation of
-        `fsspec.spec.AbstractFileSystem`.
+        filesystem using any implementation of `fsspec.spec.AbstractFileSystem`.
 
         Args:
             dataset_path (`str`):
@@ -5330,7 +5328,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             for data_file in data_files
             if data_file.startswith(f"{data_dir}/{split}-") and data_file not in shards_path_in_repo
         ]
-        deleted_size = sum(xgetsize(hf_hub_url(repo_id, data_file), token=token) for data_file in data_files_to_delete)
+        download_config = DownloadConfig(token=token)
+        deleted_size = sum(
+            xgetsize(hf_hub_url(repo_id, data_file), download_config=download_config)
+            for data_file in data_files_to_delete
+        )
 
         def delete_file(file):
             api.delete_file(file, repo_id=repo_id, token=token, repo_type="dataset", revision=branch)
@@ -5512,7 +5514,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 }
                 default_metadata_configs_to_dump = {
                     "data_files": [
-                        {"split": _resolved_split, "pattern": f"data/{_resolved_split}-*"}
+                        {"split": _resolved_split, "path": f"data/{_resolved_split}-*"}
                         for _resolved_split in _resolved_splits
                     ]
                 }
@@ -5525,18 +5527,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             else:
                 data_files_to_dump = {}
             # add the new split
-            data_files_to_dump[split] = f"{data_dir}/{split}-*"
+            data_files_to_dump[split] = [f"{data_dir}/{split}-*"]
             metadata_config_to_dump = {
                 "data_files": [
                     {
                         "split": _split,
-                        "pattern": _pattern[0] if isinstance(_pattern, list) and len(_pattern) == 1 else _pattern,
+                        "path": _pattern[0] if len(_pattern) == 1 else _pattern,
                     }
                     for _split, _pattern in data_files_to_dump.items()
                 ]
             }
         else:
-            metadata_config_to_dump = {"data_files": [{"split": split, "pattern": f"{data_dir}/{split}-*"}]}
+            metadata_config_to_dump = {"data_files": [{"split": split, "path": f"{data_dir}/{split}-*"}]}
         # push to the deprecated dataset_infos.json
         if config.DATASETDICT_INFOS_FILENAME in repo_files:
             download_config = DownloadConfig()
@@ -5547,7 +5549,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 download_config=download_config,
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
-                dataset_infos: DatasetInfosDict = json.load(f)
+                dataset_infos: dict = json.load(f)
             dataset_infos[config_name] = asdict(info_to_dump)
             buffer = BytesIO()
             buffer.write(json.dumps(dataset_infos, indent=4).encode("utf-8"))
