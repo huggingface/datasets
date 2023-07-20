@@ -6054,15 +6054,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 uploaded_shards_meta_data_path = hf_hub_download(
                     repo_id, metadata_path, token=token, repo_type="dataset"
                 )
-                print(
+                logger.info(
                     f"Loading metadata from {uploaded_shards_meta_data_path}"
                 )
                 uploaded_shards_meta_data = yaml.safe_load(
                     open(uploaded_shards_meta_data_path, "r")
                 )
-                print(f"Loaded dict: {uploaded_shards_meta_data}")
+                logger.info(f"Loaded dict: {uploaded_shards_meta_data}")
             except Exception as e:
-                print(
+                logger.error(
                     f"Failed to download metadata and load them into a dict from {metadata_path}: with error {e}. \n"
                     f"Assuming this is a new dataset being uploaded and starting from scratch"
                 )
@@ -6136,8 +6136,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         def path_in_repo(_index, shard):
             return f"{data_dir}/{split}-{_index:05d}-of-{num_shards:05d}-{shard._fingerprint}.parquet"
 
-        print(f"Shards are {shards}")
-
         shards_iter = iter(shards)
         try:
             first_shard = next(shards_iter)
@@ -6158,6 +6156,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 disable=not logging.is_progress_bar_enabled(),
             ):
                 actual_index = index + starting_shard_index
+                logger.info(f"Uploading shard {actual_index} of {num_shards}")
                 shard_path_in_repo = path_in_repo(actual_index, shard)
                 uploaded_size_shard = -1
                 # Upload a shard only if it doesn't already exist in the repository
