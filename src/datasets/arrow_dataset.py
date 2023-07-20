@@ -6114,9 +6114,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Skip shards that have already been processed
         shards = itertools.islice(shards, starting_shard_index, None)
 
-        # Skip shards that have already been processed
-        shards = itertools.islice(shards, starting_shard_index, None)
-
         shards_iter = iter(shards)
         first_shard = next(shards_iter)
         first_shard_path_in_repo = path_in_repo(0, first_shard)
