@@ -6103,7 +6103,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     raise ValueError(
                         "🚨 start_index must be a non-negative integer"
                     )
-
+                print(
+                    f"Starting from shard index {start_index}, num_shards {num_shards}"
+                )
                 if start_index >= num_shards:
                     return None
 
