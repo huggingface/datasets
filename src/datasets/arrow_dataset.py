@@ -6118,7 +6118,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
 
             shards = shards_with_embedded_external_files(
-                shards, start_index=starting_shard_index, num_shards=num_shards
+                shards, num_shards=num_shards
             )
         else:
             shards = (
