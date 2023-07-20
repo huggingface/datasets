@@ -49,7 +49,12 @@ class Parquet(datasets.ArrowBasedBuilder):
             if self.info.features is None:
                 for file in itertools.chain.from_iterable(files):
                     with open(file, "rb") as f:
-                        self.info.features = datasets.Features.from_arrow_schema(pq.read_schema(f))
+                        features = datasets.Features.from_arrow_schema(pq.read_schema(f))
+                        if self.config.columns is not None:
+                            self.info.features = datasets.Features(
+                                {col: feat for col, feat in features.items() if col in self.config.columns}
+                            )
+                        self.info.features = features
                     break
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
@@ -62,9 +67,9 @@ class Parquet(datasets.ArrowBasedBuilder):
         return pa_table
 
     def _generate_tables(self, files):
-        schema = self.info.features.arrow_schema
+        self.info.features = self.config.features if self.config.features is not None else self.info.features
         if self.config.features is not None and self.config.columns is not None:
-            if sorted(field.name for field in schema) != sorted(self.config.columns):
+            if sorted(field.name for field in self.info.features.arrow_schema) != sorted(self.config.columns):
                 raise ValueError(
                     f"Tried to load parquet data with columns '{self.config.columns}' with mismatching features '{self.info.features}'"
                 )
