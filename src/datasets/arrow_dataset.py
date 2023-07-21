@@ -4519,7 +4519,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         from .dataset_dict import (
             DatasetDict,
-        )  # import here because of circular dependency
+        )
 
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -5489,8 +5489,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         starting_shard_index = 0
 
         if decodable_columns:
-            from huggingface_hub import hf_hub_download
             import yaml
+            from huggingface_hub import hf_hub_download
 
             # Generate unique metadata filename
             unique_id = self.generate_unique_metadata_filename(repo_id, split, branch, max_shard_size, num_shards)
