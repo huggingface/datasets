@@ -606,7 +606,7 @@ class Pickler(dill.Pickler):
                 def dill_log(pickler, msg):
                     dill._dill.log.info(msg)
 
-            else:
+            else:  # config.DILL_VERSION >= version.parse("0.3.6")
 
                 def dill_log(pickler, msg):
                     dill._dill.logger.trace(pickler, msg)
