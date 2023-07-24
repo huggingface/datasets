@@ -67,7 +67,6 @@ class Parquet(datasets.ArrowBasedBuilder):
         return pa_table
 
     def _generate_tables(self, files):
-        self.info.features = self.config.features if self.config.features is not None else self.info.features
         if self.config.features is not None and self.config.columns is not None:
             if sorted(field.name for field in self.info.features.arrow_schema) != sorted(self.config.columns):
                 raise ValueError(
