@@ -11,6 +11,7 @@ from functools import partial
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
+from typing import TypedDict, Union
 
 import numpy as np
 import numpy.testing as npt
@@ -2800,6 +2801,42 @@ class BaseDatasetTest(TestCase):
                     dset.reset_format()
                     self.assertNotEqual(dset.format, dset2.format)
                     self.assertNotEqual(dset._fingerprint, dset2._fingerprint)
+
+    def test_with_map_typehint(self, in_memory):
+        class DatasetTyped(TypedDict):
+            texts: list[str]
+
+        def dataset_untyped_map(batch):
+            return {"texts": [text.split() for text in batch["raw_text"]]}
+
+        def dataset_typed_map(batch) -> DatasetTyped:
+            return {"texts": [text.split() for text in batch["raw_text"]]}
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dataset = {"raw_text": ["", "This is a test", "This is another test"]}
+
+            with Dataset.from_dict(dataset) as dset:
+                if not in_memory:
+                    dset = self._to(in_memory, tmp_dir, dset)
+
+                # pyarrow won't be able to typehint a dataset that starts with an empty example
+                with pytest.raises(TypeError, match="Couldn't cast array of type"):
+                    dataset = dset.map(
+                        dataset_untyped_map,
+                        batched=True,
+                        batch_size=1,
+                        num_proc=1,
+                        remove_columns=dset.column_names,
+                    )
+
+                new_dataset = dset.map(
+                    dataset_typed_map,
+                    batched=True,
+                        batch_size=1,
+                        num_proc=1,
+                        remove_columns=dset.column_names,
+                )
+                self.assertEqual(str(new_dataset[:2]), str({"texts": [[], ["This", "is", "a", "test"]]}))
 
     @require_tf
     def test_tf_dataset_conversion(self, in_memory):

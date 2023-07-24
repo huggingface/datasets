@@ -23,7 +23,7 @@ from collections.abc import Sequence as SequenceABC
 from dataclasses import InitVar, dataclass, field, fields
 from functools import reduce, wraps
 from operator import mul
-from typing import Any, Callable, ClassVar, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, ClassVar, Dict, List, Optional, Tuple, Union, get_origin, get_args
 from typing import Sequence as Sequence_
 
 import numpy as np
@@ -1380,6 +1380,49 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
         return Value(dtype=_arrow_to_datasets_dtype(pa_type))
     else:
         raise ValueError(f"Cannot convert {pa_type} to a Feature type.")
+
+
+
+def generate_from_python_typehints(type_definition: type | dict[str, type]) -> FeatureType:
+    """Build a Features definition from a type-hinted function signature."""
+    origin = get_origin(type_definition)
+    args = get_args(type_definition)
+
+    if isinstance(type_definition, dict):
+        return Features({key: generate_from_python_typehints(value) for key, value in type_definition.items()})
+
+    if origin is None:  
+        if type_definition is int:
+            return Value('int64')
+        elif type_definition is float:
+            return Value('float64')
+        elif type_definition is str:
+            return Value('string')
+        elif type_definition is bool:
+            return Value('bool')
+        else:
+            raise ValueError(f"Unsupported type {type_definition}")
+    elif origin in [List, list]:
+        if len(args) != 1:
+            raise ValueError(f"List type expected 1 argument, got {len(args)}")
+        return Sequence(generate_from_python_typehints(args[0]))
+    elif origin in [Dict, dict]:
+        if len(args) != 2 or args[0] is not str:
+            raise ValueError(f"Dict type expected 2 arguments (str, type), got {args}")
+        return Features({'feature': generate_from_python_typehints(args[1])})
+    elif origin is Optional:
+        if len(args) != 1:
+            raise ValueError(f"Optional type expected 1 argument, got {len(args)}")
+        return generate_from_python_typehints(args[0])
+    elif origin is Union:
+        if type(None) in args and len(args) == 2:
+            # Treat Union[T, NoneType] as Optional[T]
+            valid_args = [arg for arg in args if arg is not type(None)]
+            return generate_from_python_typehints(valid_args[0])
+        else:
+            raise ValueError(f"Only Union of a type and NoneType is supported: {args}")
+    else:
+        raise ValueError(f"Unsupported type origin {origin}")
 
 
 def numpy_to_pyarrow_listarray(arr: np.ndarray, type: pa.DataType = None) -> pa.ListArray:

@@ -37,6 +37,7 @@ from io import BytesIO
 from math import ceil, floor
 from pathlib import Path
 from random import sample
+from inspect import isclass
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -50,6 +51,8 @@ from typing import (
     Tuple,
     Union,
     overload,
+    get_type_hints,
+    TypedDict,
 )
 from typing import Sequence as Sequence_
 
@@ -76,6 +79,7 @@ from .features.features import (
     generate_from_arrow_type,
     pandas_types_mapper,
     require_decoding,
+    generate_from_python_typehints,
 )
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
@@ -3283,6 +3287,35 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # If we do batch computation but no batch size is provided, default to the full dataset
         if batched and (batch_size is None or batch_size <= 0):
             batch_size = shard.num_rows
+
+        def infer_features_from_callable(func: Callable[..., Any]) -> Optional[Features]:
+            """Supports inferring from a TypedDict."""
+            hints = get_type_hints(func)
+            return_type = hints.get('return')
+
+            # Because TypedDict creates a dictionary at runtime, we need to check if the return type is a dict
+            # versus a TypedDict instance
+            if isclass(return_type) and issubclass(return_type, dict):
+                # Check if return type is a TypedDict
+                generated = generate_from_python_typehints(dict(return_type.__annotations__))
+                return generated
+
+            return None
+
+        # If explicit features are not provided, attempt to infer them from the mapping function's return signature
+        if not features:
+            new_features = infer_features_from_callable(function)
+            if new_features:
+                # Features need to merge the new and the old definitions
+                features = Features({
+                    **{
+                        key: value
+                        for key, value in shard.features.items()
+                        if key not in (remove_columns or [])
+                    },
+                    **new_features
+                })
+                print("new features", features)
 
         # We set this variable to True after processing the first example/batch in
         # `apply_function_on_filtered_inputs` if the map function returns a dict.
