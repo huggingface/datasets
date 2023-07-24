@@ -228,11 +228,31 @@ Wrap the dataset in [`torch.utils.data.DataLoader`](https://alband.github.io/doc
 
 Use the [`~TFPreTrainedModel.prepare_tf_dataset`] method from 🤗 Transformers to prepare the dataset to be compatible with
 TensorFlow, and ready to train/fine-tune a model, as it wraps a HuggingFace [`~datasets.Dataset`] as a `tf.data.Dataset`
-with collation and batching, so one can pass it directly to Keras methods like `fit()` without further modification. 
+with collation and batching, so one can pass it directly to Keras methods like `fit()` without further modification.
+
+Before you start, make sure you have up-to-date versions of `albumentations` and `cv2` installed:
+
+```bash
+pip install -U albumentations opencv-python
+```
 
 ```py
->>> import tensorflow as tf
+>>> import albumentations
+>>> import numpy as np
 
+>>> transform = albumentations.Compose([
+...     albumentations.RandomCrop(width=256, height=256),
+...     albumentations.HorizontalFlip(p=0.5),
+...     albumentations.RandomBrightnessContrast(p=0.2),
+... ])
+
+>>> def transforms(examples):
+...     examples["pixel_values"] = [
+...         transform(image=np.array(image))["image"] for image in examples["image"]
+...     ]
+...     return examples
+
+>>> dataset.set_transform(transforms)
 >>> tf_dataset = model.prepare_tf_dataset(
 ...     dataset,
 ...     batch_size=4,
