@@ -24,12 +24,12 @@ Each dataset is unique, and depending on the task, some datasets may require add
          ><div class="w-full text-center bg-gradient-to-r from-violet-300 via-sky-400 to-green-500 rounded-lg py-1.5 font-semibold mb-5 text-white text-lg leading-relaxed">Audio</div>
          <p class="text-gray-700">Resample an audio dataset and get it ready for a model to classify what type of banking issue a speaker is calling about.</p>
       </a>
-      <a class="!no-underline border dark:border-gray-700 p-5 rounded-lg shadow hover:shadow-lg" href="#image"
-         ><div class="w-full text-center bg-gradient-to-r from-pink-400 via-purple-400 to-blue-500 rounded-lg py-1.5 font-semibold mb-5 text-white text-lg leading-relaxed">Image</div>
+      <a class="!no-underline border dark:border-gray-700 p-5 rounded-lg shadow hover:shadow-lg" href="#vision"
+         ><div class="w-full text-center bg-gradient-to-r from-pink-400 via-purple-400 to-blue-500 rounded-lg py-1.5 font-semibold mb-5 text-white text-lg leading-relaxed">Vision</div>
          <p class="text-gray-700">Apply data augmentation to an image dataset and get it ready for a model to diagnose disease in bean plants.</p>
       </a>
-      <a class="!no-underline border dark:border-gray-700 p-5 rounded-lg shadow hover:shadow-lg" href="#text"
-         ><div class="w-full text-center bg-gradient-to-r from-orange-300 via-red-400 to-violet-500 rounded-lg py-1.5 font-semibold mb-5 text-white text-lg leading-relaxed">Text</div>
+      <a class="!no-underline border dark:border-gray-700 p-5 rounded-lg shadow hover:shadow-lg" href="#nlp"
+         ><div class="w-full text-center bg-gradient-to-r from-orange-300 via-red-400 to-violet-500 rounded-lg py-1.5 font-semibold mb-5 text-white text-lg leading-relaxed">NLP</div>
          <p class="text-gray-700">Tokenize a dataset and get it ready for a model to determine whether a pair of sentences have the same meaning.</p>
       </a>
    </div>
@@ -181,7 +181,7 @@ from 🤗 Transformers to combine the varying sequence lengths into a single bat
 
 **7**. Start training with your machine learning framework! Check out the 🤗 Transformers [audio classification guide](https://huggingface.co/docs/transformers/tasks/audio_classification) for an end-to-end example of how to train a model on an audio dataset.
 
-## Image
+## Vision
 
 Image datasets are loaded just like text datasets. However, instead of a tokenizer, you'll need a [feature extractor](https://huggingface.co/docs/transformers/main_classes/feature_extractor#feature-extractor) to preprocess the dataset. Applying data augmentation to an image is common in computer vision to make the model more robust against overfitting. You're free to use any data augmentation library you want, and then you can apply the augmentations with 🤗 Datasets. In this quickstart, you'll load the [Beans](https://huggingface.co/datasets/beans) dataset and get it ready for the model to train on and identify disease from the leaf images.
 
@@ -259,7 +259,7 @@ with collation and batching, so one can pass it directly to Keras methods like `
 
 **6**. Start training with your machine learning framework! Check out the 🤗 Transformers [image classification guide](https://huggingface.co/docs/transformers/tasks/image_classification) for an end-to-end example of how to train a model on an image dataset.
 
-## Text
+## NLP
 
 Text needs to be tokenized into individual tokens by a [tokenizer](https://huggingface.co/docs/transformers/main_classes/tokenizer). For the quickstart, you'll load the [Microsoft Research Paraphrase Corpus (MRPC)](https://huggingface.co/datasets/glue/viewer/mrpc) training dataset to train a model to determine whether a pair of sentences mean the same thing.
 
