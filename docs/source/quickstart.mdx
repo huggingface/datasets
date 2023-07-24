@@ -161,21 +161,6 @@ with collation and batching, so one can pass it directly to Keras methods like `
 ...     shuffle=True,
 ... )
 ```
-
-Additionally, you can also use the [`~Dataset.prepare_tf_dataset`] function to set the dataset format to 
-be compatible with TensorFlow; and you'll also need to import a [data collator](https://huggingface.co/docs/transformers/main_classes/data_collator#transformers.DataCollatorWithPadding) 
-from 🤗 Transformers to combine the varying sequence lengths into a single batch of equal lengths:
-
-```py
->>> import tensorflow as tf
-
->>> tf_dataset = dataset.to_tf_dataset(
-...     columns=["input_values"],
-...     label_cols=["labels"],
-...     batch_size=4,
-...     shuffle=True,
-... )
-```
 </tf>
 </frameworkcontent>
 
@@ -337,21 +322,6 @@ with collation and batching, so one can pass it directly to Keras methods like `
 ...     batch_size=4,
 ...     shuffle=True,
 ... )
-```
-
-Use the [`~Dataset.to_tf_dataset`] function to set the dataset format to be compatible with TensorFlow. You'll also need to import a [data collator](https://huggingface.co/docs/transformers/main_classes/data_collator#transformers.DataCollatorWithPadding) from 🤗 Transformers to combine the varying sequence lengths into a single batch of equal lengths:
-
-```py
->>> import tensorflow as tf
->>> from transformers import DataCollatorWithPadding
-
->>> data_collator = DataCollatorWithPadding(tokenizer=tokenizer, return_tensors="tf")
->>> tf_dataset = dataset.to_tf_dataset(
-...     columns=["input_ids", "token_type_ids", "attention_mask"],
-...     label_cols=["labels"],
-...     batch_size=2,
-...     collate_fn=data_collator,
-...     shuffle=True)
 ```
 </tf>
 </frameworkcontent>
