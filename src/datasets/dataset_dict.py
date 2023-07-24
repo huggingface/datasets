@@ -1199,8 +1199,7 @@ class DatasetDict(dict):
         storage_options: Optional[dict] = None,
     ):
         """
-        Saves a dataset dict to a filesystem using either [`~filesystems.S3FileSystem`] or
-        `fsspec.spec.AbstractFileSystem`.
+        Saves a dataset dict to a filesystem using `fsspec.spec.AbstractFileSystem`.
 
         For [`Image`] and [`Audio`] data:
 
@@ -1293,8 +1292,7 @@ class DatasetDict(dict):
         storage_options: Optional[dict] = None,
     ) -> "DatasetDict":
         """
-        Load a dataset that was previously saved using [`save_to_disk`] from a filesystem using either
-        [`~filesystems.S3FileSystem`] or `fsspec.spec.AbstractFileSystem`.
+        Load a dataset that was previously saved using [`save_to_disk`] from a filesystem using `fsspec.spec.AbstractFileSystem`.
 
         Args:
             dataset_dict_path (`str`):
@@ -1660,7 +1658,7 @@ class DatasetDict(dict):
         info_to_dump.size_in_bytes = total_uploaded_size + total_dataset_nbytes
 
         metadata_config_to_dump = {
-            "data_files": [{"split": split, "pattern": f"{data_dir}/{split}-*"} for split in self.keys()],
+            "data_files": [{"split": split, "path": f"{data_dir}/{split}-*"} for split in self.keys()],
         }
 
         api = HfApi(endpoint=config.HF_ENDPOINT)
@@ -1704,7 +1702,7 @@ class DatasetDict(dict):
                 }
                 default_metadata_configs_to_dump = {
                     "data_files": [
-                        {"split": _resolved_split, "pattern": f"data/{_resolved_split}-*"}
+                        {"split": _resolved_split, "path": f"data/{_resolved_split}-*"}
                         for _resolved_split in _resolved_splits
                     ]
                 }

@@ -1383,8 +1383,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         storage_options: Optional[dict] = None,
     ):
         """
-        Saves a dataset to a dataset directory, or in a filesystem using either `s3fs.S3FileSystem` or
-        any implementation of `fsspec.spec.AbstractFileSystem`.
+        Saves a dataset to a dataset directory, or in a filesystem using any implementation of `fsspec.spec.AbstractFileSystem`.
 
         For [`Image`] and [`Audio`] data:
 
@@ -1601,8 +1600,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     ) -> "Dataset":
         """
         Loads a dataset that was previously saved using [`save_to_disk`] from a dataset directory, or from a
-        filesystem using either `s3fs.S3FileSystem` or any implementation of
-        `fsspec.spec.AbstractFileSystem`.
+        filesystem using any implementation of `fsspec.spec.AbstractFileSystem`.
 
         Args:
             dataset_path (`str`):
@@ -5516,7 +5514,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 }
                 default_metadata_configs_to_dump = {
                     "data_files": [
-                        {"split": _resolved_split, "pattern": f"data/{_resolved_split}-*"}
+                        {"split": _resolved_split, "path": f"data/{_resolved_split}-*"}
                         for _resolved_split in _resolved_splits
                     ]
                 }
@@ -5529,18 +5527,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             else:
                 data_files_to_dump = {}
             # add the new split
-            data_files_to_dump[split] = f"{data_dir}/{split}-*"
+            data_files_to_dump[split] = [f"{data_dir}/{split}-*"]
             metadata_config_to_dump = {
                 "data_files": [
                     {
                         "split": _split,
-                        "pattern": _pattern[0] if isinstance(_pattern, list) and len(_pattern) == 1 else _pattern,
+                        "path": _pattern[0] if len(_pattern) == 1 else _pattern,
                     }
                     for _split, _pattern in data_files_to_dump.items()
                 ]
             }
         else:
-            metadata_config_to_dump = {"data_files": [{"split": split, "pattern": f"{data_dir}/{split}-*"}]}
+            metadata_config_to_dump = {"data_files": [{"split": split, "path": f"{data_dir}/{split}-*"}]}
         # push to the deprecated dataset_infos.json
         if config.DATASETDICT_INFOS_FILENAME in repo_files:
             download_config = DownloadConfig()

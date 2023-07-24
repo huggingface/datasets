@@ -614,19 +614,19 @@ class TestPushToHub:
                 {
                     "config_name": "config1",
                     "data_files": [
-                        {"split": "train", "pattern": "config1/train-*"},
+                        {"split": "train", "path": "config1/train-*"},
                     ],
                 },
                 {
                     "config_name": "config2",
                     "data_files": [
-                        {"split": "train", "pattern": "config2/train-*"},
+                        {"split": "train", "path": "config2/train-*"},
                     ],
                 },
                 {
                     "config_name": "default",
                     "data_files": [
-                        {"split": "train", "pattern": "data/train-*"},
+                        {"split": "train", "path": "data/train-*"},
                     ],
                 },
             ]
@@ -743,22 +743,22 @@ class TestPushToHub:
                 {
                     "config_name": "config1",
                     "data_files": [
-                        {"split": "train", "pattern": "config1/train-*"},
-                        {"split": "random", "pattern": "config1/random-*"},
+                        {"split": "train", "path": "config1/train-*"},
+                        {"split": "random", "path": "config1/random-*"},
                     ],
                 },
                 {
                     "config_name": "config2",
                     "data_files": [
-                        {"split": "train", "pattern": "config2/train-*"},
-                        {"split": "random", "pattern": "config2/random-*"},
+                        {"split": "train", "path": "config2/train-*"},
+                        {"split": "random", "path": "config2/random-*"},
                     ],
                 },
                 {
                     "config_name": "default",
                     "data_files": [
-                        {"split": "train", "pattern": "data/train-*"},
-                        {"split": "random", "pattern": "data/random-*"},
+                        {"split": "train", "path": "data/train-*"},
+                        {"split": "random", "path": "data/random-*"},
                     ],
                 },
             ]

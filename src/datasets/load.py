@@ -2158,8 +2158,7 @@ def load_from_disk(
 ) -> Union[Dataset, DatasetDict]:
     """
     Loads a dataset that was previously saved using [`~Dataset.save_to_disk`] from a dataset directory, or
-    from a filesystem using either [`~datasets.filesystems.S3FileSystem`] or any implementation of
-    `fsspec.spec.AbstractFileSystem`.
+    from a filesystem using any implementation of `fsspec.spec.AbstractFileSystem`.
 
     Args:
         dataset_path (`str`):

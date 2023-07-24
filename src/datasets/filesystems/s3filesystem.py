@@ -1,6 +1,9 @@
 import s3fs
 
+from ..utils.deprecation_utils import deprecated
 
+
+@deprecated("Use s3fs.S3FileSystem instead.")
 class S3FileSystem(s3fs.S3FileSystem):
     """
     `datasets.filesystems.S3FileSystem` is a subclass of [`s3fs.S3FileSystem`](https://s3fs.readthedocs.io/en/latest/api.html).
