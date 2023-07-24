@@ -113,7 +113,7 @@ REQUIRED_PKGS = [
     # Minimum 8.0.0 to be able to use .to_reader()
     "pyarrow>=8.0.0",
     # For smart caching dataset processing
-    "dill>=0.3.0,<0.3.7",  # tmp pin until next 0.3.7 release: see https://github.com/huggingface/datasets/pull/5166
+    "dill>=0.3.0,<0.3.8",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
     # For performance gains with apache arrow
     "pandas",
     # for downloading datasets over HTTPS
