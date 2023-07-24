@@ -1,7 +1,7 @@
 # docstyle-ignore
 INSTALL_CONTENT = """
 # Datasets installation
-! pip install datasets
+! pip install datasets transformers
 # To install from source instead of the last release, comment the command above and uncomment the following one.
 # ! pip install git+https://github.com/huggingface/datasets.git
 """
