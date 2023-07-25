@@ -219,6 +219,7 @@ class _tqdm_cls:
             return tqdm_lib.tqdm.get_lock()
 
     def __delattr__(self, attr):
+        """fix for https://github.com/huggingface/datasets/issues/6066"""
         try:
             del self.__dict__[attr]
         except KeyError:
