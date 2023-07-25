@@ -202,8 +202,6 @@ _tqdm_active = True
 
 
 class _tqdm_cls:
-    _lock = None
-
     def __call__(self, *args, disable=False, **kwargs):
         if _tqdm_active and not disable:
             return tqdm_lib.tqdm(*args, **kwargs)
@@ -218,6 +216,14 @@ class _tqdm_cls:
     def get_lock(self):
         if _tqdm_active:
             return tqdm_lib.tqdm.get_lock()
+
+    def __delattr__(self, attr):
+        """fix for https://github.com/huggingface/datasets/issues/6066"""
+        try:
+            del self.__dict__[attr]
+        except KeyError:
+            if attr != "_lock":
+                raise AttributeError(attr)
 
 
 tqdm = _tqdm_cls()
