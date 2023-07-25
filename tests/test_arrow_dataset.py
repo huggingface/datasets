@@ -2838,6 +2838,28 @@ class BaseDatasetTest(TestCase):
                 )
                 self.assertEqual(str(new_dataset[:2]), str({"texts": [[], ["This", "is", "a", "test"]]}))
 
+
+    def test_with_map_incorrect_typehint(self, in_memory):
+        class DatasetTyped(TypedDict):
+            mismarked_column: int
+
+        def dataset_typed_map(example) -> DatasetTyped:
+            return {"mismarked_column": "A"}
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dataset = {"text_column": ["ABC"]}
+
+            with Dataset.from_dict(dataset) as dset:
+                if not in_memory:
+                    dset = self._to(in_memory, tmp_dir, dset)
+
+                with pytest.raises(datasets.arrow_dataset.DatasetTransformationNotAllowedError, match="typehint guessing failed"):
+                    dataset = dset.map(
+                        dataset_typed_map,
+                        num_proc=1,
+                        remove_columns=dset.column_names,
+                    )
+
     @require_tf
     def test_tf_dataset_conversion(self, in_memory):
         tmp_dir = tempfile.TemporaryDirectory()

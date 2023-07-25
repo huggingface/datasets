@@ -3303,6 +3303,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             return None
 
         # If explicit features are not provided, attempt to infer them from the mapping function's return signature
+        features_resolved_from_typehint = False
         if not features:
             new_features = infer_features_from_callable(function)
             if new_features:
@@ -3315,7 +3316,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     },
                     **new_features
                 })
-                print("new features", features)
+                features_resolved_from_typehint = True
 
         # We set this variable to True after processing the first example/batch in
         # `apply_function_on_filtered_inputs` if the map function returns a dict.
@@ -3531,6 +3532,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             num_examples_progress_update = 0
                 if update_data and writer is not None:
                     writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
+            except pa.lib.ArrowInvalid as e:
+                if features_resolved_from_typehint:
+                    raise DatasetTransformationNotAllowedError(
+                        f"Using `.map` with typehint guessing failed. Check your typehints for: `{function.__name__}` to make sure they align with your map response."
+                    )
+                raise e
             except (Exception, KeyboardInterrupt):
                 yield rank, False, num_examples_progress_update
                 if update_data:
