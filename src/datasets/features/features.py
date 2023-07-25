@@ -1382,7 +1382,7 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
         raise ValueError(f"Cannot convert {pa_type} to a Feature type.")
 
 
-def generate_from_python_typehints(type_definition: type | dict[str, type]) -> FeatureType:
+def generate_from_python_typehints(type_definition: type | Dict[str, type]) -> FeatureType:
     """Build a Features definition from a type-hinted function signature."""
     origin = get_origin(type_definition)
     args = get_args(type_definition)

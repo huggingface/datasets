@@ -11,7 +11,7 @@ from functools import partial
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
-from typing import TypedDict, Union
+from typing import TypedDict, List
 
 import numpy as np
 import numpy.testing as npt
@@ -2804,7 +2804,7 @@ class BaseDatasetTest(TestCase):
 
     def test_with_map_typehint(self, in_memory):
         class DatasetTyped(TypedDict):
-            texts: list[str]
+            texts: List[str]
 
         def dataset_untyped_map(batch):
             return {"texts": [text.split() for text in batch["raw_text"]]}
