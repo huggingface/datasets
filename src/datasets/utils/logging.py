@@ -202,7 +202,6 @@ _tqdm_active = True
 
 
 class _tqdm_cls:
-    _lock = None
 
     def __call__(self, *args, disable=False, **kwargs):
         if _tqdm_active and not disable:
@@ -218,6 +217,13 @@ class _tqdm_cls:
     def get_lock(self):
         if _tqdm_active:
             return tqdm_lib.tqdm.get_lock()
+
+    def __delattr__(self, attr):
+        try:
+            del self.__dict__[attr]
+        except KeyError:
+            if attr != "_lock":
+                raise AttributeError(attr)
 
 
 tqdm = _tqdm_cls()
