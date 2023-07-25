@@ -216,6 +216,11 @@ QUALITY_REQUIRE = ["black~=23.1", "ruff>=0.0.241", "pyyaml>=5.3.1"]
 DOCS_REQUIRE = [
     # Might need to add doc-builder and some specific deps in the future
     "s3fs",
+    # Following dependencies are required for the Python reference to be built properly
+    "transformers",
+    "torch",
+    "tensorflow>=2.2.0,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
+    "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
 ]
 
 EXTRAS_REQUIRE = {

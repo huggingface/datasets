@@ -134,9 +134,6 @@ For more details on using the library, check the quick start page in the documen
 - Writing your own dataset loading script: https://huggingface.co/docs/datasets/dataset_script
 - etc.
 
-Another introduction to 🤗 Datasets is the tutorial on Google Colab here:
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/huggingface/datasets/blob/main/notebooks/Overview.ipynb)
-
 # Add a new dataset to the Hub
 
 We have a very detailed step-by-step guide to add a new dataset to the ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) datasets already provided on the [HuggingFace Datasets Hub](https://huggingface.co/datasets).
