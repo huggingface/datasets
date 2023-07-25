@@ -113,16 +113,16 @@ To set your dataset as private, set the `private` parameter to `True`. This para
 
 A private dataset is only accessible by you. Similarly, if you share a dataset within your organization, then members of the organization can also access the dataset.
 
-Load a private dataset by providing your authentication token to the `use_auth_token` parameter:
+Load a private dataset by providing your authentication token to the `token` parameter:
 
 ```py
 >>> from datasets import load_dataset
 
 # Load a private individual dataset
->>> dataset = load_dataset("stevhliu/demo", use_auth_token=True)
+>>> dataset = load_dataset("stevhliu/demo", token=True)
 
 # Load a private organization dataset
->>> dataset = load_dataset("organization/dataset_name", use_auth_token=True)
+>>> dataset = load_dataset("organization/dataset_name", token=True)
 ```
 
 ## What's next?
@@ -133,6 +133,6 @@ From here, you can go on to:
 
 - Learn more about how to use 🤗 Datasets other functions to [process your dataset](process).
 - [Stream large datasets](stream) without downloading it locally.
-- [Write a dataset loading script](dataset_script) and share your dataset with the community.
+- [Define your dataset splits and configurations](repository_structure) or [loading script](dataset_script) and share your dataset with the community.
 
 If you have any questions about 🤗 Datasets, feel free to join and ask the community on our [forum](https://discuss.huggingface.co/c/datasets/10).

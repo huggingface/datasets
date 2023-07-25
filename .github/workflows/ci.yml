@@ -21,7 +21,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.7"
+          python-version: "3.8"
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -44,10 +44,10 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Set up Python 3.7
+      - name: Set up Python 3.8
         uses: actions/setup-python@v4
         with:
-          python-version: "3.7"
+          python-version: "3.8"
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
       - name: Pin setuptools-scm
@@ -64,7 +64,7 @@ jobs:
         run: pip install --upgrade pyarrow huggingface-hub dill
       - name: Install depencencies (minimum versions)
         if: ${{ matrix.deps_versions != 'deps-latest' }}
-        run: pip install pyarrow==8.0.0 huggingface-hub==0.11.0 transformers dill==0.3.1.1
+        run: pip install pyarrow==8.0.0 huggingface-hub==0.14.0 transformers dill==0.3.1.1
       - name: Test with pytest
         run: |
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/

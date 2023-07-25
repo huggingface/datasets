@@ -31,6 +31,14 @@ class SparkConfig(datasets.BuilderConfig):
     features: Optional[datasets.Features] = None
 
 
+def _reorder_dataframe_by_partition(df: "pyspark.sql.DataFrame", new_partition_order: List[int]):
+    df_combined = df.select("*").where(f"part_id = {new_partition_order[0]}")
+    for partition_id in new_partition_order[1:]:
+        partition_df = df.select("*").where(f"part_id = {partition_id}")
+        df_combined = df_combined.union(partition_df)
+    return df_combined
+
+
 def _generate_iterable_examples(
     df: "pyspark.sql.DataFrame",
     partition_order: List[int],
@@ -39,13 +47,20 @@ def _generate_iterable_examples(
 
     def generate_fn():
         df_with_partition_id = df.select("*", pyspark.sql.functions.spark_partition_id().alias("part_id"))
-        for partition_id in partition_order:
-            partition_df = df_with_partition_id.select("*").where(f"part_id = {partition_id}").drop("part_id")
-            rows = partition_df.collect()
-            row_id = 0
-            for row in rows:
-                yield f"{partition_id}_{row_id}", row.asDict()
-                row_id += 1
+        partition_df = _reorder_dataframe_by_partition(df_with_partition_id, partition_order)
+        row_id = 0
+        # pipeline next partition in parallel to hide latency
+        rows = partition_df.toLocalIterator(prefetchPartitions=True)
+        curr_partition = -1
+        for row in rows:
+            row_as_dict = row.asDict()
+            part_id = row_as_dict["part_id"]
+            row_as_dict.pop("part_id")
+            if curr_partition != part_id:
+                curr_partition = part_id
+                row_id = 0
+            yield f"{part_id}_{row_id}", row_as_dict
+            row_id += 1
 
     return generate_fn
 
@@ -84,12 +99,14 @@ class Spark(datasets.DatasetBuilder):
         self,
         df: "pyspark.sql.DataFrame",
         cache_dir: str = None,
+        working_dir: str = None,
         **config_kwargs,
     ):
         import pyspark
 
         self._spark = pyspark.sql.SparkSession.builder.getOrCreate()
         self.df = df
+        self._working_dir = working_dir
 
         super().__init__(
             cache_dir=cache_dir,
@@ -98,12 +115,16 @@ class Spark(datasets.DatasetBuilder):
         )
 
     def _validate_cache_dir(self):
+        # Define this so that we don't reference self in create_cache_and_write_probe, which will result in a pickling
+        # error due to pickling the SparkContext.
+        cache_dir = self._cache_dir
+
         # Returns the path of the created file.
         def create_cache_and_write_probe(context):
             # makedirs with exist_ok will recursively create the directory. It will not throw an error if directories
             # already exist.
-            os.makedirs(self._cache_dir, exist_ok=True)
-            probe_file = os.path.join(self._cache_dir, "fs_test" + uuid.uuid4().hex)
+            os.makedirs(cache_dir, exist_ok=True)
+            probe_file = os.path.join(cache_dir, "fs_test" + uuid.uuid4().hex)
             # Opening the file in append mode will create a new file unless it already exists, in which case it will not
             # change the file contents.
             open(probe_file, "a")
@@ -132,6 +153,31 @@ class Spark(datasets.DatasetBuilder):
     def _split_generators(self, dl_manager: datasets.download.download_manager.DownloadManager):
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN)]
 
+    def _repartition_df_if_needed(self, max_shard_size):
+        import pyspark
+
+        def get_arrow_batch_size(it):
+            for batch in it:
+                yield pa.RecordBatch.from_pydict({"batch_bytes": [batch.nbytes]})
+
+        df_num_rows = self.df.count()
+        sample_num_rows = df_num_rows if df_num_rows <= 100 else 100
+        # Approximate the size of each row (in Arrow format) by averaging over a max-100-row sample.
+        approx_bytes_per_row = (
+            self.df.limit(sample_num_rows)
+            .repartition(1)
+            .mapInArrow(get_arrow_batch_size, "batch_bytes: long")
+            .agg(pyspark.sql.functions.sum("batch_bytes").alias("sample_bytes"))
+            .collect()[0]
+            .sample_bytes
+            / sample_num_rows
+        )
+        approx_total_size = approx_bytes_per_row * df_num_rows
+        if approx_total_size > max_shard_size:
+            # Make sure there is at least one row per partition.
+            new_num_partitions = min(df_num_rows, int(approx_total_size / max_shard_size))
+            self.df = self.df.repartition(new_num_partitions)
+
     def _prepare_split_single(
         self,
         fpath: str,
@@ -141,6 +187,7 @@ class Spark(datasets.DatasetBuilder):
         import pyspark
 
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
+        working_fpath = os.path.join(self._working_dir, os.path.basename(fpath)) if self._working_dir else fpath
         embed_local_files = file_format == "parquet"
 
         # Define these so that we don't reference self in write_arrow, which will result in a pickling error due to
@@ -162,7 +209,7 @@ class Spark(datasets.DatasetBuilder):
             shard_id = 0
             writer = writer_class(
                 features=features,
-                path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
+                path=working_fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
                 writer_batch_size=writer_batch_size,
                 storage_options=storage_options,
                 embed_local_files=embed_local_files,
@@ -180,7 +227,7 @@ class Spark(datasets.DatasetBuilder):
                     shard_id += 1
                     writer = writer_class(
                         features=writer._features,
-                        path=fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
+                        path=working_fpath.replace("SSSSS", f"{shard_id:05d}").replace("TTTTT", f"{task_id:05d}"),
                         writer_batch_size=writer_batch_size,
                         storage_options=storage_options,
                         embed_local_files=embed_local_files,
@@ -195,6 +242,11 @@ class Spark(datasets.DatasetBuilder):
                     [[task_id], [num_examples], [num_bytes]],
                     names=["task_id", "num_examples", "num_bytes"],
                 )
+
+            if working_fpath != fpath:
+                for file in os.listdir(os.path.dirname(working_fpath)):
+                    dest = os.path.join(os.path.dirname(fpath), os.path.basename(file))
+                    shutil.move(file, dest)
 
         stats = (
             self.df.mapInArrow(write_arrow, "task_id: long, num_examples: long, num_bytes: long")
@@ -221,6 +273,7 @@ class Spark(datasets.DatasetBuilder):
         self._validate_cache_dir()
 
         max_shard_size = convert_file_size_to_int(max_shard_size or MAX_SHARD_SIZE)
+        self._repartition_df_if_needed(max_shard_size)
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
 

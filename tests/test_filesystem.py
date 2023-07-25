@@ -1,10 +1,12 @@
+import importlib
 import os
 
 import fsspec
 import pytest
+from fsspec import register_implementation
 from fsspec.registry import _registry as _fsspec_registry
 
-from datasets.filesystems import COMPRESSION_FILESYSTEMS, HfFileSystem, extract_path_from_uri, is_remote_filesystem
+from datasets.filesystems import COMPRESSION_FILESYSTEMS, extract_path_from_uri, is_remote_filesystem
 
 from .utils import require_lz4, require_zstandard
 
@@ -71,12 +73,19 @@ def test_fs_isfile(protocol, zip_jsonl_path, jsonl_gz_path):
     assert not fs.isfile("non_existing_" + member_file_path)
 
 
-@pytest.mark.integration
-def test_hf_filesystem(hf_token, hf_api, hf_private_dataset_repo_txt_data, text_file):
-    repo_info = hf_api.dataset_info(hf_private_dataset_repo_txt_data, token=hf_token)
-    hffs = HfFileSystem(repo_info=repo_info, token=hf_token)
-    assert sorted(hffs.glob("*")) == [".gitattributes", "data"]
-    assert hffs.isdir("data")
-    assert hffs.isfile(".gitattributes") and hffs.isfile("data/text_data.txt")
-    with open(text_file) as f:
-        assert hffs.open("data/text_data.txt", "r").read() == f.read()
+def test_fs_overwrites():
+    protocol = "bz2"
+
+    # Import module
+    import datasets.filesystems
+
+    # Overwrite protocol and reload
+    register_implementation(protocol, None, clobber=True)
+    with pytest.warns(UserWarning) as warning_info:
+        importlib.reload(datasets.filesystems)
+
+    assert len(warning_info) == 1
+    assert (
+        str(warning_info[0].message)
+        == f"A filesystem protocol was already set for {protocol} and will be overwritten."
+    )

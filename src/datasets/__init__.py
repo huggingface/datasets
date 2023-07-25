@@ -17,28 +17,7 @@
 # pylint: enable=line-too-long
 # pylint: disable=g-import-not-at-top,g-bad-import-order,wrong-import-position
 
-__version__ = "2.12.1.dev0"
-
-import platform
-
-import pyarrow
-from packaging import version
-
-
-if version.parse(platform.python_version()) < version.parse("3.7"):
-    raise ImportWarning(
-        "To use `datasets`, Python>=3.7 is required, and the current version of Python doesn't match this condition."
-    )
-
-if version.parse(pyarrow.__version__).major < 8:
-    raise ImportWarning(
-        "To use `datasets`, the module `pyarrow>=8.0.0` is required, and the current version of `pyarrow` doesn't match this condition.\n"
-        "If you are running this in a Google Colab, you should probably just restart the runtime to use the right version of `pyarrow`."
-    )
-
-del platform
-del pyarrow
-del version
+__version__ = "2.14.1.dev0"
 
 from .arrow_dataset import Dataset
 from .arrow_reader import ReadInstruction

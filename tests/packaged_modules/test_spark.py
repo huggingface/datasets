@@ -3,6 +3,7 @@ from unittest.mock import patch
 import pyspark
 
 from datasets.packaged_modules.spark.spark import (
+    Spark,
     SparkExamplesIterable,
     _generate_iterable_examples,
 )
@@ -20,6 +21,19 @@ def _get_expected_row_ids_and_row_dicts_for_partition_order(df, partition_order)
         for row_idx, row in enumerate(partition):
             expected_row_ids_and_row_dicts.append((f"{part_id}_{row_idx}", row.asDict()))
     return expected_row_ids_and_row_dicts
+
+
+@require_not_windows
+@require_dill_gt_0_3_2
+def test_repartition_df_if_needed():
+    spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
+    df = spark.range(100).repartition(1)
+    spark_builder = Spark(df)
+    # The id ints will be converted to Pyarrow int64s, so each row will be 8 bytes. Setting a max_shard_size of 16 means
+    # that each partition can hold 2 rows.
+    spark_builder._repartition_df_if_needed(max_shard_size=16)
+    # Given that the dataframe has 100 rows and each partition has 2 rows, we expect 50 partitions.
+    assert spark_builder.df.rdd.getNumPartitions() == 50
 
 
 @require_not_windows
@@ -90,3 +104,15 @@ def test_spark_examples_iterable_shard():
         expected_row_id, expected_row_dict = expected_row_ids_and_row_dicts_2[i]
         assert row_id == expected_row_id
         assert row_dict == expected_row_dict
+
+
+@require_not_windows
+@require_dill_gt_0_3_2
+def test_repartition_df_if_needed_max_num_df_rows():
+    spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
+    df = spark.range(100).repartition(1)
+    spark_builder = Spark(df)
+    # Choose a small max_shard_size for maximum partitioning.
+    spark_builder._repartition_df_if_needed(max_shard_size=1)
+    # The new number of partitions should not be greater than the number of rows.
+    assert spark_builder.df.rdd.getNumPartitions() == 100

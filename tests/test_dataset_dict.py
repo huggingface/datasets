@@ -8,8 +8,9 @@ import pytest
 
 from datasets import load_from_disk
 from datasets.arrow_dataset import Dataset
-from datasets.dataset_dict import DatasetDict
+from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.features import ClassLabel, Features, Sequence, Value
+from datasets.iterable_dataset import IterableDataset
 from datasets.splits import NamedSplit
 
 from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, require_tf, require_torch
@@ -31,6 +32,26 @@ class DatasetDictTest(TestCase):
             {
                 "train": self._create_dummy_dataset(multiple_columns=multiple_columns),
                 "test": self._create_dummy_dataset(multiple_columns=multiple_columns),
+            }
+        )
+
+    def _create_dummy_iterable_dataset(self, multiple_columns=False) -> IterableDataset:
+        def gen():
+            if multiple_columns:
+                data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}
+                for v1, v2 in zip(data["col_1"], data["col_2"]):
+                    yield {"col_1": v1, "col_2": v2}
+            else:
+                for x in range(30):
+                    yield {"filename": "my_name-train" + "_" + f"{x:03d}"}
+
+        return IterableDataset.from_generator(gen)
+
+    def _create_dummy_iterable_dataset_dict(self, multiple_columns=False) -> IterableDatasetDict:
+        return IterableDatasetDict(
+            {
+                "train": self._create_dummy_iterable_dataset(multiple_columns=multiple_columns),
+                "test": self._create_dummy_iterable_dataset(multiple_columns=multiple_columns),
             }
         )
 
@@ -278,6 +299,19 @@ class DatasetDictTest(TestCase):
             self.assertListEqual(sorted(mapped_dsets_2["train"].column_names), sorted(["filename", "foo", "bar"]))
             del dsets, mapped_dsets_1, mapped_dsets_2
 
+    def test_iterable_map(self):
+        dsets = self._create_dummy_iterable_dataset_dict()
+        fn_kwargs = {"n": 3}
+        mapped_dsets: IterableDatasetDict = dsets.map(
+            lambda x, n: {"foo": [n] * len(x["filename"])},
+            batched=True,
+            fn_kwargs=fn_kwargs,
+        )
+        mapped_example = next(iter(mapped_dsets["train"]))
+        self.assertListEqual(sorted(mapped_example.keys()), sorted(["filename", "foo"]))
+        self.assertLessEqual(mapped_example["foo"], 3)
+        del dsets, mapped_dsets
+
     def test_filter(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dsets = self._create_dummy_dataset_dict()
@@ -302,6 +336,18 @@ class DatasetDictTest(TestCase):
             self.assertListEqual(list(dsets.keys()), list(filtered_dsets_3.keys()))
             self.assertEqual(len(filtered_dsets_3["train"]), 10)
             del dsets, filtered_dsets_1, filtered_dsets_2, filtered_dsets_3
+
+    def test_iterable_filter(self):
+        dsets = self._create_dummy_iterable_dataset_dict()
+        example = next(iter(dsets["train"]))
+        fn_kwargs = {"n": 3}
+        filtered_dsets: IterableDatasetDict = dsets.filter(
+            lambda ex, n: n < int(ex["filename"].split("_")[-1]), fn_kwargs=fn_kwargs
+        )
+        filtered_example = next(iter(filtered_dsets["train"]))
+        self.assertListEqual(list(example.keys()), list(filtered_example.keys()))
+        self.assertEqual(int(filtered_example["filename"].split("_")[-1]), 4)  # id starts from 3
+        del dsets, filtered_dsets
 
     def test_sort(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -384,6 +430,28 @@ class DatasetDictTest(TestCase):
 
             del dsets, dsets_shuffled, dsets_shuffled_2, dsets_shuffled_3
             del dsets_shuffled_int, dsets_shuffled_alias, dsets_shuffled_none
+
+    def test_flatten_indices(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dsets = self._create_dummy_dataset_dict()
+
+            indices_cache_file_names = {
+                "train": os.path.join(tmp_dir, "train.arrow"),
+                "test": os.path.join(tmp_dir, "test.arrow"),
+            }
+            dsets_shuffled = dsets.shuffle(
+                seed=42, indices_cache_file_names=indices_cache_file_names, load_from_cache_file=False
+            )
+
+            self.assertIsNotNone(dsets_shuffled["train"]._indices)
+            self.assertIsNotNone(dsets_shuffled["test"]._indices)
+
+            dsets_flat = dsets_shuffled.flatten_indices()
+
+            self.assertIsNone(dsets_flat["train"]._indices)
+            self.assertIsNone(dsets_flat["test"]._indices)
+
+            del dsets, dsets_shuffled, dsets_flat
 
     def test_check_values_type(self):
         dsets = self._create_dummy_dataset_dict()

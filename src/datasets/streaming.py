@@ -1,8 +1,9 @@
 import importlib
 import inspect
 from functools import wraps
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Optional
 
+from .download.download_config import DownloadConfig
 from .download.streaming_download_manager import (
     xbasename,
     xdirname,
@@ -39,7 +40,7 @@ if TYPE_CHECKING:
     from .builder import DatasetBuilder
 
 
-def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str, bool]] = None):
+def extend_module_for_streaming(module_path, download_config: Optional[DownloadConfig] = None):
     """Extend the module to support streaming.
 
     We patch some functions in the module to use `fsspec` to support data streaming:
@@ -55,20 +56,22 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
 
     Args:
         module_path: Path to the module to be extended.
-        use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-            If True, or not specified, will get token from `"~/.huggingface"`.
+        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
     """
 
     module = importlib.import_module(module_path)
 
-    # TODO(QL): always update the module to add subsequent new authentication
+    # TODO(QL): always update the module to add subsequent new authentication without removing old ones
     if hasattr(module, "_patched_for_streaming") and module._patched_for_streaming:
+        if isinstance(module._patched_for_streaming, DownloadConfig):
+            module._patched_for_streaming.token = download_config.token
+            module._patched_for_streaming.storage_options = download_config.storage_options
         return
 
     def wrap_auth(function):
         @wraps(function)
         def wrapper(*args, **kwargs):
-            return function(*args, use_auth_token=use_auth_token, **kwargs)
+            return function(*args, download_config=download_config, **kwargs)
 
         wrapper._decorator_name_ = "wrap_auth"
         return wrapper
@@ -99,7 +102,7 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
     patch_submodule(module, "scipy.io.loadmat", wrap_auth(xsio_loadmat), attrs=["__version__"]).start()
     patch_submodule(module, "xml.etree.ElementTree.parse", wrap_auth(xet_parse)).start()
     patch_submodule(module, "xml.dom.minidom.parse", wrap_auth(xxml_dom_minidom_parse)).start()
-    module._patched_for_streaming = True
+    module._patched_for_streaming = download_config
 
 
 def extend_dataset_builder_for_streaming(builder: "DatasetBuilder"):
@@ -109,14 +112,15 @@ def extend_dataset_builder_for_streaming(builder: "DatasetBuilder"):
         builder (:class:`DatasetBuilder`): Dataset builder instance.
     """
     # this extends the open and os.path.join functions for data streaming
-    extend_module_for_streaming(builder.__module__, use_auth_token=builder.use_auth_token)
+    download_config = DownloadConfig(storage_options=builder.storage_options, token=builder.token)
+    extend_module_for_streaming(builder.__module__, download_config=download_config)
     # if needed, we also have to extend additional internal imports (like wmt14 -> wmt_utils)
     if not builder.__module__.startswith("datasets."):  # check that it's not a packaged builder like csv
         for imports in get_imports(inspect.getfile(builder.__class__)):
             if imports[0] == "internal":
                 internal_import_name = imports[1]
                 internal_module_name = ".".join(builder.__module__.split(".")[:-1] + [internal_import_name])
-                extend_module_for_streaming(internal_module_name, use_auth_token=builder.use_auth_token)
+                extend_module_for_streaming(internal_module_name, download_config=download_config)
 
     # builders can inherit from other builders that might use streaming functionality
     # (for example, ImageFolder and AudioFolder inherit from FolderBuilder which implements examples generation)
@@ -129,4 +133,4 @@ def extend_dataset_builder_for_streaming(builder: "DatasetBuilder"):
         if issubclass(cls, DatasetBuilder) and cls.__module__ != DatasetBuilder.__module__
     ]  # check it's not a standard builder from datasets.builder
     for module in parent_builder_modules:
-        extend_module_for_streaming(module, use_auth_token=builder.use_auth_token)
+        extend_module_for_streaming(module, download_config=download_config)

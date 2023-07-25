@@ -7,6 +7,7 @@ import pytest
 from fsspec.registry import _registry as _fsspec_registry
 from fsspec.spec import AbstractBufferedFile, AbstractFileSystem
 
+from datasets.download.download_config import DownloadConfig
 from datasets.download.streaming_download_manager import (
     StreamingDownloadManager,
     _get_extraction_protocol,
@@ -236,8 +237,9 @@ def test_xexists(input_path, exists, tmp_path, mock_fsspec):
 @pytest.mark.integration
 def test_xexists_private(hf_private_dataset_repo_txt_data, hf_token):
     root_url = hf_hub_url(hf_private_dataset_repo_txt_data, "")
-    assert xexists(root_url + "data/text_data.txt", use_auth_token=hf_token)
-    assert not xexists(root_url + "file_that_doesnt_exist.txt", use_auth_token=hf_token)
+    download_config = DownloadConfig(token=hf_token)
+    assert xexists(root_url + "data/text_data.txt", download_config=download_config)
+    assert not xexists(root_url + "file_that_doesnt_exist.txt", download_config=download_config)
 
 
 @pytest.mark.parametrize(
@@ -320,12 +322,13 @@ def test_xlistdir(input_path, expected_paths, tmp_path, mock_fsspec):
 @pytest.mark.integration
 def test_xlistdir_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
     root_url = hf_hub_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
-    assert len(xlistdir("zip://::" + root_url, use_auth_token=hf_token)) == 1
-    assert len(xlistdir("zip://main_dir::" + root_url, use_auth_token=hf_token)) == 2
+    download_config = DownloadConfig(token=hf_token)
+    assert len(xlistdir("zip://::" + root_url, download_config=download_config)) == 1
+    assert len(xlistdir("zip://main_dir::" + root_url, download_config=download_config)) == 2
     with pytest.raises(FileNotFoundError):
-        xlistdir("zip://qwertyuiop::" + root_url, use_auth_token=hf_token)
-    with pytest.raises(NotImplementedError):
-        xlistdir(root_url, use_auth_token=hf_token)
+        xlistdir("zip://qwertyuiop::" + root_url, download_config=download_config)
+    with pytest.raises(FileNotFoundError):
+        xlistdir(root_url, download_config=download_config)
 
 
 @pytest.mark.parametrize(
@@ -348,11 +351,11 @@ def test_xisdir(input_path, isdir, tmp_path, mock_fsspec):
 @pytest.mark.integration
 def test_xisdir_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
     root_url = hf_hub_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
-    assert xisdir("zip://::" + root_url, use_auth_token=hf_token) is True
-    assert xisdir("zip://main_dir::" + root_url, use_auth_token=hf_token) is True
-    assert xisdir("zip://qwertyuiop::" + root_url, use_auth_token=hf_token) is False
-    with pytest.raises(NotImplementedError):
-        xisdir(root_url, use_auth_token=hf_token)
+    download_config = DownloadConfig(token=hf_token)
+    assert xisdir("zip://::" + root_url, download_config=download_config) is True
+    assert xisdir("zip://main_dir::" + root_url, download_config=download_config) is True
+    assert xisdir("zip://qwertyuiop::" + root_url, download_config=download_config) is False
+    assert xisdir(root_url, download_config=download_config) is False
 
 
 @pytest.mark.parametrize(
@@ -374,8 +377,9 @@ def test_xisfile(input_path, isfile, tmp_path, mock_fsspec):
 @pytest.mark.integration
 def test_xisfile_private(hf_private_dataset_repo_txt_data, hf_token):
     root_url = hf_hub_url(hf_private_dataset_repo_txt_data, "")
-    assert xisfile(root_url + "data/text_data.txt", use_auth_token=hf_token) is True
-    assert xisfile(root_url + "qwertyuiop", use_auth_token=hf_token) is False
+    download_config = DownloadConfig(token=hf_token)
+    assert xisfile(root_url + "data/text_data.txt", download_config=download_config) is True
+    assert xisfile(root_url + "qwertyuiop", download_config=download_config) is False
 
 
 @pytest.mark.parametrize(
@@ -397,9 +401,10 @@ def test_xgetsize(input_path, size, tmp_path, mock_fsspec):
 @pytest.mark.integration
 def test_xgetsize_private(hf_private_dataset_repo_txt_data, hf_token):
     root_url = hf_hub_url(hf_private_dataset_repo_txt_data, "")
-    assert xgetsize(root_url + "data/text_data.txt", use_auth_token=hf_token) == 39
+    download_config = DownloadConfig(token=hf_token)
+    assert xgetsize(root_url + "data/text_data.txt", download_config=download_config) == 39
     with pytest.raises(FileNotFoundError):
-        xgetsize(root_url + "qwertyuiop", use_auth_token=hf_token)
+        xgetsize(root_url + "qwertyuiop", download_config=download_config)
 
 
 @pytest.mark.parametrize(
@@ -440,8 +445,9 @@ def test_xglob(input_path, expected_paths, tmp_path, mock_fsspec):
 @pytest.mark.integration
 def test_xglob_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
     root_url = hf_hub_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
-    assert len(xglob("zip://**::" + root_url, use_auth_token=hf_token)) == 3
-    assert len(xglob("zip://qwertyuiop/*::" + root_url, use_auth_token=hf_token)) == 0
+    download_config = DownloadConfig(token=hf_token)
+    assert len(xglob("zip://**::" + root_url, download_config=download_config)) == 3
+    assert len(xglob("zip://qwertyuiop/*::" + root_url, download_config=download_config)) == 0
 
 
 @pytest.mark.parametrize(
@@ -478,9 +484,10 @@ def test_xwalk(input_path, expected_outputs, tmp_path, mock_fsspec):
 @pytest.mark.integration
 def test_xwalk_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
     root_url = hf_hub_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
-    assert len(list(xwalk("zip://::" + root_url, use_auth_token=hf_token))) == 2
-    assert len(list(xwalk("zip://main_dir::" + root_url, use_auth_token=hf_token))) == 1
-    assert len(list(xwalk("zip://qwertyuiop::" + root_url, use_auth_token=hf_token))) == 0
+    download_config = DownloadConfig(token=hf_token)
+    assert len(list(xwalk("zip://::" + root_url, download_config=download_config))) == 2
+    assert len(list(xwalk("zip://main_dir::" + root_url, download_config=download_config))) == 1
+    assert len(list(xwalk("zip://qwertyuiop::" + root_url, download_config=download_config))) == 0
 
 
 @pytest.mark.parametrize(

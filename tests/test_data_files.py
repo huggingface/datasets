@@ -6,21 +6,17 @@ from unittest.mock import patch
 import fsspec
 import pytest
 from fsspec.spec import AbstractFileSystem
-from huggingface_hub.hf_api import DatasetInfo
 
 from datasets.data_files import (
     DataFilesDict,
     DataFilesList,
-    Url,
     _get_data_files_patterns,
     _get_metadata_files_patterns,
     _is_inside_unrequested_special_dir,
     _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir,
-    resolve_patterns_in_dataset_repository,
-    resolve_patterns_locally_or_by_urls,
+    resolve_pattern,
 )
 from datasets.fingerprint import Hasher
-from datasets.utils.hub import hf_hub_url
 
 
 _TEST_PATTERNS = ["*", "**", "**/*", "*.txt", "data/*", "**/*.txt", "**/train.txt"]
@@ -100,7 +96,7 @@ def pattern_results(complex_data_dir):
 
     return {
         pattern: sorted(
-            str(Path(os.path.abspath(path)))
+            Path(os.path.abspath(path)).as_posix()
             for path in fsspec.filesystem("file").glob(os.path.join(complex_data_dir, pattern))
             if Path(path).name not in _FILES_TO_IGNORE
             and not any(
@@ -113,25 +109,19 @@ def pattern_results(complex_data_dir):
 
 
 @pytest.fixture
-def hub_dataset_info(complex_data_dir):
-    return DatasetInfo(
-        siblings=[
-            {"rfilename": path.relative_to(complex_data_dir).as_posix()}
-            for path in Path(complex_data_dir).rglob("*")
-            if path.is_file()
-        ],
-        sha="foobarfoobar",
-        id="foo",
-    )
+def hub_dataset_repo_path(tmpfs, complex_data_dir):
+    for path in Path(complex_data_dir).rglob("*"):
+        if path.is_file():
+            with tmpfs.open(path.relative_to(complex_data_dir).as_posix(), "wb") as f:
+                f.write(path.read_bytes())
+    yield "tmp://"
 
 
 @pytest.fixture
-def hub_dataset_info_patterns_results(hub_dataset_info, complex_data_dir, pattern_results):
+def hub_dataset_repo_patterns_results(hub_dataset_repo_path, complex_data_dir, pattern_results):
     return {
         pattern: [
-            hf_hub_url(
-                hub_dataset_info.id, Path(path).relative_to(complex_data_dir).as_posix(), revision=hub_dataset_info.sha
-            )
+            hub_dataset_repo_path + Path(path).relative_to(complex_data_dir).as_posix()
             for path in pattern_results[pattern]
         ]
         for pattern in pattern_results
@@ -181,241 +171,210 @@ def test_pattern_results_fixture(pattern_results, pattern):
 
 
 @pytest.mark.parametrize("pattern", _TEST_PATTERNS)
-def test_resolve_patterns_locally_or_by_urls(complex_data_dir, pattern, pattern_results):
+def test_resolve_pattern_locally(complex_data_dir, pattern, pattern_results):
     try:
-        resolved_data_files = resolve_patterns_locally_or_by_urls(complex_data_dir, [pattern])
+        resolved_data_files = resolve_pattern(pattern, complex_data_dir)
         assert sorted(str(f) for f in resolved_data_files) == pattern_results[pattern]
-        assert all(isinstance(path, Path) for path in resolved_data_files)
     except FileNotFoundError:
         assert len(pattern_results[pattern]) == 0
 
 
-def test_resolve_patterns_locally_or_by_urls_with_dot_in_base_path(complex_data_dir):
+def test_resolve_pattern_locally_with_dot_in_base_path(complex_data_dir):
     base_path_with_dot = os.path.join(complex_data_dir, "data", ".dummy_subdir")
-    resolved_data_files = resolve_patterns_locally_or_by_urls(
-        base_path_with_dot, [os.path.join(base_path_with_dot, "train.txt")]
-    )
+    resolved_data_files = resolve_pattern(os.path.join(base_path_with_dot, "train.txt"), base_path_with_dot)
     assert len(resolved_data_files) == 1
 
 
-def test_resolve_patterns_locally_or_by_urls_with_absolute_path(tmp_path, complex_data_dir):
+def test_resolve_pattern_locally_with_absolute_path(tmp_path, complex_data_dir):
     abs_path = os.path.join(complex_data_dir, "data", "train.txt")
-    resolved_data_files = resolve_patterns_locally_or_by_urls(str(tmp_path / "blabla"), [abs_path])
+    resolved_data_files = resolve_pattern(abs_path, str(tmp_path / "blabla"))
     assert len(resolved_data_files) == 1
 
 
-def test_resolve_patterns_locally_or_by_urls_with_double_dots(tmp_path, complex_data_dir):
+def test_resolve_pattern_locally_with_double_dots(tmp_path, complex_data_dir):
     path_with_double_dots = os.path.join(complex_data_dir, "data", "subdir", "..", "train.txt")
-    resolved_data_files = resolve_patterns_locally_or_by_urls(str(tmp_path / "blabla"), [path_with_double_dots])
+    resolved_data_files = resolve_pattern(path_with_double_dots, str(tmp_path / "blabla"))
     assert len(resolved_data_files) == 1
 
 
-def test_resolve_patterns_locally_or_by_urls_returns_hidden_file_only_if_requested(complex_data_dir):
+def test_resolve_pattern_locally_returns_hidden_file_only_if_requested(complex_data_dir):
     with pytest.raises(FileNotFoundError):
-        resolve_patterns_locally_or_by_urls(complex_data_dir, ["*dummy"])
-    resolved_data_files = resolve_patterns_locally_or_by_urls(complex_data_dir, [".dummy"])
+        resolve_pattern("*dummy", complex_data_dir)
+    resolved_data_files = resolve_pattern(".dummy", complex_data_dir)
     assert len(resolved_data_files) == 1
 
 
-def test_resolve_patterns_locally_or_by_urls_hidden_base_path(tmp_path):
+def test_resolve_pattern_locally_hidden_base_path(tmp_path):
     hidden = tmp_path / ".test_hidden_base_path"
     hidden.mkdir()
     (tmp_path / ".test_hidden_base_path" / "a.txt").touch()
-    resolved_data_files = resolve_patterns_locally_or_by_urls(str(hidden), ["*"])
+    resolved_data_files = resolve_pattern("*", str(hidden))
     assert len(resolved_data_files) == 1
 
 
-def test_resolve_patterns_locally_or_by_urls_returns_hidden_dir_only_if_requested(complex_data_dir):
+def test_resolve_pattern_locallyreturns_hidden_dir_only_if_requested(complex_data_dir):
     with pytest.raises(FileNotFoundError):
-        resolve_patterns_locally_or_by_urls(complex_data_dir, ["data/*dummy_subdir/train.txt"])
-    resolved_data_files = resolve_patterns_locally_or_by_urls(complex_data_dir, ["data/.dummy_subdir/train.txt"])
+        resolve_pattern("data/*dummy_subdir/train.txt", complex_data_dir)
+    resolved_data_files = resolve_pattern("data/.dummy_subdir/train.txt", complex_data_dir)
     assert len(resolved_data_files) == 1
-    resolved_data_files = resolve_patterns_locally_or_by_urls(complex_data_dir, ["*/.dummy_subdir/train.txt"])
+    resolved_data_files = resolve_pattern("*/.dummy_subdir/train.txt", complex_data_dir)
     assert len(resolved_data_files) == 1
 
 
-def test_resolve_patterns_locally_or_by_urls_returns_special_dir_only_if_requested(complex_data_dir):
+def test_resolve_pattern_locally_returns_special_dir_only_if_requested(complex_data_dir):
     with pytest.raises(FileNotFoundError):
-        resolve_patterns_locally_or_by_urls(complex_data_dir, ["data/*dummy_subdir/train.txt"])
-    resolved_data_files = resolve_patterns_locally_or_by_urls(complex_data_dir, ["data/.dummy_subdir/train.txt"])
+        resolve_pattern("data/*dummy_subdir/train.txt", complex_data_dir)
+    resolved_data_files = resolve_pattern("data/.dummy_subdir/train.txt", complex_data_dir)
     assert len(resolved_data_files) == 1
-    resolved_data_files = resolve_patterns_locally_or_by_urls(complex_data_dir, ["*/.dummy_subdir/train.txt"])
+    resolved_data_files = resolve_pattern("*/.dummy_subdir/train.txt", complex_data_dir)
     assert len(resolved_data_files) == 1
 
 
-def test_resolve_patterns_locally_or_by_urls_special_base_path(tmp_path):
+def test_resolve_pattern_locally_special_base_path(tmp_path):
     special = tmp_path / "__test_special_base_path__"
     special.mkdir()
     (tmp_path / "__test_special_base_path__" / "a.txt").touch()
-    resolved_data_files = resolve_patterns_locally_or_by_urls(str(special), ["*"])
+    resolved_data_files = resolve_pattern("*", str(special))
     assert len(resolved_data_files) == 1
 
 
-@pytest.mark.parametrize("pattern,size,extensions", [("**", 4, ["txt"]), ("**", 4, None), ("**", 0, ["blablabla"])])
-def test_resolve_patterns_locally_or_by_urls_with_extensions(complex_data_dir, pattern, size, extensions):
+@pytest.mark.parametrize("pattern,size,extensions", [("**", 4, [".txt"]), ("**", 4, None), ("**", 0, [".blablabla"])])
+def test_resolve_pattern_locally_with_extensions(complex_data_dir, pattern, size, extensions):
     if size > 0:
-        resolved_data_files = resolve_patterns_locally_or_by_urls(
-            complex_data_dir, [pattern], allowed_extensions=extensions
-        )
+        resolved_data_files = resolve_pattern(pattern, complex_data_dir, allowed_extensions=extensions)
         assert len(resolved_data_files) == size
     else:
         with pytest.raises(FileNotFoundError):
-            resolve_patterns_locally_or_by_urls(complex_data_dir, [pattern], allowed_extensions=extensions)
+            resolve_pattern(pattern, complex_data_dir, allowed_extensions=extensions)
 
 
-def test_fail_resolve_patterns_locally_or_by_urls(complex_data_dir):
+def test_fail_resolve_pattern_locally(complex_data_dir):
     with pytest.raises(FileNotFoundError):
-        resolve_patterns_locally_or_by_urls(complex_data_dir, ["blablabla"])
+        resolve_pattern(complex_data_dir, ["blablabla"])
 
 
 @pytest.mark.skipif(os.name == "nt", reason="Windows does not support symlinks in the default mode")
-def test_resolve_patterns_locally_or_by_urls_does_not_resolve_symbolic_links(tmp_path, complex_data_dir):
+def test_resolve_pattern_locally_does_not_resolve_symbolic_links(tmp_path, complex_data_dir):
     (tmp_path / "train_data_symlink.txt").symlink_to(os.path.join(complex_data_dir, "data", "train.txt"))
-    resolved_data_files = resolve_patterns_locally_or_by_urls(str(tmp_path), ["train_data_symlink.txt"])
+    resolved_data_files = resolve_pattern("train_data_symlink.txt", str(tmp_path))
     assert len(resolved_data_files) == 1
-    assert resolved_data_files[0] == tmp_path / "train_data_symlink.txt"
+    assert Path(resolved_data_files[0]) == tmp_path / "train_data_symlink.txt"
 
 
-def test_resolve_patterns_locally_or_by_urls_sorted_files(tmp_path_factory):
+def test_resolve_pattern_locally_sorted_files(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("unsorted_text_files"))
     unsorted_names = ["0.txt", "2.txt", "3.txt"]
     for name in unsorted_names:
         with open(os.path.join(path, name), "w"):
             pass
-    resolved_data_files = resolve_patterns_locally_or_by_urls(path, ["*"])
+    resolved_data_files = resolve_pattern("*", path)
     resolved_names = [os.path.basename(data_file) for data_file in resolved_data_files]
     assert resolved_names == sorted(unsorted_names)
 
 
 @pytest.mark.parametrize("pattern", _TEST_PATTERNS)
-def test_resolve_patterns_in_dataset_repository(hub_dataset_info, pattern, hub_dataset_info_patterns_results):
+def test_resolve_pattern_in_dataset_repository(hub_dataset_repo_path, pattern, hub_dataset_repo_patterns_results):
     try:
-        resolved_data_files = resolve_patterns_in_dataset_repository(hub_dataset_info, [pattern])
-        assert sorted(str(f) for f in resolved_data_files) == hub_dataset_info_patterns_results[pattern]
-        assert all(isinstance(url, Url) for url in resolved_data_files)
+        resolved_data_files = resolve_pattern(pattern, hub_dataset_repo_path)
+        assert sorted(str(f) for f in resolved_data_files) == hub_dataset_repo_patterns_results[pattern]
     except FileNotFoundError:
-        assert len(hub_dataset_info_patterns_results[pattern]) == 0
+        assert len(hub_dataset_repo_patterns_results[pattern]) == 0
 
 
 @pytest.mark.parametrize(
     "pattern,size,base_path", [("**", 4, None), ("**", 4, "data"), ("**", 2, "data/subdir"), ("**", 0, "data/subdir2")]
 )
-def test_resolve_patterns_in_dataset_repository_with_base_path(hub_dataset_info, pattern, size, base_path):
+def test_resolve_pattern_in_dataset_repository_with_base_path(hub_dataset_repo_path, pattern, size, base_path):
+    base_path = hub_dataset_repo_path + (base_path or "")
     if size > 0:
-        resolved_data_files = resolve_patterns_in_dataset_repository(hub_dataset_info, [pattern], base_path=base_path)
+        resolved_data_files = resolve_pattern(pattern, base_path)
         assert len(resolved_data_files) == size
     else:
         with pytest.raises(FileNotFoundError):
-            resolved_data_files = resolve_patterns_in_dataset_repository(
-                hub_dataset_info, [pattern], base_path=base_path
-            )
+            resolve_pattern(pattern, base_path)
 
 
-@pytest.mark.parametrize("pattern,size,extensions", [("**", 4, ["txt"]), ("**", 4, None), ("**", 0, ["blablabla"])])
-def test_resolve_patterns_in_dataset_repository_with_extensions(hub_dataset_info, pattern, size, extensions):
+@pytest.mark.parametrize("pattern,size,extensions", [("**", 4, [".txt"]), ("**", 4, None), ("**", 0, [".blablabla"])])
+def test_resolve_pattern_in_dataset_repository_with_extensions(hub_dataset_repo_path, pattern, size, extensions):
     if size > 0:
-        resolved_data_files = resolve_patterns_in_dataset_repository(
-            hub_dataset_info, [pattern], allowed_extensions=extensions
-        )
+        resolved_data_files = resolve_pattern(pattern, hub_dataset_repo_path, allowed_extensions=extensions)
         assert len(resolved_data_files) == size
     else:
         with pytest.raises(FileNotFoundError):
-            resolved_data_files = resolve_patterns_in_dataset_repository(
-                hub_dataset_info, [pattern], allowed_extensions=extensions
-            )
+            resolved_data_files = resolve_pattern(pattern, hub_dataset_repo_path, allowed_extensions=extensions)
 
 
-def test_fail_resolve_patterns_in_dataset_repository(hub_dataset_info):
+def test_fail_resolve_pattern_in_dataset_repository(hub_dataset_repo_path):
     with pytest.raises(FileNotFoundError):
-        resolve_patterns_in_dataset_repository(hub_dataset_info, "blablabla")
+        resolve_pattern("blablabla", hub_dataset_repo_path)
 
 
-def test_resolve_patterns_in_dataset_repository_sorted_files():
-    unsorted_names = ["0.txt", "2.txt", "3.txt"]
-    siblings = [{"rfilename": name} for name in unsorted_names]
-    datasets_infos = DatasetInfo(id="test_unsorted_files", siblings=siblings, sha="foobar")
-    resolved_data_files = resolve_patterns_in_dataset_repository(datasets_infos, ["*"])
-    resolved_names = [os.path.basename(data_file) for data_file in resolved_data_files]
-    assert resolved_names == sorted(unsorted_names)
-
-
-def test_resolve_patterns_in_dataset_repository_returns_hidden_file_only_if_requested(hub_dataset_info):
+def test_resolve_pattern_in_dataset_repository_returns_hidden_file_only_if_requested(hub_dataset_repo_path):
     with pytest.raises(FileNotFoundError):
-        resolve_patterns_in_dataset_repository(hub_dataset_info, ["*dummy"])
-    resolved_data_files = resolve_patterns_in_dataset_repository(hub_dataset_info, [".dummy"])
+        resolve_pattern("*dummy", hub_dataset_repo_path)
+    resolved_data_files = resolve_pattern(".dummy", hub_dataset_repo_path)
     assert len(resolved_data_files) == 1
 
 
-def test_resolve_patterns_in_dataset_repository_hidden_base_path():
-    siblings = [{"rfilename": ".hidden/a.txt"}]
-    datasets_infos = DatasetInfo(id="test_hidden_base_path", siblings=siblings, sha="foobar")
-    resolved_data_files = resolve_patterns_in_dataset_repository(datasets_infos, ["*"], base_path=".hidden")
+def test_resolve_pattern_in_dataset_repository_hidden_base_path(tmpfs):
+    tmpfs.touch(".hidden/a.txt")
+    resolved_data_files = resolve_pattern("*", base_path="tmp://.hidden")
     assert len(resolved_data_files) == 1
 
 
-def test_resolve_patterns_in_dataset_repository_returns_hidden_dir_only_if_requested(hub_dataset_info):
+def test_resolve_pattern_in_dataset_repository_returns_hidden_dir_only_if_requested(hub_dataset_repo_path):
     with pytest.raises(FileNotFoundError):
-        resolve_patterns_in_dataset_repository(hub_dataset_info, ["data/*dummy_subdir/train.txt"])
-    resolved_data_files = resolve_patterns_in_dataset_repository(hub_dataset_info, ["data/.dummy_subdir/train.txt"])
+        resolve_pattern("data/*dummy_subdir/train.txt", hub_dataset_repo_path)
+    resolved_data_files = resolve_pattern("data/.dummy_subdir/train.txt", hub_dataset_repo_path)
     assert len(resolved_data_files) == 1
-    resolved_data_files = resolve_patterns_in_dataset_repository(hub_dataset_info, ["*/.dummy_subdir/train.txt"])
+    resolved_data_files = resolve_pattern("*/.dummy_subdir/train.txt", hub_dataset_repo_path)
     assert len(resolved_data_files) == 1
 
 
-def test_resolve_patterns_in_dataset_repository_returns_special_dir_only_if_requested(hub_dataset_info):
+def test_resolve_pattern_in_dataset_repository_returns_special_dir_only_if_requested(hub_dataset_repo_path):
     with pytest.raises(FileNotFoundError):
-        resolve_patterns_in_dataset_repository(hub_dataset_info, ["data/*dummy_subdir/train.txt"])
-    resolved_data_files = resolve_patterns_in_dataset_repository(hub_dataset_info, ["data/.dummy_subdir/train.txt"])
+        resolve_pattern("data/*dummy_subdir/train.txt", hub_dataset_repo_path)
+    resolved_data_files = resolve_pattern("data/.dummy_subdir/train.txt", hub_dataset_repo_path)
     assert len(resolved_data_files) == 1
-    resolved_data_files = resolve_patterns_in_dataset_repository(hub_dataset_info, ["*/.dummy_subdir/train.txt"])
+    resolved_data_files = resolve_pattern("*/.dummy_subdir/train.txt", hub_dataset_repo_path)
     assert len(resolved_data_files) == 1
 
 
-def test_resolve_patterns_in_dataset_repository_special_base_path():
-    siblings = [{"rfilename": "__special__/a.txt"}]
-    datasets_infos = DatasetInfo(id="test_hidden_base_path", siblings=siblings, sha="foobar")
-    resolved_data_files = resolve_patterns_in_dataset_repository(datasets_infos, ["*"], base_path="__special__")
+def test_resolve_pattern_in_dataset_repository_special_base_path(tmpfs):
+    tmpfs.touch("__special__/a.txt")
+    resolved_data_files = resolve_pattern("*", base_path="tmp://__special__")
     assert len(resolved_data_files) == 1
 
 
 @pytest.mark.parametrize("pattern", _TEST_PATTERNS)
-def test_DataFilesList_from_hf_repo(hub_dataset_info, hub_dataset_info_patterns_results, pattern):
+def test_DataFilesList_from_patterns_in_dataset_repository_(
+    hub_dataset_repo_path, hub_dataset_repo_patterns_results, pattern
+):
     try:
-        data_files_list = DataFilesList.from_hf_repo([pattern], hub_dataset_info)
-        assert sorted(str(f) for f in data_files_list) == hub_dataset_info_patterns_results[pattern]
-        assert all(isinstance(url, Url) for url in data_files_list)
-        assert len(data_files_list.origin_metadata) > 0
+        data_files_list = DataFilesList.from_patterns([pattern], hub_dataset_repo_path)
+        assert sorted(data_files_list) == hub_dataset_repo_patterns_results[pattern]
+        assert len(data_files_list.origin_metadata) == len(data_files_list)
     except FileNotFoundError:
-        assert len(hub_dataset_info_patterns_results[pattern]) == 0
+        assert len(hub_dataset_repo_patterns_results[pattern]) == 0
 
 
-@pytest.mark.parametrize("pattern", _TEST_PATTERNS)
-def test_DataFilesList_from_local_or_remote(complex_data_dir, pattern_results, pattern):
-    try:
-        data_files_list = DataFilesList.from_local_or_remote([pattern], complex_data_dir)
-        assert sorted(str(f) for f in data_files_list) == pattern_results[pattern]
-        assert all(isinstance(path, Path) for path in data_files_list)
-        assert len(data_files_list.origin_metadata) > 0
-    except FileNotFoundError:
-        assert len(pattern_results[pattern]) == 0
-
-
-def test_DataFilesList_from_local_or_remote_with_extra_files(complex_data_dir, text_file):
-    data_files_list = DataFilesList.from_local_or_remote([_TEST_URL, str(text_file)], complex_data_dir)
-    assert list(data_files_list) == [Url(_TEST_URL), Path(text_file)]
+def test_DataFilesList_from_patterns_locally_with_extra_files(complex_data_dir, text_file):
+    data_files_list = DataFilesList.from_patterns([_TEST_URL, text_file.as_posix()], complex_data_dir)
+    assert list(data_files_list) == [_TEST_URL, text_file.as_posix()]
     assert len(data_files_list.origin_metadata) == 2
 
 
 @pytest.mark.parametrize("pattern", _TEST_PATTERNS)
-def test_DataFilesDict_from_hf_repo(hub_dataset_info, hub_dataset_info_patterns_results, pattern):
+def test_DataFilesDict_from_patterns_in_dataset_repository(
+    hub_dataset_repo_path, hub_dataset_repo_patterns_results, pattern
+):
     split_name = "train"
     try:
-        data_files = DataFilesDict.from_hf_repo({split_name: [pattern]}, hub_dataset_info)
+        data_files = DataFilesDict.from_patterns({split_name: [pattern]}, hub_dataset_repo_path)
         assert all(isinstance(data_files_list, DataFilesList) for data_files_list in data_files.values())
-        assert sorted(str(f) for f in data_files[split_name]) == hub_dataset_info_patterns_results[pattern]
-        assert all(isinstance(url, Url) for url in data_files[split_name])
+        assert sorted(data_files[split_name]) == hub_dataset_repo_patterns_results[pattern]
     except FileNotFoundError:
-        assert len(hub_dataset_info_patterns_results[pattern]) == 0
+        assert len(hub_dataset_repo_patterns_results[pattern]) == 0
 
 
 @pytest.mark.parametrize(
@@ -429,74 +388,72 @@ def test_DataFilesDict_from_hf_repo(hub_dataset_info, hub_dataset_info_patterns_
         ("**", 0, "data/subdir2", "train"),
     ],
 )
-def test_DataFilesDict_from_hf_repo_with_base_path(hub_dataset_info, pattern, size, base_path, split_name):
+def test_DataFilesDict_from_patterns_in_dataset_repository_with_base_path(
+    hub_dataset_repo_path, pattern, size, base_path, split_name
+):
+    base_path = hub_dataset_repo_path + (base_path or "")
     if size > 0:
-        data_files = DataFilesDict.from_hf_repo({split_name: [pattern]}, hub_dataset_info, base_path=base_path)
+        data_files = DataFilesDict.from_patterns({split_name: [pattern]}, base_path=base_path)
         assert len(data_files[split_name]) == size
     else:
         with pytest.raises(FileNotFoundError):
-            data_files = DataFilesDict.from_hf_repo({split_name: [pattern]}, hub_dataset_info, base_path=base_path)
+            resolve_pattern(pattern, base_path)
 
 
 @pytest.mark.parametrize("pattern", _TEST_PATTERNS)
-def test_DataFilesDict_from_local_or_remote(complex_data_dir, pattern_results, pattern):
+def test_DataFilesDict_from_patterns_locally(complex_data_dir, pattern_results, pattern):
     split_name = "train"
     try:
-        data_files = DataFilesDict.from_local_or_remote({split_name: [pattern]}, complex_data_dir)
+        data_files = DataFilesDict.from_patterns({split_name: [pattern]}, complex_data_dir)
         assert all(isinstance(data_files_list, DataFilesList) for data_files_list in data_files.values())
-        assert sorted(str(f) for f in data_files[split_name]) == pattern_results[pattern]
-        assert all(isinstance(url, Path) for url in data_files[split_name])
+        assert sorted(data_files[split_name]) == pattern_results[pattern]
     except FileNotFoundError:
         assert len(pattern_results[pattern]) == 0
 
 
-def test_DataFilesDict_from_hf_repo_hashing(hub_dataset_info):
+def test_DataFilesDict_from_patterns_in_dataset_repository_hashing(hub_dataset_repo_path):
     patterns = {"train": ["**/train.txt"], "test": ["**/test.txt"]}
-    data_files1 = DataFilesDict.from_hf_repo(patterns, hub_dataset_info)
-    data_files2 = DataFilesDict.from_hf_repo(patterns, hub_dataset_info)
+    data_files1 = DataFilesDict.from_patterns(patterns, hub_dataset_repo_path)
+    data_files2 = DataFilesDict.from_patterns(patterns, hub_dataset_repo_path)
     assert Hasher.hash(data_files1) == Hasher.hash(data_files2)
 
     data_files2 = DataFilesDict(sorted(data_files1.items(), reverse=True))
     assert Hasher.hash(data_files1) == Hasher.hash(data_files2)
 
     patterns2 = {"train": ["data/**train.txt"], "test": ["data/**test.txt"]}
-    data_files2 = DataFilesDict.from_hf_repo(patterns2, hub_dataset_info)
+    data_files2 = DataFilesDict.from_patterns(patterns2, hub_dataset_repo_path)
     assert Hasher.hash(data_files1) == Hasher.hash(data_files2)
 
     patterns2 = {"train": ["data/**train.txt"], "test": ["data/**train.txt"]}
-    data_files2 = DataFilesDict.from_hf_repo(patterns2, hub_dataset_info)
+    data_files2 = DataFilesDict.from_patterns(patterns2, hub_dataset_repo_path)
     assert Hasher.hash(data_files1) != Hasher.hash(data_files2)
 
-    with patch.object(hub_dataset_info, "id", "blabla"):
-        data_files2 = DataFilesDict.from_hf_repo(patterns, hub_dataset_info)
+    # the tmpfs used to mock the hub repo is based on a local directory
+    # therefore os.stat is used to get the mtime of the data files
+    with patch("os.stat", return_value=os.stat(__file__)):
+        data_files2 = DataFilesDict.from_patterns(patterns, hub_dataset_repo_path)
         assert Hasher.hash(data_files1) != Hasher.hash(data_files2)
 
-    with patch.object(hub_dataset_info, "sha", "blabla"):
-        data_files2 = DataFilesDict.from_hf_repo(patterns, hub_dataset_info)
-        assert Hasher.hash(data_files1) != Hasher.hash(data_files2)
 
-
-def test_DataFilesDict_from_hf_local_or_remote_hashing(text_file):
+def test_DataFilesDict_from_patterns_locally_or_remote_hashing(text_file):
     patterns = {"train": [_TEST_URL], "test": [str(text_file)]}
-    data_files1 = DataFilesDict.from_local_or_remote(patterns)
-    data_files2 = DataFilesDict.from_local_or_remote(patterns)
+    data_files1 = DataFilesDict.from_patterns(patterns)
+    data_files2 = DataFilesDict.from_patterns(patterns)
     assert Hasher.hash(data_files1) == Hasher.hash(data_files2)
 
     data_files2 = DataFilesDict(sorted(data_files1.items(), reverse=True))
     assert Hasher.hash(data_files1) == Hasher.hash(data_files2)
 
     patterns2 = {"train": [_TEST_URL], "test": [_TEST_URL]}
-    data_files2 = DataFilesDict.from_local_or_remote(patterns2)
+    data_files2 = DataFilesDict.from_patterns(patterns2)
     assert Hasher.hash(data_files1) != Hasher.hash(data_files2)
 
-    with patch("datasets.data_files.request_etag") as mock_request_etag:
-        mock_request_etag.return_value = "blabla"
-        data_files2 = DataFilesDict.from_local_or_remote(patterns)
+    with patch("fsspec.implementations.http._file_info", return_value={}):
+        data_files2 = DataFilesDict.from_patterns(patterns)
         assert Hasher.hash(data_files1) != Hasher.hash(data_files2)
 
-    with patch("datasets.data_files.os.path.getmtime") as mock_getmtime:
-        mock_getmtime.return_value = 123
-        data_files2 = DataFilesDict.from_local_or_remote(patterns)
+    with patch("os.stat", return_value=os.stat(__file__)):
+        data_files2 = DataFilesDict.from_patterns(patterns)
         assert Hasher.hash(data_files1) != Hasher.hash(data_files2)
 
 
@@ -616,12 +573,12 @@ def test_get_data_files_patterns(data_file_per_split):
     fs = mock_fs(file_paths)
 
     def resolver(pattern):
-        return [PurePath(file_path) for file_path in fs.glob(pattern) if fs.isfile(file_path)]
+        return [file_path for file_path in fs.glob(pattern) if fs.isfile(file_path)]
 
     patterns_per_split = _get_data_files_patterns(resolver)
     assert list(patterns_per_split.keys()) == list(data_file_per_split.keys())  # Test split order with list()
     for split, patterns in patterns_per_split.items():
-        matched = [file_path.as_posix() for pattern in patterns for file_path in resolver(pattern)]
+        matched = [file_path for pattern in patterns for file_path in resolver(pattern)]
         assert matched == data_file_per_split[split]
 
 

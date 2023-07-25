@@ -1,13 +1,13 @@
 import importlib
 import shutil
 import threading
+import warnings
 from typing import List
 
 import fsspec
 import fsspec.asyn
 
 from . import compression
-from .hffilesystem import HfFileSystem
 
 
 _has_s3fs = importlib.util.find_spec("s3fs") is not None
@@ -24,8 +24,10 @@ COMPRESSION_FILESYSTEMS: List[compression.BaseCompressedFileFileSystem] = [
 ]
 
 # Register custom filesystems
-for fs_class in COMPRESSION_FILESYSTEMS + [HfFileSystem]:
-    fsspec.register_implementation(fs_class.protocol, fs_class)
+for fs_class in COMPRESSION_FILESYSTEMS:
+    if fs_class.protocol in fsspec.registry and fsspec.registry[fs_class.protocol] is not fs_class:
+        warnings.warn(f"A filesystem protocol was already set for {fs_class.protocol} and will be overwritten.")
+    fsspec.register_implementation(fs_class.protocol, fs_class, clobber=True)
 
 
 def extract_path_from_uri(dataset_path: str) -> str:

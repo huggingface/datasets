@@ -1,7 +1,10 @@
 import copy
-from dataclasses import dataclass
+import warnings
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Any, Dict, Optional, Union
+
+from .. import config
 
 
 @dataclass
@@ -36,9 +39,19 @@ class DownloadConfig:
             The number of processes to launch to download the files in parallel.
         max_retries (`int`, default to `1`):
             The number of times to retry an HTTP request if it fails.
+        token (`str` or `bool`, *optional*):
+            Optional string or boolean to use as Bearer token
+            for remote files on the Datasets Hub. If `True`, or not specified, will get token from `~/.huggingface`.
         use_auth_token (`str` or `bool`, *optional*):
             Optional string or boolean to use as Bearer token
             for remote files on the Datasets Hub. If `True`, or not specified, will get token from `~/.huggingface`.
+
+            <Deprecated version="2.14.0">
+
+            `use_auth_token` was deprecated in favor of `token` in version 2.14.0 and will be removed in 3.0.0.
+
+            </Deprecated>
+
         ignore_url_params (`bool`, defaults to `False`):
             Whether to strip all query parameters and fragments from
             the download URL before using it for caching the file.
@@ -60,10 +73,22 @@ class DownloadConfig:
     use_etag: bool = True
     num_proc: Optional[int] = None
     max_retries: int = 1
-    use_auth_token: Optional[Union[str, bool]] = None
+    token: Optional[Union[str, bool]] = None
+    use_auth_token = "deprecated"
     ignore_url_params: bool = False
-    storage_options: Optional[Dict] = None
+    storage_options: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     download_desc: Optional[str] = None
+
+    def __post_init__(self):
+        if self.use_auth_token != "deprecated":
+            warnings.warn(
+                "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
+                f"You can remove this warning by passing 'token={self.use_auth_token}' instead.",
+                FutureWarning,
+            )
+            self.token = self.use_auth_token
+        if "hf" not in self.storage_options:
+            self.storage_options["hf"] = {"token": self.token, "endpoint": config.HF_ENDPOINT}
 
     def copy(self) -> "DownloadConfig":
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})

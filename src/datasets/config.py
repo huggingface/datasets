@@ -1,4 +1,5 @@
 import importlib
+import importlib.metadata
 import os
 import platform
 from pathlib import Path
@@ -27,20 +28,15 @@ HUB_DEFAULT_VERSION = "main"
 
 PY_VERSION = version.parse(platform.python_version())
 
-if PY_VERSION < version.parse("3.8"):
-    import importlib_metadata
-else:
-    import importlib.metadata as importlib_metadata
-
 # General environment variables accepted values for booleans
 ENV_VARS_TRUE_VALUES = {"1", "ON", "YES", "TRUE"}
 ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
 
 
 # Imports
-DILL_VERSION = version.parse(importlib_metadata.version("dill"))
-PANDAS_VERSION = version.parse(importlib_metadata.version("pandas"))
-PYARROW_VERSION = version.parse(importlib_metadata.version("pyarrow"))
+DILL_VERSION = version.parse(importlib.metadata.version("dill"))
+PANDAS_VERSION = version.parse(importlib.metadata.version("pandas"))
+PYARROW_VERSION = version.parse(importlib.metadata.version("pyarrow"))
 
 USE_TF = os.environ.get("USE_TF", "AUTO").upper()
 USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
@@ -53,9 +49,9 @@ if USE_TORCH in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TF not in ENV_VARS_TRUE_VA
     TORCH_AVAILABLE = importlib.util.find_spec("torch") is not None
     if TORCH_AVAILABLE:
         try:
-            TORCH_VERSION = version.parse(importlib_metadata.version("torch"))
+            TORCH_VERSION = version.parse(importlib.metadata.version("torch"))
             logger.info(f"PyTorch version {TORCH_VERSION} available.")
-        except importlib_metadata.PackageNotFoundError:
+        except importlib.metadata.PackageNotFoundError:
             pass
 else:
     logger.info("Disabling PyTorch because USE_TF is set")
@@ -79,8 +75,8 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
             "tensorflow-macos",
         ]:
             try:
-                TF_VERSION = version.parse(importlib_metadata.version(package))
-            except importlib_metadata.PackageNotFoundError:
+                TF_VERSION = version.parse(importlib.metadata.version(package))
+            except importlib.metadata.PackageNotFoundError:
                 continue
             else:
                 break
@@ -103,9 +99,9 @@ if USE_JAX in ENV_VARS_TRUE_AND_AUTO_VALUES:
     JAX_AVAILABLE = importlib.util.find_spec("jax") is not None and importlib.util.find_spec("jaxlib") is not None
     if JAX_AVAILABLE:
         try:
-            JAX_VERSION = version.parse(importlib_metadata.version("jax"))
+            JAX_VERSION = version.parse(importlib.metadata.version("jax"))
             logger.info(f"JAX version {JAX_VERSION} available.")
-        except importlib_metadata.PackageNotFoundError:
+        except importlib.metadata.PackageNotFoundError:
             pass
 else:
     logger.info("Disabling JAX because USE_JAX is set to False")
@@ -116,10 +112,10 @@ BEAM_VERSION = "N/A"
 BEAM_AVAILABLE = False
 if USE_BEAM in ENV_VARS_TRUE_AND_AUTO_VALUES:
     try:
-        BEAM_VERSION = version.parse(importlib_metadata.version("apache_beam"))
+        BEAM_VERSION = version.parse(importlib.metadata.version("apache_beam"))
         BEAM_AVAILABLE = True
         logger.info(f"Apache Beam version {BEAM_VERSION} available.")
-    except importlib_metadata.PackageNotFoundError:
+    except importlib.metadata.PackageNotFoundError:
         pass
 else:
     logger.info("Disabling Apache Beam because USE_BEAM is set to False")
@@ -186,6 +182,11 @@ MAX_TABLE_NBYTES_FOR_PICKLING = 4 << 30
 # Max shard size in bytes (e.g. to shard parquet datasets in push_to_hub or download_and_prepare)
 MAX_SHARD_SIZE = "500MB"
 
+# Parquet configuration
+PARQUET_ROW_GROUP_SIZE_FOR_AUDIO_DATASETS = 100
+PARQUET_ROW_GROUP_SIZE_FOR_IMAGE_DATASETS = 100
+PARQUET_ROW_GROUP_SIZE_FOR_BINARY_DATASETS = 100
+
 # Offline mode
 HF_DATASETS_OFFLINE = os.environ.get("HF_DATASETS_OFFLINE", "AUTO").upper() in ENV_VARS_TRUE_VALUES
 
@@ -202,6 +203,7 @@ DATASETDICT_INFOS_FILENAME = "dataset_infos.json"
 LICENSE_FILENAME = "LICENSE"
 METRIC_INFO_FILENAME = "metric_info.json"
 DATASETDICT_JSON_FILENAME = "dataset_dict.json"
+METADATA_CONFIGS_FIELD = "configs"
 
 MODULE_NAME_FOR_DYNAMIC_MODULES = "datasets_modules"
 

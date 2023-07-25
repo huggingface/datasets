@@ -23,7 +23,7 @@ from collections.abc import Sequence as SequenceABC
 from dataclasses import InitVar, dataclass, field, fields
 from functools import reduce, wraps
 from operator import mul
-from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, ClassVar, Dict, List, Optional, Tuple, Union
 from typing import Sequence as Sequence_
 
 import numpy as np
@@ -387,6 +387,13 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
             has_changed |= has_changed_v
             output[k] = casted_v
         return output if has_changed else obj, has_changed
+    elif hasattr(obj, "__array__"):
+        return (
+            _cast_to_python_objects(
+                obj.__array__(), only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+            )[0],
+            True,
+        )
     elif isinstance(obj, (list, tuple)):
         if len(obj) > 0:
             for first_elmt in obj:
@@ -521,8 +528,6 @@ class _ArrayXD:
         return pa_type
 
     def encode_example(self, value):
-        if isinstance(value, np.ndarray):
-            value = value.tolist()
         return value
 
 
@@ -714,10 +719,11 @@ class ArrayExtensionArray(pa.ExtensionArray):
 
     def to_numpy(self, zero_copy_only=True):
         storage: pa.ListArray = self.storage
+        null_mask = storage.is_null().to_numpy(zero_copy_only=False)
 
         if self.type.shape[0] is not None:
             size = 1
-            null_indices = np.arange(len(storage))[storage.is_null().to_numpy(zero_copy_only=False)]
+            null_indices = np.arange(len(storage))[null_mask] - np.arange(np.sum(null_mask))
 
             for i in range(self.type.ndims):
                 size *= self.type.shape[i]
@@ -733,7 +739,7 @@ class ArrayExtensionArray(pa.ExtensionArray):
             ndims = self.type.ndims
             arrays = []
             first_dim_offsets = np.array([off.as_py() for off in storage.offsets])
-            for i, is_null in enumerate(storage.is_null().to_numpy(zero_copy_only=False)):
+            for i, is_null in enumerate(null_mask):
                 if is_null:
                     arrays.append(np.nan)
                 else:
@@ -1089,7 +1095,7 @@ class ClassLabel:
         """
         if isinstance(storage, pa.IntegerArray) and len(storage) > 0:
             min_max = pc.min_max(storage).as_py()
-            if min_max["max"] >= self.num_classes:
+            if min_max["max"] is not None and min_max["max"] >= self.num_classes:
                 raise ValueError(
                     f"Class label {min_max['max']} greater than configured num_classes {self.num_classes}"
                 )
@@ -1389,7 +1395,8 @@ def numpy_to_pyarrow_listarray(arr: np.ndarray, type: pa.DataType = None) -> pa.
 
 
 def list_of_pa_arrays_to_pyarrow_listarray(l_arr: List[Optional[pa.Array]]) -> pa.ListArray:
-    null_indices = [i for i, arr in enumerate(l_arr) if arr is None]
+    null_mask = np.array([arr is None for arr in l_arr])
+    null_indices = np.arange(len(null_mask))[null_mask] - np.arange(np.sum(null_mask))
     l_arr = [arr for arr in l_arr if arr is not None]
     offsets = np.cumsum(
         [0] + [len(arr) for arr in l_arr], dtype=object
@@ -1457,6 +1464,25 @@ def to_pyarrow_listarray(data: Any, pa_type: _ArrayXDExtensionType) -> pa.Array:
         return any_np_array_to_pyarrow_listarray(data, type=pa_type.value_type)
     else:
         return pa.array(data, pa_type.storage_dtype)
+
+
+def _visit(feature: FeatureType, func: Callable[[FeatureType], Optional[FeatureType]]) -> FeatureType:
+    """Visit a (possibly nested) feature.
+
+    Args:
+        feature (FeatureType): the feature type to be checked
+    Returns:
+        visited feature (FeatureType)
+    """
+    if isinstance(feature, dict):
+        out = func({k: _visit(f, func) for k, f in feature.items()})
+    elif isinstance(feature, (list, tuple)):
+        out = func([_visit(feature[0], func)])
+    elif isinstance(feature, Sequence):
+        out = func(Sequence(_visit(feature.feature, func), length=feature.length))
+    else:
+        out = func(feature)
+    return feature if out is None else out
 
 
 def require_decoding(feature: FeatureType, ignore_decode_attribute: bool = False) -> bool:
