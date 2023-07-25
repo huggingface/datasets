@@ -125,7 +125,7 @@ def test_parquet_datasetdict_reader_split(split, parquet_path, tmp_path):
     assert all(dataset[split].split == split for split in path.keys())
 
 
-def test_parquer_write(dataset, tmp_path):
+def test_parquet_write(dataset, tmp_path):
     writer = ParquetDatasetWriter(dataset, tmp_path / "foo.parquet")
     assert writer.write() > 0
     pf = pq.ParquetFile(tmp_path / "foo.parquet")
