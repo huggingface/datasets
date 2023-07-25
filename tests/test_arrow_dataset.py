@@ -2832,12 +2832,11 @@ class BaseDatasetTest(TestCase):
                 new_dataset = dset.map(
                     dataset_typed_map,
                     batched=True,
-                        batch_size=1,
-                        num_proc=1,
-                        remove_columns=dset.column_names,
+                    batch_size=1,
+                    num_proc=1,
+                    remove_columns=dset.column_names,
                 )
                 self.assertEqual(str(new_dataset[:2]), str({"texts": [[], ["This", "is", "a", "test"]]}))
-
 
     def test_with_map_incorrect_typehint(self, in_memory):
         class DatasetTyped(TypedDict):
@@ -2853,7 +2852,9 @@ class BaseDatasetTest(TestCase):
                 if not in_memory:
                     dset = self._to(in_memory, tmp_dir, dset)
 
-                with pytest.raises(datasets.arrow_dataset.DatasetTransformationNotAllowedError, match="typehint guessing failed"):
+                with pytest.raises(
+                    datasets.arrow_dataset.DatasetTransformationNotAllowedError, match="typehint guessing failed"
+                ):
                     dataset = dset.map(
                         dataset_typed_map,
                         num_proc=1,

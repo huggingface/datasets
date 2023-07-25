@@ -3291,7 +3291,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         def infer_features_from_callable(func: Callable[..., Any]) -> Optional[Features]:
             """Supports inferring from a TypedDict."""
             hints = get_type_hints(func)
-            return_type = hints.get('return')
+            return_type = hints.get("return")
 
             # Because TypedDict creates a dictionary at runtime, we need to check if the return type is a dict
             # versus a TypedDict instance
@@ -3308,14 +3308,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             new_features = infer_features_from_callable(function)
             if new_features:
                 # Features need to merge the new and the old definitions
-                features = Features({
-                    **{
-                        key: value
-                        for key, value in shard.features.items()
-                        if key not in (remove_columns or [])
-                    },
-                    **new_features
-                })
+                features = Features(
+                    {
+                        **{key: value for key, value in shard.features.items() if key not in (remove_columns or [])},
+                        **new_features,
+                    }
+                )
                 features_resolved_from_typehint = True
 
         # We set this variable to True after processing the first example/batch in

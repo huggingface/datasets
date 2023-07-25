@@ -1382,7 +1382,6 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
         raise ValueError(f"Cannot convert {pa_type} to a Feature type.")
 
 
-
 def generate_from_python_typehints(type_definition: type | dict[str, type]) -> FeatureType:
     """Build a Features definition from a type-hinted function signature."""
     origin = get_origin(type_definition)
@@ -1391,15 +1390,15 @@ def generate_from_python_typehints(type_definition: type | dict[str, type]) -> F
     if isinstance(type_definition, dict):
         return Features({key: generate_from_python_typehints(value) for key, value in type_definition.items()})
 
-    if origin is None:  
+    if origin is None:
         if type_definition is int:
-            return Value('int64')
+            return Value("int64")
         elif type_definition is float:
-            return Value('float64')
+            return Value("float64")
         elif type_definition is str:
-            return Value('string')
+            return Value("string")
         elif type_definition is bool:
-            return Value('bool')
+            return Value("bool")
         else:
             raise ValueError(f"Unsupported type {type_definition}")
     elif origin in [List, list]:
@@ -1409,7 +1408,7 @@ def generate_from_python_typehints(type_definition: type | dict[str, type]) -> F
     elif origin in [Dict, dict]:
         if len(args) != 2 or args[0] is not str:
             raise ValueError(f"Dict type expected 2 arguments (str, type), got {args}")
-        return Features({'feature': generate_from_python_typehints(args[1])})
+        return Features({"feature": generate_from_python_typehints(args[1])})
     elif origin is Optional:
         if len(args) != 1:
             raise ValueError(f"Optional type expected 1 argument, got {len(args)}")

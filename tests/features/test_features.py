@@ -379,33 +379,36 @@ def test_class_label_to_and_from_dict(class_label_arg, tmp_path_factory):
     assert generated_class_label == class_label
 
 
-@pytest.mark.parametrize("input_type,expected_output", [
-    # base types
-    (int, Value('int64')),
-    (float, Value('float64')),
-    (str, Value('string')),
-    (bool, Value('bool')),
-    # list types
-    (List[int], Sequence(Value('int64'))),
-    (List[str], Sequence(Value('string'))),
-    # dict types
-    (Dict[str, int], Features({'feature': Value('int64')})),
-    (Dict[str, str], Features({'feature': Value('string')})),
-    # Optional types
-    (Optional[int], Value('int64')),
-    (Optional[float], Value('float64')),
-    (Optional[str], Value('string')),
-    (Optional[bool], Value('bool')),
-    (List[Optional[int]], Sequence(Value('int64'))),
-    (Dict[str, Optional[int]], Features({'feature': Value('int64')})),
-    # Union types
-    (Union[int, None], Value('int64')),
-    (Union[float, None], Value('float64')),
-    (Union[str, None], Value('string')),
-    (Union[bool, None], Value('bool')),
-    (List[Union[int, None]], Sequence(Value('int64'))),
-    (Dict[str, Union[int, None]], Features({'feature': Value('int64')})),
-])
+@pytest.mark.parametrize(
+    "input_type,expected_output",
+    [
+        # base types
+        (int, Value("int64")),
+        (float, Value("float64")),
+        (str, Value("string")),
+        (bool, Value("bool")),
+        # list types
+        (List[int], Sequence(Value("int64"))),
+        (List[str], Sequence(Value("string"))),
+        # dict types
+        (Dict[str, int], Features({"feature": Value("int64")})),
+        (Dict[str, str], Features({"feature": Value("string")})),
+        # Optional types
+        (Optional[int], Value("int64")),
+        (Optional[float], Value("float64")),
+        (Optional[str], Value("string")),
+        (Optional[bool], Value("bool")),
+        (List[Optional[int]], Sequence(Value("int64"))),
+        (Dict[str, Optional[int]], Features({"feature": Value("int64")})),
+        # Union types
+        (Union[int, None], Value("int64")),
+        (Union[float, None], Value("float64")),
+        (Union[str, None], Value("string")),
+        (Union[bool, None], Value("bool")),
+        (List[Union[int, None]], Sequence(Value("int64"))),
+        (Dict[str, Union[int, None]], Features({"feature": Value("int64")})),
+    ],
+)
 def test_generate_from_python_typehints(input_type, expected_output):
     assert generate_from_python_typehints(input_type) == expected_output
 
