@@ -33,7 +33,7 @@ class TextConfig(datasets.BuilderConfig):
                 f"You can remove this warning by passing 'encoding_errors={self.errors}' instead.",
                 FutureWarning,
             )
-        self.encoding_errors = self.errors
+            self.encoding_errors = self.errors
 
 
 class Text(datasets.ArrowBasedBuilder):

@@ -423,9 +423,17 @@ def _prepare_single_hop_path_and_storage_options(
     token = None if download_config is None else download_config.token
     protocol = urlpath.split("://")[0] if "://" in urlpath else "file"
     if download_config is not None and protocol in download_config.storage_options:
-        storage_options = {protocol: download_config.storage_options[protocol]}
+        storage_options = download_config.storage_options[protocol]
+    if download_config is not None and protocol not in download_config.storage_options:
+        storage_options = {
+            option_name: option_value
+            for option_name, option_value in download_config.storage_options.items()
+            if option_name not in fsspec.available_protocols()
+        }
     else:
         storage_options = {}
+    if storage_options:
+        storage_options = {protocol: storage_options}
     if protocol in ["http", "https"]:
         storage_options[protocol] = {
             "headers": {
