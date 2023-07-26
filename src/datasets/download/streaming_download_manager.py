@@ -424,7 +424,7 @@ def _prepare_single_hop_path_and_storage_options(
     protocol = urlpath.split("://")[0] if "://" in urlpath else "file"
     if download_config is not None and protocol in download_config.storage_options:
         storage_options = download_config.storage_options[protocol]
-    if download_config is not None and protocol not in download_config.storage_options:
+    elif download_config is not None and protocol not in download_config.storage_options:
         storage_options = {
             option_name: option_value
             for option_name, option_value in download_config.storage_options.items()
