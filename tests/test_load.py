@@ -1432,3 +1432,26 @@ def test_load_dataset_distributed(tmp_path, csv_path):
         assert all(len(dataset) == len(datasets[0]) > 0 for dataset in datasets)
         assert len(datasets[0].cache_files) > 0
         assert all(dataset.cache_files == datasets[0].cache_files for dataset in datasets)
+
+
+def test_load_dataset_with_storage_options(mockfs):
+    with mockfs.open("data.txt", "w") as f:
+        f.write("Hello there\n")
+        f.write("General Kenobi !")
+    data_files = {"train": ["mock://data.txt"]}
+    ds = load_dataset("text", data_files=data_files, storage_options=mockfs.storage_options)
+    assert list(ds["train"]) == [{"text": "Hello there"}, {"text": "General Kenobi !"}]
+
+
+@require_pil
+def test_load_dataset_with_storage_options_with_decoding(mockfs, image_file):
+    import PIL.Image
+
+    filename = os.path.basename(image_file)
+    with mockfs.open(filename, "wb") as fout:
+        with open(image_file, "rb") as fin:
+            fout.write(fin.read())
+    data_files = {"train": ["mock://" + filename]}
+    ds = load_dataset("imagefolder", data_files=data_files, storage_options=mockfs.storage_options)
+    assert len(ds["train"]) == 1
+    assert isinstance(ds["train"][0]["image"], PIL.Image.Image)

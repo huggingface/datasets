@@ -1789,6 +1789,9 @@ def load_dataset_builder(
     if token is not None:
         download_config = download_config.copy() if download_config else DownloadConfig()
         download_config.token = token
+    if storage_options is not None:
+        download_config = download_config.copy() if download_config else DownloadConfig()
+        download_config.storage_options.update(storage_options)
     dataset_module = dataset_module_factory(
         path,
         revision=revision,
