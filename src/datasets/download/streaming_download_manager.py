@@ -458,7 +458,7 @@ def _prepare_single_hop_path_and_storage_options(
             # Workaround for served data with gzip content-encoding: https://github.com/fsspec/filesystem_spec/issues/389
             storage_options[protocol] = {"block_size": 0, **storage_options.get(protocol, {})}
     elif protocol == "hf":
-        storage_options = {"token": token, "endpoint": config.HF_ENDPOINT, **(storage_options or {})}
+        storage_options[protocol] = {"token": token, "endpoint": config.HF_ENDPOINT, **storage_options.get(protocol, {})}
     return urlpath, storage_options
 
 
