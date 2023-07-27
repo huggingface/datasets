@@ -1269,7 +1269,7 @@ class DatasetDict(dict):
             )
 
         if is_local:
-            Path(dataset_dict_path).resolve().mkdir(parents=True, exist_ok=True)
+            Path(dataset_dict_path).expanduser().resolve().mkdir(parents=True, exist_ok=True)
         else:
             fs.makedirs(dataset_dict_path, exist_ok=True)
 

@@ -1459,7 +1459,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             raise ValueError("please remove all the indexes using `dataset.drop_index` before saving a dataset")
 
         if is_local:
-            Path(dataset_path).resolve().mkdir(parents=True, exist_ok=True)
+            Path(dataset_path).expanduser().resolve().mkdir(parents=True, exist_ok=True)
             parent_cache_files_paths = {
                 Path(cache_filename["filename"]).resolve().parent for cache_filename in self.cache_files
             }
