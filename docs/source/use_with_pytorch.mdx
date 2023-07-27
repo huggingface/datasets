@@ -184,37 +184,6 @@ Reloading the dataset inside a worker doesn't fill up your RAM, since it simply 
 >>> dataloader = DataLoader(ds, batch_size=32, num_workers=4)
 ```
 
-#### Use a BatchSampler (torch<=1.12.1)
-
-For old versions of PyTorch, using a `BatchSampler` can speed up data loading.
-Indeed if you are using `torch<=1.12.1`, the PyTorch `DataLoader` load batches of data from a dataset one by one like this:
-
-```py
-batch = [dataset[idx] for idx in range(start, end)]
-```
-
-Unfortunately, this does numerous read operations on the dataset.
-It is more efficient to query batches of examples using a list:
-
-```py
-batch = dataset[start:end]
-# or
-batch = dataset[list_of_indices]
-```
-
-For the PyTorch `DataLoader` to query batches using a list, you can use a `BatchSampler`:
-
-```py
->>> from torch.utils.data.sampler import BatchSampler, RandomSampler
->>> batch_sampler = BatchSampler(RandomSampler(ds), batch_size=32, drop_last=False)
->>> dataloader = DataLoader(ds, batch_sampler=batch_sampler)
-```
-
-Moreover, this is particularly useful if you used [`set_transform`] to apply a transform on-the-fly when examples are accessed.
-You must use a `BatchSampler` if you want the transform to be given full batches instead of receiving `batch_size` times one single element.
-
-Recent versions of PyTorch use a list of indices, so a `BatchSampler` is not needed to get the best speed even if you used [`set_transform`].
-
 ### Stream data
 
 Stream a dataset by loading it as an [`IterableDataset`]. This allows you to progressively iterate over a remote dataset without downloading it on disk and or over local data files.
