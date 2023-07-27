@@ -401,7 +401,7 @@ def _get_extraction_protocol(urlpath: str, download_config: Optional[DownloadCon
 
 def _prepare_path_and_storage_options(
     urlpath: str, download_config: Optional[DownloadConfig] = None
-) -> Tuple[str, dict]:
+) -> Tuple[str, Dict[str, Dict[str, Any]]]:
     prepared_urlpath = []
     prepared_storage_options = {}
     for hop in urlpath.split("::"):
@@ -419,6 +419,8 @@ def _prepare_single_hop_path_and_storage_options(
 
     In particular it resolves google drive URLs
     It also adds the authentication headers for the Hugging Face Hub, for both https:// and hf:// paths.
+
+    Storage options are formatted in the form {protocol: storage_options_for_protocol}
     """
     token = None if download_config is None else download_config.token
     protocol = urlpath.split("://")[0] if "://" in urlpath else "file"
