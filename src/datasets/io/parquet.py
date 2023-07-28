@@ -1,6 +1,7 @@
 import os
 from typing import BinaryIO, Optional, Union
 
+import fsspec
 import numpy as np
 import pyarrow.parquet as pq
 
@@ -123,7 +124,7 @@ class ParquetDatasetWriter:
         batch_size = self.batch_size if self.batch_size else config.DEFAULT_MAX_BATCH_SIZE
 
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
-            with open(self.path_or_buf, "wb+") as buffer:
+            with fsspec.open(self.path_or_buf, "wb") as buffer:
                 written = self._write(file_obj=buffer, batch_size=batch_size, **self.parquet_writer_kwargs)
         else:
             written = self._write(file_obj=self.path_or_buf, batch_size=batch_size, **self.parquet_writer_kwargs)
