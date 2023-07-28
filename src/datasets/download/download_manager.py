@@ -230,7 +230,7 @@ class FilesIterable(_IterableFromGenerator):
             if os.path.isfile(urlpath):
                 if os.path.basename(urlpath).startswith((".", "__")):
                     # skipping hidden files
-                    return
+                    continue
                 yield urlpath
             else:
                 for dirpath, dirnames, filenames in os.walk(urlpath):
