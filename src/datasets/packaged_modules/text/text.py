@@ -29,7 +29,7 @@ class TextConfig(datasets.BuilderConfig):
     def __post_init__(self, errors):
         if errors != "deprecated":
             warnings.warn(
-                "'errors' was deprecated in favor of 'encoding_erros' in version 2.14.0 and will be removed in 3.0.0.\n"
+                "'errors' was deprecated in favor of 'encoding_errors' in version 2.14.0 and will be removed in 3.0.0.\n"
                 f"You can remove this warning by passing 'encoding_errors={errors}' instead.",
                 FutureWarning,
             )
