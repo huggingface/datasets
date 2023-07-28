@@ -28,7 +28,7 @@ from itertools import chain
 from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
 
 from .. import config
-from ..utils.deprecation_utils import DeprecatedEnum
+from ..utils.deprecation_utils import DeprecatedEnum, deprecated
 from ..utils.file_utils import cached_path, get_from_cache, hash_url_to_filename, is_relative_path, url_or_path_join
 from ..utils.info_utils import get_size_checksum_dict
 from ..utils.logging import get_logger, is_progress_bar_enabled, tqdm
@@ -349,6 +349,7 @@ class DownloadManager:
                 path, record_checksum=self.record_checksums
             )
 
+    @deprecated("Use `.download`/`.download_and_extract` with `fsspec` URLs instead.")
     def download_custom(self, url_or_urls, custom_download):
         """
         Download given urls(s) by calling `custom_download`.
