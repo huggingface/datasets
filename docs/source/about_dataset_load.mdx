@@ -86,12 +86,6 @@ There are three main methods in [`DatasetBuilder`]:
 
    Once the files are downloaded, [`SplitGenerator`] organizes them into splits. The [`SplitGenerator`] contains the name of the split, and any keyword arguments that are provided to the [`DatasetBuilder._generate_examples`] method. The keyword arguments can be specific to each split, and typically comprise at least the local path to the data files for each split.
 
-<Tip>
-
-[`DownloadManager.download_and_extract`] can download files from a wide range of sources. If the data files are hosted on a special access server, you should use [`DownloadManger.download_custom`]. Refer to the reference of [`DownloadManager`] for more details.
-
-</Tip>
-
 3. [`DatasetBuilder._generate_examples`] reads and parses the data files for a split. Then it yields dataset examples according to the format specified in the `features` from [`DatasetBuilder._info`]. The input of [`DatasetBuilder._generate_examples`] is actually the `filepath` provided in the keyword arguments of the last method.
 
    The dataset is generated with a Python generator, which doesn't load all the data in memory. As a result, the generator can handle large datasets. However, before the generated samples are flushed to the dataset file on disk, they are stored in an `ArrowWriter` buffer. This means the generated samples are written by batch. If your dataset samples consumes a lot of memory (images or videos), then make sure to specify a low value for the `DEFAULT_WRITER_BATCH_SIZE` attribute in [`DatasetBuilder`]. We recommend not exceeding a size of 200 MB.
