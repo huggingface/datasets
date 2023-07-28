@@ -158,3 +158,9 @@ def test_dataset_to_parquet_keeps_features(shared_datadir, tmp_path):
 )
 def test_get_writer_batch_size(feature, expected):
     assert get_writer_batch_size(feature) == expected
+
+
+def test_dataset_to_parquet_fsspec(tmp_path):
+    dataset = Dataset.from_dict({"foo": ["bar"]})
+    writer = ParquetDatasetWriter(dataset, "file://" / tmp_path / "foo.parquet")
+    assert writer.write() > 0

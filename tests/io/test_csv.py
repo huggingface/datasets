@@ -1,6 +1,8 @@
 import csv
 import os
+from pathlib import Path
 
+import fsspec
 import pytest
 
 from datasets import Dataset, DatasetDict, Features, NamedSplit, Value
@@ -126,7 +128,7 @@ def test_csv_datasetdict_reader_split(split, csv_path, tmp_path):
 
 
 def iter_csv_file(csv_path):
-    with open(csv_path, encoding="utf-8") as csvfile:
+    with fsspec.open(csv_path, mode="r", encoding="utf-8") as csvfile:
         yield from csv.reader(csvfile)
 
 
@@ -162,3 +164,16 @@ def test_dataset_to_csv_invalidproc(csv_path, tmp_path):
     dataset = CsvDatasetReader({"train": csv_path}, cache_dir=cache_dir).read()
     with pytest.raises(ValueError):
         CsvDatasetWriter(dataset["train"], output_csv, num_proc=0)
+
+
+def test_dataset_to_csv_fsspec(csv_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    output_csv = "file://" / Path(cache_dir) / "tmp.csv"
+    dataset = CsvDatasetReader({"train": csv_path}, cache_dir=cache_dir).read()
+    CsvDatasetWriter(dataset["train"], output_csv.as_uri(), num_proc=1).write()
+
+    original_csv = iter_csv_file(csv_path)
+    expected_csv = iter_csv_file(output_csv.as_uri())
+
+    for row1, row2 in zip(original_csv, expected_csv):
+        assert row1 == row2
