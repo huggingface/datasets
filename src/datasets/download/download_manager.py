@@ -349,7 +349,7 @@ class DownloadManager:
                 path, record_checksum=self.record_checksums
             )
 
-    @deprecated()
+    @deprecated("Use `.download`/`.download_and_extract` with `fsspec` URLs instead.")
     def download_custom(self, url_or_urls, custom_download):
         """
         Download given urls(s) by calling `custom_download`.
