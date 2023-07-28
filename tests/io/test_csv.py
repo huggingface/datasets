@@ -2,7 +2,6 @@ import csv
 import os
 from pathlib import Path
 
-import fsspec
 import pytest
 
 from datasets import Dataset, DatasetDict, Features, NamedSplit, Value
@@ -128,7 +127,7 @@ def test_csv_datasetdict_reader_split(split, csv_path, tmp_path):
 
 
 def iter_csv_file(csv_path):
-    with fsspec.open(csv_path, mode="r", encoding="utf-8") as csvfile:
+    with open(csv_path, encoding="utf-8") as csvfile:
         yield from csv.reader(csvfile)
 
 
