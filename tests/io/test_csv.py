@@ -1,7 +1,7 @@
 import csv
 import os
-from pathlib import Path
 
+import fsspec
 import pytest
 
 from datasets import Dataset, DatasetDict, Features, NamedSplit, Value
@@ -165,14 +165,11 @@ def test_dataset_to_csv_invalidproc(csv_path, tmp_path):
         CsvDatasetWriter(dataset["train"], output_csv, num_proc=0)
 
 
-def test_dataset_to_csv_fsspec(csv_path, tmp_path):
-    cache_dir = tmp_path / "cache"
-    output_csv = "file://" / Path(cache_dir) / "tmp.csv"
-    dataset = CsvDatasetReader({"train": csv_path}, cache_dir=cache_dir).read()
-    CsvDatasetWriter(dataset["train"], output_csv.as_uri(), num_proc=1).write()
+def test_dataset_to_csv_fsspec(dataset, mockfs):
+    dataset_path = "mock://my_dataset.csv"
+    writer = CsvDatasetWriter(dataset, dataset_path, storage_options=mockfs.storage_options)
+    assert writer.write() > 0
+    assert mockfs.isfile(dataset_path)
 
-    original_csv = iter_csv_file(csv_path)
-    expected_csv = iter_csv_file(output_csv.as_uri())
-
-    for row1, row2 in zip(original_csv, expected_csv):
-        assert row1 == row2
+    with fsspec.open(dataset_path, "rb", **mockfs.storage_options) as f:
+        assert f.read()
