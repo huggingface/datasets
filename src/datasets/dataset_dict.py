@@ -1343,7 +1343,7 @@ class DatasetDict(dict):
             path_join = posixpath.join
         else:
             fs = fsspec.filesystem("file")
-            dest_dataset_dict_path = dataset_dict_path
+            dest_dataset_dict_path = Path(dataset_dict_path).expanduser().resolve()
             path_join = os.path.join
 
         dataset_dict_json_path = path_join(dest_dataset_dict_path, config.DATASETDICT_JSON_FILENAME)

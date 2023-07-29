@@ -2217,7 +2217,7 @@ def load_from_disk(
         path_join = posixpath.join
     else:
         fs = fsspec.filesystem("file")
-        dest_dataset_path = dataset_path
+        dest_dataset_path = Path(dataset_path).expanduser().resolve()
         path_join = os.path.join
 
     if not fs.exists(dest_dataset_path):

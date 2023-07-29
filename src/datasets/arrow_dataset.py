@@ -1652,7 +1652,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             path_join = posixpath.join
         else:
             fs = fsspec.filesystem("file")
-            dest_dataset_path = dataset_path
+            dest_dataset_path = Path(dataset_path).expanduser().resolve()
             path_join = os.path.join
 
         dataset_dict_json_path = path_join(dest_dataset_path, config.DATASETDICT_JSON_FILENAME)
