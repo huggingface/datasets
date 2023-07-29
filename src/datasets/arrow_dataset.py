@@ -4613,6 +4613,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             writer_batch_size=writer_batch_size,
         )
 
+    @deprecated()
     def export(
         self,
         filename: str,
