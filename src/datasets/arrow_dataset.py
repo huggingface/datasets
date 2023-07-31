@@ -4729,7 +4729,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             storage_options (`dict`, *optional*):
                 Key/value pairs to be passed on to the file-system backend, if any.
 
-                <Added version="2.8.0"/>
+                <Added version="2.15.0"/>
             **to_csv_kwargs (additional keyword arguments):
                 Parameters to pass to pandas's [`pandas.DataFrame.to_csv`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_json.html).
 
