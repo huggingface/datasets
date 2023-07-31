@@ -495,7 +495,7 @@ def mock_fs(file_paths: List[str]):
                 return files
             return [file["name"] for file in files]
 
-    return DummyTestFS()
+    return DummyTestFS
 
 
 @pytest.mark.parametrize(
@@ -570,7 +570,8 @@ def mock_fs(file_paths: List[str]):
 def test_get_data_files_patterns(data_file_per_split):
     data_file_per_split = {k: v if isinstance(v, list) else [v] for k, v in data_file_per_split.items()}
     file_paths = [file_path for split_file_paths in data_file_per_split.values() for file_path in split_file_paths]
-    fs = mock_fs(file_paths)
+    DummyTestFS = mock_fs(file_paths)
+    fs = DummyTestFS()
 
     def resolver(pattern):
         return [file_path for file_path in fs.glob(pattern) if fs.isfile(file_path)]
