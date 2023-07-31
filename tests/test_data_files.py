@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import fsspec
 import pytest
+from fsspec.registry import _registry as _fsspec_registry
 from fsspec.spec import AbstractFileSystem
 
 from datasets.data_files import (
@@ -344,6 +345,19 @@ def test_resolve_pattern_in_dataset_repository_special_base_path(tmpfs):
     tmpfs.touch("__special__/a.txt")
     resolved_data_files = resolve_pattern("*", base_path="tmp://__special__")
     assert len(resolved_data_files) == 1
+
+
+@pytest.fixture
+def dummy_fs():
+    DummyTestFS = mock_fs(["train.txt", "test.txt"])
+    _fsspec_registry["mock"] = DummyTestFS
+    yield
+    del _fsspec_registry["mock"]
+
+
+def test_resolve_pattern_fs(dummy_fs):
+    resolved_data_files = resolve_pattern("mock://train.txt", base_path="")
+    assert resolved_data_files == ["mock://train.txt"]
 
 
 @pytest.mark.parametrize("pattern", _TEST_PATTERNS)
