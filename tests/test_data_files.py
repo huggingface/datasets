@@ -351,8 +351,10 @@ def test_resolve_pattern_in_dataset_repository_special_base_path(tmpfs):
 def dummy_fs():
     DummyTestFS = mock_fs(["train.txt", "test.txt"])
     _fsspec_registry["mock"] = DummyTestFS
+    _fsspec_registry["dummy"] = DummyTestFS
     yield
     del _fsspec_registry["mock"]
+    del _fsspec_registry["dummy"]
 
 
 def test_resolve_pattern_fs(dummy_fs):
@@ -492,7 +494,7 @@ def mock_fs(file_paths: List[str]):
     ]
 
     class DummyTestFS(AbstractFileSystem):
-        protocol = "mock"
+        protocol = ("mock", "dummy")
         _fs_contents = fs_contents
 
         def ls(self, path, detail=True, refresh=True, **kwargs):
