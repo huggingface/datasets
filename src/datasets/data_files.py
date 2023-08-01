@@ -332,8 +332,9 @@ def resolve_pattern(
     fs, _, _ = get_fs_token_paths(pattern, storage_options=storage_options)
     fs_base_path = base_path.split("::")[0].split("://")[-1] or fs.root_marker
     fs_pattern = pattern.split("::")[0].split("://")[-1]
-    protocol_prefix = fs.protocol + "://" if fs.protocol != "file" else ""
     files_to_ignore = set(FILES_TO_IGNORE) - {xbasename(pattern)}
+    protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[0]
+    protocol_prefix = protocol + "://" if protocol != "file" else ""
     matched_paths = [
         filepath if filepath.startswith(protocol_prefix) else protocol_prefix + filepath
         for filepath, info in fs.glob(pattern, detail=True).items()
