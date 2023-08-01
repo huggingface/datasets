@@ -48,7 +48,7 @@ Bulbasaur, grass"""
 
 
 class DummyTestFS(AbstractFileSystem):
-    protocol = "mock"
+    protocol = "mock", "dummy"
     _file_class = AbstractBufferedFile
     _fs_contents = (
         {"name": "top_level", "type": "directory"},
