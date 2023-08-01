@@ -8,7 +8,7 @@ from fsspec.registry import _registry as _fsspec_registry
 
 
 class MockFileSystem(AbstractFileSystem):
-    protocol = "mock"
+    protocol = "mock", "dummy"
 
     def __init__(self, *args, local_root_dir, **kwargs):
         super().__init__()
