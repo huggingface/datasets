@@ -14,6 +14,7 @@ import shutil
 import sys
 import time
 import urllib
+import warnings
 from contextlib import closing, contextmanager
 from functools import partial
 from hashlib import sha256
@@ -234,8 +235,17 @@ def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> st
     return ua
 
 
-def get_authentication_headers_for_url(url: str, token: Optional[Union[str, bool]] = None) -> dict:
+def get_authentication_headers_for_url(
+    url: str, token: Optional[Union[str, bool]] = None, use_auth_token: Optional[Union[str, bool]] = "deprecated"
+) -> dict:
     """Handle the HF authentication"""
+    if use_auth_token != "deprecated":
+        warnings.warn(
+            "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
+            f"You can remove this warning by passing 'token={use_auth_token}' instead.",
+            FutureWarning,
+        )
+        token = use_auth_token
     headers = {}
     if url.startswith(config.HF_ENDPOINT):
         if token is False:
@@ -429,7 +439,16 @@ def http_head(
     return response
 
 
-def request_etag(url: str, token: Optional[Union[str, bool]] = None) -> Optional[str]:
+def request_etag(
+    url: str, token: Optional[Union[str, bool]] = None, use_auth_token: Optional[Union[str, bool]] = "deprecated"
+) -> Optional[str]:
+    if use_auth_token != "deprecated":
+        warnings.warn(
+            "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
+            f"You can remove this warning by passing 'token={use_auth_token}' instead.",
+            FutureWarning,
+        )
+        token = use_auth_token
     if urlparse(url).scheme not in ("http", "https"):
         return None
     headers = get_authentication_headers_for_url(url, token=token)
@@ -451,6 +470,7 @@ def get_from_cache(
     use_etag=True,
     max_retries=0,
     token=None,
+    use_auth_token="deprecated",
     ignore_url_params=False,
     storage_options=None,
     download_desc=None,
@@ -468,6 +488,13 @@ def get_from_cache(
         ConnectionError: in case of unreachable url
             and no cache on disk
     """
+    if use_auth_token != "deprecated":
+        warnings.warn(
+            "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
+            f"You can remove this warning by passing 'token={use_auth_token}' instead.",
+            FutureWarning,
+        )
+        token = use_auth_token
     if cache_dir is None:
         cache_dir = config.HF_DATASETS_CACHE
     if isinstance(cache_dir, Path):
