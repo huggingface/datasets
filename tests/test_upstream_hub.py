@@ -33,7 +33,7 @@ pytestmark = pytest.mark.integration
 
 
 @for_all_test_methods(xfail_if_500_502_http_error)
-@pytest.mark.usefixtures("set_ci_hub_access_token", "ci_hfh_hf_hub_url")
+@pytest.mark.usefixtures("ci_hub_config", "ci_hfh_hf_hub_url")
 class TestPushToHub:
     _api = HfApi(endpoint=CI_HUB_ENDPOINT)
     _token = CI_HUB_USER_TOKEN
@@ -778,6 +778,7 @@ class TestPushToHub:
                 path_in_repo="data/train-00000-of-00001.parquet",
                 repo_id=ds_name,
                 repo_type="dataset",
+                token=self._token,
             )
             ds_another_config.push_to_hub(ds_name, "another_config", token=self._token)
             ds_builder = load_dataset_builder(ds_name, download_mode="force_redownload")
@@ -811,6 +812,7 @@ class TestPushToHub:
                 path_in_repo="data/random-00000-of-00001.parquet",
                 repo_id=ds_name,
                 repo_type="dataset",
+                token=self._token,
             )
             local_ds_another_config.push_to_hub(ds_name, "another_config", token=self._token)
             ds_builder = load_dataset_builder(ds_name, download_mode="force_redownload")

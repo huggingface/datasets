@@ -1223,13 +1223,13 @@ def test_loading_from_the_datasets_hub_with_token():
 
 @pytest.mark.integration
 def test_load_streaming_private_dataset(hf_token, hf_private_dataset_repo_txt_data):
-    ds = load_dataset(hf_private_dataset_repo_txt_data, streaming=True)
+    ds = load_dataset(hf_private_dataset_repo_txt_data, streaming=True, token=hf_token)
     assert next(iter(ds)) is not None
 
 
 @pytest.mark.integration
 def test_load_streaming_private_dataset_with_zipped_data(hf_token, hf_private_dataset_repo_zipped_txt_data):
-    ds = load_dataset(hf_private_dataset_repo_zipped_txt_data, streaming=True)
+    ds = load_dataset(hf_private_dataset_repo_zipped_txt_data, streaming=True, token=hf_token)
     assert next(iter(ds)) is not None
 
 
@@ -1309,13 +1309,11 @@ def test_load_hub_dataset_without_script_with_metadata_config_in_parallel():
 
 @require_pil
 @pytest.mark.integration
-@pytest.mark.parametrize("implicit_token", [True])
 @pytest.mark.parametrize("streaming", [True])
 def test_load_dataset_private_zipped_images(
-    hf_private_dataset_repo_zipped_img_data, hf_token, streaming, implicit_token
+    hf_private_dataset_repo_zipped_img_data, hf_token, streaming
 ):
-    token = None if implicit_token else hf_token
-    ds = load_dataset(hf_private_dataset_repo_zipped_img_data, split="train", streaming=streaming, token=token)
+    ds = load_dataset(hf_private_dataset_repo_zipped_img_data, split="train", streaming=streaming, token=hf_token)
     assert isinstance(ds, IterableDataset if streaming else Dataset)
     ds_items = list(ds)
     assert len(ds_items) == 2
