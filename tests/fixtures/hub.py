@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 import requests
-from huggingface_hub.hf_api import HfApi
+from huggingface_hub.hf_api import HfApi, HfFolder
 
 
 CI_HUB_USER = "__DUMMY_TRANSFORMERS_USER__"
@@ -33,6 +33,13 @@ def ci_hub_config(monkeypatch):
 @pytest.fixture
 def ci_hub_token_path(monkeypatch):
     monkeypatch.setattr("huggingface_hub.hf_api.HfFolder.path_token", CI_HUB_TOKEN_PATH)
+
+
+@pytest.fixture
+def set_ci_hub_access_token(ci_hub_config, ci_hub_token_path):
+    HfFolder.save_token(CI_HUB_USER_TOKEN)
+    yield
+    HfFolder.delete_token()
 
 
 @pytest.fixture(scope="session")

@@ -38,7 +38,7 @@ class TestPushToHub:
     _api = HfApi(endpoint=CI_HUB_ENDPOINT)
     _token = CI_HUB_USER_TOKEN
 
-    def test_push_dataset_dict_to_hub_no_token(self, temporary_repo):
+    def test_push_dataset_dict_to_hub_no_token(self, temporary_repo, set_ci_hub_access_token):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
 
         local_ds = DatasetDict({"train": ds})
