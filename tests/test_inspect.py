@@ -47,6 +47,11 @@ def test_get_dataset_config_info(path, config_name, expected_splits):
     assert list(info.splits.keys()) == expected_splits
 
 
+def test_get_dataset_config_info_private(hf_token, hf_private_dataset_repo_txt_data):
+    info = get_dataset_config_info(hf_private_dataset_repo_txt_data, config_name="default", token=hf_token)
+    assert list(info.splits.keys()) == ["train"]
+
+
 @pytest.mark.parametrize(
     "path, config_name, expected_exception",
     [

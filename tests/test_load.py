@@ -38,6 +38,7 @@ from datasets.load import (
     PackagedDatasetModuleFactory,
     infer_module_for_data_files_list,
     infer_module_for_data_files_list_in_archives,
+    load_dataset_builder,
 )
 from datasets.packaged_modules.audiofolder.audiofolder import AudioFolder, AudioFolderConfig
 from datasets.packaged_modules.imagefolder.imagefolder import ImageFolder, ImageFolderConfig
@@ -1225,6 +1226,12 @@ def test_loading_from_the_datasets_hub_with_token():
 def test_load_streaming_private_dataset(hf_token, hf_private_dataset_repo_txt_data):
     ds = load_dataset(hf_private_dataset_repo_txt_data, streaming=True, token=hf_token)
     assert next(iter(ds)) is not None
+
+
+@pytest.mark.integration
+def test_load_dataset_builder_private_dataset(hf_token, hf_private_dataset_repo_txt_data):
+    builder = load_dataset_builder(hf_private_dataset_repo_txt_data, token=hf_token)
+    assert isinstance(builder, DatasetBuilder)
 
 
 @pytest.mark.integration
