@@ -778,6 +778,7 @@ class TestPushToHub:
                 path_in_repo="data/train-00000-of-00001.parquet",
                 repo_id=ds_name,
                 repo_type="dataset",
+                token=self._token,
             )
             ds_another_config.push_to_hub(ds_name, "another_config", token=self._token)
             ds_builder = load_dataset_builder(ds_name, download_mode="force_redownload")
@@ -811,6 +812,7 @@ class TestPushToHub:
                 path_in_repo="data/random-00000-of-00001.parquet",
                 repo_id=ds_name,
                 repo_type="dataset",
+                token=self._token,
             )
             local_ds_another_config.push_to_hub(ds_name, "another_config", token=self._token)
             ds_builder = load_dataset_builder(ds_name, download_mode="force_redownload")
