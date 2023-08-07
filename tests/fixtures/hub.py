@@ -35,25 +35,14 @@ def ci_hub_token_path(monkeypatch):
     monkeypatch.setattr("huggingface_hub.hf_api.HfFolder.path_token", CI_HUB_TOKEN_PATH)
 
 
-@pytest.fixture
-def set_ci_hub_access_token(ci_hub_config, ci_hub_token_path):
-    HfFolder.save_token(CI_HUB_USER_TOKEN)
-    yield
-    HfFolder.delete_token()
-
-
 @pytest.fixture(scope="session")
 def hf_api():
     return HfApi(endpoint=CI_HUB_ENDPOINT)
 
 
 @pytest.fixture(scope="session")
-def hf_token(hf_api: HfApi):
-    previous_token = HfFolder.get_token()
-    HfFolder.save_token(CI_HUB_USER_TOKEN)
+def hf_token():
     yield CI_HUB_USER_TOKEN
-    if previous_token is not None:
-        HfFolder.save_token(previous_token)
 
 
 @pytest.fixture
