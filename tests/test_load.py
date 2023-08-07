@@ -1310,9 +1310,7 @@ def test_load_hub_dataset_without_script_with_metadata_config_in_parallel():
 @require_pil
 @pytest.mark.integration
 @pytest.mark.parametrize("streaming", [True])
-def test_load_dataset_private_zipped_images(
-    hf_private_dataset_repo_zipped_img_data, hf_token, streaming
-):
+def test_load_dataset_private_zipped_images(hf_private_dataset_repo_zipped_img_data, hf_token, streaming):
     ds = load_dataset(hf_private_dataset_repo_zipped_img_data, split="train", streaming=streaming, token=hf_token)
     assert isinstance(ds, IterableDataset if streaming else Dataset)
     ds_items = list(ds)
