@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 import requests
-from huggingface_hub.hf_api import HfApi, HfFolder
+from huggingface_hub.hf_api import HfApi
 
 
 CI_HUB_USER = "__DUMMY_TRANSFORMERS_USER__"
