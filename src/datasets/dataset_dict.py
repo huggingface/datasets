@@ -1732,6 +1732,8 @@ class DatasetDict(dict):
         # push to README
         DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
         MetadataConfigs({config_name: metadata_config_to_dump}).to_dataset_card_data(dataset_card_data)
+        print("AVM: info_to_dump", asdict(info_to_dump))
+        print("AVM: dataset_card_data", dataset_card_data)
         dataset_card = (
             DatasetCard(
                 "---\n"

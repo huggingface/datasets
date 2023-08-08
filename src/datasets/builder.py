@@ -1866,7 +1866,7 @@ class ArrowBasedBuilder(DatasetBuilder):
 
         split_generator.split_info.num_examples = total_num_examples
         split_generator.split_info.num_bytes = total_num_bytes
-
+        print("AVM: split_generator.split_info", split_generator.split_info)
         # should rename everything at the end
         logger.debug(f"Renaming {total_shards} shards.")
         if total_shards > 1:
@@ -1939,6 +1939,7 @@ class ArrowBasedBuilder(DatasetBuilder):
                         )
                     writer.write_table(table)
                     num_examples_progress_update += len(table)
+                    print("AVM: num_examples_progress_update", num_examples_progress_update, table)
                     if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
                         _time = time.time()
                         yield job_id, False, num_examples_progress_update
@@ -1947,16 +1948,18 @@ class ArrowBasedBuilder(DatasetBuilder):
                 yield job_id, False, num_examples_progress_update
                 num_shards = shard_id + 1
                 num_examples, num_bytes = writer.finalize()
+                print("AVM: num_examples, num_bytes", num_examples, num_bytes, num_examples_progress_update)
                 writer.close()
                 shard_lengths.append(num_examples)
                 total_num_examples += num_examples
                 total_num_bytes += num_bytes
+                print("AVM: total_num_examples, total_num_bytes", total_num_examples, total_num_bytes)
         except Exception as e:
             # Ignore the writer's error for no examples written to the file if this error was caused by the error in _generate_examples before the first example was yielded
             if isinstance(e, SchemaInferenceError) and e.__context__ is not None:
                 e = e.__context__
             raise DatasetGenerationError("An error occurred while generating the dataset") from e
-
+        print("AVM: yield total_num_examples, total_num_bytes", total_num_examples, total_num_bytes)
         yield job_id, True, (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths)
 
     def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
