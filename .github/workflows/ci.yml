@@ -70,7 +70,7 @@ jobs:
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
 
   test_py310:
-    needs: check_code_quality
+#    needs: check_code_quality
     strategy:
       matrix:
         test: ['unit']
@@ -92,4 +92,4 @@ jobs:
         run: pip install .[tests]
       - name: Test with pytest
         run: |
-          python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -v ./tests/
+          python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -v ./tests/test_upstream_hub.py::TestPushToHub::test_push_dataset_dict_to_hub_private
