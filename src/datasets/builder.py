@@ -355,7 +355,7 @@ class DatasetBuilder:
         self.storage_options = storage_options or {}
         self.dataset_name = camelcase_to_snakecase(dataset_name) if dataset_name else self.name
         self._writer_batch_size = writer_batch_size or self.DEFAULT_WRITER_BATCH_SIZE
-
+        print("AVM: DatasetBuilder: data_files", data_files)
         if data_files is not None and not isinstance(data_files, DataFilesDict):
             data_files = DataFilesDict.from_patterns(
                 sanitize_patterns(data_files),
@@ -370,6 +370,8 @@ class DatasetBuilder:
             config_kwargs["data_files"] = data_files
         if data_dir is not None:
             config_kwargs["data_dir"] = data_dir
+        print("AVM: DatasetBuilder: config_kwargs", config_kwargs)
+        print("AVM: DatasetBuilder: token, storage_options", token, storage_options)
         self.config, self.config_id = self._create_builder_config(
             config_name=config_name,
             custom_features=features,
@@ -531,7 +533,7 @@ class DatasetBuilder:
                 logger.info(
                     f"No config specified, defaulting to the single config: {self.dataset_name}/{builder_config.name}"
                 )
-
+        print("AVM: _create_builder_config: builder_config-1", builder_config)
         # try to get config by name
         if isinstance(config_name, str):
             builder_config = self.builder_configs.get(config_name)
@@ -539,7 +541,7 @@ class DatasetBuilder:
                 raise ValueError(
                     f"BuilderConfig '{config_name}' not found. Available: {list(self.builder_configs.keys())}"
                 )
-
+        print("AVM: _create_builder_config: builder_config-2", builder_config)
         # if not using an existing config, then create a new config on the fly
         if not builder_config:
             if config_name is not None:
@@ -550,7 +552,7 @@ class DatasetBuilder:
             if "version" not in config_kwargs and hasattr(self, "VERSION") and self.VERSION:
                 config_kwargs["version"] = self.VERSION
             builder_config = self.BUILDER_CONFIG_CLASS(**config_kwargs)
-
+            print("AVM: _create_builder_config: builder_config-3", builder_config)
         # otherwise use the config_kwargs to overwrite the attributes
         else:
             builder_config = copy.deepcopy(builder_config)
