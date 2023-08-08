@@ -1039,12 +1039,14 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
             download_config=self.download_config,
         )
+        print("AVM: get_module: data_files from patterns", data_files)
         module_name, default_builder_kwargs = infer_module_for_data_files(
             data_files=data_files,
             path=self.name,
             download_config=self.download_config,
         )
         data_files = data_files.filter_extensions(_MODULE_TO_EXTENSIONS[module_name])
+        print("AVM: get_module: data_files filter_extensions", data_files)
         # Collect metadata files if the module supports them
         supports_metadata = module_name in _MODULE_SUPPORTS_METADATA
         if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
