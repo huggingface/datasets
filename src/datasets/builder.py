@@ -837,7 +837,9 @@ class DatasetBuilder:
                 f"Unable to download and prepare the dataset at the root {self._output_dir}. "
                 f"Please specify a subdirectory, e.g. '{self._output_dir + self.dataset_name}'"
             )
-
+        print("AVM: dl_manager", dl_manager)
+        if dl_manager:
+            print("AVM: dl_manager.download_config", dl_manager.download_config)
         if dl_manager is None:
             if download_config is None:
                 download_config = DownloadConfig(
@@ -1024,6 +1026,7 @@ class DatasetBuilder:
         # Generating data for all splits
         split_dict = SplitDict(dataset_name=self.dataset_name)
         split_generators_kwargs = self._make_split_generators_kwargs(prepare_split_kwargs)
+        print("AVM: split_generators: dl_manager.download_config, split_generators_kwargs", dl_manager.download_config, split_generators_kwargs)
         split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
 
         # Checksums verification
@@ -1766,6 +1769,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         num_proc: Optional[int] = None,
         max_shard_size: Optional[Union[str, int]] = None,
     ):
+        print("AVM: split_generator", split_generator)
         max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
         is_local = not is_remote_filesystem(self._fs)
         path_join = os.path.join if is_local else posixpath.join
