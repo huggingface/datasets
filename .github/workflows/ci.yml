@@ -92,4 +92,4 @@ jobs:
         run: pip install .[tests]
       - name: Test with pytest
         run: |
-          python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
+          python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -v ./tests/
