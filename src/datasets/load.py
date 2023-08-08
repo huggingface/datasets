@@ -1000,6 +1000,8 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         increase_load_count(name, resource_type="dataset")
+        print("AVM: HubDatasetModuleFactoryWithoutScript: data_files", self.data_files)
+        print("AVM: HubDatasetModuleFactoryWithoutScript: download_config", self.download_config)
 
     def get_module(self) -> DatasetModule:
         hfh_dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
@@ -1378,7 +1380,7 @@ def dataset_module_factory(
     download_config.extract_compressed_file = True
     download_config.force_extract = True
     download_config.force_download = download_mode == DownloadMode.FORCE_REDOWNLOAD
-
+    print("AVM: dataset_module_factory: download_config", download_config)
     filename = list(filter(lambda x: x, path.replace(os.sep, "/").split("/")))[-1]
     if not filename.endswith(".py"):
         filename = filename + ".py"
@@ -1792,6 +1794,7 @@ def load_dataset_builder(
     if storage_options is not None:
         download_config = download_config.copy() if download_config else DownloadConfig()
         download_config.storage_options.update(storage_options)
+    print("AVM: load_dataset_builder: download_config", download_config)
     dataset_module = dataset_module_factory(
         path,
         revision=revision,
@@ -1802,6 +1805,7 @@ def load_dataset_builder(
     )
     # Get dataset builder class from the processing script
     builder_kwargs = dataset_module.builder_kwargs
+    print("AVM: load_dataset_builder: builder_kwargs", builder_kwargs)
     data_dir = builder_kwargs.pop("data_dir", data_dir)
     data_files = builder_kwargs.pop("data_files", data_files)
     config_name = builder_kwargs.pop(
@@ -2106,6 +2110,7 @@ def load_dataset(
     )
 
     # Create a dataset builder
+    print("AVM: load_dataset: data_files", data_files)
     builder_instance = load_dataset_builder(
         path=path,
         name=name,
