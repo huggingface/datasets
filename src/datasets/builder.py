@@ -536,6 +536,7 @@ class DatasetBuilder:
         print("AVM: _create_builder_config: builder_config-1", builder_config)
         # try to get config by name
         if isinstance(config_name, str):
+            print("AVM: _create_builder_config: config_name", config_name)
             builder_config = self.builder_configs.get(config_name)
             if builder_config is None and self.BUILDER_CONFIGS:
                 raise ValueError(

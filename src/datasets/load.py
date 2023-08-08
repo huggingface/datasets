@@ -157,6 +157,7 @@ def configure_builder_class(
     default_config_name: Optional[str],
     dataset_name: str,
 ) -> Type[DatasetBuilder]:
+    print("AVM: configure_builder_class", builder_configs)
     """
     Dynamically create a builder class with custom builder configs parsed from README.md file,
     i.e. set BUILDER_CONFIGS class variable of a builder class to custom configs list.
@@ -196,6 +197,7 @@ def get_dataset_builder_class(
 ) -> Type[DatasetBuilder]:
     builder_cls = import_main_class(dataset_module.module_path)
     if dataset_module.builder_configs_parameters.builder_configs:
+        print("AVM: get_dataset_builder_class: dataset_module.builder_configs_parameters.builder_configs", dataset_module.builder_configs_parameters.builder_configs)
         builder_cls = configure_builder_class(
             builder_cls,
             builder_configs=dataset_module.builder_configs_parameters.builder_configs,
@@ -561,6 +563,8 @@ def create_builder_configs_from_metadata_configs(
                 base_path=config_base_path,
                 allowed_extensions=ALL_ALLOWED_EXTENSIONS,
             )
+            print("AVM: create_builder_configs_from_metadata_configs: config_data_files_dict", config_data_files_dict)
+            print()
         except EmptyDatasetError as e:
             raise EmptyDatasetError(
                 f"Dataset at '{base_path}' doesn't contain data files matching the patterns for config '{config_name}',"
@@ -1112,6 +1116,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             default_config_name = next(iter(dataset_infos))
 
         print("AVM: get_module: builder_kwargs", builder_kwargs)
+        print("AVM: get_module: builder_configs", builder_configs)
         return DatasetModule(
             module_path,
             hash,
@@ -1801,6 +1806,7 @@ def load_dataset_builder(
         download_config = download_config.copy() if download_config else DownloadConfig()
         download_config.storage_options.update(storage_options)
     print("AVM: load_dataset_builder: download_config", download_config)
+    print("AVM: load_dataset_builder: data_files", data_files)
     dataset_module = dataset_module_factory(
         path,
         revision=revision,
@@ -1809,6 +1815,7 @@ def load_dataset_builder(
         data_dir=data_dir,
         data_files=data_files,
     )
+    print("AVM: load_dataset_builder: dataset_module.builder_configs_parameters.builder_configs", dataset_module.builder_configs_parameters.builder_configs)
     # Get dataset builder class from the processing script
     builder_kwargs = dataset_module.builder_kwargs
     print("AVM: load_dataset_builder: builder_kwargs", builder_kwargs)
