@@ -32,6 +32,8 @@ class Parquet(datasets.ArrowBasedBuilder):
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
         data_files = dl_manager.download_and_extract(self.config.data_files)
+        print("AVM: self.config.data_files", self.config.data_files)
+        print("AVM: data_files", data_files)
         if isinstance(data_files, (str, list, tuple)):
             files = data_files
             if isinstance(files, str):
