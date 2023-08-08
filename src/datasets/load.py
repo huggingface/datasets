@@ -1083,6 +1083,9 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             "repo_id": self.name,
             "dataset_name": camelcase_to_snakecase(Path(self.name).name),
         }
+        print("AVM: get_module: self.data_files", self.data_files, self.data_files is not None)
+        print("AVM: get_module: metadata_configs", metadata_configs)
+        print("AVM: get_module: data_files", data_files)
         if self.data_files is not None or not metadata_configs:
             builder_kwargs["data_files"] = data_files
             builder_kwargs.update(default_builder_kwargs)  # from _EXTENSION_TO_MODULE
