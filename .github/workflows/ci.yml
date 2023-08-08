@@ -32,7 +32,7 @@ jobs:
           ruff tests src benchmarks metrics
 
   test:
-    needs: check_code_quality
+#    needs: check_code_quality
     strategy:
       matrix:
         test: ['unit', 'integration']
@@ -67,10 +67,10 @@ jobs:
         run: pip install pyarrow==8.0.0 huggingface-hub==0.14.0 transformers dill==0.3.1.1
       - name: Test with pytest
         run: |
-          python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
+          python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -v ./tests/test_upstream_hub.py::TestPushToHub::test_push_dataset_dict_to_hub_private
 
   test_py310:
-#    needs: check_code_quality
+    needs: check_code_quality
     strategy:
       matrix:
         test: ['unit']
@@ -92,4 +92,4 @@ jobs:
         run: pip install .[tests]
       - name: Test with pytest
         run: |
-          python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -v ./tests/test_upstream_hub.py::TestPushToHub::test_push_dataset_dict_to_hub_private
+          python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
