@@ -1111,6 +1111,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         if default_config_name is None and len(dataset_infos) == 1:
             default_config_name = next(iter(dataset_infos))
 
+        print("AVM: get_module: builder_kwargs", builder_kwargs)
         return DatasetModule(
             module_path,
             hash,
@@ -2130,6 +2131,7 @@ def load_dataset(
         storage_options=storage_options,
         **config_kwargs,
     )
+    print("AVM: load_dataset: builder_instance.config.data_files", builder_instance.config.data_files)
 
     # Return iterable dataset in case of streaming
     if streaming:
