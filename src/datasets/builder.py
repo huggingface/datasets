@@ -1904,6 +1904,7 @@ class ArrowBasedBuilder(DatasetBuilder):
     def _prepare_split_single(
         self, gen_kwargs: dict, fpath: str, file_format: str, max_shard_size: int, job_id: int
     ) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
+        print("AVM: gen_kwargs", gen_kwargs)
         generator = self._generate_tables(**gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"

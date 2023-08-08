@@ -224,10 +224,12 @@ class FilesIterable(_IterableFromGenerator):
 
     @classmethod
     def _iter_from_paths(cls, urlpaths: Union[str, List[str]]) -> Generator[str, None, None]:
+        print("AVM: urlpaths", urlpaths)
         if not isinstance(urlpaths, list):
             urlpaths = [urlpaths]
         for urlpath in urlpaths:
             if os.path.isfile(urlpath):
+                print("AVM: urlpath is file")
                 if os.path.basename(urlpath).startswith((".", "__")):
                     # skipping hidden files
                     continue

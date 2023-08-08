@@ -67,12 +67,14 @@ class Parquet(datasets.ArrowBasedBuilder):
         return pa_table
 
     def _generate_tables(self, files):
+        print("AVM: files", files)
         if self.config.features is not None and self.config.columns is not None:
             if sorted(field.name for field in self.info.features.arrow_schema) != sorted(self.config.columns):
                 raise ValueError(
                     f"Tried to load parquet data with columns '{self.config.columns}' with mismatching features '{self.info.features}'"
                 )
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
+            print("AVM: file", file)
             with open(file, "rb") as f:
                 parquet_file = pq.ParquetFile(f)
                 try:
