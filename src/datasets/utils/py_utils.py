@@ -686,7 +686,7 @@ class Pickler(dill.Pickler):
 
     def memoize(self, obj):
         # don't memoize strings since two identical strings can have different python ids
-        if type(obj) != str:
+        if type(obj) != str:  # noqa: E721
             dill.Pickler.memoize(self, obj)
 
 
