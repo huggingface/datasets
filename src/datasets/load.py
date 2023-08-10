@@ -538,7 +538,6 @@ def create_builder_configs_from_metadata_configs(
     supports_metadata: bool,
     base_path: Optional[str] = None,
     default_builder_kwargs: Dict[str, Any] = None,
-    allowed_extensions: Optional[List[str]] = None,
     download_config: Optional[DownloadConfig] = None,
 ) -> Tuple[List[BuilderConfig], str]:
     builder_cls = import_main_class(module_path)
