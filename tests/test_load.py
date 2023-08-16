@@ -38,6 +38,7 @@ from datasets.load import (
     PackagedDatasetModuleFactory,
     infer_module_for_data_files_list,
     infer_module_for_data_files_list_in_archives,
+    load_dataset_builder,
 )
 from datasets.packaged_modules.audiofolder.audiofolder import AudioFolder, AudioFolderConfig
 from datasets.packaged_modules.imagefolder.imagefolder import ImageFolder, ImageFolderConfig
@@ -1223,13 +1224,19 @@ def test_loading_from_the_datasets_hub_with_token():
 
 @pytest.mark.integration
 def test_load_streaming_private_dataset(hf_token, hf_private_dataset_repo_txt_data):
-    ds = load_dataset(hf_private_dataset_repo_txt_data, streaming=True)
+    ds = load_dataset(hf_private_dataset_repo_txt_data, streaming=True, token=hf_token)
     assert next(iter(ds)) is not None
 
 
 @pytest.mark.integration
+def test_load_dataset_builder_private_dataset(hf_token, hf_private_dataset_repo_txt_data):
+    builder = load_dataset_builder(hf_private_dataset_repo_txt_data, token=hf_token)
+    assert isinstance(builder, DatasetBuilder)
+
+
+@pytest.mark.integration
 def test_load_streaming_private_dataset_with_zipped_data(hf_token, hf_private_dataset_repo_zipped_txt_data):
-    ds = load_dataset(hf_private_dataset_repo_zipped_txt_data, streaming=True)
+    ds = load_dataset(hf_private_dataset_repo_zipped_txt_data, streaming=True, token=hf_token)
     assert next(iter(ds)) is not None
 
 
@@ -1309,13 +1316,9 @@ def test_load_hub_dataset_without_script_with_metadata_config_in_parallel():
 
 @require_pil
 @pytest.mark.integration
-@pytest.mark.parametrize("implicit_token", [True])
 @pytest.mark.parametrize("streaming", [True])
-def test_load_dataset_private_zipped_images(
-    hf_private_dataset_repo_zipped_img_data, hf_token, streaming, implicit_token
-):
-    token = None if implicit_token else hf_token
-    ds = load_dataset(hf_private_dataset_repo_zipped_img_data, split="train", streaming=streaming, token=token)
+def test_load_dataset_private_zipped_images(hf_private_dataset_repo_zipped_img_data, hf_token, streaming):
+    ds = load_dataset(hf_private_dataset_repo_zipped_img_data, split="train", streaming=streaming, token=hf_token)
     assert isinstance(ds, IterableDataset if streaming else Dataset)
     ds_items = list(ds)
     assert len(ds_items) == 2
@@ -1432,3 +1435,26 @@ def test_load_dataset_distributed(tmp_path, csv_path):
         assert all(len(dataset) == len(datasets[0]) > 0 for dataset in datasets)
         assert len(datasets[0].cache_files) > 0
         assert all(dataset.cache_files == datasets[0].cache_files for dataset in datasets)
+
+
+def test_load_dataset_with_storage_options(mockfs):
+    with mockfs.open("data.txt", "w") as f:
+        f.write("Hello there\n")
+        f.write("General Kenobi !")
+    data_files = {"train": ["mock://data.txt"]}
+    ds = load_dataset("text", data_files=data_files, storage_options=mockfs.storage_options)
+    assert list(ds["train"]) == [{"text": "Hello there"}, {"text": "General Kenobi !"}]
+
+
+@require_pil
+def test_load_dataset_with_storage_options_with_decoding(mockfs, image_file):
+    import PIL.Image
+
+    filename = os.path.basename(image_file)
+    with mockfs.open(filename, "wb") as fout:
+        with open(image_file, "rb") as fin:
+            fout.write(fin.read())
+    data_files = {"train": ["mock://" + filename]}
+    ds = load_dataset("imagefolder", data_files=data_files, storage_options=mockfs.storage_options)
+    assert len(ds["train"]) == 1
+    assert isinstance(ds["train"][0]["image"], PIL.Image.Image)

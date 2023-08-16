@@ -538,7 +538,7 @@ def create_builder_configs_from_metadata_configs(
     supports_metadata: bool,
     base_path: Optional[str] = None,
     default_builder_kwargs: Dict[str, Any] = None,
-    allowed_extensions: Optional[List[str]] = None,
+    download_config: Optional[DownloadConfig] = None,
 ) -> Tuple[List[BuilderConfig], str]:
     builder_cls = import_main_class(module_path)
     builder_config_cls = builder_cls.BUILDER_CONFIG_CLASS
@@ -560,6 +560,7 @@ def create_builder_configs_from_metadata_configs(
                 config_patterns,
                 base_path=config_base_path,
                 allowed_extensions=ALL_ALLOWED_EXTENSIONS,
+                download_config=download_config,
             )
         except EmptyDatasetError as e:
             raise EmptyDatasetError(
@@ -1070,6 +1071,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 base_path=base_path,
                 supports_metadata=supports_metadata,
                 default_builder_kwargs=default_builder_kwargs,
+                download_config=self.download_config,
             )
         else:
             builder_configs, default_config_name = None, None
@@ -1789,6 +1791,9 @@ def load_dataset_builder(
     if token is not None:
         download_config = download_config.copy() if download_config else DownloadConfig()
         download_config.token = token
+    if storage_options is not None:
+        download_config = download_config.copy() if download_config else DownloadConfig()
+        download_config.storage_options.update(storage_options)
     dataset_module = dataset_module_factory(
         path,
         revision=revision,

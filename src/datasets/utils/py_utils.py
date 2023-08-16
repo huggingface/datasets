@@ -606,7 +606,7 @@ class Pickler(dill.Pickler):
                 def dill_log(pickler, msg):
                     dill._dill.log.info(msg)
 
-            elif config.DILL_VERSION.release[:3] == version.parse("0.3.6").release:
+            elif config.DILL_VERSION.release[:3] in [version.parse("0.3.6").release, version.parse("0.3.7").release]:
 
                 def dill_log(pickler, msg):
                     dill._dill.logger.trace(pickler, msg)
@@ -686,7 +686,7 @@ class Pickler(dill.Pickler):
 
     def memoize(self, obj):
         # don't memoize strings since two identical strings can have different python ids
-        if type(obj) != str:
+        if type(obj) != str:  # noqa: E721
             dill.Pickler.memoize(self, obj)
 
 
@@ -826,7 +826,7 @@ if config.DILL_VERSION < version.parse("0.3.6"):
         dill._dill.log.info("# Co")
         return
 
-elif config.DILL_VERSION.release[:3] == version.parse("0.3.6").release:
+elif config.DILL_VERSION.release[:3] in [version.parse("0.3.6").release, version.parse("0.3.7").release]:
     # From: https://github.com/uqfoundation/dill/blob/dill-0.3.6/dill/_dill.py#L1104
     @pklregister(CodeType)
     def save_code(pickler, obj):
@@ -1193,7 +1193,7 @@ elif config.DILL_VERSION.release[:3] == version.parse("0.3.5").release:  # 0.3.5
             dill._dill.log.info("# F2")
         return
 
-elif config.DILL_VERSION.release[:3] == version.parse("0.3.6").release:
+elif config.DILL_VERSION.release[:3] in [version.parse("0.3.6").release, version.parse("0.3.7").release]:
     # From: https://github.com/uqfoundation/dill/blob/dill-0.3.6/dill/_dill.py#L1739
     @pklregister(FunctionType)
     def save_function(pickler, obj):

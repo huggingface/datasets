@@ -195,6 +195,28 @@ Dataset({
 })
 ```
 
+Conversely, [`~Dataset.select_columns`] selects one or more columns to keep and removes the rest. This function takes either one or a list of column names:
+
+```py
+>>> dataset
+Dataset({
+    features: ['sentence1', 'sentence2', 'label', 'idx'],
+    num_rows: 3668
+})
+>>> dataset = dataset.select_columns(['sentence1', 'sentence2', 'idx'])
+>>> dataset
+Dataset({
+    features: ['sentence1', 'sentence2', 'idx'],
+    num_rows: 3668
+})
+>>> dataset = dataset.select_columns('idx')
+>>> dataset
+Dataset({
+    features: ['idx'],
+    num_rows: 3668
+})
+```
+
 ### Cast
 
 The [`~Dataset.cast`] function transforms the feature type of one or more columns. This function accepts your new [`Features`] as its argument. The example below demonstrates how to change the [`ClassLabel`] and [`Value`] features:

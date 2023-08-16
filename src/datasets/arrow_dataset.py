@@ -941,19 +941,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         split: Optional[NamedSplit] = None,
     ) -> "Dataset":
         """
-        Convert a list of dicts to a `pyarrow.Table` to create a :class:`Dataset`.
+        Convert a list of dicts to a `pyarrow.Table` to create a [`Dataset`]`.
 
         Note that the keys of the first entry will be used to determine the dataset columns,
         regardless of what is passed to features.
 
         Args:
             mapping (`List[dict]`): A list of mappings of strings to row values.
-            features (:class:`Features`, optional): Dataset features.
-            info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
-            split (:class:`NamedSplit`, optional): Name of the dataset split.
+            features (`Features`, optional): Dataset features.
+            info (`DatasetInfo`, optional): Dataset information, like description, citation, etc.
+            split (`NamedSplit`, optional): Name of the dataset split.
 
         Returns:
-            :class:`Dataset`
+            [`Dataset`]
         """
         # for simplicity and consistency wrt OptimizedTypedSequence we do not use InMemoryTable.from_pylist here
         mapping = {k: [r.get(k) for r in mapping] for k in mapping[0]} if mapping else {}
@@ -4771,6 +4771,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             writer_batch_size=writer_batch_size,
         )
 
+    @deprecated()
     def export(
         self,
         filename: str,
