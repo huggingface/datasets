@@ -1141,7 +1141,7 @@ elif config.DILL_VERSION.release[:3] == version.parse("0.3.5").release:  # 0.3.5
                     state_dict["__module__"] = obj.__module__
 
                 state = obj.__dict__
-                if type(state) is not dict:
+                if type(state) is not dict:  # noqa: E721
                     state_dict["__dict__"] = state
                     state = None
                 if state_dict:
@@ -1303,7 +1303,7 @@ elif config.DILL_VERSION.release[:3] in [version.parse("0.3.6").release, version
                 state_dict["__module__"] = obj.__module__
 
             state = obj.__dict__
-            if type(state) is not dict:
+            if type(state) is not dict:  # noqa: E721
                 state_dict["__dict__"] = state
                 state = None
             if state_dict:
