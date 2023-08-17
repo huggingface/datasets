@@ -100,6 +100,15 @@ An [`IterableDataset`] is loaded when you set the `streaming` parameter to `True
 {'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=384x512 at 0x7F0681F5C520>, 'label': 6}
 ```
 
+You can also create an [`IterableDataset`] from an *existing* [`Dataset`], but it is faster than streaming mode because the dataset is streamed from local files:
+
+```py
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("rotten_tomatoes", split="train")
+>>> iterable_dataset = dataset.to_iterable_dataset()
+```
+
 An [`IterableDataset`] progressively iterates over a dataset one example at a time, so you don't have to wait for the whole dataset to download before you can use it. As you can imagine, this is quite useful for large datasets you want to use immediately!
 
 However, this means an [`IterableDataset`]'s behavior is different from a regular [`Dataset`]. You don't get random access to examples in an [`IterableDataset`]. Instead, you should iterate over its elements, for example, by calling `next(iter())` or with a `for` loop to return the next item from the [`IterableDataset`]:
