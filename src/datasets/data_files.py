@@ -320,7 +320,7 @@ def resolve_pattern(
         allowed_extensions (Optional[list], optional): White-list of file extensions to use. Defaults to None (all extensions).
             For example: allowed_extensions=[".csv", ".json", ".txt", ".parquet"]
     Returns:
-        List[Union[Path, Url]]: List of paths or URLs to the local or remote files that match the patterns.
+        List[str]: List of paths or URLs to the local or remote files that match the patterns.
     """
     if is_relative_path(pattern):
         pattern = xjoin(base_path, pattern)
