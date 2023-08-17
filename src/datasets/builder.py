@@ -690,6 +690,9 @@ class DatasetBuilder:
     def _rename(self, src: str, dst: str):
         rename(self._fs, src, dst)
 
+    def _format_path(self, path: str) -> str:
+        return path  # no-op
+
     def download_and_prepare(
         self,
         output_dir: Optional[str] = None,
@@ -819,7 +822,8 @@ class DatasetBuilder:
         fs_token_paths = fsspec.get_fs_token_paths(output_dir, storage_options=storage_options)
         self._fs: fsspec.AbstractFileSystem = fs_token_paths[0]
         is_local = not is_remote_filesystem(self._fs)
-        self._output_dir = fs_token_paths[2][0] if is_local else self._fs.unstrip_protocol(fs_token_paths[2][0])
+        output_dir = fs_token_paths[2][0] if is_local else self._fs.unstrip_protocol(fs_token_paths[2][0])
+        self._output_dir = self._format_path(output_dir)
 
         download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
         verification_mode = VerificationMode(verification_mode or VerificationMode.BASIC_CHECKS)
@@ -2024,6 +2028,12 @@ class BeamBasedBuilder(DatasetBuilder):
         ```
         """
         raise NotImplementedError()
+
+    def _format_path(self, path: str) -> str:
+        if path.startswith("gcs://"):
+            # Beam FileSystem expects gc:// instead of gcs://
+            path = path.replace("gcs://", "gc://", 1)
+        return path
 
     def _download_and_prepare(self, dl_manager, verification_mode, **prepare_splits_kwargs):
         # Create the Beam pipeline and forward it to `_prepare_split`
