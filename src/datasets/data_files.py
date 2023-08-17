@@ -320,7 +320,7 @@ def resolve_pattern(
         allowed_extensions (Optional[list], optional): White-list of file extensions to use. Defaults to None (all extensions).
             For example: allowed_extensions=[".csv", ".json", ".txt", ".parquet"]
     Returns:
-        List[Union[Path, Url]]: List of paths or URLs to the local or remote files that match the patterns.
+        List[str]: List of paths or URLs to the local or remote files that match the patterns.
     """
     if is_relative_path(pattern):
         pattern = xjoin(base_path, pattern)
@@ -573,17 +573,14 @@ class DataFilesList(List[str]):
         base_path = base_path if base_path is not None else Path().resolve().as_posix()
         data_files = []
         for pattern in patterns:
-            try:
-                data_files.extend(
-                    resolve_pattern(
-                        pattern,
-                        base_path=base_path,
-                        allowed_extensions=allowed_extensions,
-                        download_config=download_config,
-                    )
+            data_files.extend(
+                resolve_pattern(
+                    pattern,
+                    base_path=base_path,
+                    allowed_extensions=allowed_extensions,
+                    download_config=download_config,
                 )
-            except FileNotFoundError:
-                pass
+            )
         origin_metadata = _get_origin_metadata(data_files, download_config=download_config)
         return cls(data_files, origin_metadata)
 
