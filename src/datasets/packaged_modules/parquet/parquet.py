@@ -51,7 +51,7 @@ class Parquet(datasets.ArrowBasedBuilder):
                     with open(file, "rb") as f:
                         features = datasets.Features.from_arrow_schema(pq.read_schema(f))
                         if self.config.columns is not None:
-                            self.info.features = datasets.Features(
+                            features = datasets.Features(
                                 {col: feat for col, feat in features.items() if col in self.config.columns}
                             )
                         self.info.features = features
