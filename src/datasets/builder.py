@@ -2032,7 +2032,7 @@ class BeamBasedBuilder(DatasetBuilder):
     def _format_path(self, path: str) -> str:
         if path.startswith("gcs://"):
             # Beam FileSystem expects gc:// instead of gcs://
-            path = path.replace("gcs://", "gc://", 1)
+            path = path.replace("gcs://", "gs://", 1)
         return path
 
     def _download_and_prepare(self, dl_manager, verification_mode, **prepare_splits_kwargs):
