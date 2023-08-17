@@ -25,6 +25,7 @@ import os
 import queue
 import re
 import types
+import warnings
 from contextlib import contextmanager
 from dataclasses import fields, is_dataclass
 from io import BytesIO as StringIO
@@ -465,7 +466,13 @@ def map_nested(
             for obj in logging.tqdm(iterable, disable=disable_tqdm, desc=desc)
         ]
     else:
-        mapped = parallel_map(function, iterable, num_proc, types, disable_tqdm, desc, _single_map_nested)
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message=".* is experimental and might be subject to breaking changes in the future\\.$",
+                category=UserWarning,
+            )
+            mapped = parallel_map(function, iterable, num_proc, types, disable_tqdm, desc, _single_map_nested)
 
     if isinstance(data_struct, dict):
         return dict(zip(data_struct.keys(), mapped))
