@@ -573,14 +573,18 @@ class DataFilesList(List[str]):
         base_path = base_path if base_path is not None else Path().resolve().as_posix()
         data_files = []
         for pattern in patterns:
-            data_files.extend(
-                resolve_pattern(
-                    pattern,
-                    base_path=base_path,
-                    allowed_extensions=allowed_extensions,
-                    download_config=download_config,
+            try:
+                data_files.extend(
+                    resolve_pattern(
+                        pattern,
+                        base_path=base_path,
+                        allowed_extensions=allowed_extensions,
+                        download_config=download_config,
+                    )
                 )
-            )
+            except FileNotFoundError:
+                if "*" not in pattern and "[" not in pattern and "?" not in pattern:
+                    raise
         origin_metadata = _get_origin_metadata(data_files, download_config=download_config)
         return cls(data_files, origin_metadata)
 
