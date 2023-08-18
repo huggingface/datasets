@@ -380,6 +380,11 @@ def test_DataFilesList_from_patterns_locally_with_extra_files(complex_data_dir, 
     assert len(data_files_list.origin_metadata) == 2
 
 
+def test_DataFilesList_from_patterns_raises_FileNotFoundError(complex_data_dir):
+    with pytest.raises(FileNotFoundError):
+        DataFilesList.from_patterns(["file_that_doesnt_exist.txt"], complex_data_dir)
+
+
 @pytest.mark.parametrize("pattern", _TEST_PATTERNS)
 def test_DataFilesDict_from_patterns_in_dataset_repository(
     hub_dataset_repo_path, hub_dataset_repo_patterns_results, pattern
