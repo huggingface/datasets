@@ -1,6 +1,7 @@
 import os
 import re
 from functools import partial
+from glob import has_magic
 from pathlib import Path, PurePath
 from typing import Callable, Dict, List, Optional, Set, Tuple, Union
 
@@ -583,7 +584,7 @@ class DataFilesList(List[str]):
                     )
                 )
             except FileNotFoundError:
-                if "*" not in pattern and "[" not in pattern and "?" not in pattern:
+                if not has_magic(pattern):
                     raise
         origin_metadata = _get_origin_metadata(data_files, download_config=download_config)
         return cls(data_files, origin_metadata)
