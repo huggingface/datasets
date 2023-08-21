@@ -5462,6 +5462,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dataset_card = None
             dataset_card_data = DatasetCardData()
             download_config = DownloadConfig()
+            metadata_configs = MetadataConfigs()
             download_config.download_desc = "Downloading metadata"
             download_config.token = token
             dataset_infos_path = cached_path(
