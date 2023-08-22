@@ -25,7 +25,7 @@ _lowercase_uppercase_re = re.compile(r"([a-z\d])([A-Z])")
 _single_underscore_re = re.compile(r"(?<!_)_(?!_)")
 _multiple_underscores_re = re.compile(r"(_{2,})")
 
-_split_re = r"^\w+(\.\w+)*$"
+_split_re = r"^\w+([\.\-]\w+)*$"
 
 INVALID_WINDOWS_CHARACTERS_IN_PATH = r"<>:/\|?*"
 
