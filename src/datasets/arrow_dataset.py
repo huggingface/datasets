@@ -1375,7 +1375,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     def save_to_disk(
         self,
-        dataset_path: PathLike,
+        dataset_path: str,
         fs="deprecated",
         max_shard_size: Optional[Union[str, int]] = None,
         num_shards: Optional[int] = None,
