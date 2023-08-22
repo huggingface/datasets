@@ -1756,6 +1756,9 @@ class Features(dict):
                 elif _type and not obj:
                     return {"dtype": camelcase_to_snakecase(_type)}
                 elif _type:
+                    if _type in ["Array2D", "Array3D", "Array4D", "Array5D"]:
+                        _shape = obj.pop("shape")
+                        obj = {**obj, "shape": list(_shape)}
                     return {"dtype": simplify({camelcase_to_snakecase(_type): obj})}
                 else:
                     return {"struct": [{"name": name, **to_yaml_inner(_feature)} for name, _feature in obj.items()]}
@@ -1822,7 +1825,7 @@ class Features(dict):
                             Value(obj["dtype"])
                             return {**obj, "_type": "Value"}
                         except ValueError:
-                            # for audio and image that are Audio and Image types, not Value
+                            # e.g. Audio, Image, ArrayXD
                             return {"_type": snakecase_to_camelcase(obj["dtype"])}
                     else:
                         return from_yaml_inner(obj["dtype"])
