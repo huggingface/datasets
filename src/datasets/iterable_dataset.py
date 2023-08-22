@@ -1954,28 +1954,7 @@ class IterableDataset(DatasetInfoMixin):
          'movie_review': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
         ```
         """
-
-        def rename_column_fn(example):
-            if original_column_name not in example:
-                raise ValueError(
-                    f"Error when renaming {original_column_name} to {new_column_name}: column {original_column_name} is not in the dataset."
-                )
-            if new_column_name in example:
-                raise ValueError(
-                    f"Error when renaming {original_column_name} to {new_column_name}: column {new_column_name} is already in the dataset."
-                )
-            return {new_column_name: example[original_column_name]}
-
-        original_features = self._info.features.copy() if self._info.features else None
-        ds_iterable = self.map(rename_column_fn, remove_columns=[original_column_name])
-        if original_features is not None:
-            ds_iterable._info.features = Features(
-                {
-                    new_column_name if col == original_column_name else col: feature
-                    for col, feature in original_features.items()
-                }
-            )
-        return ds_iterable
+        return self.rename_columns({original_column_name: new_column_name})
 
     def rename_columns(self, column_mapping: Dict[str, str]) -> "IterableDataset":
         """
