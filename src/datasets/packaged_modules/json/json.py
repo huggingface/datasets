@@ -74,8 +74,12 @@ class Json(datasets.ArrowBasedBuilder):
             pa_table = table_cast(pa_table, self.config.features.arrow_schema)
         return pa_table
 
-    def _generate_tables(self, files):
+    def _generate_tables(self, files, return_file_name=False):
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
+            if return_file_name:
+                yield_file_name = file
+            else:
+                yield_file_name = None
             # If the file is one json object and if we need to look at the list of items in one specific field
             if self.config.field is not None:
                 with open(file, encoding=self.config.encoding, errors=self.config.encoding_errors) as f:
@@ -167,5 +171,5 @@ class Json(datasets.ArrowBasedBuilder):
                         # Uncomment for debugging (will print the Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                        yield (file_idx, batch_idx), self._cast_table(pa_table)
+                        yield (file_idx, batch_idx, yield_file_name), self._cast_table(pa_table)
                         batch_idx += 1
