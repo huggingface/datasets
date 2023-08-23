@@ -212,7 +212,7 @@ If you want to benefit from the "lazy" behavior of an [`IterableDataset`] or the
 my_iterable_dataset = my_dataset.to_iterable_dataset()
 ```
 
-If you want to shuffle your dataset or [use it with a PyTorch DataLoader](./use_with_pytorch#stream-data), we recommend generating a shared [`IterableDataset`]:
+If you want to shuffle your dataset or [use it with a PyTorch DataLoader](./use_with_pytorch#stream-data), we recommend generating a sharded [`IterableDataset`]:
 ```python
 my_iterable_dataset = my_dataset.to_iterable_dataset(num_shards=1024)
 my_iterable_dataset.n_shards  # 1024
