@@ -81,17 +81,17 @@ class __DummyDataset1__(datasets.GeneratorBasedBuilder):
                 yield i, {"text": line.strip()}
 """
 
-SAMPLE_DATASET_IDENTIFIER = "lhoestq/test"  # has dataset script
-SAMPLE_DATASET_IDENTIFIER2 = "lhoestq/test2"  # only has data files
-SAMPLE_DATASET_IDENTIFIER3 = "mariosasko/test_multi_dir_dataset"  # has multiple data directories
-SAMPLE_DATASET_IDENTIFIER4 = "mariosasko/test_imagefolder_with_metadata"  # imagefolder with a metadata file outside of the train/test directories
-SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER = "lhoestq/_dummy"
+SAMPLE_DATASET_IDENTIFIER = "hf-internal-testing/dataset_with_script"  # has dataset script
+SAMPLE_DATASET_IDENTIFIER2 = "hf-internal-testing/dataset_with_data_files"  # only has data files
+SAMPLE_DATASET_IDENTIFIER3 = "hf-internal-testing/multi_dir_dataset"  # has multiple data directories
+SAMPLE_DATASET_IDENTIFIER4 = "hf-internal-testing/imagefolder_with_metadata"  # imagefolder with a metadata file outside of the train/test directories
+SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER = "hf-internal-testing/_dummy"
 SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST = "_dummy"
-SAMPLE_DATASET_NO_CONFIGS_IN_METADATA = "datasets-maintainers/audiofolder_no_configs_in_metadata"
-SAMPLE_DATASET_SINGLE_CONFIG_IN_METADATA = "datasets-maintainers/audiofolder_single_config_in_metadata"
-SAMPLE_DATASET_TWO_CONFIG_IN_METADATA = "datasets-maintainers/audiofolder_two_configs_in_metadata"
+SAMPLE_DATASET_NO_CONFIGS_IN_METADATA = "hf-internal-testing/audiofolder_no_configs_in_metadata"
+SAMPLE_DATASET_SINGLE_CONFIG_IN_METADATA = "hf-internal-testing/audiofolder_single_config_in_metadata"
+SAMPLE_DATASET_TWO_CONFIG_IN_METADATA = "hf-internal-testing/audiofolder_two_configs_in_metadata"
 SAMPLE_DATASET_TWO_CONFIG_IN_METADATA_WITH_DEFAULT = (
-    "datasets-maintainers/audiofolder_two_configs_in_metadata_with_default"
+    "hf-internal-testing/audiofolder_two_configs_in_metadata_with_default"
 )
 
 
@@ -876,18 +876,18 @@ class LoadTest(TestCase):
                         str(context.exception),
                     )
 
-    def test_load_dataset_users(self):
+    def test_load_dataset_namespace(self):
         with self.assertRaises(FileNotFoundError) as context:
-            datasets.load_dataset("lhoestq/_dummy")
+            datasets.load_dataset("hf-internal-testing/_dummy")
         self.assertIn(
-            "lhoestq/_dummy",
+            "hf-internal-testing/_dummy",
             str(context.exception),
         )
         for offline_simulation_mode in list(OfflineSimulationMode):
             with offline(offline_simulation_mode):
                 with self.assertRaises(ConnectionError) as context:
-                    datasets.load_dataset("lhoestq/_dummy")
-                self.assertIn("lhoestq/_dummy", str(context.exception), msg=offline_simulation_mode)
+                    datasets.load_dataset("hf-internal-testing/_dummy")
+                self.assertIn("hf-internal-testing/_dummy", str(context.exception), msg=offline_simulation_mode)
 
 
 @pytest.mark.integration
@@ -1064,7 +1064,7 @@ def test_load_dataset_streaming_gz_json(jsonl_gz_path):
     "path", ["sample.jsonl", "sample.jsonl.gz", "sample.tar", "sample.jsonl.xz", "sample.zip", "sample.jsonl.zst"]
 )
 def test_load_dataset_streaming_compressed_files(path):
-    repo_id = "albertvillanova/datasets-tests-compression"
+    repo_id = "hf-internal-testing/compressed_files"
     data_files = f"https://huggingface.co/datasets/{repo_id}/resolve/main/{path}"
     if data_files[-3:] in ("zip", "tar"):  # we need to glob "*" inside archives
         data_files = data_files[-3:] + "://*::" + data_files
@@ -1394,7 +1394,7 @@ def test_load_from_disk_with_default_in_memory(
 
 @pytest.mark.integration
 def test_remote_data_files():
-    repo_id = "albertvillanova/tests-raw-jsonl"
+    repo_id = "hf-internal-testing/raw_jsonl"
     filename = "wikiann-bn-validation.jsonl"
     data_files = f"https://huggingface.co/datasets/{repo_id}/resolve/main/{filename}"
     ds = load_dataset("json", split="train", data_files=data_files, streaming=True)
