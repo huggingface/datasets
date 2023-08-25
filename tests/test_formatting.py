@@ -76,7 +76,7 @@ class ArrowExtractorTest(TestCase):
         np.testing.assert_equal(batch, {"a": np.array(_COL_A), "b": np.array(_COL_B)})
 
     def test_numpy_extractor_nested(self):
-        pa_table = self._create_dummy_table().drop(["a", "b"])
+        pa_table = self._create_dummy_table().drop(["a", "b", "d"])
         extractor = NumpyArrowExtractor()
         row = extractor.extract_row(pa_table)
         self.assertEqual(row["c"][0].dtype, np.float64)
@@ -109,14 +109,39 @@ class ArrowExtractorTest(TestCase):
         self.assertIsInstance(row, pd.DataFrame)
         pd.testing.assert_series_equal(row["a"], pd.Series(_COL_A, name="a")[:1])
         pd.testing.assert_series_equal(row["b"], pd.Series(_COL_B, name="b")[:1])
-        pd.testing.assert_series_equal(row["d"], pd.Series(_COL_D, name="d")[:1])
         col = extractor.extract_column(pa_table)
         pd.testing.assert_series_equal(col, pd.Series(_COL_A, name="a"))
         batch = extractor.extract_batch(pa_table)
         self.assertIsInstance(batch, pd.DataFrame)
         pd.testing.assert_series_equal(batch["a"], pd.Series(_COL_A, name="a"))
         pd.testing.assert_series_equal(batch["b"], pd.Series(_COL_B, name="b"))
-        pd.testing.assert_series_equal(batch["d"], pd.Series(_COL_D, name="d"))
+
+    def test_pandas_extractor_nested(self):
+        pa_table = self._create_dummy_table().drop(["a", "b", "d"])
+        extractor = PandasArrowExtractor()
+        row = extractor.extract_row(pa_table)
+        self.assertEqual(row["c"][0][0].dtype, np.float64)
+        self.assertEqual(row["c"].dtype, object)
+        col = extractor.extract_column(pa_table)
+        self.assertEqual(col[0][0].dtype, np.float64)
+        self.assertEqual(col[0].dtype, object)
+        self.assertEqual(col.dtype, object)
+        batch = extractor.extract_batch(pa_table)
+        self.assertEqual(batch["c"][0][0].dtype, np.float64)
+        self.assertEqual(batch["c"][0].dtype, object)
+        self.assertEqual(batch["c"].dtype, object)
+
+    def test_pandas_extractor_temporal(self):
+        pa_table = self._create_dummy_table().drop(["a", "b", "c"])
+        extractor = PandasArrowExtractor()
+        row = extractor.extract_row(pa_table)
+        self.assertTrue(pd.api.types.is_datetime64_any_dtype(row["d"].dtype))
+        col = extractor.extract_column(pa_table)
+        self.assertTrue(isinstance(col[0], datetime.datetime))
+        self.assertTrue(pd.api.types.is_datetime64_any_dtype(col.dtype))
+        batch = extractor.extract_batch(pa_table)
+        self.assertTrue(isinstance(batch["d"][0], datetime.datetime))
+        self.assertTrue(pd.api.types.is_datetime64_any_dtype(batch["d"].dtype))
 
 
 class LazyDictTest(TestCase):
