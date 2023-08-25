@@ -15,10 +15,10 @@ from datasets.tasks import TextClassification
 
 
 remote_files = [
-    "https://huggingface.co/datasets/polinaeterna/texts/resolve/main/hallo.txt",
-    "https://huggingface.co/datasets/polinaeterna/texts/resolve/main/hello.txt",
-    "https://huggingface.co/datasets/polinaeterna/texts/resolve/main/class1/bonjour.txt",
-    "https://huggingface.co/datasets/polinaeterna/texts/resolve/main/class1/bonjour2.txt",
+    "https://huggingface.co/datasets/hf-internal-testing/textfolder/resolve/main/hallo.txt",
+    "https://huggingface.co/datasets/hf-internal-testing/textfolder/resolve/main/hello.txt",
+    "https://huggingface.co/datasets/hf-internal-testing/textfolder/resolve/main/class1/bonjour.txt",
+    "https://huggingface.co/datasets/hf-internal-testing/textfolder/resolve/main/class1/bonjour2.txt",
 ]
 
 

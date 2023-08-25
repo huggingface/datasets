@@ -66,15 +66,14 @@ def test_get_dataset_config_info_error(path, config_name, expected_exception):
 @pytest.mark.parametrize(
     "path, expected",
     [
-        ("squad", ["plain_text"]),
         ("acronym_identification", ["default"]),
-        ("lhoestq/squad", ["plain_text"]),
-        ("lhoestq/test", ["default"]),
-        ("lhoestq/demo1", ["default"]),
+        ("squad", ["plain_text"]),
+        ("hf-internal-testing/dataset_with_script", ["default"]),
         ("dalle-mini/wit", ["default"]),
-        ("datasets-maintainers/audiofolder_no_configs_in_metadata", ["default"]),
-        ("datasets-maintainers/audiofolder_single_config_in_metadata", ["custom"]),
-        ("datasets-maintainers/audiofolder_two_configs_in_metadata", ["v1", "v2"]),
+        ("hf-internal-testing/librispeech_asr_dummy", ["clean", "other"]),
+        ("hf-internal-testing/audiofolder_no_configs_in_metadata", ["default"]),
+        ("hf-internal-testing/audiofolder_single_config_in_metadata", ["custom"]),
+        ("hf-internal-testing/audiofolder_two_configs_in_metadata", ["v1", "v2"]),
     ],
 )
 def test_get_dataset_config_names(path, expected):
