@@ -55,6 +55,7 @@ from .utils import (
     require_torch,
 )
 
+
 DEFAULT_N_EXAMPLES = 20
 DEFAULT_BATCH_SIZE = 4
 DEFAULT_FILEPATH = "file.txt"
@@ -362,7 +363,7 @@ def test_mapped_examples_iterable(n, func, batched, batch_size):
         if batch_size is None or batch_size <= 0:
             batch_size = len(all_examples)
         for batch_offset in range(0, len(all_examples), batch_size):
-            examples = all_examples[batch_offset: batch_offset + batch_size]
+            examples = all_examples[batch_offset : batch_offset + batch_size]
             batch = _examples_to_batch(examples)
             transformed_batch = func(batch)
             all_transformed_examples.extend(_batch_to_examples(transformed_batch))
@@ -402,7 +403,7 @@ def test_mapped_examples_iterable_drop_last_batch(n, func, batched, batch_size):
         if batch_size is None or batch_size <= 0:
             batch_size = len(all_examples)
         for batch_offset in range(0, len(all_examples), batch_size):
-            examples = all_examples[batch_offset: batch_offset + batch_size]
+            examples = all_examples[batch_offset : batch_offset + batch_size]
             if len(examples) < batch_size:  # ignore last batch
                 break
             batch = _examples_to_batch(examples)
@@ -429,10 +430,10 @@ def test_mapped_examples_iterable_drop_last_batch(n, func, batched, batch_size):
     [
         (3, lambda x, index: {"id+idx": x["id"] + index}, False, None),  # add the index to the id
         (
-                25,
-                lambda x, indices: {"id+idx": [i + j for i, j in zip(x["id"], indices)]},
-                True,
-                10,
+            25,
+            lambda x, indices: {"id+idx": [i + j for i, j in zip(x["id"], indices)]},
+            True,
+            10,
         ),  # add the index to the id
         (5, lambda x, indices: {"id+idx": [i + j for i, j in zip(x["id"], indices)]}, True, None),  # same with bs=None
         (5, lambda x, indices: {"id+idx": [i + j for i, j in zip(x["id"], indices)]}, True, -1),  # same with bs<=0
@@ -453,7 +454,7 @@ def test_mapped_examples_iterable_with_indices(n, func, batched, batch_size):
         if batch_size is None or batch_size <= 0:
             batch_size = len(all_examples)
         for batch_offset in range(0, len(all_examples), batch_size):
-            examples = all_examples[batch_offset: batch_offset + batch_size]
+            examples = all_examples[batch_offset : batch_offset + batch_size]
             batch = _examples_to_batch(examples)
             indices = list(range(batch_offset, batch_offset + len(examples)))
             transformed_batch = func(batch, indices)
@@ -471,11 +472,11 @@ def test_mapped_examples_iterable_with_indices(n, func, batched, batch_size):
         (3, lambda x: {"id+1": x["id"] + 1}, False, None, ["extra_column"]),  # just add 1 to the id
         (25, lambda x: {"id+1": [i + 1 for i in x["id"]]}, True, 10, ["extra_column"]),  # same with bs=10
         (
-                50,
-                lambda x: {"foo": ["bar"] * np.random.default_rng(x["id"][0]).integers(0, 10)},
-                True,
-                8,
-                ["extra_column", "id"],
+            50,
+            lambda x: {"foo": ["bar"] * np.random.default_rng(x["id"][0]).integers(0, 10)},
+            True,
+            8,
+            ["extra_column", "id"],
         ),  # make a duplicate of each example
         (5, lambda x: {"id+1": [i + 1 for i in x["id"]]}, True, None, ["extra_column"]),  # same with bs=None
         (5, lambda x: {"id+1": [i + 1 for i in x["id"]]}, True, -1, ["extra_column"]),  # same with bs<=0
@@ -497,7 +498,7 @@ def test_mapped_examples_iterable_remove_columns(n, func, batched, batch_size, r
         if batch_size is None or batch_size <= 0:
             batch_size = len(all_examples)
         for batch_offset in range(0, len(all_examples), batch_size):
-            examples = all_examples[batch_offset: batch_offset + batch_size]
+            examples = all_examples[batch_offset : batch_offset + batch_size]
             batch = _examples_to_batch(examples)
             transformed_batch = func(batch)
             all_transformed_examples.extend(_batch_to_examples(transformed_batch))
@@ -535,7 +536,7 @@ def test_mapped_examples_iterable_fn_kwargs(n, func, batched, batch_size, fn_kwa
         if batch_size is None or batch_size <= 0:
             batch_size = len(all_examples)
         for batch_offset in range(0, len(all_examples), batch_size):
-            examples = all_examples[batch_offset: batch_offset + batch_size]
+            examples = all_examples[batch_offset : batch_offset + batch_size]
             batch = _examples_to_batch(examples)
             transformed_batch = func(batch, **fn_kwargs)
             all_transformed_examples.extend(_batch_to_examples(transformed_batch))
@@ -571,7 +572,7 @@ def test_mapped_examples_iterable_input_columns(n, func, batched, batch_size, in
         if batch_size is None or batch_size <= 0:
             batch_size = len(all_examples)
         for batch_offset in range(0, len(all_examples), batch_size):
-            examples = all_examples[batch_offset: batch_offset + batch_size]
+            examples = all_examples[batch_offset : batch_offset + batch_size]
             batch = _examples_to_batch(examples)
             transformed_batch = func(*[batch[col] for col in columns_to_input])
             all_transformed_examples.extend(_batch_to_examples(transformed_batch))
@@ -612,7 +613,7 @@ def test_mapped_examples_iterable_arrow_format(n, func, batched, batch_size):
         if batch_size is None or batch_size <= 0:
             batch_size = len(all_examples)
         for batch_offset in range(0, len(all_examples), batch_size):
-            examples = all_examples[batch_offset: batch_offset + batch_size]
+            examples = all_examples[batch_offset : batch_offset + batch_size]
             batch = pa.Table.from_pylist(examples)
             expected.extend(func(batch).to_pylist())
     assert next(iter(ex_iterable))[1] == expected[0]
@@ -652,7 +653,7 @@ def test_mapped_examples_iterable_drop_last_batch_and_arrow_format(n, func, batc
         if batch_size is None or batch_size <= 0:
             batch_size = len(all_examples)
         for batch_offset in range(0, len(all_examples), batch_size):
-            examples = all_examples[batch_offset: batch_offset + batch_size]
+            examples = all_examples[batch_offset : batch_offset + batch_size]
             if len(examples) < batch_size:  # ignore last batch
                 break
             batch = pa.Table.from_pylist(examples)
@@ -678,16 +679,16 @@ def test_mapped_examples_iterable_drop_last_batch_and_arrow_format(n, func, batc
     "n, func, batched, batch_size",
     [
         (
-                3,
-                lambda t, index: t.append_column("id+idx", pc.add(t["id"], index)),
-                False,
-                None,
+            3,
+            lambda t, index: t.append_column("id+idx", pc.add(t["id"], index)),
+            False,
+            None,
         ),  # add the index to the id
         (
-                25,
-                lambda t, indices: t.append_column("id+idx", pc.add(t["id"], indices)),
-                True,
-                10,
+            25,
+            lambda t, indices: t.append_column("id+idx", pc.add(t["id"], indices)),
+            True,
+            10,
         ),  # add the index to the id
         (5, lambda t, indices: t.append_column("id+idx", pc.add(t["id"], indices)), True, None),  # same with bs=None
         (5, lambda t, indices: t.append_column("id+idx", pc.add(t["id"], indices)), True, -1),  # same with bs<=0
@@ -712,7 +713,7 @@ def test_mapped_examples_iterable_with_indices_and_arrow_format(n, func, batched
         if batch_size is None or batch_size <= 0:
             batch_size = len(all_examples)
         for batch_offset in range(0, len(all_examples), batch_size):
-            examples = all_examples[batch_offset: batch_offset + batch_size]
+            examples = all_examples[batch_offset : batch_offset + batch_size]
             batch = pa.Table.from_pylist(examples)
             expected.extend(func(batch, list(range(batch_offset, batch_offset + len(batch)))).to_pylist())
     assert next(iter(ex_iterable))[1] == expected[0]
@@ -723,19 +724,19 @@ def test_mapped_examples_iterable_with_indices_and_arrow_format(n, func, batched
     "n, func, batched, batch_size, remove_columns",
     [
         (
-                3,
-                lambda t: t.append_column("id+1", pc.add(t["id"], 1)),
-                False,
-                None,
-                ["extra_column"],
+            3,
+            lambda t: t.append_column("id+1", pc.add(t["id"], 1)),
+            False,
+            None,
+            ["extra_column"],
         ),  # just add 1 to the id
         (25, lambda t: t.append_column("id+1", pc.add(t["id"], 1)), True, 10, ["extra_column"]),  # same with bs=10
         (
-                50,
-                lambda t: pa.table({"foo": ["bar"] * np.random.default_rng(t["id"][0].as_py()).integers(0, 10)}),
-                True,
-                8,
-                ["extra_column", "id"],
+            50,
+            lambda t: pa.table({"foo": ["bar"] * np.random.default_rng(t["id"][0].as_py()).integers(0, 10)}),
+            True,
+            8,
+            ["extra_column", "id"],
         ),  # make a duplicate of each example
         (5, lambda t: t.append_column("id+1", pc.add(t["id"], 1)), True, None, ["extra_column"]),  # same with bs=None
         (5, lambda t: t.append_column("id+1", pc.add(t["id"], 1)), True, -1, ["extra_column"]),  # same with bs<=0
@@ -764,7 +765,7 @@ def test_mapped_examples_iterable_remove_columns_arrow_format(n, func, batched, 
         if batch_size is None or batch_size <= 0:
             batch_size = len(all_examples)
         for batch_offset in range(0, len(all_examples), batch_size):
-            examples = all_examples[batch_offset: batch_offset + batch_size]
+            examples = all_examples[batch_offset : batch_offset + batch_size]
             batch = pa.Table.from_pylist(examples)
             expected.extend(
                 [{k: v for k, v in x.items() if k not in columns_to_remove} for x in func(batch).to_pylist()]
@@ -804,7 +805,7 @@ def test_mapped_examples_iterable_fn_kwargs_and_arrow_format(n, func, batched, b
         if batch_size is None or batch_size <= 0:
             batch_size = len(all_examples)
         for batch_offset in range(0, len(all_examples), batch_size):
-            examples = all_examples[batch_offset: batch_offset + batch_size]
+            examples = all_examples[batch_offset : batch_offset + batch_size]
             batch = pa.Table.from_pylist(examples)
             expected.extend(func(batch, **fn_kwargs).to_pylist())
     assert next(iter(ex_iterable))[1] == expected[0]
@@ -842,7 +843,7 @@ def test_mapped_examples_iterable_input_columns_and_arrow_format(n, func, batche
         if batch_size is None or batch_size <= 0:
             batch_size = len(all_examples)
         for batch_offset in range(0, len(all_examples), batch_size):
-            examples = all_examples[batch_offset: batch_offset + batch_size]
+            examples = all_examples[batch_offset : batch_offset + batch_size]
             batch = pa.Table.from_pylist(examples)
             expected.extend(func(*[batch[col] for col in columns_to_input]).to_pylist())
     assert next(iter(ex_iterable))[1] == expected[0]
@@ -874,7 +875,7 @@ def test_filtered_examples_iterable(n, func, batched, batch_size):
         if batch_size is None or batch_size <= 0:
             batch_size = len(all_examples)
         for batch_offset in range(0, len(all_examples), batch_size):
-            examples = all_examples[batch_offset: batch_offset + batch_size]
+            examples = all_examples[batch_offset : batch_offset + batch_size]
             batch = _examples_to_batch(examples)
             mask = func(batch)
             expected.extend([x for x, to_keep in zip(examples, mask) if to_keep])
@@ -907,7 +908,7 @@ def test_filtered_examples_iterable_with_indices(n, func, batched, batch_size):
         if batch_size is None or batch_size <= 0:
             batch_size = len(all_examples)
         for batch_offset in range(0, len(all_examples), batch_size):
-            examples = all_examples[batch_offset: batch_offset + batch_size]
+            examples = all_examples[batch_offset : batch_offset + batch_size]
             batch = _examples_to_batch(examples)
             indices = list(range(batch_offset, batch_offset + len(examples)))
             mask = func(batch, indices)
@@ -941,7 +942,7 @@ def test_filtered_examples_iterable_input_columns(n, func, batched, batch_size, 
         if batch_size is None or batch_size <= 0:
             batch_size = len(all_examples)
         for batch_offset in range(0, len(all_examples), batch_size):
-            examples = all_examples[batch_offset: batch_offset + batch_size]
+            examples = all_examples[batch_offset : batch_offset + batch_size]
             batch = _examples_to_batch(examples)
             mask = func(*[batch[col] for col in columns_to_input])
             expected.extend([x for x, to_keep in zip(examples, mask) if to_keep])
@@ -956,7 +957,7 @@ def test_skip_examples_iterable():
     expected = list(generate_examples_fn(n=total))[count:]
     assert list(skip_ex_iterable) == expected
     assert (
-            skip_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is skip_ex_iterable
+        skip_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is skip_ex_iterable
     ), "skip examples makes the shards order fixed"
 
 
@@ -967,7 +968,7 @@ def test_take_examples_iterable():
     expected = list(generate_examples_fn(n=total))[:count]
     assert list(take_ex_iterable) == expected
     assert (
-            take_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is take_ex_iterable
+        take_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is take_ex_iterable
     ), "skip examples makes the shards order fixed"
 
 
@@ -1013,7 +1014,7 @@ def test_horizontally_concatenated_examples_iterable():
     expected = [{**x, **y} for (_, x), (_, y) in zip(ex_iterable1, ex_iterable2)]
     assert [x for _, x in concatenated_ex_iterable] == expected
     assert (
-            concatenated_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is concatenated_ex_iterable
+        concatenated_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is concatenated_ex_iterable
     ), "horizontally concatenated examples makes the shards order fixed"
 
 
@@ -1276,9 +1277,9 @@ def test_iterable_dataset_iter_batch(batch_size, drop_last_batch):
     all_examples = [ex for _, ex in generate_examples_fn(n=n)]
     expected = []
     for i in range(0, len(all_examples), batch_size):
-        if len(all_examples[i: i + batch_size]) < batch_size and drop_last_batch:
+        if len(all_examples[i : i + batch_size]) < batch_size and drop_last_batch:
             continue
-        expected.append(_examples_to_batch(all_examples[i: i + batch_size]))
+        expected.append(_examples_to_batch(all_examples[i : i + batch_size]))
     assert next(iter(dataset.iter(batch_size, drop_last_batch=drop_last_batch))) == expected[0]
     assert list(dataset.iter(batch_size, drop_last_batch=drop_last_batch)) == expected
 
@@ -1318,7 +1319,7 @@ def test_iterable_dataset_set_epoch_of_shuffled_dataset(dataset: IterableDataset
 
 
 def test_iterable_dataset_map(
-        dataset: IterableDataset,
+    dataset: IterableDataset,
 ):
     func = lambda x: {"id+1": x["id"] + 1}  # noqa: E731
     mapped_dataset = dataset.map(func)
@@ -1329,7 +1330,7 @@ def test_iterable_dataset_map(
 
 
 def test_iterable_dataset_map_batched(
-        dataset: IterableDataset,
+    dataset: IterableDataset,
 ):
     func = lambda x: {"id+1": [i + 1 for i in x["id"]]}  # noqa: E731
     batch_size = 3
@@ -1341,7 +1342,7 @@ def test_iterable_dataset_map_batched(
 
 
 def test_iterable_dataset_map_complex_features(
-        dataset: IterableDataset,
+    dataset: IterableDataset,
 ):
     # https://github.com/huggingface/datasets/issues/3505
     ex_iterable = ExamplesIterable(generate_examples_fn, {"label": "positive"})
@@ -1793,7 +1794,7 @@ def test_interleave_datasets(dataset: IterableDataset, probas, seed, expected_le
 
 
 def test_interleave_datasets_with_features(
-        dataset: IterableDataset,
+    dataset: IterableDataset,
 ):
     features = Features(
         {
@@ -1940,9 +1941,6 @@ def test_pickle_after_many_transforms(dataset_with_several_columns):
     dataset = dataset.filter(filter_func)
     dataset = dataset.add_column("additional_col", ["something"])
     dataset = dataset.rename_column("metadata", "metadata1")
-    dataset = dataset.rename_columns({
-        "id": "id1",
-        "metadata1": "metadata2"
-    })
+    dataset = dataset.rename_columns({"id": "id1", "metadata1": "metadata2"})
     dataset = dataset.select_columns(["id1", "additional_col"])
     pickle.dumps(dataset)
