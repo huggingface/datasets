@@ -1931,12 +1931,6 @@ def map_func(batch):
 
 
 def test_pickle_after_many_transforms(dataset_with_several_columns):
-    def is_picklable(obj):
-        try:
-            pickle.dumps(obj)
-            return True
-        except pickle.PicklingError:
-            return False
     dataset = dataset_with_several_columns
     dataset = dataset.remove_columns(["filepath"])
     dataset = dataset.take(5)
@@ -1951,4 +1945,4 @@ def test_pickle_after_many_transforms(dataset_with_several_columns):
         "metadata1": "metadata2"
     })
     dataset = dataset.select_columns(["id1", "additional_col"])
-    assert is_picklable(dataset)
+    pickle.dumps(dataset)

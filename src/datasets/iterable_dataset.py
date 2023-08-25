@@ -50,6 +50,12 @@ def _rename_columns_fn(example: Dict, column_mapping: Dict[str, str]):
     }
 
 
+def add_column_fn(example: Dict, idx: int, name: str, column: List[Dict]):
+    if name in example:
+        raise ValueError(f"Error when adding {name}: column {name} is already in the dataset.")
+    return {name: column[idx]}
+
+
 def _infer_features_from_batch(batch: Dict[str, list], try_features: Optional[Features] = None) -> Features:
     pa_table = pa.Table.from_pydict(batch)
     if try_features is not None:
@@ -1919,13 +1925,7 @@ class IterableDataset(DatasetInfoMixin):
         Returns:
             `IterableDataset`
         """
-
-        def add_column_fn(example, idx):
-            if name in example:
-                raise ValueError(f"Error when adding {name}: column {name} is already in the dataset.")
-            return {name: column[idx]}
-
-        return self.map(add_column_fn, with_indices=True)
+        return self.map(partial(add_column_fn, name=name, column=column), with_indices=True)
 
     def rename_column(self, original_column_name: str, new_column_name: str) -> "IterableDataset":
         """
