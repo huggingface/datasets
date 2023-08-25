@@ -10,7 +10,7 @@ import os
 import datasets
 
 
-REPO_URL = "https://huggingface.co/datasets/albertvillanova/tests-raw-jsonl/resolve/main/"
+REPO_URL = "https://huggingface.co/datasets/hf-internal-testing/raw_jsonl/resolve/main/"
 URLS = {"train": REPO_URL + "wikiann-bn-train.jsonl", "validation": REPO_URL + "wikiann-bn-validation.jsonl"}
 
 
