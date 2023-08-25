@@ -1943,4 +1943,7 @@ def test_pickle_after_many_transforms(dataset_with_several_columns):
     dataset = dataset.rename_column("metadata", "metadata1")
     dataset = dataset.rename_columns({"id": "id1", "metadata1": "metadata2"})
     dataset = dataset.select_columns(["id1", "additional_col"])
-    pickle.dumps(dataset)
+
+    unpickled_dataset = pickle.loads(pickle.dumps(dataset))
+
+    assert list(unpickled_dataset) == list(dataset)
