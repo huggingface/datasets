@@ -5313,7 +5313,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if data_file.startswith(f"data/{split}-") and data_file not in shards_path_in_repo
         ]
         deleted_size = sum(
-            xgetsize(hf_hub_url(repo_id, data_file), use_auth_token=token) for data_file in data_files_to_delete
+            xgetsize(hf_hub_url(repo_id, data_file, revision=branch), use_auth_token=token) for data_file in data_files_to_delete
         )
 
         def delete_file(file):
@@ -5418,7 +5418,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             download_config.download_desc = "Downloading metadata"
             download_config.use_auth_token = token
             dataset_readme_path = cached_path(
-                hf_hub_url(repo_id, "README.md"),
+                hf_hub_url(repo_id, "README.md", revision=branch),
                 download_config=download_config,
             )
             dataset_metadata = DatasetMetadata.from_readme(Path(dataset_readme_path))
@@ -5434,7 +5434,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             download_config.download_desc = "Downloading metadata"
             download_config.use_auth_token = token
             dataset_infos_path = cached_path(
-                hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME),
+                hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME, revision=branch),
                 download_config=download_config,
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
