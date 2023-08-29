@@ -1343,6 +1343,7 @@ def generate_from_dict(obj: Any):
     # Otherwise we have a dict or a dataclass
     if "_type" not in obj or isinstance(obj["_type"], dict):
         return {key: generate_from_dict(value) for key, value in obj.items()}
+    obj = dict(obj)
     class_type = globals()[obj.pop("_type")]
 
     if class_type == Sequence:
