@@ -5547,7 +5547,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             download_config.download_desc = "Downloading deprecated dataset_infos.json"
             download_config.use_auth_token = token
             dataset_infos_path = cached_path(
-                hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME),
+                hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME, revision=branch),
                 download_config=download_config,
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
