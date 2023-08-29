@@ -60,7 +60,7 @@ DEFAULT_N_EXAMPLES = 20
 DEFAULT_BATCH_SIZE = 4
 DEFAULT_FILEPATH = "file.txt"
 
-SAMPLE_DATASET_IDENTIFIER = "lhoestq/test"  # has dataset script
+SAMPLE_DATASET_IDENTIFIER = "hf-internal-testing/dataset_with_script"  # has dataset script
 
 
 def generate_examples_fn(**kwargs):
