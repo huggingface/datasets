@@ -538,7 +538,7 @@ def create_builder_configs_from_metadata_configs(
     supports_metadata: bool,
     base_path: Optional[str] = None,
     default_builder_kwargs: Dict[str, Any] = None,
-    allowed_extensions: Optional[List[str]] = None,
+    download_config: Optional[DownloadConfig] = None,
 ) -> Tuple[List[BuilderConfig], str]:
     builder_cls = import_main_class(module_path)
     builder_config_cls = builder_cls.BUILDER_CONFIG_CLASS
@@ -560,6 +560,7 @@ def create_builder_configs_from_metadata_configs(
                 config_patterns,
                 base_path=config_base_path,
                 allowed_extensions=ALL_ALLOWED_EXTENSIONS,
+                download_config=download_config,
             )
         except EmptyDatasetError as e:
             raise EmptyDatasetError(
@@ -847,10 +848,15 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         dataset_card_data = DatasetCard.load(readme_path).data if os.path.isfile(readme_path) else DatasetCardData()
         metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
         dataset_infos = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
-        # even if metadata_configs_dict is not None (which means that we will resolve files for each config later)
-        # we cannot skip resolving all files because we need to infer module name by files extensions
+        # we need a set of data files to find which dataset builder to use
+        # because we need to infer module name by files extensions
         base_path = Path(self.path, self.data_dir or "").expanduser().resolve().as_posix()
-        patterns = sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns(base_path)
+        if self.data_files is not None:
+            patterns = sanitize_patterns(self.data_files)
+        if metadata_configs and "data_files" in next(iter(metadata_configs.values())):
+            patterns = sanitize_patterns(next(iter(metadata_configs.values()))["data_files"])
+        else:
+            patterns = get_data_patterns(base_path)
         data_files = DataFilesDict.from_patterns(
             patterns,
             base_path=base_path,
@@ -1026,11 +1032,14 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             dataset_card_data = DatasetCardData()
         metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
         dataset_infos = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
-        patterns = (
-            sanitize_patterns(self.data_files)
-            if self.data_files is not None
-            else get_data_patterns(base_path, download_config=self.download_config)
-        )
+        # we need a set of data files to find which dataset builder to use
+        # because we need to infer module name by files extensions
+        if self.data_files is not None:
+            patterns = sanitize_patterns(self.data_files)
+        if metadata_configs and "data_files" in next(iter(metadata_configs.values())):
+            patterns = sanitize_patterns(next(iter(metadata_configs.values()))["data_files"])
+        else:
+            patterns = get_data_patterns(base_path, download_config=self.download_config)
         data_files = DataFilesDict.from_patterns(
             patterns,
             base_path=base_path,
@@ -1070,6 +1079,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 base_path=base_path,
                 supports_metadata=supports_metadata,
                 default_builder_kwargs=default_builder_kwargs,
+                download_config=self.download_config,
             )
         else:
             builder_configs, default_config_name = None, None
@@ -1789,6 +1799,9 @@ def load_dataset_builder(
     if token is not None:
         download_config = download_config.copy() if download_config else DownloadConfig()
         download_config.token = token
+    if storage_options is not None:
+        download_config = download_config.copy() if download_config else DownloadConfig()
+        download_config.storage_options.update(storage_options)
     dataset_module = dataset_module_factory(
         path,
         revision=revision,

@@ -45,11 +45,16 @@ class Parquet(datasets.ArrowBasedBuilder):
                 files = [files]
             # Use `dl_manager.iter_files` to skip hidden files in an extracted archive
             files = [dl_manager.iter_files(file) for file in files]
-            # Infer features is they are stoed in the arrow schema
+            # Infer features if they are stored in the arrow schema
             if self.info.features is None:
                 for file in itertools.chain.from_iterable(files):
                     with open(file, "rb") as f:
-                        self.info.features = datasets.Features.from_arrow_schema(pq.read_schema(f))
+                        features = datasets.Features.from_arrow_schema(pq.read_schema(f))
+                        if self.config.columns is not None:
+                            features = datasets.Features(
+                                {col: feat for col, feat in features.items() if col in self.config.columns}
+                            )
+                        self.info.features = features
                     break
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
@@ -62,9 +67,8 @@ class Parquet(datasets.ArrowBasedBuilder):
         return pa_table
 
     def _generate_tables(self, files):
-        schema = self.info.features.arrow_schema if self.info.features is not None else None
-        if self.info.features is not None and self.config.columns is not None:
-            if sorted(field.name for field in schema) != sorted(self.config.columns):
+        if self.config.features is not None and self.config.columns is not None:
+            if sorted(field.name for field in self.info.features.arrow_schema) != sorted(self.config.columns):
                 raise ValueError(
                     f"Tried to load parquet data with columns '{self.config.columns}' with mismatching features '{self.info.features}'"
                 )

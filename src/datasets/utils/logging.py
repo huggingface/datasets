@@ -217,6 +217,14 @@ class _tqdm_cls:
         if _tqdm_active:
             return tqdm_lib.tqdm.get_lock()
 
+    def __delattr__(self, attr):
+        """fix for https://github.com/huggingface/datasets/issues/6066"""
+        try:
+            del self.__dict__[attr]
+        except KeyError:
+            if attr != "_lock":
+                raise AttributeError(attr)
+
 
 tqdm = _tqdm_cls()
 

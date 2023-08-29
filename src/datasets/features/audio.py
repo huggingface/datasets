@@ -173,8 +173,11 @@ class Audio:
         if file is None:
             token_per_repo_id = token_per_repo_id or {}
             source_url = path.split("::")[-1]
+            pattern = (
+                config.HUB_DATASETS_URL if source_url.startswith(config.HF_ENDPOINT) else config.HUB_DATASETS_HFFS_URL
+            )
             try:
-                repo_id = string_to_dict(source_url, config.HUB_DATASETS_URL)["repo_id"]
+                repo_id = string_to_dict(source_url, pattern)["repo_id"]
                 token = token_per_repo_id[repo_id]
             except (ValueError, KeyError):
                 token = None
