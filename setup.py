@@ -125,7 +125,7 @@ REQUIRED_PKGS = [
     # for better multiprocessing
     "multiprocess",
     # to save datasets locally or on any filesystem
-    # minimum 2022.3.0 so that TqdmCallback is available: see https://github.com/fsspec/filesystem_spec/pull/931
+    # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
     "fsspec[http]>=2022.3.0",
     # for data streaming via http
     "aiohttp",
