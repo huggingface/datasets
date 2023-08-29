@@ -69,6 +69,7 @@ def _get_library_root_logger() -> logging.Logger:
 def _configure_library_root_logger() -> None:
     # Apply our default configuration to the library root logger.
     library_root_logger = _get_library_root_logger()
+    library_root_logger.addHandler(logging.StreamHandler())
     library_root_logger.setLevel(_get_default_logging_level())
 
 
@@ -215,6 +216,14 @@ class _tqdm_cls:
     def get_lock(self):
         if _tqdm_active:
             return tqdm_lib.tqdm.get_lock()
+
+    def __delattr__(self, attr):
+        """fix for https://github.com/huggingface/datasets/issues/6066"""
+        try:
+            del self.__dict__[attr]
+        except KeyError:
+            if attr != "_lock":
+                raise AttributeError(attr)
 
 
 tqdm = _tqdm_cls()

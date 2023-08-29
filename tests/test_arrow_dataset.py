@@ -48,7 +48,7 @@ from datasets.tasks import (
     Summarization,
     TextClassification,
 )
-from datasets.utils.logging import WARNING
+from datasets.utils.logging import INFO, get_logger
 from datasets.utils.py_utils import temp_seed
 
 from .utils import (
@@ -104,8 +104,10 @@ def assert_arrow_metadata_are_synced_with_dataset_features(dataset: Dataset):
     assert "info" in metadata
     features = DatasetInfo.from_dict(metadata["info"]).features
     assert features is not None
-    assert dataset.features is not None
-    assert sorted(features) == sorted(field.name for field in dataset.data.schema)
+    assert features == dataset.features
+    assert features == Features.from_arrow_schema(dataset.data.schema)
+    assert list(features) == dataset.data.column_names
+    assert list(features) == list(dataset.features)
 
 
 IN_MEMORY_PARAMETERS = [
@@ -652,6 +654,13 @@ class BaseDatasetTest(TestCase):
                     assert_arrow_metadata_are_synced_with_dataset_features(new_dset)
 
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                with dset.select_columns(column_names=["col_3", "col_2", "col_1"]) as new_dset:
+                    self.assertEqual(new_dset.num_columns, 3)
+                    self.assertListEqual(list(new_dset.column_names), ["col_3", "col_2", "col_1"])
+                    self.assertNotEqual(new_dset._fingerprint, fingerprint)
+                    assert_arrow_metadata_are_synced_with_dataset_features(new_dset)
+
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
                 dset._format_columns = ["col_1", "col_2", "col_3"]
                 with dset.select_columns(column_names=["col_1"]) as new_dset:
                     self.assertListEqual(new_dset._format_columns, ["col_1"])
@@ -1181,7 +1190,7 @@ class BaseDatasetTest(TestCase):
                     self.assertNotEqual(dset_test._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
 
-    def test_new_features(self, in_memory):
+    def test_map_new_features(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 features = Features({"filename": Value("string"), "label": ClassLabel(names=["positive", "negative"])})
@@ -1311,7 +1320,7 @@ class BaseDatasetTest(TestCase):
     def test_map_caching(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             self._caplog.clear()
-            with self._caplog.at_level(WARNING):
+            with self._caplog.at_level(INFO, logger=get_logger().name):
                 with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                     with patch(
                         "datasets.arrow_dataset.Dataset._map_single",
@@ -1329,7 +1338,7 @@ class BaseDatasetTest(TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             self._caplog.clear()
-            with self._caplog.at_level(WARNING):
+            with self._caplog.at_level(INFO, logger=get_logger().name):
                 with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                     with dset.map(lambda x: {"foo": "bar"}) as dset_test1:
                         dset_test1_data_files = list(dset_test1.cache_files)
@@ -1340,7 +1349,7 @@ class BaseDatasetTest(TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             self._caplog.clear()
-            with self._caplog.at_level(WARNING):
+            with self._caplog.at_level(INFO, logger=get_logger().name):
                 with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                     with patch(
                         "datasets.arrow_dataset.Pool",
@@ -1360,7 +1369,7 @@ class BaseDatasetTest(TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             self._caplog.clear()
-            with self._caplog.at_level(WARNING):
+            with self._caplog.at_level(INFO, logger=get_logger().name):
                 with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                     with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test1:
                         dset_test1_data_files = list(dset_test1.cache_files)
@@ -1373,7 +1382,7 @@ class BaseDatasetTest(TestCase):
             try:
                 self._caplog.clear()
                 with tempfile.TemporaryDirectory() as tmp_dir:
-                    with self._caplog.at_level(WARNING):
+                    with self._caplog.at_level(INFO, logger=get_logger().name):
                         with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                             datasets.disable_caching()
                             with dset.map(lambda x: {"foo": "bar"}) as dset_test1:
@@ -1387,6 +1396,84 @@ class BaseDatasetTest(TestCase):
                                     self.assertIn("tmp", dset_test2.cache_files[0]["filename"])
             finally:
                 datasets.enable_caching()
+
+    def test_map_return_pa_table(self, in_memory):
+        def func_return_single_row_pa_table(x):
+            return pa.table({"id": [0], "text": ["a"]})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.map(func_return_single_row_pa_table) as dset_test:
+                    self.assertEqual(len(dset_test), 30)
+                    self.assertDictEqual(
+                        dset_test.features,
+                        Features({"id": Value("int64"), "text": Value("string")}),
+                    )
+                    self.assertEqual(dset_test[0]["id"], 0)
+                    self.assertEqual(dset_test[0]["text"], "a")
+
+        # Batched
+        def func_return_single_row_pa_table_batched(x):
+            batch_size = len(x[next(iter(x))])
+            return pa.table({"id": [0] * batch_size, "text": ["a"] * batch_size})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.map(func_return_single_row_pa_table_batched, batched=True) as dset_test:
+                    self.assertEqual(len(dset_test), 30)
+                    self.assertDictEqual(
+                        dset_test.features,
+                        Features({"id": Value("int64"), "text": Value("string")}),
+                    )
+                    self.assertEqual(dset_test[0]["id"], 0)
+                    self.assertEqual(dset_test[0]["text"], "a")
+
+        # Error when returning a table with more than one row in the non-batched mode
+        def func_return_multi_row_pa_table(x):
+            return pa.table({"id": [0, 1], "text": ["a", "b"]})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                self.assertRaises(ValueError, dset.map, func_return_multi_row_pa_table)
+
+    def test_map_return_pd_dataframe(self, in_memory):
+        def func_return_single_row_pd_dataframe(x):
+            return pd.DataFrame({"id": [0], "text": ["a"]})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.map(func_return_single_row_pd_dataframe) as dset_test:
+                    self.assertEqual(len(dset_test), 30)
+                    self.assertDictEqual(
+                        dset_test.features,
+                        Features({"id": Value("int64"), "text": Value("string")}),
+                    )
+                    self.assertEqual(dset_test[0]["id"], 0)
+                    self.assertEqual(dset_test[0]["text"], "a")
+
+        # Batched
+        def func_return_single_row_pd_dataframe_batched(x):
+            batch_size = len(x[next(iter(x))])
+            return pd.DataFrame({"id": [0] * batch_size, "text": ["a"] * batch_size})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.map(func_return_single_row_pd_dataframe_batched, batched=True) as dset_test:
+                    self.assertEqual(len(dset_test), 30)
+                    self.assertDictEqual(
+                        dset_test.features,
+                        Features({"id": Value("int64"), "text": Value("string")}),
+                    )
+                    self.assertEqual(dset_test[0]["id"], 0)
+                    self.assertEqual(dset_test[0]["text"], "a")
+
+        # Error when returning a table with more than one row in the non-batched mode
+        def func_return_multi_row_pd_dataframe(x):
+            return pd.DataFrame({"id": [0, 1], "text": ["a", "b"]})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                self.assertRaises(ValueError, dset.map, func_return_multi_row_pd_dataframe)
 
     @require_torch
     def test_map_torch(self, in_memory):
@@ -1545,6 +1632,26 @@ class BaseDatasetTest(TestCase):
                 dset.map(ex_cnt)
                 self.assertEqual(ex_cnt.cnt, len(dset))
 
+    @require_not_windows
+    def test_map_crash_subprocess(self, in_memory):
+        # be sure that a crash in one of the subprocess will not
+        # hang dataset.map() call forever
+
+        def do_crash(row):
+            import os
+
+            os.kill(os.getpid(), 9)
+            return row
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with pytest.raises(RuntimeError) as excinfo:
+                    dset.map(do_crash, num_proc=2)
+                assert str(excinfo.value) == (
+                    "One of the subprocesses has abruptly died during map operation."
+                    "To debug the error, disable multiprocessing."
+                )
+
     def test_filter(self, in_memory):
         # keep only first five examples
 
@@ -1646,7 +1753,7 @@ class BaseDatasetTest(TestCase):
     def test_filter_caching(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             self._caplog.clear()
-            with self._caplog.at_level(WARNING):
+            with self._caplog.at_level(INFO, logger=get_logger().name):
                 with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                     with dset.filter(lambda x, i: i < 5, with_indices=True) as dset_filter_first_five1:
                         dset_test1_data_files = list(dset_filter_first_five1.cache_files)
@@ -2698,8 +2805,6 @@ class BaseDatasetTest(TestCase):
     def test_tf_dataset_conversion(self, in_memory):
         tmp_dir = tempfile.TemporaryDirectory()
         for num_workers in [0, 1, 2]:
-            if num_workers > 0 and sys.version_info < (3, 8):
-                continue  # Skip multiprocessing tests for Python < 3.8
             if num_workers > 0 and sys.platform == "win32" and not in_memory:
                 continue  # This test hangs on the Py3.10 test worker, but it runs fine locally on my Windows machine
             with self._create_dummy_dataset(in_memory, tmp_dir.name, array_features=True) as dset:
@@ -2742,8 +2847,6 @@ class BaseDatasetTest(TestCase):
         # even when loading is split across multiple workers
         data = {"col_1": list(range(20))}
         for num_workers in [0, 1, 2, 3]:
-            if num_workers > 0 and sys.version_info < (3, 8):
-                continue  # Skip multiprocessing tests for Python < 3.8
             with Dataset.from_dict(data) as dset:
                 tf_dataset = dset.to_tf_dataset(batch_size=10, shuffle=True, num_workers=num_workers)
                 indices = []

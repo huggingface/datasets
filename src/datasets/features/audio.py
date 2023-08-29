@@ -7,6 +7,7 @@ import numpy as np
 import pyarrow as pa
 
 from .. import config
+from ..download.download_config import DownloadConfig
 from ..download.streaming_download_manager import xopen, xsplitext
 from ..table import array_cast
 from ..utils.py_utils import no_op_if_value_is_null, string_to_dict
@@ -172,13 +173,17 @@ class Audio:
         if file is None:
             token_per_repo_id = token_per_repo_id or {}
             source_url = path.split("::")[-1]
+            pattern = (
+                config.HUB_DATASETS_URL if source_url.startswith(config.HF_ENDPOINT) else config.HUB_DATASETS_HFFS_URL
+            )
             try:
-                repo_id = string_to_dict(source_url, config.HUB_DATASETS_URL)["repo_id"]
-                use_auth_token = token_per_repo_id[repo_id]
+                repo_id = string_to_dict(source_url, pattern)["repo_id"]
+                token = token_per_repo_id[repo_id]
             except (ValueError, KeyError):
-                use_auth_token = None
+                token = None
 
-            with xopen(path, "rb", use_auth_token=use_auth_token) as f:
+            download_config = DownloadConfig(token=token)
+            with xopen(path, "rb", download_config=download_config) as f:
                 array, sampling_rate = sf.read(f)
 
         else:

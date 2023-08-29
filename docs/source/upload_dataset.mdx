@@ -25,12 +25,6 @@ A repository hosts all your dataset files, including the revision history, makin
 
     Text file extensions are not tracked by Git LFS by default, and if they're greater than 10MB, they will not be committed and uploaded. Take a look at the `.gitattributes` file in your repository for a complete list of tracked file extensions. For this tutorial, you can use the following sample `.csv` files since they're small: <a href="https://huggingface.co/datasets/stevhliu/demo/raw/main/train.csv" download>train.csv</a>, <a href="https://huggingface.co/datasets/stevhliu/demo/raw/main/test.csv" download>test.csv</a>.
 
-<Tip warning={true}>
-
-For additional dataset configuration options, like defining multiple configurations or enabling streaming, you'll need to write a dataset loading script. Check out how to write a dataset loading script for <a href="https://huggingface.co/docs/datasets/dataset_script#create-a-dataset-loading-script"><span class="underline decoration-green-400 decoration-2 font-semibold">text</span></a>, <a href="https://huggingface.co/docs/datasets/audio_dataset#loading-script"><span class="underline decoration-pink-400 decoration-2 font-semibold">audio</span></a>, and <a href="https://huggingface.co/docs/datasets/image_dataset#loading-script"><span class="underline decoration-yellow-400 decoration-2 font-semibold">image</span></a> datasets.
-
-</Tip>
-
 <div class="flex justify-center">
     <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/upload_files.png"/>
 </div>
@@ -113,16 +107,16 @@ To set your dataset as private, set the `private` parameter to `True`. This para
 
 A private dataset is only accessible by you. Similarly, if you share a dataset within your organization, then members of the organization can also access the dataset.
 
-Load a private dataset by providing your authentication token to the `use_auth_token` parameter:
+Load a private dataset by providing your authentication token to the `token` parameter:
 
 ```py
 >>> from datasets import load_dataset
 
 # Load a private individual dataset
->>> dataset = load_dataset("stevhliu/demo", use_auth_token=True)
+>>> dataset = load_dataset("stevhliu/demo", token=True)
 
 # Load a private organization dataset
->>> dataset = load_dataset("organization/dataset_name", use_auth_token=True)
+>>> dataset = load_dataset("organization/dataset_name", token=True)
 ```
 
 ## What's next?
@@ -133,6 +127,6 @@ From here, you can go on to:
 
 - Learn more about how to use 🤗 Datasets other functions to [process your dataset](process).
 - [Stream large datasets](stream) without downloading it locally.
-- [Write a dataset loading script](dataset_script) and share your dataset with the community.
+- [Define your dataset splits and configurations](repository_structure) or [loading script](dataset_script) and share your dataset with the community.
 
 If you have any questions about 🤗 Datasets, feel free to join and ask the community on our [forum](https://discuss.huggingface.co/c/datasets/10).

@@ -25,6 +25,7 @@ import os
 import queue
 import re
 import types
+import warnings
 from contextlib import contextmanager
 from dataclasses import fields, is_dataclass
 from io import BytesIO as StringIO
@@ -32,7 +33,7 @@ from multiprocessing import Manager
 from queue import Empty
 from shutil import disk_usage
 from types import CodeType, FunctionType
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, TypeVar, Union
+from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, TypeVar, Union
 from urllib.parse import urlparse
 
 import dill
@@ -131,6 +132,25 @@ def convert_file_size_to_int(size: Union[int, str]) -> int:
         int_size = int(size[:-2]) * (10**3)
         return int_size // 8 if size.endswith("b") else int_size
     raise ValueError(f"`size={size}` is not in a valid format. Use an integer followed by the unit, e.g., '5GB'.")
+
+
+def glob_pattern_to_regex(pattern):
+    # partially taken from fsspec:
+    # https://github.com/fsspec/filesystem_spec/blob/697d0f8133d8a5fbc3926e4761d7ecd51337ce50/fsspec/asyn.py#L735
+    return (
+        pattern.replace("\\", r"\\")
+        .replace(".", r"\.")
+        .replace("*", ".*")
+        .replace("+", r"\+")
+        .replace("//", "/")
+        .replace("(", r"\(")
+        .replace(")", r"\)")
+        .replace("|", r"\|")
+        .replace("^", r"\^")
+        .replace("$", r"\$")
+        .rstrip("/")
+        .replace("?", ".")
+    )
 
 
 def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
@@ -446,7 +466,13 @@ def map_nested(
             for obj in logging.tqdm(iterable, disable=disable_tqdm, desc=desc)
         ]
     else:
-        mapped = parallel_map(function, iterable, num_proc, types, disable_tqdm, desc, _single_map_nested)
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message=".* is experimental and might be subject to breaking changes in the future\\.$",
+                category=UserWarning,
+            )
+            mapped = parallel_map(function, iterable, num_proc, types, disable_tqdm, desc, _single_map_nested)
 
     if isinstance(data_struct, dict):
         return dict(zip(data_struct.keys(), mapped))
@@ -587,7 +613,7 @@ class Pickler(dill.Pickler):
                 def dill_log(pickler, msg):
                     dill._dill.log.info(msg)
 
-            elif config.DILL_VERSION.release[:3] == version.parse("0.3.6").release:
+            elif config.DILL_VERSION.release[:3] in [version.parse("0.3.6").release, version.parse("0.3.7").release]:
 
                 def dill_log(pickler, msg):
                     dill._dill.logger.trace(pickler, msg)
@@ -667,7 +693,7 @@ class Pickler(dill.Pickler):
 
     def memoize(self, obj):
         # don't memoize strings since two identical strings can have different python ids
-        if type(obj) != str:
+        if type(obj) != str:  # noqa: E721
             dill.Pickler.memoize(self, obj)
 
 
@@ -807,7 +833,7 @@ if config.DILL_VERSION < version.parse("0.3.6"):
         dill._dill.log.info("# Co")
         return
 
-elif config.DILL_VERSION.release[:3] == version.parse("0.3.6").release:
+elif config.DILL_VERSION.release[:3] in [version.parse("0.3.6").release, version.parse("0.3.7").release]:
     # From: https://github.com/uqfoundation/dill/blob/dill-0.3.6/dill/_dill.py#L1104
     @pklregister(CodeType)
     def save_code(pickler, obj):
@@ -1115,7 +1141,7 @@ elif config.DILL_VERSION.release[:3] == version.parse("0.3.5").release:  # 0.3.5
                     state_dict["__module__"] = obj.__module__
 
                 state = obj.__dict__
-                if type(state) is not dict:
+                if type(state) is not dict:  # noqa: E721
                     state_dict["__dict__"] = state
                     state = None
                 if state_dict:
@@ -1174,7 +1200,7 @@ elif config.DILL_VERSION.release[:3] == version.parse("0.3.5").release:  # 0.3.5
             dill._dill.log.info("# F2")
         return
 
-elif config.DILL_VERSION.release[:3] == version.parse("0.3.6").release:
+elif config.DILL_VERSION.release[:3] in [version.parse("0.3.6").release, version.parse("0.3.7").release]:
     # From: https://github.com/uqfoundation/dill/blob/dill-0.3.6/dill/_dill.py#L1739
     @pklregister(FunctionType)
     def save_function(pickler, obj):
@@ -1277,7 +1303,7 @@ elif config.DILL_VERSION.release[:3] == version.parse("0.3.6").release:
                 state_dict["__module__"] = obj.__module__
 
             state = obj.__dict__
-            if type(state) is not dict:
+            if type(state) is not dict:  # noqa: E721
                 state_dict["__dict__"] = state
                 state = None
             if state_dict:
@@ -1330,12 +1356,18 @@ def _write_generator_to_queue(queue: queue.Queue, func: Callable[..., Iterable[Y
     return i
 
 
+def _get_pool_pid(pool: Union[multiprocessing.pool.Pool, multiprocess.pool.Pool]) -> Set[int]:
+    return {f.pid for f in pool._pool}
+
+
 def iflatmap_unordered(
     pool: Union[multiprocessing.pool.Pool, multiprocess.pool.Pool],
     func: Callable[..., Iterable[Y]],
     *,
     kwargs_iterable: Iterable[dict],
 ) -> Iterable[Y]:
+    initial_pool_pid = _get_pool_pid(pool)
+    pool_changed = False
     manager_cls = Manager if isinstance(pool, multiprocessing.pool.Pool) else multiprocess.Manager
     with manager_cls() as manager:
         queue = manager.Queue()
@@ -1349,6 +1381,14 @@ def iflatmap_unordered(
                 except Empty:
                     if all(async_result.ready() for async_result in async_results) and queue.empty():
                         break
+                if _get_pool_pid(pool) != initial_pool_pid:
+                    pool_changed = True
+                    # One of the subprocesses has died. We should not wait forever.
+                    raise RuntimeError(
+                        "One of the subprocesses has abruptly died during map operation."
+                        "To debug the error, disable multiprocessing."
+                    )
         finally:
-            # we get the result in case there's an error to raise
-            [async_result.get(timeout=0.05) for async_result in async_results]
+            if not pool_changed:
+                # we get the result in case there's an error to raise
+                [async_result.get(timeout=0.05) for async_result in async_results]

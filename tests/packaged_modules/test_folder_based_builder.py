@@ -5,7 +5,7 @@ import textwrap
 import pytest
 
 from datasets import ClassLabel, DownloadManager, Features, Value
-from datasets.data_files import DataFilesDict, get_data_patterns_locally
+from datasets.data_files import DataFilesDict, get_data_patterns
 from datasets.download.streaming_download_manager import StreamingDownloadManager
 from datasets.packaged_modules.folder_based_builder.folder_based_builder import (
     FolderBasedBuilder,
@@ -15,15 +15,15 @@ from datasets.tasks import TextClassification
 
 
 remote_files = [
-    "https://huggingface.co/datasets/polinaeterna/texts/resolve/main/hallo.txt",
-    "https://huggingface.co/datasets/polinaeterna/texts/resolve/main/hello.txt",
-    "https://huggingface.co/datasets/polinaeterna/texts/resolve/main/class1/bonjour.txt",
-    "https://huggingface.co/datasets/polinaeterna/texts/resolve/main/class1/bonjour2.txt",
+    "https://huggingface.co/datasets/hf-internal-testing/textfolder/resolve/main/hallo.txt",
+    "https://huggingface.co/datasets/hf-internal-testing/textfolder/resolve/main/hello.txt",
+    "https://huggingface.co/datasets/hf-internal-testing/textfolder/resolve/main/class1/bonjour.txt",
+    "https://huggingface.co/datasets/hf-internal-testing/textfolder/resolve/main/class1/bonjour2.txt",
 ]
 
 
 class DummyFolderBasedBuilder(FolderBasedBuilder):
-    BASE_FEATURE = None
+    BASE_FEATURE = dict
     BASE_COLUMN_NAME = "base"
     BUILDER_CONFIG_CLASS = FolderBasedBuilderConfig
     EXTENSIONS = [".txt"]
@@ -54,8 +54,8 @@ def data_files_with_labels_no_metadata(tmp_path, auto_text_file):
     filename2 = subdir_class_1 / "file1.txt"
     shutil.copyfile(auto_text_file, filename2)
 
-    data_files_with_labels_no_metadata = DataFilesDict.from_local_or_remote(
-        get_data_patterns_locally(str(data_dir)), str(data_dir)
+    data_files_with_labels_no_metadata = DataFilesDict.from_patterns(
+        get_data_patterns(str(data_dir)), data_dir.as_posix()
     )
 
     return data_files_with_labels_no_metadata
@@ -75,8 +75,8 @@ def data_files_with_different_levels_no_metadata(tmp_path, auto_text_file):
     filename2 = subdir_class_1 / "file1.txt"
     shutil.copyfile(auto_text_file, filename2)
 
-    data_files_with_different_levels = DataFilesDict.from_local_or_remote(
-        get_data_patterns_locally(str(data_dir)), str(data_dir)
+    data_files_with_different_levels = DataFilesDict.from_patterns(
+        get_data_patterns(str(data_dir)), data_dir.as_posix()
     )
 
     return data_files_with_different_levels
@@ -93,9 +93,7 @@ def data_files_with_one_label_no_metadata(tmp_path, auto_text_file):
     filename2 = data_dir / "file1.txt"
     shutil.copyfile(auto_text_file, filename2)
 
-    data_files_with_one_label = DataFilesDict.from_local_or_remote(
-        get_data_patterns_locally(str(data_dir)), str(data_dir)
-    )
+    data_files_with_one_label = DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
 
     return data_files_with_one_label
 
@@ -183,8 +181,8 @@ def data_files_with_one_split_and_metadata(tmp_path, auto_text_file):
     )
     with open(metadata_filename, "w", encoding="utf-8") as f:
         f.write(metadata)
-    data_files_with_one_split_and_metadata = DataFilesDict.from_local_or_remote(
-        get_data_patterns_locally(data_dir), data_dir
+    data_files_with_one_split_and_metadata = DataFilesDict.from_patterns(
+        get_data_patterns(str(data_dir)), data_dir.as_posix()
     )
     assert len(data_files_with_one_split_and_metadata) == 1
     assert len(data_files_with_one_split_and_metadata["train"]) == 4
@@ -224,8 +222,8 @@ def data_files_with_two_splits_and_metadata(tmp_path, auto_text_file):
     )
     with open(test_metadata_filename, "w", encoding="utf-8") as f:
         f.write(test_metadata)
-    data_files_with_two_splits_and_metadata = DataFilesDict.from_local_or_remote(
-        get_data_patterns_locally(data_dir), data_dir
+    data_files_with_two_splits_and_metadata = DataFilesDict.from_patterns(
+        get_data_patterns(str(data_dir)), data_dir.as_posix()
     )
     assert len(data_files_with_two_splits_and_metadata) == 2
     assert len(data_files_with_two_splits_and_metadata["train"]) == 3
@@ -260,7 +258,7 @@ def data_files_with_zip_archives(tmp_path, auto_text_file):
     shutil.make_archive(archive_dir, "zip", archive_dir)
     shutil.rmtree(str(archive_dir))
 
-    data_files_with_zip_archives = DataFilesDict.from_local_or_remote(get_data_patterns_locally(data_dir), data_dir)
+    data_files_with_zip_archives = DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
 
     assert len(data_files_with_zip_archives) == 1
     assert len(data_files_with_zip_archives["train"]) == 1
@@ -272,7 +270,7 @@ def test_inferring_labels_from_data_dirs(data_files_with_labels_no_metadata, cac
         data_files=data_files_with_labels_no_metadata, cache_dir=cache_dir, drop_labels=False
     )
     gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
-    assert autofolder.info.features == Features({"base": None, "label": ClassLabel(names=["class0", "class1"])})
+    assert autofolder.info.features == Features({"base": {}, "label": ClassLabel(names=["class0", "class1"])})
     generator = autofolder._generate_examples(**gen_kwargs)
     assert all(example["label"] in {"class0", "class1"} for _, example in generator)
 
@@ -324,7 +322,7 @@ def test_generate_examples_duplicated_label_key(
             assert all(example["label"] in ["CLASS_0", "CLASS_1"] for _, example in generator)
         else:
             # drop both labels and metadata
-            assert autofolder.info.features == Features({"base": None})
+            assert autofolder.info.features == Features({"base": {}})
             assert all(example.keys() == {"base"} for _, example in generator)
 
 
@@ -505,7 +503,7 @@ def test_data_files_with_wrong_metadata_file_name(cache_dir, tmp_path, auto_text
     with open(metadata_filename, "w", encoding="utf-8") as f:
         f.write(metadata)
 
-    data_files_with_bad_metadata = DataFilesDict.from_local_or_remote(get_data_patterns_locally(data_dir), data_dir)
+    data_files_with_bad_metadata = DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
     autofolder = DummyFolderBasedBuilder(data_files=data_files_with_bad_metadata, cache_dir=cache_dir)
     gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
     generator = autofolder._generate_examples(**gen_kwargs)
@@ -525,7 +523,7 @@ def test_data_files_with_wrong_file_name_column_in_metadata_file(cache_dir, tmp_
     with open(metadata_filename, "w", encoding="utf-8") as f:
         f.write(metadata)
 
-    data_files_with_bad_metadata = DataFilesDict.from_local_or_remote(get_data_patterns_locally(data_dir), data_dir)
+    data_files_with_bad_metadata = DataFilesDict.from_patterns(get_data_patterns(str(data_dir)), data_dir.as_posix())
     autofolder = DummyFolderBasedBuilder(data_files=data_files_with_bad_metadata, cache_dir=cache_dir)
     with pytest.raises(ValueError) as exc_info:
         _ = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs

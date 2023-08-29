@@ -1,4 +1,18 @@
+<!--Copyright 2023 The HuggingFace Team. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+-->
+
 # Quickstart
+
+[[open-in-colab]]
 
 This quickstart is intended for developers who are ready to dive into the code and see an example of how to integrate 🤗 Datasets into their model training workflow. If you're a beginner, we recommend starting with our [tutorials](./tutorial), where you'll get a more thorough introduction.
 
@@ -33,17 +47,34 @@ Start by installing 🤗 Datasets:
 pip install datasets
 ```
 
-To work with audio datasets, install the [`Audio`] feature:
+🤗 Datasets also support audio and image data formats:
 
+* To work with audio datasets, install the [`Audio`] feature:
+
+   ```bash
+   pip install datasets[audio]
+   ```
+
+* To work with image datasets, install the [`Image`] feature:
+
+   ```bash
+   pip install datasets[vision]
+   ```
+
+Besides 🤗 Datasets, make sure your preferred machine learning framework is installed:
+
+<frameworkcontent>
+<pt>
 ```bash
-pip install datasets[audio]
+pip install torch
 ```
-
-To work with image datasets, install the [`Image`] feature:
-
+</pt>
+<tf>
 ```bash
-pip install datasets[vision]
+pip install tensorflow
 ```
+</tf>
+</frameworkcontent>
 
 ## Audio
 
@@ -116,16 +147,19 @@ Use the [`~Dataset.set_format`] function to set the dataset format to `torch` an
 ```
 </pt>
 <tf>
-Use the [`~Dataset.to_tf_dataset`] function to set the dataset format to be compatible with TensorFlow. You'll also need to import a [data collator](https://huggingface.co/docs/transformers/main_classes/data_collator#transformers.DataCollatorWithPadding) from 🤗 Transformers to combine the varying sequence lengths into a single batch of equal lengths:
+
+Use the [`~transformers.TFPreTrainedModel.prepare_tf_dataset`] method from 🤗 Transformers to prepare the dataset to be compatible with
+TensorFlow, and ready to train/fine-tune a model, as it wraps a HuggingFace [`~datasets.Dataset`] as a `tf.data.Dataset`
+with collation and batching, so one can pass it directly to Keras methods like `fit()` without further modification. 
 
 ```py
 >>> import tensorflow as tf
 
->>> tf_dataset = dataset.to_tf_dataset(
-...     columns=["input_values"],
-...     label_cols=["labels"],
+>>> tf_dataset = model.prepare_tf_dataset(
+...     dataset,
 ...     batch_size=4,
-...     shuffle=True)
+...     shuffle=True,
+... )
 ```
 </tf>
 </frameworkcontent>
@@ -190,6 +224,42 @@ Wrap the dataset in [`torch.utils.data.DataLoader`](https://alband.github.io/doc
 >>> dataloader = DataLoader(dataset, collate_fn=collate_fn, batch_size=4)
 ```
 </pt>
+<tf>
+
+Use the [`~transformers.TFPreTrainedModel.prepare_tf_dataset`] method from 🤗 Transformers to prepare the dataset to be compatible with
+TensorFlow, and ready to train/fine-tune a model, as it wraps a HuggingFace [`~datasets.Dataset`] as a `tf.data.Dataset`
+with collation and batching, so one can pass it directly to Keras methods like `fit()` without further modification.
+
+Before you start, make sure you have up-to-date versions of `albumentations` and `cv2` installed:
+
+```bash
+pip install -U albumentations opencv-python
+```
+
+```py
+>>> import albumentations
+>>> import numpy as np
+
+>>> transform = albumentations.Compose([
+...     albumentations.RandomCrop(width=256, height=256),
+...     albumentations.HorizontalFlip(p=0.5),
+...     albumentations.RandomBrightnessContrast(p=0.2),
+... ])
+
+>>> def transforms(examples):
+...     examples["pixel_values"] = [
+...         transform(image=np.array(image))["image"] for image in examples["image"]
+...     ]
+...     return examples
+
+>>> dataset.set_transform(transforms)
+>>> tf_dataset = model.prepare_tf_dataset(
+...     dataset,
+...     batch_size=4,
+...     shuffle=True,
+... )
+```
+</tf>
 </frameworkcontent>
 
 **6**. Start training with your machine learning framework! Check out the 🤗 Transformers [image classification guide](https://huggingface.co/docs/transformers/tasks/image_classification) for an end-to-end example of how to train a model on an image dataset.
@@ -259,19 +329,19 @@ Use the [`~Dataset.set_format`] function to set the dataset format to `torch` an
 ```
 </pt>
 <tf>
-Use the [`~Dataset.to_tf_dataset`] function to set the dataset format to be compatible with TensorFlow. You'll also need to import a [data collator](https://huggingface.co/docs/transformers/main_classes/data_collator#transformers.DataCollatorWithPadding) from 🤗 Transformers to combine the varying sequence lengths into a single batch of equal lengths:
+
+Use the [`~transformers.TFPreTrainedModel.prepare_tf_dataset`] method from 🤗 Transformers to prepare the dataset to be compatible with
+TensorFlow, and ready to train/fine-tune a model, as it wraps a HuggingFace [`~datasets.Dataset`] as a `tf.data.Dataset`
+with collation and batching, so one can pass it directly to Keras methods like `fit()` without further modification. 
 
 ```py
 >>> import tensorflow as tf
->>> from transformers import DataCollatorWithPadding
 
->>> data_collator = DataCollatorWithPadding(tokenizer=tokenizer, return_tensors="tf")
->>> tf_dataset = dataset.to_tf_dataset(
-...     columns=["input_ids", "token_type_ids", "attention_mask"],
-...     label_cols=["labels"],
-...     batch_size=2,
-...     collate_fn=data_collator,
-...     shuffle=True)
+>>> tf_dataset = model.prepare_tf_dataset(
+...     dataset,
+...     batch_size=4,
+...     shuffle=True,
+... )
 ```
 </tf>
 </frameworkcontent>

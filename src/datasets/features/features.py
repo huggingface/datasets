@@ -1095,7 +1095,7 @@ class ClassLabel:
         """
         if isinstance(storage, pa.IntegerArray) and len(storage) > 0:
             min_max = pc.min_max(storage).as_py()
-            if min_max["max"] >= self.num_classes:
+            if min_max["max"] is not None and min_max["max"] >= self.num_classes:
                 raise ValueError(
                     f"Class label {min_max['max']} greater than configured num_classes {self.num_classes}"
                 )
@@ -1343,6 +1343,7 @@ def generate_from_dict(obj: Any):
     # Otherwise we have a dict or a dataclass
     if "_type" not in obj or isinstance(obj["_type"], dict):
         return {key: generate_from_dict(value) for key, value in obj.items()}
+    obj = dict(obj)
     class_type = globals()[obj.pop("_type")]
 
     if class_type == Sequence:

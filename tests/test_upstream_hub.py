@@ -3,14 +3,28 @@ import os
 import tempfile
 import time
 import unittest
+from io import BytesIO
 from pathlib import Path
 from unittest.mock import patch
 
 import numpy as np
 import pytest
-from huggingface_hub import HfApi
+from huggingface_hub import DatasetCard, HfApi
 
-from datasets import Audio, ClassLabel, Dataset, DatasetDict, Features, Image, Value, load_dataset
+from datasets import (
+    Audio,
+    ClassLabel,
+    Dataset,
+    DatasetDict,
+    Features,
+    Image,
+    Value,
+    load_dataset,
+    load_dataset_builder,
+)
+from datasets.config import METADATA_CONFIGS_FIELD
+from datasets.utils.file_utils import cached_path
+from datasets.utils.hub import hf_hub_url
 from tests.fixtures.hub import CI_HUB_ENDPOINT, CI_HUB_USER, CI_HUB_USER_TOKEN
 from tests.utils import for_all_test_methods, require_pil, require_sndfile, xfail_if_500_502_http_error
 
@@ -19,12 +33,12 @@ pytestmark = pytest.mark.integration
 
 
 @for_all_test_methods(xfail_if_500_502_http_error)
-@pytest.mark.usefixtures("set_ci_hub_access_token", "ci_hfh_hf_hub_url")
+@pytest.mark.usefixtures("ci_hub_config", "ci_hfh_hf_hub_url")
 class TestPushToHub:
     _api = HfApi(endpoint=CI_HUB_ENDPOINT)
     _token = CI_HUB_USER_TOKEN
 
-    def test_push_dataset_dict_to_hub_no_token(self, temporary_repo):
+    def test_push_dataset_dict_to_hub_no_token(self, temporary_repo, set_ci_hub_access_token):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
 
         local_ds = DatasetDict({"train": ds})
@@ -89,7 +103,7 @@ class TestPushToHub:
 
         with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
             local_ds.push_to_hub(ds_name, token=self._token, private=True)
-            hub_ds = load_dataset(ds_name, download_mode="force_redownload", use_auth_token=self._token)
+            hub_ds = load_dataset(ds_name, download_mode="force_redownload", token=self._token)
 
             assert local_ds.column_names == hub_ds.column_names
             assert list(local_ds["train"].features.keys()) == list(hub_ds["train"].features.keys())
@@ -265,6 +279,8 @@ class TestPushToHub:
             assert local_ds.column_names == hub_ds.column_names
             assert list(local_ds["train"].features.keys()) == list(hub_ds["train"].features.keys())
             assert local_ds["train"].features == hub_ds["train"].features
+
+        del hub_ds
 
         # Push to hub two times, but the second time with fewer files.
         # Verify that the new files contain the correct dataset and that non-necessary files have been deleted.
@@ -500,3 +516,315 @@ class TestPushToHub:
                 assert local_ds.column_names == hub_ds.column_names
                 assert list(local_ds["train"].features.keys()) == list(hub_ds["train"].features.keys())
                 assert local_ds["train"].features == hub_ds["train"].features
+
+    def test_push_multiple_dataset_configs_to_hub_load_dataset_builder(self, temporary_repo):
+        ds_default = Dataset.from_dict({"a": [0], "b": [1]})
+        ds_config1 = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+        ds_config2 = Dataset.from_dict({"foo": [1, 2], "bar": [4, 5]})
+
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            ds_default.push_to_hub(ds_name, token=self._token)
+            ds_config1.push_to_hub(ds_name, "config1", token=self._token)
+            ds_config2.push_to_hub(ds_name, "config2", token=self._token)
+            ds_builder_default = load_dataset_builder(ds_name, download_mode="force_redownload")  # default config
+            assert len(ds_builder_default.BUILDER_CONFIGS) == 3
+            assert len(ds_builder_default.config.data_files["train"]) == 1
+            assert fnmatch.fnmatch(
+                ds_builder_default.config.data_files["train"][0],
+                "*/data/train-*",
+            )
+            ds_builder_config1 = load_dataset_builder(ds_name, "config1", download_mode="force_redownload")
+            assert len(ds_builder_config1.BUILDER_CONFIGS) == 3
+            assert len(ds_builder_config1.config.data_files["train"]) == 1
+            assert fnmatch.fnmatch(
+                ds_builder_config1.config.data_files["train"][0],
+                "*/config1/train-*",
+            )
+            ds_builder_config2 = load_dataset_builder(ds_name, "config2", download_mode="force_redownload")
+            assert len(ds_builder_config2.BUILDER_CONFIGS) == 3
+            assert len(ds_builder_config2.config.data_files["train"]) == 1
+            assert fnmatch.fnmatch(
+                ds_builder_config2.config.data_files["train"][0],
+                "*/config2/train-*",
+            )
+
+            with pytest.raises(ValueError):  # no config 'config3'
+                load_dataset_builder(ds_name, "config3", download_mode="force_redownload")
+
+    def test_push_multiple_dataset_configs_to_hub_load_dataset(self, temporary_repo):
+        ds_default = Dataset.from_dict({"a": [0], "b": [1]})
+        ds_config1 = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+        ds_config2 = Dataset.from_dict({"foo": [1, 2], "bar": [4, 5]})
+
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            ds_default.push_to_hub(ds_name, token=self._token)
+            ds_config1.push_to_hub(ds_name, "config1", token=self._token)
+            ds_config2.push_to_hub(ds_name, "config2", token=self._token)
+
+            files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset"))
+            expected_files = sorted(
+                [
+                    ".gitattributes",
+                    "README.md",
+                    "config1/train-00000-of-00001-*.parquet",
+                    "config2/train-00000-of-00001-*.parquet",
+                    "data/train-00000-of-00001-*.parquet",
+                ]
+            )
+            assert all(fnmatch.fnmatch(file, expected_file) for file, expected_file in zip(files, expected_files))
+
+            hub_ds_default = load_dataset(ds_name, download_mode="force_redownload")
+            hub_ds_config1 = load_dataset(ds_name, "config1", download_mode="force_redownload")
+            hub_ds_config2 = load_dataset(ds_name, "config2", download_mode="force_redownload")
+
+            # only "train" split
+            assert len(hub_ds_default) == len(hub_ds_config1) == len(hub_ds_config2) == 1
+
+            assert ds_default.column_names == hub_ds_default["train"].column_names == ["a", "b"]
+            assert ds_config1.column_names == hub_ds_config1["train"].column_names == ["x", "y"]
+            assert ds_config2.column_names == hub_ds_config2["train"].column_names == ["foo", "bar"]
+
+            assert ds_default.features == hub_ds_default["train"].features
+            assert ds_config1.features == hub_ds_config1["train"].features
+            assert ds_config2.features == hub_ds_config2["train"].features
+
+            assert ds_default.num_rows == hub_ds_default["train"].num_rows == 1
+            assert ds_config1.num_rows == hub_ds_config1["train"].num_rows == 3
+            assert ds_config2.num_rows == hub_ds_config2["train"].num_rows == 2
+
+            with pytest.raises(ValueError):  # no config 'config3'
+                load_dataset(ds_name, "config3", download_mode="force_redownload")
+
+    def test_push_multiple_dataset_configs_to_hub_readme_metadata_content(self, temporary_repo):
+        ds_default = Dataset.from_dict({"a": [0], "b": [2]})
+        ds_config1 = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+        ds_config2 = Dataset.from_dict({"foo": [1, 2], "bar": [4, 5]})
+
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            ds_default.push_to_hub(ds_name, token=self._token)
+            ds_config1.push_to_hub(ds_name, "config1", token=self._token)
+            ds_config2.push_to_hub(ds_name, "config2", token=self._token)
+
+            # check that configs args was correctly pushed to README.md
+            ds_readme_path = cached_path(hf_hub_url(ds_name, "README.md"))
+            dataset_card_data = DatasetCard.load(ds_readme_path).data
+            assert METADATA_CONFIGS_FIELD in dataset_card_data
+            assert isinstance(dataset_card_data[METADATA_CONFIGS_FIELD], list)
+            assert sorted(dataset_card_data[METADATA_CONFIGS_FIELD], key=lambda x: x["config_name"]) == [
+                {
+                    "config_name": "config1",
+                    "data_files": [
+                        {"split": "train", "path": "config1/train-*"},
+                    ],
+                },
+                {
+                    "config_name": "config2",
+                    "data_files": [
+                        {"split": "train", "path": "config2/train-*"},
+                    ],
+                },
+                {
+                    "config_name": "default",
+                    "data_files": [
+                        {"split": "train", "path": "data/train-*"},
+                    ],
+                },
+            ]
+
+    def test_push_multiple_dataset_dict_configs_to_hub_load_dataset_builder(self, temporary_repo):
+        ds_default = Dataset.from_dict({"a": [0], "b": [1]})
+        ds_config1 = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+        ds_config2 = Dataset.from_dict({"foo": [1, 2], "bar": [4, 5]})
+        ds_default = DatasetDict({"random": ds_default})
+        ds_config1 = DatasetDict({"random": ds_config1})
+        ds_config2 = DatasetDict({"random": ds_config2})
+
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            ds_default.push_to_hub(ds_name, token=self._token)
+            ds_config1.push_to_hub(ds_name, "config1", token=self._token)
+            ds_config2.push_to_hub(ds_name, "config2", token=self._token)
+
+            ds_builder_default = load_dataset_builder(ds_name, download_mode="force_redownload")  # default config
+            assert len(ds_builder_default.BUILDER_CONFIGS) == 3
+            assert len(ds_builder_default.config.data_files["random"]) == 1
+            assert fnmatch.fnmatch(
+                ds_builder_default.config.data_files["random"][0],
+                "*/data/random-*",
+            )
+            ds_builder_config1 = load_dataset_builder(ds_name, "config1", download_mode="force_redownload")
+            assert len(ds_builder_config1.BUILDER_CONFIGS) == 3
+            assert len(ds_builder_config1.config.data_files["random"]) == 1
+            assert fnmatch.fnmatch(
+                ds_builder_config1.config.data_files["random"][0],
+                "*/config1/random-*",
+            )
+            ds_builder_config2 = load_dataset_builder(ds_name, "config2", download_mode="force_redownload")
+            assert len(ds_builder_config2.BUILDER_CONFIGS) == 3
+            assert len(ds_builder_config2.config.data_files["random"]) == 1
+            assert fnmatch.fnmatch(
+                ds_builder_config2.config.data_files["random"][0],
+                "*/config2/random-*",
+            )
+            with pytest.raises(ValueError):  # no config named 'config3'
+                load_dataset_builder(ds_name, "config3", download_mode="force_redownload")
+
+    def test_push_multiple_dataset_dict_configs_to_hub_load_dataset(self, temporary_repo):
+        ds_default = Dataset.from_dict({"a": [0], "b": [1]})
+        ds_config1 = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+        ds_config2 = Dataset.from_dict({"foo": [1, 2], "bar": [4, 5]})
+        ds_default = DatasetDict({"train": ds_default, "random": ds_default})
+        ds_config1 = DatasetDict({"train": ds_config1, "random": ds_config1})
+        ds_config2 = DatasetDict({"train": ds_config2, "random": ds_config2})
+
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            ds_default.push_to_hub(ds_name, token=self._token)
+            ds_config1.push_to_hub(ds_name, "config1", token=self._token)
+            ds_config2.push_to_hub(ds_name, "config2", token=self._token)
+
+            files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset"))
+            expected_files = sorted(
+                [
+                    ".gitattributes",
+                    "README.md",
+                    "config1/random-00000-of-00001-*.parquet",
+                    "config1/train-00000-of-00001-*.parquet",
+                    "config2/random-00000-of-00001-*.parquet",
+                    "config2/train-00000-of-00001-*.parquet",
+                    "data/random-00000-of-00001-*.parquet",
+                    "data/train-00000-of-00001-*.parquet",
+                ]
+            )
+            assert all(fnmatch.fnmatch(file, expected_file) for file, expected_file in zip(files, expected_files))
+
+            hub_ds_default = load_dataset(ds_name, download_mode="force_redownload")
+            hub_ds_config1 = load_dataset(ds_name, "config1", download_mode="force_redownload")
+            hub_ds_config2 = load_dataset(ds_name, "config2", download_mode="force_redownload")
+
+            # two splits
+            expected_splits = ["random", "train"]
+            assert len(hub_ds_default) == len(hub_ds_config1) == len(hub_ds_config2) == 2
+            assert sorted(hub_ds_default) == sorted(hub_ds_config1) == sorted(hub_ds_config2) == expected_splits
+
+            for split in expected_splits:
+                assert ds_default[split].column_names == hub_ds_default[split].column_names == ["a", "b"]
+                assert ds_config1[split].column_names == hub_ds_config1[split].column_names == ["x", "y"]
+                assert ds_config2[split].column_names == hub_ds_config2[split].column_names == ["foo", "bar"]
+
+                assert ds_default[split].features == hub_ds_default[split].features
+                assert ds_config1[split].features == hub_ds_config1[split].features
+                assert ds_config2[split].features == hub_ds_config2["train"].features
+
+                assert ds_default[split].num_rows == hub_ds_default[split].num_rows == 1
+                assert ds_config1[split].num_rows == hub_ds_config1[split].num_rows == 3
+                assert ds_config2[split].num_rows == hub_ds_config2[split].num_rows == 2
+
+            with pytest.raises(ValueError):  # no config 'config3'
+                load_dataset(ds_name, "config3", download_mode="force_redownload")
+
+    def test_push_multiple_dataset_dict_configs_to_hub_readme_metadata_content(self, temporary_repo):
+        ds_default = Dataset.from_dict({"a": [0], "b": [1]})
+        ds_config1 = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+        ds_config2 = Dataset.from_dict({"foo": [1, 2], "bar": [4, 5]})
+        ds_default = DatasetDict({"train": ds_default, "random": ds_default})
+        ds_config1 = DatasetDict({"train": ds_config1, "random": ds_config1})
+        ds_config2 = DatasetDict({"train": ds_config2, "random": ds_config2})
+
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            ds_default.push_to_hub(ds_name, token=self._token)
+            ds_config1.push_to_hub(ds_name, "config1", token=self._token)
+            ds_config2.push_to_hub(ds_name, "config2", token=self._token)
+
+            # check that configs args was correctly pushed to README.md
+            ds_readme_path = cached_path(hf_hub_url(ds_name, "README.md"))
+            dataset_card_data = DatasetCard.load(ds_readme_path).data
+            assert METADATA_CONFIGS_FIELD in dataset_card_data
+            assert isinstance(dataset_card_data[METADATA_CONFIGS_FIELD], list)
+            assert sorted(dataset_card_data[METADATA_CONFIGS_FIELD], key=lambda x: x["config_name"]) == [
+                {
+                    "config_name": "config1",
+                    "data_files": [
+                        {"split": "train", "path": "config1/train-*"},
+                        {"split": "random", "path": "config1/random-*"},
+                    ],
+                },
+                {
+                    "config_name": "config2",
+                    "data_files": [
+                        {"split": "train", "path": "config2/train-*"},
+                        {"split": "random", "path": "config2/random-*"},
+                    ],
+                },
+                {
+                    "config_name": "default",
+                    "data_files": [
+                        {"split": "train", "path": "data/train-*"},
+                        {"split": "random", "path": "data/random-*"},
+                    ],
+                },
+            ]
+
+    def test_push_dataset_to_hub_with_config_no_metadata_configs(self, temporary_repo):
+        ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+        ds_another_config = Dataset.from_dict({"foo": [1, 2], "bar": [4, 5]})
+        parquet_buf = BytesIO()
+        ds.to_parquet(parquet_buf)
+        parquet_content = parquet_buf.getvalue()
+
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            self._api.create_repo(ds_name, token=self._token, repo_type="dataset")
+            # old push_to_hub was uploading the parquet files only - without metadata configs
+            self._api.upload_file(
+                path_or_fileobj=parquet_content,
+                path_in_repo="data/train-00000-of-00001.parquet",
+                repo_id=ds_name,
+                repo_type="dataset",
+                token=self._token,
+            )
+            ds_another_config.push_to_hub(ds_name, "another_config", token=self._token)
+            ds_builder = load_dataset_builder(ds_name, download_mode="force_redownload")
+            assert len(ds_builder.config.data_files) == 1
+            assert len(ds_builder.config.data_files["train"]) == 1
+            assert fnmatch.fnmatch(ds_builder.config.data_files["train"][0], "*/data/train-00000-of-00001.parquet")
+            ds_another_config_builder = load_dataset_builder(
+                ds_name, "another_config", download_mode="force_redownload"
+            )
+            assert len(ds_another_config_builder.config.data_files) == 1
+            assert len(ds_another_config_builder.config.data_files["train"]) == 1
+            assert fnmatch.fnmatch(
+                ds_another_config_builder.config.data_files["train"][0],
+                "*/another_config/train-00000-of-00001-*.parquet",
+            )
+
+    def test_push_dataset_dict_to_hub_with_config_no_metadata_configs(self, temporary_repo):
+        ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+        ds_another_config = Dataset.from_dict({"foo": [1, 2], "bar": [4, 5]})
+        parquet_buf = BytesIO()
+        ds.to_parquet(parquet_buf)
+        parquet_content = parquet_buf.getvalue()
+
+        local_ds_another_config = DatasetDict({"random": ds_another_config})
+
+        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            self._api.create_repo(ds_name, token=self._token, repo_type="dataset")
+            # old push_to_hub was uploading the parquet files only - without metadata configs
+            self._api.upload_file(
+                path_or_fileobj=parquet_content,
+                path_in_repo="data/random-00000-of-00001.parquet",
+                repo_id=ds_name,
+                repo_type="dataset",
+                token=self._token,
+            )
+            local_ds_another_config.push_to_hub(ds_name, "another_config", token=self._token)
+            ds_builder = load_dataset_builder(ds_name, download_mode="force_redownload")
+            assert len(ds_builder.config.data_files) == 1
+            assert len(ds_builder.config.data_files["random"]) == 1
+            assert fnmatch.fnmatch(ds_builder.config.data_files["random"][0], "*/data/random-00000-of-00001.parquet")
+            ds_another_config_builder = load_dataset_builder(
+                ds_name, "another_config", download_mode="force_redownload"
+            )
+            assert len(ds_another_config_builder.config.data_files) == 1
+            assert len(ds_another_config_builder.config.data_files["random"]) == 1
+            assert fnmatch.fnmatch(
+                ds_another_config_builder.config.data_files["random"][0],
+                "*/another_config/random-00000-of-00001-*.parquet",
+            )
