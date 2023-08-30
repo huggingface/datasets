@@ -5453,8 +5453,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dataset_card_data = dataset_card.data
             metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
             dataset_infos: DatasetInfosDict = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
-            if dataset_infos:
-                repo_info = dataset_infos[next(iter(dataset_infos))]
+            if dataset_infos and config_name in dataset_infos:
+                repo_info = dataset_infos[config_name]
             else:
                 repo_info = None
         # get the deprecated dataset_infos.json to update them
