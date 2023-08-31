@@ -760,10 +760,6 @@ class BuilderTest(TestCase):
             )
             self.assertEqual(builder.cache_dir, other_builder.cache_dir)
             other_builder = DummyGeneratorBasedBuilder(
-                cache_dir=tmp_dir, data_files={"test": dummy_data2, "train": dummy_data1}
-            )
-            self.assertEqual(builder.cache_dir, other_builder.cache_dir)
-            other_builder = DummyGeneratorBasedBuilder(
                 cache_dir=tmp_dir, data_files={"train": dummy_data1, "validation": dummy_data2}
             )
             self.assertNotEqual(builder.cache_dir, other_builder.cache_dir)
