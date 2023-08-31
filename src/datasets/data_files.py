@@ -682,17 +682,6 @@ class DataFilesDict(Dict[str, DataFilesList]):
             )
         return out
 
-    def __reduce__(self):
-        """
-        To make sure the order of the keys doesn't matter when pickling and hashing:
-
-        >>> from datasets.data_files import DataFilesDict
-        >>> from datasets.fingerprint import Hasher
-        >>> assert Hasher.hash(DataFilesDict(a=[], b=[])) == Hasher.hash(DataFilesDict(b=[], a=[]))
-
-        """
-        return DataFilesDict, (dict(sorted(self.items())),)
-
     def filter_extensions(self, extensions: List[str]) -> "DataFilesDict":
         out = type(self)()
         for key, data_files_list in self.items():
