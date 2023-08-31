@@ -115,7 +115,7 @@ REQUIRED_PKGS = [
     # For smart caching dataset processing
     "dill>=0.3.0,<0.3.8",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
     # For performance gains with apache arrow
-    "pandas",
+    "pandas<2.1.0",  # temporary pin
     # for downloading datasets over HTTPS
     "requests>=2.19.0",
     # progress bars in download and scripts
@@ -125,8 +125,8 @@ REQUIRED_PKGS = [
     # for better multiprocessing
     "multiprocess",
     # to save datasets locally or on any filesystem
-    # minimum 2022.3.0 so that TqdmCallback is available: see https://github.com/fsspec/filesystem_spec/pull/931
-    "fsspec[http]>=2022.3.0",
+    # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
+    "fsspec[http]>=2023.1.0",
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
