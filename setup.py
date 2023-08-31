@@ -115,7 +115,7 @@ REQUIRED_PKGS = [
     # For smart caching dataset processing
     "dill>=0.3.0,<0.3.8",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
     # For performance gains with apache arrow
-    "pandas",
+    "pandas<2.1.0",  # temporary pin
     # for downloading datasets over HTTPS
     "requests>=2.19.0",
     # progress bars in download and scripts
