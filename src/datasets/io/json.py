@@ -93,7 +93,8 @@ class JsonDatasetWriter:
         _ = self.to_json_kwargs.pop("path_or_buf", None)
         orient = self.to_json_kwargs.pop("orient", "records")
         lines = self.to_json_kwargs.pop("lines", True if orient == "records" else False)
-        index = self.to_json_kwargs.pop("index", False if orient in ["split", "table", "records", "values"] else True)
+        if "index" not in self.to_json_kwargs and orient in ["split", "table"]:
+            self.to_json_kwargs["index"] = False
         compression = self.to_json_kwargs.pop("compression", None)
 
         if compression not in [None, "infer", "gzip", "bz2", "xz"]:
