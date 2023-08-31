@@ -4844,7 +4844,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
                 <Changed version="2.11.0">
 
-                Now, `index` defaults to `False` if `orint` is  `"split"` or `"table"` is  specified.
+                Now, `index` defaults to `False` if `orient` is `"split"` or `"table"`.
 
                 If you would like to write the index, pass `index=True`.
 
