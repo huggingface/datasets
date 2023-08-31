@@ -1,3 +1,4 @@
+import copy
 import os
 from pathlib import Path, PurePath
 from typing import List
@@ -383,6 +384,13 @@ def test_DataFilesList_from_patterns_locally_with_extra_files(complex_data_dir, 
 def test_DataFilesList_from_patterns_raises_FileNotFoundError(complex_data_dir):
     with pytest.raises(FileNotFoundError):
         DataFilesList.from_patterns(["file_that_doesnt_exist.txt"], complex_data_dir)
+
+
+class TestDataFilesDict:
+    def test_key_order_after_copy(self):
+        data_files = DataFilesDict({"train": "train.csv", "test": "test.csv"})
+        copied_data_files = copy.deepcopy(data_files)
+        assert list(copied_data_files.keys()) == list(data_files.keys())  # test split order with list()
 
 
 @pytest.mark.parametrize("pattern", _TEST_PATTERNS)
