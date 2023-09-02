@@ -289,7 +289,7 @@ def bz2_csv_path(csv_path, tmp_path_factory):
 
 @pytest.fixture(scope="session")
 def zip_csv_path(csv_path, csv2_path, tmp_path_factory):
-    path = tmp_path_factory.mktemp("data") / "dataset.csv.zip"
+    path = tmp_path_factory.mktemp("zip_csv_path") / "csv-dataset.zip"
     with zipfile.ZipFile(path, "w") as f:
         f.write(csv_path, arcname=os.path.basename(csv_path))
         f.write(csv2_path, arcname=os.path.basename(csv2_path))
