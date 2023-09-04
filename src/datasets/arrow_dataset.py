@@ -5331,7 +5331,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ]
         download_config = DownloadConfig(token=token)
         deleted_size = sum(
-            xgetsize(hf_hub_url(repo_id, data_file), download_config=download_config)
+            xgetsize(hf_hub_url(repo_id, data_file, revision=branch), download_config=download_config)
             for data_file in data_files_to_delete
         )
 
@@ -5446,15 +5446,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             download_config.download_desc = "Downloading metadata"
             download_config.token = token
             dataset_readme_path = cached_path(
-                hf_hub_url(repo_id, "README.md"),
+                hf_hub_url(repo_id, "README.md", revision=branch),
                 download_config=download_config,
             )
             dataset_card = DatasetCard.load(Path(dataset_readme_path))
             dataset_card_data = dataset_card.data
             metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
             dataset_infos: DatasetInfosDict = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
-            if dataset_infos:
-                repo_info = dataset_infos[next(iter(dataset_infos))]
+            if dataset_infos and config_name in dataset_infos:
+                repo_info = dataset_infos[config_name]
             else:
                 repo_info = None
         # get the deprecated dataset_infos.json to update them
@@ -5466,7 +5466,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             download_config.download_desc = "Downloading metadata"
             download_config.token = token
             dataset_infos_path = cached_path(
-                hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME),
+                hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME, revision=branch),
                 download_config=download_config,
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
@@ -5547,7 +5547,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             download_config.download_desc = "Downloading deprecated dataset_infos.json"
             download_config.use_auth_token = token
             dataset_infos_path = cached_path(
-                hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME),
+                hf_hub_url(repo_id, config.DATASETDICT_INFOS_FILENAME, revision=branch),
                 download_config=download_config,
             )
             with open(dataset_infos_path, encoding="utf-8") as f:

@@ -60,5 +60,5 @@ _MODULE_TO_EXTENSIONS: Dict[str, List[str]] = {}
 for _ext, (_module, _) in _EXTENSION_TO_MODULE.items():
     _MODULE_TO_EXTENSIONS.setdefault(_module, []).append(_ext)
 
-_MODULE_TO_EXTENSIONS["imagefolder"].append(".zip")
-_MODULE_TO_EXTENSIONS["audiofolder"].append(".zip")
+for _module in _MODULE_TO_EXTENSIONS:
+    _MODULE_TO_EXTENSIONS[_module].append(".zip")
