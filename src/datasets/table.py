@@ -1865,7 +1865,6 @@ def array_concat(arrays: List[pa.Array]):
     Returns:
         array (:obj:`pyarrow.Array`): the concatenated array
     """
-
     arrays = list(arrays)
     array_types = {array.type for array in arrays}
 
