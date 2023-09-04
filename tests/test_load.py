@@ -1458,3 +1458,12 @@ def test_load_dataset_with_storage_options_with_decoding(mockfs, image_file):
     ds = load_dataset("imagefolder", data_files=data_files, storage_options=mockfs.storage_options)
     assert len(ds["train"]) == 1
     assert isinstance(ds["train"][0]["image"], PIL.Image.Image)
+
+
+def test_load_dataset_without_script_with_zip(zip_csv_path):
+    path = str(zip_csv_path.parent)
+    ds = load_dataset(path)
+    assert list(ds.keys()) == ["train"]
+    assert ds["train"].column_names == ['col_1', 'col_2', 'col_3']
+    assert ds["train"].num_rows == 8
+    assert ds["train"][0] == {'col_1': 0, 'col_2': 0, 'col_3': 0.0}
