@@ -158,7 +158,7 @@ TESTS_REQUIRE = [
     "absl-py",
     "joblib<1.3.0",  # joblibspark doesn't support recent joblib versions
     "joblibspark",
-    "pytest",
+    "pytest<7.4.1",
     "pytest-datadir",
     "pytest-xdist",
     # optional dependencies
