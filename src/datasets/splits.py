@@ -31,9 +31,15 @@ from .utils.py_utils import NonMutableDict, asdict
 
 @dataclass
 class SplitInfo:
-    name: str = ""
-    num_bytes: int = 0
-    num_examples: int = 0
+    name: str = dataclasses.field(
+        default="", metadata={"include_in_asdict_even_if_is_default": True}
+    )
+    num_bytes: int = dataclasses.field(
+        default=0, metadata={"include_in_asdict_even_if_is_default": True}
+    )
+    num_examples: int = dataclasses.field(
+        default=0, metadata={"include_in_asdict_even_if_is_default": True}
+    )
     shard_lengths: Optional[List[int]] = None
 
     # Deprecated
