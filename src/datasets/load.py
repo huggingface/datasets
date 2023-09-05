@@ -853,7 +853,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         base_path = Path(self.path, self.data_dir or "").expanduser().resolve().as_posix()
         if self.data_files is not None:
             patterns = sanitize_patterns(self.data_files)
-        if metadata_configs and "data_files" in next(iter(metadata_configs.values())):
+        elif metadata_configs and "data_files" in next(iter(metadata_configs.values())):
             patterns = sanitize_patterns(next(iter(metadata_configs.values()))["data_files"])
         else:
             patterns = get_data_patterns(base_path)
@@ -1036,7 +1036,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         # because we need to infer module name by files extensions
         if self.data_files is not None:
             patterns = sanitize_patterns(self.data_files)
-        if metadata_configs and "data_files" in next(iter(metadata_configs.values())):
+        elif metadata_configs and "data_files" in next(iter(metadata_configs.values())):
             patterns = sanitize_patterns(next(iter(metadata_configs.values()))["data_files"])
         else:
             patterns = get_data_patterns(base_path, download_config=self.download_config)
