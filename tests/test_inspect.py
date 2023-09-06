@@ -47,6 +47,11 @@ def test_get_dataset_config_info(path, config_name, expected_splits):
     assert list(info.splits.keys()) == expected_splits
 
 
+def test_get_dataset_config_info_private(hf_token, hf_private_dataset_repo_txt_data):
+    info = get_dataset_config_info(hf_private_dataset_repo_txt_data, config_name="default", token=hf_token)
+    assert list(info.splits.keys()) == ["train"]
+
+
 @pytest.mark.parametrize(
     "path, config_name, expected_exception",
     [
@@ -61,15 +66,14 @@ def test_get_dataset_config_info_error(path, config_name, expected_exception):
 @pytest.mark.parametrize(
     "path, expected",
     [
-        ("squad", ["plain_text"]),
         ("acronym_identification", ["default"]),
-        ("lhoestq/squad", ["plain_text"]),
-        ("lhoestq/test", ["default"]),
-        ("lhoestq/demo1", ["default"]),
+        ("squad", ["plain_text"]),
+        ("hf-internal-testing/dataset_with_script", ["default"]),
         ("dalle-mini/wit", ["default"]),
-        ("datasets-maintainers/audiofolder_no_configs_in_metadata", ["default"]),
-        ("datasets-maintainers/audiofolder_single_config_in_metadata", ["custom"]),
-        ("datasets-maintainers/audiofolder_two_configs_in_metadata", ["v1", "v2"]),
+        ("hf-internal-testing/librispeech_asr_dummy", ["clean", "other"]),
+        ("hf-internal-testing/audiofolder_no_configs_in_metadata", ["default"]),
+        ("hf-internal-testing/audiofolder_single_config_in_metadata", ["custom"]),
+        ("hf-internal-testing/audiofolder_two_configs_in_metadata", ["v1", "v2"]),
     ],
 )
 def test_get_dataset_config_names(path, expected):

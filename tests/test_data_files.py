@@ -1,3 +1,4 @@
+import copy
 import os
 from pathlib import Path, PurePath
 from typing import List
@@ -5,6 +6,7 @@ from unittest.mock import patch
 
 import fsspec
 import pytest
+from fsspec.registry import _registry as _fsspec_registry
 from fsspec.spec import AbstractFileSystem
 
 from datasets.data_files import (
@@ -346,6 +348,21 @@ def test_resolve_pattern_in_dataset_repository_special_base_path(tmpfs):
     assert len(resolved_data_files) == 1
 
 
+@pytest.fixture
+def dummy_fs():
+    DummyTestFS = mock_fs(["train.txt", "test.txt"])
+    _fsspec_registry["mock"] = DummyTestFS
+    _fsspec_registry["dummy"] = DummyTestFS
+    yield
+    del _fsspec_registry["mock"]
+    del _fsspec_registry["dummy"]
+
+
+def test_resolve_pattern_fs(dummy_fs):
+    resolved_data_files = resolve_pattern("mock://train.txt", base_path="")
+    assert resolved_data_files == ["mock://train.txt"]
+
+
 @pytest.mark.parametrize("pattern", _TEST_PATTERNS)
 def test_DataFilesList_from_patterns_in_dataset_repository_(
     hub_dataset_repo_path, hub_dataset_repo_patterns_results, pattern
@@ -362,6 +379,18 @@ def test_DataFilesList_from_patterns_locally_with_extra_files(complex_data_dir, 
     data_files_list = DataFilesList.from_patterns([_TEST_URL, text_file.as_posix()], complex_data_dir)
     assert list(data_files_list) == [_TEST_URL, text_file.as_posix()]
     assert len(data_files_list.origin_metadata) == 2
+
+
+def test_DataFilesList_from_patterns_raises_FileNotFoundError(complex_data_dir):
+    with pytest.raises(FileNotFoundError):
+        DataFilesList.from_patterns(["file_that_doesnt_exist.txt"], complex_data_dir)
+
+
+class TestDataFilesDict:
+    def test_key_order_after_copy(self):
+        data_files = DataFilesDict({"train": "train.csv", "test": "test.csv"})
+        copied_data_files = copy.deepcopy(data_files)
+        assert list(copied_data_files.keys()) == list(data_files.keys())  # test split order with list()
 
 
 @pytest.mark.parametrize("pattern", _TEST_PATTERNS)
@@ -478,7 +507,7 @@ def mock_fs(file_paths: List[str]):
     ]
 
     class DummyTestFS(AbstractFileSystem):
-        protocol = "mock"
+        protocol = ("mock", "dummy")
         _fs_contents = fs_contents
 
         def ls(self, path, detail=True, refresh=True, **kwargs):
@@ -495,7 +524,7 @@ def mock_fs(file_paths: List[str]):
                 return files
             return [file["name"] for file in files]
 
-    return DummyTestFS()
+    return DummyTestFS
 
 
 @pytest.mark.parametrize(
@@ -570,7 +599,8 @@ def mock_fs(file_paths: List[str]):
 def test_get_data_files_patterns(data_file_per_split):
     data_file_per_split = {k: v if isinstance(v, list) else [v] for k, v in data_file_per_split.items()}
     file_paths = [file_path for split_file_paths in data_file_per_split.values() for file_path in split_file_paths]
-    fs = mock_fs(file_paths)
+    DummyTestFS = mock_fs(file_paths)
+    fs = DummyTestFS()
 
     def resolver(pattern):
         return [file_path for file_path in fs.glob(pattern) if fs.isfile(file_path)]

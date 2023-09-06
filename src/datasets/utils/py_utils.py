@@ -25,6 +25,7 @@ import os
 import queue
 import re
 import types
+import warnings
 from contextlib import contextmanager
 from dataclasses import fields, is_dataclass
 from io import BytesIO as StringIO
@@ -465,7 +466,13 @@ def map_nested(
             for obj in logging.tqdm(iterable, disable=disable_tqdm, desc=desc)
         ]
     else:
-        mapped = parallel_map(function, iterable, num_proc, types, disable_tqdm, desc, _single_map_nested)
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message=".* is experimental and might be subject to breaking changes in the future\\.$",
+                category=UserWarning,
+            )
+            mapped = parallel_map(function, iterable, num_proc, types, disable_tqdm, desc, _single_map_nested)
 
     if isinstance(data_struct, dict):
         return dict(zip(data_struct.keys(), mapped))
@@ -686,7 +693,7 @@ class Pickler(dill.Pickler):
 
     def memoize(self, obj):
         # don't memoize strings since two identical strings can have different python ids
-        if type(obj) != str:
+        if type(obj) != str:  # noqa: E721
             dill.Pickler.memoize(self, obj)
 
 
@@ -1134,7 +1141,7 @@ elif config.DILL_VERSION.release[:3] == version.parse("0.3.5").release:  # 0.3.5
                     state_dict["__module__"] = obj.__module__
 
                 state = obj.__dict__
-                if type(state) is not dict:
+                if type(state) is not dict:  # noqa: E721
                     state_dict["__dict__"] = state
                     state = None
                 if state_dict:
@@ -1296,7 +1303,7 @@ elif config.DILL_VERSION.release[:3] in [version.parse("0.3.6").release, version
                 state_dict["__module__"] = obj.__module__
 
             state = obj.__dict__
-            if type(state) is not dict:
+            if type(state) is not dict:  # noqa: E721
                 state_dict["__dict__"] = state
                 state = None
             if state_dict:

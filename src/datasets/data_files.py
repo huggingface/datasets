@@ -1,6 +1,7 @@
 import os
 import re
 from functools import partial
+from glob import has_magic
 from pathlib import Path, PurePath
 from typing import Callable, Dict, List, Optional, Set, Tuple, Union
 
@@ -320,7 +321,7 @@ def resolve_pattern(
         allowed_extensions (Optional[list], optional): White-list of file extensions to use. Defaults to None (all extensions).
             For example: allowed_extensions=[".csv", ".json", ".txt", ".parquet"]
     Returns:
-        List[Union[Path, Url]]: List of paths or URLs to the local or remote files that match the patterns.
+        List[str]: List of paths or URLs to the local or remote files that match the patterns.
     """
     if is_relative_path(pattern):
         pattern = xjoin(base_path, pattern)
@@ -332,8 +333,9 @@ def resolve_pattern(
     fs, _, _ = get_fs_token_paths(pattern, storage_options=storage_options)
     fs_base_path = base_path.split("::")[0].split("://")[-1] or fs.root_marker
     fs_pattern = pattern.split("::")[0].split("://")[-1]
-    protocol_prefix = fs.protocol + "://" if fs.protocol != "file" else ""
     files_to_ignore = set(FILES_TO_IGNORE) - {xbasename(pattern)}
+    protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[0]
+    protocol_prefix = protocol + "://" if protocol != "file" else ""
     matched_paths = [
         filepath if filepath.startswith(protocol_prefix) else protocol_prefix + filepath
         for filepath, info in fs.glob(pattern, detail=True).items()
@@ -582,7 +584,8 @@ class DataFilesList(List[str]):
                     )
                 )
             except FileNotFoundError:
-                pass
+                if not has_magic(pattern):
+                    raise
         origin_metadata = _get_origin_metadata(data_files, download_config=download_config)
         return cls(data_files, origin_metadata)
 
@@ -678,17 +681,6 @@ class DataFilesDict(Dict[str, DataFilesList]):
                 else patterns_for_key
             )
         return out
-
-    def __reduce__(self):
-        """
-        To make sure the order of the keys doesn't matter when pickling and hashing:
-
-        >>> from datasets.data_files import DataFilesDict
-        >>> from datasets.fingerprint import Hasher
-        >>> assert Hasher.hash(DataFilesDict(a=[], b=[])) == Hasher.hash(DataFilesDict(b=[], a=[]))
-
-        """
-        return DataFilesDict, (dict(sorted(self.items())),)
 
     def filter_extensions(self, extensions: List[str]) -> "DataFilesDict":
         out = type(self)()

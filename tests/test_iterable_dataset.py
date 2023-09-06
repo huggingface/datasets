@@ -1,3 +1,4 @@
+import pickle
 from copy import deepcopy
 from itertools import chain, islice
 
@@ -59,7 +60,7 @@ DEFAULT_N_EXAMPLES = 20
 DEFAULT_BATCH_SIZE = 4
 DEFAULT_FILEPATH = "file.txt"
 
-SAMPLE_DATASET_IDENTIFIER = "lhoestq/test"  # has dataset script
+SAMPLE_DATASET_IDENTIFIER = "hf-internal-testing/dataset_with_script"  # has dataset script
 
 
 def generate_examples_fn(**kwargs):
@@ -1900,17 +1901,17 @@ def test_formatted_map(dataset: IterableDataset):
     assert isinstance(next(dataset.iter(batch_size=3))["id"], list)
 
 
-@pytest.mark.parametrize("n_shards1, nshards2, num_workers", [(2, 1, 1), (2, 2, 2), (1, 3, 1), (4, 3, 3)])
-def test_interleave_dataset_with_sharding(n_shards1, nshards2, num_workers):
+@pytest.mark.parametrize("n_shards1, n_shards2, num_workers", [(2, 1, 1), (2, 2, 2), (1, 3, 1), (4, 3, 3)])
+def test_interleave_dataset_with_sharding(n_shards1, n_shards2, num_workers):
     from torch.utils.data import DataLoader
 
     ex_iterable1 = ExamplesIterable(generate_examples_fn, {"filepaths": [f"{i}-1.txt" for i in range(n_shards1)]})
     dataset1 = IterableDataset(ex_iterable1).with_format("torch")
-    ex_iterable2 = ExamplesIterable(generate_examples_fn, {"filepaths": [f"{i}-2.txt" for i in range(nshards2)]})
+    ex_iterable2 = ExamplesIterable(generate_examples_fn, {"filepaths": [f"{i}-2.txt" for i in range(n_shards2)]})
     dataset2 = IterableDataset(ex_iterable2).with_format("torch")
 
     dataset_merged = interleave_datasets([dataset1, dataset2], stopping_strategy="first_exhausted")
-    assert dataset_merged.n_shards == min(n_shards1, nshards2)
+    assert dataset_merged.n_shards == min(n_shards1, n_shards2)
     dataloader = DataLoader(dataset_merged, batch_size=None, num_workers=num_workers)
     result = list(dataloader)
     expected_length = 2 * min(
@@ -1919,3 +1920,30 @@ def test_interleave_dataset_with_sharding(n_shards1, nshards2, num_workers):
     # some samples may be missing because the stopping strategy is applied per process
     assert expected_length - num_workers <= len(result) <= expected_length
     assert len(result) == len({str(x) for x in result})
+
+
+def filter_func(batch):
+    return batch["id"] == 4
+
+
+def map_func(batch):
+    batch["id"] *= 2
+    return batch
+
+
+def test_pickle_after_many_transforms(dataset_with_several_columns):
+    dataset = dataset_with_several_columns
+    dataset = dataset.remove_columns(["filepath"])
+    dataset = dataset.take(5)
+    dataset = dataset.map(map_func)
+    dataset = dataset.shuffle()
+    dataset = dataset.skip(1)
+    dataset = dataset.filter(filter_func)
+    dataset = dataset.add_column("additional_col", ["something"])
+    dataset = dataset.rename_column("metadata", "metadata1")
+    dataset = dataset.rename_columns({"id": "id1", "metadata1": "metadata2"})
+    dataset = dataset.select_columns(["id1", "additional_col"])
+
+    unpickled_dataset = pickle.loads(pickle.dumps(dataset))
+
+    assert list(unpickled_dataset) == list(dataset)
