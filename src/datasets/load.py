@@ -913,9 +913,9 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                     }
                 )
                 if len(legacy_dataset_infos) == 1:
+                    # old config e.g. named "username--dataset_name"
                     legacy_config_name = next(iter(legacy_dataset_infos))
-                    if "--" in legacy_config_name:  # old config named "username--dataset_name"
-                        legacy_dataset_infos["default"] = legacy_dataset_infos.pop(legacy_config_name)
+                    legacy_dataset_infos["default"] = legacy_dataset_infos.pop(legacy_config_name)
             legacy_dataset_infos.update(dataset_infos)
             dataset_infos = legacy_dataset_infos
         if default_config_name is None and len(dataset_infos) == 1:
@@ -1114,9 +1114,9 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                     }
                 )
                 if len(legacy_dataset_infos) == 1:
+                    # old config e.g. named "username--dataset_name"
                     legacy_config_name = next(iter(legacy_dataset_infos))
-                    if "--" in legacy_config_name:  # old config named "username--dataset_name"
-                        legacy_dataset_infos["default"] = legacy_dataset_infos.pop(legacy_config_name)
+                    legacy_dataset_infos["default"] = legacy_dataset_infos.pop(legacy_config_name)
             legacy_dataset_infos.update(dataset_infos)
             dataset_infos = legacy_dataset_infos
         except FileNotFoundError:
