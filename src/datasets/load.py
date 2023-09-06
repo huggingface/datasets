@@ -903,6 +903,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         if self.data_files is not None or not metadata_configs:
             builder_kwargs["data_files"] = data_files
             builder_kwargs.update(default_builder_kwargs)  # from _EXTENSION_TO_MODULE
+        # this file is deprecated and was created automatically in old versions of push_to_hub
         if os.path.isfile(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME)):
             with open(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
                 legacy_dataset_infos = DatasetInfosDict(
@@ -911,6 +912,10 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                         for config_name, dataset_info_dict in json.load(f).items()
                     }
                 )
+                if len(legacy_dataset_infos) == 1:
+                    legacy_config_name = next(iter(legacy_dataset_infos))
+                    if "--" in legacy_config_name:  # old config named "username--dataset_name"
+                        legacy_dataset_infos["default"] = legacy_dataset_infos.pop(legacy_config_name)
             legacy_dataset_infos.update(dataset_infos)
             dataset_infos = legacy_dataset_infos
         if default_config_name is None and len(dataset_infos) == 1:
@@ -1096,6 +1101,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading metadata"
         try:
+            # this file is deprecated and was created automatically in old versions of push_to_hub
             dataset_infos_path = cached_path(
                 hf_hub_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=self.revision),
                 download_config=download_config,
@@ -1107,6 +1113,10 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                         for config_name, dataset_info_dict in json.load(f).items()
                     }
                 )
+                if len(legacy_dataset_infos) == 1:
+                    legacy_config_name = next(iter(legacy_dataset_infos))
+                    if "--" in legacy_config_name:  # old config named "username--dataset_name"
+                        legacy_dataset_infos["default"] = legacy_dataset_infos.pop(legacy_config_name)
             legacy_dataset_infos.update(dataset_infos)
             dataset_infos = legacy_dataset_infos
         except FileNotFoundError:
