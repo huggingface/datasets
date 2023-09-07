@@ -79,7 +79,14 @@ METADATA_PATTERNS = [
     "**/metadata.jsonl",
 ]  # metadata file for ImageFolder and AudioFolder
 WILDCARD_CHARACTERS = "*[]"
-FILES_TO_IGNORE = ["README.md", "config.json", "dataset_infos.json", "dummy_data.zip", "dataset_dict.json"]
+FILES_TO_IGNORE = [
+    "README.md",
+    "config.json",
+    "dataset_info.json",
+    "dataset_infos.json",
+    "dummy_data.zip",
+    "dataset_dict.json",
+]
 
 
 def contains_wildcards(pattern: str) -> bool:
