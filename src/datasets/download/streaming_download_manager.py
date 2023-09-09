@@ -914,9 +914,6 @@ class FilesIterable(_IterableFromGenerator):
             urlpaths = [urlpaths]
         for urlpath in urlpaths:
             if xisfile(urlpath, download_config=download_config):
-                if xbasename(urlpath).startswith((".", "__")):
-                    # skipping hidden files
-                    continue
                 yield urlpath
             elif xisdir(urlpath, download_config=download_config):
                 for dirpath, dirnames, filenames in xwalk(urlpath, download_config=download_config):
