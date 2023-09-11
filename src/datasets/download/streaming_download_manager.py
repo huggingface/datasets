@@ -917,9 +917,7 @@ class FilesIterable(_IterableFromGenerator):
                 yield urlpath
             elif xisdir(urlpath, download_config=download_config):
                 for dirpath, dirnames, filenames in xwalk(urlpath, download_config=download_config):
-                    # skipping hidden directories; prune the search
-                    # [:] for the in-place list modification required by os.walk
-                    # (only works for local paths as fsspec's walk doesn't support the in-place modification)
+                    # in-place modification to prune the search
                     dirnames[:] = sorted([dirname for dirname in dirnames if not dirname.startswith((".", "__"))])
                     if xbasename(dirpath).startswith((".", "__")):
                         # skipping hidden directories
