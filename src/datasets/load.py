@@ -912,10 +912,9 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                         for config_name, dataset_info_dict in json.load(f).items()
                     }
                 )
-                if len(legacy_dataset_infos) == 1:
-                    # old config e.g. named "username--dataset_name"
-                    legacy_config_name = next(iter(legacy_dataset_infos))
-                    legacy_dataset_infos["default"] = legacy_dataset_infos.pop(legacy_config_name)
+                legacy_default_config_name = os.path.basename(self.path.rstrip("/"))
+                if legacy_default_config_name in legacy_dataset_infos:
+                    legacy_dataset_infos["default"] = legacy_dataset_infos.pop(legacy_default_config_name)
             legacy_dataset_infos.update(dataset_infos)
             dataset_infos = legacy_dataset_infos
         if default_config_name is None and len(dataset_infos) == 1:
@@ -1113,10 +1112,9 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                         for config_name, dataset_info_dict in json.load(f).items()
                     }
                 )
-                if len(legacy_dataset_infos) == 1:
-                    # old config e.g. named "username--dataset_name"
-                    legacy_config_name = next(iter(legacy_dataset_infos))
-                    legacy_dataset_infos["default"] = legacy_dataset_infos.pop(legacy_config_name)
+                legacy_default_config_name = self.name.replace("/", "--")
+                if legacy_default_config_name in legacy_dataset_infos:
+                    legacy_dataset_infos["default"] = legacy_dataset_infos.pop(legacy_default_config_name)
             legacy_dataset_infos.update(dataset_infos)
             dataset_infos = legacy_dataset_infos
         except FileNotFoundError:
