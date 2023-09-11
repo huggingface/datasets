@@ -1613,6 +1613,16 @@ class DatasetDict(dict):
         >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", max_shard_size="1GB")
         >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", num_shards={"train": 1024, "test": 8})
         ```
+
+        If you want to add a new configuration (or subset) to a dataset (e.g. if the dataset has multiple tasks/versions/languages):
+
+        ```python
+        >>> english_dataset.push_to_hub("<organization>/<dataset_id>", "en")
+        >>> french_dataset.push_to_hub("<organization>/<dataset_id>", "fr")
+        >>> # later
+        >>> english_dataset = load_dataset("<organization>/<dataset_id>", "en")
+        >>> french_dataset = load_dataset("<organization>/<dataset_id>", "fr")
+        ```
         """
 
         if num_shards is None:
