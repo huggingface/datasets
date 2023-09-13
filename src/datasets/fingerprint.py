@@ -466,7 +466,7 @@ def fingerprint_transform(
 
     def _fingerprint(func):
         if not inplace and not all(name in func.__code__.co_varnames for name in fingerprint_names):
-            raise ValueError(f"function {func.__name__} is missing parameters {fingerprint_names} in signature")
+            raise ValueError(f"function {func.__qualname__} is missing parameters {fingerprint_names} in signature")
 
         if randomized_function:  # randomized function have seed and generator parameters
             if "seed" not in func.__code__.co_varnames:
