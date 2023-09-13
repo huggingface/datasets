@@ -5376,7 +5376,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 `<org>/<dataset_name>`. Also accepts `<dataset_name>`, which will default to the namespace
                 of the logged-in user.
             config_name (`str`, defaults to "default"):
-                The configuration name of a dataset. Defaults to "default"
+                The configuration name (or subset) of a dataset. Defaults to "default"
             split (`str`, *optional*):
                 The name of the split that will be given to that dataset. Defaults to `self.split`.
             private (`bool`, *optional*, defaults to `False`):
@@ -5405,9 +5405,30 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         ```python
         >>> dataset.push_to_hub("<organization>/<dataset_id>")
-        >>> dataset.push_to_hub("<organization>/<dataset_id>", split="validation")
+        >>> dataset_dict.push_to_hub("<organization>/<dataset_id>", private=True)
         >>> dataset.push_to_hub("<organization>/<dataset_id>", max_shard_size="1GB")
         >>> dataset.push_to_hub("<organization>/<dataset_id>", num_shards=1024)
+        ```
+
+        If your dataset has multiple splits (e.g. train/validation/test):
+
+        ```python
+        >>> train_dataset.push_to_hub("<organization>/<dataset_id>", split="train")
+        >>> val_dataset.push_to_hub("<organization>/<dataset_id>", split="validation")
+        >>> # later
+        >>> dataset = load_dataset("<organization>/<dataset_id>")
+        >>> train_dataset = dataset["train"]
+        >>> val_dataset = dataset["validation"]
+        ```
+
+        If you want to add a new configuration (or subset) to a dataset (e.g. if the dataset has multiple tasks/versions/languages):
+
+        ```python
+        >>> english_dataset.push_to_hub("<organization>/<dataset_id>", "en")
+        >>> french_dataset.push_to_hub("<organization>/<dataset_id>", "fr")
+        >>> # later
+        >>> english_dataset = load_dataset("<organization>/<dataset_id>", "en")
+        >>> french_dataset = load_dataset("<organization>/<dataset_id>", "fr")
         ```
         """
         if config_name == "data":
