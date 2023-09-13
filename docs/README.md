@@ -33,13 +33,13 @@ pip install git+https://github.com/huggingface/doc-builder
 **NOTE**
 
 You only need to generate the documentation to inspect it locally (if you're planning changes and want to
-check how they look before committing for instance). You don't have to commit to the built documentation.
+check how they look before committing for instance). You don't have to `git commit` the built documentation.
 
 ---
 
 ## Building the documentation
 
-Once you have set the `doc-builder` and additional packages, you can generate the documentation by typing th
+Once you have setup the `doc-builder` and additional packages, you can generate the documentation by typing
 the following command:
 
 ```bash
@@ -152,7 +152,7 @@ not to be displayed in the documentation, you can do so by specifying which meth
 ```
 
 If you just want to add a method that is not documented (for instance magic method like `__call__` is not documented
-by default) you can add the list of methods to add in a list that contains `all`:
+by default) you can put the list of methods to add in a list that contains `all`:
 
 ```
 ## XXXTokenizer
