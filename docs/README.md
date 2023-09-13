@@ -33,14 +33,14 @@ pip install git+https://github.com/huggingface/doc-builder
 **NOTE**
 
 You only need to generate the documentation to inspect it locally (if you're planning changes and want to
-check how they look like before committing for instance). You don't have to commit the built documentation.
+check how they look before committing for instance). You don't have to `git commit` the built documentation.
 
 ---
 
 ## Building the documentation
 
-Once you have setup the `doc-builder` and additional packages, you can generate the documentation by typing th
-following command:
+Once you have setup the `doc-builder` and additional packages, you can generate the documentation by typing
+the following command:
 
 ```bash
 doc-builder build datasets docs/source/ --build_dir ~/tmp/test-build
@@ -67,7 +67,7 @@ the filename without the extension in the [`_toctree.yml`](https://github.com/hu
 
 ## Renaming section headers and moving sections
 
-It helps to keep the old links working when renaming section header and/or moving sections from one document to another. This is because the old links are likely to be used in Issues, Forums and Social media and it'd be make for a much more superior user experience if users reading those months later could still easily navigate to the originally intended information.
+It helps to keep the old links working when renaming the section header and/or moving sections from one document to another. This is because the old links are likely to be used in Issues, Forums and Social media and it'd make for a much more superior user experience if users reading those months later could still easily navigate to the originally intended information.
 
 Therefore we simply keep a little map of moved sections at the end of the document where the original section was. The key is to preserve the original anchor.
 
@@ -105,7 +105,7 @@ Adding a new tutorial or section is done in two steps:
 - Link that file in `./source/_toctree.yml` on the correct toc-tree.
 
 Make sure to put your new file under the proper section. It's unlikely to go in the first section (*Get Started*), so
-depending on the intended targets (beginners, more advanced users or researchers) it should go in section two, three or
+depending on the intended targets (beginners, more advanced users or researchers) it should go into section two, three or
 four.
 
 ### Adding a new model
@@ -151,8 +151,8 @@ not to be displayed in the documentation, you can do so by specifying which meth
     - save_vocabulary
 ```
 
-If you just want to add a method that is not documented (for instance magic method like `__call__` are not documented
-byt default) you can put the list of methods to add in a list that contains `all`:
+If you just want to add a method that is not documented (for instance magic method like `__call__` is not documented
+by default) you can put the list of methods to add in a list that contains `all`:
 
 ```
 ## XXXTokenizer
@@ -190,7 +190,7 @@ description:
 ```
 
 If the description is too long to fit in one line, another indentation is necessary before writing the description
-after th argument.
+after the argument.
 
 Here's an example showcasing everything so far:
 
@@ -223,7 +223,7 @@ then its documentation should look like this:
 ```
 
 Note that we always omit the "defaults to \`None\`" when None is the default for any argument. Also note that even
-if the first line describing your argument type and its default gets long, you can't break it on several lines. You can
+if the first line describing your argument type and its default gets long, you can't break it into several lines. You can
 however write as many lines as you want in the indented description (see the example above with `input_ids`).
 
 #### Writing a multi-line code block
@@ -248,14 +248,14 @@ The return block should be introduced with the `Returns:` prefix, followed by a 
 The first line should be the type of the return, followed by a line return. No need to indent further for the elements
 building the return.
 
-Here's an example for a single value return:
+Here's an example of a single value return:
 
 ```
     Returns:
         `List[int]`: A list of integers in the range [0, 1] --- 1 for a special token, 0 for a sequence token.
 ```
 
-Here's an example for tuple return, comprising several objects:
+Here's an example of tuple return, comprising several objects:
 
 ```
     Returns:
@@ -280,6 +280,6 @@ We have an automatic script running with the `make style` comment that will make
 - the docstrings fully take advantage of the line width
 - all code examples are formatted using black, like the code of the Transformers library
 
-This script may have some weird failures if you made a syntax mistake or if you uncover a bug. Therefore, it's
+This script may have some weird failures if you make a syntax mistake or if you uncover a bug. Therefore, it's
 recommended to commit your changes before running `make style`, so you can revert the changes done by that script
 easily.
