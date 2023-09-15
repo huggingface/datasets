@@ -36,6 +36,7 @@ ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
 
 # Imports
 DILL_VERSION = version.parse(importlib.metadata.version("dill"))
+FSSPEC_VERSION = version.parse(importlib.metadata.version("fsspec"))
 PANDAS_VERSION = version.parse(importlib.metadata.version("pandas"))
 PYARROW_VERSION = version.parse(importlib.metadata.version("pyarrow"))
 
