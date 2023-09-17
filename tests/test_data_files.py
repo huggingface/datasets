@@ -1,6 +1,6 @@
 import copy
 import os
-from pathlib import Path, PurePath
+from pathlib import Path
 from typing import List
 from unittest.mock import patch
 
@@ -493,7 +493,7 @@ def mock_fs(file_paths: List[str]):
     Example:
 
     ```py
-    >>> fs = mock_fs(["data/train.txt", "data.test.txt"])
+    >>> DummyTestFS = mock_fs(["data/train.txt", "data.test.txt"])
     >>> assert fsspec.get_filesystem_class("mock").__name__ == "DummyTestFS"
     >>> assert type(fs).__name__ == "DummyTestFS"
     >>> print(fs.glob("**"))
@@ -619,16 +619,17 @@ def test_get_data_files_patterns(data_file_per_split):
         ["metadata.jsonl"],
         ["metadata.csv"],
         # nested metadata files
-        ["data/metadata.jsonl", "data/train/metadata.jsonl"],
-        ["data/metadata.csv", "data/train/metadata.csv"],
+        ["metadata.jsonl", "data/metadata.jsonl"],
+        ["metadata.csv", "data/metadata.csv"],
     ],
 )
 def test_get_metadata_files_patterns(metadata_files):
+    DummyTestFS = mock_fs(metadata_files)
+    fs = DummyTestFS()
+
     def resolver(pattern):
-        return [PurePath(path) for path in set(metadata_files) if PurePath(path).match(pattern)]
+        return [file_path for file_path in fs.glob(pattern) if fs.isfile(file_path)]
 
     patterns = _get_metadata_files_patterns(resolver)
-    matched = [path for path in metadata_files for pattern in patterns if PurePath(path).match(pattern)]
-    # Use set to remove the difference between in behavior between PurePath.match and mathcing via fsspec.glob
-    assert len(set(matched)) == len(metadata_files)
-    assert sorted(set(matched)) == sorted(metadata_files)
+    matched = [file_path for pattern in patterns for file_path in resolver(pattern)]
+    assert sorted(matched) == sorted(metadata_files)

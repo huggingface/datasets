@@ -43,13 +43,8 @@ SPLIT_KEYWORDS = {
     Split.TEST: ["test", "testing", "eval", "evaluation"],
 }
 NON_WORDS_CHARS = "-._ 0-9"
-KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**[{sep}/]{keyword}[{sep}]*"]
-KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = ["**[{sep}/]{keyword}[{sep}/]**"]
-# KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**[{sep}/]{keyword}[{sep}]*"]
-# KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = ["**[{sep}/]{keyword}[{sep}/]**"]
-# if config.FSSPEC_VERSION < version.parse("2023.9.0"):
-# KEYWORDS_IN_FILENAME_BASE_PATTERNS += ["{keyword}[{sep}]*"]
-# KEYWORDS_IN_DIR_NAME_BASE_PATTERNS += ["{keyword}[{sep}/]**"]
+KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**[{sep}/]{keyword}[{sep}]*", "{keyword}[{sep}]*"]
+KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**[{sep}/]{keyword}[{sep}/]**"]
 DEFAULT_SPLITS = [Split.TRAIN, Split.VALIDATION, Split.TEST]
 DEFAULT_PATTERNS_SPLIT_IN_FILENAME = {
     split: [
