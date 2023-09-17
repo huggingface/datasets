@@ -501,7 +501,7 @@ def mock_fs(file_paths: List[str]):
     ```
     """
 
-    dir_paths = {file_path.rsplit("/")[0] for file_path in file_paths if "/" in file_path}
+    dir_paths = {file_path.rsplit("/", 1)[0] for file_path in file_paths if "/" in file_path}
     fs_contents = [{"name": dir_path, "type": "directory"} for dir_path in dir_paths] + [
         {"name": file_path, "type": "file", "size": 10} for file_path in file_paths
     ]
