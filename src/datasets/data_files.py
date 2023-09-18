@@ -311,7 +311,7 @@ def resolve_pattern(
 
     glob.glob, Path.glob, Path.match or fnmatch do not support ** with a prefix/suffix other than a forward slash /.
     For instance, this means **.json is the same as *.json. On the contrary, the fsspec glob has no limits regarding the ** prefix/suffix,
-    resulting in **.json being the same as **/*.json.
+    resulting in **.json being equivalent to **/*.json.
 
 
     More generally:
