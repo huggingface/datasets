@@ -1168,6 +1168,9 @@ def test_load_dataset_zip_text(data_file, streaming, zip_text_path, zip_text_wit
 
 @pytest.mark.parametrize("streaming", [False, True])
 def test_load_dataset_arrow(streaming, data_dir_with_arrow):
+    print("#################")
+    print(data_dir_with_arrow)
+    print("#################")
     ds = load_dataset("arrow", split="train", data_dir=data_dir_with_arrow, streaming=streaming)
     expected_size = 10
     if streaming:

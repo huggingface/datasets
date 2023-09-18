@@ -43,8 +43,12 @@ SPLIT_KEYWORDS = {
     Split.TEST: ["test", "testing", "eval", "evaluation"],
 }
 NON_WORDS_CHARS = "-._ 0-9"
-KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**[{sep}/]{keyword}[{sep}]*", "{keyword}[{sep}]*"]
-KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**[{sep}/]{keyword}[{sep}/]**"]
+if config.FSSPEC_VERSION < version.parse("2023.9.0"):
+    KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**[{sep}/]{keyword}[{sep}]*", "{keyword}[{sep}]*"]
+    KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**[{sep}/]{keyword}[{sep}/]**"]
+else:
+    KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**/*[{sep}/]{keyword}[{sep}]*", "{keyword}[{sep}]*"]
+    KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**/*[{sep}/]{keyword}[{sep}/]**"]
 
 DEFAULT_SPLITS = [Split.TRAIN, Split.VALIDATION, Split.TEST]
 DEFAULT_PATTERNS_SPLIT_IN_FILENAME = {
@@ -74,12 +78,18 @@ ALL_DEFAULT_PATTERNS = [
     DEFAULT_PATTERNS_SPLIT_IN_FILENAME,
     DEFAULT_PATTERNS_ALL,
 ]
-METADATA_PATTERNS = [
-    "**/metadata.csv",
-    "**/metadata.jsonl",
-]  # metadata file for ImageFolder and AudioFolder
 if config.FSSPEC_VERSION < version.parse("2023.9.0"):
-    METADATA_PATTERNS += ["metadata.csv", "metadata.jsonl"]
+    METADATA_PATTERNS = [
+        "metadata.csv",
+        "**/metadata.csv",
+        "metadata.jsonl",
+        "**/metadata.jsonl",
+    ]  # metadata file for ImageFolder and AudioFolder
+else:
+    METADATA_PATTERNS = [
+        "**/metadata.csv",
+        "**/metadata.jsonl",
+    ]  # metadata file for ImageFolder and AudioFolder
 WILDCARD_CHARACTERS = "*[]"
 FILES_TO_IGNORE = [
     "README.md",
