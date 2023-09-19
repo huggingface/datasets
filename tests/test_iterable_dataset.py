@@ -162,9 +162,7 @@ def test_batch_arrow_tables(tables, batch_size, drop_last_batch):
     num_rows = len(full_table) if not drop_last_batch else len(full_table) // batch_size * batch_size
     num_batches = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
     subtables = list(
-        _batch_arrow_tables(
-            list(enumerate(tables)), batch_size=batch_size, drop_last_batch=drop_last_batch
-        )
+        _batch_arrow_tables(list(enumerate(tables)), batch_size=batch_size, drop_last_batch=drop_last_batch)
     )
     assert len(subtables) == num_batches
     if drop_last_batch:
