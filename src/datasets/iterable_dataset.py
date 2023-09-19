@@ -134,7 +134,7 @@ def _convert_to_arrow(
     iterator = iter(iterable)
     for key, example in iterator:
         iterator_batch = islice(iterator, batch_size - 1)
-        key_examples_list = [(key, example)] + [(key, example) for key, example in iterator_batch]
+        key_examples_list = [(key, example)] + list(iterator_batch)
         if len(key_examples_list) < batch_size and drop_last_batch:
             return
         keys, examples = zip(*key_examples_list)
@@ -697,7 +697,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     if self.batch_size is None or self.batch_size <= 0
                     else islice(iterator, self.batch_size - 1)
                 )
-                key_examples_list = [(key, example)] + [(key, example) for key, example in iterator_batch]
+                key_examples_list = [(key, example)] + list(iterator_batch)
                 keys, examples = zip(*key_examples_list)
                 if (
                     self.drop_last_batch
@@ -880,7 +880,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                     if self.batch_size is None or self.batch_size <= 0
                     else islice(iterator, self.batch_size - 1)
                 )
-                key_examples_list = [(key, example)] + [(key, example) for key, example in iterator_batch]
+                key_examples_list = [(key, example)] + list(iterator_batch)
                 keys, examples = zip(*key_examples_list)
                 batch = _examples_to_batch(examples)
                 batch = format_dict(batch) if format_dict else batch
