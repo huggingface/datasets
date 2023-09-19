@@ -146,7 +146,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=split_name,
                     gen_kwargs={
-                        "files": [(file, downloaded_file) for file, downloaded_file in zip(files, downloaded_files)]
+                        "files": list(zip(files, downloaded_files))
                         + [(None, dl_manager.iter_files(downloaded_dir)) for downloaded_dir in downloaded_dirs],
                         "metadata_files": metadata_files,
                         "split_name": split_name,
