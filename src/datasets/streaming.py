@@ -100,10 +100,12 @@ def extend_module_for_streaming(module_path, download_config: Optional[DownloadC
     patch_submodule(module, "numpy.load", wrap_auth(xnumpy_load)).start()
     patch_submodule(module, "pandas.read_csv", wrap_auth(xpandas_read_csv), attrs=["__version__"]).start()
     patch_submodule(module, "pandas.read_excel", wrap_auth(xpandas_read_excel), attrs=["__version__"]).start()
-    patch_submodule(module, "pyarrow.parquet.read_table", wrap_auth(xpyarrow_parquet_read_table)).start()
     patch_submodule(module, "scipy.io.loadmat", wrap_auth(xsio_loadmat), attrs=["__version__"]).start()
     patch_submodule(module, "xml.etree.ElementTree.parse", wrap_auth(xet_parse)).start()
     patch_submodule(module, "xml.dom.minidom.parse", wrap_auth(xxml_dom_minidom_parse)).start()
+    # pyarrow: do not patch pyarrow attribute in packaged modules
+    if not module.__name__.startswith("datasets.packaged_modules."):
+        patch_submodule(module, "pyarrow.parquet.read_table", wrap_auth(xpyarrow_parquet_read_table)).start()
     module._patched_for_streaming = download_config
 
 
