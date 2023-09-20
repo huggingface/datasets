@@ -21,6 +21,7 @@ from .download.streaming_download_manager import (
     xpandas_read_csv,
     xpandas_read_excel,
     xPath,
+    xpyarrow_parquet_read_table,
     xrelpath,
     xsio_loadmat,
     xsplit,
@@ -99,6 +100,7 @@ def extend_module_for_streaming(module_path, download_config: Optional[DownloadC
     patch_submodule(module, "numpy.load", wrap_auth(xnumpy_load)).start()
     patch_submodule(module, "pandas.read_csv", wrap_auth(xpandas_read_csv), attrs=["__version__"]).start()
     patch_submodule(module, "pandas.read_excel", wrap_auth(xpandas_read_excel), attrs=["__version__"]).start()
+    patch_submodule(module, "pyarrow.parquet.read_table", wrap_auth(xpyarrow_parquet_read_table)).start()
     patch_submodule(module, "scipy.io.loadmat", wrap_auth(xsio_loadmat), attrs=["__version__"]).start()
     patch_submodule(module, "xml.etree.ElementTree.parse", wrap_auth(xet_parse)).start()
     patch_submodule(module, "xml.dom.minidom.parse", wrap_auth(xxml_dom_minidom_parse)).start()
