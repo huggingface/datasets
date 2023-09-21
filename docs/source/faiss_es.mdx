@@ -1,5 +1,11 @@
 # Search index
 
+<Tip warning={true}>
+
+Vector search is deprecated in 🤗 Datasets.
+
+</Tip>
+
 [FAISS](https://github.com/facebookresearch/faiss) and [ElasticSearch](https://www.elastic.co/elasticsearch/) enables searching for examples in a dataset. This can be useful when you want to retrieve specific examples from a dataset that are relevant to your NLP task. For example, if you are working on a Open Domain Question Answering task, you may want to only return examples that are relevant to answering your question.
 
 This guide will show you how to build an index for your dataset that will allow you to search it.
