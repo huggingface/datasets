@@ -494,6 +494,7 @@ def mock_fs(file_paths: List[str]):
 
     ```py
     >>> DummyTestFS = mock_fs(["data/train.txt", "data.test.txt"])
+    >>> fs = DummyTestFS()
     >>> assert fsspec.get_filesystem_class("mock").__name__ == "DummyTestFS"
     >>> assert type(fs).__name__ == "DummyTestFS"
     >>> print(fs.glob("**"))
