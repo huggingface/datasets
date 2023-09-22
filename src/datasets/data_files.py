@@ -44,26 +44,16 @@ SPLIT_KEYWORDS = {
 }
 NON_WORDS_CHARS = "-._ 0-9"
 if config.FSSPEC_VERSION < version.parse("2023.9.0"):
-    KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**[{sep}/]{keyword}[{sep}]*", "{keyword}[{sep}]*"]
-    KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**[{sep}/]{keyword}[{sep}/]**"]
+    KEYWORDS_IN_PATH_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**[{sep}/]{keyword}[{sep}/]**"]
 else:
-    KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**/*[{sep}/]{keyword}[{sep}]*", "{keyword}[{sep}]*"]
-    KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**/*[{sep}/]{keyword}[{sep}/]**"]
+    KEYWORDS_IN_PATH_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**/*[{sep}/]{keyword}[{sep}/]**"]
 
 DEFAULT_SPLITS = [Split.TRAIN, Split.VALIDATION, Split.TEST]
-DEFAULT_PATTERNS_SPLIT_IN_FILENAME = {
+DEFAULT_PATTERNS_SPLIT_IN_PATH_NAME = {
     split: [
         pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
         for keyword in SPLIT_KEYWORDS[split]
-        for pattern in KEYWORDS_IN_FILENAME_BASE_PATTERNS
-    ]
-    for split in DEFAULT_SPLITS
-}
-DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME = {
-    split: [
-        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
-        for keyword in SPLIT_KEYWORDS[split]
-        for pattern in KEYWORDS_IN_DIR_NAME_BASE_PATTERNS
+        for pattern in KEYWORDS_IN_PATH_NAME_BASE_PATTERNS
     ]
     for split in DEFAULT_SPLITS
 }
@@ -74,8 +64,7 @@ DEFAULT_PATTERNS_ALL = {
 
 ALL_SPLIT_PATTERNS = [SPLIT_PATTERN_SHARDED]
 ALL_DEFAULT_PATTERNS = [
-    DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME,
-    DEFAULT_PATTERNS_SPLIT_IN_FILENAME,
+    DEFAULT_PATTERNS_SPLIT_IN_PATH_NAME,
     DEFAULT_PATTERNS_ALL,
 ]
 if config.FSSPEC_VERSION < version.parse("2023.9.0"):
@@ -313,7 +302,6 @@ def resolve_pattern(
     For instance, this means **.json is the same as *.json. On the contrary, the fsspec glob has no limits regarding the ** prefix/suffix,
     resulting in **.json being equivalent to **/*.json.
 
-
     More generally:
     - '*' matches any character except a forward-slash (to match just the file or directory name)
     - '**' matches any character including a forward-slash /
@@ -429,7 +417,8 @@ def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] 
 
     Output:
 
-        {"train": ["**train*"], "test": ["**test*"]}
+        {'train': ['train[-._ 0-9/]**', '**/*[-._ 0-9/]train[-._ 0-9/]**', 'training[-._ 0-9/]**', '**/*[-._ 0-9/]training[-._ 0-9/]**'],
+         'test': ['test[-._ 0-9/]**', '**/*[-._ 0-9/]test[-._ 0-9/]**', 'testing[-._ 0-9/]**', '**/*[-._ 0-9/]testing[-._ 0-9/]**', ...]}
 
     Input:
 
@@ -447,7 +436,8 @@ def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] 
 
     Output:
 
-        {"train": ["**train*/**"], "test": ["**test*/**"]}
+        {'train': ['train[-._ 0-9/]**', '**/*[-._ 0-9/]train[-._ 0-9/]**', 'training[-._ 0-9/]**', '**/*[-._ 0-9/]training[-._ 0-9/]**'],
+         'test': ['test[-._ 0-9/]**', '**/*[-._ 0-9/]test[-._ 0-9/]**', 'testing[-._ 0-9/]**', '**/*[-._ 0-9/]testing[-._ 0-9/]**', ...]}
 
     Input:
 
@@ -464,11 +454,9 @@ def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] 
 
     Output:
 
-        {
-            "train": ["data/train-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*"],
-            "test": ["data/test-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*"],
-            "random": ["data/random-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*"],
-        }
+        {'train': ['data/train-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*'],
+         'test': ['data/test-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*'],
+         'random': ['data/random-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*']}
 
     In order, it first tests if SPLIT_PATTERN_SHARDED works, otherwise it tests the patterns in ALL_DEFAULT_PATTERNS.
     """
