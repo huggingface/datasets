@@ -2002,7 +2002,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
                 pa_type.list_size,
             )
         elif pa.types.is_list(pa_type):
-            offsets_arr = pa.array(range(len(array) + 1), pa.int32())
+            offsets_arr = pa.array(np.arange(len(array) + 1) * array.type.list_size, pa.int32())
             if array.null_count > 0:
                 if config.PYARROW_VERSION.major < 10:
                     warnings.warn(
@@ -2061,6 +2061,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
         array = array.storage
     if hasattr(feature, "cast_storage"):
         return feature.cast_storage(array)
+
     elif pa.types.is_struct(array.type):
         # feature must be a dict or Sequence(subfeatures_dict)
         if isinstance(feature, Sequence) and isinstance(feature.feature, dict):
@@ -2126,7 +2127,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
                 if feature.length * len(array) == len(array_values):
                     return pa.FixedSizeListArray.from_arrays(_c(array_values, feature.feature), feature.length)
             else:
-                offsets_arr = pa.array(range(len(array) + 1), pa.int32())
+                offsets_arr = pa.array(np.arange(len(array) + 1) * array.type.list_size, pa.int32())
                 if array.null_count > 0:
                     if config.PYARROW_VERSION.major < 10:
                         warnings.warn(
@@ -2233,7 +2234,7 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
                 if feature.length * len(array) == len(array_values):
                     return pa.FixedSizeListArray.from_arrays(_e(array_values, feature.feature), feature.length)
             else:
-                offsets_arr = pa.array(range(len(array) + 1), pa.int32())
+                offsets_arr = pa.array(np.arange(len(array) + 1) * array.type.list_size, pa.int32())
                 if array.null_count > 0:
                     if config.PYARROW_VERSION.major < 10:
                         warnings.warn(
