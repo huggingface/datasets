@@ -543,7 +543,7 @@ def _create_single_builder_config_from_metadata_config(
     builder_config_cls: Type[BuilderConfig],
     config_params: Dict[str, Any],
 ) -> BuilderConfig:
-    config_name = config_params.get("config_name")
+    config_name = config_params.get("name")
     config_data_files = config_params.get("data_files")
     config_data_dir = config_params.get("data_dir")
     config_base_path = base_path + "/" + config_data_dir if config_data_dir else base_path
@@ -596,7 +596,7 @@ def _create_single_builder_config_from_metadata_config(
         **{
             param: value
             for param, value in {**default_builder_kwargs, **config_params}.items()
-            if hasattr(builder_config_cls, param) and param not in ("config_name", "default", "data_files", "data_dir")
+            if hasattr(builder_config_cls, param) and param not in ("name", "default", "data_files", "data_dir")
         },
     )
 
@@ -616,7 +616,7 @@ def create_builder_configs_from_metadata_configs(
 
     base_path = base_path if base_path is not None else ""
     all_config_params = [
-        {"config_name": config_name, **config_params} for config_name, config_params in metadata_configs.items()
+        {"name": config_name, **config_params} for config_name, config_params in metadata_configs.items()
     ]
     fn = partial(
         _create_single_builder_config_from_metadata_config,
