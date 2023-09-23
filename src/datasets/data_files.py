@@ -515,6 +515,7 @@ def _get_origin_metadata(
         tqdm_class=logging.tqdm,
         desc="Resolving data files",
         disable=len(data_files) <= 16 or not logging.is_progress_bar_enabled(),
+        delay=3,
     )
 
 

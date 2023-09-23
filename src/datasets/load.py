@@ -25,12 +25,14 @@ import time
 import warnings
 from collections import Counter
 from dataclasses import dataclass, field
+from functools import partial
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Type, Union
 
 import fsspec
 import requests
 from huggingface_hub import DatasetCard, DatasetCardData, HfApi
+from tqdm.contrib.concurrent import thread_map
 
 from . import config
 from .arrow_dataset import Dataset
@@ -63,6 +65,7 @@ from .packaged_modules import (
     _hash_python_lines,
 )
 from .splits import Split
+from .utils import logging
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import (
     OfflineModeIsEnabled,
@@ -532,6 +535,72 @@ def update_hash_with_config_parameters(hash: str, config_parameters: dict) -> st
     return m.hexdigest()
 
 
+def _create_single_builder_config_from_metadata_config(
+    supports_metadata: bool,
+    base_path: Optional[str],
+    default_builder_kwargs: Dict[str, Any],
+    download_config: Optional[DownloadConfig],
+    builder_config_cls: Type[BuilderConfig],
+    config_params: Dict[str, Any],
+) -> BuilderConfig:
+    config_name = config_params.get("config_name")
+    config_data_files = config_params.get("data_files")
+    config_data_dir = config_params.get("data_dir")
+    config_base_path = base_path + "/" + config_data_dir if config_data_dir else base_path
+    try:
+        config_patterns = (
+            sanitize_patterns(config_data_files)
+            if config_data_files is not None
+            else get_data_patterns(config_base_path)
+        )
+        config_data_files_dict = DataFilesDict.from_patterns(
+            config_patterns,
+            base_path=config_base_path,
+            allowed_extensions=ALL_ALLOWED_EXTENSIONS,
+            download_config=download_config,
+        )
+    except EmptyDatasetError as e:
+        raise EmptyDatasetError(
+            f"Dataset at '{base_path}' doesn't contain data files matching the patterns for config '{config_name}',"
+            f" check `data_files` and `data_fir` parameters in the `configs` YAML field in README.md. "
+        ) from e
+    if config_data_files is None and supports_metadata and config_patterns != DEFAULT_PATTERNS_ALL:
+        try:
+            config_metadata_patterns = get_metadata_patterns(base_path)
+        except FileNotFoundError:
+            config_metadata_patterns = None
+        if config_metadata_patterns is not None:
+            config_metadata_data_files_list = DataFilesList.from_patterns(
+                config_metadata_patterns, base_path=base_path
+            )
+            if config_metadata_data_files_list:
+                config_data_files_dict = DataFilesDict(
+                    {
+                        split: data_files_list + config_metadata_data_files_list
+                        for split, data_files_list in config_data_files_dict.items()
+                    }
+                )
+    ignored_params = [
+        param for param in config_params if not hasattr(builder_config_cls, param) and param != "default"
+    ]
+    if ignored_params:
+        logger.warning(
+            f"Some datasets params were ignored: {ignored_params}. "
+            "Make sure to use only valid params for the dataset builder and to have "
+            "a up-to-date version of the `datasets` library."
+        )
+    return builder_config_cls(
+        name=config_name,
+        data_files=config_data_files_dict,
+        data_dir=config_data_dir,
+        **{
+            param: value
+            for param, value in {**default_builder_kwargs, **config_params}.items()
+            if hasattr(builder_config_cls, param) and param not in ("config_name", "default", "data_files", "data_dir")
+        },
+    )
+
+
 def create_builder_configs_from_metadata_configs(
     module_path: str,
     metadata_configs: MetadataConfigs,
@@ -546,64 +615,24 @@ def create_builder_configs_from_metadata_configs(
     builder_configs = []
 
     base_path = base_path if base_path is not None else ""
-    for config_name, config_params in metadata_configs.items():
-        config_data_files = config_params.get("data_files")
-        config_data_dir = config_params.get("data_dir")
-        config_base_path = base_path + "/" + config_data_dir if config_data_dir else base_path
-        try:
-            config_patterns = (
-                sanitize_patterns(config_data_files)
-                if config_data_files is not None
-                else get_data_patterns(config_base_path)
-            )
-            config_data_files_dict = DataFilesDict.from_patterns(
-                config_patterns,
-                base_path=config_base_path,
-                allowed_extensions=ALL_ALLOWED_EXTENSIONS,
-                download_config=download_config,
-            )
-        except EmptyDatasetError as e:
-            raise EmptyDatasetError(
-                f"Dataset at '{base_path}' doesn't contain data files matching the patterns for config '{config_name}',"
-                f" check `data_files` and `data_fir` parameters in the `configs` YAML field in README.md. "
-            ) from e
-        if config_data_files is None and supports_metadata and config_patterns != DEFAULT_PATTERNS_ALL:
-            try:
-                config_metadata_patterns = get_metadata_patterns(base_path)
-            except FileNotFoundError:
-                config_metadata_patterns = None
-            if config_metadata_patterns is not None:
-                config_metadata_data_files_list = DataFilesList.from_patterns(
-                    config_metadata_patterns, base_path=base_path
-                )
-                if config_metadata_data_files_list:
-                    config_data_files_dict = DataFilesDict(
-                        {
-                            split: data_files_list + config_metadata_data_files_list
-                            for split, data_files_list in config_data_files_dict.items()
-                        }
-                    )
-        ignored_params = [
-            param for param in config_params if not hasattr(builder_config_cls, param) and param != "default"
-        ]
-        if ignored_params:
-            logger.warning(
-                f"Some datasets params were ignored: {ignored_params}. "
-                "Make sure to use only valid params for the dataset builder and to have "
-                "a up-to-date version of the `datasets` library."
-            )
-        builder_configs.append(
-            builder_config_cls(
-                name=config_name,
-                data_files=config_data_files_dict,
-                data_dir=config_data_dir,
-                **{
-                    param: value
-                    for param, value in {**default_builder_kwargs, **config_params}.items()
-                    if hasattr(builder_config_cls, param) and param not in ("default", "data_files", "data_dir")
-                },
-            )
-        )
+    all_config_params = [
+        {"config_name": config_name, **config_params} for config_name, config_params in metadata_configs.items()
+    ]
+    fn = partial(
+        _create_single_builder_config_from_metadata_config,
+        supports_metadata,
+        base_path,
+        default_builder_kwargs,
+        download_config,
+        builder_config_cls,
+    )
+    builder_configs = thread_map(
+        fn,
+        all_config_params,
+        tqdm_class=logging.tqdm,
+        desc="Listing all the datasets configurations",
+        disable=len(all_config_params) <= 16 or not logging.is_progress_bar_enabled(),
+    )
     return builder_configs, default_config_name
 
 
