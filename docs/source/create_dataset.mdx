@@ -1,0 +1,112 @@
+# Create a dataset
+
+Sometimes, you may need to create a dataset if you're working with your own data. Creating a dataset with 🤗 Datasets confers all the advantages of the library to your dataset: fast loading and processing, [stream enormous datasets](stream), [memory-mapping](https://huggingface.co/course/chapter5/4?fw=pt#the-magic-of-memory-mapping), and more. You can easily and rapidly create a dataset with 🤗 Datasets low-code approaches, reducing the time it takes to start training a model. In many cases, it is as easy as [dragging and dropping](upload_dataset#upload-with-the-hub-ui) your data files into a dataset repository on the Hub.
+
+In this tutorial, you'll learn how to use 🤗 Datasets low-code methods for creating all types of datasets:
+
+* Folder-based builders for quickly creating an image or audio dataset
+* `from_` methods for creating datasets from local files
+
+## Folder-based builders
+
+There are two folder-based builders, [`ImageFolder`] and [`AudioFolder`]. These are low-code methods for quickly creating an image or speech and audio dataset with several thousand examples. They are great for rapidly prototyping computer vision and speech models before scaling to a larger dataset. Folder-based builders takes your data and automatically generates the dataset's features, splits, and labels. Under the hood:
+
+* [`ImageFolder`] uses the [`~datasets.Image`] feature to decode an image file. Many image extension formats are supported, such as jpg and png, but other formats are also supported. You can check the complete [list](https://github.com/huggingface/datasets/blob/b5672a956d5de864e6f5550e493527d962d6ae55/src/datasets/packaged_modules/imagefolder/imagefolder.py#L39) of supported image extensions.
+* [`AudioFolder`] uses the [`~datasets.Audio`] feature to decode an audio file. Audio extensions such as wav and mp3 are supported, and you can check the complete [list](https://github.com/huggingface/datasets/blob/b5672a956d5de864e6f5550e493527d962d6ae55/src/datasets/packaged_modules/audiofolder/audiofolder.py#L39) of supported audio extensions.
+
+The dataset splits are generated from the repository structure, and the label names are automatically inferred from the directory name. 
+
+For example, if your image dataset (it is the same for an audio dataset) is stored like this:
+
+```
+pokemon/train/grass/bulbasaur.png
+pokemon/train/fire/charmander.png
+pokemon/train/water/squirtle.png
+
+pokemon/test/grass/ivysaur.png
+pokemon/test/fire/charmeleon.png
+pokemon/test/water/wartortle.png
+```
+
+Then this is how the folder-based builder generates an example:
+
+<div class="flex justify-center">
+    <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/folder-based-builder.png"/>
+</div>
+
+Create the image dataset by specifying `imagefolder` in [`load_dataset`]:
+
+```py
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("imagefolder", data_dir="/path/to/pokemon")
+```
+
+An audio dataset is created in the same way, except you specify `audiofolder` in [`load_dataset`] instead:
+
+```py
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("audiofolder", data_dir="/path/to/folder")
+```
+
+Any additional information about your dataset, such as text captions or transcriptions, can be included with a `metadata.csv` file in the folder containing your dataset. The metadata file needs to have a `file_name` column that links the image or audio file to its corresponding metadata:
+
+```
+file_name, text
+bulbasaur.png, There is a plant seed on its back right from the day this Pokémon is born.
+charmander.png, It has a preference for hot things.
+squirtle.png, When it retracts its long neck into its shell, it squirts out water with vigorous force.
+```
+
+To learn more about each of these folder-based builders, check out the and <a href="https://huggingface.co/docs/datasets/image_dataset#imagefolder"><span class="underline decoration-yellow-400 decoration-2 font-semibold">ImageFolder</span></a> or <a href="https://huggingface.co/docs/datasets/audio_dataset#audiofolder"><span class="underline decoration-pink-400 decoration-2 font-semibold">AudioFolder</span></a> guides.
+
+## From local files
+
+You can also create a dataset from local files by specifying the path to the data files. There are two ways you can create a dataset using the `from_` methods:
+
+    * The [`~Dataset.from_generator`] method is the most memory-efficient way to create a dataset from a [generator](https://wiki.python.org/moin/Generators) due to a generators iterative behavior. This is especially useful when you're working with a really large dataset that may not fit in memory, since the dataset is generated on disk progressively and then memory-mapped.
+
+    ```py
+    >>> from datasets import Dataset
+    >>> def gen():
+    ...     yield {"pokemon": "bulbasaur", "type": "grass"}
+    ...     yield {"pokemon": "squirtle", "type": "water"}
+    >>> ds = Dataset.from_generator(gen)
+    >>> ds[0]
+    {"pokemon": "bulbasaur", "type": "grass"}
+    ```
+
+    A generator-based [`IterableDataset`] needs to be iterated over with a `for` loop for example:
+
+    ```py
+    >>> from datasets import IterableDataset
+    >>> ds = IterableDataset.from_generator(gen)
+    >>> for example in ds:
+    ...     print(example)
+    {"pokemon": "bulbasaur", "type": "grass"}
+    {"pokemon": "squirtle", "type": "water"}
+    ```
+
+    * The [`~Dataset.from_dict`] method is a straightforward way to create a dataset from a dictionary:
+
+    ```py
+    >>> from datasets import Dataset
+    >>> ds = Dataset.from_dict({"pokemon": ["bulbasaur", "squirtle"], "type": ["grass", "water"]})
+    >>> ds[0]
+    {"pokemon": "bulbasaur", "type": "grass"}
+    ```
+
+    To create an image or audio dataset, chain the [`~Dataset.cast_column`] method with [`~Dataset.from_dict`] and specify the column and feature type. For example, to create an audio dataset:
+
+    ```py
+    >>> audio_dataset = Dataset.from_dict({"audio": ["path/to/audio_1", ..., "path/to/audio_n"]}).cast_column("audio", Audio())
+    ```
+
+## Next steps
+
+We didn't mention this in the tutorial, but you can also create a dataset with a loading script. A loading script is a more manual and code-intensive method for creating a dataset, but it also gives you the most flexibility and control over how a dataset is generated. It lets you configure additional options such as creating multiple configurations within a dataset, or enabling your dataset to be streamed. 
+
+To learn more about how to write loading scripts, take a look at the <a href="https://huggingface.co/docs/datasets/main/en/image_dataset#loading-script"><span class="underline decoration-yellow-400 decoration-2 font-semibold">image loading script</span></a>, <a href="https://huggingface.co/docs/datasets/main/en/audio_dataset"><span class="underline decoration-pink-400 decoration-2 font-semibold">audio loading script</span></a>, and <a href="https://huggingface.co/docs/datasets/main/en/dataset_script"><span class="underline decoration-green-400 decoration-2 font-semibold">text loading script</span></a> guides.
+
+Now that you know how to create a dataset, consider sharing it on the Hub so the community can also benefit from your work! Go on to the next section to learn how to share your dataset.

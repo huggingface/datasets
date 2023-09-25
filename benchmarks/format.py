@@ -3,13 +3,12 @@ import sys
 
 
 def format_json_to_md(input_json_file, output_md_file):
-    with open(input_json_file, "r", encoding="utf-8") as f:
+    with open(input_json_file, encoding="utf-8") as f:
         results = json.load(f)
 
     output_md = ["<details>", "<summary>Show updated benchmarks!</summary>", " "]
 
     for benchmark_name in sorted(results):
-
         benchmark_res = results[benchmark_name]
 
         benchmark_file_name = benchmark_name.split("/")[-1]

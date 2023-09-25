@@ -1,17 +1,22 @@
 from copy import deepcopy
 from unittest.case import TestCase
 
+import pytest
+
 from datasets.arrow_dataset import Dataset
-from datasets.features import ClassLabel, Features, Image, Sequence, Value
+from datasets.features import Audio, ClassLabel, Features, Image, Sequence, Value
 from datasets.info import DatasetInfo
 from datasets.tasks import (
+    AudioClassification,
     AutomaticSpeechRecognition,
     ImageClassification,
     LanguageModeling,
     QuestionAnsweringExtractive,
     Summarization,
     TextClassification,
+    task_template_from_dict,
 )
+from datasets.utils.py_utils import asdict
 
 
 SAMPLE_QUESTION_ANSWERING_EXTRACTIVE = {
@@ -21,6 +26,25 @@ SAMPLE_QUESTION_ANSWERING_EXTRACTIVE = {
     "question": "To whom did the Virgin Mary allegedly appear in 1858 in Lourdes France?",
     "answers": {"text": ["Saint Bernadette Soubirous"], "answer_start": [515]},
 }
+
+
+@pytest.mark.parametrize(
+    "task_cls",
+    [
+        AudioClassification,
+        AutomaticSpeechRecognition,
+        ImageClassification,
+        LanguageModeling,
+        QuestionAnsweringExtractive,
+        Summarization,
+        TextClassification,
+    ],
+)
+def test_reload_task_from_dict(task_cls):
+    task = task_cls()
+    task_dict = asdict(task)
+    reloaded = task_template_from_dict(task_dict)
+    assert task == reloaded
 
 
 class TestLanguageModeling:
@@ -41,25 +65,24 @@ class TextClassificationTest(TestCase):
         self.labels = sorted(["pos", "neg"])
 
     def test_column_mapping(self):
-        task = TextClassification(text_column="input_text", label_column="input_label", labels=self.labels)
+        task = TextClassification(text_column="input_text", label_column="input_label")
         self.assertDictEqual({"input_text": "text", "input_label": "labels"}, task.column_mapping)
 
     def test_from_dict(self):
         input_schema = Features({"text": Value("string")})
         # Labels are cast to tuple during `TextClassification.__post_init__`, so we do the same here
-        label_schema = Features({"labels": ClassLabel(names=tuple(self.labels))})
-        template_dict = {"text_column": "input_text", "label_column": "input_labels", "labels": self.labels}
+        label_schema = Features({"labels": ClassLabel})
+        template_dict = {"text_column": "input_text", "label_column": "input_labels"}
         task = TextClassification.from_dict(template_dict)
         self.assertEqual("text-classification", task.task)
         self.assertEqual(input_schema, task.input_schema)
         self.assertEqual(label_schema, task.label_schema)
 
-    def test_value_error_unique_labels(self):
-        with self.assertRaises(ValueError):
-            # Add duplicate labels
-            labels = self.labels + self.labels[:1]
-            task = TextClassification(text_column="input_text", label_column="input_label", labels=labels)
-            self.assertEqual("text-classification", task.task)
+    def test_align_with_features(self):
+        task = TextClassification(text_column="input_text", label_column="input_label")
+        self.assertEqual(task.label_schema["labels"], ClassLabel)
+        task = task.align_with_features(Features({"input_label": ClassLabel(names=self.labels)}))
+        self.assertEqual(task.label_schema["labels"], ClassLabel(names=self.labels))
 
 
 class QuestionAnsweringTest(TestCase):
@@ -111,24 +134,47 @@ class SummarizationTest(TestCase):
 
 class AutomaticSpeechRecognitionTest(TestCase):
     def test_column_mapping(self):
-        task = AutomaticSpeechRecognition(
-            audio_file_path_column="input_audio_file_path", transcription_column="input_transcription"
-        )
-        self.assertDictEqual(
-            {"input_audio_file_path": "audio_file_path", "input_transcription": "transcription"}, task.column_mapping
-        )
+        task = AutomaticSpeechRecognition(audio_column="input_audio", transcription_column="input_transcription")
+        self.assertDictEqual({"input_audio": "audio", "input_transcription": "transcription"}, task.column_mapping)
 
     def test_from_dict(self):
-        input_schema = Features({"audio_file_path": Value("string")})
+        input_schema = Features({"audio": Audio()})
         label_schema = Features({"transcription": Value("string")})
         template_dict = {
-            "audio_file_path_column": "input_audio_file_path",
+            "audio_column": "input_audio",
             "transcription_column": "input_transcription",
         }
         task = AutomaticSpeechRecognition.from_dict(template_dict)
         self.assertEqual("automatic-speech-recognition", task.task)
         self.assertEqual(input_schema, task.input_schema)
         self.assertEqual(label_schema, task.label_schema)
+
+
+class AudioClassificationTest(TestCase):
+    def setUp(self):
+        self.labels = sorted(["pos", "neg"])
+
+    def test_column_mapping(self):
+        task = AudioClassification(audio_column="input_audio", label_column="input_label")
+        self.assertDictEqual({"input_audio": "audio", "input_label": "labels"}, task.column_mapping)
+
+    def test_from_dict(self):
+        input_schema = Features({"audio": Audio()})
+        label_schema = Features({"labels": ClassLabel})
+        template_dict = {
+            "audio_column": "input_image",
+            "label_column": "input_label",
+        }
+        task = AudioClassification.from_dict(template_dict)
+        self.assertEqual("audio-classification", task.task)
+        self.assertEqual(input_schema, task.input_schema)
+        self.assertEqual(label_schema, task.label_schema)
+
+    def test_align_with_features(self):
+        task = AudioClassification(audio_column="input_audio", label_column="input_label")
+        self.assertEqual(task.label_schema["labels"], ClassLabel)
+        task = task.align_with_features(Features({"input_label": ClassLabel(names=self.labels)}))
+        self.assertEqual(task.label_schema["labels"], ClassLabel(names=self.labels))
 
 
 class ImageClassificationTest(TestCase):
@@ -141,23 +187,21 @@ class ImageClassificationTest(TestCase):
 
     def test_from_dict(self):
         input_schema = Features({"image": Image()})
-        label_schema = Features({"labels": ClassLabel(names=tuple(self.labels))})
+        label_schema = Features({"labels": ClassLabel})
         template_dict = {
             "image_column": "input_image",
             "label_column": "input_label",
-            "labels": self.labels,
         }
         task = ImageClassification.from_dict(template_dict)
         self.assertEqual("image-classification", task.task)
         self.assertEqual(input_schema, task.input_schema)
         self.assertEqual(label_schema, task.label_schema)
 
-    def test_value_error_unique_labels(self):
-        with self.assertRaises(ValueError):
-            # Add duplicate labels
-            labels = self.labels + self.labels[:1]
-            task = ImageClassification(image_column="input_image", label_column="input_label", labels=labels)
-            self.assertEqual("image-classification", task.task)
+    def test_align_with_features(self):
+        task = ImageClassification(image_column="input_image", label_column="input_label")
+        self.assertEqual(task.label_schema["labels"], ClassLabel)
+        task = task.align_with_features(Features({"input_label": ClassLabel(names=self.labels)}))
+        self.assertEqual(task.label_schema["labels"], ClassLabel(names=self.labels))
 
 
 class DatasetWithTaskProcessingTest(TestCase):

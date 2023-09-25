@@ -1,0 +1,366 @@
+# Create a dataset loading script
+
+
+<Tip>
+
+The dataset script is likely not needed if your dataset is in one of the following formats: CSV, JSON, JSON lines, text or Parquet.
+With those formats, you should be able to load your dataset automatically with [`~datasets.load_dataset`],
+as long as your dataset repository has a [required structure](./repository_structure).
+
+</Tip>
+
+Write a dataset script to load and share datasets that consist of data files in unsupported formats or require more complex data preparation.
+This is a more advanced way to define a dataset than using [YAML metadata in the dataset card](./repository_structure#define-your-splits-in-yaml).
+A dataset script is a Python file that defines the different configurations and splits of your dataset, as well as how to download and process the data.
+
+The script can download data files from any website, or from the same dataset repository.
+
+A dataset loading script should have the same name as a dataset repository or directory. For example, a repository named `my_dataset` should contain `my_dataset.py` script. This way it can be loaded with:
+
+```
+my_dataset/
+├── README.md
+└── my_dataset.py
+```
+
+```py
+>>> from datasets import load_dataset
+>>> load_dataset("path/to/my_dataset")
+```
+
+The following guide includes instructions for dataset scripts for how to:
+
+- Add dataset metadata.
+- Download data files.
+- Generate samples.
+- Generate dataset metadata.
+- Upload a dataset to the Hub.
+
+Open the [SQuAD dataset loading script](https://huggingface.co/datasets/squad/blob/main/squad.py) template to follow along on how to share a dataset.
+
+<Tip>
+
+To help you get started, try beginning with the dataset loading script [template](https://github.com/huggingface/datasets/blob/main/templates/new_dataset_script.py)!
+
+</Tip>
+
+## Add dataset attributes
+
+The first step is to add some information, or attributes, about your dataset in [`DatasetBuilder._info`]. The most important attributes you should specify are:
+
+1. `DatasetInfo.description` provides a concise description of your dataset. The description informs the user what's in the dataset, how it was collected, and how it can be used for a NLP task.
+
+2. `DatasetInfo.features` defines the name and type of each column in your dataset. This will also provide the structure for each example, so it is possible to create nested subfields in a column if you want. Take a look at [`Features`] for a full list of feature types you can use.
+
+```py
+datasets.Features(
+    {
+        "id": datasets.Value("string"),
+        "title": datasets.Value("string"),
+        "context": datasets.Value("string"),
+        "question": datasets.Value("string"),
+        "answers": datasets.Sequence(
+            {
+                "text": datasets.Value("string"),
+                "answer_start": datasets.Value("int32"),
+            }
+        ),
+    }
+)
+```
+
+3. `DatasetInfo.homepage` contains the URL to the dataset homepage so users can find more details about the dataset.
+
+4. `DatasetInfo.citation` contains a BibTeX citation for the dataset.
+
+After you've filled out all these fields in the template, it should look like the following example from the SQuAD loading script:
+
+```py
+def _info(self):
+    return datasets.DatasetInfo(
+        description=_DESCRIPTION,
+        features=datasets.Features(
+            {
+                "id": datasets.Value("string"),
+                "title": datasets.Value("string"),
+                "context": datasets.Value("string"),
+                "question": datasets.Value("string"),
+                "answers": datasets.features.Sequence(
+                    {"text": datasets.Value("string"), "answer_start": datasets.Value("int32"),}
+                ),
+            }
+        ),
+        # No default supervised_keys (as we have to pass both question
+        # and context as input).
+        supervised_keys=None,
+        homepage="https://rajpurkar.github.io/SQuAD-explorer/",
+        citation=_CITATION,
+    )
+```
+
+### Multiple configurations
+
+In some cases, your dataset may have multiple configurations. For example, the [SuperGLUE](https://huggingface.co/datasets/super_glue) dataset is a collection of 5 datasets designed to evaluate language understanding tasks. 🤗 Datasets provides [`BuilderConfig`] which allows you to create different configurations for the user to select from.
+
+Let's study the [SuperGLUE loading script](https://huggingface.co/datasets/super_glue/blob/main/super_glue.py) to see how you can define several configurations.
+
+1. Create a [`BuilderConfig`] subclass with attributes about your dataset. These attributes can be the features of your dataset, label classes, and a URL to the data files.
+
+```py
+class SuperGlueConfig(datasets.BuilderConfig):
+    """BuilderConfig for SuperGLUE."""
+
+    def __init__(self, features, data_url, citation, url, label_classes=("False", "True"), **kwargs):
+        """BuilderConfig for SuperGLUE.
+
+        Args:
+        features: *list[string]*, list of the features that will appear in the
+            feature dict. Should not include "label".
+        data_url: *string*, url to download the zip file from.
+        citation: *string*, citation for the data set.
+        url: *string*, url for information about the data set.
+        label_classes: *list[string]*, the list of classes for the label if the
+            label is present as a string. Non-string labels will be cast to either
+            'False' or 'True'.
+        **kwargs: keyword arguments forwarded to super.
+        """
+        # Version history:
+        # 1.0.2: Fixed non-nondeterminism in ReCoRD.
+        # 1.0.1: Change from the pre-release trial version of SuperGLUE (v1.9) to
+        #        the full release (v2.0).
+        # 1.0.0: S3 (new shuffling, sharding and slicing mechanism).
+        # 0.0.2: Initial version.
+        super().__init__(version=datasets.Version("1.0.2"), **kwargs)
+        self.features = features
+        self.label_classes = label_classes
+        self.data_url = data_url
+        self.citation = citation
+        self.url = url
+```
+
+2. Create instances of your config to specify the values of the attributes of each configuration. This gives you the flexibility to specify all the name and description of each configuration. These sub-class instances should be listed under `DatasetBuilder.BUILDER_CONFIGS`:
+
+```py
+class SuperGlue(datasets.GeneratorBasedBuilder):
+    """The SuperGLUE benchmark."""
+
+    BUILDER_CONFIG_CLASS = SuperGlueConfig
+
+    BUILDER_CONFIGS = [
+        SuperGlueConfig(
+            name="boolq",
+            description=_BOOLQ_DESCRIPTION,
+            features=["question", "passage"],
+            data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/BoolQ.zip",
+            citation=_BOOLQ_CITATION,
+            url="https://github.com/google-research-datasets/boolean-questions",
+        ),
+        ...
+        ...
+        SuperGlueConfig(
+            name="axg",
+            description=_AXG_DESCRIPTION,
+            features=["premise", "hypothesis"],
+            label_classes=["entailment", "not_entailment"],
+            data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/AX-g.zip",
+            citation=_AXG_CITATION,
+            url="https://github.com/rudinger/winogender-schemas",
+        ),
+```
+
+3. Now, users can load a specific configuration of the dataset with the configuration `name`:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset('super_glue', 'boolq')
+```
+
+Additionally, users can instantiate a custom builder configuration by passing the builder configuration arguments to [`load_dataset`]:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset('super_glue', data_url="https://custom_url")
+```
+
+### Default configurations
+
+Users must specify a configuration name when they load a dataset with multiple configurations. Otherwise, 🤗 Datasets will raise a `ValueError`, and prompt the user to select a configuration name. You can avoid this by setting a default dataset configuration with the `DEFAULT_CONFIG_NAME` attribute:
+
+```py
+class NewDataset(datasets.GeneratorBasedBuilder):
+
+VERSION = datasets.Version("1.1.0")
+
+BUILDER_CONFIGS = [
+    datasets.BuilderConfig(name="first_domain", version=VERSION, description="This part of my dataset covers a first domain"),
+    datasets.BuilderConfig(name="second_domain", version=VERSION, description="This part of my dataset covers a second domain"),
+]
+
+DEFAULT_CONFIG_NAME = "first_domain"
+```
+
+<Tip warning={true}>
+
+Only use a default configuration when it makes sense. Don't set one because it may be more convenient for the user to not specify a configuration when they load your dataset. For example, multi-lingual datasets often have a separate configuration for each language. An appropriate default may be an aggregated configuration that loads all the languages of the dataset if the user doesn't request a particular one.
+
+</Tip>
+
+## Download data files and organize splits
+
+After you've defined the attributes of your dataset, the next step is to download the data files and organize them according to their splits. 
+
+1. Create a dictionary of URLs in the loading script that point to the original SQuAD data files:
+
+```py
+_URL = "https://rajpurkar.github.io/SQuAD-explorer/dataset/"
+_URLS = {
+    "train": _URL + "train-v1.1.json",
+    "dev": _URL + "dev-v1.1.json",
+}
+```
+
+<Tip>
+
+If the data files live in the same folder or repository of the dataset script, you can just pass the relative paths to the files instead of URLs.
+
+</Tip>
+
+2. [`DownloadManager.download_and_extract`] takes this dictionary and downloads the data files. Once the files are downloaded, use [`SplitGenerator`] to organize each split in the dataset. This is a simple class that contains:
+
+   - The `name` of each split. You should use the standard split names: `Split.TRAIN`, `Split.TEST`, and `Split.VALIDATION`.
+
+   - `gen_kwargs` provides the file paths to the data files to load for each split.
+
+Your `DatasetBuilder._split_generator()` should look like this now:
+
+```py
+def _split_generators(self, dl_manager: datasets.DownloadManager) -> List[datasets.SplitGenerator]:
+    urls_to_download = self._URLS
+    downloaded_files = dl_manager.download_and_extract(urls_to_download)
+
+    return [
+        datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
+        datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}),
+    ]
+```
+
+## Generate samples
+
+At this point, you have:
+
+- Added the dataset attributes.
+- Provided instructions for how to download the data files.
+- Organized the splits.
+
+The next step is to actually generate the samples in each split. 
+
+1. `DatasetBuilder._generate_examples` takes the file path provided by `gen_kwargs` to read and parse the data files. You need to write a function that loads the data files and extracts the columns.
+
+2. Your function should yield a tuple of an `id_`, and an example from the dataset.
+
+```py
+def _generate_examples(self, filepath):
+    """This function returns the examples in the raw (text) form."""
+    logger.info("generating examples from = %s", filepath)
+    with open(filepath) as f:
+        squad = json.load(f)
+        for article in squad["data"]:
+            title = article.get("title", "").strip()
+            for paragraph in article["paragraphs"]:
+                context = paragraph["context"].strip()
+                for qa in paragraph["qas"]:
+                    question = qa["question"].strip()
+                    id_ = qa["id"]
+
+                    answer_starts = [answer["answer_start"] for answer in qa["answers"]]
+                    answers = [answer["text"].strip() for answer in qa["answers"]]
+
+                    # Features currently used are "context", "question", and "answers".
+                    # Others are extracted here for the ease of future expansions.
+                    yield id_, {
+                        "title": title,
+                        "context": context,
+                        "question": question,
+                        "id": id_,
+                        "answers": {"answer_start": answer_starts, "text": answers,},
+                    }
+```
+
+## (Optional) Generate dataset metadata
+
+Adding dataset metadata is a great way to include information about your dataset. The metadata is stored in the dataset card `README.md` in YAML. It includes information like the number of examples required to confirm the dataset was correctly generated, and information about the dataset like its `features`.
+
+Run the following command to generate your dataset metadata in `README.md` and make sure your new dataset loading script works correctly:
+
+```
+datasets-cli test path/to/<your-dataset-loading-script> --save_info --all_configs
+```
+
+If your dataset loading script passed the test, you should now have a `README.md` file in your dataset folder containing a `dataset_info` field with some metadata.
+
+## Upload to the Hub
+
+Once your script is ready, [create a dataset card](dataset_card) and [upload it to the Hub](share).
+
+Congratulations, you can now load your dataset from the Hub! 🥳
+
+```py
+>>> from datasets import load_dataset
+>>> load_dataset("<username>/my_dataset")
+```
+
+## Advanced features
+
+### Sharding
+
+If your dataset is made of many big files, 🤗 Datasets automatically runs your script in parallel to make it super fast!
+It can help if you have hundreds or thousands of TAR archives, or JSONL files like [oscar](https://huggingface.co/datasets/oscar/blob/main/oscar.py) for example.
+
+To make it work, we consider lists of files in `gen_kwargs` to be shards.
+Therefore 🤗 Datasets can automatically spawn several workers to run `_generate_examples` in parallel, and each worker is given a subset of shards to process.
+
+
+```python
+
+class MyShardedDataset(datasets.GeneratorBasedBuilder):
+
+    def _split_generators(self, dl_manager: datasets.DownloadManager) -> List[datasets.SplitGenerator]:
+        downloaded_files = dl_manager.download([f"data/shard_{i}.jsonl" for i in range(1024)])
+        return [
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepaths": downloaded_files}),
+        ]
+
+    def _generate_examples(self, filepaths):
+        # Each worker can be given a slice of the original `filepaths` list defined in the `gen_kwargs`
+        # so that this code can run in parallel on several shards at the same time
+        for filepath in filepaths:
+            ...
+```
+
+Users can also specify `num_proc=` in `load_dataset()` to specify the number of processes to use as workers.
+
+### ArrowBasedBuilder
+
+For some datasets it can be much faster to yield batches of data rather than examples one by one.
+You can speed up the dataset generation by yielding Arrow tables directly, instead of examples.
+This is especially useful if your data comes from Pandas DataFrames for example, since the conversion from Pandas to Arrow is as simple as:
+
+```python
+import pyarrow as pa
+pa_table = pa.Table.from_pandas(df)
+```
+
+To yield Arrow tables instead of single examples, make your dataset builder inherit from [`ArrowBasedBuilder`] instead of [`GeneratorBasedBuilder`], and use `_generate_tables` instead of `_generate_examples`:
+
+```python
+class MySuperFastDataset(datasets.ArrowBasedBuilder):
+
+    def _generate_tables(self, filepaths):
+        idx = 0
+        for filepath in filepaths:
+            ...
+            yield idx, pa_table
+            idx += 1
+```
+
+Don't forget to keep your script memory efficient, in case users run them on machines with a low amount of RAM.

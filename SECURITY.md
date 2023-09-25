@@ -16,8 +16,9 @@ currently being supported with security updates.
 Each major version is currently being supported with security updates.
 
 | Version | Supported          |
-| ------- | ------------------ |
+|---------|--------------------|
 | 1.x.x   | :white_check_mark: |
+| 2.x.x   | :white_check_mark: |
 
 
 ## Reporting a Vulnerability
@@ -29,4 +30,4 @@ reported vulnerability, what to expect if the vulnerability is accepted or
 declined, etc.
 -->
 
-To report a security vulnerability, please contact: feedback@huggingface.co
+To report a security vulnerability, please contact: security@huggingface.co

@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,18 +45,16 @@ def check_correctness(check_program, timeout, task_id, completion_id):
     if not result:
         result.append("timed out")
 
-    return dict(
-        task_id=task_id,
-        passed=result[0] == "passed",
-        result=result[0],
-        completion_id=completion_id,
-    )
+    return {
+        "task_id": task_id,
+        "passed": result[0] == "passed",
+        "result": result[0],
+        "completion_id": completion_id,
+    }
 
 
 def unsafe_execute(check_program, result, timeout):
-
     with create_tempdir():
-
         # These system calls are needed when cleaning up tempdir.
         import os
         import shutil
@@ -124,13 +121,13 @@ class WriteOnlyStringIO(io.StringIO):
     """StringIO that throws an exception when it's read from"""
 
     def read(self, *args, **kwargs):
-        raise IOError
+        raise OSError
 
     def readline(self, *args, **kwargs):
-        raise IOError
+        raise OSError
 
     def readlines(self, *args, **kwargs):
-        raise IOError
+        raise OSError
 
     def readable(self, *args, **kwargs):
         """Returns True if the IO object can be read."""

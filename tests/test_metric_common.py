@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 HuggingFace Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,11 +32,18 @@ from datasets import load_metric
 from .utils import for_all_test_methods, local, slow
 
 
+# mark all tests as integration
+pytestmark = pytest.mark.integration
+
+
 REQUIRE_FAIRSEQ = {"comet"}
 _has_fairseq = importlib.util.find_spec("fairseq") is not None
 
 UNSUPPORTED_ON_WINDOWS = {"code_eval"}
 _on_windows = os.name == "nt"
+
+REQUIRE_TRANSFORMERS = {"bertscore", "frugalscore", "perplexity"}
+_has_transformers = importlib.util.find_spec("transformers") is not None
 
 
 def skip_if_metric_requires_fairseq(test_case):
@@ -45,6 +51,17 @@ def skip_if_metric_requires_fairseq(test_case):
     def wrapper(self, metric_name):
         if not _has_fairseq and metric_name in REQUIRE_FAIRSEQ:
             self.skipTest('"test requires Fairseq"')
+        else:
+            test_case(self, metric_name)
+
+    return wrapper
+
+
+def skip_if_metric_requires_transformers(test_case):
+    @wraps(test_case)
+    def wrapper(self, metric_name):
+        if not _has_transformers and metric_name in REQUIRE_TRANSFORMERS:
+            self.skipTest('"test requires transformers"')
         else:
             test_case(self, metric_name)
 
@@ -68,12 +85,16 @@ def get_local_metric_names():
 
 
 @parameterized.named_parameters(get_local_metric_names())
-@for_all_test_methods(skip_if_metric_requires_fairseq, skip_on_windows_if_not_windows_compatible)
+@for_all_test_methods(
+    skip_if_metric_requires_fairseq, skip_if_metric_requires_transformers, skip_on_windows_if_not_windows_compatible
+)
 @local
 class LocalMetricTest(parameterized.TestCase):
     INTENSIVE_CALLS_PATCHER = {}
     metric_name = None
 
+    @pytest.mark.filterwarnings("ignore:metric_module_factory is deprecated:FutureWarning")
+    @pytest.mark.filterwarnings("ignore:load_metric is deprecated:FutureWarning")
     def test_load_metric(self, metric_name):
         doctest.ELLIPSIS_MARKER = "[...]"
         metric_module = importlib.import_module(
@@ -82,13 +103,14 @@ class LocalMetricTest(parameterized.TestCase):
         metric = datasets.load.import_main_class(metric_module.__name__, dataset=False)
         # check parameters
         parameters = inspect.signature(metric._compute).parameters
-        self.assertTrue("predictions" in parameters)
-        self.assertTrue("references" in parameters)
-        self.assertTrue(all([p.kind != p.VAR_KEYWORD for p in parameters.values()]))  # no **kwargs
+        self.assertTrue(all(p.kind != p.VAR_KEYWORD for p in parameters.values()))  # no **kwargs
         # run doctest
         with self.patch_intensive_calls(metric_name, metric_module.__name__):
             with self.use_local_metrics():
-                results = doctest.testmod(metric_module, verbose=True, raise_on_error=True)
+                try:
+                    results = doctest.testmod(metric_module, verbose=True, raise_on_error=True)
+                except doctest.UnexpectedException as e:
+                    raise e.exc_info[1]  # raise the exception that doctest caught
         self.assertEqual(results.failed, 0)
         self.assertGreater(results.attempted, 1)
 
@@ -171,22 +193,22 @@ def patch_bertscore(module_name):
 
 @LocalMetricTest.register_intensive_calls_patcher("comet")
 def patch_comet(module_name):
-    def download_model(model):
+    def load_from_checkpoint(model_path):
         class Model:
             def predict(self, data, *args, **kwargs):
                 assert len(data) == 2
                 scores = [0.19, 0.92]
-                data[0]["predicted_score"] = scores[0]
-                data[1]["predicted_score"] = scores[1]
-                return data, scores
+                return scores, sum(scores) / len(scores)
 
-        print("Download succeeded. Loading model...")
         return Model()
 
-    # mock download_model which is supposed to do download a bert model
-    with patch("comet.models.download_model") as mock_download_model:
-        mock_download_model.side_effect = download_model
-        yield
+    # mock load_from_checkpoint which is supposed to do download a bert model
+    # mock load_from_checkpoint which is supposed to do download a bert model
+    with patch("comet.download_model") as mock_download_model:
+        mock_download_model.return_value = None
+        with patch("comet.load_from_checkpoint") as mock_load_from_checkpoint:
+            mock_load_from_checkpoint.side_effect = load_from_checkpoint
+            yield
 
 
 def test_seqeval_raises_when_incorrect_scheme():

@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ CoVal metric. """
-import coval  # From: git+https://github.com/ns-moosavi/coval.git noqa: F401
+import coval  # From: git+https://github.com/ns-moosavi/coval.git # noqa: F401
 from coval.conll import reader, util
 from coval.eval import evaluator
 
@@ -168,7 +167,6 @@ Examples:
 def get_coref_infos(
     key_lines, sys_lines, NP_only=False, remove_nested=False, keep_singletons=True, min_span=False, doc="dummy_doc"
 ):
-
     key_doc_lines = {doc: key_lines}
     sys_doc_lines = {doc: sys_lines}
 

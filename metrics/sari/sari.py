@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -228,7 +227,6 @@ def SARIsent(ssent, csent, rsents):
 
 
 def normalize(sentence, lowercase: bool = True, tokenizer: str = "13a", return_str: bool = True):
-
     # Normalization is requried for the ASSET dataset (one of the primary
     # datasets in sentence simplification) to allow using space
     # to split the sentence. Even though Wiki-Auto and TURK datasets,
@@ -266,6 +264,7 @@ class Sari(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
+                    "sources": datasets.Value("string", id="sequence"),
                     "predictions": datasets.Value("string", id="sequence"),
                     "references": datasets.Sequence(datasets.Value("string", id="sequence"), id="references"),
                 }
@@ -278,7 +277,6 @@ class Sari(datasets.Metric):
         )
 
     def _compute(self, sources, predictions, references):
-
         if not (len(sources) == len(predictions) == len(references)):
             raise ValueError("Sources length must match predictions and references lengths.")
         sari_score = 0

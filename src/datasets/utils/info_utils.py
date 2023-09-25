@@ -1,3 +1,4 @@
+import enum
 import os
 from hashlib import sha256
 from typing import Optional
@@ -7,6 +8,28 @@ from .logging import get_logger
 
 
 logger = get_logger(__name__)
+
+
+class VerificationMode(enum.Enum):
+    """`Enum` that specifies which verification checks to run.
+
+    The default mode is `BASIC_CHECKS`, which will perform only rudimentary checks to avoid slowdowns
+    when generating/downloading a dataset for the first time.
+
+    The verification modes:
+
+    |                           | Verification checks                                                           |
+    |---------------------------|------------------------------------------------------------------------------ |
+    | `ALL_CHECKS`              | Split checks, uniqueness of the keys yielded in case of the GeneratorBuilder  |
+    |                           | and the validity (number of files, checksums, etc.) of downloaded files       |
+    | `BASIC_CHECKS` (default)  | Same as `ALL_CHECKS` but without checking downloaded files                    |
+    | `NO_CHECKS`               | None                                                                          |
+
+    """
+
+    ALL_CHECKS = "all_checks"
+    BASIC_CHECKS = "basic_checks"
+    NO_CHECKS = "no_checks"
 
 
 class ChecksumVerificationException(Exception):
@@ -36,8 +59,11 @@ def verify_checksums(expected_checksums: Optional[dict], recorded_checksums: dic
     bad_urls = [url for url in expected_checksums if expected_checksums[url] != recorded_checksums[url]]
     for_verification_name = " for " + verification_name if verification_name is not None else ""
     if len(bad_urls) > 0:
-        error_msg = "Checksums didn't match" + for_verification_name + ":\n"
-        raise NonMatchingChecksumError(error_msg + str(bad_urls))
+        raise NonMatchingChecksumError(
+            f"Checksums didn't match{for_verification_name}:\n"
+            f"{bad_urls}\n"
+            "Set `verification_mode='no_checks'` to skip checksums verification and ignore this error"
+        )
     logger.info("All the checksums matched successfully" + for_verification_name)
 
 
@@ -75,13 +101,17 @@ def verify_splits(expected_splits: Optional[dict], recorded_splits: dict):
     logger.info("All the splits matched successfully.")
 
 
-def get_size_checksum_dict(path: str) -> dict:
+def get_size_checksum_dict(path: str, record_checksum: bool = True) -> dict:
     """Compute the file size and the sha256 checksum of a file"""
-    m = sha256()
-    with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(1 << 20), b""):
-            m.update(chunk)
-    return {"num_bytes": os.path.getsize(path), "checksum": m.hexdigest()}
+    if record_checksum:
+        m = sha256()
+        with open(path, "rb") as f:
+            for chunk in iter(lambda: f.read(1 << 20), b""):
+                m.update(chunk)
+            checksum = m.hexdigest()
+    else:
+        checksum = None
+    return {"num_bytes": os.path.getsize(path), "checksum": checksum}
 
 
 def is_small_dataset(dataset_size):

@@ -1,0 +1,16 @@
+[tool.black]
+line-length = 119
+target_version = ['py37']
+
+[tool.ruff]
+# Ignored rules:
+#   "E501" -> line length violation
+#   "F821" -> undefined named in type annotation (e.g. Literal["something"])
+#   "C901" -> `function_name` is too complex
+ignore = ["E501", "F821", "C901"]
+select = ["C", "E", "F", "I", "W"]
+line-length = 119
+
+[tool.ruff.isort]
+lines-after-imports = 2
+known-first-party = ["datasets"]

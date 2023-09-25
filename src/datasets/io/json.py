@@ -2,7 +2,9 @@ import multiprocessing
 import os
 from typing import BinaryIO, Optional, Union
 
-from .. import Dataset, Features, NamedSplit, config, utils
+import fsspec
+
+from .. import Dataset, Features, NamedSplit, config
 from ..formatting import query_table
 from ..packaged_modules.json.json import Json
 from ..utils import logging
@@ -18,11 +20,20 @@ class JsonDatasetReader(AbstractDatasetReader):
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,
+        streaming: bool = False,
         field: Optional[str] = None,
+        num_proc: Optional[int] = None,
         **kwargs,
     ):
         super().__init__(
-            path_or_paths, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+            path_or_paths,
+            split=split,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            streaming=streaming,
+            num_proc=num_proc,
+            **kwargs,
         )
         self.field = field
         path_or_paths = path_or_paths if isinstance(path_or_paths, dict) else {self.split: path_or_paths}
@@ -35,26 +46,27 @@ class JsonDatasetReader(AbstractDatasetReader):
         )
 
     def read(self):
-        download_config = None
-        download_mode = None
-        ignore_verifications = True
-        try_from_hf_gcs = False
-        use_auth_token = None
-        base_path = None
+        # Build iterable dataset
+        if self.streaming:
+            dataset = self.builder.as_streaming_dataset(split=self.split)
+        # Build regular (map-style) dataset
+        else:
+            download_config = None
+            download_mode = None
+            verification_mode = None
+            base_path = None
 
-        self.builder.download_and_prepare(
-            download_config=download_config,
-            download_mode=download_mode,
-            ignore_verifications=ignore_verifications,
-            try_from_hf_gcs=try_from_hf_gcs,
-            base_path=base_path,
-            use_auth_token=use_auth_token,
-        )
-
-        # Build dataset for splits
-        dataset = self.builder.as_dataset(
-            split=self.split, ignore_verifications=ignore_verifications, in_memory=self.keep_in_memory
-        )
+            self.builder.download_and_prepare(
+                download_config=download_config,
+                download_mode=download_mode,
+                verification_mode=verification_mode,
+                # try_from_hf_gcs=try_from_hf_gcs,
+                base_path=base_path,
+                num_proc=self.num_proc,
+            )
+            dataset = self.builder.as_dataset(
+                split=self.split, verification_mode=verification_mode, in_memory=self.keep_in_memory
+            )
         return dataset
 
 
@@ -80,12 +92,23 @@ class JsonDatasetWriter:
     def write(self) -> int:
         _ = self.to_json_kwargs.pop("path_or_buf", None)
         orient = self.to_json_kwargs.pop("orient", "records")
-        lines = self.to_json_kwargs.pop("lines", True)
+        lines = self.to_json_kwargs.pop("lines", True if orient == "records" else False)
+        if "index" not in self.to_json_kwargs and orient in ["split", "table"]:
+            self.to_json_kwargs["index"] = False
+        compression = self.to_json_kwargs.pop("compression", None)
+
+        if compression not in [None, "infer", "gzip", "bz2", "xz"]:
+            raise NotImplementedError(f"`datasets` currently does not support {compression} compression")
 
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
-            with open(self.path_or_buf, "wb+") as buffer:
+            with fsspec.open(self.path_or_buf, "wb", compression=compression) as buffer:
                 written = self._write(file_obj=buffer, orient=orient, lines=lines, **self.to_json_kwargs)
         else:
+            if compression:
+                raise NotImplementedError(
+                    f"The compression parameter is not supported when writing to a buffer, but compression={compression}"
+                    " was passed. Please provide a local path instead."
+                )
             written = self._write(file_obj=self.path_or_buf, orient=orient, lines=lines, **self.to_json_kwargs)
         return written
 
@@ -116,27 +139,25 @@ class JsonDatasetWriter:
         written = 0
 
         if self.num_proc is None or self.num_proc == 1:
-            for offset in utils.tqdm(
+            for offset in logging.tqdm(
                 range(0, len(self.dataset), self.batch_size),
                 unit="ba",
-                disable=bool(logging.get_verbosity() == logging.NOTSET),
+                disable=not logging.is_progress_bar_enabled(),
                 desc="Creating json from Arrow format",
             ):
                 json_str = self._batch_json((offset, orient, lines, to_json_kwargs))
                 written += file_obj.write(json_str)
         else:
+            num_rows, batch_size = len(self.dataset), self.batch_size
             with multiprocessing.Pool(self.num_proc) as pool:
-                for json_str in utils.tqdm(
+                for json_str in logging.tqdm(
                     pool.imap(
                         self._batch_json,
-                        [
-                            (offset, orient, lines, to_json_kwargs)
-                            for offset in range(0, len(self.dataset), self.batch_size)
-                        ],
+                        [(offset, orient, lines, to_json_kwargs) for offset in range(0, num_rows, batch_size)],
                     ),
-                    total=(len(self.dataset) // self.batch_size) + 1,
+                    total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
                     unit="ba",
-                    disable=bool(logging.get_verbosity() == logging.NOTSET),
+                    disable=not logging.is_progress_bar_enabled(),
                     desc="Creating json from Arrow format",
                 ):
                     written += file_obj.write(json_str)

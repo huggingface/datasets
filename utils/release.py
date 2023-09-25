@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2021 The HuggingFace Team. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,38 +13,92 @@
 # limitations under the License.
 
 import argparse
+import re
+
+import packaging.version
 
 
-CUSTOM_JS_FILE = "docs/source/_static/js/custom.js"
+REPLACE_PATTERNS = {
+    "init": (re.compile(r'^__version__\s+=\s+"([^"]+)"\s*$', re.MULTILINE), '__version__ = "VERSION"\n'),
+    "setup": (re.compile(r'^(\s*)version\s*=\s*"[^"]+",', re.MULTILINE), r'\1version="VERSION",'),
+}
+REPLACE_FILES = {
+    "init": "src/datasets/__init__.py",
+    "setup": "setup.py",
+}
 
 
-def update_custom_js(version):
-    """Update the version table in the custom.js file."""
-    with open(CUSTOM_JS_FILE, "r", encoding="utf-8", newline="\n") as f:
-        lines = f.readlines()
-    index = 0
+def update_version_in_file(fname, version, pattern):
+    """Update the version in one file using a specific pattern."""
+    with open(fname, "r", encoding="utf-8", newline="\n") as f:
+        code = f.read()
+    re_pattern, replace = REPLACE_PATTERNS[pattern]
+    replace = replace.replace("VERSION", version)
+    code = re_pattern.sub(replace, code)
+    with open(fname, "w", encoding="utf-8", newline="\n") as f:
+        f.write(code)
 
-    # First let's put the right version
-    while not lines[index].startswith("const stableVersion ="):
-        index += 1
-    lines[index] = f'const stableVersion = "v{version}"\n'
 
-    # Then update the dictionary
-    while not lines[index].startswith("const versionMapping = {"):
-        index += 1
+def global_version_update(version):
+    """Update the version in all needed files."""
+    for pattern, fname in REPLACE_FILES.items():
+        update_version_in_file(fname, version, pattern)
 
-    # We go until the end
-    while not lines[index].startswith("}"):
-        index += 1
-    # We add the new version at the end
-    lines[index - 1] += f'    "v{version}": "v{version}",\n'
 
-    with open(CUSTOM_JS_FILE, "w", encoding="utf-8", newline="\n") as f:
-        f.writelines(lines)
+def get_version():
+    """Reads the current version in the __init__."""
+    with open(REPLACE_FILES["init"], "r") as f:
+        code = f.read()
+    default_version = REPLACE_PATTERNS["init"][0].search(code).groups()[0]
+    return packaging.version.parse(default_version)
+
+
+def pre_release_work(patch=False):
+    """Do all the necessary pre-release steps."""
+    # First let's get the default version: base version if we are in dev, bump minor otherwise.
+    default_version = get_version()
+    if patch and default_version.is_devrelease:
+        raise ValueError("Can't create a patch version from the dev branch, checkout a released version!")
+    if default_version.is_devrelease:
+        default_version = default_version.base_version
+    elif patch:
+        default_version = f"{default_version.major}.{default_version.minor}.{default_version.micro + 1}"
+    else:
+        default_version = f"{default_version.major}.{default_version.minor + 1}.0"
+
+    # Now let's ask nicely if that's the right one.
+    version = input(f"Which version are you releasing? [{default_version}]")
+    if len(version) == 0:
+        version = default_version
+
+    print(f"Updating version to {version}.")
+    global_version_update(version)
+
+
+def post_release_work():
+    """Do all the necesarry post-release steps."""
+    # First let's get the current version
+    current_version = get_version()
+    dev_version = f"{current_version.major}.{current_version.minor + 1}.0.dev0"
+    current_version = current_version.base_version
+
+    # Check with the user we got that right.
+    version = input(f"Which version are we developing now? [{dev_version}]")
+    if len(version) == 0:
+        version = dev_version
+
+    print(f"Updating version to {version}.")
+    global_version_update(version)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--version", help="Release version.")
+    parser.add_argument("--post_release", action="store_true", help="Whether or not this is post release.")
+    parser.add_argument("--patch", action="store_true", help="Whether or not this is a patch release.")
     args = parser.parse_args()
-    update_custom_js(args.version)
+    if not args.post_release:
+        pre_release_work(patch=args.patch)
+    elif args.patch:
+        print("Nothing to do after a patch :-)")
+    else:
+        post_release_work()

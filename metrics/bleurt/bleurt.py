@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,7 +38,7 @@ BLEURT a learnt evaluation metric for Natural Language Generation. It is built u
 and then employing another pre-training phrase using synthetic data. Finally it is trained on WMT human annotations. You may run BLEURT out-of-the-box or fine-tune
 it for your specific application (the latter is expected to perform better).
 
-See the project's README at https://github.com/google-research/bleurt for more information.
+See the project's README at https://github.com/google-research/bleurt#readme for more information.
 """
 
 _KWARGS_DESCRIPTION = """
@@ -79,7 +78,6 @@ CHECKPOINT_URLS = {
 @datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class BLEURT(datasets.Metric):
     def _info(self):
-
         return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
@@ -96,7 +94,6 @@ class BLEURT(datasets.Metric):
         )
 
     def _download_and_prepare(self, dl_manager):
-
         # check that config name specifies a valid BLEURT model
         if self.config_name == "default":
             logger.warning(

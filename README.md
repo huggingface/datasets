@@ -1,13 +1,18 @@
 <p align="center">
-    <br>
-    <img src="https://raw.githubusercontent.com/huggingface/datasets/master/docs/source/imgs/datasets_logo_name.jpg" width="400"/>
-    <br>
-<p>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://huggingface.co/datasets/huggingface/documentation-images/raw/main/datasets-logo-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="https://huggingface.co/datasets/huggingface/documentation-images/raw/main/datasets-logo-light.svg">
+    <img alt="Hugging Face Datasets Library" src="https://huggingface.co/datasets/huggingface/documentation-images/raw/main/datasets-logo-light.svg" width="352" height="59" style="max-width: 100%;">
+  </picture>
+  <br/>
+  <br/>
+</p>
+
 <p align="center">
-    <a href="https://circleci.com/gh/huggingface/datasets">
-        <img alt="Build" src="https://img.shields.io/circleci/build/github/huggingface/datasets/master">
+    <a href="https://github.com/huggingface/datasets/actions/workflows/ci.yml?query=branch%3Amain">
+        <img alt="Build" src="https://github.com/huggingface/datasets/actions/workflows/ci.yml/badge.svg?branch=main">
     </a>
-    <a href="https://github.com/huggingface/datasets/blob/master/LICENSE">
+    <a href="https://github.com/huggingface/datasets/blob/main/LICENSE">
         <img alt="GitHub" src="https://img.shields.io/github/license/huggingface/datasets.svg?color=blue">
     </a>
     <a href="https://huggingface.co/docs/datasets/index.html">
@@ -27,24 +32,25 @@
 
 🤗 Datasets is a lightweight library providing **two** main features:
 
-- **one-line dataloaders for many public datasets**: one-liners to download and pre-process any of the ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) major public datasets (in 467 languages and dialects!) provided on the [HuggingFace Datasets Hub](https://huggingface.co/datasets). With a simple command like `squad_dataset = load_dataset("squad")`, get any of these datasets ready to use in a dataloader for training/evaluating a ML model (Numpy/Pandas/PyTorch/TensorFlow/JAX),
-- **efficient data pre-processing**: simple, fast and reproducible data pre-processing for the above public datasets as well as your own local datasets in CSV/JSON/text. With simple commands like `tokenized_dataset = dataset.map(tokenize_example)`, efficiently prepare the dataset for inspection and ML model evaluation and training.
+- **one-line dataloaders for many public datasets**: one-liners to download and pre-process any of the ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) major public datasets (image datasets, audio datasets, text datasets in 467 languages and dialects, etc.) provided on the [HuggingFace Datasets Hub](https://huggingface.co/datasets). With a simple command like `squad_dataset = load_dataset("squad")`, get any of these datasets ready to use in a dataloader for training/evaluating a ML model (Numpy/Pandas/PyTorch/TensorFlow/JAX),
+- **efficient data pre-processing**: simple, fast and reproducible data pre-processing for the public datasets as well as your own local datasets in CSV, JSON, text, PNG, JPEG, WAV, MP3, Parquet, etc. With simple commands like `processed_dataset = dataset.map(process_example)`, efficiently prepare the dataset for inspection and ML model evaluation and training.
 
-[🎓 **Documentation**](https://huggingface.co/docs/datasets/) [🕹 **Colab tutorial**](https://colab.research.google.com/github/huggingface/datasets/blob/master/notebooks/Overview.ipynb)
-
-[🔎 **Find a dataset in the Hub**](https://huggingface.co/datasets) [🌟 **Add a new dataset to the Hub**](https://github.com/huggingface/datasets/blob/master/ADD_NEW_DATASET.md)
+[🎓 **Documentation**](https://huggingface.co/docs/datasets/) [🔎 **Find a dataset in the Hub**](https://huggingface.co/datasets) [🌟 **Share a dataset on the Hub**](https://huggingface.co/docs/datasets/share)
 
 <h3 align="center">
-    <a href="https://hf.co/course"><img src="https://raw.githubusercontent.com/huggingface/datasets/master/docs/source/imgs/course_banner.png"></a>
+    <a href="https://hf.co/course"><img src="https://raw.githubusercontent.com/huggingface/datasets/main/docs/source/imgs/course_banner.png"></a>
 </h3>
 
-🤗 Datasets also provides access to +15 evaluation metrics and is designed to let the community easily add and share new datasets and evaluation metrics. 
+🤗 Datasets is designed to let the community easily add and share new datasets.
 
 🤗 Datasets has many additional interesting features:
+
 - Thrive on large datasets: 🤗 Datasets naturally frees the user from RAM memory limitation, all datasets are memory-mapped using an efficient zero-serialization cost backend (Apache Arrow).
 - Smart caching: never wait for your data to process several times.
 - Lightweight and fast with a transparent and pythonic API (multi-processing/caching/memory-mapping).
 - Built-in interoperability with NumPy, pandas, PyTorch, Tensorflow 2 and JAX.
+- Native support for audio and image data
+- Enable streaming mode to save disk space and start iterating over the dataset immediately.
 
 🤗 Datasets originated from a fork of the awesome [TensorFlow Datasets](https://github.com/tensorflow/datasets) and the HuggingFace team want to deeply thank the TensorFlow Datasets team for building this amazing library. More details on the differences between 🤗 Datasets and `tfds` can be found in the section [Main differences between 🤗 Datasets and `tfds`](#main-differences-between--datasets-and-tfds).
 
@@ -68,40 +74,32 @@ conda install -c huggingface -c conda-forge datasets
 
 Follow the installation pages of TensorFlow and PyTorch to see how to install them with conda.
 
-For more details on installation, check the installation page in the documentation: https://huggingface.co/docs/datasets/installation.html
+For more details on installation, check the installation page in the documentation: https://huggingface.co/docs/datasets/installation
 
 ## Installation to use with PyTorch/TensorFlow/pandas
 
 If you plan to use 🤗 Datasets with PyTorch (1.0+), TensorFlow (2.2+) or pandas, you should also install PyTorch, TensorFlow or pandas.
 
-For more details on using the library with NumPy, pandas, PyTorch or TensorFlow, check the quick start page in the documentation: https://huggingface.co/docs/datasets/quickstart.html
+For more details on using the library with NumPy, pandas, PyTorch or TensorFlow, check the quick start page in the documentation: https://huggingface.co/docs/datasets/quickstart
 
 # Usage
 
-🤗 Datasets is made to be very simple to use. The main methods are:
+🤗 Datasets is made to be very simple to use - the API is centered around a single function, `datasets.load_dataset(dataset_name, **kwargs)`, that instantiates a dataset.
 
-- `datasets.list_datasets()` to list the available datasets
-- `datasets.load_dataset(dataset_name, **kwargs)` to instantiate a dataset
-- `datasets.list_metrics()` to list the available metrics
-- `datasets.load_metric(metric_name, **kwargs)` to instantiate a metric
+This library can be used for text/image/audio/etc. datasets. Here is an example to load a text dataset:
 
 Here is a quick example:
 
 ```python
-from datasets import list_datasets, load_dataset, list_metrics, load_metric
+from datasets import load_dataset
 
 # Print all the available datasets
-print(list_datasets())
+from huggingface_hub import list_datasets
+print([dataset.id for dataset in list_datasets()])
 
 # Load a dataset and print the first example in the training set
 squad_dataset = load_dataset('squad')
 print(squad_dataset['train'][0])
-
-# List all the available metrics
-print(list_metrics())
-
-# Load a metric
-squad_metric = load_metric('squad')
 
 # Process the dataset - add a column with the length of the context texts
 dataset_with_length = squad_dataset.map(lambda x: {"length": len(x["context"])})
@@ -113,41 +111,54 @@ tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
 tokenized_dataset = squad_dataset.map(lambda x: tokenizer(x['context']), batched=True)
 ```
 
-For more details on using the library, check the quick start page in the documentation: https://huggingface.co/docs/datasets/quickstart.html and the specific pages on:
+If your dataset is bigger than your disk or if you don't want to wait to download the data, you can use streaming:
 
-- Loading a dataset https://huggingface.co/docs/datasets/loading.html
-- What's in a Dataset: https://huggingface.co/docs/datasets/access.html
-- Processing data with 🤗 Datasets: https://huggingface.co/docs/datasets/process.html
-- Writing your own dataset loading script: https://huggingface.co/docs/datasets/dataset_script.html
+```python
+# If you want to use the dataset immediately and efficiently stream the data as you iterate over the dataset
+image_dataset = load_dataset('cifar100', streaming=True)
+for example in image_dataset["train"]:
+    break
+```
+
+For more details on using the library, check the quick start page in the documentation: https://huggingface.co/docs/datasets/quickstart and the specific pages on:
+
+- Loading a dataset: https://huggingface.co/docs/datasets/loading
+- What's in a Dataset: https://huggingface.co/docs/datasets/access
+- Processing data with 🤗 Datasets: https://huggingface.co/docs/datasets/process
+    - Processing audio data: https://huggingface.co/docs/datasets/audio_process
+    - Processing image data: https://huggingface.co/docs/datasets/image_process
+    - Processing text data: https://huggingface.co/docs/datasets/nlp_process
+- Streaming a dataset: https://huggingface.co/docs/datasets/stream
+- Writing your own dataset loading script: https://huggingface.co/docs/datasets/dataset_script
 - etc.
-
-Another introduction to 🤗 Datasets is the tutorial on Google Colab here:
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/huggingface/datasets/blob/master/notebooks/Overview.ipynb)
 
 # Add a new dataset to the Hub
 
 We have a very detailed step-by-step guide to add a new dataset to the ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) datasets already provided on the [HuggingFace Datasets Hub](https://huggingface.co/datasets).
 
-You will find [the step-by-step guide here](https://github.com/huggingface/datasets/blob/master/ADD_NEW_DATASET.md) to add a dataset to this repository.
-
-You can also have your own repository for your dataset on the Hub under your or your organization's namespace and share it with the community. More information in [the documentation section about dataset sharing](https://huggingface.co/docs/datasets/share.html).
+You can find:
+- [how to upload a dataset to the Hub using your web browser or Python](https://huggingface.co/docs/datasets/upload_dataset) and also
+- [how to upload it using Git](https://huggingface.co/docs/datasets/share).
 
 # Main differences between 🤗 Datasets and `tfds`
 
 If you are familiar with the great TensorFlow Datasets, here are the main differences between 🤗 Datasets and `tfds`:
+
 - the scripts in 🤗 Datasets are not provided within the library but are queried, downloaded/cached and dynamically loaded upon request
-- 🤗 Datasets also provides evaluation metrics in a similar fashion to the datasets, i.e. as dynamically installed scripts with a unified API. This gives access to the pair of a benchmark dataset and a benchmark metric for instance for benchmarks like [SQuAD](https://rajpurkar.github.io/SQuAD-explorer/) or [GLUE](https://gluebenchmark.com/).
 - the backend serialization of 🤗 Datasets is based on [Apache Arrow](https://arrow.apache.org/) instead of TF Records and leverage python dataclasses for info and features with some diverging features (we mostly don't do encoding and store the raw data as much as possible in the backend serialization cache).
 - the user-facing dataset object of 🤗 Datasets is not a `tf.data.Dataset` but a built-in framework-agnostic dataset class with methods inspired by what we like in `tf.data` (like a `map()` method). It basically wraps a memory-mapped Arrow table cache.
 
 # Disclaimers
 
-Similar to TensorFlow Datasets, 🤗 Datasets is a utility library that downloads and prepares public datasets. We do not host or distribute these datasets, vouch for their quality or fairness, or claim that you have license to use them. It is your responsibility to determine whether you have permission to use the dataset under the dataset's license.
+🤗 Datasets may run Python code defined by the dataset authors to parse certain data formats or structures. For security reasons, we ask users to:
+- check the dataset scripts they're going to run beforehand and
+- pin the `revision` of the repositories they use.
 
-If you're a dataset owner and wish to update any part of it (description, citation, etc.), or do not want your dataset to be included in this library, please get in touch through a [GitHub issue](https://github.com/huggingface/datasets/issues/new). Thanks for your contribution to the ML community!
+If you're a dataset owner and wish to update any part of it (description, citation, license, etc.), or do not want your dataset to be included in the Hugging Face Hub, please get in touch by opening a discussion or a pull request in the Community tab of the dataset page. Thanks for your contribution to the ML community!
 
 ## BibTeX
-If you want to cite our 🤗 Datasets [paper](https://arxiv.org/abs/2109.02846) and library, you can use these:
+
+If you want to cite our 🤗 Datasets library, you can use our [paper](https://arxiv.org/abs/2109.02846):
 
 ```bibtex
 @inproceedings{lhoest-etal-2021-datasets,
@@ -197,45 +208,5 @@ If you want to cite our 🤗 Datasets [paper](https://arxiv.org/abs/2109.02846) 
     primaryClass={cs.CL},
 }
 ```
-```bibtex
-@software{quentin_lhoest_2021_5639822,
-  author       = {Quentin Lhoest and
-                  Albert Villanova del Moral and
-                  Patrick von Platen and
-                  Thomas Wolf and
-                  Mario Šaško and
-                  Yacine Jernite and
-                  Abhishek Thakur and
-                  Lewis Tunstall and
-                  Suraj Patil and
-                  Mariama Drame and
-                  Julien Chaumond and
-                  Julien Plu and
-                  Joe Davison and
-                  Simon Brandeis and
-                  Victor Sanh and
-                  Teven Le Scao and
-                  Kevin Canwen Xu and
-                  Nicolas Patry and
-                  Steven Liu and
-                  Angelina McMillan-Major and
-                  Philipp Schmid and
-                  Sylvain Gugger and
-                  Nathan Raw and
-                  Sylvain Lesage and
-                  Anton Lozhkov and
-                  Matthew Carrigan and
-                  Théo Matussière and
-                  Leandro von Werra and
-                  Lysandre Debut and
-                  Stas Bekman and
-                  Clément Delangue},
-  title        = {huggingface/datasets: 1.15.1},
-  month        = nov,
-  year         = 2021,
-  publisher    = {Zenodo},
-  version      = {1.15.1},
-  doi          = {10.5281/zenodo.5639822},
-  url          = {https://doi.org/10.5281/zenodo.5639822}
-}
-```
+
+If you need to cite a specific version of our 🤗 Datasets library for reproducibility, you can use the corresponding version Zenodo DOI from this [list](https://zenodo.org/search?q=conceptrecid:%224817768%22&sort=-version&all_versions=True).

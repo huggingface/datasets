@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -71,14 +70,20 @@ class InvalidKeyError(Exception):
 class DuplicatedKeysError(Exception):
     """Raise an error when duplicate key found."""
 
-    def __init__(self, key):
-        self.prefix = "FAILURE TO GENERATE DATASET !"
-        self.err_msg = f"\nFound duplicate Key: {key}"
-        self.suffix = "\nKeys should be unique and deterministic in nature"
+    def __init__(self, key, duplicate_key_indices, fix_msg=""):
+        self.key = key
+        self.duplicate_key_indices = duplicate_key_indices
+        self.fix_msg = fix_msg
+        self.prefix = "Found multiple examples generated with the same key"
+        if len(duplicate_key_indices) <= 20:
+            self.err_msg = f"\nThe examples at index {', '.join(duplicate_key_indices)} have the key {key}"
+        else:
+            self.err_msg = f"\nThe examples at index {', '.join(duplicate_key_indices[:20])}... ({len(duplicate_key_indices) - 20} more) have the key {key}"
+        self.suffix = "\n" + fix_msg if fix_msg else ""
         super().__init__(f"{self.prefix}{self.err_msg}{self.suffix}")
 
 
-class KeyHasher(object):
+class KeyHasher:
     """KeyHasher class for providing hash using md5"""
 
     def __init__(self, hash_salt: str):

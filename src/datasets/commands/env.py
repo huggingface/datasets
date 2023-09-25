@@ -1,6 +1,8 @@
 import platform
 from argparse import ArgumentParser
 
+import huggingface_hub
+import pandas
 import pyarrow
 
 from datasets import __version__ as version
@@ -22,7 +24,9 @@ class EnvironmentCommand(BaseDatasetsCLICommand):
             "`datasets` version": version,
             "Platform": platform.platform(),
             "Python version": platform.python_version(),
+            "Huggingface_hub version": huggingface_hub.__version__,
             "PyArrow version": pyarrow.__version__,
+            "Pandas version": pandas.__version__,
         }
 
         print("\nCopy-and-paste the text below in your GitHub issue.\n")

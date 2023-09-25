@@ -1,14 +1,26 @@
-# coding=utf-8
+import itertools
+from dataclasses import dataclass
+from typing import Optional
 
 import pandas as pd
 import pyarrow as pa
 
 import datasets
+from datasets.table import table_cast
+
+
+@dataclass
+class PandasConfig(datasets.BuilderConfig):
+    """BuilderConfig for Pandas."""
+
+    features: Optional[datasets.Features] = None
 
 
 class Pandas(datasets.ArrowBasedBuilder):
+    BUILDER_CONFIG_CLASS = PandasConfig
+
     def _info(self):
-        return datasets.DatasetInfo()
+        return datasets.DatasetInfo(features=self.config.features)
 
     def _split_generators(self, dl_manager):
         """We handle string, list and dicts in datafiles"""
@@ -19,16 +31,27 @@ class Pandas(datasets.ArrowBasedBuilder):
             files = data_files
             if isinstance(files, str):
                 files = [files]
+            # Use `dl_manager.iter_files` to skip hidden files in an extracted archive
+            files = [dl_manager.iter_files(file) for file in files]
             return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": files})]
         splits = []
         for split_name, files in data_files.items():
             if isinstance(files, str):
                 files = [files]
+            # Use `dl_manager.iter_files` to skip hidden files in an extracted archive
+            files = [dl_manager.iter_files(file) for file in files]
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
 
+    def _cast_table(self, pa_table: pa.Table) -> pa.Table:
+        if self.config.features is not None:
+            # more expensive cast to support nested features with keys in a different order
+            # allows str <-> int/float or str to Audio for example
+            pa_table = table_cast(pa_table, self.config.features.arrow_schema)
+        return pa_table
+
     def _generate_tables(self, files):
-        for i, file in enumerate(files):
+        for i, file in enumerate(itertools.chain.from_iterable(files)):
             with open(file, "rb") as f:
                 pa_table = pa.Table.from_pandas(pd.read_pickle(f))
-                yield i, pa_table
+                yield i, self._cast_table(pa_table)

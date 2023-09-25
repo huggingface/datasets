@@ -1,6 +1,7 @@
 import io
 import json
 
+import fsspec
 import pytest
 
 from datasets import Dataset, DatasetDict, Features, NamedSplit, Value
@@ -94,7 +95,7 @@ def test_dataset_from_json_split(split, jsonl_path, tmp_path):
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     dataset = JsonDatasetReader(jsonl_path, cache_dir=cache_dir, split=split).read()
     _check_json_dataset(dataset, expected_features)
-    assert dataset.split == str(split) if split else "train"
+    assert dataset.split == split if split else "train"
 
 
 @pytest.mark.parametrize("path_type", [str, list])
@@ -187,7 +188,7 @@ class TestJsonDatasetWriter:
         "orient, container, keys, len_at",
         [
             ("records", list, {"tokens", "labels", "answers", "id"}, None),
-            ("split", dict, {"index", "columns", "data"}, "data"),
+            ("split", dict, {"columns", "data"}, "data"),
             ("index", dict, set("0123456789"), None),
             ("columns", dict, {"tokens", "labels", "answers", "id"}, "tokens"),
             ("values", list, None, None),
@@ -226,7 +227,7 @@ class TestJsonDatasetWriter:
         "orient, container, keys, len_at",
         [
             ("records", list, {"tokens", "labels", "answers", "id"}, None),
-            ("split", dict, {"index", "columns", "data"}, "data"),
+            ("split", dict, {"columns", "data"}, "data"),
             ("index", dict, set("0123456789"), None),
             ("columns", dict, {"tokens", "labels", "answers", "id"}, "tokens"),
             ("values", list, None, None),
@@ -255,3 +256,15 @@ class TestJsonDatasetWriter:
         with pytest.raises(ValueError):
             with io.BytesIO() as buffer:
                 JsonDatasetWriter(dataset, buffer, num_proc=0)
+
+    @pytest.mark.parametrize("compression, extension", [("gzip", "gz"), ("bz2", "bz2"), ("xz", "xz")])
+    def test_dataset_to_json_compression(self, shared_datadir, tmp_path_factory, extension, compression, dataset):
+        path = tmp_path_factory.mktemp("data") / f"test.json.{extension}"
+        original_path = str(shared_datadir / f"test_file.json.{extension}")
+        JsonDatasetWriter(dataset, path, compression=compression).write()
+
+        with fsspec.open(path, "rb", compression="infer") as f:
+            exported_content = f.read()
+        with fsspec.open(original_path, "rb", compression="infer") as f:
+            original_content = f.read()
+        assert exported_content == original_content

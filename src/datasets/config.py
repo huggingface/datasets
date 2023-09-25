@@ -1,4 +1,5 @@
 import importlib
+import importlib.metadata
 import os
 import platform
 from pathlib import Path
@@ -22,15 +23,11 @@ REPO_METRICS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{revi
 
 # Hub
 HF_ENDPOINT = os.environ.get("HF_ENDPOINT", "https://huggingface.co")
-HUB_DATASETS_URL = HF_ENDPOINT + "/datasets/{path}/resolve/{revision}/{name}"
+HUB_DATASETS_URL = HF_ENDPOINT + "/datasets/{repo_id}/resolve/{revision}/{path}"
+HUB_DATASETS_HFFS_URL = "hf://datasets/{repo_id}@{revision}/{path}"
 HUB_DEFAULT_VERSION = "main"
 
 PY_VERSION = version.parse(platform.python_version())
-
-if PY_VERSION < version.parse("3.8"):
-    import importlib_metadata
-else:
-    import importlib.metadata as importlib_metadata
 
 # General environment variables accepted values for booleans
 ENV_VARS_TRUE_VALUES = {"1", "ON", "YES", "TRUE"}
@@ -38,7 +35,9 @@ ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
 
 
 # Imports
-PYARROW_VERSION = version.parse(importlib_metadata.version("pyarrow"))
+DILL_VERSION = version.parse(importlib.metadata.version("dill"))
+PANDAS_VERSION = version.parse(importlib.metadata.version("pandas"))
+PYARROW_VERSION = version.parse(importlib.metadata.version("pyarrow"))
 
 USE_TF = os.environ.get("USE_TF", "AUTO").upper()
 USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
@@ -51,9 +50,9 @@ if USE_TORCH in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TF not in ENV_VARS_TRUE_VA
     TORCH_AVAILABLE = importlib.util.find_spec("torch") is not None
     if TORCH_AVAILABLE:
         try:
-            TORCH_VERSION = version.parse(importlib_metadata.version("torch"))
+            TORCH_VERSION = version.parse(importlib.metadata.version("torch"))
             logger.info(f"PyTorch version {TORCH_VERSION} available.")
-        except importlib_metadata.PackageNotFoundError:
+        except importlib.metadata.PackageNotFoundError:
             pass
 else:
     logger.info("Disabling PyTorch because USE_TF is set")
@@ -77,8 +76,8 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
             "tensorflow-macos",
         ]:
             try:
-                TF_VERSION = version.parse(importlib_metadata.version(package))
-            except importlib_metadata.PackageNotFoundError:
+                TF_VERSION = version.parse(importlib.metadata.version(package))
+            except importlib.metadata.PackageNotFoundError:
                 continue
             else:
                 break
@@ -98,12 +97,12 @@ JAX_VERSION = "N/A"
 JAX_AVAILABLE = False
 
 if USE_JAX in ENV_VARS_TRUE_AND_AUTO_VALUES:
-    JAX_AVAILABLE = importlib.util.find_spec("jax") is not None
+    JAX_AVAILABLE = importlib.util.find_spec("jax") is not None and importlib.util.find_spec("jaxlib") is not None
     if JAX_AVAILABLE:
         try:
-            JAX_VERSION = version.parse(importlib_metadata.version("jax"))
+            JAX_VERSION = version.parse(importlib.metadata.version("jax"))
             logger.info(f"JAX version {JAX_VERSION} available.")
-        except importlib_metadata.PackageNotFoundError:
+        except importlib.metadata.PackageNotFoundError:
             pass
 else:
     logger.info("Disabling JAX because USE_JAX is set to False")
@@ -114,23 +113,32 @@ BEAM_VERSION = "N/A"
 BEAM_AVAILABLE = False
 if USE_BEAM in ENV_VARS_TRUE_AND_AUTO_VALUES:
     try:
-        BEAM_VERSION = version.parse(importlib_metadata.version("apache_beam"))
+        BEAM_VERSION = version.parse(importlib.metadata.version("apache_beam"))
         BEAM_AVAILABLE = True
         logger.info(f"Apache Beam version {BEAM_VERSION} available.")
-    except importlib_metadata.PackageNotFoundError:
+    except importlib.metadata.PackageNotFoundError:
         pass
 else:
     logger.info("Disabling Apache Beam because USE_BEAM is set to False")
 
 
+# Optional tools for data loading
+SQLALCHEMY_AVAILABLE = importlib.util.find_spec("sqlalchemy") is not None
+
 # Optional tools for feature decoding
 PIL_AVAILABLE = importlib.util.find_spec("PIL") is not None
-
+IS_OPUS_SUPPORTED = importlib.util.find_spec("soundfile") is not None and version.parse(
+    importlib.import_module("soundfile").__libsndfile_version__
+) >= version.parse("1.0.31")
+IS_MP3_SUPPORTED = importlib.util.find_spec("soundfile") is not None and version.parse(
+    importlib.import_module("soundfile").__libsndfile_version__
+) >= version.parse("1.1.0")
 
 # Optional compression tools
 RARFILE_AVAILABLE = importlib.util.find_spec("rarfile") is not None
 ZSTANDARD_AVAILABLE = importlib.util.find_spec("zstandard") is not None
 LZ4_AVAILABLE = importlib.util.find_spec("lz4") is not None
+PY7ZR_AVAILABLE = importlib.util.find_spec("py7zr") is not None
 
 
 # Cache location
@@ -163,11 +171,22 @@ HF_UPDATE_DOWNLOAD_COUNTS = (
 
 # Batch size constants. For more info, see:
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
-DEFAULT_MAX_BATCH_SIZE = 10_000
+DEFAULT_MAX_BATCH_SIZE = 1000
+
+# Size of the preloaded record batch in `Dataset.__iter__`
+ARROW_READER_BATCH_SIZE_IN_DATASET_ITER = 10
 
 # Pickling tables works only for small tables (<4GiB)
 # For big tables, we write them on disk instead
 MAX_TABLE_NBYTES_FOR_PICKLING = 4 << 30
+
+# Max shard size in bytes (e.g. to shard parquet datasets in push_to_hub or download_and_prepare)
+MAX_SHARD_SIZE = "500MB"
+
+# Parquet configuration
+PARQUET_ROW_GROUP_SIZE_FOR_AUDIO_DATASETS = 100
+PARQUET_ROW_GROUP_SIZE_FOR_IMAGE_DATASETS = 100
+PARQUET_ROW_GROUP_SIZE_FOR_BINARY_DATASETS = 100
 
 # Offline mode
 HF_DATASETS_OFFLINE = os.environ.get("HF_DATASETS_OFFLINE", "AUTO").upper() in ENV_VARS_TRUE_VALUES
@@ -185,6 +204,7 @@ DATASETDICT_INFOS_FILENAME = "dataset_infos.json"
 LICENSE_FILENAME = "LICENSE"
 METRIC_INFO_FILENAME = "metric_info.json"
 DATASETDICT_JSON_FILENAME = "dataset_dict.json"
+METADATA_CONFIGS_FIELD = "configs"
 
 MODULE_NAME_FOR_DYNAMIC_MODULES = "datasets_modules"
 
@@ -198,3 +218,6 @@ STREAMING_READ_RETRY_INTERVAL = 5
 DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE = 200
 GLOBBED_DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE = 10
 ARCHIVED_DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE = 200
+
+# Progress bars
+PBAR_REFRESH_TIME_INTERVAL = 0.05  # 20 progress updates per sec

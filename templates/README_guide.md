@@ -1,5 +1,5 @@
 ---
-YAML tags:
+YAML tags (full spec here: https://github.com/huggingface/hub-docs/blob/main/datasetcard.md?plain=1):
 - copy-paste the tags obtained with the online tagging app: https://huggingface.co/spaces/huggingface/datasets-tagging
 ---
 
@@ -86,14 +86,14 @@ Note that the descriptions can be initialized with the **Show Markdown Data Fiel
 
 Describe and name the splits in the dataset if there are more than one.
 
-Describe any criteria for splitting the data, if used. If their are differences between the splits (e.g. if the training annotations are machine-generated and the dev and test ones are created by humans, or if different numbers of annotators contributed to each example), describe them here.
+Describe any criteria for splitting the data, if used. If there are differences between the splits (e.g. if the training annotations are machine-generated and the dev and test ones are created by humans, or if different numbers of annotators contributed to each example), describe them here.
 
 Provide the sizes of each split. As appropriate, provide any descriptive statistics for the features, such as average length.  For example:
 
-|                            | Tain   | Valid | Test |
-| -----                      | ------ | ----- | ---- |
-| Input Sentences            |        |       |      |
-| Average Sentence Length    |        |       |      |
+|                         | train | validation | test |
+|-------------------------|------:|-----------:|-----:|
+| Input Sentences         |       |            |      |
+| Average Sentence Length |       |            |      |
 
 ## Dataset Creation
 

@@ -1,8 +1,9 @@
 import pyarrow.parquet as pq
 import pytest
 
-from datasets import Dataset, DatasetDict, Features, NamedSplit, Value
-from datasets.io.parquet import ParquetDatasetReader, ParquetDatasetWriter
+from datasets import Audio, Dataset, DatasetDict, Features, NamedSplit, Sequence, Value, config
+from datasets.features.image import Image
+from datasets.io.parquet import ParquetDatasetReader, ParquetDatasetWriter, get_writer_batch_size
 
 from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
 
@@ -52,7 +53,7 @@ def test_dataset_from_parquet_split(split, parquet_path, tmp_path):
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     dataset = ParquetDatasetReader(parquet_path, cache_dir=cache_dir, split=split).read()
     _check_parquet_dataset(dataset, expected_features)
-    assert dataset.split == str(split) if split else "train"
+    assert dataset.split == split if split else "train"
 
 
 @pytest.mark.parametrize("path_type", [str, list])
@@ -124,9 +125,36 @@ def test_parquet_datasetdict_reader_split(split, parquet_path, tmp_path):
     assert all(dataset[split].split == split for split in path.keys())
 
 
-def test_parquer_write(dataset, tmp_path):
+def test_parquet_write(dataset, tmp_path):
     writer = ParquetDatasetWriter(dataset, tmp_path / "foo.parquet")
     assert writer.write() > 0
     pf = pq.ParquetFile(tmp_path / "foo.parquet")
     output_table = pf.read()
     assert dataset.data.table == output_table
+
+
+def test_dataset_to_parquet_keeps_features(shared_datadir, tmp_path):
+    image_path = str(shared_datadir / "test_image_rgb.jpg")
+    data = {"image": [image_path]}
+    features = Features({"image": Image()})
+    dataset = Dataset.from_dict(data, features=features)
+    writer = ParquetDatasetWriter(dataset, tmp_path / "foo.parquet")
+    assert writer.write() > 0
+
+    reloaded_dataset = Dataset.from_parquet(str(tmp_path / "foo.parquet"))
+    assert dataset.features == reloaded_dataset.features
+
+    reloaded_iterable_dataset = ParquetDatasetReader(str(tmp_path / "foo.parquet"), streaming=True).read()
+    assert dataset.features == reloaded_iterable_dataset.features
+
+
+@pytest.mark.parametrize(
+    "feature, expected",
+    [
+        (Features({"foo": Value("int32")}), None),
+        (Features({"image": Image(), "foo": Value("int32")}), config.PARQUET_ROW_GROUP_SIZE_FOR_IMAGE_DATASETS),
+        (Features({"nested": Sequence(Audio())}), config.PARQUET_ROW_GROUP_SIZE_FOR_AUDIO_DATASETS),
+    ],
+)
+def test_get_writer_batch_size(feature, expected):
+    assert get_writer_batch_size(feature) == expected

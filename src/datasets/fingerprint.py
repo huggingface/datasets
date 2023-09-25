@@ -5,20 +5,20 @@ import random
 import shutil
 import tempfile
 import weakref
-from dataclasses import asdict
 from functools import wraps
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pyarrow as pa
 import xxhash
 
-from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table
-
 from .info import DatasetInfo
+from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH
+from .table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table
+from .utils.deprecation_utils import deprecated
 from .utils.logging import get_logger
-from .utils.py_utils import dumps
+from .utils.py_utils import asdict, dumps
 
 
 if TYPE_CHECKING:
@@ -93,6 +93,51 @@ def get_datasets_with_cache_file_in_temp_dir():
     return list(_DATASETS_WITH_TABLE_IN_TEMP_DIR) if _DATASETS_WITH_TABLE_IN_TEMP_DIR is not None else []
 
 
+def enable_caching():
+    """
+    When applying transforms on a dataset, the data are stored in cache files.
+    The caching mechanism allows to reload an existing cache file if it's already been computed.
+
+    Reloading a dataset is possible since the cache files are named using the dataset fingerprint, which is updated
+    after each transform.
+
+    If disabled, the library will no longer reload cached datasets files when applying transforms to the datasets.
+    More precisely, if the caching is disabled:
+    - cache files are always recreated
+    - cache files are written to a temporary directory that is deleted when session closes
+    - cache files are named using a random hash instead of the dataset fingerprint
+    - use [`~datasets.Dataset.save_to_disk`] to save a transformed dataset or it will be deleted when session closes
+    - caching doesn't affect [`~datasets.load_dataset`]. If you want to regenerate a dataset from scratch you should use
+    the `download_mode` parameter in [`~datasets.load_dataset`].
+    """
+    global _CACHING_ENABLED
+    _CACHING_ENABLED = True
+
+
+def disable_caching():
+    """
+    When applying transforms on a dataset, the data are stored in cache files.
+    The caching mechanism allows to reload an existing cache file if it's already been computed.
+
+    Reloading a dataset is possible since the cache files are named using the dataset fingerprint, which is updated
+    after each transform.
+
+    If disabled, the library will no longer reload cached datasets files when applying transforms to the datasets.
+    More precisely, if the caching is disabled:
+    - cache files are always recreated
+    - cache files are written to a temporary directory that is deleted when session closes
+    - cache files are named using a random hash instead of the dataset fingerprint
+    - use [`~datasets.Dataset.save_to_disk`] to save a transformed dataset or it will be deleted when session closes
+    - caching doesn't affect [`~datasets.load_dataset`]. If you want to regenerate a dataset from scratch you should use
+    the `download_mode` parameter in [`~datasets.load_dataset`].
+    """
+    global _CACHING_ENABLED
+    _CACHING_ENABLED = False
+
+
+@deprecated(
+    "Use datasets.enable_caching() or datasets.disable_caching() instead. This function will be removed in a future version of datasets."
+)
 def set_caching_enabled(boolean: bool):
     """
     When applying transforms on a dataset, the data are stored in cache files.
@@ -127,9 +172,9 @@ def is_caching_enabled() -> bool:
     - cache files are always recreated
     - cache files are written to a temporary directory that is deleted when session closes
     - cache files are named using a random hash instead of the dataset fingerprint
-    - use :func:`datasets.Dataset.save_to_disk` to save a transformed dataset or it will be deleted when session closes
-    - caching doesn't affect :func:`datasets.load_dataset`. If you want to regenerate a dataset from scratch you should use
-    the ``download_mode`` parameter in :func:`datasets.load_dataset`.
+    - use [`~datasets.Dataset.save_to_disk`]] to save a transformed dataset or it will be deleted when session closes
+    - caching doesn't affect [`~datasets.load_dataset`]. If you want to regenerate a dataset from scratch you should use
+    the `download_mode` parameter in [`~datasets.load_dataset`].
     """
     global _CACHING_ENABLED
     return bool(_CACHING_ENABLED)
@@ -139,7 +184,6 @@ def get_temporary_cache_files_directory() -> str:
     """Return a directory that is deleted when session closes."""
     global _TEMP_DIR_FOR_TEMP_CACHE_FILES
     if _TEMP_DIR_FOR_TEMP_CACHE_FILES is None:
-
         # Avoids a PermissionError on Windows caused by the datasets referencing
         # the files from the cache directory on clean-up
         def cleanup_func():
@@ -299,6 +343,81 @@ def update_fingerprint(fingerprint, transform, transform_args):
     return hasher.hexdigest()
 
 
+def validate_fingerprint(fingerprint: str, max_length=64):
+    """
+    Make sure the fingerprint is a non-empty string that is not longer that max_length=64 by default,
+    so that the fingerprint can be used to name cache files without issues.
+    """
+    if not isinstance(fingerprint, str) or not fingerprint:
+        raise ValueError(f"Invalid fingerprint '{fingerprint}': it should be a non-empty string.")
+    for invalid_char in INVALID_WINDOWS_CHARACTERS_IN_PATH:
+        if invalid_char in fingerprint:
+            raise ValueError(
+                f"Invalid fingerprint. Bad characters from black list '{INVALID_WINDOWS_CHARACTERS_IN_PATH}' found in '{fingerprint}'. "
+                f"They could create issues when creating cache files."
+            )
+    if len(fingerprint) > max_length:
+        raise ValueError(
+            f"Invalid fingerprint. Maximum lenth is {max_length} but '{fingerprint}' has length {len(fingerprint)}."
+            "It could create issues when creating cache files."
+        )
+
+
+def format_transform_for_fingerprint(func: Callable, version: Optional[str] = None) -> str:
+    """
+    Format a transform to the format that will be used to update the fingerprint.
+    """
+    transform = f"{func.__module__}.{func.__qualname__}"
+    if version is not None:
+        transform += f"@{version}"
+    return transform
+
+
+def format_kwargs_for_fingerprint(
+    func: Callable,
+    args: Tuple,
+    kwargs: Dict[str, Any],
+    use_kwargs: Optional[List[str]] = None,
+    ignore_kwargs: Optional[List[str]] = None,
+    randomized_function: bool = False,
+) -> Dict[str, Any]:
+    """
+    Format the kwargs of a transform to the format that will be used to update the fingerprint.
+    """
+    kwargs_for_fingerprint = kwargs.copy()
+    if args:
+        params = [p.name for p in inspect.signature(func).parameters.values() if p != p.VAR_KEYWORD]
+        args = args[1:]  # assume the first argument is the dataset
+        params = params[1:]
+        kwargs_for_fingerprint.update(zip(params, args))
+    else:
+        del kwargs_for_fingerprint[
+            next(iter(inspect.signature(func).parameters))
+        ]  # assume the first key is the dataset
+
+    # keep the right kwargs to be hashed to generate the fingerprint
+
+    if use_kwargs:
+        kwargs_for_fingerprint = {k: v for k, v in kwargs_for_fingerprint.items() if k in use_kwargs}
+    if ignore_kwargs:
+        kwargs_for_fingerprint = {k: v for k, v in kwargs_for_fingerprint.items() if k not in ignore_kwargs}
+    if randomized_function:  # randomized functions have `seed` and `generator` parameters
+        if kwargs_for_fingerprint.get("seed") is None and kwargs_for_fingerprint.get("generator") is None:
+            _, seed, pos, *_ = np.random.get_state()
+            seed = seed[pos] if pos < 624 else seed[0]
+            kwargs_for_fingerprint["generator"] = np.random.default_rng(seed)
+
+    # remove kwargs that are the default values
+
+    default_values = {
+        p.name: p.default for p in inspect.signature(func).parameters.values() if p.default != inspect._empty
+    }
+    for default_varname, default_value in default_values.items():
+        if default_varname in kwargs_for_fingerprint and kwargs_for_fingerprint[default_varname] == default_value:
+            kwargs_for_fingerprint.pop(default_varname)
+    return kwargs_for_fingerprint
+
+
 def fingerprint_transform(
     inplace: bool,
     use_kwargs: Optional[List[str]] = None,
@@ -309,26 +428,25 @@ def fingerprint_transform(
 ):
     """
     Wrapper for dataset transforms to update the dataset fingerprint using ``update_fingerprint``
-
     Args:
-        inplace (``bool``):  If inplace is True, the fingerprint of the dataset is updated inplace.
+        inplace (:obj:`bool`):  If inplace is True, the fingerprint of the dataset is updated inplace.
             Otherwise, a parameter "new_fingerprint" is passed to the wrapped method that should take care of
             setting the fingerprint of the returned Dataset.
-        use_kwargs (Optional ``List[str]``): optional white list of argument names to take into account
+        use_kwargs (:obj:`List[str]`, optional): optional white list of argument names to take into account
             to update the fingerprint to the wrapped method that should take care of
             setting the fingerprint of the returned Dataset. By default all the arguments are used.
-        ignore_kwargs (Optional ``List[str]``): optional black list of argument names to take into account
+        ignore_kwargs (:obj:`List[str]`, optional): optional black list of argument names to take into account
             to update the fingerprint. Note that ignore_kwargs prevails on use_kwargs.
-        fingerprint_names (Optional ``List[str]``, defaults to ["new_fingerprint"]):
+        fingerprint_names (:obj:`List[str]`, optional, defaults to ["new_fingerprint"]):
             If the dataset transforms is not inplace and returns a DatasetDict, then it can require
             several fingerprints (one per dataset in the DatasetDict). By specifying fingerprint_names,
             one fingerprint named after each element of fingerprint_names is going to be passed.
-        randomized_function (``bool``, defaults to False): If the dataset transform is random and has
+        randomized_function (:obj:`bool`, defaults to False): If the dataset transform is random and has
             optional parameters "seed" and "generator", then you can set randomized_function to True.
             This way, even if users set "seed" and "generator" to None, then the fingerprint is
             going to be randomly generated depending on numpy's current state. In this case, the
             generator is set to np.random.default_rng(np.random.get_state()[1][0]).
-        version (Optional ``str``): version of the transform. The version is taken into account when
+        version (:obj:`str`, optional): version of the transform. The version is taken into account when
             computing the fingerprint. If a datase transform changes (or at least if the output data
             that are cached changes), then one should increase the version. If the version stays the
             same, then old cached data could be reused that are not compatible with the new transform.
@@ -347,73 +465,55 @@ def fingerprint_transform(
     fingerprint_names = fingerprint_names if fingerprint_names is not None else ["new_fingerprint"]
 
     def _fingerprint(func):
-
         if not inplace and not all(name in func.__code__.co_varnames for name in fingerprint_names):
-            raise ValueError("function {func} is missing parameters {fingerprint_names} in signature")
+            raise ValueError(f"function {func} is missing parameters {fingerprint_names} in signature")
 
         if randomized_function:  # randomized function have seed and generator parameters
             if "seed" not in func.__code__.co_varnames:
                 raise ValueError(f"'seed' must be in {func}'s signature")
             if "generator" not in func.__code__.co_varnames:
                 raise ValueError(f"'generator' must be in {func}'s signature")
-        # this has to be outside the wrapper or since __qualname__ changes in multiprocessing
-        transform = f"{func.__module__}.{func.__qualname__}"
-        if version is not None:
-            transform += f"@{version}"
+        # this call has to be outside the wrapper or since __qualname__ changes in multiprocessing
+        transform = format_transform_for_fingerprint(func, version=version)
 
         @wraps(func)
         def wrapper(*args, **kwargs):
-            kwargs_for_fingerprint = kwargs.copy()
+            kwargs_for_fingerprint = format_kwargs_for_fingerprint(
+                func,
+                args,
+                kwargs,
+                use_kwargs=use_kwargs,
+                ignore_kwargs=ignore_kwargs,
+                randomized_function=randomized_function,
+            )
+
             if args:
-                params = [p.name for p in inspect.signature(func).parameters.values() if p != p.VAR_KEYWORD]
-                self: "Dataset" = args[0]
+                dataset: Dataset = args[0]
                 args = args[1:]
-                params = params[1:]
-                kwargs_for_fingerprint.update(zip(params, args))
             else:
-                self: "Dataset" = kwargs.pop("self")
-
-            # keep the right kwargs to be hashed to generate the fingerprint
-
-            if use_kwargs:
-                kwargs_for_fingerprint = {k: v for k, v in kwargs_for_fingerprint.items() if k in use_kwargs}
-            if ignore_kwargs:
-                kwargs_for_fingerprint = {k: v for k, v in kwargs_for_fingerprint.items() if k not in ignore_kwargs}
-            if randomized_function:  # randomized functions have `seed` and `generator` parameters
-                if kwargs_for_fingerprint.get("seed") is None and kwargs_for_fingerprint.get("generator") is None:
-                    kwargs_for_fingerprint["generator"] = np.random.default_rng(np.random.get_state()[1][0])
-
-            # remove kwargs that are the default values
-
-            default_values = {
-                p.name: p.default for p in inspect.signature(func).parameters.values() if p.default != inspect._empty
-            }
-            for default_varname, default_value in default_values.items():
-                if (
-                    default_varname in kwargs_for_fingerprint
-                    and kwargs_for_fingerprint[default_varname] == default_value
-                ):
-                    kwargs_for_fingerprint.pop(default_varname)
+                dataset: Dataset = kwargs.pop(next(iter(inspect.signature(func).parameters)))
 
             # compute new_fingerprint and add it to the args of not in-place transforms
             if inplace:
-                new_fingerprint = update_fingerprint(self._fingerprint, transform, kwargs_for_fingerprint)
+                new_fingerprint = update_fingerprint(dataset._fingerprint, transform, kwargs_for_fingerprint)
             else:
                 for fingerprint_name in fingerprint_names:  # transforms like `train_test_split` have several hashes
                     if kwargs.get(fingerprint_name) is None:
                         kwargs_for_fingerprint["fingerprint_name"] = fingerprint_name
                         kwargs[fingerprint_name] = update_fingerprint(
-                            self._fingerprint, transform, kwargs_for_fingerprint
+                            dataset._fingerprint, transform, kwargs_for_fingerprint
                         )
+                    else:
+                        validate_fingerprint(kwargs[fingerprint_name])
 
             # Call actual function
 
-            out = func(self, *args, **kwargs)
+            out = func(dataset, *args, **kwargs)
 
             # Update fingerprint of in-place transforms + update in-place history of transforms
 
             if inplace:  # update after calling func so that the fingerprint doesn't change if the function fails
-                self._fingerprint = new_fingerprint
+                dataset._fingerprint = new_fingerprint
 
             return out
 

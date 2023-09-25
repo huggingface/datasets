@@ -1,0 +1,98 @@
+# Loading methods
+
+Methods for listing and loading datasets and metrics:
+
+## Datasets
+
+[[autodoc]] datasets.list_datasets
+
+[[autodoc]] datasets.load_dataset
+
+[[autodoc]] datasets.load_from_disk
+
+[[autodoc]] datasets.load_dataset_builder
+
+[[autodoc]] datasets.get_dataset_config_names
+
+[[autodoc]] datasets.get_dataset_infos
+
+[[autodoc]] datasets.get_dataset_split_names
+
+[[autodoc]] datasets.inspect_dataset
+
+## Metrics
+
+<Tip warning={true}>
+
+Metrics is deprecated in 🤗 Datasets. To learn more about how to use metrics, take a look at the library 🤗 [Evaluate](https://huggingface.co/docs/evaluate/index)! In addition to metrics, you can find more tools for evaluating models and datasets.
+
+</Tip>
+
+[[autodoc]] datasets.list_metrics
+
+[[autodoc]] datasets.load_metric
+
+[[autodoc]] datasets.inspect_metric
+
+## From files
+
+Configurations used to load data files.
+They are used when loading local files or a dataset repository:
+
+- local files: `load_dataset("parquet", data_dir="path/to/data/dir")`
+- dataset repository: `load_dataset("allenai/c4")`
+
+You can pass arguments to `load_dataset` to configure data loading.
+For example you can specify the `sep` parameter to define the [`~datasets.packaged_modules.csv.CsvConfig`] that is used to load the data:
+
+```python
+load_dataset("csv", data_dir="path/to/data/dir", sep="\t")
+```
+
+### Text
+
+[[autodoc]] datasets.packaged_modules.text.TextConfig
+
+[[autodoc]] datasets.packaged_modules.text.Text
+
+### CSV
+
+[[autodoc]] datasets.packaged_modules.csv.CsvConfig
+
+[[autodoc]] datasets.packaged_modules.csv.Csv
+
+### JSON
+
+[[autodoc]] datasets.packaged_modules.json.JsonConfig
+
+[[autodoc]] datasets.packaged_modules.json.Json
+
+### Parquet
+
+[[autodoc]] datasets.packaged_modules.parquet.ParquetConfig
+
+[[autodoc]] datasets.packaged_modules.parquet.Parquet
+
+### Arrow
+
+[[autodoc]] datasets.packaged_modules.arrow.ArrowConfig
+
+[[autodoc]] datasets.packaged_modules.arrow.Arrow
+
+### SQL
+
+[[autodoc]] datasets.packaged_modules.sql.SqlConfig
+
+[[autodoc]] datasets.packaged_modules.sql.Sql
+
+### Images
+
+[[autodoc]] datasets.packaged_modules.imagefolder.ImageFolderConfig
+
+[[autodoc]] datasets.packaged_modules.imagefolder.ImageFolder
+
+### Audio
+
+[[autodoc]] datasets.packaged_modules.audiofolder.AudioFolderConfig
+
+[[autodoc]] datasets.packaged_modules.audiofolder.AudioFolder

@@ -1,17 +1,18 @@
-.PHONY: quality style test test-examples
+.PHONY: quality style test
+
+check_dirs := tests src benchmarks metrics utils
 
 # Check that source code meets quality standards
 
 quality:
-	black --check --line-length 119 --target-version py36 tests src benchmarks datasets/**/*.py metrics
-	isort --check-only tests src benchmarks datasets/**/*.py metrics
-	flake8 tests src benchmarks datasets/**/*.py metrics
+	black --check $(check_dirs) setup.py
+	ruff $(check_dirs) setup.py
 
 # Format source code automatically
 
 style:
-	black --line-length 119 --target-version py36 tests src benchmarks datasets/**/*.py metrics
-	isort tests src benchmarks datasets/**/*.py metrics
+	black tests src benchmarks metrics setup.py
+	ruff $(check_dirs) setup.py --fix
 
 # Run tests for the library
 

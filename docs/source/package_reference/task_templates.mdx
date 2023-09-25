@@ -1,0 +1,25 @@
+# Task templates
+
+<Tip warning={true}>
+
+The Task API is deprecated in favor of [`train-eval-index`](https://github.com/huggingface/hub-docs/blob/9ab2555e1c146122056aba6f89af404a8bc9a6f1/datasetcard.md?plain=1#L90-L106) and will be removed in the next major release.
+
+</Tip>
+
+The tasks supported by [`Dataset.prepare_for_task`] and [`DatasetDict.prepare_for_task`].
+
+[[autodoc]] datasets.tasks.AutomaticSpeechRecognition
+
+[[autodoc]] datasets.tasks.AudioClassification
+
+[[autodoc]] datasets.tasks.ImageClassification
+    - align_with_features
+
+[[autodoc]] datasets.tasks.LanguageModeling
+
+[[autodoc]] datasets.tasks.QuestionAnsweringExtractive
+
+[[autodoc]] datasets.tasks.Summarization
+
+[[autodoc]] datasets.tasks.TextClassification
+    - align_with_features

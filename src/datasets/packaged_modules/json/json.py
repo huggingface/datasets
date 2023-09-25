@@ -1,5 +1,5 @@
-# coding=utf-8
 import io
+import itertools
 import json
 from dataclasses import dataclass
 from typing import Optional
@@ -8,6 +8,7 @@ import pyarrow as pa
 import pyarrow.json as paj
 
 import datasets
+from datasets.table import table_cast
 from datasets.utils.file_utils import readline
 
 
@@ -19,15 +20,13 @@ class JsonConfig(datasets.BuilderConfig):
     """BuilderConfig for JSON."""
 
     features: Optional[datasets.Features] = None
+    encoding: str = "utf-8"
+    encoding_errors: Optional[str] = None
     field: Optional[str] = None
     use_threads: bool = True  # deprecated
     block_size: Optional[int] = None  # deprecated
     chunksize: int = 10 << 20  # 10MB
     newlines_in_values: Optional[bool] = None
-
-    @property
-    def schema(self):
-        return pa.schema(self.features.type) if self.features is not None else None
 
 
 class Json(datasets.ArrowBasedBuilder):
@@ -54,42 +53,32 @@ class Json(datasets.ArrowBasedBuilder):
             files = data_files
             if isinstance(files, str):
                 files = [files]
-            return [
-                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_files(files)})
-            ]
+            files = [dl_manager.iter_files(file) for file in files]
+            return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": files})]
         splits = []
         for split_name, files in data_files.items():
             if isinstance(files, str):
                 files = [files]
-            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": dl_manager.iter_files(files)}))
+            files = [dl_manager.iter_files(file) for file in files]
+            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
 
-    def _cast_classlabels(self, pa_table: pa.Table) -> pa.Table:
-        if self.config.features:
-            # Encode column if ClassLabel
-            for i, col in enumerate(self.config.features.keys()):
-                if isinstance(self.config.features[col], datasets.ClassLabel):
-                    if pa_table[col].type == pa.string():
-                        pa_table = pa_table.set_column(
-                            i, self.config.schema.field(col), [self.config.features[col].str2int(pa_table[col])]
-                        )
-                    elif pa_table[col].type != self.config.schema.field(col).type:
-                        raise ValueError(
-                            f"Field '{col}' from the JSON data of type {pa_table[col].type} is not compatible with ClassLabel. Compatible types are int64 and string."
-                        )
-            # Cast allows str <-> int/float
-            # Before casting, rearrange JSON field names to match passed features schema field names order
-            pa_table = pa.Table.from_arrays(
-                [pa_table[name] for name in self.config.features], schema=self.config.schema
-            )
+    def _cast_table(self, pa_table: pa.Table) -> pa.Table:
+        if self.config.features is not None:
+            # adding missing columns
+            for column_name in set(self.config.features) - set(pa_table.column_names):
+                type = self.config.features.arrow_schema.field(column_name).type
+                pa_table = pa_table.append_column(column_name, pa.array([None] * len(pa_table), type=type))
+            # more expensive cast to support nested structures with keys in a different order
+            # allows str <-> int/float or str to Audio for example
+            pa_table = table_cast(pa_table, self.config.features.arrow_schema)
         return pa_table
 
     def _generate_tables(self, files):
-        for file_idx, file in enumerate(files):
-
+        for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             # If the file is one json object and if we need to look at the list of items in one specific field
             if self.config.field is not None:
-                with open(file, encoding="utf-8") as f:
+                with open(file, encoding=self.config.encoding, errors=self.config.encoding_errors) as f:
                     dataset = json.load(f)
 
                 # We keep only the field we are interested in
@@ -97,11 +86,12 @@ class Json(datasets.ArrowBasedBuilder):
 
                 # We accept two format: a list of dicts or a dict of lists
                 if isinstance(dataset, (list, tuple)):
-                    mapping = {col: [dataset[i][col] for i in range(len(dataset))] for col in dataset[0].keys()}
+                    keys = set().union(*[row.keys() for row in dataset])
+                    mapping = {col: [row.get(col) for row in dataset] for col in keys}
                 else:
                     mapping = dataset
-                pa_table = pa.Table.from_pydict(mapping=mapping)
-                yield file_idx, self._cast_classlabels(pa_table)
+                pa_table = pa.Table.from_pydict(mapping)
+                yield file_idx, self._cast_table(pa_table)
 
             # If the file has one json object per line
             else:
@@ -110,6 +100,9 @@ class Json(datasets.ArrowBasedBuilder):
                     # Use block_size equal to the chunk size divided by 32 to leverage multithreading
                     # Set a default minimum value of 16kB if the chunk size is really small
                     block_size = max(self.config.chunksize // 32, 16 << 10)
+                    encoding_errors = (
+                        self.config.encoding_errors if self.config.encoding_errors is not None else "strict"
+                    )
                     while True:
                         batch = f.read(self.config.chunksize)
                         if not batch:
@@ -119,6 +112,9 @@ class Json(datasets.ArrowBasedBuilder):
                             batch += f.readline()
                         except (AttributeError, io.UnsupportedOperation):
                             batch += readline(f)
+                        # PyArrow only accepts utf-8 encoded bytes
+                        if self.config.encoding != "utf-8":
+                            batch = batch.decode(self.config.encoding, errors=encoding_errors).encode("utf-8")
                         try:
                             while True:
                                 try:
@@ -141,20 +137,35 @@ class Json(datasets.ArrowBasedBuilder):
                                         )
                                         block_size *= 2
                         except pa.ArrowInvalid as e:
-                            logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                             try:
-                                with open(file, encoding="utf-8") as f:
+                                with open(
+                                    file, encoding=self.config.encoding, errors=self.config.encoding_errors
+                                ) as f:
                                     dataset = json.load(f)
                             except json.JSONDecodeError:
+                                logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                                 raise e
-                            raise ValueError(
-                                f"Not able to read records in the JSON file at {file}. "
-                                f"You should probably indicate the field of the JSON file containing your records. "
-                                f"This JSON file contain the following fields: {str(list(dataset.keys()))}. "
-                                f"Select the correct one and provide it as `field='XXX'` to the dataset loading method. "
-                            ) from None
+                            # If possible, parse the file as a list of json objects and exit the loop
+                            if isinstance(dataset, list):  # list is the only sequence type supported in JSON
+                                try:
+                                    keys = set().union(*[row.keys() for row in dataset])
+                                    mapping = {col: [row.get(col) for row in dataset] for col in keys}
+                                    pa_table = pa.Table.from_pydict(mapping)
+                                except (pa.ArrowInvalid, AttributeError) as e:
+                                    logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
+                                    raise ValueError(f"Not able to read records in the JSON file at {file}.") from None
+                                yield file_idx, self._cast_table(pa_table)
+                                break
+                            else:
+                                logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
+                                raise ValueError(
+                                    f"Not able to read records in the JSON file at {file}. "
+                                    f"You should probably indicate the field of the JSON file containing your records. "
+                                    f"This JSON file contain the following fields: {str(list(dataset.keys()))}. "
+                                    f"Select the correct one and provide it as `field='XXX'` to the dataset loading method. "
+                                ) from None
                         # Uncomment for debugging (will print the Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                        yield (file_idx, batch_idx), self._cast_classlabels(pa_table)
+                        yield (file_idx, batch_idx), self._cast_table(pa_table)
                         batch_idx += 1

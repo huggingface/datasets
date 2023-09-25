@@ -108,7 +108,7 @@ class ConvertCommand(BaseDatasetsCLICommand):
                 self._logger.info("Skipping file")
                 continue
 
-            with open(input_file, "r", encoding="utf-8") as f:
+            with open(input_file, encoding="utf-8") as f:
                 lines = f.readlines()
 
             out_lines = []
@@ -153,9 +153,8 @@ class ConvertCommand(BaseDatasetsCLICommand):
                     out_line = "from . import " + match.group(1)
 
                 # Check we have not forget anything
-                assert (
-                    "tf." not in out_line and "tfds." not in out_line and "tensorflow_datasets" not in out_line
-                ), f"Error converting {out_line.strip()}"
+                if "tf." in out_line or "tfds." in out_line or "tensorflow_datasets" in out_line:
+                    raise ValueError(f"Error converting {out_line.strip()}")
 
                 if "GeneratorBasedBuilder" in out_line or "BeamBasedBuilder" in out_line:
                     is_builder = True

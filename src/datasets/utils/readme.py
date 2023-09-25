@@ -1,21 +1,16 @@
+# loading package files: https://stackoverflow.com/a/20885799
+import importlib.resources as pkg_resources
 import logging
 from pathlib import Path
 from typing import Any, List, Tuple
 
 import yaml
 
-
-# loading package files: https://stackoverflow.com/a/20885799
-try:
-    import importlib.resources as pkg_resources
-except ImportError:
-    # Try backported to PY<37 `importlib_resources`.
-    import importlib_resources as pkg_resources
-
 from . import resources
+from .deprecation_utils import deprecated
 
 
-BASE_REF_URL = "https://github.com/huggingface/datasets/tree/master/src/datasets/utils"
+BASE_REF_URL = "https://github.com/huggingface/datasets/tree/main/src/datasets/utils"
 this_url = f"{BASE_REF_URL}/{__file__}"
 logger = logging.getLogger(__name__)
 
@@ -30,7 +25,7 @@ readme_structure, known_readme_structure_url = load_yaml_resource("readme_struct
 FILLER_TEXT = [
     "[Needs More Information]",
     "[More Information Needed]",
-    "(https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)",
+    "(https://github.com/huggingface/datasets/blob/main/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)",
 ]
 
 # Dictionary representation of section/readme, error_list, warning_list
@@ -173,6 +168,7 @@ class Section:
         }
 
 
+@deprecated("Use `huggingface_hub.DatasetCard` instead.")
 class ReadMe(Section):  # Level 0
     def __init__(self, name: str, lines: List[str], structure: dict = None, suppress_parsing_errors: bool = False):
         super().__init__(name=name, level="")  # Not using lines here as we need to use a child class parse
@@ -189,7 +185,7 @@ class ReadMe(Section):  # Level 0
         else:
             content, error_list, warning_list = self._validate(self.structure)
         if error_list != [] or warning_list != []:
-            errors = "\n".join(list(map(lambda x: "-\t" + x, error_list + warning_list)))
+            errors = "\n".join(["-\t" + x for x in error_list + warning_list])
             error_string = f"The following issues were found for the README at `{self.name}`:\n" + errors
             raise ValueError(error_string)
 
@@ -253,7 +249,6 @@ class ReadMe(Section):  # Level 0
             # If one exactly
             start_key = list(self.content.keys())[0]  # Get the key
             if start_key.startswith("Dataset Card for"):  # Check correct start
-
                 # If the starting is correct, validate all the sections
                 _, sec_error_list, sec_warning_list = self.content[start_key].validate(
                     readme_structure["subsections"][0]

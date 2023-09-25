@@ -67,7 +67,7 @@ def evaluate(dataset, predictions):
                 print(message, file=sys.stderr)
                 continue
 
-            ground_truths = list(map(lambda x: x["text"], qa["answers"]))
+            ground_truths = [x["text"] for x in qa["answers"]]
             prediction = predictions[qa["id"]]
 
             _exact_match = metric_max_over_ground_truths(exact_match_score, prediction, ground_truths)

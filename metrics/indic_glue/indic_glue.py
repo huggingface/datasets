@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +15,6 @@
 
 import numpy as np
 from scipy.spatial.distance import cdist
-from scipy.stats import pearsonr, spearmanr
 from sklearn.metrics import f1_score
 
 import datasets
