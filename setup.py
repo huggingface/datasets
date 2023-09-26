@@ -125,8 +125,8 @@ REQUIRED_PKGS = [
     # for better multiprocessing
     "multiprocess",
     # to save datasets locally or on any filesystem
-    # minimum 2021.11.1 so that BlockSizeError is fixed: see https://github.com/fsspec/filesystem_spec/pull/830
-    "fsspec[http]>=2021.11.1",
+    # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
+    "fsspec[http]>=2023.1.0",
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
