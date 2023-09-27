@@ -783,6 +783,16 @@ def xpandas_read_excel(filepath_or_buffer, download_config: Optional[DownloadCon
             )
 
 
+def xpyarrow_parquet_read_table(filepath_or_buffer, download_config: Optional[DownloadConfig] = None, **kwargs):
+    import pyarrow.parquet as pq
+
+    if hasattr(filepath_or_buffer, "read"):
+        return pq.read_table(filepath_or_buffer, **kwargs)
+    else:
+        filepath_or_buffer = str(filepath_or_buffer)
+        return pq.read_table(xopen(filepath_or_buffer, mode="rb", download_config=download_config), **kwargs)
+
+
 def xsio_loadmat(filepath_or_buffer, download_config: Optional[DownloadConfig] = None, **kwargs):
     import scipy.io as sio
 
