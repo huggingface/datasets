@@ -5,7 +5,7 @@ from typing import Optional
 
 import pytest
 import requests
-from huggingface_hub.hf_api import HfApi, HfFolder
+from huggingface_hub.hf_api import HfApi, HfFolder, RepositoryNotFoundError
 
 
 CI_HUB_USER = "__DUMMY_TRANSFORMERS_USER__"
@@ -69,7 +69,10 @@ def temporary_repo(cleanup_repo):
         try:
             yield repo_id
         finally:
-            cleanup_repo(repo_id)
+            try:
+                cleanup_repo(repo_id)
+            except RepositoryNotFoundError:
+                pass
 
     return _temporary_repo
 
