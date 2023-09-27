@@ -2104,11 +2104,11 @@ class BeamBasedBuilder(DatasetBuilder):
             if self.dl_manager
             else DownloadConfig(token=self.token, storage_options=self._fs.storage_options)
         )
-        with xopen(f"{self._output_dir}/{config.DATASET_ARROW_FILENAME}", "wb", download_config=download_config) as f:
+        with xopen(f"{self._output_dir}/{config.DATASET_INFO_FILENAME}", "wb", download_config=download_config) as f:
             self.info._dump_info(f)
         if self.info.license:
             with xopen(
-                f"{self._output_dir}/{config.DATASET_ARROW_FILENAME}", "wb", download_config=download_config
+                f"{self._output_dir}/{config.LICENSE_FILENAME}", "wb", download_config=download_config
             ) as f:
                 self.info._dump_license(f)
 
