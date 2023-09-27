@@ -79,7 +79,7 @@ def temporary_repo(cleanup_repo):
 
 @pytest.fixture(scope="session")
 def hf_private_dataset_repo_txt_data_(hf_api: HfApi, hf_token, text_file):
-    repo_name = f"repo_txt_data-{int(time.time() * 10e3)}"
+    repo_name = f"repo_txt_data-{int(time.time() * 10e6)}"
     repo_id = f"{CI_HUB_USER}/{repo_name}"
     hf_api.create_repo(repo_id, token=hf_token, repo_type="dataset", private=True)
     hf_api.upload_file(
@@ -103,7 +103,7 @@ def hf_private_dataset_repo_txt_data(hf_private_dataset_repo_txt_data_, ci_hub_c
 
 @pytest.fixture(scope="session")
 def hf_private_dataset_repo_zipped_txt_data_(hf_api: HfApi, hf_token, zip_csv_with_dir_path):
-    repo_name = f"repo_zipped_txt_data-{int(time.time() * 10e3)}"
+    repo_name = f"repo_zipped_txt_data-{int(time.time() * 10e6)}"
     repo_id = f"{CI_HUB_USER}/{repo_name}"
     hf_api.create_repo(repo_id, token=hf_token, repo_type="dataset", private=True)
     hf_api.upload_file(
@@ -129,7 +129,7 @@ def hf_private_dataset_repo_zipped_txt_data(
 
 @pytest.fixture(scope="session")
 def hf_private_dataset_repo_zipped_img_data_(hf_api: HfApi, hf_token, zip_image_path):
-    repo_name = f"repo_zipped_img_data-{int(time.time() * 10e3)}"
+    repo_name = f"repo_zipped_img_data-{int(time.time() * 10e6)}"
     repo_id = f"{CI_HUB_USER}/{repo_name}"
     hf_api.create_repo(repo_id, token=hf_token, repo_type="dataset", private=True)
     hf_api.upload_file(
