@@ -1,6 +1,7 @@
 import time
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Optional
 
 import pytest
 import requests
@@ -63,7 +64,8 @@ def cleanup_repo(hf_api):
 @pytest.fixture
 def temporary_repo(cleanup_repo):
     @contextmanager
-    def _temporary_repo(repo_id):
+    def _temporary_repo(repo_id: Optional[str] = None):
+        repo_id = repo_id or f"{CI_HUB_USER}/test-{int(time.time() * 10e6)}"
         try:
             yield repo_id
         finally:
