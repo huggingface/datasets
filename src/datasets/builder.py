@@ -2107,9 +2107,7 @@ class BeamBasedBuilder(DatasetBuilder):
         with xopen(f"{self._output_dir}/{config.DATASET_INFO_FILENAME}", "wb", download_config=download_config) as f:
             self.info._dump_info(f)
         if self.info.license:
-            with xopen(
-                f"{self._output_dir}/{config.LICENSE_FILENAME}", "wb", download_config=download_config
-            ) as f:
+            with xopen(f"{self._output_dir}/{config.LICENSE_FILENAME}", "wb", download_config=download_config) as f:
                 self.info._dump_license(f)
 
     def _prepare_split(
