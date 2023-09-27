@@ -10,14 +10,19 @@ from ..config import METADATA_CONFIGS_FIELD
 from ..utils.logging import get_logger
 from .deprecation_utils import deprecated
 
+try:
+    from yaml import CSafeDumper as SafeDumper, CSafeLoader as SafeLoader
+except ImportError:
+    from yaml import SafeDumper, SafeLoader
+
 
 logger = get_logger(__name__)
 
 
-class _NoDuplicateSafeLoader(yaml.SafeLoader):
+class _NoDuplicateSafeLoader(SafeLoader):
     def _check_no_duplicates_on_constructed_node(self, node):
-        keys = [self.constructed_objects[key_node] for key_node, _ in node.value]
-        keys = [tuple(key) if isinstance(key, list) else key for key in keys]
+        keys = (self.constructed_objects[key_node] for key_node, _ in node.value)
+        keys = (tuple(key) if isinstance(key, list) else key for key in keys)
         counter = Counter(keys)
         duplicate_keys = [key for key in counter if counter[key] > 1]
         if duplicate_keys:
@@ -105,11 +110,12 @@ class DatasetMetadata(dict):
         return cls(**metadata_dict)
 
     def to_yaml_string(self) -> str:
-        return yaml.safe_dump(
+        return yaml.dump(
             {
                 (key.replace("_", "-") if key in self._FIELDS_WITH_DASHES else key): value
                 for key, value in self.items()
             },
+            Dumper=SafeDumper,
             sort_keys=False,
             allow_unicode=True,
             encoding="utf-8",
