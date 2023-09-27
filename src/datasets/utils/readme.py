@@ -9,6 +9,11 @@ import yaml
 from . import resources
 from .deprecation_utils import deprecated
 
+try:
+    from yaml import CSafeLoader as SafeLoader
+except ImportError:
+    from yaml import SafeLoader
+
 
 BASE_REF_URL = "https://github.com/huggingface/datasets/tree/main/src/datasets/utils"
 this_url = f"{BASE_REF_URL}/{__file__}"
@@ -17,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 def load_yaml_resource(resource: str) -> Tuple[Any, str]:
     content = pkg_resources.read_text(resources, resource)
-    return yaml.safe_load(content), f"{BASE_REF_URL}/resources/{resource}"
+    return yaml.load(content, Loader=SafeLoader), f"{BASE_REF_URL}/resources/{resource}"
 
 
 readme_structure, known_readme_structure_url = load_yaml_resource("readme_structure.yaml")
