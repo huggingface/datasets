@@ -10,8 +10,10 @@ from ..config import METADATA_CONFIGS_FIELD
 from ..utils.logging import get_logger
 from .deprecation_utils import deprecated
 
+
 try:
-    from yaml import CSafeDumper as SafeDumper, CSafeLoader as SafeLoader
+    from yaml import CSafeDumper as SafeDumper
+    from yaml import CSafeLoader as SafeLoader
 except ImportError:
     from yaml import SafeDumper, SafeLoader
 

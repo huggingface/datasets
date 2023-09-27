@@ -9,6 +9,7 @@ import yaml
 from . import resources
 from .deprecation_utils import deprecated
 
+
 try:
     from yaml import CSafeLoader as SafeLoader
 except ImportError:
