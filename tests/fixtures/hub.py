@@ -1,4 +1,5 @@
 import time
+import uuid
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Optional
@@ -65,7 +66,7 @@ def cleanup_repo(hf_api):
 def temporary_repo(cleanup_repo):
     @contextmanager
     def _temporary_repo(repo_id: Optional[str] = None):
-        repo_id = repo_id or f"{CI_HUB_USER}/test-{int(time.time() * 10e6)}"
+        repo_id = repo_id or f"{CI_HUB_USER}/test-dataset-{uuid.uuid4().hex[:6]}-{int(time.time() * 10e3)}"
         try:
             yield repo_id
         finally:
