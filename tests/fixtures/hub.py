@@ -1,10 +1,12 @@
 import time
+import uuid
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Optional
 
 import pytest
 import requests
-from huggingface_hub.hf_api import HfApi, HfFolder
+from huggingface_hub.hf_api import HfApi, HfFolder, RepositoryNotFoundError
 
 
 CI_HUB_USER = "__DUMMY_TRANSFORMERS_USER__"
@@ -63,18 +65,22 @@ def cleanup_repo(hf_api):
 @pytest.fixture
 def temporary_repo(cleanup_repo):
     @contextmanager
-    def _temporary_repo(repo_id):
+    def _temporary_repo(repo_id: Optional[str] = None):
+        repo_id = repo_id or f"{CI_HUB_USER}/test-dataset-{uuid.uuid4().hex[:6]}-{int(time.time() * 10e3)}"
         try:
             yield repo_id
         finally:
-            cleanup_repo(repo_id)
+            try:
+                cleanup_repo(repo_id)
+            except RepositoryNotFoundError:
+                pass
 
     return _temporary_repo
 
 
 @pytest.fixture(scope="session")
 def hf_private_dataset_repo_txt_data_(hf_api: HfApi, hf_token, text_file):
-    repo_name = f"repo_txt_data-{int(time.time() * 10e3)}"
+    repo_name = f"repo_txt_data-{int(time.time() * 10e6)}"
     repo_id = f"{CI_HUB_USER}/{repo_name}"
     hf_api.create_repo(repo_id, token=hf_token, repo_type="dataset", private=True)
     hf_api.upload_file(
@@ -98,7 +104,7 @@ def hf_private_dataset_repo_txt_data(hf_private_dataset_repo_txt_data_, ci_hub_c
 
 @pytest.fixture(scope="session")
 def hf_private_dataset_repo_zipped_txt_data_(hf_api: HfApi, hf_token, zip_csv_with_dir_path):
-    repo_name = f"repo_zipped_txt_data-{int(time.time() * 10e3)}"
+    repo_name = f"repo_zipped_txt_data-{int(time.time() * 10e6)}"
     repo_id = f"{CI_HUB_USER}/{repo_name}"
     hf_api.create_repo(repo_id, token=hf_token, repo_type="dataset", private=True)
     hf_api.upload_file(
@@ -124,7 +130,7 @@ def hf_private_dataset_repo_zipped_txt_data(
 
 @pytest.fixture(scope="session")
 def hf_private_dataset_repo_zipped_img_data_(hf_api: HfApi, hf_token, zip_image_path):
-    repo_name = f"repo_zipped_img_data-{int(time.time() * 10e3)}"
+    repo_name = f"repo_zipped_img_data-{int(time.time() * 10e6)}"
     repo_id = f"{CI_HUB_USER}/{repo_name}"
     hf_api.create_repo(repo_id, token=hf_token, repo_type="dataset", private=True)
     hf_api.upload_file(
