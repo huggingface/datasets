@@ -2099,14 +2099,15 @@ class BeamBasedBuilder(DatasetBuilder):
                 self._rename(src_fpath, dst_fpath)
 
     def _save_info(self):
-        import apache_beam as beam
-
-        fs = beam.io.filesystems.FileSystems
-        path_join = os.path.join if not is_remote_filesystem(self._fs) else posixpath.join
-        with fs.create(path_join(self._output_dir, config.DATASET_INFO_FILENAME)) as f:
+        download_config = (
+            self.dl_manager.download_config
+            if self.dl_manager
+            else DownloadConfig(token=self.token, storage_options=self._fs.storage_options)
+        )
+        with xopen(f"{self._output_dir}/{config.DATASET_INFO_FILENAME}", "wb", download_config=download_config) as f:
             self.info._dump_info(f)
         if self.info.license:
-            with fs.create(path_join(self._output_dir, config.LICENSE_FILENAME)) as f:
+            with xopen(f"{self._output_dir}/{config.LICENSE_FILENAME}", "wb", download_config=download_config) as f:
                 self.info._dump_license(f)
 
     def _prepare_split(
@@ -2176,8 +2177,13 @@ class BeamBasedBuilder(DatasetBuilder):
         else:
             remote_prepared_urls = [f"{self._remote_cache_dir_from_hf_gcs}/{self.name}-{split.name}.arrow"]
         key = 0
+        download_config = (
+            self.dl_manager.download_config
+            if self.dl_manager
+            else DownloadConfig(token=self.token, storage_options=self._fs.storage_options)
+        )
         for remote_prepared_url in remote_prepared_urls:
-            with xopen(remote_prepared_url, "rb") as f:
+            with xopen(remote_prepared_url, "rb", download_config=download_config) as f:
                 with pa.ipc.open_stream(f) as reader:
                     for record_batch in reader:
                         for record in record_batch.to_pylist():
@@ -2189,7 +2195,12 @@ class BeamBasedBuilder(DatasetBuilder):
 
         remote_dataset_info = f"{self._remote_cache_dir_from_hf_gcs}/{config.DATASET_INFO_FILENAME}"
         try:
-            with xopen(remote_dataset_info) as f:
+            download_config = download_config = (
+                self.dl_manager.download_config
+                if self.dl_manager
+                else DownloadConfig(token=self.token, storage_options=self._fs.storage_options)
+            )
+            with xopen(remote_dataset_info, download_config=download_config) as f:
                 import json
 
                 _info = json.load(f)
