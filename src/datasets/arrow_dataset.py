@@ -58,7 +58,14 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
-from huggingface_hub import DatasetCard, DatasetCardData, HfApi, HfFolder
+from huggingface_hub import (
+    CommitOperationAdd,
+    CommitOperationDelete,
+    DatasetCard,
+    DatasetCardData,
+    HfApi,
+    HfFolder,
+)
 from multiprocess import Pool
 from requests import HTTPError
 
@@ -5293,6 +5300,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         uploaded_size = 0
         shards_path_in_repo = []
+        operations = []
         for index, shard in logging.tqdm(
             enumerate(itertools.chain([first_shard], shards_iter)),
             desc="Pushing dataset shards to the dataset hub",
@@ -5305,12 +5313,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 buffer = BytesIO()
                 shard.to_parquet(buffer)
                 uploaded_size += buffer.tell()
+                shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=buffer)
+                api.preupload_lfs_files(repo_id, [shard_addition], token=token, repo_type="dataset", revision=branch)
                 _retry(
-                    api.upload_file,
+                    api.preupload_lfs_files,
                     func_kwargs={
-                        "path_or_fileobj": buffer.getvalue(),
-                        "path_in_repo": shard_path_in_repo,
                         "repo_id": repo_id,
+                        "additions": [shard_addition],
                         "token": token,
                         "repo_type": "dataset",
                         "revision": branch,
@@ -5321,6 +5330,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     max_retries=5,
                     max_wait_time=20.0,
                 )
+                operations.append(shard_addition)
             shards_path_in_repo.append(shard_path_in_repo)
 
         # Cleanup to remove unused files
@@ -5329,23 +5339,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             for data_file in data_files
             if data_file.startswith(f"{data_dir}/{split}-") and data_file not in shards_path_in_repo
         ]
+        for data_file in data_files_to_delete:
+            operations.append(CommitOperationDelete(path_in_repo=data_file))
         download_config = DownloadConfig(token=token)
         deleted_size = sum(
             xgetsize(hf_hub_url(repo_id, data_file, revision=branch), download_config=download_config)
             for data_file in data_files_to_delete
         )
 
-        def delete_file(file):
-            api.delete_file(file, repo_id=repo_id, token=token, repo_type="dataset", revision=branch)
-
-        if len(data_files_to_delete):
-            for data_file in logging.tqdm(
-                data_files_to_delete,
-                desc="Deleting unused files from dataset repository",
-                total=len(data_files_to_delete),
-                disable=not logging.is_progress_bar_enabled(),
-            ):
-                delete_file(data_file)
+        api.create_commit(
+            repo_id,
+            operations=operations,
+            token=token,
+            repo_type="dataset",
+            revision=branch,
+            commit_message="Uplod data files",
+        )
 
         repo_files = list(set(files) - set(data_files_to_delete))
 
