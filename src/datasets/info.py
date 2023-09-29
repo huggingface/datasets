@@ -284,7 +284,7 @@ class DatasetInfo:
         task_templates = None
 
         repo_ids = {dset_info.repo_id for dset_info in dataset_infos}
-        if len(repo_ids) == 1 and next(iter(repo_ids)) is not None:
+        if len(repo_ids) == 1:
             repo_id = next(iter(repo_ids))
         else:
             repo_id = None
