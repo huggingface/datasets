@@ -153,6 +153,7 @@ class DatasetInfo:
     dataset_name: Optional[str] = None  # for packaged builders, to be different from builder_name
     config_name: Optional[str] = None
     version: Optional[Union[str, Version]] = None
+    repo_id: Optional[str] = None
     # Set later by `download_and_prepare`
     splits: Optional[dict] = None
     download_checksums: Optional[dict] = None
@@ -282,6 +283,12 @@ class DatasetInfo:
         supervised_keys = None
         task_templates = None
 
+        repo_ids = {dset_info.repo_id for dset_info in dataset_infos}
+        if len(repo_ids) == 1 and next(iter(repo_ids)) is not None:
+            repo_id = next(iter(repo_ids))
+        else:
+            repo_id = None
+
         # Find common task templates across all dataset infos
         all_task_templates = [info.task_templates for info in dataset_infos if info.task_templates is not None]
         if len(all_task_templates) > 1:
@@ -299,6 +306,7 @@ class DatasetInfo:
             features=features,
             supervised_keys=supervised_keys,
             task_templates=task_templates,
+            repo_id=repo_id,
         )
 
     @classmethod

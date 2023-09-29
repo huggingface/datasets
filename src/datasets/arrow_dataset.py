@@ -221,6 +221,10 @@ class DatasetInfoMixin:
     def version(self):
         return self._info.version
 
+    @property
+    def repo_id(self) -> str:
+        return self._info.repo_id
+
 
 class TensorflowDatasetMixin:
     _TF_DATASET_REFS = set()

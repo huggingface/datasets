@@ -390,6 +390,8 @@ class DatasetBuilder:
         # update info with user specified infos
         if features is not None:
             self.info.features = features
+        if repo_id is not None:
+            self.info.repo_id = repo_id
 
         # Prepare data dirs:
         # cache_dir can be a remote bucket on GCS or S3 (when using BeamBasedBuilder for distributed data processing)
@@ -417,7 +419,7 @@ class DatasetBuilder:
                     if len(os.listdir(self._cache_dir)) > 0:
                         if os.path.exists(path_join(self._cache_dir, config.DATASET_INFO_FILENAME)):
                             logger.info("Overwrite dataset info from restored data version if exists.")
-                            self.info = DatasetInfo.from_directory(self._cache_dir)
+                            self.info.update(DatasetInfo.from_directory(self._cache_dir))
                     else:  # dir exists but no data, remove the empty dir as data aren't available anymore
                         logger.warning(
                             f"Old caching folder {self._cache_dir} for dataset {self.dataset_name} exists but no data were found. Removing it. "
@@ -882,7 +884,7 @@ class DatasetBuilder:
                 logger.info(f"Found cached dataset {self.dataset_name} ({self._output_dir})")
                 # We need to update the info in case some splits were added in the meantime
                 # for example when calling load_dataset from multiple workers.
-                self.info = self._load_info()
+                self.info.update(self._load_info())
                 self.download_post_processing_resources(dl_manager)
                 return
 
