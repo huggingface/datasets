@@ -285,7 +285,7 @@ class DatasetInfo:
 
         repo_ids = {dset_info.repo_id for dset_info in dataset_infos}
         if len(repo_ids) == 1:
-            repo_id = next(iter(repo_ids))
+            repo_id = repo_ids.pop()
         else:
             repo_id = None
 
