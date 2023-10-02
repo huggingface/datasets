@@ -5313,8 +5313,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 buffer = BytesIO()
                 shard.to_parquet(buffer)
                 uploaded_size += buffer.tell()
-                shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=buffer)
-                api.preupload_lfs_files(repo_id, [shard_addition], token=token, repo_type="dataset", revision=branch)
                 _retry(
                     api.preupload_lfs_files,
                     func_kwargs={
@@ -5353,7 +5351,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             token=token,
             repo_type="dataset",
             revision=branch,
-            commit_message="Uplod data files",
+            commit_message="Upload data files",
         )
 
         repo_files = list(set(files) - set(data_files_to_delete))
