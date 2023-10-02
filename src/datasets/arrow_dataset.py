@@ -5313,6 +5313,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 buffer = BytesIO()
                 shard.to_parquet(buffer)
                 uploaded_size += buffer.tell()
+                shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=buffer)
                 _retry(
                     api.preupload_lfs_files,
                     func_kwargs={
