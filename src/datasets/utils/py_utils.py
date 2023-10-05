@@ -29,11 +29,12 @@ import warnings
 from contextlib import contextmanager
 from dataclasses import fields, is_dataclass
 from io import BytesIO as StringIO
+from itertools import chain
 from multiprocessing import Manager
 from queue import Empty
 from shutil import disk_usage
 from types import CodeType, FunctionType
-from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, TypeVar, Union
+from typing import Any, Callable, Dict, Iterable, Iterator, List, MutableSet, Optional, Set, Tuple, TypeVar, Union
 from urllib.parse import urlparse
 
 import dill
@@ -349,6 +350,52 @@ class NonMutableDict(dict):
         if any(k in self for k in other):
             raise ValueError(self._error_msg.format(key=set(self) & set(other)))
         return super().update(other)
+
+
+T = TypeVar("T")
+
+
+class OrderedSet(MutableSet[T]):
+    """A set that preserves insertion order by internally using a dict.
+
+    >>> OrderedSet([1, 2, "foo"])
+    """
+
+    __slots__ = ("_d",)
+
+    def __init__(self, iterable: Optional[Iterable[T]] = None):
+        self._d = dict.fromkeys(iterable) if iterable else {}
+
+    def add(self, x: T) -> None:
+        self._d[x] = None
+
+    def update(self, iterable: Iterable[T]) -> None:
+        for item in iterable:
+            self.add(item)
+
+    def clear(self) -> None:
+        self._d.clear()
+
+    def discard(self, x: T) -> None:
+        self._d.pop(x, None)
+
+    def __contains__(self, x: object) -> bool:
+        return self._d.__contains__(x)
+
+    def __len__(self) -> int:
+        return self._d.__len__()
+
+    def __iter__(self) -> Iterator[T]:
+        return self._d.__iter__()
+
+    def __str__(self):
+        return f"{{{', '.join(str(i) for i in self)}}}"
+
+    def __repr__(self):
+        return f"<OrderedSet {self}>"
+
+    def __add__(self, other: "OrderedSet[T]") -> "OrderedSet[T]":
+        return OrderedSet(chain(self, other))
 
 
 class classproperty(property):  # pylint: disable=invalid-name

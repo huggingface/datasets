@@ -20,7 +20,7 @@ from .splits import Split
 from .utils import logging
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import is_local_path, is_relative_path
-from .utils.py_utils import glob_pattern_to_regex, string_to_dict
+from .utils.py_utils import OrderedSet, glob_pattern_to_regex, string_to_dict
 
 
 SANITIZED_DEFAULT_SPLIT = str(Split.TRAIN)
@@ -520,7 +520,7 @@ def _get_origin_metadata(
     )
 
 
-class DataFilesSet(Set[str]):
+class DataFilesSet(OrderedSet[str]):
     """
     Set of data files (absolute local paths or URLs).
     It has two construction methods given the user's data files patterns :
