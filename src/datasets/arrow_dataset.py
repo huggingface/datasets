@@ -1026,10 +1026,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Whether to copy the data in-memory.
             gen_kwargs(`dict`, *optional*):
                 Keyword arguments to be passed to the `generator` callable.
-                You can define a sharded dataset by passing the list of shards in `gen_kwargs`.
+                You can define a sharded dataset by passing the list of shards in `gen_kwargs` and setting `num_proc` greater than 1.
             num_proc (`int`, *optional*, defaults to `None`):
                 Number of processes when downloading and generating the dataset locally.
                 This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
+                If `num_proc` is greater than one, then all list values in `gen_kwargs` must be the same length. These values will be split between calls to the generator. The number of shards will be the minimum of the shortest list in `gen_kwargs` and `num_proc`.
 
                 <Added version="2.7.0"/>
             **kwargs (additional keyword arguments):
