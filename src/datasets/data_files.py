@@ -18,6 +18,7 @@ from .download import DownloadConfig
 from .download.streaming_download_manager import _prepare_path_and_storage_options, xbasename, xjoin
 from .splits import Split
 from .utils import logging
+from .utils.deprecation_utils import deprecated
 from .utils.file_utils import is_local_path, is_relative_path
 from .utils.py_utils import glob_pattern_to_regex, string_to_dict
 
@@ -287,7 +288,7 @@ def resolve_pattern(
     base_path: str,
     allowed_extensions: Optional[List[str]] = None,
     download_config: Optional[DownloadConfig] = None,
-) -> Set[str]:
+) -> List[str]:
     """
     Resolve the paths and URLs of the data files from the pattern passed by the user.
 
@@ -329,7 +330,7 @@ def resolve_pattern(
         allowed_extensions (Optional[list], optional): White-list of file extensions to use. Defaults to None (all extensions).
             For example: allowed_extensions=[".csv", ".json", ".txt", ".parquet"]
     Returns:
-        Set[str]: Set of paths or URLs to the local or remote files that match the patterns.
+        List[str]: List of paths or URLs to the local or remote files that match the patterns.
     """
     if is_relative_path(pattern):
         pattern = xjoin(base_path, pattern)
@@ -344,7 +345,7 @@ def resolve_pattern(
     files_to_ignore = set(FILES_TO_IGNORE) - {xbasename(pattern)}
     protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[0]
     protocol_prefix = protocol + "://" if protocol != "file" else ""
-    matched_paths = {
+    matched_paths = [
         filepath if filepath.startswith(protocol_prefix) else protocol_prefix + filepath
         for filepath, info in fs.glob(pattern, detail=True).items()
         if info["type"] == "file"
@@ -355,15 +356,15 @@ def resolve_pattern(
         and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(
             os.path.relpath(filepath, fs_base_path), os.path.relpath(fs_pattern, fs_base_path)
         )
-    }  # ignore .ipynb and __pycache__, but keep /../
+    ]  # ignore .ipynb and __pycache__, but keep /../
     if allowed_extensions is not None:
-        out = {
+        out = [
             filepath
             for filepath in matched_paths
             if any("." + suffix in allowed_extensions for suffix in xbasename(filepath).split(".")[1:])
-        }
+        ]
         if len(out) < len(matched_paths):
-            invalid_matched_files = list(matched_paths - out)
+            invalid_matched_files = list(set(matched_paths) - set(out))
             logger.info(
                 f"Some files matched the pattern '{pattern}' but don't have valid data file extensions: {invalid_matched_files}"
             )
@@ -505,7 +506,7 @@ def _get_single_origin_metadata(
 
 
 def _get_origin_metadata(
-    data_files: Set[str],
+    data_files: Iterable[str],
     max_workers=64,
     download_config: Optional[DownloadConfig] = None,
 ) -> Tuple[str]:
@@ -602,6 +603,82 @@ class DataFilesSet(Set[str]):
         pattern = re.compile(f".*({pattern})(\\..+)?$")
         return DataFilesSet(
             (data_file for data_file in self if pattern.match(data_file)),
+            origin_metadata=self.origin_metadata,
+        )
+
+
+@deprecated("Use DataFilesSet instead.")
+class DataFilesList(List[str]):
+    """
+    Deprecated list of data files (absolute local paths or URLs).
+    Use DataFilesSet instead.
+    """
+
+    def __init__(self, data_files: List[str], origin_metadata: List[Tuple[str]]):
+        super().__init__(data_files)
+        self.origin_metadata = origin_metadata
+
+    def __add__(self, other):
+        return DataFilesList([*self, *other], self.origin_metadata + other.origin_metadata)
+
+    @classmethod
+    def from_hf_repo(
+        cls,
+        patterns: List[str],
+        dataset_info: huggingface_hub.hf_api.DatasetInfo,
+        base_path: Optional[str] = None,
+        allowed_extensions: Optional[List[str]] = None,
+        download_config: Optional[DownloadConfig] = None,
+    ) -> "DataFilesList":
+        base_path = f"hf://datasets/{dataset_info.id}@{dataset_info.sha}/{base_path or ''}".rstrip("/")
+        return cls.from_patterns(
+            patterns, base_path=base_path, allowed_extensions=allowed_extensions, download_config=download_config
+        )
+
+    @classmethod
+    def from_local_or_remote(
+        cls,
+        patterns: List[str],
+        base_path: Optional[str] = None,
+        allowed_extensions: Optional[List[str]] = None,
+        download_config: Optional[DownloadConfig] = None,
+    ) -> "DataFilesList":
+        base_path = base_path if base_path is not None else Path().resolve().as_posix()
+        return cls.from_patterns(
+            patterns, base_path=base_path, allowed_extensions=allowed_extensions, download_config=download_config
+        )
+
+    @classmethod
+    def from_patterns(
+        cls,
+        patterns: List[str],
+        base_path: Optional[str] = None,
+        allowed_extensions: Optional[List[str]] = None,
+        download_config: Optional[DownloadConfig] = None,
+    ) -> "DataFilesList":
+        base_path = base_path if base_path is not None else Path().resolve().as_posix()
+        data_files = []
+        for pattern in patterns:
+            try:
+                data_files.extend(
+                    resolve_pattern(
+                        pattern,
+                        base_path=base_path,
+                        allowed_extensions=allowed_extensions,
+                        download_config=download_config,
+                    )
+                )
+            except FileNotFoundError:
+                if not has_magic(pattern):
+                    raise
+        origin_metadata = _get_origin_metadata(data_files, download_config=download_config)
+        return cls(data_files, origin_metadata)
+
+    def filter_extensions(self, extensions: List[str]) -> "DataFilesList":
+        pattern = "|".join("\\" + ext for ext in extensions)
+        pattern = re.compile(f".*({pattern})(\\..+)?$")
+        return DataFilesList(
+            [data_file for data_file in self if pattern.match(data_file)],
             origin_metadata=self.origin_metadata,
         )
 
