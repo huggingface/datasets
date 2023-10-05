@@ -577,6 +577,7 @@ class DataFilesList(List[str]):
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
         download_config: Optional[DownloadConfig] = None,
+        drop_duplicates=True,
     ) -> "DataFilesList":
         base_path = base_path if base_path is not None else Path().resolve().as_posix()
         data_files = []
@@ -593,6 +594,8 @@ class DataFilesList(List[str]):
             except FileNotFoundError:
                 if not has_magic(pattern):
                     raise
+        if drop_duplicates:
+            data_files = list({data_file: None for data_file in data_files})
         origin_metadata = _get_origin_metadata(data_files, download_config=download_config)
         return cls(data_files, origin_metadata)
 
