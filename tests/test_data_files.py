@@ -11,7 +11,7 @@ from fsspec.spec import AbstractFileSystem
 
 from datasets.data_files import (
     DataFilesDict,
-    DataFilesList,
+    DataFilesSet,
     _get_data_files_patterns,
     _get_metadata_files_patterns,
     _is_inside_unrequested_special_dir,
@@ -364,26 +364,26 @@ def test_resolve_pattern_fs(dummy_fs):
 
 
 @pytest.mark.parametrize("pattern", _TEST_PATTERNS)
-def test_DataFilesList_from_patterns_in_dataset_repository_(
+def test_DataFilesSet_from_patterns_in_dataset_repository_(
     hub_dataset_repo_path, hub_dataset_repo_patterns_results, pattern
 ):
     try:
-        data_files_list = DataFilesList.from_patterns([pattern], hub_dataset_repo_path)
-        assert sorted(data_files_list) == hub_dataset_repo_patterns_results[pattern]
-        assert len(data_files_list.origin_metadata) == len(data_files_list)
+        data_files_set = DataFilesSet.from_patterns([pattern], hub_dataset_repo_path)
+        assert sorted(data_files_set) == hub_dataset_repo_patterns_results[pattern]
+        assert len(data_files_set.origin_metadata) == len(data_files_set)
     except FileNotFoundError:
         assert len(hub_dataset_repo_patterns_results[pattern]) == 0
 
 
-def test_DataFilesList_from_patterns_locally_with_extra_files(complex_data_dir, text_file):
-    data_files_list = DataFilesList.from_patterns([_TEST_URL, text_file.as_posix()], complex_data_dir)
-    assert list(data_files_list) == [_TEST_URL, text_file.as_posix()]
-    assert len(data_files_list.origin_metadata) == 2
+def test_DataFilesSet_from_patterns_locally_with_extra_files(complex_data_dir, text_file):
+    data_files_set = DataFilesSet.from_patterns([_TEST_URL, text_file.as_posix()], complex_data_dir)
+    assert list(data_files_set) == [_TEST_URL, text_file.as_posix()]
+    assert len(data_files_set.origin_metadata) == 2
 
 
-def test_DataFilesList_from_patterns_raises_FileNotFoundError(complex_data_dir):
+def test_DataFilesSet_from_patterns_raises_FileNotFoundError(complex_data_dir):
     with pytest.raises(FileNotFoundError):
-        DataFilesList.from_patterns(["file_that_doesnt_exist.txt"], complex_data_dir)
+        DataFilesSet.from_patterns(["file_that_doesnt_exist.txt"], complex_data_dir)
 
 
 class TestDataFilesDict:
@@ -400,7 +400,7 @@ def test_DataFilesDict_from_patterns_in_dataset_repository(
     split_name = "train"
     try:
         data_files = DataFilesDict.from_patterns({split_name: [pattern]}, hub_dataset_repo_path)
-        assert all(isinstance(data_files_list, DataFilesList) for data_files_list in data_files.values())
+        assert all(isinstance(data_files_set, DataFilesSet) for data_files_set in data_files.values())
         assert sorted(data_files[split_name]) == hub_dataset_repo_patterns_results[pattern]
     except FileNotFoundError:
         assert len(hub_dataset_repo_patterns_results[pattern]) == 0
@@ -434,7 +434,7 @@ def test_DataFilesDict_from_patterns_locally(complex_data_dir, pattern_results, 
     split_name = "train"
     try:
         data_files = DataFilesDict.from_patterns({split_name: [pattern]}, complex_data_dir)
-        assert all(isinstance(data_files_list, DataFilesList) for data_files_list in data_files.values())
+        assert all(isinstance(data_files_set, DataFilesSet) for data_files_set in data_files.values())
         assert sorted(data_files[split_name]) == pattern_results[pattern]
     except FileNotFoundError:
         assert len(pattern_results[pattern]) == 0

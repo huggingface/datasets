@@ -36,8 +36,8 @@ from datasets.load import (
     LocalDatasetModuleFactoryWithScript,
     LocalMetricModuleFactory,
     PackagedDatasetModuleFactory,
-    infer_module_for_data_files_list,
-    infer_module_for_data_files_list_in_archives,
+    infer_module_for_data_files_set,
+    infer_module_for_data_files_set_in_archives,
     load_dataset_builder,
 )
 from datasets.packaged_modules.audiofolder.audiofolder import AudioFolder, AudioFolderConfig
@@ -320,7 +320,7 @@ def metric_loading_script_dir(tmp_path):
     ],
 )
 def test_infer_module_for_data_files(data_files, expected_module, expected_builder_kwargs):
-    module, builder_kwargs = infer_module_for_data_files_list(data_files)
+    module, builder_kwargs = infer_module_for_data_files_set(data_files)
     assert module == expected_module
     assert builder_kwargs == expected_builder_kwargs
 
@@ -344,7 +344,7 @@ def test_infer_module_for_data_files_in_archives(
         "zip_unsupported_ext_path": zip_unsupported_ext_path,
     }
     data_files = [str(data_file_paths[data_file])]
-    inferred_module, _ = infer_module_for_data_files_list_in_archives(data_files)
+    inferred_module, _ = infer_module_for_data_files_set_in_archives(data_files)
     assert inferred_module == expected_module
 
 
