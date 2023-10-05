@@ -25,6 +25,7 @@ import time
 import warnings
 from collections import Counter
 from dataclasses import dataclass, field
+from itertools import islice
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Type, Union
 
@@ -38,7 +39,7 @@ from .builder import BuilderConfig, DatasetBuilder
 from .data_files import (
     DEFAULT_PATTERNS_ALL,
     DataFilesDict,
-    DataFilesList,
+    DataFilesSet,
     EmptyDatasetError,
     get_data_patterns,
     get_metadata_patterns,
@@ -414,8 +415,8 @@ def _create_importable_file(
     return module_path, hash
 
 
-def infer_module_for_data_files_list(
-    data_files_list: DataFilesList, download_config: Optional[DownloadConfig] = None
+def infer_module_for_data_files_set(
+    data_files_set: DataFilesSet, download_config: Optional[DownloadConfig] = None
 ) -> Optional[Tuple[str, str]]:
     """Infer module (and builder kwargs) from list of data files.
 
@@ -423,7 +424,7 @@ def infer_module_for_data_files_list(
     In case of a draw ".parquet" is the favorite, and then alphabetical order.
 
     Args:
-        data_files_list (DataFilesList): List of data files.
+        data_files_set (DataFilesSet): List of data files.
         download_config (bool or str, optional): mainly use use_auth_token or storage_options to support different platforms and auth types.
 
     Returns:
@@ -433,7 +434,7 @@ def infer_module_for_data_files_list(
     """
     extensions_counter = Counter(
         "." + suffix.lower()
-        for filepath in data_files_list[: config.DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE]
+        for filepath in islice(data_files_set, config.DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE)
         for suffix in xbasename(filepath).split(".")[1:]
     )
     if extensions_counter:
@@ -447,17 +448,17 @@ def infer_module_for_data_files_list(
             if ext in _EXTENSION_TO_MODULE:
                 return _EXTENSION_TO_MODULE[ext]
             elif ext == ".zip":
-                return infer_module_for_data_files_list_in_archives(data_files_list, download_config=download_config)
+                return infer_module_for_data_files_set_in_archives(data_files_set, download_config=download_config)
     return None, {}
 
 
-def infer_module_for_data_files_list_in_archives(
-    data_files_list: DataFilesList, download_config: Optional[DownloadConfig] = None
+def infer_module_for_data_files_set_in_archives(
+    data_files_set: DataFilesSet, download_config: Optional[DownloadConfig] = None
 ) -> Optional[Tuple[str, str]]:
     """Infer module (and builder kwargs) from list of archive data files.
 
     Args:
-        data_files_list (DataFilesList): List of data files.
+        data_files_set (DataFilesSet): List of data files.
         download_config (bool or str, optional): mainly use use_auth_token or storage_options to support different platforms and auth types.
 
     Returns:
@@ -467,7 +468,7 @@ def infer_module_for_data_files_list_in_archives(
     """
     archived_files = []
     archive_files_counter = 0
-    for filepath in data_files_list:
+    for filepath in data_files_set:
         if str(filepath).endswith(".zip"):
             archive_files_counter += 1
             if archive_files_counter > config.GLOBBED_DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE:
@@ -505,8 +506,8 @@ def infer_module_for_data_files(
             - builder kwargs
     """
     split_modules = {
-        split: infer_module_for_data_files_list(data_files_list, download_config=download_config)
-        for split, data_files_list in data_files.items()
+        split: infer_module_for_data_files_set(data_files_set, download_config=download_config)
+        for split, data_files_set in data_files.items()
     }
     module_name, default_builder_kwargs = next(iter(split_modules.values()))
     if any((module_name, default_builder_kwargs) != split_module for split_module in split_modules.values()):
@@ -573,14 +574,14 @@ def create_builder_configs_from_metadata_configs(
             except FileNotFoundError:
                 config_metadata_patterns = None
             if config_metadata_patterns is not None:
-                config_metadata_data_files_list = DataFilesList.from_patterns(
+                config_metadata_data_files_set = DataFilesSet.from_patterns(
                     config_metadata_patterns, base_path=base_path
                 )
-                if config_metadata_data_files_list:
+                if config_metadata_data_files_set:
                     config_data_files_dict = DataFilesDict(
                         {
-                            split: data_files_list + config_metadata_data_files_list
-                            for split, data_files_list in config_data_files_dict.items()
+                            split: data_files_set + config_metadata_data_files_set
+                            for split, data_files_set in config_data_files_dict.items()
                         }
                     )
         ignored_params = [
@@ -875,12 +876,12 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             except FileNotFoundError:
                 metadata_patterns = None
             if metadata_patterns is not None:
-                metadata_data_files_list = DataFilesList.from_patterns(metadata_patterns, base_path=base_path)
-                if metadata_data_files_list:
+                metadata_data_files_set = DataFilesSet.from_patterns(metadata_patterns, base_path=base_path)
+                if metadata_data_files_set:
                     data_files = DataFilesDict(
                         {
-                            split: data_files_list + metadata_data_files_list
-                            for split, data_files_list in data_files.items()
+                            split: data_files_set + metadata_data_files_set
+                            for split, data_files_set in data_files.items()
                         }
                     )
 
@@ -967,14 +968,14 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
             except FileNotFoundError:
                 metadata_patterns = None
             if metadata_patterns is not None:
-                metadata_data_files_list = DataFilesList.from_patterns(
+                metadata_data_files_set = DataFilesSet.from_patterns(
                     metadata_patterns, download_config=self.download_config, base_path=base_path
                 )
-                if metadata_data_files_list:
+                if metadata_data_files_set:
                     data_files = DataFilesDict(
                         {
-                            split: data_files_list + metadata_data_files_list
-                            for split, data_files_list in data_files.items()
+                            split: data_files_set + metadata_data_files_set
+                            for split, data_files_set in data_files.items()
                         }
                     )
 
@@ -1065,14 +1066,14 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             except FileNotFoundError:
                 metadata_patterns = None
             if metadata_patterns is not None:
-                metadata_data_files_list = DataFilesList.from_patterns(
+                metadata_data_files_set = DataFilesSet.from_patterns(
                     metadata_patterns, download_config=self.download_config, base_path=base_path
                 )
-                if metadata_data_files_list:
+                if metadata_data_files_set:
                     data_files = DataFilesDict(
                         {
-                            split: data_files_list + metadata_data_files_list
-                            for split, data_files_list in data_files.items()
+                            split: data_files_set + metadata_data_files_set
+                            for split, data_files_set in data_files.items()
                         }
                     )
 

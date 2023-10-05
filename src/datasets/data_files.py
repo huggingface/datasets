@@ -2,8 +2,9 @@ import os
 import re
 from functools import partial
 from glob import has_magic
+from itertools import chain
 from pathlib import Path, PurePath
-from typing import Callable, Dict, List, Optional, Set, Tuple, Union
+from typing import Callable, Dict, Iterable, List, Optional, Set, Tuple, Union
 
 import huggingface_hub
 from fsspec import get_fs_token_paths
@@ -94,7 +95,7 @@ def contains_wildcards(pattern: str) -> bool:
     return any(wilcard_character in pattern for wilcard_character in WILDCARD_CHARACTERS)
 
 
-def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[str], "DataFilesList"]]:
+def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[str], "DataFilesSet"]]:
     """
     Take the data_files patterns from the user, and format them into a dictionary.
     Each key is the name of the split, and each value is a list of data files patterns (paths or urls).
@@ -104,7 +105,7 @@ def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[
         patterns: dictionary of split_name -> list of patterns
     """
     if isinstance(patterns, dict):
-        return {str(key): value if isinstance(value, list) else [value] for key, value in patterns.items()}
+        return {str(key): value if isinstance(value, (list, set)) else [value] for key, value in patterns.items()}
     elif isinstance(patterns, str):
         return {SANITIZED_DEFAULT_SPLIT: [patterns]}
     elif isinstance(patterns, list):
@@ -286,7 +287,7 @@ def resolve_pattern(
     base_path: str,
     allowed_extensions: Optional[List[str]] = None,
     download_config: Optional[DownloadConfig] = None,
-) -> List[str]:
+) -> Set[str]:
     """
     Resolve the paths and URLs of the data files from the pattern passed by the user.
 
@@ -328,7 +329,7 @@ def resolve_pattern(
         allowed_extensions (Optional[list], optional): White-list of file extensions to use. Defaults to None (all extensions).
             For example: allowed_extensions=[".csv", ".json", ".txt", ".parquet"]
     Returns:
-        List[str]: List of paths or URLs to the local or remote files that match the patterns.
+        Set[str]: Set of paths or URLs to the local or remote files that match the patterns.
     """
     if is_relative_path(pattern):
         pattern = xjoin(base_path, pattern)
@@ -343,7 +344,7 @@ def resolve_pattern(
     files_to_ignore = set(FILES_TO_IGNORE) - {xbasename(pattern)}
     protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[0]
     protocol_prefix = protocol + "://" if protocol != "file" else ""
-    matched_paths = [
+    matched_paths = {
         filepath if filepath.startswith(protocol_prefix) else protocol_prefix + filepath
         for filepath, info in fs.glob(pattern, detail=True).items()
         if info["type"] == "file"
@@ -354,15 +355,15 @@ def resolve_pattern(
         and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(
             os.path.relpath(filepath, fs_base_path), os.path.relpath(fs_pattern, fs_base_path)
         )
-    ]  # ignore .ipynb and __pycache__, but keep /../
+    }  # ignore .ipynb and __pycache__, but keep /../
     if allowed_extensions is not None:
-        out = [
+        out = {
             filepath
             for filepath in matched_paths
             if any("." + suffix in allowed_extensions for suffix in xbasename(filepath).split(".")[1:])
-        ]
+        }
         if len(out) < len(matched_paths):
-            invalid_matched_files = list(set(matched_paths) - set(out))
+            invalid_matched_files = list(matched_paths - out)
             logger.info(
                 f"Some files matched the pattern '{pattern}' but don't have valid data file extensions: {invalid_matched_files}"
             )
@@ -504,7 +505,7 @@ def _get_single_origin_metadata(
 
 
 def _get_origin_metadata(
-    data_files: List[str],
+    data_files: Set[str],
     max_workers=64,
     download_config: Optional[DownloadConfig] = None,
 ) -> Tuple[str]:
@@ -518,14 +519,14 @@ def _get_origin_metadata(
     )
 
 
-class DataFilesList(List[str]):
+class DataFilesSet(Set[str]):
     """
-    List of data files (absolute local paths or URLs).
+    Set of data files (absolute local paths or URLs).
     It has two construction methods given the user's data files patterns :
     - ``from_hf_repo``: resolve patterns inside a dataset repository
     - ``from_local_or_remote``: resolve patterns from a local path
 
-    Moreover DataFilesList has an additional attribute ``origin_metadata``.
+    Moreover DataFilesSet has an additional attribute ``origin_metadata``.
     It can store:
     - the last modified time of local files
     - ETag of remote files
@@ -536,12 +537,12 @@ class DataFilesList(List[str]):
     This is useful for caching Dataset objects that are obtained from a list of data files.
     """
 
-    def __init__(self, data_files: List[str], origin_metadata: List[Tuple[str]]):
-        super().__init__(data_files)
-        self.origin_metadata = origin_metadata
+    def __init__(self, data_files: Iterable[str] = None, origin_metadata: Optional[List[Tuple[str]]] = None):
+        super().__init__(data_files if data_files is not None else [])
+        self.origin_metadata = origin_metadata if origin_metadata is not None else []
 
     def __add__(self, other):
-        return DataFilesList([*self, *other], self.origin_metadata + other.origin_metadata)
+        return DataFilesSet(chain(self, other), self.origin_metadata + other.origin_metadata)
 
     @classmethod
     def from_hf_repo(
@@ -551,7 +552,7 @@ class DataFilesList(List[str]):
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
         download_config: Optional[DownloadConfig] = None,
-    ) -> "DataFilesList":
+    ) -> "DataFilesSet":
         base_path = f"hf://datasets/{dataset_info.id}@{dataset_info.sha}/{base_path or ''}".rstrip("/")
         return cls.from_patterns(
             patterns, base_path=base_path, allowed_extensions=allowed_extensions, download_config=download_config
@@ -564,7 +565,7 @@ class DataFilesList(List[str]):
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
         download_config: Optional[DownloadConfig] = None,
-    ) -> "DataFilesList":
+    ) -> "DataFilesSet":
         base_path = base_path if base_path is not None else Path().resolve().as_posix()
         return cls.from_patterns(
             patterns, base_path=base_path, allowed_extensions=allowed_extensions, download_config=download_config
@@ -577,12 +578,12 @@ class DataFilesList(List[str]):
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
         download_config: Optional[DownloadConfig] = None,
-    ) -> "DataFilesList":
+    ) -> "DataFilesSet":
         base_path = base_path if base_path is not None else Path().resolve().as_posix()
-        data_files = []
+        data_files = DataFilesSet()
         for pattern in patterns:
             try:
-                data_files.extend(
+                data_files.update(
                     resolve_pattern(
                         pattern,
                         base_path=base_path,
@@ -593,28 +594,28 @@ class DataFilesList(List[str]):
             except FileNotFoundError:
                 if not has_magic(pattern):
                     raise
-        origin_metadata = _get_origin_metadata(data_files, download_config=download_config)
-        return cls(data_files, origin_metadata)
+        data_files.origin_metadata = _get_origin_metadata(data_files, download_config=download_config)
+        return data_files
 
-    def filter_extensions(self, extensions: List[str]) -> "DataFilesList":
+    def filter_extensions(self, extensions: List[str]) -> "DataFilesSet":
         pattern = "|".join("\\" + ext for ext in extensions)
         pattern = re.compile(f".*({pattern})(\\..+)?$")
-        return DataFilesList(
-            [data_file for data_file in self if pattern.match(data_file)],
+        return DataFilesSet(
+            (data_file for data_file in self if pattern.match(data_file)),
             origin_metadata=self.origin_metadata,
         )
 
 
-class DataFilesDict(Dict[str, DataFilesList]):
+class DataFilesDict(Dict[str, DataFilesSet]):
     """
     Dict of split_name -> list of data files (absolute local paths or URLs).
     It has two construction methods given the user's data files patterns :
     - ``from_hf_repo``: resolve patterns inside a dataset repository
     - ``from_local_or_remote``: resolve patterns from a local path
 
-    Moreover each list is a DataFilesList. It is possible to hash the dictionary
+    Moreover each list is a DataFilesSet. It is possible to hash the dictionary
     and get a different hash if and only if at least one file changed.
-    For more info, see ``DataFilesList``.
+    For more info, see ``DataFilesSet``.
 
     This is useful for caching Dataset objects that are obtained from a list of data files.
 
@@ -624,7 +625,7 @@ class DataFilesDict(Dict[str, DataFilesList]):
     @classmethod
     def from_local_or_remote(
         cls,
-        patterns: Dict[str, Union[List[str], DataFilesList]],
+        patterns: Dict[str, Union[List[str], DataFilesSet]],
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
         download_config: Optional[DownloadConfig] = None,
@@ -632,13 +633,13 @@ class DataFilesDict(Dict[str, DataFilesList]):
         out = cls()
         for key, patterns_for_key in patterns.items():
             out[key] = (
-                DataFilesList.from_local_or_remote(
+                DataFilesSet.from_local_or_remote(
                     patterns_for_key,
                     base_path=base_path,
                     allowed_extensions=allowed_extensions,
                     download_config=download_config,
                 )
-                if not isinstance(patterns_for_key, DataFilesList)
+                if not isinstance(patterns_for_key, DataFilesSet)
                 else patterns_for_key
             )
         return out
@@ -646,7 +647,7 @@ class DataFilesDict(Dict[str, DataFilesList]):
     @classmethod
     def from_hf_repo(
         cls,
-        patterns: Dict[str, Union[List[str], DataFilesList]],
+        patterns: Dict[str, Union[List[str], DataFilesSet]],
         dataset_info: huggingface_hub.hf_api.DatasetInfo,
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
@@ -655,14 +656,14 @@ class DataFilesDict(Dict[str, DataFilesList]):
         out = cls()
         for key, patterns_for_key in patterns.items():
             out[key] = (
-                DataFilesList.from_hf_repo(
+                DataFilesSet.from_hf_repo(
                     patterns_for_key,
                     dataset_info=dataset_info,
                     base_path=base_path,
                     allowed_extensions=allowed_extensions,
                     download_config=download_config,
                 )
-                if not isinstance(patterns_for_key, DataFilesList)
+                if not isinstance(patterns_for_key, DataFilesSet)
                 else patterns_for_key
             )
         return out
@@ -670,7 +671,7 @@ class DataFilesDict(Dict[str, DataFilesList]):
     @classmethod
     def from_patterns(
         cls,
-        patterns: Dict[str, Union[List[str], DataFilesList]],
+        patterns: Dict[str, Union[List[str], DataFilesSet]],
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
         download_config: Optional[DownloadConfig] = None,
@@ -678,19 +679,19 @@ class DataFilesDict(Dict[str, DataFilesList]):
         out = cls()
         for key, patterns_for_key in patterns.items():
             out[key] = (
-                DataFilesList.from_patterns(
+                DataFilesSet.from_patterns(
                     patterns_for_key,
                     base_path=base_path,
                     allowed_extensions=allowed_extensions,
                     download_config=download_config,
                 )
-                if not isinstance(patterns_for_key, DataFilesList)
+                if not isinstance(patterns_for_key, DataFilesSet)
                 else patterns_for_key
             )
         return out
 
     def filter_extensions(self, extensions: List[str]) -> "DataFilesDict":
         out = type(self)()
-        for key, data_files_list in self.items():
-            out[key] = data_files_list.filter_extensions(extensions)
+        for key, data_files_set in self.items():
+            out[key] = data_files_set.filter_extensions(extensions)
         return out
