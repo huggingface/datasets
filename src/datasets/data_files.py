@@ -533,7 +533,7 @@ class DataFilesSet(Set[str]):
     - ETag of remote files
     - commit sha of a dataset repository
 
-    Thanks to this additional attribute, it is possible to hash the list
+    Thanks to this additional attribute, it is possible to hash the set
     and get a different hash if and only if at least one file changed.
     This is useful for caching Dataset objects that are obtained from a list of data files.
     """
@@ -685,12 +685,12 @@ class DataFilesList(List[str]):
 
 class DataFilesDict(Dict[str, DataFilesSet]):
     """
-    Dict of split_name -> list of data files (absolute local paths or URLs).
+    Dict of split_name -> set of data files (absolute local paths or URLs).
     It has two construction methods given the user's data files patterns :
     - ``from_hf_repo``: resolve patterns inside a dataset repository
     - ``from_local_or_remote``: resolve patterns from a local path
 
-    Moreover each list is a DataFilesSet. It is possible to hash the dictionary
+    Moreover each set is a DataFilesSet. It is possible to hash the dictionary
     and get a different hash if and only if at least one file changed.
     For more info, see ``DataFilesSet``.
 
