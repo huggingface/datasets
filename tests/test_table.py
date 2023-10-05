@@ -1203,6 +1203,11 @@ def test_cast_fixed_size_array_to_features_sequence():
 
 def test_cast_sliced_fixed_size_array_to_features():
     arr = pa.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]], pa.list_(pa.int32(), 3))
+    # arr.offset not set
+    casted_array = cast_array_to_feature(arr[:2], Sequence(Value("int64"), length=3))
+    assert casted_array.type == pa.list_(pa.int64(), 3)
+    assert casted_array.to_pylist() == arr[:2].to_pylist()
+    # arr.offset set
     casted_array = cast_array_to_feature(arr[1:], Sequence(Value("int64"), length=3))
     assert casted_array.type == pa.list_(pa.int64(), 3)
     assert casted_array.to_pylist() == arr[1:].to_pylist()
