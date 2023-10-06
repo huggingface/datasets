@@ -276,11 +276,7 @@ class Table(IndexedTableMixin):
         Returns:
             `list`
         """
-        try:
-            return self.table.to_pylist(*args, **kwargs)
-        except AttributeError:  # pyarrow <7 does not have to_pylist, so we use to_pydict
-            pydict = self.table.to_pydict(*args, **kwargs)
-            return [{k: pydict[k][i] for k in pydict} for i in range(len(self.table))]
+        return self.table.to_pylist(*args, **kwargs)
 
     def to_pandas(self, *args, **kwargs):
         """
@@ -1916,27 +1912,16 @@ def array_concat(arrays: List[pa.Array]):
                 _concat_arrays([array.values for array in arrays]),
             )
         elif pa.types.is_fixed_size_list(array_type):
-            if config.PYARROW_VERSION.major < 10:
-                # PyArrow bug: https://github.com/apache/arrow/issues/35360
-                return pa.FixedSizeListArray.from_arrays(
-                    _concat_arrays(
-                        [
-                            array.values[
-                                array.offset
-                                * array.type.list_size : (array.offset + len(array))
-                                * array.type.list_size
-                            ]
-                            for array in arrays
-                        ]
-                    ),
-                    array_type.list_size,
-                )
-            else:
-                return pa.FixedSizeListArray.from_arrays(
-                    _concat_arrays([array.flatten() for array in arrays]),
-                    array_type.value_type,
-                    array_type.list_size,
-                )
+            array_values = [
+                array.values[array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size]
+                for array in arrays
+            ]
+            return pa.Array.from_buffers(
+                array_type,
+                sum(len(array) for array in arrays),
+                [_concat_arrays([array.is_valid() for array in arrays]).buffers()[1]],
+                children=[_concat_arrays(array_values)],
+            )
         return pa.concat_arrays(arrays)
 
     return _concat_arrays(arrays)
@@ -1985,9 +1970,12 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
     elif pa.types.is_list(array.type):
         if pa.types.is_fixed_size_list(pa_type):
             if pa_type.list_size * len(array) == len(array.values):
-                return pa.FixedSizeListArray.from_arrays(
-                    _c(array.values, pa_type.value_type),
-                    pa_type.list_size,
+                # FixedSizeListArray does not support mask: https://github.com/apache/arrow/issues/34316
+                return pa.Array.from_buffers(
+                    pa_type,
+                    len(array),
+                    [array.is_valid().buffers()[1]],
+                    children=[_c(array_values, pa_type.value_type)],
                 )
         elif pa.types.is_list(pa_type):
             if array.null_count > 0:
@@ -2001,24 +1989,20 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
                     )
             return pa.ListArray.from_arrays(array.offsets, _c(array.values, pa_type.value_type))
     elif pa.types.is_fixed_size_list(array.type):
-        if config.PYARROW_VERSION.major < 10:
-            # PyArrow bug: https://github.com/apache/arrow/issues/35360
-            array_values = array.values[
-                array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
-            ]
-        else:
-            array_values = array.flatten()
+        array_values = array.values[
+            array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
+        ]
+        offsets_arr = pa.array(np.arange(len(array) + 1) * array.type.list_size, pa.int32())
         if pa.types.is_fixed_size_list(pa_type):
-            return pa.FixedSizeListArray.from_arrays(
-                _c(array_values, pa_type.value_type),
-                pa_type.list_size,
+            # FixedSizeListArray still does not support mask: https://github.com/apache/arrow/issues/34316
+            return pa.Array.from_buffers(
+                pa_type, len(array), [array.is_valid().buffers()[1]], children=[_c(array_values, pa_type.value_type)]
             )
         elif pa.types.is_list(pa_type):
-            offsets_arr = pa.array(np.arange(len(array) + 1) * array.type.list_size, pa.int32())
             if array.null_count > 0:
                 if config.PYARROW_VERSION.major < 10:
                     warnings.warn(
-                        f"None values are converted to empty lists in `pyarrow<10.0.0` when converting array to {pa_type}. Install `pyarrow>=10.0.0` to avoid this behavior. More info: https://github.com/huggingface/datasets/issues/3676."
+                        f"None values are converted to empty lists of size {array.type.list_size} in `pyarrow<10.0.0` when converting array to {pa_type}. Install `pyarrow>=10.0.0` to avoid this behavior. More info: https://github.com/huggingface/datasets/issues/3676."
                     )
                 else:
                     return pa.ListArray.from_arrays(
@@ -2103,7 +2087,14 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
         elif isinstance(feature, Sequence):
             if feature.length > -1:
                 if feature.length * len(array) == len(array.values):
-                    return pa.FixedSizeListArray.from_arrays(_c(array.values, feature.feature), feature.length)
+                    # FixedSizeListArray still does not support mask: https://github.com/apache/arrow/issues/34316
+                    casted_values = _c(array_values, feature.feature)
+                    return pa.Array.from_buffers(
+                        pa.list_(casted_values.type, feature.length),
+                        len(array),
+                        [array.is_valid().buffers()[1]],
+                        children=[casted_values],
+                    )
             else:
                 casted_values = _c(array.values, feature.feature)
                 if casted_values.type == array.values.type:
@@ -2121,32 +2112,35 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
                     return pa.ListArray.from_arrays(array.offsets, _c(array.values, feature.feature))
     elif pa.types.is_fixed_size_list(array.type):
         # feature must be either [subfeature] or Sequence(subfeature)
-        if config.PYARROW_VERSION.major < 10:
-            # PyArrow bug: https://github.com/apache/arrow/issues/35360
-            array_values = array.values[
-                array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
-            ]
-        else:
-            array_values = array.flatten()
+        array_values = array.values[
+            array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
+        ]
+        offsets_arr = pa.array(np.arange(len(array) + 1) * array.type.list_size, pa.int32())
         if isinstance(feature, list):
             if array.null_count > 0:
                 if config.PYARROW_VERSION.major < 10:
                     warnings.warn(
-                        f"None values are converted to empty lists when converting array to {feature}. Install `pyarrow>=10.0.0` to avoid this behavior. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
+                        f"None values are converted to empty lists of size {array.type.list_size} when converting array to {feature}. Install `pyarrow>=10.0.0` to avoid this behavior. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
                     )
                 else:
-                    return pa.ListArray.from_arrays(array.offsets, _c(array_values, feature[0]), mask=array.is_null())
-            return pa.ListArray.from_arrays(array.offsets, _c(array_values, feature[0]))
+                    return pa.ListArray.from_arrays(offsets_arr, _c(array_values, feature[0]), mask=array.is_null())
+            return pa.ListArray.from_arrays(offsets_arr, _c(array_values, feature[0]))
         elif isinstance(feature, Sequence):
             if feature.length > -1:
                 if feature.length * len(array) == len(array_values):
-                    return pa.FixedSizeListArray.from_arrays(_c(array_values, feature.feature), feature.length)
+                    # FixedSizeListArray still does not support mask: https://github.com/apache/arrow/issues/34316
+                    casted_values = _c(array_values, feature.feature)
+                    return pa.Array.from_buffers(
+                        pa.list_(casted_values.type, feature.length),
+                        len(array),
+                        [array.is_valid().buffers()[1]],
+                        children=[casted_values],
+                    )
             else:
-                offsets_arr = pa.array(np.arange(len(array) + 1) * array.type.list_size, pa.int32())
                 if array.null_count > 0:
                     if config.PYARROW_VERSION.major < 10:
                         warnings.warn(
-                            f"None values are converted to empty lists when converting array to {feature}. Install `pyarrow>=10.0.0` to avoid this behavior. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
+                            f"None values are converted to empty lists of size {array.type.list_size} when converting array to {feature}. Install `pyarrow>=10.0.0` to avoid this behavior. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
                         )
                     else:
                         return pa.ListArray.from_arrays(
@@ -2213,7 +2207,14 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
         elif isinstance(feature, Sequence):
             if feature.length > -1:
                 if feature.length * len(array) == len(array.values):
-                    return pa.FixedSizeListArray.from_arrays(_e(array.values, feature.feature), feature.length)
+                    # FixedSizeListArray still does not support mask: https://github.com/apache/arrow/issues/34316
+                    embedded_values = _e(array_values, feature.feature)
+                    return pa.Array.from_buffers(
+                        pa.list_(embedded_values.type, feature.length),
+                        len(array),
+                        [array.is_valid().buffers()[1]],
+                        children=[embedded_values],
+                    )
             else:
                 embedded_values = _e(array.values, feature.feature)
                 if embedded_values.type == array.values.type:
@@ -2231,32 +2232,35 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
                     return pa.ListArray.from_arrays(array.offsets, _e(array.values, feature.feature))
     elif pa.types.is_fixed_size_list(array.type):
         # feature must be either [subfeature] or Sequence(subfeature)
-        if config.PYARROW_VERSION.major < 10:
-            # PyArrow bug: https://github.com/apache/arrow/issues/35360
-            array_values = array.values[
-                array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
-            ]
-        else:
-            array_values = array.flatten()
+        array_values = array.values[
+            array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
+        ]
+        offsets_arr = pa.array(np.arange(len(array) + 1) * array.type.list_size, pa.int32())
         if isinstance(feature, list):
             if array.null_count > 0:
                 if config.PYARROW_VERSION.major < 10:
                     warnings.warn(
-                        f"None values are converted to empty lists when embedding array storage with {feature}. Install `pyarrow>=10.0.0` to avoid this behavior. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
+                        f"None values are converted to empty lists of size {array.type.list_size} when embedding array storage with {feature}. Install `pyarrow>=10.0.0` to avoid this behavior. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
                     )
                 else:
-                    return pa.ListArray.from_arrays(array.offsets, _e(array_values, feature[0]), mask=array.is_null())
-            return pa.ListArray.from_arrays(array.offsets, _e(array_values, feature[0]))
+                    return pa.ListArray.from_arrays(offsets_arr, _e(array_values, feature[0]), mask=array.is_null())
+            return pa.ListArray.from_arrays(offsets_arr, _e(array_values, feature[0]))
         elif isinstance(feature, Sequence):
             if feature.length > -1:
                 if feature.length * len(array) == len(array_values):
-                    return pa.FixedSizeListArray.from_arrays(_e(array_values, feature.feature), feature.length)
+                    # FixedSizeListArray still does not support mask: https://github.com/apache/arrow/issues/34316
+                    embedded_values = _e(array_values, feature.feature)
+                    return pa.Array.from_buffers(
+                        pa.list_(embedded_values.type, feature.length),
+                        len(array),
+                        [array.is_valid().buffers()[1]],
+                        children=[embedded_values],
+                    )
             else:
-                offsets_arr = pa.array(np.arange(len(array) + 1) * array.type.list_size, pa.int32())
                 if array.null_count > 0:
                     if config.PYARROW_VERSION.major < 10:
                         warnings.warn(
-                            f"None values are converted to empty lists when embedding array storage with {feature}. Install `pyarrow>=10.0.0` to avoid this behavior. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
+                            f"None values are converted to empty lists of size {array.type.list_size} when embedding array storage with {feature}. Install `pyarrow>=10.0.0` to avoid this behavior. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
                         )
                     else:
                         return pa.ListArray.from_arrays(
