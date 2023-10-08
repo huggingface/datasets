@@ -5331,8 +5331,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> french_dataset = load_dataset("<organization>/<dataset_id>", "fr")
         ```
         """
-        # TODO(mariosasko): Support commit_message once all the files can be uploaded in one commit (even the non-LFS ones)
-
         if config_name == "data":
             raise ValueError("`config_name` cannot be 'data'. Please, choose another name for configuration.")
 
