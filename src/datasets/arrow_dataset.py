@@ -58,18 +58,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
-from huggingface_hub import (
-    CommitOperationAdd,
-    CommitOperationDelete,
-    DatasetCard,
-    DatasetCardData,
-    create_branch,
-    create_commit,
-    create_repo,
-    hf_hub_download,
-    list_files_info,
-    preupload_lfs_files,
-)
+from huggingface_hub import CommitOperationAdd, CommitOperationDelete, DatasetCard, DatasetCardData, HfApi
 from multiprocess import Pool
 from requests import HTTPError
 
@@ -5208,10 +5197,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
             shards = shards_with_embedded_external_files(shards)
 
+        api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
+
         uploaded_size = 0
         operations = []
         for index, shard in logging.tqdm(
-            shards,
+            enumerate(shards),
             desc="Uploading the dataset shards",
             total=num_shards,
             disable=not logging.is_progress_bar_enabled(),
@@ -5222,7 +5213,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             uploaded_size += buffer.tell()
             shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=buffer)
             _retry(
-                preupload_lfs_files,
+                api.preupload_lfs_files,
                 func_kwargs={
                     "repo_id": repo_id,
                     "additions": [shard_addition],
@@ -5364,20 +5355,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
             revision = branch
 
-        repo_id = create_repo(
+        api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
+
+        repo_url = api.create_repo(
             repo_id,
             token=token,
             repo_type="dataset",
             private=private,
             exist_ok=True,
         )
+        repo_id = repo_url.repo_id
 
         if revision is not None:
-            create_branch(repo_id=repo_id, branch=revision, token=token, exist_ok=True)
+            api.create_branch(repo_id, branch=revision, token=token, repo_type="dataset", exist_ok=True)
 
         data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
 
-        repo_id, operations, uploaded_size, dataset_nbytes = self._push_parquet_shards_to_hub(
+        operations, uploaded_size, dataset_nbytes = self._push_parquet_shards_to_hub(
             repo_id=repo_id,
             data_dir=data_dir,
             split=split,
@@ -5389,25 +5383,33 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             embed_external_files=embed_external_files,
         )
 
-        repo_with_dataset_card, repo_with_dataset_infos = False
+        # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
+        # and delete old split shards (if they exist)
+        repo_with_dataset_card, repo_with_dataset_infos = False, False
         deleted_size = 0
-        repo_splits = set()
-        for repo_file in list_files_info(repo_id, revision=revision, repo_type="dataset", token=token):
+        repo_splits = []  # use a list to keep the order of the splits
+        repo_files_to_add = [
+            operation.path_in_repo for operation in operations if isinstance(operation, CommitOperationAdd)
+        ]
+        for repo_file in api.list_files_info(repo_id, revision=revision, repo_type="dataset", token=token):
             if repo_file.rfilename == "README.md":
                 repo_with_dataset_card = True
             elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:
                 repo_with_dataset_infos = True
-            elif repo_file.rfilename.startswith(f"{data_dir}/{split}-"):
+            elif (
+                repo_file.rfilename.startswith(f"{data_dir}/{split}-") and repo_file.rfilename not in repo_files_to_add
+            ):
                 operations.append(CommitOperationDelete(path_in_repo=repo_file.rfilename))
                 deleted_size += repo_file.size
             elif fnmatch.fnmatch(
                 repo_file.rfilename, PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*")
             ):
-                split = string_to_dict(
+                repo_split = string_to_dict(
                     repo_file.rfilename,
                     glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED),
                 )["split"]
-                repo_splits.add(split)
+                if repo_split not in repo_splits:
+                    repo_splits.append(repo_split)
 
         organization, dataset_name = repo_id.split("/") if "/" in repo_id else (None, repo_id)
         info_to_dump = self.info.copy()
@@ -5421,9 +5423,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
         # get the info from the README to update them
         if repo_with_dataset_card:
-            dataset_card_path = hf_hub_download(
-                repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=revision, token=token
-            )
+            dataset_card_path = api.hf_hub_download(repo_id, "README.md", repo_type="dataset", revision=revision)
             dataset_card = DatasetCard.load(Path(dataset_card_path))
             dataset_card_data = dataset_card.data
             metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
@@ -5437,8 +5437,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dataset_card = None
             dataset_card_data = DatasetCardData()
             metadata_configs = MetadataConfigs()
-            dataset_infos_path = hf_hub_download(
-                repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=revision, token=token
+            dataset_infos_path = api.hf_hub_download(
+                repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=revision
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
                 dataset_infos: dict = json.load(f)
@@ -5499,8 +5499,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             metadata_config_to_dump = {"data_files": [{"split": split, "path": f"{data_dir}/{split}-*"}]}
         # push to the deprecated dataset_infos.json
         if repo_with_dataset_infos:
-            dataset_infos_path = hf_hub_download(
-                repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=revision, token=token
+            dataset_infos_path = api.hf_hub_download(
+                repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=revision
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
                 dataset_infos: dict = json.load(f)
@@ -5516,7 +5516,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset_card = DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
         operations.append(CommitOperationAdd(path_in_repo="README.md", path_or_fileobj=str(dataset_card).encode()))
 
-        create_commit(
+        api.create_commit(
             repo_id,
             operations=operations,
             commit_message=commit_message if commit_message is not None else "Upload dataset",

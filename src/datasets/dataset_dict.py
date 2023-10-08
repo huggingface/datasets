@@ -17,11 +17,7 @@ from huggingface_hub import (
     CommitOperationDelete,
     DatasetCard,
     DatasetCardData,
-    create_branch,
-    create_commit,
-    create_repo,
-    hf_hub_download,
-    list_files_info,
+    HfApi,
 )
 
 from . import config
@@ -1590,11 +1586,13 @@ class DatasetDict(dict):
                 The ID of the repository to push to in the following format: `<user>/<dataset_name>` or
                 `<org>/<dataset_name>`. Also accepts `<dataset_name>`, which will default to the namespace
                 of the logged-in user.
+            config_name (`str`):
+                Configuration name of a dataset. Defaults to "default".
+            commit_message (`str`, *optional*):
+                Message to commit while pushing. Will default to `"Upload dataset"`.
             private (`bool`, *optional*):
                 Whether the dataset repository should be set to private or not. Only affects repository creation:
                 a repository that already exists will not be affected by that parameter.
-            config_name (`str`):
-                Configuration name of a dataset. Defaults to "default".
             token (`str`, *optional*):
                 An optional authentication token for the Hugging Face Hub. If no token is passed, will default
                 to the token saved locally when logging in with `huggingface-cli login`. Will raise an error
@@ -1657,6 +1655,14 @@ class DatasetDict(dict):
                 "Please provide one `num_shards` per dataset in the dataset dictionary, e.g. {{'train': 128, 'test': 4}}"
             )
 
+        if branch != "deprecated":
+            warnings.warn(
+                "'branch' was deprecated in favor of 'revision' in version 2.15.0 and will be removed in 3.0.0.\n"
+                f"You can remove this warning by passing 'revision={branch}' instead.",
+                FutureWarning,
+            )
+            revision = branch
+
         self._check_values_type()
         self._check_values_features()
         total_uploaded_size = 0
@@ -1669,23 +1675,27 @@ class DatasetDict(dict):
             if not re.match(_split_re, split):
                 raise ValueError(f"Split name should match '{_split_re}' but got '{split}'.")
 
-        repo_id = create_repo(
+        api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
+
+        repo_url = api.create_repo(
             repo_id,
             token=token,
             repo_type="dataset",
             private=private,
             exist_ok=True,
         )
+        repo_id = repo_url.repo_id
 
         if revision is not None:
-            create_branch(repo_id=repo_id, branch=revision, token=token, exist_ok=True)
+            api.create_branch(repo_id, branch=revision, token=token, repo_type="dataset", exist_ok=True)
 
         data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
 
+        operations = []
         for split in self.keys():
             logger.info(f"Pushing split {split} to the Hub.")
             # The split=key needs to be removed before merging
-            operations, uploaded_size, dataset_nbytes = self[split]._push_parquet_shards_to_hub(
+            split_operations, uploaded_size, dataset_nbytes = self[split]._push_parquet_shards_to_hub(
                 repo_id,
                 data_dir=data_dir,
                 split=split,
@@ -1696,6 +1706,7 @@ class DatasetDict(dict):
                 num_shards=num_shards.get(split),
                 embed_external_files=embed_external_files,
             )
+            operations += split_operations
             total_uploaded_size += uploaded_size
             total_dataset_nbytes += dataset_nbytes
             info_to_dump.splits[split] = SplitInfo(str(split), num_bytes=dataset_nbytes, num_examples=len(self[split]))
@@ -1708,29 +1719,36 @@ class DatasetDict(dict):
             "data_files": [{"split": split, "path": f"{data_dir}/{split}-*"} for split in self.keys()],
         }
 
-        repo_with_dataset_card, repo_with_dataset_infos = False
-        repo_splits = set()
-        for repo_file in list_files_info(repo_id, revision=revision, repo_type="dataset", token=token):
+        # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
+        # and delete old split shards (if they exist)
+        repo_with_dataset_card, repo_with_dataset_infos = False, False
+        repo_splits = []  # use a list to keep the order of the splits
+        repo_files_to_add = [
+            operation.path_in_repo for operation in operations if isinstance(operation, CommitOperationAdd)
+        ]
+        for repo_file in api.list_files_info(repo_id, revision=revision, repo_type="dataset", token=token):
             if repo_file.rfilename == "README.md":
                 repo_with_dataset_card = True
             elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:
                 repo_with_dataset_infos = True
-            elif repo_file.rfilename.startswith(tuple(f"{data_dir}/{split}-" for split in self.keys())):
+            elif (
+                repo_file.rfilename.startswith(tuple(f"{data_dir}/{split}-" for split in self.keys()))
+                and repo_file.rfilename not in repo_files_to_add
+            ):
                 operations.append(CommitOperationDelete(path_in_repo=repo_file.rfilename))
             elif fnmatch.fnmatch(
                 repo_file.rfilename, PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*")
             ):
-                split = string_to_dict(
+                repo_split = string_to_dict(
                     repo_file.rfilename,
                     glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED),
                 )["split"]
-                repo_splits.add(split)
+                if repo_split not in repo_splits:
+                    repo_splits.append(split)
 
         # get the info from the README to update them
         if repo_with_dataset_card:
-            dataset_card_path = hf_hub_download(
-                repo_id, "README.md", repo_type="dataset", revision=revision, token=token
-            )
+            dataset_card_path = api.hf_hub_download(repo_id, "README.md", repo_type="dataset", revision=revision)
             dataset_card = DatasetCard.load(Path(dataset_card_path))
             dataset_card_data = dataset_card.data
             metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
@@ -1751,8 +1769,8 @@ class DatasetDict(dict):
             MetadataConfigs({"default": default_metadata_configs_to_dump}).to_dataset_card_data(dataset_card_data)
         # push to the deprecated dataset_infos.json
         if repo_with_dataset_infos:
-            dataset_infos_path = hf_hub_download(
-                repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=revision, token=token
+            dataset_infos_path = api.hf_hub_download(
+                repo_id, config.DATASETDICT_INFOS_FILENAME, repo_type="dataset", revision=revision
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
                 dataset_infos: dict = json.load(f)
@@ -1768,7 +1786,7 @@ class DatasetDict(dict):
         dataset_card = DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
         operations.append(CommitOperationAdd(path_in_repo="README.md", path_or_fileobj=str(dataset_card).encode()))
 
-        create_commit(
+        api.create_commit(
             repo_id,
             operations=operations,
             commit_message=commit_message if commit_message is not None else "Upload dataset",
