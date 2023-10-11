@@ -20,6 +20,7 @@ import copy
 import fnmatch
 import itertools
 import json
+import math
 import os
 import posixpath
 import re
@@ -5159,7 +5160,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Pushes the dataset shards as Parquet files to the hub.
 
         Returns:
-            operations (`List[CommitOperation]`): list of the `CommitOperationAdd` of the uploaded shards
+            additions (`List[CommitOperation]`): list of the `CommitOperationAdd` of the uploaded shards
             uploaded_size (`int`): number of uploaded bytes to the repository
             dataset_nbytes (`int`): approximate size in bytes of the uploaded dataset afer uncompression
         """
@@ -5200,7 +5201,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
 
         uploaded_size = 0
-        operations = []
+        additions = []
         for index, shard in logging.tqdm(
             enumerate(shards),
             desc="Uploading the dataset shards",
@@ -5228,9 +5229,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 max_retries=5,
                 max_wait_time=20.0,
             )
-            operations.append(shard_addition)
+            additions.append(shard_addition)
 
-        return operations, uploaded_size, dataset_nbytes
+        return additions, uploaded_size, dataset_nbytes
 
     def push_to_hub(
         self,
@@ -5369,7 +5370,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
 
-        operations, uploaded_size, dataset_nbytes = self._push_parquet_shards_to_hub(
+        additions, uploaded_size, dataset_nbytes = self._push_parquet_shards_to_hub(
             repo_id=repo_id,
             data_dir=data_dir,
             split=split,
@@ -5384,11 +5385,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
         # and delete old split shards (if they exist)
         repo_with_dataset_card, repo_with_dataset_infos = False, False
-        deleted_size = 0
+        deletions, deleted_size = [], 0
         repo_splits = []  # use a list to keep the order of the splits
-        repo_files_to_add = [
-            operation.path_in_repo for operation in operations if isinstance(operation, CommitOperationAdd)
-        ]
+        repo_files_to_add = [addition.path_in_repo for addition in additions]
         for repo_file in api.list_files_info(repo_id, revision=revision, repo_type="dataset", token=token):
             if repo_file.rfilename == "README.md":
                 repo_with_dataset_card = True
@@ -5397,7 +5396,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             elif (
                 repo_file.rfilename.startswith(f"{data_dir}/{split}-") and repo_file.rfilename not in repo_files_to_add
             ):
-                operations.append(CommitOperationDelete(path_in_repo=repo_file.rfilename))
+                deletions.append(CommitOperationDelete(path_in_repo=repo_file.rfilename))
                 deleted_size += repo_file.size
             elif fnmatch.fnmatch(
                 repo_file.rfilename, PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*")
@@ -5505,24 +5504,47 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dataset_infos[config_name] = asdict(info_to_dump)
             buffer = BytesIO()
             buffer.write(json.dumps(dataset_infos, indent=4).encode("utf-8"))
-            operations.append(
+            additions.append(
                 CommitOperationAdd(path_in_repo=config.DATASETDICT_INFOS_FILENAME, path_or_fileobj=buffer)
             )
         # push to README
         DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
         MetadataConfigs({config_name: metadata_config_to_dump}).to_dataset_card_data(dataset_card_data)
         dataset_card = DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
-        operations.append(CommitOperationAdd(path_in_repo="README.md", path_or_fileobj=str(dataset_card).encode()))
+        additions.append(CommitOperationAdd(path_in_repo="README.md", path_or_fileobj=str(dataset_card).encode()))
 
-        api.create_commit(
-            repo_id,
-            operations=operations,
-            commit_message=commit_message if commit_message is not None else "Upload dataset",
-            token=token,
-            repo_type="dataset",
-            revision=revision,
-            create_pr=create_pr,
-        )
+        if len(additions) <= config.UPLOADS_MAX_NUMBER_PER_COMMIT:
+            api.create_commit(
+                repo_id,
+                operations=additions + deletions,
+                commit_message=commit_message if commit_message is not None else "Upload dataset",
+                token=token,
+                repo_type="dataset",
+                revision=revision,
+                create_pr=create_pr,
+            )
+        else:
+            logger.info(
+                f"Number of files to upload is larger than {config.UPLOADS_MAX_NUMBER_PER_COMMIT}. Splitting the push into multiple commits."
+            )
+            num_commits = math.ceil(len(additions) / config.UPLOADS_MAX_NUMBER_PER_COMMIT)
+            for i in range(0, num_commits):
+                operations = additions[
+                    i * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1) * config.UPLOADS_MAX_NUMBER_PER_COMMIT
+                ] + (deletions if i == 0 else [])
+                commit_message_suffix = "({index:05d}-of-{num_commits:05d})".format(index=i, num_commits=num_commits)
+                commit_message = (
+                    (commit_message if commit_message is not None else "Upload dataset") + " " + commit_message_suffix
+                )
+                api.create_commit(
+                    repo_id,
+                    operations=operations,
+                    commit_message=commit_message,
+                    token=token,
+                    repo_type="dataset",
+                    revision=revision,
+                    create_pr=create_pr,
+                )
 
     @transmit_format
     @fingerprint_transform(inplace=False)

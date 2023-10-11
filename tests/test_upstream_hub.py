@@ -223,6 +223,36 @@ class TestPushToHub:
                 "data/train-00001-of-00002.parquet",
             ]
 
+    def test_push_dataset_dict_to_hub_with_multiple_commits(self, temporary_repo):
+        ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
+
+        local_ds = DatasetDict({"train": ds})
+
+        with temporary_repo() as ds_name:
+            self._api.create_repo(ds_name, token=self._token, repo_type="dataset")
+            num_commits_before_push = len(self._api.list_repo_commits(ds_name, repo_type="dataset", token=self._token))
+            with patch("datasets.config.MAX_SHARD_SIZE", "16KB"), patch(
+                "datasets.config.UPLOADS_MAX_NUMBER_PER_COMMIT", 1
+            ):
+                local_ds.push_to_hub(ds_name, token=self._token)
+            hub_ds = load_dataset(ds_name, download_mode="force_redownload")
+
+            assert local_ds.column_names == hub_ds.column_names
+            assert list(local_ds["train"].features.keys()) == list(hub_ds["train"].features.keys())
+            assert local_ds["train"].features == hub_ds["train"].features
+
+            # Ensure that there are two files on the repository that have the correct name
+            files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
+            assert files == [
+                ".gitattributes",
+                "README.md",
+                "data/train-00000-of-00002.parquet",
+                "data/train-00001-of-00002.parquet",
+            ]
+
+            num_commits_after_push = len(self._api.list_repo_commits(ds_name, repo_type="dataset", token=self._token))
+            assert num_commits_after_push - num_commits_before_push > 1
+
     def test_push_dataset_dict_to_hub_overwrite_files(self, temporary_repo):
         ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
         ds2 = Dataset.from_dict({"x": list(range(100)), "y": list(range(100))})

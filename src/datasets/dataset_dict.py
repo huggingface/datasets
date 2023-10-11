@@ -2,6 +2,7 @@ import contextlib
 import copy
 import fnmatch
 import json
+import math
 import os
 import posixpath
 import re
@@ -1691,11 +1692,11 @@ class DatasetDict(dict):
 
         data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
 
-        operations = []
+        additions = []
         for split in self.keys():
             logger.info(f"Pushing split {split} to the Hub.")
             # The split=key needs to be removed before merging
-            split_operations, uploaded_size, dataset_nbytes = self[split]._push_parquet_shards_to_hub(
+            split_additions, uploaded_size, dataset_nbytes = self[split]._push_parquet_shards_to_hub(
                 repo_id,
                 data_dir=data_dir,
                 split=split,
@@ -1706,7 +1707,7 @@ class DatasetDict(dict):
                 num_shards=num_shards.get(split),
                 embed_external_files=embed_external_files,
             )
-            operations += split_operations
+            additions += split_additions
             total_uploaded_size += uploaded_size
             total_dataset_nbytes += dataset_nbytes
             info_to_dump.splits[split] = SplitInfo(str(split), num_bytes=dataset_nbytes, num_examples=len(self[split]))
@@ -1723,9 +1724,8 @@ class DatasetDict(dict):
         # and delete old split shards (if they exist)
         repo_with_dataset_card, repo_with_dataset_infos = False, False
         repo_splits = []  # use a list to keep the order of the splits
-        repo_files_to_add = [
-            operation.path_in_repo for operation in operations if isinstance(operation, CommitOperationAdd)
-        ]
+        deletions = []
+        repo_files_to_add = [addition.path_in_repo for addition in additions]
         for repo_file in api.list_files_info(repo_id, revision=revision, repo_type="dataset", token=token):
             if repo_file.rfilename == "README.md":
                 repo_with_dataset_card = True
@@ -1735,7 +1735,7 @@ class DatasetDict(dict):
                 repo_file.rfilename.startswith(tuple(f"{data_dir}/{split}-" for split in self.keys()))
                 and repo_file.rfilename not in repo_files_to_add
             ):
-                operations.append(CommitOperationDelete(path_in_repo=repo_file.rfilename))
+                deletions.append(CommitOperationDelete(path_in_repo=repo_file.rfilename))
             elif fnmatch.fnmatch(
                 repo_file.rfilename, PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*")
             ):
@@ -1777,24 +1777,47 @@ class DatasetDict(dict):
             dataset_infos[config_name] = asdict(info_to_dump)
             buffer = BytesIO()
             buffer.write(json.dumps(dataset_infos, indent=4).encode("utf-8"))
-            operations.append(
+            additions.append(
                 CommitOperationAdd(path_in_repo=config.DATASETDICT_INFOS_FILENAME, path_or_fileobj=buffer)
             )
         # push to README
         DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
         MetadataConfigs({config_name: metadata_config_to_dump}).to_dataset_card_data(dataset_card_data)
         dataset_card = DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
-        operations.append(CommitOperationAdd(path_in_repo="README.md", path_or_fileobj=str(dataset_card).encode()))
+        additions.append(CommitOperationAdd(path_in_repo="README.md", path_or_fileobj=str(dataset_card).encode()))
 
-        api.create_commit(
-            repo_id,
-            operations=operations,
-            commit_message=commit_message if commit_message is not None else "Upload dataset",
-            token=token,
-            repo_type="dataset",
-            revision=revision,
-            create_pr=create_pr,
-        )
+        if len(additions) <= config.UPLOADS_MAX_NUMBER_PER_COMMIT:
+            api.create_commit(
+                repo_id,
+                operations=additions + deletions,
+                commit_message=commit_message if commit_message is not None else "Upload dataset",
+                token=token,
+                repo_type="dataset",
+                revision=revision,
+                create_pr=create_pr,
+            )
+        else:
+            logger.info(
+                f"Number of files to upload is larger than {config.UPLOADS_MAX_NUMBER_PER_COMMIT}. Splitting the push into multiple commits."
+            )
+            num_commits = math.ceil(len(additions) / config.UPLOADS_MAX_NUMBER_PER_COMMIT)
+            for i in range(0, num_commits):
+                operations = additions[
+                    i * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1) * config.UPLOADS_MAX_NUMBER_PER_COMMIT
+                ] + (deletions if i == 0 else [])
+                commit_message_suffix = "({index:05d}-of-{num_commits:05d})".format(index=i, num_commits=num_commits)
+                commit_message = (
+                    (commit_message if commit_message is not None else "Upload dataset") + " " + commit_message_suffix
+                )
+                api.create_commit(
+                    repo_id,
+                    operations=operations,
+                    commit_message=commit_message,
+                    token=token,
+                    repo_type="dataset",
+                    revision=revision,
+                    create_pr=create_pr,
+                )
 
 
 class IterableDatasetDict(dict):
