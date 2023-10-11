@@ -49,13 +49,12 @@ class Parquet(datasets.ArrowBasedBuilder):
             if self.info.features is None:
                 for file in itertools.chain.from_iterable(files):
                     with open(file, "rb") as f:
-                        features = datasets.Features.from_arrow_schema(pq.read_schema(f))
-                        if self.config.columns is not None:
-                            features = datasets.Features(
-                                {col: feat for col, feat in features.items() if col in self.config.columns}
-                            )
-                        self.info.features = features
+                        self.info.features = datasets.Features.from_arrow_schema(pq.read_schema(f))
                     break
+            if self.config.columns is not None:
+                self.info.features = datasets.Features(
+                    {col: feat for col, feat in self.info.features.items() if col in self.config.columns}
+                )
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
 
