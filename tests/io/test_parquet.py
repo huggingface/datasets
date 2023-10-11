@@ -3,6 +3,7 @@ import pytest
 
 from datasets import Audio, Dataset, DatasetDict, Features, IterableDatasetDict, NamedSplit, Sequence, Value, config
 from datasets.features.image import Image
+from datasets.info import DatasetInfo
 from datasets.io.parquet import ParquetDatasetReader, ParquetDatasetWriter, get_writer_batch_size
 
 from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
@@ -116,14 +117,32 @@ def test_parquet_datasetdict_reader_features(streaming, features, parquet_path, 
 
 @pytest.mark.parametrize("streaming", [False, True])
 @pytest.mark.parametrize("columns", [None, ["col_1"]])
-def test_parquet_datasetdict_reader_columns(streaming, columns, parquet_path, tmp_path):
+@pytest.mark.parametrize("pass_features", [False, True])
+@pytest.mark.parametrize("pass_info", [False, True])
+def test_parquet_datasetdict_reader_columns(streaming, columns, pass_features, pass_info, parquet_path, tmp_path):
     cache_dir = tmp_path / "cache"
+
     default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    info = (
+        DatasetInfo(features=Features({feature: Value(dtype) for feature, dtype in default_expected_features.items()}))
+        if pass_info
+        else None
+    )
+
     expected_features = (
         {col: default_expected_features[col] for col in columns} if columns else default_expected_features
     )
+    features = (
+        Features({feature: Value(dtype) for feature, dtype in expected_features.items()}) if pass_features else None
+    )
+
     dataset = ParquetDatasetReader(
-        {"train": parquet_path}, columns=columns, cache_dir=cache_dir, streaming=streaming
+        {"train": parquet_path},
+        columns=columns,
+        features=features,
+        info=info,
+        cache_dir=cache_dir,
+        streaming=streaming,
     ).read()
     _check_parquet_datasetdict(dataset, expected_features)
 
