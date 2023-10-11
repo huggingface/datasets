@@ -1,4 +1,5 @@
 import fnmatch
+import gc
 import os
 import tempfile
 import time
@@ -300,6 +301,9 @@ class TestPushToHub:
             assert local_ds["train"].features == hub_ds["train"].features
 
         del hub_ds
+
+        # To ensure the reference to the memory-mapped Arrow file is dropped to avoid the PermissionError on Windows
+        gc.collect()
 
         # Push to hub two times, but the second time with fewer files.
         # Verify that the new files contain the correct dataset and that non-necessary files have been deleted.
