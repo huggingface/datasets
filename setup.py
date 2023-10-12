@@ -171,7 +171,7 @@ TESTS_REQUIRE = [
     "rarfile>=4.0",
     "sqlalchemy<2.0.0",
     "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1; test only on python 3.7 for now
-    "tensorflow>=2.3,!=2.6.0,!=2.6.1,<2.14.0; sys_platform != 'darwin' or platform_machine != 'arm64'",  # Temporary upper pin
+    "tensorflow>=2.3,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
     "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
     "tiktoken",
     "torch",

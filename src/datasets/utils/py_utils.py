@@ -254,7 +254,7 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
 
     if set_tensorflow and config.TF_AVAILABLE:
         import tensorflow as tf
-        from tensorflow.python import context as tfpycontext
+        from tensorflow.python.eager import context as tfpycontext
 
         tf_state = tf.random.get_global_generator()
         temp_gen = tf.random.Generator.from_seed(seed)
