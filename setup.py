@@ -165,8 +165,8 @@ TESTS_REQUIRE = [
     "apache-beam>=2.26.0,<2.44.0;python_version<'3.10'",  # doesn't support recent dill versions for recent python versions
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch()
     "faiss-cpu>=1.6.4",
-    "jax>=0.2.8,!=0.3.2,<=0.3.25; sys_platform != 'win32'",
-    "jaxlib>=0.1.65,<=0.3.25; sys_platform != 'win32'",
+    "jax>=0.3.14; sys_platform != 'win32'",
+    "jaxlib>=0.3.14; sys_platform != 'win32'",
     "lz4",
     "pyspark>=3.4",  # https://issues.apache.org/jira/browse/SPARK-40991 fixed in 3.4.0
     "py7zr",
