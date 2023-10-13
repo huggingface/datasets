@@ -165,13 +165,15 @@ TESTS_REQUIRE = [
     "apache-beam>=2.26.0,<2.44.0;python_version<'3.10'",  # doesn't support recent dill versions for recent python versions
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch()
     "faiss-cpu>=1.6.4",
+    "jax>=0.3.14; sys_platform != 'win32'",
+    "jaxlib>=0.3.14; sys_platform != 'win32'",
     "lz4",
     "pyspark>=3.4",  # https://issues.apache.org/jira/browse/SPARK-40991 fixed in 3.4.0
     "py7zr",
     "rarfile>=4.0",
     "sqlalchemy<2.0.0",
     "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1; test only on python 3.7 for now
-    "tensorflow>=2.3,!=2.6.0,!=2.6.1,<2.14.0; sys_platform != 'darwin' or platform_machine != 'arm64'",  # Temporary upper pin
+    "tensorflow>=2.3,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
     "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
     "tiktoken",
     "torch",
@@ -233,7 +235,7 @@ EXTRAS_REQUIRE = {
     ],
     "tensorflow_gpu": ["tensorflow-gpu>=2.2.0,!=2.6.0,!=2.6.1"],
     "torch": ["torch"],
-    "jax": ["jax>=0.2.8,!=0.3.2,<=0.3.25", "jaxlib>=0.1.65,<=0.3.25"],
+    "jax": ["jax>=0.3.14", "jaxlib>=0.3.14"],
     "s3": ["s3fs"],
     "streaming": [],  # for backward compatibility
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE + DOCS_REQUIRE,

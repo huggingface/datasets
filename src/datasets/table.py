@@ -1964,7 +1964,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
     if isinstance(array, pa.ExtensionArray):
         array = array.storage
     if isinstance(pa_type, pa.ExtensionType):
-        return pa_type.wrap_array(array)
+        return pa_type.wrap_array(_c(array, pa_type.storage_type))
     elif array.type == pa_type:
         return array
     elif pa.types.is_struct(array.type):
