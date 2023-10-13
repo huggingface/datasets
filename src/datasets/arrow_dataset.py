@@ -5532,7 +5532,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 operations = additions[
                     i * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1) * config.UPLOADS_MAX_NUMBER_PER_COMMIT
                 ] + (deletions if i == 0 else [])
-                commit_message_suffix = "(part {index:05d}-of-{num_commits:05d})".format(index=i, num_commits=num_commits)
+                commit_message_suffix = "(part {index:05d}-of-{num_commits:05d})".format(
+                    index=i, num_commits=num_commits
+                )
                 commit_message = (
                     (commit_message if commit_message is not None else "Upload dataset") + " " + commit_message_suffix
                 )
