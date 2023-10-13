@@ -1570,7 +1570,7 @@ class DatasetDict(dict):
         branch="deprecated",
         create_pr: Optional[bool] = False,
         max_shard_size: Optional[Union[int, str]] = None,
-        num_shards: Optional[Dict[int]] = None,
+        num_shards: Optional[Dict[str, int]] = None,
         embed_external_files: bool = True,
     ):
         """Pushes the [`DatasetDict`] to the hub as a Parquet dataset.
@@ -1618,7 +1618,7 @@ class DatasetDict(dict):
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
                 (like `"500MB"` or `"1GB"`).
-            num_shards (`Dict[int]`, *optional*):
+            num_shards (`Dict[str, int]`, *optional*):
                 Number of shards to write. By default the number of shards depends on `max_shard_size`.
                 Use a dictionary to define a different num_shards for each split.
 
