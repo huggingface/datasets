@@ -90,7 +90,12 @@ from .fingerprint import (
     update_fingerprint,
     validate_fingerprint,
 )
-from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
+from .formatting import (
+    format_table,
+    get_format_type_from_alias,
+    get_formatter,
+    query_table,
+)
 from .formatting.formatting import LazyDict, _is_range_contiguous
 from .info import DatasetInfo, DatasetInfosDict
 from .naming import _split_re
@@ -126,7 +131,11 @@ from .utils.py_utils import (
     unique_values,
 )
 from .utils.stratify import stratified_shuffle_split_generate_indices
-from .utils.tf_utils import dataset_to_tf, minimal_tf_collate_fn, multiprocess_dataset_to_tf
+from .utils.tf_utils import (
+    dataset_to_tf,
+    minimal_tf_collate_fn,
+    multiprocess_dataset_to_tf,
+)
 from .utils.typing import ListLike, PathLike
 
 
@@ -1306,7 +1315,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @staticmethod
     def from_sql(
         sql: Union[str, "sqlalchemy.sql.Selectable"],
-        con: Union[str, "sqlalchemy.engine.Connection", "sqlalchemy.engine.Engine", "sqlite3.Connection"],
+        con: Union[
+            str,
+            "sqlalchemy.engine.Connection",
+            "sqlalchemy.engine.Engine",
+            "sqlite3.Connection",
+        ],
         features: Optional[Features] = None,
         cache_dir: str = None,
         keep_in_memory: bool = False,
@@ -1508,7 +1522,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             {
                 "job_id": shard_idx,
                 "shard": self.shard(num_shards=num_shards, index=shard_idx, contiguous=True),
-                "fpath": path_join(dataset_path, f"data-{shard_idx:05d}-of-{num_shards:05d}.arrow"),
+                "fpath": path_join(
+                    dataset_path,
+                    f"data-{shard_idx:05d}-of-{num_shards:05d}.arrow",
+                ),
                 "storage_options": storage_options,
             }
             for shard_idx in range(num_shards)
@@ -1519,13 +1536,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             with Pool(num_proc) as pool:
                 with pbar:
                     for job_id, done, content in iflatmap_unordered(
-                        pool, Dataset._save_to_disk_single, kwargs_iterable=kwargs_per_job
+                        pool,
+                        Dataset._save_to_disk_single,
+                        kwargs_iterable=kwargs_per_job,
                     ):
                         if done:
                             shards_done += 1
                             pbar.set_description(f"Saving the dataset ({shards_done}/{num_shards} shards)")
                             logger.debug(f"Finished writing shard number {job_id} of {num_shards}.")
-                            shard_lengths[job_id], shard_sizes[job_id] = content
+                            (
+                                shard_lengths[job_id],
+                                shard_sizes[job_id],
+                            ) = content
                         else:
                             pbar.update(content)
         else:
@@ -1536,20 +1558,34 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             shards_done += 1
                             pbar.set_description(f"Saving the dataset ({shards_done}/{num_shards} shards)")
                             logger.debug(f"Finished writing shard number {job_id} of {num_shards}.")
-                            shard_lengths[job_id], shard_sizes[job_id] = content
+                            (
+                                shard_lengths[job_id],
+                                shard_sizes[job_id],
+                            ) = content
                         else:
                             pbar.update(content)
-        with fs.open(path_join(dataset_path, config.DATASET_STATE_JSON_FILENAME), "w", encoding="utf-8") as state_file:
+        with fs.open(
+            path_join(dataset_path, config.DATASET_STATE_JSON_FILENAME),
+            "w",
+            encoding="utf-8",
+        ) as state_file:
             json.dump(state, state_file, indent=2, sort_keys=True)
         with fs.open(
-            path_join(dataset_path, config.DATASET_INFO_FILENAME), "w", encoding="utf-8"
+            path_join(dataset_path, config.DATASET_INFO_FILENAME),
+            "w",
+            encoding="utf-8",
         ) as dataset_info_file:
             # Sort only the first level of keys, or we might shuffle fields of nested features if we use sort_keys=True
             sorted_keys_dataset_info = {key: dataset_info[key] for key in sorted(dataset_info)}
             json.dump(sorted_keys_dataset_info, dataset_info_file, indent=2)
 
     @staticmethod
-    def _save_to_disk_single(job_id: int, shard: "Dataset", fpath: str, storage_options: Optional[dict]):
+    def _save_to_disk_single(
+        job_id: int,
+        shard: "Dataset",
+        fpath: str,
+        storage_options: Optional[dict],
+    ):
         batch_size = config.DEFAULT_MAX_BATCH_SIZE
 
         num_examples_progress_update = 0
@@ -2069,7 +2105,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return dataset
 
     @fingerprint_transform(inplace=False)
-    def cast_column(self, column: str, feature: FeatureType, new_fingerprint: Optional[str] = None) -> "Dataset":
+    def cast_column(
+        self,
+        column: str,
+        feature: FeatureType,
+        new_fingerprint: Optional[str] = None,
+    ) -> "Dataset":
         """Cast column to feature for decoding.
 
         Args:
@@ -2113,7 +2154,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @transmit_tasks
     @transmit_format
     @fingerprint_transform(inplace=False)
-    def remove_columns(self, column_names: Union[str, List[str]], new_fingerprint: Optional[str] = None) -> "Dataset":
+    def remove_columns(
+        self,
+        column_names: Union[str, List[str]],
+        new_fingerprint: Optional[str] = None,
+    ) -> "Dataset":
         """
         Remove one or several column(s) in the dataset and the features associated to them.
 
@@ -2169,7 +2214,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @transmit_tasks
     @fingerprint_transform(inplace=False)
     def rename_column(
-        self, original_column_name: str, new_column_name: str, new_fingerprint: Optional[str] = None
+        self,
+        original_column_name: str,
+        new_column_name: str,
+        new_fingerprint: Optional[str] = None,
     ) -> "Dataset":
         """
         Rename a column in the dataset, and move the features associated to the original column under the new column
@@ -2235,7 +2283,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @transmit_tasks
     @fingerprint_transform(inplace=False)
-    def rename_columns(self, column_mapping: Dict[str, str], new_fingerprint: Optional[str] = None) -> "Dataset":
+    def rename_columns(
+        self,
+        column_mapping: Dict[str, str],
+        new_fingerprint: Optional[str] = None,
+    ) -> "Dataset":
         """
         Rename several columns in the dataset, and move the features associated to the original columns under
         the new column names.
@@ -2304,7 +2356,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @transmit_tasks
     @transmit_format
     @fingerprint_transform(inplace=False)
-    def select_columns(self, column_names: Union[str, List[str]], new_fingerprint: Optional[str] = None) -> "Dataset":
+    def select_columns(
+        self,
+        column_names: Union[str, List[str]],
+        new_fingerprint: Optional[str] = None,
+    ) -> "Dataset":
         """Select one or several column(s) in the dataset and the features
         associated to them.
 
@@ -2377,7 +2433,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # Fast iteration
             # Benchmark: https://gist.github.com/mariosasko/0248288a2e3a7556873969717c1fe52b (fast_iter_batch)
             format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
-            formatter = get_formatter(self._format_type, features=self._info.features, **format_kwargs)
+            formatter = get_formatter(
+                self._format_type,
+                features=self._info.features,
+                **format_kwargs,
+            )
             batch_size = config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER
             for pa_subtable in table_iter(self.data, batch_size=batch_size):
                 for i in range(pa_subtable.num_rows):
@@ -2411,8 +2471,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # Fast iteration
             # Benchmark: https://gist.github.com/mariosasko/0248288a2e3a7556873969717c1fe52b (fast_iter_batch)
             format_kwargs = self._format_kwargs if self._format_kwargs is not None else {}
-            formatter = get_formatter(self._format_type, features=self._info.features, **format_kwargs)
-            for pa_subtable in table_iter(self.data, batch_size=batch_size, drop_last_batch=drop_last_batch):
+            formatter = get_formatter(
+                self._format_type,
+                features=self._info.features,
+                **format_kwargs,
+            )
+            for pa_subtable in table_iter(
+                self.data,
+                batch_size=batch_size,
+                drop_last_batch=drop_last_batch,
+            ):
                 formatted_batch = format_table(
                     pa_subtable,
                     range(pa_subtable.num_rows),
@@ -2470,7 +2538,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             self.set_format(type, columns, output_all_columns, **format_kwargs)
             yield
         finally:
-            self.set_format(old_format_type, old_format_columns, old_output_all_columns, **old_format_kwargs)
+            self.set_format(
+                old_format_type,
+                old_format_columns,
+                old_output_all_columns,
+                **old_format_kwargs,
+            )
 
     @fingerprint_transform(inplace=True)
     def set_format(
@@ -2619,7 +2692,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                  0, 0])}
         ```
         """
-        self.set_format("custom", columns=columns, output_all_columns=output_all_columns, transform=transform)
+        self.set_format(
+            "custom",
+            columns=columns,
+            output_all_columns=output_all_columns,
+            transform=transform,
+        )
 
     def with_format(
         self,
@@ -2669,7 +2747,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         """
         dataset = copy.deepcopy(self)
-        dataset.set_format(type=type, columns=columns, output_all_columns=output_all_columns, **format_kwargs)
+        dataset.set_format(
+            type=type,
+            columns=columns,
+            output_all_columns=output_all_columns,
+            **format_kwargs,
+        )
         return dataset
 
     def with_transform(
@@ -2717,7 +2800,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```
         """
         dataset = copy.deepcopy(self)
-        dataset.set_transform(transform=transform, columns=columns, output_all_columns=output_all_columns)
+        dataset.set_transform(
+            transform=transform,
+            columns=columns,
+            output_all_columns=output_all_columns,
+        )
         return dataset
 
     @deprecated()
@@ -2785,9 +2872,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         format_kwargs = kwargs["format_kwargs"] if "format_kwargs" in kwargs else self._format_kwargs
         format_kwargs = format_kwargs if format_kwargs is not None else {}
         formatter = get_formatter(format_type, features=self._info.features, **format_kwargs)
-        pa_subtable = query_table(self._data, key, indices=self._indices if self._indices is not None else None)
+        pa_subtable = query_table(
+            self._data,
+            key,
+            indices=self._indices if self._indices is not None else None,
+        )
         formatted_output = format_table(
-            pa_subtable, key, formatter=formatter, format_columns=format_columns, output_all_columns=output_all_columns
+            pa_subtable,
+            key,
+            formatter=formatter,
+            format_columns=format_columns,
+            output_all_columns=output_all_columns,
         )
         return formatted_output
 
@@ -3071,7 +3166,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     info = shard.info.copy()
                     info.features = features
                     info.task_templates = None
-                    return Dataset.from_file(shard_kwargs["cache_file_name"], info=info, split=shard.split)
+                    return Dataset.from_file(
+                        shard_kwargs["cache_file_name"],
+                        info=info,
+                        split=shard.split,
+                    )
             raise NonExistentDatasetError
 
         num_shards = num_proc if num_proc is not None else 1
@@ -3110,12 +3209,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         else:
 
             def format_cache_file_name(
-                cache_file_name: Optional[str], rank: Union[int, Literal["*"]]  # noqa: F722
+                cache_file_name: Optional[str],
+                rank: Union[int, Literal["*"]],  # noqa: F722
             ) -> Optional[str]:
                 if not cache_file_name:
                     return cache_file_name
                 sep = cache_file_name.rindex(".")
-                base_name, extension = cache_file_name[:sep], cache_file_name[sep:]
+                base_name, extension = (
+                    cache_file_name[:sep],
+                    cache_file_name[sep:],
+                )
                 if isinstance(rank, int):
                     cache_file_name = base_name + suffix_template.format(rank=rank, num_proc=num_proc) + extension
                     logger.info(f"Process #{rank} will write at {cache_file_name}")
@@ -3147,7 +3250,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 logger.warning("Setting TOKENIZERS_PARALLELISM=false for forked processes.")
             os.environ["TOKENIZERS_PARALLELISM"] = "false"
             shards = [
-                self.shard(num_shards=num_proc, index=rank, contiguous=True, keep_in_memory=keep_in_memory)
+                self.shard(
+                    num_shards=num_proc,
+                    index=rank,
+                    contiguous=True,
+                    keep_in_memory=keep_in_memory,
+                )
                 for rank in range(num_proc)
             ]
             kwargs_per_job = [
@@ -3188,7 +3296,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         desc=(desc or "Map") + f" (num_proc={num_proc})",
                     ) as pbar:
                         for rank, done, content in iflatmap_unordered(
-                            pool, Dataset._map_single, kwargs_iterable=kwargs_per_job
+                            pool,
+                            Dataset._map_single,
+                            kwargs_iterable=kwargs_per_job,
                         ):
                             if done:
                                 shards_done += 1
@@ -3451,7 +3561,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         example = apply_function_on_filtered_inputs(example, i, offset=offset)
                         if update_data:
                             if i == 0:
-                                buf_writer, writer, tmp_file = init_buffer_and_writer()
+                                (
+                                    buf_writer,
+                                    writer,
+                                    tmp_file,
+                                ) = init_buffer_and_writer()
                                 stack.enter_context(writer)
                             if isinstance(example, pa.Table):
                                 writer.write_row(example)
@@ -3484,7 +3598,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             ) from None
                         if update_data:
                             if i == 0:
-                                buf_writer, writer, tmp_file = init_buffer_and_writer()
+                                (
+                                    buf_writer,
+                                    writer,
+                                    tmp_file,
+                                ) = init_buffer_and_writer()
                                 stack.enter_context(writer)
                             if isinstance(batch, pa.Table):
                                 writer.write_table(batch)
@@ -3532,7 +3650,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @transmit_format
     @fingerprint_transform(
-        inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name", "desc"], version="2.0.1"
+        inplace=False,
+        ignore_kwargs=["load_from_cache_file", "cache_file_name", "desc"],
+        version="2.0.1",
     )
     def filter(
         self,
@@ -3627,7 +3747,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         indices = self.map(
             function=partial(
-                get_indices_from_mask_function, function, batched, with_indices, input_columns, self._indices
+                get_indices_from_mask_function,
+                function,
+                batched,
+                with_indices,
+                input_columns,
+                self._indices,
             ),
             with_indices=True,
             features=Features({"indices": Value("uint64")}),
@@ -3927,14 +4052,24 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             buf_writer = pa.BufferOutputStream()
             tmp_file = None
             writer = ArrowWriter(
-                stream=buf_writer, writer_batch_size=writer_batch_size, fingerprint=new_fingerprint, unit="indices"
+                stream=buf_writer,
+                writer_batch_size=writer_batch_size,
+                fingerprint=new_fingerprint,
+                unit="indices",
             )
         else:
             buf_writer = None
             logger.info(f"Caching indices mapping at {indices_cache_file_name}")
-            tmp_file = tempfile.NamedTemporaryFile("wb", dir=os.path.dirname(indices_cache_file_name), delete=False)
+            tmp_file = tempfile.NamedTemporaryFile(
+                "wb",
+                dir=os.path.dirname(indices_cache_file_name),
+                delete=False,
+            )
             writer = ArrowWriter(
-                path=tmp_file.name, writer_batch_size=writer_batch_size, fingerprint=new_fingerprint, unit="indices"
+                path=tmp_file.name,
+                writer_batch_size=writer_batch_size,
+                fingerprint=new_fingerprint,
+                unit="indices",
             )
 
         indices = indices if isinstance(indices, list) else list(indices)
@@ -3974,13 +4109,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Return new Dataset object
         if buf_writer is None:
             return self._new_dataset_with_indices(
-                indices_cache_file_name=indices_cache_file_name, fingerprint=new_fingerprint
+                indices_cache_file_name=indices_cache_file_name,
+                fingerprint=new_fingerprint,
             )
         else:
-            return self._new_dataset_with_indices(indices_buffer=buf_writer.getvalue(), fingerprint=new_fingerprint)
+            return self._new_dataset_with_indices(
+                indices_buffer=buf_writer.getvalue(),
+                fingerprint=new_fingerprint,
+            )
 
     @transmit_format
-    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"])
+    @fingerprint_transform(
+        inplace=False,
+        ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"],
+    )
     def sort(
         self,
         column_names: Union[str, Sequence_[str]],
@@ -4101,7 +4243,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if os.path.exists(indices_cache_file_name) and load_from_cache_file:
                 logger.info(f"Loading cached sorted indices for dataset at {indices_cache_file_name}")
                 return self._new_dataset_with_indices(
-                    fingerprint=new_fingerprint, indices_cache_file_name=indices_cache_file_name
+                    fingerprint=new_fingerprint,
+                    indices_cache_file_name=indices_cache_file_name,
                 )
 
         sort_table = query_table(
@@ -4126,7 +4269,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @transmit_format
     @fingerprint_transform(
-        inplace=False, randomized_function=True, ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"]
+        inplace=False,
+        randomized_function=True,
+        ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"],
     )
     def shuffle(
         self,
@@ -4243,7 +4388,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if os.path.exists(indices_cache_file_name) and load_from_cache_file:
                 logger.info(f"Loading cached shuffled indices for dataset at {indices_cache_file_name}")
                 return self._new_dataset_with_indices(
-                    fingerprint=new_fingerprint, indices_cache_file_name=indices_cache_file_name
+                    fingerprint=new_fingerprint,
+                    indices_cache_file_name=indices_cache_file_name,
                 )
 
         permutation = generator.permutation(len(self))
@@ -4261,7 +4407,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         inplace=False,
         randomized_function=True,
         fingerprint_names=["train_new_fingerprint", "test_new_fingerprint"],
-        ignore_kwargs=["load_from_cache_file", "train_indices_cache_file_name", "test_indices_cache_file_name"],
+        ignore_kwargs=[
+            "load_from_cache_file",
+            "train_indices_cache_file_name",
+            "test_indices_cache_file_name",
+        ],
     )
     def train_test_split(
         self,
@@ -4368,7 +4518,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         })
         ```
         """
-        from .dataset_dict import DatasetDict  # import here because of circular dependency
+        from .dataset_dict import (
+            DatasetDict,
+        )
 
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -4478,10 +4630,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 return DatasetDict(
                     {
                         "train": self._new_dataset_with_indices(
-                            fingerprint=train_new_fingerprint, indices_cache_file_name=train_indices_cache_file_name
+                            fingerprint=train_new_fingerprint,
+                            indices_cache_file_name=train_indices_cache_file_name,
                         ),
                         "test": self._new_dataset_with_indices(
-                            fingerprint=test_new_fingerprint, indices_cache_file_name=test_indices_cache_file_name
+                            fingerprint=test_new_fingerprint,
+                            indices_cache_file_name=test_indices_cache_file_name,
                         ),
                     }
                 )
@@ -4502,7 +4656,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 try:
                     train_indices, test_indices = next(
                         stratified_shuffle_split_generate_indices(
-                            self.with_format("numpy")[stratify_by_column], n_train, n_test, rng=generator
+                            self.with_format("numpy")[stratify_by_column],
+                            n_train,
+                            n_test,
+                            rng=generator,
                         )
                     )
                 except Exception as error:
@@ -4749,7 +4906,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Dynamic import to avoid circular dependency
         from .io.csv import CsvDatasetWriter
 
-        return CsvDatasetWriter(self, path_or_buf, batch_size=batch_size, num_proc=num_proc, **to_csv_kwargs).write()
+        return CsvDatasetWriter(
+            self,
+            path_or_buf,
+            batch_size=batch_size,
+            num_proc=num_proc,
+            **to_csv_kwargs,
+        ).write()
 
     def to_dict(self, batch_size: Optional[int] = None, batched="deprecated") -> Union[dict, Iterator[dict]]:
         """Returns the dataset as a Python dict. Can also return a generator for large datasets.
@@ -4863,7 +5026,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Dynamic import to avoid circular dependency
         from .io.json import JsonDatasetWriter
 
-        return JsonDatasetWriter(self, path_or_buf, batch_size=batch_size, num_proc=num_proc, **to_json_kwargs).write()
+        return JsonDatasetWriter(
+            self,
+            path_or_buf,
+            batch_size=batch_size,
+            num_proc=num_proc,
+            **to_json_kwargs,
+        ).write()
 
     def to_pandas(
         self, batch_size: Optional[int] = None, batched: bool = False
@@ -4938,7 +5107,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def to_sql(
         self,
         name: str,
-        con: Union[str, "sqlalchemy.engine.Connection", "sqlalchemy.engine.Engine", "sqlite3.Connection"],
+        con: Union[
+            str,
+            "sqlalchemy.engine.Connection",
+            "sqlalchemy.engine.Engine",
+            "sqlite3.Connection",
+        ],
         batch_size: Optional[int] = None,
         **sql_writer_kwargs,
     ) -> int:
@@ -5142,9 +5316,60 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
         ex_iterable = ArrowExamplesIterable(
             Dataset._generate_tables_from_shards,
-            kwargs={"shards": shards, "batch_size": config.DEFAULT_MAX_BATCH_SIZE},
+            kwargs={
+                "shards": shards,
+                "batch_size": config.DEFAULT_MAX_BATCH_SIZE,
+            },
         )
         return IterableDataset(ex_iterable, info=DatasetInfo(features=self.features))
+
+    def generate_unique_metadata_filename(
+        self,
+        repo_id: str,
+        split: str,
+        branch: str,
+        max_shard_size: Union[int, str],
+        num_shards: int,
+    ) -> str:
+        """
+        Generates a deterministic unique metadata filename based on the provided parameters.
+
+        :param repo_id: Repository ID
+        :param split: Split name
+        :param branch: Git branch name
+        :param max_shard_size: Maximum shard size
+        :param num_shards: Number of shards
+        :return: A unique metadata filename
+        """
+        # Sanitize input parameters
+
+        sanitized_repo_id = repo_id.replace("/", "_")
+
+        if split is None:
+            sanitized_split = "none"
+        else:
+            sanitized_split = split.replace("/", "_")
+
+        if branch is None:
+            sanitized_branch = "none"
+        else:
+            sanitized_branch = branch.replace("/", "_")
+
+        if max_shard_size is None:
+            sanitized_max_shard_size = "none"
+        else:
+            sanitized_max_shard_size = str(max_shard_size).replace("/", "_")
+
+        if num_shards is None:
+            sanitized_num_shards = "none"
+        else:
+            sanitized_num_shards = str(num_shards).replace("/", "_")
+
+        # Create a unique deterministic ID based on input parameters
+        unique_id = f"{sanitized_repo_id}-{sanitized_split}-{sanitized_branch}-{sanitized_max_shard_size}-{sanitized_num_shards}"
+
+        # Return the metadata filename
+        return unique_id
 
     def _push_parquet_shards_to_hub(
         self,
@@ -5261,24 +5486,80 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             num_shards = int(dataset_nbytes / max_shard_size) + 1
             num_shards = max(num_shards, 1)
 
-        shards = (self.shard(num_shards=num_shards, index=i, contiguous=True) for i in range(num_shards))
+        uploaded_size = 0
+        shards_path_in_repo = []
+        starting_shard_index = 0
 
         if decodable_columns:
+            import yaml
+            from huggingface_hub import hf_hub_download
 
-            def shards_with_embedded_external_files(shards):
+            # Generate unique metadata filename
+            unique_id = self.generate_unique_metadata_filename(repo_id, split, branch, max_shard_size, num_shards)
+
+            # Load the metadata of the last processed shard
+            metadata_path = f"metadata/{unique_id}.yaml"
+            try:
+                uploaded_shards_meta_data_path = hf_hub_download(
+                    repo_id, metadata_path, token=token, repo_type="dataset"
+                )
+                logger.info(f"Loading metadata from {uploaded_shards_meta_data_path}")
+                uploaded_shards_meta_data = yaml.safe_load(open(uploaded_shards_meta_data_path, "r"))
+                logger.info(f"Loaded dict: {uploaded_shards_meta_data}")
+            except Exception as e:
+                logger.error(
+                    f"Failed to download metadata and load them into a dict from {metadata_path}: with error {e}. \n"
+                    f"Assuming this is a new dataset being uploaded and starting from scratch"
+                )
+                uploaded_shards_meta_data = None
+
+            # If metadata is available, use it to determine the starting shard index
+            if uploaded_shards_meta_data:
+                starting_shard_index = uploaded_shards_meta_data["shard_index"] + 1
+
+                uploaded_size = uploaded_shards_meta_data.get("uploaded_size", 0)
+                shards_path_in_repo = uploaded_shards_meta_data.get("shard_path_in_repo", [])
+
+            def shards_with_embedded_external_files(shards, num_shards: int = 1):
+                """
+                🧩 A generator function that yields processed shards from a list of shards, starting from a specific index.
+
+                :param shards: The input shards list.
+                :type shards: list
+                :param start_index: The index to start from.
+                :type start_index: int
+                """
+
+                # 🔄 Starting from the desired index
                 for shard in shards:
-                    format = shard.format
+                    original_format = shard.format
                     shard = shard.with_format("arrow")
+
+                    # 🔌 Embed external files within the shard
                     shard = shard.map(
                         embed_table_storage,
                         batched=True,
                         batch_size=1000,
                         keep_in_memory=True,
                     )
-                    shard = shard.with_format(**format)
+
+                    # 🔄 Restore the original format
+                    shard = shard.with_format(**original_format)
+
+                    # 🎁 Yield the processed shard
                     yield shard
 
-            shards = shards_with_embedded_external_files(shards)
+            shards = (
+                self.shard(num_shards=num_shards, index=i, contiguous=True)
+                for i in range(starting_shard_index, num_shards)
+            )
+
+            shards = shards_with_embedded_external_files(shards, num_shards=num_shards)
+        else:
+            shards = (
+                self.shard(num_shards=num_shards, index=i, contiguous=True)
+                for i in range(starting_shard_index, num_shards)
+            )
 
         files = api.list_repo_files(repo_id, repo_type="dataset", revision=branch, token=token)
         data_files = [file for file in files if file.startswith(f"{data_dir}/")]
@@ -5287,42 +5568,86 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             return f"{data_dir}/{split}-{_index:05d}-of-{num_shards:05d}-{shard._fingerprint}.parquet"
 
         shards_iter = iter(shards)
-        first_shard = next(shards_iter)
-        first_shard_path_in_repo = path_in_repo(0, first_shard)
-        if first_shard_path_in_repo in data_files and num_shards < len(data_files):
-            logger.info("Resuming upload of the dataset shards.")
+        try:
+            first_shard = next(shards_iter)
+        except StopIteration:
+            first_shard = None
 
-        uploaded_size = 0
-        shards_path_in_repo = []
-        for index, shard in logging.tqdm(
-            enumerate(itertools.chain([first_shard], shards_iter)),
-            desc="Pushing dataset shards to the dataset hub",
-            total=num_shards,
-            disable=not logging.is_progress_bar_enabled(),
-        ):
-            shard_path_in_repo = path_in_repo(index, shard)
-            # Upload a shard only if it doesn't already exist in the repository
-            if shard_path_in_repo not in data_files:
-                buffer = BytesIO()
-                shard.to_parquet(buffer)
-                uploaded_size += buffer.tell()
-                _retry(
-                    api.upload_file,
-                    func_kwargs={
-                        "path_or_fileobj": buffer.getvalue(),
-                        "path_in_repo": shard_path_in_repo,
-                        "repo_id": repo_id,
-                        "token": token,
-                        "repo_type": "dataset",
-                        "revision": branch,
-                    },
-                    exceptions=HTTPError,
-                    status_codes=[504],
-                    base_wait_time=2.0,
-                    max_retries=5,
-                    max_wait_time=20.0,
-                )
-            shards_path_in_repo.append(shard_path_in_repo)
+        if first_shard is not None:
+            first_shard_path_in_repo = path_in_repo(0, first_shard)
+            if first_shard_path_in_repo in data_files and num_shards < len(data_files):
+                logger.info("Resuming upload of the dataset shards.")
+
+            for index, shard in logging.tqdm(
+                enumerate(itertools.chain([first_shard], shards_iter)),
+                desc="Pushing dataset shards to the dataset hub",
+                total=num_shards,
+                disable=not logging.is_progress_bar_enabled(),
+            ):
+                actual_index = index + starting_shard_index
+                logger.info(f"Uploading shard {actual_index} of {num_shards}")
+                shard_path_in_repo = path_in_repo(actual_index, shard)
+                uploaded_size_shard = -1
+                # Upload a shard only if it doesn't already exist in the repository
+                if shard_path_in_repo not in data_files:
+                    buffer = BytesIO()
+                    shard.to_parquet(buffer)
+                    uploaded_size_shard = buffer.tell()
+                    uploaded_size += uploaded_size_shard
+                    _retry(
+                        api.upload_file,
+                        func_kwargs={
+                            "path_or_fileobj": buffer.getvalue(),
+                            "path_in_repo": shard_path_in_repo,
+                            "repo_id": repo_id,
+                            "token": token,
+                            "repo_type": "dataset",
+                            "revision": branch,
+                        },
+                        exceptions=HTTPError,
+                        status_codes=[504],
+                        base_wait_time=2.0,
+                        max_retries=5,
+                        max_wait_time=20.0,
+                    )
+
+                if shard_path_in_repo not in shards_path_in_repo:
+                    import yaml
+
+                    if uploaded_size_shard == -1:
+                        buffer = BytesIO()
+                        shard.to_parquet(buffer)
+                        uploaded_size_shard = buffer.tell()
+                        uploaded_size += uploaded_size_shard
+
+                    # After each shard upload, update the metadata file
+                    shards_path_in_repo.append(shard_path_in_repo)
+                    metadata = {
+                        "shard_index": actual_index,
+                        "shard_path_in_repo": shards_path_in_repo,
+                        "uploaded_size": uploaded_size,
+                    }
+                    # Create a temporary file and write the metadata to it
+                    with tempfile.NamedTemporaryFile(mode="w", delete=True) as temp:
+                        yaml.dump(metadata, temp)
+                        temp_path = temp.name
+
+                        _retry(
+                            api.upload_file,
+                            func_kwargs={
+                                "path_or_fileobj": temp_path,
+                                "path_in_repo": metadata_path,
+                                "repo_id": repo_id,
+                                "token": token,
+                                "repo_type": "dataset",
+                                "revision": branch,
+                            },
+                            exceptions=HTTPError,
+                            status_codes=[504],
+                            base_wait_time=2.0,
+                            max_retries=5,
+                            max_wait_time=20.0,
+                        )
 
         # Cleanup to remove unused files
         data_files_to_delete = [
@@ -5337,7 +5662,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
 
         def delete_file(file):
-            api.delete_file(file, repo_id=repo_id, token=token, repo_type="dataset", revision=branch)
+            api.delete_file(
+                file,
+                repo_id=repo_id,
+                token=token,
+                repo_type="dataset",
+                revision=branch,
+            )
 
         if len(data_files_to_delete):
             for data_file in logging.tqdm(
@@ -5350,7 +5681,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         repo_files = list(set(files) - set(data_files_to_delete))
 
-        return repo_id, split, uploaded_size, dataset_nbytes, repo_files, deleted_size
+        return (
+            repo_id,
+            split,
+            uploaded_size,
+            dataset_nbytes,
+            repo_files,
+            deleted_size,
+        )
 
     def push_to_hub(
         self,
@@ -5441,7 +5779,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
         data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
 
-        repo_id, split, uploaded_size, dataset_nbytes, repo_files, deleted_size = self._push_parquet_shards_to_hub(
+        (
+            repo_id,
+            split,
+            uploaded_size,
+            dataset_nbytes,
+            repo_files,
+            deleted_size,
+        ) = self._push_parquet_shards_to_hub(
             repo_id=repo_id,
             data_dir=data_dir,
             split=split,
@@ -5460,7 +5805,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes
         info_to_dump.config_name = config_name
         info_to_dump.splits = SplitDict(
-            {split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name)}
+            {
+                split: SplitInfo(
+                    split,
+                    num_bytes=dataset_nbytes,
+                    num_examples=len(self),
+                    dataset_name=dataset_name,
+                )
+            }
         )
         # get the info from the README to update them
         if "README.md" in repo_files:
@@ -5518,7 +5870,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 repo_info.dataset_size = (repo_info.dataset_size or 0) + dataset_nbytes
                 repo_info.size_in_bytes = repo_info.download_size + repo_info.dataset_size
                 repo_info.splits[split] = SplitInfo(
-                    split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name
+                    split,
+                    num_bytes=dataset_nbytes,
+                    num_examples=len(self),
+                    dataset_name=dataset_name,
                 )
                 info_to_dump = repo_info
         # create the metadata configs if it was uploaded with push_to_hub before metadata configs existed
@@ -5526,19 +5881,26 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             _matched_paths = [
                 p
                 for p in repo_files
-                if fnmatch(p, PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*"))
+                if fnmatch(
+                    p,
+                    PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED.replace("{split}", "*"),
+                )
             ]
             if len(_matched_paths) > 0:
                 # it was uploaded with push_to_hub before metadata configs existed
                 _resolved_splits = {
                     string_to_dict(
-                        p, glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED)
+                        p,
+                        glob_pattern_to_regex(PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED),
                     )["split"]
                     for p in _matched_paths
                 }
                 default_metadata_configs_to_dump = {
                     "data_files": [
-                        {"split": _resolved_split, "path": f"data/{_resolved_split}-*"}
+                        {
+                            "split": _resolved_split,
+                            "path": f"data/{_resolved_split}-*",
+                        }
                         for _resolved_split in _resolved_splits
                     ]
                 }
@@ -5645,7 +6007,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         info = dataset.info.copy()
         info.features.update(Features.from_arrow_schema(column_table.schema))
         table = update_metadata_with_features(table, info.features)
-        return Dataset(table, info=info, split=self.split, indices_table=None, fingerprint=new_fingerprint)
+        return Dataset(
+            table,
+            info=info,
+            split=self.split,
+            indices_table=None,
+            fingerprint=new_fingerprint,
+        )
 
     def add_faiss_index(
         self,
@@ -5882,7 +6250,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         item_table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
         # We don't call _check_if_features_can_be_aligned here so this cast is "unsafe"
         dset_features, item_features = _align_features(
-            [self._info.features, Features.from_arrow_schema(item_table.schema)]
+            [
+                self._info.features,
+                Features.from_arrow_schema(item_table.schema),
+            ]
         )
         # Cast to align the schemas of the tables and concatenate the tables
         table = concat_tables(
@@ -5983,7 +6354,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if isinstance(label_feature, ClassLabel)
             else Sequence(ClassLabel(num_classes=len(label_names), names=label_names))
         )
-        return self.map(process_label_ids, features=features, batched=True, desc="Aligning the labels")
+        return self.map(
+            process_label_ids,
+            features=features,
+            batched=True,
+            desc="Aligning the labels",
+        )
 
 
 def _concatenate_map_style_datasets(
@@ -6079,13 +6455,18 @@ def _concatenate_map_style_datasets(
         features_list = _align_features([dset.features for dset in dsets])
     else:
         features_list = [dset.features for dset in dsets]
-    table = update_metadata_with_features(table, {k: v for features in features_list for k, v in features.items()})
+    table = update_metadata_with_features(
+        table,
+        {k: v for features in features_list for k, v in features.items()},
+    )
 
     # Concatenate infos
     if info is None:
         info = DatasetInfo.from_merge([dset.info for dset in dsets])
     fingerprint = update_fingerprint(
-        "".join(dset._fingerprint for dset in dsets), _concatenate_map_style_datasets, {"info": info, "split": split}
+        "".join(dset._fingerprint for dset in dsets),
+        _concatenate_map_style_datasets,
+        {"info": info, "split": split},
     )
 
     # Make final concatenated dataset
@@ -6166,7 +6547,10 @@ def _interleave_map_style_datasets(
 
         # Reasoning behind the following operation: for each dataset indices (i.e column) repeat the indices to have max_length indices per dataset
         # For example, if the max_length is 5 and the i-th dataset has 3 samples, the i-th column will be [0,1,2,0,1]
-        indices = np.mod(np.arange(max(lengths)).reshape(-1, 1), np.array(lengths).reshape(1, -1))
+        indices = np.mod(
+            np.arange(max(lengths)).reshape(-1, 1),
+            np.array(lengths).reshape(1, -1),
+        )
 
         # We have to keep the indices to their respective dataset offsets and to flatten to effectively interleave the datasets
         indices = (indices + offsets).flatten().tolist()
