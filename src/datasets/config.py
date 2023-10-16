@@ -222,3 +222,6 @@ ARCHIVED_DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE = 200
 
 # Progress bars
 PBAR_REFRESH_TIME_INTERVAL = 0.05  # 20 progress updates per sec
+
+# Maximum number of uploaded files per commit
+UPLOADS_MAX_NUMBER_PER_COMMIT = 50

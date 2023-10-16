@@ -1,4 +1,5 @@
 import fnmatch
+import gc
 import os
 import tempfile
 import time
@@ -53,12 +54,7 @@ class TestPushToHub:
 
             # Ensure that there is a single file on the repository that has the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset"))
-            assert all(
-                fnmatch.fnmatch(file, expected_file)
-                for file, expected_file in zip(
-                    files, [".gitattributes", "README.md", "data/train-00000-of-00001-*.parquet"]
-                )
-            )
+            assert files == [".gitattributes", "README.md", "data/train-00000-of-00001.parquet"]
 
     def test_push_dataset_dict_to_hub_name_without_namespace(self, temporary_repo):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
@@ -75,12 +71,7 @@ class TestPushToHub:
 
             # Ensure that there is a single file on the repository that has the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset"))
-            assert all(
-                fnmatch.fnmatch(file, expected_file)
-                for file, expected_file in zip(
-                    files, [".gitattributes", "README.md", "data/train-00000-of-00001-*.parquet"]
-                )
-            )
+            assert files == [".gitattributes", "README.md", "data/train-00000-of-00001.parquet"]
 
     def test_push_dataset_dict_to_hub_datasets_with_different_features(self, cleanup_repo):
         ds_train = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
@@ -111,12 +102,7 @@ class TestPushToHub:
 
             # Ensure that there is a single file on the repository that has the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
-            assert all(
-                fnmatch.fnmatch(file, expected_file)
-                for file, expected_file in zip(
-                    files, [".gitattributes", "README.md", "data/train-00000-of-00001-*.parquet"]
-                )
-            )
+            assert files == [".gitattributes", "README.md", "data/train-00000-of-00001.parquet"]
 
     def test_push_dataset_dict_to_hub(self, temporary_repo):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
@@ -133,12 +119,43 @@ class TestPushToHub:
 
             # Ensure that there is a single file on the repository that has the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
-            assert all(
-                fnmatch.fnmatch(file, expected_file)
-                for file, expected_file in zip(
-                    files, [".gitattributes", "README.md", "data/train-00000-of-00001-*.parquet"]
-                )
+            assert files == [".gitattributes", "README.md", "data/train-00000-of-00001.parquet"]
+
+    def test_push_dataset_dict_to_hub_with_pull_request(self, temporary_repo):
+        ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+
+        local_ds = DatasetDict({"train": ds})
+
+        with temporary_repo() as ds_name:
+            local_ds.push_to_hub(ds_name, token=self._token, create_pr=True)
+            hub_ds = load_dataset(ds_name, revision="refs/pr/1", download_mode="force_redownload")
+
+            assert local_ds["train"].features == hub_ds["train"].features
+            assert list(local_ds.keys()) == list(hub_ds.keys())
+            assert local_ds["train"].features == hub_ds["train"].features
+
+            # Ensure that there is a single file on the repository that has the correct name
+            files = sorted(
+                self._api.list_repo_files(ds_name, revision="refs/pr/1", repo_type="dataset", token=self._token)
             )
+            assert files == [".gitattributes", "README.md", "data/train-00000-of-00001.parquet"]
+
+    def test_push_dataset_dict_to_hub_with_revision(self, temporary_repo):
+        ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+
+        local_ds = DatasetDict({"train": ds})
+
+        with temporary_repo() as ds_name:
+            local_ds.push_to_hub(ds_name, token=self._token, revision="dev")
+            hub_ds = load_dataset(ds_name, revision="dev", download_mode="force_redownload")
+
+            assert local_ds["train"].features == hub_ds["train"].features
+            assert list(local_ds.keys()) == list(hub_ds.keys())
+            assert local_ds["train"].features == hub_ds["train"].features
+
+            # Ensure that there is a single file on the repository that has the correct name
+            files = sorted(self._api.list_repo_files(ds_name, revision="dev", repo_type="dataset", token=self._token))
+            assert files == [".gitattributes", "README.md", "data/train-00000-of-00001.parquet"]
 
     def test_push_dataset_dict_to_hub_multiple_files(self, temporary_repo):
         ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
@@ -156,18 +173,12 @@ class TestPushToHub:
 
             # Ensure that there are two files on the repository that have the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
-            assert all(
-                fnmatch.fnmatch(file, expected_file)
-                for file, expected_file in zip(
-                    files,
-                    [
-                        ".gitattributes",
-                        "README.md",
-                        "data/train-00000-of-00002-*.parquet",
-                        "data/train-00001-of-00002-*.parquet",
-                    ],
-                )
-            )
+            assert files == [
+                ".gitattributes",
+                "README.md",
+                "data/train-00000-of-00002.parquet",
+                "data/train-00001-of-00002.parquet",
+            ]
 
     def test_push_dataset_dict_to_hub_multiple_files_with_max_shard_size(self, temporary_repo):
         ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
@@ -184,18 +195,12 @@ class TestPushToHub:
 
             # Ensure that there are two files on the repository that have the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
-            assert all(
-                fnmatch.fnmatch(file, expected_file)
-                for file, expected_file in zip(
-                    files,
-                    [
-                        ".gitattributes",
-                        "README.md",
-                        "data/train-00000-of-00002-*.parquet",
-                        "data/train-00001-of-00002-*.parquet",
-                    ],
-                )
-            )
+            assert files == [
+                ".gitattributes",
+                "README.md",
+                "data/train-00000-of-00002.parquet",
+                "data/train-00001-of-00002.parquet",
+            ]
 
     def test_push_dataset_dict_to_hub_multiple_files_with_num_shards(self, temporary_repo):
         ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
@@ -212,18 +217,42 @@ class TestPushToHub:
 
             # Ensure that there are two files on the repository that have the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
-            assert all(
-                fnmatch.fnmatch(file, expected_file)
-                for file, expected_file in zip(
-                    files,
-                    [
-                        ".gitattributes",
-                        "README.md",
-                        "data/train-00000-of-00002-*.parquet",
-                        "data/train-00001-of-00002-*.parquet",
-                    ],
-                )
-            )
+            assert files == [
+                ".gitattributes",
+                "README.md",
+                "data/train-00000-of-00002.parquet",
+                "data/train-00001-of-00002.parquet",
+            ]
+
+    def test_push_dataset_dict_to_hub_with_multiple_commits(self, temporary_repo):
+        ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
+
+        local_ds = DatasetDict({"train": ds})
+
+        with temporary_repo() as ds_name:
+            self._api.create_repo(ds_name, token=self._token, repo_type="dataset")
+            num_commits_before_push = len(self._api.list_repo_commits(ds_name, repo_type="dataset", token=self._token))
+            with patch("datasets.config.MAX_SHARD_SIZE", "16KB"), patch(
+                "datasets.config.UPLOADS_MAX_NUMBER_PER_COMMIT", 1
+            ):
+                local_ds.push_to_hub(ds_name, token=self._token)
+            hub_ds = load_dataset(ds_name, download_mode="force_redownload")
+
+            assert local_ds.column_names == hub_ds.column_names
+            assert list(local_ds["train"].features.keys()) == list(hub_ds["train"].features.keys())
+            assert local_ds["train"].features == hub_ds["train"].features
+
+            # Ensure that there are two files on the repository that have the correct name
+            files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
+            assert files == [
+                ".gitattributes",
+                "README.md",
+                "data/train-00000-of-00002.parquet",
+                "data/train-00001-of-00002.parquet",
+            ]
+
+            num_commits_after_push = len(self._api.list_repo_commits(ds_name, repo_type="dataset", token=self._token))
+            assert num_commits_after_push - num_commits_before_push > 1
 
     def test_push_dataset_dict_to_hub_overwrite_files(self, temporary_repo):
         ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
@@ -254,21 +283,14 @@ class TestPushToHub:
 
             # Ensure that there are two files on the repository that have the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
-
-            assert all(
-                fnmatch.fnmatch(file, expected_file)
-                for file, expected_file in zip(
-                    files,
-                    [
-                        ".gitattributes",
-                        "README.md",
-                        "data/random-00000-of-00001-*.parquet",
-                        "data/train-00000-of-00002-*.parquet",
-                        "data/train-00001-of-00002-*.parquet",
-                        "datafile.txt",
-                    ],
-                )
-            )
+            assert files == [
+                ".gitattributes",
+                "README.md",
+                "data/random-00000-of-00001.parquet",
+                "data/train-00000-of-00002.parquet",
+                "data/train-00001-of-00002.parquet",
+                "datafile.txt",
+            ]
 
             self._api.delete_file("datafile.txt", repo_id=ds_name, repo_type="dataset", token=self._token)
 
@@ -279,6 +301,9 @@ class TestPushToHub:
             assert local_ds["train"].features == hub_ds["train"].features
 
         del hub_ds
+
+        # To ensure the reference to the memory-mapped Arrow file is dropped to avoid the PermissionError on Windows
+        gc.collect()
 
         # Push to hub two times, but the second time with fewer files.
         # Verify that the new files contain the correct dataset and that non-necessary files have been deleted.
@@ -303,20 +328,13 @@ class TestPushToHub:
 
             # Ensure that there are two files on the repository that have the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
-
-            assert all(
-                fnmatch.fnmatch(file, expected_file)
-                for file, expected_file in zip(
-                    files,
-                    [
-                        ".gitattributes",
-                        "README.md",
-                        "data/random-00000-of-00001-*.parquet",
-                        "data/train-00000-of-00001-*.parquet",
-                        "datafile.txt",
-                    ],
-                )
-            )
+            assert files == [
+                ".gitattributes",
+                "README.md",
+                "data/random-00000-of-00001.parquet",
+                "data/train-00000-of-00001.parquet",
+                "datafile.txt",
+            ]
 
             # Keeping the "datafile.txt" breaks the load_dataset to think it's a text-based dataset
             self._api.delete_file("datafile.txt", repo_id=ds_name, repo_type="dataset", token=self._token)
@@ -450,31 +468,6 @@ class TestPushToHub:
             assert list(ds.features.keys()) == list(hub_ds["random"].features.keys())
             assert ds.features == hub_ds["random"].features
 
-    def test_push_dataset_to_hub_skip_identical_files(self, temporary_repo):
-        ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
-        with temporary_repo() as ds_name:
-            with patch("datasets.arrow_dataset.HfApi.upload_file", side_effect=self._api.upload_file) as mock_hf_api:
-                # Initial push
-                ds.push_to_hub(ds_name, token=self._token, max_shard_size="1KB")
-                call_count_old = mock_hf_api.call_count
-                mock_hf_api.reset_mock()
-
-                # Remove a data file
-                files = self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token)
-                data_files = [f for f in files if f.startswith("data/")]
-                assert len(data_files) > 1
-                self._api.delete_file(data_files[0], repo_id=ds_name, repo_type="dataset", token=self._token)
-
-                # "Resume" push - push missing files
-                ds.push_to_hub(ds_name, token=self._token, max_shard_size="1KB")
-                call_count_new = mock_hf_api.call_count
-                assert call_count_old > call_count_new
-
-            hub_ds = load_dataset(ds_name, split="train", download_mode="force_redownload")
-            assert ds.column_names == hub_ds.column_names
-            assert list(ds.features.keys()) == list(hub_ds.features.keys())
-            assert ds.features == hub_ds.features
-
     def test_push_dataset_to_hub_multiple_splits_one_by_one(self, temporary_repo):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
         with temporary_repo() as ds_name:
@@ -560,16 +553,13 @@ class TestPushToHub:
             ds_config2.push_to_hub(ds_name, "config2", token=self._token)
 
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset"))
-            expected_files = sorted(
-                [
-                    ".gitattributes",
-                    "README.md",
-                    "config1/train-00000-of-00001-*.parquet",
-                    "config2/train-00000-of-00001-*.parquet",
-                    "data/train-00000-of-00001-*.parquet",
-                ]
-            )
-            assert all(fnmatch.fnmatch(file, expected_file) for file, expected_file in zip(files, expected_files))
+            assert files == [
+                ".gitattributes",
+                "README.md",
+                "config1/train-00000-of-00001.parquet",
+                "config2/train-00000-of-00001.parquet",
+                "data/train-00000-of-00001.parquet",
+            ]
 
             hub_ds_default = load_dataset(ds_name, download_mode="force_redownload")
             hub_ds_config1 = load_dataset(ds_name, "config1", download_mode="force_redownload")
@@ -680,19 +670,16 @@ class TestPushToHub:
             ds_config2.push_to_hub(ds_name, "config2", token=self._token)
 
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset"))
-            expected_files = sorted(
-                [
-                    ".gitattributes",
-                    "README.md",
-                    "config1/random-00000-of-00001-*.parquet",
-                    "config1/train-00000-of-00001-*.parquet",
-                    "config2/random-00000-of-00001-*.parquet",
-                    "config2/train-00000-of-00001-*.parquet",
-                    "data/random-00000-of-00001-*.parquet",
-                    "data/train-00000-of-00001-*.parquet",
-                ]
-            )
-            assert all(fnmatch.fnmatch(file, expected_file) for file, expected_file in zip(files, expected_files))
+            assert files == [
+                ".gitattributes",
+                "README.md",
+                "config1/random-00000-of-00001.parquet",
+                "config1/train-00000-of-00001.parquet",
+                "config2/random-00000-of-00001.parquet",
+                "config2/train-00000-of-00001.parquet",
+                "data/random-00000-of-00001.parquet",
+                "data/train-00000-of-00001.parquet",
+            ]
 
             hub_ds_default = load_dataset(ds_name, download_mode="force_redownload")
             hub_ds_config1 = load_dataset(ds_name, "config1", download_mode="force_redownload")
@@ -790,7 +777,7 @@ class TestPushToHub:
             assert len(ds_another_config_builder.config.data_files["train"]) == 1
             assert fnmatch.fnmatch(
                 ds_another_config_builder.config.data_files["train"][0],
-                "*/another_config/train-00000-of-00001-*.parquet",
+                "*/another_config/train-00000-of-00001.parquet",
             )
 
     def test_push_dataset_dict_to_hub_with_config_no_metadata_configs(self, temporary_repo):
@@ -824,5 +811,5 @@ class TestPushToHub:
             assert len(ds_another_config_builder.config.data_files["random"]) == 1
             assert fnmatch.fnmatch(
                 ds_another_config_builder.config.data_files["random"][0],
-                "*/another_config/random-00000-of-00001-*.parquet",
+                "*/another_config/random-00000-of-00001.parquet",
             )
