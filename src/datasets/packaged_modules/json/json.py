@@ -90,8 +90,12 @@ class Json(datasets.ArrowBasedBuilder):
                     mapping = {col: [row.get(col) for row in dataset] for col in keys}
                 else:
                     mapping = dataset
+
                 pa_table = pa.Table.from_pydict(mapping)
-                yield file_idx, self._cast_table(pa_table)
+                pa_table = self._cast_table(pa_table)
+                if self.config.return_file_name:
+                    pa_table = pa_table.append_column("file_name", pa.array([file] * len(pa_table)))
+                yield file_idx, pa_table
 
             # If the file has one json object per line
             else:
@@ -154,7 +158,10 @@ class Json(datasets.ArrowBasedBuilder):
                                 except (pa.ArrowInvalid, AttributeError) as e:
                                     logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                                     raise ValueError(f"Not able to read records in the JSON file at {file}.") from None
-                                yield file_idx, self._cast_table(pa_table)
+                                pa_table = self._cast_table(pa_table)
+                                if self.config.return_file_name:
+                                    pa_table = pa_table.append_column("file_name", pa.array([file] * len(pa_table)))
+                                yield file_idx, pa_table
                                 break
                             else:
                                 logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
@@ -167,5 +174,8 @@ class Json(datasets.ArrowBasedBuilder):
                         # Uncomment for debugging (will print the Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                        yield (file_idx, batch_idx), self._cast_table(pa_table)
+                        pa_table = self._cast_table(pa_table)
+                        if self.config.return_file_name:
+                            pa_table = pa_table.append_column("file_name", pa.array([file] * len(pa_table)))
+                        yield (file_idx, batch_idx), pa_table
                         batch_idx += 1

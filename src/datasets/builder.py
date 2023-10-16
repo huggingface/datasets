@@ -122,6 +122,8 @@ class BuilderConfig:
             Path(s) to source data file(s).
         description (`str`, *optional*):
             A human description of the configuration.
+        return_file_name (`bool`, defaults to `False`):
+            Whether to return the data file name as a feature.
     """
 
     name: str = "default"
@@ -129,6 +131,7 @@ class BuilderConfig:
     data_dir: Optional[str] = None
     data_files: Optional[DataFilesDict] = None
     description: Optional[str] = None
+    return_file_name: bool = False
 
     def __post_init__(self):
         # The config name is used to name the cache directory.

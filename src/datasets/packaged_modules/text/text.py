@@ -98,7 +98,10 @@ class Text(datasets.ArrowBasedBuilder):
                         # Uncomment for debugging (will print the Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                        yield (file_idx, batch_idx), self._cast_table(pa_table)
+                        pa_table = self._cast_table(pa_table)
+                        if self.config.return_file_name:
+                            pa_table = pa_table.append_column("file_name", pa.array([file] * len(pa_table)))
+                        yield (file_idx, batch_idx), pa_table
                         batch_idx += 1
                 elif self.config.sample_by == "paragraph":
                     batch_idx = 0
@@ -116,13 +119,32 @@ class Text(datasets.ArrowBasedBuilder):
                         # Uncomment for debugging (will print the Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                        yield (file_idx, batch_idx), self._cast_table(pa_table)
+                        pa_table = self._cast_table(pa_table)
+                        if self.config.return_file_name:
+                            pa_table = pa_table.append_column(
+                                "file_name",
+                                pa.array([str(file)] * len(pa_table))
+                                if len(pa_table) > 0
+                                else pa.nulls(0, pa.string()),
+                            )
+                        yield (file_idx, batch_idx), pa_table
                         batch_idx += 1
                         batch = batch[-1]
                     if batch:
                         pa_table = pa.Table.from_arrays([pa.array([batch])], names=pa_table_names)
-                        yield (file_idx, batch_idx), self._cast_table(pa_table)
+                        pa_table = self._cast_table(pa_table)
+                        if self.config.return_file_name:
+                            pa_table = pa_table.append_column(
+                                "file_name",
+                                pa.array([str(file)] * len(pa_table))
+                                if len(pa_table) > 0
+                                else pa.nulls(0, pa.string()),
+                            )
+                        yield (file_idx, batch_idx), pa_table
                 elif self.config.sample_by == "document":
                     text = f.read()
                     pa_table = pa.Table.from_arrays([pa.array([text])], names=pa_table_names)
-                    yield file_idx, self._cast_table(pa_table)
+                    pa_table = self._cast_table(pa_table)
+                    if self.config.return_file_name:
+                        pa_table = pa_table.append_column("file_name", pa.array([file] * len(pa_table)))
+                    yield file_idx, pa_table

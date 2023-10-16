@@ -118,3 +118,22 @@ def test_json_generate_tables_with_missing_features(file_fixture, config_kwargs,
     generator = json._generate_tables([[request.getfixturevalue(file_fixture)]])
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.to_pydict() == {"col_1": [-1, 1, 10], "col_2": [None, 2, 20], "missing_col": [None, None, None]}
+
+
+@pytest.mark.parametrize(
+    "file_fixture, config_kwargs",
+    [
+        ("jsonl_file", {"return_file_name": True}),
+        ("json_file_with_list_of_dicts", {"return_file_name": True}),
+    ],
+)
+def test_json_generate_tables_with_return_file_name(file_fixture, config_kwargs, request):
+    json = Json(**config_kwargs)
+    fixture_value = request.getfixturevalue(file_fixture)
+    generator = json._generate_tables([[fixture_value]])
+    pa_table = pa.concat_tables([table for _, table in generator])
+    assert pa_table.to_pydict() == {
+        "col_1": [-1, 1, 10],
+        "col_2": [None, 2, 20],
+        "file_name": [fixture_value] * len(pa_table),
+    }
