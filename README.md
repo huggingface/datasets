@@ -48,7 +48,7 @@
 - Thrive on large datasets: 🤗 Datasets naturally frees the user from RAM memory limitation, all datasets are memory-mapped using an efficient zero-serialization cost backend (Apache Arrow).
 - Smart caching: never wait for your data to process several times.
 - Lightweight and fast with a transparent and pythonic API (multi-processing/caching/memory-mapping).
-- Built-in interoperability with NumPy, pandas, PyTorch, Tensorflow 2 and JAX.
+- Built-in interoperability with NumPy, pandas, PyTorch, TensorFlow 2 and JAX.
 - Native support for audio and image data
 - Enable streaming mode to save disk space and start iterating over the dataset immediately.
 
