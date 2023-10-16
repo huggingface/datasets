@@ -248,3 +248,22 @@ def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, r
     generator = builder._generate_tables([[request.getfixturevalue(file_fixture)]])
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.column_names == ["ID", "Language", "Topic"]
+
+
+@pytest.mark.parametrize(
+    "file_fixture, config_kwargs",
+    [
+        ("jsonl_file", {"include_file_name": True}),
+        ("json_file_with_list_of_dicts", {"include_file_name": True}),
+    ],
+)
+def test_json_generate_tables_include_file_name(file_fixture, config_kwargs, request):
+    json = Json(**config_kwargs)
+    fixture_value = request.getfixturevalue(file_fixture)
+    generator = json._generate_tables([[fixture_value]])
+    pa_table = pa.concat_tables([table for _, table in generator])
+    assert pa_table.to_pydict() == {
+        "col_1": [-1, 1, 10],
+        "col_2": [None, 2, 20],
+        "file_name": [fixture_value] * len(pa_table),
+    }

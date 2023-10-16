@@ -19,6 +19,7 @@ class ParquetConfig(datasets.BuilderConfig):
     batch_size: Optional[int] = None
     columns: Optional[List[str]] = None
     features: Optional[datasets.Features] = None
+    include_file_name: bool = False
 
     def __post_init__(self):
         super().__post_init__()
@@ -37,6 +38,16 @@ class Parquet(datasets.ArrowBasedBuilder):
                 "The columns and features argument must contain the same columns, but got ",
                 f"{self.config.columns} and {self.config.features}",
             )
+        if self.config.include_file_name:
+            if self.config.columns is not None:
+                if "file_name" in self.config.columns:
+                    raise ValueError("The columns argument must not contain 'file_name' when include_file_name is True")
+                self.config.columns.append("file_name")
+            if self.config.features is not None:
+                if "file_name" in self.info.features:
+                    raise ValueError(
+                        "The features argument must not contain 'file_name' when include_file_name is True"
+                    )
         return datasets.DatasetInfo(features=self.config.features)
 
     def _split_generators(self, dl_manager):
@@ -58,6 +69,14 @@ class Parquet(datasets.ArrowBasedBuilder):
                         self.info.features = datasets.Features.from_arrow_schema(pq.read_schema(f))
                     break
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
+        if self.config.include_file_name:
+            if self.config.columns is not None:
+                if "file_name" in self.config.columns:
+                    raise ValueError("Column 'file_name' already present therefore include_file_name should be False.")
+                self.config.columns.append("file_name")
+            if "file_name" in self.info.features:
+                raise ValueError("Feature 'file_name' already present therefore include_file_name should be False.")
+            self.info.features.update({"file_name": datasets.Value("string")})
         if self.config.columns is not None and set(self.config.columns) != set(self.info.features):
             self.info.features = datasets.Features(
                 {col: feat for col, feat in self.info.features.items() if col in self.config.columns}
@@ -90,6 +109,12 @@ class Parquet(datasets.ArrowBasedBuilder):
                             # Uncomment for debugging (will print the Arrow table size and elements)
                             # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                             # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
+                            if self.config.include_file_name:
+                                if "file_name" in pa_table.schema.names:
+                                    raise ValueError(
+                                        "Column 'file_name' already present in data therefore include_file_name should be False."
+                                    )
+                                pa_table = pa_table.append_column("file_name", pa.array([file] * len(pa_table)))
                             yield f"{file_idx}_{batch_idx}", self._cast_table(pa_table)
                     except ValueError as e:
                         logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")

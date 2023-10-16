@@ -50,6 +50,7 @@ class JsonConfig(datasets.BuilderConfig):
     block_size: Optional[int] = None  # deprecated
     chunksize: int = 10 << 20  # 10MB
     newlines_in_values: Optional[bool] = None
+    include_file_name: bool = False
 
     def __post_init__(self):
         super().__post_init__()
@@ -107,7 +108,14 @@ class Json(datasets.ArrowBasedBuilder):
                 if df.columns.tolist() == [0]:
                     df.columns = list(self.config.features) if self.config.features else ["text"]
                 pa_table = pa.Table.from_pandas(df, preserve_index=False)
-                yield file_idx, self._cast_table(pa_table)
+                pa_table = self._cast_table(pa_table)
+                if self.config.include_file_name:
+                    if "file_name" in pa_table.schema.names:
+                        raise ValueError(
+                            "Column 'file_name' already present in data therefore include_file_name should be False."
+                        )
+                    pa_table = pa_table.append_column("file_name", pa.array([file] * len(pa_table)))
+                yield file_idx, pa_table
 
             # If the file has one json object per line
             else:
@@ -172,7 +180,21 @@ class Json(datasets.ArrowBasedBuilder):
                                 raise ValueError(
                                     f"Failed to convert pandas DataFrame to Arrow Table from file {file}."
                                 ) from None
-                            yield file_idx, self._cast_table(pa_table)
+                            pa_table = self._cast_table(pa_table)
+                            if self.config.include_file_name:
+                                if "file_name" in pa_table.schema.names:
+                                    raise ValueError(
+                                        "Column 'file_name' already present in data therefore include_file_name should be False."
+                                    )
+                                pa_table = pa_table.append_column("file_name", pa.array([file] * len(pa_table)))
+                            yield file_idx, pa_table
                             break
-                        yield (file_idx, batch_idx), self._cast_table(pa_table)
+                        pa_table = self._cast_table(pa_table)
+                        if self.config.include_file_name:
+                            if "file_name" in pa_table.schema.names:
+                                raise ValueError(
+                                    "Column 'file_name' already present in data therefore include_file_name should be False."
+                                )
+                            pa_table = pa_table.append_column("file_name", pa.array([file] * len(pa_table)))
+                        yield (file_idx, batch_idx), pa_table
                         batch_idx += 1

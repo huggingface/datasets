@@ -16,6 +16,7 @@ class ArrowConfig(datasets.BuilderConfig):
     """BuilderConfig for Arrow."""
 
     features: Optional[datasets.Features] = None
+    include_file_name: bool = False
 
     def __post_init__(self):
         super().__post_init__()
@@ -60,11 +61,17 @@ class Arrow(datasets.ArrowBasedBuilder):
             with open(file, "rb") as f:
                 try:
                     for batch_idx, record_batch in enumerate(pa.ipc.open_stream(f)):
-                        pa_table = pa.Table.from_batches([record_batch])
+                        pa_table = self._cast_table(pa_table)
+                        if self.config.include_file_name:
+                            if "file_name" in pa_table.schema.names:
+                                raise ValueError(
+                                    "Column 'file_name' already present in data therefore include_file_name should be False."
+                                )
+                            pa_table = pa_table.append_column("file_name", pa.array([file] * len(pa_table)))
                         # Uncomment for debugging (will print the Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                        yield f"{file_idx}_{batch_idx}", self._cast_table(pa_table)
+                        yield f"{file_idx}_{batch_idx}", pa_table
                 except ValueError as e:
                     logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                     raise

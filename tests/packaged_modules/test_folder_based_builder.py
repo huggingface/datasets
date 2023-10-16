@@ -540,3 +540,24 @@ def test_data_files_with_wrong_file_name_column_in_metadata_file(cache_dir, tmp_
     with pytest.raises(ValueError) as exc_info:
         _ = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
     assert "`file_name` must be present" in str(exc_info.value)
+
+
+@pytest.mark.parametrize("remote", [True, False])
+@pytest.mark.parametrize("drop_labels", [None, True, False])
+def test_data_files_with_different_levels_no_metadata_include_file_name(
+    data_files_with_different_levels_no_metadata, drop_labels, remote, cache_dir
+):
+    data_files = remote_files if remote else data_files_with_different_levels_no_metadata
+    autofolder = DummyFolderBasedBuilder(
+        data_files=data_files, cache_dir=cache_dir, drop_labels=drop_labels, include_file_name=True
+    )
+    gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
+    generator = autofolder._generate_examples(**gen_kwargs)
+    if drop_labels is not False:
+        # with None (default) we should drop labels if files are on different levels in dir structure
+        assert "label" not in autofolder.info.features
+        assert all(example.keys() == {"base", "file_name"} for _, example in generator)
+    else:
+        assert "label" in autofolder.info.features
+        assert isinstance(autofolder.info.features["label"], ClassLabel)
+        assert all(example.keys() == {"base", "label", "file_name"} for _, example in generator)

@@ -27,6 +27,7 @@ class FolderBasedBuilderConfig(datasets.BuilderConfig):
     features: Optional[datasets.Features] = None
     drop_labels: bool = None
     drop_metadata: bool = None
+    include_file_name: bool = False
 
     def __post_init__(self):
         super().__post_init__()
@@ -225,6 +226,13 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     }
                 )
 
+            if self.config.include_file_name:
+                if "file_name" in self.info.features:
+                    raise ValueError(
+                        "Feature 'file_name' already present therefore include_file_name should be False."
+                    )
+                self.info.features.update({"file_name": datasets.Value("string")})
+
         return splits
 
     def _split_files_and_archives(self, data_files):
@@ -326,15 +334,17 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                         sample_label = {"label": os.path.basename(os.path.dirname(original_file))}
                     else:
                         sample_label = {}
-                    yield (
-                        file_idx,
-                        {
-                            **sample_empty_metadata,
-                            self.BASE_COLUMN_NAME: downloaded_file_or_dir,
-                            **sample_metadata,
-                            **sample_label,
-                        },
-                    )
+                    if self.config.include_file_name:
+                        if "file_name" in sample_metadata:
+                            raise ValueError(
+                                "Column 'file_name' already present in metadata therefore include_file_name should be False."
+                            )
+                    yield file_idx, {
+                        **sample_empty_metadata,
+                        self.BASE_COLUMN_NAME: downloaded_file_or_dir,
+                        **sample_metadata,
+                        **sample_label,
+                    }
                     file_idx += 1
             else:
                 for downloaded_dir_file in downloaded_file_or_dir:
@@ -397,13 +407,16 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                             sample_label = {"label": os.path.basename(os.path.dirname(downloaded_dir_file))}
                         else:
                             sample_label = {}
-                        yield (
-                            file_idx,
-                            {
-                                **sample_empty_metadata,
-                                self.BASE_COLUMN_NAME: downloaded_dir_file,
-                                **sample_metadata,
-                                **sample_label,
-                            },
-                        )
+                        if self.config.include_file_name:
+                            if "file_name" in sample_metadata:
+                                raise ValueError(
+                                    "Column 'file_name' already present in metadata therefore include_file_name should be False."
+                                )
+                            sample_metadata["file_name"] = original_file
+                        yield file_idx, {
+                            **sample_empty_metadata,
+                            self.BASE_COLUMN_NAME: downloaded_dir_file,
+                            **sample_metadata,
+                            **sample_label,
+                        }
                         file_idx += 1

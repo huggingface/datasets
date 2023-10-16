@@ -66,6 +66,7 @@ class CsvConfig(datasets.BuilderConfig):
     encoding_errors: Optional[str] = "strict"
     on_bad_lines: Literal["error", "warn", "skip"] = "error"
     date_format: Optional[str] = None
+    include_file_name: bool = False
 
     def __post_init__(self):
         super().__post_init__()
@@ -192,7 +193,14 @@ class Csv(datasets.ArrowBasedBuilder):
                     # Uncomment for debugging (will print the Arrow table size and elements)
                     # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                     # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                    yield (file_idx, batch_idx), self._cast_table(pa_table)
+                    pa_table = self._cast_table(pa_table)
+                    if self.config.include_file_name:
+                        if "file_name" in pa_table.schema.names:
+                            raise ValueError(
+                                "Column 'file_name' already present in data therefore include_file_name should be False."
+                            )
+                        pa_table = pa_table.append_column("file_name", pa.array([file] * len(pa_table)))
+                    yield (file_idx, batch_idx), pa_table
             except ValueError as e:
                 logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                 raise

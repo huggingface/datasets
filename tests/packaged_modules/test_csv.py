@@ -143,3 +143,33 @@ def test_csv_convert_int_list(csv_file_with_int_list):
     assert pa.types.is_list(pa_table.schema.field("int_list").type)
     generated_content = pa_table.to_pydict()["int_list"]
     assert generated_content == [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+
+
+@require_pil
+def test_csv_cast_image_include_file_name(csv_file_with_image):
+    with open(csv_file_with_image, encoding="utf-8") as f:
+        image_file = f.read().splitlines()[1]
+    csv = Csv(encoding="utf-8", features=Features({"image": Image()}), include_file_name=True)
+    generator = csv._generate_tables([[csv_file_with_image]])
+    pa_table = pa.concat_tables([table for _, table in generator])
+    assert pa_table.schema.field("image").type == Image()()
+    generated_content = pa_table.to_pydict()["image"]
+    generated_file_name = pa_table.to_pydict()["file_name"]
+    assert generated_content == [{"path": image_file, "bytes": None}]
+    assert generated_file_name == [csv_file_with_image]
+
+
+def test_csv_include_file_name(csv_file_with_int_list):
+    csv = Csv(
+        encoding="utf-8",
+        sep=",",
+        converters={"int_list": lambda x: [int(i) for i in x.split()]},
+        include_file_name=True,
+    )
+    generator = csv._generate_tables([[csv_file_with_int_list]])
+    pa_table = pa.concat_tables([table for _, table in generator])
+    assert pa.types.is_list(pa_table.schema.field("int_list").type)
+    generated_content = pa_table.to_pydict()["int_list"]
+    generated_file_name = pa_table.to_pydict()["file_name"]
+    assert generated_content == [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+    assert generated_file_name == [csv_file_with_int_list] * 3

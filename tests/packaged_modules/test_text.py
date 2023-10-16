@@ -74,6 +74,20 @@ def test_text_cast_image(text_file_with_image):
     assert generated_content == [{"path": image_file, "bytes": None}]
 
 
+@require_pil
+def test_text_cast_image_include_file_name(text_file_with_image):
+    with open(text_file_with_image, encoding="utf-8") as f:
+        image_file = f.read().splitlines()[0]
+    text = Text(encoding="utf-8", features=Features({"image": Image()}), include_file_name=True)
+    generator = text._generate_tables([[text_file_with_image]])
+    pa_table = pa.concat_tables([table for _, table in generator])
+    assert pa_table.schema.field("image").type == Image()()
+    pa_table = pa_table.to_pydict()
+    generated_content, generated_filename = pa_table["image"], pa_table["file_name"]
+    assert generated_content == [{"path": image_file, "bytes": None}]
+    assert generated_filename == [text_file_with_image] * len(generated_filename)
+
+
 @pytest.mark.parametrize("sample_by", ["line", "paragraph", "document"])
 def test_text_sample_by(sample_by, text_file):
     with open(text_file, encoding="utf-8") as f:
@@ -88,3 +102,21 @@ def test_text_sample_by(sample_by, text_file):
     generator = text._generate_tables([[text_file]])
     generated_content = pa.concat_tables([table for _, table in generator]).to_pydict()["text"]
     assert generated_content == expected_content
+
+
+@pytest.mark.parametrize("sample_by", ["line", "paragraph", "document"])
+def test_text_sample_by_include_file_name(sample_by, text_file):
+    with open(text_file, encoding="utf-8") as f:
+        expected_content = f.read()
+    if sample_by == "line":
+        expected_content = expected_content.splitlines()
+    elif sample_by == "paragraph":
+        expected_content = expected_content.split("\n\n")
+    elif sample_by == "document":
+        expected_content = [expected_content]
+    text = Text(sample_by=sample_by, encoding="utf-8", chunksize=100, include_file_name=True)
+    generator = text._generate_tables([[text_file]])
+    generated = pa.concat_tables([table for _, table in generator]).to_pydict()
+    generated_content, generated_filename = generated["text"], generated["file_name"]
+    assert generated_content == expected_content
+    assert generated_filename == [text_file] * len(generated_filename)
