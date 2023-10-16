@@ -5534,7 +5534,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 ] + (deletions if i == 0 else [])
                 commit_message = (
                     commit_message if commit_message is not None else "Upload dataset"
-                ) + " part {i:05d}-of-{num_commits:05d})"
+                ) + f" (part {i:05d}-of-{num_commits:05d})"
                 api.create_commit(
                     repo_id,
                     operations=operations,
@@ -5546,7 +5546,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
                 logger.info(
                     f"Commit #{i+1} completed"
-                    + (f"(still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
+                    + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
                     + "."
                 )
 
