@@ -244,9 +244,8 @@ def _get_data_files_patterns(
         except FileNotFoundError:
             continue
         if len(data_files) > 0:
-            splits: Set[str] = {
-                string_to_dict(p, glob_pattern_to_regex(base_path + "/" + split_pattern))["split"] for p in data_files
-            }
+            pattern = base_path + ("/" if base_path else "") + split_pattern
+            splits: Set[str] = {string_to_dict(p, glob_pattern_to_regex(pattern))["split"] for p in data_files}
             sorted_splits = [str(split) for split in DEFAULT_SPLITS if split in splits] + sorted(
                 splits - set(DEFAULT_SPLITS)
             )
