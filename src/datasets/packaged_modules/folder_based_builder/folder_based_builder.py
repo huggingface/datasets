@@ -222,7 +222,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                     }
                 )
 
-            if self.config.return_file_name and not "file_name" in self.info.features:
+            if self.config.return_file_name and "file_name" not in self.info.features:
                 self.info.features.update({"file_name": datasets.Value("string")})
 
         return splits
@@ -326,7 +326,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                         sample_label = {"label": os.path.basename(os.path.dirname(original_file))}
                     else:
                         sample_label = {}
-                    if self.config.return_file_name and not "file_name" in sample_metadata:
+                    if self.config.return_file_name and "file_name" not in sample_metadata:
                         sample_metadata["file_name"] = original_file
                     yield file_idx, {
                         **sample_empty_metadata,
@@ -396,7 +396,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                             sample_label = {"label": os.path.basename(os.path.dirname(downloaded_dir_file))}
                         else:
                             sample_label = {}
-                        if self.config.return_file_name and not "file_name" in sample_metadata:
+                        if self.config.return_file_name and "file_name" not in sample_metadata:
                             sample_metadata["file_name"] = original_file
                         yield file_idx, {
                             **sample_empty_metadata,
