@@ -643,5 +643,5 @@ def test_get_data_patterns_from_directory_with_the_word_data_twice(tmp_path):
     data_dir.mkdir(parents=True)
     data_file = data_dir / "train-00001-of-00009.parquet"
     data_file.touch()
-    data_file_patterns = get_data_patterns(str(repo_dir))
+    data_file_patterns = get_data_patterns(repo_dir.as_posix())
     assert data_file_patterns == {"train": ["data/train-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"]}
