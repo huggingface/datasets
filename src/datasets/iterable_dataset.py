@@ -1781,7 +1781,7 @@ class IterableDataset(DatasetInfoMixin):
         Args:
             seed (`int`, *optional*, defaults to `None`):
                 Random seed that will be used to shuffle the dataset.
-                It is used to sample from the shuffle buffe and also to shuffle the data shards.
+                It is used to sample from the shuffle buffer and also to shuffle the data shards.
             generator (`numpy.random.Generator`, *optional*):
                 Numpy random Generator to use to compute the permutation of the dataset rows.
                 If `generator=None` (default), uses `np.random.default_rng` (the default BitGenerator (PCG64) of NumPy).
