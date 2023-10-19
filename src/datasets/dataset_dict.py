@@ -1807,11 +1807,10 @@ class DatasetDict(dict):
                     i * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1) * config.UPLOADS_MAX_NUMBER_PER_COMMIT
                 ] + (deletions if i == 0 else [])
                 part_number = f"{i:05d}-of-{num_commits:05d}"
-                commit_message = f"{commit_message} (part {part_number})"
                 api.create_commit(
                     repo_id,
                     operations=operations,
-                    commit_message=commit_message,
+                    commit_message=f"{commit_message} (part {part_number})",
                     token=token,
                     repo_type="dataset",
                     revision=revision,
@@ -1822,7 +1821,6 @@ class DatasetDict(dict):
                     + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
                     + "."
                 )
-
 
 
 class IterableDatasetDict(dict):
