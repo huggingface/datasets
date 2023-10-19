@@ -1,7 +1,9 @@
 import fnmatch
 import gc
 import os
+import shutil
 import tempfile
+import textwrap
 import time
 import unittest
 from io import BytesIO
@@ -17,6 +19,7 @@ from datasets import (
     ClassLabel,
     Dataset,
     DatasetDict,
+    DownloadManager,
     Features,
     Image,
     Value,
@@ -24,6 +27,10 @@ from datasets import (
     load_dataset_builder,
 )
 from datasets.config import METADATA_CONFIGS_FIELD
+from datasets.packaged_modules.folder_based_builder.folder_based_builder import (
+    FolderBasedBuilder,
+    FolderBasedBuilderConfig,
+)
 from datasets.utils.file_utils import cached_path
 from datasets.utils.hub import hf_hub_url
 from tests.fixtures.hub import CI_HUB_ENDPOINT, CI_HUB_USER, CI_HUB_USER_TOKEN
@@ -813,3 +820,67 @@ class TestPushToHub:
                 ds_another_config_builder.config.data_files["random"][0],
                 "*/another_config/random-00000-of-00001.parquet",
             )
+
+
+class DummyFolderBasedBuilder(FolderBasedBuilder):
+    BASE_FEATURE = dict
+    BASE_COLUMN_NAME = "base"
+    BUILDER_CONFIG_CLASS = FolderBasedBuilderConfig
+    EXTENSIONS = [".txt"]
+    # CLASSIFICATION_TASK = TextClassification(text_column="base", label_column="label")
+
+
+@pytest.fixture(params=[".jsonl", ".csv"])
+def text_file_with_metadata(request, tmp_path, text_file):
+    metadata_filename_extension = request.param
+    data_dir = tmp_path / "data_dir"
+    data_dir.mkdir()
+    text_file_path = data_dir / "file.txt"
+    shutil.copyfile(text_file, text_file_path)
+    metadata_file_path = data_dir / f"metadata{metadata_filename_extension}"
+    metadata = textwrap.dedent(
+        """\
+        {"file_name": "file.txt", "additional_feature": "Dummy file"}
+        """
+        if metadata_filename_extension == ".jsonl"
+        else """\
+        file_name,additional_feature
+        file.txt,Dummy file
+        """
+    )
+    with open(metadata_file_path, "w", encoding="utf-8") as f:
+        f.write(metadata)
+    return text_file_path, metadata_file_path
+
+
+@for_all_test_methods(xfail_if_500_502_http_error)
+@pytest.mark.usefixtures("ci_hub_config", "ci_hfh_hf_hub_url")
+class TestLoadFromHub:
+    _api = HfApi(endpoint=CI_HUB_ENDPOINT)
+    _token = CI_HUB_USER_TOKEN
+
+    def test_load_dataset_with_metadata_file(self, temporary_repo, text_file_with_metadata, tmp_path):
+        text_file_path, metadata_file_path = text_file_with_metadata
+        data_dir_path = text_file_path.parent
+        cache_dir_path = tmp_path / ".cache"
+        cache_dir_path.mkdir()
+        with temporary_repo() as repo_id:
+            self._api.create_repo(repo_id, token=self._token, repo_type="dataset")
+            self._api.upload_folder(
+                folder_path=str(data_dir_path),
+                repo_id=repo_id,
+                repo_type="dataset",
+                token=self._token,
+            )
+            data_files = [
+                f"hf://datasets/{repo_id}/{text_file_path.name}",
+                f"hf://datasets/{repo_id}/{metadata_file_path.name}",
+            ]
+            builder = DummyFolderBasedBuilder(
+                dataset_name=repo_id.split("/")[-1], data_files=data_files, cache_dir=str(cache_dir_path)
+            )
+            download_manager = DownloadManager()
+            gen_kwargs = builder._split_generators(download_manager)[0].gen_kwargs
+            generator = builder._generate_examples(**gen_kwargs)
+            result = [example for _, example in generator]
+            assert len(result) == 1
