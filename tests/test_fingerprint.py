@@ -2,6 +2,7 @@ import json
 import os
 import pickle
 import subprocess
+from functools import partial
 from hashlib import md5
 from pathlib import Path
 from tempfile import gettempdir
@@ -10,6 +11,7 @@ from types import FunctionType
 from unittest import TestCase
 from unittest.mock import patch
 
+import numpy as np
 import pytest
 from multiprocess import Pool
 
@@ -253,6 +255,22 @@ class HashingTest(TestCase):
         hash3 = Hasher.hash(obj3)
         self.assertEqual(hash1, hash2)
         self.assertEqual(hash1, hash3)
+
+    def test_set_stable(self):
+        rng = np.random.default_rng(42)
+        set_ = {rng.random() for _ in range(10_000)}
+        expected_hash = Hasher.hash(set_)
+        assert expected_hash == Pool(1).apply_async(partial(Hasher.hash, set(set_))).get()
+
+    def test_set_doesnt_depend_on_order(self):
+        set_ = set("abc")
+        hash1 = md5(datasets.utils.py_utils.dumps(set_)).hexdigest()
+        set_ = set("def")
+        hash2 = md5(datasets.utils.py_utils.dumps(set_)).hexdigest()
+        set_ = set("cba")
+        hash3 = md5(datasets.utils.py_utils.dumps(set_)).hexdigest()
+        self.assertEqual(hash1, hash3)
+        self.assertNotEqual(hash1, hash2)
 
     @require_tiktoken
     def test_hash_tiktoken_encoding(self):
