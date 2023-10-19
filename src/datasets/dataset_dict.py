@@ -12,7 +12,7 @@ from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import fsspec
 import numpy as np
-from huggingface_hub import DatasetCard, DatasetCardData, HfApi
+from huggingface_hub import DatasetCard, DatasetCardData, HfApi, create_branch
 
 from . import config
 from .arrow_dataset import PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED, Dataset
@@ -1643,6 +1643,9 @@ class DatasetDict(dict):
         for split in self.keys():
             if not re.match(_split_re, split):
                 raise ValueError(f"Split name should match '{_split_re}' but got '{split}'.")
+
+        if branch is not None:
+            create_branch(repo_id=repo_id, branch=branch, token=token, exist_ok=True)
 
         data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
         for split in self.keys():

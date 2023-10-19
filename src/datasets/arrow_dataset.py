@@ -58,7 +58,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
-from huggingface_hub import DatasetCard, DatasetCardData, HfApi, HfFolder
+from huggingface_hub import DatasetCard, DatasetCardData, HfApi, HfFolder, create_branch
 from multiprocess import Pool
 from requests import HTTPError
 
@@ -5439,6 +5439,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
             )
         data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
+
+        if branch is not None:
+            create_branch(repo_id=repo_id, branch=branch, token=token, exist_ok=True)
 
         repo_id, split, uploaded_size, dataset_nbytes, repo_files, deleted_size = self._push_parquet_shards_to_hub(
             repo_id=repo_id,
