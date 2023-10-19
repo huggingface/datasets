@@ -1801,13 +1801,13 @@ class DatasetDict(dict):
                 f"Number of files to upload is larger than {config.UPLOADS_MAX_NUMBER_PER_COMMIT}. Splitting the push into multiple commits."
             )
             num_commits = math.ceil(len(additions) / config.UPLOADS_MAX_NUMBER_PER_COMMIT)
+            commit_message = commit_message if commit_message is not None else "Upload dataset"
             for i in range(0, num_commits):
                 operations = additions[
                     i * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1) * config.UPLOADS_MAX_NUMBER_PER_COMMIT
                 ] + (deletions if i == 0 else [])
-                commit_message = (
-                    commit_message if commit_message is not None else "Upload dataset"
-                ) + f" (part {i:05d}-of-{num_commits:05d})"
+                part_number = f"{i:05d}-of-{num_commits:05d}"
+                commit_message = f"{commit_message} (part {part_number})"
                 api.create_commit(
                     repo_id,
                     operations=operations,
@@ -1822,6 +1822,7 @@ class DatasetDict(dict):
                     + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
                     + "."
                 )
+
 
 
 class IterableDatasetDict(dict):
