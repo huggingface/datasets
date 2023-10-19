@@ -1809,7 +1809,7 @@ class DatasetDict(dict):
                 api.create_commit(
                     repo_id,
                     operations=operations,
-                    commit_message=commit_message + f"{i:05d}-of-{num_commits:05d}",
+                    commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
                     token=token,
                     repo_type="dataset",
                     revision=revision,
