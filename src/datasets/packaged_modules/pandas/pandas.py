@@ -14,6 +14,7 @@ class PandasConfig(datasets.BuilderConfig):
     """BuilderConfig for Pandas."""
 
     features: Optional[datasets.Features] = None
+    return_file_name: bool = False
 
 
 class Pandas(datasets.ArrowBasedBuilder):

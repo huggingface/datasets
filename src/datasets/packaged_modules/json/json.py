@@ -27,6 +27,7 @@ class JsonConfig(datasets.BuilderConfig):
     block_size: Optional[int] = None  # deprecated
     chunksize: int = 10 << 20  # 10MB
     newlines_in_values: Optional[bool] = None
+    return_file_name: bool = False
 
 
 class Json(datasets.ArrowBasedBuilder):

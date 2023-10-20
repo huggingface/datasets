@@ -19,6 +19,7 @@ class ParquetConfig(datasets.BuilderConfig):
     batch_size: int = 10_000
     columns: Optional[List[str]] = None
     features: Optional[datasets.Features] = None
+    return_file_name: bool = False
 
 
 class Parquet(datasets.ArrowBasedBuilder):

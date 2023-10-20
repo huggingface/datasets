@@ -16,6 +16,7 @@ class ArrowConfig(datasets.BuilderConfig):
     """BuilderConfig for Arrow."""
 
     features: Optional[datasets.Features] = None
+    return_file_name: bool = False
 
 
 class Arrow(datasets.ArrowBasedBuilder):

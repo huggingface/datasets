@@ -25,6 +25,7 @@ class TextConfig(datasets.BuilderConfig):
     chunksize: int = 10 << 20  # 10MB
     keep_linebreaks: bool = False
     sample_by: str = "line"
+    return_file_name: bool = False
 
     def __post_init__(self, errors):
         if errors != "deprecated":

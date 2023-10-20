@@ -65,6 +65,7 @@ class CsvConfig(datasets.BuilderConfig):
     encoding_errors: Optional[str] = "strict"
     on_bad_lines: Literal["error", "warn", "skip"] = "error"
     date_format: Optional[str] = None
+    return_file_name: bool = False
 
     def __post_init__(self):
         if self.delimiter is not None:
