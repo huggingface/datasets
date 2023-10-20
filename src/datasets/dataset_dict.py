@@ -1786,11 +1786,12 @@ class DatasetDict(dict):
         dataset_card = DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
         additions.append(CommitOperationAdd(path_in_repo="README.md", path_or_fileobj=str(dataset_card).encode()))
 
+        commit_message = commit_message if commit_message is not None else "Upload dataset"
         if len(additions) <= config.UPLOADS_MAX_NUMBER_PER_COMMIT:
             api.create_commit(
                 repo_id,
                 operations=additions + deletions,
-                commit_message=commit_message if commit_message is not None else "Upload dataset",
+                commit_message=commit_message,
                 token=token,
                 repo_type="dataset",
                 revision=revision,
@@ -1805,13 +1806,10 @@ class DatasetDict(dict):
                 operations = additions[
                     i * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1) * config.UPLOADS_MAX_NUMBER_PER_COMMIT
                 ] + (deletions if i == 0 else [])
-                commit_message = (
-                    commit_message if commit_message is not None else "Upload dataset"
-                ) + f" (part {i:05d}-of-{num_commits:05d})"
                 api.create_commit(
                     repo_id,
                     operations=operations,
-                    commit_message=commit_message,
+                    commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
                     token=token,
                     repo_type="dataset",
                     revision=revision,
