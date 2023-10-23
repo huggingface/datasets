@@ -227,9 +227,7 @@ def _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(matched_rel_
     return len(hidden_directories_in_path) != len(hidden_directories_in_pattern)
 
 
-def _get_data_files_patterns(
-    pattern_resolver: Callable[[str], List[str]], base_path: str = ""
-) -> Dict[str, List[str]]:
+def _get_data_files_patterns(pattern_resolver: Callable[[str], List[str]]) -> Dict[str, List[str]]:
     """
     Get the default pattern from a directory or repository by testing all the supported patterns.
     The first patterns to return a non-empty list of data files is returned.
@@ -467,7 +465,7 @@ def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] 
     """
     resolver = partial(resolve_pattern, base_path=base_path, download_config=download_config)
     try:
-        return _get_data_files_patterns(resolver, base_path=base_path)
+        return _get_data_files_patterns(resolver)
     except FileNotFoundError:
         raise EmptyDatasetError(f"The directory at {base_path} doesn't contain any data files") from None
 
