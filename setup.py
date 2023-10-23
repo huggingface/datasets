@@ -18,9 +18,10 @@ Steps to make a release:
      - Test PyPI: https://test.pypi.org/
    - Don't break `transformers`: run the `transformers` CI using the `main` branch and make sure it's green.
      - In `transformers`, use `datasets @ git+https://github.com/huggingface/datasets@main#egg=datasets`
-       in both:
-       - setup.py and
-       - src/transformers/dependency_versions_table.py
+       Add a step to install `datasets@main` after `save_cache` in .circleci/create_circleci_config.py:
+       ```
+       steps.append({"run": {"name": "Install `datasets@main`", "command": 'pip uninstall datasets -y && pip install "datasets @ git+https://github.com/huggingface/datasets@main#egg=datasets"'}})
+       ```
      - and then run the CI
 
 1. Create the release branch from main branch:
