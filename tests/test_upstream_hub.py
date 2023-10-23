@@ -26,6 +26,7 @@ from datasets import (
     load_dataset_builder,
 )
 from datasets.config import METADATA_CONFIGS_FIELD
+from datasets.data_files import get_data_patterns
 from datasets.packaged_modules.folder_based_builder.folder_based_builder import (
     FolderBasedBuilder,
     FolderBasedBuilderConfig,
@@ -899,3 +900,22 @@ class TestLoadFromHub:
             generator = builder._generate_examples(**gen_kwargs)
             result = [example for _, example in generator]
             assert len(result) == 1
+
+    def test_get_data_patterns(self, temporary_repo, tmp_path):
+        repo_dir = tmp_path / "test_get_data_patterns"
+        data_dir = repo_dir / "data"
+        data_dir.mkdir(parents=True)
+        data_file = data_dir / "train-00001-of-00009.parquet"
+        data_file.touch()
+        with temporary_repo() as repo_id:
+            self._api.create_repo(repo_id, token=self._token, repo_type="dataset")
+            self._api.upload_folder(
+                folder_path=str(repo_dir),
+                repo_id=repo_id,
+                repo_type="dataset",
+                token=self._token,
+            )
+            data_file_patterns = get_data_patterns(f"hf://datasets/{repo_id}")
+            assert data_file_patterns == {
+                "train": ["data/train-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"]
+            }
