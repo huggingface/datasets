@@ -18,7 +18,7 @@ from .download.streaming_download_manager import _prepare_path_and_storage_optio
 from .splits import Split
 from .utils import logging
 from .utils.file_utils import is_local_path, is_relative_path
-from .utils.py_utils import glob_pattern_to_regex, string_to_dict
+from .utils.py_utils import string_to_dict
 
 
 SANITIZED_DEFAULT_SPLIT = str(Split.TRAIN)
@@ -244,8 +244,7 @@ def _get_data_files_patterns(
         except FileNotFoundError:
             continue
         if len(data_files) > 0:
-            pattern = base_path + ("/" if base_path else "") + glob_pattern_to_regex(split_pattern)
-            splits: Set[str] = {string_to_dict(p, pattern)["split"] for p in data_files}
+            splits: Set[str] = {string_to_dict(xbasename(p), xbasename(split_pattern))["split"] for p in data_files}
             sorted_splits = [str(split) for split in DEFAULT_SPLITS if split in splits] + sorted(
                 splits - set(DEFAULT_SPLITS)
             )
