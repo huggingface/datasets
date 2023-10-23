@@ -51,7 +51,7 @@ def is_remote_filesystem(fs: fsspec.AbstractFileSystem) -> bool:
         fs (`fsspec.spec.AbstractFileSystem`):
             An abstract super-class for pythonic file-systems, e.g. `fsspec.filesystem(\'file\')` or [`datasets.filesystems.S3FileSystem`].
     """
-    if fs is not None and fs.protocol != "file":
+    if fs is not None and fs.protocol not in {"file", "local"}:
         return True
     else:
         return False
