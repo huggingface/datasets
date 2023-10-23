@@ -531,7 +531,6 @@ def mock_fs(file_paths: List[str]):
     return DummyTestFS
 
 
-# @pytest.mark.parametrize("base_path", ["", "mock://", "weird_Dir-name[0"])
 @pytest.mark.parametrize("base_path", ["", "mock://", "my_dir"])
 @pytest.mark.parametrize(
     "data_file_per_split",
