@@ -894,7 +894,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                 for (key_example, to_keep) in zip(key_examples_list, mask):
                     if to_keep:
                         yield key_example
-                    current_idx += 1    
+                    current_idx += 1
         else:
             for key, example in iterator:
                 # If not batched, we can apply the filtering function direcly
