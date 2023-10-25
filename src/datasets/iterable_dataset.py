@@ -891,7 +891,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                     function_args.append([current_idx + i for i in range(len(key_examples_list))])
                 mask = self.function(*function_args, **self.fn_kwargs)
                 # yield one example at a time from the batch
-                for (key_example, to_keep) in zip(key_examples_list, mask):
+                for key_example, to_keep in zip(key_examples_list, mask):
                     if to_keep:
                         yield key_example
                     current_idx += 1
