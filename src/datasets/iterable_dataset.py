@@ -735,10 +735,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 # yield one example at a time from the transformed batch
                 for batch_idx, example in enumerate(_batch_to_examples(transformed_batch)):
                     yield new_key, example
-                try:
-                    current_idx += batch_idx + 1
-                except:
-                    current_idx += 1
+                        current_idx += 1
         else:
             for key, example in iterator:
                 # If not batched, we can apply the transform and yield the example directly
@@ -897,10 +894,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                 for batch_idx, (key_example, to_keep) in enumerate(zip(key_examples_list, mask)):
                     if to_keep:
                         yield key_example
-                try:
-                    current_idx += batch_idx + 1
-                except:
-                    current_idx += 1
+                        current_idx += 1
         else:
             for key, example in iterator:
                 # If not batched, we can apply the filtering function direcly
