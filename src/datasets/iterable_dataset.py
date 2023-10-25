@@ -734,9 +734,8 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 new_key = "_".join(str(key) for key in keys)
                 # yield one example at a time from the transformed batch
                 for example in _batch_to_examples(transformed_batch):
-                    current_idx += 1
                     yield new_key, example
-                        
+                    current_idx += 1
         else:
             for key, example in iterator:
                 # If not batched, we can apply the transform and yield the example directly
@@ -894,9 +893,8 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                 # yield one example at a time from the batch
                 for (key_example, to_keep) in zip(key_examples_list, mask):
                     if to_keep:
-                        current_idx += 1
                         yield key_example
-                        
+                    current_idx += 1    
         else:
             for key, example in iterator:
                 # If not batched, we can apply the filtering function direcly
