@@ -1,26 +1,30 @@
 - sections: 
   - local: index
-    title: 🤗 Datasets
-  - local: quickstart
-    title: Quickstart
-  - local: installation
-    title: Installation
+    title: Datasets
+  - sections:
+    - local: quickstart
+      title: Quickstart
+    - local: installation
+      title: Installation
+    title: "The 🤗 Datasets library"
   title: Get started
 - sections:
-  - local: tutorial
-    title: Overview
-  - local: load_hub
-    title: Load a dataset from the Hub
-  - local: access
-    title: Know your dataset
-  - local: use_dataset
-    title: Preprocess
-  - local: metrics
-    title: Evaluate predictions
-  - local: create_dataset
-    title: Create a dataset
   - local: upload_dataset
-    title: Share a dataset to the Hub
+    title: Share a dataset on the Hub
+  - local: configure_viewer
+    title: Configure the Dataset Viewer
+  - sections:
+    - local: tutorial
+      title: Overview
+    - local: load_hub
+      title: Load
+    - local: access
+      title: Explore
+    - local: use_dataset
+      title: Preprocess
+    - local: create_dataset
+      title: Create
+    title: "Use with 🤗 Datasets"
   title: "Tutorials"
 - sections:
   - local: how_to
