@@ -51,6 +51,33 @@ You can find more details in the [Dataset vs. IterableDataset guide](./about_map
 
 </Tip>
 
+## Convert from a Dataset
+
+If you have an existing [`Dataset`] object, you can convert it to an [`IterableDataset`] with the [`~Dataset.to_iterable_dataset`] function. This is actually faster than setting the `streaming=True` argument in [`load_dataset`] because the data is streamed from local files.
+
+```py
+>>> from datasets import load_dataset
+
+# faster 🐇
+>>> dataset = load_dataset("food101")
+>>> iterable_dataset = dataset.to_iterable_dataset()
+
+# slower 🐢
+>>> iterable_dataset = load_dataset("food101", streaming=True)
+```
+
+The [`~Dataset.to_iterable_dataset`] function supports sharding when the [`IterableDataset`] is instantiated. This is useful when working with big datasets, and you'd like to shuffle the dataset or to enable fast parallel loading with a PyTorch DataLoader.
+
+```py
+>>> import torch
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("food101")
+>>> iterable_dataset = dataset.to_iterable_dataset(num_shards=64) # shard the dataset
+>>> iterable_dataset = iterable_dataset.shuffle(buffer_size=10_000)  # shuffles the shards order and use a shuffle buffer when you start iterating
+dataloader = torch.utils.data.DataLoader(iterable_dataset, num_workers=4)  # assigns 64 / 4 = 16 shards from the shuffled list of shards to each worker when you start iterating
+```
+
 ## Shuffle
 
 Like a regular [`Dataset`] object, you can also shuffle a [`IterableDataset`] with [`IterableDataset.shuffle`].
@@ -259,7 +286,7 @@ Specify the column to remove with the `remove_columns` argument in [`IterableDat
 ...     return tokenizer(examples['text'], truncation=True, padding='max_length')
 >>> dataset = dataset.map(encode, batched=True, remove_columns=["text", "timestamp", "url"])
 >>> next(iter(dataset))
-{'input_ids': 101, 8466, 1018, 1010, 4029, 2475, 2062, 18558, 3100, 2061, ...,1106, 3739, 102],
+{'input_ids': [101, 8466, 1018, 1010, 4029, 2475, 2062, 18558, 3100, 2061, ...,1106, 3739, 102],
 'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ..., 1, 1]}
 ```
 

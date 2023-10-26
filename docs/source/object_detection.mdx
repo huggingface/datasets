@@ -13,7 +13,7 @@ In this example, you'll use the [`cppe-5`](https://huggingface.co/datasets/cppe-
 Load the dataset and take a look at an example:
 
 ```py
-from datasets import load_dataset
+>>> from datasets import load_dataset
 
 >>> ds = load_dataset("cppe-5")
 >>> example = ds['train'][0]
@@ -68,13 +68,11 @@ You can visualize the `bboxes` on the image using some internal torch utilities.
 ```
 
 <div class="flex justify-center">
-    <img src="https://huggingface.co/datasets/nateraw/documentation-images/resolve/main/visualize_detection_example.png">
+    <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/visualize_detection_example.png">
 </div>
 
 
 With `albumentations`, you can apply transforms that will affect the image while also updating the `bboxes` accordingly. In this case, the image is resized to (480, 480), flipped horizontally, and brightened. 
-
-`albumentations` expects the image to be in BGR format, not RGB, so you'll have to convert the image before applying the transform.
 
 ```py
 >>> import albumentations
@@ -86,8 +84,7 @@ With `albumentations`, you can apply transforms that will affect the image while
 ...     albumentations.RandomBrightnessContrast(p=1.0),
 ... ], bbox_params=albumentations.BboxParams(format='coco',  label_fields=['category']))
 
->>> # RGB PIL Image -> BGR Numpy array
->>> image = np.flip(np.array(example['image']), -1)
+>>> image = np.array(example['image'])
 >>> out = transform(
 ...     image=image,
 ...     bboxes=example['objects']['bbox'],
@@ -98,7 +95,7 @@ With `albumentations`, you can apply transforms that will affect the image while
 Now when you visualize the result, the image should be flipped, but the `bboxes` should still be in the right places.
 
 ```py
->>> image = torch.tensor(out['image']).flip(-1).permute(2, 0, 1)
+>>> image = torch.tensor(out['image']).permute(2, 0, 1)
 >>> boxes_xywh = torch.stack([torch.tensor(x) for x in out['bboxes']])
 >>> boxes_xyxy = box_convert(boxes_xywh, 'xywh', 'xyxy')
 >>> labels = [categories.int2str(x) for x in out['category']]
@@ -113,7 +110,7 @@ Now when you visualize the result, the image should be flipped, but the `bboxes`
 ```
 
 <div class="flex justify-center">
-    <img src="https://huggingface.co/datasets/nateraw/documentation-images/resolve/main/visualize_detection_example_transformed.png">
+    <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/visualize_detection_example_transformed.png">
 </div>
 
 Create a function to apply the transform to a batch of examples:
@@ -122,13 +119,13 @@ Create a function to apply the transform to a batch of examples:
 >>> def transforms(examples):
 ...     images, bboxes, categories = [], [], []
 ...     for image, objects in zip(examples['image'], examples['objects']):
-...         image = np.array(image.convert("RGB"))[:, :, ::-1]
+...         image = np.array(image.convert("RGB"))
 ...         out = transform(
 ...             image=image,
 ...             bboxes=objects['bbox'],
 ...             category=objects['category']
 ...         )
-...         images.append(torch.tensor(out['image']).flip(-1).permute(2, 0, 1))
+...         images.append(torch.tensor(out['image']).permute(2, 0, 1))
 ...         bboxes.append(torch.tensor(out['bboxes']))
 ...         categories.append(out['category'])
 ...     return {'image': images, 'bbox': bboxes, 'category': categories}
@@ -155,7 +152,7 @@ You can verify the transform works by visualizing the 10th example:
 ```
 
 <div class="flex justify-center">
-    <img src="https://huggingface.co/datasets/nateraw/documentation-images/resolve/main/visualize_detection_example_transformed_2.png">
+    <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/visualize_detection_example_transformed_2.png">
 </div>
 
 <Tip>

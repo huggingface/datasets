@@ -25,6 +25,15 @@ class Parquet(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = ParquetConfig
 
     def _info(self):
+        if (
+            self.config.columns is not None
+            and self.config.features is not None
+            and set(self.config.columns) != set(self.config.features)
+        ):
+            raise ValueError(
+                "The columns and features argument must contain the same columns, but got ",
+                f"{self.config.columns} and {self.config.features}",
+            )
         return datasets.DatasetInfo(features=self.config.features)
 
     def _split_generators(self, dl_manager):
@@ -49,14 +58,13 @@ class Parquet(datasets.ArrowBasedBuilder):
             if self.info.features is None:
                 for file in itertools.chain.from_iterable(files):
                     with open(file, "rb") as f:
-                        features = datasets.Features.from_arrow_schema(pq.read_schema(f))
-                        if self.config.columns is not None:
-                            self.info.features = datasets.Features(
-                                {col: feat for col, feat in features.items() if col in self.config.columns}
-                            )
-                        self.info.features = features
+                        self.info.features = datasets.Features.from_arrow_schema(pq.read_schema(f))
                     break
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
+        if self.config.columns is not None and set(self.config.columns) != set(self.info.features):
+            self.info.features = datasets.Features(
+                {col: feat for col, feat in self.info.features.items() if col in self.config.columns}
+            )
         return splits
 
     def _cast_table(self, pa_table: pa.Table) -> pa.Table:

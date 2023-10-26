@@ -295,7 +295,7 @@ class LibriVoxIndonesiaConfig(datasets.BuilderConfig):
 Define your configurations in the `BUILDER_CONFIGS` class variable inside [`GeneratorBasedBuilder`]. In this example, the author imports the languages from a separate `release_stats.py` [file](https://huggingface.co/datasets/indonesian-nlp/librivox-indonesia/blob/main/release_stats.py) from their repository, and then loops through each language to create a configuration:
 
 ```py
-class LibriVoxIndonesiaConfig(datasets.GeneratorBasedBuilder):
+class LibriVoxIndonesia(datasets.GeneratorBasedBuilder):
     DEFAULT_CONFIG_NAME = "all"
 
     BUILDER_CONFIGS = [

@@ -24,6 +24,7 @@ REPO_METRICS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{revi
 # Hub
 HF_ENDPOINT = os.environ.get("HF_ENDPOINT", "https://huggingface.co")
 HUB_DATASETS_URL = HF_ENDPOINT + "/datasets/{repo_id}/resolve/{revision}/{path}"
+HUB_DATASETS_HFFS_URL = "hf://datasets/{repo_id}@{revision}/{path}"
 HUB_DEFAULT_VERSION = "main"
 
 PY_VERSION = version.parse(platform.python_version())
@@ -35,6 +36,7 @@ ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
 
 # Imports
 DILL_VERSION = version.parse(importlib.metadata.version("dill"))
+FSSPEC_VERSION = version.parse(importlib.metadata.version("fsspec"))
 PANDAS_VERSION = version.parse(importlib.metadata.version("pandas"))
 PYARROW_VERSION = version.parse(importlib.metadata.version("pyarrow"))
 
@@ -220,3 +222,6 @@ ARCHIVED_DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE = 200
 
 # Progress bars
 PBAR_REFRESH_TIME_INTERVAL = 0.05  # 20 progress updates per sec
+
+# Maximum number of uploaded files per commit
+UPLOADS_MAX_NUMBER_PER_COMMIT = 50

@@ -29,7 +29,7 @@ For a guide on how to load any type of dataset, take a look at the <a class="und
 
 You can load a dataset from the image path. Use the [`~Dataset.cast_column`] function to accept a column of image file paths, and decode it into a PIL image with the [`Image`] feature:
 ```py
->>> from datasets import load_dataset, Image
+>>> from datasets import Dataset, Image
 
 >>> dataset = Dataset.from_dict({"image": ["path/to/image_1", "path/to/image_2", ..., "path/to/image_n"]}).cast_column("image", Image())
 >>> dataset[0]["image"]

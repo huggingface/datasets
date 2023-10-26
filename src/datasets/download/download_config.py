@@ -1,6 +1,6 @@
 import copy
 import warnings
-from dataclasses import dataclass, field
+from dataclasses import InitVar, dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
@@ -74,21 +74,29 @@ class DownloadConfig:
     num_proc: Optional[int] = None
     max_retries: int = 1
     token: Optional[Union[str, bool]] = None
-    use_auth_token = "deprecated"
+    use_auth_token: InitVar[Optional[Union[str, bool]]] = "deprecated"
     ignore_url_params: bool = False
     storage_options: Dict[str, Any] = field(default_factory=dict)
     download_desc: Optional[str] = None
 
-    def __post_init__(self):
-        if self.use_auth_token != "deprecated":
+    def __post_init__(self, use_auth_token):
+        if use_auth_token != "deprecated":
             warnings.warn(
                 "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
-                f"You can remove this warning by passing 'token={self.use_auth_token}' instead.",
+                f"You can remove this warning by passing 'token={use_auth_token}' instead.",
                 FutureWarning,
             )
-            self.token = self.use_auth_token
+            self.token = use_auth_token
         if "hf" not in self.storage_options:
             self.storage_options["hf"] = {"token": self.token, "endpoint": config.HF_ENDPOINT}
 
     def copy(self) -> "DownloadConfig":
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
+
+    def __setattr__(self, name, value):
+        if name == "token" and getattr(self, "storage_options", None) is not None:
+            if "hf" not in self.storage_options:
+                self.storage_options["hf"] = {"token": value, "endpoint": config.HF_ENDPOINT}
+            elif getattr(self.storage_options["hf"], "token", None) is None:
+                self.storage_options["hf"]["token"] = value
+        super().__setattr__(name, value)

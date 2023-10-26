@@ -5,6 +5,7 @@ import warnings
 from collections import Counter
 from copy import deepcopy
 from dataclasses import dataclass
+from functools import partial
 from itertools import cycle, islice
 from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
@@ -28,6 +29,31 @@ from .utils.sharding import _merge_gen_kwargs, _number_of_shards_in_gen_kwargs, 
 logger = get_logger(__name__)
 
 Key = Union[int, str]
+
+
+def identity_func(x):
+    return x
+
+
+def _rename_columns_fn(example: Dict, column_mapping: Dict[str, str]):
+    if any(col not in example for col in column_mapping):
+        raise ValueError(
+            f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {set(column_mapping) - set(example)} are not in the dataset."
+        )
+    if any(col in example for col in column_mapping.values()):
+        raise ValueError(
+            f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {set(example) - set(column_mapping.values())} are already in the dataset."
+        )
+    return {
+        new_column_name: example[original_column_name]
+        for original_column_name, new_column_name in column_mapping.items()
+    }
+
+
+def add_column_fn(example: Dict, idx: int, name: str, column: List[Dict]):
+    if name in example:
+        raise ValueError(f"Error when adding {name}: column {name} is already in the dataset.")
+    return {name: column[idx]}
 
 
 def _infer_features_from_batch(batch: Dict[str, list], try_features: Optional[Features] = None) -> Features:
@@ -108,7 +134,7 @@ def _convert_to_arrow(
     iterator = iter(iterable)
     for key, example in iterator:
         iterator_batch = islice(iterator, batch_size - 1)
-        key_examples_list = [(key, example)] + [(key, example) for key, example in iterator_batch]
+        key_examples_list = [(key, example)] + list(iterator_batch)
         if len(key_examples_list) < batch_size and drop_last_batch:
             return
         keys, examples = zip(*key_examples_list)
@@ -671,7 +697,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     if self.batch_size is None or self.batch_size <= 0
                     else islice(iterator, self.batch_size - 1)
                 )
-                key_examples_list = [(key, example)] + [(key, example) for key, example in iterator_batch]
+                key_examples_list = [(key, example)] + list(iterator_batch)
                 keys, examples = zip(*key_examples_list)
                 if (
                     self.drop_last_batch
@@ -707,9 +733,9 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 # the new key is the concatenation of the examples keys from the batch
                 new_key = "_".join(str(key) for key in keys)
                 # yield one example at a time from the transformed batch
-                for batch_idx, example in enumerate(_batch_to_examples(transformed_batch)):
+                for example in _batch_to_examples(transformed_batch):
                     yield new_key, example
-                current_idx += batch_idx + 1
+                    current_idx += 1
         else:
             for key, example in iterator:
                 # If not batched, we can apply the transform and yield the example directly
@@ -854,7 +880,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                     if self.batch_size is None or self.batch_size <= 0
                     else islice(iterator, self.batch_size - 1)
                 )
-                key_examples_list = [(key, example)] + [(key, example) for key, example in iterator_batch]
+                key_examples_list = [(key, example)] + list(iterator_batch)
                 keys, examples = zip(*key_examples_list)
                 batch = _examples_to_batch(examples)
                 batch = format_dict(batch) if format_dict else batch
@@ -865,10 +891,10 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                     function_args.append([current_idx + i for i in range(len(key_examples_list))])
                 mask = self.function(*function_args, **self.fn_kwargs)
                 # yield one example at a time from the batch
-                for batch_idx, (key_example, to_keep) in enumerate(zip(key_examples_list, mask)):
+                for key_example, to_keep in zip(key_examples_list, mask):
                     if to_keep:
                         yield key_example
-                current_idx += batch_idx + 1
+                    current_idx += 1
         else:
             for key, example in iterator:
                 # If not batched, we can apply the filtering function direcly
@@ -1626,7 +1652,7 @@ class IterableDataset(DatasetInfoMixin):
         if isinstance(remove_columns, str):
             remove_columns = [remove_columns]
         if function is None:
-            function = lambda x: x  # noqa: E731
+            function = identity_func
         if fn_kwargs is None:
             fn_kwargs = {}
         ex_iterable = MappedExamplesIterable(
@@ -1755,7 +1781,7 @@ class IterableDataset(DatasetInfoMixin):
         Args:
             seed (`int`, *optional*, defaults to `None`):
                 Random seed that will be used to shuffle the dataset.
-                It is used to sample from the shuffle buffe and also to shuffle the data shards.
+                It is used to sample from the shuffle buffer and also to shuffle the data shards.
             generator (`numpy.random.Generator`, *optional*):
                 Numpy random Generator to use to compute the permutation of the dataset rows.
                 If `generator=None` (default), uses `np.random.default_rng` (the default BitGenerator (PCG64) of NumPy).
@@ -1899,13 +1925,7 @@ class IterableDataset(DatasetInfoMixin):
         Returns:
             `IterableDataset`
         """
-
-        def add_column_fn(example, idx):
-            if name in example:
-                raise ValueError(f"Error when adding {name}: column {name} is already in the dataset.")
-            return {name: column[idx]}
-
-        return self.map(add_column_fn, with_indices=True)
+        return self.map(partial(add_column_fn, name=name, column=column), with_indices=True)
 
     def rename_column(self, original_column_name: str, new_column_name: str) -> "IterableDataset":
         """
@@ -1935,28 +1955,7 @@ class IterableDataset(DatasetInfoMixin):
          'movie_review': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'}
         ```
         """
-
-        def rename_column_fn(example):
-            if original_column_name not in example:
-                raise ValueError(
-                    f"Error when renaming {original_column_name} to {new_column_name}: column {original_column_name} is not in the dataset."
-                )
-            if new_column_name in example:
-                raise ValueError(
-                    f"Error when renaming {original_column_name} to {new_column_name}: column {new_column_name} is already in the dataset."
-                )
-            return {new_column_name: example[original_column_name]}
-
-        original_features = self._info.features.copy() if self._info.features else None
-        ds_iterable = self.map(rename_column_fn, remove_columns=[original_column_name])
-        if original_features is not None:
-            ds_iterable._info.features = Features(
-                {
-                    new_column_name if col == original_column_name else col: feature
-                    for col, feature in original_features.items()
-                }
-            )
-        return ds_iterable
+        return self.rename_columns({original_column_name: new_column_name})
 
     def rename_columns(self, column_mapping: Dict[str, str]) -> "IterableDataset":
         """
@@ -1970,22 +1969,10 @@ class IterableDataset(DatasetInfoMixin):
             `IterableDataset`: A copy of the dataset with renamed columns
         """
 
-        def rename_columns_fn(example):
-            if any(col not in example for col in column_mapping):
-                raise ValueError(
-                    f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {set(column_mapping) - set(example)} are not in the dataset."
-                )
-            if any(col in example for col in column_mapping.values()):
-                raise ValueError(
-                    f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {set(example) - set(column_mapping.values())} are already in the dataset."
-                )
-            return {
-                new_column_name: example[original_column_name]
-                for original_column_name, new_column_name in column_mapping.items()
-            }
-
         original_features = self._info.features.copy() if self._info.features else None
-        ds_iterable = self.map(rename_columns_fn, remove_columns=list(column_mapping))
+        ds_iterable = self.map(
+            partial(_rename_columns_fn, column_mapping=column_mapping), remove_columns=list(column_mapping)
+        )
         if original_features is not None:
             ds_iterable._info.features = Features(
                 {

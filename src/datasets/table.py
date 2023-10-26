@@ -1916,7 +1916,7 @@ def array_concat(arrays: List[pa.Array]):
                 _concat_arrays([array.values for array in arrays]),
             )
         elif pa.types.is_fixed_size_list(array_type):
-            if config.PYARROW_VERSION.major < 13:
+            if config.PYARROW_VERSION.major < 14:
                 # PyArrow bug: https://github.com/apache/arrow/issues/35360
                 return pa.FixedSizeListArray.from_arrays(
                     _concat_arrays([array.values[array.offset * array.type.list_size :] for array in arrays]),
@@ -1964,7 +1964,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
     if isinstance(array, pa.ExtensionArray):
         array = array.storage
     if isinstance(pa_type, pa.ExtensionType):
-        return pa_type.wrap_array(array)
+        return pa_type.wrap_array(_c(array, pa_type.storage_type))
     elif array.type == pa_type:
         return array
     elif pa.types.is_struct(array.type):
@@ -1993,7 +1993,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
             return pa.ListArray.from_arrays(array.offsets, _c(array.values, pa_type.value_type))
     elif pa.types.is_fixed_size_list(array.type):
         array_values = array.values
-        if config.PYARROW_VERSION.major < 13:
+        if config.PYARROW_VERSION.major < 14:
             # PyArrow bug: https://github.com/apache/arrow/issues/35360
             array_values = array.values[array.offset * array.type.list_size :]
         if pa.types.is_fixed_size_list(pa_type):
@@ -2002,7 +2002,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
                 pa_type.list_size,
             )
         elif pa.types.is_list(pa_type):
-            offsets_arr = pa.array(range(len(array) + 1), pa.int32())
+            offsets_arr = pa.array(np.arange(len(array) + 1) * array.type.list_size, pa.int32())
             if array.null_count > 0:
                 if config.PYARROW_VERSION.major < 10:
                     warnings.warn(
@@ -2061,6 +2061,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
         array = array.storage
     if hasattr(feature, "cast_storage"):
         return feature.cast_storage(array)
+
     elif pa.types.is_struct(array.type):
         # feature must be a dict or Sequence(subfeatures_dict)
         if isinstance(feature, Sequence) and isinstance(feature.feature, dict):
@@ -2109,7 +2110,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
     elif pa.types.is_fixed_size_list(array.type):
         # feature must be either [subfeature] or Sequence(subfeature)
         array_values = array.values
-        if config.PYARROW_VERSION.major < 13:
+        if config.PYARROW_VERSION.major < 14:
             # PyArrow bug: https://github.com/apache/arrow/issues/35360
             array_values = array.values[array.offset * array.type.list_size :]
         if isinstance(feature, list):
@@ -2126,7 +2127,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
                 if feature.length * len(array) == len(array_values):
                     return pa.FixedSizeListArray.from_arrays(_c(array_values, feature.feature), feature.length)
             else:
-                offsets_arr = pa.array(range(len(array) + 1), pa.int32())
+                offsets_arr = pa.array(np.arange(len(array) + 1) * array.type.list_size, pa.int32())
                 if array.null_count > 0:
                     if config.PYARROW_VERSION.major < 10:
                         warnings.warn(
@@ -2216,7 +2217,7 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
     elif pa.types.is_fixed_size_list(array.type):
         # feature must be either [subfeature] or Sequence(subfeature)
         array_values = array.values
-        if config.PYARROW_VERSION.major < 13:
+        if config.PYARROW_VERSION.major < 14:
             # PyArrow bug: https://github.com/apache/arrow/issues/35360
             array_values = array.values[array.offset * array.type.list_size :]
         if isinstance(feature, list):
@@ -2233,7 +2234,7 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
                 if feature.length * len(array) == len(array_values):
                     return pa.FixedSizeListArray.from_arrays(_e(array_values, feature.feature), feature.length)
             else:
-                offsets_arr = pa.array(range(len(array) + 1), pa.int32())
+                offsets_arr = pa.array(np.arange(len(array) + 1) * array.type.list_size, pa.int32())
                 if array.null_count > 0:
                     if config.PYARROW_VERSION.major < 10:
                         warnings.warn(

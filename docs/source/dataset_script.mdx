@@ -144,6 +144,8 @@ class SuperGlueConfig(datasets.BuilderConfig):
 class SuperGlue(datasets.GeneratorBasedBuilder):
     """The SuperGLUE benchmark."""
 
+    BUILDER_CONFIG_CLASS = SuperGlueConfig
+
     BUILDER_CONFIGS = [
         SuperGlueConfig(
             name="boolq",
@@ -171,6 +173,13 @@ class SuperGlue(datasets.GeneratorBasedBuilder):
 ```py
 >>> from datasets import load_dataset
 >>> dataset = load_dataset('super_glue', 'boolq')
+```
+
+Additionally, users can instantiate a custom builder configuration by passing the builder configuration arguments to [`load_dataset`]:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset('super_glue', data_url="https://custom_url")
 ```
 
 ### Default configurations

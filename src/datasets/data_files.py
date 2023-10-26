@@ -1,6 +1,7 @@
 import os
 import re
 from functools import partial
+from glob import has_magic
 from pathlib import Path, PurePath
 from typing import Callable, Dict, List, Optional, Set, Tuple, Union
 
@@ -8,6 +9,7 @@ import huggingface_hub
 from fsspec import get_fs_token_paths
 from fsspec.implementations.http import HTTPFileSystem
 from huggingface_hub import HfFileSystem
+from packaging import version
 from tqdm.contrib.concurrent import thread_map
 
 from . import config
@@ -41,23 +43,17 @@ SPLIT_KEYWORDS = {
     Split.TEST: ["test", "testing", "eval", "evaluation"],
 }
 NON_WORDS_CHARS = "-._ 0-9"
-KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**[{sep}/]{keyword}[{sep}]*", "{keyword}[{sep}]*"]
-KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**[{sep}/]{keyword}[{sep}/]**"]
+if config.FSSPEC_VERSION < version.parse("2023.9.0"):
+    KEYWORDS_IN_PATH_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**[{sep}/]{keyword}[{sep}/]**"]
+else:
+    KEYWORDS_IN_PATH_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**/*[{sep}/]{keyword}[{sep}/]**"]
 
 DEFAULT_SPLITS = [Split.TRAIN, Split.VALIDATION, Split.TEST]
-DEFAULT_PATTERNS_SPLIT_IN_FILENAME = {
+DEFAULT_PATTERNS_SPLIT_IN_PATH_NAME = {
     split: [
         pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
         for keyword in SPLIT_KEYWORDS[split]
-        for pattern in KEYWORDS_IN_FILENAME_BASE_PATTERNS
-    ]
-    for split in DEFAULT_SPLITS
-}
-DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME = {
-    split: [
-        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
-        for keyword in SPLIT_KEYWORDS[split]
-        for pattern in KEYWORDS_IN_DIR_NAME_BASE_PATTERNS
+        for pattern in KEYWORDS_IN_PATH_NAME_BASE_PATTERNS
     ]
     for split in DEFAULT_SPLITS
 }
@@ -68,18 +64,30 @@ DEFAULT_PATTERNS_ALL = {
 
 ALL_SPLIT_PATTERNS = [SPLIT_PATTERN_SHARDED]
 ALL_DEFAULT_PATTERNS = [
-    DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME,
-    DEFAULT_PATTERNS_SPLIT_IN_FILENAME,
+    DEFAULT_PATTERNS_SPLIT_IN_PATH_NAME,
     DEFAULT_PATTERNS_ALL,
 ]
-METADATA_PATTERNS = [
-    "metadata.csv",
-    "**/metadata.csv",
-    "metadata.jsonl",
-    "**/metadata.jsonl",
-]  # metadata file for ImageFolder and AudioFolder
+if config.FSSPEC_VERSION < version.parse("2023.9.0"):
+    METADATA_PATTERNS = [
+        "metadata.csv",
+        "**/metadata.csv",
+        "metadata.jsonl",
+        "**/metadata.jsonl",
+    ]  # metadata file for ImageFolder and AudioFolder
+else:
+    METADATA_PATTERNS = [
+        "**/metadata.csv",
+        "**/metadata.jsonl",
+    ]  # metadata file for ImageFolder and AudioFolder
 WILDCARD_CHARACTERS = "*[]"
-FILES_TO_IGNORE = ["README.md", "config.json", "dataset_infos.json", "dummy_data.zip", "dataset_dict.json"]
+FILES_TO_IGNORE = [
+    "README.md",
+    "config.json",
+    "dataset_info.json",
+    "dataset_infos.json",
+    "dummy_data.zip",
+    "dataset_dict.json",
+]
 
 
 def contains_wildcards(pattern: str) -> bool:
@@ -219,7 +227,9 @@ def _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(matched_rel_
     return len(hidden_directories_in_path) != len(hidden_directories_in_pattern)
 
 
-def _get_data_files_patterns(pattern_resolver: Callable[[str], List[str]]) -> Dict[str, List[str]]:
+def _get_data_files_patterns(
+    pattern_resolver: Callable[[str], List[str]], base_path: str = ""
+) -> Dict[str, List[str]]:
     """
     Get the default pattern from a directory or repository by testing all the supported patterns.
     The first patterns to return a non-empty list of data files is returned.
@@ -234,7 +244,10 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], List[str]]) -> Di
         except FileNotFoundError:
             continue
         if len(data_files) > 0:
-            splits: Set[str] = {string_to_dict(p, glob_pattern_to_regex(split_pattern))["split"] for p in data_files}
+            splits: Set[str] = {
+                string_to_dict(xbasename(p), glob_pattern_to_regex(xbasename(split_pattern)))["split"]
+                for p in data_files
+            }
             sorted_splits = [str(split) for split in DEFAULT_SPLITS if split in splits] + sorted(
                 splits - set(DEFAULT_SPLITS)
             )
@@ -289,10 +302,10 @@ def resolve_pattern(
     - data/** to match all the files inside "data" and its subdirectories
 
     The patterns are resolved using the fsspec glob.
-    Here are some behaviors specific to fsspec glob that are different from glob.glob, Path.glob, Path.match or fnmatch:
-    - '*' matches only first level items
-    - '**' matches all items
-    - '**/*' matches all at least second level items
+
+    glob.glob, Path.glob, Path.match or fnmatch do not support ** with a prefix/suffix other than a forward slash /.
+    For instance, this means **.json is the same as *.json. On the contrary, the fsspec glob has no limits regarding the ** prefix/suffix,
+    resulting in **.json being equivalent to **/*.json.
 
     More generally:
     - '*' matches any character except a forward-slash (to match just the file or directory name)
@@ -320,7 +333,7 @@ def resolve_pattern(
         allowed_extensions (Optional[list], optional): White-list of file extensions to use. Defaults to None (all extensions).
             For example: allowed_extensions=[".csv", ".json", ".txt", ".parquet"]
     Returns:
-        List[Union[Path, Url]]: List of paths or URLs to the local or remote files that match the patterns.
+        List[str]: List of paths or URLs to the local or remote files that match the patterns.
     """
     if is_relative_path(pattern):
         pattern = xjoin(base_path, pattern)
@@ -332,8 +345,9 @@ def resolve_pattern(
     fs, _, _ = get_fs_token_paths(pattern, storage_options=storage_options)
     fs_base_path = base_path.split("::")[0].split("://")[-1] or fs.root_marker
     fs_pattern = pattern.split("::")[0].split("://")[-1]
-    protocol_prefix = fs.protocol + "://" if fs.protocol != "file" else ""
     files_to_ignore = set(FILES_TO_IGNORE) - {xbasename(pattern)}
+    protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[0]
+    protocol_prefix = protocol + "://" if protocol != "file" else ""
     matched_paths = [
         filepath if filepath.startswith(protocol_prefix) else protocol_prefix + filepath
         for filepath, info in fs.glob(pattern, detail=True).items()
@@ -408,7 +422,8 @@ def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] 
 
     Output:
 
-        {"train": ["**train*"], "test": ["**test*"]}
+        {'train': ['train[-._ 0-9/]**', '**/*[-._ 0-9/]train[-._ 0-9/]**', 'training[-._ 0-9/]**', '**/*[-._ 0-9/]training[-._ 0-9/]**'],
+         'test': ['test[-._ 0-9/]**', '**/*[-._ 0-9/]test[-._ 0-9/]**', 'testing[-._ 0-9/]**', '**/*[-._ 0-9/]testing[-._ 0-9/]**', ...]}
 
     Input:
 
@@ -426,7 +441,8 @@ def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] 
 
     Output:
 
-        {"train": ["**train*/**"], "test": ["**test*/**"]}
+        {'train': ['train[-._ 0-9/]**', '**/*[-._ 0-9/]train[-._ 0-9/]**', 'training[-._ 0-9/]**', '**/*[-._ 0-9/]training[-._ 0-9/]**'],
+         'test': ['test[-._ 0-9/]**', '**/*[-._ 0-9/]test[-._ 0-9/]**', 'testing[-._ 0-9/]**', '**/*[-._ 0-9/]testing[-._ 0-9/]**', ...]}
 
     Input:
 
@@ -443,17 +459,15 @@ def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] 
 
     Output:
 
-        {
-            "train": ["data/train-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*"],
-            "test": ["data/test-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*"],
-            "random": ["data/random-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*"],
-        }
+        {'train': ['data/train-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*'],
+         'test': ['data/test-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*'],
+         'random': ['data/random-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*']}
 
     In order, it first tests if SPLIT_PATTERN_SHARDED works, otherwise it tests the patterns in ALL_DEFAULT_PATTERNS.
     """
     resolver = partial(resolve_pattern, base_path=base_path, download_config=download_config)
     try:
-        return _get_data_files_patterns(resolver)
+        return _get_data_files_patterns(resolver, base_path=base_path)
     except FileNotFoundError:
         raise EmptyDatasetError(f"The directory at {base_path} doesn't contain any data files") from None
 
@@ -582,7 +596,8 @@ class DataFilesList(List[str]):
                     )
                 )
             except FileNotFoundError:
-                pass
+                if not has_magic(pattern):
+                    raise
         origin_metadata = _get_origin_metadata(data_files, download_config=download_config)
         return cls(data_files, origin_metadata)
 
@@ -678,17 +693,6 @@ class DataFilesDict(Dict[str, DataFilesList]):
                 else patterns_for_key
             )
         return out
-
-    def __reduce__(self):
-        """
-        To make sure the order of the keys doesn't matter when pickling and hashing:
-
-        >>> from datasets.data_files import DataFilesDict
-        >>> from datasets.fingerprint import Hasher
-        >>> assert Hasher.hash(DataFilesDict(a=[], b=[])) == Hasher.hash(DataFilesDict(b=[], a=[]))
-
-        """
-        return DataFilesDict, (dict(sorted(self.items())),)
 
     def filter_extensions(self, extensions: List[str]) -> "DataFilesDict":
         out = type(self)()

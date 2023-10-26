@@ -65,7 +65,7 @@ class FileFreeLock(BaseFileLock):
 # lists - summarize long lists similarly to NumPy
 # arrays/tensors - let the frameworks control formatting
 def summarize_if_long_list(obj):
-    if not type(obj) == list or len(obj) <= 6:
+    if not type(obj) == list or len(obj) <= 6:  # noqa: E721
         return f"{obj}"
 
     def format_chunk(chunk):

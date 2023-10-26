@@ -25,6 +25,7 @@ import os
 import queue
 import re
 import types
+import warnings
 from contextlib import contextmanager
 from dataclasses import fields, is_dataclass
 from io import BytesIO as StringIO
@@ -253,7 +254,7 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
 
     if set_tensorflow and config.TF_AVAILABLE:
         import tensorflow as tf
-        from tensorflow.python import context as tfpycontext
+        from tensorflow.python.eager import context as tfpycontext
 
         tf_state = tf.random.get_global_generator()
         temp_gen = tf.random.Generator.from_seed(seed)
@@ -465,7 +466,13 @@ def map_nested(
             for obj in logging.tqdm(iterable, disable=disable_tqdm, desc=desc)
         ]
     else:
-        mapped = parallel_map(function, iterable, num_proc, types, disable_tqdm, desc, _single_map_nested)
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message=".* is experimental and might be subject to breaking changes in the future\\.$",
+                category=UserWarning,
+            )
+            mapped = parallel_map(function, iterable, num_proc, types, disable_tqdm, desc, _single_map_nested)
 
     if isinstance(data_struct, dict):
         return dict(zip(data_struct.keys(), mapped))
@@ -686,7 +693,7 @@ class Pickler(dill.Pickler):
 
     def memoize(self, obj):
         # don't memoize strings since two identical strings can have different python ids
-        if type(obj) != str:
+        if type(obj) != str:  # noqa: E721
             dill.Pickler.memoize(self, obj)
 
 
@@ -727,6 +734,29 @@ def pklregister(t):
         return func
 
     return proxy
+
+
+if config.DILL_VERSION < version.parse("0.3.6"):
+
+    @pklregister(set)
+    def _save_set(pickler, obj):
+        dill._dill.log.info(f"Se: {obj}")
+        from datasets.fingerprint import Hasher
+
+        args = (sorted(obj, key=Hasher.hash),)
+        pickler.save_reduce(set, args, obj=obj)
+        dill._dill.log.info("# Se")
+
+elif config.DILL_VERSION.release[:3] in [version.parse("0.3.6").release, version.parse("0.3.7").release]:
+
+    @pklregister(set)
+    def _save_set(pickler, obj):
+        dill._dill.logger.trace(pickler, "Se: %s", obj)
+        from datasets.fingerprint import Hasher
+
+        args = (sorted(obj, key=Hasher.hash),)
+        pickler.save_reduce(set, args, obj=obj)
+        dill._dill.logger.trace(pickler, "# Se")
 
 
 if config.DILL_VERSION < version.parse("0.3.6"):
@@ -1134,7 +1164,7 @@ elif config.DILL_VERSION.release[:3] == version.parse("0.3.5").release:  # 0.3.5
                     state_dict["__module__"] = obj.__module__
 
                 state = obj.__dict__
-                if type(state) is not dict:
+                if type(state) is not dict:  # noqa: E721
                     state_dict["__dict__"] = state
                     state = None
                 if state_dict:
@@ -1296,7 +1326,7 @@ elif config.DILL_VERSION.release[:3] in [version.parse("0.3.6").release, version
                 state_dict["__module__"] = obj.__module__
 
             state = obj.__dict__
-            if type(state) is not dict:
+            if type(state) is not dict:  # noqa: E721
                 state_dict["__dict__"] = state
                 state = None
             if state_dict:
