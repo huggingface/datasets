@@ -1,4 +1,4 @@
-# Know your dataset
+# Explore your dataset
 
 There are two types of dataset objects, a regular [`Dataset`] and then an ✨ [`IterableDataset`] ✨. A [`Dataset`] provides fast random access to the rows, and memory-mapping so that loading even large datasets only uses a relatively small amount of device memory. But for really, really big datasets that won't even fit on disk or in memory, an [`IterableDataset`] allows you to access and use the dataset without waiting for it to download completely!
 
