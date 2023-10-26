@@ -64,19 +64,14 @@ These values are actually the model inputs.
 >>> dataset = dataset.map(tokenization, batched=True)
 ```
 
-***4**. Add the `labels` key with the current label info to match the columns of the current model:
-```py
->>> dataset = dataset.map(lambda example: {"labels": example["label"]}, batched=True)
-```
-
-**5**. Set the format of your dataset to be compatible with your machine learning framework:
+**4**. Set the format of your dataset to be compatible with your machine learning framework:
 
 <frameworkcontent>
 <pt>
 Use the [`~Dataset.set_format`] function to set the dataset format to be compatible with PyTorch:
 
 ```py
->>> dataset.set_format(type="torch", columns=["input_ids", "token_type_ids", "attention_mask", "labels"])
+>>> dataset.set_format(type="torch", columns=["input_ids", "token_type_ids", "attention_mask", "label"])
 >>> dataset.format['type']
 'torch'
 ```
@@ -90,7 +85,7 @@ Use the [`~Dataset.to_tf_dataset`] function to set the dataset format to be comp
 >>> data_collator = DataCollatorWithPadding(tokenizer=tokenizer, return_tensors="tf")
 >>> tf_dataset = dataset.to_tf_dataset(
 ...     columns=["input_ids", "token_type_ids", "attention_mask"],
-...     label_cols=["labels"],
+...     label_cols=["label"],
 ...     batch_size=2,
 ...     collate_fn=data_collator,
 ...     shuffle=True
@@ -99,7 +94,7 @@ Use the [`~Dataset.to_tf_dataset`] function to set the dataset format to be comp
 </tf>
 </frameworkcontent>
 
-**6**. The dataset is now ready for training with your machine learning framework!
+**5**. The dataset is now ready for training with your machine learning framework!
 
 ## Resample audio signals
 
