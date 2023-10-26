@@ -1,4 +1,4 @@
-# Share a dataset to the Hub
+# Share a dataset on the Hub
 
 The [Hub](https://huggingface.co/datasets) is home to an extensive collection of community-curated and popular research datasets. We encourage you to share your dataset to the Hub to help grow the ML community and accelerate progress for everyone. All contributions are welcome; adding a dataset is just a drag and drop away!
 
@@ -87,29 +87,51 @@ pip install huggingface_hub
 huggingface-cli login
 ```
 
-3. Use the [`push_to_hub()`](https://huggingface.co/docs/datasets/main/en/package_reference/main_classes#datasets.DatasetDict.push_to_hub) function to help you add, commit, and push a file to your repository:
+3. Upload your files (three methods):
 
-```py
->>> from datasets import load_dataset
+    1. Use 🤗 Datasets `push_to_hub`
 
->>> dataset = load_dataset("stevhliu/demo")
-# dataset = dataset.map(...)  # do all your processing here
->>> dataset.push_to_hub("stevhliu/processed_demo")
-```
+    Use the [`push_to_hub()`](https://huggingface.co/docs/datasets/main/en/package_reference/main_classes#datasets.DatasetDict.push_to_hub) function to help you add, commit, and push a file to your repository:
 
-To set your dataset as private, set the `private` parameter to `True`. This parameter will only work if you are creating a repository for the first time.
+    ```py
+    >>> from datasets import load_dataset
 
-```py
->>> dataset.push_to_hub("stevhliu/private_processed_demo", private=True)
-```
+    >>> dataset = load_dataset("stevhliu/demo")
+    # dataset = dataset.map(...)  # do all your processing here
+    >>> dataset.push_to_hub("stevhliu/processed_demo")
+    ```
 
-To add a new configuration (or subset) to a dataset or to add a new split (train/validation/test), please refer to the [`Dataset.push_to_hub`] documentation.
+    To set your dataset as private, set the `private` parameter to `True`. This parameter will only work if you are creating a repository for the first time.
+
+    ```py
+    >>> dataset.push_to_hub("stevhliu/private_processed_demo", private=True)
+    ```
+
+    To add a new configuration (or subset) to a dataset or to add a new split (train/validation/test), please refer to the [`Dataset.push_to_hub`] documentation.
+
+    2. Use Hugging Face paths in `Pandas`
+
+    Some libraries like [Pandas](https://pandas.pydata.org/), [Dask](https://www.dask.org/) or [DuckDB](https://duckdb.org/) support `hf://` paths to read and upload files:
+
+    ```py
+    >>> import pandas as pd
+
+    >>> df = pd.read_csv("hf://datasets/stevhliu/demo/train.csv")
+    # df = dataset.apply(...)  # do all your processing here
+    >>> df.write_csv("hf://datasets/stevhliu/processed_demo/train.csv")
+    ```
+
+    3. Use the `huggingface-cli`
+
+    ```bash
+    huggingface-cli upload --repo_ype dataset stevhliu/processed_demo local/path/to/train.csv remote/path/to/train.csv
+    ```
 
 ### Privacy
 
 A private dataset is only accessible by you. Similarly, if you share a dataset within your organization, then members of the organization can also access the dataset.
 
-Load a private dataset by providing your authentication token to the `token` parameter:
+Load a private dataset by providing your authentication token to the `token` parameter or using `huggingface-cli login`:
 
 ```py
 >>> from datasets import load_dataset
