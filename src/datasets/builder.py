@@ -1308,7 +1308,7 @@ class DatasetBuilder:
         split: Optional[str] = None,
         base_path: Optional[str] = None,
     ) -> Union[Dict[str, IterableDataset], IterableDataset]:
-        if not is_remote_filesystem(self._fs):
+        if is_remote_filesystem(self._fs):
             raise NotImplementedError(
                 f"Loading a streaming dataset cached in a {type(self._fs).__name__} is not supported yet."
             )
