@@ -1645,9 +1645,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             storage_options = fs.storage_options
 
         fs: fsspec.AbstractFileSystem
-        fs, _, _ = fsspec.get_fs_token_paths(dataset_path, storage_options=storage_options)
-        dataset_path = fs._strip_protocol(dataset_path)
+        fs, _, [dataset_path] = fsspec.get_fs_token_paths(dataset_path, storage_options=storage_options)
 
+        dest_dataset_path = dataset_path
         dataset_dict_json_path = posixpath.join(dest_dataset_path, config.DATASETDICT_JSON_FILENAME)
         dataset_state_json_path = posixpath.join(dest_dataset_path, config.DATASET_STATE_JSON_FILENAME)
         dataset_info_path = posixpath.join(dest_dataset_path, config.DATASET_INFO_FILENAME)

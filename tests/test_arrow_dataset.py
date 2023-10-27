@@ -18,6 +18,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 from absl.testing import parameterized
+from fsspec.core import strip_protocol
 from packaging import version
 
 import datasets.arrow_dataset
@@ -36,7 +37,6 @@ from datasets.features import (
     TranslationVariableLanguages,
     Value,
 )
-from datasets.filesystems import extract_path_from_uri
 from datasets.info import DatasetInfo
 from datasets.iterable_dataset import IterableDataset
 from datasets.splits import NamedSplit
@@ -3984,7 +3984,7 @@ def test_dummy_dataset_serialize_fs(dataset, mockfs):
     ],
 )
 def test_build_local_temp_path(uri_or_path):
-    extracted_path = extract_path_from_uri(uri_or_path)
+    extracted_path = strip_protocol(uri_or_path)
     local_temp_path = Dataset._build_local_temp_path(extracted_path)
     path_relative_to_tmp_dir = local_temp_path.as_posix().split("tmp")[-1].split("/", 1)[1]
 
