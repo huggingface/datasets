@@ -1459,15 +1459,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             raise ValueError("please remove all the indexes using `dataset.drop_index` before saving a dataset")
 
         if is_local:
-            Path(dataset_path).resolve().mkdir(parents=True, exist_ok=True)
+            save_path = Path(dataset_path).expanduser().resolve()
+            save_path.mkdir(parents=True, exist_ok=True)
             parent_cache_files_paths = {
                 Path(cache_filename["filename"]).resolve().parent for cache_filename in self.cache_files
             }
             # Check that the dataset doesn't overwrite iself. It can cause a permission error on Windows and a segfault on linux.
-            if Path(dataset_path).resolve() in parent_cache_files_paths:
-                raise PermissionError(
-                    f"Tried to overwrite {Path(dataset_path).resolve()} but a dataset can't overwrite itself."
-                )
+            if save_path in parent_cache_files_paths:
+                raise PermissionError(f"Tried to overwrite {save_path} but a dataset can't overwrite itself.")
         else:
             fs.makedirs(dataset_path, exist_ok=True)
 
@@ -1653,7 +1652,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             path_join = posixpath.join
         else:
             fs = fsspec.filesystem("file")
-            dest_dataset_path = dataset_path
+            dest_dataset_path = Path(dataset_path).expanduser().resolve()
             path_join = os.path.join
 
         dataset_dict_json_path = path_join(dest_dataset_path, config.DATASETDICT_JSON_FILENAME)

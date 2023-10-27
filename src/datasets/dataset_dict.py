@@ -1273,7 +1273,7 @@ class DatasetDict(dict):
             )
 
         if is_local:
-            Path(dataset_dict_path).resolve().mkdir(parents=True, exist_ok=True)
+            Path(dataset_dict_path).expanduser().resolve().mkdir(parents=True, exist_ok=True)
         else:
             fs.makedirs(dataset_dict_path, exist_ok=True)
 
@@ -1347,7 +1347,7 @@ class DatasetDict(dict):
             path_join = posixpath.join
         else:
             fs = fsspec.filesystem("file")
-            dest_dataset_dict_path = dataset_dict_path
+            dest_dataset_dict_path = Path(dataset_dict_path).expanduser().resolve()
             path_join = os.path.join
 
         dataset_dict_json_path = path_join(dest_dataset_dict_path, config.DATASETDICT_JSON_FILENAME)
