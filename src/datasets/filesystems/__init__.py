@@ -6,6 +6,7 @@ from typing import List
 
 import fsspec
 import fsspec.asyn
+from fsspec.implementations.local import LocalFileSystem
 
 from . import compression
 
@@ -45,17 +46,13 @@ def extract_path_from_uri(dataset_path: str) -> str:
 
 def is_remote_filesystem(fs: fsspec.AbstractFileSystem) -> bool:
     """
-    Validates if filesystem has remote protocol.
+    Checks if `fs` is a remote filesystem.
 
     Args:
         fs (`fsspec.spec.AbstractFileSystem`):
             An abstract super-class for pythonic file-systems, e.g. `fsspec.filesystem(\'file\')` or [`datasets.filesystems.S3FileSystem`].
     """
-    if fs is not None:
-        protocols = (p,) if isinstance(p := fs.protocol, str) else p
-        if "file" not in protocols:
-            return True
-    return False
+    return not isinstance(fs, LocalFileSystem)
 
 
 def rename(fs: fsspec.AbstractFileSystem, src: str, dst: str):
