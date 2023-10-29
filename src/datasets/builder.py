@@ -1083,7 +1083,7 @@ class DatasetBuilder:
 
     def _save_info(self):
         file_lock = (
-            FileLock(self._output_dir + "_infos.lock")
+            FileLock(self._output_dir + "_info.lock")
             if not is_remote_filesystem(self._fs)
             else contextlib.nullcontext()
         )
