@@ -28,7 +28,7 @@ import urllib
 import warnings
 from dataclasses import dataclass
 from functools import partial
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import Dict, Iterable, Mapping, Optional, Tuple, Union
 
 import fsspec
@@ -410,7 +410,9 @@ class DatasetBuilder:
         self._cache_dir = self._build_cache_dir()
         if not is_remote_url(self._cache_dir_root):
             os.makedirs(self._cache_dir_root, exist_ok=True)
-            lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
+            lock_path = os.path.join(
+                self._cache_dir_root, PurePath(self._cache_dir).as_posix().replace("/", "_") + ".lock"
+            )
             with FileLock(lock_path):
                 if os.path.exists(self._cache_dir):  # check if data exist
                     if len(os.listdir(self._cache_dir)) > 0:
@@ -1298,7 +1300,7 @@ class DatasetBuilder:
     def _get_dataset_fingerprint(self, split: Union[ReadInstruction, Split]) -> str:
         """The dataset fingerprint is the hash of the relative directory dataset_name/config_name/version/hash, as well as the split specs."""
         hasher = Hasher()
-        hasher.update(self._relative_data_dir().replace(os.sep, "/"))
+        hasher.update(PurePath(self._relative_data_dir()).as_posix())
         hasher.update(str(split))  # for example: train, train+test, train[:10%], test[:33%](pct1_dropremainder)
         fingerprint = hasher.hexdigest()
         return fingerprint
@@ -2199,4 +2201,4 @@ class BeamBasedBuilder(DatasetBuilder):
     @property
     def _remote_cache_dir_from_hf_gcs(self):
         relative_data_dir = self._relative_data_dir(with_hash=False)
-        return HF_GCP_BASE_URL + "/" + relative_data_dir.replace(os.sep, "/")
+        return HF_GCP_BASE_URL + "/" + PurePath(relative_data_dir).as_posix()
