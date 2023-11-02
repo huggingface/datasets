@@ -1916,7 +1916,7 @@ def array_concat(arrays: List[pa.Array]):
                 _concat_arrays([array.values for array in arrays]),
             )
         elif pa.types.is_fixed_size_list(array_type):
-            if config.PYARROW_VERSION.major < 14:
+            if config.PYARROW_VERSION.major < 15:
                 # PyArrow bug: https://github.com/apache/arrow/issues/35360
                 return pa.FixedSizeListArray.from_arrays(
                     _concat_arrays([array.values[array.offset * array.type.list_size :] for array in arrays]),
@@ -1993,7 +1993,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
             return pa.ListArray.from_arrays(array.offsets, _c(array.values, pa_type.value_type))
     elif pa.types.is_fixed_size_list(array.type):
         array_values = array.values
-        if config.PYARROW_VERSION.major < 14:
+        if config.PYARROW_VERSION.major < 15:
             # PyArrow bug: https://github.com/apache/arrow/issues/35360
             array_values = array.values[array.offset * array.type.list_size :]
         if pa.types.is_fixed_size_list(pa_type):
@@ -2110,7 +2110,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
     elif pa.types.is_fixed_size_list(array.type):
         # feature must be either [subfeature] or Sequence(subfeature)
         array_values = array.values
-        if config.PYARROW_VERSION.major < 14:
+        if config.PYARROW_VERSION.major < 15:
             # PyArrow bug: https://github.com/apache/arrow/issues/35360
             array_values = array.values[array.offset * array.type.list_size :]
         if isinstance(feature, list):
@@ -2217,7 +2217,7 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
     elif pa.types.is_fixed_size_list(array.type):
         # feature must be either [subfeature] or Sequence(subfeature)
         array_values = array.values
-        if config.PYARROW_VERSION.major < 14:
+        if config.PYARROW_VERSION.major < 15:
             # PyArrow bug: https://github.com/apache/arrow/issues/35360
             array_values = array.values[array.offset * array.type.list_size :]
         if isinstance(feature, list):
