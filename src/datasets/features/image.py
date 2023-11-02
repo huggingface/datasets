@@ -321,8 +321,6 @@ def encode_np_array(array: np.ndarray) -> dict:
 
     dest_dtype = None
 
-    # import pdb; pdb.set_trace()
-
     # Multi-channel array case (only np.dtype("|u1") is allowed)
     if array.shape[2:]:
         if dtype_kind not in ["u", "i"]:
