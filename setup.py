@@ -111,7 +111,7 @@ REQUIRED_PKGS = [
     "numpy>=1.17",
     # Backend and serialization.
     # Minimum 8.0.0 to be able to use .to_reader()
-    "pyarrow>=8.0.0",
+    "pyarrow>=8.0.0,<14.0.0",  # temporary upper pin
     # For smart caching dataset processing
     "dill>=0.3.0,<0.3.8",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
     # For performance gains with apache arrow
