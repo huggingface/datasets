@@ -2926,7 +2926,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 columns with names in `remove_columns`, these columns will be kept.
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`Optioanl[bool]`, defaults to `True` if caching is enabled):
+            load_from_cache_file (`Optional[bool]`, defaults to `True` if caching is enabled):
                 If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
             cache_file_name (`str`, *optional*, defaults to `None`):
