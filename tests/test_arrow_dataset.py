@@ -4552,6 +4552,19 @@ def test_dataset_to_iterable_dataset(dataset: Dataset):
         dataset.with_format("torch").to_iterable_dataset()
 
 
+@require_pil
+def test_dataset_format_with_unformatted_image():
+    import PIL
+
+    ds = Dataset.from_dict(
+        {"a": [np.arange(4 * 4 * 3).reshape(4, 4, 3)] * 10, "b": [[0, 1]] * 10},
+        Features({"a": Image(), "b": Sequence(Value("int64"))}),
+    )
+    ds.set_format("np", columns=["b"], output_all_columns=True)
+    assert isinstance(ds[0]["a"], PIL.Image.Image)
+    assert isinstance(ds[0]["b"], np.ndarray)
+
+
 @pytest.mark.parametrize("batch_size", [1, 4])
 @require_torch
 def test_dataset_with_torch_dataloader(dataset, batch_size):
