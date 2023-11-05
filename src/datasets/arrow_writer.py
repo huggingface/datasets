@@ -16,6 +16,7 @@ import errno
 import json
 import os
 import sys
+from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 import fsspec
@@ -671,8 +672,9 @@ class BeamWriter:
 
         from .utils import beam_utils
 
+        # Beam FileSystems require the system's path separator in the older versions
         shards_metadata = list(
-            beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[0].metadata_list
+            beam.io.filesystems.FileSystems.match([str(Path(self._parquet_path)) + "*.parquet"])[0].metadata_list
         )
         shards = [metadata.path for metadata in shards_metadata]
         num_bytes = sum([metadata.size_in_bytes for metadata in shards_metadata])
@@ -683,7 +685,7 @@ class BeamWriter:
             logger.info(f"Converting parquet files {self._parquet_path} to arrow {self._path}")
             shards = [
                 metadata.path
-                for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[
+                for metadata in beam.io.filesystems.FileSystems.match([str(Path(self._parquet_path)) + "*.parquet"])[
                     0
                 ].metadata_list
             ]

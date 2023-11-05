@@ -3987,7 +3987,7 @@ def test_build_local_temp_path(uri_or_path):
     extracted_path = strip_protocol(uri_or_path)
     local_temp_path = Dataset._build_local_temp_path(extracted_path).as_posix()
     extracted_path_without_anchor = Path(extracted_path).relative_to(Path(extracted_path).anchor).as_posix()
-    path_relative_to_tmp_dir = local_temp_path.as_posix().split("tmp")[-1].split("/", 1)[1]
+    path_relative_to_tmp_dir = local_temp_path.split("tmp")[-1].split("/", 1)[1]
 
     assert (
         "tmp" in local_temp_path
