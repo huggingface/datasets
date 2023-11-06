@@ -27,7 +27,7 @@ class JsonConfig(datasets.BuilderConfig):
     block_size: Optional[int] = None  # deprecated
     chunksize: int = 10 << 20  # 10MB
     newlines_in_values: Optional[bool] = None
-    return_file_name: bool = False
+    with_file_names: bool = False
 
 
 class Json(datasets.ArrowBasedBuilder):
@@ -94,7 +94,7 @@ class Json(datasets.ArrowBasedBuilder):
 
                 pa_table = pa.Table.from_pydict(mapping)
                 pa_table = self._cast_table(pa_table)
-                if self.config.return_file_name:
+                if self.config.with_file_names:
                     pa_table = pa_table.append_column("file_name", pa.array([file] * len(pa_table)))
                 yield file_idx, pa_table
 
@@ -160,7 +160,7 @@ class Json(datasets.ArrowBasedBuilder):
                                     logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                                     raise ValueError(f"Not able to read records in the JSON file at {file}.") from None
                                 pa_table = self._cast_table(pa_table)
-                                if self.config.return_file_name:
+                                if self.config.with_file_names:
                                     pa_table = pa_table.append_column("file_name", pa.array([file] * len(pa_table)))
                                 yield file_idx, pa_table
                                 break
@@ -176,7 +176,7 @@ class Json(datasets.ArrowBasedBuilder):
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
                         pa_table = self._cast_table(pa_table)
-                        if self.config.return_file_name:
+                        if self.config.with_file_names:
                             pa_table = pa_table.append_column("file_name", pa.array([file] * len(pa_table)))
                         yield (file_idx, batch_idx), pa_table
                         batch_idx += 1

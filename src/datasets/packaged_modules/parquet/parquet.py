@@ -19,7 +19,7 @@ class ParquetConfig(datasets.BuilderConfig):
     batch_size: int = 10_000
     columns: Optional[List[str]] = None
     features: Optional[datasets.Features] = None
-    return_file_name: bool = False
+    with_file_names: bool = False
 
 
 class Parquet(datasets.ArrowBasedBuilder):
@@ -93,7 +93,7 @@ class Parquet(datasets.ArrowBasedBuilder):
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
                         pa_table = self._cast_table(pa_table)
-                        if self.config.return_file_name:
+                        if self.config.with_file_names:
                             pa_table = pa_table.append_column("file_name", pa.array([file] * len(pa_table)))
                         yield f"{file_idx}_{batch_idx}", pa_table
                 except ValueError as e:

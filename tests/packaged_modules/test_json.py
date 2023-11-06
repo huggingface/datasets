@@ -123,11 +123,11 @@ def test_json_generate_tables_with_missing_features(file_fixture, config_kwargs,
 @pytest.mark.parametrize(
     "file_fixture, config_kwargs",
     [
-        ("jsonl_file", {"return_file_name": True}),
-        ("json_file_with_list_of_dicts", {"return_file_name": True}),
+        ("jsonl_file", {"with_file_names": True}),
+        ("json_file_with_list_of_dicts", {"with_file_names": True}),
     ],
 )
-def test_json_generate_tables_with_return_file_name(file_fixture, config_kwargs, request):
+def test_json_generate_tables_with_file_names(file_fixture, config_kwargs, request):
     json = Json(**config_kwargs)
     fixture_value = request.getfixturevalue(file_fixture)
     generator = json._generate_tables([[fixture_value]])

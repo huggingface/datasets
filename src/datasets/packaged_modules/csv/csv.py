@@ -65,7 +65,7 @@ class CsvConfig(datasets.BuilderConfig):
     encoding_errors: Optional[str] = "strict"
     on_bad_lines: Literal["error", "warn", "skip"] = "error"
     date_format: Optional[str] = None
-    return_file_name: bool = False
+    with_file_names: bool = False
 
     def __post_init__(self):
         if self.delimiter is not None:
@@ -191,7 +191,7 @@ class Csv(datasets.ArrowBasedBuilder):
                     # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                     # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
                     pa_table = self._cast_table(pa_table)
-                    if self.config.return_file_name:
+                    if self.config.with_file_names:
                         pa_table = pa_table.append_column("file_name", pa.array([file] * len(pa_table)))
                     yield (file_idx, batch_idx), pa_table
             except ValueError as e:

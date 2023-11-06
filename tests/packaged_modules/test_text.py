@@ -62,10 +62,10 @@ def test_text_cast_image(text_file_with_image):
 
 
 @require_pil
-def test_text_cast_image_with_return_file_name(text_file_with_image):
+def test_text_cast_image_with_file_names(text_file_with_image):
     with open(text_file_with_image, encoding="utf-8") as f:
         image_file = f.read().splitlines()[0]
-    text = Text(encoding="utf-8", features=Features({"image": Image()}), return_file_name=True)
+    text = Text(encoding="utf-8", features=Features({"image": Image()}), with_file_names=True)
     generator = text._generate_tables([[text_file_with_image]])
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.schema.field("image").type == Image()()
@@ -92,7 +92,7 @@ def test_text_sample_by(sample_by, text_file):
 
 
 @pytest.mark.parametrize("sample_by", ["line", "paragraph", "document"])
-def test_text_sample_by_with_return_file_name(sample_by, text_file):
+def test_text_sample_by_with_file_names(sample_by, text_file):
     with open(text_file, encoding="utf-8") as f:
         expected_content = f.read()
     if sample_by == "line":
@@ -101,7 +101,7 @@ def test_text_sample_by_with_return_file_name(sample_by, text_file):
         expected_content = expected_content.split("\n\n")
     elif sample_by == "document":
         expected_content = [expected_content]
-    text = Text(sample_by=sample_by, encoding="utf-8", chunksize=100, return_file_name=True)
+    text = Text(sample_by=sample_by, encoding="utf-8", chunksize=100, with_file_names=True)
     generator = text._generate_tables([[text_file]])
     generated = pa.concat_tables([table for _, table in generator]).to_pydict()
     generated_content, generated_filename = generated["text"], generated["file_name"]

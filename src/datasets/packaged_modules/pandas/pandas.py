@@ -14,7 +14,7 @@ class PandasConfig(datasets.BuilderConfig):
     """BuilderConfig for Pandas."""
 
     features: Optional[datasets.Features] = None
-    return_file_name: bool = False
+    with_file_names: bool = False
 
 
 class Pandas(datasets.ArrowBasedBuilder):
@@ -56,6 +56,6 @@ class Pandas(datasets.ArrowBasedBuilder):
             with open(file, "rb") as f:
                 pa_table = pa.Table.from_pandas(pd.read_pickle(f))
                 pa_table = self._cast_table(pa_table)
-                if self.config.return_file_name:
+                if self.config.with_file_names:
                     pa_table = pa_table.append_column("file_name", pa.array([file] * len(pa_table)))
                 yield i, pa_table
