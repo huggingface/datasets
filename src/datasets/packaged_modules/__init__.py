@@ -12,6 +12,7 @@ from .pandas import pandas
 from .parquet import parquet
 from .sql import sql  # noqa F401
 from .text import text
+from .webdataset import webdataset
 
 
 def _hash_python_lines(lines: List[str]) -> str:
@@ -37,6 +38,7 @@ _PACKAGED_DATASETS_MODULES = {
     "text": (text.__name__, _hash_python_lines(inspect.getsource(text).splitlines())),
     "imagefolder": (imagefolder.__name__, _hash_python_lines(inspect.getsource(imagefolder).splitlines())),
     "audiofolder": (audiofolder.__name__, _hash_python_lines(inspect.getsource(audiofolder).splitlines())),
+    "webdataset": (webdataset.__name__, _hash_python_lines(inspect.getsource(webdataset).splitlines())),
 }
 
 # Used to infer the module to use based on the data files extensions
@@ -48,6 +50,7 @@ _EXTENSION_TO_MODULE = {
     ".parquet": ("parquet", {}),
     ".arrow": ("arrow", {}),
     ".txt": ("text", {}),
+    ".tar": ("webdataset", {}),
 }
 _EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
