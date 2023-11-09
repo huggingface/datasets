@@ -432,6 +432,18 @@ def test_array_xd_with_np(seq_type, dtype, shape, feature_class):
     assert ds[0]["col"] == expected
 
 
+@pytest.mark.skipif(
+    os.name == "nt" and (os.getenv("CIRCLECI") == "true" or os.getenv("GITHUB_ACTIONS") == "true"),
+    reason="The Windows CI runner does not have enough RAM to run this test",
+)
+def test_large_array_xd_with_np():
+    large_array = np.zeros((46341, 46341), dtype=np.uint8)
+    ds = datasets.Dataset.from_dict({"col": large_array})
+    ds.set_format("np")
+    assert not ds[0]["col"].any()
+    assert ds[0]["col"].shape == (46341,)
+
+
 @pytest.mark.parametrize("with_none", [False, True])
 def test_dataset_map(with_none):
     ds = datasets.Dataset.from_dict({"path": ["path1", "path2"]})

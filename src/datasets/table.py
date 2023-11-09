@@ -1364,7 +1364,21 @@ class ConcatenationTable(Table):
         pa_tables = [table.table if hasattr(table, "table") else table for table in blocks]
         if axis == 0:
             # we set promote=True to fill missing columns with null values
-            return pa.concat_tables(pa_tables, promote=True)
+            large_list_schema_map = {field.name: field for field in pa_tables[0].schema}  # intialize
+            large_list_flag = False
+            for table in pa_tables:
+                for field in table.schema:
+                    if pa.types.is_large_list(field.type):
+                        large_list_schema_map[field.name] = field
+                        large_list_flag = True
+            if large_list_flag:  # cast ListArray to LargeListArray
+                large_list_schema = pa.schema(list(large_list_schema_map.values()))
+                new_tables = []
+                for table in pa_tables:
+                    new_tables.append(table.cast(large_list_schema))
+                return pa.concat_tables(new_tables, promote=True)
+            else:
+                return pa.concat_tables(pa_tables, promote=True)
         elif axis == 1:
             for i, table in enumerate(pa_tables):
                 if i == 0:
@@ -1991,6 +2005,19 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
                         array.offsets, _c(array.values, pa_type.value_type), mask=array.is_null()
                     )
             return pa.ListArray.from_arrays(array.offsets, _c(array.values, pa_type.value_type))
+    elif pa.types.is_large_list(array.type):
+        if pa.types.is_fixed_size_list(pa_type):
+            if pa_type.list_size * len(array) == len(array.values):
+                return pa.FixedSizeListArray.from_arrays(
+                    _c(array.values, pa_type.value_type),
+                    pa_type.list_size,
+                )
+        elif pa.types.is_large_list(pa_type):
+            if array.null_count > 0:
+                warnings.warn(
+                    f"None values are converted to empty lists when converting array to {pa_type}. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
+                )
+            return pa.LargeListArray.from_arrays(array.offsets, _c(array.values, pa_type.value_type))
     elif pa.types.is_fixed_size_list(array.type):
         array_values = array.values
         if config.PYARROW_VERSION.major < 15:
@@ -2073,6 +2100,32 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
                 return array
             arrays = [_c(array.field(name), subfeature) for name, subfeature in feature.items()]
             return pa.StructArray.from_arrays(arrays, names=list(feature), mask=array.is_null())
+    elif pa.types.is_large_list(array.type):
+        # feature must be either [subfeature] or Sequence(subfeature)
+        if isinstance(feature, list):
+            casted_values = _c(array.values, feature[0])
+            if casted_values.type == array.values.type:
+                return array
+            else:
+                if array.null_count > 0:
+                    warnings.warn(
+                        f"None values are converted to empty lists when converting array to {feature}. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
+                    )
+                return pa.LargeListArray.from_arrays(array.offsets, casted_values)
+        elif isinstance(feature, Sequence):
+            if feature.length > -1:
+                if feature.length * len(array) == len(array.values):
+                    return pa.FixedSizeListArray.from_arrays(_c(array.values, feature.feature), feature.length)
+            else:
+                casted_values = _c(array.values, feature.feature)
+                if casted_values.type == array.values.type:
+                    return array
+                else:
+                    if array.null_count > 0:
+                        warnings.warn(
+                            f"None values are converted to empty lists when converting array to {feature}. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
+                        )
+                    return pa.LargeListArray.from_arrays(array.offsets, _c(array.values, feature.feature))
     elif pa.types.is_list(array.type):
         # feature must be either [subfeature] or Sequence(subfeature)
         if isinstance(feature, list):
@@ -2214,6 +2267,28 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
                                 array.offsets, _e(array.values, feature.feature), mask=array.is_null()
                             )
                     return pa.ListArray.from_arrays(array.offsets, _e(array.values, feature.feature))
+    elif pa.types.is_large_list(array.type):
+        # feature must be either [subfeature] or Sequence(subfeature)
+        if isinstance(feature, list):
+            if array.null_count > 0:
+                warnings.warn(
+                    f"None values are converted to empty lists when embedding array storage with {feature}. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
+                )
+            return pa.LargeListArray.from_arrays(array.offsets, _e(array.values, feature[0]))
+        elif isinstance(feature, Sequence):
+            if feature.length > -1:
+                if feature.length * len(array) == len(array.values):
+                    return pa.FixedSizeListArray.from_arrays(_e(array.values, feature.feature), feature.length)
+            else:
+                casted_values = _e(array.values, feature.feature)
+                if casted_values.type == array.values.type:
+                    return array
+                else:
+                    if array.null_count > 0:
+                        warnings.warn(
+                            f"None values are converted to empty lists when embedding array storage with {feature}. More info: https://github.com/huggingface/datasets/issues/3676. This will raise an error in a future major version of `datasets`"
+                        )
+                    return pa.LargeListArray.from_arrays(array.offsets, _e(array.values, feature.feature))
     elif pa.types.is_fixed_size_list(array.type):
         # feature must be either [subfeature] or Sequence(subfeature)
         array_values = array.values
