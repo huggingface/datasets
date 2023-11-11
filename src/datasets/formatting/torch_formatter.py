@@ -65,6 +65,7 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
 
             if isinstance(value, PIL.Image.Image):
                 value = np.asarray(value)
+                value = value.transpose((2, 0, 1))
         return torch.tensor(value, **{**default_dtype, **self.torch_tensor_kwargs})
 
     def _recursive_tensorize(self, data_struct):
