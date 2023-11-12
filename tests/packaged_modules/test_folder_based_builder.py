@@ -532,12 +532,12 @@ def test_data_files_with_wrong_file_name_column_in_metadata_file(cache_dir, tmp_
 
 @pytest.mark.parametrize("remote", [True, False])
 @pytest.mark.parametrize("drop_labels", [None, True, False])
-def test_data_files_with_different_levels_no_metadata_with_file_names(
+def test_data_files_with_different_levels_no_metadata_include_file_name(
     data_files_with_different_levels_no_metadata, drop_labels, remote, cache_dir
 ):
     data_files = remote_files if remote else data_files_with_different_levels_no_metadata
     autofolder = DummyFolderBasedBuilder(
-        data_files=data_files, cache_dir=cache_dir, drop_labels=drop_labels, with_file_names=True
+        data_files=data_files, cache_dir=cache_dir, drop_labels=drop_labels, include_file_name=True
     )
     gen_kwargs = autofolder._split_generators(StreamingDownloadManager())[0].gen_kwargs
     generator = autofolder._generate_examples(**gen_kwargs)

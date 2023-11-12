@@ -14,7 +14,7 @@ class PandasConfig(datasets.BuilderConfig):
     """BuilderConfig for Pandas."""
 
     features: Optional[datasets.Features] = None
-    with_file_names: bool = False
+    include_file_name: bool = False
 
 
 class Pandas(datasets.ArrowBasedBuilder):
@@ -56,6 +56,10 @@ class Pandas(datasets.ArrowBasedBuilder):
             with open(file, "rb") as f:
                 pa_table = pa.Table.from_pandas(pd.read_pickle(f))
                 pa_table = self._cast_table(pa_table)
-                if self.config.with_file_names:
+                if self.config.include_file_name:
+                    if "file_name" in pa_table.schema.names:
+                        raise ValueError(
+                            "Column 'file_name' already present in data therefore include_file_name should be False."
+                        )
                     pa_table = pa_table.append_column("file_name", pa.array([file] * len(pa_table)))
                 yield i, pa_table

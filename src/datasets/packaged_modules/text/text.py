@@ -25,7 +25,7 @@ class TextConfig(datasets.BuilderConfig):
     chunksize: int = 10 << 20  # 10MB
     keep_linebreaks: bool = False
     sample_by: str = "line"
-    with_file_names: bool = False
+    include_file_name: bool = False
 
     def __post_init__(self, errors):
         if errors != "deprecated":
@@ -100,7 +100,11 @@ class Text(datasets.ArrowBasedBuilder):
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
                         pa_table = self._cast_table(pa_table)
-                        if self.config.with_file_names:
+                        if self.config.include_file_name:
+                            if "file_name" in pa_table.schema.names:
+                                raise ValueError(
+                                    "Column 'file_name' already present in data therefore include_file_name should be False."
+                                )
                             pa_table = pa_table.append_column("file_name", pa.array([file] * len(pa_table)))
                         yield (file_idx, batch_idx), pa_table
                         batch_idx += 1
@@ -121,7 +125,11 @@ class Text(datasets.ArrowBasedBuilder):
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
                         pa_table = self._cast_table(pa_table)
-                        if self.config.with_file_names:
+                        if self.config.include_file_name:
+                            if "file_name" in pa_table.schema.names:
+                                raise ValueError(
+                                    "Column 'file_name' already present in data therefore include_file_name should be False."
+                                )
                             pa_table = pa_table.append_column(
                                 "file_name",
                                 pa.array([str(file)] * len(pa_table))
@@ -134,18 +142,21 @@ class Text(datasets.ArrowBasedBuilder):
                     if batch:
                         pa_table = pa.Table.from_arrays([pa.array([batch])], names=pa_table_names)
                         pa_table = self._cast_table(pa_table)
-                        if self.config.with_file_names:
-                            pa_table = pa_table.append_column(
-                                "file_name",
-                                pa.array([str(file)] * len(pa_table))
-                                if len(pa_table) > 0
-                                else pa.nulls(0, pa.string()),
-                            )
+                        if self.config.include_file_name:
+                            if "file_name" in pa_table.schema.names:
+                                raise ValueError(
+                                    "Column 'file_name' already present in data therefore include_file_name should be False."
+                                )
+                            pa_table = pa_table.append_column("file_name", pa.array([str(file)] * len(pa_table)))
                         yield (file_idx, batch_idx), pa_table
                 elif self.config.sample_by == "document":
                     text = f.read()
                     pa_table = pa.Table.from_arrays([pa.array([text])], names=pa_table_names)
                     pa_table = self._cast_table(pa_table)
-                    if self.config.with_file_names:
+                    if self.config.include_file_name:
+                        if "file_name" in pa_table.schema.names:
+                            raise ValueError(
+                                "Column 'file_name' already present in data therefore include_file_name should be False."
+                            )
                         pa_table = pa_table.append_column("file_name", pa.array([file] * len(pa_table)))
                     yield file_idx, pa_table

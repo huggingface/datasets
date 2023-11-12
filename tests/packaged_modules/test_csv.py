@@ -133,10 +133,10 @@ def test_csv_convert_int_list(csv_file_with_int_list):
 
 
 @require_pil
-def test_csv_cast_image_with_file_names(csv_file_with_image):
+def test_csv_cast_image_include_file_name(csv_file_with_image):
     with open(csv_file_with_image, encoding="utf-8") as f:
         image_file = f.read().splitlines()[1]
-    csv = Csv(encoding="utf-8", features=Features({"image": Image()}), with_file_names=True)
+    csv = Csv(encoding="utf-8", features=Features({"image": Image()}), include_file_name=True)
     generator = csv._generate_tables([[csv_file_with_image]])
     pa_table = pa.concat_tables([table for _, table in generator])
     assert pa_table.schema.field("image").type == Image()()
@@ -146,12 +146,12 @@ def test_csv_cast_image_with_file_names(csv_file_with_image):
     assert generated_file_name == [csv_file_with_image]
 
 
-def test_csv_with_file_names(csv_file_with_int_list):
+def test_csv_include_file_name(csv_file_with_int_list):
     csv = Csv(
         encoding="utf-8",
         sep=",",
         converters={"int_list": lambda x: [int(i) for i in x.split()]},
-        with_file_names=True,
+        include_file_name=True,
     )
     generator = csv._generate_tables([[csv_file_with_int_list]])
     pa_table = pa.concat_tables([table for _, table in generator])

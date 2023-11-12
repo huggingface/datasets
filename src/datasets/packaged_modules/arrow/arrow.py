@@ -16,7 +16,7 @@ class ArrowConfig(datasets.BuilderConfig):
     """BuilderConfig for Arrow."""
 
     features: Optional[datasets.Features] = None
-    with_file_names: bool = False
+    include_file_name: bool = False
 
 
 class Arrow(datasets.ArrowBasedBuilder):
@@ -66,7 +66,11 @@ class Arrow(datasets.ArrowBasedBuilder):
                     for batch_idx, record_batch in enumerate(pa.ipc.open_stream(f)):
                         pa_table = pa.Table.from_batches([record_batch])
                         pa_table = self._cast_table(pa_table)
-                        if self.config.with_file_names:
+                        if self.config.include_file_name:
+                            if "file_name" in pa_table.schema.names:
+                                raise ValueError(
+                                    "Column 'file_name' already present in data therefore include_file_name should be False."
+                                )
                             pa_table = pa_table.append_column("file_name", pa.array([file] * len(pa_table)))
                         # Uncomment for debugging (will print the Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
