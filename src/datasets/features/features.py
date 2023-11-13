@@ -689,6 +689,13 @@ class Array5DExtensionType(_ArrayXDExtensionType):
     ndims = 5
 
 
+# Register the extension types for deserialization
+pa.register_extension_type(Array2DExtensionType((1, 2), "int64"))
+pa.register_extension_type(Array3DExtensionType((1, 2, 3), "int64"))
+pa.register_extension_type(Array4DExtensionType((1, 2, 3, 4), "int64"))
+pa.register_extension_type(Array5DExtensionType((1, 2, 3, 4, 5), "int64"))
+
+
 def _is_zero_copy_only(pa_type: pa.DataType, unnest: bool = False) -> bool:
     """
     When converting a pyarrow array to a numpy array, we must know whether this could be done in zero-copy or not.
