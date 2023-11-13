@@ -112,7 +112,7 @@ REQUIRED_PKGS = [
     "numpy>=1.17",
     # Backend and serialization.
     # Minimum 14.0.1 to fix vulnerability CVE-2023-47248
-    "pyarrow>=11.0.0",  # TODO: maximum version allowed by apache-beam-2.51.0
+    "pyarrow>=9.0.0",  # TODO: maximum version allowed by Apache Beam
     # For smart caching dataset processing
     "dill>=0.3.0,<0.3.8",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
     # For performance gains with apache arrow
@@ -163,7 +163,7 @@ TESTS_REQUIRE = [
     "pytest-datadir",
     "pytest-xdist",
     # optional dependencies
-    "apache-beam>=2.26.0;python_version<'3.10'",  # doesn't support recent dill versions for recent python versions
+    "apache-beam>=2.26.0,<2.44.0;python_version<'3.10'",  # doesn't support recent dill versions for recent python versions
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch()
     "faiss-cpu>=1.6.4",
     "jax>=0.3.14; sys_platform != 'win32'",
