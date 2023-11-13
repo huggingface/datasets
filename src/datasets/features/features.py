@@ -631,7 +631,7 @@ class Array5D(_ArrayXD):
     _type: str = field(default="Array5D", init=False, repr=False)
 
 
-class _ArrayXDExtensionType(pa.PyExtensionType):
+class _ArrayXDExtensionType(pa.ExtensionType):
     ndims: Optional[int] = None
 
     def __init__(self, shape: tuple, dtype: str):
@@ -645,13 +645,15 @@ class _ArrayXDExtensionType(pa.PyExtensionType):
         self.shape = tuple(shape)
         self.value_type = dtype
         self.storage_dtype = self._generate_dtype(self.value_type)
-        pa.PyExtensionType.__init__(self, self.storage_dtype)
+        pa.ExtensionType.__init__(self, self.storage_dtype, f"{self.__class__.__module__}.{self.__class__.__name__}")
 
-    def __reduce__(self):
-        return self.__class__, (
-            self.shape,
-            self.value_type,
-        )
+    def __arrow_ext_serialize__(self):
+        return json.dumps((self.shape, self.value_type)).encode()
+
+    @classmethod
+    def __arrow_ext_deserialize__(cls, storage_type, serialized):
+        args = json.loads(serialized)
+        return cls(*args)
 
     def __hash__(self):
         return hash((self.__class__, self.shape, self.value_type))
