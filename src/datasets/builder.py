@@ -1515,12 +1515,12 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
         if num_proc and num_proc > 1:
             num_input_shards = _number_of_shards_in_gen_kwargs(split_generator.gen_kwargs)
-            if num_input_shards <= 1 and num_proc is not None:
+            if num_input_shards <= 1:
                 logger.warning(
                     f"Setting num_proc from {num_proc} back to 1 for the {split_info.name} split to disable multiprocessing as it only contains one shard."
                 )
                 num_proc = 1
-            elif num_proc is not None and num_input_shards < num_proc:
+            elif num_input_shards < num_proc:
                 logger.warning(
                     f"Setting num_proc from {num_proc} to {num_input_shards} for the {split_info.name} split as it only contains {num_input_shards} shards."
                 )
@@ -1773,12 +1773,12 @@ class ArrowBasedBuilder(DatasetBuilder):
 
         if num_proc and num_proc > 1:
             num_input_shards = _number_of_shards_in_gen_kwargs(split_generator.gen_kwargs)
-            if num_input_shards <= 1 and num_proc is not None:
+            if num_input_shards <= 1:
                 logger.warning(
                     f"Setting num_proc from {num_proc} back to 1 for the {split_info.name} split to disable multiprocessing as it only contains one shard."
                 )
                 num_proc = 1
-            elif num_proc is not None and num_input_shards < num_proc:
+            elif num_input_shards < num_proc:
                 logger.warning(
                     f"Setting num_proc from {num_proc} to {num_input_shards} for the {split_info.name} split as it only contains {num_input_shards} shards."
                 )
