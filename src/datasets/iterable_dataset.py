@@ -733,9 +733,9 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 # the new key is the concatenation of the examples keys from the batch
                 new_key = "_".join(str(key) for key in keys)
                 # yield one example at a time from the transformed batch
-                for batch_idx, example in enumerate(_batch_to_examples(transformed_batch)):
+                for example in _batch_to_examples(transformed_batch):
                     yield new_key, example
-                current_idx += batch_idx + 1
+                    current_idx += 1
         else:
             for key, example in iterator:
                 # If not batched, we can apply the transform and yield the example directly
@@ -891,10 +891,10 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                     function_args.append([current_idx + i for i in range(len(key_examples_list))])
                 mask = self.function(*function_args, **self.fn_kwargs)
                 # yield one example at a time from the batch
-                for batch_idx, (key_example, to_keep) in enumerate(zip(key_examples_list, mask)):
+                for key_example, to_keep in zip(key_examples_list, mask):
                     if to_keep:
                         yield key_example
-                current_idx += batch_idx + 1
+                    current_idx += 1
         else:
             for key, example in iterator:
                 # If not batched, we can apply the filtering function direcly
@@ -1781,7 +1781,7 @@ class IterableDataset(DatasetInfoMixin):
         Args:
             seed (`int`, *optional*, defaults to `None`):
                 Random seed that will be used to shuffle the dataset.
-                It is used to sample from the shuffle buffe and also to shuffle the data shards.
+                It is used to sample from the shuffle buffer and also to shuffle the data shards.
             generator (`numpy.random.Generator`, *optional*):
                 Numpy random Generator to use to compute the permutation of the dataset rows.
                 If `generator=None` (default), uses `np.random.default_rng` (the default BitGenerator (PCG64) of NumPy).

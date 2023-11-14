@@ -18,9 +18,10 @@ Steps to make a release:
      - Test PyPI: https://test.pypi.org/
    - Don't break `transformers`: run the `transformers` CI using the `main` branch and make sure it's green.
      - In `transformers`, use `datasets @ git+https://github.com/huggingface/datasets@main#egg=datasets`
-       in both:
-       - setup.py and
-       - src/transformers/dependency_versions_table.py
+       Add a step to install `datasets@main` after `save_cache` in .circleci/create_circleci_config.py:
+       ```
+       steps.append({"run": {"name": "Install `datasets@main`", "command": 'pip uninstall datasets -y && pip install "datasets @ git+https://github.com/huggingface/datasets@main#egg=datasets"'}})
+       ```
      - and then run the CI
 
 1. Create the release branch from main branch:
@@ -112,6 +113,8 @@ REQUIRED_PKGS = [
     # Backend and serialization.
     # Minimum 8.0.0 to be able to use .to_reader()
     "pyarrow>=8.0.0",
+    # As long as we allow pyarrow < 14.0.1, to fix vulnerability CVE-2023-47248
+    "pyarrow-hotfix",
     # For smart caching dataset processing
     "dill>=0.3.0,<0.3.8",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
     # For performance gains with apache arrow
@@ -126,12 +129,12 @@ REQUIRED_PKGS = [
     "multiprocess",
     # to save datasets locally or on any filesystem
     # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
-    "fsspec[http]>=2023.1.0",
+    "fsspec[http]>=2023.1.0,<=2023.10.0",
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
     # minimum 0.14.0 to support HfFileSystem
-    "huggingface-hub>=0.14.0,<1.0.0",
+    "huggingface_hub>=0.18.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     # To parse YAML metadata from dataset cards
@@ -165,18 +168,21 @@ TESTS_REQUIRE = [
     "apache-beam>=2.26.0,<2.44.0;python_version<'3.10'",  # doesn't support recent dill versions for recent python versions
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch()
     "faiss-cpu>=1.6.4",
+    "jax>=0.3.14; sys_platform != 'win32'",
+    "jaxlib>=0.3.14; sys_platform != 'win32'",
     "lz4",
     "pyspark>=3.4",  # https://issues.apache.org/jira/browse/SPARK-40991 fixed in 3.4.0
     "py7zr",
     "rarfile>=4.0",
     "sqlalchemy<2.0.0",
     "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1; test only on python 3.7 for now
-    "tensorflow>=2.3,!=2.6.0,!=2.6.1,<2.14.0; sys_platform != 'darwin' or platform_machine != 'arm64'",  # Temporary upper pin
+    "tensorflow>=2.3,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
     "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
     "tiktoken",
     "torch",
     "soundfile>=0.12.1",
     "transformers",
+    "typing-extensions>=4.6.1",  # due to conflict between apache-beam and pydantic
     "zstandard",
 ]
 
@@ -233,7 +239,7 @@ EXTRAS_REQUIRE = {
     ],
     "tensorflow_gpu": ["tensorflow-gpu>=2.2.0,!=2.6.0,!=2.6.1"],
     "torch": ["torch"],
-    "jax": ["jax>=0.2.8,!=0.3.2,<=0.3.25", "jaxlib>=0.1.65,<=0.3.25"],
+    "jax": ["jax>=0.3.14", "jaxlib>=0.3.14"],
     "s3": ["s3fs"],
     "streaming": [],  # for backward compatibility
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE + DOCS_REQUIRE,
@@ -246,7 +252,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.14.6.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.14.7.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

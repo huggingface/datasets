@@ -254,7 +254,7 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
 
     if set_tensorflow and config.TF_AVAILABLE:
         import tensorflow as tf
-        from tensorflow.python import context as tfpycontext
+        from tensorflow.python.eager import context as tfpycontext
 
         tf_state = tf.random.get_global_generator()
         temp_gen = tf.random.Generator.from_seed(seed)
@@ -734,6 +734,29 @@ def pklregister(t):
         return func
 
     return proxy
+
+
+if config.DILL_VERSION < version.parse("0.3.6"):
+
+    @pklregister(set)
+    def _save_set(pickler, obj):
+        dill._dill.log.info(f"Se: {obj}")
+        from datasets.fingerprint import Hasher
+
+        args = (sorted(obj, key=Hasher.hash),)
+        pickler.save_reduce(set, args, obj=obj)
+        dill._dill.log.info("# Se")
+
+elif config.DILL_VERSION.release[:3] in [version.parse("0.3.6").release, version.parse("0.3.7").release]:
+
+    @pklregister(set)
+    def _save_set(pickler, obj):
+        dill._dill.logger.trace(pickler, "Se: %s", obj)
+        from datasets.fingerprint import Hasher
+
+        args = (sorted(obj, key=Hasher.hash),)
+        pickler.save_reduce(set, args, obj=obj)
+        dill._dill.logger.trace(pickler, "# Se")
 
 
 if config.DILL_VERSION < version.parse("0.3.6"):

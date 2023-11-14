@@ -57,12 +57,18 @@ You can combine row and column name indexing to return a specific value at a pos
 But it is important to remember that indexing order matters, especially when working with large audio and image datasets. Indexing by the column name returns all the values in the column first, then loads the value at that position. For large datasets, it may be slower to index by the column name first.
 
 ```py
->>> with Timer():
-...    dataset[0]['text']
+>>> import time
+
+>>> start_time = time.time()
+>>> text = dataset[0]["text"]
+>>> end_time = time.time()
+>>> print(f"Elapsed time: {end_time - start_time:.4f} seconds")
 Elapsed time: 0.0031 seconds
 
->>> with Timer():
-...   dataset["text"][0]
+>>> start_time = time.time()
+>>> text = dataset["text"][0]
+>>> end_time = time.time()
+>>> print(f"Elapsed time: {end_time - start_time:.4f} seconds")
 Elapsed time: 0.0094 seconds
 ```
 

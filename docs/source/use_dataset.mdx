@@ -71,7 +71,7 @@ These values are actually the model inputs.
 Use the [`~Dataset.set_format`] function to set the dataset format to be compatible with PyTorch:
 
 ```py
->>> dataset.set_format(type="torch", columns=["input_ids", "token_type_ids", "attention_mask", "labels"])
+>>> dataset.set_format(type="torch", columns=["input_ids", "token_type_ids", "attention_mask", "label"])
 >>> dataset.format['type']
 'torch'
 ```
@@ -85,7 +85,7 @@ Use the [`~Dataset.to_tf_dataset`] function to set the dataset format to be comp
 >>> data_collator = DataCollatorWithPadding(tokenizer=tokenizer, return_tensors="tf")
 >>> tf_dataset = dataset.to_tf_dataset(
 ...     columns=["input_ids", "token_type_ids", "attention_mask"],
-...     label_cols=["labels"],
+...     label_cols=["label"],
 ...     batch_size=2,
 ...     collate_fn=data_collator,
 ...     shuffle=True

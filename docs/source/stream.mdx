@@ -286,7 +286,7 @@ Specify the column to remove with the `remove_columns` argument in [`IterableDat
 ...     return tokenizer(examples['text'], truncation=True, padding='max_length')
 >>> dataset = dataset.map(encode, batched=True, remove_columns=["text", "timestamp", "url"])
 >>> next(iter(dataset))
-{'input_ids': 101, 8466, 1018, 1010, 4029, 2475, 2062, 18558, 3100, 2061, ...,1106, 3739, 102],
+{'input_ids': [101, 8466, 1018, 1010, 4029, 2475, 2062, 18558, 3100, 2061, ...,1106, 3739, 102],
 'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ..., 1, 1]}
 ```
 
