@@ -1891,7 +1891,7 @@ def array_concat(arrays: List[pa.Array]):
 
     def _concat_arrays(arrays):
         array_type = arrays[0].type
-        if isinstance(array_type, pa.PyExtensionType):
+        if isinstance(array_type, pa.ExtensionType):
             return array_type.wrap_array(_concat_arrays([array.storage for array in arrays]))
         elif pa.types.is_struct(array_type):
             return pa.StructArray.from_arrays(
