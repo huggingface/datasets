@@ -113,6 +113,8 @@ REQUIRED_PKGS = [
     # Backend and serialization.
     # Minimum 8.0.0 to be able to use .to_reader()
     "pyarrow>=8.0.0",
+    # As long as we allow pyarrow < 14.0.1, to fix vulnerability CVE-2023-47248
+    "pyarrow-hotfix",
     # For smart caching dataset processing
     "dill>=0.3.0,<0.3.8",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
     # For performance gains with apache arrow
@@ -180,6 +182,7 @@ TESTS_REQUIRE = [
     "torch",
     "soundfile>=0.12.1",
     "transformers",
+    "typing-extensions>=4.6.1",  # due to conflict between apache-beam and pydantic
     "zstandard",
 ]
 
