@@ -19,6 +19,15 @@ def tar_file(tmp_path, image_file, text_file):
     return str(filename)
 
 
+@pytest.fixture
+def bad_tar_file(tmp_path, image_file, text_file):
+    filename = tmp_path / "bad_file.tar"
+    with tarfile.open(str(filename), "w") as f:
+        f.add(image_file)
+        f.add(text_file)
+    return str(filename)
+
+
 @require_pil
 @require_wds
 def test_webdataset(tar_file):
@@ -46,3 +55,11 @@ def test_webdataset(tar_file):
     decoded = webdataset.info.features.decode_example(examples[0])
     assert isinstance(decoded["txt"], str)
     assert isinstance(decoded["jpg"], PIL.Image.Image)
+
+
+@require_wds
+def test_webdataset_errors_on_bad_file(bad_tar_file):
+    data_files = {"train": [bad_tar_file]}
+    webdataset = Webdataset(data_files=data_files)
+    with pytest.raises(ValueError):
+        webdataset._split_generators(DownloadManager())

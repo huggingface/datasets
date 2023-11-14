@@ -1,4 +1,5 @@
 import re
+from itertools import islice
 from typing import List
 
 import numpy as np
@@ -60,12 +61,17 @@ class Webdataset(datasets.GeneratorBasedBuilder):
         pipeline = wds.DataPipeline(
             wds.SimpleShardList(files[:1]), wds.tarfile_to_samples(), wds.decode(post=[self._basic_handlers])
         )
-        example = next(iter(pipeline))
-        inferred_arrow_schema = pa.Table.from_pylist([example]).schema
+        first_examples = list(islice(pipeline, 5))
+        if any(example.keys() != first_examples[0].keys() for example in first_examples):
+            raise ValueError(
+                "The TAR archives of the dataset should be in Webdataset format, "
+                "but the files in the archive don't share the same prefix or the same types."
+            )
+        inferred_arrow_schema = pa.Table.from_pylist(first_examples[:1]).schema
         features = datasets.Features.from_arrow_schema(inferred_arrow_schema)
 
         # Set Image types
-        for key in example:
+        for key in first_examples[0]:
             extension = re.sub(r".*[.]", "", key)
             if extension in self.IMAGE_EXTENSIONS:
                 features[key] = datasets.Image()
