@@ -6,6 +6,7 @@ import pyarrow as pa
 from packaging import version
 
 import datasets
+from datasets import config
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -17,6 +18,9 @@ class Webdataset(datasets.GeneratorBasedBuilder):
     ENABLED_BASIC_HANDLERS: List[str]  # definition at the bottom of the script
 
     def _basic_handlers(self, key, data):
+        if not config.WDS_AVAILABLE:
+            raise ImportError("Please install 'webdataset' to load this dataset.")
+
         from webdataset.autodecode import decoders
 
         extension = re.sub(r".*[.]", "", key)
@@ -29,6 +33,9 @@ class Webdataset(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """We handle string, list and dicts in datafiles"""
+        if not config.WDS_AVAILABLE:
+            raise ImportError("Please install 'webdataset' to load this dataset.")
+
         import webdataset as wds
 
         # Use the extended `open` to read hf:// files
@@ -67,6 +74,9 @@ class Webdataset(datasets.GeneratorBasedBuilder):
         return splits
 
     def _generate_examples(self, files):
+        if not config.WDS_AVAILABLE:
+            raise ImportError("Please install 'webdataset' to load this dataset.")
+
         import webdataset as wds
 
         image_keys = [key for key, feature in self.info.features.items() if isinstance(feature, datasets.Image)]
