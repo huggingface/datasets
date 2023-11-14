@@ -3,7 +3,6 @@ import os
 import pickle
 import subprocess
 from functools import partial
-from hashlib import md5
 from pathlib import Path
 from tempfile import gettempdir
 from textwrap import dedent

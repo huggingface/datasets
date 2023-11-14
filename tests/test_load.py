@@ -4,7 +4,6 @@ import pickle
 import shutil
 import tempfile
 import time
-from hashlib import sha256
 from multiprocessing import Pool
 from pathlib import Path
 from unittest import TestCase
