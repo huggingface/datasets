@@ -656,6 +656,10 @@ class _ArrayXDExtensionType(pa.ExtensionType):
         args = json.loads(serialized)
         return cls(*args)
 
+    # This was added to pa.ExtensionType in pyarrow >= 13.0.0
+    def __reduce__(self):
+        return self.__arrow_ext_deserialize__, (self.storage_type, self.__arrow_ext_serialize__())
+
     def __hash__(self):
         return hash((self.__class__, self.shape, self.value_type))
 
