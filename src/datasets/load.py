@@ -1801,7 +1801,7 @@ def load_dataset_builder(
     if use_auth_token != "deprecated":
         warnings.warn(
             "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
-            f"You can remove this warning by passing 'token={use_auth_token}' instead.",
+            "You can remove this warning by passing 'token=<use_auth_token>' instead.",
             FutureWarning,
         )
         token = use_auth_token
@@ -2088,7 +2088,7 @@ def load_dataset(
     if use_auth_token != "deprecated":
         warnings.warn(
             "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
-            f"You can remove this warning by passing 'token={use_auth_token}' instead.",
+            "You can remove this warning by passing 'token=<use_auth_token>' instead.",
             FutureWarning,
         )
         token = use_auth_token
