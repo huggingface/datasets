@@ -1,7 +1,8 @@
 import tarfile
 
 import pytest
-from datasets import DownloadManager, Features, Value, Image
+
+from datasets import DownloadManager, Features, Image, Value
 from datasets.packaged_modules.webdataset.webdataset import Webdataset
 
 from ..utils import require_pil, require_wds
@@ -22,15 +23,18 @@ def tar_file(tmp_path, image_file, text_file):
 @require_wds
 def test_webdataset(tar_file):
     import PIL.Image
+
     data_files = {"train": [tar_file]}
     webdataset = Webdataset(data_files=data_files)
     split_generators = webdataset._split_generators(DownloadManager())
-    assert webdataset.info.features == Features({
-        "__key__": Value("string"),
-        "__url__": Value("string"),
-        "txt": Value("string"),
-        "jpg": Image(),
-    })
+    assert webdataset.info.features == Features(
+        {
+            "__key__": Value("string"),
+            "__url__": Value("string"),
+            "txt": Value("string"),
+            "jpg": Image(),
+        }
+    )
     assert len(split_generators) == 1
     split_generator = split_generators[0]
     assert split_generator.name == "train"
