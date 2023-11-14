@@ -180,6 +180,7 @@ TESTS_REQUIRE = [
     "torch",
     "soundfile>=0.12.1",
     "transformers",
+    "typing-extensions>=4.6.1",  # due to conflict between apache-beam and pydantic
     "zstandard",
 ]
 
