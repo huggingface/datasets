@@ -65,6 +65,7 @@ from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH, camelcase_to_snakecase
 from .splits import Split, SplitDict, SplitGenerator, SplitInfo
 from .streaming import extend_dataset_builder_for_streaming
 from .utils import logging
+from .utils.deprecation_utils import deprecated
 from .utils.file_utils import cached_path, is_remote_url
 from .utils.filelock import FileLock
 from .utils.info_utils import VerificationMode, get_size_checksum_dict, verify_checksums, verify_splits
@@ -956,6 +957,11 @@ class DatasetBuilder:
                             verification_mode=verification_mode,
                             **prepare_split_kwargs,
                             **download_and_prepare_kwargs,
+                        )
+                    else:
+                        warnings.warn(
+                            "Downloading data from Hf google storage is deprecated and will not be supported in the next major version of datasets.",
+                            FutureWarning,
                         )
                     # Sync info
                     self.info.dataset_size = sum(split.num_bytes for split in self.info.splits.values())
@@ -1967,6 +1973,7 @@ class MissingBeamOptions(ValueError):
     pass
 
 
+@deprecated("Use `GeneratorBasedBuilder` or `ArrowBasedBuilder` instead.")
 class BeamBasedBuilder(DatasetBuilder):
     """Beam-based Builder."""
 
