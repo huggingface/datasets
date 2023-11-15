@@ -224,6 +224,31 @@ For more details, check out the [how to load tabular datasets from SQL databases
 
 </Tip>
 
+### WebDataset
+
+The [Webdataset](https://github.com/webdataset/webdataset) format is based on TAR archives and is suitable for big image datasets.
+Because of their size, Webdatasets are generally loaded in streaming mode (using `streaming=True`).
+
+If you have `webdataset` installed you can load a Webdataset like this:
+
+```python
+>>> from datasets import load_dataset
+>>>
+>>> path = "path/to/train/*.tar"
+>>> dataset = load_dataset("webdataset", data_files={"train": path}, split="train", streaming=True)
+```
+
+To load remote Webdatasets via HTTP, pass the URLs instead:
+
+```python
+>>> from datasets import load_dataset
+>>>
+>>> base_url = "http://storage.googleapis.com/nvdata-openimages/openimages-train-{i:06d}.tar"
+>>> urls = [base_url.format(i=i) for i in range(10)]
+>>> dataset = load_dataset("webdataset", data_files={"train": urls}, split="train", streaming=True)
+```
+
+
 ## Multiprocessing
 
 When a dataset is made of several files (that we call "shards"), it is possible to significantly speed up the dataset downloading and preparation step.
