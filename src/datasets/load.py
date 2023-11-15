@@ -49,7 +49,6 @@ from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadMode
 from .download.streaming_download_manager import StreamingDownloadManager, xbasename, xglob, xjoin
 from .features import Features
-from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict
 from .iterable_dataset import IterableDataset
@@ -2228,25 +2227,15 @@ def load_from_disk(
         )
         storage_options = fs.storage_options
 
-    fs_token_paths = fsspec.get_fs_token_paths(dataset_path, storage_options=storage_options)
-    fs: fsspec.AbstractFileSystem = fs_token_paths[0]
-
-    # gets filesystem from dataset, either s3:// or file:// and adjusted dataset_path
-    if is_remote_filesystem(fs):
-        dest_dataset_path = extract_path_from_uri(dataset_path)
-        path_join = posixpath.join
-    else:
-        fs = fsspec.filesystem("file")
-        dest_dataset_path = Path(dataset_path).expanduser().resolve()
-        path_join = os.path.join
-
-    if not fs.exists(dest_dataset_path):
+    fs: fsspec.AbstractFileSystem
+    fs, _, _ = fsspec.get_fs_token_paths(dataset_path, storage_options=storage_options)
+    if not fs.exists(dataset_path):
         raise FileNotFoundError(f"Directory {dataset_path} not found")
-    if fs.isfile(path_join(dest_dataset_path, config.DATASET_INFO_FILENAME)) and fs.isfile(
-        path_join(dest_dataset_path, config.DATASET_STATE_JSON_FILENAME)
+    if fs.isfile(posixpath.join(dataset_path, config.DATASET_INFO_FILENAME)) and fs.isfile(
+        posixpath.join(dataset_path, config.DATASET_STATE_JSON_FILENAME)
     ):
         return Dataset.load_from_disk(dataset_path, keep_in_memory=keep_in_memory, storage_options=storage_options)
-    elif fs.isfile(path_join(dest_dataset_path, config.DATASETDICT_JSON_FILENAME)):
+    elif fs.isfile(posixpath.join(dataset_path, config.DATASETDICT_JSON_FILENAME)):
         return DatasetDict.load_from_disk(dataset_path, keep_in_memory=keep_in_memory, storage_options=storage_options)
     else:
         raise FileNotFoundError(

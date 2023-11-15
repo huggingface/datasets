@@ -77,7 +77,7 @@ from .features.features import (
     pandas_types_mapper,
     require_decoding,
 )
-from .filesystems import extract_path_from_uri, is_remote_filesystem
+from .filesystems import is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
     format_kwargs_for_fingerprint,
@@ -1441,6 +1441,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
             storage_options = fs.storage_options
 
+        if self.list_indexes():
+            raise ValueError("please remove all the indexes using `dataset.drop_index` before saving a dataset")
+
         if num_shards is None:
             dataset_nbytes = self._estimate_nbytes()
             max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
@@ -1450,25 +1453,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         num_proc = num_proc if num_proc is not None else 1
         num_shards = num_shards if num_shards is not None else num_proc
 
-        fs_token_paths = fsspec.get_fs_token_paths(dataset_path, storage_options=storage_options)
-        fs: fsspec.AbstractFileSystem = fs_token_paths[0]
-        is_local = not is_remote_filesystem(fs)
-        path_join = os.path.join if is_local else posixpath.join
+        fs: fsspec.AbstractFileSystem
+        fs, _, _ = fsspec.get_fs_token_paths(dataset_path, storage_options=storage_options)
 
-        if self.list_indexes():
-            raise ValueError("please remove all the indexes using `dataset.drop_index` before saving a dataset")
-
-        if is_local:
-            save_path = Path(dataset_path).expanduser().resolve()
-            save_path.mkdir(parents=True, exist_ok=True)
+        if not is_remote_filesystem(fs):
             parent_cache_files_paths = {
                 Path(cache_filename["filename"]).resolve().parent for cache_filename in self.cache_files
             }
             # Check that the dataset doesn't overwrite iself. It can cause a permission error on Windows and a segfault on linux.
-            if save_path in parent_cache_files_paths:
-                raise PermissionError(f"Tried to overwrite {save_path} but a dataset can't overwrite itself.")
-        else:
-            fs.makedirs(dataset_path, exist_ok=True)
+            if Path(dataset_path).expanduser().resolve() in parent_cache_files_paths:
+                raise PermissionError(
+                    f"Tried to overwrite {Path(dataset_path).expanduser().resolve()} but a dataset can't overwrite itself."
+                )
+
+        fs.makedirs(dataset_path, exist_ok=True)
 
         # Get json serializable state
         state = {
@@ -1506,7 +1504,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             {
                 "job_id": shard_idx,
                 "shard": self.shard(num_shards=num_shards, index=shard_idx, contiguous=True),
-                "fpath": path_join(dataset_path, f"data-{shard_idx:05d}-of-{num_shards:05d}.arrow"),
+                "fpath": posixpath.join(dataset_path, f"data-{shard_idx:05d}-of-{num_shards:05d}.arrow"),
                 "storage_options": storage_options,
             }
             for shard_idx in range(num_shards)
@@ -1537,10 +1535,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             shard_lengths[job_id], shard_sizes[job_id] = content
                         else:
                             pbar.update(content)
-        with fs.open(path_join(dataset_path, config.DATASET_STATE_JSON_FILENAME), "w", encoding="utf-8") as state_file:
+        with fs.open(
+            posixpath.join(dataset_path, config.DATASET_STATE_JSON_FILENAME), "w", encoding="utf-8"
+        ) as state_file:
             json.dump(state, state_file, indent=2, sort_keys=True)
         with fs.open(
-            path_join(dataset_path, config.DATASET_INFO_FILENAME), "w", encoding="utf-8"
+            posixpath.join(dataset_path, config.DATASET_INFO_FILENAME), "w", encoding="utf-8"
         ) as dataset_info_file:
             # Sort only the first level of keys, or we might shuffle fields of nested features if we use sort_keys=True
             sorted_keys_dataset_info = {key: dataset_info[key] for key in sorted(dataset_info)}
@@ -1644,20 +1644,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
             storage_options = fs.storage_options
 
-        fs_token_paths = fsspec.get_fs_token_paths(dataset_path, storage_options=storage_options)
-        fs: fsspec.AbstractFileSystem = fs_token_paths[0]
+        fs: fsspec.AbstractFileSystem
+        fs, _, [dataset_path] = fsspec.get_fs_token_paths(dataset_path, storage_options=storage_options)
 
-        if is_remote_filesystem(fs):
-            dest_dataset_path = extract_path_from_uri(dataset_path)
-            path_join = posixpath.join
-        else:
-            fs = fsspec.filesystem("file")
-            dest_dataset_path = Path(dataset_path).expanduser().resolve()
-            path_join = os.path.join
-
-        dataset_dict_json_path = path_join(dest_dataset_path, config.DATASETDICT_JSON_FILENAME)
-        dataset_state_json_path = path_join(dest_dataset_path, config.DATASET_STATE_JSON_FILENAME)
-        dataset_info_path = path_join(dest_dataset_path, config.DATASET_INFO_FILENAME)
+        dest_dataset_path = dataset_path
+        dataset_dict_json_path = posixpath.join(dest_dataset_path, config.DATASETDICT_JSON_FILENAME)
+        dataset_state_json_path = posixpath.join(dest_dataset_path, config.DATASET_STATE_JSON_FILENAME)
+        dataset_info_path = posixpath.join(dest_dataset_path, config.DATASET_INFO_FILENAME)
 
         dataset_dict_is_file = fs.isfile(dataset_dict_json_path)
         dataset_info_is_file = fs.isfile(dataset_info_path)
@@ -1692,8 +1685,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             src_dataset_path = dest_dataset_path
             dest_dataset_path = Dataset._build_local_temp_path(src_dataset_path)
             fs.download(src_dataset_path, dest_dataset_path.as_posix(), recursive=True)
-            dataset_state_json_path = path_join(dest_dataset_path, config.DATASET_STATE_JSON_FILENAME)
-            dataset_info_path = path_join(dest_dataset_path, config.DATASET_INFO_FILENAME)
+            dataset_state_json_path = posixpath.join(dest_dataset_path, config.DATASET_STATE_JSON_FILENAME)
+            dataset_info_path = posixpath.join(dest_dataset_path, config.DATASET_INFO_FILENAME)
 
         with open(dataset_state_json_path, encoding="utf-8") as state_file:
             state = json.load(state_file)
@@ -1706,7 +1699,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         keep_in_memory = keep_in_memory if keep_in_memory is not None else is_small_dataset(dataset_size)
         table_cls = InMemoryTable if keep_in_memory else MemoryMappedTable
         arrow_table = concat_tables(
-            table_cls.from_file(path_join(dest_dataset_path, data_file["filename"]))
+            table_cls.from_file(posixpath.join(dest_dataset_path, data_file["filename"]))
             for data_file in state["_data_files"]
         )
 
