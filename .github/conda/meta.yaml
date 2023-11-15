@@ -32,6 +32,7 @@ requirements:
     - pip
     - numpy >=1.17
     - pyarrow >=8.0.0
+    - pyarrow-hotfix
     - python-xxhash
     - dill
     - pandas
