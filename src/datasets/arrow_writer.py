@@ -673,9 +673,10 @@ class BeamWriter:
         from .utils import beam_utils
 
         # Beam FileSystems require the system's path separator in the older versions
-        shards_metadata = list(
-            beam.io.filesystems.FileSystems.match([str(Path(self._parquet_path)) + "*.parquet"])[0].metadata_list
-        )
+        fs, _, [parquet_path] = fsspec.get_fs_token_paths(self._parquet_path)
+        parquet_path = str(Path(parquet_path)) if not is_remote_filesystem(fs) else fs.unstrip_protocol(parquet_path)
+
+        shards_metadata = list(beam.io.filesystems.FileSystems.match([parquet_path + "*.parquet"])[0].metadata_list)
         shards = [metadata.path for metadata in shards_metadata]
         num_bytes = sum([metadata.size_in_bytes for metadata in shards_metadata])
         shard_lengths = get_parquet_lengths(shards)
@@ -685,9 +686,7 @@ class BeamWriter:
             logger.info(f"Converting parquet files {self._parquet_path} to arrow {self._path}")
             shards = [
                 metadata.path
-                for metadata in beam.io.filesystems.FileSystems.match([str(Path(self._parquet_path)) + "*.parquet"])[
-                    0
-                ].metadata_list
+                for metadata in beam.io.filesystems.FileSystems.match([parquet_path + "*.parquet"])[0].metadata_list
             ]
             try:  # stream conversion
                 disable = not logging.is_progress_bar_enabled()
