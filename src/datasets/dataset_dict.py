@@ -3,7 +3,6 @@ import copy
 import fnmatch
 import json
 import math
-import os
 import posixpath
 import re
 import warnings
@@ -25,7 +24,6 @@ from . import config
 from .arrow_dataset import PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED, Dataset
 from .features import Features
 from .features.features import FeatureType
-from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .info import DatasetInfo, DatasetInfosDict
 from .naming import _split_re
 from .splits import NamedSplit, Split, SplitDict, SplitInfo
@@ -1260,10 +1258,8 @@ class DatasetDict(dict):
             )
             storage_options = fs.storage_options
 
-        fs_token_paths = fsspec.get_fs_token_paths(dataset_dict_path, storage_options=storage_options)
-        fs: fsspec.AbstractFileSystem = fs_token_paths[0]
-        is_local = not is_remote_filesystem(fs)
-        path_join = os.path.join if is_local else posixpath.join
+        fs: fsspec.AbstractFileSystem
+        fs, _, _ = fsspec.get_fs_token_paths(dataset_dict_path, storage_options=storage_options)
 
         if num_shards is None:
             num_shards = {k: None for k in self}
@@ -1272,16 +1268,13 @@ class DatasetDict(dict):
                 "Please provide one `num_shards` per dataset in the dataset dictionary, e.g. {{'train': 128, 'test': 4}}"
             )
 
-        if is_local:
-            Path(dataset_dict_path).expanduser().resolve().mkdir(parents=True, exist_ok=True)
-        else:
-            fs.makedirs(dataset_dict_path, exist_ok=True)
+        fs.makedirs(dataset_dict_path, exist_ok=True)
 
-        with fs.open(path_join(dataset_dict_path, config.DATASETDICT_JSON_FILENAME), "w", encoding="utf-8") as f:
+        with fs.open(posixpath.join(dataset_dict_path, config.DATASETDICT_JSON_FILENAME), "w", encoding="utf-8") as f:
             json.dump({"splits": list(self)}, f)
         for k, dataset in self.items():
             dataset.save_to_disk(
-                path_join(dataset_dict_path, k),
+                posixpath.join(dataset_dict_path, k),
                 num_shards=num_shards.get(k),
                 max_shard_size=max_shard_size,
                 num_proc=num_proc,
@@ -1339,20 +1332,12 @@ class DatasetDict(dict):
             )
             storage_options = fs.storage_options
 
-        fs_token_paths = fsspec.get_fs_token_paths(dataset_dict_path, storage_options=storage_options)
-        fs: fsspec.AbstractFileSystem = fs_token_paths[0]
+        fs: fsspec.AbstractFileSystem
+        fs, _, [dataset_dict_path] = fsspec.get_fs_token_paths(dataset_dict_path, storage_options=storage_options)
 
-        if is_remote_filesystem(fs):
-            dest_dataset_dict_path = extract_path_from_uri(dataset_dict_path)
-            path_join = posixpath.join
-        else:
-            fs = fsspec.filesystem("file")
-            dest_dataset_dict_path = Path(dataset_dict_path).expanduser().resolve()
-            path_join = os.path.join
-
-        dataset_dict_json_path = path_join(dest_dataset_dict_path, config.DATASETDICT_JSON_FILENAME)
-        dataset_state_json_path = path_join(dest_dataset_dict_path, config.DATASET_STATE_JSON_FILENAME)
-        dataset_info_path = path_join(dest_dataset_dict_path, config.DATASET_INFO_FILENAME)
+        dataset_dict_json_path = posixpath.join(dataset_dict_path, config.DATASETDICT_JSON_FILENAME)
+        dataset_state_json_path = posixpath.join(dataset_dict_path, config.DATASET_STATE_JSON_FILENAME)
+        dataset_info_path = posixpath.join(dataset_dict_path, config.DATASET_INFO_FILENAME)
         if not fs.isfile(dataset_dict_json_path):
             if fs.isfile(dataset_info_path) and fs.isfile(dataset_state_json_path):
                 raise FileNotFoundError(
@@ -1367,11 +1352,7 @@ class DatasetDict(dict):
 
         dataset_dict = DatasetDict()
         for k in splits:
-            dataset_dict_split_path = (
-                dataset_dict_path.split("://")[0] + "://" + path_join(dest_dataset_dict_path, k)
-                if is_remote_filesystem(fs)
-                else path_join(dest_dataset_dict_path, k)
-            )
+            dataset_dict_split_path = posixpath.join(fs.unstrip_protocol(dataset_dict_path), k)
             dataset_dict[k] = Dataset.load_from_disk(
                 dataset_dict_split_path, keep_in_memory=keep_in_memory, storage_options=storage_options
             )

@@ -397,9 +397,8 @@ class DatasetBuilder:
         self._cache_dir_root = (
             self._cache_dir_root if is_remote_url(self._cache_dir_root) else os.path.expanduser(self._cache_dir_root)
         )
-        path_join = posixpath.join if is_remote_url(self._cache_dir_root) else os.path.join
         self._cache_downloaded_dir = (
-            path_join(self._cache_dir_root, config.DOWNLOADED_DATASETS_DIR)
+            posixpath.join(self._cache_dir_root, config.DOWNLOADED_DATASETS_DIR)
             if cache_dir
             else str(config.DOWNLOADED_DATASETS_PATH)
         )
@@ -411,11 +410,13 @@ class DatasetBuilder:
         self._cache_dir = self._build_cache_dir()
         if not is_remote_url(self._cache_dir_root):
             os.makedirs(self._cache_dir_root, exist_ok=True)
-            lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
+            lock_path = os.path.join(
+                self._cache_dir_root, Path(self._cache_dir).as_posix().replace("/", "_") + ".lock"
+            )
             with FileLock(lock_path):
                 if os.path.exists(self._cache_dir):  # check if data exist
                     if len(os.listdir(self._cache_dir)) > 0:
-                        if os.path.exists(path_join(self._cache_dir, config.DATASET_INFO_FILENAME)):
+                        if os.path.exists(os.path.join(self._cache_dir, config.DATASET_INFO_FILENAME)):
                             logger.info("Overwrite dataset info from restored data version if exists.")
                             self.info = DatasetInfo.from_directory(self._cache_dir)
                     else:  # dir exists but no data, remove the empty dir as data aren't available anymore
@@ -600,7 +601,7 @@ class DatasetBuilder:
     def cache_dir(self):
         return self._cache_dir
 
-    def _relative_data_dir(self, with_version=True, with_hash=True, is_local=True) -> str:
+    def _relative_data_dir(self, with_version=True, with_hash=True) -> str:
         """Relative path of this dataset in cache_dir:
         Will be:
             self.dataset_name/self.config.version/self.hash/
@@ -620,26 +621,19 @@ class DatasetBuilder:
             config_name = self.config.name
             config_id = self.config_id
 
-        path_join = os.path.join if is_local else posixpath.join
         namespace = self.repo_id.split("/")[0] if self.repo_id and self.repo_id.count("/") > 0 else None
         builder_data_dir = dataset_name if namespace is None else f"{namespace}___{dataset_name}"
-        builder_data_dir = path_join(builder_data_dir, config_id)
+        builder_data_dir = posixpath.join(builder_data_dir, config_id)
         if with_version:
-            builder_data_dir = path_join(builder_data_dir, str(self.config.version))
+            builder_data_dir = posixpath.join(builder_data_dir, str(self.config.version))
         if with_hash and self.hash and isinstance(self.hash, str):
-            builder_data_dir = path_join(builder_data_dir, self.hash)
+            builder_data_dir = posixpath.join(builder_data_dir, self.hash)
         return builder_data_dir
 
     def _build_cache_dir(self):
         """Return the data directory for the current version."""
-        is_local = not is_remote_url(self._cache_dir_root)
-        path_join = os.path.join if is_local else posixpath.join
-        builder_data_dir = path_join(
-            self._cache_dir_root, self._relative_data_dir(with_version=False, is_local=is_local)
-        )
-        version_data_dir = path_join(
-            self._cache_dir_root, self._relative_data_dir(with_version=True, is_local=is_local)
-        )
+        builder_data_dir = posixpath.join(self._cache_dir_root, self._relative_data_dir(with_version=False))
+        version_data_dir = posixpath.join(self._cache_dir_root, self._relative_data_dir(with_version=True))
 
         def _other_versions_on_disk():
             """Returns previous versions on disk."""
@@ -816,10 +810,9 @@ class DatasetBuilder:
 
         output_dir = output_dir if output_dir is not None else self._cache_dir
         # output_dir can be a remote bucket on GCS or S3 (when using BeamBasedBuilder for distributed data processing)
-        fs_token_paths = fsspec.get_fs_token_paths(output_dir, storage_options=storage_options)
-        self._fs: fsspec.AbstractFileSystem = fs_token_paths[0]
-        is_local = not is_remote_filesystem(self._fs)
-        self._output_dir = fs_token_paths[2][0] if is_local else self._fs.unstrip_protocol(fs_token_paths[2][0])
+        fs, _, [output_dir] = fsspec.get_fs_token_paths(output_dir, storage_options=storage_options)
+        self._fs = fs
+        self._output_dir = output_dir if not is_remote_filesystem(self._fs) else self._fs.unstrip_protocol(output_dir)
 
         download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
         verification_mode = VerificationMode(verification_mode or VerificationMode.BASIC_CHECKS)
@@ -858,6 +851,8 @@ class DatasetBuilder:
                 record_checksums=(self._record_infos or verification_mode == VerificationMode.ALL_CHECKS),
             )
 
+        is_local = not is_remote_filesystem(self._fs)
+
         if (
             isinstance(dl_manager, MockDownloadManager)
             or not is_local
@@ -876,8 +871,7 @@ class DatasetBuilder:
         # File locking only with local paths; no file locking on GCS or S3
         with FileLock(lock_path) if is_local else contextlib.nullcontext():
             # Check if the data already exists
-            path_join = os.path.join if is_local else posixpath.join
-            data_exists = self._fs.exists(path_join(self._output_dir, config.DATASET_INFO_FILENAME))
+            data_exists = self._fs.exists(posixpath.join(self._output_dir, config.DATASET_INFO_FILENAME))
             if data_exists and download_mode == DownloadMode.REUSE_DATASET_IF_EXISTS:
                 logger.info(f"Found cached dataset {self.dataset_name} ({self._output_dir})")
                 # We need to update the info in case some splits were added in the meantime
@@ -1090,17 +1084,21 @@ class DatasetBuilder:
         return DatasetInfo.from_directory(self._output_dir, storage_options=self._fs.storage_options)
 
     def _save_info(self):
-        is_local = not is_remote_filesystem(self._fs)
-        if is_local:
-            lock_path = self._output_dir + "_info.lock"
-        with FileLock(lock_path) if is_local else contextlib.nullcontext():
+        file_lock = (
+            FileLock(self._output_dir + "_info.lock")
+            if not is_remote_filesystem(self._fs)
+            else contextlib.nullcontext()
+        )
+        with file_lock:
             self.info.write_to_directory(self._output_dir, storage_options=self._fs.storage_options)
 
     def _save_infos(self):
-        is_local = not is_remote_filesystem(self._fs)
-        if is_local:
-            lock_path = self._output_dir + "_infos.lock"
-        with FileLock(lock_path) if is_local else contextlib.nullcontext():
+        file_lock = (
+            FileLock(self._output_dir + "_infos.lock")
+            if not is_remote_filesystem(self._fs)
+            else contextlib.nullcontext()
+        )
+        with file_lock:
             DatasetInfosDict(**{self.config.name: self.info}).write_to_directory(self.get_imported_module_dir())
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
@@ -1168,8 +1166,7 @@ class DatasetBuilder:
             )
         if self._file_format is not None and self._file_format != "arrow":
             raise FileFormatError('Loading a dataset not written in the "arrow" format is not supported.')
-        is_local = not is_remote_filesystem(self._fs)
-        if not is_local:
+        if is_remote_filesystem(self._fs):
             raise NotImplementedError(f"Loading a dataset cached in a {type(self._fs).__name__} is not supported.")
         if not os.path.exists(self._output_dir):
             raise FileNotFoundError(
@@ -1303,7 +1300,7 @@ class DatasetBuilder:
     def _get_dataset_fingerprint(self, split: Union[ReadInstruction, Split]) -> str:
         """The dataset fingerprint is the hash of the relative directory dataset_name/config_name/version/hash, as well as the split specs."""
         hasher = Hasher()
-        hasher.update(self._relative_data_dir().replace(os.sep, "/"))
+        hasher.update(Path(self._relative_data_dir()).as_posix())
         hasher.update(str(split))  # for example: train, train+test, train[:10%], test[:33%](pct1_dropremainder)
         fingerprint = hasher.hexdigest()
         return fingerprint
@@ -1313,8 +1310,7 @@ class DatasetBuilder:
         split: Optional[str] = None,
         base_path: Optional[str] = None,
     ) -> Union[Dict[str, IterableDataset], IterableDataset]:
-        is_local = not is_remote_filesystem(self._fs)
-        if not is_local:
+        if is_remote_filesystem(self._fs):
             raise NotImplementedError(
                 f"Loading a streaming dataset cached in a {type(self._fs).__name__} is not supported yet."
             )
@@ -1507,8 +1503,6 @@ class GeneratorBasedBuilder(DatasetBuilder):
         max_shard_size: Optional[Union[int, str]] = None,
     ):
         max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
-        is_local = not is_remote_filesystem(self._fs)
-        path_join = os.path.join if is_local else posixpath.join
 
         if self.info.splits is not None:
             split_info = self.info.splits[split_generator.name]
@@ -1517,7 +1511,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
         SUFFIX = "-JJJJJ-SSSSS-of-NNNNN"
         fname = f"{self.dataset_name}-{split_generator.name}{SUFFIX}.{file_format}"
-        fpath = path_join(self._output_dir, fname)
+        fpath = posixpath.join(self._output_dir, fname)
 
         if num_proc and num_proc > 1:
             num_input_shards = _number_of_shards_in_gen_kwargs(split_generator.gen_kwargs)
@@ -1767,8 +1761,6 @@ class ArrowBasedBuilder(DatasetBuilder):
         max_shard_size: Optional[Union[str, int]] = None,
     ):
         max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
-        is_local = not is_remote_filesystem(self._fs)
-        path_join = os.path.join if is_local else posixpath.join
 
         try:
             split_info = self.info.splits[split_generator.name]
@@ -1777,7 +1769,7 @@ class ArrowBasedBuilder(DatasetBuilder):
 
         SUFFIX = "-JJJJJ-SSSSS-of-NNNNN"
         fname = f"{self.dataset_name}-{split_generator.name}{SUFFIX}.{file_format}"
-        fpath = path_join(self._output_dir, fname)
+        fpath = posixpath.join(self._output_dir, fname)
 
         if num_proc and num_proc > 1:
             num_input_shards = _number_of_shards_in_gen_kwargs(split_generator.gen_kwargs)
@@ -2093,9 +2085,8 @@ class BeamBasedBuilder(DatasetBuilder):
                 file_format = prepare_splits_kwargs.get("file_format", "arrow")
                 src_fname = f"{self.dataset_name}-{split_name}-00000-of-00001.{file_format}"
                 dst_fname = f"{self.dataset_name}-{split_name}.{file_format}"
-                path_join = os.path.join if not is_remote_filesystem(self._fs) else posixpath.join
-                src_fpath = path_join(self._output_dir, src_fname)
-                dst_fpath = path_join(self._output_dir, dst_fname)
+                src_fpath = posixpath.join(self._output_dir, src_fname)
+                dst_fpath = posixpath.join(self._output_dir, dst_fname)
                 self._rename(src_fpath, dst_fpath)
 
     def _save_info(self):
@@ -2124,8 +2115,7 @@ class BeamBasedBuilder(DatasetBuilder):
         # To write examples in filesystem:
         split_name = split_generator.split_info.name
         fname = f"{self.dataset_name}-{split_name}.{file_format}"
-        path_join = os.path.join if not is_remote_filesystem(self._fs) else posixpath.join
-        fpath = path_join(self._output_dir, fname)
+        fpath = posixpath.join(self._output_dir, fname)
         beam_writer = BeamWriter(
             features=self.info.features, path=fpath, namespace=split_name, cache_dir=self._output_dir
         )
@@ -2211,4 +2201,4 @@ class BeamBasedBuilder(DatasetBuilder):
     @property
     def _remote_cache_dir_from_hf_gcs(self):
         relative_data_dir = self._relative_data_dir(with_hash=False)
-        return HF_GCP_BASE_URL + "/" + relative_data_dir.replace(os.sep, "/")
+        return HF_GCP_BASE_URL + "/" + Path(relative_data_dir).as_posix()

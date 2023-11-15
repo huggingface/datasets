@@ -18,6 +18,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 from absl.testing import parameterized
+from fsspec.core import strip_protocol
 from packaging import version
 
 import datasets.arrow_dataset
@@ -36,7 +37,6 @@ from datasets.features import (
     TranslationVariableLanguages,
     Value,
 )
-from datasets.filesystems import extract_path_from_uri
 from datasets.info import DatasetInfo
 from datasets.iterable_dataset import IterableDataset
 from datasets.splits import NamedSplit
@@ -3984,17 +3984,18 @@ def test_dummy_dataset_serialize_fs(dataset, mockfs):
     ],
 )
 def test_build_local_temp_path(uri_or_path):
-    extracted_path = extract_path_from_uri(uri_or_path)
-    local_temp_path = Dataset._build_local_temp_path(extracted_path)
-    path_relative_to_tmp_dir = local_temp_path.as_posix().split("tmp")[-1].split("/", 1)[1]
+    extracted_path = strip_protocol(uri_or_path)
+    local_temp_path = Dataset._build_local_temp_path(extracted_path).as_posix()
+    extracted_path_without_anchor = Path(extracted_path).relative_to(Path(extracted_path).anchor).as_posix()
+    path_relative_to_tmp_dir = local_temp_path.split("tmp")[-1].split("/", 1)[1]
 
     assert (
-        "tmp" in local_temp_path.as_posix()
+        "tmp" in local_temp_path
         and "hdfs" not in path_relative_to_tmp_dir
         and "s3" not in path_relative_to_tmp_dir
-        and not local_temp_path.as_posix().startswith(extracted_path)
-        and local_temp_path.as_posix().endswith(extracted_path)
-    ), f"Local temp path: {local_temp_path.as_posix()}"
+        and not local_temp_path.startswith(extracted_path_without_anchor)
+        and local_temp_path.endswith(extracted_path_without_anchor)
+    ), f"Local temp path: {local_temp_path}"
 
 
 class TaskTemplatesTest(TestCase):
