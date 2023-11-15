@@ -86,7 +86,6 @@ from .fingerprint import (
     generate_random_fingerprint,
     get_temporary_cache_files_directory,
     is_caching_enabled,
-    maybe_register_dataset_for_temp_dir_deletion,
     update_fingerprint,
     validate_fingerprint,
 )
@@ -671,7 +670,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         self._data: Table = _check_table(arrow_table)
         self._indices: Optional[Table] = _check_table(indices_table) if indices_table is not None else None
-        maybe_register_dataset_for_temp_dir_deletion(self)
 
         self._format_type: Optional[str] = None
         self._format_kwargs: dict = {}

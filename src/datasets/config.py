@@ -209,6 +209,9 @@ METADATA_CONFIGS_FIELD = "configs"
 
 MODULE_NAME_FOR_DYNAMIC_MODULES = "datasets_modules"
 
+# Temporary cache directory prefix
+TEMP_CACHE_DIR_PREFIX = "hf_datasets-"
+
 MAX_DATASET_CONFIG_ID_READABLE_LENGTH = 255
 
 # Streaming
