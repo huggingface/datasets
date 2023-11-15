@@ -50,6 +50,8 @@
       title: Metrics
     - local: beam
       title: Beam Datasets
+    - local: troubleshoot
+      title: Troubleshooting
     title: "General usage"
   - sections:
     - local: audio_load
