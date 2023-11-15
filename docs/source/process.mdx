@@ -356,13 +356,12 @@ The [`~Dataset.map`] also works with the rank of the process if you set `with_ra
 >>> import os
 >>>
 >>> for i in range(torch.cuda.device_count()):  # send model to every GPU
-...     model.to(torch.cuda.device(i))
+...     model.to(f"cuda:{i}")
 >>>
 >>> def gpu_computation(example, rank):
-...     device = torch.cuda.device(rank % torch.cuda.device_count())
-...     torch.cuda.set_device(device)  # use one GPU
+...     torch.cuda.set_device(f"cuda:{rank}")  # use one GPU
 ...     # Your big GPU call goes here, for example
-...     inputs = tokenizer(texts, padding=True, truncation=True, return_tensors="pt").to(device)
+...     inputs = tokenizer(texts, truncation=True, return_tensors="pt").to(f"cuda:{rank}")
 ...     outputs = model.generate(**inputs)
 ...     example["generated_text"] = tokenizer.batch_decode(translated_tokens, skip_special_tokens=True)
 ...     return example
