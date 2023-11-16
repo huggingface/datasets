@@ -21,6 +21,7 @@ import json
 import os
 import posixpath
 import shutil
+import signal
 import time
 import warnings
 from collections import Counter
@@ -86,6 +87,45 @@ from .utils.version import Version
 logger = get_logger(__name__)
 
 ALL_ALLOWED_EXTENSIONS = list(_EXTENSION_TO_MODULE.keys()) + [".zip"]
+
+
+def _raise_timeout_error(signum, frame):
+    raise ValueError(
+        "Loading this dataset requires you to execute custom code contained in the dataset repository on your local "
+        "machine. Please set the option `trust_remote_code=True` to permit loading of this dataset."
+    )
+
+
+def resolve_trust_remote_code(trust_remote_code: Optional[bool], repo_id: str) -> bool:
+    trust_remote_code = trust_remote_code if trust_remote_code is not None else config.TRUST_REMOTE_CODE
+    if trust_remote_code is None:
+        if config.TIME_OUT_REMOTE_CODE > 0:
+            try:
+                signal.signal(signal.SIGALRM, _raise_timeout_error)
+                signal.alarm(config.TIME_OUT_REMOTE_CODE)
+                while trust_remote_code is None:
+                    answer = input(
+                        f"The repository for {repo_id} contains custom code which must be executed to correctly "
+                        f"load the dataset. You can inspect the repository content at https://hf.co/datasets/{repo_id}.\n"
+                        f"You can avoid this prompt in future by passing the argument `trust_remote_code=True`.\n\n"
+                        f"Do you wish to run the custom code? [y/N] "
+                    )
+                    if answer.lower() in ["yes", "y", "1"]:
+                        trust_remote_code = True
+                    elif answer.lower() in ["no", "n", "0", ""]:
+                        trust_remote_code = False
+                signal.alarm(0)
+            except Exception:
+                # OS which does not support signal.SIGALRM
+                raise ValueError(
+                    f"The repository for {repo_id} contains custom code which must be executed to correctly "
+                    f"load the dataset. You can inspect the repository content at https://hf.co/datasets/{repo_id}.\n"
+                    f"Please pass the argument `trust_remote_code=True` to allow custom code to be run."
+                )
+        else:
+            # For the CI which might put the timeout at 0
+            _raise_timeout_error(None, None)
+    return trust_remote_code
 
 
 def init_dynamic_modules(
@@ -384,33 +424,57 @@ def _copy_script_and_other_resources_in_importable_dir(
         return importable_local_file
 
 
+def _get_importable_file_path(
+    dynamic_modules_path: str,
+    module_namespace: str,
+    subdirectory_name: str,
+    name: str,
+) -> str:
+    importable_directory_path = os.path.join(dynamic_modules_path, module_namespace, name.replace("/", "--"))
+    return os.path.join(importable_directory_path, subdirectory_name, name + ".py")
+
+
 def _create_importable_file(
     local_path: str,
     local_imports: List[Tuple[str, str]],
     additional_files: List[Tuple[str, str]],
     dynamic_modules_path: str,
     module_namespace: str,
+    subdirectory_name: str,
     name: str,
     download_mode: DownloadMode,
-) -> Tuple[str, str]:
+) -> None:
     importable_directory_path = os.path.join(dynamic_modules_path, module_namespace, name.replace("/", "--"))
     Path(importable_directory_path).mkdir(parents=True, exist_ok=True)
     (Path(importable_directory_path).parent / "__init__.py").touch(exist_ok=True)
-    hash = files_to_hash([local_path] + [loc[1] for loc in local_imports])
     importable_local_file = _copy_script_and_other_resources_in_importable_dir(
         name=name.split("/")[-1],
         importable_directory_path=importable_directory_path,
-        subdirectory_name=hash,
+        subdirectory_name=subdirectory_name,
         original_local_path=local_path,
         local_imports=local_imports,
         additional_files=additional_files,
         download_mode=download_mode,
     )
     logger.debug(f"Created importable dataset file at {importable_local_file}")
+
+
+def _load_importable_file(
+    dynamic_modules_path: str,
+    module_namespace: str,
+    subdirectory_name: str,
+    name: str,
+) -> Tuple[str, str]:
     module_path = ".".join(
-        [os.path.basename(dynamic_modules_path), module_namespace, name.replace("/", "--"), hash, name.split("/")[-1]]
+        [
+            os.path.basename(dynamic_modules_path),
+            module_namespace,
+            name.replace("/", "--"),
+            subdirectory_name,
+            name.split("/")[-1],
+        ]
     )
-    return module_path, hash
+    return module_path, subdirectory_name
 
 
 def infer_module_for_data_files_list(
@@ -667,6 +731,7 @@ class GithubMetricModuleFactory(_MetricModuleFactory):
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[Union[DownloadMode, str]] = None,
         dynamic_modules_path: Optional[str] = None,
+        trust_remote_code: Optional[str] = None,
     ):
         self.name = name
         self.revision = revision
@@ -675,6 +740,7 @@ class GithubMetricModuleFactory(_MetricModuleFactory):
             self.download_config.max_retries = 3
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
+        self.trust_remote_code = trust_remote_code
         assert self.name.count("/") == 0
         increase_load_count(name, resource_type="metric")
 
@@ -710,14 +776,37 @@ class GithubMetricModuleFactory(_MetricModuleFactory):
         )
         # copy the script and the files in an importable directory
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
-        module_path, hash = _create_importable_file(
-            local_path=local_path,
-            local_imports=local_imports,
-            additional_files=[],
+        hash = files_to_hash([local_path] + [loc[1] for loc in local_imports])
+        importable_file_path = _get_importable_file_path(
             dynamic_modules_path=dynamic_modules_path,
             module_namespace="metrics",
+            subdirectory_name=hash,
             name=self.name,
-            download_mode=self.download_mode,
+        )
+        if not os.path.exists(importable_file_path):
+            trust_remote_code = resolve_trust_remote_code(self.trust_remote_code, self.name)
+            if trust_remote_code:
+                _create_importable_file(
+                    local_path=local_path,
+                    local_imports=local_imports,
+                    additional_files=[],
+                    dynamic_modules_path=dynamic_modules_path,
+                    module_namespace="metrics",
+                    subdirectory_name=hash,
+                    name=self.name,
+                    download_mode=self.download_mode,
+                )
+            else:
+                raise ValueError(
+                    f"Loading {self.name} requires you to execute the dataset script in that"
+                    " repo on your local machine. Make sure you have read the code there to avoid malicious use, then"
+                    " set the option `trust_remote_code=True` to remove this error."
+                )
+        module_path, hash = _load_importable_file(
+            dynamic_modules_path=dynamic_modules_path,
+            module_namespace="metrics",
+            subdirectory_name=hash,
+            name=self.name,
         )
         # make the new module to be noticed by the import system
         importlib.invalidate_caches()
@@ -741,12 +830,14 @@ class LocalMetricModuleFactory(_MetricModuleFactory):
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[Union[DownloadMode, str]] = None,
         dynamic_modules_path: Optional[str] = None,
+        trust_remote_code: Optional[str] = None,
     ):
         self.path = path
         self.name = Path(path).stem
         self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
+        self.trust_remote_code = trust_remote_code
 
     def get_module(self) -> MetricModule:
         # get script and other files
@@ -759,14 +850,37 @@ class LocalMetricModuleFactory(_MetricModuleFactory):
         )
         # copy the script and the files in an importable directory
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
-        module_path, hash = _create_importable_file(
-            local_path=self.path,
-            local_imports=local_imports,
-            additional_files=[],
+        hash = files_to_hash([self.path] + [loc[1] for loc in local_imports])
+        importable_file_path = _get_importable_file_path(
             dynamic_modules_path=dynamic_modules_path,
             module_namespace="metrics",
+            subdirectory_name=hash,
             name=self.name,
-            download_mode=self.download_mode,
+        )
+        if not os.path.exists(importable_file_path):
+            trust_remote_code = resolve_trust_remote_code(self.trust_remote_code, self.name)
+            if trust_remote_code:
+                _create_importable_file(
+                    local_path=self.path,
+                    local_imports=local_imports,
+                    additional_files=[],
+                    dynamic_modules_path=dynamic_modules_path,
+                    module_namespace="metrics",
+                    subdirectory_name=hash,
+                    name=self.name,
+                    download_mode=self.download_mode,
+                )
+            else:
+                raise ValueError(
+                    f"Loading {self.name} requires you to execute the dataset script in that"
+                    " repo on your local machine. Make sure you have read the code there to avoid malicious use, then"
+                    " set the option `trust_remote_code=True` to remove this error."
+                )
+        module_path, hash = _load_importable_file(
+            dynamic_modules_path=dynamic_modules_path,
+            module_namespace="metrics",
+            subdirectory_name=hash,
+            name=self.name,
         )
         # make the new module to be noticed by the import system
         importlib.invalidate_caches()
@@ -782,12 +896,14 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[Union[DownloadMode, str]] = None,
         dynamic_modules_path: Optional[str] = None,
+        trust_remote_code: Optional[bool] = None,
     ):
         self.path = path
         self.name = Path(path).stem
         self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
+        self.trust_remote_code = trust_remote_code
 
     def get_module(self) -> DatasetModule:
         # get script and other files
@@ -807,15 +923,39 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
             additional_files.append(("README.md", dataset_readme_path))
         # copy the script and the files in an importable directory
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
-        module_path, hash = _create_importable_file(
-            local_path=self.path,
-            local_imports=local_imports,
-            additional_files=additional_files,
+        hash = files_to_hash([self.path] + [loc[1] for loc in local_imports])
+        importable_file_path = _get_importable_file_path(
             dynamic_modules_path=dynamic_modules_path,
             module_namespace="datasets",
+            subdirectory_name=hash,
             name=self.name,
-            download_mode=self.download_mode,
         )
+        if not os.path.exists(importable_file_path):
+            trust_remote_code = resolve_trust_remote_code(self.trust_remote_code, self.name)
+            if trust_remote_code:
+                _create_importable_file(
+                    local_path=self.path,
+                    local_imports=local_imports,
+                    additional_files=additional_files,
+                    dynamic_modules_path=dynamic_modules_path,
+                    module_namespace="datasets",
+                    subdirectory_name=hash,
+                    name=self.name,
+                    download_mode=self.download_mode,
+                )
+            else:
+                raise ValueError(
+                    f"Loading {self.name} requires you to execute the dataset script in that"
+                    " repo on your local machine. Make sure you have read the code there to avoid malicious use, then"
+                    " set the option `trust_remote_code=True` to remove this error."
+                )
+        module_path, hash = _load_importable_file(
+            dynamic_modules_path=dynamic_modules_path,
+            module_namespace="datasets",
+            subdirectory_name=hash,
+            name=self.name,
+        )
+
         # make the new module to be noticed by the import system
         importlib.invalidate_caches()
         builder_kwargs = {"hash": hash, "base_path": str(Path(self.path).parent)}
@@ -1149,12 +1289,14 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[Union[DownloadMode, str]] = None,
         dynamic_modules_path: Optional[str] = None,
+        trust_remote_code: Optional[bool] = None,
     ):
         self.name = name
         self.revision = revision
         self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
+        self.trust_remote_code = trust_remote_code
         increase_load_count(name, resource_type="dataset")
 
     def download_loading_script(self) -> str:
@@ -1211,14 +1353,37 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
             additional_files.append(("README.md", dataset_readme_path))
         # copy the script and the files in an importable directory
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
-        module_path, hash = _create_importable_file(
-            local_path=local_path,
-            local_imports=local_imports,
-            additional_files=additional_files,
+        hash = files_to_hash([local_path] + [loc[1] for loc in local_imports])
+        importable_file_path = _get_importable_file_path(
             dynamic_modules_path=dynamic_modules_path,
             module_namespace="datasets",
+            subdirectory_name=hash,
             name=self.name,
-            download_mode=self.download_mode,
+        )
+        if not os.path.exists(importable_file_path):
+            trust_remote_code = resolve_trust_remote_code(self.trust_remote_code, self.name)
+            if trust_remote_code:
+                _create_importable_file(
+                    local_path=local_path,
+                    local_imports=local_imports,
+                    additional_files=additional_files,
+                    dynamic_modules_path=dynamic_modules_path,
+                    module_namespace="datasets",
+                    subdirectory_name=hash,
+                    name=self.name,
+                    download_mode=self.download_mode,
+                )
+            else:
+                raise ValueError(
+                    f"Loading {self.name} requires you to execute the dataset script in that"
+                    " repo on your local machine. Make sure you have read the code there to avoid malicious use, then"
+                    " set the option `trust_remote_code=True` to remove this error."
+                )
+        module_path, hash = _load_importable_file(
+            dynamic_modules_path=dynamic_modules_path,
+            module_namespace="datasets",
+            subdirectory_name=hash,
+            name=self.name,
         )
         # make the new module to be noticed by the import system
         importlib.invalidate_caches()
@@ -1344,6 +1509,7 @@ def dataset_module_factory(
     dynamic_modules_path: Optional[str] = None,
     data_dir: Optional[str] = None,
     data_files: Optional[Union[Dict, List, str, DataFilesDict]] = None,
+    trust_remote_code: Optional[bool] = None,
     **download_kwargs,
 ) -> DatasetModule:
     """
@@ -1385,6 +1551,18 @@ def dataset_module_factory(
         data_dir (:obj:`str`, optional): Directory with the data files. Used only if `data_files` is not specified,
             in which case it's equal to pass `os.path.join(data_dir, "**")` as `data_files`.
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
+        trust_remote_code (`bool`, defaults to `True`):
+            Whether or not to allow for datasets defined on the Hub using a dataset script. This option
+            should only be set to `True` for repositories you trust and in which you have read the code, as it will
+            execute code present on the Hub on your local machine.
+
+            <Tip warning={true}>
+
+            `trust_remote_code` will default to False in the next major release.
+
+            </Tip>
+
+            <Added version="2.15.0"/>
         **download_kwargs (additional keyword arguments): optional attributes for DownloadConfig() which will override
             the attributes in download_config if supplied.
 
@@ -1431,13 +1609,19 @@ def dataset_module_factory(
     elif path.endswith(filename):
         if os.path.isfile(path):
             return LocalDatasetModuleFactoryWithScript(
-                path, download_mode=download_mode, dynamic_modules_path=dynamic_modules_path
+                path,
+                download_mode=download_mode,
+                dynamic_modules_path=dynamic_modules_path,
+                trust_remote_code=trust_remote_code,
             ).get_module()
         else:
             raise FileNotFoundError(f"Couldn't find a dataset script at {relative_to_absolute_path(path)}")
     elif os.path.isfile(combined_path):
         return LocalDatasetModuleFactoryWithScript(
-            combined_path, download_mode=download_mode, dynamic_modules_path=dynamic_modules_path
+            combined_path,
+            download_mode=download_mode,
+            dynamic_modules_path=dynamic_modules_path,
+            trust_remote_code=trust_remote_code,
         ).get_module()
     elif os.path.isdir(path):
         return LocalDatasetModuleFactoryWithoutScript(
@@ -1483,6 +1667,7 @@ def dataset_module_factory(
                     download_config=download_config,
                     download_mode=download_mode,
                     dynamic_modules_path=dynamic_modules_path,
+                    trust_remote_code=trust_remote_code,
                 ).get_module()
             else:
                 return HubDatasetModuleFactoryWithoutScript(
@@ -1522,6 +1707,7 @@ def metric_module_factory(
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[Union[DownloadMode, str]] = None,
     dynamic_modules_path: Optional[str] = None,
+    trust_remote_code: Optional[bool] = None,
     **download_kwargs,
 ) -> MetricModule:
     """
@@ -1557,6 +1743,18 @@ def metric_module_factory(
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
             Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
             By default, the datasets and metrics are stored inside the `datasets_modules` module.
+        trust_remote_code (`bool`, defaults to `True`):
+            Whether or not to allow for datasets defined on the Hub using a dataset script. This option
+            should only be set to `True` for repositories you trust and in which you have read the code, as it will
+            execute code present on the Hub on your local machine.
+
+            <Tip warning={true}>
+
+            `trust_remote_code` will default to False in the next major release.
+
+            </Tip>
+
+            <Added version="2.15.0"/>
         **download_kwargs (additional keyword arguments): optional attributes for DownloadConfig() which will override
             the attributes in download_config if supplied.
 
@@ -1581,7 +1779,10 @@ def metric_module_factory(
         if path.endswith(filename):
             if os.path.isfile(path):
                 return LocalMetricModuleFactory(
-                    path, download_mode=download_mode, dynamic_modules_path=dynamic_modules_path
+                    path,
+                    download_mode=download_mode,
+                    dynamic_modules_path=dynamic_modules_path,
+                    trust_remote_code=trust_remote_code,
                 ).get_module()
             else:
                 raise FileNotFoundError(f"Couldn't find a metric script at {relative_to_absolute_path(path)}")
@@ -1597,6 +1798,7 @@ def metric_module_factory(
                     download_config=download_config,
                     download_mode=download_mode,
                     dynamic_modules_path=dynamic_modules_path,
+                    trust_remote_code=trust_remote_code,
                 ).get_module()
             except (
                 Exception
@@ -1626,6 +1828,7 @@ def load_metric(
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[Union[DownloadMode, str]] = None,
     revision: Optional[Union[str, Version]] = None,
+    trust_remote_code: Optional[bool] = None,
     **metric_init_kwargs,
 ) -> Metric:
     """Load a `datasets.Metric`.
@@ -1656,6 +1859,18 @@ def load_metric(
         revision (Optional ``Union[str, datasets.Version]``): if specified, the module will be loaded from the datasets repository
             at this version. By default, it is set to the local version of the lib. Specifying a version that is different from
             your local version of the lib might cause compatibility issues.
+        trust_remote_code (`bool`, defaults to `True`):
+            Whether or not to allow for datasets defined on the Hub using a dataset script. This option
+            should only be set to `True` for repositories you trust and in which you have read the code, as it will
+            execute code present on the Hub on your local machine.
+
+            <Tip warning={true}>
+
+            `trust_remote_code` will default to False in the next major release.
+
+            </Tip>
+
+            <Added version="2.15.0"/>
 
     Returns:
         `datasets.Metric`
@@ -1675,7 +1890,11 @@ def load_metric(
 
         download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
         metric_module = metric_module_factory(
-            path, revision=revision, download_config=download_config, download_mode=download_mode
+            path,
+            revision=revision,
+            download_config=download_config,
+            download_mode=download_mode,
+            trust_remote_code=trust_remote_code,
         ).module_path
         metric_cls = import_main_class(metric_module, dataset=False)
         metric = metric_cls(
@@ -1707,6 +1926,7 @@ def load_dataset_builder(
     token: Optional[Union[bool, str]] = None,
     use_auth_token="deprecated",
     storage_options: Optional[Dict] = None,
+    trust_remote_code: Optional[bool] = None,
     **config_kwargs,
 ) -> DatasetBuilder:
     """Load a dataset builder from the Hugging Face Hub, or a local dataset. A dataset builder can be used to inspect general information that is required to build a dataset (cache directory, config, dataset info, etc.)
@@ -1780,6 +2000,18 @@ def load_dataset_builder(
             **Experimental**. Key/value pairs to be passed on to the dataset file-system backend, if any.
 
             <Added version="2.11.0"/>
+        trust_remote_code (`bool`, defaults to `True`):
+            Whether or not to allow for datasets defined on the Hub using a dataset script. This option
+            should only be set to `True` for repositories you trust and in which you have read the code, as it will
+            execute code present on the Hub on your local machine.
+
+            <Tip warning={true}>
+
+            `trust_remote_code` will default to False in the next major release.
+
+            </Tip>
+
+            <Added version="2.15.0"/>
         **config_kwargs (additional keyword arguments):
             Keyword arguments to be passed to the [`BuilderConfig`]
             and used in the [`DatasetBuilder`].
@@ -1818,6 +2050,7 @@ def load_dataset_builder(
         download_mode=download_mode,
         data_dir=data_dir,
         data_files=data_files,
+        trust_remote_code=trust_remote_code,
     )
     # Get dataset builder class from the processing script
     builder_kwargs = dataset_module.builder_kwargs
@@ -1887,6 +2120,7 @@ def load_dataset(
     streaming: bool = False,
     num_proc: Optional[int] = None,
     storage_options: Optional[Dict] = None,
+    trust_remote_code: bool = None,
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset, IterableDatasetDict, IterableDataset]:
     """Load a dataset from the Hugging Face Hub, or a local dataset.
@@ -2027,6 +2261,18 @@ def load_dataset(
             **Experimental**. Key/value pairs to be passed on to the dataset file-system backend, if any.
 
             <Added version="2.11.0"/>
+        trust_remote_code (`bool`, defaults to `True`):
+            Whether or not to allow for datasets defined on the Hub using a dataset script. This option
+            should only be set to `True` for repositories you trust and in which you have read the code, as it will
+            execute code present on the Hub on your local machine.
+
+            <Tip warning={true}>
+
+            `trust_remote_code` will default to False in the next major release.
+
+            </Tip>
+
+            <Added version="2.15.0"/>
         **config_kwargs (additional keyword arguments):
             Keyword arguments to be passed to the `BuilderConfig`
             and used in the [`DatasetBuilder`].
@@ -2137,6 +2383,7 @@ def load_dataset(
         revision=revision,
         token=token,
         storage_options=storage_options,
+        trust_remote_code=trust_remote_code,
         **config_kwargs,
     )
 
