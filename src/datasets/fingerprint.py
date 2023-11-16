@@ -58,10 +58,10 @@ class _TempCacheDir:
     def _cleanup(self):
         # A PermissionError can happen on Windows if a datasets referencing
         # the files from the cache directory is not garbage collected
-        def onexc(func, path, exc_info):
-            if isinstance(exc_info, PermissionError):
+        def onexc(func, path, exc):
+            if isinstance(exc, PermissionError):
                 logger.warning(
-                    f"Failed to remove temporary cache directory {self.name}. Run `datasets-cli delete-temp-cache` to remove this directory manually."
+                    f"Failed to remove temporary cache directory {self.name} ({type(exc).__name__}: {exc}). Run `datasets-cli delete-temp-cache` to remove this directory manually."
                 )
 
         if config.PY_VERSION <= version.parse("3.12"):
