@@ -495,9 +495,10 @@ def infer_module_for_data_files(
     """Infer module (and builder kwargs) from data files. Raise if module names for different splits don't match.
 
     Args:
-        data_files (DataFilesDict): List of data files.
-        path (str, optional): Dataset name or path.
-        DownloadConfig (bool or str, optional): for authenticate on the Hugging Face Hub for private remote files.
+        data_files ([`DataFilesDict`]): Dict of list of data files.
+        path (str, *optional*): Dataset name or path.
+        download_config ([`DownloadConfig`], *optional*):
+            Specific download configuration parameters to authenticate on the Hugging Face Hub for private remote files.
 
     Returns:
         tuple[str, dict[str, Any]]: Tuple with
