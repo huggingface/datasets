@@ -1495,12 +1495,12 @@ def dataset_module_factory(
                     download_config=download_config,
                     download_mode=download_mode,
                 ).get_module()
-        except (
-            Exception
-        ) as e1:  # noqa all the attempts failed, before raising the error we should check if the module is already cached.
+        except Exception as e1:
+            # All the attempts failed, before raising the error we should check if the module is already cached
             try:
                 return CachedDatasetModuleFactory(path, dynamic_modules_path=dynamic_modules_path).get_module()
-            except Exception:  # noqa if it's not in the cache, then it doesn't exist.
+            except Exception:
+                # If it's not in the cache, then it doesn't exist.
                 if isinstance(e1, OfflineModeIsEnabled):
                     raise ConnectionError(f"Couldn't reach the Hugging Face Hub for dataset '{path}': {e1}") from None
                 if isinstance(e1, EmptyDatasetError):
