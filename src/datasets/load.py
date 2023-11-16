@@ -48,6 +48,7 @@ from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadMode
 from .download.streaming_download_manager import StreamingDownloadManager, xbasename, xglob, xjoin
+from .exceptions import DataFilesNotFoundError, DatasetNotFoundError
 from .features import Features
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict
@@ -512,7 +513,7 @@ def infer_module_for_data_files(
         raise ValueError(f"Couldn't infer the same data file format for all splits. Got {split_modules}")
     if not module_name:
         path = f" in {path}. " if path else ". "
-        raise FileNotFoundError(f"No (supported) data files or dataset script found{path}")
+        raise DataFilesNotFoundError(f"No (supported) data files or dataset script found{path}")
     return module_name, default_builder_kwargs
 
 
@@ -1471,7 +1472,7 @@ def dataset_module_factory(
                 elif "401" in str(e):
                     msg = f"Dataset '{path}' doesn't exist on the Hub"
                     msg = msg + f" at revision '{revision}'" if revision else msg
-                    raise FileNotFoundError(
+                    raise DatasetNotFoundError(
                         msg + ". If the repo is private or gated, make sure to log in with `huggingface-cli login`."
                     )
                 else:
