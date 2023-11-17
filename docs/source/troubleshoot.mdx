@@ -48,10 +48,10 @@ pip install git+https://github.com/huggingface/datasets
 ### Pickling issues when using Dataset.from_generator()
 
 When creating a dataset, `IterableDataset.from_generator` and `Dataset.from_generator` expect a "picklable" generator function.
-This is required to hash the function using pickle to be able to cache the dataset on disk.
+This is required to hash the function using `pickle` to be able to cache the dataset on disk.
 
 While generator functions are generally "picklable", note that generator objects are not. So if you're using a generator object, 
-you will encounter a TypeError like this:
+you will encounter a `TypeError` like this:
 
 ```bash
 TypeError: cannot pickle 'generator' object
