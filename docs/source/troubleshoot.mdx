@@ -4,18 +4,6 @@ This guide aims to provide you the tools and knowledge required to navigate some
 in this guide do not cover your such situation, please refer to the [Asking for Help](#ask-for-help) section to learn where to
 find help with your specific issue.
 
-## Loading datasets
-
-### Loading from folder
-
-When creating a dataset from a folder, one of the most common issues is that the file structure does not follow the 
-expected format, or there's an issue with the metadata file.
-
-Learn more about required folder structure in corresponding documentation pages:
-
-* [AudioFolder](https://huggingface.co/docs/datasets/audio_dataset#audiofolder)
-* [ImageFolder](https://huggingface.co/docs/datasets/image_dataset#imagefolder)
-
 ## Uploading datasets to 🤗 Hub
 
 ### Authentication issues
@@ -37,13 +25,20 @@ HfHubHTTPError: 429 Client Error: Too Many Requests for url: ...
 You have exceeded our hourly quotas for action: commit. We invite you to retry later.
 ```
 
-If you encounter this issue, you need to upgrade the `datasets` library. At the moment of writing, you need to install `datasets` from source: 
-
-```bash 
-pip install git+https://github.com/huggingface/datasets
-```
+If you encounter this issue, you need to upgrade the `datasets` library to the latest version (or at least `2.15.0`).
 
 ## Issues when creating datasets from custom data
+
+### Loading images and audio from a folder
+
+When creating a dataset from a folder, one of the most common issues is that the file structure does not follow the 
+expected format, or there's an issue with the metadata file.
+
+Learn more about required folder structure in corresponding documentation pages:
+
+* [AudioFolder](https://huggingface.co/docs/datasets/audio_dataset#audiofolder)
+* [ImageFolder](https://huggingface.co/docs/datasets/image_dataset#imagefolder)
+
 
 ### Pickling issues when using Dataset.from_generator()
 
@@ -74,8 +69,29 @@ Make sure to write a descriptive post with relevant context about your setup and
 
 Post a question on [Discord](http://hf.co/join/discord), and let the team and the community help you.
 
+### Community Discussions on 🤗 Hub
+
+If you are facing issues creating a custom dataset with a script on Hub, you can ask the Hugging Face team for help by opening
+a discussion in the Community tab of your dataset with this message:
+
+```text
+# Dataset rewiew request for <Dataset name>
+
+## Description
+
+<brief description of the dataset>
+
+## Files to review
+
+- file1
+- file2
+- ...
+
+cc @lhoestq @polinaeterna @mariosasko @albertvillanova
+```
+
 ### GitHub Issues
 
-Create an Issue on the 🤗 Datasets [GitHub repository](https://github.com/huggingface/datasets/issues) if you suspect 
-to have found a bug related to the library. Include context regarding the bug and details about your distributed setup
-to help us better figure out what's wrong and how we can fix it.
+Finally, if you suspect to have found a bug related to the library itself, create an Issue on the 🤗 Datasets 
+[GitHub repository](https://github.com/huggingface/datasets/issues). Include context regarding the bug: code snippet to reproduce,
+details about your environment and data, etc. to help us figure out what's wrong and how we can fix it.
