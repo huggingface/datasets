@@ -111,6 +111,7 @@ from .table import (
 )
 from .tasks import TaskTemplate
 from .utils import logging
+from .utils import tqdm as hf_tqdm
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import _retry, estimate_dataset_size
 from .utils.info_utils import is_small_dataset
@@ -1494,8 +1495,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset_info = asdict(self._info)
 
         shards_done = 0
-        pbar = logging.tqdm(
-            disable=not logging.is_progress_bar_enabled(),
+        pbar = hf_tqdm(
             unit=" examples",
             total=len(self),
             desc=f"Saving the dataset ({shards_done}/{num_shards} shards)",
@@ -3080,8 +3080,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             except NonExistentDatasetError:
                 pass
             if transformed_dataset is None:
-                with logging.tqdm(
-                    disable=not logging.is_progress_bar_enabled(),
+                with hf_tqdm(
                     unit=" examples",
                     total=pbar_total,
                     desc=desc or "Map",
@@ -3172,8 +3171,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 with Pool(len(kwargs_per_job)) as pool:
                     os.environ = prev_env
                     logger.info(f"Spawning {num_proc} processes")
-                    with logging.tqdm(
-                        disable=not logging.is_progress_bar_enabled(),
+                    with hf_tqdm(
                         unit=" examples",
                         total=pbar_total,
                         desc=(desc or "Map") + f" (num_proc={num_proc})",
@@ -5194,11 +5192,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         uploaded_size = 0
         additions = []
-        for index, shard in logging.tqdm(
+        for index, shard in hf_tqdm(
             enumerate(shards),
             desc="Uploading the dataset shards",
             total=num_shards,
-            disable=not logging.is_progress_bar_enabled(),
         ):
             shard_path_in_repo = f"{data_dir}/{split}-{index:05d}-of-{num_shards:05d}.parquet"
             buffer = BytesIO()

@@ -1,15 +1,15 @@
 import importlib
 import importlib.metadata
+import logging
 import os
 import platform
 from pathlib import Path
+from typing import Optional
 
 from packaging import version
 
-from .utils.logging import get_logger
 
-
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__.split(".", 1)[0])  # to avoid circular import from .utils.logging
 
 # Datasets
 S3_DATASETS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets"
@@ -191,6 +191,18 @@ PARQUET_ROW_GROUP_SIZE_FOR_BINARY_DATASETS = 100
 
 # Offline mode
 HF_DATASETS_OFFLINE = os.environ.get("HF_DATASETS_OFFLINE", "AUTO").upper() in ENV_VARS_TRUE_VALUES
+
+# Here, `True` will disable progress bars globally without possibility of enabling it
+# programmatically. `False` will enable them without possibility of disabling them.
+# If environment variable is not set (None), then the user is free to enable/disable
+# them programmatically.
+# TL;DR: env variable has priority over code
+__HF_DATASETS_DISABLE_PROGRESS_BARS = os.environ.get("HF_HUB_DISABLE_PROGRESS_BARS")
+HF_DATASETS_DISABLE_PROGRESS_BARS: Optional[bool] = (
+    __HF_DATASETS_DISABLE_PROGRESS_BARS.upper() in ENV_VARS_TRUE_VALUES
+    if __HF_DATASETS_DISABLE_PROGRESS_BARS is not None
+    else None
+)
 
 # In-memory
 DEFAULT_IN_MEMORY_MAX_SIZE = 0  # Disabled

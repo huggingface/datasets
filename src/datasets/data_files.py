@@ -17,6 +17,7 @@ from .download import DownloadConfig
 from .download.streaming_download_manager import _prepare_path_and_storage_options, xbasename, xjoin
 from .splits import Split
 from .utils import logging
+from .utils import tqdm as hf_tqdm
 from .utils.file_utils import is_local_path, is_relative_path
 from .utils.py_utils import glob_pattern_to_regex, string_to_dict
 
@@ -517,9 +518,9 @@ def _get_origin_metadata(
         partial(_get_single_origin_metadata, download_config=download_config),
         data_files,
         max_workers=max_workers,
-        tqdm_class=logging.tqdm,
+        tqdm_class=hf_tqdm,
         desc="Resolving data files",
-        disable=len(data_files) <= 16 or not logging.is_progress_bar_enabled(),
+        disable=len(data_files) <= 16,
     )
 
 
