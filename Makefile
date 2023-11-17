@@ -5,14 +5,14 @@ check_dirs := tests src benchmarks metrics utils
 # Check that source code meets quality standards
 
 quality:
-	black --check $(check_dirs) setup.py
-	ruff $(check_dirs) setup.py
+	ruff check $(check_dirs)  # linter
+	ruff format --check $(check_dirs) # formatter
 
 # Format source code automatically
 
 style:
-	black tests src benchmarks metrics setup.py
-	ruff $(check_dirs) setup.py --fix
+	ruff check --fix $(check_dirs) # linter
+	ruff format $(check_dirs) # formatter
 
 # Run tests for the library
 

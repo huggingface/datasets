@@ -265,6 +265,7 @@ class PercentSlice(metaclass=PercentSliceMeta):
     [guide on splits](../loading#slice-splits)
     for more information.
     """
+
     # pylint: enable=line-too-long
     pass
 
@@ -438,6 +439,7 @@ class Split:
     ... )
     ```
     """
+
     # pylint: enable=line-too-long
     TRAIN = NamedSplit("train")
     TEST = NamedSplit("test")

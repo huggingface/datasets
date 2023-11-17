@@ -28,8 +28,8 @@ jobs:
           pip install .[quality]
       - name: Check quality
         run: |
-          black --check tests src benchmarks metrics
-          ruff tests src benchmarks metrics
+          ruff check tests src benchmarks metrics utils # linter
+          ruff format --check tests src benchmarks metrics utils # formatter
 
   test:
     needs: check_code_quality

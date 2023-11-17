@@ -127,8 +127,9 @@ def _convert_to_arrow(
             Drop the last batch if it is smaller than `batch_size`.
     """
     if batch_size is None or batch_size <= 0:
-        yield "all", pa.Table.from_pylist(
-            cast_to_python_objects([example for _, example in iterable], only_1d_for_numpy=True)
+        yield (
+            "all",
+            pa.Table.from_pylist(cast_to_python_objects([example for _, example in iterable], only_1d_for_numpy=True)),
         )
         return
     iterator = iter(iterable)
@@ -1112,8 +1113,9 @@ class TypedExamplesIterable(_BaseExamplesIterable):
         # Then for each example, `TypedExamplesIterable` automatically fills missing columns with None.
         # This is done with `_apply_feature_types_on_example`.
         for key, example in self.ex_iterable:
-            yield key, _apply_feature_types_on_example(
-                example, self.features, token_per_repo_id=self.token_per_repo_id
+            yield (
+                key,
+                _apply_feature_types_on_example(example, self.features, token_per_repo_id=self.token_per_repo_id),
             )
 
     def _iter_arrow(self) -> Iterator[Tuple[Key, pa.Table]]:
