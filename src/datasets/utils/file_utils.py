@@ -72,11 +72,12 @@ def is_remote_url(url_or_filename: str) -> bool:
 
 
 def is_relative_path(url_or_filename: str) -> bool:
-    return is_local_path(url_or_filename) and os.path.isabs(url_or_filename.split("://", 1)[-1])
+    return is_local_path(url_or_filename) and not os.path.isabs(url_or_filename.split("://", 1)[-1])
 
 
 def relative_to_absolute_path(path: T) -> T:
     """Convert relative path to absolute path."""
+    # fsspec's LocalFileSystem._strip_protocol converts relative paths to absolute paths
     return type(path)(strip_protocol(str(path))) if is_local_path(path) else path
 
 
@@ -192,12 +193,12 @@ def cached_path(
             storage_options=download_config.storage_options,
             download_desc=download_config.download_desc,
         )
-    elif os.path.exists(url_or_filename):
-        # File, and it exists.
-        output_path = url_or_filename
     elif is_local_path(url_or_filename):
-        # File, but it doesn't exist.
-        raise FileNotFoundError(f"Local file {url_or_filename} doesn't exist")
+        # Local path, so check if it exists.
+        url_or_filename = strip_protocol(url_or_filename)
+        if not os.path.exists(url_or_filename):
+            raise FileNotFoundError(f"Local file {url_or_filename} doesn't exist")
+        output_path = url_or_filename
     else:
         # Something unknown
         raise ValueError(f"unable to parse {url_or_filename} as a URL or as a local path")
