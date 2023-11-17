@@ -2,4 +2,8 @@ repos:
   - repo: https://github.com/charliermarsh/ruff-pre-commit # https://github.com/charliermarsh/ruff#usage
     rev: 'v0.1.5'
     hooks:
+      # Run the linter.
       - id: ruff
+        args: [ --fix ]
+      # Run the formatter.
+      - id: ruff-format
