@@ -32,7 +32,8 @@ from packaging import version
 
 from .. import __version__, config
 from ..download.download_config import DownloadConfig
-from . import logging, tqdm
+from . import logging
+from . import tqdm as hf_tqdm
 from .extract import ExtractManager
 from .filelock import FileLock
 
@@ -347,7 +348,7 @@ def fsspec_head(url, storage_options=None):
 class TqdmCallback(fsspec.callbacks.TqdmCallback):
     def __init__(self, tqdm_kwargs=None, *args, **kwargs):
         super().__init__(tqdm_kwargs, *args, **kwargs)
-        self._tqdm = tqdm  # replace tqdm.tqdm by datasets.tqdm.tqdm
+        self._tqdm = hf_tqdm  # replace tqdm.tqdm by datasets.tqdm.tqdm
 
 
 def fsspec_get(url, temp_file, storage_options=None, desc=None):
