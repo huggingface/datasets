@@ -26,13 +26,12 @@ import fsspec
 import huggingface_hub
 import requests
 from fsspec.core import strip_protocol
-from fsspec.utils import can_be_local
 from huggingface_hub import HfFolder
 from packaging import version
 
 from .. import __version__, config
 from ..download.download_config import DownloadConfig
-from . import logging
+from . import _tqdm, logging
 from . import tqdm as hf_tqdm
 from .extract import ExtractManager
 from .filelock import FileLock
@@ -64,22 +63,25 @@ def init_hf_modules(hf_modules_cache: Optional[Union[Path, str]] = None) -> str:
     return hf_modules_cache
 
 
-def is_local_path(url_or_filename: str) -> bool:
-    return can_be_local(url_or_filename)
-
-
 def is_remote_url(url_or_filename: str) -> bool:
-    return not is_local_path(url_or_filename)
+    return urlparse(url_or_filename).scheme != "" and not os.path.ismount(urlparse(url_or_filename).scheme + ":/")
+
+
+def is_local_path(url_or_filename: str) -> bool:
+    # On unix the scheme of a local path is empty (for both absolute and relative),
+    # while on windows the scheme is the drive name (ex: "c") for absolute paths.
+    # for details on the windows behavior, see https://bugs.python.org/issue42215
+    return urlparse(url_or_filename).scheme == "" or os.path.ismount(urlparse(url_or_filename).scheme + ":/")
 
 
 def is_relative_path(url_or_filename: str) -> bool:
-    return is_local_path(url_or_filename) and not os.path.isabs(url_or_filename.split("://", 1)[-1])
+    return urlparse(url_or_filename).scheme == "" and not os.path.isabs(url_or_filename)
 
 
 def relative_to_absolute_path(path: T) -> T:
     """Convert relative path to absolute path."""
-    # fsspec's LocalFileSystem._strip_protocol converts relative paths to absolute paths
-    return type(path)(strip_protocol(str(path))) if is_local_path(path) else path
+    abs_path_str = os.path.abspath(os.path.expanduser(os.path.expandvars(str(path))))
+    return Path(abs_path_str) if isinstance(path, Path) else abs_path_str
 
 
 def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -> str:
@@ -177,6 +179,10 @@ def cached_path(
     if isinstance(url_or_filename, Path):
         url_or_filename = str(url_or_filename)
 
+    if fsspec.can_be_local(url_or_filename):
+        # Convert "file://local/path" to "local/path"
+        url_or_filename = strip_protocol(url_or_filename)
+
     if is_remote_url(url_or_filename):
         # URL, so get it from the cache (downloading if necessary)
         output_path = get_from_cache(
@@ -194,12 +200,12 @@ def cached_path(
             storage_options=download_config.storage_options,
             download_desc=download_config.download_desc,
         )
-    elif is_local_path(url_or_filename):
-        # Local path, so check if it exists.
-        url_or_filename = strip_protocol(url_or_filename)
-        if not os.path.exists(url_or_filename):
-            raise FileNotFoundError(f"Local file {url_or_filename} doesn't exist")
+    elif os.path.exists(url_or_filename):
+        # File, and it exists.
         output_path = url_or_filename
+    elif is_local_path(url_or_filename):
+        # File, but it doesn't exist.
+        raise FileNotFoundError(f"Local file {url_or_filename} doesn't exist")
     else:
         # Something unknown
         raise ValueError(f"unable to parse {url_or_filename} as a URL or as a local path")
@@ -348,7 +354,7 @@ def fsspec_head(url, storage_options=None):
 class TqdmCallback(fsspec.callbacks.TqdmCallback):
     def __init__(self, tqdm_kwargs=None, *args, **kwargs):
         super().__init__(tqdm_kwargs, *args, **kwargs)
-        self._tqdm = hf_tqdm  # replace tqdm.tqdm by datasets.tqdm.tqdm
+        self._tqdm = _tqdm  # replace tqdm.tqdm by datasets.tqdm.tqdm
 
 
 def fsspec_get(url, temp_file, storage_options=None, desc=None):
