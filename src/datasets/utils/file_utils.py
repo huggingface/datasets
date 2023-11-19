@@ -26,6 +26,7 @@ import fsspec
 import huggingface_hub
 import requests
 from fsspec.core import strip_protocol
+from fsspec.utils import can_be_local
 from huggingface_hub import HfFolder
 from packaging import version
 
@@ -179,8 +180,8 @@ def cached_path(
     if isinstance(url_or_filename, Path):
         url_or_filename = str(url_or_filename)
 
-    if fsspec.can_be_local(url_or_filename):
-        # Convert "file://local/path" to "local/path"
+    if can_be_local(url_or_filename):
+        # Convert fsspec URL in the format "file://local/path" to "local/path"
         url_or_filename = strip_protocol(url_or_filename)
 
     if is_remote_url(url_or_filename):
