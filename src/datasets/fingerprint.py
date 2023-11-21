@@ -16,9 +16,12 @@ import xxhash
 from .info import DatasetInfo
 from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH
 from .table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table
+from .utils._dill import dumps
+
+# from .utils.py_utils import dumps
 from .utils.deprecation_utils import deprecated
 from .utils.logging import get_logger
-from .utils.py_utils import asdict, dumps
+from .utils.py_utils import asdict
 
 
 if TYPE_CHECKING:
