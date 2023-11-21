@@ -34,8 +34,8 @@ from .. import __version__, config
 from ..download.download_config import DownloadConfig
 from . import _tqdm, logging
 from . import tqdm as hf_tqdm
+from ._filelock import FileLock
 from .extract import ExtractManager
-from .filelock import FileLock
 
 
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name

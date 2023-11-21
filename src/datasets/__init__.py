@@ -61,6 +61,8 @@ from .utils import logging
 from datasets import arrow_dataset as _arrow_dataset  # isort:skip
 from datasets import utils as _utils  # isort:skip
 from datasets.utils import download_manager as _deprecated_download_manager  # isort:skip
+from datasets.utils import _filelock
+from datasets.utils import filelock as _deprecated_filelock  # isort:skip
 
 _arrow_dataset.concatenate_datasets = concatenate_datasets
 _utils.DownloadConfig = DownloadConfig
@@ -69,5 +71,6 @@ _utils.DownloadMode = DownloadMode
 _deprecated_download_manager.DownloadConfig = DownloadConfig
 _deprecated_download_manager.DownloadMode = DownloadMode
 _deprecated_download_manager.DownloadManager = DownloadManager
+_deprecated_filelock.FileLock = _filelock.FileLock
 
-del _arrow_dataset, _utils, _deprecated_download_manager
+del _arrow_dataset, _utils, _deprecated_download_manager, _filelock, _deprecated_filelock

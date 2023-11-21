@@ -63,6 +63,7 @@ from .packaged_modules import (
     _hash_python_lines,
 )
 from .splits import Split
+from .utils._filelock import FileLock
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import (
     OfflineModeIsEnabled,
@@ -75,7 +76,6 @@ from .utils.file_utils import (
     relative_to_absolute_path,
     url_or_path_join,
 )
-from .utils.filelock import FileLock
 from .utils.hub import hf_hub_url
 from .utils.info_utils import VerificationMode, is_small_dataset
 from .utils.logging import get_logger

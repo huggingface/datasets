@@ -66,8 +66,8 @@ from .splits import Split, SplitDict, SplitGenerator, SplitInfo
 from .streaming import extend_dataset_builder_for_streaming
 from .utils import logging
 from .utils import tqdm as hf_tqdm
+from .utils._filelock import FileLock
 from .utils.file_utils import cached_path, is_remote_url
-from .utils.filelock import FileLock
 from .utils.info_utils import VerificationMode, get_size_checksum_dict, verify_checksums, verify_splits
 from .utils.py_utils import (
     classproperty,
