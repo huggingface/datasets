@@ -63,7 +63,7 @@ class patch_submodule:
                 # We don't check for the name of the global, but rather if its value *is* "os" or "os.path".
                 # This allows to patch renamed modules like "from os import path as ospath".
                 if obj_attr is submodule or (
-                    (isinstance(obj_attr, _PatchedModuleObj) and obj_attr._original_module is submodule)
+                    isinstance(obj_attr, _PatchedModuleObj) and obj_attr._original_module is submodule
                 ):
                     self.original[attr] = obj_attr
                     # patch at top level

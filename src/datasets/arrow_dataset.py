@@ -3100,7 +3100,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         else:
 
             def format_cache_file_name(
-                cache_file_name: Optional[str], rank: Union[int, Literal["*"]]  # noqa: F722
+                cache_file_name: Optional[str],
+                rank: Union[int, Literal["*"]],  # noqa: F722
             ) -> Optional[str]:
                 if not cache_file_name:
                     return cache_file_name

@@ -622,7 +622,7 @@ def test_get_data_files_patterns(base_path, data_file_per_split):
             if fs.isfile(file_path)
         ]
 
-    patterns_per_split = _get_data_files_patterns(resolver, base_path=base_path)
+    patterns_per_split = _get_data_files_patterns(resolver)
     assert list(patterns_per_split.keys()) == list(data_file_per_split.keys())  # Test split order with list()
     for split, patterns in patterns_per_split.items():
         matched = [file_path for pattern in patterns for file_path in resolver(pattern)]
