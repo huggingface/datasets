@@ -323,12 +323,15 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                         sample_label = {"label": os.path.basename(os.path.dirname(original_file))}
                     else:
                         sample_label = {}
-                    yield file_idx, {
-                        **sample_empty_metadata,
-                        self.BASE_COLUMN_NAME: downloaded_file_or_dir,
-                        **sample_metadata,
-                        **sample_label,
-                    }
+                    yield (
+                        file_idx,
+                        {
+                            **sample_empty_metadata,
+                            self.BASE_COLUMN_NAME: downloaded_file_or_dir,
+                            **sample_metadata,
+                            **sample_label,
+                        },
+                    )
                     file_idx += 1
             else:
                 for downloaded_dir_file in downloaded_file_or_dir:
@@ -391,10 +394,13 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                             sample_label = {"label": os.path.basename(os.path.dirname(downloaded_dir_file))}
                         else:
                             sample_label = {}
-                        yield file_idx, {
-                            **sample_empty_metadata,
-                            self.BASE_COLUMN_NAME: downloaded_dir_file,
-                            **sample_metadata,
-                            **sample_label,
-                        }
+                        yield (
+                            file_idx,
+                            {
+                                **sample_empty_metadata,
+                                self.BASE_COLUMN_NAME: downloaded_dir_file,
+                                **sample_metadata,
+                                **sample_label,
+                            },
+                        )
                         file_idx += 1
