@@ -24,6 +24,8 @@ from urllib.parse import urljoin, urlparse
 import fsspec
 import huggingface_hub
 import requests
+from fsspec.core import strip_protocol
+from fsspec.utils import can_be_local
 from huggingface_hub import HfFolder
 from huggingface_hub.utils import insecure_hashlib
 from packaging import version
@@ -179,15 +181,8 @@ def cached_path(
         url_or_filename = str(url_or_filename)
 
     # Convert fsspec URL in the format "file://local/path" to "local/path"
-    # Copied from: https://github.com/fsspec/filesystem_spec/blob/14a778879b6a68b65031ef86e232b9d88c005bab/fsspec/implementations/local.py#L214-L221
-    if url_or_filename.startswith("file://"):
-        url_or_filename = url_or_filename[7:]
-    elif url_or_filename.startswith("file:"):
-        url_or_filename = url_or_filename[5:]
-    elif url_or_filename.startswith("local://"):
-        url_or_filename = url_or_filename[8:]
-    elif url_or_filename.startswith("local:"):
-        url_or_filename = url_or_filename[6:]
+    if can_be_local(url_or_filename):
+        url_or_filename = strip_protocol(url_or_filename)
 
     if is_remote_url(url_or_filename):
         # URL, so get it from the cache (downloading if necessary)
