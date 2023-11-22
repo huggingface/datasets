@@ -133,8 +133,7 @@ REQUIRED_PKGS = [
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    # minimum 0.14.0 to support HfFileSystem
-    "huggingface_hub>=0.18.0",
+    "huggingface_hub>=0.19.4",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     # To parse YAML metadata from dataset cards
@@ -217,7 +216,7 @@ METRICS_TESTS_REQUIRE = [
 TESTS_REQUIRE.extend(VISION_REQUIRE)
 TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
-QUALITY_REQUIRE = ["black~=23.1", "ruff>=0.0.241", "pyyaml>=5.3.1"]
+QUALITY_REQUIRE = ["ruff>=0.1.5"]
 
 DOCS_REQUIRE = [
     # Might need to add doc-builder and some specific deps in the future
