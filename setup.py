@@ -108,6 +108,8 @@ from setuptools import find_packages, setup
 
 
 REQUIRED_PKGS = [
+    # For file locking
+    "filelock",
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
     # Backend and serialization.
