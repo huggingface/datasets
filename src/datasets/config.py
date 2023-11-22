@@ -197,7 +197,7 @@ HF_DATASETS_OFFLINE = os.environ.get("HF_DATASETS_OFFLINE", "AUTO").upper() in E
 # If environment variable is not set (None), then the user is free to enable/disable
 # them programmatically.
 # TL;DR: env variable has priority over code
-__HF_DATASETS_DISABLE_PROGRESS_BARS = os.environ.get("HF_HUB_DISABLE_PROGRESS_BARS")
+__HF_DATASETS_DISABLE_PROGRESS_BARS = os.environ.get("HF_DATASETS_DISABLE_PROGRESS_BARS")
 HF_DATASETS_DISABLE_PROGRESS_BARS: Optional[bool] = (
     __HF_DATASETS_DISABLE_PROGRESS_BARS.upper() in ENV_VARS_TRUE_VALUES
     if __HF_DATASETS_DISABLE_PROGRESS_BARS is not None

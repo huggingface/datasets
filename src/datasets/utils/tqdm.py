@@ -1,4 +1,4 @@
-"""Utility helpers to handle progress bars in `huggingface_hub`.
+"""Utility helpers to handle progress bars in `datasets`.
 
 Example:
     1. Use `datasets.utils.tqdm` as you would use `tqdm.tqdm` or `tqdm.auto.tqdm`.
