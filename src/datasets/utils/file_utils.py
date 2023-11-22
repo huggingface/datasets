@@ -24,13 +24,16 @@ from urllib.parse import urljoin, urlparse
 import fsspec
 import huggingface_hub
 import requests
+from fsspec.core import strip_protocol
+from fsspec.utils import can_be_local
 from huggingface_hub import HfFolder
 from huggingface_hub.utils import insecure_hashlib
 from packaging import version
 
 from .. import __version__, config
 from ..download.download_config import DownloadConfig
-from . import logging
+from . import _tqdm, logging
+from . import tqdm as hf_tqdm
 from .extract import ExtractManager
 from .filelock import FileLock
 
@@ -176,6 +179,10 @@ def cached_path(
         cache_dir = str(cache_dir)
     if isinstance(url_or_filename, Path):
         url_or_filename = str(url_or_filename)
+
+    # Convert fsspec URL in the format "file://local/path" to "local/path"
+    if can_be_local(url_or_filename):
+        url_or_filename = strip_protocol(url_or_filename)
 
     if is_remote_url(url_or_filename):
         # URL, so get it from the cache (downloading if necessary)
@@ -348,7 +355,7 @@ def fsspec_head(url, storage_options=None):
 class TqdmCallback(fsspec.callbacks.TqdmCallback):
     def __init__(self, tqdm_kwargs=None, *args, **kwargs):
         super().__init__(tqdm_kwargs, *args, **kwargs)
-        self._tqdm = logging  # replace tqdm.tqdm by datasets.logging.tqdm
+        self._tqdm = _tqdm  # replace tqdm.tqdm by datasets.tqdm.tqdm
 
 
 def fsspec_get(url, temp_file, storage_options=None, desc=None):
@@ -359,7 +366,6 @@ def fsspec_get(url, temp_file, storage_options=None, desc=None):
     callback = TqdmCallback(
         tqdm_kwargs={
             "desc": desc or "Downloading",
-            "disable": not logging.is_progress_bar_enabled(),
             "unit": "B",
             "unit_scale": True,
         }
@@ -408,13 +414,12 @@ def http_get(
         return
     content_length = response.headers.get("Content-Length")
     total = resume_size + int(content_length) if content_length is not None else None
-    with logging.tqdm(
+    with hf_tqdm(
         unit="B",
         unit_scale=True,
         total=total,
         initial=resume_size,
         desc=desc or "Downloading",
-        disable=not logging.is_progress_bar_enabled(),
     ) as progress:
         for chunk in response.iter_content(chunk_size=1024):
             progress.update(len(chunk))
