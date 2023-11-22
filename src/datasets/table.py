@@ -207,8 +207,9 @@ class Table(IndexedTableMixin):
             filename = state["path"]
             logger.debug(f"Unpickling a big table from the disk at {filename}")
             table = _in_memory_arrow_table_from_file(filename)
-            logger.debug(f"Removing temporary table file at {filename}")
-            os.remove(filename)
+            if os.path.exists(filename):
+                logger.debug(f"Removing temporary table file at {filename}")
+                os.remove(filename)
         else:
             table = state["table"]
         Table.__init__(self, table)
