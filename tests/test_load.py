@@ -24,6 +24,7 @@ from datasets.config import METADATA_CONFIGS_FIELD
 from datasets.data_files import DataFilesDict
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.download.download_config import DownloadConfig
+from datasets.exceptions import DatasetNotFoundError
 from datasets.features import Features, Value
 from datasets.iterable_dataset import IterableDataset
 from datasets.load import (
@@ -819,7 +820,9 @@ class LoadTest(TestCase):
             # missing module
             for offline_simulation_mode in list(OfflineSimulationMode):
                 with offline(offline_simulation_mode):
-                    with self.assertRaises((FileNotFoundError, ConnectionError, requests.exceptions.ConnectionError)):
+                    with self.assertRaises(
+                        (DatasetNotFoundError, ConnectionError, requests.exceptions.ConnectionError)
+                    ):
                         datasets.load.dataset_module_factory(
                             "__missing_dummy_module_name__", dynamic_modules_path=self.dynamic_modules_path
                         )
@@ -850,13 +853,13 @@ class LoadTest(TestCase):
                 self.assertIn("Using the latest cached version of the module", self._caplog.text)
 
     def test_load_dataset_from_hub(self):
-        with self.assertRaises(FileNotFoundError) as context:
+        with self.assertRaises(DatasetNotFoundError) as context:
             datasets.load_dataset("_dummy")
         self.assertIn(
             "Dataset '_dummy' doesn't exist on the Hub",
             str(context.exception),
         )
-        with self.assertRaises(FileNotFoundError) as context:
+        with self.assertRaises(DatasetNotFoundError) as context:
             datasets.load_dataset("_dummy", revision="0.0.0")
         self.assertIn(
             "Dataset '_dummy' doesn't exist on the Hub",
@@ -877,7 +880,7 @@ class LoadTest(TestCase):
                     )
 
     def test_load_dataset_namespace(self):
-        with self.assertRaises(FileNotFoundError) as context:
+        with self.assertRaises(DatasetNotFoundError) as context:
             datasets.load_dataset("hf-internal-testing/_dummy")
         self.assertIn(
             "hf-internal-testing/_dummy",
@@ -1018,7 +1021,7 @@ def test_load_dataset_builder_for_community_dataset_without_script():
 
 
 def test_load_dataset_builder_fail():
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(DatasetNotFoundError):
         datasets.load_dataset_builder("blabla")
 
 
@@ -1037,10 +1040,9 @@ def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory
             dataset = datasets.load_dataset(DATASET_LOADING_SCRIPT_NAME, data_dir=data_dir)
             assert len(dataset) == 2
             assert "Using the latest cached version of the module" in caplog.text
-    with pytest.raises(FileNotFoundError) as exc_info:
+    with pytest.raises(DatasetNotFoundError) as exc_info:
         datasets.load_dataset(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST)
     assert f"Dataset '{SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST}' doesn't exist on the Hub" in str(exc_info.value)
-    assert os.path.abspath(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST) in str(exc_info.value)
 
 
 def test_load_dataset_streaming(dataset_loading_script_dir, data_dir):

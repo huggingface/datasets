@@ -48,6 +48,7 @@ from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadMode
 from .download.streaming_download_manager import StreamingDownloadManager, xbasename, xglob, xjoin
+from .exceptions import DataFilesNotFoundError, DatasetNotFoundError
 from .features import Features
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict
@@ -494,9 +495,10 @@ def infer_module_for_data_files(
     """Infer module (and builder kwargs) from data files. Raise if module names for different splits don't match.
 
     Args:
-        data_files (DataFilesDict): List of data files.
-        path (str, optional): Dataset name or path.
-        DownloadConfig (bool or str, optional): for authenticate on the Hugging Face Hub for private remote files.
+        data_files ([`DataFilesDict`]): Dict of list of data files.
+        path (str, *optional*): Dataset name or path.
+        download_config ([`DownloadConfig`], *optional*):
+            Specific download configuration parameters to authenticate on the Hugging Face Hub for private remote files.
 
     Returns:
         tuple[str, dict[str, Any]]: Tuple with
@@ -511,8 +513,7 @@ def infer_module_for_data_files(
     if any((module_name, default_builder_kwargs) != split_module for split_module in split_modules.values()):
         raise ValueError(f"Couldn't infer the same data file format for all splits. Got {split_modules}")
     if not module_name:
-        path = f" in {path}. " if path else ". "
-        raise FileNotFoundError(f"No (supported) data files or dataset script found{path}")
+        raise DataFilesNotFoundError("No (supported) data files found" + (f" in {path}" if path else ""))
     return module_name, default_builder_kwargs
 
 
@@ -1471,7 +1472,7 @@ def dataset_module_factory(
                 elif "401" in str(e):
                     msg = f"Dataset '{path}' doesn't exist on the Hub"
                     msg = msg + f" at revision '{revision}'" if revision else msg
-                    raise FileNotFoundError(
+                    raise DatasetNotFoundError(
                         msg + ". If the repo is private or gated, make sure to log in with `huggingface-cli login`."
                     )
                 else:
@@ -1493,13 +1494,15 @@ def dataset_module_factory(
                     download_config=download_config,
                     download_mode=download_mode,
                 ).get_module()
-        except Exception as e1:  # noqa all the attempts failed, before raising the error we should check if the module is already cached.
+        except Exception as e1:
+            # All the attempts failed, before raising the error we should check if the module is already cached
             try:
                 return CachedDatasetModuleFactory(path, dynamic_modules_path=dynamic_modules_path).get_module()
-            except Exception:  # noqa if it's not in the cache, then it doesn't exist.
+            except Exception:
+                # If it's not in the cache, then it doesn't exist.
                 if isinstance(e1, OfflineModeIsEnabled):
                     raise ConnectionError(f"Couldn't reach the Hugging Face Hub for dataset '{path}': {e1}") from None
-                if isinstance(e1, EmptyDatasetError):
+                if isinstance(e1, (DataFilesNotFoundError, DatasetNotFoundError, EmptyDatasetError)):
                     raise e1 from None
                 if isinstance(e1, FileNotFoundError):
                     raise FileNotFoundError(
