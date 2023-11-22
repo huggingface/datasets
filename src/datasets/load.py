@@ -513,8 +513,7 @@ def infer_module_for_data_files(
     if any((module_name, default_builder_kwargs) != split_module for split_module in split_modules.values()):
         raise ValueError(f"Couldn't infer the same data file format for all splits. Got {split_modules}")
     if not module_name:
-        path = f" in {path}. " if path else ". "
-        raise DataFilesNotFoundError(f"No (supported) data files or dataset script found{path}")
+        raise DataFilesNotFoundError("No (supported) data files found" + (f" in {path}" if path else ""))
     return module_name, default_builder_kwargs
 
 
