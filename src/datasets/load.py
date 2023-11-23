@@ -961,7 +961,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
             base_path=base_path,
         )
         supports_metadata = self.name in _MODULE_SUPPORTS_METADATA
-        if self.data_files is None and supports_metadata:
+        if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
             try:
                 metadata_patterns = get_metadata_patterns(base_path)
             except FileNotFoundError:
