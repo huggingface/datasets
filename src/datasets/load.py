@@ -857,7 +857,6 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             patterns = sanitize_patterns(next(iter(metadata_configs.values()))["data_files"])
         else:
             patterns = get_data_patterns(base_path)
-        # import pdb; pdb.set_trace()
         data_files = DataFilesDict.from_patterns(
             patterns,
             base_path=base_path,
