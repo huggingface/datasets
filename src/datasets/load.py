@@ -68,8 +68,10 @@ from .utils.file_utils import (
     OfflineModeIsEnabled,
     _raise_if_offline_mode_is_enabled,
     cached_path,
+    get_authentication_headers_for_url,
     head_hf_s3,
     hf_github_url,
+    http_get,
     init_hf_modules,
     is_relative_path,
     relative_to_absolute_path,
@@ -607,6 +609,7 @@ def create_builder_configs_from_metadata_configs(
     builder_config_cls = builder_cls.BUILDER_CONFIG_CLASS
     default_config_name = metadata_configs.get_default_config_name()
     builder_configs = []
+    default_builder_kwargs = {} if default_builder_kwargs is None else default_builder_kwargs
 
     base_path = base_path if base_path is not None else ""
     for config_name, config_params in metadata_configs.items():
@@ -1276,6 +1279,63 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         )
 
 
+class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
+    """
+    Get the module of a dataset loaded from parquet files of a dataset repository parquet export.
+    """
+
+    def __init__(
+        self,
+        name: str,
+        exported_dataset_infos: Dict[str, Dict[str, Any]],
+        exported_parquet_files: List[Dict[str, Any]],
+        download_config: Optional[DownloadConfig] = None,
+    ):
+        self.name = name
+        self.exported_dataset_infos = exported_dataset_infos
+        self.exported_parquet_files = exported_parquet_files
+        self.download_config = download_config or DownloadConfig()
+        increase_load_count(name, resource_type="dataset")
+
+    def get_module(self) -> DatasetModule:
+        hfh_dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
+            self.name,
+            revision="refs/convert/parquet",
+            token=self.download_config.token,
+            timeout=100.0,
+        )
+        # even if metadata_configs is not None (which means that we will resolve files for each config later)
+        # we cannot skip resolving all files because we need to infer module name by files extensions
+        revision = hfh_dataset_info.sha  # fix the revision in case there are new commits in the meantime
+        metadata_configs = MetadataConfigs._from_exported_parquet_files(
+            revision=revision, exported_parquet_files=self.exported_parquet_files
+        )
+        module_path, hash = _PACKAGED_DATASETS_MODULES["parquet"]
+        builder_configs, default_config_name = create_builder_configs_from_metadata_configs(
+            module_path,
+            metadata_configs,
+            supports_metadata=False,
+            download_config=self.download_config,
+        )
+        builder_kwargs = {
+            "hash": hash,
+            "repo_id": self.name,
+            "dataset_name": camelcase_to_snakecase(Path(self.name).name),
+        }
+
+        return DatasetModule(
+            module_path,
+            hash,
+            builder_kwargs,
+            dataset_infos=self.exported_dataset_infos,
+            builder_configs_parameters=BuilderConfigsParameters(
+                metadata_configs=metadata_configs,
+                builder_configs=builder_configs,
+                default_config_name=default_config_name,
+            ),
+        )
+
+
 class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
     """
     Get the module of a dataset from a dataset repository.
@@ -1660,15 +1720,101 @@ def dataset_module_factory(
                     )
                 else:
                     raise e
-            if filename in [sibling.rfilename for sibling in dataset_info.siblings]:
-                return HubDatasetModuleFactoryWithScript(
-                    path,
-                    revision=revision,
-                    download_config=download_config,
-                    download_mode=download_mode,
-                    dynamic_modules_path=dynamic_modules_path,
-                    trust_remote_code=trust_remote_code,
-                ).get_module()
+            if filename in [sibling.rfilename for sibling in dataset_info.siblings]:  # contains a dataset script
+                # First check if we can use a parquet export instead
+                datasets_server_parquet_url = (
+                    config.HF_ENDPOINT.replace("://", "://datasets-server.") + "/parquet?dataset="
+                )
+                datasets_server_info_url = config.HF_ENDPOINT.replace("://", "://datasets-server.") + "/info?dataset="
+                exported_parquet_files: Optional[List[Dict[str, Any]]] = None
+                exported_dataset_infos: Optional[Dict[str, Dict[str, Any]]] = None
+                try:
+                    parquet_data_files_response = http_get(
+                        url=datasets_server_parquet_url + path,
+                        temp_file=None,
+                        headers=get_authentication_headers_for_url(config.HF_ENDPOINT + f"datasets/{path}"),
+                        timeout=100.0,
+                        max_retries=3,
+                    )
+                    parquet_data_files_response.raise_for_status()
+                    if "X-Revision" in parquet_data_files_response.headers:
+                        if parquet_data_files_response.headers["X-Revision"] == dataset_info.sha:
+                            parquet_data_files_response_json = parquet_data_files_response.json()
+                            if (
+                                parquet_data_files_response_json.get("partial") is False
+                                and not parquet_data_files_response_json.get("pending", True)
+                                and not parquet_data_files_response_json.get("failed", True)
+                                and "parquet_files" in parquet_data_files_response_json
+                            ):
+                                exported_parquet_files: List[Dict[str, Any]] = parquet_data_files_response_json[
+                                    "parquet_files"
+                                ]
+                            else:
+                                logger.debug(f"Parquet export for {path} is not completely ready yet.")
+                        else:
+                            logger.debug(
+                                f"Parquet export for {path} is available but outdated (revision='{parquet_data_files_response.headers['X-Revision']}')"
+                            )
+                except (
+                    Exception
+                ) as e:  # noqa catch any exception of the datasets-server and consider the parquet export doesn't exist
+                    logger.debug(f"No parquet export for {path} available ({type(e).__name__}: {e})")
+                if exported_parquet_files is not None:
+                    try:
+                        info_response = http_get(
+                            url=datasets_server_info_url + path,
+                            temp_file=None,
+                            headers=get_authentication_headers_for_url(config.HF_ENDPOINT + f"datasets/{path}"),
+                            timeout=100.0,
+                            max_retries=3,
+                        )
+                        info_response.raise_for_status()
+                        if "X-Revision" in info_response.headers:
+                            if info_response.headers["X-Revision"] == dataset_info.sha:
+                                info_response = info_response.json()
+                                if (
+                                    info_response.get("partial") is False
+                                    and not info_response.get("pending", True)
+                                    and not info_response.get("failed", True)
+                                    and "dataset_info" in info_response
+                                ):
+                                    exported_dataset_infos: Dict[str, Dict[str, Any]] = info_response["dataset_info"]
+                                else:
+                                    logger.debug(f"Dataset info for {path} is not completely ready yet.")
+                            else:
+                                logger.debug(
+                                    f"Dataset info for {path} is available but outdated (revision='{info_response.headers['X-Revision']}')"
+                                )
+                    except (
+                        Exception
+                    ) as e:  # noqa catch any exception of the datasets-server and consider the dataset info doesn't exist
+                        logger.debug(f"No dataset info for {path} available ({type(e).__name__}: {e})")
+
+                # If the parquet export is ready (parquet files + info available), we can use it
+                if exported_parquet_files is not None and exported_dataset_infos is not None:
+                    return HubDatasetModuleFactoryWithParquetExport(
+                        path,
+                        exported_dataset_infos=exported_dataset_infos,
+                        exported_parquet_files=exported_parquet_files,
+                        download_config=download_config,
+                    ).get_module()
+                else:  # Otherwise we must use the dataset script if the user trusts it
+                    trust_remote_code = resolve_trust_remote_code(trust_remote_code, path)
+                    if trust_remote_code:
+                        return HubDatasetModuleFactoryWithScript(
+                            path,
+                            revision=revision,
+                            download_config=download_config,
+                            download_mode=download_mode,
+                            dynamic_modules_path=dynamic_modules_path,
+                            trust_remote_code=trust_remote_code,
+                        ).get_module()
+                    else:
+                        raise ValueError(
+                            f"Loading {path} requires you to execute the dataset script in that"
+                            " repo on your local machine. Make sure you have read the code there to avoid malicious use, then"
+                            " set the option `trust_remote_code=True` to remove this error."
+                        )
             else:
                 return HubDatasetModuleFactoryWithoutScript(
                     path,

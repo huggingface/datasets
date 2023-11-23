@@ -335,6 +335,8 @@ def resolve_pattern(
     Returns:
         List[str]: List of paths or URLs to the local or remote files that match the patterns.
     """
+    if pattern.startswith(config.HF_ENDPOINT) and not has_magic(pattern):
+        return ["hf://" + pattern[len(config.HF_ENDPOINT) + 1 :].replace("/resolve/", "@", 1)]
     if is_relative_path(pattern):
         pattern = xjoin(base_path, pattern)
     elif is_local_path(pattern):
