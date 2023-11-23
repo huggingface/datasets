@@ -1,6 +1,5 @@
 import copy
 import os
-import tempfile
 import warnings
 from functools import partial
 from itertools import groupby
@@ -186,35 +185,6 @@ class Table(IndexedTableMixin):
         # same for the recordbatches used by the index
         memo[id(self._batches)] = list(self._batches)
         return _deepcopy(self, memo)
-
-    def __getstate__(self):
-        # We can't pickle objects that are bigger than 4GiB, or it causes OverflowError
-        # So we write the table on disk instead
-        if self.table.nbytes >= config.MAX_TABLE_NBYTES_FOR_PICKLING:
-            table = self.table
-            with tempfile.NamedTemporaryFile("wb", delete=False, suffix=".arrow") as tmp_file:
-                filename = tmp_file.name
-                logger.debug(
-                    f"Attempting to pickle a table bigger than 4GiB. Writing it on the disk instead at {filename}"
-                )
-                _write_table_to_file(table=table, filename=filename)
-                return {"path": filename}
-        else:
-            return {"table": self.table}
-
-    def __setstate__(self, state):
-        if "path" in state:
-            filename = state["path"]
-            logger.debug(f"Unpickling a big table from the disk at {filename}")
-            table = _in_memory_arrow_table_from_file(filename)
-            try:
-                logger.debug(f"Removing temporary table file at {filename}")
-                os.remove(filename)
-            except FileNotFoundError:
-                logger.debug(f"Try to remove temporary table file at {filename}, but not found it")
-        else:
-            table = state["table"]
-        Table.__init__(self, table)
 
     def validate(self, *args, **kwargs):
         """
