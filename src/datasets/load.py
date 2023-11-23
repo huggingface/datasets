@@ -857,6 +857,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             patterns = sanitize_patterns(next(iter(metadata_configs.values()))["data_files"])
         else:
             patterns = get_data_patterns(base_path)
+        # import pdb; pdb.set_trace()
         data_files = DataFilesDict.from_patterns(
             patterns,
             base_path=base_path,
@@ -869,7 +870,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         data_files = data_files.filter_extensions(_MODULE_TO_EXTENSIONS[module_name])
         # Collect metadata files if the module supports them
         supports_metadata = module_name in _MODULE_SUPPORTS_METADATA
-        if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
+        if self.data_files is None and supports_metadata:
             try:
                 metadata_patterns = get_metadata_patterns(base_path)
             except FileNotFoundError:
@@ -961,7 +962,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
             base_path=base_path,
         )
         supports_metadata = self.name in _MODULE_SUPPORTS_METADATA
-        if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
+        if self.data_files is None and supports_metadata:
             try:
                 metadata_patterns = get_metadata_patterns(base_path)
             except FileNotFoundError:
@@ -1059,7 +1060,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         data_files = data_files.filter_extensions(_MODULE_TO_EXTENSIONS[module_name])
         # Collect metadata files if the module supports them
         supports_metadata = module_name in _MODULE_SUPPORTS_METADATA
-        if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
+        if self.data_files is None and supports_metadata:
             try:
                 metadata_patterns = get_metadata_patterns(base_path)
             except FileNotFoundError:

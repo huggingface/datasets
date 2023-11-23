@@ -86,6 +86,7 @@ SAMPLE_DATASET_IDENTIFIER = "hf-internal-testing/dataset_with_script"  # has dat
 SAMPLE_DATASET_IDENTIFIER2 = "hf-internal-testing/dataset_with_data_files"  # only has data files
 SAMPLE_DATASET_IDENTIFIER3 = "hf-internal-testing/multi_dir_dataset"  # has multiple data directories
 SAMPLE_DATASET_IDENTIFIER4 = "hf-internal-testing/imagefolder_with_metadata"  # imagefolder with a metadata file outside of the train/test directories
+SAMPLE_DATASET_IDENTIFIER5 = "hf-internal-testing/imagefolder_with_metadata_no_splits"  # imagefolder with a metadata file and no default split names in data files
 SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER = "hf-internal-testing/_dummy"
 SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST = "_dummy"
 SAMPLE_DATASET_NO_CONFIGS_IN_METADATA = "hf-internal-testing/audiofolder_no_configs_in_metadata"
@@ -628,6 +629,22 @@ class ModuleFactoryTest(TestCase):
         assert any(
             Path(data_file).name == "metadata.jsonl"
             for data_file in module_factory_result.builder_kwargs["data_files"]["test"]
+        )
+
+        factory = HubDatasetModuleFactoryWithoutScript(
+            SAMPLE_DATASET_IDENTIFIER5, download_config=self.download_config
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
+        assert (
+            module_factory_result.builder_kwargs["data_files"] is not None
+            and len(module_factory_result.builder_kwargs["data_files"]) == 1
+            and len(module_factory_result.builder_kwargs["data_files"]["train"]) > 0
+        )
+        assert any(
+            Path(data_file).name == "metadata.jsonl"
+            for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
         )
 
     @pytest.mark.integration
