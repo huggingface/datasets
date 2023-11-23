@@ -66,16 +66,6 @@ def _memory_mapped_arrow_table_from_file(filename: str) -> pa.Table:
     return pa_table
 
 
-def _write_table_to_file(table: pa.Table, filename: str) -> int:
-    with open(filename, "wb") as sink:
-        writer = pa.RecordBatchStreamWriter(sink=sink, schema=table.schema)
-        batches: List[pa.RecordBatch] = table.to_batches()
-        for batch in batches:
-            writer.write_batch(batch)
-        writer.close()
-        return sum(batch.nbytes for batch in batches)
-
-
 def _deepcopy(x, memo: dict):
     """deepcopy a regular class instance"""
     cls = x.__class__

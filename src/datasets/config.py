@@ -177,10 +177,6 @@ DEFAULT_MAX_BATCH_SIZE = 1000
 # Size of the preloaded record batch in `Dataset.__iter__`
 ARROW_READER_BATCH_SIZE_IN_DATASET_ITER = 10
 
-# Pickling tables works only for small tables (<4GiB)
-# For big tables, we write them on disk instead
-MAX_TABLE_NBYTES_FOR_PICKLING = 4 << 30
-
 # Max shard size in bytes (e.g. to shard parquet datasets in push_to_hub or download_and_prepare)
 MAX_SHARD_SIZE = "500MB"
 
@@ -237,3 +233,6 @@ PBAR_REFRESH_TIME_INTERVAL = 0.05  # 20 progress updates per sec
 
 # Maximum number of uploaded files per commit
 UPLOADS_MAX_NUMBER_PER_COMMIT = 50
+
+# Backward compatibiliy
+MAX_TABLE_NBYTES_FOR_PICKLING = 4 << 30
