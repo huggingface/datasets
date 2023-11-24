@@ -869,7 +869,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         data_files = data_files.filter_extensions(_MODULE_TO_EXTENSIONS[module_name])
         # Collect metadata files if the module supports them
         supports_metadata = module_name in _MODULE_SUPPORTS_METADATA
-        if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
+        if self.data_files is None and supports_metadata:
             try:
                 metadata_patterns = get_metadata_patterns(base_path)
             except FileNotFoundError:
@@ -1059,7 +1059,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         data_files = data_files.filter_extensions(_MODULE_TO_EXTENSIONS[module_name])
         # Collect metadata files if the module supports them
         supports_metadata = module_name in _MODULE_SUPPORTS_METADATA
-        if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
+        if self.data_files is None and supports_metadata:
             try:
                 metadata_patterns = get_metadata_patterns(base_path)
             except FileNotFoundError:
