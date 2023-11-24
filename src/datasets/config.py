@@ -174,11 +174,12 @@ HF_UPDATE_DOWNLOAD_COUNTS = (
 )
 
 # Remote dataset scripts support
-TRUST_REMOTE_CODE: Optional[bool] = (
+__HF_DATASETS_DEFAULT_TRUST_REMOTE_CODE = os.environ.get("HF_DATASETS_DEFAULT_TRUST_REMOTE_CODE", "1")
+HF_DATASETS_DEFAULT_TRUST_REMOTE_CODE: Optional[bool] = (
     True
-    if os.environ.get("HF_TRUST_REMOTE_CODE", "AUTO").upper() in ENV_VARS_TRUE_AND_AUTO_VALUES
+    if __HF_DATASETS_DEFAULT_TRUST_REMOTE_CODE.upper() in ENV_VARS_TRUE_VALUES
     else False
-    if os.environ.get("HF_TRUST_REMOTE_CODE", "AUTO").upper() in ENV_VARS_FALSE_VALUES
+    if __HF_DATASETS_DEFAULT_TRUST_REMOTE_CODE.upper() in ENV_VARS_FALSE_VALUES
     else None
 )
 TIME_OUT_REMOTE_CODE = 15
