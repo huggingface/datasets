@@ -1603,7 +1603,7 @@ def dataset_module_factory(
 
             </Tip>
 
-            <Added version="2.15.0"/>
+            <Added version="2.16.0"/>
         **download_kwargs (additional keyword arguments): optional attributes for DownloadConfig() which will override
             the attributes in download_config if supplied.
 
@@ -1795,7 +1795,7 @@ def metric_module_factory(
 
             </Tip>
 
-            <Added version="2.15.0"/>
+            <Added version="2.16.0"/>
         **download_kwargs (additional keyword arguments): optional attributes for DownloadConfig() which will override
             the attributes in download_config if supplied.
 
@@ -1911,7 +1911,7 @@ def load_metric(
 
             </Tip>
 
-            <Added version="2.15.0"/>
+            <Added version="2.16.0"/>
 
     Returns:
         `datasets.Metric`
@@ -2052,7 +2052,7 @@ def load_dataset_builder(
 
             </Tip>
 
-            <Added version="2.15.0"/>
+            <Added version="2.16.0"/>
         **config_kwargs (additional keyword arguments):
             Keyword arguments to be passed to the [`BuilderConfig`]
             and used in the [`DatasetBuilder`].
@@ -2313,7 +2313,7 @@ def load_dataset(
 
             </Tip>
 
-            <Added version="2.15.0"/>
+            <Added version="2.16.0"/>
         **config_kwargs (additional keyword arguments):
             Keyword arguments to be passed to the `BuilderConfig`
             and used in the [`DatasetBuilder`].
