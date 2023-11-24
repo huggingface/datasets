@@ -80,9 +80,11 @@ You may have a 🤗 Datasets loading script locally on your computer. In this ca
 - The local path to the loading script file.
 - The local path to the directory containing the loading script file (only if the script file has the same name as the directory).
 
+Pass `trust_remote_code=True` to allow 🤗 Datasets to execute the loading script:
+
 ```py
->>> dataset = load_dataset("path/to/local/loading_script/loading_script.py", split="train")
->>> dataset = load_dataset("path/to/local/loading_script", split="train")  # equivalent because the file has the same name as the directory
+>>> dataset = load_dataset("path/to/local/loading_script/loading_script.py", split="train", trust_remote_code=True)
+>>> dataset = load_dataset("path/to/local/loading_script", split="train", trust_remote_code=True)  # equivalent because the file has the same name as the directory
 ```
 
 ### Edit loading script
@@ -234,7 +236,7 @@ In this case, each process is given a subset of shards to prepare:
 ```python
 from datasets import load_dataset
 
-oscar_afrikaans = load_dataset("oscar-corpus/OSCAR-2201", "af", num_proc=8)
+oscar_afrikaans = load_dataset("oscar-corpus/OSCAR-2201", "af", num_proc=8, trust_remote_code=True)
 imagenet = load_dataset("imagenet-1k", num_proc=8)
 ml_librispeech_spanish = load_dataset("facebook/multilingual_librispeech", "spanish", num_proc=8)
 ```

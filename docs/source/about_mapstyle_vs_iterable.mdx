@@ -138,7 +138,7 @@ But using a shuffle buffer is not enough to provide a satisfactory shuffling for
 
 ```python
 # Stream from the internet
-my_iterable_dataset = load_dataset("c4", "en", split="train", streaming=True)
+my_iterable_dataset = load_dataset("c4", "en", split="train", streaming=True, trust_remote_code=True)
 my_iterable_dataset.n_shards  # 1024
 
 # Stream from local files
