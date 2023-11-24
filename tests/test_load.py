@@ -39,6 +39,7 @@ from datasets.load import (
     infer_module_for_data_files_list,
     infer_module_for_data_files_list_in_archives,
     load_dataset_builder,
+    resolve_trust_remote_code,
 )
 from datasets.packaged_modules.audiofolder.audiofolder import AudioFolder, AudioFolderConfig
 from datasets.packaged_modules.imagefolder.imagefolder import ImageFolder, ImageFolderConfig
@@ -1497,3 +1498,8 @@ def test_load_dataset_without_script_with_zip(zip_csv_path):
     assert ds["train"].column_names == ["col_1", "col_2", "col_3"]
     assert ds["train"].num_rows == 8
     assert ds["train"][0] == {"col_1": 0, "col_2": 0, "col_3": 0.0}
+
+
+@pytest.mark.parametrize("trust_remote_code, expected", [(False, False), (True, True), (None, True)])
+def test_resolve_trust_remote_code(trust_remote_code, expected):
+    assert resolve_trust_remote_code(trust_remote_code, repo_id="dummy") is expected
