@@ -102,7 +102,7 @@ def resolve_trust_remote_code(trust_remote_code: Optional[bool], repo_id: str) -
     https://github.com/huggingface/transformers/blob/2098d343cc4b4b9d2aea84b3cf1eb5a1e610deff/src/transformers/dynamic_module_utils.py#L589
     """
     trust_remote_code = (
-        trust_remote_code if trust_remote_code is not None else config.HF_DATASETS_DEFAULT_TRUST_REMOTE_CODE
+        trust_remote_code if trust_remote_code is not None else config.HF_DATASETS_TRUST_REMOTE_CODE_DEFAULT
     )
     if trust_remote_code is None:
         if config.TIME_OUT_REMOTE_CODE > 0:
@@ -758,7 +758,7 @@ class GithubMetricModuleFactory(_MetricModuleFactory):
         return cached_path(file_path, download_config=download_config)
 
     def get_module(self) -> MetricModule:
-        if config.HF_DATASETS_DEFAULT_TRUST_REMOTE_CODE and self.trust_remote_code is None:
+        if config.HF_DATASETS_TRUST_REMOTE_CODE_DEFAULT and self.trust_remote_code is None:
             _loading_script_url = hf_github_url(
                 path=self.name, name=self.name + ".py", revision=revision, dataset=False
             )
@@ -857,7 +857,7 @@ class LocalMetricModuleFactory(_MetricModuleFactory):
         self.trust_remote_code = trust_remote_code
 
     def get_module(self) -> MetricModule:
-        if config.HF_DATASETS_DEFAULT_TRUST_REMOTE_CODE and self.trust_remote_code is None:
+        if config.HF_DATASETS_TRUST_REMOTE_CODE_DEFAULT and self.trust_remote_code is None:
             warnings.warn(
                 f"The repository for {self.name} contains custom code which must be executed to correctly "
                 f"load the metric. You can inspect the repository content at {self.path}\n"
@@ -931,7 +931,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         self.trust_remote_code = trust_remote_code
 
     def get_module(self) -> DatasetModule:
-        if config.HF_DATASETS_DEFAULT_TRUST_REMOTE_CODE and self.trust_remote_code is None:
+        if config.HF_DATASETS_TRUST_REMOTE_CODE_DEFAULT and self.trust_remote_code is None:
             warnings.warn(
                 f"The repository for {self.name} contains custom code which must be executed to correctly "
                 f"load the dataset. You can inspect the repository content at {self.path}\n"
@@ -1368,7 +1368,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
             return None
 
     def get_module(self) -> DatasetModule:
-        if config.HF_DATASETS_DEFAULT_TRUST_REMOTE_CODE and self.trust_remote_code is None:
+        if config.HF_DATASETS_TRUST_REMOTE_CODE_DEFAULT and self.trust_remote_code is None:
             warnings.warn(
                 f"The repository for {self.name} contains custom code which must be executed to correctly "
                 f"load the dataset. You can inspect the repository content at https://hf.co/datasets/{self.name}\n"
