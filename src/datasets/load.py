@@ -760,7 +760,7 @@ class GithubMetricModuleFactory(_MetricModuleFactory):
     def get_module(self) -> MetricModule:
         if config.HF_DATASETS_TRUST_REMOTE_CODE_DEFAULT and self.trust_remote_code is None:
             _loading_script_url = hf_github_url(
-                path=self.name, name=self.name + ".py", revision=revision, dataset=False
+                path=self.name, name=self.name + ".py", revision=self.revision, dataset=False
             )
             warnings.warn(
                 f"The repository for {self.name} contains custom code which must be executed to correctly "
