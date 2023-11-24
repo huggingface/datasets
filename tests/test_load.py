@@ -380,6 +380,21 @@ class ModuleFactoryTest(TestCase):
             hf_modules_cache=self.hf_modules_cache,
         )
 
+    def test_HubDatasetModuleFactoryWithScript_dont_trust_remote_code(self):
+        # "squad" has a dataset script
+        factory = HubDatasetModuleFactoryWithScript(
+            "squad", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+        )
+        with patch.object(config, "HF_DATASETS_TRUST_REMOTE_CODE_DEFAULT", None):  # this will be the default soon
+            self.assertRaises(ValueError, factory.get_module)
+        factory = HubDatasetModuleFactoryWithScript(
+            "squad",
+            download_config=self.download_config,
+            dynamic_modules_path=self.dynamic_modules_path,
+            trust_remote_code=False,
+        )
+        self.assertRaises(ValueError, factory.get_module)
+
     def test_HubDatasetModuleFactoryWithScript_with_github_dataset(self):
         # "wmt_t2t" has additional imports (internal)
         factory = HubDatasetModuleFactoryWithScript(
@@ -422,6 +437,21 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
         assert os.path.isdir(module_factory_result.builder_kwargs["base_path"])
+
+    def test_LocalDatasetModuleFactoryWithScript_dont_trust_remote_code(self):
+        path = os.path.join(self._dataset_loading_script_dir, f"{DATASET_LOADING_SCRIPT_NAME}.py")
+        factory = LocalDatasetModuleFactoryWithScript(
+            path, download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+        )
+        with patch.object(config, "HF_DATASETS_TRUST_REMOTE_CODE_DEFAULT", None):  # this will be the default soon
+            self.assertRaises(ValueError, factory.get_module)
+        factory = LocalDatasetModuleFactoryWithScript(
+            path,
+            download_config=self.download_config,
+            dynamic_modules_path=self.dynamic_modules_path,
+            trust_remote_code=False,
+        )
+        self.assertRaises(ValueError, factory.get_module)
 
     def test_LocalDatasetModuleFactoryWithoutScript(self):
         factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir)
