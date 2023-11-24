@@ -97,7 +97,13 @@ def _raise_timeout_error(signum, frame):
 
 
 def resolve_trust_remote_code(trust_remote_code: Optional[bool], repo_id: str) -> bool:
-    trust_remote_code = trust_remote_code if trust_remote_code is not None else config.TRUST_REMOTE_CODE
+    """
+    Copied and adapted from Transformers
+    https://github.com/huggingface/transformers/blob/2098d343cc4b4b9d2aea84b3cf1eb5a1e610deff/src/transformers/dynamic_module_utils.py#L589
+    """
+    trust_remote_code = (
+        trust_remote_code if trust_remote_code is not None else config.HF_DATASETS_DEFAULT_TRUST_REMOTE_CODE
+    )
     if trust_remote_code is None:
         if config.TIME_OUT_REMOTE_CODE > 0:
             try:
@@ -752,6 +758,17 @@ class GithubMetricModuleFactory(_MetricModuleFactory):
         return cached_path(file_path, download_config=download_config)
 
     def get_module(self) -> MetricModule:
+        if config.HF_DATASETS_DEFAULT_TRUST_REMOTE_CODE and self.trust_remote_code is None:
+            _loading_script_url = hf_github_url(
+                path=self.name, name=self.name + ".py", revision=revision, dataset=False
+            )
+            warnings.warn(
+                f"The repository for {self.name} contains custom code which must be executed to correctly "
+                f"load the metric. You can inspect the repository content at {_loading_script_url}\n"
+                f"You can avoid this message in future by passing the argument `trust_remote_code=True`.\n"
+                f"Passing `trust_remote_code=True` will be mandatory to load this metric from the next major release of `datasets`.",
+                FutureWarning,
+            )
         # get script and other files
         revision = self.revision
         try:
@@ -840,6 +857,14 @@ class LocalMetricModuleFactory(_MetricModuleFactory):
         self.trust_remote_code = trust_remote_code
 
     def get_module(self) -> MetricModule:
+        if config.HF_DATASETS_DEFAULT_TRUST_REMOTE_CODE and self.trust_remote_code is None:
+            warnings.warn(
+                f"The repository for {self.name} contains custom code which must be executed to correctly "
+                f"load the metric. You can inspect the repository content at {self.path}\n"
+                f"You can avoid this message in future by passing the argument `trust_remote_code=True`.\n"
+                f"Passing `trust_remote_code=True` will be mandatory to load this metric from the next major release of `datasets`.",
+                FutureWarning,
+            )
         # get script and other files
         imports = get_imports(self.path)
         local_imports = _download_additional_modules(
@@ -906,6 +931,14 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         self.trust_remote_code = trust_remote_code
 
     def get_module(self) -> DatasetModule:
+        if config.HF_DATASETS_DEFAULT_TRUST_REMOTE_CODE and self.trust_remote_code is None:
+            warnings.warn(
+                f"The repository for {self.name} contains custom code which must be executed to correctly "
+                f"load the dataset. You can inspect the repository content at {self.path}\n"
+                f"You can avoid this message in future by passing the argument `trust_remote_code=True`.\n"
+                f"Passing `trust_remote_code=True` will be mandatory to load this dataset from the next major release of `datasets`.",
+                FutureWarning,
+            )
         # get script and other files
         dataset_infos_path = Path(self.path).parent / config.DATASETDICT_INFOS_FILENAME
         dataset_readme_path = Path(self.path).parent / "README.md"
@@ -1335,6 +1368,14 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
             return None
 
     def get_module(self) -> DatasetModule:
+        if config.HF_DATASETS_DEFAULT_TRUST_REMOTE_CODE and self.trust_remote_code is None:
+            warnings.warn(
+                f"The repository for {self.name} contains custom code which must be executed to correctly "
+                f"load the dataset. You can inspect the repository content at https://hf.co/datasets/{self.name}\n"
+                f"You can avoid this message in future by passing the argument `trust_remote_code=True`.\n"
+                f"Passing `trust_remote_code=True` will be mandatory to load this dataset from the next major release of `datasets`.",
+                FutureWarning,
+            )
         # get script and other files
         local_path = self.download_loading_script()
         dataset_infos_path = self.download_dataset_infos_file()
