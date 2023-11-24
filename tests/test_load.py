@@ -1503,3 +1503,13 @@ def test_load_dataset_without_script_with_zip(zip_csv_path):
 @pytest.mark.parametrize("trust_remote_code, expected", [(False, False), (True, True), (None, True)])
 def test_resolve_trust_remote_code(trust_remote_code, expected):
     assert resolve_trust_remote_code(trust_remote_code, repo_id="dummy") is expected
+
+
+@pytest.mark.parametrize("trust_remote_code, expected", [(False, False), (True, True), (None, ValueError)])
+def test_resolve_trust_remote_code_future(trust_remote_code, expected):
+    with patch.object(config, "HF_DATASETS_TRUST_REMOTE_CODE_DEFAULT", None):  # this will be the default soon
+        if isinstance(expected, bool):
+            resolve_trust_remote_code(trust_remote_code, repo_id="dummy") is expected
+        else:
+            with pytest.raises(expected):
+                resolve_trust_remote_code(trust_remote_code, repo_id="dummy")
