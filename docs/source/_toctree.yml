@@ -121,8 +121,8 @@
     title: Loading methods
   - local: package_reference/table_classes
     title: Table Classes
-  - local: package_reference/logging_methods
-    title: Logging methods
+  - local: package_reference/utilities
+    title: Utilities
   - local: package_reference/task_templates
     title: Task templates
   title: "Reference"

@@ -3066,9 +3066,7 @@ class MiscellaneousDatasetTest(TestCase):
                 cache_file_name=os.path.join(tmp_dir, "d1.arrow")
             ) as dset1, Dataset.from_dict(data2, info=info2).map(
                 cache_file_name=os.path.join(tmp_dir, "d2.arrow")
-            ) as dset2, Dataset.from_dict(
-                data3
-            ) as dset3:
+            ) as dset2, Dataset.from_dict(data3) as dset3:
                 with concatenate_datasets([dset1, dset2, dset3]) as concatenated_dset:
                     self.assertEqual(len(concatenated_dset), len(dset1) + len(dset2) + len(dset3))
                     self.assertListEqual(concatenated_dset["id"], dset1["id"] + dset2["id"] + dset3["id"])

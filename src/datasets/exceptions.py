@@ -5,10 +5,23 @@
 class DatasetsError(Exception):
     """Base class for exceptions in this library."""
 
-    pass
-
 
 class DefunctDatasetError(DatasetsError):
     """The dataset has been defunct."""
 
-    pass
+
+class FileNotFoundDatasetsError(DatasetsError, FileNotFoundError):
+    """FileNotFoundError raised by this library."""
+
+
+class DataFilesNotFoundError(FileNotFoundDatasetsError):
+    """No (supported) data files found."""
+
+
+class DatasetNotFoundError(FileNotFoundDatasetsError):
+    """Dataset not found.
+
+    Raised when trying to access:
+    - a missing dataset, or
+    - a private/gated dataset and the user is not authenticated.
+    """

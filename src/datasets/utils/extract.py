@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Type, Union
 
 from .. import config
-from .filelock import FileLock
+from ._filelock import FileLock
 from .logging import get_logger
 
 

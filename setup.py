@@ -108,6 +108,8 @@ from setuptools import find_packages, setup
 
 
 REQUIRED_PKGS = [
+    # For file locking
+    "filelock",
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
     # Backend and serialization.
@@ -216,7 +218,7 @@ METRICS_TESTS_REQUIRE = [
 TESTS_REQUIRE.extend(VISION_REQUIRE)
 TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
-QUALITY_REQUIRE = ["black~=23.1", "ruff>=0.0.241", "pyyaml>=5.3.1"]
+QUALITY_REQUIRE = ["ruff>=0.1.5"]
 
 DOCS_REQUIRE = [
     # Might need to add doc-builder and some specific deps in the future
