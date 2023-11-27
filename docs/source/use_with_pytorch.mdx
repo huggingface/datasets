@@ -205,9 +205,9 @@ An iterable dataset from `datasets` inherits from `torch.utils.data.IterableData
 If the dataset is split in several shards (i.e. if the dataset consists of multiple data files), then you can stream in parallel using `num_workers`:
 
 ```py
->>> my_iterable_dataset = load_dataset("c4", "en", streaming=True, split="train", trust_remote_code=True)
+>>> my_iterable_dataset = load_dataset("deepmind/code_contests", streaming=True, split="train")
 >>> my_iterable_dataset.n_shards
-1024
+39
 >>> dataloader = DataLoader(my_iterable_dataset, batch_size=32, num_workers=4)
 ```
 
