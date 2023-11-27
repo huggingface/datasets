@@ -243,8 +243,8 @@ To load remote WebDatasets via HTTP, pass the URLs instead:
 ```python
 >>> from datasets import load_dataset
 >>>
->>> base_url = "http://storage.googleapis.com/nvdata-openimages/openimages-train-{i:06d}.tar"
->>> urls = [base_url.format(i=i) for i in range(10)]
+>>> base_url = "https://huggingface.co/datasets/lhoestq/small-publaynet-wds/resolve/main/publaynet-train-{i:06d}.tar"
+>>> urls = [base_url.format(i=i) for i in range(4)]
 >>> dataset = load_dataset("webdataset", data_files={"train": urls}, split="train", streaming=True)
 ```
 
