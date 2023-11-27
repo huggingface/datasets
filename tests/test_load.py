@@ -386,7 +386,7 @@ class ModuleFactoryTest(TestCase):
         factory = HubDatasetModuleFactoryWithScript(
             "squad", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
         )
-        with patch.object(config, "HF_DATASETS_TRUST_REMOTE_CODE_DEFAULT", None):  # this will be the default soon
+        with patch.object(config, "HF_DATASETS_TRUST_REMOTE_CODE", None):  # this will be the default soon
             self.assertRaises(ValueError, factory.get_module)
         factory = HubDatasetModuleFactoryWithScript(
             "squad",
@@ -444,7 +444,7 @@ class ModuleFactoryTest(TestCase):
         factory = LocalDatasetModuleFactoryWithScript(
             path, download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
         )
-        with patch.object(config, "HF_DATASETS_TRUST_REMOTE_CODE_DEFAULT", None):  # this will be the default soon
+        with patch.object(config, "HF_DATASETS_TRUST_REMOTE_CODE", None):  # this will be the default soon
             self.assertRaises(ValueError, factory.get_module)
         factory = LocalDatasetModuleFactoryWithScript(
             path,
@@ -1507,7 +1507,7 @@ def test_resolve_trust_remote_code(trust_remote_code, expected):
 
 @pytest.mark.parametrize("trust_remote_code, expected", [(False, False), (True, True), (None, ValueError)])
 def test_resolve_trust_remote_code_future(trust_remote_code, expected):
-    with patch.object(config, "HF_DATASETS_TRUST_REMOTE_CODE_DEFAULT", None):  # this will be the default soon
+    with patch.object(config, "HF_DATASETS_TRUST_REMOTE_CODE", None):  # this will be the default soon
         if isinstance(expected, bool):
             resolve_trust_remote_code(trust_remote_code, repo_id="dummy") is expected
         else:
