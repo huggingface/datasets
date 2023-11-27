@@ -226,10 +226,10 @@ For more details, check out the [how to load tabular datasets from SQL databases
 
 ### WebDataset
 
-The [Webdataset](https://github.com/webdataset/webdataset) format is based on TAR archives and is suitable for big image datasets.
-Because of their size, Webdatasets are generally loaded in streaming mode (using `streaming=True`).
+The [WebDataset](https://github.com/webdataset/webdataset) format is based on TAR archives and is suitable for big image datasets.
+Because of their size, WebDatasets are generally loaded in streaming mode (using `streaming=True`).
 
-If you have `webdataset` installed you can load a Webdataset like this:
+You can load a WebDataset like this:
 
 ```python
 >>> from datasets import load_dataset
@@ -238,7 +238,7 @@ If you have `webdataset` installed you can load a Webdataset like this:
 >>> dataset = load_dataset("webdataset", data_files={"train": path}, split="train", streaming=True)
 ```
 
-To load remote Webdatasets via HTTP, pass the URLs instead:
+To load remote WebDatasets via HTTP, pass the URLs instead:
 
 ```python
 >>> from datasets import load_dataset

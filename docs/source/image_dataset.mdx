@@ -150,7 +150,7 @@ Upload your dataset with [`~datasets.DatasetDict.push_to_hub`]:
 
 ## WebDataset
 
-The [Webdataset](https://github.com/webdataset/webdataset) format is based on TAR archives and is suitable for big image datasets.
+The [WebDataset](https://github.com/webdataset/webdataset) format is based on TAR archives and is suitable for big image datasets.
 Indeed you can group your images in TAR archives (e.g. 1GB of images per TAR archive) and have thousands of TAR archives:
 
 ```
@@ -176,9 +176,9 @@ ed600d57fcee4f94.json
 
 You can put your images labels/captions/bounding boxes using JSON or text files for example.
 
-For more details on the Webdataset format and the python library, please check the [Webdataset documentation](https://webdataset.github.io/webdataset).
+For more details on the WebDataset format and the python library, please check the [WebDataset documentation](https://webdataset.github.io/webdataset).
 
-If you have `webdataset` installed, load your Webdataset and it will create on column per file suffix (here "jpg" and "json"):
+Load your WebDataset and it will create on column per file suffix (here "jpg" and "json"):
 
 ```python
 >>> from datasets import load_dataset

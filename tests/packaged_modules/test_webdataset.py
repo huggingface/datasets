@@ -3,7 +3,7 @@ import tarfile
 import pytest
 
 from datasets import DownloadManager, Features, Image, Value
-from datasets.packaged_modules.webdataset.webdataset import Webdataset
+from datasets.packaged_modules.webdataset.webdataset import WebDataset
 
 from ..utils import require_pil
 
@@ -33,7 +33,7 @@ def test_webdataset(tar_file):
     import PIL.Image
 
     data_files = {"train": [tar_file]}
-    webdataset = Webdataset(data_files=data_files)
+    webdataset = WebDataset(data_files=data_files)
     split_generators = webdataset._split_generators(DownloadManager())
     assert webdataset.info.features == Features(
         {
@@ -58,6 +58,6 @@ def test_webdataset(tar_file):
 
 def test_webdataset_errors_on_bad_file(bad_tar_file):
     data_files = {"train": [bad_tar_file]}
-    webdataset = Webdataset(data_files=data_files)
+    webdataset = WebDataset(data_files=data_files)
     with pytest.raises(ValueError):
         webdataset._split_generators(DownloadManager())

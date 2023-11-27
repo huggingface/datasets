@@ -12,7 +12,7 @@ import datasets
 logger = datasets.utils.logging.get_logger(__name__)
 
 
-class Webdataset(datasets.GeneratorBasedBuilder):
+class WebDataset(datasets.GeneratorBasedBuilder):
     DEFAULT_WRITER_BATCH_SIZE = 100
     IMAGE_EXTENSIONS: List[str]  # definition at the bottom of the script
     DECODERS: Dict[str, Callable[[Any], Any]]  # definition at the bottom of the script
@@ -69,7 +69,7 @@ class Webdataset(datasets.GeneratorBasedBuilder):
         first_examples = list(islice(pipeline, 5))
         if any(example.keys() != first_examples[0].keys() for example in first_examples):
             raise ValueError(
-                "The TAR archives of the dataset should be in Webdataset format, "
+                "The TAR archives of the dataset should be in WebDataset format, "
                 "but the files in the archive don't share the same prefix or the same types."
             )
         inferred_arrow_schema = pa.Table.from_pylist(first_examples[:1]).schema
@@ -172,7 +172,7 @@ IMAGE_EXTENSIONS = [
     "xbm",
     "xpm",
 ]
-Webdataset.IMAGE_EXTENSIONS = IMAGE_EXTENSIONS
+WebDataset.IMAGE_EXTENSIONS = IMAGE_EXTENSIONS
 
 
 def text_loads(data: bytes):
@@ -237,4 +237,4 @@ DECODERS = {
     "npz": npz_loads,
     "cbor": cbor_loads,
 }
-Webdataset.DECODERS = DECODERS
+WebDataset.DECODERS = DECODERS
