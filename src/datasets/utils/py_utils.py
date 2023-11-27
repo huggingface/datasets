@@ -43,6 +43,12 @@ from .. import config
 from ..parallel import parallel_map
 from . import logging
 from . import tqdm as hf_tqdm
+from ._dill import (  # noqa: F401 # imported for backward compatibility. TODO: remove in 3.0.0
+    Pickler,
+    dump,
+    dumps,
+    pklregister,
+)
 
 
 try:  # pragma: no branch
