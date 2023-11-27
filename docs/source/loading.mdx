@@ -236,7 +236,6 @@ In this case, each process is given a subset of shards to prepare:
 ```python
 from datasets import load_dataset
 
-oscar_afrikaans = load_dataset("oscar-corpus/OSCAR-2201", "af", num_proc=8, trust_remote_code=True)
 imagenet = load_dataset("imagenet-1k", num_proc=8)
 ml_librispeech_spanish = load_dataset("facebook/multilingual_librispeech", "spanish", num_proc=8)
 ```
