@@ -1,13 +1,12 @@
-import re
+import io
+import json
 from itertools import islice
-from typing import List
+from typing import Any, Callable, Dict, List
 
 import numpy as np
 import pyarrow as pa
-from packaging import version
 
 import datasets
-from datasets import config
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -16,51 +15,57 @@ logger = datasets.utils.logging.get_logger(__name__)
 class Webdataset(datasets.GeneratorBasedBuilder):
     DEFAULT_WRITER_BATCH_SIZE = 100
     IMAGE_EXTENSIONS: List[str]  # definition at the bottom of the script
-    ENABLED_BASIC_HANDLERS: List[str]  # definition at the bottom of the script
+    DECODERS: Dict[str, Callable[[Any], Any]]  # definition at the bottom of the script
 
-    def _basic_handlers(self, key, data):
-        if not config.WDS_AVAILABLE:
-            raise ImportError("Please install 'webdataset' to load this dataset.")
-
-        from webdataset.autodecode import decoders
-
-        extension = re.sub(r".*[.]", "", key)
-        if extension in decoders and extension in self.ENABLED_BASIC_HANDLERS:
-            return decoders[extension](data)
-        return None
+    def _get_pipeline_from_tar(self, tar_path, tar_iterator):
+        current_example = {}
+        for filename, f in tar_iterator:
+            if "." in filename:
+                example_key, field_name = filename.split(".", 1)
+                if current_example and current_example["__key__"] != example_key:
+                    yield current_example
+                    current_example = {}
+                current_example["__key__"] = example_key
+                current_example["__url__"] = tar_path
+                current_example[field_name.lower()] = f.read()
+                if field_name in self.DECODERS:
+                    current_example[field_name] = self.DECODERS[field_name](current_example[field_name])
+        if current_example:
+            yield current_example
 
     def _info(self) -> datasets.DatasetInfo:
         return datasets.DatasetInfo()
 
     def _split_generators(self, dl_manager):
         """We handle string, list and dicts in datafiles"""
-        if not config.WDS_AVAILABLE:
-            raise ImportError("Please install 'webdataset' to load this dataset.")
-
-        import webdataset as wds
-
-        # Use the extended `open` to read hf:// files
-        wds.gopen_schemes["hf"] = open
-
         # Download the data files
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
         data_files = dl_manager.download(self.config.data_files)
         if isinstance(data_files, (str, list, tuple)):
-            files = data_files
-            if isinstance(files, str):
-                files = [files]
-            return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": files})]
-        splits = []
-        for split_name, files in data_files.items():
-            if isinstance(files, str):
-                files = [files]
-            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
+            tar_paths = data_files
+            if isinstance(tar_paths, str):
+                tar_paths = [tar_paths]
+            tar_iterators = [dl_manager.iter_archive(tar_path) for tar_path in tar_paths]
+            splits = [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN, gen_kwargs={"tar_paths": tar_paths, "tar_iterators": tar_iterators}
+                )
+            ]
+        else:
+            splits = []
+            for split_name, tar_paths in data_files.items():
+                if isinstance(tar_paths, str):
+                    tar_paths = [tar_paths]
+                tar_iterators = [dl_manager.iter_archive(tar_path) for tar_path in tar_paths]
+                splits.append(
+                    datasets.SplitGenerator(
+                        name=split_name, gen_kwargs={"tar_paths": tar_paths, "tar_iterators": tar_iterators}
+                    )
+                )
 
         # Get one example to get the feature types
-        pipeline = wds.DataPipeline(
-            wds.SimpleShardList(files[:1]), wds.tarfile_to_samples(), wds.decode(post=[self._basic_handlers])
-        )
+        pipeline = self._get_pipeline_from_tar(tar_paths[0], tar_iterators[0])
         first_examples = list(islice(pipeline, 5))
         if any(example.keys() != first_examples[0].keys() for example in first_examples):
             raise ValueError(
@@ -71,32 +76,23 @@ class Webdataset(datasets.GeneratorBasedBuilder):
         features = datasets.Features.from_arrow_schema(inferred_arrow_schema)
 
         # Set Image types
-        for key in first_examples[0]:
-            extension = re.sub(r".*[.]", "", key)
+        for field_name in first_examples[0]:
+            extension = field_name.rsplit(".", 1)[-1]
             if extension in self.IMAGE_EXTENSIONS:
-                features[key] = datasets.Image()
+                features[field_name] = datasets.Image()
         self.info.features = features
 
         return splits
 
-    def _generate_examples(self, files):
-        if not config.WDS_AVAILABLE:
-            raise ImportError("Please install 'webdataset' to load this dataset.")
-
-        import webdataset as wds
-
-        image_keys = [key for key, feature in self.info.features.items() if isinstance(feature, datasets.Image)]
-
-        for file_idx, file in enumerate(files):
-            pipeline = wds.DataPipeline(
-                wds.SimpleShardList(file),
-                wds.tarfile_to_samples(),
-                wds.decode(post=[self._basic_handlers]),
-            )
-            for example_idx, example in enumerate(pipeline):
-                for key in image_keys:
-                    example[key] = {"path": example["__key__"] + "." + key, "bytes": example[key]}
-                yield f"{file_idx}_{example_idx}", example
+    def _generate_examples(self, tar_paths, tar_iterators):
+        image_field_names = [
+            field_name for field_name, feature in self.info.features.items() if isinstance(feature, datasets.Image)
+        ]
+        for tar_idx, (tar_path, tar_iterator) in enumerate(zip(tar_paths, tar_iterators)):
+            for example_idx, example in enumerate(self._get_pipeline_from_tar(tar_path, tar_iterator)):
+                for field_name in image_field_names:
+                    example[field_name] = {"path": example["__key__"] + "." + field_name, "bytes": example[field_name]}
+                yield f"{tar_idx}_{example_idx}", example
 
 
 # Obtained with:
@@ -179,6 +175,39 @@ IMAGE_EXTENSIONS = [
 Webdataset.IMAGE_EXTENSIONS = IMAGE_EXTENSIONS
 
 
+def text_loads(data: bytes):
+    return data.decode("utf-8")
+
+
+def tenbin_loads(data: bytes):
+    from . import tenbin
+
+    return tenbin.decode_buffer(data)
+
+
+def msgpack_loads(data: bytes):
+    import msgpack
+
+    return msgpack.unpackb(data)
+
+
+def npy_loads(data: bytes):
+    import numpy.lib.format
+
+    stream = io.BytesIO(data)
+    return numpy.lib.format.read_array(stream, allow_pickle=False)
+
+
+def npz_loads(data: bytes):
+    return np.load(io.BytesIO(data), allow_pickle=False)
+
+
+def cbor_loads(data: bytes):
+    import cbor
+
+    return cbor.loads(data)
+
+
 # Obtained by checking `decoders` in `webdataset.autodecode`
 # and removing unsafe extension decoders.
 # Removed Pickle decoders:
@@ -186,26 +215,26 @@ Webdataset.IMAGE_EXTENSIONS = IMAGE_EXTENSIONS
 # - "pickle": lambda data: pickle.loads(data)
 # Removed Torch decoders:
 # - "pth": lambda data: torch_loads(data)
-# Removed NumPy decoders for numpy < 1.16.3 (CVE-2019-6446):
+# Modified NumPy decoders to fix CVE-2019-6446 (add allow_pickle=False):
 # - "npy": npy_loads,
 # - "npz": lambda data: np.load(io.BytesIO(data)),
-ENABLED_BASIC_HANDLERS = [
-    "txt",
-    "text",
-    "transcript",
-    "cls",
-    "cls2",
-    "index",
-    "inx",
-    "id",
-    "json",
-    "jsn",
-    "ten",
-    "tb",
-    "mp",
-    "msg",
-    "cbor",
-]
-if version.parse(np.__version__) >= version.parse("1.16.3"):
-    ENABLED_BASIC_HANDLERS.extend(["npy", "npz"])
-Webdataset.ENABLED_BASIC_HANDLERS = ENABLED_BASIC_HANDLERS
+DECODERS = {
+    "txt": text_loads,
+    "text": text_loads,
+    "transcript": text_loads,
+    "cls": int,
+    "cls2": int,
+    "index": int,
+    "inx": int,
+    "id": int,
+    "json": json.loads,
+    "jsn": json.loads,
+    "ten": tenbin_loads,
+    "tb": tenbin_loads,
+    "mp": msgpack_loads,
+    "msg": msgpack_loads,
+    "npy": npy_loads,
+    "npz": npz_loads,
+    "cbor": cbor_loads,
+}
+Webdataset.DECODERS = DECODERS

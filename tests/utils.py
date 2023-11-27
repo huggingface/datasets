@@ -177,18 +177,6 @@ def require_pil(test_case):
     return test_case
 
 
-def require_wds(test_case):
-    """
-    Decorator marking a test that requires Webdataset.
-
-    These tests are skipped when Webdataset isn't installed.
-
-    """
-    if not config.WDS_AVAILABLE:
-        test_case = unittest.skip("test requires Webdataset")(test_case)
-    return test_case
-
-
 def require_transformers(test_case):
     """
     Decorator marking a test that requires transformers.

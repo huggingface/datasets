@@ -5,7 +5,7 @@ import pytest
 from datasets import DownloadManager, Features, Image, Value
 from datasets.packaged_modules.webdataset.webdataset import Webdataset
 
-from ..utils import require_pil, require_wds
+from ..utils import require_pil
 
 
 @pytest.fixture
@@ -29,7 +29,6 @@ def bad_tar_file(tmp_path, image_file, text_file):
 
 
 @require_pil
-@require_wds
 def test_webdataset(tar_file):
     import PIL.Image
 
@@ -57,7 +56,6 @@ def test_webdataset(tar_file):
     assert isinstance(decoded["jpg"], PIL.Image.Image)
 
 
-@require_wds
 def test_webdataset_errors_on_bad_file(bad_tar_file):
     data_files = {"train": [bad_tar_file]}
     webdataset = Webdataset(data_files=data_files)
