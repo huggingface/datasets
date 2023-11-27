@@ -16,6 +16,7 @@ class WebDataset(datasets.GeneratorBasedBuilder):
     DEFAULT_WRITER_BATCH_SIZE = 100
     IMAGE_EXTENSIONS: List[str]  # definition at the bottom of the script
     DECODERS: Dict[str, Callable[[Any], Any]]  # definition at the bottom of the script
+    NUM_EXAMPLES_FOR_FEATURES_INFERENCE = 5
 
     def _get_pipeline_from_tar(self, tar_path, tar_iterator):
         current_example = {}
@@ -66,7 +67,7 @@ class WebDataset(datasets.GeneratorBasedBuilder):
 
         # Get one example to get the feature types
         pipeline = self._get_pipeline_from_tar(tar_paths[0], tar_iterators[0])
-        first_examples = list(islice(pipeline, 5))
+        first_examples = list(islice(pipeline, self.NUM_EXAMPLES_FOR_FEATURES_INFERENCE))
         if any(example.keys() != first_examples[0].keys() for example in first_examples):
             raise ValueError(
                 "The TAR archives of the dataset should be in WebDataset format, "
