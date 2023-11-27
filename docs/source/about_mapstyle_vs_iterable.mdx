@@ -139,7 +139,7 @@ But using a shuffle buffer is not enough to provide a satisfactory shuffling for
 ```python
 # Stream from the internet
 my_iterable_dataset = load_dataset("deepmind/code_contests", split="train", streaming=True)
-my_iterable_dataset.n_shards  # 1024
+my_iterable_dataset.n_shards  # 39
 
 # Stream from local files
 data_files = {"train": [f"path/to/data_{i}.csv" for i in range(1024)]}
