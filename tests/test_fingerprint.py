@@ -3,7 +3,6 @@ import os
 import pickle
 import subprocess
 from functools import partial
-from hashlib import md5
 from pathlib import Path
 from tempfile import gettempdir
 from textwrap import dedent
@@ -275,20 +274,15 @@ class HashingTest(TestCase):
     @require_tiktoken
     def test_hash_tiktoken_encoding(self):
         import tiktoken
-        import cProfile, pstats
 
-        with cProfile.Profile() as profiler:
-            enc = tiktoken.get_encoding("gpt2")
-            hash1 = Hasher.hash(enc)
-            enc = tiktoken.get_encoding("r50k_base")
-            hash2 = Hasher.hash(enc)
-            enc = tiktoken.get_encoding("gpt2")
-            hash3 = Hasher.hash(enc)
-            self.assertEqual(hash1, hash3)
-            self.assertNotEqual(hash1, hash2)
-
-        stats = pstats.Stats(profiler).sort_stats("cumtime")
-        stats.print_stats()
+        enc = tiktoken.get_encoding("gpt2")
+        hash1 = Hasher.hash(enc)
+        enc = tiktoken.get_encoding("r50k_base")
+        hash2 = Hasher.hash(enc)
+        enc = tiktoken.get_encoding("gpt2")
+        hash3 = Hasher.hash(enc)
+        self.assertEqual(hash1, hash3)
+        self.assertNotEqual(hash1, hash2)
 
     @require_torch
     def test_hash_torch_tensor(self):
@@ -318,6 +312,47 @@ class HashingTest(TestCase):
         hash3 = Hasher.hash(nlp)
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)
+
+    @require_torch
+    def test_hash_torch_compiled_function(self):
+        import torch
+
+        def f(x):
+            return torch.sin(x) + torch.cos(x)
+
+        hash1 = Hasher.hash(f)
+        f = torch.compile(f)
+        hash2 = Hasher.hash(f)
+        self.assertEqual(hash1, hash2)
+
+    @require_torch
+    def test_hash_torch_compiled_module(self):
+        import torch
+        import torch.nn as nn
+        import torch.nn.functional as F
+
+        class Model(nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.conv1 = nn.Conv2d(1, 20, 5)
+                self.conv2 = nn.Conv2d(20, 20, 5)
+
+            def forward(self, x):
+                x = F.relu(self.conv1(x))
+                return F.relu(self.conv2(x))
+
+        m = Model()
+        m.conv1.weight.data.fill_(1.0)
+        hash1 = Hasher.hash(m)
+        m = torch.compile(m)
+        hash2 = Hasher.hash(m)
+        m = Model()
+        m.conv1.weight.data.fill_(1.0)
+        m = torch.compile(m)
+        hash3 = Hasher.hash(m)
+        self.assertEqual(hash1, hash2)
+        self.assertNotEqual(hash1, hash3)
+        self.assertNotEqual(hash2, hash3)
 
 
 @pytest.mark.integration

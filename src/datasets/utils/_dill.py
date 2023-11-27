@@ -11,12 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Extends `dill` to support pickling more types with more consistent pickle representation."""
+"""Extends `dill` to support pickling more types and make dumps more consistent."""
 import os
 import sys
-from importlib import import_module
 from io import BytesIO
-from types import CodeType
+from types import CodeType, FunctionType
 
 import dill
 from packaging import version
@@ -27,62 +26,66 @@ from .. import config
 class Pickler(dill.Pickler):
     dispatch = dill._dill.MetaCatchingDict(dill.Pickler.dispatch.copy())
 
-    _delayed_module_dispatch = {}
-    _reduce_subclasses_types = set()
-
     def save(self, obj, save_persistent_id=True):
-        # Register delayed dispatchers when the base module has been imported
-        modules = Pickler._delayed_module_dispatch & sys.modules.keys()
-        for module in modules:
-            attrs = Pickler._delayed_module_dispatch.pop(module)
-            for attr, func, reduce_subclasses in attrs:
-                *submodules, attr = attr.split(".")
-                t = getattr(import_module(".".join(submodules)), attr)
-                Pickler.dispatch[t] = func
-                if reduce_subclasses:
-                    Pickler._reduce_subclasses_types = (*Pickler._reduce_subclasses_types, t)
-
-        # Check if the object is a subclass of a type that has a "reduce_subclasses=True" reducer
         obj_type = type(obj)
-        # import pdb; pdb.set_trace()
-        if (
-            obj_type not in Pickler.dispatch
-            and Pickler._reduce_subclasses_types
-            and issubclass(obj_type, Pickler._reduce_subclasses_types)
-        ):
-            base_type = next(iter(t for t in obj_type.__mro__ if t in Pickler._reduce_subclasses_types))
-            Pickler.dispatch[obj_type] = Pickler.dispatch[base_type]
+        if obj_type not in self.dispatch:
+            if "regex" in sys.modules:
+                import regex  # type: ignore
 
+                if obj_type is regex.Pattern:
+                    pklregister(obj_type)(_save_regexPattern)
+            if "spacy" in sys.modules:
+                import spacy  # type: ignore
+
+                if issubclass(obj_type, spacy.Language):
+                    pklregister(obj_type)(_save_spacyLanguage)
+            if "tiktoken" in sys.modules:
+                import tiktoken  # type: ignore
+
+                if obj_type is tiktoken.Encoding:
+                    pklregister(obj_type)(_save_tiktokenEncoding)
+            if "torch" in sys.modules:
+                import torch  # type: ignore
+
+                if issubclass(obj_type, torch.Tensor):
+                    pklregister(obj_type)(_save_torchTensor)
+
+                # Unwrap `torch.compile`-ed modules
+                if issubclass(obj_type, torch.nn.Module):
+                    obj = getattr(obj, "_orig_mod", obj)
+            if "transformers" in sys.modules:
+                import transformers  # type: ignore
+
+                if issubclass(obj_type, transformers.PreTrainedTokenizerBase):
+                    pklregister(obj_type)(_save_transformersPreTrainedTokenizerBase)
+
+        # Unwrap `torch.compile`-ed functions
+        if obj_type is FunctionType:
+            obj = getattr(obj, "_torchdynamo_orig_callable", obj)
         dill.Pickler.save(self, obj, save_persistent_id=save_persistent_id)
 
-    # def _batch_setitems(self, items):
-    #     # Ignore the order of keys in a dict
-    #     try:
-    #         # Faster, but fails for unorderable elements
-    #         items = sorted(items)
-    #     except Exception:  # TypeError, decimal.InvalidOperation, etc.
-    #         from datasets.fingerprint import Hasher
+    def _batch_setitems(self, items):
+        # Ignore the order of keys in a dict
+        try:
+            # Faster, but fails for unorderable elements
+            items = sorted(items)
+        except Exception:  # TypeError, decimal.InvalidOperation, etc.
+            from datasets.fingerprint import Hasher
 
-    #         items = sorted(items, key=lambda x: Hasher.hash(x[0]))
-    #     dill.Pickler._batch_setitems(self, items)
+            items = sorted(items, key=lambda x: Hasher.hash(x[0]))
+        dill.Pickler._batch_setitems(self, items)
 
     def memoize(self, obj):
         # Don't memoize strings since two identical strings can have different Python ids
-        if type(obj) != str:  # noqa: E721
+        if type(obj) is not str:  # noqa: E721
             dill.Pickler.memoize(self, obj)
 
 
-def pklregister(t, reduce_subclasses=False):
-    """Register a custom reducer for a type."""
+def pklregister(t):
+    """Register a custom reducer for the type."""
 
     def proxy(func):
-        if isinstance(t, str):
-            module = t.split(".", 1)[0]
-            Pickler._delayed_module_dispatch.setdefault(module, []).append((t, func, reduce_subclasses))
-        else:
-            Pickler.dispatch[t] = func
-            if reduce_subclasses:
-                Pickler._reduce_subclasses_types = (*Pickler._reduce_subclasses_types, t)
+        Pickler.dispatch[t] = func
         return func
 
     return proxy
@@ -111,70 +114,6 @@ elif config.DILL_VERSION.release[:3] in [version.parse("0.3.6").release, version
         dill._dill.logger.trace(pickler, msg)
 
 
-#####################
-# Custom reducers
-#####################
-
-
-@pklregister("regex.Pattern")
-def _save_regexPattern(pickler, obj):
-    import regex  # type: ignore
-
-    log(pickler, f"Re: {obj}")
-    args = (obj.pattern, obj.flags)
-    pickler.save_reduce(regex.compile, args, obj=obj)
-    log(pickler, "# Re")
-
-
-@pklregister("tiktoken.Encoding")
-def _save_tiktokenEncoding(pickler, obj):
-    import tiktoken  # type: ignore
-
-    log(pickler, f"Enc: {obj}")
-    args = (obj.name, obj._pat_str, obj._mergeable_ranks, obj._special_tokens)
-    pickler.save_reduce(tiktoken.Encoding, args, obj=obj)
-    log(pickler, "# Enc")
-
-
-@pklregister("torch.Tensor")
-def _save_torchTensor(pickler, obj):
-    import torch  # type: ignore
-
-    # `torch.from_numpy` is not picklable in `torch>=1.11.0`
-    def create_torchTensor(np_array):
-        return torch.from_numpy(np_array)
-
-    log(pickler, f"To: {obj}")
-    args = (obj.detach().cpu().numpy(),)
-    pickler.save_reduce(create_torchTensor, args, obj=obj)
-    log(pickler, "# To")
-
-
-@pklregister("spacy.Language", reduce_subclasses=True)
-def _save_spacyLanguage(pickler, obj):
-    import spacy  # type: ignore
-
-    def create_spacyLanguage(config, bytes):
-        lang_cls = spacy.util.get_lang_class(config["nlp"]["lang"])
-        lang_inst = lang_cls.from_config(config)
-        return lang_inst.from_bytes(bytes)
-
-    log(pickler, f"Sp: {obj}")
-    args = (obj.config, obj.to_bytes())
-    pickler.save_reduce(create_spacyLanguage, args, obj=obj)
-    log(pickler, "# Sp")
-
-
-@pklregister("transformers.PreTrainedTokenizerBase", reduce_subclasses=True)
-def _save_transformersPreTrainedTokenizerBase(pickler, obj):
-    log(pickler, f"Tok: {obj}")
-    state = obj.__getstate__()
-    if "cache" in state and isinstance(state["cache"], dict):
-        state["cache"] = {}
-    pickler.save_reduce(type(obj), (), state=state, obj=obj)
-    log(pickler, "# Tok")
-
-
 @pklregister(set)
 def _save_set(pickler, obj):
     log(pickler, f"Se: {obj}")
@@ -190,9 +129,60 @@ def _save_set(pickler, obj):
     log(pickler, "# Se")
 
 
-#####################
-# Code object reducer
-#####################
+def _save_regexPattern(pickler, obj):
+    import regex  # type: ignore
+
+    log(pickler, f"Re: {obj}")
+    args = (obj.pattern, obj.flags)
+    pickler.save_reduce(regex.compile, args, obj=obj)
+    log(pickler, "# Re")
+
+
+def _save_tiktokenEncoding(pickler, obj):
+    import tiktoken  # type: ignore
+
+    log(pickler, f"Enc: {obj}")
+    args = (obj.name, obj._pat_str, obj._mergeable_ranks, obj._special_tokens)
+    pickler.save_reduce(tiktoken.Encoding, args, obj=obj)
+    log(pickler, "# Enc")
+
+
+def _save_torchTensor(pickler, obj):
+    import torch  # type: ignore
+
+    # `torch.from_numpy` is not picklable in `torch>=1.11.0`
+    def create_torchTensor(np_array):
+        return torch.from_numpy(np_array)
+
+    log(pickler, f"To: {obj}")
+    args = (obj.detach().cpu().numpy(),)
+    pickler.save_reduce(create_torchTensor, args, obj=obj)
+    log(pickler, "# To")
+
+
+def _save_spacyLanguage(pickler, obj):
+    import spacy  # type: ignore
+
+    def create_spacyLanguage(config, bytes):
+        lang_cls = spacy.util.get_lang_class(config["nlp"]["lang"])
+        lang_inst = lang_cls.from_config(config)
+        return lang_inst.from_bytes(bytes)
+
+    log(pickler, f"Sp: {obj}")
+    args = (obj.config, obj.to_bytes())
+    pickler.save_reduce(create_spacyLanguage, args, obj=obj)
+    log(pickler, "# Sp")
+
+
+def _save_transformersPreTrainedTokenizerBase(pickler, obj):
+    log(pickler, f"Tok: {obj}")
+    # Ignore the `cache` attribute
+    state = obj.__dict__
+    if "cache" in state and isinstance(state["cache"], dict):
+        state["cache"] = {}
+    pickler.save_reduce(type(obj), (), state=state, obj=obj)
+    log(pickler, "# Tok")
+
 
 if config.DILL_VERSION < version.parse("0.3.6"):
 
