@@ -34,6 +34,7 @@ from .inspect import (
     get_dataset_infos,
     get_dataset_split_names,
     inspect_dataset,
+    inspect_metric,
     list_datasets,
     list_metrics,
 )
