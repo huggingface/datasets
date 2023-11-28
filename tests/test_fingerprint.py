@@ -20,6 +20,7 @@ from datasets.fingerprint import Hasher, fingerprint_transform
 from datasets.table import InMemoryTable
 
 from .utils import (
+    require_not_windows,
     require_regex,
     require_spacy,
     require_spacy_model,
@@ -332,6 +333,7 @@ class HashingTest(TestCase):
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)
 
+    @require_not_windows
     @require_torch
     def test_hash_torch_compiled_function(self):
         import torch
@@ -344,6 +346,7 @@ class HashingTest(TestCase):
         hash2 = Hasher.hash(f)
         self.assertEqual(hash1, hash2)
 
+    @require_not_windows
     @require_torch
     def test_hash_torch_compiled_module(self):
         m = TorchModule()

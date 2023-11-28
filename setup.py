@@ -180,7 +180,7 @@ TESTS_REQUIRE = [
     "tensorflow>=2.3,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
     "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
     "tiktoken",
-    "torch",
+    "torch>=2.0.0",
     "soundfile>=0.12.1",
     "transformers",
     "typing-extensions>=4.6.1",  # due to conflict between apache-beam and pydantic
