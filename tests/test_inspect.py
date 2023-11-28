@@ -8,7 +8,6 @@ from datasets import (
     get_dataset_infos,
     get_dataset_split_names,
     inspect_dataset,
-    inspect_metric,
 )
 
 
@@ -18,16 +17,6 @@ pytestmark = pytest.mark.integration
 @pytest.mark.parametrize("path", ["paws", "csv"])
 def test_inspect_dataset(path, tmp_path):
     inspect_dataset(path, tmp_path)
-    script_name = path + ".py"
-    assert script_name in os.listdir(tmp_path)
-    assert "__pycache__" not in os.listdir(tmp_path)
-
-
-@pytest.mark.filterwarnings("ignore:inspect_metric is deprecated:FutureWarning")
-@pytest.mark.filterwarnings("ignore:metric_module_factory is deprecated:FutureWarning")
-@pytest.mark.parametrize("path", ["accuracy"])
-def test_inspect_metric(path, tmp_path):
-    inspect_metric(path, tmp_path)
     script_name = path + ".py"
     assert script_name in os.listdir(tmp_path)
     assert "__pycache__" not in os.listdir(tmp_path)

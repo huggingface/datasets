@@ -242,6 +242,9 @@ def get_dataset_builder_class(
 ) -> Type[DatasetBuilder]:
     builder_cls = import_main_class(dataset_module.module_path)
     if dataset_module.builder_configs_parameters.builder_configs:
+        dataset_name = dataset_name or dataset_module.builder_kwargs.get("dataset_name")
+        if dataset_name is None:
+            raise ValueError("dataset_name should be specified but got None")
         builder_cls = configure_builder_class(
             builder_cls,
             builder_configs=dataset_module.builder_configs_parameters.builder_configs,
@@ -1359,7 +1362,12 @@ class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
             module_path,
             hash,
             builder_kwargs,
-            dataset_infos=self.exported_dataset_infos,
+            dataset_infos=DatasetInfosDict(
+                {
+                    config_name: DatasetInfo.from_dict(self.exported_dataset_infos[config_name])
+                    for config_name in self.exported_dataset_infos
+                }
+            ),
             builder_configs_parameters=BuilderConfigsParameters(
                 metadata_configs=metadata_configs,
                 builder_configs=builder_configs,
