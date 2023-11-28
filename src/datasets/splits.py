@@ -111,6 +111,7 @@ class SplitBase(metaclass=abc.ABCMeta):
              to define which files to read and how to skip examples within file.
 
     """
+
     # pylint: enable=line-too-long
 
     @abc.abstractmethod
@@ -265,6 +266,7 @@ class PercentSlice(metaclass=PercentSliceMeta):
     [guide on splits](../loading#slice-splits)
     for more information.
     """
+
     # pylint: enable=line-too-long
     pass
 
@@ -438,6 +440,7 @@ class Split:
     ... )
     ```
     """
+
     # pylint: enable=line-too-long
     TRAIN = NamedSplit("train")
     TEST = NamedSplit("test")

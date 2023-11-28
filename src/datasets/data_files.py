@@ -17,6 +17,7 @@ from .download import DownloadConfig
 from .download.streaming_download_manager import _prepare_path_and_storage_options, xbasename, xjoin
 from .splits import Split
 from .utils import logging
+from .utils import tqdm as hf_tqdm
 from .utils.file_utils import is_local_path, is_relative_path
 from .utils.py_utils import glob_pattern_to_regex, string_to_dict
 
@@ -227,9 +228,7 @@ def _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(matched_rel_
     return len(hidden_directories_in_path) != len(hidden_directories_in_pattern)
 
 
-def _get_data_files_patterns(
-    pattern_resolver: Callable[[str], List[str]], base_path: str = ""
-) -> Dict[str, List[str]]:
+def _get_data_files_patterns(pattern_resolver: Callable[[str], List[str]]) -> Dict[str, List[str]]:
     """
     Get the default pattern from a directory or repository by testing all the supported patterns.
     The first patterns to return a non-empty list of data files is returned.
@@ -469,7 +468,7 @@ def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] 
     """
     resolver = partial(resolve_pattern, base_path=base_path, download_config=download_config)
     try:
-        return _get_data_files_patterns(resolver, base_path=base_path)
+        return _get_data_files_patterns(resolver)
     except FileNotFoundError:
         raise EmptyDatasetError(f"The directory at {base_path} doesn't contain any data files") from None
 
@@ -519,9 +518,9 @@ def _get_origin_metadata(
         partial(_get_single_origin_metadata, download_config=download_config),
         data_files,
         max_workers=max_workers,
-        tqdm_class=logging.tqdm,
+        tqdm_class=hf_tqdm,
         desc="Resolving data files",
-        disable=len(data_files) <= 16 or not logging.is_progress_bar_enabled(),
+        disable=len(data_files) <= 16,
     )
 
 

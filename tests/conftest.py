@@ -1,6 +1,7 @@
 import pytest
 
 import datasets
+import datasets.config
 
 
 # Import fixture modules as plugins
@@ -51,3 +52,8 @@ def set_sqlalchemy_silence_uber_warning(monkeypatch):
     # Required to suppress RemovedIn20Warning when feature(s) are not compatible with SQLAlchemy 2.0
     # To be removed once SQLAlchemy 2.0 supported
     monkeypatch.setattr("sqlalchemy.util.deprecations.SILENCE_UBER_WARNING", True)
+
+
+@pytest.fixture(autouse=True, scope="session")
+def zero_time_out_for_remote_code():
+    datasets.config.TIME_OUT_REMOTE_CODE = 0

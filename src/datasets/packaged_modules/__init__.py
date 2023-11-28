@@ -1,7 +1,8 @@
 import inspect
 import re
-from hashlib import sha256
 from typing import Dict, List
+
+from huggingface_hub.utils import insecure_hashlib
 
 from .arrow import arrow
 from .audiofolder import audiofolder
@@ -24,7 +25,7 @@ def _hash_python_lines(lines: List[str]) -> str:
 
     # Make a hash from all this code
     full_bytes = full_str.encode("utf-8")
-    return sha256(full_bytes).hexdigest()
+    return insecure_hashlib.sha256(full_bytes).hexdigest()
 
 
 # get importable module names and hash for caching

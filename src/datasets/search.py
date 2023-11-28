@@ -8,6 +8,7 @@ import fsspec
 import numpy as np
 
 from .utils import logging
+from .utils import tqdm as hf_tqdm
 
 
 if TYPE_CHECKING:
@@ -150,7 +151,7 @@ class ElasticSearchIndex(BaseIndex):
         index_config = self.es_index_config
         self.es_client.indices.create(index=index_name, body=index_config)
         number_of_docs = len(documents)
-        progress = logging.tqdm(unit="docs", total=number_of_docs, disable=not logging.is_progress_bar_enabled())
+        progress = hf_tqdm(unit="docs", total=number_of_docs)
         successes = 0
 
         def passage_generator():
@@ -301,7 +302,7 @@ class FaissIndex(BaseIndex):
 
         # Add vectors
         logger.info(f"Adding {len(vectors)} vectors to the faiss index")
-        for i in logging.tqdm(range(0, len(vectors), batch_size), disable=not logging.is_progress_bar_enabled()):
+        for i in hf_tqdm(range(0, len(vectors), batch_size)):
             vecs = vectors[i : i + batch_size] if column is None else vectors[i : i + batch_size][column]
             self.faiss_index.add(vecs)
 

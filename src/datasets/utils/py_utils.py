@@ -46,6 +46,7 @@ from tqdm.auto import tqdm
 from .. import config
 from ..parallel import parallel_map
 from . import logging
+from . import tqdm as hf_tqdm
 
 
 try:  # pragma: no branch
@@ -377,7 +378,7 @@ def _single_map_nested(args):
     # Loop over single examples or batches and write to buffer/file if examples are to be updated
     pbar_iterable = data_struct.items() if isinstance(data_struct, dict) else data_struct
     pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
-    with logging.tqdm(pbar_iterable, disable=disable_tqdm, position=rank, unit="obj", desc=pbar_desc) as pbar:
+    with hf_tqdm(pbar_iterable, disable=disable_tqdm, position=rank, unit="obj", desc=pbar_desc) as pbar:
         if isinstance(data_struct, dict):
             return {k: _single_map_nested((function, v, types, None, True, None)) for k, v in pbar}
         else:
@@ -455,7 +456,6 @@ def map_nested(
     if not isinstance(data_struct, dict) and not isinstance(data_struct, types):
         return function(data_struct)
 
-    disable_tqdm = disable_tqdm or not logging.is_progress_bar_enabled()
     iterable = list(data_struct.values()) if isinstance(data_struct, dict) else data_struct
 
     if num_proc is None:
@@ -463,7 +463,7 @@ def map_nested(
     if num_proc != -1 and num_proc <= 1 or len(iterable) < parallel_min_length:
         mapped = [
             _single_map_nested((function, obj, types, None, True, None))
-            for obj in logging.tqdm(iterable, disable=disable_tqdm, desc=desc)
+            for obj in hf_tqdm(iterable, disable=disable_tqdm, desc=desc)
         ]
     else:
         with warnings.catch_warnings():
