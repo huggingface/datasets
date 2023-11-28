@@ -1825,7 +1825,9 @@ def dataset_module_factory(
                                         and not info_response.get("failed", True)
                                         and "dataset_info" in info_response
                                     ):
-                                        exported_dataset_infos: Dict[str, Dict[str, Any]] = info_response["dataset_info"]
+                                        exported_dataset_infos: Dict[str, Dict[str, Any]] = info_response[
+                                            "dataset_info"
+                                        ]
                                     else:
                                         logger.debug(f"Dataset info for {path} is not completely ready yet.")
                                 else:
