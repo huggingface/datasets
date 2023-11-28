@@ -40,6 +40,7 @@ from datasets.load import (
     infer_module_for_data_files_list,
     infer_module_for_data_files_list_in_archives,
     load_dataset_builder,
+    resolve_trust_remote_code,
 )
 from datasets.packaged_modules.audiofolder.audiofolder import AudioFolder, AudioFolderConfig
 from datasets.packaged_modules.imagefolder.imagefolder import ImageFolder, ImageFolderConfig
@@ -382,6 +383,21 @@ class ModuleFactoryTest(TestCase):
             hf_modules_cache=self.hf_modules_cache,
         )
 
+    def test_HubDatasetModuleFactoryWithScript_dont_trust_remote_code(self):
+        # "squad" has a dataset script
+        factory = HubDatasetModuleFactoryWithScript(
+            "squad", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+        )
+        with patch.object(config, "HF_DATASETS_TRUST_REMOTE_CODE", None):  # this will be the default soon
+            self.assertRaises(ValueError, factory.get_module)
+        factory = HubDatasetModuleFactoryWithScript(
+            "squad",
+            download_config=self.download_config,
+            dynamic_modules_path=self.dynamic_modules_path,
+            trust_remote_code=False,
+        )
+        self.assertRaises(ValueError, factory.get_module)
+
     def test_HubDatasetModuleFactoryWithScript_with_github_dataset(self):
         # "wmt_t2t" has additional imports (internal)
         factory = HubDatasetModuleFactoryWithScript(
@@ -424,6 +440,21 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
         assert os.path.isdir(module_factory_result.builder_kwargs["base_path"])
+
+    def test_LocalDatasetModuleFactoryWithScript_dont_trust_remote_code(self):
+        path = os.path.join(self._dataset_loading_script_dir, f"{DATASET_LOADING_SCRIPT_NAME}.py")
+        factory = LocalDatasetModuleFactoryWithScript(
+            path, download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+        )
+        with patch.object(config, "HF_DATASETS_TRUST_REMOTE_CODE", None):  # this will be the default soon
+            self.assertRaises(ValueError, factory.get_module)
+        factory = LocalDatasetModuleFactoryWithScript(
+            path,
+            download_config=self.download_config,
+            dynamic_modules_path=self.dynamic_modules_path,
+            trust_remote_code=False,
+        )
+        self.assertRaises(ValueError, factory.get_module)
 
     def test_LocalDatasetModuleFactoryWithoutScript(self):
         factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir)
@@ -1486,3 +1517,18 @@ def test_load_dataset_without_script_with_zip(zip_csv_path):
     assert ds["train"].column_names == ["col_1", "col_2", "col_3"]
     assert ds["train"].num_rows == 8
     assert ds["train"][0] == {"col_1": 0, "col_2": 0, "col_3": 0.0}
+
+
+@pytest.mark.parametrize("trust_remote_code, expected", [(False, False), (True, True), (None, True)])
+def test_resolve_trust_remote_code(trust_remote_code, expected):
+    assert resolve_trust_remote_code(trust_remote_code, repo_id="dummy") is expected
+
+
+@pytest.mark.parametrize("trust_remote_code, expected", [(False, False), (True, True), (None, ValueError)])
+def test_resolve_trust_remote_code_future(trust_remote_code, expected):
+    with patch.object(config, "HF_DATASETS_TRUST_REMOTE_CODE", None):  # this will be the default soon
+        if isinstance(expected, bool):
+            resolve_trust_remote_code(trust_remote_code, repo_id="dummy") is expected
+        else:
+            with pytest.raises(expected):
+                resolve_trust_remote_code(trust_remote_code, repo_id="dummy")

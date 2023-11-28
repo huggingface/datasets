@@ -31,7 +31,9 @@ PY_VERSION = version.parse(platform.python_version())
 
 # General environment variables accepted values for booleans
 ENV_VARS_TRUE_VALUES = {"1", "ON", "YES", "TRUE"}
+ENV_VARS_FALSE_VALUES = {"0", "OFF", "NO", "FALSE"}
 ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
+ENV_VARS_FALSE_AND_AUTO_VALUES = ENV_VARS_FALSE_VALUES.union({"AUTO"})
 
 
 # Imports
@@ -169,6 +171,17 @@ EXTRACTED_DATASETS_PATH = Path(os.getenv("HF_DATASETS_EXTRACTED_DATASETS_PATH", 
 HF_UPDATE_DOWNLOAD_COUNTS = (
     os.environ.get("HF_UPDATE_DOWNLOAD_COUNTS", "AUTO").upper() in ENV_VARS_TRUE_AND_AUTO_VALUES
 )
+
+# Remote dataset scripts support
+__HF_DATASETS_TRUST_REMOTE_CODE = os.environ.get("HF_DATASETS_TRUST_REMOTE_CODE", "1")
+HF_DATASETS_TRUST_REMOTE_CODE: Optional[bool] = (
+    True
+    if __HF_DATASETS_TRUST_REMOTE_CODE.upper() in ENV_VARS_TRUE_VALUES
+    else False
+    if __HF_DATASETS_TRUST_REMOTE_CODE.upper() in ENV_VARS_FALSE_VALUES
+    else None
+)
+TIME_OUT_REMOTE_CODE = 15
 
 # Batch size constants. For more info, see:
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
