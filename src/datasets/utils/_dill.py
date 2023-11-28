@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Extends `dill` to support pickling more types and make dumps more consistent."""
+"""Extends `dill` to support pickling more types and produce more consistent dumps."""
 import os
 import sys
 from io import BytesIO
