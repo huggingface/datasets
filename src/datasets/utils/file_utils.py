@@ -396,6 +396,7 @@ def ftp_get(url, temp_file, timeout=10.0):
 def http_get(
     url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, timeout=100.0, max_retries=0, desc=None
 ) -> Optional[requests.Response]:
+    headers = dict(headers) if headers is not None else {}
     headers["user-agent"] = get_datasets_user_agent(user_agent=headers.get("user-agent"))
     if resume_size > 0:
         headers["Range"] = f"bytes={resume_size:d}-"
