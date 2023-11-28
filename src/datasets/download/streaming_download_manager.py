@@ -468,7 +468,7 @@ def _prepare_single_hop_path_and_storage_options(
     return urlpath, storage_options
 
 
-def xopen(file: str, mode="r", buffering=-1, *args, download_config: Optional[DownloadConfig] = None, **kwargs):
+def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] = None, **kwargs):
     """Extend `open` function to support remote files using `fsspec`.
 
     It also has a retry mechanism in case connection fails.
@@ -492,10 +492,8 @@ def xopen(file: str, mode="r", buffering=-1, *args, download_config: Optional[Do
     # add headers and cookies for authentication on the HF Hub and for Google Drive
     file, storage_options = _prepare_path_and_storage_options(file_str, download_config=download_config)
     kwargs = {**kwargs, **(storage_options or {})}
-    if buffering > 1:
-        kwargs["blocksize"] = buffering
     try:
-        file_obj = fsspec.open(file, mode, *args, **kwargs).open()
+        file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
     except ValueError as e:
         if str(e) == "Cannot seek streaming HTTP file":
             raise NonStreamableDatasetError(
