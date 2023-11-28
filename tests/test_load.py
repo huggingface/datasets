@@ -25,7 +25,7 @@ from datasets.data_files import DataFilesDict
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.download.download_config import DownloadConfig
 from datasets.exceptions import DatasetNotFoundError
-from datasets.features import Features, Value
+from datasets.features import Features, Image, Value
 from datasets.iterable_dataset import IterableDataset
 from datasets.load import (
     CachedDatasetModuleFactory,
@@ -1068,6 +1068,18 @@ def test_load_dataset_builder_for_community_dataset_with_script_no_parquet_expor
     namespace = SAMPLE_DATASET_IDENTIFIER[: SAMPLE_DATASET_IDENTIFIER.index("/")]
     assert builder._relative_data_dir().startswith(namespace)
     assert SAMPLE_DATASET_IDENTIFIER.replace("/", "--") in builder.__module__
+
+
+@pytest.mark.integration
+def test_load_dataset_builder_use_parquet_export_if_dont_trust_remote_code_keeps_features():
+    dataset_name = "food101"
+    builder = datasets.load_dataset_builder(dataset_name, trust_remote_code=False)
+    assert isinstance(builder, DatasetBuilder)
+    assert builder.name == "parquet"
+    assert builder.dataset_name == dataset_name
+    assert builder.config.name == "default"
+    assert list(builder.info.features) == ["image", "label"]
+    assert builder.info.features["image"] == Image()
 
 
 @pytest.mark.integration
