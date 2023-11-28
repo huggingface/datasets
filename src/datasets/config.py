@@ -183,6 +183,9 @@ HF_DATASETS_TRUST_REMOTE_CODE: Optional[bool] = (
 )
 TIME_OUT_REMOTE_CODE = 15
 
+# Datasets-server
+USE_PARQUET_EXPORT = True
+
 # Batch size constants. For more info, see:
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
 DEFAULT_MAX_BATCH_SIZE = 1000
