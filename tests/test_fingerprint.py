@@ -15,6 +15,7 @@ import pytest
 from multiprocess import Pool
 
 import datasets
+from datasets import config
 from datasets.fingerprint import Hasher, fingerprint_transform
 from datasets.table import InMemoryTable
 
@@ -56,6 +57,24 @@ class UnpicklableCallable:
 
     def __getstate__(self):
         raise pickle.PicklingError()
+
+
+if config.TORCH_AVAILABLE:
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+
+    class TorchModule(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.conv1 = nn.Conv2d(1, 20, 5)
+            self.conv2 = nn.Conv2d(20, 20, 5)
+
+        def forward(self, x):
+            x = F.relu(self.conv1(x))
+            return F.relu(self.conv2(x))
+else:
+    TorchModule = None
 
 
 class TokenizersHashTest(TestCase):
@@ -327,27 +346,13 @@ class HashingTest(TestCase):
 
     @require_torch
     def test_hash_torch_compiled_module(self):
-        import torch
-        import torch.nn as nn
-        import torch.nn.functional as F
-
-        class Model(nn.Module):
-            def __init__(self):
-                super().__init__()
-                self.conv1 = nn.Conv2d(1, 20, 5)
-                self.conv2 = nn.Conv2d(20, 20, 5)
-
-            def forward(self, x):
-                x = F.relu(self.conv1(x))
-                return F.relu(self.conv2(x))
-
-        m = Model()
-        m.conv1.weight.data.fill_(1.0)
+        m = TorchModule()
+        next(iter(m.parameters())).data.fill_(1.0)
         hash1 = Hasher.hash(m)
         m = torch.compile(m)
         hash2 = Hasher.hash(m)
-        m = Model()
-        m.conv1.weight.data.fill_(1.0)
+        m = TorchModule()
+        next(iter(m.parameters())).data.fill_(2.0)
         m = torch.compile(m)
         hash3 = Hasher.hash(m)
         self.assertEqual(hash1, hash2)
