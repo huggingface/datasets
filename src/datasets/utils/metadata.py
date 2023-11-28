@@ -218,7 +218,7 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
 
 # DEPRECATED - just here to support old versions of evaluate like 0.2.2
 # To support new tasks on the Hugging Face Hub, please open a PR for this file:
-# https://github.com/huggingface/hub-docs/blob/main/js/src/lib/interfaces/Types.ts
+# https://github.com/huggingface/huggingface.js/blob/main/packages/tasks/src/pipelines.ts
 known_task_ids = {
     "image-classification": [],
     "translation": [],
