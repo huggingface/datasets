@@ -24,7 +24,7 @@ from datasets.config import METADATA_CONFIGS_FIELD
 from datasets.data_files import DataFilesDict
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.download.download_config import DownloadConfig
-from datasets.exceptions import DatasetNotFoundError
+from datasets.exceptions import DatasetNotFoundError, DatasetsServerError
 from datasets.features import Features, Image, Value
 from datasets.iterable_dataset import IterableDataset
 from datasets.load import (
@@ -32,6 +32,7 @@ from datasets.load import (
     CachedMetricModuleFactory,
     GithubMetricModuleFactory,
     HubDatasetModuleFactoryWithoutScript,
+    HubDatasetModuleFactoryWithParquetExport,
     HubDatasetModuleFactoryWithScript,
     LocalDatasetModuleFactoryWithoutScript,
     LocalDatasetModuleFactoryWithScript,
@@ -44,6 +45,7 @@ from datasets.load import (
 )
 from datasets.packaged_modules.audiofolder.audiofolder import AudioFolder, AudioFolderConfig
 from datasets.packaged_modules.imagefolder.imagefolder import ImageFolder, ImageFolderConfig
+from datasets.packaged_modules.parquet.parquet import ParquetConfig
 from datasets.utils.logging import INFO, get_logger
 
 from .utils import (
@@ -83,7 +85,7 @@ class __DummyDataset1__(datasets.GeneratorBasedBuilder):
                 yield i, {"text": line.strip()}
 """
 
-SAMPLE_DATASET_IDENTIFIER = "hf-internal-testing/dataset_with_script"  # has dataset script
+SAMPLE_DATASET_IDENTIFIER = "hf-internal-testing/dataset_with_script"  # has dataset script and alo a parquet export
 SAMPLE_DATASET_IDENTIFIER2 = "hf-internal-testing/dataset_with_data_files"  # only has data files
 SAMPLE_DATASET_IDENTIFIER3 = "hf-internal-testing/multi_dir_dataset"  # has multiple data directories
 SAMPLE_DATASET_IDENTIFIER4 = "hf-internal-testing/imagefolder_with_metadata"  # imagefolder with a metadata file outside of the train/test directories
@@ -766,6 +768,41 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
         assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
+
+    @pytest.mark.integration
+    def test_HubDatasetModuleFactoryWithParquetExport(self):
+        factory = HubDatasetModuleFactoryWithParquetExport(
+            SAMPLE_DATASET_IDENTIFIER,
+            download_config=self.download_config,
+        )
+        module_factory_result = factory.get_module()
+        assert module_factory_result.module_path == "datasets.packaged_modules.parquet.parquet"
+        assert module_factory_result.builder_configs_parameters.builder_configs
+        assert isinstance(module_factory_result.builder_configs_parameters.builder_configs[0], ParquetConfig)
+        assert module_factory_result.builder_configs_parameters.builder_configs[0].data_files == {
+            "train": [
+                "hf://datasets/hf-internal-testing/dataset_with_script@da4ed81df5a1bcd916043c827b75994de8ef7eda/default/train/0000.parquet"
+            ],
+            "validation": [
+                "hf://datasets/hf-internal-testing/dataset_with_script@da4ed81df5a1bcd916043c827b75994de8ef7eda/default/validation/0000.parquet"
+            ],
+        }
+
+    @pytest.mark.integration
+    def test_HubDatasetModuleFactoryWithParquetExport_errors_on_wrong_sha(self):
+        factory = HubDatasetModuleFactoryWithParquetExport(
+            SAMPLE_DATASET_IDENTIFIER,
+            download_config=self.download_config,
+            from_sha="1a21ac5846fc3f36ad5f128740c58932d3d7806f",
+        )
+        factory.get_module()
+        factory = HubDatasetModuleFactoryWithParquetExport(
+            SAMPLE_DATASET_IDENTIFIER,
+            download_config=self.download_config,
+            from_sha="wrong_sha",
+        )
+        with self.assertRaises(DatasetsServerError):
+            factory.get_module()
 
     def test_CachedDatasetModuleFactory(self):
         path = os.path.join(self._dataset_loading_script_dir, f"{DATASET_LOADING_SCRIPT_NAME}.py")
