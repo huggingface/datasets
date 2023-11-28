@@ -18,7 +18,8 @@ class WebDataset(datasets.GeneratorBasedBuilder):
     DECODERS: Dict[str, Callable[[Any], Any]]  # definition at the bottom of the script
     NUM_EXAMPLES_FOR_FEATURES_INFERENCE = 5
 
-    def _get_pipeline_from_tar(self, tar_path, tar_iterator):
+    @classmethod
+    def _get_pipeline_from_tar(cls, tar_path, tar_iterator):
         current_example = {}
         for filename, f in tar_iterator:
             if "." in filename:
@@ -29,8 +30,8 @@ class WebDataset(datasets.GeneratorBasedBuilder):
                 current_example["__key__"] = example_key
                 current_example["__url__"] = tar_path
                 current_example[field_name.lower()] = f.read()
-                if field_name in self.DECODERS:
-                    current_example[field_name] = self.DECODERS[field_name](current_example[field_name])
+                if field_name in cls.DECODERS:
+                    current_example[field_name] = cls.DECODERS[field_name](current_example[field_name])
         if current_example:
             yield current_example
 
@@ -181,9 +182,9 @@ def text_loads(data: bytes):
 
 
 def tenbin_loads(data: bytes):
-    from . import tenbin
+    from . import _tenbin
 
-    return tenbin.decode_buffer(data)
+    return _tenbin.decode_buffer(data)
 
 
 def msgpack_loads(data: bytes):
