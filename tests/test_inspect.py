@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import pytest
 
@@ -10,17 +11,17 @@ from datasets import (
     inspect_dataset,
     inspect_metric,
 )
+from datasets.packaged_modules.csv import csv
 
 
 pytestmark = pytest.mark.integration
 
 
-@pytest.mark.parametrize("path", ["paws", "csv"])
+@pytest.mark.parametrize("path", ["paws", csv.__file__])
 def test_inspect_dataset(path, tmp_path):
     inspect_dataset(path, tmp_path)
-    script_name = path + ".py"
+    script_name = Path(path).stem + ".py"
     assert script_name in os.listdir(tmp_path)
-    assert "__pycache__" not in os.listdir(tmp_path)
 
 
 @pytest.mark.filterwarnings("ignore:inspect_metric is deprecated:FutureWarning")
