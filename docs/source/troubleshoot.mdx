@@ -1,14 +1,14 @@
 # Troubleshooting
 
 This guide aims to provide you the tools and knowledge required to navigate some common issues. If the suggestions listed 
-in this guide do not cover your such situation, please refer to the [Asking for Help](#ask-for-help) section to learn where to
+in this guide do not cover your such situation, please refer to the [Asking for Help](#asking-for-help) section to learn where to
 find help with your specific issue.
 
 ## Uploading datasets to 🤗 Hub
 
 ### Authentication issues
 
-If you are experiencing authentication issues when sharing a dataset on 🤗 Hub using `push_to_hub()` and a Hugging Face 
+If you are experiencing authentication issues when sharing a dataset on 🤗 Hub using [`Dataset.push_to_hub`] and a Hugging Face 
 access token:
 
 * Make sure that the Hugging Face token you're using to authenticate yourself is a token with **write** permission.
@@ -40,10 +40,10 @@ Learn more about required folder structure in corresponding documentation pages:
 * [ImageFolder](https://huggingface.co/docs/datasets/image_dataset#imagefolder)
 
 
-### Pickling issues when using Dataset.from_generator()
+### Pickling issues when using `Dataset.from_generator`
 
-When creating a dataset, `IterableDataset.from_generator` and `Dataset.from_generator` expect a "picklable" generator function.
-This is required to hash the function using `pickle` to be able to cache the dataset on disk.
+When creating a dataset, [`IterableDataset.from_generator`] and [`Dataset.from_generator`] expect a "picklable" generator function.
+This is required to hash the function using [`pickle`](https://docs.python.org/3/library/pickle.html) to be able to cache the dataset on disk.
 
 While generator functions are generally "picklable", note that generator objects are not. So if you're using a generator object, 
 you will encounter a `TypeError` like this:
