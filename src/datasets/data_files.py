@@ -340,6 +340,15 @@ def resolve_pattern(
         base_path = os.path.splitdrive(pattern)[0] + os.sep
     else:
         base_path = ""
+    if pattern.startswith(config.HF_ENDPOINT) and "/resolve/" in pattern:
+        pattern = "hf://" + pattern[len(config.HF_ENDPOINT) + 1 :].replace("/resolve/", "@", 1)
+        pattern = (
+            pattern.split("@", 1)[0]
+            + "@"
+            + pattern.split("@", 1)[1].split("/", 1)[0].replace("%2F", "/")
+            + "/"
+            + pattern.split("@", 1)[1].split("/", 1)[1]
+        )
     pattern, storage_options = _prepare_path_and_storage_options(pattern, download_config=download_config)
     fs, _, _ = get_fs_token_paths(pattern, storage_options=storage_options)
     fs_base_path = base_path.split("::")[0].split("://")[-1] or fs.root_marker
@@ -697,4 +706,93 @@ class DataFilesDict(Dict[str, DataFilesList]):
         out = type(self)()
         for key, data_files_list in self.items():
             out[key] = data_files_list.filter_extensions(extensions)
+        return out
+
+
+class DataFilesPatternsList(List[str]):
+    """
+    List of data files patterns (absolute local paths or URLs).
+    """
+
+    def __init__(
+        self,
+        patterns: List[str],
+        allowed_extensions: List[Optional[List[str]]],
+    ):
+        super().__init__(patterns)
+        self.allowed_extensions = allowed_extensions
+
+    def __add__(self, other):
+        return DataFilesList([*self, *other], self.allowed_extensions + other.allowed_extensions)
+
+    @classmethod
+    def from_patterns(
+        cls, patterns: List[str], allowed_extensions: Optional[List[str]] = None
+    ) -> "DataFilesPatternsDict":
+        return cls(patterns, [allowed_extensions] * len(patterns))
+
+    def resolve(
+        self,
+        base_path: str,
+        download_config: Optional[DownloadConfig] = None,
+    ) -> "DataFilesList":
+        base_path = base_path if base_path is not None else Path().resolve().as_posix()
+        data_files = []
+        for pattern, allowed_extensions in zip(self, self.allowed_extensions):
+            try:
+                data_files.extend(
+                    resolve_pattern(
+                        pattern,
+                        base_path=base_path,
+                        allowed_extensions=allowed_extensions,
+                        download_config=download_config,
+                    )
+                )
+            except FileNotFoundError:
+                if not has_magic(pattern):
+                    raise
+        origin_metadata = _get_origin_metadata(data_files, download_config=download_config)
+        return DataFilesList(data_files, origin_metadata)
+
+    def filter_extensions(self, extensions: List[str]) -> "DataFilesList":
+        return DataFilesPatternsList(
+            self, [allowed_extensions + extensions for allowed_extensions in self.allowed_extensions]
+        )
+
+
+class DataFilesPatternsDict(Dict[str, DataFilesPatternsList]):
+    """
+    Dict of split_name -> list of data files patterns (absolute local paths or URLs).
+    """
+
+    @classmethod
+    def from_patterns(
+        cls, patterns: Dict[str, List[str]], allowed_extensions: Optional[List[str]] = None
+    ) -> "DataFilesPatternsDict":
+        out = cls()
+        for key, patterns_for_key in patterns.items():
+            out[key] = (
+                DataFilesPatternsList.from_patterns(
+                    patterns_for_key,
+                    allowed_extensions=allowed_extensions,
+                )
+                if not isinstance(patterns_for_key, DataFilesPatternsList)
+                else patterns_for_key
+            )
+        return out
+
+    def resolve(
+        self,
+        base_path: str,
+        download_config: Optional[DownloadConfig] = None,
+    ) -> "DataFilesDict":
+        out = DataFilesDict()
+        for key, data_files_patterns_list in self.items():
+            out[key] = data_files_patterns_list.resolve(base_path, download_config)
+        return out
+
+    def filter_extensions(self, extensions: List[str]) -> "DataFilesPatternsDict":
+        out = type(self)()
+        for key, data_files_patterns_list in self.items():
+            out[key] = data_files_patterns_list.filter_extensions(extensions)
         return out
