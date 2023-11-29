@@ -16,6 +16,16 @@ access token:
 
 Alternatively, you can use SSH keys to authenticate yourself - read more in the [🤗 Hub documentation](https://huggingface.co/docs/hub/security-git-ssh).
 
+### Lost connection on large dataset upload 
+
+When uploading large datasets to Hub, if the number of dataset shards is large, it can create too many commits for the Hub in a 
+short period. This will result in a connection error.
+The connection error can also be caused by a HTTP 500 error returned by AWS S3 bucket that Hub uses internally.
+In either situation, you can re-run [`Dataset.push_to_hub`] to proceed with the dataset upload. Hub will check the SHAs 
+of already uploaded shards to avoid reuploading them. 
+We are working on making upload process more robust to transient errors, so updating to the latest library version is 
+always a good idea.
+
 ### `Too Many Requests`
 
 Uploading large datasets via `push_to_hub()` can result in an error: 
@@ -40,7 +50,9 @@ Learn more about required folder structure in corresponding documentation pages:
 * [ImageFolder](https://huggingface.co/docs/datasets/image_dataset#imagefolder)
 
 
-### Pickling issues when using `Dataset.from_generator`
+### Pickling issues 
+
+#### Pickling issues when using `Dataset.from_generator`
 
 When creating a dataset, [`IterableDataset.from_generator`] and [`Dataset.from_generator`] expect a "picklable" generator function.
 This is required to hash the function using [`pickle`](https://docs.python.org/3/library/pickle.html) to be able to cache the dataset on disk.
@@ -52,9 +64,19 @@ you will encounter a `TypeError` like this:
 TypeError: cannot pickle 'generator' object
 ```
 
-This error can also occur when using a generator function that uses a global object that is not picklable, such as a 
+This error can also occur when using a generator function that uses a global object that is not "picklable", such as a 
 DB connection, for example. If that's the case, you can initialize such object directly inside the generator function to 
 avoid this error.
+
+#### Pickling issues with `Dataset.map`
+
+Pickling errors can also happen in the multiprocess [`Dataset.map`] - objects are pickled to be passed to child processes.
+If the objects used in the transformation are not picklable, it's not possible to cache the result of `map`, which leads to an error being raised. 
+
+Here are some ways to address this issue:
+* A universal solution to pickle issues is to make sure the objects (or generator classes) are pickable manually by implementing `__getstate__` / `__setstate__` / `__reduce__`.
+* You can also provide your own unique hash in `map` with the `new_fingerprint` argument.
+* You can also disable caching by calling `datasets.disable_caching()`, however, this is undesirable - [read more about importance of cache](cache)
 
 ## Asking for help
 
