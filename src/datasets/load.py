@@ -1767,7 +1767,6 @@ def dataset_module_factory(
             try:
                 return CachedDatasetModuleFactory(path, dynamic_modules_path=dynamic_modules_path).get_module()
             except Exception:
-                raise
                 # If it's not in the cache, then it doesn't exist.
                 if isinstance(e1, OfflineModeIsEnabled):
                     raise ConnectionError(f"Couldn't reach the Hugging Face Hub for dataset '{path}': {e1}") from None
