@@ -15,6 +15,7 @@
 # Lint as: python3
 """Access datasets."""
 import filecmp
+import glob
 import importlib
 import inspect
 import json
@@ -1444,9 +1445,11 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
     def __init__(
         self,
         name: str,
+        cache_dir: Optional[str] = None,
         dynamic_modules_path: Optional[str] = None,
     ):
         self.name = name
+        self.cache_dir = cache_dir
         self.dynamic_modules_path = dynamic_modules_path
         assert self.name.count("/") <= 1
 
@@ -1458,38 +1461,79 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
             if os.path.isdir(importable_directory_path)
             else None
         )
-        if not hashes:
-            raise FileNotFoundError(f"Dataset {self.name} is not cached in {dynamic_modules_path}")
-        # get most recent
+        if hashes:
+            # get most recent
+            def _get_modification_time(module_hash):
+                return (
+                    (Path(importable_directory_path) / module_hash / (self.name.split("/")[-1] + ".py"))
+                    .stat()
+                    .st_mtime
+                )
 
-        def _get_modification_time(module_hash):
-            return (Path(importable_directory_path) / module_hash / (self.name.split("/")[-1] + ".py")).stat().st_mtime
+            hash = sorted(hashes, key=_get_modification_time)[-1]
+            warning_msg = (
+                f"Using the latest cached version of the module from {os.path.join(importable_directory_path, hash)} "
+                f"(last modified on {time.ctime(_get_modification_time(hash))}) since it "
+                f"couldn't be found locally at {self.name}."
+            )
+            if not config.HF_DATASETS_OFFLINE:
+                warning_msg += ", or remotely on the Hugging Face Hub."
+            logger.warning(warning_msg)
+            # make the new module to be noticed by the import system
+            module_path = ".".join(
+                [
+                    os.path.basename(dynamic_modules_path),
+                    "datasets",
+                    self.name.replace("/", "--"),
+                    hash,
+                    self.name.split("/")[-1],
+                ]
+            )
+            importlib.invalidate_caches()
+            builder_kwargs = {
+                "hash": hash,
+                "repo_id": self.name,
+            }
+            return DatasetModule(module_path, hash, builder_kwargs)
+        cache_dir = os.path.expanduser(str(self.cache_dir or config.HF_DATASETS_CACHE))
+        cached_datasets_directory_path_root = os.path.join(cache_dir, self.name.replace("/", "___"))
+        cached_directory_paths = [
+            cached_directory_path
+            for cached_directory_path in glob.glob(os.path.join(cached_datasets_directory_path_root, "*", "*", "*"))
+            if os.path.isdir(cached_directory_path)
+        ]
+        if cached_directory_paths:
+            # get most recent
+            def _get_modification_time(cached_directory_path):
+                return (Path(cached_directory_path)).stat().st_mtime
 
-        hash = sorted(hashes, key=_get_modification_time)[-1]
-        warning_msg = (
-            f"Using the latest cached version of the module from {os.path.join(importable_directory_path, hash)} "
-            f"(last modified on {time.ctime(_get_modification_time(hash))}) since it "
-            f"couldn't be found locally at {self.name}."
-        )
-        if not config.HF_DATASETS_OFFLINE:
-            warning_msg += ", or remotely on the Hugging Face Hub."
-        logger.warning(warning_msg)
-        # make the new module to be noticed by the import system
-        module_path = ".".join(
-            [
-                os.path.basename(dynamic_modules_path),
-                "datasets",
-                self.name.replace("/", "--"),
-                hash,
-                self.name.split("/")[-1],
+            hash = Path(sorted(cached_directory_paths, key=_get_modification_time)[-1]).name
+            cached_directory_paths = [
+                cached_directory_path
+                for cached_directory_path in cached_directory_paths
+                if Path(cached_directory_path).name == hash
             ]
-        )
-        importlib.invalidate_caches()
-        builder_kwargs = {
-            "hash": hash,
-            "repo_id": self.name,
-        }
-        return DatasetModule(module_path, hash, builder_kwargs)
+            warning_msg = (
+                f"Using the latest cached version of the dataset from {cached_datasets_directory_path_root}/*/*/{hash}"
+                f"(last modified on {time.ctime(_get_modification_time(cached_directory_paths[0]))}) since it "
+                f"couldn't be found locally at {self.name}."
+            )
+            if not config.HF_DATASETS_OFFLINE:
+                warning_msg += ", or remotely on the Hugging Face Hub."
+            logger.warning(warning_msg)
+            module_path = "datasets.packaged_modules.cache.cache"
+            builder_kwargs = {
+                "hash": hash,
+                "repo_id": self.name,
+                "dataset_name": self.name.split("/")[-1],
+            }
+            dataset_infos = DatasetInfosDict()
+            for cached_directory_path in cached_directory_paths:
+                config_name = Path(cached_directory_path).parts[-3]
+                dataset_infos[config_name] = DatasetInfo.from_directory(cached_directory_path)
+            # builder_configs_parameters = BuilderConfigsParameters(builder_configs=[BuilderConfig(Path(cached_directory_path).parts[-3]) for cached_directory_path in cached_directory_paths])
+            return DatasetModule(module_path, hash, builder_kwargs, dataset_infos=dataset_infos)
+        raise FileNotFoundError(f"Dataset {self.name} is not cached in {self.cache_dir}")
 
 
 class CachedMetricModuleFactory(_MetricModuleFactory):
@@ -1723,6 +1767,7 @@ def dataset_module_factory(
             try:
                 return CachedDatasetModuleFactory(path, dynamic_modules_path=dynamic_modules_path).get_module()
             except Exception:
+                raise
                 # If it's not in the cache, then it doesn't exist.
                 if isinstance(e1, OfflineModeIsEnabled):
                     raise ConnectionError(f"Couldn't reach the Hugging Face Hub for dataset '{path}': {e1}") from None
