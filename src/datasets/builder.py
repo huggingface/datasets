@@ -51,7 +51,7 @@ from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadManager, DownloadMode
 from .download.mock_download_manager import MockDownloadManager
-from .download.streaming_download_manager import StreamingDownloadManager, xopen
+from .download.streaming_download_manager import StreamingDownloadManager, xjoin, xopen
 from .features import Features
 from .filesystems import (
     is_remote_filesystem,
@@ -215,7 +215,7 @@ class BuilderConfig:
 
     def _resolve_data_files(self, base_path: str, download_config: DownloadConfig) -> None:
         if self.data_files is not None and isinstance(self.data_files, DataFilesPatternsDict):
-            base_path = base_path + "/" + self.data_dir if self.data_dir else base_path
+            base_path = xjoin(base_path, self.data_dir) if self.data_dir else base_path
             self.data_files = self.data_files.resolve(base_path, download_config)
 
 

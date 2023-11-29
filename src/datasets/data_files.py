@@ -358,7 +358,7 @@ def resolve_pattern(
     protocol_prefix = protocol + "://" if protocol != "file" else ""
     matched_paths = [
         filepath if filepath.startswith(protocol_prefix) else protocol_prefix + filepath
-        for filepath, info in fs.glob(pattern, detail=True).items()
+        for filepath, info in fs.glob(pattern, detail=True, expand_info=False).items()
         if info["type"] == "file"
         and (xbasename(filepath) not in files_to_ignore)
         and not _is_inside_unrequested_special_dir(
