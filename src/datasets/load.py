@@ -1256,7 +1256,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             builder_configs, default_config_name = None, None
         builder_kwargs = {
             "hash": hash,
-            "base_path": hf_hub_url(self.name, "", revision=self.revision),
+            "base_path": hf_hub_url(self.name, "", revision=self.revision).rstrip("/"),
             "repo_id": self.name,
             "dataset_name": camelcase_to_snakecase(Path(self.name).name),
         }
@@ -1424,7 +1424,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         importlib.invalidate_caches()
         builder_kwargs = {
             "hash": hash,
-            "base_path": hf_hub_url(self.name, "", revision=self.revision),
+            "base_path": hf_hub_url(self.name, "", revision=self.revision).rstrip("/"),
             "repo_id": self.name,
         }
         return DatasetModule(module_path, hash, builder_kwargs)
