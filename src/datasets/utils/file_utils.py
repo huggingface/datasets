@@ -421,9 +421,15 @@ def http_get(
         initial=resume_size,
         desc=desc or "Downloading",
     ) as progress:
+        received_bytes = 0
         for chunk in response.iter_content(chunk_size=1024):
-            progress.update(len(chunk))
+            chunk_size = len(chunk)
+            received_bytes += chunk_size
+            progress.update(chunk_size)
             temp_file.write(chunk)
+        # Check received vs total
+        if (resume_size + received_bytes) < total:
+            raise RuntimeError("data received is incomplete")
 
 
 def http_head(
@@ -646,16 +652,32 @@ def get_from_cache(
             elif scheme not in ("http", "https"):
                 fsspec_get(url, temp_file, storage_options=storage_options, desc=download_desc)
             else:
-                http_get(
-                    url,
-                    temp_file,
-                    proxies=proxies,
-                    resume_size=resume_size,
-                    headers=headers,
-                    cookies=cookies,
-                    max_retries=max_retries,
-                    desc=download_desc,
-                )
+                tries, success = 0, False
+                while not success:
+                    tries += 1
+                    try:
+                        http_get(
+                            url,
+                            temp_file,
+                            proxies=proxies,
+                            resume_size=resume_size,
+                            headers=headers,
+                            cookies=cookies,
+                            max_retries=max_retries,
+                            desc=download_desc,
+                        )
+                        success = True
+                    except RuntimeError as err:
+                        if tries > max_retries:
+                            raise err
+                        else:
+                            # Timeout before retry
+                            base_wait_time, max_wait_time = 0.5, 2
+                            logger.info(f"{scheme} request to {url} timed out, retrying... [{tries / max_retries}]")
+                            sleep_time = min(max_wait_time, base_wait_time * 2 ** (tries - 1))  # Exponential backoff
+                            time.sleep(sleep_time)
+                            # Update resume size
+                            resume_size = os.stat(temp_file.name).st_size
 
         logger.info(f"storing {url} in cache at {cache_path}")
         shutil.move(temp_file.name, cache_path)
