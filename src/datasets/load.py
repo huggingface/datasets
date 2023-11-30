@@ -1686,7 +1686,7 @@ def dataset_module_factory(
                     raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({type(e).__name__})")
                 elif "404" in str(e):
                     msg = f"Dataset '{path}' doesn't exist on the Hub"
-                    raise FileNotFoundError(msg + f" at revision '{revision}'" if revision else msg)
+                    raise DatasetNotFoundError(msg + f" at revision '{revision}'" if revision else msg)
                 elif "401" in str(e):
                     msg = f"Dataset '{path}' doesn't exist on the Hub"
                     msg = msg + f" at revision '{revision}'" if revision else msg
