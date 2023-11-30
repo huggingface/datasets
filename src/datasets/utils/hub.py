@@ -11,14 +11,14 @@ from . import logging
 
 logger = logging.get_logger(__name__)
 
-# Retry `preupload_lfs_files` in `huggingface_hub<0.20.0` on the "500 (Internal Server Error)" and "504 (Gateway Timeout)" HTTP errors
+# Retry `preupload_lfs_files` in `huggingface_hub<0.20.0` on the "500 (Internal Server Error)" and "503 (Service Unavailable)" HTTP errors
 if config.HF_HUB_VERSION < version.parse("0.20.0"):
 
     def preupload_lfs_files(hf_api: HfApi, **kwargs):
         max_retries = 5
         base_wait_time = 1
         max_wait_time = 8
-        status_codes = [500, 503, 504]
+        status_codes = [500, 503]
         retry = 0
         while True:
             try:
