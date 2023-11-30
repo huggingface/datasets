@@ -492,19 +492,19 @@ def test_DataFilesDict_from_patterns_locally_or_remote_hashing(text_file):
 def test_DataFilesPatternsList(text_file):
     data_files_patterns = DataFilesPatternsList([str(text_file)], allowed_extensions=[None])
     data_files = data_files_patterns.resolve(base_path="")
-    assert data_files == [str(text_file)]
+    assert data_files == [text_file.as_posix()]
     assert isinstance(data_files, DataFilesList)
     data_files_patterns = DataFilesPatternsList([str(text_file)], allowed_extensions=[[".txt"]])
     data_files = data_files_patterns.resolve(base_path="")
-    assert data_files == [str(text_file)]
+    assert data_files == [text_file.as_posix()]
     assert isinstance(data_files, DataFilesList)
     data_files_patterns = DataFilesPatternsList([str(text_file).replace(".txt", ".tx*")], allowed_extensions=[None])
     data_files = data_files_patterns.resolve(base_path="")
-    assert data_files == [str(text_file)]
+    assert data_files == [text_file.as_posix()]
     assert isinstance(data_files, DataFilesList)
     data_files_patterns = DataFilesPatternsList([Path(text_file).name], allowed_extensions=[None])
     data_files = data_files_patterns.resolve(base_path=str(Path(text_file).parent))
-    assert data_files == [str(text_file)]
+    assert data_files == [text_file.as_posix()]
     data_files_patterns = DataFilesPatternsList([str(text_file)], allowed_extensions=[[".zip"]])
     with pytest.raises(FileNotFoundError):
         data_files_patterns.resolve(base_path="")
@@ -515,7 +515,7 @@ def test_DataFilesPatternsDict(text_file):
         {"train": DataFilesPatternsList([str(text_file)], allowed_extensions=[None])}
     )
     data_files_dict = data_files_patterns_dict.resolve(base_path="")
-    assert data_files_dict == {"train": [str(text_file)]}
+    assert data_files_dict == {"train": [text_file.as_posix()]}
     assert isinstance(data_files_dict, DataFilesDict)
     assert isinstance(data_files_dict["train"], DataFilesList)
 
