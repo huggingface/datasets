@@ -712,6 +712,8 @@ class DataFilesDict(Dict[str, DataFilesList]):
 class DataFilesPatternsList(List[str]):
     """
     List of data files patterns (absolute local paths or URLs).
+    For each pattern there should also be a list of allowed extensions
+    to keep, or a None ot keep all the files for the pattern.
     """
 
     def __init__(

@@ -214,7 +214,7 @@ class BuilderConfig:
             return self.name
 
     def _resolve_data_files(self, base_path: str, download_config: DownloadConfig) -> None:
-        if self.data_files is not None and isinstance(self.data_files, DataFilesPatternsDict):
+        if isinstance(self.data_files, DataFilesPatternsDict):
             base_path = xjoin(base_path, self.data_dir) if self.data_dir else base_path
             self.data_files = self.data_files.resolve(base_path, download_config)
 
