@@ -4,7 +4,7 @@ This guide aims to provide you the tools and knowledge required to navigate some
 in this guide do not cover your such situation, please refer to the [Asking for Help](#asking-for-help) section to learn where to
 find help with your specific issue.
 
-## Uploading datasets to 🤗 Hub
+## Issues when uploading datasets with `push_to_hub`
 
 ### Authentication issues
 
@@ -15,7 +15,7 @@ access token:
 * On OSX, it may help to clean up all the huggingface.co passwords on your keychain access, as well as reconfigure `git config --global credential.helper osxkeychain`, before using `huggingface-cli login`.
 
 Alternatively, you can use SSH keys to authenticate yourself - read more in the [🤗 Hub documentation](https://huggingface.co/docs/hub/security-git-ssh).
-
+ 
 ### Lost connection on large dataset upload 
 
 When uploading large datasets to Hub, if the number of dataset shards is large, it can create too many commits for the Hub in a 
