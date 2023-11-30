@@ -6,14 +6,13 @@ import shutil
 import tempfile
 import weakref
 from functools import wraps
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pyarrow as pa
 import xxhash
-from packaging import version
 
-from . import config
 from .info import DatasetInfo
 from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH
 from .table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table
@@ -43,35 +42,55 @@ logger = get_logger(__name__)
 #################
 
 _CACHING_ENABLED = True
-_TEMP_DIR_FOR_TEMP_CACHE_FILES: Optional["_TempCacheDir"] = None
+_TEMP_DIR_FOR_TEMP_CACHE_FILES: Optional["_TempDirWithCustomCleanup"] = None
+_DATASETS_WITH_TABLE_IN_TEMP_DIR: Optional[weakref.WeakSet] = None
 
 
-class _TempCacheDir:
+class _TempDirWithCustomCleanup:
     """
-    A temporary directory for storing cached Arrow files with a custom cleanup.
+    A temporary directory with a custom cleanup function.
+    We need a custom temporary directory cleanup in order to delete the dataset objects that have
+    cache files in the temporary directory before deleting the dorectory itself.
     """
 
-    def __init__(self):
-        self.name = tempfile.mkdtemp(prefix=config.TEMP_CACHE_DIR_PREFIX)
+    def __init__(self, cleanup_func=None, *cleanup_func_args, **cleanup_func_kwargs):
+        self.name = tempfile.mkdtemp()
         self._finalizer = weakref.finalize(self, self._cleanup)
+        self._cleanup_func = cleanup_func
+        self._cleanup_func_args = cleanup_func_args
+        self._cleanup_func_kwargs = cleanup_func_kwargs
 
     def _cleanup(self):
-        # A PermissionError can happen on Windows if a datasets referencing
-        # the files from the cache directory is not garbage collected
-        def onexc(func, path, exc):
-            if isinstance(exc, PermissionError):
-                logger.warning(
-                    f"Failed to remove temporary cache directory {self.name} ({type(exc).__name__}: {exc}). Run `datasets-cli delete-temp-cache` to remove this directory manually."
-                )
-
-        if config.PY_VERSION <= version.parse("3.12"):
-            shutil.rmtree(self.name, onerror=onexc)
-        else:
-            shutil.rmtree(self.name, onexc=onexc)
+        self._cleanup_func(*self._cleanup_func_args, **self._cleanup_func_kwargs)
+        if os.path.exists(self.name):
+            shutil.rmtree(self.name)
 
     def cleanup(self):
         if self._finalizer.detach():
             self._cleanup()
+
+
+def maybe_register_dataset_for_temp_dir_deletion(dataset):
+    """
+    This function registers the datasets that have cache files in _TEMP_DIR_FOR_TEMP_CACHE_FILES in order
+    to properly delete them before deleting the temporary directory.
+    The temporary directory _TEMP_DIR_FOR_TEMP_CACHE_FILES is used when caching is disabled.
+    """
+    if _TEMP_DIR_FOR_TEMP_CACHE_FILES is None:
+        return
+
+    global _DATASETS_WITH_TABLE_IN_TEMP_DIR
+    if _DATASETS_WITH_TABLE_IN_TEMP_DIR is None:
+        _DATASETS_WITH_TABLE_IN_TEMP_DIR = weakref.WeakSet()
+    if any(
+        Path(_TEMP_DIR_FOR_TEMP_CACHE_FILES.name) in Path(cache_file["filename"]).parents
+        for cache_file in dataset.cache_files
+    ):
+        _DATASETS_WITH_TABLE_IN_TEMP_DIR.add(dataset)
+
+
+def get_datasets_with_cache_file_in_temp_dir():
+    return list(_DATASETS_WITH_TABLE_IN_TEMP_DIR) if _DATASETS_WITH_TABLE_IN_TEMP_DIR is not None else []
 
 
 def enable_caching():
@@ -165,7 +184,13 @@ def get_temporary_cache_files_directory() -> str:
     """Return a directory that is deleted when session closes."""
     global _TEMP_DIR_FOR_TEMP_CACHE_FILES
     if _TEMP_DIR_FOR_TEMP_CACHE_FILES is None:
-        _TEMP_DIR_FOR_TEMP_CACHE_FILES = _TempCacheDir()
+        # Avoids a PermissionError on Windows caused by the datasets referencing
+        # the files from the cache directory on clean-up
+        def cleanup_func():
+            for dset in get_datasets_with_cache_file_in_temp_dir():
+                dset.__del__()
+
+        _TEMP_DIR_FOR_TEMP_CACHE_FILES = _TempDirWithCustomCleanup(cleanup_func=cleanup_func)
     return _TEMP_DIR_FOR_TEMP_CACHE_FILES.name
 
 
