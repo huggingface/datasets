@@ -24,7 +24,7 @@ from datasets.config import METADATA_CONFIGS_FIELD
 from datasets.data_files import DataFilesDict
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.download.download_config import DownloadConfig
-from datasets.exceptions import DatasetNotFoundError, DatasetsServerError
+from datasets.exceptions import DatasetNotFoundError
 from datasets.features import Features, Image, Value
 from datasets.iterable_dataset import IterableDataset
 from datasets.load import (
@@ -46,6 +46,7 @@ from datasets.load import (
 from datasets.packaged_modules.audiofolder.audiofolder import AudioFolder, AudioFolderConfig
 from datasets.packaged_modules.imagefolder.imagefolder import ImageFolder, ImageFolderConfig
 from datasets.packaged_modules.parquet.parquet import ParquetConfig
+from datasets.utils import _datasets_server
 from datasets.utils.logging import INFO, get_logger
 
 from .utils import (
@@ -801,7 +802,7 @@ class ModuleFactoryTest(TestCase):
             download_config=self.download_config,
             revision="wrong_sha",
         )
-        with self.assertRaises(DatasetsServerError):
+        with self.assertRaises(_datasets_server.DatasetsServerError):
             factory.get_module()
 
     def test_CachedDatasetModuleFactory(self):
