@@ -1360,6 +1360,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             **kwargs,
         ).read()
 
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        maybe_register_dataset_for_temp_dir_deletion(self)
+        return self
+
     def __del__(self):
         if hasattr(self, "_data"):
             del self._data
