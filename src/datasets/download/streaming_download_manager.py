@@ -16,6 +16,7 @@ from xml.etree import ElementTree as ET
 
 import fsspec
 from aiohttp.client_exceptions import ClientError
+from huggingface_hub.utils import EntryNotFoundError
 
 from .. import config
 from ..filesystems import COMPRESSION_FILESYSTEMS
@@ -278,7 +279,10 @@ def xgetsize(path, download_config: Optional[DownloadConfig] = None) -> int:
         path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
         main_hop, *rest_hops = path.split("::")
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
-        size = fs.size(main_hop)
+        try:
+            size = fs.size(main_hop)
+        except EntryNotFoundError:
+            raise FileNotFoundError(f"No such file: {path}")
         if size is None:
             # use xopen instead of fs.open to make data fetching more robust
             with xopen(path, download_config=download_config) as f:
