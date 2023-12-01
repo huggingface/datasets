@@ -41,6 +41,7 @@ DILL_VERSION = version.parse(importlib.metadata.version("dill"))
 FSSPEC_VERSION = version.parse(importlib.metadata.version("fsspec"))
 PANDAS_VERSION = version.parse(importlib.metadata.version("pandas"))
 PYARROW_VERSION = version.parse(importlib.metadata.version("pyarrow"))
+HF_HUB_VERSION = version.parse(importlib.metadata.version("huggingface_hub"))
 
 USE_TF = os.environ.get("USE_TF", "AUTO").upper()
 USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
