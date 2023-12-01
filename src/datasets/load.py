@@ -1256,7 +1256,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             builder_configs, default_config_name = None, None
         builder_kwargs = {
             "hash": hash,
-            "base_path": hf_hub_url(self.name, "", revision=self.revision).rstrip("/"),
+            "base_path": hf_hub_url(self.name, "", revision=revision).rstrip("/"),
             "repo_id": self.name,
             "dataset_name": camelcase_to_snakecase(Path(self.name).name),
         }
@@ -1269,7 +1269,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         try:
             # this file is deprecated and was created automatically in old versions of push_to_hub
             dataset_infos_path = cached_path(
-                hf_hub_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=self.revision),
+                hf_hub_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=revision),
                 download_config=download_config,
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
