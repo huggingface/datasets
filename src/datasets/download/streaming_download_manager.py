@@ -157,7 +157,7 @@ def xexists(urlpath: str, download_config: Optional[DownloadConfig] = None):
     else:
         urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config=download_config)
         fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
-        return fs.exists(main_hop)
+        return fs.exists(urlpath)
 
 
 def xbasename(a):
@@ -256,7 +256,7 @@ def xisfile(path, download_config: Optional[DownloadConfig] = None) -> bool:
     else:
         path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
-        return fs.isfile(main_hop)
+        return fs.isfile(path)
 
 
 def xgetsize(path, download_config: Optional[DownloadConfig] = None) -> int:
@@ -275,7 +275,7 @@ def xgetsize(path, download_config: Optional[DownloadConfig] = None) -> int:
     else:
         path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
-        size = fs.size(main_hop)
+        size = fs.size(path)
         if size is None:
             # use xopen instead of fs.open to make data fetching more robust
             with xopen(path, download_config=download_config) as f:
@@ -299,10 +299,10 @@ def xisdir(path, download_config: Optional[DownloadConfig] = None) -> bool:
     else:
         path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
-        inner_path = main_hop.split("://")[1]
+        inner_path = path.split("://")[1]
         if not inner_path.strip("/"):
             return True
-        return fs.isdir(inner_path)
+        return fs.isdir(path)
 
 
 def xrelpath(path, start=None):
@@ -532,10 +532,10 @@ def xlistdir(path: str, download_config: Optional[DownloadConfig] = None) -> Lis
         # globbing inside a zip in a private repo requires authentication
         path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
-        inner_path = main_hop.split("://")[1]
-        if inner_path.strip("/") and not fs.isdir(inner_path):
+        inner_path = path.split("://")[1]
+        if inner_path.strip("/") and not fs.isdir(path):
             raise FileNotFoundError(f"Directory doesn't exist: {path}")
-        objects = fs.listdir(inner_path)
+        objects = fs.listdir(path)
         return [os.path.basename(obj["name"]) for obj in objects]
 
 
@@ -562,8 +562,7 @@ def xglob(urlpath, *, recursive=False, download_config: Optional[DownloadConfig]
         #   so to be able to glob patterns like "[0-9]", we have to call `fs.glob`.
         # - Also "*" in get_fs_token_paths() only matches files: we have to call `fs.glob` to match directories.
         # - If there is "**" in the pattern, `fs.glob` must be called anyway.
-        inner_path = main_hop.split("://")[1]
-        globbed_paths = fs.glob(inner_path)
+        globbed_paths = fs.glob(urlpath)
         protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[-1]
         return ["::".join([f"{protocol}://{globbed_path}"] + rest_hops) for globbed_path in globbed_paths]
 
@@ -587,11 +586,11 @@ def xwalk(urlpath, download_config: Optional[DownloadConfig] = None, **kwargs):
         # walking inside a zip in a private repo requires authentication
         urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config=download_config)
         fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
-        inner_path = main_hop.split("://")[1]
-        if inner_path.strip("/") and not fs.isdir(inner_path):
+        inner_path = urlpath.split("://")[1]
+        if inner_path.strip("/") and not fs.isdir(urlpath):
             return []
         protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[-1]
-        for dirpath, dirnames, filenames in fs.walk(inner_path, **kwargs):
+        for dirpath, dirnames, filenames in fs.walk(urlpath, **kwargs):
             yield "::".join([f"{protocol}://{dirpath}"] + rest_hops), dirnames, filenames
 
 
