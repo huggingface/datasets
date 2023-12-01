@@ -64,16 +64,15 @@ from .packaged_modules import (
     _hash_python_lines,
 )
 from .splits import Split
+from .utils import _datasets_server
 from .utils._filelock import FileLock
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import (
     OfflineModeIsEnabled,
     _raise_if_offline_mode_is_enabled,
     cached_path,
-    get_authentication_headers_for_url,
     head_hf_s3,
     hf_github_url,
-    http_get,
     init_hf_modules,
     is_relative_path,
     relative_to_absolute_path,
@@ -1330,71 +1329,13 @@ class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
         self.download_config = download_config or DownloadConfig()
         increase_load_count(name, resource_type="dataset")
 
-    def _get_exported_parquet_files(self) -> List[Dict[str, Any]]:
-        datasets_server_parquet_url = config.HF_ENDPOINT.replace("://", "://datasets-server.") + "/parquet?dataset="
-        try:
-            parquet_data_files_response = http_get(
-                url=datasets_server_parquet_url + self.name,
-                temp_file=None,
-                headers=get_authentication_headers_for_url(config.HF_ENDPOINT + f"datasets/{self.name}"),
-                timeout=100.0,
-                max_retries=3,
-            )
-            parquet_data_files_response.raise_for_status()
-            if "X-Revision" in parquet_data_files_response.headers:
-                if parquet_data_files_response.headers["X-Revision"] == self.revision or self.revision is None:
-                    parquet_data_files_response_json = parquet_data_files_response.json()
-                    if (
-                        parquet_data_files_response_json.get("partial") is False
-                        and not parquet_data_files_response_json.get("pending", True)
-                        and not parquet_data_files_response_json.get("failed", True)
-                        and "parquet_files" in parquet_data_files_response_json
-                    ):
-                        return parquet_data_files_response_json["parquet_files"]
-                    else:
-                        logger.debug(f"Parquet export for {self.name} is not completely ready yet.")
-                else:
-                    logger.debug(
-                        f"Parquet export for {self.name} is available but outdated (revision='{parquet_data_files_response.headers['X-Revision']}')"
-                    )
-        except Exception as e:  # noqa catch any exception of the datasets-server and consider the parquet export doesn't exist
-            logger.debug(f"No parquet export for {self.name} available ({type(e).__name__}: {e})")
-        raise DatasetsServerError("No exported Parquet files available.")
-
-    def _get_exported_dataset_infos(self) -> Dict[str, Dict[str, Any]]:
-        datasets_server_info_url = config.HF_ENDPOINT.replace("://", "://datasets-server.") + "/info?dataset="
-        try:
-            info_response = http_get(
-                url=datasets_server_info_url + self.name,
-                temp_file=None,
-                headers=get_authentication_headers_for_url(config.HF_ENDPOINT + f"datasets/{self.name}"),
-                timeout=100.0,
-                max_retries=3,
-            )
-            info_response.raise_for_status()
-            if "X-Revision" in info_response.headers:
-                if info_response.headers["X-Revision"] == self.revision or self.revision is None:
-                    info_response = info_response.json()
-                    if (
-                        info_response.get("partial") is False
-                        and not info_response.get("pending", True)
-                        and not info_response.get("failed", True)
-                        and "dataset_info" in info_response
-                    ):
-                        return info_response["dataset_info"]
-                    else:
-                        logger.debug(f"Dataset info for {self.name} is not completely ready yet.")
-                else:
-                    logger.debug(
-                        f"Dataset info for {self.name} is available but outdated (revision='{info_response.headers['X-Revision']}')"
-                    )
-        except Exception as e:  # noqa catch any exception of the datasets-server and consider the dataset info doesn't exist
-            logger.debug(f"No dataset info for {self.name} available ({type(e).__name__}: {e})")
-        raise DatasetsServerError("No exported dataset infos available.")
-
     def get_module(self) -> DatasetModule:
-        exported_parquet_files = self._get_exported_parquet_files()
-        exported_dataset_infos = self._get_exported_dataset_infos()
+        exported_parquet_files = _datasets_server._get_exported_parquet_files(
+            dataset=self.name, revision=self.revision
+        )
+        exported_dataset_infos = _datasets_server._get_exported_dataset_infos(
+            dataset=self.name, revision=self.revision
+        )
         hfh_dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
             self.name,
             revision="refs/convert/parquet",
