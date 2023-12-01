@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Un
 import numpy as np
 import xxhash
 
+from . import config
 from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH
 from .utils._dill import dumps
 from .utils.deprecation_utils import deprecated
@@ -38,28 +39,30 @@ logger = get_logger(__name__)
 #################
 
 _CACHING_ENABLED = True
-_TEMP_DIR_FOR_TEMP_CACHE_FILES: Optional["_TempDirWithCustomCleanup"] = None
+_TEMP_DIR_FOR_TEMP_CACHE_FILES: Optional["_TempCacheDir"] = None
 _DATASETS_WITH_TABLE_IN_TEMP_DIR: Optional[weakref.WeakSet] = None
 
 
-class _TempDirWithCustomCleanup:
+class _TempCacheDir:
     """
-    A temporary directory with a custom cleanup function.
-    We need a custom temporary directory cleanup in order to delete the dataset objects that have
-    cache files in the temporary directory before deleting the dorectory itself.
+    A temporary directory for storing cached Arrow files with a cleanup that frees references to the Arrow files
+    before deleting the directory itself to avoid permission errors on Windows.
     """
 
-    def __init__(self, cleanup_func=None, *cleanup_func_args, **cleanup_func_kwargs):
-        self.name = tempfile.mkdtemp()
+    def __init__(self):
+        self.name = tempfile.mkdtemp(prefix=config.TEMP_CACHE_DIR_PREFIX)
         self._finalizer = weakref.finalize(self, self._cleanup)
-        self._cleanup_func = cleanup_func
-        self._cleanup_func_args = cleanup_func_args
-        self._cleanup_func_kwargs = cleanup_func_kwargs
 
     def _cleanup(self):
-        self._cleanup_func(*self._cleanup_func_args, **self._cleanup_func_kwargs)
+        for dset in get_datasets_with_cache_file_in_temp_dir():
+            dset.__del__()
         if os.path.exists(self.name):
-            shutil.rmtree(self.name)
+            try:
+                shutil.rmtree(self.name)
+            except Exception as e:
+                raise OSError(
+                    f"An error occured while trying to delete temporary cache directory {self.name}. Please delete it manually."
+                ) from e
 
     def cleanup(self):
         if self._finalizer.detach():
@@ -180,13 +183,7 @@ def get_temporary_cache_files_directory() -> str:
     """Return a directory that is deleted when session closes."""
     global _TEMP_DIR_FOR_TEMP_CACHE_FILES
     if _TEMP_DIR_FOR_TEMP_CACHE_FILES is None:
-        # Avoids a PermissionError on Windows caused by the datasets referencing
-        # the files from the cache directory on clean-up
-        def cleanup_func():
-            for dset in get_datasets_with_cache_file_in_temp_dir():
-                dset.__del__()
-
-        _TEMP_DIR_FOR_TEMP_CACHE_FILES = _TempDirWithCustomCleanup(cleanup_func=cleanup_func)
+        _TEMP_DIR_FOR_TEMP_CACHE_FILES = _TempCacheDir()
     return _TEMP_DIR_FOR_TEMP_CACHE_FILES.name
 
 
