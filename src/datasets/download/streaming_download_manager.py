@@ -306,7 +306,7 @@ def xisdir(path, download_config: Optional[DownloadConfig] = None) -> bool:
         inner_path = main_hop.split("://")[-1]
         if not inner_path.strip("/"):
             return True
-        return fs.isdir(main_hop)
+        return fs.isdir(inner_path)
 
 
 def xrelpath(path, start=None):
@@ -538,9 +538,9 @@ def xlistdir(path: str, download_config: Optional[DownloadConfig] = None) -> Lis
         main_hop, *rest_hops = path.split("::")
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
         inner_path = main_hop.split("://")[-1]
-        if inner_path.strip("/") and not fs.isdir(path):
+        if inner_path.strip("/") and not fs.isdir(inner_path):
             raise FileNotFoundError(f"Directory doesn't exist: {path}")
-        objects = fs.listdir(main_hop)
+        objects = fs.listdir(inner_path)
         return [os.path.basename(obj["name"]) for obj in objects]
 
 
@@ -568,7 +568,8 @@ def xglob(urlpath, *, recursive=False, download_config: Optional[DownloadConfig]
         #   so to be able to glob patterns like "[0-9]", we have to call `fs.glob`.
         # - Also "*" in get_fs_token_paths() only matches files: we have to call `fs.glob` to match directories.
         # - If there is "**" in the pattern, `fs.glob` must be called anyway.
-        globbed_paths = fs.glob(main_hop)
+        inner_path = main_hop.split("://")[1]
+        globbed_paths = fs.glob(inner_path)
         protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[-1]
         return ["::".join([f"{protocol}://{globbed_path}"] + rest_hops) for globbed_path in globbed_paths]
 
@@ -594,10 +595,10 @@ def xwalk(urlpath, download_config: Optional[DownloadConfig] = None, **kwargs):
         main_hop, *rest_hops = urlpath.split("::")
         fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
         inner_path = main_hop.split("://")[-1]
-        if inner_path.strip("/") and not fs.isdir(main_hop):
+        if inner_path.strip("/") and not fs.isdir(inner_path):
             return []
         protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[-1]
-        for dirpath, dirnames, filenames in fs.walk(main_hop, **kwargs):
+        for dirpath, dirnames, filenames in fs.walk(inner_path, **kwargs):
             yield "::".join([f"{protocol}://{dirpath}"] + rest_hops), dirnames, filenames
 
 
