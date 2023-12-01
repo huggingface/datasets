@@ -49,7 +49,7 @@ from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadMode
 from .download.streaming_download_manager import StreamingDownloadManager, xbasename, xglob, xjoin
-from .exceptions import DataFilesNotFoundError, DatasetNotFoundError, DatasetsServerError
+from .exceptions import DataFilesNotFoundError, DatasetNotFoundError
 from .features import Features
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict
@@ -1330,12 +1330,8 @@ class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
-        exported_parquet_files = _datasets_server._get_exported_parquet_files(
-            dataset=self.name, revision=self.revision
-        )
-        exported_dataset_infos = _datasets_server._get_exported_dataset_infos(
-            dataset=self.name, revision=self.revision
-        )
+        exported_parquet_files = _datasets_server.get_exported_parquet_files(dataset=self.name, revision=self.revision)
+        exported_dataset_infos = _datasets_server.get_exported_dataset_infos(dataset=self.name, revision=self.revision)
         hfh_dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
             self.name,
             revision="refs/convert/parquet",
@@ -1778,7 +1774,7 @@ def dataset_module_factory(
                         return HubDatasetModuleFactoryWithParquetExport(
                             path, download_config=download_config, revision=dataset_info.sha
                         ).get_module()
-                    except DatasetsServerError:
+                    except _datasets_server.DatasetsServerError:
                         pass
                 # Otherwise we must use the dataset script if the user trusts it
                 trust_remote_code = resolve_trust_remote_code(trust_remote_code, path)

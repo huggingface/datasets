@@ -1,7 +1,7 @@
 from typing import Any, Dict, List
 
 from .. import config
-from ..exceptions import DatasetsServerError
+from ..exceptions import DatasetsError
 from .file_utils import (
     get_authentication_headers_for_url,
     http_get,
@@ -12,7 +12,17 @@ from .logging import get_logger
 logger = get_logger(__name__)
 
 
-def _get_exported_parquet_files(dataset: str, revision: str) -> List[Dict[str, Any]]:
+class DatasetsServerError(DatasetsError):
+    """Dataset-server error.
+
+    Raised when trying to use the Datasets-server HTTP API and when trying to access:
+    - a missing dataset, or
+    - a private/gated dataset and the user is not authenticated.
+    - unavailable /parquet or /info responses
+    """
+
+
+def get_exported_parquet_files(dataset: str, revision: str) -> List[Dict[str, Any]]:
     """
     Get the dataset exported parquet files
     Docs: https://huggingface.co/docs/datasets-server/parquet
@@ -48,7 +58,7 @@ def _get_exported_parquet_files(dataset: str, revision: str) -> List[Dict[str, A
     raise DatasetsServerError("No exported Parquet files available.")
 
 
-def _get_exported_dataset_infos(dataset: str, revision: str) -> Dict[str, Dict[str, Any]]:
+def get_exported_dataset_infos(dataset: str, revision: str) -> Dict[str, Dict[str, Any]]:
     """
     Get the dataset information, can be useful to get e.g. the dataset features.
     Docs: https://huggingface.co/docs/datasets-server/info
