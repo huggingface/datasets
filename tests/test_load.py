@@ -1313,11 +1313,9 @@ def test_load_dataset_with_unsupported_extensions(text_dir_with_unsupported_exte
 def test_loading_from_the_datasets_hub():
     with tempfile.TemporaryDirectory() as tmp_dir:
         dataset = load_dataset(SAMPLE_DATASET_IDENTIFIER, cache_dir=tmp_dir)
-        train_ds = dataset["train"]
-        valid_ds = dataset["validation"]
-        assert len(train_ds) == 2
-        assert len(valid_ds) == 3
-        del dataset, train_ds, valid_ds
+        assert len(dataset["train"]) == 2
+        assert len(dataset["validation"]) == 3
+        del dataset
 
 
 @pytest.mark.integration
