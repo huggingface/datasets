@@ -423,6 +423,8 @@ def _prepare_single_hop_path_and_storage_options(
     Storage options are formatted in the form {protocol: storage_options_for_protocol}
     """
     token = None if download_config is None else download_config.token
+    if urlpath.startswith(config.HF_ENDPOINT) and "/resolve/" in urlpath:
+        urlpath = "hf://" + urlpath[len(config.HF_ENDPOINT) + 1 :].replace("/resolve/", "@", 1)
     protocol = urlpath.split("://")[0] if "://" in urlpath else "file"
     if download_config is not None and protocol in download_config.storage_options:
         storage_options = download_config.storage_options[protocol]

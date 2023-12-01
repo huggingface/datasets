@@ -340,8 +340,6 @@ def resolve_pattern(
         base_path = os.path.splitdrive(pattern)[0] + os.sep
     else:
         base_path = ""
-    if pattern.startswith(config.HF_ENDPOINT) and "/resolve/" in pattern:
-        pattern = "hf://" + pattern[len(config.HF_ENDPOINT) + 1 :].replace("/resolve/", "@", 1)
     pattern, storage_options = _prepare_path_and_storage_options(pattern, download_config=download_config)
     fs, _, _ = get_fs_token_paths(pattern, storage_options=storage_options)
     fs_base_path = base_path.split("::")[0].split("://")[-1] or fs.root_marker
