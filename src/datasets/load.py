@@ -64,6 +64,7 @@ from .packaged_modules import (
     _hash_python_lines,
 )
 from .splits import Split
+from .utils import _datasets_server
 from .utils._filelock import FileLock
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import (
@@ -240,6 +241,9 @@ def get_dataset_builder_class(
 ) -> Type[DatasetBuilder]:
     builder_cls = import_main_class(dataset_module.module_path)
     if dataset_module.builder_configs_parameters.builder_configs:
+        dataset_name = dataset_name or dataset_module.builder_kwargs.get("dataset_name")
+        if dataset_name is None:
+            raise ValueError("dataset_name should be specified but got None")
         builder_cls = configure_builder_class(
             builder_cls,
             builder_configs=dataset_module.builder_configs_parameters.builder_configs,
@@ -612,6 +616,7 @@ def create_builder_configs_from_metadata_configs(
     builder_config_cls = builder_cls.BUILDER_CONFIG_CLASS
     default_config_name = metadata_configs.get_default_config_name()
     builder_configs = []
+    default_builder_kwargs = {} if default_builder_kwargs is None else default_builder_kwargs
 
     base_path = base_path if base_path is not None else ""
     for config_name, config_params in metadata_configs.items():
@@ -1308,6 +1313,68 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         )
 
 
+class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
+    """
+    Get the module of a dataset loaded from parquet files of a dataset repository parquet export.
+    """
+
+    def __init__(
+        self,
+        name: str,
+        revision: Optional[str] = None,
+        download_config: Optional[DownloadConfig] = None,
+    ):
+        self.name = name
+        self.revision = revision
+        self.download_config = download_config or DownloadConfig()
+        increase_load_count(name, resource_type="dataset")
+
+    def get_module(self) -> DatasetModule:
+        exported_parquet_files = _datasets_server.get_exported_parquet_files(dataset=self.name, revision=self.revision)
+        exported_dataset_infos = _datasets_server.get_exported_dataset_infos(dataset=self.name, revision=self.revision)
+        hfh_dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
+            self.name,
+            revision="refs/convert/parquet",
+            token=self.download_config.token,
+            timeout=100.0,
+        )
+        # even if metadata_configs is not None (which means that we will resolve files for each config later)
+        # we cannot skip resolving all files because we need to infer module name by files extensions
+        revision = hfh_dataset_info.sha  # fix the revision in case there are new commits in the meantime
+        metadata_configs = MetadataConfigs._from_exported_parquet_files(
+            revision=revision, exported_parquet_files=exported_parquet_files
+        )
+        module_path, hash = _PACKAGED_DATASETS_MODULES["parquet"]
+        builder_configs, default_config_name = create_builder_configs_from_metadata_configs(
+            module_path,
+            metadata_configs,
+            supports_metadata=False,
+            download_config=self.download_config,
+        )
+        builder_kwargs = {
+            "hash": hash,
+            "repo_id": self.name,
+            "dataset_name": camelcase_to_snakecase(Path(self.name).name),
+        }
+
+        return DatasetModule(
+            module_path,
+            hash,
+            builder_kwargs,
+            dataset_infos=DatasetInfosDict(
+                {
+                    config_name: DatasetInfo.from_dict(exported_dataset_infos[config_name])
+                    for config_name in exported_dataset_infos
+                }
+            ),
+            builder_configs_parameters=BuilderConfigsParameters(
+                metadata_configs=metadata_configs,
+                builder_configs=builder_configs,
+                default_config_name=default_config_name,
+            ),
+        )
+
+
 class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
     """
     Get the module of a dataset from a dataset repository.
@@ -1700,15 +1767,32 @@ def dataset_module_factory(
                     )
                 else:
                     raise e
-            if filename in [sibling.rfilename for sibling in dataset_info.siblings]:
-                return HubDatasetModuleFactoryWithScript(
-                    path,
-                    revision=revision,
-                    download_config=download_config,
-                    download_mode=download_mode,
-                    dynamic_modules_path=dynamic_modules_path,
-                    trust_remote_code=trust_remote_code,
-                ).get_module()
+            if filename in [sibling.rfilename for sibling in dataset_info.siblings]:  # contains a dataset script
+                if config.USE_PARQUET_EXPORT:
+                    # If the parquet export is ready (parquet files + info available for the current sha), we can use it instead
+                    try:
+                        return HubDatasetModuleFactoryWithParquetExport(
+                            path, download_config=download_config, revision=dataset_info.sha
+                        ).get_module()
+                    except _datasets_server.DatasetsServerError:
+                        pass
+                # Otherwise we must use the dataset script if the user trusts it
+                trust_remote_code = resolve_trust_remote_code(trust_remote_code, path)
+                if trust_remote_code:
+                    return HubDatasetModuleFactoryWithScript(
+                        path,
+                        revision=revision,
+                        download_config=download_config,
+                        download_mode=download_mode,
+                        dynamic_modules_path=dynamic_modules_path,
+                        trust_remote_code=trust_remote_code,
+                    ).get_module()
+                else:
+                    raise ValueError(
+                        f"Loading {path} requires you to execute the dataset script in that"
+                        " repo on your local machine. Make sure you have read the code there to avoid malicious use, then"
+                        " set the option `trust_remote_code=True` to remove this error."
+                    )
             else:
                 return HubDatasetModuleFactoryWithoutScript(
                     path,
