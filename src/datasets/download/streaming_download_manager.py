@@ -156,8 +156,9 @@ def xexists(urlpath: str, download_config: Optional[DownloadConfig] = None):
         return os.path.exists(main_hop)
     else:
         urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config=download_config)
+        main_hop, *rest_hops = urlpath.split("::")
         fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
-        return fs.exists(urlpath)
+        return fs.exists(main_hop)
 
 
 def xbasename(a):
@@ -255,8 +256,9 @@ def xisfile(path, download_config: Optional[DownloadConfig] = None) -> bool:
         return os.path.isfile(path)
     else:
         path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
+        main_hop, *rest_hops = path.split("::")
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
-        return fs.isfile(path)
+        return fs.isfile(main_hop)
 
 
 def xgetsize(path, download_config: Optional[DownloadConfig] = None) -> int:
@@ -274,8 +276,9 @@ def xgetsize(path, download_config: Optional[DownloadConfig] = None) -> int:
         return os.path.getsize(path)
     else:
         path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
+        main_hop, *rest_hops = path.split("::")
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
-        size = fs.size(path)
+        size = fs.size(main_hop)
         if size is None:
             # use xopen instead of fs.open to make data fetching more robust
             with xopen(path, download_config=download_config) as f:
@@ -298,11 +301,12 @@ def xisdir(path, download_config: Optional[DownloadConfig] = None) -> bool:
         return os.path.isdir(path)
     else:
         path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
-        fs, _, (path,) = fsspec.get_fs_token_paths(path, storage_options=storage_options)
-        inner_path = path.split("://")[-1]
+        main_hop, *rest_hops = path.split("::")
+        fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
+        inner_path = main_hop.split("://")[-1]
         if not inner_path.strip("/"):
             return True
-        return fs.isdir(path)
+        return fs.isdir(main_hop)
 
 
 def xrelpath(path, start=None):
@@ -531,11 +535,12 @@ def xlistdir(path: str, download_config: Optional[DownloadConfig] = None) -> Lis
     else:
         # globbing inside a zip in a private repo requires authentication
         path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
-        fs, _, (path,) = fsspec.get_fs_token_paths(path, storage_options=storage_options)
-        inner_path = path.split("://")[-1]
+        main_hop, *rest_hops = path.split("::")
+        fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
+        inner_path = main_hop.split("://")[-1]
         if inner_path.strip("/") and not fs.isdir(path):
             raise FileNotFoundError(f"Directory doesn't exist: {path}")
-        objects = fs.listdir(path)
+        objects = fs.listdir(main_hop)
         return [os.path.basename(obj["name"]) for obj in objects]
 
 
@@ -557,12 +562,13 @@ def xglob(urlpath, *, recursive=False, download_config: Optional[DownloadConfig]
     else:
         # globbing inside a zip in a private repo requires authentication
         urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config=download_config)
+        main_hop, *rest_hops = urlpath.split("::")
         fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
         # - If there's no "*" in the pattern, get_fs_token_paths() doesn't do any pattern matching
         #   so to be able to glob patterns like "[0-9]", we have to call `fs.glob`.
         # - Also "*" in get_fs_token_paths() only matches files: we have to call `fs.glob` to match directories.
         # - If there is "**" in the pattern, `fs.glob` must be called anyway.
-        globbed_paths = fs.glob(urlpath)
+        globbed_paths = fs.glob(main_hop)
         protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[-1]
         return ["::".join([f"{protocol}://{globbed_path}"] + rest_hops) for globbed_path in globbed_paths]
 
@@ -585,12 +591,13 @@ def xwalk(urlpath, download_config: Optional[DownloadConfig] = None, **kwargs):
     else:
         # walking inside a zip in a private repo requires authentication
         urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config=download_config)
-        fs, _, (path,) = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
-        inner_path = path.split("://")[-1]
-        if inner_path.strip("/") and not fs.isdir(urlpath):
+        main_hop, *rest_hops = urlpath.split("::")
+        fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
+        inner_path = main_hop.split("://")[-1]
+        if inner_path.strip("/") and not fs.isdir(main_hop):
             return []
         protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[-1]
-        for dirpath, dirnames, filenames in fs.walk(path, **kwargs):
+        for dirpath, dirnames, filenames in fs.walk(main_hop, **kwargs):
             yield "::".join([f"{protocol}://{dirpath}"] + rest_hops), dirnames, filenames
 
 
@@ -641,12 +648,12 @@ class xPath(type(Path())):
                 posix_path = "::".join([main_hop, urlpath, *rest_hops[1:]])
             else:
                 storage_options = None
-            fs, _, (path,) = fsspec.get_fs_token_paths(xjoin(posix_path, pattern), storage_options=storage_options)
+            fs, *_ = fsspec.get_fs_token_paths(xjoin(posix_path, pattern), storage_options=storage_options)
             # - If there's no "*" in the pattern, get_fs_token_paths() doesn't do any pattern matching
             #   so to be able to glob patterns like "[0-9]", we have to call `fs.glob`.
             # - Also "*" in get_fs_token_paths() only matches files: we have to call `fs.glob` to match directories.
             # - If there is "**" in the pattern, `fs.glob` must be called anyway.
-            globbed_paths = fs.glob(xjoin(path, pattern))
+            globbed_paths = fs.glob(xjoin(main_hop, pattern))
             for globbed_path in globbed_paths:
                 yield type(self)("::".join([f"{fs.protocol}://{globbed_path}"] + rest_hops))
 
