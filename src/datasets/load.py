@@ -1322,11 +1322,11 @@ class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
     def __init__(
         self,
         name: str,
-        from_sha: Optional[str] = None,
+        revision: Optional[str] = None,
         download_config: Optional[DownloadConfig] = None,
     ):
         self.name = name
-        self.from_sha = from_sha
+        self.revision = revision
         self.download_config = download_config or DownloadConfig()
         increase_load_count(name, resource_type="dataset")
 
@@ -1342,7 +1342,7 @@ class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
             )
             parquet_data_files_response.raise_for_status()
             if "X-Revision" in parquet_data_files_response.headers:
-                if parquet_data_files_response.headers["X-Revision"] == self.from_sha or self.from_sha is None:
+                if parquet_data_files_response.headers["X-Revision"] == self.revision or self.revision is None:
                     parquet_data_files_response_json = parquet_data_files_response.json()
                     if (
                         parquet_data_files_response_json.get("partial") is False
@@ -1373,7 +1373,7 @@ class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
             )
             info_response.raise_for_status()
             if "X-Revision" in info_response.headers:
-                if info_response.headers["X-Revision"] == self.from_sha or self.from_sha is None:
+                if info_response.headers["X-Revision"] == self.revision or self.revision is None:
                     info_response = info_response.json()
                     if (
                         info_response.get("partial") is False
@@ -1835,7 +1835,7 @@ def dataset_module_factory(
                     # If the parquet export is ready (parquet files + info available for the current sha), we can use it instead
                     try:
                         return HubDatasetModuleFactoryWithParquetExport(
-                            path, download_config=download_config, from_sha=dataset_info.sha
+                            path, download_config=download_config, revision=dataset_info.sha
                         ).get_module()
                     except DatasetsServerError:
                         pass

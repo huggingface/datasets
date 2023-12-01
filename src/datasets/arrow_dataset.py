@@ -5007,7 +5007,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return dataset_nbytes
 
     @staticmethod
-    def _generate_tables_from_shards(shards: List["Dataset"], batch_size: int):
+    def _generate_tables_revisionrds(shards: List["Dataset"], batch_size: int):
         for shard_idx, shard in enumerate(shards):
             for pa_table in shard.with_format("arrow").iter(batch_size):
                 yield shard_idx, pa_table
@@ -5131,7 +5131,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             ]
         )
         ex_iterable = ArrowExamplesIterable(
-            Dataset._generate_tables_from_shards,
+            Dataset._generate_tables_revisionrds,
             kwargs={"shards": shards, "batch_size": config.DEFAULT_MAX_BATCH_SIZE},
         )
         return IterableDataset(ex_iterable, info=DatasetInfo(features=self.features))

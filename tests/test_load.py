@@ -793,13 +793,13 @@ class ModuleFactoryTest(TestCase):
         factory = HubDatasetModuleFactoryWithParquetExport(
             SAMPLE_DATASET_IDENTIFIER,
             download_config=self.download_config,
-            from_sha="1a21ac5846fc3f36ad5f128740c58932d3d7806f",
+            revision="1a21ac5846fc3f36ad5f128740c58932d3d7806f",
         )
         factory.get_module()
         factory = HubDatasetModuleFactoryWithParquetExport(
             SAMPLE_DATASET_IDENTIFIER,
             download_config=self.download_config,
-            from_sha="wrong_sha",
+            revision="wrong_sha",
         )
         with self.assertRaises(DatasetsServerError):
             factory.get_module()
