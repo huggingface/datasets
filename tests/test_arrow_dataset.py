@@ -1392,8 +1392,14 @@ class BaseDatasetTest(TestCase):
                                     self.assertEqual(len(dset_test2.cache_files), 1)
                                     self.assertNotIn("Loading cached processed dataset", self._caplog.text)
                                     # make sure the arrow files are going to be removed
-                                    self.assertIn("tmp", dset_test1.cache_files[0]["filename"])
-                                    self.assertIn("tmp", dset_test2.cache_files[0]["filename"])
+                                    self.assertIn(
+                                        Path(tempfile.gettempdir()),
+                                        Path(dset_test1.cache_files[0]["filename"]).parents,
+                                    )
+                                    self.assertIn(
+                                        Path(tempfile.gettempdir()),
+                                        Path(dset_test2.cache_files[0]["filename"]).parents,
+                                    )
             finally:
                 datasets.enable_caching()
 
@@ -3985,11 +3991,11 @@ def test_build_local_temp_path(uri_or_path):
     extracted_path = strip_protocol(uri_or_path)
     local_temp_path = Dataset._build_local_temp_path(extracted_path).as_posix()
     extracted_path_without_anchor = Path(extracted_path).relative_to(Path(extracted_path).anchor).as_posix()
-    path_relative_to_tmp_dir = local_temp_path.split("tmp")[-1].split("/", 1)[1]
+    # Check that the local temp path is relative to the system temp dir
+    path_relative_to_tmp_dir = Path(local_temp_path).relative_to(Path(tempfile.gettempdir())).as_posix()
 
     assert (
-        "tmp" in local_temp_path
-        and "hdfs" not in path_relative_to_tmp_dir
+        "hdfs" not in path_relative_to_tmp_dir
         and "s3" not in path_relative_to_tmp_dir
         and not local_temp_path.startswith(extracted_path_without_anchor)
         and local_temp_path.endswith(extracted_path_without_anchor)
