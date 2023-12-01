@@ -148,6 +148,46 @@ Upload your dataset with [`~datasets.DatasetDict.push_to_hub`]:
 >>> dataset.push_to_hub("stevhliu/my-image-captioning-dataset")
 ```
 
+## WebDataset
+
+The [WebDataset](https://github.com/webdataset/webdataset) format is based on TAR archives and is suitable for big image datasets.
+Indeed you can group your images in TAR archives (e.g. 1GB of images per TAR archive) and have thousands of TAR archives:
+
+```
+folder/train/00000.tar
+folder/train/00001.tar
+folder/train/00002.tar
+...
+```
+
+In the archives, each example is made of files sharing the same prefix:
+
+```
+e39871fd9fd74f55.jpg
+e39871fd9fd74f55.json
+f18b91585c4d3f3e.jpg
+f18b91585c4d3f3e.json
+ede6e66b2fb59aab.jpg
+ede6e66b2fb59aab.json
+ed600d57fcee4f94.jpg
+ed600d57fcee4f94.json
+...
+```
+
+You can put your images labels/captions/bounding boxes using JSON or text files for example.
+
+For more details on the WebDataset format and the python library, please check the [WebDataset documentation](https://webdataset.github.io/webdataset).
+
+Load your WebDataset and it will create on column per file suffix (here "jpg" and "json"):
+
+```python
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("webdataset", data_dir="/path/to/folder", split="train")
+>>> dataset[0]["json"]
+{"bbox": [[302.0, 109.0, 73.0, 52.0]], "categories": [0]}
+```
+
 ## Loading script
 
 Write a dataset loading script to share a dataset. It defines a dataset's splits and configurations, and handles downloading and generating a dataset. The script is located in the same folder or repository as the dataset and should have the same name.

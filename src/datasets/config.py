@@ -1,15 +1,15 @@
 import importlib
 import importlib.metadata
+import logging
 import os
 import platform
 from pathlib import Path
+from typing import Optional
 
 from packaging import version
 
-from .utils.logging import get_logger
 
-
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__.split(".", 1)[0])  # to avoid circular import from .utils.logging
 
 # Datasets
 S3_DATASETS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets"
@@ -31,7 +31,9 @@ PY_VERSION = version.parse(platform.python_version())
 
 # General environment variables accepted values for booleans
 ENV_VARS_TRUE_VALUES = {"1", "ON", "YES", "TRUE"}
+ENV_VARS_FALSE_VALUES = {"0", "OFF", "NO", "FALSE"}
 ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
+ENV_VARS_FALSE_AND_AUTO_VALUES = ENV_VARS_FALSE_VALUES.union({"AUTO"})
 
 
 # Imports
@@ -141,7 +143,6 @@ ZSTANDARD_AVAILABLE = importlib.util.find_spec("zstandard") is not None
 LZ4_AVAILABLE = importlib.util.find_spec("lz4") is not None
 PY7ZR_AVAILABLE = importlib.util.find_spec("py7zr") is not None
 
-
 # Cache location
 DEFAULT_XDG_CACHE_HOME = "~/.cache"
 XDG_CACHE_HOME = os.getenv("XDG_CACHE_HOME", DEFAULT_XDG_CACHE_HOME)
@@ -170,16 +171,23 @@ HF_UPDATE_DOWNLOAD_COUNTS = (
     os.environ.get("HF_UPDATE_DOWNLOAD_COUNTS", "AUTO").upper() in ENV_VARS_TRUE_AND_AUTO_VALUES
 )
 
+# Remote dataset scripts support
+__HF_DATASETS_TRUST_REMOTE_CODE = os.environ.get("HF_DATASETS_TRUST_REMOTE_CODE", "1")
+HF_DATASETS_TRUST_REMOTE_CODE: Optional[bool] = (
+    True
+    if __HF_DATASETS_TRUST_REMOTE_CODE.upper() in ENV_VARS_TRUE_VALUES
+    else False
+    if __HF_DATASETS_TRUST_REMOTE_CODE.upper() in ENV_VARS_FALSE_VALUES
+    else None
+)
+TIME_OUT_REMOTE_CODE = 15
+
 # Batch size constants. For more info, see:
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
 DEFAULT_MAX_BATCH_SIZE = 1000
 
 # Size of the preloaded record batch in `Dataset.__iter__`
 ARROW_READER_BATCH_SIZE_IN_DATASET_ITER = 10
-
-# Pickling tables works only for small tables (<4GiB)
-# For big tables, we write them on disk instead
-MAX_TABLE_NBYTES_FOR_PICKLING = 4 << 30
 
 # Max shard size in bytes (e.g. to shard parquet datasets in push_to_hub or download_and_prepare)
 MAX_SHARD_SIZE = "500MB"
@@ -191,6 +199,18 @@ PARQUET_ROW_GROUP_SIZE_FOR_BINARY_DATASETS = 100
 
 # Offline mode
 HF_DATASETS_OFFLINE = os.environ.get("HF_DATASETS_OFFLINE", "AUTO").upper() in ENV_VARS_TRUE_VALUES
+
+# Here, `True` will disable progress bars globally without possibility of enabling it
+# programmatically. `False` will enable them without possibility of disabling them.
+# If environment variable is not set (None), then the user is free to enable/disable
+# them programmatically.
+# TL;DR: env variable has priority over code
+__HF_DATASETS_DISABLE_PROGRESS_BARS = os.environ.get("HF_DATASETS_DISABLE_PROGRESS_BARS")
+HF_DATASETS_DISABLE_PROGRESS_BARS: Optional[bool] = (
+    __HF_DATASETS_DISABLE_PROGRESS_BARS.upper() in ENV_VARS_TRUE_VALUES
+    if __HF_DATASETS_DISABLE_PROGRESS_BARS is not None
+    else None
+)
 
 # In-memory
 DEFAULT_IN_MEMORY_MAX_SIZE = 0  # Disabled
@@ -228,3 +248,6 @@ PBAR_REFRESH_TIME_INTERVAL = 0.05  # 20 progress updates per sec
 
 # Maximum number of uploaded files per commit
 UPLOADS_MAX_NUMBER_PER_COMMIT = 50
+
+# Backward compatibiliy
+MAX_TABLE_NBYTES_FOR_PICKLING = 4 << 30
