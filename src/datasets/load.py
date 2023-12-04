@@ -1344,7 +1344,6 @@ class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
             module_path,
             metadata_configs,
             supports_metadata=False,
-            download_config=self.download_config,
         )
         builder_kwargs = {
             "hash": hash,
