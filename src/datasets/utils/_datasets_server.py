@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Union
 
 from .. import config
 from ..exceptions import DatasetsError
@@ -22,7 +22,7 @@ class DatasetsServerError(DatasetsError):
     """
 
 
-def get_exported_parquet_files(dataset: str, revision: str) -> List[Dict[str, Any]]:
+def get_exported_parquet_files(dataset: str, revision: str, token: Optional[Union[str, bool]]) -> List[Dict[str, Any]]:
     """
     Get the dataset exported parquet files
     Docs: https://huggingface.co/docs/datasets-server/parquet
@@ -32,7 +32,7 @@ def get_exported_parquet_files(dataset: str, revision: str) -> List[Dict[str, An
         parquet_data_files_response = http_get(
             url=datasets_server_parquet_url + dataset,
             temp_file=None,
-            headers=get_authentication_headers_for_url(config.HF_ENDPOINT + f"datasets/{dataset}"),
+            headers=get_authentication_headers_for_url(config.HF_ENDPOINT + f"datasets/{dataset}", token=token),
             timeout=100.0,
             max_retries=3,
         )
@@ -58,7 +58,9 @@ def get_exported_parquet_files(dataset: str, revision: str) -> List[Dict[str, An
     raise DatasetsServerError("No exported Parquet files available.")
 
 
-def get_exported_dataset_infos(dataset: str, revision: str) -> Dict[str, Dict[str, Any]]:
+def get_exported_dataset_infos(
+    dataset: str, revision: str, token: Optional[Union[str, bool]]
+) -> Dict[str, Dict[str, Any]]:
     """
     Get the dataset information, can be useful to get e.g. the dataset features.
     Docs: https://huggingface.co/docs/datasets-server/info
@@ -68,7 +70,7 @@ def get_exported_dataset_infos(dataset: str, revision: str) -> Dict[str, Dict[st
         info_response = http_get(
             url=datasets_server_info_url + dataset,
             temp_file=None,
-            headers=get_authentication_headers_for_url(config.HF_ENDPOINT + f"datasets/{dataset}"),
+            headers=get_authentication_headers_for_url(config.HF_ENDPOINT + f"datasets/{dataset}", token=token),
             timeout=100.0,
             max_retries=3,
         )

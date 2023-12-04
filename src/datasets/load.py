@@ -1330,8 +1330,12 @@ class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
-        exported_parquet_files = _datasets_server.get_exported_parquet_files(dataset=self.name, revision=self.revision)
-        exported_dataset_infos = _datasets_server.get_exported_dataset_infos(dataset=self.name, revision=self.revision)
+        exported_parquet_files = _datasets_server.get_exported_parquet_files(
+            dataset=self.name, revision=self.revision, token=self.download_config.token
+        )
+        exported_dataset_infos = _datasets_server.get_exported_dataset_infos(
+            dataset=self.name, revision=self.revision, token=self.download_config.token
+        )
         hfh_dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
             self.name,
             revision="refs/convert/parquet",
