@@ -21,7 +21,6 @@ DATASETS_ON_HF_GCP = [
     {"dataset": "wikipedia", "config_name": "20220301.frr"},
     {"dataset": "wikipedia", "config_name": "20220301.it"},
     {"dataset": "wikipedia", "config_name": "20220301.simple"},
-    {"dataset": "snli", "config_name": "plain_text"},
     {"dataset": "eli5", "config_name": "LFQA_reddit"},
     {"dataset": "wiki40b", "config_name": "en"},
     {"dataset": "wiki_dpr", "config_name": "psgs_w100.nq.compressed"},

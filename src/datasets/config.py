@@ -41,6 +41,7 @@ DILL_VERSION = version.parse(importlib.metadata.version("dill"))
 FSSPEC_VERSION = version.parse(importlib.metadata.version("fsspec"))
 PANDAS_VERSION = version.parse(importlib.metadata.version("pandas"))
 PYARROW_VERSION = version.parse(importlib.metadata.version("pyarrow"))
+HF_HUB_VERSION = version.parse(importlib.metadata.version("huggingface_hub"))
 
 USE_TF = os.environ.get("USE_TF", "AUTO").upper()
 USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
@@ -181,6 +182,9 @@ HF_DATASETS_TRUST_REMOTE_CODE: Optional[bool] = (
     else None
 )
 TIME_OUT_REMOTE_CODE = 15
+
+# Datasets-server
+USE_PARQUET_EXPORT = True
 
 # Batch size constants. For more info, see:
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
