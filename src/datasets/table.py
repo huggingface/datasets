@@ -1992,7 +1992,6 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
                             # `array.cast` to the fixed type so that the null arrays' `.values`  are preserved (the `pc.fill_null` kernel fails on extension types)
                             array_values = array.cast(pa.list_(array.type.value_type, feature.length)).values
                         else:
-                            # import pdb; pdb.set_trace()
                             array_values = _list_array_to_fixed_size_list_values(array, feature.length)
                         c_array_values = _c(array_values, feature.feature)
                         return pa.Array.from_buffers(
