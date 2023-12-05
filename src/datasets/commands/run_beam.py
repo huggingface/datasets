@@ -10,6 +10,7 @@ from datasets.commands import BaseDatasetsCLICommand
 from datasets.download.download_config import DownloadConfig
 from datasets.download.download_manager import DownloadMode
 from datasets.load import dataset_module_factory, import_main_class
+from datasets.utils.deprecation_utils import deprecated
 from datasets.utils.info_utils import VerificationMode
 
 
@@ -28,6 +29,9 @@ def run_beam_command_factory(args, **kwargs):
     )
 
 
+@deprecated(
+    "`BeamBasedBuilder` and `datasets-cli run_beam` are deprecated and will be removed in v3.0.0. Please use `GeneratorBasedBuilder` or `ArrowBasedBuilder` instead.`"
+)
 class RunBeamCommand(BaseDatasetsCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
@@ -135,7 +139,6 @@ class RunBeamCommand(BaseDatasetsCLICommand):
                 verification_mode=VerificationMode.NO_CHECKS
                 if self._ignore_verifications
                 else VerificationMode.ALL_CHECKS,
-                try_from_hf_gcs=False,
             )
             if self._save_infos:
                 builder._save_infos()

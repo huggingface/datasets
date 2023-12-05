@@ -698,7 +698,7 @@ class DatasetBuilder:
         download_mode: Optional[Union[DownloadMode, str]] = None,
         verification_mode: Optional[Union[VerificationMode, str]] = None,
         ignore_verifications="deprecated",
-        try_from_hf_gcs: bool = True,
+        try_from_hf_gcs="deprecated",
         dl_manager: Optional[DownloadManager] = None,
         base_path: Optional[str] = None,
         use_auth_token="deprecated",
@@ -735,6 +735,13 @@ class DatasetBuilder:
                 </Deprecated>
             try_from_hf_gcs (`bool`):
                 If `True`, it will try to download the already prepared dataset from the HF Google cloud storage.
+
+                <Deprecated version="2.16.0">
+
+                `try_from_hf_gcs` was deprecated in version 2.16.0 and will be removed in 3.0.0.
+                Host the processed files on the Hugging Face Hub instead.
+
+                </Deprecated>
             dl_manager (`DownloadManager`, *optional*):
                 Specific `DownloadManger` to use.
             base_path (`str`, *optional*):
@@ -814,6 +821,15 @@ class DatasetBuilder:
             token = use_auth_token
         else:
             token = self.token
+
+        if try_from_hf_gcs != "deprecated":
+            warnings.warn(
+                "'try_from_hf_gcs' was deprecated in version 2.16.0 and will be removed in 3.0.0.",
+                FutureWarning,
+            )
+            try_from_hf_gcs = try_from_hf_gcs
+        else:
+            try_from_hf_gcs = False
 
         output_dir = output_dir if output_dir is not None else self._cache_dir
         # output_dir can be a remote bucket on GCS or S3 (when using BeamBasedBuilder for distributed data processing)
@@ -957,11 +973,6 @@ class DatasetBuilder:
                             verification_mode=verification_mode,
                             **prepare_split_kwargs,
                             **download_and_prepare_kwargs,
-                        )
-                    else:
-                        warnings.warn(
-                            "Downloading data from Hf google storage is deprecated and will not be supported in the next major version of datasets.",
-                            FutureWarning,
                         )
                     # Sync info
                     self.info.dataset_size = sum(split.num_bytes for split in self.info.splits.values())

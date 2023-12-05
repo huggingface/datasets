@@ -736,8 +736,8 @@ def get_parquet_lengths(sources) -> List[int]:
 def parquet_to_arrow(source, destination) -> List[int]:
     """Convert parquet file to arrow file. Inputs can be str paths or file-like objects"""
     stream = None if isinstance(destination, str) else destination
-    with ArrowWriter(path=destination, stream=stream) as writer:
-        parquet_file = pa.parquet.ParquetFile(source)
+    parquet_file = pa.parquet.ParquetFile(source)
+    with ArrowWriter(schema=parquet_file.schema_arrow, path=destination, stream=stream) as writer:
         for record_batch in parquet_file.iter_batches():
             pa_table = pa.Table.from_batches([record_batch])
             writer.write_table(pa_table)

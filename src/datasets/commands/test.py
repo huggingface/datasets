@@ -150,7 +150,6 @@ class TestCommand(BaseDatasetsCLICommand):
                 verification_mode=VerificationMode.NO_CHECKS
                 if self._ignore_verifications
                 else VerificationMode.ALL_CHECKS,
-                try_from_hf_gcs=False,
             )
             builder.as_dataset()
             if self._save_infos:

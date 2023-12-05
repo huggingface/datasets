@@ -31,6 +31,7 @@ from .download.download_config import DownloadConfig
 from .naming import _split_re, filenames_for_dataset_split
 from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables
 from .utils import logging
+from .utils.deprecation_utils import deprecated
 from .utils.file_utils import cached_path
 
 
@@ -273,6 +274,7 @@ class BaseReader:
         dataset_kwargs = {"arrow_table": pa_table, "info": self._info, "split": split}
         return dataset_kwargs
 
+    @deprecated()
     def download_from_hf_gcs(self, download_config: DownloadConfig, relative_data_dir):
         """
         Download the dataset files from the Hf GCS

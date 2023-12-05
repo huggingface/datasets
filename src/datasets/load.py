@@ -2145,16 +2145,11 @@ def load_dataset(
     if streaming:
         return builder_instance.as_streaming_dataset(split=split)
 
-    # Some datasets are already processed on the HF google storage
-    # Don't try downloading from Google storage for the packaged datasets as text, json, csv or pandas
-    try_from_hf_gcs = path not in _PACKAGED_DATASETS_MODULES
-
     # Download and prepare data
     builder_instance.download_and_prepare(
         download_config=download_config,
         download_mode=download_mode,
         verification_mode=verification_mode,
-        try_from_hf_gcs=try_from_hf_gcs,
         num_proc=num_proc,
         storage_options=storage_options,
     )
