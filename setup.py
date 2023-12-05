@@ -62,7 +62,7 @@ Steps to make a release:
      ```
    Check that you can install it in a virtualenv/notebook by running:
      ```
-     pip install huggingface_hub fsspec aiohttp
+     pip install huggingface_hub fsspec aiohttp pyarrow-hotfix
      pip install -U tqdm
      pip install -i https://testpypi.python.org/pypi datasets
      ```
@@ -108,11 +108,15 @@ from setuptools import find_packages, setup
 
 
 REQUIRED_PKGS = [
+    # For file locking
+    "filelock",
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
     # Backend and serialization.
     # Minimum 8.0.0 to be able to use .to_reader()
     "pyarrow>=8.0.0",
+    # As long as we allow pyarrow < 14.0.1, to fix vulnerability CVE-2023-47248
+    "pyarrow-hotfix",
     # For smart caching dataset processing
     "dill>=0.3.0,<0.3.8",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
     # For performance gains with apache arrow
@@ -131,8 +135,7 @@ REQUIRED_PKGS = [
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    # minimum 0.14.0 to support HfFileSystem
-    "huggingface_hub>=0.18.0",
+    "huggingface_hub>=0.19.4",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     # To parse YAML metadata from dataset cards
@@ -176,9 +179,10 @@ TESTS_REQUIRE = [
     "tensorflow>=2.3,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
     "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
     "tiktoken",
-    "torch",
+    "torch>=2.0.0",
     "soundfile>=0.12.1",
     "transformers",
+    "typing-extensions>=4.6.1",  # due to conflict between apache-beam and pydantic
     "zstandard",
 ]
 
@@ -213,7 +217,7 @@ METRICS_TESTS_REQUIRE = [
 TESTS_REQUIRE.extend(VISION_REQUIRE)
 TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
-QUALITY_REQUIRE = ["black~=23.1", "ruff>=0.0.241", "pyyaml>=5.3.1"]
+QUALITY_REQUIRE = ["ruff>=0.1.5"]
 
 DOCS_REQUIRE = [
     # Might need to add doc-builder and some specific deps in the future
@@ -248,7 +252,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.14.7.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.15.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

@@ -1,3 +1,4 @@
+import logging
 import os
 from argparse import ArgumentParser
 from pathlib import Path
@@ -9,7 +10,6 @@ from datasets.builder import DatasetBuilder
 from datasets.commands import BaseDatasetsCLICommand
 from datasets.download.download_manager import DownloadMode
 from datasets.load import dataset_module_factory, import_main_class
-from datasets.utils.filelock import logger as fl_logger
 from datasets.utils.info_utils import VerificationMode
 from datasets.utils.logging import ERROR, get_logger
 
@@ -102,7 +102,7 @@ class TestCommand(BaseDatasetsCLICommand):
             self._ignore_verifications = True
 
     def run(self):
-        fl_logger().setLevel(ERROR)
+        logging.getLogger("filelock").setLevel(ERROR)
         if self._name is not None and self._all_configs:
             print("Both parameters `config` and `all_configs` can't be used at once.")
             exit(1)

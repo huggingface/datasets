@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Optional, Union
 from .. import Dataset, Features, config
 from ..formatting import query_table
 from ..packaged_modules.sql.sql import Sql
-from ..utils import logging
+from ..utils import tqdm as hf_tqdm
 from .abc import AbstractDatasetInputStream
 
 
@@ -101,24 +101,22 @@ class SqlDatasetWriter:
         written = 0
 
         if self.num_proc is None or self.num_proc == 1:
-            for offset in logging.tqdm(
+            for offset in hf_tqdm(
                 range(0, len(self.dataset), self.batch_size),
                 unit="ba",
-                disable=not logging.is_progress_bar_enabled(),
                 desc="Creating SQL from Arrow format",
             ):
                 written += self._batch_sql((offset, index, to_sql_kwargs))
         else:
             num_rows, batch_size = len(self.dataset), self.batch_size
             with multiprocessing.Pool(self.num_proc) as pool:
-                for num_rows in logging.tqdm(
+                for num_rows in hf_tqdm(
                     pool.imap(
                         self._batch_sql,
                         [(offset, index, to_sql_kwargs) for offset in range(0, num_rows, batch_size)],
                     ),
                     total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
                     unit="ba",
-                    disable=not logging.is_progress_bar_enabled(),
                     desc="Creating SQL from Arrow format",
                 ):
                     written += num_rows

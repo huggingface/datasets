@@ -1,1 +1,1 @@
-# deprecated, please use daatsets.download.download_manager
+# deprecated, please use datasets.download.download_manager

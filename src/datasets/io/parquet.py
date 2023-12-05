@@ -9,7 +9,7 @@ from ..features.features import FeatureType, _visit
 from ..formatting import query_table
 from ..packaged_modules import _PACKAGED_DATASETS_MODULES
 from ..packaged_modules.parquet.parquet import Parquet
-from ..utils import logging
+from ..utils import tqdm as hf_tqdm
 from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
 
@@ -139,10 +139,9 @@ class ParquetDatasetWriter:
 
         writer = pq.ParquetWriter(file_obj, schema=schema, **parquet_writer_kwargs)
 
-        for offset in logging.tqdm(
+        for offset in hf_tqdm(
             range(0, len(self.dataset), batch_size),
             unit="ba",
-            disable=not logging.is_progress_bar_enabled(),
             desc="Creating parquet from Arrow format",
         ):
             batch = query_table(

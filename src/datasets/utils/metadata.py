@@ -1,7 +1,9 @@
 import textwrap
 from collections import Counter
+from itertools import groupby
+from operator import itemgetter
 from pathlib import Path
-from typing import Any, ClassVar, Dict, Optional, Tuple, Union
+from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
 
 import yaml
 from huggingface_hub import DatasetCardData
@@ -170,6 +172,30 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
                         raise ValueError(yaml_error_message)
 
     @classmethod
+    def _from_exported_parquet_files(
+        cls, revision: str, exported_parquet_files: List[Dict[str, Any]]
+    ) -> "MetadataConfigs":
+        return cls(
+            {
+                config_name: {
+                    "data_files": [
+                        {
+                            "split": split_name,
+                            "path": [
+                                parquet_file["url"].replace("refs%2Fconvert%2Fparquet", revision)
+                                for parquet_file in parquet_files_for_split
+                            ],
+                        }
+                        for split_name, parquet_files_for_split in groupby(
+                            parquet_files_for_config, itemgetter("split")
+                        )
+                    ]
+                }
+                for config_name, parquet_files_for_config in groupby(exported_parquet_files, itemgetter("config"))
+            }
+        )
+
+    @classmethod
     def from_dataset_card_data(cls, dataset_card_data: DatasetCardData) -> "MetadataConfigs":
         if dataset_card_data.get(cls.FIELD_NAME):
             metadata_configs = dataset_card_data[cls.FIELD_NAME]
@@ -218,7 +244,7 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
 
 # DEPRECATED - just here to support old versions of evaluate like 0.2.2
 # To support new tasks on the Hugging Face Hub, please open a PR for this file:
-# https://github.com/huggingface/hub-docs/blob/main/js/src/lib/interfaces/Types.ts
+# https://github.com/huggingface/huggingface.js/blob/main/packages/tasks/src/pipelines.ts
 known_task_ids = {
     "image-classification": [],
     "translation": [],

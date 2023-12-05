@@ -43,7 +43,6 @@ from huggingface_hub import DatasetCard, DatasetCardData
 
 from . import config
 from .features import Features, Value
-from .filesystems import is_remote_filesystem
 from .splits import SplitDict
 from .tasks import TaskTemplate, task_template_from_dict
 from .utils import Version
@@ -251,16 +250,12 @@ class DatasetInfo:
             )
             storage_options = fs.storage_options
 
-        fs_token_paths = fsspec.get_fs_token_paths(dataset_info_dir, storage_options=storage_options)
-        fs: fsspec.AbstractFileSystem = fs_token_paths[0]
-
-        is_local = not is_remote_filesystem(fs)
-        path_join = os.path.join if is_local else posixpath.join
-
-        with fs.open(path_join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb") as f:
+        fs: fsspec.AbstractFileSystem
+        fs, _, _ = fsspec.get_fs_token_paths(dataset_info_dir, storage_options=storage_options)
+        with fs.open(posixpath.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb") as f:
             self._dump_info(f, pretty_print=pretty_print)
         if self.license:
-            with fs.open(path_join(dataset_info_dir, config.LICENSE_FILENAME), "wb") as f:
+            with fs.open(posixpath.join(dataset_info_dir, config.LICENSE_FILENAME), "wb") as f:
                 self._dump_license(f)
 
     def _dump_info(self, file, pretty_print=False):
@@ -346,17 +341,12 @@ class DatasetInfo:
             )
             storage_options = fs.storage_options
 
-        fs_token_paths = fsspec.get_fs_token_paths(dataset_info_dir, storage_options=storage_options)
-        fs: fsspec.AbstractFileSystem = fs_token_paths[0]
-
+        fs: fsspec.AbstractFileSystem
+        fs, _, _ = fsspec.get_fs_token_paths(dataset_info_dir, storage_options=storage_options)
         logger.info(f"Loading Dataset info from {dataset_info_dir}")
         if not dataset_info_dir:
             raise ValueError("Calling DatasetInfo.from_directory() with undefined dataset_info_dir.")
-
-        is_local = not is_remote_filesystem(fs)
-        path_join = os.path.join if is_local else posixpath.join
-
-        with fs.open(path_join(dataset_info_dir, config.DATASET_INFO_FILENAME), "r", encoding="utf-8") as f:
+        with fs.open(posixpath.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "r", encoding="utf-8") as f:
             dataset_info_dict = json.load(f)
         return cls.from_dict(dataset_info_dict)
 

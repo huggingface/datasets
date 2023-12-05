@@ -24,13 +24,15 @@ from datasets.config import METADATA_CONFIGS_FIELD
 from datasets.data_files import DataFilesDict
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.download.download_config import DownloadConfig
-from datasets.features import Features, Value
+from datasets.exceptions import DatasetNotFoundError
+from datasets.features import Features, Image, Value
 from datasets.iterable_dataset import IterableDataset
 from datasets.load import (
     CachedDatasetModuleFactory,
     CachedMetricModuleFactory,
     GithubMetricModuleFactory,
     HubDatasetModuleFactoryWithoutScript,
+    HubDatasetModuleFactoryWithParquetExport,
     HubDatasetModuleFactoryWithScript,
     LocalDatasetModuleFactoryWithoutScript,
     LocalDatasetModuleFactoryWithScript,
@@ -39,9 +41,12 @@ from datasets.load import (
     infer_module_for_data_files_list,
     infer_module_for_data_files_list_in_archives,
     load_dataset_builder,
+    resolve_trust_remote_code,
 )
 from datasets.packaged_modules.audiofolder.audiofolder import AudioFolder, AudioFolderConfig
 from datasets.packaged_modules.imagefolder.imagefolder import ImageFolder, ImageFolderConfig
+from datasets.packaged_modules.parquet.parquet import ParquetConfig
+from datasets.utils import _datasets_server
 from datasets.utils.logging import INFO, get_logger
 
 from .utils import (
@@ -81,10 +86,11 @@ class __DummyDataset1__(datasets.GeneratorBasedBuilder):
                 yield i, {"text": line.strip()}
 """
 
-SAMPLE_DATASET_IDENTIFIER = "hf-internal-testing/dataset_with_script"  # has dataset script
+SAMPLE_DATASET_IDENTIFIER = "hf-internal-testing/dataset_with_script"  # has dataset script and also a parquet export
 SAMPLE_DATASET_IDENTIFIER2 = "hf-internal-testing/dataset_with_data_files"  # only has data files
 SAMPLE_DATASET_IDENTIFIER3 = "hf-internal-testing/multi_dir_dataset"  # has multiple data directories
 SAMPLE_DATASET_IDENTIFIER4 = "hf-internal-testing/imagefolder_with_metadata"  # imagefolder with a metadata file outside of the train/test directories
+SAMPLE_DATASET_IDENTIFIER5 = "hf-internal-testing/imagefolder_with_metadata_no_splits"  # imagefolder with a metadata file and no default split names in data files
 SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER = "hf-internal-testing/_dummy"
 SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST = "_dummy"
 SAMPLE_DATASET_NO_CONFIGS_IN_METADATA = "hf-internal-testing/audiofolder_no_configs_in_metadata"
@@ -380,6 +386,21 @@ class ModuleFactoryTest(TestCase):
             hf_modules_cache=self.hf_modules_cache,
         )
 
+    def test_HubDatasetModuleFactoryWithScript_dont_trust_remote_code(self):
+        # "squad" has a dataset script
+        factory = HubDatasetModuleFactoryWithScript(
+            "squad", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+        )
+        with patch.object(config, "HF_DATASETS_TRUST_REMOTE_CODE", None):  # this will be the default soon
+            self.assertRaises(ValueError, factory.get_module)
+        factory = HubDatasetModuleFactoryWithScript(
+            "squad",
+            download_config=self.download_config,
+            dynamic_modules_path=self.dynamic_modules_path,
+            trust_remote_code=False,
+        )
+        self.assertRaises(ValueError, factory.get_module)
+
     def test_HubDatasetModuleFactoryWithScript_with_github_dataset(self):
         # "wmt_t2t" has additional imports (internal)
         factory = HubDatasetModuleFactoryWithScript(
@@ -422,6 +443,21 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
         assert os.path.isdir(module_factory_result.builder_kwargs["base_path"])
+
+    def test_LocalDatasetModuleFactoryWithScript_dont_trust_remote_code(self):
+        path = os.path.join(self._dataset_loading_script_dir, f"{DATASET_LOADING_SCRIPT_NAME}.py")
+        factory = LocalDatasetModuleFactoryWithScript(
+            path, download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+        )
+        with patch.object(config, "HF_DATASETS_TRUST_REMOTE_CODE", None):  # this will be the default soon
+            self.assertRaises(ValueError, factory.get_module)
+        factory = LocalDatasetModuleFactoryWithScript(
+            path,
+            download_config=self.download_config,
+            dynamic_modules_path=self.dynamic_modules_path,
+            trust_remote_code=False,
+        )
+        self.assertRaises(ValueError, factory.get_module)
 
     def test_LocalDatasetModuleFactoryWithoutScript(self):
         factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir)
@@ -629,6 +665,22 @@ class ModuleFactoryTest(TestCase):
             for data_file in module_factory_result.builder_kwargs["data_files"]["test"]
         )
 
+        factory = HubDatasetModuleFactoryWithoutScript(
+            SAMPLE_DATASET_IDENTIFIER5, download_config=self.download_config
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
+        assert (
+            module_factory_result.builder_kwargs["data_files"] is not None
+            and len(module_factory_result.builder_kwargs["data_files"]) == 1
+            and len(module_factory_result.builder_kwargs["data_files"]["train"]) > 0
+        )
+        assert any(
+            Path(data_file).name == "metadata.jsonl"
+            for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
+        )
+
     @pytest.mark.integration
     def test_HubDatasetModuleFactoryWithoutScript_with_one_default_config_in_metadata(self):
         factory = HubDatasetModuleFactoryWithoutScript(
@@ -717,6 +769,41 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
         assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
+
+    @pytest.mark.integration
+    def test_HubDatasetModuleFactoryWithParquetExport(self):
+        factory = HubDatasetModuleFactoryWithParquetExport(
+            SAMPLE_DATASET_IDENTIFIER,
+            download_config=self.download_config,
+        )
+        module_factory_result = factory.get_module()
+        assert module_factory_result.module_path == "datasets.packaged_modules.parquet.parquet"
+        assert module_factory_result.builder_configs_parameters.builder_configs
+        assert isinstance(module_factory_result.builder_configs_parameters.builder_configs[0], ParquetConfig)
+        assert module_factory_result.builder_configs_parameters.builder_configs[0].data_files == {
+            "train": [
+                "hf://datasets/hf-internal-testing/dataset_with_script@da4ed81df5a1bcd916043c827b75994de8ef7eda/default/train/0000.parquet"
+            ],
+            "validation": [
+                "hf://datasets/hf-internal-testing/dataset_with_script@da4ed81df5a1bcd916043c827b75994de8ef7eda/default/validation/0000.parquet"
+            ],
+        }
+
+    @pytest.mark.integration
+    def test_HubDatasetModuleFactoryWithParquetExport_errors_on_wrong_sha(self):
+        factory = HubDatasetModuleFactoryWithParquetExport(
+            SAMPLE_DATASET_IDENTIFIER,
+            download_config=self.download_config,
+            revision="1a21ac5846fc3f36ad5f128740c58932d3d7806f",
+        )
+        factory.get_module()
+        factory = HubDatasetModuleFactoryWithParquetExport(
+            SAMPLE_DATASET_IDENTIFIER,
+            download_config=self.download_config,
+            revision="wrong_sha",
+        )
+        with self.assertRaises(_datasets_server.DatasetsServerError):
+            factory.get_module()
 
     def test_CachedDatasetModuleFactory(self):
         path = os.path.join(self._dataset_loading_script_dir, f"{DATASET_LOADING_SCRIPT_NAME}.py")
@@ -819,7 +906,9 @@ class LoadTest(TestCase):
             # missing module
             for offline_simulation_mode in list(OfflineSimulationMode):
                 with offline(offline_simulation_mode):
-                    with self.assertRaises((FileNotFoundError, ConnectionError, requests.exceptions.ConnectionError)):
+                    with self.assertRaises(
+                        (DatasetNotFoundError, ConnectionError, requests.exceptions.ConnectionError)
+                    ):
                         datasets.load.dataset_module_factory(
                             "__missing_dummy_module_name__", dynamic_modules_path=self.dynamic_modules_path
                         )
@@ -850,13 +939,13 @@ class LoadTest(TestCase):
                 self.assertIn("Using the latest cached version of the module", self._caplog.text)
 
     def test_load_dataset_from_hub(self):
-        with self.assertRaises(FileNotFoundError) as context:
+        with self.assertRaises(DatasetNotFoundError) as context:
             datasets.load_dataset("_dummy")
         self.assertIn(
             "Dataset '_dummy' doesn't exist on the Hub",
             str(context.exception),
         )
-        with self.assertRaises(FileNotFoundError) as context:
+        with self.assertRaises(DatasetNotFoundError) as context:
             datasets.load_dataset("_dummy", revision="0.0.0")
         self.assertIn(
             "Dataset '_dummy' doesn't exist on the Hub",
@@ -877,7 +966,7 @@ class LoadTest(TestCase):
                     )
 
     def test_load_dataset_namespace(self):
-        with self.assertRaises(FileNotFoundError) as context:
+        with self.assertRaises(DatasetNotFoundError) as context:
             datasets.load_dataset("hf-internal-testing/_dummy")
         self.assertIn(
             "hf-internal-testing/_dummy",
@@ -996,6 +1085,20 @@ def test_load_dataset_builder_for_relative_data_dir(complex_data_dir):
 def test_load_dataset_builder_for_community_dataset_with_script():
     builder = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER)
     assert isinstance(builder, DatasetBuilder)
+    assert builder.name == "parquet"
+    assert builder.dataset_name == SAMPLE_DATASET_IDENTIFIER.split("/")[-1]
+    assert builder.config.name == "default"
+    assert builder.info.features == Features({"text": Value("string")})
+    namespace = SAMPLE_DATASET_IDENTIFIER[: SAMPLE_DATASET_IDENTIFIER.index("/")]
+    assert builder._relative_data_dir().startswith(namespace)
+    assert builder.__module__.startswith("datasets.")
+
+
+@pytest.mark.integration
+def test_load_dataset_builder_for_community_dataset_with_script_no_parquet_export():
+    with patch.object(config, "USE_PARQUET_EXPORT", False):
+        builder = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER)
+    assert isinstance(builder, DatasetBuilder)
     assert builder.name == SAMPLE_DATASET_IDENTIFIER.split("/")[-1]
     assert builder.dataset_name == SAMPLE_DATASET_IDENTIFIER.split("/")[-1]
     assert builder.config.name == "default"
@@ -1003,6 +1106,18 @@ def test_load_dataset_builder_for_community_dataset_with_script():
     namespace = SAMPLE_DATASET_IDENTIFIER[: SAMPLE_DATASET_IDENTIFIER.index("/")]
     assert builder._relative_data_dir().startswith(namespace)
     assert SAMPLE_DATASET_IDENTIFIER.replace("/", "--") in builder.__module__
+
+
+@pytest.mark.integration
+def test_load_dataset_builder_use_parquet_export_if_dont_trust_remote_code_keeps_features():
+    dataset_name = "food101"
+    builder = datasets.load_dataset_builder(dataset_name, trust_remote_code=False)
+    assert isinstance(builder, DatasetBuilder)
+    assert builder.name == "parquet"
+    assert builder.dataset_name == dataset_name
+    assert builder.config.name == "default"
+    assert list(builder.info.features) == ["image", "label"]
+    assert builder.info.features["image"] == Image()
 
 
 @pytest.mark.integration
@@ -1018,7 +1133,7 @@ def test_load_dataset_builder_for_community_dataset_without_script():
 
 
 def test_load_dataset_builder_fail():
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(DatasetNotFoundError):
         datasets.load_dataset_builder("blabla")
 
 
@@ -1037,10 +1152,9 @@ def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory
             dataset = datasets.load_dataset(DATASET_LOADING_SCRIPT_NAME, data_dir=data_dir)
             assert len(dataset) == 2
             assert "Using the latest cached version of the module" in caplog.text
-    with pytest.raises(FileNotFoundError) as exc_info:
+    with pytest.raises(DatasetNotFoundError) as exc_info:
         datasets.load_dataset(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST)
     assert f"Dataset '{SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST}' doesn't exist on the Hub" in str(exc_info.value)
-    assert os.path.abspath(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST) in str(exc_info.value)
 
 
 def test_load_dataset_streaming(dataset_loading_script_dir, data_dir):
@@ -1467,3 +1581,18 @@ def test_load_dataset_without_script_with_zip(zip_csv_path):
     assert ds["train"].column_names == ["col_1", "col_2", "col_3"]
     assert ds["train"].num_rows == 8
     assert ds["train"][0] == {"col_1": 0, "col_2": 0, "col_3": 0.0}
+
+
+@pytest.mark.parametrize("trust_remote_code, expected", [(False, False), (True, True), (None, True)])
+def test_resolve_trust_remote_code(trust_remote_code, expected):
+    assert resolve_trust_remote_code(trust_remote_code, repo_id="dummy") is expected
+
+
+@pytest.mark.parametrize("trust_remote_code, expected", [(False, False), (True, True), (None, ValueError)])
+def test_resolve_trust_remote_code_future(trust_remote_code, expected):
+    with patch.object(config, "HF_DATASETS_TRUST_REMOTE_CODE", None):  # this will be the default soon
+        if isinstance(expected, bool):
+            resolve_trust_remote_code(trust_remote_code, repo_id="dummy") is expected
+        else:
+            with pytest.raises(expected):
+                resolve_trust_remote_code(trust_remote_code, repo_id="dummy")

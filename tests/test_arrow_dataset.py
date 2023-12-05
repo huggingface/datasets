@@ -18,6 +18,7 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 from absl.testing import parameterized
+from fsspec.core import strip_protocol
 from packaging import version
 
 import datasets.arrow_dataset
@@ -36,7 +37,6 @@ from datasets.features import (
     TranslationVariableLanguages,
     Value,
 )
-from datasets.filesystems import extract_path_from_uri
 from datasets.info import DatasetInfo
 from datasets.iterable_dataset import IterableDataset
 from datasets.splits import NamedSplit
@@ -1392,8 +1392,14 @@ class BaseDatasetTest(TestCase):
                                     self.assertEqual(len(dset_test2.cache_files), 1)
                                     self.assertNotIn("Loading cached processed dataset", self._caplog.text)
                                     # make sure the arrow files are going to be removed
-                                    self.assertIn("tmp", dset_test1.cache_files[0]["filename"])
-                                    self.assertIn("tmp", dset_test2.cache_files[0]["filename"])
+                                    self.assertIn(
+                                        Path(tempfile.gettempdir()),
+                                        Path(dset_test1.cache_files[0]["filename"]).parents,
+                                    )
+                                    self.assertIn(
+                                        Path(tempfile.gettempdir()),
+                                        Path(dset_test2.cache_files[0]["filename"]).parents,
+                                    )
             finally:
                 datasets.enable_caching()
 
@@ -3066,9 +3072,7 @@ class MiscellaneousDatasetTest(TestCase):
                 cache_file_name=os.path.join(tmp_dir, "d1.arrow")
             ) as dset1, Dataset.from_dict(data2, info=info2).map(
                 cache_file_name=os.path.join(tmp_dir, "d2.arrow")
-            ) as dset2, Dataset.from_dict(
-                data3
-            ) as dset3:
+            ) as dset2, Dataset.from_dict(data3) as dset3:
                 with concatenate_datasets([dset1, dset2, dset3]) as concatenated_dset:
                     self.assertEqual(len(concatenated_dset), len(dset1) + len(dset2) + len(dset3))
                     self.assertListEqual(concatenated_dset["id"], dset1["id"] + dset2["id"] + dset3["id"])
@@ -3984,17 +3988,18 @@ def test_dummy_dataset_serialize_fs(dataset, mockfs):
     ],
 )
 def test_build_local_temp_path(uri_or_path):
-    extracted_path = extract_path_from_uri(uri_or_path)
-    local_temp_path = Dataset._build_local_temp_path(extracted_path)
-    path_relative_to_tmp_dir = local_temp_path.as_posix().split("tmp")[-1].split("/", 1)[1]
+    extracted_path = strip_protocol(uri_or_path)
+    local_temp_path = Dataset._build_local_temp_path(extracted_path).as_posix()
+    extracted_path_without_anchor = Path(extracted_path).relative_to(Path(extracted_path).anchor).as_posix()
+    # Check that the local temp path is relative to the system temp dir
+    path_relative_to_tmp_dir = Path(local_temp_path).relative_to(Path(tempfile.gettempdir())).as_posix()
 
     assert (
-        "tmp" in local_temp_path.as_posix()
-        and "hdfs" not in path_relative_to_tmp_dir
+        "hdfs" not in path_relative_to_tmp_dir
         and "s3" not in path_relative_to_tmp_dir
-        and not local_temp_path.as_posix().startswith(extracted_path)
-        and local_temp_path.as_posix().endswith(extracted_path)
-    ), f"Local temp path: {local_temp_path.as_posix()}"
+        and not local_temp_path.startswith(extracted_path_without_anchor)
+        and local_temp_path.endswith(extracted_path_without_anchor)
+    ), f"Local temp path: {local_temp_path}"
 
 
 class TaskTemplatesTest(TestCase):

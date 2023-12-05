@@ -14,18 +14,15 @@
 
 # flake8: noqa
 # Lint as: python3
-"""Util import."""
 
-__all__ = [
-    "VerificationMode",
-    "Version",
-    "disable_progress_bar",
-    "enable_progress_bar",
-    "is_progress_bar_enabled",
-    "experimental",
-]
-
+from . import tqdm as _tqdm  # _tqdm is the module
 from .info_utils import VerificationMode
 from .logging import disable_progress_bar, enable_progress_bar, is_progress_bar_enabled
 from .version import Version
 from .experimental import experimental
+from .tqdm import (
+    disable_progress_bars,
+    enable_progress_bars,
+    are_progress_bars_disabled,
+    tqdm,
+)
