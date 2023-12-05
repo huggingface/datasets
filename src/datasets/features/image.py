@@ -352,7 +352,7 @@ def encode_np_array(array: np.ndarray) -> dict:
 
 
 def objects_to_list_of_image_dicts(
-    objs: Union[List[str], List[dict], List[np.ndarray], List["PIL.Image.Image"]]
+    objs: Union[List[str], List[dict], List[np.ndarray], List["PIL.Image.Image"]],
 ) -> List[dict]:
     """Encode a list of objects into a format suitable for creating an extension array of type `ImageExtensionType`."""
     if config.PIL_AVAILABLE:
