@@ -30,7 +30,7 @@ def run_beam_command_factory(args, **kwargs):
 
 
 @deprecated(
-    "`BeamBasedBuilder` and `datasets-cli run_beam` are deprecated and will be removed in v3.0.0. Please use `GeneratorBasedBuilder` or `ArrowBasedBuilder` instead.`"
+    "`BeamBasedBuilder` and `datasets-cli run_beam` are deprecated and will be removed in v3.0.0. Please use `GeneratorBasedBuilder` or `ArrowBasedBuilder` instead."
 )
 class RunBeamCommand(BaseDatasetsCLICommand):
     @staticmethod
