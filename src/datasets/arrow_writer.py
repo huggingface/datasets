@@ -38,7 +38,7 @@ from .features.features import (
 from .filesystems import is_remote_filesystem
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
-from .table import array_cast, array_concat, cast_array_to_feature, embed_table_storage, table_cast
+from .table import array_cast, cast_array_to_feature, embed_table_storage, table_cast
 from .utils import logging
 from .utils.file_utils import hash_url_to_filename
 from .utils.py_utils import asdict, first_non_null_value
@@ -439,7 +439,12 @@ class ArrowWriter:
             # This can happen in `.map()` when we want to re-write the same Arrow data
             if all(isinstance(row[0][col], (pa.Array, pa.ChunkedArray)) for row in self.current_examples):
                 arrays = [row[0][col] for row in self.current_examples]
-                batch_examples[col] = array_concat(arrays)
+                arrays = [
+                    chunk
+                    for array in arrays
+                    for chunk in (array.chunks if isinstance(array, pa.ChunkedArray) else [array])
+                ]
+                batch_examples[col] = pa.concat_arrays(arrays)
             else:
                 batch_examples[col] = [
                     row[0][col].to_pylist()[0] if isinstance(row[0][col], (pa.Array, pa.ChunkedArray)) else row[0][col]
