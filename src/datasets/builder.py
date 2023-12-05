@@ -822,7 +822,6 @@ class DatasetBuilder:
                 "'try_from_hf_gcs' was deprecated in version 2.16.0 and will be removed in 3.0.0.",
                 FutureWarning,
             )
-            try_from_hf_gcs = try_from_hf_gcs
         else:
             try_from_hf_gcs = False
 
