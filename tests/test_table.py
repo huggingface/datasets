@@ -7,7 +7,7 @@ import pyarrow as pa
 import pytest
 
 from datasets import Sequence, Value
-from datasets.features.features import ClassLabel, Features, Image, get_nested_type
+from datasets.features.features import Array2D, Array2DExtensionType, ClassLabel, Features, Image, get_nested_type
 from datasets.table import (
     ConcatenationTable,
     InMemoryTable,
@@ -1119,6 +1119,16 @@ def test_cast_array_to_features_to_null_type():
     arr = pa.array([[None, 1]])
     with pytest.raises(TypeError):
         cast_array_to_feature(arr, Sequence(Value("null")))
+
+
+def test_cast_array_to_features_array_xd():
+    # same storage type
+    arr = pa.array([[[0, 1], [2, 3]], [[4, 5], [6, 7]]], pa.list_(pa.list_(pa.int32(), 2), 2))
+    casted_array = cast_array_to_feature(arr, Array2D(shape=(2, 2), dtype="int32"))
+    assert casted_array.type == Array2DExtensionType(shape=(2, 2), dtype="int32")
+    # different storage type
+    casted_array = cast_array_to_feature(arr, Array2D(shape=(2, 2), dtype="float32"))
+    assert casted_array.type == Array2DExtensionType(shape=(2, 2), dtype="float32")
 
 
 def test_cast_array_to_features_sequence_classlabel():

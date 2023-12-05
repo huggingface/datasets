@@ -16,6 +16,7 @@ from datasets.data_files import (
     _get_metadata_files_patterns,
     _is_inside_unrequested_special_dir,
     _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir,
+    get_data_patterns,
     resolve_pattern,
 )
 from datasets.fingerprint import Hasher
@@ -501,8 +502,10 @@ def mock_fs(file_paths: List[str]):
     ["data", "data/train.txt", "data.test.txt"]
     ```
     """
-
-    dir_paths = {file_path.rsplit("/", 1)[0] for file_path in file_paths if "/" in file_path}
+    file_paths = [file_path.split("://")[-1] for file_path in file_paths]
+    dir_paths = {
+        "/".join(file_path.split("/")[: i + 1]) for file_path in file_paths for i in range(file_path.count("/"))
+    }
     fs_contents = [{"name": dir_path, "type": "directory"} for dir_path in dir_paths] + [
         {"name": file_path, "type": "file", "size": 10} for file_path in file_paths
     ]
@@ -528,6 +531,7 @@ def mock_fs(file_paths: List[str]):
     return DummyTestFS
 
 
+@pytest.mark.parametrize("base_path", ["", "mock://", "my_dir"])
 @pytest.mark.parametrize(
     "data_file_per_split",
     [
@@ -597,20 +601,36 @@ def mock_fs(file_paths: List[str]):
         {"test": "test00001.txt"},
     ],
 )
-def test_get_data_files_patterns(data_file_per_split):
+def test_get_data_files_patterns(base_path, data_file_per_split):
     data_file_per_split = {k: v if isinstance(v, list) else [v] for k, v in data_file_per_split.items()}
-    file_paths = [file_path for split_file_paths in data_file_per_split.values() for file_path in split_file_paths]
+    data_file_per_split = {
+        split: [
+            base_path + ("/" if base_path and base_path[-1] != "/" else "") + file_path
+            for file_path in data_file_per_split[split]
+        ]
+        for split in data_file_per_split
+    }
+    file_paths = sum(data_file_per_split.values(), [])
     DummyTestFS = mock_fs(file_paths)
     fs = DummyTestFS()
 
     def resolver(pattern):
-        return [file_path for file_path in fs.glob(pattern) if fs.isfile(file_path)]
+        pattern = base_path + ("/" if base_path and base_path[-1] != "/" else "") + pattern
+        return [
+            file_path[len(fs._strip_protocol(base_path)) :].lstrip("/")
+            for file_path in fs.glob(pattern)
+            if fs.isfile(file_path)
+        ]
 
     patterns_per_split = _get_data_files_patterns(resolver)
     assert list(patterns_per_split.keys()) == list(data_file_per_split.keys())  # Test split order with list()
     for split, patterns in patterns_per_split.items():
         matched = [file_path for pattern in patterns for file_path in resolver(pattern)]
-        assert matched == data_file_per_split[split]
+        expected = [
+            fs._strip_protocol(file_path)[len(fs._strip_protocol(base_path)) :].lstrip("/")
+            for file_path in data_file_per_split[split]
+        ]
+        assert matched == expected
 
 
 @pytest.mark.parametrize(
@@ -634,3 +654,13 @@ def test_get_metadata_files_patterns(metadata_files):
     patterns = _get_metadata_files_patterns(resolver)
     matched = [file_path for pattern in patterns for file_path in resolver(pattern)]
     assert sorted(matched) == sorted(metadata_files)
+
+
+def test_get_data_patterns_from_directory_with_the_word_data_twice(tmp_path):
+    repo_dir = tmp_path / "directory-name-ending-with-the-word-data"  # parent directory contains the word "data/"
+    data_dir = repo_dir / "data"
+    data_dir.mkdir(parents=True)
+    data_file = data_dir / "train-00001-of-00009.parquet"
+    data_file.touch()
+    data_file_patterns = get_data_patterns(repo_dir.as_posix())
+    assert data_file_patterns == {"train": ["data/train-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"]}

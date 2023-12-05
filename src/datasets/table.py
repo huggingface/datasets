@@ -1,6 +1,5 @@
 import copy
 import os
-import tempfile
 from functools import partial
 from itertools import groupby
 from typing import TYPE_CHECKING, Callable, Iterator, List, Optional, Tuple, TypeVar, Union
@@ -88,16 +87,6 @@ def _memory_mapped_arrow_table_from_file(filename: str) -> pa.Table:
     opened_stream = _memory_mapped_record_batch_reader_from_file(filename)
     pa_table = opened_stream.read_all()
     return pa_table
-
-
-def _write_table_to_file(table: pa.Table, filename: str) -> int:
-    with open(filename, "wb") as sink:
-        writer = pa.RecordBatchStreamWriter(sink=sink, schema=table.schema)
-        batches: List[pa.RecordBatch] = table.to_batches()
-        for batch in batches:
-            writer.write_batch(batch)
-        writer.close()
-        return sum(batch.nbytes for batch in batches)
 
 
 def _deepcopy(x, memo: dict):
@@ -209,32 +198,6 @@ class Table(IndexedTableMixin):
         # same for the recordbatches used by the index
         memo[id(self._batches)] = list(self._batches)
         return _deepcopy(self, memo)
-
-    def __getstate__(self):
-        # We can't pickle objects that are bigger than 4GiB, or it causes OverflowError
-        # So we write the table on disk instead
-        if self.table.nbytes >= config.MAX_TABLE_NBYTES_FOR_PICKLING:
-            table = self.table
-            with tempfile.NamedTemporaryFile("wb", delete=False, suffix=".arrow") as tmp_file:
-                filename = tmp_file.name
-                logger.debug(
-                    f"Attempting to pickle a table bigger than 4GiB. Writing it on the disk instead at {filename}"
-                )
-                _write_table_to_file(table=table, filename=filename)
-                return {"path": filename}
-        else:
-            return {"table": self.table}
-
-    def __setstate__(self, state):
-        if "path" in state:
-            filename = state["path"]
-            logger.debug(f"Unpickling a big table from the disk at {filename}")
-            table = _in_memory_arrow_table_from_file(filename)
-            logger.debug(f"Removing temporary table file at {filename}")
-            os.remove(filename)
-        else:
-            table = state["table"]
-        Table.__init__(self, table)
 
     def validate(self, *args, **kwargs):
         """
@@ -1383,7 +1346,10 @@ class ConcatenationTable(Table):
         pa_tables = [table.table if hasattr(table, "table") else table for table in blocks]
         if axis == 0:
             # we set promote=True to fill missing columns with null values
-            return pa.concat_tables(pa_tables, promote=True)
+            if config.PYARROW_VERSION.major < 14:
+                return pa.concat_tables(pa_tables, promote=True)
+            else:
+                return pa.concat_tables(pa_tables, promote_options="default")
         elif axis == 1:
             for i, table in enumerate(pa_tables):
                 if i == 0:
@@ -1885,7 +1851,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
     if isinstance(array, pa.ExtensionArray):
         array = array.storage
     if isinstance(pa_type, pa.ExtensionType):
-        return pa_type.wrap_array(array)
+        return pa_type.wrap_array(_c(array, pa_type.storage_type))
     elif array.type == pa_type:
         return array
     elif pa.types.is_struct(array.type):

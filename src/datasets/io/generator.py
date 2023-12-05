@@ -48,7 +48,7 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
                 download_config=download_config,
                 download_mode=download_mode,
                 verification_mode=verification_mode,
-                # try_from_hf_gcs=try_from_hf_gcs,
+                try_from_hf_gcs=False,
                 base_path=base_path,
                 num_proc=self.num_proc,
             )

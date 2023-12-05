@@ -164,15 +164,15 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
 
             # Check that all metadata files share the same format
             metadata_ext = {
-                os.path.splitext(downloaded_metadata_file)[1][1:]
-                for _, downloaded_metadata_file in itertools.chain.from_iterable(metadata_files.values())
+                os.path.splitext(original_metadata_file)[-1]
+                for original_metadata_file, _ in itertools.chain.from_iterable(metadata_files.values())
             }
             if len(metadata_ext) > 1:
                 raise ValueError(f"Found metadata files with different extensions: {list(metadata_ext)}")
             metadata_ext = metadata_ext.pop()
 
             for _, downloaded_metadata_file in itertools.chain.from_iterable(metadata_files.values()):
-                pa_metadata_table = self._read_metadata(downloaded_metadata_file)
+                pa_metadata_table = self._read_metadata(downloaded_metadata_file, metadata_ext=metadata_ext)
                 features_per_metadata_file.append(
                     (downloaded_metadata_file, datasets.Features.from_arrow_schema(pa_metadata_table.schema))
                 )
@@ -236,9 +236,8 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                 archives.append(data_file)
         return files, archives
 
-    def _read_metadata(self, metadata_file):
-        metadata_file_ext = os.path.splitext(metadata_file)[1][1:]
-        if metadata_file_ext == "csv":
+    def _read_metadata(self, metadata_file, metadata_ext: str = ""):
+        if metadata_ext == ".csv":
             # Use `pd.read_csv` (although slower) instead of `pyarrow.csv.read_csv` for reading CSV files for consistency with the CSV packaged module
             return pa.Table.from_pandas(pd.read_csv(metadata_file))
         else:
@@ -255,10 +254,10 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
         metadata_dict = None
         downloaded_metadata_file = None
 
+        metadata_ext = ""
         if split_metadata_files:
             metadata_ext = {
-                os.path.splitext(downloaded_metadata_file)[1][1:]
-                for _, downloaded_metadata_file in split_metadata_files
+                os.path.splitext(original_metadata_file)[-1] for original_metadata_file, _ in split_metadata_files
             }
             metadata_ext = metadata_ext.pop()
 
@@ -290,7 +289,9 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                                 _, metadata_file, downloaded_metadata_file = min(
                                     metadata_file_candidates, key=lambda x: count_path_segments(x[0])
                                 )
-                                pa_metadata_table = self._read_metadata(downloaded_metadata_file)
+                                pa_metadata_table = self._read_metadata(
+                                    downloaded_metadata_file, metadata_ext=metadata_ext
+                                )
                                 pa_file_name_array = pa_metadata_table["file_name"]
                                 pa_metadata_table = pa_metadata_table.drop(["file_name"])
                                 metadata_dir = os.path.dirname(metadata_file)
@@ -302,7 +303,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                                 }
                             else:
                                 raise ValueError(
-                                    f"One or several metadata.{metadata_ext} were found, but not in the same directory or in a parent directory of {downloaded_file_or_dir}."
+                                    f"One or several metadata{metadata_ext} were found, but not in the same directory or in a parent directory of {downloaded_file_or_dir}."
                                 )
                         if metadata_dir is not None and downloaded_metadata_file is not None:
                             file_relpath = os.path.relpath(original_file, metadata_dir)
@@ -314,7 +315,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                             sample_metadata = metadata_dict[file_relpath]
                         else:
                             raise ValueError(
-                                f"One or several metadata.{metadata_ext} were found, but not in the same directory or in a parent directory of {downloaded_file_or_dir}."
+                                f"One or several metadata{metadata_ext} were found, but not in the same directory or in a parent directory of {downloaded_file_or_dir}."
                             )
                     else:
                         sample_metadata = {}
@@ -322,12 +323,15 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                         sample_label = {"label": os.path.basename(os.path.dirname(original_file))}
                     else:
                         sample_label = {}
-                    yield file_idx, {
-                        **sample_empty_metadata,
-                        self.BASE_COLUMN_NAME: downloaded_file_or_dir,
-                        **sample_metadata,
-                        **sample_label,
-                    }
+                    yield (
+                        file_idx,
+                        {
+                            **sample_empty_metadata,
+                            self.BASE_COLUMN_NAME: downloaded_file_or_dir,
+                            **sample_metadata,
+                            **sample_label,
+                        },
+                    )
                     file_idx += 1
             else:
                 for downloaded_dir_file in downloaded_file_or_dir:
@@ -356,7 +360,9 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                                     _, metadata_file, downloaded_metadata_file = min(
                                         metadata_file_candidates, key=lambda x: count_path_segments(x[0])
                                     )
-                                    pa_metadata_table = self._read_metadata(downloaded_metadata_file)
+                                    pa_metadata_table = self._read_metadata(
+                                        downloaded_metadata_file, metadata_ext=metadata_ext
+                                    )
                                     pa_file_name_array = pa_metadata_table["file_name"]
                                     pa_metadata_table = pa_metadata_table.drop(["file_name"])
                                     metadata_dir = os.path.dirname(downloaded_metadata_file)
@@ -368,7 +374,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                                     }
                                 else:
                                     raise ValueError(
-                                        f"One or several metadata.{metadata_ext} were found, but not in the same directory or in a parent directory of {downloaded_dir_file}."
+                                        f"One or several metadata{metadata_ext} were found, but not in the same directory or in a parent directory of {downloaded_dir_file}."
                                     )
                             if metadata_dir is not None and downloaded_metadata_file is not None:
                                 downloaded_dir_file_relpath = os.path.relpath(downloaded_dir_file, metadata_dir)
@@ -380,7 +386,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                                 sample_metadata = metadata_dict[downloaded_dir_file_relpath]
                             else:
                                 raise ValueError(
-                                    f"One or several metadata.{metadata_ext} were found, but not in the same directory or in a parent directory of {downloaded_dir_file}."
+                                    f"One or several metadata{metadata_ext} were found, but not in the same directory or in a parent directory of {downloaded_dir_file}."
                                 )
                         else:
                             sample_metadata = {}
@@ -388,10 +394,13 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                             sample_label = {"label": os.path.basename(os.path.dirname(downloaded_dir_file))}
                         else:
                             sample_label = {}
-                        yield file_idx, {
-                            **sample_empty_metadata,
-                            self.BASE_COLUMN_NAME: downloaded_dir_file,
-                            **sample_metadata,
-                            **sample_label,
-                        }
+                        yield (
+                            file_idx,
+                            {
+                                **sample_empty_metadata,
+                                self.BASE_COLUMN_NAME: downloaded_dir_file,
+                                **sample_metadata,
+                                **sample_label,
+                            },
+                        )
                         file_idx += 1

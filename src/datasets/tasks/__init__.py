@@ -1,7 +1,7 @@
 from typing import Optional
 
 from ..utils.logging import get_logger
-from .audio_classificiation import AudioClassification
+from .audio_classification import AudioClassification
 from .automatic_speech_recognition import AutomaticSpeechRecognition
 from .base import TaskTemplate
 from .image_classification import ImageClassification
