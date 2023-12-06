@@ -41,6 +41,7 @@ DILL_VERSION = version.parse(importlib.metadata.version("dill"))
 FSSPEC_VERSION = version.parse(importlib.metadata.version("fsspec"))
 PANDAS_VERSION = version.parse(importlib.metadata.version("pandas"))
 PYARROW_VERSION = version.parse(importlib.metadata.version("pyarrow"))
+HF_HUB_VERSION = version.parse(importlib.metadata.version("huggingface_hub"))
 
 USE_TF = os.environ.get("USE_TF", "AUTO").upper()
 USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
@@ -182,6 +183,9 @@ HF_DATASETS_TRUST_REMOTE_CODE: Optional[bool] = (
 )
 TIME_OUT_REMOTE_CODE = 15
 
+# Datasets-server
+USE_PARQUET_EXPORT = True
+
 # Batch size constants. For more info, see:
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
 DEFAULT_MAX_BATCH_SIZE = 1000
@@ -230,6 +234,9 @@ METADATA_CONFIGS_FIELD = "configs"
 MODULE_NAME_FOR_DYNAMIC_MODULES = "datasets_modules"
 
 MAX_DATASET_CONFIG_ID_READABLE_LENGTH = 255
+
+# Temporary cache directory prefix
+TEMP_CACHE_DIR_PREFIX = "hf_datasets-"
 
 # Streaming
 STREAMING_READ_MAX_RETRIES = 20

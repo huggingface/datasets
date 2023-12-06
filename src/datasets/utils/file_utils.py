@@ -18,7 +18,7 @@ import warnings
 from contextlib import closing, contextmanager
 from functools import partial
 from pathlib import Path
-from typing import List, Optional, Type, TypeVar, Union
+from typing import Optional, TypeVar, Union
 from urllib.parse import urljoin, urlparse
 
 import fsspec
@@ -279,32 +279,6 @@ def _raise_if_offline_mode_is_enabled(msg: Optional[str] = None):
         )
 
 
-def _retry(
-    func,
-    func_args: Optional[tuple] = None,
-    func_kwargs: Optional[dict] = None,
-    exceptions: Type[requests.exceptions.RequestException] = requests.exceptions.RequestException,
-    status_codes: Optional[List[int]] = None,
-    max_retries: int = 0,
-    base_wait_time: float = 0.5,
-    max_wait_time: float = 2,
-):
-    func_args = func_args or ()
-    func_kwargs = func_kwargs or {}
-    retry = 0
-    while True:
-        try:
-            return func(*func_args, **func_kwargs)
-        except exceptions as err:
-            if retry >= max_retries or (status_codes and err.response.status_code not in status_codes):
-                raise err
-            else:
-                sleep_time = min(max_wait_time, base_wait_time * 2**retry)  # Exponential backoff
-                logger.info(f"{func} timed out, retrying in {sleep_time}s... [{retry/max_retries}]")
-                time.sleep(sleep_time)
-                retry += 1
-
-
 def _request_with_retry(
     method: str,
     url: str,
@@ -395,8 +369,8 @@ def ftp_get(url, temp_file, timeout=10.0):
 
 def http_get(
     url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, timeout=100.0, max_retries=0, desc=None
-):
-    headers = copy.deepcopy(headers) or {}
+) -> Optional[requests.Response]:
+    headers = dict(headers) if headers is not None else {}
     headers["user-agent"] = get_datasets_user_agent(user_agent=headers.get("user-agent"))
     if resume_size > 0:
         headers["Range"] = f"bytes={resume_size:d}-"
@@ -410,6 +384,8 @@ def http_get(
         max_retries=max_retries,
         timeout=timeout,
     )
+    if temp_file is None:
+        return response
     if response.status_code == 416:  # Range not satisfiable
         return
     content_length = response.headers.get("Content-Length")
@@ -648,7 +624,7 @@ def get_from_cache(
             else:
                 http_get(
                     url,
-                    temp_file,
+                    temp_file=temp_file,
                     proxies=proxies,
                     resume_size=resume_size,
                     headers=headers,

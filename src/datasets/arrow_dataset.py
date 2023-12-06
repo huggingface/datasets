@@ -61,7 +61,6 @@ import pyarrow as pa
 import pyarrow.compute as pc
 from huggingface_hub import CommitOperationAdd, CommitOperationDelete, DatasetCard, DatasetCardData, HfApi
 from multiprocess import Pool
-from requests import HTTPError
 
 from . import config
 from .arrow_reader import ArrowReader
@@ -113,7 +112,8 @@ from .tasks import TaskTemplate
 from .utils import logging
 from .utils import tqdm as hf_tqdm
 from .utils.deprecation_utils import deprecated
-from .utils.file_utils import _retry, estimate_dataset_size
+from .utils.file_utils import estimate_dataset_size
+from .utils.hub import preupload_lfs_files
 from .utils.info_utils import is_small_dataset
 from .utils.metadata import MetadataConfigs
 from .utils.py_utils import (
@@ -1360,6 +1360,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             keep_in_memory=keep_in_memory,
             **kwargs,
         ).read()
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        maybe_register_dataset_for_temp_dir_deletion(self)
+        return self
 
     def __del__(self):
         if hasattr(self, "_data"):
@@ -5203,21 +5208,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             shard.to_parquet(buffer)
             uploaded_size += buffer.tell()
             shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=buffer)
-            _retry(
-                api.preupload_lfs_files,
-                func_kwargs={
-                    "repo_id": repo_id,
-                    "additions": [shard_addition],
-                    "token": token,
-                    "repo_type": "dataset",
-                    "revision": revision,
-                    "create_pr": create_pr,
-                },
-                exceptions=HTTPError,
-                status_codes=[504],
-                base_wait_time=2.0,
-                max_retries=5,
-                max_wait_time=20.0,
+            preupload_lfs_files(
+                api,
+                repo_id=repo_id,
+                additions=[shard_addition],
+                token=token,
+                repo_type="dataset",
+                revision=revision,
+                create_pr=create_pr,
             )
             additions.append(shard_addition)
 
