@@ -1,4 +1,3 @@
-import gc
 import importlib
 import os
 import pickle
