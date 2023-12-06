@@ -3,7 +3,7 @@ from functools import partial
 
 from huggingface_hub import HfApi, hf_hub_url
 from packaging import version
-from requests import HTTPError
+from requests import ConnectionError, HTTPError
 
 from .. import config
 from . import logging
@@ -18,15 +18,17 @@ if config.HF_HUB_VERSION < version.parse("0.20.0"):
         max_retries = 5
         base_wait_time = 1
         max_wait_time = 8
-        status_codes = [500, 503]
         retry = 0
         while True:
             try:
                 hf_api.preupload_lfs_files(**kwargs)
-            except (RuntimeError, HTTPError) as err:
-                if isinstance(err, RuntimeError) and isinstance(err.__cause__, HTTPError):
-                    err = err.__cause__
-                if retry >= max_retries or err.response.status_code not in status_codes:
+            except (RuntimeError, HTTPError, ConnectionError) as err:
+                if isinstance(err, RuntimeError):
+                    if isinstance(err.__cause__, (HTTPError, ConnectionError)):
+                        err = err.__cause__
+                    else:
+                        raise err
+                if retry >= max_retries or err.response and err.response.status_code not in [500, 503]:
                     raise err
                 else:
                     sleep_time = min(max_wait_time, base_wait_time * 2**retry)  # Exponential backoff
