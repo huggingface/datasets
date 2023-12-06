@@ -3,7 +3,7 @@ from functools import partial
 
 from huggingface_hub import HfApi, hf_hub_url
 from packaging import version
-from requests import HTTPError
+from requests import ConnectionError, HTTPError
 
 from .. import config
 from . import logging
@@ -23,9 +23,12 @@ if config.HF_HUB_VERSION < version.parse("0.20.0"):
         while True:
             try:
                 hf_api.preupload_lfs_files(**kwargs)
-            except (RuntimeError, HTTPError) as err:
-                if isinstance(err, RuntimeError) and isinstance(err.__cause__, HTTPError):
-                    err = err.__cause__
+            except (RuntimeError, HTTPError, ConnectionError) as err:
+                if isinstance(err, RuntimeError):
+                    if isinstance(err.__cause__, (HTTPError, ConnectionError)):
+                        err = err.__cause__
+                    else:
+                        raise err
                 if retry >= max_retries or err.response.status_code not in status_codes:
                     raise err
                 else:
