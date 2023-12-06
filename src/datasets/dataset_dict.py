@@ -56,6 +56,17 @@ class DatasetDict(dict):
                     f"All datasets in `DatasetDict` should have the same features but features for '{item_a[0]}' and '{item_b[0]}' don't match: {item_a[1].features} != {item_b[1].features}"
                 )
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # Here `del` is used to del the pyarrow tables. This properly closes the files used for memory mapped tables
+        for dataset in self.values():
+            if hasattr(dataset, "_data"):
+                del dataset._data
+            if hasattr(dataset, "_indices"):
+                del dataset._indices
+
     def __getitem__(self, k) -> Dataset:
         if isinstance(k, (str, NamedSplit)) or len(self) == 0:
             return super().__getitem__(k)
