@@ -1314,11 +1314,9 @@ def test_load_dataset_with_unsupported_extensions(text_dir_with_unsupported_exte
 @pytest.mark.integration
 def test_loading_from_the_datasets_hub():
     with tempfile.TemporaryDirectory() as tmp_dir:
-        dataset = load_dataset(SAMPLE_DATASET_IDENTIFIER, cache_dir=tmp_dir)
-        assert len(dataset["train"]) == 2
-        assert len(dataset["validation"]) == 3
-        del dataset
-        gc.collect()  # To avoid the PermissionError on Windows
+        with load_dataset(SAMPLE_DATASET_IDENTIFIER, cache_dir=tmp_dir) as dataset:
+            assert len(dataset["train"]) == 2
+            assert len(dataset["validation"]) == 3
 
 
 @pytest.mark.integration
