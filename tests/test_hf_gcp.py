@@ -86,7 +86,7 @@ def test_as_dataset_from_hf_gcs(tmp_path_factory):
     )
     # use the HF cloud storage, not the original download_and_prepare that uses apache-beam
     builder_instance._download_and_prepare = None
-    builder_instance.download_and_prepare()
+    builder_instance.download_and_prepare(try_from_hf_gcs=True)
     ds = builder_instance.as_dataset()
     assert ds
 

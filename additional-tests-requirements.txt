@@ -2,4 +2,3 @@ unbabel-comet>=1.0.0
 git+https://github.com/google-research/bleurt.git
 git+https://github.com/ns-moosavi/coval.git
 git+https://github.com/hendrycks/math.git
-apache-beam>=2.26.0; sys_platform != "win32" and python_version<"3.10"  # doesn't support recent dill versions for recent python versions
