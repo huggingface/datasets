@@ -16,6 +16,7 @@
 """ Arrow ArrowReader."""
 
 import copy
+from functools import partial
 import math
 import os
 import re
@@ -26,11 +27,13 @@ from typing import TYPE_CHECKING, List, Optional, Union
 
 import pyarrow as pa
 import pyarrow.parquet as pq
+from tqdm.contrib.concurrent import thread_map
 
 from .download.download_config import DownloadConfig
 from .naming import _split_re, filenames_for_dataset_split
 from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables
 from .utils import logging
+from .utils import tqdm as hf_tqdm
 from .utils.file_utils import cached_path
 
 
@@ -196,6 +199,14 @@ class BaseReader:
         files = copy.deepcopy(files)
         for f in files:
             f["filename"] = os.path.join(self._path, f["filename"])
+
+        pa_tables = thread_map(
+            partial(self._get_table_from_filename, in_memory=in_memory),
+            files,
+            tqdm_class=hf_tqdm,
+            desc="Loading dataset shards",
+            disable=len(files) <= 16,
+        )
         for f_dict in files:
             pa_table: Table = self._get_table_from_filename(f_dict, in_memory=in_memory)
             pa_tables.append(pa_table)
