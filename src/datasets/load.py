@@ -1602,7 +1602,6 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
             for cached_directory_path in cached_directory_paths:
                 config_name = Path(cached_directory_path).parts[-3]
                 dataset_infos[config_name] = DatasetInfo.from_directory(cached_directory_path)
-            # builder_configs_parameters = BuilderConfigsParameters(builder_configs=[BuilderConfig(Path(cached_directory_path).parts[-3]) for cached_directory_path in cached_directory_paths])
             return DatasetModule(module_path, hash, builder_kwargs, dataset_infos=dataset_infos)
         raise FileNotFoundError(f"Dataset {self.name} is not cached in {self.cache_dir}")
 
