@@ -195,7 +195,6 @@ class BaseReader:
         """
         if len(files) == 0 or not all(isinstance(f, dict) for f in files):
             raise ValueError("please provide valid file informations")
-        pa_tables = []
         files = copy.deepcopy(files)
         for f in files:
             f["filename"] = os.path.join(self._path, f["filename"])
@@ -207,9 +206,6 @@ class BaseReader:
             desc="Loading dataset shards",
             disable=len(files) <= 16,
         )
-        for f_dict in files:
-            pa_table: Table = self._get_table_from_filename(f_dict, in_memory=in_memory)
-            pa_tables.append(pa_table)
         pa_tables = [t for t in pa_tables if len(t) > 0]
         if not pa_tables and (self._info is None or self._info.features is None):
             raise ValueError(
