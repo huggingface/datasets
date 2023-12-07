@@ -1162,15 +1162,11 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
 
         builder_kwargs = {
             "hash": hash,
+            "data_files": data_files,
             "dataset_name": self.name,
         }
-        builder_configs = [import_main_class(module_path).BUILDER_CONFIG_CLASS(data_files=data_files)]
-        return DatasetModule(
-            module_path,
-            hash,
-            builder_kwargs,
-            builder_configs_parameters=BuilderConfigsParameters(builder_configs=builder_configs),
-        )
+
+        return DatasetModule(module_path, hash, builder_kwargs)
 
 
 class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
@@ -2265,7 +2261,11 @@ def load_dataset_builder(
             hash, dataset_module.builder_configs_parameters.metadata_configs[config_name]
         )
 
-    if path in _PACKAGED_DATASETS_MODULES and data_files is None:
+    if (
+        path in _PACKAGED_DATASETS_MODULES
+        and data_files is None
+        and dataset_module.builder_configs_parameters.builder_configs[0].data_files is None
+    ):
         error_msg = f"Please specify the data files or data directory to load for the {path} dataset builder."
         example_extensions = [
             extension for extension in _EXTENSION_TO_MODULE if _EXTENSION_TO_MODULE[extension] == path
