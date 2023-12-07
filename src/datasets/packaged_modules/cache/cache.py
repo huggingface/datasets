@@ -22,6 +22,7 @@ class Cache(datasets.ArrowBasedBuilder):
             shutil.copytree(self.cache_dir, output_dir)
 
     def _split_generators(self, dl_manager):
+        # used to stream from cache
         if isinstance(self.info.splits, datasets.SplitDict):
             split_infos: List[datasets.SplitInfo] = list(self.info.splits.values())
         else:

@@ -1071,15 +1071,18 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 default_builder_kwargs=default_builder_kwargs,
             )
         else:
-            builder_configs, default_config_name = None, None
+            builder_configs: List[BuilderConfig] = [
+                import_main_class(module_path).BUILDER_CONFIG_CLASS(
+                    data_files=data_files,
+                    **default_builder_kwargs,
+                )
+            ]
+            default_config_name = None
         builder_kwargs = {
             "hash": hash,
             "base_path": self.path,
             "dataset_name": camelcase_to_snakecase(Path(self.path).name),
         }
-        if self.data_files is not None or not metadata_configs:
-            builder_kwargs["data_files"] = data_files
-            builder_kwargs.update(default_builder_kwargs)  # from _EXTENSION_TO_MODULE
         # this file is deprecated and was created automatically in old versions of push_to_hub
         if os.path.isfile(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME)):
             with open(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
@@ -1264,16 +1267,19 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 download_config=self.download_config,
             )
         else:
-            builder_configs, default_config_name = None, None
+            builder_configs: List[BuilderConfig] = [
+                import_main_class(module_path).BUILDER_CONFIG_CLASS(
+                    data_files=data_files,
+                    **default_builder_kwargs,
+                )
+            ]
+            default_config_name = None
         builder_kwargs = {
             "hash": hash,
             "base_path": hf_hub_url(self.name, "", revision=self.revision),
             "repo_id": self.name,
             "dataset_name": camelcase_to_snakecase(Path(self.name).name),
         }
-        if self.data_files is not None or not metadata_configs:
-            builder_kwargs["data_files"] = data_files
-            builder_kwargs.update(default_builder_kwargs)  # from _EXTENSION_TO_MODULE
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading metadata"
@@ -1599,10 +1605,18 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
                 "dataset_name": self.name.split("/")[-1],
             }
             dataset_infos = DatasetInfosDict()
+            builder_configs = []
             for cached_directory_path in cached_directory_paths:
                 config_name = Path(cached_directory_path).parts[-3]
                 dataset_infos[config_name] = DatasetInfo.from_directory(cached_directory_path)
-            return DatasetModule(module_path, hash, builder_kwargs, dataset_infos=dataset_infos)
+                builder_configs.append(import_main_class(module_path).BUILDER_CONFIG_CLASS(name=config_name))
+            return DatasetModule(
+                module_path,
+                hash,
+                builder_kwargs,
+                dataset_infos=dataset_infos,
+                builder_configs_parameters=BuilderConfigsParameters(builder_configs=builder_configs),
+            )
         raise FileNotFoundError(f"Dataset {self.name} is not cached in {self.cache_dir}")
 
 
@@ -1663,6 +1677,7 @@ def dataset_module_factory(
     dynamic_modules_path: Optional[str] = None,
     data_dir: Optional[str] = None,
     data_files: Optional[Union[Dict, List, str, DataFilesDict]] = None,
+    cache_dir: Optional[str] = None,
     trust_remote_code: Optional[bool] = None,
     **download_kwargs,
 ) -> DatasetModule:
@@ -1705,6 +1720,10 @@ def dataset_module_factory(
         data_dir (:obj:`str`, optional): Directory with the data files. Used only if `data_files` is not specified,
             in which case it's equal to pass `os.path.join(data_dir, "**")` as `data_files`.
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
+        cache_dir (`str`, *optional*):
+            Directory to read/write data. Defaults to `"~/.cache/huggingface/datasets"`.
+
+            <Added version="2.16.0"/>
         trust_remote_code (`bool`, defaults to `True`):
             Whether or not to allow for datasets defined on the Hub using a dataset script. This option
             should only be set to `True` for repositories you trust and in which you have read the code, as it will
@@ -1852,7 +1871,9 @@ def dataset_module_factory(
         except Exception as e1:
             # All the attempts failed, before raising the error we should check if the module is already cached
             try:
-                return CachedDatasetModuleFactory(path, dynamic_modules_path=dynamic_modules_path).get_module()
+                return CachedDatasetModuleFactory(
+                    path, dynamic_modules_path=dynamic_modules_path, cache_dir=cache_dir
+                ).get_module()
             except Exception:
                 # If it's not in the cache, then it doesn't exist.
                 if isinstance(e1, OfflineModeIsEnabled):
@@ -2219,6 +2240,7 @@ def load_dataset_builder(
         download_mode=download_mode,
         data_dir=data_dir,
         data_files=data_files,
+        cache_dir=cache_dir,
         trust_remote_code=trust_remote_code,
     )
     # Get dataset builder class from the processing script

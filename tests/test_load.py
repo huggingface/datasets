@@ -805,7 +805,20 @@ class ModuleFactoryTest(TestCase):
         with self.assertRaises(_datasets_server.DatasetsServerError):
             factory.get_module()
 
+    @pytest.mark.integration
     def test_CachedDatasetModuleFactory(self):
+        name = SAMPLE_DATASET_IDENTIFIER2
+        load_dataset_builder(name, cache_dir=self.cache_dir).download_and_prepare()
+        for offline_mode in OfflineSimulationMode:
+            with offline(offline_mode):
+                factory = CachedDatasetModuleFactory(
+                    name,
+                    cache_dir=self.cache_dir,
+                )
+                module_factory_result = factory.get_module()
+                assert importlib.import_module(module_factory_result.module_path) is not None
+
+    def test_CachedDatasetModuleFactory_with_script(self):
         path = os.path.join(self._dataset_loading_script_dir, f"{DATASET_LOADING_SCRIPT_NAME}.py")
         factory = LocalDatasetModuleFactoryWithScript(
             path, download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
@@ -866,12 +879,14 @@ class LoadTest(TestCase):
 
     def setUp(self):
         self.hf_modules_cache = tempfile.mkdtemp()
+        self.cache_dir = tempfile.mkdtemp()
         self.dynamic_modules_path = datasets.load.init_dynamic_modules(
             name="test_datasets_modules2", hf_modules_cache=self.hf_modules_cache
         )
 
     def tearDown(self):
         shutil.rmtree(self.hf_modules_cache)
+        shutil.rmtree(self.cache_dir)
 
     def _dummy_module_dir(self, modules_dir, dummy_module_name, dummy_code):
         assert dummy_module_name.startswith("__")
@@ -913,7 +928,20 @@ class LoadTest(TestCase):
                             "__missing_dummy_module_name__", dynamic_modules_path=self.dynamic_modules_path
                         )
 
+    @pytest.mark.integration
     def test_offline_dataset_module_factory(self):
+        repo_id = SAMPLE_DATASET_IDENTIFIER2
+        builder = load_dataset_builder(repo_id, cache_dir=self.cache_dir)
+        builder.download_and_prepare()
+        for offline_simulation_mode in list(OfflineSimulationMode):
+            with offline(offline_simulation_mode):
+                self._caplog.clear()
+                # allow provide the repo id without an explicit path to remote or local actual file
+                dataset_module = datasets.load.dataset_module_factory(repo_id, cache_dir=self.cache_dir)
+                self.assertEqual(dataset_module.module_path, "datasets.packaged_modules.cache.cache")
+                self.assertIn("Using the latest cached version of the dataset", self._caplog.text)
+
+    def test_offline_dataset_module_factory_with_script(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dummy_code = "MY_DUMMY_VARIABLE = 'hello there'"
             module_dir = self._dummy_module_dir(tmp_dir, "__dummy_module_name2__", dummy_code)
@@ -1138,9 +1166,17 @@ def test_load_dataset_builder_fail():
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
-def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory, caplog):
+def test_load_dataset_local_script(dataset_loading_script_dir, data_dir, keep_in_memory, caplog):
     with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
         dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, keep_in_memory=keep_in_memory)
+    assert isinstance(dataset, DatasetDict)
+    assert all(isinstance(d, Dataset) for d in dataset.values())
+    assert len(dataset) == 2
+    assert isinstance(next(iter(dataset["train"])), dict)
+
+
+def test_load_dataset_cached_local_script(dataset_loading_script_dir, data_dir, caplog):
+    dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir)
     assert isinstance(dataset, DatasetDict)
     assert all(isinstance(d, Dataset) for d in dataset.values())
     assert len(dataset) == 2
@@ -1152,6 +1188,28 @@ def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory
             dataset = datasets.load_dataset(DATASET_LOADING_SCRIPT_NAME, data_dir=data_dir)
             assert len(dataset) == 2
             assert "Using the latest cached version of the module" in caplog.text
+            assert isinstance(next(iter(dataset["train"])), dict)
+    with pytest.raises(DatasetNotFoundError) as exc_info:
+        datasets.load_dataset(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST)
+    assert f"Dataset '{SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST}' doesn't exist on the Hub" in str(exc_info.value)
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("stream_from_cache, ", [False, True])
+def test_load_dataset_cached_from_hub(stream_from_cache, caplog):
+    dataset = load_dataset(SAMPLE_DATASET_IDENTIFIER3)
+    assert isinstance(dataset, DatasetDict)
+    assert all(isinstance(d, Dataset) for d in dataset.values())
+    assert len(dataset) == 2
+    assert isinstance(next(iter(dataset["train"])), dict)
+    for offline_simulation_mode in list(OfflineSimulationMode):
+        with offline(offline_simulation_mode):
+            caplog.clear()
+            # Load dataset from cache
+            dataset = datasets.load_dataset(SAMPLE_DATASET_IDENTIFIER3, streaming=stream_from_cache)
+            assert len(dataset) == 2
+            assert "Using the latest cached version of the dataset" in caplog.text
+            assert isinstance(next(iter(dataset["train"])), dict)
     with pytest.raises(DatasetNotFoundError) as exc_info:
         datasets.load_dataset(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST)
     assert f"Dataset '{SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST}' doesn't exist on the Hub" in str(exc_info.value)
