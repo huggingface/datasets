@@ -1162,11 +1162,15 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
 
         builder_kwargs = {
             "hash": hash,
-            "data_files": data_files,
             "dataset_name": self.name,
         }
-
-        return DatasetModule(module_path, hash, builder_kwargs)
+        builder_configs = [import_main_class(module_path).BUILDER_CONFIG_CLASS(data_files=data_files)]
+        return DatasetModule(
+            module_path,
+            hash,
+            builder_kwargs,
+            builder_configs_parameters=BuilderConfigsParameters(builder_configs=builder_configs),
+        )
 
 
 class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
