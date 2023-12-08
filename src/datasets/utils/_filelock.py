@@ -17,7 +17,8 @@
 
 import os
 
-from filelock import FileLock as FileLock_, UnixFileLock
+from filelock import FileLock as FileLock_
+from filelock import UnixFileLock
 
 
 class FileLock(FileLock_):
