@@ -1815,6 +1815,11 @@ class DatasetDict(dict):
 
 
 class IterableDatasetDict(dict):
+    def __repr__(self):
+        repr = "\n".join([f"{k}: {v}" for k, v in self.items()])
+        repr = re.sub(r"^", " " * 4, repr, 0, re.M)
+        return f"IterableDatasetDict({{\n{repr}\n}})"
+
     def with_format(
         self,
         type: Optional[str] = None,
