@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from datasets import load_dataset
+from datasets.load import configure_builder_class
 from datasets.packaged_modules.cache.cache import Cache
 
 
@@ -42,13 +43,20 @@ def test_cache_missing(text_dir: Path):
 @pytest.mark.integration
 def test_cache_multi_configs():
     repo_id = SAMPLE_DATASET_TWO_CONFIG_IN_METADATA
+    dataset_name = repo_id.split("/")[-1]
     config_name = "v1"
     ds = load_dataset(repo_id, config_name)
     hash = Path(ds["train"].cache_files[0]["filename"]).parts[-2]
-    cache = Cache(dataset_name=repo_id.split("/")[-1], repo_id=repo_id, config_name=config_name, hash=hash)
+    builder_cls = configure_builder_class(
+        Cache,
+        builder_configs=[Cache.BUILDER_CONFIG_CLASS(name="v1"), Cache.BUILDER_CONFIG_CLASS(name="v2")],
+        default_config_name=None,
+        dataset_name=dataset_name,
+    )
+    cache = builder_cls(dataset_name=dataset_name, repo_id=repo_id, config_name=config_name, hash=hash)
     reloaded = cache.as_dataset()
     assert list(ds) == list(reloaded)
     assert len(ds["train"]) == len(reloaded["train"])
     with pytest.raises(ValueError) as excinfo:
-        Cache(dataset_name=repo_id.split("/")[-1], repo_id=repo_id, config_name="missing", hash=hash)
+        builder_cls(dataset_name=dataset_name, repo_id=repo_id, config_name="missing", hash=hash)
     assert config_name in str(excinfo.value)

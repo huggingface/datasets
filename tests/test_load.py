@@ -644,6 +644,7 @@ class ModuleFactoryTest(TestCase):
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
+        builder_config = module_factory_result.builder_configs_parameters.builder_configs[0]
         assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
         assert (
             builder_config.data_files is not None
