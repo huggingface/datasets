@@ -1764,10 +1764,22 @@ class Features(dict):
                     return {"struct": [{"name": name, **to_yaml_inner(_feature)} for name, _feature in obj.items()]}
             elif isinstance(obj, list):
                 return simplify({"list": simplify(to_yaml_inner(obj[0]))})
+            elif isinstance(obj, tuple):
+                return to_yaml_inner(list(obj))
             else:
                 raise TypeError(f"Expected a dict or a list but got {type(obj)}: {obj}")
 
-        return to_yaml_inner(yaml_data)["struct"]
+        def to_yaml_types(obj: dict) -> dict:
+            if isinstance(obj, dict):
+                return {k: to_yaml_types(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [to_yaml_types(v) for v in obj]
+            elif isinstance(obj, tuple):
+                return to_yaml_types(list(obj))
+            else:
+                return obj
+
+        return to_yaml_types(to_yaml_inner(yaml_data)["struct"])
 
     @classmethod
     def _from_yaml_list(cls, yaml_data: list) -> "Features":
