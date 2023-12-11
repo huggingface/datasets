@@ -31,9 +31,9 @@ from .utils.py_utils import NonMutableDict, asdict
 
 @dataclass
 class SplitInfo:
-    name: str = ""
-    num_bytes: int = 0
-    num_examples: int = 0
+    name: str = dataclasses.field(default="", metadata={"include_in_asdict_even_if_is_default": True})
+    num_bytes: int = dataclasses.field(default=0, metadata={"include_in_asdict_even_if_is_default": True})
+    num_examples: int = dataclasses.field(default=0, metadata={"include_in_asdict_even_if_is_default": True})
     shard_lengths: Optional[List[int]] = None
 
     # Deprecated
@@ -111,6 +111,7 @@ class SplitBase(metaclass=abc.ABCMeta):
              to define which files to read and how to skip examples within file.
 
     """
+
     # pylint: enable=line-too-long
 
     @abc.abstractmethod
@@ -265,6 +266,7 @@ class PercentSlice(metaclass=PercentSliceMeta):
     [guide on splits](../loading#slice-splits)
     for more information.
     """
+
     # pylint: enable=line-too-long
     pass
 
@@ -438,6 +440,7 @@ class Split:
     ... )
     ```
     """
+
     # pylint: enable=line-too-long
     TRAIN = NamedSplit("train")
     TEST = NamedSplit("test")

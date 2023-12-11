@@ -80,12 +80,14 @@ def test_extracted_datasets_path(default_extracted, default_cache_dir, xz_file, 
 
 
 def test_cached_path_local(text_file):
-    # absolute path
-    text_file = str(Path(text_file).resolve())
-    assert cached_path(text_file) == text_file
-    # relative path
-    text_file = str(Path(__file__).resolve().relative_to(Path(os.getcwd())))
-    assert cached_path(text_file) == text_file
+    # input absolute path -> output absolute path
+    text_file_abs = str(Path(text_file).resolve())
+    assert os.path.samefile(cached_path(text_file_abs), text_file_abs)
+    # input relative path -> output absolute path
+    text_file = __file__
+    text_file_abs = str(Path(text_file).resolve())
+    text_file_rel = str(Path(text_file).resolve().relative_to(Path(os.getcwd())))
+    assert os.path.samefile(cached_path(text_file_rel), text_file_abs)
 
 
 def test_cached_path_missing_local(tmp_path):

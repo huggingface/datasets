@@ -1,6 +1,9 @@
 import fnmatch
+import gc
 import os
+import shutil
 import tempfile
+import textwrap
 import time
 import unittest
 from io import BytesIO
@@ -16,6 +19,7 @@ from datasets import (
     ClassLabel,
     Dataset,
     DatasetDict,
+    DownloadManager,
     Features,
     Image,
     Value,
@@ -23,6 +27,11 @@ from datasets import (
     load_dataset_builder,
 )
 from datasets.config import METADATA_CONFIGS_FIELD
+from datasets.data_files import get_data_patterns
+from datasets.packaged_modules.folder_based_builder.folder_based_builder import (
+    FolderBasedBuilder,
+    FolderBasedBuilderConfig,
+)
 from datasets.utils.file_utils import cached_path
 from datasets.utils.hub import hf_hub_url
 from tests.fixtures.hub import CI_HUB_ENDPOINT, CI_HUB_USER, CI_HUB_USER_TOKEN
@@ -43,7 +52,7 @@ class TestPushToHub:
 
         local_ds = DatasetDict({"train": ds})
 
-        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo() as ds_name:
             local_ds.push_to_hub(ds_name)
             hub_ds = load_dataset(ds_name, download_mode="force_redownload")
 
@@ -53,19 +62,14 @@ class TestPushToHub:
 
             # Ensure that there is a single file on the repository that has the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset"))
-            assert all(
-                fnmatch.fnmatch(file, expected_file)
-                for file, expected_file in zip(
-                    files, [".gitattributes", "README.md", "data/train-00000-of-00001-*.parquet"]
-                )
-            )
+            assert files == [".gitattributes", "README.md", "data/train-00000-of-00001.parquet"]
 
     def test_push_dataset_dict_to_hub_name_without_namespace(self, temporary_repo):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
 
         local_ds = DatasetDict({"train": ds})
 
-        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo() as ds_name:
             local_ds.push_to_hub(ds_name.split("/")[-1], token=self._token)
             hub_ds = load_dataset(ds_name, download_mode="force_redownload")
 
@@ -75,12 +79,7 @@ class TestPushToHub:
 
             # Ensure that there is a single file on the repository that has the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset"))
-            assert all(
-                fnmatch.fnmatch(file, expected_file)
-                for file, expected_file in zip(
-                    files, [".gitattributes", "README.md", "data/train-00000-of-00001-*.parquet"]
-                )
-            )
+            assert files == [".gitattributes", "README.md", "data/train-00000-of-00001.parquet"]
 
     def test_push_dataset_dict_to_hub_datasets_with_different_features(self, cleanup_repo):
         ds_train = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
@@ -88,7 +87,7 @@ class TestPushToHub:
 
         local_ds = DatasetDict({"train": ds_train, "test": ds_test})
 
-        ds_name = f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}"
+        ds_name = f"{CI_HUB_USER}/test-{int(time.time() * 10e6)}"
         try:
             with pytest.raises(ValueError):
                 local_ds.push_to_hub(ds_name.split("/")[-1], token=self._token)
@@ -101,7 +100,7 @@ class TestPushToHub:
 
         local_ds = DatasetDict({"train": ds})
 
-        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo() as ds_name:
             local_ds.push_to_hub(ds_name, token=self._token, private=True)
             hub_ds = load_dataset(ds_name, download_mode="force_redownload", token=self._token)
 
@@ -111,19 +110,14 @@ class TestPushToHub:
 
             # Ensure that there is a single file on the repository that has the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
-            assert all(
-                fnmatch.fnmatch(file, expected_file)
-                for file, expected_file in zip(
-                    files, [".gitattributes", "README.md", "data/train-00000-of-00001-*.parquet"]
-                )
-            )
+            assert files == [".gitattributes", "README.md", "data/train-00000-of-00001.parquet"]
 
     def test_push_dataset_dict_to_hub(self, temporary_repo):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
 
         local_ds = DatasetDict({"train": ds})
 
-        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo() as ds_name:
             local_ds.push_to_hub(ds_name, token=self._token)
             hub_ds = load_dataset(ds_name, download_mode="force_redownload")
 
@@ -133,19 +127,50 @@ class TestPushToHub:
 
             # Ensure that there is a single file on the repository that has the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
-            assert all(
-                fnmatch.fnmatch(file, expected_file)
-                for file, expected_file in zip(
-                    files, [".gitattributes", "README.md", "data/train-00000-of-00001-*.parquet"]
-                )
+            assert files == [".gitattributes", "README.md", "data/train-00000-of-00001.parquet"]
+
+    def test_push_dataset_dict_to_hub_with_pull_request(self, temporary_repo):
+        ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+
+        local_ds = DatasetDict({"train": ds})
+
+        with temporary_repo() as ds_name:
+            local_ds.push_to_hub(ds_name, token=self._token, create_pr=True)
+            hub_ds = load_dataset(ds_name, revision="refs/pr/1", download_mode="force_redownload")
+
+            assert local_ds["train"].features == hub_ds["train"].features
+            assert list(local_ds.keys()) == list(hub_ds.keys())
+            assert local_ds["train"].features == hub_ds["train"].features
+
+            # Ensure that there is a single file on the repository that has the correct name
+            files = sorted(
+                self._api.list_repo_files(ds_name, revision="refs/pr/1", repo_type="dataset", token=self._token)
             )
+            assert files == [".gitattributes", "README.md", "data/train-00000-of-00001.parquet"]
+
+    def test_push_dataset_dict_to_hub_with_revision(self, temporary_repo):
+        ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+
+        local_ds = DatasetDict({"train": ds})
+
+        with temporary_repo() as ds_name:
+            local_ds.push_to_hub(ds_name, token=self._token, revision="dev")
+            hub_ds = load_dataset(ds_name, revision="dev", download_mode="force_redownload")
+
+            assert local_ds["train"].features == hub_ds["train"].features
+            assert list(local_ds.keys()) == list(hub_ds.keys())
+            assert local_ds["train"].features == hub_ds["train"].features
+
+            # Ensure that there is a single file on the repository that has the correct name
+            files = sorted(self._api.list_repo_files(ds_name, revision="dev", repo_type="dataset", token=self._token))
+            assert files == [".gitattributes", "README.md", "data/train-00000-of-00001.parquet"]
 
     def test_push_dataset_dict_to_hub_multiple_files(self, temporary_repo):
         ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
 
         local_ds = DatasetDict({"train": ds})
 
-        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo() as ds_name:
             with patch("datasets.config.MAX_SHARD_SIZE", "16KB"):
                 local_ds.push_to_hub(ds_name, token=self._token)
             hub_ds = load_dataset(ds_name, download_mode="force_redownload")
@@ -156,25 +181,19 @@ class TestPushToHub:
 
             # Ensure that there are two files on the repository that have the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
-            assert all(
-                fnmatch.fnmatch(file, expected_file)
-                for file, expected_file in zip(
-                    files,
-                    [
-                        ".gitattributes",
-                        "README.md",
-                        "data/train-00000-of-00002-*.parquet",
-                        "data/train-00001-of-00002-*.parquet",
-                    ],
-                )
-            )
+            assert files == [
+                ".gitattributes",
+                "README.md",
+                "data/train-00000-of-00002.parquet",
+                "data/train-00001-of-00002.parquet",
+            ]
 
     def test_push_dataset_dict_to_hub_multiple_files_with_max_shard_size(self, temporary_repo):
         ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
 
         local_ds = DatasetDict({"train": ds})
 
-        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo() as ds_name:
             local_ds.push_to_hub(ds_name, token=self._token, max_shard_size="16KB")
             hub_ds = load_dataset(ds_name, download_mode="force_redownload")
 
@@ -184,25 +203,19 @@ class TestPushToHub:
 
             # Ensure that there are two files on the repository that have the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
-            assert all(
-                fnmatch.fnmatch(file, expected_file)
-                for file, expected_file in zip(
-                    files,
-                    [
-                        ".gitattributes",
-                        "README.md",
-                        "data/train-00000-of-00002-*.parquet",
-                        "data/train-00001-of-00002-*.parquet",
-                    ],
-                )
-            )
+            assert files == [
+                ".gitattributes",
+                "README.md",
+                "data/train-00000-of-00002.parquet",
+                "data/train-00001-of-00002.parquet",
+            ]
 
     def test_push_dataset_dict_to_hub_multiple_files_with_num_shards(self, temporary_repo):
         ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
 
         local_ds = DatasetDict({"train": ds})
 
-        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo() as ds_name:
             local_ds.push_to_hub(ds_name, token=self._token, num_shards={"train": 2})
             hub_ds = load_dataset(ds_name, download_mode="force_redownload")
 
@@ -212,18 +225,42 @@ class TestPushToHub:
 
             # Ensure that there are two files on the repository that have the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
-            assert all(
-                fnmatch.fnmatch(file, expected_file)
-                for file, expected_file in zip(
-                    files,
-                    [
-                        ".gitattributes",
-                        "README.md",
-                        "data/train-00000-of-00002-*.parquet",
-                        "data/train-00001-of-00002-*.parquet",
-                    ],
-                )
-            )
+            assert files == [
+                ".gitattributes",
+                "README.md",
+                "data/train-00000-of-00002.parquet",
+                "data/train-00001-of-00002.parquet",
+            ]
+
+    def test_push_dataset_dict_to_hub_with_multiple_commits(self, temporary_repo):
+        ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
+
+        local_ds = DatasetDict({"train": ds})
+
+        with temporary_repo() as ds_name:
+            self._api.create_repo(ds_name, token=self._token, repo_type="dataset")
+            num_commits_before_push = len(self._api.list_repo_commits(ds_name, repo_type="dataset", token=self._token))
+            with patch("datasets.config.MAX_SHARD_SIZE", "16KB"), patch(
+                "datasets.config.UPLOADS_MAX_NUMBER_PER_COMMIT", 1
+            ):
+                local_ds.push_to_hub(ds_name, token=self._token)
+            hub_ds = load_dataset(ds_name, download_mode="force_redownload")
+
+            assert local_ds.column_names == hub_ds.column_names
+            assert list(local_ds["train"].features.keys()) == list(hub_ds["train"].features.keys())
+            assert local_ds["train"].features == hub_ds["train"].features
+
+            # Ensure that there are two files on the repository that have the correct name
+            files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
+            assert files == [
+                ".gitattributes",
+                "README.md",
+                "data/train-00000-of-00002.parquet",
+                "data/train-00001-of-00002.parquet",
+            ]
+
+            num_commits_after_push = len(self._api.list_repo_commits(ds_name, repo_type="dataset", token=self._token))
+            assert num_commits_after_push - num_commits_before_push > 1
 
     def test_push_dataset_dict_to_hub_overwrite_files(self, temporary_repo):
         ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
@@ -231,11 +268,9 @@ class TestPushToHub:
 
         local_ds = DatasetDict({"train": ds, "random": ds2})
 
-        ds_name = f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}"
-
         # Push to hub two times, but the second time with a larger amount of files.
         # Verify that the new files contain the correct dataset.
-        with temporary_repo(ds_name) as ds_name:
+        with temporary_repo() as ds_name:
             local_ds.push_to_hub(ds_name, token=self._token)
 
             with tempfile.TemporaryDirectory() as tmp:
@@ -256,21 +291,14 @@ class TestPushToHub:
 
             # Ensure that there are two files on the repository that have the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
-
-            assert all(
-                fnmatch.fnmatch(file, expected_file)
-                for file, expected_file in zip(
-                    files,
-                    [
-                        ".gitattributes",
-                        "README.md",
-                        "data/random-00000-of-00001-*.parquet",
-                        "data/train-00000-of-00002-*.parquet",
-                        "data/train-00001-of-00002-*.parquet",
-                        "datafile.txt",
-                    ],
-                )
-            )
+            assert files == [
+                ".gitattributes",
+                "README.md",
+                "data/random-00000-of-00001.parquet",
+                "data/train-00000-of-00002.parquet",
+                "data/train-00001-of-00002.parquet",
+                "datafile.txt",
+            ]
 
             self._api.delete_file("datafile.txt", repo_id=ds_name, repo_type="dataset", token=self._token)
 
@@ -282,9 +310,12 @@ class TestPushToHub:
 
         del hub_ds
 
+        # To ensure the reference to the memory-mapped Arrow file is dropped to avoid the PermissionError on Windows
+        gc.collect()
+
         # Push to hub two times, but the second time with fewer files.
         # Verify that the new files contain the correct dataset and that non-necessary files have been deleted.
-        with temporary_repo(ds_name) as ds_name:
+        with temporary_repo(ds_name):
             local_ds.push_to_hub(ds_name, token=self._token, max_shard_size=500 << 5)
 
             with tempfile.TemporaryDirectory() as tmp:
@@ -305,20 +336,13 @@ class TestPushToHub:
 
             # Ensure that there are two files on the repository that have the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
-
-            assert all(
-                fnmatch.fnmatch(file, expected_file)
-                for file, expected_file in zip(
-                    files,
-                    [
-                        ".gitattributes",
-                        "README.md",
-                        "data/random-00000-of-00001-*.parquet",
-                        "data/train-00000-of-00001-*.parquet",
-                        "datafile.txt",
-                    ],
-                )
-            )
+            assert files == [
+                ".gitattributes",
+                "README.md",
+                "data/random-00000-of-00001.parquet",
+                "data/train-00000-of-00001.parquet",
+                "datafile.txt",
+            ]
 
             # Keeping the "datafile.txt" breaks the load_dataset to think it's a text-based dataset
             self._api.delete_file("datafile.txt", repo_id=ds_name, repo_type="dataset", token=self._token)
@@ -332,7 +356,7 @@ class TestPushToHub:
     def test_push_dataset_to_hub(self, temporary_repo):
         local_ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
 
-        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo() as ds_name:
             local_ds.push_to_hub(ds_name, split="train", token=self._token)
             local_ds_dict = {"train": local_ds}
             hub_ds_dict = load_dataset(ds_name, download_mode="force_redownload")
@@ -350,7 +374,7 @@ class TestPushToHub:
         features = Features({"x": Value("int64"), "y": ClassLabel(names=["neg", "pos"])})
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [0, 0, 1]}, features=features)
 
-        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo() as ds_name:
             ds.push_to_hub(ds_name, token=self._token)
             hub_ds = load_dataset(ds_name, split="train", download_mode="force_redownload")
 
@@ -367,7 +391,7 @@ class TestPushToHub:
         ds = Dataset.from_dict(data, features=features)
 
         for embed_external_files in [True, False]:
-            with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            with temporary_repo() as ds_name:
                 ds.push_to_hub(ds_name, embed_external_files=embed_external_files, token=self._token)
                 hub_ds = load_dataset(ds_name, split="train", download_mode="force_redownload")
 
@@ -391,7 +415,7 @@ class TestPushToHub:
         ds = Dataset.from_dict(data, features=features)
 
         for embed_external_files in [True, False]:
-            with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            with temporary_repo() as ds_name:
                 ds.push_to_hub(ds_name, embed_external_files=embed_external_files, token=self._token)
                 hub_ds = load_dataset(ds_name, split="train", download_mode="force_redownload")
 
@@ -413,7 +437,7 @@ class TestPushToHub:
         ds = Dataset.from_dict(data, features=features)
 
         for embed_external_files in [True, False]:
-            with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            with temporary_repo() as ds_name:
                 ds.push_to_hub(ds_name, embed_external_files=embed_external_files, token=self._token)
                 hub_ds = load_dataset(ds_name, split="train", download_mode="force_redownload")
 
@@ -433,7 +457,7 @@ class TestPushToHub:
 
         local_ds = DatasetDict({"test": ds})
 
-        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo() as ds_name:
             local_ds.push_to_hub(ds_name, token=self._token)
             hub_ds = load_dataset(ds_name, download_mode="force_redownload")
 
@@ -444,7 +468,7 @@ class TestPushToHub:
     def test_push_dataset_to_hub_custom_splits(self, temporary_repo):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
 
-        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo() as ds_name:
             ds.push_to_hub(ds_name, split="random", token=self._token)
             hub_ds = load_dataset(ds_name, download_mode="force_redownload")
 
@@ -452,34 +476,9 @@ class TestPushToHub:
             assert list(ds.features.keys()) == list(hub_ds["random"].features.keys())
             assert ds.features == hub_ds["random"].features
 
-    def test_push_dataset_to_hub_skip_identical_files(self, temporary_repo):
-        ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
-        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
-            with patch("datasets.arrow_dataset.HfApi.upload_file", side_effect=self._api.upload_file) as mock_hf_api:
-                # Initial push
-                ds.push_to_hub(ds_name, token=self._token, max_shard_size="1KB")
-                call_count_old = mock_hf_api.call_count
-                mock_hf_api.reset_mock()
-
-                # Remove a data file
-                files = self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token)
-                data_files = [f for f in files if f.startswith("data/")]
-                assert len(data_files) > 1
-                self._api.delete_file(data_files[0], repo_id=ds_name, repo_type="dataset", token=self._token)
-
-                # "Resume" push - push missing files
-                ds.push_to_hub(ds_name, token=self._token, max_shard_size="1KB")
-                call_count_new = mock_hf_api.call_count
-                assert call_count_old > call_count_new
-
-            hub_ds = load_dataset(ds_name, split="train", download_mode="force_redownload")
-            assert ds.column_names == hub_ds.column_names
-            assert list(ds.features.keys()) == list(hub_ds.features.keys())
-            assert ds.features == hub_ds.features
-
     def test_push_dataset_to_hub_multiple_splits_one_by_one(self, temporary_repo):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
-        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo() as ds_name:
             ds.push_to_hub(ds_name, split="train", token=self._token)
             ds.push_to_hub(ds_name, split="test", token=self._token)
             hub_ds = load_dataset(ds_name, download_mode="force_redownload")
@@ -493,7 +492,7 @@ class TestPushToHub:
 
         local_ds = DatasetDict({"random": ds})
 
-        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo() as ds_name:
             local_ds.push_to_hub(ds_name, token=self._token)
             hub_ds = load_dataset(ds_name, download_mode="force_redownload")
 
@@ -509,7 +508,7 @@ class TestPushToHub:
             local_ds.save_to_disk(tmp)
             local_ds = load_dataset(tmp, streaming=True)
 
-            with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+            with temporary_repo() as ds_name:
                 local_ds.push_to_hub(ds_name, token=self._token)
                 hub_ds = load_dataset(ds_name, download_mode="force_redownload")
 
@@ -522,7 +521,7 @@ class TestPushToHub:
         ds_config1 = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
         ds_config2 = Dataset.from_dict({"foo": [1, 2], "bar": [4, 5]})
 
-        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo() as ds_name:
             ds_default.push_to_hub(ds_name, token=self._token)
             ds_config1.push_to_hub(ds_name, "config1", token=self._token)
             ds_config2.push_to_hub(ds_name, "config2", token=self._token)
@@ -556,22 +555,19 @@ class TestPushToHub:
         ds_config1 = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
         ds_config2 = Dataset.from_dict({"foo": [1, 2], "bar": [4, 5]})
 
-        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo() as ds_name:
             ds_default.push_to_hub(ds_name, token=self._token)
             ds_config1.push_to_hub(ds_name, "config1", token=self._token)
             ds_config2.push_to_hub(ds_name, "config2", token=self._token)
 
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset"))
-            expected_files = sorted(
-                [
-                    ".gitattributes",
-                    "README.md",
-                    "config1/train-00000-of-00001-*.parquet",
-                    "config2/train-00000-of-00001-*.parquet",
-                    "data/train-00000-of-00001-*.parquet",
-                ]
-            )
-            assert all(fnmatch.fnmatch(file, expected_file) for file, expected_file in zip(files, expected_files))
+            assert files == [
+                ".gitattributes",
+                "README.md",
+                "config1/train-00000-of-00001.parquet",
+                "config2/train-00000-of-00001.parquet",
+                "data/train-00000-of-00001.parquet",
+            ]
 
             hub_ds_default = load_dataset(ds_name, download_mode="force_redownload")
             hub_ds_config1 = load_dataset(ds_name, "config1", download_mode="force_redownload")
@@ -600,7 +596,7 @@ class TestPushToHub:
         ds_config1 = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
         ds_config2 = Dataset.from_dict({"foo": [1, 2], "bar": [4, 5]})
 
-        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo() as ds_name:
             ds_default.push_to_hub(ds_name, token=self._token)
             ds_config1.push_to_hub(ds_name, "config1", token=self._token)
             ds_config2.push_to_hub(ds_name, "config2", token=self._token)
@@ -639,7 +635,7 @@ class TestPushToHub:
         ds_config1 = DatasetDict({"random": ds_config1})
         ds_config2 = DatasetDict({"random": ds_config2})
 
-        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo() as ds_name:
             ds_default.push_to_hub(ds_name, token=self._token)
             ds_config1.push_to_hub(ds_name, "config1", token=self._token)
             ds_config2.push_to_hub(ds_name, "config2", token=self._token)
@@ -676,25 +672,22 @@ class TestPushToHub:
         ds_config1 = DatasetDict({"train": ds_config1, "random": ds_config1})
         ds_config2 = DatasetDict({"train": ds_config2, "random": ds_config2})
 
-        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo() as ds_name:
             ds_default.push_to_hub(ds_name, token=self._token)
             ds_config1.push_to_hub(ds_name, "config1", token=self._token)
             ds_config2.push_to_hub(ds_name, "config2", token=self._token)
 
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset"))
-            expected_files = sorted(
-                [
-                    ".gitattributes",
-                    "README.md",
-                    "config1/random-00000-of-00001-*.parquet",
-                    "config1/train-00000-of-00001-*.parquet",
-                    "config2/random-00000-of-00001-*.parquet",
-                    "config2/train-00000-of-00001-*.parquet",
-                    "data/random-00000-of-00001-*.parquet",
-                    "data/train-00000-of-00001-*.parquet",
-                ]
-            )
-            assert all(fnmatch.fnmatch(file, expected_file) for file, expected_file in zip(files, expected_files))
+            assert files == [
+                ".gitattributes",
+                "README.md",
+                "config1/random-00000-of-00001.parquet",
+                "config1/train-00000-of-00001.parquet",
+                "config2/random-00000-of-00001.parquet",
+                "config2/train-00000-of-00001.parquet",
+                "data/random-00000-of-00001.parquet",
+                "data/train-00000-of-00001.parquet",
+            ]
 
             hub_ds_default = load_dataset(ds_name, download_mode="force_redownload")
             hub_ds_config1 = load_dataset(ds_name, "config1", download_mode="force_redownload")
@@ -729,7 +722,7 @@ class TestPushToHub:
         ds_config1 = DatasetDict({"train": ds_config1, "random": ds_config1})
         ds_config2 = DatasetDict({"train": ds_config2, "random": ds_config2})
 
-        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo() as ds_name:
             ds_default.push_to_hub(ds_name, token=self._token)
             ds_config1.push_to_hub(ds_name, "config1", token=self._token)
             ds_config2.push_to_hub(ds_name, "config2", token=self._token)
@@ -770,7 +763,7 @@ class TestPushToHub:
         ds.to_parquet(parquet_buf)
         parquet_content = parquet_buf.getvalue()
 
-        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo() as ds_name:
             self._api.create_repo(ds_name, token=self._token, repo_type="dataset")
             # old push_to_hub was uploading the parquet files only - without metadata configs
             self._api.upload_file(
@@ -792,7 +785,7 @@ class TestPushToHub:
             assert len(ds_another_config_builder.config.data_files["train"]) == 1
             assert fnmatch.fnmatch(
                 ds_another_config_builder.config.data_files["train"][0],
-                "*/another_config/train-00000-of-00001-*.parquet",
+                "*/another_config/train-00000-of-00001.parquet",
             )
 
     def test_push_dataset_dict_to_hub_with_config_no_metadata_configs(self, temporary_repo):
@@ -804,7 +797,7 @@ class TestPushToHub:
 
         local_ds_another_config = DatasetDict({"random": ds_another_config})
 
-        with temporary_repo(f"{CI_HUB_USER}/test-{int(time.time() * 10e3)}") as ds_name:
+        with temporary_repo() as ds_name:
             self._api.create_repo(ds_name, token=self._token, repo_type="dataset")
             # old push_to_hub was uploading the parquet files only - without metadata configs
             self._api.upload_file(
@@ -826,5 +819,88 @@ class TestPushToHub:
             assert len(ds_another_config_builder.config.data_files["random"]) == 1
             assert fnmatch.fnmatch(
                 ds_another_config_builder.config.data_files["random"][0],
-                "*/another_config/random-00000-of-00001-*.parquet",
+                "*/another_config/random-00000-of-00001.parquet",
             )
+
+
+class DummyFolderBasedBuilder(FolderBasedBuilder):
+    BASE_FEATURE = dict
+    BASE_COLUMN_NAME = "base"
+    BUILDER_CONFIG_CLASS = FolderBasedBuilderConfig
+    EXTENSIONS = [".txt"]
+    # CLASSIFICATION_TASK = TextClassification(text_column="base", label_column="label")
+
+
+@pytest.fixture(params=[".jsonl", ".csv"])
+def text_file_with_metadata(request, tmp_path, text_file):
+    metadata_filename_extension = request.param
+    data_dir = tmp_path / "data_dir"
+    data_dir.mkdir()
+    text_file_path = data_dir / "file.txt"
+    shutil.copyfile(text_file, text_file_path)
+    metadata_file_path = data_dir / f"metadata{metadata_filename_extension}"
+    metadata = textwrap.dedent(
+        """\
+        {"file_name": "file.txt", "additional_feature": "Dummy file"}
+        """
+        if metadata_filename_extension == ".jsonl"
+        else """\
+        file_name,additional_feature
+        file.txt,Dummy file
+        """
+    )
+    with open(metadata_file_path, "w", encoding="utf-8") as f:
+        f.write(metadata)
+    return text_file_path, metadata_file_path
+
+
+@for_all_test_methods(xfail_if_500_502_http_error)
+@pytest.mark.usefixtures("ci_hub_config", "ci_hfh_hf_hub_url")
+class TestLoadFromHub:
+    _api = HfApi(endpoint=CI_HUB_ENDPOINT)
+    _token = CI_HUB_USER_TOKEN
+
+    def test_load_dataset_with_metadata_file(self, temporary_repo, text_file_with_metadata, tmp_path):
+        text_file_path, metadata_file_path = text_file_with_metadata
+        data_dir_path = text_file_path.parent
+        cache_dir_path = tmp_path / ".cache"
+        cache_dir_path.mkdir()
+        with temporary_repo() as repo_id:
+            self._api.create_repo(repo_id, token=self._token, repo_type="dataset")
+            self._api.upload_folder(
+                folder_path=str(data_dir_path),
+                repo_id=repo_id,
+                repo_type="dataset",
+                token=self._token,
+            )
+            data_files = [
+                f"hf://datasets/{repo_id}/{text_file_path.name}",
+                f"hf://datasets/{repo_id}/{metadata_file_path.name}",
+            ]
+            builder = DummyFolderBasedBuilder(
+                dataset_name=repo_id.split("/")[-1], data_files=data_files, cache_dir=str(cache_dir_path)
+            )
+            download_manager = DownloadManager()
+            gen_kwargs = builder._split_generators(download_manager)[0].gen_kwargs
+            generator = builder._generate_examples(**gen_kwargs)
+            result = [example for _, example in generator]
+            assert len(result) == 1
+
+    def test_get_data_patterns(self, temporary_repo, tmp_path):
+        repo_dir = tmp_path / "test_get_data_patterns"
+        data_dir = repo_dir / "data"
+        data_dir.mkdir(parents=True)
+        data_file = data_dir / "train-00001-of-00009.parquet"
+        data_file.touch()
+        with temporary_repo() as repo_id:
+            self._api.create_repo(repo_id, token=self._token, repo_type="dataset")
+            self._api.upload_folder(
+                folder_path=str(repo_dir),
+                repo_id=repo_id,
+                repo_type="dataset",
+                token=self._token,
+            )
+            data_file_patterns = get_data_patterns(f"hf://datasets/{repo_id}")
+            assert data_file_patterns == {
+                "train": ["data/train-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"]
+            }

@@ -6,7 +6,9 @@ from typing import List
 
 import fsspec
 import fsspec.asyn
+from fsspec.implementations.local import LocalFileSystem
 
+from ..utils.deprecation_utils import deprecated
 from . import compression
 
 
@@ -30,6 +32,9 @@ for fs_class in COMPRESSION_FILESYSTEMS:
     fsspec.register_implementation(fs_class.protocol, fs_class, clobber=True)
 
 
+@deprecated(
+    "This function is deprecated and will be removed in a future version. Please use `fsspec.core.strip_protocol` instead."
+)
 def extract_path_from_uri(dataset_path: str) -> str:
     """
     Preprocesses `dataset_path` and removes remote filesystem (e.g. removing `s3://`).
@@ -45,24 +50,20 @@ def extract_path_from_uri(dataset_path: str) -> str:
 
 def is_remote_filesystem(fs: fsspec.AbstractFileSystem) -> bool:
     """
-    Validates if filesystem has remote protocol.
+    Checks if `fs` is a remote filesystem.
 
     Args:
         fs (`fsspec.spec.AbstractFileSystem`):
             An abstract super-class for pythonic file-systems, e.g. `fsspec.filesystem(\'file\')` or [`datasets.filesystems.S3FileSystem`].
     """
-    if fs is not None and fs.protocol != "file":
-        return True
-    else:
-        return False
+    return not isinstance(fs, LocalFileSystem)
 
 
 def rename(fs: fsspec.AbstractFileSystem, src: str, dst: str):
     """
     Renames the file `src` in `fs` to `dst`.
     """
-    is_local = not is_remote_filesystem(fs)
-    if is_local:
+    if not is_remote_filesystem(fs):
         # LocalFileSystem.mv does copy + rm, it is more efficient to simply move a local directory
         shutil.move(fs._strip_protocol(src), fs._strip_protocol(dst))
     else:

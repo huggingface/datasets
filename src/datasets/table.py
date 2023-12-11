@@ -1,6 +1,5 @@
 import copy
 import os
-import tempfile
 import warnings
 from functools import partial
 from itertools import groupby
@@ -65,16 +64,6 @@ def _memory_mapped_arrow_table_from_file(filename: str) -> pa.Table:
     opened_stream = _memory_mapped_record_batch_reader_from_file(filename)
     pa_table = opened_stream.read_all()
     return pa_table
-
-
-def _write_table_to_file(table: pa.Table, filename: str) -> int:
-    with open(filename, "wb") as sink:
-        writer = pa.RecordBatchStreamWriter(sink=sink, schema=table.schema)
-        batches: List[pa.RecordBatch] = table.to_batches()
-        for batch in batches:
-            writer.write_batch(batch)
-        writer.close()
-        return sum(batch.nbytes for batch in batches)
 
 
 def _deepcopy(x, memo: dict):
@@ -186,32 +175,6 @@ class Table(IndexedTableMixin):
         # same for the recordbatches used by the index
         memo[id(self._batches)] = list(self._batches)
         return _deepcopy(self, memo)
-
-    def __getstate__(self):
-        # We can't pickle objects that are bigger than 4GiB, or it causes OverflowError
-        # So we write the table on disk instead
-        if self.table.nbytes >= config.MAX_TABLE_NBYTES_FOR_PICKLING:
-            table = self.table
-            with tempfile.NamedTemporaryFile("wb", delete=False, suffix=".arrow") as tmp_file:
-                filename = tmp_file.name
-                logger.debug(
-                    f"Attempting to pickle a table bigger than 4GiB. Writing it on the disk instead at {filename}"
-                )
-                _write_table_to_file(table=table, filename=filename)
-                return {"path": filename}
-        else:
-            return {"table": self.table}
-
-    def __setstate__(self, state):
-        if "path" in state:
-            filename = state["path"]
-            logger.debug(f"Unpickling a big table from the disk at {filename}")
-            table = _in_memory_arrow_table_from_file(filename)
-            logger.debug(f"Removing temporary table file at {filename}")
-            os.remove(filename)
-        else:
-            table = state["table"]
-        Table.__init__(self, table)
 
     def validate(self, *args, **kwargs):
         """
@@ -1364,7 +1327,10 @@ class ConcatenationTable(Table):
         pa_tables = [table.table if hasattr(table, "table") else table for table in blocks]
         if axis == 0:
             # we set promote=True to fill missing columns with null values
-            return pa.concat_tables(pa_tables, promote=True)
+            if config.PYARROW_VERSION.major < 14:
+                return pa.concat_tables(pa_tables, promote=True)
+            else:
+                return pa.concat_tables(pa_tables, promote_options="default")
         elif axis == 1:
             for i, table in enumerate(pa_tables):
                 if i == 0:
@@ -1891,7 +1857,7 @@ def array_concat(arrays: List[pa.Array]):
 
     def _concat_arrays(arrays):
         array_type = arrays[0].type
-        if isinstance(array_type, pa.PyExtensionType):
+        if isinstance(array_type, pa.ExtensionType):
             return array_type.wrap_array(_concat_arrays([array.storage for array in arrays]))
         elif pa.types.is_struct(array_type):
             return pa.StructArray.from_arrays(
@@ -1916,7 +1882,7 @@ def array_concat(arrays: List[pa.Array]):
                 _concat_arrays([array.values for array in arrays]),
             )
         elif pa.types.is_fixed_size_list(array_type):
-            if config.PYARROW_VERSION.major < 13:
+            if config.PYARROW_VERSION.major < 15:
                 # PyArrow bug: https://github.com/apache/arrow/issues/35360
                 return pa.FixedSizeListArray.from_arrays(
                     _concat_arrays([array.values[array.offset * array.type.list_size :] for array in arrays]),
@@ -1964,7 +1930,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
     if isinstance(array, pa.ExtensionArray):
         array = array.storage
     if isinstance(pa_type, pa.ExtensionType):
-        return pa_type.wrap_array(array)
+        return pa_type.wrap_array(_c(array, pa_type.storage_type))
     elif array.type == pa_type:
         return array
     elif pa.types.is_struct(array.type):
@@ -1993,7 +1959,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
             return pa.ListArray.from_arrays(array.offsets, _c(array.values, pa_type.value_type))
     elif pa.types.is_fixed_size_list(array.type):
         array_values = array.values
-        if config.PYARROW_VERSION.major < 13:
+        if config.PYARROW_VERSION.major < 15:
             # PyArrow bug: https://github.com/apache/arrow/issues/35360
             array_values = array.values[array.offset * array.type.list_size :]
         if pa.types.is_fixed_size_list(pa_type):
@@ -2002,7 +1968,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
                 pa_type.list_size,
             )
         elif pa.types.is_list(pa_type):
-            offsets_arr = pa.array(range(len(array) + 1), pa.int32())
+            offsets_arr = pa.array(np.arange(len(array) + 1) * array.type.list_size, pa.int32())
             if array.null_count > 0:
                 if config.PYARROW_VERSION.major < 10:
                     warnings.warn(
@@ -2061,6 +2027,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
         array = array.storage
     if hasattr(feature, "cast_storage"):
         return feature.cast_storage(array)
+
     elif pa.types.is_struct(array.type):
         # feature must be a dict or Sequence(subfeatures_dict)
         if isinstance(feature, Sequence) and isinstance(feature.feature, dict):
@@ -2109,7 +2076,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
     elif pa.types.is_fixed_size_list(array.type):
         # feature must be either [subfeature] or Sequence(subfeature)
         array_values = array.values
-        if config.PYARROW_VERSION.major < 13:
+        if config.PYARROW_VERSION.major < 15:
             # PyArrow bug: https://github.com/apache/arrow/issues/35360
             array_values = array.values[array.offset * array.type.list_size :]
         if isinstance(feature, list):
@@ -2126,7 +2093,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
                 if feature.length * len(array) == len(array_values):
                     return pa.FixedSizeListArray.from_arrays(_c(array_values, feature.feature), feature.length)
             else:
-                offsets_arr = pa.array(range(len(array) + 1), pa.int32())
+                offsets_arr = pa.array(np.arange(len(array) + 1) * array.type.list_size, pa.int32())
                 if array.null_count > 0:
                     if config.PYARROW_VERSION.major < 10:
                         warnings.warn(
@@ -2216,7 +2183,7 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
     elif pa.types.is_fixed_size_list(array.type):
         # feature must be either [subfeature] or Sequence(subfeature)
         array_values = array.values
-        if config.PYARROW_VERSION.major < 13:
+        if config.PYARROW_VERSION.major < 15:
             # PyArrow bug: https://github.com/apache/arrow/issues/35360
             array_values = array.values[array.offset * array.type.list_size :]
         if isinstance(feature, list):
@@ -2233,7 +2200,7 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
                 if feature.length * len(array) == len(array_values):
                     return pa.FixedSizeListArray.from_arrays(_e(array_values, feature.feature), feature.length)
             else:
-                offsets_arr = pa.array(range(len(array) + 1), pa.int32())
+                offsets_arr = pa.array(np.arange(len(array) + 1) * array.type.list_size, pa.int32())
                 if array.null_count > 0:
                     if config.PYARROW_VERSION.major < 10:
                         warnings.warn(

@@ -3,9 +3,16 @@
 
 <Tip>
 
-The dataset script is likely not needed if your dataset is in one of the following formats: CSV, JSON, JSON lines, text or Parquet.
+The dataset loading script is likely not needed if your dataset is in one of the following formats: CSV, JSON, JSON lines, text, images, audio or Parquet.
 With those formats, you should be able to load your dataset automatically with [`~datasets.load_dataset`],
 as long as your dataset repository has a [required structure](./repository_structure).
+
+</Tip>
+
+
+<Tip warning=true>
+
+In the next major release, the new safety features of 🤗 Datasets will disable running dataset loading scripts by default, and you will have to pass `trust_remote_code=True` to load datasets that require running a dataset script.
 
 </Tip>
 
@@ -144,6 +151,8 @@ class SuperGlueConfig(datasets.BuilderConfig):
 class SuperGlue(datasets.GeneratorBasedBuilder):
     """The SuperGLUE benchmark."""
 
+    BUILDER_CONFIG_CLASS = SuperGlueConfig
+
     BUILDER_CONFIGS = [
         SuperGlueConfig(
             name="boolq",
@@ -171,6 +180,13 @@ class SuperGlue(datasets.GeneratorBasedBuilder):
 ```py
 >>> from datasets import load_dataset
 >>> dataset = load_dataset('super_glue', 'boolq')
+```
+
+Additionally, users can instantiate a custom builder configuration by passing the builder configuration arguments to [`load_dataset`]:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset('super_glue', data_url="https://custom_url")
 ```
 
 ### Default configurations

@@ -24,7 +24,7 @@ requirements:
     - dataclasses
     - multiprocess
     - fsspec
-    - huggingface_hub >=0.14.0,<1.0.0
+    - huggingface_hub >=0.19.4,<1.0.0
     - packaging
     - aiohttp
   run:
@@ -32,6 +32,7 @@ requirements:
     - pip
     - numpy >=1.17
     - pyarrow >=8.0.0
+    - pyarrow-hotfix
     - python-xxhash
     - dill
     - pandas
@@ -40,7 +41,7 @@ requirements:
     - dataclasses
     - multiprocess
     - fsspec
-    - huggingface_hub >=0.14.0,<1.0.0
+    - huggingface_hub >=0.19.4,<1.0.0
     - packaging
     - aiohttp
 

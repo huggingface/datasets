@@ -1,15 +1,9 @@
 repos:
-  - repo: https://github.com/psf/black
-    rev: 23.1.0
+  - repo: https://github.com/charliermarsh/ruff-pre-commit # https://github.com/charliermarsh/ruff#usage
+    rev: 'v0.1.5'
     hooks:
-      - id: black
-        language_version: python3
-        types: [python]
-        stages: [commit]
-        args: ["--config", "pyproject.toml", "tests", "src", "benchmarks", "metrics"]
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: 'v0.0.255'
-    hooks:
-    - id: ruff
-      stages: [commit]
-      args: [ "--config", "pyproject.toml", "tests", "src", "benchmarks", "metrics", "--fix"]
+      # Run the linter.
+      - id: ruff
+        args: [ --fix ]
+      # Run the formatter.
+      - id: ruff-format

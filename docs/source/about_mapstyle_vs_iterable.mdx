@@ -138,8 +138,8 @@ But using a shuffle buffer is not enough to provide a satisfactory shuffling for
 
 ```python
 # Stream from the internet
-my_iterable_dataset = load_dataset("c4", "en", split="train", streaming=True)
-my_iterable_dataset.n_shards  # 1024
+my_iterable_dataset = load_dataset("deepmind/code_contests", split="train", streaming=True)
+my_iterable_dataset.n_shards  # 39
 
 # Stream from local files
 data_files = {"train": [f"path/to/data_{i}.csv" for i in range(1024)]}
@@ -212,7 +212,7 @@ If you want to benefit from the "lazy" behavior of an [`IterableDataset`] or the
 my_iterable_dataset = my_dataset.to_iterable_dataset()
 ```
 
-If you want to shuffle your dataset or [use it with a PyTorch DataLoader](./use_with_pytorch#stream-data), we recommend generating a shared [`IterableDataset`]:
+If you want to shuffle your dataset or [use it with a PyTorch DataLoader](./use_with_pytorch#stream-data), we recommend generating a sharded [`IterableDataset`]:
 ```python
 my_iterable_dataset = my_dataset.to_iterable_dataset(num_shards=1024)
 my_iterable_dataset.n_shards  # 1024

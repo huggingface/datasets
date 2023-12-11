@@ -232,8 +232,6 @@ class MockDownloadManager:
             paths = [paths]
         for path in paths:
             if os.path.isfile(path):
-                if os.path.basename(path).startswith((".", "__")):
-                    return
                 yield path
             else:
                 for dirpath, dirnames, filenames in os.walk(path):

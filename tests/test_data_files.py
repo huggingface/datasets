@@ -1,5 +1,6 @@
+import copy
 import os
-from pathlib import Path, PurePath
+from pathlib import Path
 from typing import List
 from unittest.mock import patch
 
@@ -15,6 +16,7 @@ from datasets.data_files import (
     _get_metadata_files_patterns,
     _is_inside_unrequested_special_dir,
     _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir,
+    get_data_patterns,
     resolve_pattern,
 )
 from datasets.fingerprint import Hasher
@@ -385,6 +387,13 @@ def test_DataFilesList_from_patterns_raises_FileNotFoundError(complex_data_dir):
         DataFilesList.from_patterns(["file_that_doesnt_exist.txt"], complex_data_dir)
 
 
+class TestDataFilesDict:
+    def test_key_order_after_copy(self):
+        data_files = DataFilesDict({"train": "train.csv", "test": "test.csv"})
+        copied_data_files = copy.deepcopy(data_files)
+        assert list(copied_data_files.keys()) == list(data_files.keys())  # test split order with list()
+
+
 @pytest.mark.parametrize("pattern", _TEST_PATTERNS)
 def test_DataFilesDict_from_patterns_in_dataset_repository(
     hub_dataset_repo_path, hub_dataset_repo_patterns_results, pattern
@@ -485,15 +494,18 @@ def mock_fs(file_paths: List[str]):
     Example:
 
     ```py
-    >>> fs = mock_fs(["data/train.txt", "data.test.txt"])
+    >>> DummyTestFS = mock_fs(["data/train.txt", "data.test.txt"])
+    >>> fs = DummyTestFS()
     >>> assert fsspec.get_filesystem_class("mock").__name__ == "DummyTestFS"
     >>> assert type(fs).__name__ == "DummyTestFS"
     >>> print(fs.glob("**"))
     ["data", "data/train.txt", "data.test.txt"]
     ```
     """
-
-    dir_paths = {file_path.rsplit("/")[0] for file_path in file_paths if "/" in file_path}
+    file_paths = [file_path.split("://")[-1] for file_path in file_paths]
+    dir_paths = {
+        "/".join(file_path.split("/")[: i + 1]) for file_path in file_paths for i in range(file_path.count("/"))
+    }
     fs_contents = [{"name": dir_path, "type": "directory"} for dir_path in dir_paths] + [
         {"name": file_path, "type": "file", "size": 10} for file_path in file_paths
     ]
@@ -519,6 +531,7 @@ def mock_fs(file_paths: List[str]):
     return DummyTestFS
 
 
+@pytest.mark.parametrize("base_path", ["", "mock://", "my_dir"])
 @pytest.mark.parametrize(
     "data_file_per_split",
     [
@@ -588,20 +601,36 @@ def mock_fs(file_paths: List[str]):
         {"test": "test00001.txt"},
     ],
 )
-def test_get_data_files_patterns(data_file_per_split):
+def test_get_data_files_patterns(base_path, data_file_per_split):
     data_file_per_split = {k: v if isinstance(v, list) else [v] for k, v in data_file_per_split.items()}
-    file_paths = [file_path for split_file_paths in data_file_per_split.values() for file_path in split_file_paths]
+    data_file_per_split = {
+        split: [
+            base_path + ("/" if base_path and base_path[-1] != "/" else "") + file_path
+            for file_path in data_file_per_split[split]
+        ]
+        for split in data_file_per_split
+    }
+    file_paths = sum(data_file_per_split.values(), [])
     DummyTestFS = mock_fs(file_paths)
     fs = DummyTestFS()
 
     def resolver(pattern):
-        return [file_path for file_path in fs.glob(pattern) if fs.isfile(file_path)]
+        pattern = base_path + ("/" if base_path and base_path[-1] != "/" else "") + pattern
+        return [
+            file_path[len(fs._strip_protocol(base_path)) :].lstrip("/")
+            for file_path in fs.glob(pattern)
+            if fs.isfile(file_path)
+        ]
 
     patterns_per_split = _get_data_files_patterns(resolver)
     assert list(patterns_per_split.keys()) == list(data_file_per_split.keys())  # Test split order with list()
     for split, patterns in patterns_per_split.items():
         matched = [file_path for pattern in patterns for file_path in resolver(pattern)]
-        assert matched == data_file_per_split[split]
+        expected = [
+            fs._strip_protocol(file_path)[len(fs._strip_protocol(base_path)) :].lstrip("/")
+            for file_path in data_file_per_split[split]
+        ]
+        assert matched == expected
 
 
 @pytest.mark.parametrize(
@@ -611,16 +640,27 @@ def test_get_data_files_patterns(data_file_per_split):
         ["metadata.jsonl"],
         ["metadata.csv"],
         # nested metadata files
-        ["data/metadata.jsonl", "data/train/metadata.jsonl"],
-        ["data/metadata.csv", "data/train/metadata.csv"],
+        ["metadata.jsonl", "data/metadata.jsonl"],
+        ["metadata.csv", "data/metadata.csv"],
     ],
 )
 def test_get_metadata_files_patterns(metadata_files):
+    DummyTestFS = mock_fs(metadata_files)
+    fs = DummyTestFS()
+
     def resolver(pattern):
-        return [PurePath(path) for path in set(metadata_files) if PurePath(path).match(pattern)]
+        return [file_path for file_path in fs.glob(pattern) if fs.isfile(file_path)]
 
     patterns = _get_metadata_files_patterns(resolver)
-    matched = [path for path in metadata_files for pattern in patterns if PurePath(path).match(pattern)]
-    # Use set to remove the difference between in behavior between PurePath.match and mathcing via fsspec.glob
-    assert len(set(matched)) == len(metadata_files)
-    assert sorted(set(matched)) == sorted(metadata_files)
+    matched = [file_path for pattern in patterns for file_path in resolver(pattern)]
+    assert sorted(matched) == sorted(metadata_files)
+
+
+def test_get_data_patterns_from_directory_with_the_word_data_twice(tmp_path):
+    repo_dir = tmp_path / "directory-name-ending-with-the-word-data"  # parent directory contains the word "data/"
+    data_dir = repo_dir / "data"
+    data_dir.mkdir(parents=True)
+    data_file = data_dir / "train-00001-of-00009.parquet"
+    data_file.touch()
+    data_file_patterns = get_data_patterns(repo_dir.as_posix())
+    assert data_file_patterns == {"train": ["data/train-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"]}

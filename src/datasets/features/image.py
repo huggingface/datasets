@@ -323,30 +323,30 @@ def encode_np_array(array: np.ndarray) -> dict:
 
     # Multi-channel array case (only np.dtype("|u1") is allowed)
     if array.shape[2:]:
-        dest_dtype = np.dtype("|u1")
         if dtype_kind not in ["u", "i"]:
             raise TypeError(
                 f"Unsupported array dtype {dtype} for image encoding. Only {dest_dtype} is supported for multi-channel arrays."
             )
-        if dtype is not dest_dtype:
+        dest_dtype = np.dtype("|u1")
+        if dtype != dest_dtype:
             warnings.warn(f"Downcasting array dtype {dtype} to {dest_dtype} to be compatible with 'Pillow'")
     # Exact match
     elif dtype in _VALID_IMAGE_ARRAY_DTPYES:
         dest_dtype = dtype
     else:  # Downcast the type within the kind (np.can_cast(from_type, to_type, casting="same_kind") doesn't behave as expected, so do it manually)
         while dtype_itemsize >= 1:
-            dest_dtype_str = dtype_byteorder + dtype_kind + str(dtype_itemsize)
-            dest_dtype = np.dtype(dest_dtype_str)
-            if dest_dtype in _VALID_IMAGE_ARRAY_DTPYES:
+            dtype_str = dtype_byteorder + dtype_kind + str(dtype_itemsize)
+            if np.dtype(dtype_str) in _VALID_IMAGE_ARRAY_DTPYES:
+                dest_dtype = np.dtype(dtype_str)
                 warnings.warn(f"Downcasting array dtype {dtype} to {dest_dtype} to be compatible with 'Pillow'")
                 break
             else:
                 dtype_itemsize //= 2
+        if dest_dtype is None:
+            raise TypeError(
+                f"Cannot downcast dtype {dtype} to a valid image dtype. Valid image dtypes: {_VALID_IMAGE_ARRAY_DTPYES}"
+            )
 
-    if dest_dtype is None:
-        raise TypeError(
-            f"Cannot convert dtype {dtype} to a valid image dtype. Valid image dtypes: {_VALID_IMAGE_ARRAY_DTPYES}"
-        )
     image = PIL.Image.fromarray(array.astype(dest_dtype))
     return {"path": None, "bytes": image_to_bytes(image)}
 

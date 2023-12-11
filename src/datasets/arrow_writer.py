@@ -16,6 +16,7 @@ import errno
 import json
 import os
 import sys
+from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 import fsspec
@@ -40,6 +41,7 @@ from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
 from .table import array_cast, array_concat, cast_array_to_feature, embed_table_storage, table_cast
 from .utils import logging
+from .utils import tqdm as hf_tqdm
 from .utils.file_utils import hash_url_to_filename
 from .utils.py_utils import asdict, first_non_null_value
 
@@ -671,9 +673,11 @@ class BeamWriter:
 
         from .utils import beam_utils
 
-        shards_metadata = list(
-            beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[0].metadata_list
-        )
+        # Beam FileSystems require the system's path separator in the older versions
+        fs, _, [parquet_path] = fsspec.get_fs_token_paths(self._parquet_path)
+        parquet_path = str(Path(parquet_path)) if not is_remote_filesystem(fs) else fs.unstrip_protocol(parquet_path)
+
+        shards_metadata = list(beam.io.filesystems.FileSystems.match([parquet_path + "*.parquet"])[0].metadata_list)
         shards = [metadata.path for metadata in shards_metadata]
         num_bytes = sum([metadata.size_in_bytes for metadata in shards_metadata])
         shard_lengths = get_parquet_lengths(shards)
@@ -683,14 +687,11 @@ class BeamWriter:
             logger.info(f"Converting parquet files {self._parquet_path} to arrow {self._path}")
             shards = [
                 metadata.path
-                for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[
-                    0
-                ].metadata_list
+                for metadata in beam.io.filesystems.FileSystems.match([parquet_path + "*.parquet"])[0].metadata_list
             ]
             try:  # stream conversion
-                disable = not logging.is_progress_bar_enabled()
                 num_bytes = 0
-                for shard in logging.tqdm(shards, unit="shards", disable=disable):
+                for shard in hf_tqdm(shards, unit="shards"):
                     with beam.io.filesystems.FileSystems.open(shard) as source:
                         with beam.io.filesystems.FileSystems.create(
                             shard.replace(".parquet", ".arrow")
@@ -705,9 +706,8 @@ class BeamWriter:
                 )
                 local_convert_dir = os.path.join(self._cache_dir, "beam_convert")
                 os.makedirs(local_convert_dir, exist_ok=True)
-                disable = not logging.is_progress_bar_enabled()
                 num_bytes = 0
-                for shard in logging.tqdm(shards, unit="shards", disable=disable):
+                for shard in hf_tqdm(shards, unit="shards"):
                     local_parquet_path = os.path.join(local_convert_dir, hash_url_to_filename(shard) + ".parquet")
                     beam_utils.download_remote_to_local(shard, local_parquet_path)
                     local_arrow_path = local_parquet_path.replace(".parquet", ".arrow")
@@ -726,8 +726,7 @@ class BeamWriter:
 
 def get_parquet_lengths(sources) -> List[int]:
     shard_lengths = []
-    disable = not logging.is_progress_bar_enabled()
-    for source in logging.tqdm(sources, unit="parquet files", disable=disable):
+    for source in hf_tqdm(sources, unit="parquet files"):
         parquet_file = pa.parquet.ParquetFile(source)
         shard_lengths.append(parquet_file.metadata.num_rows)
     return shard_lengths

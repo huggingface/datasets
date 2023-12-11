@@ -1,6 +1,6 @@
 # Search index
 
-[FAISS](https://github.com/facebookresearch/faiss) and [ElasticSearch](https://www.elastic.co/elasticsearch/) enables searching for examples in a dataset. This can be useful when you want to retrieve specific examples from a dataset that are relevant to your NLP task. For example, if you are working on a Open Domain Question Answering task, you may want to only return examples that are relevant to answering your question.
+[FAISS](https://github.com/facebookresearch/faiss) and [Elasticsearch](https://www.elastic.co/elasticsearch/) enables searching for examples in a dataset. This can be useful when you want to retrieve specific examples from a dataset that are relevant to your NLP task. For example, if you are working on a Open Domain Question Answering task, you may want to only return examples that are relevant to answering your question.
 
 This guide will show you how to build an index for your dataset that will allow you to search it.
 
@@ -66,11 +66,11 @@ FAISS retrieves documents based on the similarity of their vector representation
 >>> ds.load_faiss_index('embeddings', 'my_index.faiss')
 ```
 
-## ElasticSearch
+## Elasticsearch
 
-Unlike FAISS, ElasticSearch retrieves documents based on exact matches. 
+Unlike FAISS, Elasticsearch retrieves documents based on exact matches. 
 
-Start ElasticSearch on your machine, or see the [ElasticSearch installation guide](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html) if you don't already have it installed.
+Start Elasticsearch on your machine, or see the [Elasticsearch installation guide](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html) if you don't already have it installed.
 
 1. Load the dataset you want to index:
 
@@ -114,7 +114,7 @@ hf_squad_val_context
 >>> scores, retrieved_examples = squad.get_nearest_examples("context", query, k=10)
 ```
 
-For more advanced ElasticSearch usage, you can specify your own configuration with custom settings:
+For more advanced Elasticsearch usage, you can specify your own configuration with custom settings:
 
 ```py
 >>> import elasticsearch as es
@@ -128,6 +128,6 @@ For more advanced ElasticSearch usage, you can specify your own configuration wi
 ...     },
 ...     "mappings": {"properties": {"text": {"type": "text", "analyzer": "standard", "similarity": "BM25"}}},
 ... }  # default config
->>> es_index_name = "hf_squad_context"  # name of the index in ElasticSearch
+>>> es_index_name = "hf_squad_context"  # name of the index in Elasticsearch
 >>> squad.add_elasticsearch_index("context", es_client=es_client, es_config=es_config, es_index_name=es_index_name)
 ```

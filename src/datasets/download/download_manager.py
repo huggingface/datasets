@@ -28,10 +28,11 @@ from itertools import chain
 from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
 
 from .. import config
+from ..utils import tqdm as hf_tqdm
 from ..utils.deprecation_utils import DeprecatedEnum, deprecated
 from ..utils.file_utils import cached_path, get_from_cache, hash_url_to_filename, is_relative_path, url_or_path_join
 from ..utils.info_utils import get_size_checksum_dict
-from ..utils.logging import get_logger, is_progress_bar_enabled, tqdm
+from ..utils.logging import get_logger
 from ..utils.py_utils import NestedDataStructure, map_nested, size_str
 from .download_config import DownloadConfig
 
@@ -228,14 +229,10 @@ class FilesIterable(_IterableFromGenerator):
             urlpaths = [urlpaths]
         for urlpath in urlpaths:
             if os.path.isfile(urlpath):
-                if os.path.basename(urlpath).startswith((".", "__")):
-                    # skipping hidden files
-                    continue
                 yield urlpath
             else:
                 for dirpath, dirnames, filenames in os.walk(urlpath):
-                    # skipping hidden directories; prune the search
-                    # [:] for the in-place list modification required by os.walk
+                    # in-place modification to prune the search
                     dirnames[:] = sorted([dirname for dirname in dirnames if not dirname.startswith((".", "__"))])
                     if os.path.basename(dirpath).startswith((".", "__")):
                         # skipping hidden directories
@@ -331,18 +328,16 @@ class DownloadManager:
         uploaded_path_or_paths = map_nested(
             lambda local_file_path: upload(local_file_path),
             downloaded_path_or_paths,
-            disable_tqdm=not is_progress_bar_enabled(),
         )
         return uploaded_path_or_paths
 
     def _record_sizes_checksums(self, url_or_urls: NestedDataStructure, downloaded_path_or_paths: NestedDataStructure):
         """Record size/checksum of downloaded files."""
         delay = 5
-        for url, path in tqdm(
+        for url, path in hf_tqdm(
             list(zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten())),
             delay=delay,
             desc="Computing checksums",
-            disable=not is_progress_bar_enabled(),
         ):
             # call str to support PathLike objects
             self._recorded_sizes_checksums[str(url)] = get_size_checksum_dict(
@@ -377,9 +372,7 @@ class DownloadManager:
         def url_to_downloaded_path(url):
             return os.path.join(cache_dir, hash_url_to_filename(url))
 
-        downloaded_path_or_paths = map_nested(
-            url_to_downloaded_path, url_or_urls, disable_tqdm=not is_progress_bar_enabled()
-        )
+        downloaded_path_or_paths = map_nested(url_to_downloaded_path, url_or_urls)
         url_or_urls = NestedDataStructure(url_or_urls)
         downloaded_path_or_paths = NestedDataStructure(downloaded_path_or_paths)
         for url, path in zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten()):
@@ -430,7 +423,6 @@ class DownloadManager:
             url_or_urls,
             map_tuple=True,
             num_proc=download_config.num_proc,
-            disable_tqdm=not is_progress_bar_enabled(),
             desc="Downloading data files",
         )
         duration = datetime.now() - start_time
@@ -538,7 +530,6 @@ class DownloadManager:
             partial(cached_path, download_config=download_config),
             path_or_paths,
             num_proc=download_config.num_proc,
-            disable_tqdm=not is_progress_bar_enabled(),
             desc="Extracting data files",
         )
         path_or_paths = NestedDataStructure(path_or_paths)
