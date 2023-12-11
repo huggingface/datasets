@@ -604,6 +604,17 @@ def update_hash_with_config_parameters(hash: str, config_parameters: dict) -> st
     return m.hexdigest()
 
 
+def update_hash_with_info(hash: str, info: DatasetInfo) -> str:
+    """
+    Used to update hash of packaged modules which is used for creating unique cache directories to reflect
+    different info which are passed in metadata from readme.
+    """
+    m = Hasher()
+    m.update(hash)
+    m.update(info)
+    return m.hexdigest()
+
+
 def create_builder_configs_from_metadata_configs(
     module_path: str,
     metadata_configs: MetadataConfigs,
@@ -2195,6 +2206,8 @@ def load_dataset_builder(
         hash = update_hash_with_config_parameters(
             hash, dataset_module.builder_configs_parameters.metadata_configs[config_name]
         )
+    if info:
+        hash = update_hash_with_info(hash, info)
 
     if path in _PACKAGED_DATASETS_MODULES and data_files is None:
         error_msg = f"Please specify the data files or data directory to load for the {path} dataset builder."
