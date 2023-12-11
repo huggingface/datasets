@@ -26,7 +26,7 @@ import textwrap
 import time
 import urllib
 import warnings
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from functools import partial
 from pathlib import Path
 from typing import Dict, Iterable, Mapping, Optional, Tuple, Union
@@ -225,7 +225,11 @@ class BuilderConfig:
         """
         m = Hasher()
         m.update(hash)
-        m.update(self)
+        for field in sorted(field.name for field in fields(self)):
+            try:
+                m.update(getattr(self, field))
+            except TypeError:
+                continue
         return m.hexdigest()
 
 
@@ -391,7 +395,8 @@ class DatasetBuilder:
             custom_features=features,
             **config_kwargs,
         )
-        self.hash = self.config._update_hash(hash)
+        if self.hash is not None:
+            self.hash = self.config._update_hash(hash)
 
         # prepare info: DatasetInfo are a standardized dataclass across all datasets
         # Prefill datasetinfo
