@@ -391,8 +391,7 @@ class DatasetBuilder:
             custom_features=features,
             **config_kwargs,
         )
-        if self.config.name in self.builder_configs:
-            self.hash = self.builder_configs[self.config.name]._update_hash(hash)
+        self.hash = self.config._update_hash(hash)
 
         # prepare info: DatasetInfo are a standardized dataclass across all datasets
         # Prefill datasetinfo
