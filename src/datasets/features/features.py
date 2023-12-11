@@ -1771,9 +1771,6 @@ class Features(dict):
                 elif _type and not obj:
                     return {"dtype": camelcase_to_snakecase(_type)}
                 elif _type:
-                    if _type in ["Array2D", "Array3D", "Array4D", "Array5D"]:
-                        _shape = obj.pop("shape")
-                        obj = {**obj, "shape": list(_shape)}
                     return {"dtype": simplify({camelcase_to_snakecase(_type): obj})}
                 else:
                     return {"struct": [{"name": name, **to_yaml_inner(_feature)} for name, _feature in obj.items()]}
