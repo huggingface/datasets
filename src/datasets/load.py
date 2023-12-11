@@ -53,7 +53,6 @@ from .download.download_manager import DownloadMode
 from .download.streaming_download_manager import StreamingDownloadManager, xbasename, xglob, xjoin
 from .exceptions import DataFilesNotFoundError, DatasetNotFoundError
 from .features import Features
-from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict
 from .iterable_dataset import IterableDataset
 from .metric import Metric
@@ -589,21 +588,6 @@ def infer_module_for_data_files(
     if not module_name:
         raise DataFilesNotFoundError("No (supported) data files found" + (f" in {path}" if path else ""))
     return module_name, default_builder_kwargs
-
-
-def update_hash_with_config_parameters(hash: str, config_parameters: dict) -> str:
-    """
-    Used to update hash of packaged modules which is used for creating unique cache directories to reflect
-    different config parameters which are passed in metadata from readme.
-    """
-    params_to_exclude = {"config_name", "version", "description"}
-    params_to_add_to_hash = {
-        param: value for param, value in sorted(config_parameters.items()) if param not in params_to_exclude
-    }
-    m = Hasher()
-    m.update(hash)
-    m.update(params_to_add_to_hash)
-    return m.hexdigest()
 
 
 def create_builder_configs_from_metadata_configs(
@@ -2178,13 +2162,6 @@ def load_dataset_builder(
     dataset_name = builder_kwargs.pop("dataset_name", None)
     hash = builder_kwargs.pop("hash")
     info = dataset_module.dataset_infos.get(config_name) if dataset_module.dataset_infos else None
-    if (
-        dataset_module.builder_configs_parameters.metadata_configs
-        and config_name in dataset_module.builder_configs_parameters.metadata_configs
-    ):
-        hash = update_hash_with_config_parameters(
-            hash, dataset_module.builder_configs_parameters.metadata_configs[config_name]
-        )
 
     if path in _PACKAGED_DATASETS_MODULES and data_files is None:
         error_msg = f"Please specify the data files or data directory to load for the {path} dataset builder."
