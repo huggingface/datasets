@@ -1,24 +1,77 @@
+import glob
 import os
 import shutil
+import time
+from pathlib import Path
 from typing import List, Optional
 
 import pyarrow as pa
 
 import datasets
+import datasets.config
 from datasets.naming import filenames_for_dataset_split
 
 
 logger = datasets.utils.logging.get_logger(__name__)
 
 
+def _get_modification_time(cached_directory_path):
+    return (Path(cached_directory_path)).stat().st_mtime
+
+
+def _find_hash_in_cache(repo_id: str, config_name: Optional[str], cache_dir: Optional[str]) -> str:
+    cache_dir = os.path.expanduser(str(cache_dir or datasets.config.HF_DATASETS_CACHE))
+    cached_datasets_directory_path_root = os.path.join(cache_dir, repo_id.replace("/", "___"))
+    cached_directory_paths = [
+        cached_directory_path
+        for cached_directory_path in glob.glob(
+            os.path.join(cached_datasets_directory_path_root, config_name or "*", "*", "*")
+        )
+        if os.path.isdir(cached_directory_path)
+    ]
+    if not cached_directory_paths:
+        raise FileNotFoundError(
+            f"Couldn't find cache for{repo_id}{f' for config {config_name}' if config_name else ''}"
+        )
+    # get most recent
+    hash = Path(sorted(cached_directory_paths, key=_get_modification_time)[-1]).name
+    warning_msg = (
+        f"Using the latest cached version of the dataset from {cached_datasets_directory_path_root}/*/*/{hash}"
+        f"(last modified on {time.ctime(_get_modification_time(cached_directory_paths[0]))}) since {repo_id} "
+        f"couldn't be found on the Hugging Face Hub"
+    )
+    if datasets.config.HF_DATASETS_OFFLINE:
+        warning_msg += " (offline mode is enabled)."
+    logger.warning(warning_msg)
+    return hash
+
+
 class Cache(datasets.ArrowBasedBuilder):
+    def __init__(
+        self,
+        cache_dir: Optional[str] = None,
+        config_name: Optional[str] = None,
+        hash: Optional[str] = None,
+        repo_id: Optional[str] = None,
+        **kwargs,
+    ):
+        if repo_id is None:
+            raise ValueError("repo_id is required for the Cache dataset builder")
+        if hash == "auto":
+            hash = _find_hash_in_cache(
+                repo_id=repo_id,
+                config_name=config_name,
+                cache_dir=cache_dir,
+            )
+        super().__init__(cache_dir=cache_dir, config_name=config_name, hash=hash, repo_id=repo_id, **kwargs)
+
     def _info(self) -> datasets.DatasetInfo:
         return datasets.DatasetInfo()
 
     def download_and_prepare(self, output_dir: Optional[str] = None, *args, **kwargs):
         if not os.path.exists(self.cache_dir):
             raise ValueError(f"Cache directory for {self.dataset_name} doesn't exist at {self.cache_dir}")
-        if output_dir is not None:
+        if output_dir is not None and output_dir != self.cache_dir:
             shutil.copytree(self.cache_dir, output_dir)
 
     def _split_generators(self, dl_manager):
