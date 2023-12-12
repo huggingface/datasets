@@ -13,6 +13,7 @@ from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
 import fsspec
 import numpy as np
 from huggingface_hub import (
+    CommitInfo,
     CommitOperationAdd,
     CommitOperationDelete,
     DatasetCard,
@@ -1564,7 +1565,7 @@ class DatasetDict(dict):
         max_shard_size: Optional[Union[int, str]] = None,
         num_shards: Optional[Dict[str, int]] = None,
         embed_external_files: bool = True,
-    ):
+    ) -> CommitInfo:
         """Pushes the [`DatasetDict`] to the hub as a Parquet dataset.
         The [`DatasetDict`] is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
 
@@ -1620,6 +1621,9 @@ class DatasetDict(dict):
                 In particular, this will do the following before the push for the fields of type:
 
                 - [`Audio`] and [`Image`] removes local path information and embed file content in the Parquet files.
+
+        Return:
+            huggingface_hub.CommitInfo
 
         Example:
 
@@ -1780,7 +1784,7 @@ class DatasetDict(dict):
 
         commit_message = commit_message if commit_message is not None else "Upload dataset"
         if len(additions) <= config.UPLOADS_MAX_NUMBER_PER_COMMIT:
-            api.create_commit(
+            commit_info = api.create_commit(
                 repo_id,
                 operations=additions + deletions,
                 commit_message=commit_message,
@@ -1798,7 +1802,7 @@ class DatasetDict(dict):
                 operations = additions[
                     i * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1) * config.UPLOADS_MAX_NUMBER_PER_COMMIT
                 ] + (deletions if i == 0 else [])
-                api.create_commit(
+                commit_info = api.create_commit(
                     repo_id,
                     operations=operations,
                     commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
@@ -1812,6 +1816,7 @@ class DatasetDict(dict):
                     + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
                     + "."
                 )
+        return commit_info
 
 
 class IterableDatasetDict(dict):
