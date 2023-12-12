@@ -26,7 +26,7 @@ import textwrap
 import time
 import urllib
 import warnings
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 from typing import Dict, Iterable, Mapping, Optional, Tuple, Union
