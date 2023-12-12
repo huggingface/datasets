@@ -3,7 +3,6 @@ from pathlib import Path
 import pytest
 
 from datasets import load_dataset
-from datasets.load import configure_builder_class
 from datasets.packaged_modules.cache.cache import Cache
 
 
@@ -28,16 +27,23 @@ def test_cache_streaming(text_dir: Path):
     assert list(ds["train"]) == list(reloaded["train"])
 
 
-def test_cache_missing(text_dir: Path):
+def test_cache_auto_hash(text_dir: Path):
     ds = load_dataset(str(text_dir))
-    hash = Path(ds["train"].cache_files[0]["filename"]).parts[-2]
-    Cache(dataset_name=text_dir.name, hash=hash).download_and_prepare()
+    cache = Cache(dataset_name=text_dir.name, hash="auto")
+    reloaded = cache.as_dataset()
+    assert list(ds) == list(reloaded)
+    assert list(ds["train"]) == list(reloaded["train"])
+
+
+def test_cache_missing(text_dir: Path):
+    load_dataset(str(text_dir))
+    Cache(dataset_name=text_dir.name, hash="auto").download_and_prepare()
     with pytest.raises(ValueError):
-        Cache(dataset_name="missing", hash=hash).download_and_prepare()
+        Cache(dataset_name="missing", hash="auto").download_and_prepare()
     with pytest.raises(ValueError):
         Cache(dataset_name=text_dir.name, hash="missing").download_and_prepare()
     with pytest.raises(ValueError):
-        Cache(dataset_name=text_dir.name, config_name="missing", hash=hash).download_and_prepare()
+        Cache(dataset_name=text_dir.name, config_name="missing", hash="auto").download_and_prepare()
 
 
 @pytest.mark.integration
@@ -46,17 +52,10 @@ def test_cache_multi_configs():
     dataset_name = repo_id.split("/")[-1]
     config_name = "v1"
     ds = load_dataset(repo_id, config_name)
-    hash = Path(ds["train"].cache_files[0]["filename"]).parts[-2]
-    builder_cls = configure_builder_class(
-        Cache,
-        builder_configs=[Cache.BUILDER_CONFIG_CLASS(name="v1"), Cache.BUILDER_CONFIG_CLASS(name="v2")],
-        default_config_name=None,
-        dataset_name=dataset_name,
-    )
-    cache = builder_cls(dataset_name=dataset_name, repo_id=repo_id, config_name=config_name, hash=hash)
+    cache = Cache(dataset_name=dataset_name, repo_id=repo_id, config_name=config_name, hash="auto")
     reloaded = cache.as_dataset()
     assert list(ds) == list(reloaded)
     assert len(ds["train"]) == len(reloaded["train"])
     with pytest.raises(ValueError) as excinfo:
-        builder_cls(dataset_name=dataset_name, repo_id=repo_id, config_name="missing", hash=hash)
+        Cache(dataset_name=dataset_name, repo_id=repo_id, config_name="missing", hash="auto")
     assert config_name in str(excinfo.value)

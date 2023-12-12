@@ -19,9 +19,9 @@ def _get_modification_time(cached_directory_path):
     return (Path(cached_directory_path)).stat().st_mtime
 
 
-def _find_hash_in_cache(repo_id: str, config_name: Optional[str], cache_dir: Optional[str]) -> str:
+def _find_hash_in_cache(dataset_name: str, config_name: Optional[str], cache_dir: Optional[str]) -> str:
     cache_dir = os.path.expanduser(str(cache_dir or datasets.config.HF_DATASETS_CACHE))
-    cached_datasets_directory_path_root = os.path.join(cache_dir, repo_id.replace("/", "___"))
+    cached_datasets_directory_path_root = os.path.join(cache_dir, dataset_name.replace("/", "___"))
     cached_directory_paths = [
         cached_directory_path
         for cached_directory_path in glob.glob(
@@ -30,14 +30,27 @@ def _find_hash_in_cache(repo_id: str, config_name: Optional[str], cache_dir: Opt
         if os.path.isdir(cached_directory_path)
     ]
     if not cached_directory_paths:
-        raise FileNotFoundError(
-            f"Couldn't find cache for{repo_id}{f' for config {config_name}' if config_name else ''}"
+        if config_name is not None:
+            cached_directory_paths = [
+                cached_directory_path
+                for cached_directory_path in glob.glob(
+                    os.path.join(cached_datasets_directory_path_root, "*", "*", "*")
+                )
+                if os.path.isdir(cached_directory_path)
+            ]
+        available_configs = sorted(
+            {Path(cached_directory_path).parts[-3] for cached_directory_path in cached_directory_paths}
+        )
+        raise ValueError(
+            f"Couldn't find cache for {dataset_name}"
+            + (f" for config '{config_name}'" if config_name else "")
+            + (f"\nAvailable configs in the cache: {available_configs}" if available_configs else "")
         )
     # get most recent
     hash = Path(sorted(cached_directory_paths, key=_get_modification_time)[-1]).name
     warning_msg = (
         f"Using the latest cached version of the dataset from {cached_datasets_directory_path_root}/*/*/{hash}"
-        f"(last modified on {time.ctime(_get_modification_time(cached_directory_paths[0]))}) since {repo_id} "
+        f"(last modified on {time.ctime(_get_modification_time(cached_directory_paths[0]))}) since {dataset_name} "
         f"couldn't be found on the Hugging Face Hub"
     )
     if datasets.config.HF_DATASETS_OFFLINE:
@@ -50,20 +63,28 @@ class Cache(datasets.ArrowBasedBuilder):
     def __init__(
         self,
         cache_dir: Optional[str] = None,
+        dataset_name: Optional[str] = None,
         config_name: Optional[str] = None,
         hash: Optional[str] = None,
         repo_id: Optional[str] = None,
         **kwargs,
     ):
-        if repo_id is None:
-            raise ValueError("repo_id is required for the Cache dataset builder")
+        if repo_id is None and dataset_name is None:
+            raise ValueError("repo_id or dataset_name is required for the Cache dataset builder")
         if hash == "auto":
             hash = _find_hash_in_cache(
-                repo_id=repo_id,
+                dataset_name=repo_id or dataset_name,
                 config_name=config_name,
                 cache_dir=cache_dir,
             )
-        super().__init__(cache_dir=cache_dir, config_name=config_name, hash=hash, repo_id=repo_id, **kwargs)
+        super().__init__(
+            cache_dir=cache_dir,
+            dataset_name=dataset_name,
+            config_name=config_name,
+            hash=hash,
+            repo_id=repo_id,
+            **kwargs,
+        )
 
     def _info(self) -> datasets.DatasetInfo:
         return datasets.DatasetInfo()
