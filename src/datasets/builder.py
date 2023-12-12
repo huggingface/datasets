@@ -26,7 +26,7 @@ import textwrap
 import time
 import urllib
 import warnings
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from functools import partial
 from pathlib import Path
 from typing import Dict, Iterable, Mapping, Optional, Tuple, Union
@@ -46,12 +46,12 @@ from .arrow_reader import (
     ReadInstruction,
 )
 from .arrow_writer import ArrowWriter, BeamWriter, ParquetWriter, SchemaInferenceError
-from .data_files import DataFilesDict, sanitize_patterns
+from .data_files import DataFilesDict, DataFilesPatternsDict, sanitize_patterns
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadManager, DownloadMode
 from .download.mock_download_manager import MockDownloadManager
-from .download.streaming_download_manager import StreamingDownloadManager, xopen
+from .download.streaming_download_manager import StreamingDownloadManager, xjoin, xopen
 from .features import Features
 from .filesystems import (
     is_remote_filesystem,
@@ -128,7 +128,7 @@ class BuilderConfig:
     name: str = "default"
     version: Optional[Union[utils.Version, str]] = utils.Version("0.0.0")
     data_dir: Optional[str] = None
-    data_files: Optional[DataFilesDict] = None
+    data_files: Optional[Union[DataFilesDict, DataFilesPatternsDict]] = None
     description: Optional[str] = None
 
     def __post_init__(self):
@@ -139,7 +139,7 @@ class BuilderConfig:
                     f"Bad characters from black list '{INVALID_WINDOWS_CHARACTERS_IN_PATH}' found in '{self.name}'. "
                     f"They could create issues when creating a directory for this config on Windows filesystem."
                 )
-        if self.data_files is not None and not isinstance(self.data_files, DataFilesDict):
+        if self.data_files is not None and not isinstance(self.data_files, (DataFilesDict, DataFilesPatternsDict)):
             raise ValueError(f"Expected a DataFilesDict in data_files but got {self.data_files}")
 
     def __eq__(self, o):
@@ -212,6 +212,25 @@ class BuilderConfig:
             return config_id
         else:
             return self.name
+
+    def _resolve_data_files(self, base_path: str, download_config: DownloadConfig) -> None:
+        if isinstance(self.data_files, DataFilesPatternsDict):
+            base_path = xjoin(base_path, self.data_dir) if self.data_dir else base_path
+            self.data_files = self.data_files.resolve(base_path, download_config)
+
+    def _update_hash(self, hash: str) -> str:
+        """
+        Used to update hash of packaged modules which is used for creating unique cache directories to reflect
+        different config parameters which are passed in metadata from readme.
+        """
+        m = Hasher()
+        m.update(hash)
+        for field in sorted(field.name for field in fields(self)):
+            try:
+                m.update(getattr(self, field))
+            except TypeError:
+                continue
+        return m.hexdigest()
 
 
 class DatasetBuilder:
@@ -376,6 +395,8 @@ class DatasetBuilder:
             custom_features=features,
             **config_kwargs,
         )
+        if self.hash is not None:
+            self.hash = self.config._update_hash(hash)
 
         # prepare info: DatasetInfo are a standardized dataclass across all datasets
         # Prefill datasetinfo
@@ -555,7 +576,7 @@ class DatasetBuilder:
 
         # otherwise use the config_kwargs to overwrite the attributes
         else:
-            builder_config = copy.deepcopy(builder_config)
+            builder_config = copy.deepcopy(builder_config) if config_kwargs else builder_config
             for key, value in config_kwargs.items():
                 if value is not None:
                     if not hasattr(builder_config, key):
@@ -564,6 +585,12 @@ class DatasetBuilder:
 
         if not builder_config.name:
             raise ValueError(f"BuilderConfig must have a name, got {builder_config.name}")
+
+        # resolve data files if needed
+        builder_config._resolve_data_files(
+            base_path=self.base_path,
+            download_config=DownloadConfig(token=self.token, storage_options=self.storage_options),
+        )
 
         # compute the config id that is going to be used for caching
         config_id = builder_config.create_config_id(
@@ -590,7 +617,7 @@ class DatasetBuilder:
     @classproperty
     @classmethod
     @memoize()
-    def builder_configs(cls):
+    def builder_configs(cls) -> Dict[str, BuilderConfig]:
         """Dictionary of pre-defined configurations for this builder class."""
         configs = {config.name: config for config in cls.BUILDER_CONFIGS}
         if len(configs) != len(cls.BUILDER_CONFIGS):

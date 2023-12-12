@@ -41,6 +41,8 @@ from .data_files import (
     DEFAULT_PATTERNS_ALL,
     DataFilesDict,
     DataFilesList,
+    DataFilesPatternsDict,
+    DataFilesPatternsList,
     EmptyDatasetError,
     get_data_patterns,
     get_metadata_patterns,
@@ -52,7 +54,6 @@ from .download.download_manager import DownloadMode
 from .download.streaming_download_manager import StreamingDownloadManager, xbasename, xglob, xjoin
 from .exceptions import DataFilesNotFoundError, DatasetNotFoundError
 from .features import Features
-from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict
 from .iterable_dataset import IterableDataset
 from .metric import Metric
@@ -590,28 +591,12 @@ def infer_module_for_data_files(
     return module_name, default_builder_kwargs
 
 
-def update_hash_with_config_parameters(hash: str, config_parameters: dict) -> str:
-    """
-    Used to update hash of packaged modules which is used for creating unique cache directories to reflect
-    different config parameters which are passed in metadata from readme.
-    """
-    params_to_exclude = {"config_name", "version", "description"}
-    params_to_add_to_hash = {
-        param: value for param, value in sorted(config_parameters.items()) if param not in params_to_exclude
-    }
-    m = Hasher()
-    m.update(hash)
-    m.update(params_to_add_to_hash)
-    return m.hexdigest()
-
-
 def create_builder_configs_from_metadata_configs(
     module_path: str,
     metadata_configs: MetadataConfigs,
     supports_metadata: bool,
     base_path: Optional[str] = None,
     default_builder_kwargs: Dict[str, Any] = None,
-    download_config: Optional[DownloadConfig] = None,
 ) -> Tuple[List[BuilderConfig], str]:
     builder_cls = import_main_class(module_path)
     builder_config_cls = builder_cls.BUILDER_CONFIG_CLASS
@@ -623,18 +608,16 @@ def create_builder_configs_from_metadata_configs(
     for config_name, config_params in metadata_configs.items():
         config_data_files = config_params.get("data_files")
         config_data_dir = config_params.get("data_dir")
-        config_base_path = base_path + "/" + config_data_dir if config_data_dir else base_path
+        config_base_path = xjoin(base_path, config_data_dir) if config_data_dir else base_path
         try:
             config_patterns = (
                 sanitize_patterns(config_data_files)
                 if config_data_files is not None
                 else get_data_patterns(config_base_path)
             )
-            config_data_files_dict = DataFilesDict.from_patterns(
+            config_data_files_dict = DataFilesPatternsDict.from_patterns(
                 config_patterns,
-                base_path=config_base_path,
                 allowed_extensions=ALL_ALLOWED_EXTENSIONS,
-                download_config=download_config,
             )
         except EmptyDatasetError as e:
             raise EmptyDatasetError(
@@ -647,16 +630,13 @@ def create_builder_configs_from_metadata_configs(
             except FileNotFoundError:
                 config_metadata_patterns = None
             if config_metadata_patterns is not None:
-                config_metadata_data_files_list = DataFilesList.from_patterns(
-                    config_metadata_patterns, base_path=base_path
+                config_metadata_data_files_list = DataFilesPatternsList.from_patterns(config_metadata_patterns)
+                config_data_files_dict = DataFilesPatternsDict(
+                    {
+                        split: data_files_list + config_metadata_data_files_list
+                        for split, data_files_list in config_data_files_dict.items()
+                    }
                 )
-                if config_metadata_data_files_list:
-                    config_data_files_dict = DataFilesDict(
-                        {
-                            split: data_files_list + config_metadata_data_files_list
-                            for split, data_files_list in config_data_files_dict.items()
-                        }
-                    )
         ignored_params = [
             param for param in config_params if not hasattr(builder_config_cls, param) and param != "default"
         ]
@@ -1264,7 +1244,6 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 base_path=base_path,
                 supports_metadata=supports_metadata,
                 default_builder_kwargs=default_builder_kwargs,
-                download_config=self.download_config,
             )
         else:
             builder_configs: List[BuilderConfig] = [
@@ -1276,7 +1255,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             default_config_name = None
         builder_kwargs = {
             "hash": hash,
-            "base_path": hf_hub_url(self.name, "", revision=self.revision),
+            "base_path": hf_hub_url(self.name, "", revision=revision).rstrip("/"),
             "repo_id": self.name,
             "dataset_name": camelcase_to_snakecase(Path(self.name).name),
         }
@@ -1286,7 +1265,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         try:
             # this file is deprecated and was created automatically in old versions of push_to_hub
             dataset_infos_path = cached_path(
-                hf_hub_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=self.revision),
+                hf_hub_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=revision),
                 download_config=download_config,
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
@@ -1360,7 +1339,6 @@ class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
             module_path,
             metadata_configs,
             supports_metadata=False,
-            download_config=self.download_config,
         )
         builder_kwargs = {
             "hash": hash,
@@ -1507,7 +1485,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         importlib.invalidate_caches()
         builder_kwargs = {
             "hash": hash,
-            "base_path": hf_hub_url(self.name, "", revision=self.revision),
+            "base_path": hf_hub_url(self.name, "", revision=self.revision).rstrip("/"),
             "repo_id": self.name,
         }
         return DatasetModule(module_path, hash, builder_kwargs)
@@ -2253,13 +2231,6 @@ def load_dataset_builder(
     dataset_name = builder_kwargs.pop("dataset_name", None)
     hash = builder_kwargs.pop("hash")
     info = dataset_module.dataset_infos.get(config_name) if dataset_module.dataset_infos else None
-    if (
-        dataset_module.builder_configs_parameters.metadata_configs
-        and config_name in dataset_module.builder_configs_parameters.metadata_configs
-    ):
-        hash = update_hash_with_config_parameters(
-            hash, dataset_module.builder_configs_parameters.metadata_configs[config_name]
-        )
 
     if (
         path in _PACKAGED_DATASETS_MODULES
