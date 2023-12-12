@@ -839,22 +839,10 @@ class BuilderTest(TestCase):
                 default_config_name=None,
                 dataset_name="dummy",
             )
-            other_builder_cls = configure_builder_class(
-                DummyBuilderWithManualDownload,
-                builder_configs=[BuilderConfig(data_dir=data_dir)],
-                default_config_name=None,
-                dataset_name="dummy",
-            )
             builder = builder_cls(cache_dir=tmp_dir, hash="abc")
-            other_builder = other_builder_cls(cache_dir=tmp_dir, hash="abc")
+            other_builder = builder_cls(cache_dir=tmp_dir, hash="abc")
             self.assertEqual(builder.cache_dir, other_builder.cache_dir)
-            other_builder_cls = configure_builder_class(
-                DummyBuilderWithManualDownload,
-                builder_configs=[BuilderConfig(data_dir=tmp_dir)],
-                default_config_name=None,
-                dataset_name="dummy",
-            )
-            other_builder = other_builder_cls(cache_dir=tmp_dir, hash="abc")
+            other_builder = builder_cls(cache_dir=tmp_dir, hash="def")
             self.assertNotEqual(builder.cache_dir, other_builder.cache_dir)
 
 
