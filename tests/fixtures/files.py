@@ -472,6 +472,16 @@ def text2_path(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
+def text_dir(tmp_path_factory):
+    data = ["0", "1", "2", "3"]
+    path = tmp_path_factory.mktemp("data_text_dir") / "dataset.txt"
+    with open(path, "w") as f:
+        for item in data:
+            f.write(item + "\n")
+    return path.parent
+
+
+@pytest.fixture(scope="session")
 def text_dir_with_unsupported_extension(tmp_path_factory):
     data = ["0", "1", "2", "3"]
     path = tmp_path_factory.mktemp("data") / "dataset.abc"

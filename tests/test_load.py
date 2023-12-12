@@ -469,34 +469,29 @@ class ModuleFactoryTest(TestCase):
         factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir2, data_dir=self._sub_data_dir)
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
+        builder_config = module_factory_result.builder_configs_parameters.builder_configs[0]
         assert (
-            module_factory_result.builder_kwargs["data_files"] is not None
-            and len(module_factory_result.builder_kwargs["data_files"]["train"]) == 1
-            and len(module_factory_result.builder_kwargs["data_files"]["test"]) == 1
+            builder_config.data_files is not None
+            and len(builder_config.data_files["train"]) == 1
+            and len(builder_config.data_files["test"]) == 1
         )
         assert all(
             self._sub_data_dir in Path(data_file).parts
-            for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
-            + module_factory_result.builder_kwargs["data_files"]["test"]
+            for data_file in builder_config.data_files["train"] + builder_config.data_files["test"]
         )
 
     def test_LocalDatasetModuleFactoryWithoutScript_with_metadata(self):
         factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir_with_metadata)
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
+        builder_config = module_factory_result.builder_configs_parameters.builder_configs[0]
         assert (
-            module_factory_result.builder_kwargs["data_files"] is not None
-            and len(module_factory_result.builder_kwargs["data_files"]["train"]) > 0
-            and len(module_factory_result.builder_kwargs["data_files"]["test"]) > 0
+            builder_config.data_files is not None
+            and len(builder_config.data_files["train"]) > 0
+            and len(builder_config.data_files["test"]) > 0
         )
-        assert any(
-            Path(data_file).name == "metadata.jsonl"
-            for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
-        )
-        assert any(
-            Path(data_file).name == "metadata.jsonl"
-            for data_file in module_factory_result.builder_kwargs["data_files"]["test"]
-        )
+        assert any(Path(data_file).name == "metadata.jsonl" for data_file in builder_config.data_files["train"])
+        assert any(Path(data_file).name == "metadata.jsonl" for data_file in builder_config.data_files["test"])
 
     def test_LocalDatasetModuleFactoryWithoutScript_with_single_config_in_metadata(self):
         factory = LocalDatasetModuleFactoryWithoutScript(
@@ -580,13 +575,10 @@ class ModuleFactoryTest(TestCase):
         factory = PackagedDatasetModuleFactory("json", data_dir=self._data_dir, download_config=self.download_config)
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
-        assert (
-            module_factory_result.builder_kwargs["data_files"] is not None
-            and len(module_factory_result.builder_kwargs["data_files"]["train"]) > 0
-            and len(module_factory_result.builder_kwargs["data_files"]["test"]) > 0
-        )
-        assert Path(module_factory_result.builder_kwargs["data_files"]["train"][0]).parent.samefile(self._data_dir)
-        assert Path(module_factory_result.builder_kwargs["data_files"]["test"][0]).parent.samefile(self._data_dir)
+        data_files = module_factory_result.builder_kwargs.get("data_files")
+        assert data_files is not None and len(data_files["train"]) > 0 and len(data_files["test"]) > 0
+        assert Path(data_files["train"][0]).parent.samefile(self._data_dir)
+        assert Path(data_files["test"][0]).parent.samefile(self._data_dir)
 
     def test_PackagedDatasetModuleFactory_with_data_dir_and_metadata(self):
         factory = PackagedDatasetModuleFactory(
@@ -594,25 +586,12 @@ class ModuleFactoryTest(TestCase):
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
-        assert (
-            module_factory_result.builder_kwargs["data_files"] is not None
-            and len(module_factory_result.builder_kwargs["data_files"]["train"]) > 0
-            and len(module_factory_result.builder_kwargs["data_files"]["test"]) > 0
-        )
-        assert Path(module_factory_result.builder_kwargs["data_files"]["train"][0]).parent.samefile(
-            self._data_dir_with_metadata
-        )
-        assert Path(module_factory_result.builder_kwargs["data_files"]["test"][0]).parent.samefile(
-            self._data_dir_with_metadata
-        )
-        assert any(
-            Path(data_file).name == "metadata.jsonl"
-            for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
-        )
-        assert any(
-            Path(data_file).name == "metadata.jsonl"
-            for data_file in module_factory_result.builder_kwargs["data_files"]["test"]
-        )
+        data_files = module_factory_result.builder_kwargs.get("data_files")
+        assert data_files is not None and len(data_files["train"]) > 0 and len(data_files["test"]) > 0
+        assert Path(data_files["train"][0]).parent.samefile(self._data_dir_with_metadata)
+        assert Path(data_files["test"][0]).parent.samefile(self._data_dir_with_metadata)
+        assert any(Path(data_file).name == "metadata.jsonl" for data_file in data_files["train"])
+        assert any(Path(data_file).name == "metadata.jsonl" for data_file in data_files["test"])
 
     @pytest.mark.integration
     def test_HubDatasetModuleFactoryWithoutScript(self):
@@ -631,16 +610,16 @@ class ModuleFactoryTest(TestCase):
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
+        builder_config = module_factory_result.builder_configs_parameters.builder_configs[0]
         assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
         assert (
-            module_factory_result.builder_kwargs["data_files"] is not None
-            and len(module_factory_result.builder_kwargs["data_files"]["train"]) == 1
-            and len(module_factory_result.builder_kwargs["data_files"]["test"]) == 1
+            builder_config.data_files is not None
+            and len(builder_config.data_files["train"]) == 1
+            and len(builder_config.data_files["test"]) == 1
         )
         assert all(
             data_dir in Path(data_file).parts
-            for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
-            + module_factory_result.builder_kwargs["data_files"]["test"]
+            for data_file in builder_config.data_files["train"] + builder_config.data_files["test"]
         )
 
     @pytest.mark.integration
@@ -650,36 +629,29 @@ class ModuleFactoryTest(TestCase):
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
+        builder_config = module_factory_result.builder_configs_parameters.builder_configs[0]
         assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
         assert (
-            module_factory_result.builder_kwargs["data_files"] is not None
-            and len(module_factory_result.builder_kwargs["data_files"]["train"]) > 0
-            and len(module_factory_result.builder_kwargs["data_files"]["test"]) > 0
+            builder_config.data_files is not None
+            and len(builder_config.data_files["train"]) > 0
+            and len(builder_config.data_files["test"]) > 0
         )
-        assert any(
-            Path(data_file).name == "metadata.jsonl"
-            for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
-        )
-        assert any(
-            Path(data_file).name == "metadata.jsonl"
-            for data_file in module_factory_result.builder_kwargs["data_files"]["test"]
-        )
+        assert any(Path(data_file).name == "metadata.jsonl" for data_file in builder_config.data_files["train"])
+        assert any(Path(data_file).name == "metadata.jsonl" for data_file in builder_config.data_files["test"])
 
         factory = HubDatasetModuleFactoryWithoutScript(
             SAMPLE_DATASET_IDENTIFIER5, download_config=self.download_config
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
+        builder_config = module_factory_result.builder_configs_parameters.builder_configs[0]
         assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
         assert (
-            module_factory_result.builder_kwargs["data_files"] is not None
-            and len(module_factory_result.builder_kwargs["data_files"]) == 1
-            and len(module_factory_result.builder_kwargs["data_files"]["train"]) > 0
+            builder_config.data_files is not None
+            and len(builder_config.data_files) == 1
+            and len(builder_config.data_files["train"]) > 0
         )
-        assert any(
-            Path(data_file).name == "metadata.jsonl"
-            for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
-        )
+        assert any(Path(data_file).name == "metadata.jsonl" for data_file in builder_config.data_files["train"])
 
     @pytest.mark.integration
     def test_HubDatasetModuleFactoryWithoutScript_with_one_default_config_in_metadata(self):
@@ -805,7 +777,20 @@ class ModuleFactoryTest(TestCase):
         with self.assertRaises(_datasets_server.DatasetsServerError):
             factory.get_module()
 
+    @pytest.mark.integration
     def test_CachedDatasetModuleFactory(self):
+        name = SAMPLE_DATASET_IDENTIFIER2
+        load_dataset_builder(name, cache_dir=self.cache_dir).download_and_prepare()
+        for offline_mode in OfflineSimulationMode:
+            with offline(offline_mode):
+                factory = CachedDatasetModuleFactory(
+                    name,
+                    cache_dir=self.cache_dir,
+                )
+                module_factory_result = factory.get_module()
+                assert importlib.import_module(module_factory_result.module_path) is not None
+
+    def test_CachedDatasetModuleFactory_with_script(self):
         path = os.path.join(self._dataset_loading_script_dir, f"{DATASET_LOADING_SCRIPT_NAME}.py")
         factory = LocalDatasetModuleFactoryWithScript(
             path, download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
@@ -866,12 +851,14 @@ class LoadTest(TestCase):
 
     def setUp(self):
         self.hf_modules_cache = tempfile.mkdtemp()
+        self.cache_dir = tempfile.mkdtemp()
         self.dynamic_modules_path = datasets.load.init_dynamic_modules(
             name="test_datasets_modules2", hf_modules_cache=self.hf_modules_cache
         )
 
     def tearDown(self):
         shutil.rmtree(self.hf_modules_cache)
+        shutil.rmtree(self.cache_dir)
 
     def _dummy_module_dir(self, modules_dir, dummy_module_name, dummy_code):
         assert dummy_module_name.startswith("__")
@@ -913,7 +900,20 @@ class LoadTest(TestCase):
                             "__missing_dummy_module_name__", dynamic_modules_path=self.dynamic_modules_path
                         )
 
+    @pytest.mark.integration
     def test_offline_dataset_module_factory(self):
+        repo_id = SAMPLE_DATASET_IDENTIFIER2
+        builder = load_dataset_builder(repo_id, cache_dir=self.cache_dir)
+        builder.download_and_prepare()
+        for offline_simulation_mode in list(OfflineSimulationMode):
+            with offline(offline_simulation_mode):
+                self._caplog.clear()
+                # allow provide the repo id without an explicit path to remote or local actual file
+                dataset_module = datasets.load.dataset_module_factory(repo_id, cache_dir=self.cache_dir)
+                self.assertEqual(dataset_module.module_path, "datasets.packaged_modules.cache.cache")
+                self.assertIn("Using the latest cached version of the dataset", self._caplog.text)
+
+    def test_offline_dataset_module_factory_with_script(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dummy_code = "MY_DUMMY_VARIABLE = 'hello there'"
             module_dir = self._dummy_module_dir(tmp_dir, "__dummy_module_name2__", dummy_code)
@@ -986,9 +986,8 @@ def test_load_dataset_builder_with_metadata():
     assert builder.config.name == "default"
     assert builder.config.data_files is not None
     assert builder.config.drop_metadata is None
-    builder = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER4, "non-existing-config")
-    assert isinstance(builder, ImageFolder)
-    assert builder.config.name == "non-existing-config"
+    with pytest.raises(ValueError):
+        builder = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER4, "non-existing-config")
 
 
 @pytest.mark.integration
@@ -1138,9 +1137,17 @@ def test_load_dataset_builder_fail():
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
-def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory, caplog):
+def test_load_dataset_local_script(dataset_loading_script_dir, data_dir, keep_in_memory, caplog):
     with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
         dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, keep_in_memory=keep_in_memory)
+    assert isinstance(dataset, DatasetDict)
+    assert all(isinstance(d, Dataset) for d in dataset.values())
+    assert len(dataset) == 2
+    assert isinstance(next(iter(dataset["train"])), dict)
+
+
+def test_load_dataset_cached_local_script(dataset_loading_script_dir, data_dir, caplog):
+    dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir)
     assert isinstance(dataset, DatasetDict)
     assert all(isinstance(d, Dataset) for d in dataset.values())
     assert len(dataset) == 2
@@ -1152,6 +1159,28 @@ def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory
             dataset = datasets.load_dataset(DATASET_LOADING_SCRIPT_NAME, data_dir=data_dir)
             assert len(dataset) == 2
             assert "Using the latest cached version of the module" in caplog.text
+            assert isinstance(next(iter(dataset["train"])), dict)
+    with pytest.raises(DatasetNotFoundError) as exc_info:
+        datasets.load_dataset(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST)
+    assert f"Dataset '{SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST}' doesn't exist on the Hub" in str(exc_info.value)
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("stream_from_cache, ", [False, True])
+def test_load_dataset_cached_from_hub(stream_from_cache, caplog):
+    dataset = load_dataset(SAMPLE_DATASET_IDENTIFIER3)
+    assert isinstance(dataset, DatasetDict)
+    assert all(isinstance(d, Dataset) for d in dataset.values())
+    assert len(dataset) == 2
+    assert isinstance(next(iter(dataset["train"])), dict)
+    for offline_simulation_mode in list(OfflineSimulationMode):
+        with offline(offline_simulation_mode):
+            caplog.clear()
+            # Load dataset from cache
+            dataset = datasets.load_dataset(SAMPLE_DATASET_IDENTIFIER3, streaming=stream_from_cache)
+            assert len(dataset) == 2
+            assert "Using the latest cached version of the dataset" in caplog.text
+            assert isinstance(next(iter(dataset["train"])), dict)
     with pytest.raises(DatasetNotFoundError) as exc_info:
         datasets.load_dataset(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST)
     assert f"Dataset '{SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST}' doesn't exist on the Hub" in str(exc_info.value)
