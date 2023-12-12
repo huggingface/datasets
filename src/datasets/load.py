@@ -54,6 +54,7 @@ from .download.download_manager import DownloadMode
 from .download.streaming_download_manager import StreamingDownloadManager, xbasename, xglob, xjoin
 from .exceptions import DataFilesNotFoundError, DatasetNotFoundError
 from .features import Features
+from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict
 from .iterable_dataset import IterableDataset
 from .metric import Metric
@@ -591,6 +592,17 @@ def infer_module_for_data_files(
     return module_name, default_builder_kwargs
 
 
+def update_hash_for_cache(hash: str, cache_kwargs: dict) -> str:
+    """
+    Used to update hash of packaged modules which is used for creating unique cache directories to reflect
+    different config parameters which are passed in metadata from readme.
+    """
+    m = Hasher()
+    m.update(hash)
+    m.update(cache_kwargs)
+    return m.hexdigest()
+
+
 def create_builder_configs_from_metadata_configs(
     module_path: str,
     metadata_configs: MetadataConfigs,
@@ -1058,6 +1070,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 )
             ]
             default_config_name = None
+        hash = update_hash_for_cache(hash, {config.name: config.data_files for config in builder_configs})
         builder_kwargs = {
             "hash": hash,
             "base_path": self.path,
@@ -1253,6 +1266,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 )
             ]
             default_config_name = None
+        hash = update_hash_for_cache(hash, revision)
         builder_kwargs = {
             "hash": hash,
             "base_path": hf_hub_url(self.name, "", revision=revision).rstrip("/"),

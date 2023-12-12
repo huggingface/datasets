@@ -218,20 +218,6 @@ class BuilderConfig:
             base_path = xjoin(base_path, self.data_dir) if self.data_dir else base_path
             self.data_files = self.data_files.resolve(base_path, download_config)
 
-    def _update_hash(self, hash: str) -> str:
-        """
-        Used to update hash of packaged modules which is used for creating unique cache directories to reflect
-        different config parameters which are passed in metadata from readme.
-        """
-        m = Hasher()
-        m.update(hash)
-        for field in sorted(field.name for field in fields(self)):
-            try:
-                m.update(getattr(self, field))
-            except TypeError:
-                continue
-        return m.hexdigest()
-
 
 class DatasetBuilder:
     """Abstract base class for all datasets.
@@ -395,8 +381,6 @@ class DatasetBuilder:
             custom_features=features,
             **config_kwargs,
         )
-        if self.hash is not None:
-            self.hash = self.config._update_hash(hash)
 
         # prepare info: DatasetInfo are a standardized dataclass across all datasets
         # Prefill datasetinfo
