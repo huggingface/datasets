@@ -1352,6 +1352,13 @@ class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
             metadata_configs,
             supports_metadata=False,
         )
+        dataset_infos = DatasetInfosDict(
+            {
+                config_name: DatasetInfo.from_dict(exported_dataset_infos[config_name])
+                for config_name in exported_dataset_infos
+            }
+        )
+        hash = update_hash_for_cache(hash, metadata_configs=metadata_configs, dataset_infos=dataset_infos)
         builder_kwargs = {
             "repo_id": self.name,
             "dataset_name": camelcase_to_snakecase(Path(self.name).name),
@@ -1361,12 +1368,7 @@ class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
             module_path,
             hash,
             builder_kwargs,
-            dataset_infos=DatasetInfosDict(
-                {
-                    config_name: DatasetInfo.from_dict(exported_dataset_infos[config_name])
-                    for config_name in exported_dataset_infos
-                }
-            ),
+            dataset_infos=dataset_infos,
             builder_configs_parameters=BuilderConfigsParameters(
                 metadata_configs=metadata_configs,
                 builder_configs=builder_configs,
