@@ -47,15 +47,14 @@ def _find_hash_in_cache(dataset_name: str, config_name: Optional[str], cache_dir
             + (f"\nAvailable configs in the cache: {available_configs}" if available_configs else "")
         )
     # get most recent
-    hash = Path(sorted(cached_directory_paths, key=_get_modification_time)[-1]).name
-    warning_msg = (
-        f"Using the latest cached version of the dataset from {cached_datasets_directory_path_root}/*/*/{hash}"
-        f"(last modified on {time.ctime(_get_modification_time(cached_directory_paths[0]))}) since {dataset_name} "
-        f"couldn't be found on the Hugging Face Hub"
+    cached_directory_path = Path(sorted(cached_directory_paths, key=_get_modification_time)[-1])
+    config_name = cached_directory_path.parts[-3]
+    hash = cached_directory_path.name
+    warnong_msg = (
+        f"Found the latest cached dataset configuration '{config_name}' at {cached_directory_path} "
+        f"(last modified on {time.ctime(_get_modification_time(cached_directory_path))})."
     )
-    if datasets.config.HF_DATASETS_OFFLINE:
-        warning_msg += " (offline mode is enabled)."
-    logger.warning(warning_msg)
+    logger.warning(warnong_msg)
     return hash
 
 
