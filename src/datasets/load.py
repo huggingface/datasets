@@ -2240,7 +2240,9 @@ def load_dataset_builder(
     else:
         builder_config = None
     if builder_config and builder_config.data_files is not None:
-        builder_config._resolve_data_files(base_path=builder_kwargs["base_path"], download_config=download_config)
+        builder_config._resolve_data_files(
+            base_path=builder_kwargs.get("base_path", os.path.abspath(".")), download_config=download_config
+        )
         hash = update_hash_for_cache(hash, data_files=builder_config.data_files)
     # Instantiate the dataset builder
     builder_instance: DatasetBuilder = builder_cls(
