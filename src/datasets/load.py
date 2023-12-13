@@ -1346,7 +1346,7 @@ class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
                 for config_name in exported_dataset_infos
             }
         )
-        hash = revision
+        hash = self.revision
         builder_kwargs = {
             "repo_id": self.name,
             "dataset_name": camelcase_to_snakecase(Path(self.name).name),
