@@ -592,15 +592,15 @@ def infer_module_for_data_files(
     return module_name, default_builder_kwargs
 
 
-def update_hash_for_cache(hash: str, metadata_configs: MetadataConfigs, dataset_infos: DatasetInfosDict) -> str:
+def update_hash_for_cache(hash: str, **kwargs: Dict[str, Union[MetadataConfigs, DataFilesDict, DataFilesDict]]) -> str:
     """
     Used to update hash of packaged modules which is used for creating unique cache directories to reflect
     different config parameters which are passed in metadata from readme.
     """
     m = Hasher()
     m.update(hash)
-    m.update(metadata_configs)
-    m.update(dataset_infos)
+    for obj in kwargs.values():
+        m.update(obj)
     return m.hexdigest()
 
 
@@ -2231,7 +2231,17 @@ def load_dataset_builder(
             error_msg += f'\nFor example `data_files={{"train": "path/to/data/train/*.{example_extensions[0]}"}}`'
         raise ValueError(error_msg)
 
+    hash = dataset_module.hash
     builder_cls = get_dataset_builder_class(dataset_module, dataset_name=dataset_name)
+    if len(builder_cls.builder_configs) > 1:
+        builder_config = builder_cls.builder_configs.get(config_name or builder_cls.DEFAULT_CONFIG_NAME)
+    elif len(builder_cls.builder_configs) == 1:
+        builder_config = builder_cls.BUILDER_CONFIGS[0]
+    else:
+        builder_config = None
+    if builder_config and builder_config.data_files is not None:
+        builder_config._resolve_data_files(base_path=builder_kwargs["base_path"], download_config=download_config)
+        hash = update_hash_for_cache(hash, data_files=builder_config.data_files)
     # Instantiate the dataset builder
     builder_instance: DatasetBuilder = builder_cls(
         cache_dir=cache_dir,
@@ -2239,7 +2249,7 @@ def load_dataset_builder(
         config_name=config_name,
         data_dir=data_dir,
         data_files=data_files,
-        hash=dataset_module.hash,
+        hash=hash,
         info=info,
         features=features,
         token=token,

@@ -1503,6 +1503,18 @@ def test_load_dataset_then_move_then_reload(dataset_loading_script_dir, data_dir
     assert dataset._fingerprint != fingerprint1
 
 
+def test_load_dataset_builder_then_edit_then_load_again(tmp_path: Path):
+    dataset_dir = tmp_path / "test_load_dataset_then_edit_then_load_again"
+    dataset_dir.mkdir()
+    with open(dataset_dir / "train.txt", "w") as f:
+        f.write("Hello there")
+    dataset_builder = load_dataset_builder(str(dataset_dir))
+    with open(dataset_dir / "train.txt", "w") as f:
+        f.write("General Kenobi !")
+    edited_dataset_builder = load_dataset_builder(str(dataset_dir))
+    assert dataset_builder.cache_dir != edited_dataset_builder.cache_dir
+
+
 def test_load_dataset_readonly(dataset_loading_script_dir, dataset_loading_script_dir_readonly, data_dir, tmp_path):
     cache_dir1 = tmp_path / "cache1"
     cache_dir2 = tmp_path / "cache2"
