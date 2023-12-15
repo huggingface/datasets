@@ -1716,12 +1716,6 @@ class DatasetDict(dict):
         info_to_dump.dataset_size = total_dataset_nbytes
         info_to_dump.size_in_bytes = total_uploaded_size + total_dataset_nbytes
 
-        metadata_config_to_dump = {
-            "data_files": [{"split": split, "path": f"{data_dir}/{split}-*"} for split in self.keys()],
-        }
-        if set_default_config:
-            metadata_config_to_dump["default"] = True
-
         # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
         # and delete old split shards (if they exist)
         repo_with_dataset_card, repo_with_dataset_infos = False, False
@@ -1769,6 +1763,20 @@ class DatasetDict(dict):
                 "data_files": [{"split": split, "path": f"data/{split}-*"} for split in repo_splits]
             }
             MetadataConfigs({"default": default_metadata_configs_to_dump}).to_dataset_card_data(dataset_card_data)
+        metadata_config_to_dump = {
+            "data_files": [{"split": split, "path": f"{data_dir}/{split}-*"} for split in self.keys()],
+        }
+        if set_default_config and config_name != "default":
+            if metadata_configs:
+                default_config_name = metadata_configs.get_default_config_name()
+                if default_config_name == "default":
+                    raise ValueError(
+                        "There exists a configuration named 'default'. To set a different configuration as default, "
+                        "rename the 'default' one first."
+                    )
+                else:
+                    _ = metadata_configs[default_config_name].pop("default")
+            metadata_config_to_dump["default"] = True
         # push to the deprecated dataset_infos.json
         if repo_with_dataset_infos:
             dataset_infos_path = api.hf_hub_download(

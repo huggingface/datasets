@@ -5490,7 +5490,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             }
         else:
             metadata_config_to_dump = {"data_files": [{"split": split, "path": f"{data_dir}/{split}-*"}]}
-        if set_default_config:
+        if set_default_config and config_name != "default":
+            if metadata_configs:
+                default_config_name = metadata_configs.get_default_config_name()
+                if default_config_name == "default":
+                    raise ValueError(
+                        "There exists a configuration named 'default'. To set a different configuration as default, "
+                        "rename the 'default' one first."
+                    )
+                else:
+                    _ = metadata_configs[default_config_name].pop("default")
             metadata_config_to_dump["default"] = True
         # push to the deprecated dataset_infos.json
         if repo_with_dataset_infos:
