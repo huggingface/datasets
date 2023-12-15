@@ -1608,14 +1608,14 @@ class DatasetDict(dict):
 
                 </Deprecated>
             create_pr (`bool`, *optional*, defaults to `False`):
-                Whether or not to create a PR with the uploaded files or directly commit.
+                Whether to create a PR with the uploaded files or directly commit.
 
                 <Added version="2.15.0"/>
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
                 (like `"500MB"` or `"1GB"`).
             num_shards (`Dict[str, int]`, *optional*):
-                Number of shards to write. By default the number of shards depends on `max_shard_size`.
+                Number of shards to write. By default, the number of shards depends on `max_shard_size`.
                 Use a dictionary to define a different num_shards for each split.
 
                 <Added version="2.8.0"/>
