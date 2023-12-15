@@ -595,15 +595,15 @@ class TestPushToHub:
     def test_push_multiple_dataset_configs_to_hub_readme_metadata_content(
         self, specific_default_config_name, temporary_repo
     ):
-        default_config_name_kwargs = (
-            {"config_name": "config0", "as_default_config_name": True} if specific_default_config_name else {}
-        )
         ds_default = Dataset.from_dict({"a": [0], "b": [2]})
         ds_config1 = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
         ds_config2 = Dataset.from_dict({"foo": [1, 2], "bar": [4, 5]})
 
         with temporary_repo() as ds_name:
-            ds_default.push_to_hub(ds_name, token=self._token, **default_config_name_kwargs)
+            if specific_default_config_name:
+                ds_default.push_to_hub(ds_name, config_name="config0", set_default_config=True, token=self._token)
+            else:
+                ds_default.push_to_hub(ds_name, token=self._token)
             ds_config1.push_to_hub(ds_name, "config1", token=self._token)
             ds_config2.push_to_hub(ds_name, "config2", token=self._token)
 
@@ -741,9 +741,6 @@ class TestPushToHub:
     def test_push_multiple_dataset_dict_configs_to_hub_readme_metadata_content(
         self, specific_default_config_name, temporary_repo
     ):
-        default_config_name_kwargs = (
-            {"config_name": "config0", "as_default_config_name": True} if specific_default_config_name else {}
-        )
         ds_default = Dataset.from_dict({"a": [0], "b": [1]})
         ds_config1 = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
         ds_config2 = Dataset.from_dict({"foo": [1, 2], "bar": [4, 5]})
@@ -752,7 +749,10 @@ class TestPushToHub:
         ds_config2 = DatasetDict({"train": ds_config2, "random": ds_config2})
 
         with temporary_repo() as ds_name:
-            ds_default.push_to_hub(ds_name, token=self._token, **default_config_name_kwargs)
+            if specific_default_config_name:
+                ds_default.push_to_hub(ds_name, config_name="config0", set_default_config=True, token=self._token)
+            else:
+                ds_default.push_to_hub(ds_name, token=self._token)
             ds_config1.push_to_hub(ds_name, "config1", token=self._token)
             ds_config2.push_to_hub(ds_name, "config2", token=self._token)
 
