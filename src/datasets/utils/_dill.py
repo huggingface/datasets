@@ -167,7 +167,9 @@ def _save_torchGenerator(pickler, obj):
     import torch  # type: ignore
 
     def create_torchGenerator(state):
-        return torch.Generator().set_state(state)
+        generator = torch.Generator()
+        generator.set_state(state)
+        return generator
 
     log(pickler, f"Ge: {obj}")
     args = (obj.get_state(),)
