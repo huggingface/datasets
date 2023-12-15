@@ -1584,7 +1584,8 @@ class DatasetDict(dict):
             config_name (`str`):
                 Configuration name of a dataset. Defaults to "default".
             set_default_config (`bool`, *optional*):
-                Whether to set the config name as default (not necessary if the config_name is "default").
+                Whether to set this configuration as the default one. Otherwise, the default configuration is the one
+                named "default".
             commit_message (`str`, *optional*):
                 Message to commit while pushing. Will default to `"Upload dataset"`.
             private (`bool`, *optional*):

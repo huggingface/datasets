@@ -5252,7 +5252,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             config_name (`str`, defaults to "default"):
                 The configuration name (or subset) of a dataset. Defaults to "default".
             set_default_config (`bool`, *optional*):
-                Whether to set the config name as default (not necessary if the config_name is "default").
+                Whether to set this configuration as the default one. Otherwise, the default configuration is the one
+                named "default".
             split (`str`, *optional*):
                 The name of the split that will be given to that dataset. Defaults to `self.split`.
             commit_message (`str`, *optional*):
