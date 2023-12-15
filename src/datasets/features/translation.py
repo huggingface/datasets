@@ -98,7 +98,9 @@ class TranslationVariableLanguages:
 
     def encode_example(self, translation_dict):
         lang_set = set(self.languages)
-        if self.languages and set(translation_dict) - lang_set:
+        if set(translation_dict) == {"language", "translation"}:
+            return translation_dict
+        elif self.languages and set(translation_dict) - lang_set:
             raise ValueError(
                 f'Some languages in example ({", ".join(sorted(set(translation_dict) - lang_set))}) are not in valid set ({", ".join(lang_set)}).'
             )
