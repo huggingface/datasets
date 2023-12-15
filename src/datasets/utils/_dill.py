@@ -50,6 +50,9 @@ class Pickler(dill.Pickler):
                 if issubclass(obj_type, torch.Tensor):
                     pklregister(obj_type)(_save_torchTensor)
 
+                if obj_type is torch.Generator:
+                    pklregister(obj_type)(_save_torchGenerator)
+
                 # Unwrap `torch.compile`-ed modules
                 if issubclass(obj_type, torch.nn.Module):
                     obj = getattr(obj, "_orig_mod", obj)
@@ -158,6 +161,18 @@ def _save_torchTensor(pickler, obj):
     args = (obj.detach().cpu().numpy(),)
     pickler.save_reduce(create_torchTensor, args, obj=obj)
     log(pickler, "# To")
+
+
+def _save_torchGenerator(pickler, obj):
+    import torch  # type: ignore
+
+    def create_torchGenerator(state):
+        return torch.Generator().set_state(state)
+
+    log(pickler, f"Ge: {obj}")
+    args = (obj.get_state(),)
+    pickler.save_reduce(create_torchGenerator, args, obj=obj)
+    log(pickler, "# Ge")
 
 
 def _save_spacyLanguage(pickler, obj):
