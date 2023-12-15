@@ -347,9 +347,13 @@ def resolve_pattern(
     files_to_ignore = set(FILES_TO_IGNORE) - {xbasename(pattern)}
     protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[0]
     protocol_prefix = protocol + "://" if protocol != "file" else ""
+    glob_kwargs = {}
+    if protocol == "hf" and config.HF_HUB_VERSION >= version.parse("0.20.0"):
+        # 10 times faster glob with detail=True (ignores costly info like lastCommit)
+        glob_kwargs["expand_info"] = False
     matched_paths = [
         filepath if filepath.startswith(protocol_prefix) else protocol_prefix + filepath
-        for filepath, info in fs.glob(pattern, detail=True).items()
+        for filepath, info in fs.glob(pattern, detail=True, **glob_kwargs).items()
         if info["type"] == "file"
         and (xbasename(filepath) not in files_to_ignore)
         and not _is_inside_unrequested_special_dir(
