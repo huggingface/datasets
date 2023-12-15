@@ -1556,6 +1556,7 @@ class DatasetDict(dict):
         self,
         repo_id,
         config_name: str = "default",
+        as_default_config_name: Optional[bool] = None,
         commit_message: Optional[str] = None,
         private: Optional[bool] = False,
         token: Optional[str] = None,
@@ -1582,6 +1583,8 @@ class DatasetDict(dict):
                 of the logged-in user.
             config_name (`str`):
                 Configuration name of a dataset. Defaults to "default".
+            as_default_config_name (`bool`, *optional*):
+                Whether to set the config name as default (not necessary if the config_name is "default").
             commit_message (`str`, *optional*):
                 Message to commit while pushing. Will default to `"Upload dataset"`.
             private (`bool`, *optional*):
@@ -1715,6 +1718,8 @@ class DatasetDict(dict):
         metadata_config_to_dump = {
             "data_files": [{"split": split, "path": f"{data_dir}/{split}-*"} for split in self.keys()],
         }
+        if as_default_config_name:
+            metadata_config_to_dump["default"] = True
 
         # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
         # and delete old split shards (if they exist)

@@ -5225,6 +5225,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         self,
         repo_id: str,
         config_name: str = "default",
+        as_default_config_name: Optional[bool] = None,
         split: Optional[str] = None,
         commit_message: Optional[str] = None,
         private: Optional[bool] = False,
@@ -5250,6 +5251,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 of the logged-in user.
             config_name (`str`, defaults to "default"):
                 The configuration name (or subset) of a dataset. Defaults to "default".
+            as_default_config_name (`bool`, *optional*):
+                Whether to set the config name as default (not necessary if the config_name is "default").
             split (`str`, *optional*):
                 The name of the split that will be given to that dataset. Defaults to `self.split`.
             commit_message (`str`, *optional*):
@@ -5485,6 +5488,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             }
         else:
             metadata_config_to_dump = {"data_files": [{"split": split, "path": f"{data_dir}/{split}-*"}]}
+        if as_default_config_name:
+            metadata_config_to_dump["default"] = True
         # push to the deprecated dataset_infos.json
         if repo_with_dataset_infos:
             dataset_infos_path = api.hf_hub_download(
