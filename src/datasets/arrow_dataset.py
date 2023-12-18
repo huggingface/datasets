@@ -5225,7 +5225,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         self,
         repo_id: str,
         config_name: str = "default",
-        set_default_config: Optional[bool] = None,
+        set_default: Optional[bool] = None,
         split: Optional[str] = None,
         commit_message: Optional[str] = None,
         private: Optional[bool] = False,
@@ -5251,7 +5251,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 of the logged-in user.
             config_name (`str`, defaults to "default"):
                 The configuration name (or subset) of a dataset. Defaults to "default".
-            set_default_config (`bool`, *optional*):
+            set_default (`bool`, *optional*):
                 Whether to set this configuration as the default one. Otherwise, the default configuration is the one
                 named "default".
             split (`str`, *optional*):
@@ -5490,7 +5490,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             }
         else:
             metadata_config_to_dump = {"data_files": [{"split": split, "path": f"{data_dir}/{split}-*"}]}
-        if set_default_config and config_name != "default":
+        if set_default and config_name != "default":
             if metadata_configs:
                 default_config_name = metadata_configs.get_default_config_name()
                 if default_config_name == "default":

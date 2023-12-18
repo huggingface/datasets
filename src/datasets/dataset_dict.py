@@ -1556,7 +1556,7 @@ class DatasetDict(dict):
         self,
         repo_id,
         config_name: str = "default",
-        set_default_config: Optional[bool] = None,
+        set_default: Optional[bool] = None,
         commit_message: Optional[str] = None,
         private: Optional[bool] = False,
         token: Optional[str] = None,
@@ -1583,7 +1583,7 @@ class DatasetDict(dict):
                 of the logged-in user.
             config_name (`str`):
                 Configuration name of a dataset. Defaults to "default".
-            set_default_config (`bool`, *optional*):
+            set_default (`bool`, *optional*):
                 Whether to set this configuration as the default one. Otherwise, the default configuration is the one
                 named "default".
             commit_message (`str`, *optional*):
@@ -1766,7 +1766,7 @@ class DatasetDict(dict):
         metadata_config_to_dump = {
             "data_files": [{"split": split, "path": f"{data_dir}/{split}-*"} for split in self.keys()],
         }
-        if set_default_config and config_name != "default":
+        if set_default and config_name != "default":
             if metadata_configs:
                 default_config_name = metadata_configs.get_default_config_name()
                 if default_config_name == "default":

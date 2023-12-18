@@ -601,7 +601,7 @@ class TestPushToHub:
 
         with temporary_repo() as ds_name:
             if specific_default_config_name:
-                ds_default.push_to_hub(ds_name, config_name="config0", set_default_config=True, token=self._token)
+                ds_default.push_to_hub(ds_name, config_name="config0", set_default=True, token=self._token)
             else:
                 ds_default.push_to_hub(ds_name, token=self._token)
             ds_config1.push_to_hub(ds_name, "config1", token=self._token)
@@ -750,7 +750,7 @@ class TestPushToHub:
 
         with temporary_repo() as ds_name:
             if specific_default_config_name:
-                ds_default.push_to_hub(ds_name, config_name="config0", set_default_config=True, token=self._token)
+                ds_default.push_to_hub(ds_name, config_name="config0", set_default=True, token=self._token)
             else:
                 ds_default.push_to_hub(ds_name, token=self._token)
             ds_config1.push_to_hub(ds_name, "config1", token=self._token)
