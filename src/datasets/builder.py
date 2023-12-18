@@ -29,7 +29,7 @@ import warnings
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import Dict, Iterable, Mapping, Optional, Tuple, Union
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple, Union
 
 import fsspec
 import pyarrow as pa
@@ -64,6 +64,7 @@ from .keyhash import DuplicatedKeysError
 from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH, camelcase_to_snakecase
 from .splits import Split, SplitDict, SplitGenerator, SplitInfo
 from .streaming import extend_dataset_builder_for_streaming
+from .table import CastError
 from .utils import logging
 from .utils import tqdm as hf_tqdm
 from .utils._filelock import FileLock
@@ -80,6 +81,7 @@ from .utils.py_utils import (
     temporary_assignment,
 )
 from .utils.sharding import _number_of_shards_in_gen_kwargs, _split_gen_kwargs
+from .utils.track import TrackedIterable, tracked_list, tracked_str
 
 
 logger = logging.get_logger(__name__)
@@ -103,6 +105,14 @@ class DatasetGenerationError(DatasetBuildError):
 
 class FileFormatError(DatasetBuildError):
     pass
+
+
+class CastErrorDuringDatasetGeneration(CastError):
+    def __init__(
+        self, *args, table_column_names: List[str], requested_column_names: List[str], gen_kwargs: Dict[str, Any]
+    ) -> None:
+        super().__init__(*args, table_column_names=table_column_names, requested_column_names=requested_column_names)
+        self.gen_kwargs = gen_kwargs
 
 
 @dataclass
@@ -1895,6 +1905,7 @@ class ArrowBasedBuilder(DatasetBuilder):
     def _prepare_split_single(
         self, gen_kwargs: dict, fpath: str, file_format: str, max_shard_size: int, job_id: int
     ) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
+        gen_kwargs = {k: tracked_list(v) if isinstance(v, list) else v for k, v in gen_kwargs.items()}
         generator = self._generate_tables(**gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"
@@ -1928,7 +1939,15 @@ class ArrowBasedBuilder(DatasetBuilder):
                             storage_options=self._fs.storage_options,
                             embed_local_files=embed_local_files,
                         )
-                    writer.write_table(table)
+                    try:
+                        writer.write_table(table)
+                    except CastError as cast_error:
+                        raise CastErrorDuringDatasetGeneration(
+                            str(cast_error),
+                            table_column_names=cast_error.table_column_names,
+                            requested_column_names=cast_error.requested_column_names,
+                            gen_kwargs=gen_kwargs,
+                        ) from None
                     num_examples_progress_update += len(table)
                     if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
                         _time = time.time()
@@ -1946,7 +1965,23 @@ class ArrowBasedBuilder(DatasetBuilder):
             # Ignore the writer's error for no examples written to the file if this error was caused by the error in _generate_examples before the first example was yielded
             if isinstance(e, SchemaInferenceError) and e.__context__ is not None:
                 e = e.__context__
-            raise DatasetGenerationError("An error occurred while generating the dataset") from e
+            if isinstance(e, CastErrorDuringDatasetGeneration):
+                additional_error = (
+                    f"\n\nAll the data files must have the same columns, but at some point {e.details()}"
+                )
+                tracked_gen_kwargs = [
+                    v for v in e.gen_kwargs.values() if isinstance(v, (tracked_str, tracked_list, TrackedIterable))
+                ]
+                formatted_tracked_gen_kwargs: List[str] = []
+                for gen_kwarg in tracked_gen_kwargs:
+                    while isinstance(gen_kwarg, (tracked_list, TrackedIterable)) and gen_kwarg.last_item is not None:
+                        gen_kwarg = gen_kwarg.last_item
+                    formatted_tracked_gen_kwargs.append(repr(gen_kwarg))
+                if tracked_gen_kwargs:
+                    additional_error += f"\n\nThis happened while the {self.__class__.__name__} dataset builder was generating data using\n\n{', '.join(formatted_tracked_gen_kwargs)}"
+            else:
+                additional_error = ""
+            raise DatasetGenerationError("An error occurred while generating the dataset" + additional_error) from e
 
         yield job_id, True, (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths)
 
