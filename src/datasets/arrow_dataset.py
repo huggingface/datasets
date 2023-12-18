@@ -5225,6 +5225,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         self,
         repo_id: str,
         config_name: str = "default",
+        set_default: Optional[bool] = None,
         split: Optional[str] = None,
         commit_message: Optional[str] = None,
         private: Optional[bool] = False,
@@ -5250,6 +5251,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 of the logged-in user.
             config_name (`str`, defaults to "default"):
                 The configuration name (or subset) of a dataset. Defaults to "default".
+            set_default (`bool`, *optional*):
+                Whether to set this configuration as the default one. Otherwise, the default configuration is the one
+                named "default".
             split (`str`, *optional*):
                 The name of the split that will be given to that dataset. Defaults to `self.split`.
             commit_message (`str`, *optional*):
@@ -5275,13 +5279,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
                 </Deprecated>
             create_pr (`bool`, *optional*, defaults to `False`):
-                Whether or not to create a PR with the uploaded files or directly commit.
+                Whether to create a PR with the uploaded files or directly commit.
 
                 <Added version="2.15.0"/>
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by
                 a unit (like `"5MB"`).
-            num_shards (`int`, *optional*): Number of shards to write. By default the number of shards depends on `max_shard_size`.
+            num_shards (`int`, *optional*):
+                Number of shards to write. By default, the number of shards depends on `max_shard_size`.
 
                 <Added version="2.8.0"/>
             embed_external_files (`bool`, defaults to `True`):
@@ -5485,6 +5490,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             }
         else:
             metadata_config_to_dump = {"data_files": [{"split": split, "path": f"{data_dir}/{split}-*"}]}
+        if set_default and config_name != "default":
+            if metadata_configs:
+                default_config_name = metadata_configs.get_default_config_name()
+                if default_config_name == "default":
+                    raise ValueError(
+                        "There exists a configuration named 'default'. To set a different configuration as default, "
+                        "rename the 'default' one first."
+                    )
+                else:
+                    _ = metadata_configs[default_config_name].pop("default")
+            metadata_config_to_dump["default"] = True
         # push to the deprecated dataset_infos.json
         if repo_with_dataset_infos:
             dataset_infos_path = api.hf_hub_download(

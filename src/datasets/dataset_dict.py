@@ -1556,6 +1556,7 @@ class DatasetDict(dict):
         self,
         repo_id,
         config_name: str = "default",
+        set_default: Optional[bool] = None,
         commit_message: Optional[str] = None,
         private: Optional[bool] = False,
         token: Optional[str] = None,
@@ -1582,6 +1583,9 @@ class DatasetDict(dict):
                 of the logged-in user.
             config_name (`str`):
                 Configuration name of a dataset. Defaults to "default".
+            set_default (`bool`, *optional*):
+                Whether to set this configuration as the default one. Otherwise, the default configuration is the one
+                named "default".
             commit_message (`str`, *optional*):
                 Message to commit while pushing. Will default to `"Upload dataset"`.
             private (`bool`, *optional*):
@@ -1605,14 +1609,14 @@ class DatasetDict(dict):
 
                 </Deprecated>
             create_pr (`bool`, *optional*, defaults to `False`):
-                Whether or not to create a PR with the uploaded files or directly commit.
+                Whether to create a PR with the uploaded files or directly commit.
 
                 <Added version="2.15.0"/>
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
                 (like `"500MB"` or `"1GB"`).
             num_shards (`Dict[str, int]`, *optional*):
-                Number of shards to write. By default the number of shards depends on `max_shard_size`.
+                Number of shards to write. By default, the number of shards depends on `max_shard_size`.
                 Use a dictionary to define a different num_shards for each split.
 
                 <Added version="2.8.0"/>
@@ -1712,10 +1716,6 @@ class DatasetDict(dict):
         info_to_dump.dataset_size = total_dataset_nbytes
         info_to_dump.size_in_bytes = total_uploaded_size + total_dataset_nbytes
 
-        metadata_config_to_dump = {
-            "data_files": [{"split": split, "path": f"{data_dir}/{split}-*"} for split in self.keys()],
-        }
-
         # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
         # and delete old split shards (if they exist)
         repo_with_dataset_card, repo_with_dataset_infos = False, False
@@ -1763,6 +1763,20 @@ class DatasetDict(dict):
                 "data_files": [{"split": split, "path": f"data/{split}-*"} for split in repo_splits]
             }
             MetadataConfigs({"default": default_metadata_configs_to_dump}).to_dataset_card_data(dataset_card_data)
+        metadata_config_to_dump = {
+            "data_files": [{"split": split, "path": f"{data_dir}/{split}-*"} for split in self.keys()],
+        }
+        if set_default and config_name != "default":
+            if metadata_configs:
+                default_config_name = metadata_configs.get_default_config_name()
+                if default_config_name == "default":
+                    raise ValueError(
+                        "There exists a configuration named 'default'. To set a different configuration as default, "
+                        "rename the 'default' one first."
+                    )
+                else:
+                    _ = metadata_configs[default_config_name].pop("default")
+            metadata_config_to_dump["default"] = True
         # push to the deprecated dataset_infos.json
         if repo_with_dataset_infos:
             dataset_infos_path = api.hf_hub_download(
