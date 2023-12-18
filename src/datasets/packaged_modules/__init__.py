@@ -57,6 +57,7 @@ _EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.Ima
 _EXTENSION_TO_MODULE.update({ext.upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext: ("audiofolder", {}) for ext in audiofolder.AudioFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("audiofolder", {}) for ext in audiofolder.AudioFolder.EXTENSIONS})
+_EXTENSION_TO_MODULE.update({".geoparquet": ("parquet", {}), ".gpq": {"parquet", {}}})
 _MODULE_SUPPORTS_METADATA = {"imagefolder", "audiofolder"}
 
 # Used to filter data files based on extensions given a module name
