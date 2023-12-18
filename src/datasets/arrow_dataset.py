@@ -113,7 +113,7 @@ from .utils import logging
 from .utils import tqdm as hf_tqdm
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
-from .utils.hub import preupload_lfs_files
+from .utils.hub import list_files_info, preupload_lfs_files
 from .utils.info_utils import is_small_dataset
 from .utils.metadata import MetadataConfigs
 from .utils.py_utils import (
@@ -5379,7 +5379,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         deletions, deleted_size = [], 0
         repo_splits = []  # use a list to keep the order of the splits
         repo_files_to_add = [addition.path_in_repo for addition in additions]
-        for repo_file in api.list_files_info(repo_id, revision=revision, repo_type="dataset", token=token):
+        for repo_file in list_files_info(api, repo_id=repo_id, revision=revision, repo_type="dataset", token=token):
             if repo_file.rfilename == "README.md":
                 repo_with_dataset_card = True
             elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:

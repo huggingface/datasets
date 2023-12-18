@@ -33,6 +33,7 @@ from .tasks import TaskTemplate
 from .utils import logging
 from .utils.deprecation_utils import deprecated
 from .utils.doc_utils import is_documented_by
+from .utils.hub import list_files_info
 from .utils.metadata import MetadataConfigs
 from .utils.py_utils import asdict, glob_pattern_to_regex, string_to_dict
 from .utils.typing import PathLike
@@ -1722,7 +1723,7 @@ class DatasetDict(dict):
         repo_splits = []  # use a list to keep the order of the splits
         deletions = []
         repo_files_to_add = [addition.path_in_repo for addition in additions]
-        for repo_file in api.list_files_info(repo_id, revision=revision, repo_type="dataset", token=token):
+        for repo_file in list_files_info(api, repo_id=repo_id, revision=revision, repo_type="dataset", token=token):
             if repo_file.rfilename == "README.md":
                 repo_with_dataset_card = True
             elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:

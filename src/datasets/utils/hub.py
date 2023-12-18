@@ -2,6 +2,7 @@ import time
 from functools import partial
 
 from huggingface_hub import HfApi, hf_hub_url
+from huggingface_hub.hf_api import RepoFile
 from packaging import version
 from requests import ConnectionError, HTTPError
 
@@ -43,6 +44,19 @@ else:
 
     def preupload_lfs_files(hf_api: HfApi, **kwargs):
         hf_api.preupload_lfs_files(**kwargs)
+
+
+# `list_files_info` is deprecated in favor of `list_repo_tree` in `huggingface_hub>=0.20.0`
+if config.HF_HUB_VERSION < version.parse("0.20.0"):
+
+    def list_files_info(hf_api: HfApi, **kwargs):
+        yield from hf_api.list_files_info(**kwargs)
+else:
+
+    def list_files_info(hf_api: HfApi, **kwargs):
+        for repo_path in hf_api.list_repo_tree(**kwargs):
+            if isinstance(repo_path, RepoFile):
+                yield repo_path
 
 
 # bakckward compatibility
