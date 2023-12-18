@@ -9,6 +9,9 @@ class tracked_str(str):
         if super().__repr__() not in self.origins:
             self.origins[super().__repr__()] = origin
 
+    def get_origin(self):
+        return self.origins.get(super().__repr__(), str(self))
+
     def __repr__(self) -> str:
         if super().__repr__() not in self.origins or self.origins[super().__repr__()] == self:
             return super().__repr__()

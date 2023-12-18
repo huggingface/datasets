@@ -29,7 +29,7 @@ import warnings
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple, Union
+from typing import Dict, Iterable, Mapping, Optional, Tuple, Union
 
 import fsspec
 import pyarrow as pa
@@ -52,6 +52,7 @@ from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadManager, DownloadMode
 from .download.mock_download_manager import MockDownloadManager
 from .download.streaming_download_manager import StreamingDownloadManager, xopen
+from .exceptions import DatasetGenerationCastError, DatasetGenerationError, FileFormatError, ManualDownloadError
 from .features import Features
 from .filesystems import (
     is_remote_filesystem,
@@ -81,7 +82,7 @@ from .utils.py_utils import (
     temporary_assignment,
 )
 from .utils.sharding import _number_of_shards_in_gen_kwargs, _split_gen_kwargs
-from .utils.track import TrackedIterable, tracked_list, tracked_str
+from .utils.track import tracked_list
 
 
 logger = logging.get_logger(__name__)
@@ -89,30 +90,6 @@ logger = logging.get_logger(__name__)
 
 class InvalidConfigName(ValueError):
     pass
-
-
-class DatasetBuildError(Exception):
-    pass
-
-
-class ManualDownloadError(DatasetBuildError):
-    pass
-
-
-class DatasetGenerationError(DatasetBuildError):
-    pass
-
-
-class FileFormatError(DatasetBuildError):
-    pass
-
-
-class CastErrorDuringDatasetGeneration(CastError):
-    def __init__(
-        self, *args, table_column_names: List[str], requested_column_names: List[str], gen_kwargs: Dict[str, Any]
-    ) -> None:
-        super().__init__(*args, table_column_names=table_column_names, requested_column_names=requested_column_names)
-        self.gen_kwargs = gen_kwargs
 
 
 @dataclass
@@ -1942,12 +1919,12 @@ class ArrowBasedBuilder(DatasetBuilder):
                     try:
                         writer.write_table(table)
                     except CastError as cast_error:
-                        raise CastErrorDuringDatasetGeneration(
-                            str(cast_error),
-                            table_column_names=cast_error.table_column_names,
-                            requested_column_names=cast_error.requested_column_names,
+                        raise DatasetGenerationCastError.from_cast_error(
+                            cast_error=cast_error,
+                            builder_name=self.info.builder_name,
                             gen_kwargs=gen_kwargs,
-                        ) from None
+                            token=self.token,
+                        )
                     num_examples_progress_update += len(table)
                     if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
                         _time = time.time()
@@ -1965,23 +1942,9 @@ class ArrowBasedBuilder(DatasetBuilder):
             # Ignore the writer's error for no examples written to the file if this error was caused by the error in _generate_examples before the first example was yielded
             if isinstance(e, SchemaInferenceError) and e.__context__ is not None:
                 e = e.__context__
-            if isinstance(e, CastErrorDuringDatasetGeneration):
-                additional_error = (
-                    f"\n\nAll the data files must have the same columns, but at some point {e.details()}"
-                )
-                tracked_gen_kwargs = [
-                    v for v in e.gen_kwargs.values() if isinstance(v, (tracked_str, tracked_list, TrackedIterable))
-                ]
-                formatted_tracked_gen_kwargs: List[str] = []
-                for gen_kwarg in tracked_gen_kwargs:
-                    while isinstance(gen_kwarg, (tracked_list, TrackedIterable)) and gen_kwarg.last_item is not None:
-                        gen_kwarg = gen_kwarg.last_item
-                    formatted_tracked_gen_kwargs.append(repr(gen_kwarg))
-                if tracked_gen_kwargs:
-                    additional_error += f"\n\nThis happened while the {self.__class__.__name__} dataset builder was generating data using\n\n{', '.join(formatted_tracked_gen_kwargs)}"
-            else:
-                additional_error = ""
-            raise DatasetGenerationError("An error occurred while generating the dataset" + additional_error) from e
+            if isinstance(e, DatasetGenerationError):
+                raise
+            raise DatasetGenerationError("An error occurred while generating the dataset") from e
 
         yield job_id, True, (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths)
 
