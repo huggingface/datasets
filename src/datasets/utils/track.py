@@ -13,7 +13,7 @@ class tracked_str(str):
         if super().__repr__() not in self.origins or self.origins[super().__repr__()] == self:
             return super().__repr__()
         else:
-            return f"{super().__repr__()} (origin={self.origins[super().__repr__()]})"
+            return f"{str(self)} (origin={self.origins[super().__repr__()]})"
 
 
 class tracked_list(list):
@@ -31,7 +31,7 @@ class tracked_list(list):
         if self.last_item is None:
             return super().__repr__()
         else:
-            return f"list(current={self.last_item})"
+            return f"{self.__class__.__name__}(current={self.last_item})"
 
 
 class TrackedIterable(Iterable):
@@ -43,4 +43,4 @@ class TrackedIterable(Iterable):
         if self.last_item is None:
             super().__repr__()
         else:
-            return f"{self.__class__.__name__}(current={repr(self.last_item)})"
+            return f"{self.__class__.__name__}(current={self.last_item})"
