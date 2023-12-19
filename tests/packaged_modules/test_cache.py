@@ -29,7 +29,7 @@ def test_cache_streaming(text_dir: Path):
 
 def test_cache_auto_hash(text_dir: Path):
     ds = load_dataset(str(text_dir))
-    cache = Cache(dataset_name=text_dir.name, hash="auto")
+    cache = Cache(dataset_name=text_dir.name, version="auto", hash="auto")
     reloaded = cache.as_dataset()
     assert list(ds) == list(reloaded)
     assert list(ds["train"]) == list(reloaded["train"])
@@ -37,13 +37,13 @@ def test_cache_auto_hash(text_dir: Path):
 
 def test_cache_missing(text_dir: Path):
     load_dataset(str(text_dir))
-    Cache(dataset_name=text_dir.name, hash="auto").download_and_prepare()
+    Cache(dataset_name=text_dir.name, version="auto", hash="auto").download_and_prepare()
     with pytest.raises(ValueError):
-        Cache(dataset_name="missing", hash="auto").download_and_prepare()
+        Cache(dataset_name="missing", version="auto", hash="auto").download_and_prepare()
     with pytest.raises(ValueError):
         Cache(dataset_name=text_dir.name, hash="missing").download_and_prepare()
     with pytest.raises(ValueError):
-        Cache(dataset_name=text_dir.name, config_name="missing", hash="auto").download_and_prepare()
+        Cache(dataset_name=text_dir.name, config_name="missing", version="auto", hash="auto").download_and_prepare()
 
 
 @pytest.mark.integration
@@ -52,10 +52,10 @@ def test_cache_multi_configs():
     dataset_name = repo_id.split("/")[-1]
     config_name = "v1"
     ds = load_dataset(repo_id, config_name)
-    cache = Cache(dataset_name=dataset_name, repo_id=repo_id, config_name=config_name, hash="auto")
+    cache = Cache(dataset_name=dataset_name, repo_id=repo_id, config_name=config_name, version="auto", hash="auto")
     reloaded = cache.as_dataset()
     assert list(ds) == list(reloaded)
     assert len(ds["train"]) == len(reloaded["train"])
     with pytest.raises(ValueError) as excinfo:
-        Cache(dataset_name=dataset_name, repo_id=repo_id, config_name="missing", hash="auto")
+        Cache(dataset_name=dataset_name, repo_id=repo_id, config_name="missing", version="auto", hash="auto")
     assert config_name in str(excinfo.value)

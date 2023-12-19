@@ -20,14 +20,14 @@ def _get_modification_time(cached_directory_path):
 
 
 def _find_hash_in_cache(
-    dataset_name: str, config_name: Optional[str], version: Optional[str], cache_dir: Optional[str]
+    dataset_name: str, config_name: Optional[str], cache_dir: Optional[str]
 ) -> Tuple[str, str, str]:
     cache_dir = os.path.expanduser(str(cache_dir or datasets.config.HF_DATASETS_CACHE))
     cached_datasets_directory_path_root = os.path.join(cache_dir, dataset_name.replace("/", "___"))
     cached_directory_paths = [
         cached_directory_path
         for cached_directory_path in glob.glob(
-            os.path.join(cached_datasets_directory_path_root, config_name or "*", version or "*", "*")
+            os.path.join(cached_datasets_directory_path_root, config_name or "*", "*", "*")
         )
         if os.path.isdir(cached_directory_path)
     ]
@@ -43,15 +43,10 @@ def _find_hash_in_cache(
         available_configs = sorted(
             {Path(cached_directory_path).parts[-3] for cached_directory_path in cached_directory_paths}
         )
-        available_versions = sorted(
-            {Path(cached_directory_path).parts[-2] for cached_directory_path in cached_directory_paths}
-        )
         raise ValueError(
             f"Couldn't find cache for {dataset_name}"
             + (f" for config '{config_name}'" if config_name else "")
-            + (f" for version '{version}'" if version else "")
             + (f"\nAvailable configs in the cache: {available_configs}" if available_configs else "")
-            + (f"\nAvailable versions in the cache: {available_versions}" if version and available_versions else "")
         )
     # get most recent
     cached_directory_path = Path(sorted(cached_directory_paths, key=_get_modification_time)[-1])
@@ -82,20 +77,21 @@ class Cache(datasets.ArrowBasedBuilder):
         cache_dir: Optional[str] = None,
         dataset_name: Optional[str] = None,
         config_name: Optional[str] = None,
-        version: Optional[str] = None,
+        version: Optional[str] = "0.0.0",
         hash: Optional[str] = None,
         repo_id: Optional[str] = None,
         **kwargs,
     ):
         if repo_id is None and dataset_name is None:
             raise ValueError("repo_id or dataset_name is required for the Cache dataset builder")
-        if hash == "auto":
+        if hash == "auto" and version == "auto":
             config_name, version, hash = _find_hash_in_cache(
                 dataset_name=repo_id or dataset_name,
                 config_name=config_name,
-                version=version,
                 cache_dir=cache_dir,
             )
+        elif hash == "auto" or version == "auto":
+            raise NotImplementedError("Pass both hash='auto' and version='auto' instead")
         super().__init__(
             cache_dir=cache_dir,
             dataset_name=dataset_name,

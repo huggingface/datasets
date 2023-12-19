@@ -1566,7 +1566,7 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
             return DatasetModule(
                 "datasets.packaged_modules.cache.cache",
                 "auto",
-                builder_kwargs,
+                {**builder_kwargs, "version": "auto"},
             )
         raise FileNotFoundError(f"Dataset {self.name} is not cached in {self.cache_dir}")
 
