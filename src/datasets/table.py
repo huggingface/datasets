@@ -1,5 +1,6 @@
 import copy
 import os
+import warnings
 from functools import partial
 from itertools import groupby
 from typing import TYPE_CHECKING, Callable, Iterator, List, Optional, Tuple, TypeVar, Union
@@ -19,18 +20,18 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
-_IS_FLATTEN_WITH_NULL_ARRAY_SUPPORTED = config.PYARROW_VERSION.major > 12
+_IS_FLATTEN_ON_NULL_LIST_ARRAY_SUPPORTED = config.PYARROW_VERSION.major > 12
 _IS_LIST_ARRAY_TO_FIXED_SIZE_LIST_ARRAY_CAST_SUPPORTED = config.PYARROW_VERSION.major > 13
 
 
 def _list_array_flatten(array: Union[pa.ListArray, pa.FixedSizeListArray]) -> pa.Array:
-    if _IS_FLATTEN_WITH_NULL_ARRAY_SUPPORTED and pc.all(array.is_null()).as_py():
-        return array.values[:0]
+    if _IS_FLATTEN_ON_NULL_LIST_ARRAY_SUPPORTED and pc.all(array.is_null()).as_py():
+        return array.values[:0]  # Preserve the type
     else:
         return array.flatten()
 
 
-def _list_array_to_fixed_size_list_values(array: pa.ListArray, list_size: int) -> pa.Array:
+def _list_array_to_fixed_size_list_array_values(array: pa.ListArray, list_size: int) -> pa.Array:
     array_offsets = np.array(array.offsets)
     offsets_pair_iter = iter(zip(array_offsets[:-1], array_offsets[1:]))
     array_values = array.values[:0]
@@ -1862,14 +1863,19 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
             return pa.StructArray.from_arrays(arrays, fields=list(pa_type), mask=array.is_null())
     elif pa.types.is_list(array.type):
         if pa.types.is_fixed_size_list(pa_type):
-            if pc.all(pc.equal(array.value_lengths(), pa_type.list_size)).as_py():
+            if pc.all(
+                pc.equal(array.value_lengths(), pa_type.list_size)
+            ).as_py():  # Make sure all the sublists have the same length (non-valid members are ignored)
                 if array.null_count > 0:
                     # pa.FixedSizeListArray does not support mask: https://github.com/apache/arrow/issues/34316
                     if _IS_LIST_ARRAY_TO_FIXED_SIZE_LIST_ARRAY_CAST_SUPPORTED:
                         # `array.cast` to the fixed type so that the null arrays' `.values`  are preserved (the `pc.fill_null` kernel fails on extension types)
                         array_values = array.cast(pa.list_(array.type.value_type, pa_type.list_size)).values
                     else:
-                        array_values = _list_array_to_fixed_size_list_values(array, pa_type.list_size)
+                        warnings.warn(
+                            "Casting from ListArray to FixedSizeListArray is not natively supported in `pyarrow<14`. Consider upgrading to `pyarrow>=14` to make it fast."
+                        )
+                        array_values = _list_array_to_fixed_size_list_array_values(array, pa_type.list_size)
                     return pa.Array.from_buffers(
                         pa_type,
                         len(array),
@@ -1985,14 +1991,19 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
                 return pa.ListArray.from_arrays(array_offsets, c_array_values, mask=array.is_null())
         elif isinstance(feature, Sequence):
             if feature.length > -1:
-                if pc.all(pc.equal(array.value_lengths(), feature.length)).as_py():
+                if pc.all(
+                    pc.equal(array.value_lengths(), feature.length)
+                ).as_py():  # # Make sure all the sublists have the same length (non-valid members are ignored)
                     if array.null_count > 0:
                         # pa.FixedSizeListArray does not support mask: https://github.com/apache/arrow/issues/34316
                         if _IS_LIST_ARRAY_TO_FIXED_SIZE_LIST_ARRAY_CAST_SUPPORTED:
                             # `array.cast` to the fixed type so that the null arrays' `.values`  are preserved (the `pc.fill_null` kernel fails on extension types)
                             array_values = array.cast(pa.list_(array.type.value_type, feature.length)).values
                         else:
-                            array_values = _list_array_to_fixed_size_list_values(array, feature.length)
+                            warnings.warn(
+                                "Casting from ListArray to FixedSizeListArray is not natively supported in `pyarrow<14`. Consider upgrading to `pyarrow>=14` to make it fast."
+                            )
+                            array_values = _list_array_to_fixed_size_list_array_values(array, feature.length)
                         c_array_values = _c(array_values, feature.feature)
                         return pa.Array.from_buffers(
                             pa.list_(c_array_values.type, feature.length),
