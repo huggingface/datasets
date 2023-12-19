@@ -317,6 +317,19 @@ class HashingTest(TestCase):
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)
 
+    @require_torch
+    def test_hash_torch_generator(self):
+        import torch
+
+        t = torch.Generator(device="cpu").manual_seed(42)
+        hash1 = Hasher.hash(t)
+        t = t = torch.Generator(device="cpu").manual_seed(50)
+        hash2 = Hasher.hash(t)
+        t = t = torch.Generator(device="cpu").manual_seed(42)
+        hash3 = Hasher.hash(t)
+        self.assertEqual(hash1, hash3)
+        self.assertNotEqual(hash1, hash2)
+
     @require_spacy
     @require_spacy_model("en_core_web_sm")
     @require_spacy_model("fr_core_news_sm")

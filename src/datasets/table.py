@@ -2133,6 +2133,25 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
     raise TypeError(f"Couldn't embed array of type\n{array.type}\nwith\n{feature}")
 
 
+class CastError(ValueError):
+    """When it's not possible to cast an Arrow table to a specific schema or set of features"""
+
+    def __init__(self, *args, table_column_names: List[str], requested_column_names: List[str]) -> None:
+        super().__init__(*args)
+        self.table_column_names = table_column_names
+        self.requested_column_names = requested_column_names
+
+    def details(self):
+        new_columns = set(self.table_column_names) - set(self.requested_column_names)
+        missing_columns = set(self.requested_column_names) - set(self.table_column_names)
+        if new_columns and missing_columns:
+            return f"there are {len(new_columns)} new columns ({', '.join(new_columns)}) and {len(missing_columns)} missing columns ({', '.join(missing_columns)})."
+        elif new_columns:
+            return f"there are {len(new_columns)} new columns ({new_columns})"
+        else:
+            return f"there are {len(missing_columns)} missing columns ({missing_columns})"
+
+
 def cast_table_to_features(table: pa.Table, features: "Features"):
     """Cast a table to the arrow schema that corresponds to the requested features.
 
@@ -2146,7 +2165,11 @@ def cast_table_to_features(table: pa.Table, features: "Features"):
         table (`pyarrow.Table`): the casted table
     """
     if sorted(table.column_names) != sorted(features):
-        raise ValueError(f"Couldn't cast\n{table.schema}\nto\n{features}\nbecause column names don't match")
+        raise CastError(
+            f"Couldn't cast\n{table.schema}\nto\n{features}\nbecause column names don't match",
+            table_column_names=table.column_names,
+            requested_column_names=list(features),
+        )
     arrays = [cast_array_to_feature(table[name], feature) for name, feature in features.items()]
     return pa.Table.from_arrays(arrays, schema=features.arrow_schema)
 
@@ -2167,7 +2190,11 @@ def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
 
     features = Features.from_arrow_schema(schema)
     if sorted(table.column_names) != sorted(features):
-        raise ValueError(f"Couldn't cast\n{table.schema}\nto\n{features}\nbecause column names don't match")
+        raise CastError(
+            f"Couldn't cast\n{table.schema}\nto\n{features}\nbecause column names don't match",
+            table_column_names=table.column_names,
+            requested_column_names=list(features),
+        )
     arrays = [cast_array_to_feature(table[name], feature) for name, feature in features.items()]
     return pa.Table.from_arrays(arrays, schema=schema)
 

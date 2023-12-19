@@ -13,6 +13,7 @@ from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
 import fsspec
 import numpy as np
 from huggingface_hub import (
+    CommitInfo,
     CommitOperationAdd,
     CommitOperationDelete,
     DatasetCard,
@@ -32,6 +33,7 @@ from .tasks import TaskTemplate
 from .utils import logging
 from .utils.deprecation_utils import deprecated
 from .utils.doc_utils import is_documented_by
+from .utils.hub import list_files_info
 from .utils.metadata import MetadataConfigs
 from .utils.py_utils import asdict, glob_pattern_to_regex, string_to_dict
 from .utils.typing import PathLike
@@ -55,6 +57,17 @@ class DatasetDict(dict):
                 raise ValueError(
                     f"All datasets in `DatasetDict` should have the same features but features for '{item_a[0]}' and '{item_b[0]}' don't match: {item_a[1].features} != {item_b[1].features}"
                 )
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # Here `del` is used to del the pyarrow tables. This properly closes the files used for memory mapped tables
+        for dataset in self.values():
+            if hasattr(dataset, "_data"):
+                del dataset._data
+            if hasattr(dataset, "_indices"):
+                del dataset._indices
 
     def __getitem__(self, k) -> Dataset:
         if isinstance(k, (str, NamedSplit)) or len(self) == 0:
@@ -1544,6 +1557,7 @@ class DatasetDict(dict):
         self,
         repo_id,
         config_name: str = "default",
+        set_default: Optional[bool] = None,
         commit_message: Optional[str] = None,
         private: Optional[bool] = False,
         token: Optional[str] = None,
@@ -1553,7 +1567,7 @@ class DatasetDict(dict):
         max_shard_size: Optional[Union[int, str]] = None,
         num_shards: Optional[Dict[str, int]] = None,
         embed_external_files: bool = True,
-    ):
+    ) -> CommitInfo:
         """Pushes the [`DatasetDict`] to the hub as a Parquet dataset.
         The [`DatasetDict`] is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
 
@@ -1570,6 +1584,9 @@ class DatasetDict(dict):
                 of the logged-in user.
             config_name (`str`):
                 Configuration name of a dataset. Defaults to "default".
+            set_default (`bool`, *optional*):
+                Whether to set this configuration as the default one. Otherwise, the default configuration is the one
+                named "default".
             commit_message (`str`, *optional*):
                 Message to commit while pushing. Will default to `"Upload dataset"`.
             private (`bool`, *optional*):
@@ -1593,14 +1610,14 @@ class DatasetDict(dict):
 
                 </Deprecated>
             create_pr (`bool`, *optional*, defaults to `False`):
-                Whether or not to create a PR with the uploaded files or directly commit.
+                Whether to create a PR with the uploaded files or directly commit.
 
                 <Added version="2.15.0"/>
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
                 (like `"500MB"` or `"1GB"`).
             num_shards (`Dict[str, int]`, *optional*):
-                Number of shards to write. By default the number of shards depends on `max_shard_size`.
+                Number of shards to write. By default, the number of shards depends on `max_shard_size`.
                 Use a dictionary to define a different num_shards for each split.
 
                 <Added version="2.8.0"/>
@@ -1609,6 +1626,9 @@ class DatasetDict(dict):
                 In particular, this will do the following before the push for the fields of type:
 
                 - [`Audio`] and [`Image`] removes local path information and embed file content in the Parquet files.
+
+        Return:
+            huggingface_hub.CommitInfo
 
         Example:
 
@@ -1697,17 +1717,13 @@ class DatasetDict(dict):
         info_to_dump.dataset_size = total_dataset_nbytes
         info_to_dump.size_in_bytes = total_uploaded_size + total_dataset_nbytes
 
-        metadata_config_to_dump = {
-            "data_files": [{"split": split, "path": f"{data_dir}/{split}-*"} for split in self.keys()],
-        }
-
         # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
         # and delete old split shards (if they exist)
         repo_with_dataset_card, repo_with_dataset_infos = False, False
         repo_splits = []  # use a list to keep the order of the splits
         deletions = []
         repo_files_to_add = [addition.path_in_repo for addition in additions]
-        for repo_file in api.list_files_info(repo_id, revision=revision, repo_type="dataset", token=token):
+        for repo_file in list_files_info(api, repo_id=repo_id, revision=revision, repo_type="dataset", token=token):
             if repo_file.rfilename == "README.md":
                 repo_with_dataset_card = True
             elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:
@@ -1748,6 +1764,20 @@ class DatasetDict(dict):
                 "data_files": [{"split": split, "path": f"data/{split}-*"} for split in repo_splits]
             }
             MetadataConfigs({"default": default_metadata_configs_to_dump}).to_dataset_card_data(dataset_card_data)
+        metadata_config_to_dump = {
+            "data_files": [{"split": split, "path": f"{data_dir}/{split}-*"} for split in self.keys()],
+        }
+        if set_default and config_name != "default":
+            if metadata_configs:
+                default_config_name = metadata_configs.get_default_config_name()
+                if default_config_name == "default":
+                    raise ValueError(
+                        "There exists a configuration named 'default'. To set a different configuration as default, "
+                        "rename the 'default' one first."
+                    )
+                else:
+                    _ = metadata_configs[default_config_name].pop("default")
+            metadata_config_to_dump["default"] = True
         # push to the deprecated dataset_infos.json
         if repo_with_dataset_infos:
             dataset_infos_path = api.hf_hub_download(
@@ -1769,7 +1799,7 @@ class DatasetDict(dict):
 
         commit_message = commit_message if commit_message is not None else "Upload dataset"
         if len(additions) <= config.UPLOADS_MAX_NUMBER_PER_COMMIT:
-            api.create_commit(
+            commit_info = api.create_commit(
                 repo_id,
                 operations=additions + deletions,
                 commit_message=commit_message,
@@ -1787,7 +1817,7 @@ class DatasetDict(dict):
                 operations = additions[
                     i * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1) * config.UPLOADS_MAX_NUMBER_PER_COMMIT
                 ] + (deletions if i == 0 else [])
-                api.create_commit(
+                commit_info = api.create_commit(
                     repo_id,
                     operations=operations,
                     commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
@@ -1801,9 +1831,15 @@ class DatasetDict(dict):
                     + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
                     + "."
                 )
+        return commit_info
 
 
 class IterableDatasetDict(dict):
+    def __repr__(self):
+        repr = "\n".join([f"{k}: {v}" for k, v in self.items()])
+        repr = re.sub(r"^", " " * 4, repr, 0, re.M)
+        return f"IterableDatasetDict({{\n{repr}\n}})"
+
     def with_format(
         self,
         type: Optional[str] = None,

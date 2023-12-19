@@ -19,9 +19,9 @@ This guide will show you how to share a dataset that can be easily accessed by a
 You can share your dataset with the community with a dataset repository on the Hugging Face Hub.
 It can also be a private dataset if you want to control who has access to it.
 
-In a dataset repository, you can either host all your data files and [configure your dataset](./repository_structure#define-your-splits-in-yaml) to define which file goes to which split.
-The following formats: CSV, TSV, JSON, JSON lines, text, Parquet, Arrow, SQLite.
-The script also supports many kinds of compressed file types such as: GZ, BZ2, LZ4, LZMA or ZSTD.
+In a dataset repository, you can host all your data files and [configure your dataset](./repository_structure#define-your-splits-in-yaml) to define which file goes to which split.
+The following formats are supported: CSV, TSV, JSON, JSON lines, text, Parquet, Arrow, SQLite.
+Many kinds of compressed file types are also supported: GZ, BZ2, LZ4, LZMA or ZSTD.
 For example, your dataset can be made of `.json.gz` files.
 
 On the other hand, if your dataset is not in a supported format or if you want more control over how your dataset is loaded, you can write your own dataset script.
@@ -56,7 +56,7 @@ huggingface-cli repo create your_dataset_name --type dataset --organization your
 
 ### Clone the repository
 
-3. Install [Git LFS](https://git-lfs.github.com/) and clone your repository:
+3. Install [Git LFS](https://git-lfs.github.com/) and clone your repository (refer to the [Git over SSH docs](https://huggingface.co/docs/hub/security-git-ssh) if you prefer cloning through SSH):
 
 ```
 # Make sure you have git-lfs installed

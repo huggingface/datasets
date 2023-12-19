@@ -31,7 +31,7 @@ from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Type, Un
 
 import fsspec
 import requests
-from huggingface_hub import DatasetCard, DatasetCardData, HfApi
+from huggingface_hub import DatasetCard, DatasetCardData, HfApi, HfFileSystem
 
 from . import config
 from .arrow_dataset import Dataset
@@ -1621,6 +1621,7 @@ def dataset_module_factory(
     data_dir: Optional[str] = None,
     data_files: Optional[Union[Dict, List, str, DataFilesDict]] = None,
     trust_remote_code: Optional[bool] = None,
+    _require_default_config_name=True,
     **download_kwargs,
 ) -> DatasetModule:
     """
@@ -1772,8 +1773,16 @@ def dataset_module_factory(
                 else:
                     raise e
             if filename in [sibling.rfilename for sibling in dataset_info.siblings]:  # contains a dataset script
-                if config.USE_PARQUET_EXPORT:
+                fs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=download_config.token)
+                if _require_default_config_name:
+                    with fs.open(f"datasets/{path}/{filename}", "r", revision=revision, encoding="utf-8") as f:
+                        can_load_config_from_parquet_export = "DEFAULT_CONFIG_NAME" not in f.read()
+                else:
+                    can_load_config_from_parquet_export = True
+                if config.USE_PARQUET_EXPORT and can_load_config_from_parquet_export:
                     # If the parquet export is ready (parquet files + info available for the current sha), we can use it instead
+                    # This fails when the dataset has multiple configs and a default config and
+                    # the user didn't specify a configuration name (_require_default_config_name=True).
                     try:
                         return HubDatasetModuleFactoryWithParquetExport(
                             path, download_config=download_config, revision=dataset_info.sha
@@ -1781,22 +1790,14 @@ def dataset_module_factory(
                     except _datasets_server.DatasetsServerError:
                         pass
                 # Otherwise we must use the dataset script if the user trusts it
-                trust_remote_code = resolve_trust_remote_code(trust_remote_code, path)
-                if trust_remote_code:
-                    return HubDatasetModuleFactoryWithScript(
-                        path,
-                        revision=revision,
-                        download_config=download_config,
-                        download_mode=download_mode,
-                        dynamic_modules_path=dynamic_modules_path,
-                        trust_remote_code=trust_remote_code,
-                    ).get_module()
-                else:
-                    raise ValueError(
-                        f"Loading {path} requires you to execute the dataset script in that"
-                        " repo on your local machine. Make sure you have read the code there to avoid malicious use, then"
-                        " set the option `trust_remote_code=True` to remove this error."
-                    )
+                return HubDatasetModuleFactoryWithScript(
+                    path,
+                    revision=revision,
+                    download_config=download_config,
+                    download_mode=download_mode,
+                    dynamic_modules_path=dynamic_modules_path,
+                    trust_remote_code=trust_remote_code,
+                ).get_module()
             else:
                 return HubDatasetModuleFactoryWithoutScript(
                     path,
@@ -2053,6 +2054,7 @@ def load_dataset_builder(
     use_auth_token="deprecated",
     storage_options: Optional[Dict] = None,
     trust_remote_code: Optional[bool] = None,
+    _require_default_config_name=True,
     **config_kwargs,
 ) -> DatasetBuilder:
     """Load a dataset builder from the Hugging Face Hub, or a local dataset. A dataset builder can be used to inspect general information that is required to build a dataset (cache directory, config, dataset info, etc.)
@@ -2177,6 +2179,7 @@ def load_dataset_builder(
         data_dir=data_dir,
         data_files=data_files,
         trust_remote_code=trust_remote_code,
+        _require_default_config_name=_require_default_config_name,
     )
     # Get dataset builder class from the processing script
     builder_kwargs = dataset_module.builder_kwargs
@@ -2510,6 +2513,7 @@ def load_dataset(
         token=token,
         storage_options=storage_options,
         trust_remote_code=trust_remote_code,
+        _require_default_config_name=name is None,
         **config_kwargs,
     )
 
