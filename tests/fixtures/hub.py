@@ -1,12 +1,12 @@
+import os
 import time
 import uuid
 from contextlib import contextmanager
-from pathlib import Path
 from typing import Optional
 
 import pytest
 import requests
-from huggingface_hub.hf_api import HfApi, HfFolder, RepositoryNotFoundError
+from huggingface_hub.hf_api import HfApi, RepositoryNotFoundError
 
 
 CI_HUB_USER = "__DUMMY_TRANSFORMERS_USER__"
@@ -16,7 +16,6 @@ CI_HUB_USER_TOKEN = "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"
 CI_HUB_ENDPOINT = "https://hub-ci.huggingface.co"
 CI_HUB_DATASETS_URL = CI_HUB_ENDPOINT + "/datasets/{repo_id}/resolve/{revision}/{path}"
 CI_HFH_HUGGINGFACE_CO_URL_TEMPLATE = CI_HUB_ENDPOINT + "/{repo_id}/resolve/{revision}/{filename}"
-CI_HUB_TOKEN_PATH = Path("~/.huggingface/hub_ci_token").expanduser()
 
 
 @pytest.fixture
@@ -33,15 +32,12 @@ def ci_hub_config(monkeypatch):
 
 
 @pytest.fixture
-def ci_hub_token_path(monkeypatch):
-    monkeypatch.setattr("huggingface_hub.hf_api.HfFolder.path_token", CI_HUB_TOKEN_PATH)
-
-
-@pytest.fixture
-def set_ci_hub_access_token(ci_hub_config, ci_hub_token_path):
-    HfFolder.save_token(CI_HUB_USER_TOKEN)
+def set_ci_hub_access_token(ci_hub_config):
+    old_environ = dict(os.environ)
+    os.environ["HUGGING_FACE_HUB_TOKEN"] = CI_HUB_USER_TOKEN
     yield
-    HfFolder.delete_token()
+    os.environ.clear()
+    os.environ.update(old_environ)
 
 
 @pytest.fixture(scope="session")

@@ -54,6 +54,7 @@ if config.HF_HUB_VERSION < version.parse("0.20.0"):
 else:
 
     def list_files_info(hf_api: HfApi, **kwargs):
+        kwargs = {**kwargs, "recursive": True}
         for repo_path in hf_api.list_repo_tree(**kwargs):
             if isinstance(repo_path, RepoFile):
                 yield repo_path
