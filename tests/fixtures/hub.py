@@ -34,7 +34,7 @@ def ci_hub_config(monkeypatch):
 @pytest.fixture
 def set_ci_hub_access_token(ci_hub_config):
     old_environ = dict(os.environ)
-    os.environ["HUGGING_FACE_HUB_TOKEN"] = CI_HUB_USER_TOKEN
+    os.environ["HF_TOKEN"] = CI_HUB_USER_TOKEN
     yield
     os.environ.clear()
     os.environ.update(old_environ)
