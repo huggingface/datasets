@@ -3,7 +3,7 @@ import os
 import shutil
 import time
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import pyarrow as pa
 
@@ -19,13 +19,15 @@ def _get_modification_time(cached_directory_path):
     return (Path(cached_directory_path)).stat().st_mtime
 
 
-def _find_hash_in_cache(dataset_name: str, config_name: Optional[str], cache_dir: Optional[str]) -> str:
+def _find_hash_in_cache(
+    dataset_name: str, config_name: Optional[str], version: Optional[str], cache_dir: Optional[str]
+) -> Tuple[str, str, str]:
     cache_dir = os.path.expanduser(str(cache_dir or datasets.config.HF_DATASETS_CACHE))
     cached_datasets_directory_path_root = os.path.join(cache_dir, dataset_name.replace("/", "___"))
     cached_directory_paths = [
         cached_directory_path
         for cached_directory_path in glob.glob(
-            os.path.join(cached_datasets_directory_path_root, config_name or "*", "*", "*")
+            os.path.join(cached_datasets_directory_path_root, config_name or "*", version or "*", "*")
         )
         if os.path.isdir(cached_directory_path)
     ]
@@ -41,21 +43,37 @@ def _find_hash_in_cache(dataset_name: str, config_name: Optional[str], cache_dir
         available_configs = sorted(
             {Path(cached_directory_path).parts[-3] for cached_directory_path in cached_directory_paths}
         )
+        available_versions = sorted(
+            {Path(cached_directory_path).parts[-2] for cached_directory_path in cached_directory_paths}
+        )
         raise ValueError(
             f"Couldn't find cache for {dataset_name}"
             + (f" for config '{config_name}'" if config_name else "")
+            + (f" for version '{version}'" if version else "")
             + (f"\nAvailable configs in the cache: {available_configs}" if available_configs else "")
+            + (f"\nAvailable versions in the cache: {available_versions}" if version and available_versions else "")
         )
     # get most recent
     cached_directory_path = Path(sorted(cached_directory_paths, key=_get_modification_time)[-1])
+    version, hash = cached_directory_path.parts[-2:]
+    other_configs = [
+        Path(cached_directory_path).parts[-3]
+        for cached_directory_path in glob.glob(os.path.join(cached_datasets_directory_path_root, "*", version, hash))
+        if os.path.isdir(cached_directory_path)
+    ]
+    if not config_name and len(other_configs) > 1:
+        raise ValueError(
+            f"There are multiple '{dataset_name}' configurations in the cache: {', '.join(other_configs)}"
+            f"\nPlease specify which configuration to reload from the cache, e.g."
+            f"\n\tload_dataset('{dataset_name}', '{other_configs[0]}')"
+        )
     config_name = cached_directory_path.parts[-3]
-    hash = cached_directory_path.name
-    warnong_msg = (
+    warning_msg = (
         f"Found the latest cached dataset configuration '{config_name}' at {cached_directory_path} "
         f"(last modified on {time.ctime(_get_modification_time(cached_directory_path))})."
     )
-    logger.warning(warnong_msg)
-    return hash
+    logger.warning(warning_msg)
+    return config_name, version, hash
 
 
 class Cache(datasets.ArrowBasedBuilder):
@@ -64,6 +82,7 @@ class Cache(datasets.ArrowBasedBuilder):
         cache_dir: Optional[str] = None,
         dataset_name: Optional[str] = None,
         config_name: Optional[str] = None,
+        version: Optional[str] = None,
         hash: Optional[str] = None,
         repo_id: Optional[str] = None,
         **kwargs,
@@ -71,15 +90,17 @@ class Cache(datasets.ArrowBasedBuilder):
         if repo_id is None and dataset_name is None:
             raise ValueError("repo_id or dataset_name is required for the Cache dataset builder")
         if hash == "auto":
-            hash = _find_hash_in_cache(
+            config_name, version, hash = _find_hash_in_cache(
                 dataset_name=repo_id or dataset_name,
                 config_name=config_name,
+                version=version,
                 cache_dir=cache_dir,
             )
         super().__init__(
             cache_dir=cache_dir,
             dataset_name=dataset_name,
             config_name=config_name,
+            version=version,
             hash=hash,
             repo_id=repo_id,
             **kwargs,
