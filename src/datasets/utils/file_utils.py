@@ -254,15 +254,16 @@ def get_authentication_headers_for_url(
         token = use_auth_token
     headers = {}
     if url.startswith(config.HF_ENDPOINT):
-        if token is False:
+        if config.HF_HUB_VERSION >= version.parse("0.20.0"):
+            return huggingface_hub.utils.build_hf_headers(
+                token=token, library_name="datasets", library_version=__version__
+            )
+        elif token is False:
             token = None
         elif isinstance(token, str):
             token = token
         else:
-            if config.HF_HUB_VERSION > version.parse("0.20.0"):
-                token = huggingface_hub.get_token()
-            else:
-                token = huggingface_hub.HfFolder.get_token()
+            token = huggingface_hub.HfFolder.get_token()
 
         if token:
             headers["authorization"] = f"Bearer {token}"
