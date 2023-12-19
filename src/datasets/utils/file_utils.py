@@ -252,22 +252,12 @@ def get_authentication_headers_for_url(
             FutureWarning,
         )
         token = use_auth_token
-    headers = {}
     if url.startswith(config.HF_ENDPOINT):
-        if config.HF_HUB_VERSION >= version.parse("0.20.0"):
-            return huggingface_hub.utils.build_hf_headers(
-                token=token, library_name="datasets", library_version=__version__
-            )
-        elif token is False:
-            token = None
-        elif isinstance(token, str):
-            token = token
-        else:
-            token = huggingface_hub.HfFolder.get_token()
-
-        if token:
-            headers["authorization"] = f"Bearer {token}"
-    return headers
+        return huggingface_hub.utils.build_hf_headers(
+            token=token, library_name="datasets", library_version=__version__
+        )
+    else:
+        return {}
 
 
 class OfflineModeIsEnabled(ConnectionError):
