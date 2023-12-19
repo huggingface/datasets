@@ -741,6 +741,7 @@ def parquet_to_arrow(source, destination) -> List[int]:
     """Convert parquet file to arrow file. Inputs can be str paths or file-like objects"""
     stream = None if isinstance(destination, str) else destination
     parquet_file = pa.parquet.ParquetFile(source)
+    # Beam can create empty Parquet files, so we need to pass the source Parquet file's schema
     with ArrowWriter(schema=parquet_file.schema_arrow, path=destination, stream=stream) as writer:
         for record_batch in parquet_file.iter_batches():
             pa_table = pa.Table.from_batches([record_batch])
