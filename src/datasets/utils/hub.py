@@ -47,7 +47,7 @@ else:
 
 
 # `list_files_info` is deprecated in favor of `list_repo_tree` in `huggingface_hub>=0.20.0`
-if config.HF_HUB_VERSION < version.parse("0.20.0"):
+if config.HF_HUB_VERSION.release < version.parse("0.20.0").release:
 
     def list_files_info(hf_api: HfApi, **kwargs):
         yield from hf_api.list_files_info(**kwargs)
