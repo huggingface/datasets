@@ -13,7 +13,7 @@ from . import logging
 logger = logging.get_logger(__name__)
 
 # Retry `preupload_lfs_files` in `huggingface_hub<0.20.0` on the "500 (Internal Server Error)" and "503 (Service Unavailable)" HTTP errors
-if config.HF_HUB_VERSION < version.parse("0.20.0"):
+if config.HF_HUB_VERSION.release < version.parse("0.20.0").release:
 
     def preupload_lfs_files(hf_api: HfApi, **kwargs):
         max_retries = 5
