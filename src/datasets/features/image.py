@@ -398,7 +398,15 @@ class BBox:
         return self
 
     def encode_example(self, value: dict) -> dict:
-        return {"bbox": value["bbox"], "categories": value.get("label", value.get("category", value["categories"]))}
+        if "label" in value:
+            categories_field = "label"
+        elif "category" in value:
+            categories_field = "category"
+        elif "categories" in value:
+            categories_field = "categories"
+        else:
+            raise ValueError("Coudnl't find category field")
+        return {"bbox": value["bbox"], "categories": value[categories_field]}
 
     def decode_example(
         self, value: dict, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None
