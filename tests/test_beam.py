@@ -105,7 +105,7 @@ class BeamBuilderTest(TestCase):
             self.assertTrue(
                 os.path.exists(
                     os.path.join(
-                        tmp_cache_dir, builder.name, "default", "0.0.0", f"{builder.name}-train-00001-of-00002.arrow"
+                        tmp_cache_dir, builder.name, "default", "0.0.0", f"{builder.name}-train-00000-of-00002.arrow"
                     )
                 )
             )
