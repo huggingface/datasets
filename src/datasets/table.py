@@ -20,30 +20,6 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
-_IS_FLATTEN_ON_NULL_LIST_ARRAY_SUPPORTED = config.PYARROW_VERSION.major > 12
-_IS_LIST_ARRAY_TO_FIXED_SIZE_LIST_ARRAY_CAST_SUPPORTED = config.PYARROW_VERSION.major > 13
-
-
-def _list_array_flatten(array: Union[pa.ListArray, pa.FixedSizeListArray]) -> pa.Array:
-    if _IS_FLATTEN_ON_NULL_LIST_ARRAY_SUPPORTED and pc.all(array.is_null()).as_py():
-        return array.values[:0]  # Preserve the type
-    else:
-        return array.flatten()
-
-
-def _list_array_to_fixed_size_list_array_values(array: pa.ListArray, list_size: int) -> pa.Array:
-    array_offsets = np.array(array.offsets)
-    offsets_pair_iter = iter(zip(array_offsets[:-1], array_offsets[1:]))
-    array_values = array.values[:0]
-    for is_value_valid in np.array(array.is_valid()):
-        start, end = next(offsets_pair_iter)
-        if is_value_valid:
-            array_values = pa.concat_arrays([array_values, array.values[start:end]])
-        else:
-            array_values = pa.concat_arrays([array_values, pa.nulls(list_size, array_values.type)])
-    return array_values
-
-
 def inject_arrow_table_documentation(arrow_table_method):
     def wrapper(fn):
         fn.__doc__ = arrow_table_method.__doc__ + (fn.__doc__ if fn.__doc__ is not None else "")
@@ -1821,6 +1797,30 @@ def _wrap_for_chunked_arrays(func):
     return wrapper
 
 
+_IS_FLATTEN_ON_NULL_LIST_ARRAY_SUPPORTED = config.PYARROW_VERSION.major > 12
+_IS_LIST_ARRAY_TO_FIXED_SIZE_LIST_ARRAY_CAST_SUPPORTED = config.PYARROW_VERSION.major > 13
+
+
+def _list_array_flatten(array: Union[pa.ListArray, pa.FixedSizeListArray]) -> pa.Array:
+    if not _IS_FLATTEN_ON_NULL_LIST_ARRAY_SUPPORTED and pc.all(array.is_null()).as_py():
+        return array.values[:0]  # Preserve the type
+    else:
+        return array.flatten()
+
+
+def _list_array_to_fixed_size_list_array_values(array: pa.ListArray, list_size: int) -> pa.Array:
+    array_offsets = np.array(array.offsets)
+    offsets_pair_iter = iter(zip(array_offsets[:-1], array_offsets[1:]))
+    array_values = array.values[:0]
+    for is_value_valid in np.array(array.is_valid()):
+        start, end = next(offsets_pair_iter)
+        if is_value_valid:
+            array_values = pa.concat_arrays([array_values, array.values[start:end]])
+        else:
+            array_values = pa.concat_arrays([array_values, pa.nulls(list_size, array_values.type)])
+    return array_values
+
+
 @_wrap_for_chunked_arrays
 def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
     """Improved version of `pa.Array.cast`
@@ -1873,7 +1873,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
                         array_values = array.cast(pa.list_(array.type.value_type, pa_type.list_size)).values
                     else:
                         warnings.warn(
-                            "Casting from ListArray to FixedSizeListArray is not natively supported in `pyarrow<14`. Consider upgrading to `pyarrow>=14` to make it fast."
+                            "Casting from ListArray to FixedSizeListArray is not natively supported in `pyarrow<14`. Consider upgrading to `pyarrow>=14` to make this cast fast."
                         )
                         array_values = _list_array_to_fixed_size_list_array_values(array, pa_type.list_size)
                     return pa.Array.from_buffers(
@@ -2001,7 +2001,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
                             array_values = array.cast(pa.list_(array.type.value_type, feature.length)).values
                         else:
                             warnings.warn(
-                                "Casting from ListArray to FixedSizeListArray is not natively supported in `pyarrow<14`. Consider upgrading to `pyarrow>=14` to make it fast."
+                                "Casting from ListArray to FixedSizeListArray is not natively supported in `pyarrow<14`. Consider upgrading to `pyarrow>=14` to make this cast fast."
                             )
                             array_values = _list_array_to_fixed_size_list_array_values(array, feature.length)
                         c_array_values = _c(array_values, feature.feature)
