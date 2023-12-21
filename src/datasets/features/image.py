@@ -374,3 +374,56 @@ def objects_to_list_of_image_dicts(
             return objs
     else:
         return objs
+
+
+@dataclass
+class BBox:
+    decode: bool = True
+    format: Optional[str] = None
+    id: Optional[str] = None
+    # Automatically constructed
+    dtype: ClassVar[str] = "Union[dict, list]"
+    pa_type: ClassVar[Any] = pa.struct(
+        {
+            "bbox": pa.list_(pa.list_(pa.int32(), list_size=4)),
+            "categories": pa.list_(pa.int64()),
+        }
+    )
+    _type: str = field(default="BBox", init=False, repr=False)
+
+    def __call__(self):
+        return self.pa_type
+
+    def flatten(self) -> Union["FeatureType", Dict[str, "FeatureType"]]:
+        return self
+
+    def encode_example(self, value: dict) -> dict:
+        return {"bbox": value["bbox"], "categories": value.get("label", value.get("category", value["categories"]))}
+
+    def decode_example(
+        self, value: dict, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None
+    ) -> dict:
+        if self.format == "coco":
+            return [
+                {"bbox": bbox, "category_id": category_id}
+                for bbox, category_id in zip(value["bbox"], value["categories"])
+            ]
+        elif self.format is not None:
+            raise NotImplementedError()
+        else:
+            return value
+
+    def cast_storage(self, storage: pa.StructArray) -> pa.StructArray:
+        fields = [storage.type.field(i).name for i in range(storage.type.num_fields)]
+        if "label" in fields:
+            categories_field = "label"
+        elif "category" in fields:
+            categories_field = "category"
+        elif "categories" in fields:
+            categories_field = "categories"
+        else:
+            raise ValueError("Coudnl't find category field")
+        storage = pa.StructArray.from_arrays(
+            [storage.field("bbox"), storage.field(categories_field)], ["bbox", "categories"]
+        )
+        return array_cast(storage, self.pa_type)

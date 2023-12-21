@@ -6,6 +6,7 @@ __all__ = [
     "Array3D",
     "Array4D",
     "Array5D",
+    "BBox",
     "ClassLabel",
     "Features",
     "Sequence",
@@ -16,5 +17,5 @@ __all__ = [
 ]
 from .audio import Audio
 from .features import Array2D, Array3D, Array4D, Array5D, ClassLabel, Features, Sequence, Value
-from .image import Image
+from .image import BBox, Image
 from .translation import Translation, TranslationVariableLanguages
