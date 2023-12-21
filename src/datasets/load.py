@@ -2239,6 +2239,7 @@ def load_dataset_builder(
         **builder_kwargs,
         **config_kwargs,
     )
+    builder_instance._use_legacy_cache_dir_if_possible(dataset_module)
 
     return builder_instance
 

@@ -29,7 +29,8 @@ import warnings
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import Dict, Iterable, Mapping, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Dict, Iterable, Mapping, Optional, Tuple, Union
+from unittest.mock import patch
 
 import fsspec
 import pyarrow as pa
@@ -83,6 +84,10 @@ from .utils.py_utils import (
 )
 from .utils.sharding import _number_of_shards_in_gen_kwargs, _split_gen_kwargs
 from .utils.track import tracked_list
+
+
+if TYPE_CHECKING:
+    from .load import DatasetModule
 
 
 logger = logging.get_logger(__name__)
@@ -400,6 +405,10 @@ class DatasetBuilder:
             if is_remote_url(self._cache_downloaded_dir)
             else os.path.expanduser(self._cache_downloaded_dir)
         )
+
+        # In case there exists a legacy cache directory
+        self._legacy_relative_data_dir = None
+
         self._cache_dir = self._build_cache_dir()
         if not is_remote_url(self._cache_dir_root):
             os.makedirs(self._cache_dir_root, exist_ok=True)
@@ -452,23 +461,71 @@ class DatasetBuilder:
     def manual_download_instructions(self) -> Optional[str]:
         return None
 
-    def _has_legacy_cache(self) -> bool:
-        """Check for the old cache directory template {cache_dir}/{namespace}___{builder_name}"""
+    def _check_legacy_cache(self) -> Optional[str]:
+        """Check for the old cache directory template {cache_dir}/{namespace}___{builder_name} from 2.13"""
         if (
             self.__module__.startswith("datasets.")
             and not is_remote_url(self._cache_dir_root)
             and self.config.name == "default"
         ):
+            from .packaged_modules import _PACKAGED_DATASETS_MODULES
+
             namespace = self.repo_id.split("/")[0] if self.repo_id and self.repo_id.count("/") > 0 else None
-            legacy_config_name = self.repo_id.replace("/", "--") if self.repo_id is not None else self.dataset_name
-            legacy_config_id = legacy_config_name + self.config_id[len(self.config.name) :]
-            legacy_cache_dir = os.path.join(
-                self._cache_dir_root,
-                self.name if namespace is None else f"{namespace}___{self.name}",
-                legacy_config_id,
+            config_name = self.repo_id.replace("/", "--") if self.repo_id is not None else self.dataset_name
+            config_id = config_name + self.config_id[len(self.config.name) :]
+            hash = _PACKAGED_DATASETS_MODULES.get(self.name, "missing")[1]
+            legacy_relative_data_dir = posixpath.join(
+                self.dataset_name if namespace is None else f"{namespace}___{self.dataset_name}",
+                config_id,
+                "0.0.0",
+                hash,
             )
-            return os.path.isdir(legacy_cache_dir)
-        return False
+            legacy_cache_dir = posixpath.join(self._cache_dir_root, legacy_relative_data_dir)
+            if os.path.isdir(legacy_cache_dir):
+                return legacy_relative_data_dir
+
+    def _check_legacy_cache2(self, dataset_module: "DatasetModule") -> Optional[str]:
+        """Check for the old cache directory template {cache_dir}/{namespace}___{dataset_name}/{config_name}-xxx from 2.14 and 2.15"""
+        if self.__module__.startswith("datasets.") and not is_remote_url(self._cache_dir_root):
+            from .packaged_modules import _PACKAGED_DATASETS_MODULES
+            from .utils._dill import Pickler
+
+            def update_hash_with_config_parameters(hash: str, config_parameters: dict) -> str:
+                """
+                Used to update hash of packaged modules which is used for creating unique cache directories to reflect
+                different config parameters which are passed in metadata from readme.
+                """
+                params_to_exclude = {"config_name", "version", "description"}
+                params_to_add_to_hash = {
+                    param: value
+                    for param, value in sorted(config_parameters.items())
+                    if param not in params_to_exclude
+                }
+                m = Hasher()
+                m.update(hash)
+                m.update(params_to_add_to_hash)
+                return m.hexdigest()
+
+            namespace = self.repo_id.split("/")[0] if self.repo_id and self.repo_id.count("/") > 0 else None
+            with patch.object(Pickler, "_legacy_no_dict_keys_sorting", True):
+                config_id = self.config.name + "-" + Hasher.hash({"data_files": self.config.data_files})
+            hash = _PACKAGED_DATASETS_MODULES.get(self.name, "missing")[1]
+            if (
+                dataset_module.builder_configs_parameters.metadata_configs
+                and self.config.name in dataset_module.builder_configs_parameters.metadata_configs
+            ):
+                hash = update_hash_with_config_parameters(
+                    hash, dataset_module.builder_configs_parameters.metadata_configs[self.config.name]
+                )
+            legacy_relative_data_dir = posixpath.join(
+                self.dataset_name if namespace is None else f"{namespace}___{self.dataset_name}",
+                config_id,
+                "0.0.0",
+                hash,
+            )
+            legacy_cache_dir = posixpath.join(self._cache_dir_root, legacy_relative_data_dir)
+            if os.path.isdir(legacy_cache_dir):
+                return legacy_relative_data_dir
 
     @classmethod
     def get_all_exported_dataset_infos(cls) -> DatasetInfosDict:
@@ -600,6 +657,14 @@ class DatasetBuilder:
     def cache_dir(self):
         return self._cache_dir
 
+    def _use_legacy_cache_dir_if_possible(self, dataset_module: "DatasetModule"):
+        # Check for the legacy cache directory template (datasets<3.0.0)
+        self._legacy_relative_data_dir = (
+            self._check_legacy_cache2(dataset_module) or self._check_legacy_cache() or None
+        )
+        self._cache_dir = self._build_cache_dir()
+        self._output_dir = self._cache_dir
+
     def _relative_data_dir(self, with_version=True, with_hash=True) -> str:
         """Relative path of this dataset in cache_dir:
         Will be:
@@ -608,21 +673,12 @@ class DatasetBuilder:
             self.namespace___self.dataset_name/self.config.version/self.hash/
         If any of these element is missing or if ``with_version=False`` the corresponding subfolders are dropped.
         """
-
-        # Check for the legacy cache directory template (datasets<3.0.0)
-        if self._has_legacy_cache():
-            # use legacy names
-            dataset_name = self.name
-            config_name = self.repo_id.replace("/", "--") if self.repo_id is not None else self.dataset_name
-            config_id = config_name + self.config_id[len(self.config.name) :]
-        else:
-            dataset_name = self.dataset_name
-            config_name = self.config.name
-            config_id = self.config_id
+        if self._legacy_relative_data_dir is not None and with_version and with_hash:
+            return self._legacy_relative_data_dir
 
         namespace = self.repo_id.split("/")[0] if self.repo_id and self.repo_id.count("/") > 0 else None
-        builder_data_dir = dataset_name if namespace is None else f"{namespace}___{dataset_name}"
-        builder_data_dir = posixpath.join(builder_data_dir, config_id)
+        builder_data_dir = self.dataset_name if namespace is None else f"{namespace}___{self.dataset_name}"
+        builder_data_dir = posixpath.join(builder_data_dir, self.config_id)
         if with_version:
             builder_data_dir = posixpath.join(builder_data_dir, str(self.config.version))
         if with_hash and self.hash and isinstance(self.hash, str):
@@ -1285,7 +1341,7 @@ class DatasetBuilder:
         """
         cache_dir = self._fs._strip_protocol(self._output_dir)
         dataset_name = self.dataset_name
-        if self._has_legacy_cache():
+        if self._check_legacy_cache():
             dataset_name = self.name
         dataset_kwargs = ArrowReader(cache_dir, self.info).read(
             name=dataset_name,
