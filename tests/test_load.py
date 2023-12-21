@@ -1595,3 +1595,26 @@ def test_resolve_trust_remote_code_future(trust_remote_code, expected):
         else:
             with pytest.raises(expected):
                 resolve_trust_remote_code(trust_remote_code, repo_id="dummy")
+
+
+@pytest.mark.integration
+def test_reload_old_cache_from_2_15(tmp_path: Path):
+    cache_dir = tmp_path / "test_reload_old_cache_from_2_15"
+    builder_cache_dir = (
+        cache_dir / "polinaeterna___audiofolder_two_configs_in_metadata/v2-374bfde4f55442bc/0.0.0/7896925d64deea5d"
+    )
+    builder_cache_dir.mkdir(parents=True)
+    arrow_path = builder_cache_dir / "audiofolder_two_configs_in_metadata-train.arrow"
+    dataset_info_path = builder_cache_dir / "dataset_info.json"
+    with dataset_info_path.open("w") as f:
+        f.write("{}")
+    arrow_path.touch()
+    builder = load_dataset_builder(
+        "polinaeterna/audiofolder_two_configs_in_metadata", "v2", data_files="v2/train/*", cache_dir=cache_dir
+    )
+    assert builder.cache_dir == str(builder_cache_dir)  # old cache from 2.15
+
+    builder = load_dataset_builder("polinaeterna/audiofolder_two_configs_in_metadata", "v2", cache_dir=cache_dir)
+    assert builder.cache_dir == str(
+        cache_dir / "polinaeterna___audiofolder_two_configs_in_metadata" / "v2" / "0.0.0" / builder.hash
+    )  # new cache

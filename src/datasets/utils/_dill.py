@@ -25,6 +25,7 @@ from .. import config
 
 class Pickler(dill.Pickler):
     dispatch = dill._dill.MetaCatchingDict(dill.Pickler.dispatch.copy())
+    _legacy_no_dict_keys_sorting = False
 
     def save(self, obj, save_persistent_id=True):
         obj_type = type(obj)
@@ -68,6 +69,8 @@ class Pickler(dill.Pickler):
         dill.Pickler.save(self, obj, save_persistent_id=save_persistent_id)
 
     def _batch_setitems(self, items):
+        if self._legacy_no_dict_keys_sorting:
+            return super()._batch_setitems(items)
         # Ignore the order of keys in a dict
         try:
             # Faster, but fails for unorderable elements
