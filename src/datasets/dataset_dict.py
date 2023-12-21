@@ -33,6 +33,7 @@ from .tasks import TaskTemplate
 from .utils import logging
 from .utils.deprecation_utils import deprecated
 from .utils.doc_utils import is_documented_by
+from .utils.hub import list_files_info
 from .utils.metadata import MetadataConfigs
 from .utils.py_utils import asdict, glob_pattern_to_regex, string_to_dict
 from .utils.typing import PathLike
@@ -1558,6 +1559,7 @@ class DatasetDict(dict):
         config_name: str = "default",
         set_default: Optional[bool] = None,
         commit_message: Optional[str] = None,
+        commit_description: Optional[str] = None,
         private: Optional[bool] = False,
         token: Optional[str] = None,
         revision: Optional[str] = None,
@@ -1588,6 +1590,11 @@ class DatasetDict(dict):
                 named "default".
             commit_message (`str`, *optional*):
                 Message to commit while pushing. Will default to `"Upload dataset"`.
+            commit_description (`str`, *optional*):
+                Description of the commit that will be created.
+                Additionally, description of the PR if a PR is created (`create_pr` is True).
+
+                <Added version="2.16.0"/>
             private (`bool`, *optional*):
                 Whether the dataset repository should be set to private or not. Only affects repository creation:
                 a repository that already exists will not be affected by that parameter.
@@ -1678,14 +1685,13 @@ class DatasetDict(dict):
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
 
-        repo_url = api.create_repo(
+        _ = api.create_repo(
             repo_id,
             token=token,
             repo_type="dataset",
             private=private,
             exist_ok=True,
         )
-        repo_id = repo_url.repo_id
 
         if revision is not None:
             api.create_branch(repo_id, branch=revision, token=token, repo_type="dataset", exist_ok=True)
@@ -1722,7 +1728,7 @@ class DatasetDict(dict):
         repo_splits = []  # use a list to keep the order of the splits
         deletions = []
         repo_files_to_add = [addition.path_in_repo for addition in additions]
-        for repo_file in api.list_files_info(repo_id, revision=revision, repo_type="dataset", token=token):
+        for repo_file in list_files_info(api, repo_id=repo_id, revision=revision, repo_type="dataset", token=token):
             if repo_file.rfilename == "README.md":
                 repo_with_dataset_card = True
             elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:
@@ -1802,6 +1808,7 @@ class DatasetDict(dict):
                 repo_id,
                 operations=additions + deletions,
                 commit_message=commit_message,
+                commit_description=commit_description,
                 token=token,
                 repo_type="dataset",
                 revision=revision,
@@ -1820,6 +1827,7 @@ class DatasetDict(dict):
                     repo_id,
                     operations=operations,
                     commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
+                    commit_description=commit_description,
                     token=token,
                     repo_type="dataset",
                     revision=revision,

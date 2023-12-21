@@ -13,6 +13,7 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 from huggingface_hub import DatasetCard, HfApi
+from huggingface_hub.utils import RepositoryNotFoundError
 
 from datasets import (
     Audio,
@@ -70,16 +71,9 @@ class TestPushToHub:
         local_ds = DatasetDict({"train": ds})
 
         with temporary_repo() as ds_name:
-            local_ds.push_to_hub(ds_name.split("/")[-1], token=self._token)
-            hub_ds = load_dataset(ds_name, download_mode="force_redownload")
-
-            assert local_ds.column_names == hub_ds.column_names
-            assert list(local_ds["train"].features.keys()) == list(hub_ds["train"].features.keys())
-            assert local_ds["train"].features == hub_ds["train"].features
-
-            # Ensure that there is a single file on the repository that has the correct name
-            files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset"))
-            assert files == [".gitattributes", "README.md", "data/train-00000-of-00001.parquet"]
+            # cannot create a repo without namespace
+            with pytest.raises(RepositoryNotFoundError):
+                local_ds.push_to_hub(ds_name.split("/")[-1], token=self._token)
 
     def test_push_dataset_dict_to_hub_datasets_with_different_features(self, cleanup_repo):
         ds_train = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
