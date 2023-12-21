@@ -598,6 +598,7 @@ def create_builder_configs_from_metadata_configs(
     supports_metadata: bool,
     base_path: Optional[str] = None,
     default_builder_kwargs: Dict[str, Any] = None,
+    download_config: Optional[DownloadConfig] = None,
 ) -> Tuple[List[BuilderConfig], str]:
     builder_cls = import_main_class(module_path)
     builder_config_cls = builder_cls.BUILDER_CONFIG_CLASS
@@ -1244,6 +1245,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 base_path=base_path,
                 supports_metadata=supports_metadata,
                 default_builder_kwargs=default_builder_kwargs,
+                download_config=self.download_config,
             )
         else:
             builder_configs: List[BuilderConfig] = [
@@ -1343,6 +1345,7 @@ class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
             module_path,
             metadata_configs,
             supports_metadata=False,
+            download_config=self.download_config,
         )
         hash = self.revision
         builder_kwargs = {
