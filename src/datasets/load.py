@@ -642,7 +642,7 @@ def create_builder_configs_from_metadata_configs(
             ) from e
         if config_data_files is None and supports_metadata and config_patterns != DEFAULT_PATTERNS_ALL:
             try:
-                config_metadata_patterns = get_metadata_patterns(base_path)
+                config_metadata_patterns = get_metadata_patterns(base_path, download_config=download_config)
             except FileNotFoundError:
                 config_metadata_patterns = None
             if config_metadata_patterns is not None:
@@ -1139,7 +1139,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         supports_metadata = self.name in _MODULE_SUPPORTS_METADATA
         if self.data_files is None and supports_metadata and patterns != DEFAULT_PATTERNS_ALL:
             try:
-                metadata_patterns = get_metadata_patterns(base_path)
+                metadata_patterns = get_metadata_patterns(base_path, download_config=self.download_config)
             except FileNotFoundError:
                 metadata_patterns = None
             if metadata_patterns is not None:
@@ -1237,7 +1237,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         supports_metadata = module_name in _MODULE_SUPPORTS_METADATA
         if self.data_files is None and supports_metadata:
             try:
-                metadata_patterns = get_metadata_patterns(base_path)
+                metadata_patterns = get_metadata_patterns(base_path, download_config=self.download_config)
             except FileNotFoundError:
                 metadata_patterns = None
             if metadata_patterns is not None:
