@@ -1672,11 +1672,16 @@ def test_reload_old_cache_from_2_15(tmp_path: Path):
         f.write("{}")
     arrow_path.touch()
     builder = load_dataset_builder(
-        "polinaeterna/CACHE_DIR_PARAM", "v2", data_files="v2/train/*", cache_dir=cache_dir
+        "polinaeterna/audiofolder_two_configs_in_metadata",
+        "v2",
+        data_files="v2/train/*",
+        cache_dir=cache_dir.as_posix(),
     )
     assert builder.cache_dir == builder_cache_dir.as_posix()  # old cache from 2.15
 
-    builder = load_dataset_builder("polinaeterna/audiofolder_two_configs_in_metadata", "v2", cache_dir=cache_dir)
+    builder = load_dataset_builder(
+        "polinaeterna/audiofolder_two_configs_in_metadata", "v2", cache_dir=cache_dir.as_posix()
+    )
     assert (
         builder.cache_dir
         == (
