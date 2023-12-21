@@ -166,7 +166,6 @@ TESTS_REQUIRE = [
     "pytest-datadir",
     "pytest-xdist",
     # optional dependencies
-    # "apache-beam>=2.26.0; sys_platform != 'win32' and python_version<'3.10'",  # doesn't support recent dill versions for recent python versions and windows releases require older PyArrow versions
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch()
     "faiss-cpu>=1.6.4",
     "jax>=0.3.14; sys_platform != 'win32'",
@@ -233,7 +232,7 @@ DOCS_REQUIRE = [
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
     "vision": VISION_REQUIRE,
-    "apache-beam": ["apache-beam>=2.26.0"],
+    "apache-beam": ["apache-beam>=2.52.0"],
     "tensorflow": [
         "tensorflow>=2.2.0,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
         "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
