@@ -418,7 +418,6 @@ def get_dataset_default_config_name(
     )
     builder_cls = get_dataset_builder_class(dataset_module, dataset_name=os.path.basename(path))
     builder_configs = list(builder_cls.builder_configs.keys())
-    # default_config_name = builder_configs[0] if len(builder_configs) == 1 else None if builder_configs else "default"
     if builder_configs:
         default_config_name = builder_configs[0] if len(builder_configs) == 1 else None
     else:
