@@ -26,7 +26,6 @@ import huggingface_hub
 import requests
 from fsspec.core import strip_protocol
 from fsspec.utils import can_be_local
-from huggingface_hub import HfFolder
 from huggingface_hub.utils import insecure_hashlib
 from packaging import version
 
@@ -253,18 +252,12 @@ def get_authentication_headers_for_url(
             FutureWarning,
         )
         token = use_auth_token
-    headers = {}
     if url.startswith(config.HF_ENDPOINT):
-        if token is False:
-            token = None
-        elif isinstance(token, str):
-            token = token
-        else:
-            token = HfFolder.get_token()
-
-        if token:
-            headers["authorization"] = f"Bearer {token}"
-    return headers
+        return huggingface_hub.utils.build_hf_headers(
+            token=token, library_name="datasets", library_version=__version__
+        )
+    else:
+        return {}
 
 
 class OfflineModeIsEnabled(ConnectionError):

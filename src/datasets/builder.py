@@ -29,7 +29,8 @@ import warnings
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import Dict, Iterable, Mapping, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Dict, Iterable, Mapping, Optional, Tuple, Union
+from unittest.mock import patch
 
 import fsspec
 import pyarrow as pa
@@ -46,12 +47,13 @@ from .arrow_reader import (
     ReadInstruction,
 )
 from .arrow_writer import ArrowWriter, BeamWriter, ParquetWriter, SchemaInferenceError
-from .data_files import DataFilesDict, sanitize_patterns
+from .data_files import DataFilesDict, DataFilesPatternsDict, sanitize_patterns
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadManager, DownloadMode
 from .download.mock_download_manager import MockDownloadManager
-from .download.streaming_download_manager import StreamingDownloadManager, xopen
+from .download.streaming_download_manager import StreamingDownloadManager, xjoin, xopen
+from .exceptions import DatasetGenerationCastError, DatasetGenerationError, FileFormatError, ManualDownloadError
 from .features import Features
 from .filesystems import (
     is_remote_filesystem,
@@ -64,6 +66,7 @@ from .keyhash import DuplicatedKeysError
 from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH, camelcase_to_snakecase
 from .splits import Split, SplitDict, SplitGenerator, SplitInfo
 from .streaming import extend_dataset_builder_for_streaming
+from .table import CastError
 from .utils import logging
 from .utils import tqdm as hf_tqdm
 from .utils._filelock import FileLock
@@ -80,28 +83,17 @@ from .utils.py_utils import (
     temporary_assignment,
 )
 from .utils.sharding import _number_of_shards_in_gen_kwargs, _split_gen_kwargs
+from .utils.track import tracked_list
+
+
+if TYPE_CHECKING:
+    from .load import DatasetModule
 
 
 logger = logging.get_logger(__name__)
 
 
 class InvalidConfigName(ValueError):
-    pass
-
-
-class DatasetBuildError(Exception):
-    pass
-
-
-class ManualDownloadError(DatasetBuildError):
-    pass
-
-
-class DatasetGenerationError(DatasetBuildError):
-    pass
-
-
-class FileFormatError(DatasetBuildError):
     pass
 
 
@@ -128,7 +120,7 @@ class BuilderConfig:
     name: str = "default"
     version: Optional[Union[utils.Version, str]] = utils.Version("0.0.0")
     data_dir: Optional[str] = None
-    data_files: Optional[DataFilesDict] = None
+    data_files: Optional[Union[DataFilesDict, DataFilesPatternsDict]] = None
     description: Optional[str] = None
 
     def __post_init__(self):
@@ -139,7 +131,7 @@ class BuilderConfig:
                     f"Bad characters from black list '{INVALID_WINDOWS_CHARACTERS_IN_PATH}' found in '{self.name}'. "
                     f"They could create issues when creating a directory for this config on Windows filesystem."
                 )
-        if self.data_files is not None and not isinstance(self.data_files, DataFilesDict):
+        if self.data_files is not None and not isinstance(self.data_files, (DataFilesDict, DataFilesPatternsDict)):
             raise ValueError(f"Expected a DataFilesDict in data_files but got {self.data_files}")
 
     def __eq__(self, o):
@@ -212,6 +204,11 @@ class BuilderConfig:
             return config_id
         else:
             return self.name
+
+    def _resolve_data_files(self, base_path: str, download_config: DownloadConfig) -> None:
+        if isinstance(self.data_files, DataFilesPatternsDict):
+            base_path = xjoin(base_path, self.data_dir) if self.data_dir else base_path
+            self.data_files = self.data_files.resolve(base_path, download_config)
 
 
 class DatasetBuilder:
@@ -408,6 +405,10 @@ class DatasetBuilder:
             if is_remote_url(self._cache_downloaded_dir)
             else os.path.expanduser(self._cache_downloaded_dir)
         )
+
+        # In case there exists a legacy cache directory
+        self._legacy_relative_data_dir = None
+
         self._cache_dir = self._build_cache_dir()
         if not is_remote_url(self._cache_dir_root):
             os.makedirs(self._cache_dir_root, exist_ok=True)
@@ -460,23 +461,71 @@ class DatasetBuilder:
     def manual_download_instructions(self) -> Optional[str]:
         return None
 
-    def _has_legacy_cache(self) -> bool:
-        """Check for the old cache directory template {cache_dir}/{namespace}___{builder_name}"""
+    def _check_legacy_cache(self) -> Optional[str]:
+        """Check for the old cache directory template {cache_dir}/{namespace}___{builder_name} from 2.13"""
         if (
             self.__module__.startswith("datasets.")
             and not is_remote_url(self._cache_dir_root)
             and self.config.name == "default"
         ):
+            from .packaged_modules import _PACKAGED_DATASETS_MODULES
+
             namespace = self.repo_id.split("/")[0] if self.repo_id and self.repo_id.count("/") > 0 else None
-            legacy_config_name = self.repo_id.replace("/", "--") if self.repo_id is not None else self.dataset_name
-            legacy_config_id = legacy_config_name + self.config_id[len(self.config.name) :]
-            legacy_cache_dir = os.path.join(
-                self._cache_dir_root,
-                self.name if namespace is None else f"{namespace}___{self.name}",
-                legacy_config_id,
+            config_name = self.repo_id.replace("/", "--") if self.repo_id is not None else self.dataset_name
+            config_id = config_name + self.config_id[len(self.config.name) :]
+            hash = _PACKAGED_DATASETS_MODULES.get(self.name, "missing")[1]
+            legacy_relative_data_dir = posixpath.join(
+                self.dataset_name if namespace is None else f"{namespace}___{self.dataset_name}",
+                config_id,
+                "0.0.0",
+                hash,
             )
-            return os.path.isdir(legacy_cache_dir)
-        return False
+            legacy_cache_dir = posixpath.join(self._cache_dir_root, legacy_relative_data_dir)
+            if os.path.isdir(legacy_cache_dir):
+                return legacy_relative_data_dir
+
+    def _check_legacy_cache2(self, dataset_module: "DatasetModule") -> Optional[str]:
+        """Check for the old cache directory template {cache_dir}/{namespace}___{dataset_name}/{config_name}-xxx from 2.14 and 2.15"""
+        if self.__module__.startswith("datasets.") and not is_remote_url(self._cache_dir_root):
+            from .packaged_modules import _PACKAGED_DATASETS_MODULES
+            from .utils._dill import Pickler
+
+            def update_hash_with_config_parameters(hash: str, config_parameters: dict) -> str:
+                """
+                Used to update hash of packaged modules which is used for creating unique cache directories to reflect
+                different config parameters which are passed in metadata from readme.
+                """
+                params_to_exclude = {"config_name", "version", "description"}
+                params_to_add_to_hash = {
+                    param: value
+                    for param, value in sorted(config_parameters.items())
+                    if param not in params_to_exclude
+                }
+                m = Hasher()
+                m.update(hash)
+                m.update(params_to_add_to_hash)
+                return m.hexdigest()
+
+            namespace = self.repo_id.split("/")[0] if self.repo_id and self.repo_id.count("/") > 0 else None
+            with patch.object(Pickler, "_legacy_no_dict_keys_sorting", True):
+                config_id = self.config.name + "-" + Hasher.hash({"data_files": self.config.data_files})
+            hash = _PACKAGED_DATASETS_MODULES.get(self.name, "missing")[1]
+            if (
+                dataset_module.builder_configs_parameters.metadata_configs
+                and self.config.name in dataset_module.builder_configs_parameters.metadata_configs
+            ):
+                hash = update_hash_with_config_parameters(
+                    hash, dataset_module.builder_configs_parameters.metadata_configs[self.config.name]
+                )
+            legacy_relative_data_dir = posixpath.join(
+                self.dataset_name if namespace is None else f"{namespace}___{self.dataset_name}",
+                config_id,
+                "0.0.0",
+                hash,
+            )
+            legacy_cache_dir = posixpath.join(self._cache_dir_root, legacy_relative_data_dir)
+            if os.path.isdir(legacy_cache_dir):
+                return legacy_relative_data_dir
 
     @classmethod
     def get_all_exported_dataset_infos(cls) -> DatasetInfosDict:
@@ -517,7 +566,7 @@ class DatasetBuilder:
         builder_config = None
 
         # try default config
-        if config_name is None and self.BUILDER_CONFIGS and not config_kwargs:
+        if config_name is None and self.BUILDER_CONFIGS:
             if self.DEFAULT_CONFIG_NAME is not None:
                 builder_config = self.builder_configs.get(self.DEFAULT_CONFIG_NAME)
                 logger.info(f"No config specified, defaulting to: {self.dataset_name}/{builder_config.name}")
@@ -555,7 +604,7 @@ class DatasetBuilder:
 
         # otherwise use the config_kwargs to overwrite the attributes
         else:
-            builder_config = copy.deepcopy(builder_config)
+            builder_config = copy.deepcopy(builder_config) if config_kwargs else builder_config
             for key, value in config_kwargs.items():
                 if value is not None:
                     if not hasattr(builder_config, key):
@@ -564,6 +613,12 @@ class DatasetBuilder:
 
         if not builder_config.name:
             raise ValueError(f"BuilderConfig must have a name, got {builder_config.name}")
+
+        # resolve data files if needed
+        builder_config._resolve_data_files(
+            base_path=self.base_path,
+            download_config=DownloadConfig(token=self.token, storage_options=self.storage_options),
+        )
 
         # compute the config id that is going to be used for caching
         config_id = builder_config.create_config_id(
@@ -590,7 +645,7 @@ class DatasetBuilder:
     @classproperty
     @classmethod
     @memoize()
-    def builder_configs(cls):
+    def builder_configs(cls) -> Dict[str, BuilderConfig]:
         """Dictionary of pre-defined configurations for this builder class."""
         configs = {config.name: config for config in cls.BUILDER_CONFIGS}
         if len(configs) != len(cls.BUILDER_CONFIGS):
@@ -602,6 +657,14 @@ class DatasetBuilder:
     def cache_dir(self):
         return self._cache_dir
 
+    def _use_legacy_cache_dir_if_possible(self, dataset_module: "DatasetModule"):
+        # Check for the legacy cache directory template (datasets<3.0.0)
+        self._legacy_relative_data_dir = (
+            self._check_legacy_cache2(dataset_module) or self._check_legacy_cache() or None
+        )
+        self._cache_dir = self._build_cache_dir()
+        self._output_dir = self._cache_dir
+
     def _relative_data_dir(self, with_version=True, with_hash=True) -> str:
         """Relative path of this dataset in cache_dir:
         Will be:
@@ -610,21 +673,12 @@ class DatasetBuilder:
             self.namespace___self.dataset_name/self.config.version/self.hash/
         If any of these element is missing or if ``with_version=False`` the corresponding subfolders are dropped.
         """
-
-        # Check for the legacy cache directory template (datasets<3.0.0)
-        if self._has_legacy_cache():
-            # use legacy names
-            dataset_name = self.name
-            config_name = self.repo_id.replace("/", "--") if self.repo_id is not None else self.dataset_name
-            config_id = config_name + self.config_id[len(self.config.name) :]
-        else:
-            dataset_name = self.dataset_name
-            config_name = self.config.name
-            config_id = self.config_id
+        if self._legacy_relative_data_dir is not None and with_version and with_hash:
+            return self._legacy_relative_data_dir
 
         namespace = self.repo_id.split("/")[0] if self.repo_id and self.repo_id.count("/") > 0 else None
-        builder_data_dir = dataset_name if namespace is None else f"{namespace}___{dataset_name}"
-        builder_data_dir = posixpath.join(builder_data_dir, config_id)
+        builder_data_dir = self.dataset_name if namespace is None else f"{namespace}___{self.dataset_name}"
+        builder_data_dir = posixpath.join(builder_data_dir, self.config_id)
         if with_version:
             builder_data_dir = posixpath.join(builder_data_dir, str(self.config.version))
         if with_hash and self.hash and isinstance(self.hash, str):
@@ -1287,7 +1341,7 @@ class DatasetBuilder:
         """
         cache_dir = self._fs._strip_protocol(self._output_dir)
         dataset_name = self.dataset_name
-        if self._has_legacy_cache():
+        if self._check_legacy_cache():
             dataset_name = self.name
         dataset_kwargs = ArrowReader(cache_dir, self.info).read(
             name=dataset_name,
@@ -1895,6 +1949,7 @@ class ArrowBasedBuilder(DatasetBuilder):
     def _prepare_split_single(
         self, gen_kwargs: dict, fpath: str, file_format: str, max_shard_size: int, job_id: int
     ) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
+        gen_kwargs = {k: tracked_list(v) if isinstance(v, list) else v for k, v in gen_kwargs.items()}
         generator = self._generate_tables(**gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"
@@ -1928,7 +1983,15 @@ class ArrowBasedBuilder(DatasetBuilder):
                             storage_options=self._fs.storage_options,
                             embed_local_files=embed_local_files,
                         )
-                    writer.write_table(table)
+                    try:
+                        writer.write_table(table)
+                    except CastError as cast_error:
+                        raise DatasetGenerationCastError.from_cast_error(
+                            cast_error=cast_error,
+                            builder_name=self.info.builder_name,
+                            gen_kwargs=gen_kwargs,
+                            token=self.token,
+                        )
                     num_examples_progress_update += len(table)
                     if time.time() > _time + config.PBAR_REFRESH_TIME_INTERVAL:
                         _time = time.time()
@@ -1946,6 +2009,8 @@ class ArrowBasedBuilder(DatasetBuilder):
             # Ignore the writer's error for no examples written to the file if this error was caused by the error in _generate_examples before the first example was yielded
             if isinstance(e, SchemaInferenceError) and e.__context__ is not None:
                 e = e.__context__
+            if isinstance(e, DatasetGenerationError):
+                raise
             raise DatasetGenerationError("An error occurred while generating the dataset") from e
 
         yield job_id, True, (total_num_examples, total_num_bytes, writer._features, num_shards, shard_lengths)

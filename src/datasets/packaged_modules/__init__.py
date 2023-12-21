@@ -6,6 +6,7 @@ from huggingface_hub.utils import insecure_hashlib
 
 from .arrow import arrow
 from .audiofolder import audiofolder
+from .cache import cache  # noqa F401
 from .csv import csv
 from .imagefolder import imagefolder
 from .json import json

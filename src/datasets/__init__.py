@@ -31,6 +31,7 @@ from .info import DatasetInfo, MetricInfo
 from .inspect import (
     get_dataset_config_info,
     get_dataset_config_names,
+    get_dataset_default_config_name,
     get_dataset_infos,
     get_dataset_split_names,
     inspect_dataset,
