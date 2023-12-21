@@ -5228,6 +5228,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         set_default: Optional[bool] = None,
         split: Optional[str] = None,
         commit_message: Optional[str] = None,
+        commit_description: Optional[str] = None,
         private: Optional[bool] = False,
         token: Optional[str] = None,
         revision: Optional[str] = None,
@@ -5258,6 +5259,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The name of the split that will be given to that dataset. Defaults to `self.split`.
             commit_message (`str`, *optional*):
                 Message to commit while pushing. Will default to `"Upload dataset"`.
+            commit_description (`str`, *optional*):
+                Description of the commit that will be created.
+                Additionally, description of the PR if a PR is created (`create_pr` is True).
+
+                <Added version="2.16.0"/>
             private (`bool`, *optional*, defaults to `False`):
                 Whether the dataset repository should be set to private or not. Only affects repository creation:
                 a repository that already exists will not be affected by that parameter.
@@ -5526,6 +5532,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 repo_id,
                 operations=additions + deletions,
                 commit_message=commit_message,
+                commit_description=commit_description,
                 token=token,
                 repo_type="dataset",
                 revision=revision,
@@ -5544,6 +5551,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     repo_id,
                     operations=operations,
                     commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
+                    commit_description=commit_description,
                     token=token,
                     repo_type="dataset",
                     revision=revision,
