@@ -252,7 +252,7 @@ def test_metadata_configs_incorrect_yaml():
             _ = MetadataConfigs.from_dataset_card_data(dataset_card_data)
 
 
-def test_metadata_configs_from_exported_parquet_files_and_dataset_infos():
+def test_split_order_in_metadata_configs_from_exported_parquet_files_and_dataset_infos():
     exported_parquet_files = [
         {
             "dataset": "beans",
@@ -330,8 +330,5 @@ def test_metadata_configs_from_exported_parquet_files_and_dataset_infos():
     metadata_configs = MetadataConfigs._from_exported_parquet_files_and_dataset_infos(
         "123", exported_parquet_files, dataset_infos
     )
-    assert [data_file["split"] for data_file in metadata_configs["default"]["data_files"]] == [
-        "train",
-        "validation",
-        "test",
-    ]
+    split_names = [data_file["split"] for data_file in metadata_configs["default"]["data_files"]]
+    assert split_names == ["train", "validation", "test"]
