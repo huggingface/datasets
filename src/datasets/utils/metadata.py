@@ -179,26 +179,37 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
         exported_parquet_files: List[Dict[str, Any]],
         dataset_infos: DatasetInfosDict,
     ) -> "MetadataConfigs":
-        return cls(
-            {
+        metadata_configs = {
+            config_name: {
+                "data_files": [
+                    {
+                        "split": split_name,
+                        "path": [
+                            parquet_file["url"].replace("refs%2Fconvert%2Fparquet", revision)
+                            for parquet_file in parquet_files_for_split
+                        ],
+                    }
+                    for split_name, parquet_files_for_split in groupby(parquet_files_for_config, itemgetter("split"))
+                ],
+                "version": str(dataset_infos.get(config_name, DatasetInfo()).version or "0.0.0"),
+            }
+            for config_name, parquet_files_for_config in groupby(exported_parquet_files, itemgetter("config"))
+        }
+        if dataset_infos:
+            # Preserve order of configs and splits
+            metadata_configs = {
                 config_name: {
                     "data_files": [
-                        {
-                            "split": split_name,
-                            "path": [
-                                parquet_file["url"].replace("refs%2Fconvert%2Fparquet", revision)
-                                for parquet_file in parquet_files_for_split
-                            ],
-                        }
-                        for split_name, parquet_files_for_split in groupby(
-                            parquet_files_for_config, itemgetter("split")
-                        )
+                        data_file
+                        for split_name in dataset_info.splits
+                        for data_file in metadata_configs[config_name]["data_files"]
+                        if data_file["split"] == split_name
                     ],
-                    "version": str(dataset_infos.get(config_name, DatasetInfo()).version or "0.0.0"),
+                    "version": metadata_configs[config_name]["version"],
                 }
-                for config_name, parquet_files_for_config in groupby(exported_parquet_files, itemgetter("config"))
+                for config_name, dataset_info in dataset_infos.items()
             }
-        )
+        return cls(metadata_configs)
 
     @classmethod
     def from_dataset_card_data(cls, dataset_card_data: DatasetCardData) -> "MetadataConfigs":
