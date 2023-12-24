@@ -61,6 +61,18 @@ if USE_TORCH in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TF not in ENV_VARS_TRUE_VA
 else:
     logger.info("Disabling PyTorch because USE_TF is set")
 
+POLARS_VERSION = "N/A"
+POLARS_AVAILABLE = False
+
+if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VALUES:
+    POLARS_AVAILABLE = importlib.util.find_spec("polars") is not None
+    if POLARS_AVAILABLE:
+        try:
+            POLARS_VERSION = version.parse(importlib.metadata.version("polars"))
+            logger.info(f"Polars version {POLARS_VERSION} available.")
+        except importlib.metadata.PackageNotFoundError:
+            pass
+
 TF_VERSION = "N/A"
 TF_AVAILABLE = False
 

@@ -14,6 +14,7 @@ from .utils.logging import get_logger
 
 
 if TYPE_CHECKING:
+    import polars as pl
     from .features.features import Features, FeatureType
 
 
@@ -306,6 +307,72 @@ class Table(IndexedTableMixin):
             `pandas.Series` or `pandas.DataFrame`: `pandas.Series` or `pandas.DataFrame` depending on type of object
         """
         return self.table.to_pandas(*args, **kwargs)
+
+    def to_polars(self, *args, **kwargs):
+        """
+        Create a DataFrame or Series from an Arrow Table or Array.
+
+        This operation will be zero copy for the most part. Types that are not
+        supported by Polars may be cast to the closest supported type.
+
+        Args:
+            schema (`Union[(str,DataType), Dict[str,DataType]]`, *optional*):
+                The DataFrame schema may be declared in several ways:
+
+                * As a dict of {name:type} pairs; if type is None, it will be auto-inferred.
+                * As a list of column names; in this case types are automatically inferred.
+                * As a list of (name,type) pairs; this is equivalent to the dictionary form.
+
+                If you supply a list of column names that does not match the names in the
+                underlying data, the names given here will overwrite them. The number
+                of names given in the schema should match the underlying data dimensions.
+            schema_overrides (`Dict[str,DataType]`, *optional*):
+                Support type specification or override of one or more columns; note that
+                any dtypes inferred from the schema param will be overridden.
+            rechunk (`bool`, default True):
+                Make sure that all data is in contiguous memory.
+
+        Returns:
+            `Union[polars.DataFrame, pl.Series]`
+
+        Examples:
+        
+        Constructing a DataFrame from an Arrow Table:
+        ```python
+        >>> import pyarrow as pa
+        >>> data = pa.table({"a": [1, 2, 3], "b": [4, 5, 6]})
+        >>> df = pl.from_arrow(data)
+        >>> df
+        shape: (3, 2)
+        ┌─────┬─────┐
+        │ a   ┆ b   │
+        │ --- ┆ --- │
+        │ i64 ┆ i64 │
+        ╞═════╪═════╡
+        │ 1   ┆ 4   │
+        │ 2   ┆ 5   │
+        │ 3   ┆ 6   │
+        └─────┴─────┘
+
+        Constructing a Series from an Arrow Array:
+
+        >>> import pyarrow as pa
+        >>> data = pa.array([1, 2, 3])
+        >>> series = pl.from_arrow(data, schema={"s": pl.Int32})
+        >>> series
+        shape: (3,)
+        Series: 's' [i32]
+        [
+            1
+            2
+            3
+        ]
+
+        """
+        if not config.POLARS_AVAILABLE:
+            raise ImportError("Polars needs to be installed to be able to return Polars dataframes.")
+        import polars as pl
+        return pl.from_arrow(self.table, *args, **kwargs)
 
     def to_string(self, *args, **kwargs):
         return self.table.to_string(*args, **kwargs)
@@ -722,6 +789,37 @@ class InMemoryTable(TableBlock):
         ```
         """
         return cls(pa.Table.from_pandas(*args, **kwargs))
+
+    @classmethod
+    def from_polars(cls, df: "pl.DataFrame"):
+        """
+        Collect the underlying arrow arrays in an Arrow Table.
+
+        This operation is mostly zero copy.
+
+        Data types that do copy:
+            * CategoricalType
+        
+        Args:
+            df (`polars.DataFrame`): DataFrame to convert to Arrow Table    
+        
+        Examples:
+        ```python
+        >>> import polars as pl
+        >>> import pyarrow as pa
+        >>> df = pl.DataFrame(
+        ...     {"foo": [1, 2, 3, 4, 5, 6], "bar": ["a", "b", "c", "d", "e", "f"]}
+        ... )
+        >>> df.to_arrow()
+        pyarrow.Table
+        foo: int64
+        bar: large_string
+        ----
+        foo: [[1,2,3,4,5,6]]
+        bar: [["a","b","c","d","e","f"]]
+        ```
+        """
+        return cls(df.to_arrow())
 
     @classmethod
     def from_arrays(cls, *args, **kwargs):
