@@ -136,6 +136,8 @@ if TYPE_CHECKING:
     import pyspark
     import sqlalchemy
 
+    import polars as pl
+
     from .dataset_dict import DatasetDict
     from .iterable_dataset import IterableDataset
 
@@ -863,6 +865,50 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
         if features is not None:
             # more expensive cast than InMemoryTable.from_pandas(..., schema=features.arrow_schema)
+            # needed to support the str to Audio conversion for instance
+            table = table.cast(features.arrow_schema)
+        return cls(table, info=info, split=split)
+
+    @classmethod
+    def from_polars(
+        cls,
+        df: "pl.DataFrame",
+        features: Optional[Features] = None,
+        info: Optional[DatasetInfo] = None,
+        split: Optional[NamedSplit] = None,
+    ) -> "Dataset":
+        """
+        Collect the underlying arrow arrays in an Arrow Table.
+
+        This operation is mostly zero copy.
+
+        Data types that do copy:
+            * CategoricalType
+        
+        Args:
+            df (`polars.DataFrame`): DataFrame to convert to Arrow Table   
+            features (`Features`, optional): Dataset features.
+            info (`DatasetInfo`, optional): Dataset information, like description, citation, etc.
+            split (`NamedSplit`, optional): Name of the dataset split.
+                    
+        Examples:
+        ```py
+        >>> ds = Dataset.from_polars(df)
+        ```
+        """
+        if info is not None and features is not None and info.features != features:
+            raise ValueError(
+                f"Features specified in `features` and `info.features` can't be different:\n{features}\n{info.features}"
+            )
+        features = features if features is not None else info.features if info is not None else None
+        if info is None:
+            info = DatasetInfo()
+        info.features = features
+        table = InMemoryTable.from_polars(
+            df=df
+        )
+        if features is not None:
+            # more expensive cast than InMemoryTable.from_polars(..., schema=features.arrow_schema)
             # needed to support the str to Audio conversion for instance
             table = table.cast(features.arrow_schema)
         return cls(table, info=info, split=split)
@@ -3307,6 +3353,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
             elif isinstance(indices, list) and isinstance(processed_inputs, Mapping):
                 allowed_batch_return_types = (list, np.ndarray, pd.Series)
+                if config.POLARS_AVAILABLE and "polars" in sys.modules:
+                    import polars as pl
+
+                    allowed_batch_return_types += (pl.Series, pl.DataFrame)
                 if config.TF_AVAILABLE and "tensorflow" in sys.modules:
                     import tensorflow as tf
 
@@ -3452,6 +3502,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                                 writer.write_row(example)
                             elif isinstance(example, pd.DataFrame):
                                 writer.write_row(pa.Table.from_pandas(example))
+                            elif config.POLARS_AVAILABLE:
+                                import polars as pl
+                                if isinstance(example, pl.DataFrame):
+                                    writer.write_table(example.to_arrow())
                             else:
                                 writer.write(example)
                         num_examples_progress_update += 1
@@ -3485,6 +3539,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                                 writer.write_table(batch)
                             elif isinstance(batch, pd.DataFrame):
                                 writer.write_table(pa.Table.from_pandas(batch))
+                            elif config.POLARS_AVAILABLE:
+                                import polars as pl
+                                if isinstance(batch, pl.DataFrame):
+                                    writer.write_table(batch.to_arrow())
                             else:
                                 writer.write_batch(batch)
                         num_examples_progress_update += num_examples_in_batch
@@ -4898,7 +4956,50 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 ).to_pandas(types_mapper=pandas_types_mapper)
                 for offset in range(0, len(self), batch_size)
             )
+    
+    def to_polars(
+        self, batch_size: Optional[int] = None, batched: bool = False
+    ) -> Union["pl.DataFrame", Iterator["pl.DataFrame"]]:
+        """Returns the dataset as a `polars.DataFrame`. Can also return a generator for large datasets.
 
+        Args:
+            batched (`bool`):
+                Set to `True` to return a generator that yields the dataset as batches
+                of `batch_size` rows. Defaults to `False` (returns the whole datasets once).
+            batch_size (`int`, *optional*):
+                The size (number of rows) of the batches if `batched` is `True`.
+                Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+
+        Returns:
+            `polars.DataFrame` or `Iterator[polars.DataFrame]`
+
+        Example:
+
+        ```py
+        >>> ds.to_polars()
+        ```
+        """
+        if config.POLARS_AVAILABLE:
+            import polars as pl
+            if not batched:
+                return pl.from_arrow(query_table(
+                    table=self._data,
+                    key=slice(0, len(self)),
+                    indices=self._indices if self._indices is not None else None,
+                ))
+            else:
+                batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
+                return (
+                    pl.from_arrow(query_table(
+                        table=self._data,
+                        key=slice(offset, offset + batch_size),
+                        indices=self._indices if self._indices is not None else None,
+                    ))
+                    for offset in range(0, len(self), batch_size)
+                )
+        else:
+            raise ValueError("Polars needs to be installed to be able to return Polars dataframes.")
+        
     def to_parquet(
         self,
         path_or_buf: Union[PathLike, BinaryIO],
