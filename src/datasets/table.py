@@ -797,7 +797,7 @@ class InMemoryTable(TableBlock):
 
         This operation is mostly zero copy.
 
-        Data types that do copy:
+        Data types that do not copy:
             * CategoricalType
         
         Args:
