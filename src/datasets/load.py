@@ -1634,6 +1634,7 @@ def dataset_module_factory(
     cache_dir: Optional[str] = None,
     trust_remote_code: Optional[bool] = None,
     _require_default_config_name=True,
+    _require_custom_configs=False,
     **download_kwargs,
 ) -> DatasetModule:
     """
@@ -1790,7 +1791,9 @@ def dataset_module_factory(
                     raise e
             if filename in [sibling.rfilename for sibling in dataset_info.siblings]:  # contains a dataset script
                 fs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=download_config.token)
-                if _require_default_config_name:
+                if _require_custom_configs:
+                    can_load_config_from_parquet_export = False
+                elif _require_default_config_name:
                     with fs.open(f"datasets/{path}/{filename}", "r", revision=revision, encoding="utf-8") as f:
                         can_load_config_from_parquet_export = "DEFAULT_CONFIG_NAME" not in f.read()
                 else:
@@ -2199,6 +2202,7 @@ def load_dataset_builder(
         cache_dir=cache_dir,
         trust_remote_code=trust_remote_code,
         _require_default_config_name=_require_default_config_name,
+        _require_custom_configs=bool(config_kwargs),
     )
     # Get dataset builder class from the processing script
     builder_kwargs = dataset_module.builder_kwargs
