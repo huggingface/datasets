@@ -531,10 +531,6 @@ class DownloadManager:
             )
         download_config = self.download_config.copy()
         download_config.extract_compressed_file = True
-        # Extract downloads the file first if it is not already downloaded
-        if download_config.download_desc is None:
-            download_config.download_desc = "Downloading data"
-
         extract_func = partial(self._download, download_config=download_config)
         extracted_paths = map_nested(
             extract_func,

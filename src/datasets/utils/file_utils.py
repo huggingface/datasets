@@ -218,7 +218,7 @@ def cached_path(
             output_path, force_extract=download_config.force_extract
         )
 
-    return output_path
+    return relative_to_absolute_path(output_path)
 
 
 def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
