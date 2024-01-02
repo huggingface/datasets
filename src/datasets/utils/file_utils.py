@@ -343,7 +343,7 @@ def fsspec_get(url, temp_file, storage_options=None, desc=None):
             "desc": desc or "Downloading",
             "unit": "B",
             "unit_scale": True,
-            "position": multiprocessing.current_process()._identity[-1]
+            "position": multiprocessing.current_process()._identity[-1]  # contains the ranks of subprocesses
             if os.environ.get("HF_DATASETS_STACK_MULTIPROCESSING_DOWNLOAD_PROGRESS_BARS") == "1"
             and multiprocessing.current_process()._identity
             else None,
@@ -401,7 +401,7 @@ def http_get(
         total=total,
         initial=resume_size,
         desc=desc or "Downloading",
-        position=multiprocessing.current_process()._identity[-1]
+        position=multiprocessing.current_process()._identity[-1]  # contains the ranks of subprocesses
         if os.environ.get("HF_DATASETS_STACK_MULTIPROCESSING_DOWNLOAD_PROGRESS_BARS") == "1"
         and multiprocessing.current_process()._identity
         else None,
