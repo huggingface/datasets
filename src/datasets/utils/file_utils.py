@@ -7,6 +7,7 @@ Copyright by the AllenNLP authors.
 import copy
 import io
 import json
+import multiprocessing
 import os
 import posixpath
 import re
@@ -19,6 +20,7 @@ from contextlib import closing, contextmanager
 from functools import partial
 from pathlib import Path
 from typing import Optional, TypeVar, Union
+from unittest.mock import patch
 from urllib.parse import urljoin, urlparse
 
 import fsspec
@@ -319,6 +321,12 @@ def fsspec_head(url, storage_options=None):
     return fs.info(paths[0])
 
 
+def stack_multiprocessing_download_progress_bars():
+    # Stack downloads progress bars automatically using HF_DATASETS_STACK_MULTIPROCESSING_DOWNLOAD_PROGRESS_BARS=1
+    # We use environment variables since the download may happen in a subprocess
+    return patch.dict(os.environ, {"HF_DATASETS_STACK_MULTIPROCESSING_DOWNLOAD_PROGRESS_BARS": "1"})
+
+
 class TqdmCallback(fsspec.callbacks.TqdmCallback):
     def __init__(self, tqdm_kwargs=None, *args, **kwargs):
         super().__init__(tqdm_kwargs, *args, **kwargs)
@@ -335,6 +343,10 @@ def fsspec_get(url, temp_file, storage_options=None, desc=None):
             "desc": desc or "Downloading",
             "unit": "B",
             "unit_scale": True,
+            "position": multiprocessing.current_process()._identity[-1]
+            if os.environ.get("HF_DATASETS_STACK_MULTIPROCESSING_DOWNLOAD_PROGRESS_BARS") == "1"
+            and multiprocessing.current_process()._identity
+            else None,
         }
     )
     fs.get_file(paths[0], temp_file.name, callback=callback)
@@ -389,6 +401,10 @@ def http_get(
         total=total,
         initial=resume_size,
         desc=desc or "Downloading",
+        position=multiprocessing.current_process()._identity[-1]
+        if os.environ.get("HF_DATASETS_STACK_MULTIPROCESSING_DOWNLOAD_PROGRESS_BARS") == "1"
+        and multiprocessing.current_process()._identity
+        else None,
     ) as progress:
         for chunk in response.iter_content(chunk_size=1024):
             progress.update(len(chunk))
