@@ -1791,7 +1791,7 @@ def dataset_module_factory(
                     raise e
             if filename in [sibling.rfilename for sibling in dataset_info.siblings]:  # contains a dataset script
                 fs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=download_config.token)
-                if _require_custom_configs:
+                if _require_custom_configs or (revision and revision != "main"):
                     can_load_config_from_parquet_export = False
                 elif _require_default_config_name:
                     with fs.open(f"datasets/{path}/{filename}", "r", revision=revision, encoding="utf-8") as f:
