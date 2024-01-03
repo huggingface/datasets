@@ -1794,7 +1794,7 @@ def dataset_module_factory(
                 if _require_custom_configs or (revision and revision != "main"):
                     can_load_config_from_parquet_export = False
                 elif _require_default_config_name:
-                    with fs.open(f"datasets/{path}/{filename}", "r", revision=revision, encoding="utf-8") as f:
+                    with fs.open(f"datasets/{path}/{filename}", "r", encoding="utf-8") as f:
                         can_load_config_from_parquet_export = "DEFAULT_CONFIG_NAME" not in f.read()
                 else:
                     can_load_config_from_parquet_export = True
