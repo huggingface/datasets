@@ -491,7 +491,7 @@ def _load_importable_file(
 
 def infer_module_for_data_files_list(
     data_files_list: DataFilesList, download_config: Optional[DownloadConfig] = None
-) -> Optional[Tuple[str, str]]:
+) -> Tuple[Optional[str], dict]:
     """Infer module (and builder kwargs) from list of data files.
 
     It picks the module based on the most common file extension.
@@ -528,7 +528,7 @@ def infer_module_for_data_files_list(
 
 def infer_module_for_data_files_list_in_archives(
     data_files_list: DataFilesList, download_config: Optional[DownloadConfig] = None
-) -> Optional[Tuple[str, str]]:
+) -> Tuple[Optional[str], dict]:
     """Infer module (and builder kwargs) from list of archive data files.
 
     Args:
