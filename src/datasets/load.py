@@ -32,6 +32,7 @@ from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Type, Un
 
 import fsspec
 import requests
+import yaml
 from huggingface_hub import DatasetCard, DatasetCardData, HfApi, HfFileSystem
 
 from . import config
@@ -1004,7 +1005,15 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
 
     def get_module(self) -> DatasetModule:
         readme_path = os.path.join(self.path, "README.md")
+        standalone_yaml_path = os.path.join(self.path, ".huggingface.yml")
         dataset_card_data = DatasetCard.load(readme_path).data if os.path.isfile(readme_path) else DatasetCardData()
+        if os.path.exists(standalone_yaml_path):
+            with open(standalone_yaml_path, "r", encoding="utf-8") as f:
+                standalone_yaml_data = yaml.safe_load(f.read())
+                if standalone_yaml_data:
+                    _dataset_card_data_dict = dataset_card_data.to_dict()
+                    _dataset_card_data_dict.update(standalone_yaml_data)
+                    dataset_card_data = DatasetCardData(**_dataset_card_data_dict)
         metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
         dataset_infos = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
         # we need a set of data files to find which dataset builder to use
@@ -1196,6 +1205,22 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             dataset_card_data = DatasetCard.load(Path(dataset_readme_path)).data
         except FileNotFoundError:
             dataset_card_data = DatasetCardData()
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading standalone yaml"
+        try:
+            standalone_yaml_path = cached_path(
+                hf_hub_url(self.name, ".huggingface.yml", revision=revision),
+                download_config=download_config,
+            )
+            with open(standalone_yaml_path, "r", encoding="utf-8") as f:
+                standalone_yaml_data = yaml.safe_load(f.read())
+                if standalone_yaml_data:
+                    _dataset_card_data_dict = dataset_card_data.to_dict()
+                    _dataset_card_data_dict.update(standalone_yaml_data)
+                    dataset_card_data = DatasetCardData(**_dataset_card_data_dict)
+        except FileNotFoundError:
+            pass
         metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
         dataset_infos = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
         # we need a set of data files to find which dataset builder to use
