@@ -491,7 +491,7 @@ def _load_importable_file(
 
 def infer_module_for_data_files_list(
     data_files_list: DataFilesList, download_config: Optional[DownloadConfig] = None
-) -> Optional[Tuple[str, str]]:
+) -> Tuple[Optional[str], dict]:
     """Infer module (and builder kwargs) from list of data files.
 
     It picks the module based on the most common file extension.
@@ -507,18 +507,18 @@ def infer_module_for_data_files_list(
             - dict of builder kwargs
     """
     extensions_counter = Counter(
-        "." + suffix.lower()
+        ("." + suffix.lower(), xbasename(filepath) in ("metadata.jsonl", "metadata.csv"))
         for filepath in data_files_list[: config.DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE]
         for suffix in xbasename(filepath).split(".")[1:]
     )
     if extensions_counter:
 
-        def sort_key(ext_count: Tuple[str, int]) -> Tuple[int, bool]:
-            """Sort by count and set ".parquet" as the favorite in case of a draw"""
-            ext, count = ext_count
-            return (count, ext == ".parquet", ext)
+        def sort_key(ext_count: Tuple[Tuple[str, bool], int]) -> Tuple[int, bool]:
+            """Sort by count and set ".parquet" as the favorite in case of a draw, and ignore metadata files"""
+            (ext, is_metadata), count = ext_count
+            return (not is_metadata, count, ext == ".parquet", ext)
 
-        for ext, _ in sorted(extensions_counter.items(), key=sort_key, reverse=True):
+        for (ext, _), _ in sorted(extensions_counter.items(), key=sort_key, reverse=True):
             if ext in _EXTENSION_TO_MODULE:
                 return _EXTENSION_TO_MODULE[ext]
             elif ext == ".zip":
@@ -528,7 +528,7 @@ def infer_module_for_data_files_list(
 
 def infer_module_for_data_files_list_in_archives(
     data_files_list: DataFilesList, download_config: Optional[DownloadConfig] = None
-) -> Optional[Tuple[str, str]]:
+) -> Tuple[Optional[str], dict]:
     """Infer module (and builder kwargs) from list of archive data files.
 
     Args:
