@@ -78,6 +78,7 @@ class DownloadConfig:
     ignore_url_params: bool = False
     storage_options: Dict[str, Any] = field(default_factory=dict)
     download_desc: Optional[str] = None
+    multi_part: bool = False
 
     def __post_init__(self, use_auth_token):
         if use_auth_token != "deprecated":

@@ -567,6 +567,14 @@ class DownloadManager:
         Returns:
             extracted_path(s): `str`, extracted paths of given URL(s).
         """
+        if self.download_config.multi_part:
+            paths = self.download(url_or_urls)
+            concatenated_archive = os.path.join(self.download_config.cache_dir, "final_archive.tar")
+            with open(concatenated_archive, mode="wb") as final:
+                for pth in paths:
+                    with open(pth, mode="rb") as part:
+                        final.write(part.read())
+            return self.extract(concatenated_archive)
         return self.extract(self.download(url_or_urls))
 
     def get_recorded_sizes_checksums(self):
