@@ -1240,10 +1240,7 @@ def encode_nested_example(schema, obj, level=0):
         if level == 0 and obj is None:
             raise ValueError("Got None but expected a dictionary instead")
         return (
-            {
-                k: encode_nested_example(sub_schema, sub_obj, level=level + 1)
-                for k, (sub_schema, sub_obj) in zip_dict(schema, obj)
-            }
+            {k: encode_nested_example(schema[k], obj.get(k), level=level + 1) for k in schema}
             if obj is not None
             else None
         )
@@ -1269,13 +1266,17 @@ def encode_nested_example(schema, obj, level=0):
             list_dict = {}
             if isinstance(obj, (list, tuple)):
                 # obj is a list of dict
-                for k, dict_tuples in zip_dict(schema.feature, *obj):
-                    list_dict[k] = [encode_nested_example(dict_tuples[0], o, level=level + 1) for o in dict_tuples[1:]]
+                for k in schema.feature:
+                    list_dict[k] = [encode_nested_example(schema.feature[k], o.get(k), level=level + 1) for o in obj]
                 return list_dict
             else:
                 # obj is a single dict
-                for k, (sub_schema, sub_objs) in zip_dict(schema.feature, obj):
-                    list_dict[k] = [encode_nested_example(sub_schema, o, level=level + 1) for o in sub_objs]
+                for k in schema.feature:
+                    list_dict[k] = (
+                        [encode_nested_example(schema.feature[k], o, level=level + 1) for o in obj[k]]
+                        if k in obj
+                        else None
+                    )
                 return list_dict
         # schema.feature is not a dict
         if isinstance(obj, str):  # don't interpret a string as a list
