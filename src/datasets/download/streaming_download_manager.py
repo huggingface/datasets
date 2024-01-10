@@ -498,6 +498,8 @@ def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] 
     file_str = _as_str(file)
     main_hop, *rest_hops = file_str.split("::")
     if is_local_path(main_hop):
+        # ignore fsspec-specific kwargs
+        kwargs.pop("chunk_size", None)
         return open(main_hop, mode, *args, **kwargs)
     # add headers and cookies for authentication on the HF Hub and for Google Drive
     file, storage_options = _prepare_path_and_storage_options(file_str, download_config=download_config)
