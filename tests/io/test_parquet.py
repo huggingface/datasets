@@ -87,6 +87,7 @@ def test_parquet_read_geoparquet(geoparquet_path, tmp_path):
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
 
+
 def _check_parquet_datasetdict(dataset_dict, expected_features, splits=("train",)):
     assert isinstance(dataset_dict, (DatasetDict, IterableDatasetDict))
     for split in splits:
