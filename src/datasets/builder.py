@@ -572,16 +572,18 @@ class DatasetBuilder:
                 logger.info(f"No config specified, defaulting to: {self.dataset_name}/{builder_config.name}")
             else:
                 if len(self.BUILDER_CONFIGS) > 1:
-                    example_of_usage = f"load_dataset('{self.dataset_name}', '{self.BUILDER_CONFIGS[0].name}')"
-                    raise ValueError(
-                        "Config name is missing."
-                        f"\nPlease pick one among the available configs: {list(self.builder_configs.keys())}"
-                        + f"\nExample of usage:\n\t`{example_of_usage}`"
+                    if not config_kwargs:
+                        example_of_usage = f"load_dataset('{self.dataset_name}', '{self.BUILDER_CONFIGS[0].name}')"
+                        raise ValueError(
+                            "Config name is missing."
+                            f"\nPlease pick one among the available configs: {list(self.builder_configs.keys())}"
+                            + f"\nExample of usage:\n\t`{example_of_usage}`"
+                        )
+                else:
+                    builder_config = self.BUILDER_CONFIGS[0]
+                    logger.info(
+                        f"No config specified, defaulting to the single config: {self.dataset_name}/{builder_config.name}"
                     )
-                builder_config = self.BUILDER_CONFIGS[0]
-                logger.info(
-                    f"No config specified, defaulting to the single config: {self.dataset_name}/{builder_config.name}"
-                )
 
         # try to get config by name
         if isinstance(config_name, str):

@@ -491,7 +491,7 @@ def _load_importable_file(
 
 def infer_module_for_data_files_list(
     data_files_list: DataFilesList, download_config: Optional[DownloadConfig] = None
-) -> Optional[Tuple[str, str]]:
+) -> Tuple[Optional[str], dict]:
     """Infer module (and builder kwargs) from list of data files.
 
     It picks the module based on the most common file extension.
@@ -507,18 +507,18 @@ def infer_module_for_data_files_list(
             - dict of builder kwargs
     """
     extensions_counter = Counter(
-        "." + suffix.lower()
+        ("." + suffix.lower(), xbasename(filepath) in ("metadata.jsonl", "metadata.csv"))
         for filepath in data_files_list[: config.DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE]
         for suffix in xbasename(filepath).split(".")[1:]
     )
     if extensions_counter:
 
-        def sort_key(ext_count: Tuple[str, int]) -> Tuple[int, bool]:
-            """Sort by count and set ".parquet" as the favorite in case of a draw"""
-            ext, count = ext_count
-            return (count, ext == ".parquet", ext)
+        def sort_key(ext_count: Tuple[Tuple[str, bool], int]) -> Tuple[int, bool]:
+            """Sort by count and set ".parquet" as the favorite in case of a draw, and ignore metadata files"""
+            (ext, is_metadata), count = ext_count
+            return (not is_metadata, count, ext == ".parquet", ext)
 
-        for ext, _ in sorted(extensions_counter.items(), key=sort_key, reverse=True):
+        for (ext, _), _ in sorted(extensions_counter.items(), key=sort_key, reverse=True):
             if ext in _EXTENSION_TO_MODULE:
                 return _EXTENSION_TO_MODULE[ext]
             elif ext == ".zip":
@@ -528,7 +528,7 @@ def infer_module_for_data_files_list(
 
 def infer_module_for_data_files_list_in_archives(
     data_files_list: DataFilesList, download_config: Optional[DownloadConfig] = None
-) -> Optional[Tuple[str, str]]:
+) -> Tuple[Optional[str], dict]:
     """Infer module (and builder kwargs) from list of archive data files.
 
     Args:
@@ -1634,6 +1634,7 @@ def dataset_module_factory(
     cache_dir: Optional[str] = None,
     trust_remote_code: Optional[bool] = None,
     _require_default_config_name=True,
+    _require_custom_configs=False,
     **download_kwargs,
 ) -> DatasetModule:
     """
@@ -1790,7 +1791,9 @@ def dataset_module_factory(
                     raise e
             if filename in [sibling.rfilename for sibling in dataset_info.siblings]:  # contains a dataset script
                 fs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=download_config.token)
-                if _require_default_config_name:
+                if _require_custom_configs:
+                    can_load_config_from_parquet_export = False
+                elif _require_default_config_name:
                     with fs.open(f"datasets/{path}/{filename}", "r", revision=revision, encoding="utf-8") as f:
                         can_load_config_from_parquet_export = "DEFAULT_CONFIG_NAME" not in f.read()
                 else:
@@ -2199,6 +2202,7 @@ def load_dataset_builder(
         cache_dir=cache_dir,
         trust_remote_code=trust_remote_code,
         _require_default_config_name=_require_default_config_name,
+        _require_custom_configs=bool(config_kwargs),
     )
     # Get dataset builder class from the processing script
     builder_kwargs = dataset_module.builder_kwargs
