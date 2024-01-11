@@ -1220,6 +1220,9 @@ class IterableDataset(DatasetInfoMixin):
         self._token_per_repo_id: Dict[str, Union[str, bool, None]] = token_per_repo_id or {}
         _maybe_add_torch_iterable_dataset_parent_class(self.__class__)
 
+    def __repr__(self):
+        return f"IterableDataset({{\n    features: {list(self._info.features.keys()) if self._info.features is not None else 'Unknown'},\n    n_shards: {self.n_shards}\n}})"
+
     def __getstate__(self):
         return self.__dict__
 

@@ -13,6 +13,7 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 from huggingface_hub import DatasetCard, HfApi
+from huggingface_hub.utils import RepositoryNotFoundError
 
 from datasets import (
     Audio,
@@ -70,16 +71,9 @@ class TestPushToHub:
         local_ds = DatasetDict({"train": ds})
 
         with temporary_repo() as ds_name:
-            local_ds.push_to_hub(ds_name.split("/")[-1], token=self._token)
-            hub_ds = load_dataset(ds_name, download_mode="force_redownload")
-
-            assert local_ds.column_names == hub_ds.column_names
-            assert list(local_ds["train"].features.keys()) == list(hub_ds["train"].features.keys())
-            assert local_ds["train"].features == hub_ds["train"].features
-
-            # Ensure that there is a single file on the repository that has the correct name
-            files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset"))
-            assert files == [".gitattributes", "README.md", "data/train-00000-of-00001.parquet"]
+            # cannot create a repo without namespace
+            with pytest.raises(RepositoryNotFoundError):
+                local_ds.push_to_hub(ds_name.split("/")[-1], token=self._token)
 
     def test_push_dataset_dict_to_hub_datasets_with_different_features(self, cleanup_repo):
         ds_train = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
@@ -591,13 +585,19 @@ class TestPushToHub:
             with pytest.raises(ValueError):  # no config 'config3'
                 load_dataset(ds_name, "config3", download_mode="force_redownload")
 
-    def test_push_multiple_dataset_configs_to_hub_readme_metadata_content(self, temporary_repo):
+    @pytest.mark.parametrize("specific_default_config_name", [False, True])
+    def test_push_multiple_dataset_configs_to_hub_readme_metadata_content(
+        self, specific_default_config_name, temporary_repo
+    ):
         ds_default = Dataset.from_dict({"a": [0], "b": [2]})
         ds_config1 = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
         ds_config2 = Dataset.from_dict({"foo": [1, 2], "bar": [4, 5]})
 
         with temporary_repo() as ds_name:
-            ds_default.push_to_hub(ds_name, token=self._token)
+            if specific_default_config_name:
+                ds_default.push_to_hub(ds_name, config_name="config0", set_default=True, token=self._token)
+            else:
+                ds_default.push_to_hub(ds_name, token=self._token)
             ds_config1.push_to_hub(ds_name, "config1", token=self._token)
             ds_config2.push_to_hub(ds_name, "config2", token=self._token)
 
@@ -606,7 +606,19 @@ class TestPushToHub:
             dataset_card_data = DatasetCard.load(ds_readme_path).data
             assert METADATA_CONFIGS_FIELD in dataset_card_data
             assert isinstance(dataset_card_data[METADATA_CONFIGS_FIELD], list)
-            assert sorted(dataset_card_data[METADATA_CONFIGS_FIELD], key=lambda x: x["config_name"]) == [
+            assert sorted(dataset_card_data[METADATA_CONFIGS_FIELD], key=lambda x: x["config_name"]) == (
+                [
+                    {
+                        "config_name": "config0",
+                        "data_files": [
+                            {"split": "train", "path": "config0/train-*"},
+                        ],
+                        "default": True,
+                    },
+                ]
+                if specific_default_config_name
+                else []
+            ) + [
                 {
                     "config_name": "config1",
                     "data_files": [
@@ -619,13 +631,18 @@ class TestPushToHub:
                         {"split": "train", "path": "config2/train-*"},
                     ],
                 },
-                {
-                    "config_name": "default",
-                    "data_files": [
-                        {"split": "train", "path": "data/train-*"},
-                    ],
-                },
-            ]
+            ] + (
+                []
+                if specific_default_config_name
+                else [
+                    {
+                        "config_name": "default",
+                        "data_files": [
+                            {"split": "train", "path": "data/train-*"},
+                        ],
+                    },
+                ]
+            )
 
     def test_push_multiple_dataset_dict_configs_to_hub_load_dataset_builder(self, temporary_repo):
         ds_default = Dataset.from_dict({"a": [0], "b": [1]})
@@ -714,7 +731,10 @@ class TestPushToHub:
             with pytest.raises(ValueError):  # no config 'config3'
                 load_dataset(ds_name, "config3", download_mode="force_redownload")
 
-    def test_push_multiple_dataset_dict_configs_to_hub_readme_metadata_content(self, temporary_repo):
+    @pytest.mark.parametrize("specific_default_config_name", [False, True])
+    def test_push_multiple_dataset_dict_configs_to_hub_readme_metadata_content(
+        self, specific_default_config_name, temporary_repo
+    ):
         ds_default = Dataset.from_dict({"a": [0], "b": [1]})
         ds_config1 = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
         ds_config2 = Dataset.from_dict({"foo": [1, 2], "bar": [4, 5]})
@@ -723,7 +743,10 @@ class TestPushToHub:
         ds_config2 = DatasetDict({"train": ds_config2, "random": ds_config2})
 
         with temporary_repo() as ds_name:
-            ds_default.push_to_hub(ds_name, token=self._token)
+            if specific_default_config_name:
+                ds_default.push_to_hub(ds_name, config_name="config0", set_default=True, token=self._token)
+            else:
+                ds_default.push_to_hub(ds_name, token=self._token)
             ds_config1.push_to_hub(ds_name, "config1", token=self._token)
             ds_config2.push_to_hub(ds_name, "config2", token=self._token)
 
@@ -732,7 +755,20 @@ class TestPushToHub:
             dataset_card_data = DatasetCard.load(ds_readme_path).data
             assert METADATA_CONFIGS_FIELD in dataset_card_data
             assert isinstance(dataset_card_data[METADATA_CONFIGS_FIELD], list)
-            assert sorted(dataset_card_data[METADATA_CONFIGS_FIELD], key=lambda x: x["config_name"]) == [
+            assert sorted(dataset_card_data[METADATA_CONFIGS_FIELD], key=lambda x: x["config_name"]) == (
+                [
+                    {
+                        "config_name": "config0",
+                        "data_files": [
+                            {"split": "train", "path": "config0/train-*"},
+                            {"split": "random", "path": "config0/random-*"},
+                        ],
+                        "default": True,
+                    },
+                ]
+                if specific_default_config_name
+                else []
+            ) + [
                 {
                     "config_name": "config1",
                     "data_files": [
@@ -747,14 +783,19 @@ class TestPushToHub:
                         {"split": "random", "path": "config2/random-*"},
                     ],
                 },
-                {
-                    "config_name": "default",
-                    "data_files": [
-                        {"split": "train", "path": "data/train-*"},
-                        {"split": "random", "path": "data/random-*"},
-                    ],
-                },
-            ]
+            ] + (
+                []
+                if specific_default_config_name
+                else [
+                    {
+                        "config_name": "default",
+                        "data_files": [
+                            {"split": "train", "path": "data/train-*"},
+                            {"split": "random", "path": "data/random-*"},
+                        ],
+                    },
+                ]
+            )
 
     def test_push_dataset_to_hub_with_config_no_metadata_configs(self, temporary_repo):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})

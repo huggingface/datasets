@@ -25,15 +25,23 @@ import zipfile
 from datetime import datetime
 from functools import partial
 from itertools import chain
-from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
+from typing import Callable, Dict, Generator, List, Optional, Tuple, Union
 
 from .. import config
 from ..utils import tqdm as hf_tqdm
 from ..utils.deprecation_utils import DeprecatedEnum, deprecated
-from ..utils.file_utils import cached_path, get_from_cache, hash_url_to_filename, is_relative_path, url_or_path_join
+from ..utils.file_utils import (
+    cached_path,
+    get_from_cache,
+    hash_url_to_filename,
+    is_relative_path,
+    stack_multiprocessing_download_progress_bars,
+    url_or_path_join,
+)
 from ..utils.info_utils import get_size_checksum_dict
 from ..utils.logging import get_logger
 from ..utils.py_utils import NestedDataStructure, map_nested, size_str
+from ..utils.track import TrackedIterable, tracked_str
 from .download_config import DownloadConfig
 
 
@@ -147,16 +155,20 @@ def _get_extraction_protocol(path: str) -> Optional[str]:
         return _get_extraction_protocol_with_magic_number(f)
 
 
-class _IterableFromGenerator(Iterable):
+class _IterableFromGenerator(TrackedIterable):
     """Utility class to create an iterable from a generator function, in order to reset the generator when needed."""
 
     def __init__(self, generator: Callable, *args, **kwargs):
+        super().__init__()
         self.generator = generator
         self.args = args
         self.kwargs = kwargs
 
     def __iter__(self):
-        yield from self.generator(*self.args, **self.kwargs)
+        for x in self.generator(*self.args, **self.kwargs):
+            self.last_item = x
+            yield x
+        self.last_item = None
 
 
 class ArchiveIterable(_IterableFromGenerator):
@@ -418,13 +430,14 @@ class DownloadManager:
         download_func = partial(self._download, download_config=download_config)
 
         start_time = datetime.now()
-        downloaded_path_or_paths = map_nested(
-            download_func,
-            url_or_urls,
-            map_tuple=True,
-            num_proc=download_config.num_proc,
-            desc="Downloading data files",
-        )
+        with stack_multiprocessing_download_progress_bars():
+            downloaded_path_or_paths = map_nested(
+                download_func,
+                url_or_urls,
+                map_tuple=True,
+                num_proc=download_config.num_proc,
+                desc="Downloading data files",
+            )
         duration = datetime.now() - start_time
         logger.info(f"Downloading took {duration.total_seconds() // 60} min")
         url_or_urls = NestedDataStructure(url_or_urls)
@@ -443,7 +456,10 @@ class DownloadManager:
         if is_relative_path(url_or_filename):
             # append the relative path to the base_path
             url_or_filename = url_or_path_join(self._base_path, url_or_filename)
-        return cached_path(url_or_filename, download_config=download_config)
+        out = cached_path(url_or_filename, download_config=download_config)
+        out = tracked_str(out)
+        out.set_origin(url_or_filename)
+        return out
 
     def iter_archive(self, path_or_buf: Union[str, io.BufferedReader]):
         """Iterate over files within an archive.
@@ -523,11 +539,9 @@ class DownloadManager:
             )
         download_config = self.download_config.copy()
         download_config.extract_compressed_file = True
-        # Extract downloads the file first if it is not already downloaded
-        if download_config.download_desc is None:
-            download_config.download_desc = "Downloading data"
+        extract_func = partial(self._download, download_config=download_config)
         extracted_paths = map_nested(
-            partial(cached_path, download_config=download_config),
+            extract_func,
             path_or_paths,
             num_proc=download_config.num_proc,
             desc="Extracting data files",

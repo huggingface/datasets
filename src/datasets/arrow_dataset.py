@@ -59,7 +59,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
-from huggingface_hub import CommitOperationAdd, CommitOperationDelete, DatasetCard, DatasetCardData, HfApi
+from huggingface_hub import CommitInfo, CommitOperationAdd, CommitOperationDelete, DatasetCard, DatasetCardData, HfApi
 from multiprocess import Pool
 from tqdm.contrib.concurrent import thread_map
 
@@ -114,7 +114,7 @@ from .utils import logging
 from .utils import tqdm as hf_tqdm
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
-from .utils.hub import preupload_lfs_files
+from .utils.hub import list_files_info, preupload_lfs_files
 from .utils.info_utils import is_small_dataset
 from .utils.metadata import MetadataConfigs
 from .utils.py_utils import (
@@ -5232,8 +5232,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         self,
         repo_id: str,
         config_name: str = "default",
+        set_default: Optional[bool] = None,
         split: Optional[str] = None,
         commit_message: Optional[str] = None,
+        commit_description: Optional[str] = None,
         private: Optional[bool] = False,
         token: Optional[str] = None,
         revision: Optional[str] = None,
@@ -5242,7 +5244,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         max_shard_size: Optional[Union[int, str]] = None,
         num_shards: Optional[int] = None,
         embed_external_files: bool = True,
-    ):
+    ) -> CommitInfo:
         """Pushes the dataset to the hub as a Parquet dataset.
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
 
@@ -5257,10 +5259,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 of the logged-in user.
             config_name (`str`, defaults to "default"):
                 The configuration name (or subset) of a dataset. Defaults to "default".
+            set_default (`bool`, *optional*):
+                Whether to set this configuration as the default one. Otherwise, the default configuration is the one
+                named "default".
             split (`str`, *optional*):
                 The name of the split that will be given to that dataset. Defaults to `self.split`.
             commit_message (`str`, *optional*):
                 Message to commit while pushing. Will default to `"Upload dataset"`.
+            commit_description (`str`, *optional*):
+                Description of the commit that will be created.
+                Additionally, description of the PR if a PR is created (`create_pr` is True).
+
+                <Added version="2.16.0"/>
             private (`bool`, *optional*, defaults to `False`):
                 Whether the dataset repository should be set to private or not. Only affects repository creation:
                 a repository that already exists will not be affected by that parameter.
@@ -5282,13 +5292,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
                 </Deprecated>
             create_pr (`bool`, *optional*, defaults to `False`):
-                Whether or not to create a PR with the uploaded files or directly commit.
+                Whether to create a PR with the uploaded files or directly commit.
 
                 <Added version="2.15.0"/>
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by
                 a unit (like `"5MB"`).
-            num_shards (`int`, *optional*): Number of shards to write. By default the number of shards depends on `max_shard_size`.
+            num_shards (`int`, *optional*):
+                Number of shards to write. By default, the number of shards depends on `max_shard_size`.
 
                 <Added version="2.8.0"/>
             embed_external_files (`bool`, defaults to `True`):
@@ -5296,6 +5307,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 In particular, this will do the following before the push for the fields of type:
 
                 - [`Audio`] and [`Image`]: remove local path information and embed file content in the Parquet files.
+
+        Return:
+            huggingface_hub.CommitInfo
 
         Example:
 
@@ -5351,14 +5365,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
 
-        repo_url = api.create_repo(
+        _ = api.create_repo(
             repo_id,
             token=token,
             repo_type="dataset",
             private=private,
             exist_ok=True,
         )
-        repo_id = repo_url.repo_id
 
         if revision is not None:
             api.create_branch(repo_id, branch=revision, token=token, repo_type="dataset", exist_ok=True)
@@ -5383,7 +5396,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         deletions, deleted_size = [], 0
         repo_splits = []  # use a list to keep the order of the splits
         repo_files_to_add = [addition.path_in_repo for addition in additions]
-        for repo_file in api.list_files_info(repo_id, revision=revision, repo_type="dataset", token=token):
+        for repo_file in list_files_info(api, repo_id=repo_id, revision=revision, repo_type="dataset", token=token):
             if repo_file.rfilename == "README.md":
                 repo_with_dataset_card = True
             elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:
@@ -5489,6 +5502,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             }
         else:
             metadata_config_to_dump = {"data_files": [{"split": split, "path": f"{data_dir}/{split}-*"}]}
+        if set_default and config_name != "default":
+            if metadata_configs:
+                default_config_name = metadata_configs.get_default_config_name()
+                if default_config_name == "default":
+                    raise ValueError(
+                        "There exists a configuration named 'default'. To set a different configuration as default, "
+                        "rename the 'default' one first."
+                    )
+                else:
+                    _ = metadata_configs[default_config_name].pop("default")
+            metadata_config_to_dump["default"] = True
         # push to the deprecated dataset_infos.json
         if repo_with_dataset_infos:
             dataset_infos_path = api.hf_hub_download(
@@ -5510,10 +5534,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         commit_message = commit_message if commit_message is not None else "Upload dataset"
         if len(additions) <= config.UPLOADS_MAX_NUMBER_PER_COMMIT:
-            api.create_commit(
+            commit_info = api.create_commit(
                 repo_id,
                 operations=additions + deletions,
                 commit_message=commit_message,
+                commit_description=commit_description,
                 token=token,
                 repo_type="dataset",
                 revision=revision,
@@ -5528,10 +5553,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 operations = additions[
                     i * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1) * config.UPLOADS_MAX_NUMBER_PER_COMMIT
                 ] + (deletions if i == 0 else [])
-                api.create_commit(
+                commit_info = api.create_commit(
                     repo_id,
                     operations=operations,
                     commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
+                    commit_description=commit_description,
                     token=token,
                     repo_type="dataset",
                     revision=revision,
@@ -5542,6 +5568,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
                     + "."
                 )
+        return commit_info
 
     @transmit_format
     @fingerprint_transform(inplace=False)
