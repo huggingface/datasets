@@ -93,8 +93,6 @@ from .utils.version import Version
 logger = get_logger(__name__)
 
 ALL_ALLOWED_EXTENSIONS = list(_EXTENSION_TO_MODULE.keys()) + [".zip"]
-REPOCARD_FILENAME = "README.md"
-REPOYAML_FILENAME = ".huggingface.yaml"
 
 
 def _raise_timeout_error(signum, frame):
@@ -931,7 +929,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
             )
         # get script and other files
         dataset_infos_path = Path(self.path).parent / config.DATASETDICT_INFOS_FILENAME
-        dataset_readme_path = Path(self.path).parent / REPOCARD_FILENAME
+        dataset_readme_path = Path(self.path).parent / config.REPOCARD_FILENAME
         imports = get_imports(self.path)
         local_imports = _download_additional_modules(
             name=self.name,
@@ -943,7 +941,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         if dataset_infos_path.is_file():
             additional_files.append((config.DATASETDICT_INFOS_FILENAME, str(dataset_infos_path)))
         if dataset_readme_path.is_file():
-            additional_files.append((REPOCARD_FILENAME, dataset_readme_path))
+            additional_files.append((config.REPOCARD_FILENAME, dataset_readme_path))
         # copy the script and the files in an importable directory
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
         hash = files_to_hash([self.path] + [loc[1] for loc in local_imports])
@@ -1006,8 +1004,8 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self.download_mode = download_mode
 
     def get_module(self) -> DatasetModule:
-        readme_path = os.path.join(self.path, REPOCARD_FILENAME)
-        standalone_yaml_path = os.path.join(self.path, REPOYAML_FILENAME)
+        readme_path = os.path.join(self.path, config.REPOCARD_FILENAME)
+        standalone_yaml_path = os.path.join(self.path, config.REPOYAML_FILENAME)
         dataset_card_data = DatasetCard.load(readme_path).data if os.path.isfile(readme_path) else DatasetCardData()
         if os.path.exists(standalone_yaml_path):
             with open(standalone_yaml_path, "r", encoding="utf-8") as f:
@@ -1201,7 +1199,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             download_config.download_desc = "Downloading readme"
         try:
             dataset_readme_path = cached_path(
-                hf_hub_url(self.name, REPOCARD_FILENAME, revision=revision),
+                hf_hub_url(self.name, config.REPOCARD_FILENAME, revision=revision),
                 download_config=download_config,
             )
             dataset_card_data = DatasetCard.load(Path(dataset_readme_path)).data
@@ -1212,7 +1210,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             download_config.download_desc = "Downloading standalone yaml"
         try:
             standalone_yaml_path = cached_path(
-                hf_hub_url(self.name, REPOYAML_FILENAME, revision=revision),
+                hf_hub_url(self.name, config.REPOYAML_FILENAME, revision=revision),
                 download_config=download_config,
             )
             with open(standalone_yaml_path, "r", encoding="utf-8") as f:
@@ -1438,7 +1436,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
             return None
 
     def download_dataset_readme_file(self) -> str:
-        readme_url = hf_hub_url(self.name, REPOCARD_FILENAME, revision=self.revision)
+        readme_url = hf_hub_url(self.name, config.REPOCARD_FILENAME, revision=self.revision)
         # Download the dataset infos file if available
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
@@ -1475,7 +1473,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         if dataset_infos_path:
             additional_files.append((config.DATASETDICT_INFOS_FILENAME, dataset_infos_path))
         if dataset_readme_path:
-            additional_files.append((REPOCARD_FILENAME, dataset_readme_path))
+            additional_files.append((config.REPOCARD_FILENAME, dataset_readme_path))
         # copy the script and the files in an importable directory
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
         hash = files_to_hash([local_path] + [loc[1] for loc in local_imports])
