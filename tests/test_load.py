@@ -387,14 +387,14 @@ class ModuleFactoryTest(TestCase):
         )
 
     def test_HubDatasetModuleFactoryWithScript_dont_trust_remote_code(self):
-        # "squad" has a dataset script
+        # "lhoestq/test" has a dataset script
         factory = HubDatasetModuleFactoryWithScript(
-            "squad", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+            "lhoestq/test", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
         )
         with patch.object(config, "HF_DATASETS_TRUST_REMOTE_CODE", None):  # this will be the default soon
             self.assertRaises(ValueError, factory.get_module)
         factory = HubDatasetModuleFactoryWithScript(
-            "squad",
+            "lhoestq/test",
             download_config=self.download_config,
             dynamic_modules_path=self.dynamic_modules_path,
             trust_remote_code=False,
