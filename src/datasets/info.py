@@ -269,6 +269,11 @@ class DatasetInfo:
     @classmethod
     def from_merge(cls, dataset_infos: List["DatasetInfo"]):
         dataset_infos = [dset_info.copy() for dset_info in dataset_infos if dset_info is not None]
+
+        if len(dataset_infos) > 0 and all(dataset_infos[0] == dset_info for dset_info in dataset_infos):
+            # if all dataset_infos are equal we don't need to merge. Just return the first.
+            return dataset_infos[0]
+
         description = "\n\n".join(unique_values(info.description for info in dataset_infos)).strip()
         citation = "\n\n".join(unique_values(info.citation for info in dataset_infos)).strip()
         homepage = "\n\n".join(unique_values(info.homepage for info in dataset_infos)).strip()
