@@ -4102,7 +4102,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         sort_table = query_table(
             table=self._data,
             key=slice(0, len(self)),
-            indices=self._indices if self._indices,
+            indices=self._indices,
         )
 
         sort_keys = [
@@ -4784,7 +4784,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             return query_table(
                 table=self._data,
                 key=slice(0, len(self)),
-                indices=self._indices if self._indices,
+                indices=self._indices,
             ).to_pydict()
         else:
             batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
@@ -4792,7 +4792,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 query_table(
                     table=self._data,
                     key=slice(offset, offset + batch_size),
-                    indices=self._indices if self._indices,
+                    indices=self._indices,
                 ).to_pydict()
                 for offset in range(0, len(self), batch_size)
             )
@@ -4812,7 +4812,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return query_table(
             table=self._data,
             key=slice(0, len(self)),
-            indices=self._indices if self._indices,
+            indices=self._indices,
         ).to_pylist()
 
     def to_json(
@@ -4886,7 +4886,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             return query_table(
                 table=self._data,
                 key=slice(0, len(self)),
-                indices=self._indices if self._indices,
+                indices=self._indices,
             ).to_pandas(types_mapper=pandas_types_mapper)
         else:
             batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
@@ -4894,7 +4894,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 query_table(
                     table=self._data,
                     key=slice(offset, offset + batch_size),
-                    indices=self._indices if self._indices,
+                    indices=self._indices,
                 ).to_pandas(types_mapper=pandas_types_mapper)
                 for offset in range(0, len(self), batch_size)
             )
