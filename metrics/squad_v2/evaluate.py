@@ -53,7 +53,7 @@ def make_qid_to_has_ans(dataset):
     for article in dataset:
         for p in article["paragraphs"]:
             for qa in p["qas"]:
-                qid_to_has_ans[qa["id"]] = bool(qa["answers"]["text"])
+                qid_to_has_ans[qa["id"]] = bool(qa["answers"][0]["text"] if qa["answers"] else "")
     return qid_to_has_ans
 
 
@@ -109,7 +109,7 @@ def get_raw_scores(dataset, preds):
         for p in article["paragraphs"]:
             for qa in p["qas"]:
                 qid = qa["id"]
-                gold_answers = [t for t in qa["answers"]["text"] if normalize_answer(t)]
+                gold_answers = [normalize_answer(answer["text"]) for answer in qa["answers"] if answer.get("text")]
                 if not gold_answers:
                     # For unanswerable questions, only correct answer is empty string
                     gold_answers = [""]
@@ -148,8 +148,8 @@ def make_eval_dict(exact_scores, f1_scores, qid_list=None):
         total = len(qid_list)
         return collections.OrderedDict(
             [
-                ("exact", 100.0 * sum(exact_scores[k] for k in qid_list) / total),
-                ("f1", 100.0 * sum(f1_scores[k] for k in qid_list) / total),
+                ("exact", 100.0 * sum(exact_scores.get(k, 0) for k in qid_list) / total),
+                ("f1", 100.0 * sum(f1_scores.get(k, 0) for k in qid_list) / total),
                 ("total", total),
             ]
         )
@@ -234,7 +234,7 @@ def run_precision_recall_analysis(main_eval, exact_raw, f1_raw, na_probs, qid_to
 def histogram_na_prob(na_probs, qid_list, image_dir, name):
     if not qid_list:
         return
-    x = [na_probs[k] for k in qid_list]
+    x = [na_probs.get(k, 0.0) for k in qid_list]
     weights = np.ones_like(x) / float(len(x))
     plt.hist(x, weights=weights, bins=20, range=(0.0, 1.0))
     plt.xlabel("Model probability of no-answer")
