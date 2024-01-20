@@ -891,8 +891,9 @@ class DatasetDict(dict):
 
     def filter(
         self,
-        function,
-        with_indices=False,
+        function: Optional[Callable] = None,
+        with_indices: bool = False,
+        with_rank: bool = False,
         input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
@@ -909,14 +910,20 @@ class DatasetDict(dict):
         The transformation is applied to all the datasets of the dataset dictionary.
 
         Args:
-            function (`callable`):
-                With one of the following signature:
-                - `function(example: Dict[str, Any]) -> bool` if `with_indices=False, batched=False`
-                - `function(example: Dict[str, Any], indices: int) -> bool` if `with_indices=True, batched=False`
-                - `function(example: Dict[str, List]) -> List[bool]` if `with_indices=False, batched=True`
-                - `function(example: Dict[str, List], indices: List[int]) -> List[bool]` if ``with_indices=True, batched=True`
+            function (`Callable`): Callable with one of the following signatures:
+
+                - `function(example: Dict[str, Any]) -> Dict[str, Any]` if `batched=False` and `with_indices=False` and `with_rank=False`
+                - `function(example: Dict[str, Any], *extra_args) -> Dict[str, Any]` if `batched=False` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+                - `function(batch: Dict[str, List]) -> Dict[str, List]` if `batched=True` and `with_indices=False` and `with_rank=False`
+                - `function(batch: Dict[str, List], *extra_args) -> Dict[str, List]` if `batched=True` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+
+                If no function is provided, defaults to an always `True` function: `lambda x: True`.
             with_indices (`bool`, defaults to `False`):
-                Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
+                Provide example indices to `function`. Note that in this case the
+                signature of `function` should be `def function(example, idx[, rank]): ...`.
+            with_rank (`bool`, defaults to `False`):
+                Provide process rank to `function`. Note that in this case the
+                signature of `function` should be `def function(example[, idx], rank): ...`.
             input_columns (`[Union[str, List[str]]]`, *optional*, defaults to `None`):
                 The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
@@ -976,6 +983,7 @@ class DatasetDict(dict):
                 k: dataset.filter(
                     function=function,
                     with_indices=with_indices,
+                    with_rank=with_rank,
                     input_columns=input_columns,
                     batched=batched,
                     batch_size=batch_size,
