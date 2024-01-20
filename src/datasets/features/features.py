@@ -321,7 +321,7 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
                     _cast_to_python_objects(
                         x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
                     )[0]
-                    for x in obj.detach().cpu().numpy()
+                    for x in obj.detach().to(torch.float).cpu().numpy()
                 ],
                 True,
             )
