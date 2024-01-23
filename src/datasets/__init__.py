@@ -17,7 +17,7 @@
 # pylint: enable=line-too-long
 # pylint: disable=g-import-not-at-top,g-bad-import-order,wrong-import-position
 
-__version__ = "2.15.1.dev0"
+__version__ = "2.16.2.dev0"
 
 from .arrow_dataset import Dataset
 from .arrow_reader import ReadInstruction
@@ -31,6 +31,7 @@ from .info import DatasetInfo, MetricInfo
 from .inspect import (
     get_dataset_config_info,
     get_dataset_config_names,
+    get_dataset_default_config_name,
     get_dataset_infos,
     get_dataset_split_names,
     inspect_dataset,

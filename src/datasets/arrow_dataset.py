@@ -451,7 +451,7 @@ class TensorflowDatasetMixin:
             collate_fn=collate_fn,
             collate_fn_args=collate_fn_args,
             cols_to_retain=cols_to_retain,
-            batch_size=batch_size if drop_remainder and batch_size is not None else None,
+            batch_size=batch_size if drop_remainder else None,
             num_test_batches=num_test_batches,
         )
 
@@ -2781,7 +2781,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         format_kwargs = kwargs["format_kwargs"] if "format_kwargs" in kwargs else self._format_kwargs
         format_kwargs = format_kwargs if format_kwargs is not None else {}
         formatter = get_formatter(format_type, features=self._info.features, **format_kwargs)
-        pa_subtable = query_table(self._data, key, indices=self._indices if self._indices is not None else None)
+        pa_subtable = query_table(self._data, key, indices=self._indices)
         formatted_output = format_table(
             pa_subtable, key, formatter=formatter, format_columns=format_columns, output_all_columns=output_all_columns
         )
@@ -4102,7 +4102,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         sort_table = query_table(
             table=self._data,
             key=slice(0, len(self)),
-            indices=self._indices if self._indices is not None else None,
+            indices=self._indices,
         )
 
         sort_keys = [
@@ -4784,7 +4784,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             return query_table(
                 table=self._data,
                 key=slice(0, len(self)),
-                indices=self._indices if self._indices is not None else None,
+                indices=self._indices,
             ).to_pydict()
         else:
             batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
@@ -4792,7 +4792,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 query_table(
                     table=self._data,
                     key=slice(offset, offset + batch_size),
-                    indices=self._indices if self._indices is not None else None,
+                    indices=self._indices,
                 ).to_pydict()
                 for offset in range(0, len(self), batch_size)
             )
@@ -4812,7 +4812,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return query_table(
             table=self._data,
             key=slice(0, len(self)),
-            indices=self._indices if self._indices is not None else None,
+            indices=self._indices,
         ).to_pylist()
 
     def to_json(
@@ -4886,7 +4886,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             return query_table(
                 table=self._data,
                 key=slice(0, len(self)),
-                indices=self._indices if self._indices is not None else None,
+                indices=self._indices,
             ).to_pandas(types_mapper=pandas_types_mapper)
         else:
             batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
@@ -4894,7 +4894,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 query_table(
                     table=self._data,
                     key=slice(offset, offset + batch_size),
-                    indices=self._indices if self._indices is not None else None,
+                    indices=self._indices,
                 ).to_pandas(types_mapper=pandas_types_mapper)
                 for offset in range(0, len(self), batch_size)
             )
@@ -5228,6 +5228,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         set_default: Optional[bool] = None,
         split: Optional[str] = None,
         commit_message: Optional[str] = None,
+        commit_description: Optional[str] = None,
         private: Optional[bool] = False,
         token: Optional[str] = None,
         revision: Optional[str] = None,
@@ -5258,6 +5259,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The name of the split that will be given to that dataset. Defaults to `self.split`.
             commit_message (`str`, *optional*):
                 Message to commit while pushing. Will default to `"Upload dataset"`.
+            commit_description (`str`, *optional*):
+                Description of the commit that will be created.
+                Additionally, description of the PR if a PR is created (`create_pr` is True).
+
+                <Added version="2.16.0"/>
             private (`bool`, *optional*, defaults to `False`):
                 Whether the dataset repository should be set to private or not. Only affects repository creation:
                 a repository that already exists will not be affected by that parameter.
@@ -5352,14 +5358,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
 
-        repo_url = api.create_repo(
+        _ = api.create_repo(
             repo_id,
             token=token,
             repo_type="dataset",
             private=private,
             exist_ok=True,
         )
-        repo_id = repo_url.repo_id
 
         if revision is not None:
             api.create_branch(repo_id, branch=revision, token=token, repo_type="dataset", exist_ok=True)
@@ -5385,7 +5390,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         repo_splits = []  # use a list to keep the order of the splits
         repo_files_to_add = [addition.path_in_repo for addition in additions]
         for repo_file in list_files_info(api, repo_id=repo_id, revision=revision, repo_type="dataset", token=token):
-            if repo_file.rfilename == "README.md":
+            if repo_file.rfilename == config.REPOCARD_FILENAME:
                 repo_with_dataset_card = True
             elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:
                 repo_with_dataset_infos = True
@@ -5416,7 +5421,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
         # get the info from the README to update them
         if repo_with_dataset_card:
-            dataset_card_path = api.hf_hub_download(repo_id, "README.md", repo_type="dataset", revision=revision)
+            dataset_card_path = api.hf_hub_download(
+                repo_id, config.REPOCARD_FILENAME, repo_type="dataset", revision=revision
+            )
             dataset_card = DatasetCard.load(Path(dataset_card_path))
             dataset_card_data = dataset_card.data
             metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
@@ -5518,7 +5525,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
         MetadataConfigs({config_name: metadata_config_to_dump}).to_dataset_card_data(dataset_card_data)
         dataset_card = DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
-        additions.append(CommitOperationAdd(path_in_repo="README.md", path_or_fileobj=str(dataset_card).encode()))
+        additions.append(
+            CommitOperationAdd(path_in_repo=config.REPOCARD_FILENAME, path_or_fileobj=str(dataset_card).encode())
+        )
 
         commit_message = commit_message if commit_message is not None else "Upload dataset"
         if len(additions) <= config.UPLOADS_MAX_NUMBER_PER_COMMIT:
@@ -5526,6 +5535,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 repo_id,
                 operations=additions + deletions,
                 commit_message=commit_message,
+                commit_description=commit_description,
                 token=token,
                 repo_type="dataset",
                 revision=revision,
@@ -5544,6 +5554,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     repo_id,
                     operations=operations,
                     commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
+                    commit_description=commit_description,
                     token=token,
                     repo_type="dataset",
                     revision=revision,

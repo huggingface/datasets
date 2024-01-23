@@ -3995,8 +3995,8 @@ def test_build_local_temp_path(uri_or_path):
     path_relative_to_tmp_dir = Path(local_temp_path).relative_to(Path(tempfile.gettempdir())).as_posix()
 
     assert (
-        "hdfs" not in path_relative_to_tmp_dir
-        and "s3" not in path_relative_to_tmp_dir
+        "hdfs://" not in path_relative_to_tmp_dir
+        and "s3://" not in path_relative_to_tmp_dir
         and not local_temp_path.startswith(extracted_path_without_anchor)
         and local_temp_path.endswith(extracted_path_without_anchor)
     ), f"Local temp path: {local_temp_path}"
