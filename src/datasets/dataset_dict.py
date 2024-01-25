@@ -1729,7 +1729,7 @@ class DatasetDict(dict):
         deletions = []
         repo_files_to_add = [addition.path_in_repo for addition in additions]
         for repo_file in list_files_info(api, repo_id=repo_id, revision=revision, repo_type="dataset", token=token):
-            if repo_file.rfilename == "README.md":
+            if repo_file.rfilename == config.REPOCARD_FILENAME:
                 repo_with_dataset_card = True
             elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:
                 repo_with_dataset_infos = True
@@ -1750,7 +1750,9 @@ class DatasetDict(dict):
 
         # get the info from the README to update them
         if repo_with_dataset_card:
-            dataset_card_path = api.hf_hub_download(repo_id, "README.md", repo_type="dataset", revision=revision)
+            dataset_card_path = api.hf_hub_download(
+                repo_id, config.REPOCARD_FILENAME, repo_type="dataset", revision=revision
+            )
             dataset_card = DatasetCard.load(Path(dataset_card_path))
             dataset_card_data = dataset_card.data
             metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
@@ -1800,7 +1802,9 @@ class DatasetDict(dict):
         DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
         MetadataConfigs({config_name: metadata_config_to_dump}).to_dataset_card_data(dataset_card_data)
         dataset_card = DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
-        additions.append(CommitOperationAdd(path_in_repo="README.md", path_or_fileobj=str(dataset_card).encode()))
+        additions.append(
+            CommitOperationAdd(path_in_repo=config.REPOCARD_FILENAME, path_or_fileobj=str(dataset_card).encode())
+        )
 
         commit_message = commit_message if commit_message is not None else "Upload dataset"
         if len(additions) <= config.UPLOADS_MAX_NUMBER_PER_COMMIT:

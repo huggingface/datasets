@@ -545,7 +545,7 @@ def xlistdir(path: str, download_config: Optional[DownloadConfig] = None) -> Lis
         if inner_path.strip("/") and not fs.isdir(inner_path):
             raise FileNotFoundError(f"Directory doesn't exist: {path}")
         objects = fs.listdir(inner_path)
-        return [os.path.basename(obj["name"]) for obj in objects]
+        return [os.path.basename(obj["name"].strip("/")) for obj in objects]
 
 
 def xglob(urlpath, *, recursive=False, download_config: Optional[DownloadConfig] = None):
