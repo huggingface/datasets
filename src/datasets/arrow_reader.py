@@ -16,12 +16,12 @@
 """ Arrow ArrowReader."""
 
 import copy
-from functools import partial
 import math
 import os
 import re
 import shutil
 from dataclasses import dataclass
+from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional, Union
 
