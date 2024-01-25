@@ -1672,7 +1672,9 @@ class Features(dict):
         if pa_schema.metadata is not None and "huggingface".encode("utf-8") in pa_schema.metadata:
             metadata = json.loads(pa_schema.metadata["huggingface".encode("utf-8")].decode())
             if "info" in metadata and "features" in metadata["info"] and metadata["info"]["features"] is not None:
-                return Features.from_dict(metadata["info"]["features"])
+                features = Features.from_dict(metadata["info"]["features"])
+                if features.arrow_schema == pa_schema:
+                    return features
         obj = {field.name: generate_from_arrow_type(field.type) for field in pa_schema}
         return cls(**obj)
 
