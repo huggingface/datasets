@@ -804,8 +804,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             input_columns=self.input_columns,
             batched=self.batched,
             batch_size=self.batch_size,
+            drop_last_batch=self.drop_last_batch,
             remove_columns=self.remove_columns,
             fn_kwargs=self.fn_kwargs,
+            formatting=self.formatting,
         )
 
     def shard_data_sources(self, worker_id: int, num_workers: int) -> "MappedExamplesIterable":
@@ -817,8 +819,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             input_columns=self.input_columns,
             batched=self.batched,
             batch_size=self.batch_size,
+            drop_last_batch=self.drop_last_batch,
             remove_columns=self.remove_columns,
             fn_kwargs=self.fn_kwargs,
+            formatting=self.formatting,
         )
 
     @property
