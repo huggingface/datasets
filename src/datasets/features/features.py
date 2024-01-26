@@ -370,7 +370,7 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
                 key: _cast_to_python_objects(
                     value, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
                 )[0]
-                for key, value in obj.to_dict("list").items()
+                for key, value in obj.to_dict("series").items()
             },
             True,
         )
