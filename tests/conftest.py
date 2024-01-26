@@ -51,7 +51,10 @@ def set_update_download_counts_to_false(monkeypatch):
 def set_sqlalchemy_silence_uber_warning(monkeypatch):
     # Required to suppress RemovedIn20Warning when feature(s) are not compatible with SQLAlchemy 2.0
     # To be removed once SQLAlchemy 2.0 supported
-    monkeypatch.setattr("sqlalchemy.util.deprecations.SILENCE_UBER_WARNING", True)
+    try:
+        monkeypatch.setattr("sqlalchemy.util.deprecations.SILENCE_UBER_WARNING", True)
+    except AttributeError:
+        pass
 
 
 @pytest.fixture(autouse=True, scope="session")
