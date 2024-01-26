@@ -61,6 +61,7 @@ import pyarrow as pa
 import pyarrow.compute as pc
 from huggingface_hub import CommitInfo, CommitOperationAdd, CommitOperationDelete, DatasetCard, DatasetCardData, HfApi
 from multiprocess import Pool
+from tqdm.contrib.concurrent import thread_map
 
 from . import config
 from .arrow_reader import ArrowReader
@@ -1703,9 +1704,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
         keep_in_memory = keep_in_memory if keep_in_memory is not None else is_small_dataset(dataset_size)
         table_cls = InMemoryTable if keep_in_memory else MemoryMappedTable
+
         arrow_table = concat_tables(
-            table_cls.from_file(posixpath.join(dest_dataset_path, data_file["filename"]))
-            for data_file in state["_data_files"]
+            thread_map(
+                table_cls.from_file,
+                [posixpath.join(dest_dataset_path, data_file["filename"]) for data_file in state["_data_files"]],
+                tqdm_class=hf_tqdm,
+                desc="Loading dataset from disk",
+                disable=len(state["_data_files"]) <= 16,
+            )
         )
 
         split = state["_split"]
