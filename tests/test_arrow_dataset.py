@@ -1442,6 +1442,24 @@ class BaseDatasetTest(TestCase):
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertRaises(ValueError, dset.map, func_return_multi_row_pa_table)
 
+        # arrow formatted dataset
+        def func_return_table_from_expression(t):
+            import pyarrow.dataset as pds
+
+            return pds.dataset(t).to_table(
+                columns={"new_column": pds.field("")._call("ascii_capitalize", [pds.field("filename")])}
+            )
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.with_format("arrow").map(func_return_table_from_expression, batched=True) as dset_test:
+                    self.assertEqual(len(dset_test), 30)
+                    self.assertDictEqual(
+                        dset_test.features,
+                        Features({"new_column": Value("string")}),
+                    )
+                    self.assertEqual(dset_test.with_format(None)[0]["new_column"], dset[0]["filename"].capitalize())
+
     def test_map_return_pd_dataframe(self, in_memory):
         def func_return_single_row_pd_dataframe(x):
             return pd.DataFrame({"id": [0], "text": ["a"]})
