@@ -2076,9 +2076,6 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
     elif pa.types.is_fixed_size_list(array.type):
         # feature must be either [subfeature] or Sequence(subfeature)
         array_values = array.values
-        if config.PYARROW_VERSION.major < 15:
-            # PyArrow bug: https://github.com/apache/arrow/issues/35360
-            array_values = array.values[array.offset * array.type.list_size :]
         if isinstance(feature, list):
             if array.null_count > 0:
                 if config.PYARROW_VERSION.major < 10:
@@ -2090,6 +2087,10 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
             return pa.ListArray.from_arrays(array.offsets, _c(array_values, feature[0]))
         elif isinstance(feature, Sequence):
             if feature.length > -1:
+                if array.offset and feature.length * len(array) != len(array_values):
+                    array_values = array.values[
+                        array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
+                    ]
                 if feature.length * len(array) == len(array_values):
                     return pa.FixedSizeListArray.from_arrays(_c(array_values, feature.feature), feature.length)
             else:
