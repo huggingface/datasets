@@ -1,4 +1,4 @@
-# flake8: noqa
+# ruff: noqa
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,10 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-# Lint as: python3
-# pylint: enable=line-too-long
-# pylint: disable=g-import-not-at-top,g-bad-import-order,wrong-import-position
 
 __version__ = "2.16.2.dev0"
 
