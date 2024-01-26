@@ -2088,7 +2088,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
         elif isinstance(feature, Sequence):
             if feature.length > -1:
                 if array.offset and feature.length * len(array) != len(array_values):
-                    array_values = array.values[array.offset * array.type.list_size :]
+                    array_values = array.values[array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size]
                 if feature.length * len(array) == len(array_values):
                     return pa.FixedSizeListArray.from_arrays(_c(array_values, feature.feature), feature.length)
             else:
