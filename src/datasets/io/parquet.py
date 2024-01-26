@@ -148,7 +148,7 @@ class ParquetDatasetWriter:
             batch = query_table(
                 table=self.dataset._data,
                 key=slice(offset, offset + batch_size),
-                indices=self.dataset._indices if self.dataset._indices is not None else None,
+                indices=self.dataset._indices,
             )
             writer.write_table(batch)
             written += batch.nbytes
