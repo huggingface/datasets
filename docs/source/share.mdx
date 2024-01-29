@@ -1,4 +1,4 @@
-# Share
+# Share a dataset using the CLI
 
 At Hugging Face, we are on a mission to democratize good Machine Learning and we believe in the value of open source. That's why we designed 🤗 Datasets so that anyone can share a dataset with the greater ML community. There are currently thousands of datasets in over 100 languages in the Hugging Face Hub, and the Hugging Face team always welcomes new contributions!
 
@@ -19,18 +19,15 @@ This guide will show you how to share a dataset that can be easily accessed by a
 You can share your dataset with the community with a dataset repository on the Hugging Face Hub.
 It can also be a private dataset if you want to control who has access to it.
 
-In a dataset repository, you can either host all your data files and/or use a dataset script.
-
-The dataset script is optional if your dataset is in one of the following formats: CSV, JSON, JSON lines, text or Parquet.
-The script also supports many kinds of compressed file types such as: GZ, BZ2, LZ4, LZMA or ZSTD.
+In a dataset repository, you can host all your data files and [configure your dataset](./repository_structure#define-your-splits-in-yaml) to define which file goes to which split.
+The following formats are supported: CSV, TSV, JSON, JSON lines, text, Parquet, Arrow, SQLite.
+Many kinds of compressed file types are also supported: GZ, BZ2, LZ4, LZMA or ZSTD.
 For example, your dataset can be made of `.json.gz` files.
 
 On the other hand, if your dataset is not in a supported format or if you want more control over how your dataset is loaded, you can write your own dataset script.
 
-When loading a dataset from the Hub:
-
-- If there's no dataset script, all the files in the supported formats are loaded.
-- If there's a dataset script, it is downloaded and executed to download and prepare the dataset.
+When loading a dataset from the Hub, all the files in the supported formats are loaded, following the [repository structure](./repository_structure).
+However if there's a dataset script, it is downloaded and executed to download and prepare the dataset instead.
 
 For more information on how to load a dataset from the Hub, take a look at the [load a dataset from the Hub](./load_hub) tutorial.
 
@@ -59,7 +56,7 @@ huggingface-cli repo create your_dataset_name --type dataset --organization your
 
 ### Clone the repository
 
-3. Install [Git LFS](https://git-lfs.github.com/) and clone your repository:
+3. Install [Git LFS](https://git-lfs.github.com/) and clone your repository (refer to the [Git over SSH docs](https://huggingface.co/docs/hub/security-git-ssh) if you prefer cloning through SSH):
 
 ```
 # Make sure you have git-lfs installed
@@ -75,9 +72,11 @@ Here the `namespace` is either your username or your organization name.
 
 4. Now is a good time to check your directory to ensure the only files you're uploading are:
 
-- The raw data files of the dataset (optional, if they are hosted elsewhere you can specify the URLs in the dataset script). If you don't need a dataset script, you can take a look at [how to structure your dataset repository for your data files](repository_structure).
+- The data files of the dataset
 
-- `your_dataset_name.py` is your dataset loading script (optional if your data files are already in the supported formats csv/jsonl/json/parquet/txt). To create a dataset script, see the [dataset script](dataset_script) page.
+- The dataset card `README.md`
+
+- (optional) `your_dataset_name.py` is your dataset loading script (optional if your data files are already in the supported formats csv/jsonl/json/parquet/txt). To create a dataset script, see the [dataset script](dataset_script) page.
 
 ### Upload your files
 
@@ -93,7 +92,7 @@ git add *.json
 git commit -m "add json files"
 ```
 
-6. Add the dataset loading script:
+6. (Optional) Add the dataset loading script:
 
 ```
 cp /somewhere/data/load_script.py .
@@ -114,31 +113,7 @@ Congratulations, your dataset has now been uploaded to the Hugging Face Hub wher
 dataset = load_dataset("namespace/your_dataset_name")
 ```
 
-Finally, don't forget to create a dataset card to document your dataset and make it discoverable! Check out the [Create a dataset card](dataset_card) guide to learn more.
-
-### Ask for a help and reviews
-
-If you need help with a dataset script, feel free to check the [datasets forum](https://discuss.huggingface.co/c/datasets/10): it's possible that someone had similar issues and shared how they managed to fix them.
-
-Then if your script is ready and if you wish your dataset script to be reviewed by the Hugging Face team, you can open a discussion in the Community tab of your dataset with this message:
-
-```
-# Dataset rewiew request for <Dataset name>
-
-## Description
-
-<brief description of the dataset>
-
-## Files to review
-
-- file1
-- file2
-- ...
-
-cc @lhoestq @polinaeterna @mariosasko @albertvillanova
-```
-
-Members of the Hugging Face team will be happy to review your dataset script and give you advice.
+Finally, don't forget to enrich the dataset card to document your dataset and make it discoverable! Check out the [Create a dataset card](dataset_card) guide to learn more.
 
 ## Datasets on GitHub (legacy)
 

@@ -7,7 +7,7 @@ import fsspec
 from .. import Dataset, Features, NamedSplit, config
 from ..formatting import query_table
 from ..packaged_modules.json.json import Json
-from ..utils import logging
+from ..utils import tqdm as hf_tqdm
 from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
 
@@ -93,7 +93,8 @@ class JsonDatasetWriter:
         _ = self.to_json_kwargs.pop("path_or_buf", None)
         orient = self.to_json_kwargs.pop("orient", "records")
         lines = self.to_json_kwargs.pop("lines", True if orient == "records" else False)
-        index = self.to_json_kwargs.pop("index", False if orient in ["split", "table"] else True)
+        if "index" not in self.to_json_kwargs and orient in ["split", "table"]:
+            self.to_json_kwargs["index"] = False
         compression = self.to_json_kwargs.pop("compression", None)
 
         if compression not in [None, "infer", "gzip", "bz2", "xz"]:
@@ -101,29 +102,25 @@ class JsonDatasetWriter:
 
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
             with fsspec.open(self.path_or_buf, "wb", compression=compression) as buffer:
-                written = self._write(file_obj=buffer, orient=orient, lines=lines, index=index, **self.to_json_kwargs)
+                written = self._write(file_obj=buffer, orient=orient, lines=lines, **self.to_json_kwargs)
         else:
             if compression:
                 raise NotImplementedError(
                     f"The compression parameter is not supported when writing to a buffer, but compression={compression}"
                     " was passed. Please provide a local path instead."
                 )
-            written = self._write(
-                file_obj=self.path_or_buf, orient=orient, lines=lines, index=index, **self.to_json_kwargs
-            )
+            written = self._write(file_obj=self.path_or_buf, orient=orient, lines=lines, **self.to_json_kwargs)
         return written
 
     def _batch_json(self, args):
-        offset, orient, lines, index, to_json_kwargs = args
+        offset, orient, lines, to_json_kwargs = args
 
         batch = query_table(
             table=self.dataset.data,
             key=slice(offset, offset + self.batch_size),
             indices=self.dataset._indices,
         )
-        json_str = batch.to_pandas().to_json(
-            path_or_buf=None, orient=orient, lines=lines, index=index, **to_json_kwargs
-        )
+        json_str = batch.to_pandas().to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
         if not json_str.endswith("\n"):
             json_str += "\n"
         return json_str.encode(self.encoding)
@@ -133,7 +130,6 @@ class JsonDatasetWriter:
         file_obj: BinaryIO,
         orient,
         lines,
-        index,
         **to_json_kwargs,
     ) -> int:
         """Writes the pyarrow table as JSON lines to a binary file handle.
@@ -143,25 +139,23 @@ class JsonDatasetWriter:
         written = 0
 
         if self.num_proc is None or self.num_proc == 1:
-            for offset in logging.tqdm(
+            for offset in hf_tqdm(
                 range(0, len(self.dataset), self.batch_size),
                 unit="ba",
-                disable=not logging.is_progress_bar_enabled(),
                 desc="Creating json from Arrow format",
             ):
-                json_str = self._batch_json((offset, orient, lines, index, to_json_kwargs))
+                json_str = self._batch_json((offset, orient, lines, to_json_kwargs))
                 written += file_obj.write(json_str)
         else:
             num_rows, batch_size = len(self.dataset), self.batch_size
             with multiprocessing.Pool(self.num_proc) as pool:
-                for json_str in logging.tqdm(
+                for json_str in hf_tqdm(
                     pool.imap(
                         self._batch_json,
-                        [(offset, orient, lines, index, to_json_kwargs) for offset in range(0, num_rows, batch_size)],
+                        [(offset, orient, lines, to_json_kwargs) for offset in range(0, num_rows, batch_size)],
                     ),
                     total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
                     unit="ba",
-                    disable=not logging.is_progress_bar_enabled(),
                     desc="Creating json from Arrow format",
                 ):
                     written += file_obj.write(json_str)

@@ -37,7 +37,7 @@ Then this is how the folder-based builder generates an example:
 Create the image dataset by specifying `imagefolder` in [`load_dataset`]:
 
 ```py
->>> from datasets import ImageFolder
+>>> from datasets import load_dataset
 
 >>> dataset = load_dataset("imagefolder", data_dir="/path/to/pokemon")
 ```
@@ -45,7 +45,7 @@ Create the image dataset by specifying `imagefolder` in [`load_dataset`]:
 An audio dataset is created in the same way, except you specify `audiofolder` in [`load_dataset`] instead:
 
 ```py
->>> from datasets import AudioFolder
+>>> from datasets import load_dataset
 
 >>> dataset = load_dataset("audiofolder", data_dir="/path/to/folder")
 ```

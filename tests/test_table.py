@@ -9,7 +9,7 @@ import pytest
 
 import datasets
 from datasets import Sequence, Value
-from datasets.features.features import Array2DExtensionType, ClassLabel, Features, Image
+from datasets.features.features import Array2D, Array2DExtensionType, ClassLabel, Features, Image
 from datasets.table import (
     ConcatenationTable,
     InMemoryTable,
@@ -1124,6 +1124,12 @@ def test_cast_array_to_features_nested():
     )
 
 
+def test_cast_array_to_features_to_nested_with_no_fields():
+    arr = pa.array([{}])
+    assert cast_array_to_feature(arr, {}).type == pa.struct({})
+    assert cast_array_to_feature(arr, {}).to_pylist() == arr.to_pylist()
+
+
 def test_cast_array_to_features_nested_with_null_values():
     # same type
     arr = pa.array([{"foo": [None, [0]]}], pa.struct({"foo": pa.list_(pa.list_(pa.int64()))}))
@@ -1159,6 +1165,16 @@ def test_cast_array_to_features_to_null_type():
         cast_array_to_feature(arr, Sequence(Value("null")))
 
 
+def test_cast_array_to_features_array_xd():
+    # same storage type
+    arr = pa.array([[[0, 1], [2, 3]], [[4, 5], [6, 7]]], pa.list_(pa.list_(pa.int32(), 2), 2))
+    casted_array = cast_array_to_feature(arr, Array2D(shape=(2, 2), dtype="int32"))
+    assert casted_array.type == Array2DExtensionType(shape=(2, 2), dtype="int32")
+    # different storage type
+    casted_array = cast_array_to_feature(arr, Array2D(shape=(2, 2), dtype="float32"))
+    assert casted_array.type == Array2DExtensionType(shape=(2, 2), dtype="float32")
+
+
 def test_cast_array_to_features_sequence_classlabel():
     arr = pa.array([[], [1], [0, 1]], pa.list_(pa.int64()))
     assert cast_array_to_feature(arr, Sequence(ClassLabel(names=["foo", "bar"]))).type == pa.list_(pa.int64())
@@ -1181,6 +1197,18 @@ def test_cast_array_to_features_sequence_classlabel():
     arr = pa.array([["baz"]], pa.list_(pa.string()))
     with pytest.raises(ValueError):
         assert cast_array_to_feature(arr, Sequence(ClassLabel(names=["foo", "bar"])))
+
+
+def test_cast_fixed_size_array_to_features_sequence():
+    arr = pa.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]], pa.list_(pa.int32(), 3))
+    # Fixed size list
+    casted_array = cast_array_to_feature(arr, Sequence(Value("int64"), length=3))
+    assert casted_array.type == pa.list_(pa.int64(), 3)
+    assert casted_array.to_pylist() == arr.to_pylist()
+    # Variable size list
+    casted_array = cast_array_to_feature(arr, Sequence(Value("int64")))
+    assert casted_array.type == pa.list_(pa.int64())
+    assert casted_array.to_pylist() == arr.to_pylist()
 
 
 def test_cast_sliced_fixed_size_array_to_features():

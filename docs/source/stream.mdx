@@ -51,6 +51,33 @@ You can find more details in the [Dataset vs. IterableDataset guide](./about_map
 
 </Tip>
 
+## Convert from a Dataset
+
+If you have an existing [`Dataset`] object, you can convert it to an [`IterableDataset`] with the [`~Dataset.to_iterable_dataset`] function. This is actually faster than setting the `streaming=True` argument in [`load_dataset`] because the data is streamed from local files.
+
+```py
+>>> from datasets import load_dataset
+
+# faster 🐇
+>>> dataset = load_dataset("food101")
+>>> iterable_dataset = dataset.to_iterable_dataset()
+
+# slower 🐢
+>>> iterable_dataset = load_dataset("food101", streaming=True)
+```
+
+The [`~Dataset.to_iterable_dataset`] function supports sharding when the [`IterableDataset`] is instantiated. This is useful when working with big datasets, and you'd like to shuffle the dataset or to enable fast parallel loading with a PyTorch DataLoader.
+
+```py
+>>> import torch
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("food101")
+>>> iterable_dataset = dataset.to_iterable_dataset(num_shards=64) # shard the dataset
+>>> iterable_dataset = iterable_dataset.shuffle(buffer_size=10_000)  # shuffles the shards order and use a shuffle buffer when you start iterating
+dataloader = torch.utils.data.DataLoader(iterable_dataset, num_workers=4)  # assigns 64 / 4 = 16 shards from the shuffled list of shards to each worker when you start iterating
+```
+
 ## Shuffle
 
 Like a regular [`Dataset`] object, you can also shuffle a [`IterableDataset`] with [`IterableDataset.shuffle`].
@@ -115,8 +142,8 @@ You can split your dataset one of two ways:
 
 ```py
 >>> from datasets import interleave_datasets
->>> en_dataset = load_dataset('oscar', "unshuffled_deduplicated_en", split='train', streaming=True)
->>> fr_dataset = load_dataset('oscar', "unshuffled_deduplicated_fr", split='train', streaming=True)
+>>> en_dataset = load_dataset('oscar', "unshuffled_deduplicated_en", split='train', streaming=True, trust_remote_code=True)
+>>> fr_dataset = load_dataset('oscar', "unshuffled_deduplicated_fr", split='train', streaming=True, trust_remote_code=True)
 
 >>> multilingual_dataset = interleave_datasets([en_dataset, fr_dataset])
 >>> list(multilingual_dataset.take(2))
@@ -149,7 +176,7 @@ Provide [`IterableDataset.rename_column`] with the name of the original column, 
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset('mc4', 'en', streaming=True, split='train')
+>>> dataset = load_dataset('mc4', 'en', streaming=True, split='train', trust_remote_code=True)
 >>> dataset = dataset.rename_column("text", "content")
 ```
 
@@ -159,7 +186,7 @@ When you need to remove one or more columns, give [`IterableDataset.remove_colum
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset('mc4', 'en', streaming=True, split='train')
+>>> dataset = load_dataset('mc4', 'en', streaming=True, split='train', trust_remote_code=True)
 >>> dataset = dataset.remove_columns('timestamp')
 ```
 
@@ -224,7 +251,7 @@ Next, apply this function to the dataset with [`IterableDataset.map`]:
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset('oscar', 'unshuffled_deduplicated_en', streaming=True, split='train')
+>>> dataset = load_dataset('oscar', 'unshuffled_deduplicated_en', streaming=True, split='train', trust_remote_code=True)
 >>> updated_dataset = dataset.map(add_prefix)
 >>> list(updated_dataset.take(3))
 [{'id': 0, 'text': 'My text: Mtendere Village was inspired by...'},
@@ -253,13 +280,13 @@ Specify the column to remove with the `remove_columns` argument in [`IterableDat
 ```py
 >>> from datasets import load_dataset
 >>> from transformers import AutoTokenizer
->>> dataset = load_dataset("mc4", "en", streaming=True, split="train")
+>>> dataset = load_dataset("mc4", "en", streaming=True, split="train", trust_remote_code=True)
 >>> tokenizer = AutoTokenizer.from_pretrained('distilbert-base-uncased')
 >>> def encode(examples):
 ...     return tokenizer(examples['text'], truncation=True, padding='max_length')
 >>> dataset = dataset.map(encode, batched=True, remove_columns=["text", "timestamp", "url"])
 >>> next(iter(dataset))
-{'input_ids': 101, 8466, 1018, 1010, 4029, 2475, 2062, 18558, 3100, 2061, ...,1106, 3739, 102],
+{'input_ids': [101, 8466, 1018, 1010, 4029, 2475, 2062, 18558, 3100, 2061, ...,1106, 3739, 102],
 'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ..., 1, 1]}
 ```
 
@@ -275,7 +302,7 @@ You can filter rows in the dataset based on a predicate function using [`Dataset
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset('oscar', 'unshuffled_deduplicated_en', streaming=True, split='train')
+>>> dataset = load_dataset('oscar', 'unshuffled_deduplicated_en', streaming=True, split='train', trust_remote_code=True)
 >>> start_with_ar = dataset.filter(lambda example: example['text'].startswith('Ar'))
 >>> next(iter(start_with_ar))
 {'id': 4, 'text': 'Are you looking for Number the Stars (Essential Modern Classics)?...'}

@@ -1,8 +1,9 @@
 import pyarrow.parquet as pq
 import pytest
 
-from datasets import Audio, Dataset, DatasetDict, Features, NamedSplit, Sequence, Value, config
+from datasets import Audio, Dataset, DatasetDict, Features, IterableDatasetDict, NamedSplit, Sequence, Value, config
 from datasets.features.image import Image
+from datasets.info import DatasetInfo
 from datasets.io.parquet import ParquetDatasetReader, ParquetDatasetWriter, get_writer_batch_size
 
 from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
@@ -68,13 +69,32 @@ def test_dataset_from_parquet_path_type(path_type, parquet_path, tmp_path):
     _check_parquet_dataset(dataset, expected_features)
 
 
+def test_parquet_read_geoparquet(geoparquet_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    dataset = ParquetDatasetReader(path_or_paths=geoparquet_path, cache_dir=cache_dir).read()
+
+    expected_features = {
+        "pop_est": "float64",
+        "continent": "string",
+        "name": "string",
+        "gdp_md_est": "int64",
+        "geometry": "binary",
+    }
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == 5
+    assert dataset.num_columns == 6
+    assert dataset.column_names == ["pop_est", "continent", "name", "iso_a3", "gdp_md_est", "geometry"]
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
+
+
 def _check_parquet_datasetdict(dataset_dict, expected_features, splits=("train",)):
-    assert isinstance(dataset_dict, DatasetDict)
+    assert isinstance(dataset_dict, (DatasetDict, IterableDatasetDict))
     for split in splits:
         dataset = dataset_dict[split]
-        assert dataset.num_rows == 4
-        assert dataset.num_columns == 3
-        assert dataset.column_names == ["col_1", "col_2", "col_3"]
+        assert len(list(dataset)) == 4
+        assert dataset.features is not None
+        assert set(dataset.features) == set(expected_features)
         for feature, expected_dtype in expected_features.items():
             assert dataset.features[feature].dtype == expected_dtype
 
@@ -90,6 +110,7 @@ def test_parquet_datasetdict_reader_keep_in_memory(keep_in_memory, parquet_path,
     _check_parquet_datasetdict(dataset, expected_features)
 
 
+@pytest.mark.parametrize("streaming", [False, True])
 @pytest.mark.parametrize(
     "features",
     [
@@ -100,14 +121,48 @@ def test_parquet_datasetdict_reader_keep_in_memory(keep_in_memory, parquet_path,
         {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
     ],
 )
-def test_parquet_datasetdict_reader_features(features, parquet_path, tmp_path):
+def test_parquet_datasetdict_reader_features(streaming, features, parquet_path, tmp_path):
     cache_dir = tmp_path / "cache"
     default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
     features = (
         Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
     )
-    dataset = ParquetDatasetReader({"train": parquet_path}, features=features, cache_dir=cache_dir).read()
+    dataset = ParquetDatasetReader(
+        {"train": parquet_path}, features=features, cache_dir=cache_dir, streaming=streaming
+    ).read()
+    _check_parquet_datasetdict(dataset, expected_features)
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("columns", [None, ["col_1"]])
+@pytest.mark.parametrize("pass_features", [False, True])
+@pytest.mark.parametrize("pass_info", [False, True])
+def test_parquet_datasetdict_reader_columns(streaming, columns, pass_features, pass_info, parquet_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+
+    default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    info = (
+        DatasetInfo(features=Features({feature: Value(dtype) for feature, dtype in default_expected_features.items()}))
+        if pass_info
+        else None
+    )
+
+    expected_features = (
+        {col: default_expected_features[col] for col in columns} if columns else default_expected_features
+    )
+    features = (
+        Features({feature: Value(dtype) for feature, dtype in expected_features.items()}) if pass_features else None
+    )
+
+    dataset = ParquetDatasetReader(
+        {"train": parquet_path},
+        columns=columns,
+        features=features,
+        info=info,
+        cache_dir=cache_dir,
+        streaming=streaming,
+    ).read()
     _check_parquet_datasetdict(dataset, expected_features)
 
 
@@ -125,7 +180,7 @@ def test_parquet_datasetdict_reader_split(split, parquet_path, tmp_path):
     assert all(dataset[split].split == split for split in path.keys())
 
 
-def test_parquer_write(dataset, tmp_path):
+def test_parquet_write(dataset, tmp_path):
     writer = ParquetDatasetWriter(dataset, tmp_path / "foo.parquet")
     assert writer.write() > 0
     pf = pq.ParquetFile(tmp_path / "foo.parquet")

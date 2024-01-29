@@ -33,14 +33,14 @@ pip install git+https://github.com/huggingface/doc-builder
 **NOTE**
 
 You only need to generate the documentation to inspect it locally (if you're planning changes and want to
-check how they look like before committing for instance). You don't have to commit the built documentation.
+check how they look before committing for instance). You don't have to `git commit` the built documentation.
 
 ---
 
 ## Building the documentation
 
-Once you have setup the `doc-builder` and additional packages, you can generate the documentation by typing th
-following command:
+Once you have setup the `doc-builder` and additional packages, you can generate the documentation by typing
+the following command:
 
 ```bash
 doc-builder build datasets docs/source/ --build_dir ~/tmp/test-build
@@ -50,24 +50,37 @@ You can adapt the `--build_dir` to set any temporary folder that you prefer. Thi
 the MDX files that will be rendered as the documentation on the main website. You can inspect them in your favorite
 Markdown editor.
 
+## Previewing the documentation
+
+To preview the docs, first install the `watchdog` module with:
+
+```bash
+pip install watchdog
+```
+
+Then run the following command:
+
+```bash
+doc-builder preview datasets docs/source/
+```
+
+The docs will be viewable at [http://localhost:3000](http://localhost:3000). You can also preview the docs once you have opened a PR. You will see a bot add a comment to a link where the documentation with your changes lives.
+
 ---
 **NOTE**
 
-It's not possible to see locally how the final documentation will look like for now. Once you have opened a PR, you
-will see a bot add a comment to a link where the documentation with your changes lives.
-
----
+The `preview` command only works with existing doc files. When you add a completely new file, you need to update `_toctree.yml` & restart `preview` command (`ctrl-c` to stop it & call `doc-builder preview ...` again).
 
 ## Adding a new element to the navigation bar
 
 Accepted files are Markdown (.md or .mdx).
 
 Create a file with its extension and put it in the source directory. You can then link it to the toc-tree by putting
-the filename without the extension in the [`_toctree.yml`](https://github.com/huggingface/transformers/blob/master/docs/source/_toctree.yml) file.
+the filename without the extension in the [`_toctree.yml`](https://github.com/huggingface/datasets/blob/main/docs/source/_toctree.yml) file.
 
 ## Renaming section headers and moving sections
 
-It helps to keep the old links working when renaming section header and/or moving sections from one document to another. This is because the old links are likely to be used in Issues, Forums and Social media and it'd be make for a much more superior user experience if users reading those months later could still easily navigate to the originally intended information.
+It helps to keep the old links working when renaming the section header and/or moving sections from one document to another. This is because the old links are likely to be used in Issues, Forums and Social media and it'd make for a much more superior user experience if users reading those months later could still easily navigate to the originally intended information.
 
 Therefore we simply keep a little map of moved sections at the end of the document where the original section was. The key is to preserve the original anchor.
 
@@ -88,12 +101,12 @@ Sections that were moved:
 
 Use the relative style to link to the new file so that the versioned docs continue to work.
 
-For an example of a rich moved sections set please see the very end of [the Trainer doc](https://github.com/huggingface/transformers/blob/master/docs/source/main_classes/trainer.mdx).
+For an example of a rich moved sections set please see the very end of [the transformers Trainer doc](https://github.com/huggingface/transformers/blob/main/docs/source/en/main_classes/trainer.md).
 
 
 ## Writing Documentation - Specification
 
-The `huggingface/transformers` documentation follows the
+The `huggingface/datasets` documentation follows the
 [Google documentation](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html) style for docstrings,
 although we can write them directly in Markdown.
 
@@ -104,63 +117,7 @@ Adding a new tutorial or section is done in two steps:
 - Add a new file under `./source`. This file can either be ReStructuredText (.rst) or Markdown (.md).
 - Link that file in `./source/_toctree.yml` on the correct toc-tree.
 
-Make sure to put your new file under the proper section. It's unlikely to go in the first section (*Get Started*), so
-depending on the intended targets (beginners, more advanced users or researchers) it should go in section two, three or
-four.
-
-### Adding a new model
-
-When adding a new model:
-
-- Create a file `xxx.mdx` or under `./source/model_doc` (don't hesitate to copy an existing file as template).
-- Link that file in `./source/_toctree.yml`.
-- Write a short overview of the model:
-    - Overview with paper & authors
-    - Paper abstract
-    - Tips and tricks and how to use it best
-- Add the classes that should be linked in the model. This generally includes the configuration, the tokenizer, and
-  every model of that class (the base model, alongside models with additional heads), both in PyTorch and TensorFlow.
-  The order is generally:
-    - Configuration,
-    - Tokenizer
-    - PyTorch base model
-    - PyTorch head models
-    - TensorFlow base model
-    - TensorFlow head models
-    - Flax base model
-    - Flax head models
-
-These classes should be added using our Markdown syntax. Usually as follows:
-
-```
-## XXXConfig
-
-[[autodoc]] XXXConfig
-```
-
-This will include every public method of the configuration that is documented. If for some reason you wish for a method
-not to be displayed in the documentation, you can do so by specifying which methods should be in the docs:
-
-```
-## XXXTokenizer
-
-[[autodoc]] XXXTokenizer
-    - build_inputs_with_special_tokens
-    - get_special_tokens_mask
-    - create_token_type_ids_from_sequences
-    - save_vocabulary
-```
-
-If you just want to add a method that is not documented (for instance magic method like `__call__` are not documented
-byt default) you can put the list of methods to add in a list that contains `all`:
-
-```
-## XXXTokenizer
-
-[[autodoc]] XXXTokenizer
-    - all
-    - __call__
-```
+Make sure to put your new file under the proper section. If you have a doubt, feel free to ask in a Github Issue or PR.
 
 ### Writing source documentation
 
@@ -172,9 +129,9 @@ adds a link to its documentation with this syntax: \[\`XXXClass\`\] or \[\`funct
 function to be in the main package.
 
 If you want to create a link to some internal class or function, you need to
-provide its path. For instance: \[\`file_utils.ModelOutput\`\]. This will be converted into a link with
-`file_utils.ModelOutput` in the description. To get rid of the path and only keep the name of the object you are
-linking to in the description, add a ~: \[\`~file_utils.ModelOutput\`\] will generate a link with `ModelOutput` in the description.
+provide its path. For instance: \[\`table.InMemoryTable\`\]. This will be converted into a link with
+`table.InMemoryTable` in the description. To get rid of the path and only keep the name of the object you are
+linking to in the description, add a ~: \[\`~table.InMemoryTable\`\] will generate a link with `InMemoryTable` in the description.
 
 The same works for methods so you can either use \[\`XXXClass.method\`\] or \[~\`XXXClass.method\`\].
 
@@ -190,7 +147,7 @@ description:
 ```
 
 If the description is too long to fit in one line, another indentation is necessary before writing the description
-after th argument.
+after the argument.
 
 Here's an example showcasing everything so far:
 
@@ -223,7 +180,7 @@ then its documentation should look like this:
 ```
 
 Note that we always omit the "defaults to \`None\`" when None is the default for any argument. Also note that even
-if the first line describing your argument type and its default gets long, you can't break it on several lines. You can
+if the first line describing your argument type and its default gets long, you can't break it into several lines. You can
 however write as many lines as you want in the indented description (see the example above with `input_ids`).
 
 #### Writing a multi-line code block
@@ -239,23 +196,20 @@ Multi-line code blocks can be useful for displaying examples. They are done betw
 ```
 ````
 
-We follow the [doctest](https://docs.python.org/3/library/doctest.html) syntax for the examples to automatically test
-the results stay consistent with the library.
-
 #### Writing a return block
 
 The return block should be introduced with the `Returns:` prefix, followed by a line return and an indentation.
 The first line should be the type of the return, followed by a line return. No need to indent further for the elements
 building the return.
 
-Here's an example for a single value return:
+Here's an example of a single value return:
 
 ```
     Returns:
         `List[int]`: A list of integers in the range [0, 1] --- 1 for a special token, 0 for a sequence token.
 ```
 
-Here's an example for tuple return, comprising several objects:
+Here's an example of tuple return, comprising several objects:
 
 ```
     Returns:
@@ -274,12 +228,33 @@ them by URL. We recommend putting them in the following dataset: [huggingface/do
 If an external contribution, feel free to add the images to your PR and ask a Hugging Face member to migrate your images
 to this dataset.
 
-## Styling the docstring
+## Writing documentation examples
 
-We have an automatic script running with the `make style` comment that will make sure that:
-- the docstrings fully take advantage of the line width
-- all code examples are formatted using black, like the code of the Transformers library
+The syntax for Example docstrings can look as follows:
 
-This script may have some weird failures if you made a syntax mistake or if you uncover a bug. Therefore, it's
-recommended to commit your changes before running `make style`, so you can revert the changes done by that script
-easily.
+```
+    Example:
+
+    ```py
+    >>> from datasets import load_dataset
+    >>> ds = load_dataset("rotten_tomatoes", split="validation")
+    >>> def add_prefix(example):
+    ...     example["text"] = "Review: " + example["text"]
+    ...     return example
+    >>> ds = ds.map(add_prefix)
+    >>> ds[0:3]["text"]
+    ['Review: compassionately explores the seemingly irreconcilable situation between conservative christian parents and their estranged gay and lesbian children .',
+        'Review: the soundtrack alone is worth the price of admission .',
+        'Review: rodriguez does a splendid job of racial profiling hollywood style--casting excellent latin actors of all ages--a trend long overdue .']
+
+    # process a batch of examples
+    >>> ds = ds.map(lambda example: tokenizer(example["text"]), batched=True)
+    # set number of processors
+    >>> ds = ds.map(add_prefix, num_proc=4)
+    ```
+```
+
+The docstring should give a minimal, clear example of how the respective class or function is to be used in practice and also include the expected (ideally sensible) output.
+Often, readers will try out the example before even going through the function 
+or class definitions. Therefore, it is of utmost importance that the example 
+works as expected.

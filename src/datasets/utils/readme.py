@@ -1,18 +1,13 @@
+# loading package files: https://stackoverflow.com/a/20885799
+import importlib.resources as pkg_resources
 import logging
 from pathlib import Path
 from typing import Any, List, Tuple
 
 import yaml
 
-
-# loading package files: https://stackoverflow.com/a/20885799
-try:
-    import importlib.resources as pkg_resources
-except ImportError:
-    # Try backported to PY<37 `importlib_resources`.
-    import importlib_resources as pkg_resources
-
 from . import resources
+from .deprecation_utils import deprecated
 
 
 BASE_REF_URL = "https://github.com/huggingface/datasets/tree/main/src/datasets/utils"
@@ -173,6 +168,7 @@ class Section:
         }
 
 
+@deprecated("Use `huggingface_hub.DatasetCard` instead.")
 class ReadMe(Section):  # Level 0
     def __init__(self, name: str, lines: List[str], structure: dict = None, suppress_parsing_errors: bool = False):
         super().__init__(name=name, level="")  # Not using lines here as we need to use a child class parse

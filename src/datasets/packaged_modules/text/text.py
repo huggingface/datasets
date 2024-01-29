@@ -1,5 +1,6 @@
 import itertools
-from dataclasses import dataclass
+import warnings
+from dataclasses import InitVar, dataclass
 from io import StringIO
 from typing import Optional
 
@@ -19,10 +20,20 @@ class TextConfig(datasets.BuilderConfig):
 
     features: Optional[datasets.Features] = None
     encoding: str = "utf-8"
-    errors: Optional[str] = None
+    errors: InitVar[Optional[str]] = "deprecated"
+    encoding_errors: Optional[str] = None
     chunksize: int = 10 << 20  # 10MB
     keep_linebreaks: bool = False
     sample_by: str = "line"
+
+    def __post_init__(self, errors):
+        if errors != "deprecated":
+            warnings.warn(
+                "'errors' was deprecated in favor of 'encoding_errors' in version 2.14.0 and will be removed in 3.0.0.\n"
+                f"You can remove this warning by passing 'encoding_errors={errors}' instead.",
+                FutureWarning,
+            )
+            self.encoding_errors = errors
 
 
 class Text(datasets.ArrowBasedBuilder):
@@ -71,7 +82,7 @@ class Text(datasets.ArrowBasedBuilder):
         pa_table_names = list(self.config.features) if self.config.features is not None else ["text"]
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             # open in text mode, by default translates universal newlines ("\n", "\r\n" and "\r") into "\n"
-            with open(file, encoding=self.config.encoding, errors=self.config.errors) as f:
+            with open(file, encoding=self.config.encoding, errors=self.config.encoding_errors) as f:
                 if self.config.sample_by == "line":
                     batch_idx = 0
                     while True:

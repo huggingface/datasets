@@ -1,3 +1,4 @@
+import logging
 import os
 from argparse import ArgumentParser
 from pathlib import Path
@@ -9,7 +10,6 @@ from datasets.builder import DatasetBuilder
 from datasets.commands import BaseDatasetsCLICommand
 from datasets.download.download_manager import DownloadMode
 from datasets.load import dataset_module_factory, import_main_class
-from datasets.utils.filelock import logger as fl_logger
 from datasets.utils.info_utils import VerificationMode
 from datasets.utils.logging import ERROR, get_logger
 
@@ -102,7 +102,7 @@ class TestCommand(BaseDatasetsCLICommand):
             self._ignore_verifications = True
 
     def run(self):
-        fl_logger().setLevel(ERROR)
+        logging.getLogger("filelock").setLevel(ERROR)
         if self._name is not None and self._all_configs:
             print("Both parameters `config` and `all_configs` can't be used at once.")
             exit(1)
@@ -162,7 +162,9 @@ class TestCommand(BaseDatasetsCLICommand):
             # Let's move it to the original directory of the dataset script, to allow the user to
             # upload them on S3 at the same time afterwards.
             if self._save_infos:
-                dataset_readme_path = os.path.join(builder_cls.get_imported_module_dir(), "README.md")
+                dataset_readme_path = os.path.join(
+                    builder_cls.get_imported_module_dir(), datasets.config.REPOCARD_FILENAME
+                )
                 name = Path(path).name + ".py"
                 combined_path = os.path.join(path, name)
                 if os.path.isfile(path):
@@ -177,7 +179,7 @@ class TestCommand(BaseDatasetsCLICommand):
 
                 # Move dataset_info back to the user
                 if dataset_dir is not None:
-                    user_dataset_readme_path = os.path.join(dataset_dir, "README.md")
+                    user_dataset_readme_path = os.path.join(dataset_dir, datasets.config.REPOCARD_FILENAME)
                     copyfile(dataset_readme_path, user_dataset_readme_path)
                     print(f"Dataset card saved at {user_dataset_readme_path}")
 

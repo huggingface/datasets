@@ -18,9 +18,10 @@ Steps to make a release:
      - Test PyPI: https://test.pypi.org/
    - Don't break `transformers`: run the `transformers` CI using the `main` branch and make sure it's green.
      - In `transformers`, use `datasets @ git+https://github.com/huggingface/datasets@main#egg=datasets`
-       in both:
-       - setup.py and
-       - src/transformers/dependency_versions_table.py
+       Add a step to install `datasets@main` after `save_cache` in .circleci/create_circleci_config.py:
+       ```
+       steps.append({"run": {"name": "Install `datasets@main`", "command": 'pip uninstall datasets -y && pip install "datasets @ git+https://github.com/huggingface/datasets@main#egg=datasets"'}})
+       ```
      - and then run the CI
 
 1. Create the release branch from main branch:
@@ -61,7 +62,7 @@ Steps to make a release:
      ```
    Check that you can install it in a virtualenv/notebook by running:
      ```
-     pip install huggingface_hub fsspec aiohttp
+     pip install huggingface_hub fsspec aiohttp pyarrow-hotfix
      pip install -U tqdm
      pip install -i https://testpypi.python.org/pypi datasets
      ```
@@ -107,13 +108,17 @@ from setuptools import find_packages, setup
 
 
 REQUIRED_PKGS = [
+    # For file locking
+    "filelock",
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
     # Backend and serialization.
     # Minimum 8.0.0 to be able to use .to_reader()
     "pyarrow>=8.0.0",
+    # As long as we allow pyarrow < 14.0.1, to fix vulnerability CVE-2023-47248
+    "pyarrow-hotfix",
     # For smart caching dataset processing
-    "dill>=0.3.0,<0.3.7",  # tmp pin until next 0.3.7 release: see https://github.com/huggingface/datasets/pull/5166
+    "dill>=0.3.0,<0.3.8",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
     # For performance gains with apache arrow
     "pandas",
     # for downloading datasets over HTTPS
@@ -124,16 +129,13 @@ REQUIRED_PKGS = [
     "xxhash",
     # for better multiprocessing
     "multiprocess",
-    # to get metadata of optional dependencies such as torch or tensorflow for Python versions that don't have it
-    "importlib_metadata;python_version<'3.8'",
     # to save datasets locally or on any filesystem
-    # minimum 2021.11.1 so that BlockSizeError is fixed: see https://github.com/fsspec/filesystem_spec/pull/830
-    "fsspec[http]>=2021.11.1",
+    # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
+    "fsspec[http]>=2023.1.0,<=2023.10.0",
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    # minimum 0.11.0 to fix 400 Client Error issues
-    "huggingface-hub>=0.11.0,<1.0.0",
+    "huggingface_hub>=0.19.4",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     # To parse YAML metadata from dataset cards
@@ -150,36 +152,38 @@ VISION_REQUIRE = [
 ]
 
 BENCHMARKS_REQUIRE = [
-    "numpy==1.18.5",
-    "tensorflow==2.3.0",
-    "torch==1.7.1",
-    "transformers==3.0.2",
-    "protobuf==3.20.3",  # Fix tensorflow 2.3 import `TypeError: Descriptors cannot not be created directly.`
+    "tensorflow==2.12.0",
+    "torch==2.0.1",
+    "transformers==4.30.1",
 ]
 
 TESTS_REQUIRE = [
     # test dependencies
     "absl-py",
+    "joblib<1.3.0",  # joblibspark doesn't support recent joblib versions
     "joblibspark",
     "pytest",
     "pytest-datadir",
     "pytest-xdist",
     # optional dependencies
-    "apache-beam>=2.26.0,<2.44.0;python_version<'3.8'",  # doesn't support recent dill versions for recent python versions
+    "apache-beam>=2.26.0,<2.44.0;python_version<'3.10'",  # doesn't support recent dill versions for recent python versions
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch()
     "faiss-cpu>=1.6.4",
+    "jax>=0.3.14; sys_platform != 'win32'",
+    "jaxlib>=0.3.14; sys_platform != 'win32'",
     "lz4",
     "pyspark>=3.4",  # https://issues.apache.org/jira/browse/SPARK-40991 fixed in 3.4.0
     "py7zr",
     "rarfile>=4.0",
-    "sqlalchemy<2.0.0",
-    "s3fs>=2021.11.1;python_version<'3.8'",  # aligned with fsspec[http]>=2021.11.1; test only on python 3.7 for now
+    "sqlalchemy",
+    "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1; test only on python 3.7 for now
     "tensorflow>=2.3,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
     "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
-    "tiktoken;python_version>='3.8'",
-    "torch",
+    "tiktoken",
+    "torch>=2.0.0",
     "soundfile>=0.12.1",
     "transformers",
+    "typing-extensions>=4.6.1",  # due to conflict between apache-beam and pydantic
     "zstandard",
 ]
 
@@ -214,11 +218,16 @@ METRICS_TESTS_REQUIRE = [
 TESTS_REQUIRE.extend(VISION_REQUIRE)
 TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
-QUALITY_REQUIRE = ["black~=23.1", "ruff>=0.0.241", "pyyaml>=5.3.1"]
+QUALITY_REQUIRE = ["ruff>=0.1.5"]
 
 DOCS_REQUIRE = [
     # Might need to add doc-builder and some specific deps in the future
     "s3fs",
+    # Following dependencies are required for the Python reference to be built properly
+    "transformers",
+    "torch",
+    "tensorflow>=2.2.0,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
+    "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
 ]
 
 EXTRAS_REQUIRE = {
@@ -231,7 +240,7 @@ EXTRAS_REQUIRE = {
     ],
     "tensorflow_gpu": ["tensorflow-gpu>=2.2.0,!=2.6.0,!=2.6.1"],
     "torch": ["torch"],
-    "jax": ["jax>=0.2.8,!=0.3.2,<=0.3.25", "jaxlib>=0.1.65,<=0.3.25"],
+    "jax": ["jax>=0.3.14", "jaxlib>=0.3.14"],
     "s3": ["s3fs"],
     "streaming": [],  # for backward compatibility
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE + DOCS_REQUIRE,
@@ -244,7 +253,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.13.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.16.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
@@ -256,11 +265,11 @@ setup(
     package_dir={"": "src"},
     packages=find_packages("src"),
     package_data={
-        "datasets": ["py.typed", "scripts/templates/*"],
+        "datasets": ["py.typed"],
         "datasets.utils.resources": ["*.json", "*.yaml", "*.tsv"],
     },
     entry_points={"console_scripts": ["datasets-cli=datasets.commands.datasets_cli:main"]},
-    python_requires=">=3.7.0",
+    python_requires=">=3.8.0",
     install_requires=REQUIRED_PKGS,
     extras_require=EXTRAS_REQUIRE,
     classifiers=[
@@ -271,7 +280,6 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",

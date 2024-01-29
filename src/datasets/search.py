@@ -8,6 +8,7 @@ import fsspec
 import numpy as np
 
 from .utils import logging
+from .utils import tqdm as hf_tqdm
 
 
 if TYPE_CHECKING:
@@ -120,7 +121,7 @@ class ElasticSearchIndex(BaseIndex):
         host = host or "localhost"
         port = port or 9200
 
-        import elasticsearch.helpers  # noqa: need this to properly load all the es features
+        import elasticsearch.helpers  # noqa: F401 - need this to properly load all the es features
         from elasticsearch import Elasticsearch  # noqa: F811
 
         self.es_client = es_client if es_client is not None else Elasticsearch([{"host": host, "port": str(port)}])
@@ -150,7 +151,7 @@ class ElasticSearchIndex(BaseIndex):
         index_config = self.es_index_config
         self.es_client.indices.create(index=index_name, body=index_config)
         number_of_docs = len(documents)
-        progress = logging.tqdm(unit="docs", total=number_of_docs, disable=not logging.is_progress_bar_enabled())
+        progress = hf_tqdm(unit="docs", total=number_of_docs)
         successes = 0
 
         def passage_generator():
@@ -301,7 +302,7 @@ class FaissIndex(BaseIndex):
 
         # Add vectors
         logger.info(f"Adding {len(vectors)} vectors to the faiss index")
-        for i in logging.tqdm(range(0, len(vectors), batch_size), disable=not logging.is_progress_bar_enabled()):
+        for i in hf_tqdm(range(0, len(vectors), batch_size)):
             vecs = vectors[i : i + batch_size] if column is None else vectors[i : i + batch_size][column]
             self.faiss_index.add(vecs)
 
@@ -695,8 +696,10 @@ class IndexableMixin:
                 The number of examples to retrieve.
 
         Returns:
-            - scores (`List[List[float]`): The retrieval scores of the retrieved examples.
-            - indices (`List[List[int]]`): The indices of the retrieved examples.
+            `(scores, indices)`:
+                A tuple of `(scores, indices)` where:
+                - **scores** (`List[List[float]`): the retrieval scores from either FAISS (`IndexFlatL2` by default) or ElasticSearch of the retrieved examples
+                - **indices** (`List[List[int]]`): the indices of the retrieved examples
         """
         self._check_index_is_initialized(index_name)
         return self._indexes[index_name].search(query, k, **kwargs)
@@ -715,8 +718,10 @@ class IndexableMixin:
                 The number of examples to retrieve per query.
 
         Returns:
-            - total_scores (`List[List[float]`): The retrieval scores of the retrieved examples per query.
-            - total_indices (`List[List[int]]`): The indices of the retrieved examples per query.
+            `(total_scores, total_indices)`:
+                A tuple of `(total_scores, total_indices)` where:
+                - **total_scores** (`List[List[float]`): the retrieval scores from either FAISS (`IndexFlatL2` by default) or ElasticSearch of the retrieved examples per query
+                - **total_indices** (`List[List[int]]`): the indices of the retrieved examples per query
         """
         self._check_index_is_initialized(index_name)
         return self._indexes[index_name].search_batch(queries, k, **kwargs)
@@ -735,8 +740,10 @@ class IndexableMixin:
                 The number of examples to retrieve.
 
         Returns:
-            - scores (`List[float]`): The retrieval scores of the retrieved examples.
-            - examples (`dict`): The retrieved examples.
+            `(scores, examples)`:
+                A tuple of `(scores, examples)` where:
+                - **scores** (`List[float]`): the retrieval scores from either FAISS (`IndexFlatL2` by default) or ElasticSearch of the retrieved examples
+                - **examples** (`dict`): the retrieved examples
         """
         self._check_index_is_initialized(index_name)
         scores, indices = self.search(index_name, query, k, **kwargs)
@@ -757,8 +764,10 @@ class IndexableMixin:
                 The number of examples to retrieve per query.
 
         Returns:
-            - total_scores (`List[List[float]`): The retrieval scores of the retrieved examples per query.
-            - total_examples (`List[dict]`): The retrieved examples per query.
+            `(total_scores, total_examples)`:
+                A tuple of `(total_scores, total_examples)` where:
+                - **total_scores** (`List[List[float]`): the retrieval scores from either FAISS (`IndexFlatL2` by default) or ElasticSearch of the retrieved examples per query
+                - **total_examples** (`List[dict]`): the retrieved examples per query
         """
         self._check_index_is_initialized(index_name)
         total_scores, total_indices = self.search_batch(index_name, queries, k, **kwargs)

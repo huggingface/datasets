@@ -50,6 +50,8 @@
       title: Metrics
     - local: beam
       title: Beam Datasets
+    - local: troubleshoot
+      title: Troubleshooting
     title: "General usage"
   - sections:
     - local: audio_load
@@ -88,12 +90,12 @@
   - sections:
     - local: share
       title: Share
-    - local: dataset_script
-      title: Create a dataset loading script
     - local: dataset_card
       title: Create a dataset card
     - local: repository_structure
       title: Structure your repository
+    - local: dataset_script
+      title: Create a dataset loading script
     title: "Dataset repository"
   title: "How-to guides"
 - sections:
@@ -121,8 +123,8 @@
     title: Loading methods
   - local: package_reference/table_classes
     title: Table Classes
-  - local: package_reference/logging_methods
-    title: Logging methods
+  - local: package_reference/utilities
+    title: Utilities
   - local: package_reference/task_templates
     title: Task templates
   title: "Reference"

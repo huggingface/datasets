@@ -21,6 +21,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pyarrow as pa
+from filelock import BaseFileLock, Timeout
 
 from . import config
 from .arrow_dataset import Dataset
@@ -31,8 +32,8 @@ from .download.download_manager import DownloadManager
 from .features import Features
 from .info import DatasetInfo, MetricInfo
 from .naming import camelcase_to_snakecase
+from .utils._filelock import FileLock
 from .utils.deprecation_utils import deprecated
-from .utils.filelock import BaseFileLock, FileLock, Timeout
 from .utils.logging import get_logger
 from .utils.py_utils import copyfunc, temp_seed
 
@@ -45,27 +46,27 @@ class FileFreeLock(BaseFileLock):
 
     def __init__(self, lock_file, *args, **kwargs):
         self.filelock = FileLock(lock_file)
-        super().__init__(lock_file, *args, **kwargs)
+        super().__init__(self.filelock.lock_file, *args, **kwargs)
 
     def _acquire(self):
         try:
             self.filelock.acquire(timeout=0.01, poll_intervall=0.02)  # Try to lock once
         except Timeout:
             # We couldn't acquire the lock, the file is locked!
-            self._lock_file_fd = self.filelock.lock_file
+            self._context.lock_file_fd = self.filelock.lock_file
         else:
             # We were able to acquire the lock, the file is not yet locked!
             self.filelock.release()
-            self._lock_file_fd = None
+            self._context.lock_file_fd = None
 
     def _release(self):
-        self._lock_file_fd = None
+        self._context.lock_file_fd = None
 
 
 # lists - summarize long lists similarly to NumPy
 # arrays/tensors - let the frameworks control formatting
 def summarize_if_long_list(obj):
-    if not type(obj) == list or len(obj) <= 6:
+    if not type(obj) == list or len(obj) <= 6:  # noqa: E721
         return f"{obj}"
 
     def format_chunk(chunk):
