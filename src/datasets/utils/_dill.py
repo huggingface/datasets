@@ -109,12 +109,16 @@ def dumps(obj):
     return file.getvalue()
 
 
+POST_0_3_6_DILL_RELEASES = {
+    version.parse(version_str).release for version_str in ("0.3.6", "0.3.7", "0.3.8")
+}
+
 if config.DILL_VERSION < version.parse("0.3.6"):
 
     def log(pickler, msg):
         dill._dill.log.info(msg)
 
-elif config.DILL_VERSION.release[:3] in [version.parse("0.3.6").release, version.parse("0.3.7").release]:
+elif config.DILL_VERSION.release[:3] in POST_0_3_6_DILL_RELEASES:
 
     def log(pickler, msg):
         dill._dill.logger.trace(pickler, msg)
@@ -301,9 +305,7 @@ if config.DILL_VERSION < version.parse("0.3.6"):
         dill._dill.log.info("# Co")
         return
 
-elif config.DILL_VERSION.release[:3] in {
-    version.parse(version_str).release for version_str in ("0.3.6", "0.3.7", "0.3.8")
-}:
+elif config.DILL_VERSION.release[:3] in POST_0_3_6_DILL_RELEASES:
     # From: https://github.com/uqfoundation/dill/blob/dill-0.3.6/dill/_dill.py#L1104
     @pklregister(CodeType)
     def save_code(pickler, obj):
