@@ -480,13 +480,9 @@ def _rel_to_abs_instr(rel_instr, name2len):
         from_ = 0 if from_ is None else from_
         to = num_examples if to is None else to
     if from_ < 0:
-        from_ = num_examples + from_
-    if from_ <= 0:
-        from_ = None
+        from_ = max(num_examples + from_, 0)
     if to < 0:
-        to = num_examples + to
-    if to >= num_examples:
-        to = None
+        to = max(num_examples + to, 0)
     return _AbsoluteInstruction(split, from_, to)
 
 
