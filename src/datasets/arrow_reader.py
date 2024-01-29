@@ -204,7 +204,8 @@ class BaseReader:
             files,
             tqdm_class=hf_tqdm,
             desc="Loading dataset shards",
-            disable=len(files) <= 16,
+            # set `disable=None` rather than `disable=False` by default to disable progress bar when no TTY attached
+            disable=len(files) <= 16 or None,
         )
         pa_tables = [t for t in pa_tables if len(t) > 0]
         if not pa_tables and (self._info is None or self._info.features is None):
