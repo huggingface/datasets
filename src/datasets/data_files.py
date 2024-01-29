@@ -525,7 +525,8 @@ def _get_origin_metadata(
         max_workers=max_workers,
         tqdm_class=hf_tqdm,
         desc="Resolving data files",
-        disable=len(data_files) <= 16,
+        # set `disable=None` rather than `disable=False` by default to disable progress bar when no TTY attached
+        disable=len(data_files) <= 16 or None,
     )
 
 
