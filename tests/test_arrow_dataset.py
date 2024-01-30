@@ -97,6 +97,10 @@ def picklable_filter_function(x):
     return int(x["filename"].split("_")[-1]) < 10
 
 
+def picklable_filter_function_with_rank(x, r):
+    return r == 0
+
+
 def assert_arrow_metadata_are_synced_with_dataset_features(dataset: Dataset):
     assert dataset.data.schema.metadata is not None
     assert b"huggingface" in dataset.data.schema.metadata
@@ -1773,6 +1777,18 @@ class BaseDatasetTest(TestCase):
                     self.assertDictEqual(dset_filter_first_ten.features, Features({"filename": Value("string")}))
                     self.assertEqual(len(dset_filter_first_ten.cache_files), 0 if in_memory else 2)
                     self.assertNotEqual(dset_filter_first_ten._fingerprint, fingerprint)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:  # with_rank
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                fingerprint = dset._fingerprint
+                with dset.filter(
+                    picklable_filter_function_with_rank, num_proc=2, with_rank=True
+                ) as dset_filter_first_rank:
+                    self.assertEqual(len(dset_filter_first_rank), min(len(dset) // 2, len(dset)))
+                    self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                    self.assertDictEqual(dset_filter_first_rank.features, Features({"filename": Value("string")}))
+                    self.assertEqual(len(dset_filter_first_rank.cache_files), 0 if in_memory else 2)
+                    self.assertNotEqual(dset_filter_first_rank._fingerprint, fingerprint)
 
     def test_filter_caching(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
