@@ -162,10 +162,12 @@ def test_read_instruction_spec():
     "split_name, instruction, shard_lengths, read_range",
     [
         ("train", "train[:33%]", 100, (0, 33)),
+        ("train", "train[-20%:]", 100, (80, 100)),
         ("train", "train[:200]", 100, (0, 100)),
         ("train", "train[:-200]", 100, None),
         ("train", "train[-200:]", 100, (0, 100)),
         ("train", "train[:33%]", [10] * 10, (0, 33)),
+        ("train", "train[-20%:]", [10] * 10, (80, 100)),
         ("train", "train[:200]", [10] * 10, (0, 100)),
         ("train", "train[:-200]", [10] * 10, None),
         ("train", "train[-200:]", [10] * 10, (0, 100)),
