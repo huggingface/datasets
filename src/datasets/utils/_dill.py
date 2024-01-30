@@ -114,7 +114,11 @@ if config.DILL_VERSION < version.parse("0.3.6"):
     def log(pickler, msg):
         dill._dill.log.info(msg)
 
-elif config.DILL_VERSION.release[:3] in [version.parse("0.3.6").release, version.parse("0.3.7").release]:
+elif config.DILL_VERSION.release[:3] in [
+    version.parse("0.3.6").release,
+    version.parse("0.3.7").release,
+    version.parse("0.3.8").release,
+]:
 
     def log(pickler, msg):
         dill._dill.logger.trace(pickler, msg)
@@ -301,7 +305,11 @@ if config.DILL_VERSION < version.parse("0.3.6"):
         dill._dill.log.info("# Co")
         return
 
-elif config.DILL_VERSION.release[:3] in [version.parse("0.3.6").release, version.parse("0.3.7").release]:
+elif config.DILL_VERSION.release[:3] in [
+    version.parse("0.3.6").release,
+    version.parse("0.3.7").release,
+    version.parse("0.3.8").release,
+]:
     # From: https://github.com/uqfoundation/dill/blob/dill-0.3.6/dill/_dill.py#L1104
     @pklregister(CodeType)
     def save_code(pickler, obj):
