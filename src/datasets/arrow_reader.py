@@ -143,8 +143,11 @@ def make_file_instructions(
         to = split_length if abs_instr.to is None else abs_instr.to
         if shard_lengths is None:  # not sharded
             for filename in filenames:
-                num_examples += to - from_
-                file_instructions.append({"filename": filename, "skip": from_, "take": to - from_})
+                take = to - from_
+                if take == 0:
+                    continue
+                num_examples += take
+                file_instructions.append({"filename": filename, "skip": from_, "take": take})
         else:  # sharded
             index_start = 0  # Beginning (included) of moving window.
             index_end = 0  # End (excluded) of moving window.
@@ -483,6 +486,8 @@ def _rel_to_abs_instr(rel_instr, name2len):
         from_ = max(num_examples + from_, 0)
     if to < 0:
         to = max(num_examples + to, 0)
+    from_ = min(from_, num_examples)
+    to = min(to, num_examples)
     return _AbsoluteInstruction(split, from_, to)
 
 
