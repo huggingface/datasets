@@ -17,6 +17,7 @@ from xml.etree import ElementTree as ET
 import fsspec
 from aiohttp.client_exceptions import ClientError
 from huggingface_hub.utils import EntryNotFoundError
+from packaging import version
 
 from .. import config
 from ..filesystems import COMPRESSION_FILESYSTEMS
@@ -475,6 +476,9 @@ def _prepare_single_hop_path_and_storage_options(
             "endpoint": config.HF_ENDPOINT,
             **storage_options.get(protocol, {}),
         }
+        # streaming with block_size=0 is only implemented in 0.21 (see https://github.com/huggingface/huggingface_hub/pull/1967)
+        if config.HF_HUB_VERSION < version.parse("0.21.0"):
+            storage_options[protocol]["block_size"] = "default"
     return urlpath, storage_options
 
 
@@ -498,6 +502,8 @@ def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] 
     file_str = _as_str(file)
     main_hop, *rest_hops = file_str.split("::")
     if is_local_path(main_hop):
+        # ignore fsspec-specific kwargs
+        kwargs.pop("block_size", None)
         return open(main_hop, mode, *args, **kwargs)
     # add headers and cookies for authentication on the HF Hub and for Google Drive
     file, storage_options = _prepare_path_and_storage_options(file_str, download_config=download_config)
@@ -911,7 +917,9 @@ class ArchiveIterable(_IterableFromGenerator):
         cls, urlpath: str, download_config: Optional[DownloadConfig] = None
     ) -> Generator[Tuple, None, None]:
         compression = _get_extraction_protocol(urlpath, download_config=download_config)
-        with xopen(urlpath, "rb", download_config=download_config) as f:
+        # Set block_size=0 to get faster streaming
+        # (e.g. for hf:// and https:// it uses streaming Requests file-like instances)
+        with xopen(urlpath, "rb", download_config=download_config, block_size=0) as f:
             if compression == "zip":
                 yield from cls._iter_zip(f)
             else:
