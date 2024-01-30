@@ -917,7 +917,7 @@ class ArchiveIterable(_IterableFromGenerator):
         cls, urlpath: str, download_config: Optional[DownloadConfig] = None
     ) -> Generator[Tuple, None, None]:
         compression = _get_extraction_protocol(urlpath, download_config=download_config)
-        # Set chunk_size=0 to get faster streaming
+        # Set block_size=0 to get faster streaming
         # (e.g. for hf:// and https:// it uses streaming Requests file-like instances)
         with xopen(urlpath, "rb", download_config=download_config, block_size=0) as f:
             if compression == "zip":
