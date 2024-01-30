@@ -15,6 +15,7 @@ from tqdm.contrib.concurrent import thread_map
 from . import config
 from .download import DownloadConfig
 from .download.streaming_download_manager import _prepare_path_and_storage_options, xbasename, xjoin
+from .naming import _split_re
 from .splits import Split
 from .utils import logging
 from .utils import tqdm as hf_tqdm
@@ -247,6 +248,8 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], List[str]]) -> Di
                 string_to_dict(xbasename(p), glob_pattern_to_regex(xbasename(split_pattern)))["split"]
                 for p in data_files
             }
+            if any(not re.match(_split_re, split) for split in splits):
+                raise ValueError(f"Split name should match '{_split_re}'' but got '{splits}'.")
             sorted_splits = [str(split) for split in DEFAULT_SPLITS if split in splits] + sorted(
                 splits - set(DEFAULT_SPLITS)
             )
@@ -522,7 +525,8 @@ def _get_origin_metadata(
         max_workers=max_workers,
         tqdm_class=hf_tqdm,
         desc="Resolving data files",
-        disable=len(data_files) <= 16,
+        # set `disable=None` rather than `disable=False` by default to disable progress bar when no TTY attached
+        disable=len(data_files) <= 16 or None,
     )
 
 

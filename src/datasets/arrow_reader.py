@@ -21,16 +21,19 @@ import os
 import re
 import shutil
 from dataclasses import dataclass
+from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional, Union
 
 import pyarrow as pa
 import pyarrow.parquet as pq
+from tqdm.contrib.concurrent import thread_map
 
 from .download.download_config import DownloadConfig
 from .naming import _split_re, filenames_for_dataset_split
 from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables
 from .utils import logging
+from .utils import tqdm as hf_tqdm
 from .utils.file_utils import cached_path
 
 
@@ -192,13 +195,18 @@ class BaseReader:
         """
         if len(files) == 0 or not all(isinstance(f, dict) for f in files):
             raise ValueError("please provide valid file informations")
-        pa_tables = []
         files = copy.deepcopy(files)
         for f in files:
             f["filename"] = os.path.join(self._path, f["filename"])
-        for f_dict in files:
-            pa_table: Table = self._get_table_from_filename(f_dict, in_memory=in_memory)
-            pa_tables.append(pa_table)
+
+        pa_tables = thread_map(
+            partial(self._get_table_from_filename, in_memory=in_memory),
+            files,
+            tqdm_class=hf_tqdm,
+            desc="Loading dataset shards",
+            # set `disable=None` rather than `disable=False` by default to disable progress bar when no TTY attached
+            disable=len(files) <= 16 or None,
+        )
         pa_tables = [t for t in pa_tables if len(t) > 0]
         if not pa_tables and (self._info is None or self._info.features is None):
             raise ValueError(

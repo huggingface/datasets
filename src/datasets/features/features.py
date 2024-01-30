@@ -370,7 +370,7 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
                 key: _cast_to_python_objects(
                     value, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
                 )[0]
-                for key, value in obj.to_dict("list").items()
+                for key, value in obj.to_dict("series").items()
             },
             True,
         )
@@ -1240,10 +1240,7 @@ def encode_nested_example(schema, obj, level=0):
         if level == 0 and obj is None:
             raise ValueError("Got None but expected a dictionary instead")
         return (
-            {
-                k: encode_nested_example(sub_schema, sub_obj, level=level + 1)
-                for k, (sub_schema, sub_obj) in zip_dict(schema, obj)
-            }
+            {k: encode_nested_example(schema[k], obj.get(k), level=level + 1) for k in schema}
             if obj is not None
             else None
         )
@@ -1269,13 +1266,17 @@ def encode_nested_example(schema, obj, level=0):
             list_dict = {}
             if isinstance(obj, (list, tuple)):
                 # obj is a list of dict
-                for k, dict_tuples in zip_dict(schema.feature, *obj):
-                    list_dict[k] = [encode_nested_example(dict_tuples[0], o, level=level + 1) for o in dict_tuples[1:]]
+                for k in schema.feature:
+                    list_dict[k] = [encode_nested_example(schema.feature[k], o.get(k), level=level + 1) for o in obj]
                 return list_dict
             else:
                 # obj is a single dict
-                for k, (sub_schema, sub_objs) in zip_dict(schema.feature, obj):
-                    list_dict[k] = [encode_nested_example(sub_schema, o, level=level + 1) for o in sub_objs]
+                for k in schema.feature:
+                    list_dict[k] = (
+                        [encode_nested_example(schema.feature[k], o, level=level + 1) for o in obj[k]]
+                        if k in obj
+                        else None
+                    )
                 return list_dict
         # schema.feature is not a dict
         if isinstance(obj, str):  # don't interpret a string as a list
@@ -1668,11 +1669,20 @@ class Features(dict):
             [`Features`]
         """
         # try to load features from the arrow schema metadata
+        metadata_features = Features()
         if pa_schema.metadata is not None and "huggingface".encode("utf-8") in pa_schema.metadata:
             metadata = json.loads(pa_schema.metadata["huggingface".encode("utf-8")].decode())
             if "info" in metadata and "features" in metadata["info"] and metadata["info"]["features"] is not None:
-                return Features.from_dict(metadata["info"]["features"])
-        obj = {field.name: generate_from_arrow_type(field.type) for field in pa_schema}
+                metadata_features = Features.from_dict(metadata["info"]["features"])
+        metadata_features_schema = metadata_features.arrow_schema
+        obj = {
+            field.name: (
+                metadata_features[field.name]
+                if field.name in metadata_features and metadata_features_schema.field(field.name) == field
+                else generate_from_arrow_type(field.type)
+            )
+            for field in pa_schema
+        }
         return cls(**obj)
 
     @classmethod

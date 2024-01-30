@@ -318,6 +318,8 @@ def metric_loading_script_dir(tmp_path):
         (["train.json"], "json", {}),
         (["train.jsonl"], "json", {}),
         (["train.parquet"], "parquet", {}),
+        (["train.geoparquet"], "parquet", {}),
+        (["train.gpq"], "parquet", {}),
         (["train.arrow"], "arrow", {}),
         (["train.txt"], "text", {}),
         (["uppercase.TXT"], "text", {}),
@@ -1688,3 +1690,21 @@ def test_reload_old_cache_from_2_15(tmp_path: Path):
             cache_dir / "polinaeterna___audiofolder_two_configs_in_metadata" / "v2" / "0.0.0" / str(builder.hash)
         ).as_posix()
     )  # new cache
+
+
+@pytest.mark.integration
+def test_update_dataset_card_data_with_standalone_yaml():
+    # Labels defined in .huggingface.yml because they are too long to be in README.md
+    from datasets.utils.metadata import MetadataConfigs
+
+    with patch(
+        "datasets.utils.metadata.MetadataConfigs.from_dataset_card_data",
+        side_effect=MetadataConfigs.from_dataset_card_data,
+    ) as card_data_read_mock:
+        builder = load_dataset_builder("datasets-maintainers/dataset-with-standalone-yaml")
+    assert card_data_read_mock.call_args.args[0]["license"] is not None  # from README.md
+    assert card_data_read_mock.call_args.args[0]["dataset_info"] is not None  # from standalone yaml
+    assert card_data_read_mock.call_args.args[0]["tags"] == ["test"]  # standalone yaml has precedence
+    assert isinstance(
+        builder.info.features["label"], datasets.ClassLabel
+    )  # correctly loaded from long labels list in standalone yaml
