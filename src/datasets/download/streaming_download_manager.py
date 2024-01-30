@@ -17,6 +17,7 @@ from xml.etree import ElementTree as ET
 import fsspec
 from aiohttp.client_exceptions import ClientError
 from huggingface_hub.utils import EntryNotFoundError
+from packaging import version
 
 from .. import config
 from ..filesystems import COMPRESSION_FILESYSTEMS
@@ -475,6 +476,9 @@ def _prepare_single_hop_path_and_storage_options(
             "endpoint": config.HF_ENDPOINT,
             **storage_options.get(protocol, {}),
         }
+        # streaming with block_size=0 is only implemented in 0.21 (see https://github.com/huggingface/huggingface_hub/pull/1967)
+        if config.HF_HUB_VERSION < version.parse("0.21.0"):
+            storage_options[protocol]["block_size"] = "default"
     return urlpath, storage_options
 
 
