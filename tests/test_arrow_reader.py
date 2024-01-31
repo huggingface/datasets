@@ -158,15 +158,39 @@ def test_read_instruction_spec():
     assert ReadInstruction.from_spec(spec_train_test_pct_rounding).to_spec() == spec_train_test_pct_rounding
 
 
+def test_make_file_instructions_basic():
+    name = "dummy"
+    split_infos = [SplitInfo(name="train", num_examples=100)]
+    instruction = "train[:33%]"
+    filetype_suffix = "arrow"
+    prefix_path = "prefix"
+
+    file_instructions = make_file_instructions(name, split_infos, instruction, filetype_suffix, prefix_path)
+    assert isinstance(file_instructions, FileInstructions)
+    assert file_instructions.num_examples == 33
+    assert file_instructions.file_instructions == [
+        {"filename": os.path.join(prefix_path, f"{name}-train.arrow"), "skip": 0, "take": 33}
+    ]
+
+    split_infos = [SplitInfo(name="train", num_examples=100, shard_lengths=[10] * 10)]
+    file_instructions = make_file_instructions(name, split_infos, instruction, filetype_suffix, prefix_path)
+    assert isinstance(file_instructions, FileInstructions)
+    assert file_instructions.num_examples == 33
+    assert file_instructions.file_instructions == [
+        {"filename": os.path.join(prefix_path, f"{name}-train-00000-of-00010.arrow"), "skip": 0, "take": -1},
+        {"filename": os.path.join(prefix_path, f"{name}-train-00001-of-00010.arrow"), "skip": 0, "take": -1},
+        {"filename": os.path.join(prefix_path, f"{name}-train-00002-of-00010.arrow"), "skip": 0, "take": -1},
+        {"filename": os.path.join(prefix_path, f"{name}-train-00003-of-00010.arrow"), "skip": 0, "take": 3},
+    ]
+
+
 @pytest.mark.parametrize(
     "split_name, instruction, shard_lengths, read_range",
     [
-        ("train", "train[:33%]", 100, (0, 33)),
         ("train", "train[-20%:]", 100, (80, 100)),
         ("train", "train[:200]", 100, (0, 100)),
         ("train", "train[:-200]", 100, None),
         ("train", "train[-200:]", 100, (0, 100)),
-        ("train", "train[:33%]", [10] * 10, (0, 33)),
         ("train", "train[-20%:]", [10] * 10, (80, 100)),
         ("train", "train[:200]", [10] * 10, (0, 100)),
         ("train", "train[:-200]", [10] * 10, None),
