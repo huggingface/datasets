@@ -674,33 +674,23 @@ class BeamWriter:
             metrics_query_result: `dict` obtained from pipeline_results.metrics().query(m_filter). Make sure
                 that the filter keeps only the metrics for the considered split, under the namespace `split_name`.
         """
-        import apache_beam as beam
-
-        from .utils import beam_utils
 
         # Beam FileSystems require the system's path separator in the older versions
         fs, _, [parquet_path] = fsspec.get_fs_token_paths(self._parquet_path)
         parquet_path = str(Path(parquet_path)) if not is_remote_filesystem(fs) else fs.unstrip_protocol(parquet_path)
 
-        shards_metadata = list(beam.io.filesystems.FileSystems.match([parquet_path + "*.parquet"])[0].metadata_list)
-        shards = [metadata.path for metadata in shards_metadata]
-        num_bytes = sum([metadata.size_in_bytes for metadata in shards_metadata])
+        shards = fs.glob(parquet_path + "*.parquet")
+        num_bytes = sum(fs.sizes(shards))
         shard_lengths = get_parquet_lengths(shards)
 
         # Convert to arrow
         if self._path.endswith(".arrow"):
             logger.info(f"Converting parquet files {self._parquet_path} to arrow {self._path}")
-            shards = [
-                metadata.path
-                for metadata in beam.io.filesystems.FileSystems.match([parquet_path + "*.parquet"])[0].metadata_list
-            ]
             try:  # stream conversion
                 num_bytes = 0
                 for shard in hf_tqdm(shards, unit="shards"):
-                    with beam.io.filesystems.FileSystems.open(shard) as source:
-                        with beam.io.filesystems.FileSystems.create(
-                            shard.replace(".parquet", ".arrow")
-                        ) as destination:
+                    with fs.open(shard, "rb") as source:
+                        with fs.open(shard.replace(".parquet", ".arrow"), "wb") as destination:
                             shard_num_bytes, _ = parquet_to_arrow(source, destination)
                             num_bytes += shard_num_bytes
             except OSError as e:  # broken pipe can happen if the connection is unstable, do local conversion instead
@@ -714,12 +704,12 @@ class BeamWriter:
                 num_bytes = 0
                 for shard in hf_tqdm(shards, unit="shards"):
                     local_parquet_path = os.path.join(local_convert_dir, hash_url_to_filename(shard) + ".parquet")
-                    beam_utils.download_remote_to_local(shard, local_parquet_path)
+                    fs.download(shard, local_parquet_path)
                     local_arrow_path = local_parquet_path.replace(".parquet", ".arrow")
                     shard_num_bytes, _ = parquet_to_arrow(local_parquet_path, local_arrow_path)
                     num_bytes += shard_num_bytes
                     remote_arrow_path = shard.replace(".parquet", ".arrow")
-                    beam_utils.upload_local_to_remote(local_arrow_path, remote_arrow_path)
+                    fs.upload(local_arrow_path, remote_arrow_path)
 
         # Save metrics
         counters_dict = {metric.key.metric.name: metric.result for metric in metrics_query_result["counters"]}
