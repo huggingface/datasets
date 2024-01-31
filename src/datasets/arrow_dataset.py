@@ -61,6 +61,7 @@ import pyarrow as pa
 import pyarrow.compute as pc
 from huggingface_hub import CommitInfo, CommitOperationAdd, CommitOperationDelete, DatasetCard, DatasetCardData, HfApi
 from multiprocess import Pool
+from tqdm.contrib.concurrent import thread_map
 
 from . import config
 from .arrow_reader import ArrowReader
@@ -1703,9 +1704,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
         keep_in_memory = keep_in_memory if keep_in_memory is not None else is_small_dataset(dataset_size)
         table_cls = InMemoryTable if keep_in_memory else MemoryMappedTable
+
         arrow_table = concat_tables(
-            table_cls.from_file(posixpath.join(dest_dataset_path, data_file["filename"]))
-            for data_file in state["_data_files"]
+            thread_map(
+                table_cls.from_file,
+                [posixpath.join(dest_dataset_path, data_file["filename"]) for data_file in state["_data_files"]],
+                tqdm_class=hf_tqdm,
+                desc="Loading dataset from disk",
+                # set `disable=None` rather than `disable=False` by default to disable progress bar when no TTY attached
+                disable=len(state["_data_files"]) <= 16 or None,
+            )
         )
 
         split = state["_split"]
@@ -3532,7 +3540,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def filter(
         self,
         function: Optional[Callable] = None,
-        with_indices=False,
+        with_indices: bool = False,
+        with_rank: bool = False,
         input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
@@ -3552,14 +3561,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Args:
             function (`Callable`): Callable with one of the following signatures:
 
-                - `function(example: Dict[str, Any]) -> bool` if `with_indices=False, batched=False`
-                - `function(example: Dict[str, Any], indices: int) -> bool` if `with_indices=True, batched=False`
-                - `function(example: Dict[str, List]) -> List[bool]` if `with_indices=False, batched=True`
-                - `function(example: Dict[str, List], indices: List[int]) -> List[bool]` if `with_indices=True, batched=True`
+                - `function(example: Dict[str, Any]) -> bool` if `batched=False` and `with_indices=False` and `with_rank=False`
+                - `function(example: Dict[str, Any], *extra_args) -> bool` if `batched=False` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+                - `function(batch: Dict[str, List]) -> List[bool]` if `batched=True` and `with_indices=False` and `with_rank=False`
+                - `function(batch: Dict[str, List], *extra_args) -> List[bool]` if `batched=True` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
 
                 If no function is provided, defaults to an always `True` function: `lambda x: True`.
             with_indices (`bool`, defaults to `False`):
-                Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
+                Provide example indices to `function`. Note that in this case the
+                signature of `function` should be `def function(example, idx[, rank]): ...`.
+            with_rank (`bool`, defaults to `False`):
+                Provide process rank to `function`. Note that in this case the
+                signature of `function` should be `def function(example[, idx], rank): ...`.
             input_columns (`str` or `List[str]`, *optional*):
                 The columns to be passed into `function` as
                 positional arguments. If `None`, a `dict` mapping to all formatted columns is passed as one argument.
@@ -3622,9 +3635,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         indices = self.map(
             function=partial(
-                get_indices_from_mask_function, function, batched, with_indices, input_columns, self._indices
+                get_indices_from_mask_function,
+                function,
+                batched,
+                with_indices,
+                with_rank,
+                input_columns,
+                self._indices,
             ),
             with_indices=True,
+            with_rank=True,
             features=Features({"indices": Value("uint64")}),
             batched=True,
             batch_size=batch_size,
@@ -6193,22 +6213,25 @@ def get_indices_from_mask_function(
     function: Callable,
     batched: bool,
     with_indices: bool,
+    with_rank: bool,
     input_columns: Optional[Union[str, List[str]]],
     indices_mapping: Optional[Table] = None,
     *args,
     **fn_kwargs,
 ):
     if batched:
-        # we extract indices from args
-        *inputs, indices = args
+        # we extract indices and rank from args
+        *inputs, indices, rank = args
+        additional_args = ()
         if with_indices:
-            mask = function(*inputs, indices, **fn_kwargs)
-        else:
-            mask = function(*inputs, **fn_kwargs)
+            additional_args += (indices,)
+        if with_rank:
+            additional_args += (rank,)
+        mask = function(*inputs, *additional_args, **fn_kwargs)
     else:
         # we get batched data (to do less look-ups) but `function` only accepts one example
         # therefore we need to call `function` on each example of the batch to get the mask
-        *inputs, indices = args
+        *inputs, indices, rank = args
         mask = []
         if input_columns is None:
             # inputs only contains a batch of examples
@@ -6216,18 +6239,24 @@ def get_indices_from_mask_function(
             num_examples = len(batch[next(iter(batch.keys()))])
             for i in range(num_examples):
                 example = {key: batch[key][i] for key in batch}
-                mask.append(
-                    function(example, indices[i], **fn_kwargs) if with_indices else function(example, **fn_kwargs)
-                )
+                additional_args = ()
+                if with_indices:
+                    additional_args += (indices[i],)
+                if with_rank:
+                    additional_args += (rank,)
+                mask.append(function(example, *additional_args, **fn_kwargs))
         else:
             # inputs is a list of columns
             columns: List[List] = inputs
             num_examples = len(columns[0])
             for i in range(num_examples):
                 input = [column[i] for column in columns]
-                mask.append(
-                    function(*input, indices[i], **fn_kwargs) if with_indices else function(*input, **fn_kwargs)
-                )
+                additional_args = ()
+                if with_indices:
+                    additional_args += (indices[i],)
+                if with_rank:
+                    additional_args += (rank,)
+                mask.append(function(*input, *additional_args, **fn_kwargs))
     indices_array = [i for i, to_keep in zip(indices, mask) if to_keep]
     if indices_mapping is not None:
         indices_array = pa.array(indices_array, type=pa.uint64())

@@ -50,6 +50,8 @@ _EXTENSION_TO_MODULE: Dict[str, Tuple[str, dict]] = {
     ".json": ("json", {}),
     ".jsonl": ("json", {}),
     ".parquet": ("parquet", {}),
+    ".geoparquet": ("parquet", {}),
+    ".gpq": ("parquet", {}),
     ".arrow": ("arrow", {}),
     ".txt": ("text", {}),
     ".tar": ("webdataset", {}),

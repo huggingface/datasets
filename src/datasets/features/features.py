@@ -370,7 +370,7 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
                 key: _cast_to_python_objects(
                     value, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
                 )[0]
-                for key, value in obj.to_dict("list").items()
+                for key, value in obj.to_dict("series").items()
             },
             True,
         )
@@ -1669,11 +1669,20 @@ class Features(dict):
             [`Features`]
         """
         # try to load features from the arrow schema metadata
+        metadata_features = Features()
         if pa_schema.metadata is not None and "huggingface".encode("utf-8") in pa_schema.metadata:
             metadata = json.loads(pa_schema.metadata["huggingface".encode("utf-8")].decode())
             if "info" in metadata and "features" in metadata["info"] and metadata["info"]["features"] is not None:
-                return Features.from_dict(metadata["info"]["features"])
-        obj = {field.name: generate_from_arrow_type(field.type) for field in pa_schema}
+                metadata_features = Features.from_dict(metadata["info"]["features"])
+        metadata_features_schema = metadata_features.arrow_schema
+        obj = {
+            field.name: (
+                metadata_features[field.name]
+                if field.name in metadata_features and metadata_features_schema.field(field.name) == field
+                else generate_from_arrow_type(field.type)
+            )
+            for field in pa_schema
+        }
         return cls(**obj)
 
     @classmethod
