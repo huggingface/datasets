@@ -351,21 +351,37 @@ Multiprocessing significantly speeds up processing by parallelizing processes on
 The [`~Dataset.map`] also works with the rank of the process if you set `with_rank=True`. This is analogous to the `with_indices` parameter. The `with_rank` parameter in the mapped function goes after the `index` one if it is already present. 
 
 ```py
->>> from multiprocess import set_start_method
 >>> import torch
->>> import os
+>>> from multiprocess import set_start_method
+>>> from transformers import AutoTokenizer, AutoModelForCausalLM 
+>>> from datasets import load_dataset
+>>> 
+>>> # Get an example dataset
+>>> dataset = load_dataset("fka/awesome-chatgpt-prompts", split="train")
+>>> 
+>>> # Get an example model and its tokenizer 
+>>> tokenizer = AutoTokenizer.from_pretrained("facebook/nllb-200-distilled-600M")
+>>> model = AutoModelForSeq2SeqLM.from_pretrained("facebook/nllb-200-distilled-600M")
 >>>
 >>> def gpu_computation(example, rank):
-...     model.to(f"cuda:{rank}")
-...     # Your big GPU call goes here, for example
-...     inputs = tokenizer(texts, truncation=True, return_tensors="pt").to(f"cuda:{rank}")
+...     # Move the model on the right GPU if it's not there already
+...     model.to(f"cuda:{rank or 0}")
+...     
+...     # Your big GPU call goes here, for example:
+...     inputs = tokenizer(texts, padding=True, return_tensors="pt").to(f"cuda:{rank or 0}")
 ...     outputs = model.generate(**inputs)
-...     example["generated_text"] = tokenizer.batch_decode(translated_tokens, skip_special_tokens=True)
+...     example["translated"] = tokenizer.batch_decode(outputs, skip_special_tokens=True)
 ...     return example
 >>>
 >>> if __name__ == "__main__":
 ...     set_start_method("spawn")
-...     updated_dataset = dataset.map(gpu_computation, with_rank=True, num_proc=torch.cuda.device_count())
+...     updated_dataset = dataset.map(
+...         gpu_computation,
+...         with_rank=True,
+...         num_proc=torch.cuda.device_count(),  # one process per GPU
+...         batched=True,  # optional
+...         batch_size=8,  # optional
+...     )
 ```
 
 The main use-case for rank is to parallelize computation across several GPUs. This requires setting `multiprocess.set_start_method("spawn")`. If you don't you'll receive the following CUDA error: 
