@@ -1,6 +1,5 @@
 import copy
 import os
-import warnings
 from functools import partial
 from itertools import groupby
 from typing import TYPE_CHECKING, Callable, Iterator, List, Optional, Tuple, TypeVar, Union
@@ -8,6 +7,7 @@ from typing import TYPE_CHECKING, Callable, Iterator, List, Optional, Tuple, Typ
 import numpy as np
 import pyarrow as pa
 import pyarrow.compute as pc
+import pyarrow.types
 
 from . import config
 from .utils.logging import get_logger
@@ -1797,35 +1797,35 @@ def _wrap_for_chunked_arrays(func):
     return wrapper
 
 
-_IS_LIST_ARRAY_TO_FIXED_SIZE_LIST_ARRAY_CAST_SUPPORTED = config.PYARROW_VERSION.major > 13
-
-
-def _list_array_to_fixed_size_list_array_values(array: pa.ListArray, list_size: int) -> pa.Array:
-    array_offsets = np.array(array.offsets)
-    offsets_pair_iter = iter(zip(array_offsets[:-1], array_offsets[1:]))
-    array_values = array.values[:0]
-    for is_value_valid in np.array(array.is_valid()):
-        start, end = next(offsets_pair_iter)
-        if is_value_valid:
-            array_values = pa.concat_arrays([array_values, array.values[start:end]])
-        else:
-            array_values = pa.concat_arrays([array_values, pa.nulls(list_size, array_values.type)])
-    return array_values
-
-
 def _are_list_values_of_length(array: pa.ListArray, length: int) -> bool:
     """Check if all the sub-lists of a `pa.ListArray` have the specified length."""
-    return pc.all(pc.equal(array.value_lengths(), length)).as_py()
+    return pc.all(pc.equal(array.value_lengths(), length)).as_py() or array.null_count == len(array)
 
 
-# def _combine_list_array_offsets_with_mask(array: pa.ListArray) -> np.ndarray:
-#     """Combine the offsets of a `pa.ListArray` with its mask to get the offsets of the non-null values."""
-#     if array.null_count == 0:
-#         return np.array(array.offsets)
-#     else:
-#         offsets = np.array(array.offsets)
-#         offsets[1:] = np.cumsum(np.concatenate([[0], array.is_valid()[:-1]]))
-#         return offsets
+def _combine_list_array_offsets_with_mask(array: pa.ListArray) -> pa.Array:
+    """Add the null bitmap to the offsets of a `pa.ListArray`."""
+    offsets = array.offsets
+    if array.null_count > 0:
+        offsets = pa.concat_arrays(
+            [
+                pc.replace_with_mask(offsets[:-1], array.is_null(), pa.nulls(len(array), pa.int32())),
+                offsets[-1:],
+            ]
+        )
+    return offsets
+
+
+def _storage_type(type: pa.DataType) -> pa.DataType:
+    """Convert a (possibly nested) `pa.ExtensionType` to its storage type."""
+    if isinstance(type, pa.ExtensionType):
+        return _storage_type(type.storage_type)
+    elif isinstance(type, pa.StructType):
+        return pa.struct([pa.field(field.name, _storage_type(field.type)) for field in type])
+    elif isinstance(type, pa.ListType):
+        return pa.list_(_storage_type(type.value_type))
+    elif isinstance(type, pa.FixedSizeListType):
+        return pa.list_(_storage_type(type.value_type), type.list_size)
+    return type
 
 
 @_wrap_for_chunked_arrays
@@ -1872,14 +1872,13 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
         if pa.types.is_fixed_size_list(pa_type):
             if _are_list_values_of_length(array, pa_type.list_size):
                 if array.null_count > 0:
-                    if _IS_LIST_ARRAY_TO_FIXED_SIZE_LIST_ARRAY_CAST_SUPPORTED:
-                        # `array.cast` to the fixed type so that the null arrays' `.values`  are preserved (the `pc.fill_null` kernel fails on extension types)
-                        array_values = array.cast(pa.list_(array.type.value_type, pa_type.list_size)).values
-                    else:
-                        warnings.warn(
-                            "Casting from ListArray to FixedSizeListArray is not natively supported in `pyarrow<14`. Consider upgrading to `pyarrow>=14` to make this cast fast."
-                        )
-                        array_values = _list_array_to_fixed_size_list_array_values(array, pa_type.list_size)
+                    # Ensure each null value in the array translates to [null] * pa_type.list_size in the array's values array
+                    array_type = array.type
+                    # `pc.list_slice` does not support extension types, so we cast to the storage type, and re-cast to the original type after the slice operation
+                    array = array_cast(array, _storage_type(array_type))
+                    array = pc.list_slice(array, 0, pa_type.list_size, return_fixed_size_list=True)
+                    array = array_cast(array, array_type)
+                    array_values = array.values
                     if config.PYARROW_VERSION.major < 15:
                         return pa.Array.from_buffers(
                             pa_type,
@@ -1888,7 +1887,9 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
                             children=[_c(array_values, pa_type.value_type)],
                         )
                     else:
-                        return pa.FixedSizeListArray.from_arrays(array_values, pa_type.list_size, mask=array.is_null())
+                        return pa.FixedSizeListArray.from_arrays(
+                            _c(array_values, pa_type.value_type), pa_type.list_size, mask=array.is_null()
+                        )
                 else:
                     array_values = array.values[
                         array.offset * pa_type.length : (array.offset + len(array)) * pa_type.length
@@ -1896,20 +1897,14 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
                     return pa.FixedSizeListArray.from_arrays(_c(array_values, pa_type.value_type), pa_type.list_size)
         elif pa.types.is_list(pa_type):
             # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
-            if array.null_count > 0:
-                array_offsets = pa.concat_arrays(
-                    [
-                        pc.replace_with_mask(array_offsets[:-1], array.is_null(), pa.nulls(len(array), pa.int32())),
-                        array_offsets[-1:],
-                    ]
-                )
+            array_offsets = _combine_list_array_offsets_with_mask(array)
             return pa.ListArray.from_arrays(array_offsets, _c(array.values, pa_type.value_type))
     elif pa.types.is_fixed_size_list(array.type):
         if pa.types.is_fixed_size_list(pa_type):
             if pa_type.list_size == array.type.list_size:
                 array_values = array.values[
                     array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
-                ]  # Don't use `array.flatten()` to preserve null lists
+                ]
                 if config.PYARROW_VERSION.major < 15:
                     return pa.Array.from_buffers(
                         pa_type,
@@ -1918,7 +1913,9 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
                         children=[_c(array_values, pa_type.value_type)],
                     )
                 else:
-                    return pa.FixedSizeListArray.from_arrays(array_values, pa_type.list_size, mask=array.is_null())
+                    return pa.FixedSizeListArray.from_arrays(
+                        _c(array_values, pa_type.value_type), pa_type.list_size, mask=array.is_null()
+                    )
         elif pa.types.is_list(pa_type):
             array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
             return pa.ListArray.from_arrays(array_offsets, _c(array.values, pa_type.value_type), mask=array.is_null())
@@ -1988,33 +1985,24 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
     elif pa.types.is_list(array.type):
         # feature must be either [subfeature] or Sequence(subfeature)
         if isinstance(feature, list):
-            array_offsets = array.offsets
-            # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
-            if array.null_count > 0:
-                array_offsets = pa.concat_arrays(
-                    [
-                        pc.replace_with_mask(array_offsets[:-1], array.is_null(), pa.nulls(len(array), pa.int32())),
-                        array_offsets[-1:],
-                    ]
-                )
-
             casted_array_values = _c(array.values, feature[0])
             if casted_array_values.type == array.values.type:
                 return array
             else:
+                # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
+                array_offsets = _combine_list_array_offsets_with_mask(array)
                 return pa.ListArray.from_arrays(array_offsets, casted_array_values)
         elif isinstance(feature, Sequence):
             if feature.length > -1:
                 if _are_list_values_of_length(array, feature.length):
                     if array.null_count > 0:
-                        if _IS_LIST_ARRAY_TO_FIXED_SIZE_LIST_ARRAY_CAST_SUPPORTED:
-                            # `array.cast` to the fixed type so that the null arrays' `.values`  are preserved (the `pc.fill_null` kernel fails on extension types)
-                            array_values = array.cast(pa.list_(array.type.value_type, feature.length)).values
-                        else:
-                            warnings.warn(
-                                "Casting from ListArray to FixedSizeListArray is not natively supported in `pyarrow<14`. Consider upgrading to `pyarrow>=14` to make this cast fast."
-                            )
-                            array_values = _list_array_to_fixed_size_list_array_values(array, feature.length)
+                        # Ensure each null value in the array translates to [null] * pa_type.list_size in the array's values array
+                        array_type = array.type
+                        # `pc.list_slice` does not support extension types, so we cast to the storage type, and re-cast to the original type after the slice operation
+                        array = array_cast(array, _storage_type(array_type))
+                        array = pc.list_slice(array, 0, feature.length, return_fixed_size_list=True)
+                        array = array_cast(array, array_type)
+                        array_values = array.values
                         casted_array_values = _c(array_values, feature.feature)
                         if config.PYARROW_VERSION.major < 15:
                             return pa.Array.from_buffers(
@@ -2033,22 +2021,12 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
                         ]
                         return pa.FixedSizeListArray.from_arrays(_c(array_values, feature.feature), feature.length)
             else:
-                array_offsets = array.offsets
-                # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
-                if array.null_count > 0:
-                    array_offsets = pa.concat_arrays(
-                        [
-                            pc.replace_with_mask(
-                                array_offsets[:-1], array.is_null(), pa.nulls(len(array), pa.int32())
-                            ),
-                            array_offsets[-1:],
-                        ]
-                    )
-
                 casted_array_values = _c(array.values, feature.feature)
                 if casted_array_values.type == array.values.type:
                     return array
                 else:
+                    # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
+                    array_offsets = _combine_list_array_offsets_with_mask(array)
                     return pa.ListArray.from_arrays(array_offsets, casted_array_values)
     elif pa.types.is_fixed_size_list(array.type):
         # feature must be either [subfeature] or Sequence(subfeature)
@@ -2060,7 +2038,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
                 if feature.length == array.type.list_size:
                     array_values = array.values[
                         array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
-                    ]  # Don't use `array.flatten()` to preserve null lists
+                    ]
                     casted_array_values = _c(array_values, feature.feature)
                     if config.PYARROW_VERSION.major < 15:
                         return pa.Array.from_buffers(
@@ -2124,16 +2102,8 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
             return pa.StructArray.from_arrays(arrays, names=list(feature), mask=array.is_null())
     elif pa.types.is_list(array.type):
         # feature must be either [subfeature] or Sequence(subfeature)
-        array_offsets = array.offsets
         # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
-        if array.null_count > 0:
-            array_offsets = pa.concat_arrays(
-                [
-                    pc.replace_with_mask(array_offsets[:-1], array.is_null(), pa.nulls(len(array), pa.int32())),
-                    array_offsets[-1:],
-                ]
-            )
-
+        array_offsets = _combine_list_array_offsets_with_mask(array)
         if isinstance(feature, list):
             return pa.ListArray.from_arrays(array_offsets, _e(array.values, feature[0]))
         if isinstance(feature, Sequence) and feature.length == -1:
@@ -2143,7 +2113,7 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
         if isinstance(feature, Sequence) and feature.length > -1:
             array_values = array.values[
                 array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
-            ]  # Don't use `array.flatten()` to preserve null lists
+            ]
             embedded_array_values = _e(array_values, feature.feature)
             if config.PYARROW_VERSION.major < 15:
                 return pa.Array.from_buffers(

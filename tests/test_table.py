@@ -1169,6 +1169,8 @@ def test_cast_fixed_size_list_array_to_features_sequence(arr, slice, target_valu
     casted_array = cast_array_to_feature(arr, Sequence(target_value_feature, length=arr.type.list_size))
     assert casted_array.type == get_nested_type(Sequence(target_value_feature, length=arr.type.list_size))
     assert casted_array.to_pylist() == arr.to_pylist()
+    with pytest.raises(TypeError):
+        cast_array_to_feature(arr, Sequence(target_value_feature, length=arr.type.list_size + 1))
     # Variable size list
     casted_array = cast_array_to_feature(arr, Sequence(target_value_feature))
     assert casted_array.type == get_nested_type(Sequence(target_value_feature))
@@ -1176,9 +1178,6 @@ def test_cast_fixed_size_list_array_to_features_sequence(arr, slice, target_valu
     casted_array = cast_array_to_feature(arr, [target_value_feature])
     assert casted_array.type == get_nested_type([target_value_feature])
     assert casted_array.to_pylist() == arr.to_pylist()
-
-    with pytest.raises(TypeError):
-        cast_array_to_feature(arr, Sequence(target_value_feature, length=arr.type.list_size + 1))
 
 
 @pytest.mark.parametrize(
@@ -1199,17 +1198,24 @@ def test_cast_list_array_to_features_sequence(arr, slice, target_value_feature):
     assert casted_array.type == get_nested_type([target_value_feature])
     assert casted_array.to_pylist() == arr.to_pylist()
     # Fixed size list
-    value_lengths = arr.value_lengths().to_pylist()
-    value_lengths = [i for i in value_lengths if i is not None]
-    if len(set(value_lengths)) == 1:
-        casted_array = cast_array_to_feature(arr, Sequence(target_value_feature, length=value_lengths[0]))
-        assert casted_array.type == get_nested_type(Sequence(target_value_feature, length=value_lengths[0]))
-        assert casted_array.to_pylist() == arr.to_pylist()
-    else:
-        with pytest.raises(TypeError):
-            cast_array_to_feature(
-                arr, Sequence(target_value_feature, length=value_lengths[0] if value_lengths else len(arr))
-            )
+    list_size = arr.value_lengths().drop_null()[0].as_py() if arr.value_lengths().drop_null() else 2
+    casted_array = cast_array_to_feature(arr, Sequence(target_value_feature, length=list_size))
+    assert casted_array.type == get_nested_type(Sequence(target_value_feature, length=list_size))
+    assert casted_array.to_pylist() == arr.to_pylist()
+
+
+def test_cast_list_extension_array_to_features_sequence():
+    arr = np.random.randint(0, 10, size=(8, 2, 3)).tolist()
+    arr = Array2DExtensionType(shape=(2, 3), dtype="int64").wrap_array(pa.array(arr, pa.list_(pa.list_(pa.int64()))))
+    arr = pa.ListArray.from_arrays([0, None, 4, 8], arr)
+    # Variable size list
+    casted_array = cast_array_to_feature(arr, Sequence(Array2D(shape=(2, 3), dtype="int32")))
+    assert casted_array.type == get_nested_type(Sequence(Array2D(shape=(2, 3), dtype="int32")))
+    assert casted_array.to_pylist() == arr.to_pylist()
+    # Fixed size list
+    casted_array = cast_array_to_feature(arr, Sequence(Array2D(shape=(2, 3), dtype="int32"), length=4))
+    assert casted_array.type == get_nested_type(Sequence(Array2D(shape=(2, 3), dtype="int32"), length=4))
+    assert casted_array.to_pylist() == arr.to_pylist()
 
 
 def test_embed_array_storage(image_file):
