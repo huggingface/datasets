@@ -143,8 +143,11 @@ def make_file_instructions(
         to = split_length if abs_instr.to is None else abs_instr.to
         if shard_lengths is None:  # not sharded
             for filename in filenames:
-                num_examples += to - from_
-                file_instructions.append({"filename": filename, "skip": from_, "take": to - from_})
+                take = to - from_
+                if take == 0:
+                    continue
+                num_examples += take
+                file_instructions.append({"filename": filename, "skip": from_, "take": take})
         else:  # sharded
             index_start = 0  # Beginning (included) of moving window.
             index_end = 0  # End (excluded) of moving window.
@@ -480,17 +483,12 @@ def _rel_to_abs_instr(rel_instr, name2len):
     else:
         from_ = 0 if from_ is None else from_
         to = num_examples if to is None else to
-    if abs(from_) > num_examples or abs(to) > num_examples:
-        msg = f'Requested slice [{from_ or ""}:{to or ""}] incompatible with {num_examples} examples.'
-        raise ValueError(msg)
     if from_ < 0:
-        from_ = num_examples + from_
-    elif from_ == 0:
-        from_ = None
+        from_ = max(num_examples + from_, 0)
     if to < 0:
-        to = num_examples + to
-    elif to == num_examples:
-        to = None
+        to = max(num_examples + to, 0)
+    from_ = min(from_, num_examples)
+    to = min(to, num_examples)
     return _AbsoluteInstruction(split, from_, to)
 
 
