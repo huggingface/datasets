@@ -353,7 +353,7 @@ The [`~Dataset.map`] also works with the rank of the process if you set `with_ra
 ```py
 >>> import torch
 >>> from multiprocess import set_start_method
->>> from transformers import AutoTokenizer, AutoModelForCausalLM 
+>>> from transformers import AutoTokenizer, AutoModelForSeq2SeqLM 
 >>> from datasets import load_dataset
 >>> 
 >>> # Get an example dataset
