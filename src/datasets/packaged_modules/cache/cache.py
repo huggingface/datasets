@@ -119,19 +119,11 @@ class Cache(datasets.ArrowBasedBuilder):
             config_id = self.BUILDER_CONFIG_CLASS(config_name or "default").create_config_id(
                 config_kwargs=config_kwargs, custom_features=features
             )
-            try:
-                config_name, version, hash = _find_hash_in_cache(
-                    dataset_name=repo_id or dataset_name,
-                    config_name=config_id,
-                    cache_dir=cache_dir,
-                )
-            except ValueError:
-                # Otherwise we fall back on the requested config name
-                config_name, version, hash = _find_hash_in_cache(
-                    dataset_name=repo_id or dataset_name,
-                    config_name=config_name,
-                    cache_dir=cache_dir,
-                )
+            config_name, version, hash = _find_hash_in_cache(
+                dataset_name=repo_id or dataset_name,
+                config_name=config_id,
+                cache_dir=cache_dir,
+            )
         elif hash == "auto" or version == "auto":
             raise NotImplementedError("Pass both hash='auto' and version='auto' instead")
         super().__init__(
