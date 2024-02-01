@@ -1874,10 +1874,14 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
                 if array.null_count > 0:
                     # Ensure each null value in the array translates to [null] * pa_type.list_size in the array's values array
                     array_type = array.type
-                    # Temporarily convert to the storage type to support extension types in the slice operation
-                    array = _c(array, _storage_type(array_type))
-                    array = pc.list_slice(array, 0, pa_type.list_size, return_fixed_size_list=True)
-                    array = _c(array, array_type)
+                    storage_type = _storage_type(array_type)
+                    if array_type != storage_type:
+                        # Temporarily convert to the storage type to support extension types in the slice operation
+                        array = _c(array, storage_type)
+                        array = pc.list_slice(array, 0, pa_type.list_size, return_fixed_size_list=True)
+                        array = _c(array, array_type)
+                    else:
+                        array = pc.list_slice(array, 0, pa_type.list_size, return_fixed_size_list=True)
                     array_values = array.values
                     if config.PYARROW_VERSION.major < 15:
                         return pa.Array.from_buffers(
@@ -1998,10 +2002,14 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
                     if array.null_count > 0:
                         # Ensure each null value in the array translates to [null] * pa_type.list_size in the array's values array
                         array_type = array.type
+                        storage_type = _storage_type(array_type)
                         # Temporarily convert to the storage type to support extension types in the slice operation
-                        array = array_cast(array, _storage_type(array_type), allow_number_to_str=allow_number_to_str)
-                        array = pc.list_slice(array, 0, feature.length, return_fixed_size_list=True)
-                        array = array_cast(array, array_type, allow_number_to_str=allow_number_to_str)
+                        if array_type != storage_type:
+                            array = array_cast(array, storage_type, allow_number_to_str=allow_number_to_str)
+                            array = pc.list_slice(array, 0, feature.length, return_fixed_size_list=True)
+                            array = array_cast(array, array_type, allow_number_to_str=allow_number_to_str)
+                        else:
+                            array = pc.list_slice(array, 0, feature.length, return_fixed_size_list=True)
                         array_values = array.values
                         casted_array_values = _c(array_values, feature.feature)
                         if config.PYARROW_VERSION.major < 15:
