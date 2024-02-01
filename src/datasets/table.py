@@ -2003,8 +2003,8 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
                         # Ensure each null value in the array translates to [null] * pa_type.list_size in the array's values array
                         array_type = array.type
                         storage_type = _storage_type(array_type)
-                        # Temporarily convert to the storage type to support extension types in the slice operation
                         if array_type != storage_type:
+                            # Temporarily convert to the storage type to support extension types in the slice operation
                             array = array_cast(array, storage_type, allow_number_to_str=allow_number_to_str)
                             array = pc.list_slice(array, 0, feature.length, return_fixed_size_list=True)
                             array = array_cast(array, array_type, allow_number_to_str=allow_number_to_str)
