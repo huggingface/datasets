@@ -2527,10 +2527,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if isinstance(columns, tuple):
             columns = list(columns)
         if columns is not None:
-            invalid_columns = set(columns) - set(self._data.column_names)
+            missing_columns = set(columns) - set(self._data.column_names)
             if invalid_columns:
                 raise ValueError(
-                    f"Columns {list(invalid_columns)} not in the dataset. Current columns in the dataset: {self._data.column_names}"
+                    f"Columns {list(missing_columns)} not in the dataset. Current columns in the dataset: {self._data.column_names}"
                 )
         if columns is not None:
             columns = columns.copy()  # Ensures modifications made to the list after this call don't cause bugs
