@@ -2528,7 +2528,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             columns = list(columns)
         if columns is not None:
             missing_columns = set(columns) - set(self._data.column_names)
-            if invalid_columns:
+            if missing_columns:
                 raise ValueError(
                     f"Columns {list(missing_columns)} not in the dataset. Current columns in the dataset: {self._data.column_names}"
                 )
