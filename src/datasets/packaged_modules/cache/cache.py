@@ -126,7 +126,7 @@ class Cache(datasets.ArrowBasedBuilder):
                         dataset_name=self.dataset_name,
                         split=split_info.name,
                         filetype_suffix="arrow",
-                        shard_lengths=split_info.shard_lengths,
+                        num_shards=len(split_info.shard_lengths or ()),
                     )
                 },
             )

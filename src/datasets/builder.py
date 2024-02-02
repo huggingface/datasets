@@ -29,7 +29,7 @@ import warnings
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, Iterable, Mapping, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Dict, Iterable, List, Mapping, Optional, Tuple, Union
 from unittest.mock import patch
 
 import fsspec
@@ -63,7 +63,7 @@ from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
 from .iterable_dataset import ArrowExamplesIterable, ExamplesIterable, IterableDataset
 from .keyhash import DuplicatedKeysError
-from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH, camelcase_to_snakecase
+from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH, camelcase_to_snakecase, filenames_for_dataset_split
 from .splits import Split, SplitDict, SplitGenerator, SplitInfo
 from .streaming import extend_dataset_builder_for_streaming
 from .table import CastError
@@ -744,6 +744,7 @@ class DatasetBuilder:
     def download_and_prepare(
         self,
         output_dir: Optional[str] = None,
+        splits: Optional[List[str]] = None,
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[Union[DownloadMode, str]] = None,
         verification_mode: Optional[Union[VerificationMode, str]] = None,
@@ -928,12 +929,23 @@ class DatasetBuilder:
         # File locking only with local paths; no file locking on GCS or S3
         with FileLock(lock_path) if is_local else contextlib.nullcontext():
             # Check if the data already exists
-            data_exists = self._fs.exists(posixpath.join(self._output_dir, config.DATASET_INFO_FILENAME))
-            if data_exists and download_mode == DownloadMode.REUSE_DATASET_IF_EXISTS:
-                logger.info(f"Found cached dataset {self.dataset_name} ({self._output_dir})")
+            info_exists = self._fs.exists(posixpath.join(self._output_dir, config.DATASET_INFO_FILENAME))
+            if info_exists:
                 # We need to update the info in case some splits were added in the meantime
                 # for example when calling load_dataset from multiple workers.
                 self.info = self._load_info()
+            _dataset_name = self.name if self._check_legacy_cache() else self.dataset_name
+            if splits is not None:
+                for split in splits:
+                    num_shards = len(self.info.splits[split].shard_lengths or ()) if self.info.splits else 1
+                    _filename = filenames_for_dataset_split(
+                        self._output_dir, _dataset_name, split, filetype_suffix=file_format, num_shards=num_shards
+                    )[0]
+                    if self._fs.exists(_filename):
+                        splits.pop(split)  # split is already cached
+            requested_splits_exist = not splits
+            if info_exists and requested_splits_exist and download_mode == DownloadMode.REUSE_DATASET_IF_EXISTS:
+                logger.info(f"Found cached dataset {self.dataset_name} ({self._output_dir})")
                 self.download_post_processing_resources(dl_manager)
                 return
 
