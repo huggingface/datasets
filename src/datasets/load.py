@@ -32,6 +32,7 @@ from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Type, Un
 
 import fsspec
 import requests
+import yaml
 from huggingface_hub import DatasetCard, DatasetCardData, HfApi, HfFileSystem
 
 from . import config
@@ -491,7 +492,7 @@ def _load_importable_file(
 
 def infer_module_for_data_files_list(
     data_files_list: DataFilesList, download_config: Optional[DownloadConfig] = None
-) -> Optional[Tuple[str, str]]:
+) -> Tuple[Optional[str], dict]:
     """Infer module (and builder kwargs) from list of data files.
 
     It picks the module based on the most common file extension.
@@ -507,18 +508,18 @@ def infer_module_for_data_files_list(
             - dict of builder kwargs
     """
     extensions_counter = Counter(
-        "." + suffix.lower()
+        ("." + suffix.lower(), xbasename(filepath) in ("metadata.jsonl", "metadata.csv"))
         for filepath in data_files_list[: config.DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE]
         for suffix in xbasename(filepath).split(".")[1:]
     )
     if extensions_counter:
 
-        def sort_key(ext_count: Tuple[str, int]) -> Tuple[int, bool]:
-            """Sort by count and set ".parquet" as the favorite in case of a draw"""
-            ext, count = ext_count
-            return (count, ext == ".parquet", ext)
+        def sort_key(ext_count: Tuple[Tuple[str, bool], int]) -> Tuple[int, bool]:
+            """Sort by count and set ".parquet" as the favorite in case of a draw, and ignore metadata files"""
+            (ext, is_metadata), count = ext_count
+            return (not is_metadata, count, ext == ".parquet", ext)
 
-        for ext, _ in sorted(extensions_counter.items(), key=sort_key, reverse=True):
+        for (ext, _), _ in sorted(extensions_counter.items(), key=sort_key, reverse=True):
             if ext in _EXTENSION_TO_MODULE:
                 return _EXTENSION_TO_MODULE[ext]
             elif ext == ".zip":
@@ -528,7 +529,7 @@ def infer_module_for_data_files_list(
 
 def infer_module_for_data_files_list_in_archives(
     data_files_list: DataFilesList, download_config: Optional[DownloadConfig] = None
-) -> Optional[Tuple[str, str]]:
+) -> Tuple[Optional[str], dict]:
     """Infer module (and builder kwargs) from list of archive data files.
 
     Args:
@@ -928,7 +929,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
             )
         # get script and other files
         dataset_infos_path = Path(self.path).parent / config.DATASETDICT_INFOS_FILENAME
-        dataset_readme_path = Path(self.path).parent / "README.md"
+        dataset_readme_path = Path(self.path).parent / config.REPOCARD_FILENAME
         imports = get_imports(self.path)
         local_imports = _download_additional_modules(
             name=self.name,
@@ -940,7 +941,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         if dataset_infos_path.is_file():
             additional_files.append((config.DATASETDICT_INFOS_FILENAME, str(dataset_infos_path)))
         if dataset_readme_path.is_file():
-            additional_files.append(("README.md", dataset_readme_path))
+            additional_files.append((config.REPOCARD_FILENAME, dataset_readme_path))
         # copy the script and the files in an importable directory
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
         hash = files_to_hash([self.path] + [loc[1] for loc in local_imports])
@@ -1003,8 +1004,16 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self.download_mode = download_mode
 
     def get_module(self) -> DatasetModule:
-        readme_path = os.path.join(self.path, "README.md")
+        readme_path = os.path.join(self.path, config.REPOCARD_FILENAME)
+        standalone_yaml_path = os.path.join(self.path, config.REPOYAML_FILENAME)
         dataset_card_data = DatasetCard.load(readme_path).data if os.path.isfile(readme_path) else DatasetCardData()
+        if os.path.exists(standalone_yaml_path):
+            with open(standalone_yaml_path, "r", encoding="utf-8") as f:
+                standalone_yaml_data = yaml.safe_load(f.read())
+                if standalone_yaml_data:
+                    _dataset_card_data_dict = dataset_card_data.to_dict()
+                    _dataset_card_data_dict.update(standalone_yaml_data)
+                    dataset_card_data = DatasetCardData(**_dataset_card_data_dict)
         metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
         dataset_infos = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
         # we need a set of data files to find which dataset builder to use
@@ -1190,12 +1199,28 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             download_config.download_desc = "Downloading readme"
         try:
             dataset_readme_path = cached_path(
-                hf_hub_url(self.name, "README.md", revision=revision),
+                hf_hub_url(self.name, config.REPOCARD_FILENAME, revision=revision),
                 download_config=download_config,
             )
             dataset_card_data = DatasetCard.load(Path(dataset_readme_path)).data
         except FileNotFoundError:
             dataset_card_data = DatasetCardData()
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading standalone yaml"
+        try:
+            standalone_yaml_path = cached_path(
+                hf_hub_url(self.name, config.REPOYAML_FILENAME, revision=revision),
+                download_config=download_config,
+            )
+            with open(standalone_yaml_path, "r", encoding="utf-8") as f:
+                standalone_yaml_data = yaml.safe_load(f.read())
+                if standalone_yaml_data:
+                    _dataset_card_data_dict = dataset_card_data.to_dict()
+                    _dataset_card_data_dict.update(standalone_yaml_data)
+                    dataset_card_data = DatasetCardData(**_dataset_card_data_dict)
+        except FileNotFoundError:
+            pass
         metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
         dataset_infos = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
         # we need a set of data files to find which dataset builder to use
@@ -1411,7 +1436,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
             return None
 
     def download_dataset_readme_file(self) -> str:
-        readme_url = hf_hub_url(self.name, "README.md", revision=self.revision)
+        readme_url = hf_hub_url(self.name, config.REPOCARD_FILENAME, revision=self.revision)
         # Download the dataset infos file if available
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
@@ -1448,7 +1473,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         if dataset_infos_path:
             additional_files.append((config.DATASETDICT_INFOS_FILENAME, dataset_infos_path))
         if dataset_readme_path:
-            additional_files.append(("README.md", dataset_readme_path))
+            additional_files.append((config.REPOCARD_FILENAME, dataset_readme_path))
         # copy the script and the files in an importable directory
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
         hash = files_to_hash([local_path] + [loc[1] for loc in local_imports])
@@ -1634,6 +1659,7 @@ def dataset_module_factory(
     cache_dir: Optional[str] = None,
     trust_remote_code: Optional[bool] = None,
     _require_default_config_name=True,
+    _require_custom_configs=False,
     **download_kwargs,
 ) -> DatasetModule:
     """
@@ -1790,8 +1816,10 @@ def dataset_module_factory(
                     raise e
             if filename in [sibling.rfilename for sibling in dataset_info.siblings]:  # contains a dataset script
                 fs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=download_config.token)
-                if _require_default_config_name:
-                    with fs.open(f"datasets/{path}/{filename}", "r", revision=revision, encoding="utf-8") as f:
+                if _require_custom_configs or (revision and revision != "main"):
+                    can_load_config_from_parquet_export = False
+                elif _require_default_config_name:
+                    with fs.open(f"datasets/{path}/{filename}", "r", encoding="utf-8") as f:
                         can_load_config_from_parquet_export = "DEFAULT_CONFIG_NAME" not in f.read()
                 else:
                     can_load_config_from_parquet_export = True
@@ -2199,6 +2227,7 @@ def load_dataset_builder(
         cache_dir=cache_dir,
         trust_remote_code=trust_remote_code,
         _require_default_config_name=_require_default_config_name,
+        _require_custom_configs=bool(config_kwargs),
     )
     # Get dataset builder class from the processing script
     builder_kwargs = dataset_module.builder_kwargs

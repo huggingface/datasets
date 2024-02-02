@@ -97,6 +97,10 @@ def picklable_filter_function(x):
     return int(x["filename"].split("_")[-1]) < 10
 
 
+def picklable_filter_function_with_rank(x, r):
+    return r == 0
+
+
 def assert_arrow_metadata_are_synced_with_dataset_features(dataset: Dataset):
     assert dataset.data.schema.metadata is not None
     assert b"huggingface" in dataset.data.schema.metadata
@@ -1442,6 +1446,24 @@ class BaseDatasetTest(TestCase):
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertRaises(ValueError, dset.map, func_return_multi_row_pa_table)
 
+        # arrow formatted dataset
+        def func_return_table_from_expression(t):
+            import pyarrow.dataset as pds
+
+            return pds.dataset(t).to_table(
+                columns={"new_column": pds.field("")._call("ascii_capitalize", [pds.field("filename")])}
+            )
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.with_format("arrow").map(func_return_table_from_expression, batched=True) as dset_test:
+                    self.assertEqual(len(dset_test), 30)
+                    self.assertDictEqual(
+                        dset_test.features,
+                        Features({"new_column": Value("string")}),
+                    )
+                    self.assertEqual(dset_test.with_format(None)[0]["new_column"], dset[0]["filename"].capitalize())
+
     def test_map_return_pd_dataframe(self, in_memory):
         def func_return_single_row_pd_dataframe(x):
             return pd.DataFrame({"id": [0], "text": ["a"]})
@@ -1755,6 +1777,18 @@ class BaseDatasetTest(TestCase):
                     self.assertDictEqual(dset_filter_first_ten.features, Features({"filename": Value("string")}))
                     self.assertEqual(len(dset_filter_first_ten.cache_files), 0 if in_memory else 2)
                     self.assertNotEqual(dset_filter_first_ten._fingerprint, fingerprint)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:  # with_rank
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                fingerprint = dset._fingerprint
+                with dset.filter(
+                    picklable_filter_function_with_rank, num_proc=2, with_rank=True
+                ) as dset_filter_first_rank:
+                    self.assertEqual(len(dset_filter_first_rank), min(len(dset) // 2, len(dset)))
+                    self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                    self.assertDictEqual(dset_filter_first_rank.features, Features({"filename": Value("string")}))
+                    self.assertEqual(len(dset_filter_first_rank.cache_files), 0 if in_memory else 2)
+                    self.assertNotEqual(dset_filter_first_rank._fingerprint, fingerprint)
 
     def test_filter_caching(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -3995,8 +4029,8 @@ def test_build_local_temp_path(uri_or_path):
     path_relative_to_tmp_dir = Path(local_temp_path).relative_to(Path(tempfile.gettempdir())).as_posix()
 
     assert (
-        "hdfs" not in path_relative_to_tmp_dir
-        and "s3" not in path_relative_to_tmp_dir
+        "hdfs://" not in path_relative_to_tmp_dir
+        and "s3://" not in path_relative_to_tmp_dir
         and not local_temp_path.startswith(extracted_path_without_anchor)
         and local_temp_path.endswith(extracted_path_without_anchor)
     ), f"Local temp path: {local_temp_path}"
