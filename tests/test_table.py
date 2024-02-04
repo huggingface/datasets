@@ -1204,7 +1204,7 @@ def test_cast_list_array_to_features_sequence(arr, slice, target_value_feature):
     assert casted_array.to_pylist() == arr.to_pylist()
 
 
-def test_cast_list_extension_array_to_features_sequence():
+def test_cast_array_xd_to_features_sequence():
     arr = np.random.randint(0, 10, size=(8, 2, 3)).tolist()
     arr = Array2DExtensionType(shape=(2, 3), dtype="int64").wrap_array(pa.array(arr, pa.list_(pa.list_(pa.int64()))))
     arr = pa.ListArray.from_arrays([0, None, 4, 8], arr)
