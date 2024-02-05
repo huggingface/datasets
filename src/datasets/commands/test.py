@@ -28,6 +28,7 @@ def _test_command_factory(args):
         args.ignore_verifications,
         args.force_redownload,
         args.clear_cache,
+        args.num_proc,
     )
 
 
@@ -65,6 +66,7 @@ class TestCommand(BaseDatasetsCLICommand):
             action="store_true",
             help="Remove downloaded files and cached datasets after each config test",
         )
+        test_parser.add_argument("--num_proc", type=int, default=None, help="Number of processes")
         # aliases
         test_parser.add_argument("--save_infos", action="store_true", help="alias to save_info")
         test_parser.add_argument("dataset", type=str, help="Name of the dataset to download")
@@ -81,6 +83,7 @@ class TestCommand(BaseDatasetsCLICommand):
         ignore_verifications: bool,
         force_redownload: bool,
         clear_cache: bool,
+        num_proc: int,
     ):
         self._dataset = dataset
         self._name = name
@@ -91,6 +94,7 @@ class TestCommand(BaseDatasetsCLICommand):
         self._ignore_verifications = ignore_verifications
         self._force_redownload = force_redownload
         self._clear_cache = clear_cache
+        self._num_proc = num_proc
         if clear_cache and not cache_dir:
             print(
                 "When --clear_cache is used, specifying a cache directory is mandatory.\n"
@@ -151,6 +155,7 @@ class TestCommand(BaseDatasetsCLICommand):
                 if self._ignore_verifications
                 else VerificationMode.ALL_CHECKS,
                 try_from_hf_gcs=False,
+                num_proc=self._num_proc,
             )
             builder.as_dataset()
             if self._save_infos:
