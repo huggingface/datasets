@@ -1965,9 +1965,6 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
     """
     from .features.features import Sequence, get_nested_type
 
-    # if isinstance(feature, Sequence):
-    #     print("array off", array.offset)
-
     _c = partial(cast_array_to_feature, allow_number_to_str=allow_number_to_str)
 
     if isinstance(array, pa.ExtensionArray):
