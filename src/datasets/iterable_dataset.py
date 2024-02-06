@@ -2067,13 +2067,13 @@ class IterableDataset(DatasetInfoMixin):
         if self._info:
             info = copy.deepcopy(self._info)
             if self._info.features is not None:
-                for column_name in column_names:
-                    if column_name not in self._info.features:
-                        raise ValueError(
-                            f"Column name {column_name} not in the "
-                            "dataset. Columns in the dataset: "
-                            f"{list(self._info.features.keys())}."
-                        )
+                missing_columns = set(column_names) - set(self._info.features.keys())
+                if missing_columns:
+                    raise ValueError(
+                        f"Column name {list(missing_columns)} not in the "
+                        "dataset. Columns in the dataset: "
+                        f"{list(self._info.features.keys())}."
+                    )
                 info.features = Features({c: info.features[c] for c in column_names})
                 # check that it's still valid, especially with regard to task templates
                 try:

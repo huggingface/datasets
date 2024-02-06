@@ -2155,12 +2155,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if isinstance(column_names, str):
             column_names = [column_names]
 
-        for column_name in column_names:
-            if column_name not in dataset._data.column_names:
-                raise ValueError(
-                    f"Column name {column_name} not in the dataset. "
-                    f"Current columns in the dataset: {dataset._data.column_names}"
-                )
+        missing_columns = set(column_names) - set(self._data.column_names)
+        if missing_columns:
+            raise ValueError(
+                f"Column name {list(missing_columns)} not in the dataset. "
+                f"Current columns in the dataset: {dataset._data.column_names}"
+            )
 
         for column_name in column_names:
             del dataset._info.features[column_name]
@@ -2339,13 +2339,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if isinstance(column_names, str):
             column_names = [column_names]
 
-        for column_name in column_names:
-            if column_name not in self._data.column_names:
-                raise ValueError(
-                    f"Column name {column_name} not in the "
-                    "dataset. Current columns in the dataset: "
-                    f"{self._data.column_names}."
-                )
+        missing_columns = set(column_names) - set(self._data.column_names)
+        if missing_columns:
+            raise ValueError(
+                f"Column name {list(missing_columns)} not in the "
+                "dataset. Current columns in the dataset: "
+                f"{self._data.column_names}."
+            )
 
         dataset = copy.deepcopy(self)
         dataset._data = dataset._data.select(column_names)
@@ -2534,10 +2534,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             columns = [columns]
         if isinstance(columns, tuple):
             columns = list(columns)
-        if columns is not None and any(col not in self._data.column_names for col in columns):
-            raise ValueError(
-                f"Columns {list(filter(lambda col: col not in self._data.column_names, columns))} not in the dataset. Current columns in the dataset: {self._data.column_names}"
-            )
+        if columns is not None:
+            missing_columns = set(columns) - set(self._data.column_names)
+            if missing_columns:
+                raise ValueError(
+                    f"Columns {list(missing_columns)} not in the dataset. Current columns in the dataset: {self._data.column_names}"
+                )
         if columns is not None:
             columns = columns.copy()  # Ensures modifications made to the list after this call don't cause bugs
 
@@ -3008,19 +3010,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             input_columns = [input_columns]
 
         if input_columns is not None:
-            for input_column in input_columns:
-                if input_column not in self._data.column_names:
-                    raise ValueError(
-                        f"Input column {input_column} not in the dataset. Current columns in the dataset: {self._data.column_names}"
-                    )
+            missing_columns = set(input_columns) - set(self._data.column_names)
+            if missing_columns:
+                raise ValueError(
+                    f"Input column {list(missing_columns)} not in the dataset. Current columns in the dataset: {self._data.column_names}"
+                )
 
         if isinstance(remove_columns, str):
             remove_columns = [remove_columns]
 
-        if remove_columns is not None and any(col not in self._data.column_names for col in remove_columns):
-            raise ValueError(
-                f"Column to remove {list(filter(lambda col: col not in self._data.column_names, remove_columns))} not in the dataset. Current columns in the dataset: {self._data.column_names}"
-            )
+        if remove_columns is not None:
+            missing_columns = set(remove_columns) - set(self._data.column_names)
+            if missing_columns:
+                raise ValueError(
+                    f"Column to remove {list(missing_columns)} not in the dataset. Current columns in the dataset: {self._data.column_names}"
+                )
 
         load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
 
