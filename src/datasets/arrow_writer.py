@@ -547,14 +547,14 @@ class ArrowWriter:
         if self.schema:
             schema_cols = set(self.schema.names)
             common_cols, extra_cols = [], []
-            for col in self.batch_examples:
+            for col in batch_examples:
                 if col in schema_cols:
                     common_cols.append(col)
                 else:
                     extra_cols.append(col)
             cols = common_cols + extra_cols
         else:
-            cols = list(self.batch_examples)
+            cols = list(batch_examples)
         for col in cols:
             col_values = batch_examples[col]
             col_type = features[col] if features else None
