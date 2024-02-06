@@ -1,5 +1,5 @@
-import posixpath
 import os
+import posixpath
 import tempfile
 from pathlib import Path
 from unittest import TestCase
@@ -227,7 +227,9 @@ def test_make_file_instructions(split_name, instruction, shard_lengths, read_ran
             file_instructions_list = []
             shard_offset = 0
             for i, shard_length in enumerate(shard_lengths):
-                filename = posixpath.join(prefix_path, f"{name}-{split_name}-{i:05d}-of-{len(shard_lengths):05d}.arrow")
+                filename = posixpath.join(
+                    prefix_path, f"{name}-{split_name}-{i:05d}-of-{len(shard_lengths):05d}.arrow"
+                )
                 if shard_offset <= read_range[0] < shard_offset + shard_length:
                     file_instructions_list.append(
                         {
