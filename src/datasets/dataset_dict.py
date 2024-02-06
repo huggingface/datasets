@@ -1566,6 +1566,7 @@ class DatasetDict(dict):
         repo_id,
         config_name: str = "default",
         set_default: Optional[bool] = None,
+        data_dir: Optional[str] = None,
         commit_message: Optional[str] = None,
         commit_description: Optional[str] = None,
         private: Optional[bool] = False,
@@ -1596,6 +1597,11 @@ class DatasetDict(dict):
             set_default (`bool`, *optional*):
                 Whether to set this configuration as the default one. Otherwise, the default configuration is the one
                 named "default".
+            data_dir (`str`, *optional*):
+                Directory name that will contain the uploaded data files. Defaults to the `config_name` if different
+                from "default", else "data".
+
+                <Added version="2.17.0"/>
             commit_message (`str`, *optional*):
                 Message to commit while pushing. Will default to `"Upload dataset"`.
             commit_description (`str`, *optional*):
@@ -1693,18 +1699,20 @@ class DatasetDict(dict):
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
 
-        _ = api.create_repo(
+        repo_url = api.create_repo(
             repo_id,
             token=token,
             repo_type="dataset",
             private=private,
             exist_ok=True,
         )
+        repo_id = repo_url.repo_id
 
         if revision is not None:
             api.create_branch(repo_id, branch=revision, token=token, repo_type="dataset", exist_ok=True)
 
-        data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
+        if not data_dir:
+            data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
 
         additions = []
         for split in self.keys():
