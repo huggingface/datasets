@@ -435,7 +435,7 @@ class ArrowWriter:
                 if col in schema_cols:
                     common_cols.append(col)
                 else:
-                    extra_cols.append(col) 
+                    extra_cols.append(col)
             cols = common_cols + extra_cols
         else:
             cols = list(self.current_examples[0][0])
@@ -551,7 +551,7 @@ class ArrowWriter:
                 if col in schema_cols:
                     common_cols.append(col)
                 else:
-                    extra_cols.append(col) 
+                    extra_cols.append(col)
             cols = common_cols + extra_cols
         else:
             cols = list(self.batch_examples)
