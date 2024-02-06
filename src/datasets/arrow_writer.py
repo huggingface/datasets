@@ -429,15 +429,16 @@ class ArrowWriter:
 
         # order the columns properly
         if self.schema:
-            schema_names_set = set(self.schema.names)
-            current_example_keys_set = set(self.current_examples[0][0].keys())
-
-            common_cols = schema_names_set & current_example_keys_set
-            extra_cols = current_example_keys_set - schema_names_set
-
-            cols = list(common_cols) + list(extra_cols)
+            schema_cols = set(self.schema.names)
+            common_cols, extra_cols = [], []
+            for col in self.current_examples[0][0]:
+                if col in schema_cols:
+                    common_cols.append(col)
+                else:
+                    extra_cols.append(col) 
+            cols = common_cols + extra_cols
         else:
-            cols = self.current_examples[0][0].keys()
+            cols = list(self.current_examples[0][0])
 
         batch_examples = {}
         for col in cols:
@@ -544,15 +545,16 @@ class ArrowWriter:
         arrays = []
         inferred_features = Features()
         if self.schema:
-            schema_names_set = set(self.schema.names)
-            batch_examples_keys_set = set(batch_examples.keys())
-
-            common_cols = schema_names_set & batch_examples_keys_set
-            extra_cols = batch_examples_keys_set - schema_names_set
-
-            cols = list(common_cols) + list(extra_cols)
+            schema_cols = set(self.schema.names)
+            common_cols, extra_cols = [], []
+            for col in self.batch_examples:
+                if col in schema_cols:
+                    common_cols.append(col)
+                else:
+                    extra_cols.append(col) 
+            cols = common_cols + extra_cols
         else:
-            cols = batch_examples.keys()
+            cols = list(self.batch_examples)
         for col in cols:
             col_values = batch_examples[col]
             col_type = features[col] if features else None
