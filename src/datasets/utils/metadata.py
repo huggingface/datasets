@@ -252,10 +252,8 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
 
     def get_default_config_name(self) -> Optional[str]:
         default_config_name = None
-        if len(self) == 1:
-            return next(iter(self))
         for config_name, metadata_config in self.items():
-            if config_name == "default" or metadata_config.get("default"):
+            if len(self) == 1 or config_name == "default" or metadata_config.get("default"):
                 if default_config_name is None:
                     default_config_name = config_name
                 else:
