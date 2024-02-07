@@ -523,7 +523,7 @@ class ModuleFactoryTest(TestCase):
         assert module_builder_configs[0].drop_labels is True  # parameter is passed from metadata
 
         # config named "default" is automatically considered to be a default config
-        assert module_factory_result.builder_configs_parameters.default_config_name is None
+        assert module_factory_result.builder_configs_parameters.default_config_name == "custom"
 
         # we don't pass config params to builder in builder_kwargs, they are stored in builder_configs directly
         assert "drop_labels" not in module_factory_result.builder_kwargs
@@ -695,7 +695,7 @@ class ModuleFactoryTest(TestCase):
         assert module_builder_configs[0].drop_labels is True  # parameter is passed from metadata
 
         # config named "default" is automatically considered to be a default config
-        assert module_factory_result.builder_configs_parameters.default_config_name is None
+        assert module_factory_result.builder_configs_parameters.default_config_name == "custom"
 
         # we don't pass config params to builder in builder_kwargs, they are stored in builder_configs directly
         assert "drop_labels" not in module_factory_result.builder_kwargs

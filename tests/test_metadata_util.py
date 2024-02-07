@@ -224,7 +224,7 @@ class TestMetadataUtils(unittest.TestCase):
 @pytest.mark.parametrize(
     "readme_content, expected_metadata_configs_dict, expected_default_config_name",
     [
-        (README_METADATA_SINGLE_CONFIG, EXPECTED_METADATA_SINGLE_CONFIG, None),
+        (README_METADATA_SINGLE_CONFIG, EXPECTED_METADATA_SINGLE_CONFIG, "custom"),
         (README_METADATA_TWO_CONFIGS_WITH_DEFAULT_FLAG, EXPECTED_METADATA_TWO_CONFIGS_DEFAULT_FLAG, "v2"),
         (README_METADATA_TWO_CONFIGS_WITH_DEFAULT_NAME, EXPECTED_METADATA_TWO_CONFIGS_DEFAULT_NAME, "default"),
     ],
