@@ -130,6 +130,13 @@ JSON files are loaded directly with [`load_dataset`] as shown below:
 >>> dataset = load_dataset("json", data_files="my_file.json")
 ```
 
+In addition, you can also load "jsonl" files as well. It will load up every line as an entry in the dataset:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("json", data_files="my_jsonl_file.jsonl")
+```
+
 JSON files have diverse formats, but we think the most efficient format is to have multiple JSON objects; each line represents an individual row of data. For example:
 
 ```json
