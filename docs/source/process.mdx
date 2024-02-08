@@ -360,7 +360,7 @@ The [`~Dataset.map`] also works with the rank of the process if you set `with_ra
 >>> dataset = load_dataset("fka/awesome-chatgpt-prompts", split="train")
 >>> 
 >>> # Get an example model and its tokenizer 
->>> model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen1.5-0.5B-Chat")
+>>> model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen1.5-0.5B-Chat").eval()
 >>> tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen1.5-0.5B-Chat")
 >>>
 >>> def gpu_computation(batch, rank):
@@ -378,8 +378,9 @@ The [`~Dataset.map`] also works with the rank of the process if you set `with_ra
 ...         tokenize=False,
 ...         add_generation_prompt=True
 ...     ) for chat in chats]
-...     model_inputs = tokenizer(texts, return_tensors="pt").to(device)
-...     outputs = model.generate(**model_inputs, max_new_tokens=512)
+...     model_inputs = tokenizer(texts, padding=True, return_tensors="pt").to(device)
+...     with torch.no_grad():
+...         outputs = model.generate(**model_inputs, max_new_tokens=512)
 ...     batch["output"] = tokenizer.batch_decode(outputs, skip_special_tokens=True)
 ...     return batch
 >>>
