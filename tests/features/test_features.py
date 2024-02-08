@@ -1,4 +1,5 @@
 import datetime
+from typing import List, Tuple
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -11,8 +12,10 @@ from datasets import Array2D
 from datasets.arrow_dataset import Dataset
 from datasets.features import Audio, ClassLabel, Features, Image, Sequence, Value
 from datasets.features.features import (
+    _align_features,
     _arrow_to_datasets_dtype,
     _cast_to_python_objects,
+    _check_if_features_can_be_aligned,
     cast_to_python_objects,
     encode_nested_example,
     generate_from_dict,
@@ -637,3 +640,42 @@ def test_features_to_arrow_schema(features: Features):
     assert isinstance(arrow_schema, pa.Schema)
     reloaded = Features.from_arrow_schema(arrow_schema)
     assert features == reloaded
+
+
+NESTED_COMPARISON = [
+    [
+        [Features({"email": Value(dtype="string", id=None)}), Features({"email": Value(dtype="string", id=None)})],
+        [Features({"email": Value(dtype="string", id=None)}), Features({"email": Value(dtype="string", id=None)})],
+    ],
+    [
+        [Features({"email": Value(dtype="string", id=None)}), Features({"email": Value(dtype="null", id=None)})],
+        [Features({"email": Value(dtype="string", id=None)}), Features({"email": Value(dtype="string", id=None)})],
+    ],
+    [
+        [
+            Features({"speaker": {"email": Value(dtype="string", id=None)}}),
+            Features({"speaker": {"email": Value(dtype="string", id=None)}}),
+        ],
+        [
+            Features({"speaker": {"email": Value(dtype="string", id=None)}}),
+            Features({"speaker": {"email": Value(dtype="string", id=None)}}),
+        ],
+    ],
+    [
+        [
+            Features({"speaker": {"email": Value(dtype="string", id=None)}}),
+            Features({"speaker": {"email": Value(dtype="null", id=None)}}),
+        ],
+        [
+            Features({"speaker": {"email": Value(dtype="string", id=None)}}),
+            Features({"speaker": {"email": Value(dtype="string", id=None)}}),
+        ],
+    ],
+]
+
+
+@pytest.mark.parametrize("features", NESTED_COMPARISON)
+def test_features_alignment(features: Tuple[List[Features], Features]):
+    inputs, expected = features
+    _check_if_features_can_be_aligned(inputs)  # Check that we can align, will raise otherwise.
+    assert _align_features(inputs) == expected

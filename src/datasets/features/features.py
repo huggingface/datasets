@@ -2135,7 +2135,10 @@ def _align_features(features_list: List[Features]) -> List[Features]:
     name2feature = {}
     for features in features_list:
         for k, v in features.items():
-            if k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):
+            if k in name2feature and isinstance(v, dict):
+                # Recursively align features.
+                name2feature[k] = _align_features([name2feature[k], v])[0]
+            elif k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):
                 name2feature[k] = v
 
     return [Features({k: name2feature[k] for k in features.keys()}) for features in features_list]
@@ -2154,7 +2157,10 @@ def _check_if_features_can_be_aligned(features_list: List[Features]):
 
     for features in features_list:
         for k, v in features.items():
-            if not (isinstance(v, Value) and v.dtype == "null") and name2feature[k] != v:
+            if isinstance(v, dict) and isinstance(name2feature[k], dict):
+                # Deep checks for structure.
+                _check_if_features_can_be_aligned([name2feature[k], v])
+            elif not (isinstance(v, Value) and v.dtype == "null") and name2feature[k] != v:
                 raise ValueError(
                     f'The features can\'t be aligned because the key {k} of features {features} has unexpected type - {v} (expected either {name2feature[k]} or Value("null").'
                 )
