@@ -95,7 +95,7 @@ class JsonDatasetWriter:
         lines = self.to_json_kwargs.pop("lines", True if orient == "records" else False)
         if "index" not in self.to_json_kwargs and orient in ["split", "table"]:
             self.to_json_kwargs["index"] = False
-        compression = self.to_json_kwargs.pop("compression", None)
+        compression = self.to_json_kwargs.pop("compression", "infer")
 
         if compression not in [None, "infer", "gzip", "bz2", "xz"]:
             raise NotImplementedError(f"`datasets` currently does not support {compression} compression")
