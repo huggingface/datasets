@@ -1413,6 +1413,7 @@ class IterableDataset(DatasetInfoMixin):
         return copy.deepcopy(self._state_dict)
 
     def load_state_dict(self, state_dict: dict) -> None:
+        self._ex_iterable.load_state_dict(state_dict)
         self._starting_state_dict = state_dict
 
     def __repr__(self):
