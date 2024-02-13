@@ -343,6 +343,8 @@ def _download_additional_modules(
         _them_str = "them" if len(needs_to_be_installed) > 1 else "it"
         if "sklearn" in needs_to_be_installed.keys():
             needs_to_be_installed["sklearn"] = "scikit-learn"
+        if "Bio" in needs_to_be_installed.keys():
+            needs_to_be_installed["Bio"] = "biopython"
         raise ImportError(
             f"To be able to use {name}, you need to install the following {_dependencies_str}: "
             f"{', '.join(needs_to_be_installed)}.\nPlease install {_them_str} using 'pip install "
