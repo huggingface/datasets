@@ -428,12 +428,14 @@ class ArrowWriter:
             return
 
         # order the columns properly
-        cols = (
-            [col for col in self.schema.names if col in self.current_examples[0][0]]
-            + [col for col in self.current_examples[0][0].keys() if col not in self.schema.names]
-            if self.schema
-            else self.current_examples[0][0].keys()
-        )
+        if self.schema:
+            schema_cols = set(self.schema.names)
+            examples_cols = self.current_examples[0][0].keys()  # .keys() preserves the order (unlike set)
+            common_cols = [col for col in self.schema.names if col in examples_cols]
+            extra_cols = [col for col in examples_cols if col not in schema_cols]
+            cols = common_cols + extra_cols
+        else:
+            cols = list(self.current_examples[0][0])
         batch_examples = {}
         for col in cols:
             # We use row[0][col] since current_examples contains (example, key) tuples.
@@ -543,12 +545,14 @@ class ArrowWriter:
         try_features = self._features if self.pa_writer is None and self.update_features else None
         arrays = []
         inferred_features = Features()
-        cols = (
-            [col for col in self.schema.names if col in batch_examples]
-            + [col for col in batch_examples.keys() if col not in self.schema.names]
-            if self.schema
-            else batch_examples.keys()
-        )
+         if self.schema:
+            schema_cols = set(self.schema.names)
+            batch_cols = batch_examples.keys()  # .keys() preserves the order (unlike set)
+            common_cols = [col for col in self.schema.names if col in batch_cols]
+            extra_cols = [col for col in batch_cols if col not in schema_cols]
+            cols = common_cols + extra_cols
+        else:
+            cols = list(batch_examples)
         for col in cols:
             col_values = batch_examples[col]
             col_type = features[col] if features else None
