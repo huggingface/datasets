@@ -426,8 +426,7 @@ class ArrowWriter:
         """Write stored examples from the write-pool of examples. It makes a table out of the examples and write it."""
         if not self.current_examples:
             return
-
-        # order the columns properly
+        # preserve the order the columns
         if self.schema:
             schema_cols = set(self.schema.names)
             examples_cols = self.current_examples[0][0].keys()  # .keys() preserves the order (unlike set)
@@ -545,7 +544,8 @@ class ArrowWriter:
         try_features = self._features if self.pa_writer is None and self.update_features else None
         arrays = []
         inferred_features = Features()
-         if self.schema:
+        # preserve the order the columns
+        if self.schema:
             schema_cols = set(self.schema.names)
             batch_cols = batch_examples.keys()  # .keys() preserves the order (unlike set)
             common_cols = [col for col in self.schema.names if col in batch_cols]
