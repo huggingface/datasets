@@ -87,7 +87,13 @@ def _check_output(output, expected_num_chunks: int):
 
 @pytest.mark.parametrize("writer_batch_size", [None, 1, 10])
 @pytest.mark.parametrize(
-    "fields", [None, {"col_1": pa.string(), "col_2": pa.int64()}, {"col_1": pa.string(), "col_2": pa.int32()}]
+    "fields",
+    [
+        None,
+        {"col_1": pa.string(), "col_2": pa.int64()},
+        {"col_1": pa.string(), "col_2": pa.int32()},
+        {"col_2": pa.int64(), "col_1": pa.string()},
+    ],
 )
 def test_write(fields, writer_batch_size):
     output = pa.BufferOutputStream()
