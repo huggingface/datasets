@@ -41,7 +41,7 @@ Steps to make a release:
      git commit -m "Release: VERSION"
      git push upstream release-VERSION
      ```
-   - Go to: https://github.com/huggingface/datasets/pull/new/release
+   - Go to: https://github.com/huggingface/datasets/pull/new/release-VERSION
    - Create pull request
 
 4. From your local release branch, build both the sources and the wheel. Do not change anything in setup.py between
@@ -58,7 +58,7 @@ Steps to make a release:
 
 5. Check that everything looks correct by uploading the package to the test PyPI server:
      ```
-     twine upload dist/* -r pypitest --repository-url=https://test.pypi.org/legacy/
+     twine upload dist/* -r testpypi
      ```
    Check that you can install it in a virtualenv/notebook by running:
      ```
