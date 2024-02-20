@@ -1807,10 +1807,10 @@ def dataset_module_factory(
                     msg = f"Dataset '{path}' doesn't exist on the Hub"
                     raise DatasetNotFoundError(msg + f" at revision '{revision}'" if revision else msg)
                 elif "401" in str(e):
-                    msg = f"Dataset '{path}' doesn't exist on the Hub"
+                    msg = f"Cannot access dataset '{path}'"
                     msg = msg + f" at revision '{revision}'" if revision else msg
                     raise DatasetNotFoundError(
-                        msg + ". If the repo is private or gated, make sure to log in with `huggingface-cli login`."
+                        msg + ". If the dataset is private or gated, make sure to log in with `huggingface-cli login` or visit the dataset page to ask for access."
                     )
                 else:
                     raise e
