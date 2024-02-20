@@ -1810,7 +1810,8 @@ def dataset_module_factory(
                     msg = f"Cannot access dataset '{path}'"
                     msg = msg + f" at revision '{revision}'" if revision else msg
                     raise DatasetNotFoundError(
-                        msg + ". If the dataset is private or gated, make sure to log in with `huggingface-cli login` or visit the dataset page to ask for access."
+                        msg
+                        + f". If the dataset is private or gated, make sure to log in with `huggingface-cli login` or visit the dataset page at https://huggingface.co/datasets/{path} to ask for access."
                     )
                 else:
                     raise e
