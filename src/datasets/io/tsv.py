@@ -4,7 +4,7 @@ from typing import BinaryIO, Optional, Union
 
 from .. import Dataset, Features, NamedSplit, config
 from ..formatting import query_table
-from ..packaged_modules.csv.csv import Tsv
+from ..packaged_modules.tsv.tsv import Tsv
 from ..utils import tqdm as hf_tqdm
 from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
