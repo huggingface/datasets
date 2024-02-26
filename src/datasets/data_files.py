@@ -310,11 +310,9 @@ def resolve_pattern(
     - data/* to match all the files inside "data"
     - data/** to match all the files inside "data" and its subdirectories
 
-    The patterns are resolved using the fsspec glob.
-
-    glob.glob, Path.glob, Path.match or fnmatch do not support ** with a prefix/suffix other than a forward slash /.
-    For instance, this means **.json is the same as *.json. On the contrary, the fsspec glob has no limits regarding the ** prefix/suffix,
-    resulting in **.json being equivalent to **/*.json.
+    The patterns are resolved using the fsspec glob. In fsspec>=2023.12.0 this is equivalent to
+    Python's glob.glob, Path.glob, Path.match and fnmatch where ** is unsupported with a prefix/suffix
+    other than a forward slash /.
 
     More generally:
     - '*' matches any character except a forward-slash (to match just the file or directory name)
