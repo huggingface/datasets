@@ -53,7 +53,6 @@ else:
     KEYWORDS_IN_PATH_NAME_BASE_PATTERNS = [
         "**/{keyword}[{sep}]*",
         "**/{keyword}/**",
-        "**/{keyword}[{sep}]*/**",
         "**/*[{sep}]{keyword}[{sep}]*",
         "**/*[{sep}]{keyword}[{sep}]*/**",
     ]
@@ -99,8 +98,6 @@ FILES_TO_IGNORE = [
     "dataset_dict.json",
 ]
 
-_INLINE_GLOBSTAR_RE = re.compile(r"(?P<prefix>[^*]*)\*\*(?P<suffix>.*)")
-
 
 def contains_wildcards(pattern: str) -> bool:
     return any(wilcard_character in pattern for wilcard_character in WILDCARD_CHARACTERS)
@@ -142,23 +139,6 @@ def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[
             return {SANITIZED_DEFAULT_SPLIT: patterns}
     else:
         return sanitize_patterns(list(patterns))
-
-
-def _expand_globstar(pattern: str) -> str:
-    """
-    Expand "prefix**suffix" globstar patterns to "prefix*/**/*suffix" for fsspec versions which require it.
-    """
-    if config.FSSPEC_VERSION < version.parse("2023.12.0") or "**" not in pattern:
-        return pattern
-    parts = []
-    for part in pattern.split("/"):
-        m = _INLINE_GLOBSTAR_RE.match(part) if ("**" != part and "**" in part) else None
-        if m:
-            prefix = f"{m.group('prefix')}*/" if m.group("prefix") else ""
-            suffix = f"/*{m.group('suffix')}" if m.group("suffix") else ""
-            part = f"{prefix}**{suffix}"
-        parts.append(part)
-    return "/".join(parts)
 
 
 def _is_inside_unrequested_special_dir(matched_rel_path: str, pattern: str) -> bool:
@@ -364,7 +344,6 @@ def resolve_pattern(
     Returns:
         List[str]: List of paths or URLs to the local or remote files that match the patterns.
     """
-    pattern = _expand_globstar(pattern)
     if is_relative_path(pattern):
         pattern = xjoin(base_path, pattern)
     elif is_local_path(pattern):

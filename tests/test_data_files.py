@@ -415,8 +415,6 @@ def test_DataFilesDict_from_patterns_in_dataset_repository(
         ("**", 4, None, "train"),
         ("**", 4, "data", "train"),
         ("**", 2, "data/subdir", "train"),
-        ("**train*", 1, "data/subdir", "train"),
-        ("**test*", 1, "data/subdir", "test"),
         ("**", 0, "data/subdir2", "train"),
     ],
 )
@@ -451,14 +449,6 @@ def test_DataFilesDict_from_patterns_in_dataset_repository_hashing(hub_dataset_r
 
     data_files2 = DataFilesDict(sorted(data_files1.items(), reverse=True))
     assert Hasher.hash(data_files1) == Hasher.hash(data_files2)
-
-    patterns2 = {"train": ["data/**train.txt"], "test": ["data/**test.txt"]}
-    data_files2 = DataFilesDict.from_patterns(patterns2, hub_dataset_repo_path)
-    assert Hasher.hash(data_files1) == Hasher.hash(data_files2)
-
-    patterns2 = {"train": ["data/**train.txt"], "test": ["data/**train.txt"]}
-    data_files2 = DataFilesDict.from_patterns(patterns2, hub_dataset_repo_path)
-    assert Hasher.hash(data_files1) != Hasher.hash(data_files2)
 
     # the tmpfs used to mock the hub repo is based on a local directory
     # therefore os.stat is used to get the mtime of the data files
