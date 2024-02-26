@@ -131,6 +131,8 @@ from .utils.tf_utils import dataset_to_tf, minimal_tf_collate_fn, multiprocess_d
 from .utils.typing import ListLike, PathLike
 
 
+# from .combine import concatenate_datasets
+
 if TYPE_CHECKING:
     import sqlite3
 
@@ -726,6 +728,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         _check_column_names(self._data.column_names)
 
         self._data = update_metadata_with_features(self._data, self._info.features)
+
+    def __add__(self, other):
+        assert self.features.type == other.features.type
+        return concatenate_datasets([self, other])
 
     @property
     def features(self) -> Features:
