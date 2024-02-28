@@ -3,9 +3,10 @@ from pathlib import Path
 
 import pytest
 
-from datasets import (
+from datasets.inspect import (
     get_dataset_config_info,
     get_dataset_config_names,
+    get_dataset_default_config_name,
     get_dataset_infos,
     get_dataset_split_names,
     inspect_dataset,
@@ -17,7 +18,7 @@ from datasets.packaged_modules.csv import csv
 pytestmark = pytest.mark.integration
 
 
-@pytest.mark.parametrize("path", ["paws", csv.__file__])
+@pytest.mark.parametrize("path", ["lhoestq/test", csv.__file__])
 def test_inspect_dataset(path, tmp_path):
     inspect_dataset(path, tmp_path)
     script_name = Path(path).stem + ".py"
@@ -80,6 +81,27 @@ def test_get_dataset_config_info_error(path, config_name, expected_exception):
 def test_get_dataset_config_names(path, expected):
     config_names = get_dataset_config_names(path)
     assert config_names == expected
+
+
+@pytest.mark.parametrize(
+    "path, expected",
+    [
+        ("acronym_identification", "default"),
+        ("squad", "plain_text"),
+        ("hf-internal-testing/dataset_with_script", "default"),
+        ("dalle-mini/wit", "default"),
+        ("hf-internal-testing/librispeech_asr_dummy", None),
+        ("hf-internal-testing/audiofolder_no_configs_in_metadata", "default"),
+        ("hf-internal-testing/audiofolder_single_config_in_metadata", "custom"),
+        ("hf-internal-testing/audiofolder_two_configs_in_metadata", None),
+    ],
+)
+def test_get_dataset_default_config_name(path, expected):
+    default_config_name = get_dataset_default_config_name(path)
+    if expected:
+        assert default_config_name == expected
+    else:
+        assert default_config_name is None
 
 
 @pytest.mark.parametrize(

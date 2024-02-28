@@ -804,8 +804,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             input_columns=self.input_columns,
             batched=self.batched,
             batch_size=self.batch_size,
+            drop_last_batch=self.drop_last_batch,
             remove_columns=self.remove_columns,
             fn_kwargs=self.fn_kwargs,
+            formatting=self.formatting,
         )
 
     def shard_data_sources(self, worker_id: int, num_workers: int) -> "MappedExamplesIterable":
@@ -817,8 +819,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             input_columns=self.input_columns,
             batched=self.batched,
             batch_size=self.batch_size,
+            drop_last_batch=self.drop_last_batch,
             remove_columns=self.remove_columns,
             fn_kwargs=self.fn_kwargs,
+            formatting=self.formatting,
         )
 
     @property
@@ -1219,6 +1223,9 @@ class IterableDataset(DatasetInfoMixin):
         self._epoch = 0
         self._token_per_repo_id: Dict[str, Union[str, bool, None]] = token_per_repo_id or {}
         _maybe_add_torch_iterable_dataset_parent_class(self.__class__)
+
+    def __repr__(self):
+        return f"IterableDataset({{\n    features: {list(self._info.features.keys()) if self._info.features is not None else 'Unknown'},\n    n_shards: {self.n_shards}\n}})"
 
     def __getstate__(self):
         return self.__dict__
@@ -2060,13 +2067,13 @@ class IterableDataset(DatasetInfoMixin):
         if self._info:
             info = copy.deepcopy(self._info)
             if self._info.features is not None:
-                for column_name in column_names:
-                    if column_name not in self._info.features:
-                        raise ValueError(
-                            f"Column name {column_name} not in the "
-                            "dataset. Columns in the dataset: "
-                            f"{list(self._info.features.keys())}."
-                        )
+                missing_columns = set(column_names) - set(self._info.features.keys())
+                if missing_columns:
+                    raise ValueError(
+                        f"Column name {list(missing_columns)} not in the "
+                        "dataset. Columns in the dataset: "
+                        f"{list(self._info.features.keys())}."
+                    )
                 info.features = Features({c: info.features[c] for c in column_names})
                 # check that it's still valid, especially with regard to task templates
                 try:

@@ -69,6 +69,25 @@ def test_dataset_from_parquet_path_type(path_type, parquet_path, tmp_path):
     _check_parquet_dataset(dataset, expected_features)
 
 
+def test_parquet_read_geoparquet(geoparquet_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    dataset = ParquetDatasetReader(path_or_paths=geoparquet_path, cache_dir=cache_dir).read()
+
+    expected_features = {
+        "pop_est": "float64",
+        "continent": "string",
+        "name": "string",
+        "gdp_md_est": "int64",
+        "geometry": "binary",
+    }
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == 5
+    assert dataset.num_columns == 6
+    assert dataset.column_names == ["pop_est", "continent", "name", "iso_a3", "gdp_md_est", "geometry"]
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
+
+
 def _check_parquet_datasetdict(dataset_dict, expected_features, splits=("train",)):
     assert isinstance(dataset_dict, (DatasetDict, IterableDatasetDict))
     for split in splits:

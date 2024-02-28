@@ -41,7 +41,7 @@ Steps to make a release:
      git commit -m "Release: VERSION"
      git push upstream release-VERSION
      ```
-   - Go to: https://github.com/huggingface/datasets/pull/new/release
+   - Go to: https://github.com/huggingface/datasets/pull/new/release-VERSION
    - Create pull request
 
 4. From your local release branch, build both the sources and the wheel. Do not change anything in setup.py between
@@ -58,7 +58,7 @@ Steps to make a release:
 
 5. Check that everything looks correct by uploading the package to the test PyPI server:
      ```
-     twine upload dist/* -r pypitest --repository-url=https://test.pypi.org/legacy/
+     twine upload dist/* -r testpypi
      ```
    Check that you can install it in a virtualenv/notebook by running:
      ```
@@ -113,12 +113,12 @@ REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
     # Backend and serialization.
-    # Minimum 8.0.0 to be able to use .to_reader()
-    "pyarrow>=8.0.0",
+    # Minimum 12.0.0 to be able to concatenate extension arrays
+    "pyarrow>=12.0.0",
     # As long as we allow pyarrow < 14.0.1, to fix vulnerability CVE-2023-47248
     "pyarrow-hotfix",
     # For smart caching dataset processing
-    "dill>=0.3.0,<0.3.8",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
+    "dill>=0.3.0,<0.3.9",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
     # For performance gains with apache arrow
     "pandas",
     # for downloading datasets over HTTPS
@@ -166,7 +166,7 @@ TESTS_REQUIRE = [
     "pytest-datadir",
     "pytest-xdist",
     # optional dependencies
-    "apache-beam>=2.26.0; sys_platform != 'win32' and python_version<'3.10'",  # doesn't support recent dill versions for recent python versions and windows releases require older PyArrow versions
+    "apache-beam>=2.26.0; sys_platform != 'win32' and python_version<'3.10'",  # doesn't support recent dill versions for recent python versions and on windows requires pyarrow<12.0.0
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch()
     "faiss-cpu>=1.6.4",
     "jax>=0.3.14; sys_platform != 'win32'",
@@ -175,7 +175,7 @@ TESTS_REQUIRE = [
     "pyspark>=3.4",  # https://issues.apache.org/jira/browse/SPARK-40991 fixed in 3.4.0
     "py7zr",
     "rarfile>=4.0",
-    "sqlalchemy<2.0.0",
+    "sqlalchemy",
     "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1; test only on python 3.7 for now
     "tensorflow>=2.3,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
     "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
@@ -253,7 +253,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.15.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.17.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

@@ -7,6 +7,7 @@ import tarfile
 import textwrap
 import zipfile
 
+import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
@@ -333,6 +334,14 @@ def parquet_path(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
+def geoparquet_path(tmp_path_factory):
+    df = pd.read_parquet(path="https://github.com/opengeospatial/geoparquet/raw/v1.0.0/examples/example.parquet")
+    path = str(tmp_path_factory.mktemp("data") / "dataset.geoparquet")
+    df.to_parquet(path=path)
+    return path
+
+
+@pytest.fixture(scope="session")
 def json_list_of_dicts_path(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("data") / "dataset.json")
     data = {"data": DATA}
@@ -469,6 +478,16 @@ def text2_path(tmp_path_factory):
         for item in data:
             f.write(item + "\n")
     return path
+
+
+@pytest.fixture(scope="session")
+def text_dir(tmp_path_factory):
+    data = ["0", "1", "2", "3"]
+    path = tmp_path_factory.mktemp("data_text_dir") / "dataset.txt"
+    with open(path, "w") as f:
+        for item in data:
+            f.write(item + "\n")
+    return path.parent
 
 
 @pytest.fixture(scope="session")

@@ -25,6 +25,7 @@ from .. import config
 
 class Pickler(dill.Pickler):
     dispatch = dill._dill.MetaCatchingDict(dill.Pickler.dispatch.copy())
+    _legacy_no_dict_keys_sorting = False
 
     def save(self, obj, save_persistent_id=True):
         obj_type = type(obj)
@@ -50,6 +51,9 @@ class Pickler(dill.Pickler):
                 if issubclass(obj_type, torch.Tensor):
                     pklregister(obj_type)(_save_torchTensor)
 
+                if obj_type is torch.Generator:
+                    pklregister(obj_type)(_save_torchGenerator)
+
                 # Unwrap `torch.compile`-ed modules
                 if issubclass(obj_type, torch.nn.Module):
                     obj = getattr(obj, "_orig_mod", obj)
@@ -65,6 +69,8 @@ class Pickler(dill.Pickler):
         dill.Pickler.save(self, obj, save_persistent_id=save_persistent_id)
 
     def _batch_setitems(self, items):
+        if self._legacy_no_dict_keys_sorting:
+            return super()._batch_setitems(items)
         # Ignore the order of keys in a dict
         try:
             # Faster, but fails for unorderable elements
@@ -108,7 +114,11 @@ if config.DILL_VERSION < version.parse("0.3.6"):
     def log(pickler, msg):
         dill._dill.log.info(msg)
 
-elif config.DILL_VERSION.release[:3] in [version.parse("0.3.6").release, version.parse("0.3.7").release]:
+elif config.DILL_VERSION.release[:3] in [
+    version.parse("0.3.6").release,
+    version.parse("0.3.7").release,
+    version.parse("0.3.8").release,
+]:
 
     def log(pickler, msg):
         dill._dill.logger.trace(pickler, msg)
@@ -158,6 +168,20 @@ def _save_torchTensor(pickler, obj):
     args = (obj.detach().cpu().numpy(),)
     pickler.save_reduce(create_torchTensor, args, obj=obj)
     log(pickler, "# To")
+
+
+def _save_torchGenerator(pickler, obj):
+    import torch  # type: ignore
+
+    def create_torchGenerator(state):
+        generator = torch.Generator()
+        generator.set_state(state)
+        return generator
+
+    log(pickler, f"Ge: {obj}")
+    args = (obj.get_state(),)
+    pickler.save_reduce(create_torchGenerator, args, obj=obj)
+    log(pickler, "# Ge")
 
 
 def _save_spacyLanguage(pickler, obj):
@@ -281,7 +305,11 @@ if config.DILL_VERSION < version.parse("0.3.6"):
         dill._dill.log.info("# Co")
         return
 
-elif config.DILL_VERSION.release[:3] in [version.parse("0.3.6").release, version.parse("0.3.7").release]:
+elif config.DILL_VERSION.release[:3] in [
+    version.parse("0.3.6").release,
+    version.parse("0.3.7").release,
+    version.parse("0.3.8").release,
+]:
     # From: https://github.com/uqfoundation/dill/blob/dill-0.3.6/dill/_dill.py#L1104
     @pklregister(CodeType)
     def save_code(pickler, obj):

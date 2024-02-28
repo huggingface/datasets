@@ -18,6 +18,7 @@ _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS = ["names", "prefix"]
 _PANDAS_READ_CSV_DEPRECATED_PARAMETERS = ["warn_bad_lines", "error_bad_lines", "mangle_dupe_cols"]
 _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS = ["encoding_errors", "on_bad_lines"]
 _PANDAS_READ_CSV_NEW_2_0_0_PARAMETERS = ["date_format"]
+_PANDAS_READ_CSV_DEPRECATED_2_2_0_PARAMETERS = ["verbose"]
 
 
 @dataclass
@@ -121,15 +122,21 @@ class CsvConfig(datasets.BuilderConfig):
             if pd_read_csv_kwargs[pd_read_csv_parameter] == getattr(CsvConfig(), pd_read_csv_parameter):
                 del pd_read_csv_kwargs[pd_read_csv_parameter]
 
+        # Remove 1.3 new arguments
+        if not (datasets.config.PANDAS_VERSION.major >= 1 and datasets.config.PANDAS_VERSION.minor >= 3):
+            for pd_read_csv_parameter in _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS:
+                del pd_read_csv_kwargs[pd_read_csv_parameter]
+
         # Remove 2.0 new arguments
         if not (datasets.config.PANDAS_VERSION.major >= 2):
             for pd_read_csv_parameter in _PANDAS_READ_CSV_NEW_2_0_0_PARAMETERS:
                 del pd_read_csv_kwargs[pd_read_csv_parameter]
 
-        # Remove 1.3 new arguments
-        if not (datasets.config.PANDAS_VERSION.major >= 1 and datasets.config.PANDAS_VERSION.minor >= 3):
-            for pd_read_csv_parameter in _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS:
-                del pd_read_csv_kwargs[pd_read_csv_parameter]
+        # Remove 2.2 deprecated arguments
+        if datasets.config.PANDAS_VERSION.release >= (2, 2):
+            for pd_read_csv_parameter in _PANDAS_READ_CSV_DEPRECATED_2_2_0_PARAMETERS:
+                if pd_read_csv_kwargs[pd_read_csv_parameter] == getattr(CsvConfig(), pd_read_csv_parameter):
+                    del pd_read_csv_kwargs[pd_read_csv_parameter]
 
         return pd_read_csv_kwargs
 

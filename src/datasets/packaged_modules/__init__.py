@@ -1,11 +1,12 @@
 import inspect
 import re
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from huggingface_hub.utils import insecure_hashlib
 
 from .arrow import arrow
 from .audiofolder import audiofolder
+from .cache import cache  # noqa F401
 from .csv import csv
 from .imagefolder import imagefolder
 from .json import json
@@ -43,12 +44,14 @@ _PACKAGED_DATASETS_MODULES = {
 }
 
 # Used to infer the module to use based on the data files extensions
-_EXTENSION_TO_MODULE = {
+_EXTENSION_TO_MODULE: Dict[str, Tuple[str, dict]] = {
     ".csv": ("csv", {}),
     ".tsv": ("csv", {"sep": "\t"}),
     ".json": ("json", {}),
     ".jsonl": ("json", {}),
     ".parquet": ("parquet", {}),
+    ".geoparquet": ("parquet", {}),
+    ".gpq": ("parquet", {}),
     ".arrow": ("arrow", {}),
     ".txt": ("text", {}),
     ".tar": ("webdataset", {}),
