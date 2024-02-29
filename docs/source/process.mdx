@@ -447,7 +447,10 @@ Dataset({
  num_rows: 3668
 })
 >>> chunked_dataset
-Dataset(schema: {'chunks': 'string'}, num_rows: 10470)
+Dataset({
+    features: ['chunks'],
+    num_rows: 10470
+})
 ```
 
 #### Data augmentation
