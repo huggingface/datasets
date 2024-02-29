@@ -46,28 +46,48 @@ SPLIT_KEYWORDS = {
 }
 NON_WORDS_CHARS = "-._ 0-9"
 if config.FSSPEC_VERSION < version.parse("2023.9.0"):
-    KEYWORDS_IN_PATH_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**[{sep}/]{keyword}[{sep}/]**"]
+    KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**[{sep}/]{keyword}[{sep}]*", "{keyword}[{sep}]*"]
+    KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = [
+        "{keyword}/**",
+        "{keyword}[{sep}]*/**",
+        "**[{sep}/]{keyword}/**",
+        "**[{sep}/]{keyword}[{sep}]*/**",
+    ]
 elif config.FSSPEC_VERSION < version.parse("2023.12.0"):
-    KEYWORDS_IN_PATH_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**/*[{sep}/]{keyword}[{sep}/]**"]
+    KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**/*[{sep}/]{keyword}[{sep}]*", "{keyword}[{sep}]*"]
+    KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = [
+        "{keyword}/**/*",
+        "{keyword}[{sep}]*/**/*",
+        "**/*[{sep}/]{keyword}/**/*",
+        "**/*[{sep}/]{keyword}[{sep}]*/**/*",
+    ]
 else:
-    KEYWORDS_IN_PATH_NAME_BASE_PATTERNS = [
-        "**/{keyword}[{sep}]*",
+    KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**/{keyword}[{sep}]*", "**/*[{sep}]{keyword}[{sep}]*"]
+    KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = [
         "**/{keyword}/**",
-        "**/*[{sep}]{keyword}[{sep}]*",
-        "**/*[{sep}]{keyword}[{sep}]*/**",
         "**/{keyword}[{sep}]*/**",
         "**/*[{sep}]{keyword}/**",
+        "**/*[{sep}]{keyword}[{sep}]*/**",
     ]
 
 DEFAULT_SPLITS = [Split.TRAIN, Split.VALIDATION, Split.TEST]
-DEFAULT_PATTERNS_SPLIT_IN_PATH_NAME = {
+DEFAULT_PATTERNS_SPLIT_IN_FILENAME = {
     split: [
         pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
         for keyword in SPLIT_KEYWORDS[split]
-        for pattern in KEYWORDS_IN_PATH_NAME_BASE_PATTERNS
+        for pattern in KEYWORDS_IN_FILENAME_BASE_PATTERNS
     ]
     for split in DEFAULT_SPLITS
 }
+DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME = {
+    split: [
+        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
+        for keyword in SPLIT_KEYWORDS[split]
+        for pattern in KEYWORDS_IN_DIR_NAME_BASE_PATTERNS
+    ]
+    for split in DEFAULT_SPLITS
+}
+
 
 DEFAULT_PATTERNS_ALL = {
     Split.TRAIN: ["**"],
@@ -75,7 +95,8 @@ DEFAULT_PATTERNS_ALL = {
 
 ALL_SPLIT_PATTERNS = [SPLIT_PATTERN_SHARDED]
 ALL_DEFAULT_PATTERNS = [
-    DEFAULT_PATTERNS_SPLIT_IN_PATH_NAME,
+    DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME,
+    DEFAULT_PATTERNS_SPLIT_IN_FILENAME,
     DEFAULT_PATTERNS_ALL,
 ]
 if config.FSSPEC_VERSION < version.parse("2023.9.0"):
@@ -409,7 +430,7 @@ def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] 
 
     Output:
 
-        {"train": ["**"]}
+        {'train': ['**']}
 
     Input:
 
@@ -435,8 +456,8 @@ def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] 
 
     Output:
 
-        {'train': ['train[-._ 0-9/]**', '**/*[-._ 0-9/]train[-._ 0-9/]**', 'training[-._ 0-9/]**', '**/*[-._ 0-9/]training[-._ 0-9/]**'],
-         'test': ['test[-._ 0-9/]**', '**/*[-._ 0-9/]test[-._ 0-9/]**', 'testing[-._ 0-9/]**', '**/*[-._ 0-9/]testing[-._ 0-9/]**', ...]}
+        {'train': ['**/train[-._ 0-9]*', '**/*[-._ 0-9]train[-._ 0-9]*', '**/training[-._ 0-9]*', '**/*[-._ 0-9]training[-._ 0-9]*'],
+         'test': ['**/test[-._ 0-9]*', '**/*[-._ 0-9]test[-._ 0-9]*', '**/testing[-._ 0-9]*', '**/*[-._ 0-9]testing[-._ 0-9]*', ...]}
 
     Input:
 
@@ -454,8 +475,8 @@ def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] 
 
     Output:
 
-        {'train': ['train[-._ 0-9/]**', '**/*[-._ 0-9/]train[-._ 0-9/]**', 'training[-._ 0-9/]**', '**/*[-._ 0-9/]training[-._ 0-9/]**'],
-         'test': ['test[-._ 0-9/]**', '**/*[-._ 0-9/]test[-._ 0-9/]**', 'testing[-._ 0-9/]**', '**/*[-._ 0-9/]testing[-._ 0-9/]**', ...]}
+        {'train': ['**/train/**', '**/train[-._ 0-9]*/**', '**/*[-._ 0-9]train/**', '**/*[-._ 0-9]train[-._ 0-9]*/**', ...],
+         'test': ['**/test/**', '**/test[-._ 0-9]*/**', '**/*[-._ 0-9]test/**', '**/*[-._ 0-9]test[-._ 0-9]*/**', ...]}
 
     Input:
 
@@ -480,6 +501,7 @@ def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] 
     """
     resolver = partial(resolve_pattern, base_path=base_path, download_config=download_config)
     try:
+        # import pdb; pdb.set_trace()
         return _get_data_files_patterns(resolver)
     except FileNotFoundError:
         raise EmptyDatasetError(f"The directory at {base_path} doesn't contain any data files") from None
