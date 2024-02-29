@@ -55,6 +55,8 @@ else:
         "**/{keyword}/**",
         "**/*[{sep}]{keyword}[{sep}]*",
         "**/*[{sep}]{keyword}[{sep}]*/**",
+        "**/{keyword}[{sep}]*/**",
+        "**/*[{sep}]{keyword}/**",
     ]
 
 DEFAULT_SPLITS = [Split.TRAIN, Split.VALIDATION, Split.TEST]
