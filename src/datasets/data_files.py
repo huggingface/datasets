@@ -47,8 +47,17 @@ SPLIT_KEYWORDS = {
 NON_WORDS_CHARS = "-._ 0-9"
 if config.FSSPEC_VERSION < version.parse("2023.9.0"):
     KEYWORDS_IN_PATH_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**[{sep}/]{keyword}[{sep}/]**"]
-else:
+elif config.FSSPEC_VERSION < version.parse("2023.12.0"):
     KEYWORDS_IN_PATH_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**/*[{sep}/]{keyword}[{sep}/]**"]
+else:
+    KEYWORDS_IN_PATH_NAME_BASE_PATTERNS = [
+        "**/{keyword}[{sep}]*",
+        "**/{keyword}/**",
+        "**/*[{sep}]{keyword}[{sep}]*",
+        "**/*[{sep}]{keyword}[{sep}]*/**",
+        "**/{keyword}[{sep}]*/**",
+        "**/*[{sep}]{keyword}/**",
+    ]
 
 DEFAULT_SPLITS = [Split.TRAIN, Split.VALIDATION, Split.TEST]
 DEFAULT_PATTERNS_SPLIT_IN_PATH_NAME = {
@@ -303,11 +312,9 @@ def resolve_pattern(
     - data/* to match all the files inside "data"
     - data/** to match all the files inside "data" and its subdirectories
 
-    The patterns are resolved using the fsspec glob.
-
-    glob.glob, Path.glob, Path.match or fnmatch do not support ** with a prefix/suffix other than a forward slash /.
-    For instance, this means **.json is the same as *.json. On the contrary, the fsspec glob has no limits regarding the ** prefix/suffix,
-    resulting in **.json being equivalent to **/*.json.
+    The patterns are resolved using the fsspec glob. In fsspec>=2023.12.0 this is equivalent to
+    Python's glob.glob, Path.glob, Path.match and fnmatch where ** is unsupported with a prefix/suffix
+    other than a forward slash /.
 
     More generally:
     - '*' matches any character except a forward-slash (to match just the file or directory name)
