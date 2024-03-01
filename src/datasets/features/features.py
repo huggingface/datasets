@@ -13,7 +13,8 @@
 # limitations under the License.
 
 # Lint as: python3
-""" This class handle features definition in datasets and some utilities to display table type."""
+"""This class handle features definition in datasets and some utilities to display table type."""
+
 import copy
 import json
 import re
