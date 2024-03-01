@@ -14,6 +14,7 @@
 
 # Lint as: python3
 """Access datasets."""
+
 import filecmp
 import glob
 import importlib
@@ -1806,13 +1807,14 @@ def dataset_module_factory(
                 ):
                     raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({type(e).__name__})")
                 elif "404" in str(e):
-                    msg = f"Dataset '{path}' doesn't exist on the Hub"
+                    msg = f"Dataset '{path}' doesn't exist on the Hub or cannot be accessed"
                     raise DatasetNotFoundError(msg + f" at revision '{revision}'" if revision else msg)
                 elif "401" in str(e):
-                    msg = f"Dataset '{path}' doesn't exist on the Hub"
+                    msg = f"Dataset '{path}' doesn't exist on the Hub or cannot be accessed"
                     msg = msg + f" at revision '{revision}'" if revision else msg
                     raise DatasetNotFoundError(
-                        msg + ". If the repo is private or gated, make sure to log in with `huggingface-cli login`."
+                        msg
+                        + f". If the dataset is private or gated, make sure to log in with `huggingface-cli login` or visit the dataset page at https://huggingface.co/datasets/{path} to ask for access."
                     )
                 else:
                     raise e

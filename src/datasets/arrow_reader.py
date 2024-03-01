@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # Lint as: python3
-""" Arrow ArrowReader."""
+"""Arrow ArrowReader."""
 
 import copy
 import math
@@ -297,7 +297,9 @@ class BaseReader:
         remote_cache_dir = HF_GCP_BASE_URL + "/" + relative_data_dir.replace(os.sep, "/")
         try:
             remote_dataset_info = os.path.join(remote_cache_dir, "dataset_info.json")
-            downloaded_dataset_info = cached_path(remote_dataset_info.replace(os.sep, "/"))
+            downloaded_dataset_info = cached_path(
+                remote_dataset_info.replace(os.sep, "/"), download_config=download_config
+            )
             shutil.move(downloaded_dataset_info, os.path.join(self._path, "dataset_info.json"))
             if self._info is not None:
                 self._info.update(self._info.from_directory(self._path))
