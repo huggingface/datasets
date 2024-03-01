@@ -193,6 +193,32 @@ def data_dir_with_single_config_in_metadata(tmp_path):
 
 
 @pytest.fixture
+def data_dir_with_config_and_data_files(tmp_path):
+    data_dir = tmp_path / "data_dir_with_one_default_config_in_metadata"
+
+    cats_data_dir = data_dir / "data" / "cats"
+    cats_data_dir.mkdir(parents=True)
+    dogs_data_dir = data_dir / "data" / "dogs"
+    dogs_data_dir.mkdir(parents=True)
+
+    with open(cats_data_dir / "cat.jpg", "wb") as f:
+        f.write(b"this_is_a_cat_image_bytes")
+    with open(dogs_data_dir / "dog.jpg", "wb") as f:
+        f.write(b"this_is_a_dog_image_bytes")
+    with open(data_dir / "README.md", "w") as f:
+        f.write(
+            f"""\
+---
+{METADATA_CONFIGS_FIELD}:
+  - config_name: custom
+    data_files: "data/**/*.jpg"
+---
+        """
+        )
+    return str(data_dir)
+
+
+@pytest.fixture
 def data_dir_with_two_config_in_metadata(tmp_path):
     data_dir = tmp_path / "data_dir_with_two_configs_in_metadata"
     cats_data_dir = data_dir / "cats"
@@ -364,6 +390,7 @@ class ModuleFactoryTest(TestCase):
         data_dir,
         data_dir_with_metadata,
         data_dir_with_single_config_in_metadata,
+        data_dir_with_config_and_data_files,
         data_dir_with_two_config_in_metadata,
         sub_data_dirs,
         dataset_loading_script_dir,
@@ -373,6 +400,7 @@ class ModuleFactoryTest(TestCase):
         self._data_dir = data_dir
         self._data_dir_with_metadata = data_dir_with_metadata
         self._data_dir_with_single_config_in_metadata = data_dir_with_single_config_in_metadata
+        self._data_dir_with_config_and_data_files = data_dir_with_config_and_data_files
         self._data_dir_with_two_config_in_metadata = data_dir_with_two_config_in_metadata
         self._data_dir2 = sub_data_dirs[0]
         self._sub_data_dir = sub_data_dirs[1]
@@ -527,6 +555,38 @@ class ModuleFactoryTest(TestCase):
 
         # we don't pass config params to builder in builder_kwargs, they are stored in builder_configs directly
         assert "drop_labels" not in module_factory_result.builder_kwargs
+
+    def test_LocalDatasetModuleFactoryWithoutScript_with_config_and_data_files(self):
+        factory = LocalDatasetModuleFactoryWithoutScript(
+            self._data_dir_with_config_and_data_files,
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+
+        module_metadata_configs = module_factory_result.builder_configs_parameters.metadata_configs
+        builder_kwargs = module_factory_result.builder_kwargs
+        assert module_metadata_configs is not None
+        assert len(module_metadata_configs) == 1
+        assert next(iter(module_metadata_configs)) == "custom"
+        assert "data_files" in next(iter(module_metadata_configs.values()))
+        assert next(iter(module_metadata_configs.values()))["data_files"] == "data/**/*.jpg"
+        assert "data_files" not in builder_kwargs
+
+    def test_LocalDatasetModuleFactoryWithoutScript_data_dir_with_config_and_data_files(self):
+        factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir_with_config_and_data_files, data_dir="data")
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+
+        module_metadata_configs = module_factory_result.builder_configs_parameters.metadata_configs
+        builder_kwargs = module_factory_result.builder_kwargs
+        assert module_metadata_configs is not None
+        assert len(module_metadata_configs) == 1
+        assert next(iter(module_metadata_configs)) == "custom"
+        assert "data_files" in next(iter(module_metadata_configs.values()))
+        assert next(iter(module_metadata_configs.values()))["data_files"] == "data/**/*.jpg"
+        assert "data_files" in builder_kwargs
+        assert "train" in builder_kwargs["data_files"]
+        assert len(builder_kwargs["data_files"]["train"]) == 2
 
     def test_LocalDatasetModuleFactoryWithoutScript_with_two_configs_in_metadata(self):
         factory = LocalDatasetModuleFactoryWithoutScript(
