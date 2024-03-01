@@ -1,5 +1,5 @@
 # Lint as: python3
-""" HuggingFace/Datasets is an open library of datasets.
+"""HuggingFace/Datasets is an open library of datasets.
 
 Note:
 
@@ -41,7 +41,7 @@ Steps to make a release:
      git commit -m "Release: VERSION"
      git push upstream release-VERSION
      ```
-   - Go to: https://github.com/huggingface/datasets/pull/new/release
+   - Go to: https://github.com/huggingface/datasets/pull/new/release-VERSION
    - Create pull request
 
 4. From your local release branch, build both the sources and the wheel. Do not change anything in setup.py between
@@ -58,7 +58,7 @@ Steps to make a release:
 
 5. Check that everything looks correct by uploading the package to the test PyPI server:
      ```
-     twine upload dist/* -r pypitest --repository-url=https://test.pypi.org/legacy/
+     twine upload dist/* -r testpypi
      ```
    Check that you can install it in a virtualenv/notebook by running:
      ```
@@ -131,7 +131,7 @@ REQUIRED_PKGS = [
     "multiprocess",
     # to save datasets locally or on any filesystem
     # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
-    "fsspec[http]>=2023.1.0,<=2023.10.0",
+    "fsspec[http]>=2023.1.0,<=2024.2.0",
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
@@ -218,7 +218,7 @@ METRICS_TESTS_REQUIRE = [
 TESTS_REQUIRE.extend(VISION_REQUIRE)
 TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
-QUALITY_REQUIRE = ["ruff>=0.1.5"]
+QUALITY_REQUIRE = ["ruff>=0.3.0"]
 
 DOCS_REQUIRE = [
     # Might need to add doc-builder and some specific deps in the future
@@ -253,7 +253,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.17.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.17.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
