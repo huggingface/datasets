@@ -501,7 +501,6 @@ def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] 
     """
     resolver = partial(resolve_pattern, base_path=base_path, download_config=download_config)
     try:
-        # import pdb; pdb.set_trace()
         return _get_data_files_patterns(resolver)
     except FileNotFoundError:
         raise EmptyDatasetError(f"The directory at {base_path} doesn't contain any data files") from None
