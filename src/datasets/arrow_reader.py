@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # Lint as: python3
-""" Arrow ArrowReader."""
+"""Arrow ArrowReader."""
 
 import copy
 import math
