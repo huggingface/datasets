@@ -1021,7 +1021,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         base_path = Path(self.path, self.data_dir or "").expanduser().resolve().as_posix()
         if self.data_files is not None:
             patterns = sanitize_patterns(self.data_files)
-        elif metadata_configs and "data_files" in next(iter(metadata_configs.values())):
+        elif metadata_configs and not self.data_dir and "data_files" in next(iter(metadata_configs.values())):
             patterns = sanitize_patterns(next(iter(metadata_configs.values()))["data_files"])
         else:
             patterns = get_data_patterns(base_path)
@@ -1073,6 +1073,8 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             "base_path": self.path,
             "dataset_name": camelcase_to_snakecase(Path(self.path).name),
         }
+        if self.data_dir:
+            builder_kwargs["data_files"] = data_files
         # this file is deprecated and was created automatically in old versions of push_to_hub
         if os.path.isfile(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME)):
             with open(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
@@ -1227,7 +1229,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         # because we need to infer module name by files extensions
         if self.data_files is not None:
             patterns = sanitize_patterns(self.data_files)
-        elif metadata_configs and "data_files" in next(iter(metadata_configs.values())):
+        elif metadata_configs and not self.data_dir and "data_files" in next(iter(metadata_configs.values())):
             patterns = sanitize_patterns(next(iter(metadata_configs.values()))["data_files"])
         else:
             patterns = get_data_patterns(base_path, download_config=self.download_config)
@@ -1285,6 +1287,8 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             "repo_id": self.name,
             "dataset_name": camelcase_to_snakecase(Path(self.name).name),
         }
+        if self.data_dir:
+            builder_kwargs["data_files"] = data_files
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading metadata"
