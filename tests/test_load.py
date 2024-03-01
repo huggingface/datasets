@@ -194,7 +194,7 @@ def data_dir_with_single_config_in_metadata(tmp_path):
 
 @pytest.fixture
 def data_dir_with_config_and_data_files(tmp_path):
-    data_dir = tmp_path / "data_dir_with_one_default_config_in_metadata"
+    data_dir = tmp_path / "data_dir_with_config_and_data_files"
 
     cats_data_dir = data_dir / "data" / "cats"
     cats_data_dir.mkdir(parents=True)
