@@ -218,7 +218,7 @@ METRICS_TESTS_REQUIRE = [
 TESTS_REQUIRE.extend(VISION_REQUIRE)
 TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
-QUALITY_REQUIRE = ["ruff>=0.1.5"]
+QUALITY_REQUIRE = ["ruff>=0.3.0"]
 
 DOCS_REQUIRE = [
     # Might need to add doc-builder and some specific deps in the future
