@@ -1493,6 +1493,21 @@ def test_iterable_dataset_is_torch_iterable_dataset(dataset: IterableDataset):
     assert len(out) == DEFAULT_N_EXAMPLES
 
 
+@require_torch
+def test_iterable_dataset_persists_epoch_in_torch_workers():
+    from torch.utils.data import DataLoader
+
+    num_examples = 10
+    num_shards = 4
+    ds = Dataset.from_dict({"i": range(num_examples)}).to_iterable_dataset(num_shards=num_shards)
+    ds = ds.shuffle(seed=42)
+    dataloader = DataLoader(ds, num_workers=2, persistent_workers=True)
+    epoch0 = list(dataloader)
+    assert list(dataloader) == epoch0
+    ds.set_epoch(1)
+    assert list(dataloader) != epoch0
+
+
 @pytest.mark.parametrize("n", [0, 2, int(1e10)])
 def test_iterable_dataset_skip(dataset: IterableDataset, n):
     skip_dataset = dataset.skip(n)
