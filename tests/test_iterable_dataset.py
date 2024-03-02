@@ -1494,18 +1494,24 @@ def test_iterable_dataset_is_torch_iterable_dataset(dataset: IterableDataset):
 
 
 @require_torch
-def test_iterable_dataset_persists_epoch_in_torch_workers():
+def test_iterable_dataset_persists_epoch_in_torch_workers(dataset: IterableDataset):
     from torch.utils.data import DataLoader
 
-    num_examples = 10
-    num_shards = 4
-    ds = Dataset.from_dict({"i": range(num_examples)}).to_iterable_dataset(num_shards=num_shards)
-    ds = ds.shuffle(seed=42)
-    dataloader = DataLoader(ds, num_workers=2, persistent_workers=True)
+    dataset = dataset.shuffle(seed=42)
+    dataloader = DataLoader(dataset, num_workers=1, persistent_workers=True)
     epoch0 = list(dataloader)
     assert list(dataloader) == epoch0
-    ds.set_epoch(1)
+    dataset.set_epoch(1)
     assert list(dataloader) != epoch0
+
+    dataset_copy: IterableDataset = pickle.loads(pickle.dumps(dataset))
+    dataloader = DataLoader(dataset_copy, num_workers=1, persistent_workers=True)
+    epoch1 = list(dataloader)
+    assert list(dataloader) == epoch1
+    dataset.set_epoch(2)  # this should not affect the copy
+    assert list(dataloader) == epoch1
+    dataset_copy.set_epoch(2)
+    assert list(dataloader) != epoch1
 
 
 @pytest.mark.parametrize("n", [0, 2, int(1e10)])
