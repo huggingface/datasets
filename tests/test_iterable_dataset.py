@@ -1504,6 +1504,7 @@ def test_iterable_dataset_persists_epoch_in_torch_workers(dataset: IterableDatas
     dataset.set_epoch(1)
     assert list(dataloader) != epoch0
 
+    # Make sure pickle works even with torch objects in shared memory
     dataset_copy: IterableDataset = pickle.loads(pickle.dumps(dataset))
     dataloader = DataLoader(dataset_copy, num_workers=1, persistent_workers=True)
     epoch1 = list(dataloader)
