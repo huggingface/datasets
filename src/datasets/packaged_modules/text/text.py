@@ -3,8 +3,11 @@ import warnings
 from dataclasses import InitVar, dataclass
 from io import StringIO
 from typing import Optional
+import os
 
 import pyarrow as pa
+import urllib.parse
+from stringzilla import File, Str
 
 import datasets
 from datasets.features.features import require_storage_cast
@@ -79,9 +82,58 @@ class Text(datasets.ArrowBasedBuilder):
             return pa_table.cast(pa.schema({"text": pa.string()}))
 
     def _generate_tables(self, files):
+        assert self.config.sample_by in ["line", "paragraph", "document"]
         pa_table_names = list(self.config.features) if self.config.features is not None else ["text"]
+
+        def is_normal_path(path):
+            result = urllib.parse.urlparse(path)
+            if result.scheme not in ["", "file"]:
+                return False
+            if result.scheme == "file":
+                return os.path.exists(urllib.parse.unquote(result.path))
+            return True
+
+        # Document-level sampling is very simple - just return every file as a single example
+        if self.config.sample_by == "document":
+            for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
+                with open(file, encoding=self.config.encoding, errors=self.config.encoding_errors) as f:
+                    text = f.read()
+                    pa_table = pa.Table.from_arrays([pa.array([text])], names=pa_table_names)
+                    yield file_idx, self._cast_table(pa_table)
+            return
+
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
-            # open in text mode, by default translates universal newlines ("\n", "\r\n" and "\r") into "\n"
+
+            # Some of the test datasets are not real files, but instead - virtual paths
+            # within some archive. In such cases, we should not try to open them as files
+            # with StringZilla and should fall back to the default open() method.
+            if is_normal_path(file):
+                separator = "\n" if self.config.sample_by == "line" else "\n\n"
+                separator = separator.encode(self.config.encoding)
+                file_bytes = File(file)
+                string_bytes = Str(file_bytes)
+
+                batch_idx = 0
+                batch_bytes = 0
+                batch = []
+                for part in string_bytes.split_iter(separator, keepseparator=self.config.keep_linebreaks):
+                    if len(part) == 0:
+                        continue
+                    batch_bytes += len(part)
+                    batch.append(part.decode(self.config.encoding, errors=self.config.encoding_errors))
+                    if batch_bytes >= self.config.chunksize:
+                        pa_table = pa.Table.from_arrays([pa.array(batch)], names=pa_table_names)
+                        yield (file_idx, batch_idx), self._cast_table(pa_table)
+                        batch_idx += 1
+                        batch_bytes = 0
+                        batch = []
+
+                if batch:
+                    pa_table = pa.Table.from_arrays([pa.array(batch)], names=pa_table_names)
+                    yield (file_idx, batch_idx), self._cast_table(pa_table)
+                continue
+
+            # The legacy code for opening files with the default open() method.
             with open(file, encoding=self.config.encoding, errors=self.config.encoding_errors) as f:
                 if self.config.sample_by == "line":
                     batch_idx = 0
@@ -122,7 +174,3 @@ class Text(datasets.ArrowBasedBuilder):
                     if batch:
                         pa_table = pa.Table.from_arrays([pa.array([batch])], names=pa_table_names)
                         yield (file_idx, batch_idx), self._cast_table(pa_table)
-                elif self.config.sample_by == "document":
-                    text = f.read()
-                    pa_table = pa.Table.from_arrays([pa.array([text])], names=pa_table_names)
-                    yield file_idx, self._cast_table(pa_table)
