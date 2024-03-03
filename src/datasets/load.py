@@ -1227,15 +1227,15 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             exported_dataset_infos = _datasets_server.get_exported_dataset_infos(
                 dataset=self.name, revision=self.revision, token=self.download_config.token
             )
-        except _datasets_server.DatasetsServerError:
-            pass
-        else:
             exported_dataset_infos = DatasetInfosDict(
                 {
                     config_name: DatasetInfo.from_dict(exported_dataset_infos[config_name])
                     for config_name in exported_dataset_infos
                 }
             )
+        except _datasets_server.DatasetsServerError:
+            exported_dataset_infos = None
+        if exported_dataset_infos:
             exported_dataset_infos.update(dataset_infos)
             dataset_infos = exported_dataset_infos
         # we need a set of data files to find which dataset builder to use
