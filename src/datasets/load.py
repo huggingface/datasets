@@ -1228,6 +1228,21 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             pass
         metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
         dataset_infos = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
+        try:
+            exported_dataset_infos = _datasets_server.get_exported_dataset_infos(
+                dataset=self.name, revision=self.revision, token=self.download_config.token
+            )
+            exported_dataset_infos = DatasetInfosDict(
+                {
+                    config_name: DatasetInfo.from_dict(exported_dataset_infos[config_name])
+                    for config_name in exported_dataset_infos
+                }
+            )
+        except _datasets_server.DatasetsServerError:
+            exported_dataset_infos = None
+        if exported_dataset_infos:
+            exported_dataset_infos.update(dataset_infos)
+            dataset_infos = exported_dataset_infos
         # we need a set of data files to find which dataset builder to use
         # because we need to infer module name by files extensions
         if self.data_files is not None:
