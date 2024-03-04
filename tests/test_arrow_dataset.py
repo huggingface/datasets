@@ -73,6 +73,10 @@ class PickableMagicMock(MagicMock):
 
 
 class Unpicklable:
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
     def __getstate__(self):
         raise pickle.PicklingError()
 
@@ -811,6 +815,7 @@ class BaseDatasetTest(TestCase):
                 Dataset.from_dict(data2, info=info2),
                 Dataset.from_dict(data3),
             )
+            schema = dset1.data.schema
             # mix from in-memory and on-disk datasets
             dset1, dset2 = self._to(in_memory, tmp_dir, dset1, dset2)
             dset3 = self._to(not in_memory, tmp_dir, dset3)
@@ -835,13 +840,13 @@ class BaseDatasetTest(TestCase):
             dset3 = dset3.rename_column("foo", "new_foo")
             dset3 = dset3.remove_columns("new_foo")
             if in_memory:
-                dset3._data.table = Unpicklable()
+                dset3._data.table = Unpicklable(schema=schema)
             else:
-                dset1._data.table, dset2._data.table = Unpicklable(), Unpicklable()
+                dset1._data.table, dset2._data.table = Unpicklable(schema=schema), Unpicklable(schema=schema)
             dset1, dset2, dset3 = (pickle.loads(pickle.dumps(d)) for d in (dset1, dset2, dset3))
             with concatenate_datasets([dset3, dset2, dset1]) as dset_concat:
                 if not in_memory:
-                    dset_concat._data.table = Unpicklable()
+                    dset_concat._data.table = Unpicklable(schema=schema)
                 with pickle.loads(pickle.dumps(dset_concat)) as dset_concat:
                     self.assertTupleEqual((len(dset1), len(dset2), len(dset3)), (3, 3, 2))
                     self.assertEqual(len(dset_concat), len(dset1) + len(dset2) + len(dset3))
