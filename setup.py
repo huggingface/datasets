@@ -62,7 +62,7 @@ Steps to make a release:
      ```
    Check that you can install it in a virtualenv/notebook by running:
      ```
-     pip install huggingface_hub fsspec aiohttp pyarrow-hotfix
+     pip install huggingface-hub fsspec aiohttp pyarrow-hotfix
      pip install -U tqdm
      pip install -i https://testpypi.python.org/pypi datasets
      ```
@@ -135,7 +135,7 @@ REQUIRED_PKGS = [
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface_hub>=0.19.4",
+    "huggingface-hub>=0.21.2",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     # To parse YAML metadata from dataset cards
