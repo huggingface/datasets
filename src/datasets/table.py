@@ -2142,6 +2142,12 @@ class CastError(ValueError):
         self.table_column_names = table_column_names
         self.requested_column_names = requested_column_names
 
+    def __reduce__(self):
+        # Fix unpickling: TypeError: __init__() missing 2 required keyword-only arguments: 'table_column_names' and 'requested_column_names'
+        return partial(
+            CastError, table_column_names=self.table_column_names, requested_column_names=self.requested_column_names
+        ), ()
+
     def details(self):
         new_columns = set(self.table_column_names) - set(self.requested_column_names)
         missing_columns = set(self.requested_column_names) - set(self.table_column_names)
