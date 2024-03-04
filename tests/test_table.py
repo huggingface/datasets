@@ -799,11 +799,12 @@ def test_concatenation_table_slice_mixed_schemas_vertically(arrow_file):
     blocks = [[t1], [t2]]
     table = ConcatenationTable.from_blocks(blocks)
     assert table.to_pydict() == expected.to_pydict()
-    assert table.slice(1, 2).to_pydict() == expected.slice(1, 2).to_pydict()
     assert isinstance(table, ConcatenationTable)
     reloaded = pickle.loads(pickle.dumps(table))
     assert reloaded.to_pydict() == expected.to_pydict()
-    assert reloaded.slice(1, 2).to_pydict() == expected.slice(1, 2).to_pydict()
+    assert isinstance(reloaded, ConcatenationTable)
+    reloaded = pickle.loads(pickle.dumps(table.slice(1, 2)))
+    assert reloaded.to_pydict() == expected.slice(1, 2).to_pydict()
     assert isinstance(reloaded, ConcatenationTable)
 
 
