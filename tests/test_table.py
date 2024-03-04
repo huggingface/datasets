@@ -787,6 +787,26 @@ def test_concatenation_table_slice(
     assert isinstance(table, ConcatenationTable)
 
 
+def test_concatenation_table_slice_mixed_schemas_vertically(arrow_file):
+    t1 = MemoryMappedTable.from_file(arrow_file)
+    t2 = InMemoryTable.from_pydict({"additional_column": ["foo"]})
+    expected = pa.table(
+        {
+            **{column: values + [None] for column, values in t1.to_pydict().items()},
+            "additional_column": [None] * len(t1) + ["foo"],
+        }
+    )
+    blocks = [[t1], [t2]]
+    table = ConcatenationTable.from_blocks(blocks)
+    assert table.to_pydict() == expected.to_pydict()
+    assert table.slice(1, 2).to_pydict() == expected.slice(1, 2).to_pydict()
+    assert isinstance(table, ConcatenationTable)
+    reloaded = pickle.loads(pickle.dumps(table))
+    assert reloaded.to_pydict() == expected.to_pydict()
+    assert reloaded.slice(1, 2).to_pydict() == expected.slice(1, 2).to_pydict()
+    assert isinstance(reloaded, ConcatenationTable)
+
+
 @pytest.mark.parametrize("blocks_type", ["in_memory", "memory_mapped", "mixed"])
 def test_concatenation_table_filter(
     blocks_type, in_memory_pa_table, in_memory_blocks, memory_mapped_blocks, mixed_in_memory_and_memory_mapped_blocks
