@@ -1585,13 +1585,13 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
                 warning_msg += ", or remotely on the Hugging Face Hub."
             logger.warning(warning_msg)
             importable_file_path = _get_importable_file_path(
-                dynamic_modules_path=self.dynamic_modules_path,
+                dynamic_modules_path=dynamic_modules_path,
                 module_namespace="datasets",
                 subdirectory_name=hash,
                 name=self.name,
             )
             module_path, hash = _load_importable_file(
-                dynamic_modules_path=self.dynamic_modules_path,
+                dynamic_modules_path=dynamic_modules_path,
                 module_namespace="datasets",
                 subdirectory_name=hash,
                 name=self.name,
