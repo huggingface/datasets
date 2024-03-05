@@ -3,7 +3,6 @@ import inspect
 from functools import wraps
 from typing import TYPE_CHECKING, Optional
 
-from . import config
 from .download.download_config import DownloadConfig
 from .download.streaming_download_manager import (
     xbasename,
@@ -120,9 +119,7 @@ def extend_dataset_builder_for_streaming(builder: "DatasetBuilder"):
     download_config = DownloadConfig(storage_options=builder.storage_options, token=builder.token)
     extend_module_for_streaming(builder.__module__, download_config=download_config)
     # if needed, we also have to extend additional internal imports (like wmt14 -> wmt_utils)
-    if builder.__module__.startswith(
-        config.MODULE_NAME_FOR_DYNAMIC_MODULES + "."
-    ):  # check that it's not a packaged builder like csv
+    if not builder.__module__.startswith("datasets."):  # check that it's not a packaged builder like csv
         importable_file = inspect.getfile(builder.__class__)
         with lock_importable_file(importable_file):
             for imports in get_imports(importable_file):
