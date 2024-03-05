@@ -1191,11 +1191,14 @@ def _maybe_add_torch_iterable_dataset_parent_class(cls):
             cls.__bases__ += (torch.utils.data.IterableDataset,)
 
 
-def _maybe_share_with_torch_persistent_workers(value: int) -> Union[int, "torch.Tensor"]:
+def _maybe_share_with_torch_persistent_workers(value: Union[int, "torch.Tensor"]) -> Union[int, "torch.Tensor"]:
     if config.TORCH_AVAILABLE:
         import torch
 
-        return torch.tensor(value).share_memory_()
+        if isinstance(value, torch.Tensor):
+            return value.share_memory_()
+        else:
+            return torch.tensor(value).share_memory_()
     else:
         return value
 
@@ -1232,8 +1235,8 @@ class IterableDataset(DatasetInfoMixin):
         self._formatting = formatting
         self._shuffling = shuffling
         self._distributed = distributed
-        self._epoch: Union[int, "torch.Tensor"] = _maybe_share_with_torch_persistent_workers(0)
         self._token_per_repo_id: Dict[str, Union[str, bool, None]] = token_per_repo_id or {}
+        self._epoch: Union[int, "torch.Tensor"] = _maybe_share_with_torch_persistent_workers(0)
         _maybe_add_torch_iterable_dataset_parent_class(self.__class__)
 
     def __repr__(self):
@@ -1244,6 +1247,8 @@ class IterableDataset(DatasetInfoMixin):
 
     def __setstate__(self, d):
         self.__dict__ = d
+        # Re-add torch shared memory, since shared mrmory are not always kept when pickling
+        self._epoch = _maybe_share_with_torch_persistent_workers(self._epoch)
         # Re-add torch iterable dataset as a parent class, since dynamically added parent classes are not kept when pickling
         _maybe_add_torch_iterable_dataset_parent_class(self.__class__)
 
