@@ -54,6 +54,7 @@ from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
     offline,
+    require_not_windows,
     require_pil,
     require_sndfile,
     set_current_working_directory_to_temp_dir,
@@ -1680,6 +1681,7 @@ def distributed_load_dataset_with_script(args):
     return dataset
 
 
+@require_not_windows  # windows doesn't support overwriting Arrow files from other processes
 @pytest.mark.parametrize("download_mode", [None, "force_redownload"])
 def test_load_dataset_distributed_with_script(tmp_path, download_mode):
     # we need to cehck in the "force_redownload" case
