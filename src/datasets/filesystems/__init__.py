@@ -1,16 +1,13 @@
 import importlib
 import shutil
 import warnings
-from functools import lru_cache
-from typing import Dict, List, Optional
+from typing import List
 
 import fsspec
 import fsspec.asyn
-from fsspec.core import _un_chain, filesystem, stringify_path
 from fsspec.implementations.local import LocalFileSystem
 
 from ..utils.deprecation_utils import deprecated
-from ..utils.typing import PathLike
 from . import compression
 
 
@@ -81,33 +78,3 @@ def rename(fs: fsspec.AbstractFileSystem, src: str, dst: str):
         shutil.move(fs._strip_protocol(src), fs._strip_protocol(dst))
     else:
         fs.mv(src, dst, recursive=True)
-
-
-def get_fs_from_path(urlpath: PathLike, storage_options: Optional[Dict] = None) -> fsspec.AbstractFileSystem:
-    """
-    Get a filesystem object from a urlpath and storage options.
-    """
-    # Based on fsspec.get_fs_token_paths
-    # TODO: remove this function once a similar function is added to fsspec
-    urlpath = stringify_path(urlpath)
-    storage_options = storage_options or {}
-    chain = _un_chain(urlpath, storage_options or {})
-    inkwargs = {}
-    # Reverse iterate the chain, creating a nested target_* structure
-    for i, ch in enumerate(reversed(chain)):
-        urls, nested_protocol, kw = ch
-        if i == len(chain) - 1:
-            inkwargs = dict(**kw, **inkwargs)
-            continue
-        inkwargs["target_options"] = dict(**kw, **inkwargs)
-        inkwargs["target_protocol"] = nested_protocol
-        inkwargs["fo"] = urls
-    _, protocol, _ = chain[0]
-    fs = filesystem(protocol, **inkwargs)
-    return fs
-
-
-class CachedLocalFileSystem(LocalFileSystem):
-    @lru_cache(maxsize=1)
-    def find(self, *args, **kwargs):
-        return super().find(*args, **kwargs)

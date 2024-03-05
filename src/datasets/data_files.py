@@ -1,13 +1,15 @@
 import os
 import re
-from functools import partial
+from contextlib import contextmanager
+from functools import lru_cache, partial
 from glob import has_magic
 from pathlib import Path, PurePath
 from typing import Callable, Dict, List, Optional, Set, Tuple, Union
 
 import huggingface_hub
-from fsspec import get_fs_token_paths
+from fsspec.core import url_to_fs
 from fsspec.implementations.http import HTTPFileSystem
+from fsspec.implementations.local import LocalFileSystem
 from huggingface_hub import HfFileSystem
 from packaging import version
 from tqdm.contrib.concurrent import thread_map
@@ -15,7 +17,7 @@ from tqdm.contrib.concurrent import thread_map
 from . import config
 from .download import DownloadConfig
 from .download.streaming_download_manager import _prepare_path_and_storage_options, xbasename, xjoin
-from .filesystems import CachedLocalFileSystem, get_fs_from_path, is_local_filesystem
+from .filesystems import is_local_filesystem
 from .naming import _split_re
 from .splits import Split
 from .utils import logging
@@ -35,6 +37,10 @@ class Url(str):
 
 
 class EmptyDatasetError(FileNotFoundError):
+    pass
+
+
+class DefaultPattern(str):
     pass
 
 
@@ -74,7 +80,7 @@ else:
 DEFAULT_SPLITS = [Split.TRAIN, Split.VALIDATION, Split.TEST]
 DEFAULT_PATTERNS_SPLIT_IN_FILENAME = {
     split: [
-        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
+        DefaultPattern(pattern.format(keyword=keyword, sep=NON_WORDS_CHARS))
         for keyword in SPLIT_KEYWORDS[split]
         for pattern in KEYWORDS_IN_FILENAME_BASE_PATTERNS
     ]
@@ -82,7 +88,7 @@ DEFAULT_PATTERNS_SPLIT_IN_FILENAME = {
 }
 DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME = {
     split: [
-        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
+        DefaultPattern(pattern.format(keyword=keyword, sep=NON_WORDS_CHARS))
         for keyword in SPLIT_KEYWORDS[split]
         for pattern in KEYWORDS_IN_DIR_NAME_BASE_PATTERNS
     ]
@@ -91,7 +97,7 @@ DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME = {
 
 
 DEFAULT_PATTERNS_ALL = {
-    Split.TRAIN: ["**"],
+    Split.TRAIN: [DefaultPattern("**")],
 }
 
 ALL_SPLIT_PATTERNS = [SPLIT_PATTERN_SHARDED]
@@ -109,8 +115,8 @@ if config.FSSPEC_VERSION < version.parse("2023.9.0"):
     ]  # metadata file for ImageFolder and AudioFolder
 else:
     METADATA_PATTERNS = [
-        "**/metadata.csv",
-        "**/metadata.jsonl",
+        DefaultPattern("**/metadata.csv"),
+        DefaultPattern("**/metadata.jsonl"),
     ]  # metadata file for ImageFolder and AudioFolder
 WILDCARD_CHARACTERS = "*[]"
 FILES_TO_IGNORE = [
@@ -319,6 +325,34 @@ def _get_metadata_files_patterns(pattern_resolver: Callable[[str], List[str]]) -
     raise FileNotFoundError(f"Couldn't resolve pattern {pattern} with resolver {pattern_resolver}")
 
 
+_IS_RESOLVE_PATTERNS_CACHED: bool = False
+
+
+class _LocalFileSystemWithCachedFind(LocalFileSystem):
+    @lru_cache(maxsize=1)
+    def find(self, *args, **kwargs):
+        return super().find(*args, **kwargs)
+
+
+def _url_to_fs(url, **kwargs):
+    fs, url_ = url_to_fs(url, **kwargs)
+    if isinstance(url, DefaultPattern) and is_local_filesystem(fs) and _IS_RESOLVE_PATTERNS_CACHED:
+        # the default patterns are similar to each other, so let's cache calls to avoid expensive disk access if possible
+        fs = _LocalFileSystemWithCachedFind(**fs.storage_options)
+    return fs, url_
+
+
+@contextmanager
+def cached_pattern_resolution():
+    global _IS_RESOLVE_PATTERNS_CACHED
+    _IS_RESOLVE_PATTERNS_CACHED = True
+    try:
+        yield
+    finally:
+        _IS_RESOLVE_PATTERNS_CACHED = False
+        _LocalFileSystemWithCachedFind.clear_instance_cache()
+
+
 def resolve_pattern(
     pattern: str,
     base_path: str,
@@ -366,6 +400,7 @@ def resolve_pattern(
     Returns:
         List[str]: List of paths or URLs to the local or remote files that match the patterns.
     """
+    pattern_type = type(pattern)  # TODO: use UserString
     if is_relative_path(pattern):
         pattern = xjoin(base_path, pattern)
     elif is_local_path(pattern):
@@ -373,9 +408,7 @@ def resolve_pattern(
     else:
         base_path = ""
     pattern, storage_options = _prepare_path_and_storage_options(pattern, download_config=download_config)
-    fs = get_fs_from_path(pattern, storage_options=storage_options)
-    if is_local_filesystem(fs):
-        fs = CachedLocalFileSystem(**fs.storage_options)
+    fs, _ = _url_to_fs(pattern_type(pattern), **storage_options)
     fs_base_path = base_path.split("::")[0].split("://")[-1] or fs.root_marker
     fs_pattern = pattern.split("::")[0].split("://")[-1]
     files_to_ignore = set(FILES_TO_IGNORE) - {xbasename(pattern)}
@@ -528,7 +561,7 @@ def _get_single_origin_metadata(
     download_config: Optional[DownloadConfig] = None,
 ) -> Tuple[str]:
     data_file, storage_options = _prepare_path_and_storage_options(data_file, download_config=download_config)
-    fs, _, _ = get_fs_token_paths(data_file, storage_options=storage_options)
+    fs, _ = _url_to_fs(data_file, **storage_options)
     if isinstance(fs, HfFileSystem):
         resolved_path = fs.resolve_path(data_file)
         return (resolved_path.repo_id, resolved_path.revision)
