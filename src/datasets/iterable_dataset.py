@@ -9,6 +9,7 @@ from functools import partial
 from itertools import cycle, islice
 from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
+import fsspec.asyn
 import numpy as np
 import pyarrow as pa
 
@@ -16,7 +17,6 @@ from . import config
 from .arrow_dataset import Dataset, DatasetInfoMixin
 from .features import Features
 from .features.features import FeatureType, _align_features, _check_if_features_can_be_aligned, cast_to_python_objects
-from .filesystems import _reset_fsspec_lock
 from .formatting import PythonFormatter, TensorFormatter, get_format_type_from_alias, get_formatter
 from .info import DatasetInfo
 from .splits import NamedSplit
@@ -1257,8 +1257,9 @@ class IterableDataset(DatasetInfoMixin):
 
     def _iter_pytorch(self):
         ex_iterable = self._prepare_ex_iterable_for_iteration()
-        # fix for fsspec when using multiprocess
-        _reset_fsspec_lock()
+        # Fix for fsspec when using multiprocess to avoid hanging in the ML training loop. (only required for fsspec >= 0.9.0)
+        # See https://github.com/fsspec/gcsfs/issues/379
+        fsspec.asyn.reset_lock()
         # check if there aren't too many workers
         import torch.utils.data
 

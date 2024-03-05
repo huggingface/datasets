@@ -15,6 +15,7 @@ from tqdm.contrib.concurrent import thread_map
 from . import config
 from .download import DownloadConfig
 from .download.streaming_download_manager import _prepare_path_and_storage_options, xbasename, xjoin
+from .filesystems import CachedLocalFileSystem, get_fs_from_path, is_local_filesystem
 from .naming import _split_re
 from .splits import Split
 from .utils import logging
@@ -372,7 +373,9 @@ def resolve_pattern(
     else:
         base_path = ""
     pattern, storage_options = _prepare_path_and_storage_options(pattern, download_config=download_config)
-    fs, _, _ = get_fs_token_paths(pattern, storage_options=storage_options)
+    fs = get_fs_from_path(pattern, storage_options=storage_options)
+    if is_local_filesystem(fs):
+        fs = CachedLocalFileSystem(**fs.storage_options)
     fs_base_path = base_path.split("::")[0].split("://")[-1] or fs.root_marker
     fs_pattern = pattern.split("::")[0].split("://")[-1]
     files_to_ignore = set(FILES_TO_IGNORE) - {xbasename(pattern)}

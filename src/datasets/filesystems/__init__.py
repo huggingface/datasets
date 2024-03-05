@@ -1,14 +1,16 @@
 import importlib
 import shutil
-import threading
 import warnings
-from typing import List
+from functools import lru_cache
+from typing import Dict, List, Optional
 
 import fsspec
 import fsspec.asyn
+from fsspec.core import _un_chain, filesystem, stringify_path
 from fsspec.implementations.local import LocalFileSystem
 
 from ..utils.deprecation_utils import deprecated
+from ..utils.typing import PathLike
 from . import compression
 
 
@@ -48,6 +50,17 @@ def extract_path_from_uri(dataset_path: str) -> str:
     return dataset_path
 
 
+def is_local_filesystem(fs: fsspec.AbstractFileSystem) -> bool:
+    """
+    Checks if `fs` is a local filesystem.
+
+    Args:
+        fs (`fsspec.spec.AbstractFileSystem`):
+            An abstract super-class for pythonic file-systems, e.g. `fsspec.filesystem(\'file\')` or [`datasets.filesystems.S3FileSystem`].
+    """
+    return isinstance(fs, LocalFileSystem)
+
+
 def is_remote_filesystem(fs: fsspec.AbstractFileSystem) -> bool:
     """
     Checks if `fs` is a remote filesystem.
@@ -70,17 +83,31 @@ def rename(fs: fsspec.AbstractFileSystem, src: str, dst: str):
         fs.mv(src, dst, recursive=True)
 
 
-def _reset_fsspec_lock() -> None:
+def get_fs_from_path(urlpath: PathLike, storage_options: Optional[Dict] = None) -> fsspec.AbstractFileSystem:
     """
-    Clear reference to the loop and thread.
-    This is necessary otherwise HTTPFileSystem hangs in the ML training loop.
-    Only required for fsspec >= 0.9.0
-    See https://github.com/fsspec/gcsfs/issues/379
+    Get a filesystem object from a urlpath and storage options.
     """
-    if hasattr(fsspec.asyn, "reset_lock"):
-        # for future fsspec>2022.05.0
-        fsspec.asyn.reset_lock()
-    else:
-        fsspec.asyn.iothread[0] = None
-        fsspec.asyn.loop[0] = None
-        fsspec.asyn.lock = threading.Lock()
+    # Based on fsspec.get_fs_token_paths
+    # TODO: remove this function once a similar function is added to fsspec
+    urlpath = stringify_path(urlpath)
+    storage_options = storage_options or {}
+    chain = _un_chain(urlpath, storage_options or {})
+    inkwargs = {}
+    # Reverse iterate the chain, creating a nested target_* structure
+    for i, ch in enumerate(reversed(chain)):
+        urls, nested_protocol, kw = ch
+        if i == len(chain) - 1:
+            inkwargs = dict(**kw, **inkwargs)
+            continue
+        inkwargs["target_options"] = dict(**kw, **inkwargs)
+        inkwargs["target_protocol"] = nested_protocol
+        inkwargs["fo"] = urls
+    _, protocol, _ = chain[0]
+    fs = filesystem(protocol, **inkwargs)
+    return fs
+
+
+class CachedLocalFileSystem(LocalFileSystem):
+    @lru_cache(maxsize=1)
+    def find(self, *args, **kwargs):
+        return super().find(*args, **kwargs)
