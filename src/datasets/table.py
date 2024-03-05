@@ -1311,11 +1311,20 @@ class ConcatenationTable(Table):
                     )
 
     def __getstate__(self):
-        return {"blocks": self.blocks}
+        return {"blocks": self.blocks, "schema": self.table.schema}
 
     def __setstate__(self, state):
         blocks = state["blocks"]
+        schema = state["schema"]
         table = self._concat_blocks_horizontally_and_vertically(blocks)
+        if schema is not None and table.schema != schema:
+            # We fix the columns by concatenating with an empty table with the right columns
+            empty_table = pa.Table.from_batches([], schema=schema)
+            # we set promote=True to fill missing columns with null values
+            if config.PYARROW_VERSION.major < 14:
+                table = pa.concat_tables([table, empty_table], promote=True)
+            else:
+                table = pa.concat_tables([table, empty_table], promote_options="default")
         ConcatenationTable.__init__(self, table, blocks=blocks)
 
     @staticmethod
@@ -2141,6 +2150,12 @@ class CastError(ValueError):
         super().__init__(*args)
         self.table_column_names = table_column_names
         self.requested_column_names = requested_column_names
+
+    def __reduce__(self):
+        # Fix unpickling: TypeError: __init__() missing 2 required keyword-only arguments: 'table_column_names' and 'requested_column_names'
+        return partial(
+            CastError, table_column_names=self.table_column_names, requested_column_names=self.requested_column_names
+        ), ()
 
     def details(self):
         new_columns = set(self.table_column_names) - set(self.requested_column_names)

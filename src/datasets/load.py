@@ -344,6 +344,8 @@ def _download_additional_modules(
         _them_str = "them" if len(needs_to_be_installed) > 1 else "it"
         if "sklearn" in needs_to_be_installed.keys():
             needs_to_be_installed["sklearn"] = "scikit-learn"
+        if "Bio" in needs_to_be_installed.keys():
+            needs_to_be_installed["Bio"] = "biopython"
         raise ImportError(
             f"To be able to use {name}, you need to install the following {_dependencies_str}: "
             f"{', '.join(needs_to_be_installed)}.\nPlease install {_them_str} using 'pip install "
@@ -1022,7 +1024,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         base_path = Path(self.path, self.data_dir or "").expanduser().resolve().as_posix()
         if self.data_files is not None:
             patterns = sanitize_patterns(self.data_files)
-        elif metadata_configs and "data_files" in next(iter(metadata_configs.values())):
+        elif metadata_configs and not self.data_dir and "data_files" in next(iter(metadata_configs.values())):
             patterns = sanitize_patterns(next(iter(metadata_configs.values()))["data_files"])
         else:
             patterns = get_data_patterns(base_path)
@@ -1074,6 +1076,8 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             "base_path": self.path,
             "dataset_name": camelcase_to_snakecase(Path(self.path).name),
         }
+        if self.data_dir:
+            builder_kwargs["data_files"] = data_files
         # this file is deprecated and was created automatically in old versions of push_to_hub
         if os.path.isfile(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME)):
             with open(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
@@ -1224,11 +1228,26 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             pass
         metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
         dataset_infos = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
+        try:
+            exported_dataset_infos = _datasets_server.get_exported_dataset_infos(
+                dataset=self.name, revision=self.revision, token=self.download_config.token
+            )
+            exported_dataset_infos = DatasetInfosDict(
+                {
+                    config_name: DatasetInfo.from_dict(exported_dataset_infos[config_name])
+                    for config_name in exported_dataset_infos
+                }
+            )
+        except _datasets_server.DatasetsServerError:
+            exported_dataset_infos = None
+        if exported_dataset_infos:
+            exported_dataset_infos.update(dataset_infos)
+            dataset_infos = exported_dataset_infos
         # we need a set of data files to find which dataset builder to use
         # because we need to infer module name by files extensions
         if self.data_files is not None:
             patterns = sanitize_patterns(self.data_files)
-        elif metadata_configs and "data_files" in next(iter(metadata_configs.values())):
+        elif metadata_configs and not self.data_dir and "data_files" in next(iter(metadata_configs.values())):
             patterns = sanitize_patterns(next(iter(metadata_configs.values()))["data_files"])
         else:
             patterns = get_data_patterns(base_path, download_config=self.download_config)
@@ -1286,6 +1305,8 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             "repo_id": self.name,
             "dataset_name": camelcase_to_snakecase(Path(self.name).name),
         }
+        if self.data_dir:
+            builder_kwargs["data_files"] = data_files
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading metadata"

@@ -64,7 +64,7 @@ jobs:
         run: pip install --upgrade pyarrow huggingface-hub dill
       - name: Install dependencies (minimum versions)
         if: ${{ matrix.deps_versions != 'deps-latest' }}
-        run: pip install pyarrow==12.0.0 huggingface-hub==0.19.4 transformers dill==0.3.1.1
+        run: pip install pyarrow==12.0.0 huggingface-hub==0.21.2 transformers dill==0.3.1.1
       - name: Test with pytest
         run: |
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
