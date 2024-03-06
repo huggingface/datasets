@@ -1,5 +1,4 @@
 import inspect
-import json
 import os
 import random
 import shutil
@@ -10,15 +9,13 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
-import pyarrow as pa
 import xxhash
 
-from .info import DatasetInfo
+from . import config
 from .naming import INVALID_WINDOWS_CHARACTERS_IN_PATH
-from .table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table
+from .utils._dill import dumps
 from .utils.deprecation_utils import deprecated
 from .utils.logging import get_logger
-from .utils.py_utils import asdict, dumps
 
 
 if TYPE_CHECKING:
@@ -42,28 +39,30 @@ logger = get_logger(__name__)
 #################
 
 _CACHING_ENABLED = True
-_TEMP_DIR_FOR_TEMP_CACHE_FILES: Optional["_TempDirWithCustomCleanup"] = None
+_TEMP_DIR_FOR_TEMP_CACHE_FILES: Optional["_TempCacheDir"] = None
 _DATASETS_WITH_TABLE_IN_TEMP_DIR: Optional[weakref.WeakSet] = None
 
 
-class _TempDirWithCustomCleanup:
+class _TempCacheDir:
     """
-    A temporary directory with a custom cleanup function.
-    We need a custom temporary directory cleanup in order to delete the dataset objects that have
-    cache files in the temporary directory before deleting the dorectory itself.
+    A temporary directory for storing cached Arrow files with a cleanup that frees references to the Arrow files
+    before deleting the directory itself to avoid permission errors on Windows.
     """
 
-    def __init__(self, cleanup_func=None, *cleanup_func_args, **cleanup_func_kwargs):
-        self.name = tempfile.mkdtemp()
+    def __init__(self):
+        self.name = tempfile.mkdtemp(prefix=config.TEMP_CACHE_DIR_PREFIX)
         self._finalizer = weakref.finalize(self, self._cleanup)
-        self._cleanup_func = cleanup_func
-        self._cleanup_func_args = cleanup_func_args
-        self._cleanup_func_kwargs = cleanup_func_kwargs
 
     def _cleanup(self):
-        self._cleanup_func(*self._cleanup_func_args, **self._cleanup_func_kwargs)
+        for dset in get_datasets_with_cache_file_in_temp_dir():
+            dset.__del__()
         if os.path.exists(self.name):
-            shutil.rmtree(self.name)
+            try:
+                shutil.rmtree(self.name)
+            except Exception as e:
+                raise OSError(
+                    f"An error occured while trying to delete temporary cache directory {self.name}. Please delete it manually."
+                ) from e
 
     def cleanup(self):
         if self._finalizer.detach():
@@ -184,13 +183,7 @@ def get_temporary_cache_files_directory() -> str:
     """Return a directory that is deleted when session closes."""
     global _TEMP_DIR_FOR_TEMP_CACHE_FILES
     if _TEMP_DIR_FOR_TEMP_CACHE_FILES is None:
-        # Avoids a PermissionError on Windows caused by the datasets referencing
-        # the files from the cache directory on clean-up
-        def cleanup_func():
-            for dset in get_datasets_with_cache_file_in_temp_dir():
-                dset.__del__()
-
-        _TEMP_DIR_FOR_TEMP_CACHE_FILES = _TempDirWithCustomCleanup(cleanup_func=cleanup_func)
+        _TEMP_DIR_FOR_TEMP_CACHE_FILES = _TempCacheDir()
     return _TEMP_DIR_FOR_TEMP_CACHE_FILES.name
 
 
@@ -199,6 +192,7 @@ def get_temporary_cache_files_directory() -> str:
 #################
 
 
+@deprecated("Use `copyreg.pickle` to register a custom reducer.")
 def hashregister(*types):
     def proxy(func):
         for t in types:
@@ -225,15 +219,13 @@ class Hasher:
         return m.hexdigest()
 
     @classmethod
+    @deprecated("Use `Hasher.hash` instead.")
     def hash_default(cls, value: Any) -> str:
-        return cls.hash_bytes(dumps(value))
+        return cls.hash(value)
 
     @classmethod
     def hash(cls, value: Any) -> str:
-        if type(value) in cls.dispatch:
-            return cls.dispatch[type(value)](cls, value)
-        else:
-            return cls.hash_default(value)
+        return cls.hash_bytes(dumps(value))
 
     def update(self, value: Any) -> None:
         header_for_update = f"=={type(value)}=="
@@ -245,37 +237,16 @@ class Hasher:
         return self.m.hexdigest()
 
 
-# Register a new hasher can be useful for two possible reasons:
-# 1 - optimize the hashing of large amount of data (e.g. pa.Table)
-# 2 - take advantage of a custom serialization method (e.g. DatasetInfo)
-
-
-@hashregister(pa.Table, Table, InMemoryTable, MemoryMappedTable, ConcatenationTable)
-def _hash_pa_table(hasher, value):
-    def _hash_pa_array(value):
-        if isinstance(value, pa.ChunkedArray):
-            return hasher.hash_bytes(c.to_string().encode("utf-8") for c in value.chunks)
-        else:
-            return hasher.hash_bytes(value.to_string().encode("utf-8"))
-
-    value = "-".join(col + "-" + _hash_pa_array(value[col]) for col in sorted(value.column_names))
-    return hasher.hash_bytes(value.encode("utf-8"))
-
-
-@hashregister(DatasetInfo)
-def _hash_dataset_info(hasher, value):
-    return hasher.hash_bytes(json.dumps(asdict(value), sort_keys=True).encode("utf-8"))
-
-
 #################
 # Fingerprinting
 #################
 
+fingerprint_rng = random.Random()
 # we show a warning only once when fingerprinting fails to avoid spam
 fingerprint_warnings: Dict[str, bool] = {}
 
 
-def generate_fingerprint(dataset) -> str:
+def generate_fingerprint(dataset: "Dataset") -> str:
     state = dataset.__dict__
     hasher = Hasher()
     for key in sorted(state):
@@ -289,8 +260,8 @@ def generate_fingerprint(dataset) -> str:
     return hasher.hexdigest()
 
 
-def generate_random_fingerprint(nbits=64) -> str:
-    return f"{random.getrandbits(nbits):0{nbits//4}x}"
+def generate_random_fingerprint(nbits: int = 64) -> str:
+    return f"{fingerprint_rng.getrandbits(nbits):0{nbits//4}x}"
 
 
 def update_fingerprint(fingerprint, transform, transform_args):
@@ -466,7 +437,7 @@ def fingerprint_transform(
 
     def _fingerprint(func):
         if not inplace and not all(name in func.__code__.co_varnames for name in fingerprint_names):
-            raise ValueError("function {func} is missing parameters {fingerprint_names} in signature")
+            raise ValueError(f"function {func} is missing parameters {fingerprint_names} in signature")
 
         if randomized_function:  # randomized function have seed and generator parameters
             if "seed" not in func.__code__.co_varnames:

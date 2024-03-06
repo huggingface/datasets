@@ -1,3 +1,4 @@
+import logging
 import os
 from argparse import ArgumentParser
 from pathlib import Path
@@ -9,7 +10,6 @@ from datasets.builder import DatasetBuilder
 from datasets.commands import BaseDatasetsCLICommand
 from datasets.download.download_manager import DownloadMode
 from datasets.load import dataset_module_factory, import_main_class
-from datasets.utils.filelock import logger as fl_logger
 from datasets.utils.info_utils import VerificationMode
 from datasets.utils.logging import ERROR, get_logger
 
@@ -28,6 +28,7 @@ def _test_command_factory(args):
         args.ignore_verifications,
         args.force_redownload,
         args.clear_cache,
+        args.num_proc,
     )
 
 
@@ -65,6 +66,7 @@ class TestCommand(BaseDatasetsCLICommand):
             action="store_true",
             help="Remove downloaded files and cached datasets after each config test",
         )
+        test_parser.add_argument("--num_proc", type=int, default=None, help="Number of processes")
         # aliases
         test_parser.add_argument("--save_infos", action="store_true", help="alias to save_info")
         test_parser.add_argument("dataset", type=str, help="Name of the dataset to download")
@@ -81,6 +83,7 @@ class TestCommand(BaseDatasetsCLICommand):
         ignore_verifications: bool,
         force_redownload: bool,
         clear_cache: bool,
+        num_proc: int,
     ):
         self._dataset = dataset
         self._name = name
@@ -91,6 +94,7 @@ class TestCommand(BaseDatasetsCLICommand):
         self._ignore_verifications = ignore_verifications
         self._force_redownload = force_redownload
         self._clear_cache = clear_cache
+        self._num_proc = num_proc
         if clear_cache and not cache_dir:
             print(
                 "When --clear_cache is used, specifying a cache directory is mandatory.\n"
@@ -102,7 +106,7 @@ class TestCommand(BaseDatasetsCLICommand):
             self._ignore_verifications = True
 
     def run(self):
-        fl_logger().setLevel(ERROR)
+        logging.getLogger("filelock").setLevel(ERROR)
         if self._name is not None and self._all_configs:
             print("Both parameters `config` and `all_configs` can't be used at once.")
             exit(1)
@@ -151,6 +155,7 @@ class TestCommand(BaseDatasetsCLICommand):
                 if self._ignore_verifications
                 else VerificationMode.ALL_CHECKS,
                 try_from_hf_gcs=False,
+                num_proc=self._num_proc,
             )
             builder.as_dataset()
             if self._save_infos:
@@ -162,7 +167,9 @@ class TestCommand(BaseDatasetsCLICommand):
             # Let's move it to the original directory of the dataset script, to allow the user to
             # upload them on S3 at the same time afterwards.
             if self._save_infos:
-                dataset_readme_path = os.path.join(builder_cls.get_imported_module_dir(), "README.md")
+                dataset_readme_path = os.path.join(
+                    builder_cls.get_imported_module_dir(), datasets.config.REPOCARD_FILENAME
+                )
                 name = Path(path).name + ".py"
                 combined_path = os.path.join(path, name)
                 if os.path.isfile(path):
@@ -177,7 +184,7 @@ class TestCommand(BaseDatasetsCLICommand):
 
                 # Move dataset_info back to the user
                 if dataset_dir is not None:
-                    user_dataset_readme_path = os.path.join(dataset_dir, "README.md")
+                    user_dataset_readme_path = os.path.join(dataset_dir, datasets.config.REPOCARD_FILENAME)
                     copyfile(dataset_readme_path, user_dataset_readme_path)
                     print(f"Dataset card saved at {user_dataset_readme_path}")
 

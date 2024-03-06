@@ -340,35 +340,65 @@ You can also use [`~Dataset.map`] with indices if you set `with_indices=True`. T
 ]
 ```
 
-The [`~Dataset.map`] also works with the rank of the process if you set `with_rank=True`. This is analogous to the `with_indices` parameter. The `with_rank` parameter in the mapped function goes after the `index` one if it is already present. 
-
-```py
->>> from multiprocess import set_start_method
->>> import torch
->>> import os
->>>
->>> set_start_method("spawn")
->>>
->>> def gpu_computation(example, rank):
->>>     os.environ["CUDA_VISIBLE_DEVICES"] = str(rank % torch.cuda.device_count())
->>>     # Your big GPU call goes here
->>>     return examples
->>>
->>> updated_dataset = dataset.map(gpu_computation, with_rank=True)
-```
-
-The main use-case for rank is to parallelize computation across several GPUs. This requires setting `multiprocess.set_start_method("spawn")`. If you don't you'll receive the following CUDA error: 
-
-```bash
-RuntimeError: Cannot re-initialize CUDA in forked subprocess. To use CUDA with multiprocessing, you must use the 'spawn' start method.
-```
-
 ### Multiprocessing
 
 Multiprocessing significantly speeds up processing by parallelizing processes on the CPU. Set the `num_proc` parameter in [`~Dataset.map`] to set the number of processes to use:
 
 ```py
 >>> updated_dataset = dataset.map(lambda example, idx: {"sentence2": f"{idx}: " + example["sentence2"]}, num_proc=4)
+```
+
+The [`~Dataset.map`] also works with the rank of the process if you set `with_rank=True`. This is analogous to the `with_indices` parameter. The `with_rank` parameter in the mapped function goes after the `index` one if it is already present. 
+
+```py
+>>> import torch
+>>> from multiprocess import set_start_method
+>>> from transformers import AutoTokenizer, AutoModelForCausalLM 
+>>> from datasets import load_dataset
+>>> 
+>>> # Get an example dataset
+>>> dataset = load_dataset("fka/awesome-chatgpt-prompts", split="train")
+>>> 
+>>> # Get an example model and its tokenizer 
+>>> model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen1.5-0.5B-Chat").eval()
+>>> tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen1.5-0.5B-Chat")
+>>>
+>>> def gpu_computation(batch, rank):
+...     # Move the model on the right GPU if it's not there already
+...     device = f"cuda:{(rank or 0) % torch.cuda.device_count()}"
+...     model.to(device)
+...     
+...     # Your big GPU call goes here, for example:
+...     chats = [[
+...         {"role": "system", "content": "You are a helpful assistant."},
+...         {"role": "user", "content": prompt}
+...     ] for prompt in batch["prompt"]]
+...     texts = [tokenizer.apply_chat_template(
+...         chat,
+...         tokenize=False,
+...         add_generation_prompt=True
+...     ) for chat in chats]
+...     model_inputs = tokenizer(texts, padding=True, return_tensors="pt").to(device)
+...     with torch.no_grad():
+...         outputs = model.generate(**model_inputs, max_new_tokens=512)
+...     batch["output"] = tokenizer.batch_decode(outputs, skip_special_tokens=True)
+...     return batch
+>>>
+>>> if __name__ == "__main__":
+...     set_start_method("spawn")
+...     updated_dataset = dataset.map(
+...         gpu_computation,
+...         batched=True,
+...         batch_size=16,
+...         with_rank=True,
+...         num_proc=torch.cuda.device_count(),  # one process per GPU
+...     )
+```
+
+The main use-case for rank is to parallelize computation across several GPUs. This requires setting `multiprocess.set_start_method("spawn")`. If you don't you'll receive the following CUDA error: 
+
+```bash
+RuntimeError: Cannot re-initialize CUDA in forked subprocess. To use CUDA with multiprocessing, you must use the 'spawn' start method.
 ```
 
 ### Batch processing
@@ -417,7 +447,10 @@ Dataset({
  num_rows: 3668
 })
 >>> chunked_dataset
-Dataset(schema: {'chunks': 'string'}, num_rows: 10470)
+Dataset({
+    features: ['chunks'],
+    num_rows: 10470
+})
 ```
 
 #### Data augmentation

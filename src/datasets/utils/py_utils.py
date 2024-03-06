@@ -13,9 +13,7 @@
 # limitations under the License.
 
 # Lint as: python3
-"""Some python utils function and classes.
-
-"""
+"""Some python utils function and classes."""
 
 import copy
 import functools
@@ -28,24 +26,27 @@ import types
 import warnings
 from contextlib import contextmanager
 from dataclasses import fields, is_dataclass
-from io import BytesIO as StringIO
 from multiprocessing import Manager
 from queue import Empty
 from shutil import disk_usage
-from types import CodeType, FunctionType
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, TypeVar, Union
 from urllib.parse import urlparse
 
-import dill
 import multiprocess
 import multiprocess.pool
 import numpy as np
-from packaging import version
 from tqdm.auto import tqdm
 
 from .. import config
 from ..parallel import parallel_map
 from . import logging
+from . import tqdm as hf_tqdm
+from ._dill import (  # noqa: F401 # imported for backward compatibility. TODO: remove in 3.0.0
+    Pickler,
+    dump,
+    dumps,
+    pklregister,
+)
 
 
 try:  # pragma: no branch
@@ -254,7 +255,7 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
 
     if set_tensorflow and config.TF_AVAILABLE:
         import tensorflow as tf
-        from tensorflow.python import context as tfpycontext
+        from tensorflow.python.eager import context as tfpycontext
 
         tf_state = tf.random.get_global_generator()
         temp_gen = tf.random.Generator.from_seed(seed)
@@ -377,7 +378,7 @@ def _single_map_nested(args):
     # Loop over single examples or batches and write to buffer/file if examples are to be updated
     pbar_iterable = data_struct.items() if isinstance(data_struct, dict) else data_struct
     pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
-    with logging.tqdm(pbar_iterable, disable=disable_tqdm, position=rank, unit="obj", desc=pbar_desc) as pbar:
+    with hf_tqdm(pbar_iterable, disable=disable_tqdm, position=rank, unit="obj", desc=pbar_desc) as pbar:
         if isinstance(data_struct, dict):
             return {k: _single_map_nested((function, v, types, None, True, None)) for k, v in pbar}
         else:
@@ -455,15 +456,25 @@ def map_nested(
     if not isinstance(data_struct, dict) and not isinstance(data_struct, types):
         return function(data_struct)
 
-    disable_tqdm = disable_tqdm or not logging.is_progress_bar_enabled()
     iterable = list(data_struct.values()) if isinstance(data_struct, dict) else data_struct
 
     if num_proc is None:
         num_proc = 1
-    if num_proc != -1 and num_proc <= 1 or len(iterable) < parallel_min_length:
+    if any(isinstance(v, types) and len(v) > len(iterable) for v in iterable):
+        mapped = [
+            map_nested(
+                function=function,
+                data_struct=obj,
+                num_proc=num_proc,
+                parallel_min_length=parallel_min_length,
+                types=types,
+            )
+            for obj in iterable
+        ]
+    elif num_proc != -1 and num_proc <= 1 or len(iterable) < parallel_min_length:
         mapped = [
             _single_map_nested((function, obj, types, None, True, None))
-            for obj in logging.tqdm(iterable, disable=disable_tqdm, desc=desc)
+            for obj in hf_tqdm(iterable, disable=disable_tqdm, desc=desc)
         ]
     else:
         with warnings.catch_warnings():
@@ -597,748 +608,6 @@ def get_imports(file_path: str) -> Tuple[str, str, str, str]:
                 imports.append(("library", match.group(2), match.group(2), None))
 
     return imports
-
-
-class Pickler(dill.Pickler):
-    """Same Pickler as the one from dill, but improved for notebooks and shells"""
-
-    dispatch = dill._dill.MetaCatchingDict(dill.Pickler.dispatch.copy())
-
-    def save(self, obj, save_persistent_id=True):
-        # lazy registration of reduction functions
-        obj_type = type(obj)
-        if obj_type not in Pickler.dispatch:
-            if config.DILL_VERSION < version.parse("0.3.6"):
-
-                def dill_log(pickler, msg):
-                    dill._dill.log.info(msg)
-
-            elif config.DILL_VERSION.release[:3] in [version.parse("0.3.6").release, version.parse("0.3.7").release]:
-
-                def dill_log(pickler, msg):
-                    dill._dill.logger.trace(pickler, msg)
-
-            if (obj_type.__module__, obj_type.__name__) == ("_regex", "Pattern"):
-                try:
-                    import regex
-
-                    @pklregister(obj_type)
-                    def _save_regex(pickler, obj):
-                        dill_log(pickler, f"Re: {obj}")
-                        args = (
-                            obj.pattern,
-                            obj.flags,
-                        )
-                        pickler.save_reduce(regex.compile, args, obj=obj)
-                        dill_log(pickler, "# Re")
-                        return
-
-                except ImportError:
-                    pass
-            elif (obj_type.__module__, obj_type.__name__) == ("torch", "Tensor"):
-                try:
-                    import torch
-
-                    @pklregister(obj_type)
-                    def _save_tensor(pickler, obj):
-                        # `torch.from_numpy` is not picklable in `torch>=1.11.0`
-                        def _create_tensor(np_array):
-                            return torch.from_numpy(np_array)
-
-                        dill_log(pickler, f"To: {obj}")
-                        args = (obj.detach().cpu().numpy(),)
-                        pickler.save_reduce(_create_tensor, args, obj=obj)
-                        dill_log(pickler, "# To")
-                        return
-
-                except ImportError:
-                    pass
-            elif (obj_type.__module__, obj_type.__name__) == ("tiktoken.core", "Encoding"):
-                try:
-                    import tiktoken
-
-                    @pklregister(obj_type)
-                    def _save_encoding(pickler, obj):
-                        dill_log(pickler, f"Enc: {obj}")
-                        args = (obj.name, obj._pat_str, obj._mergeable_ranks, obj._special_tokens)
-                        pickler.save_reduce(tiktoken.Encoding, args, obj=obj)
-                        dill_log(pickler, "# Enc")
-                        return
-
-                except ImportError:
-                    pass
-            elif obj_type.__module__.startswith("spacy.lang") and any(
-                (cls.__module__, cls.__name__) == ("spacy.language", "Language") for cls in obj_type.__mro__
-            ):
-                try:
-                    import spacy
-
-                    @pklregister(obj_type)
-                    def _save_lang(pickler, obj):
-                        def _create_lang(config, bytes_data):
-                            lang_cls = spacy.util.get_lang_class(config["nlp"]["lang"])
-                            nlp = lang_cls.from_config(config)
-                            return nlp.from_bytes(bytes_data)
-
-                        dill_log(pickler, f"Sp: {obj}")
-                        args = (obj.config, obj.to_bytes())
-                        pickler.save_reduce(_create_lang, args, obj=obj)
-                        dill_log(pickler, "# Sp")
-                        return
-
-                except ImportError:
-                    pass
-
-        dill.Pickler.save(self, obj, save_persistent_id=save_persistent_id)
-
-    def memoize(self, obj):
-        # don't memoize strings since two identical strings can have different python ids
-        if type(obj) != str:  # noqa: E721
-            dill.Pickler.memoize(self, obj)
-
-
-def dump(obj, file):
-    """pickle an object to a file"""
-    Pickler(file, recurse=True).dump(obj)
-    return
-
-
-@contextmanager
-def _no_cache_fields(obj):
-    try:
-        if (
-            "PreTrainedTokenizerBase" in [base_class.__name__ for base_class in type(obj).__mro__]
-            and hasattr(obj, "cache")
-            and isinstance(obj.cache, dict)
-        ):
-            with temporary_assignment(obj, "cache", {}):
-                yield
-        else:
-            yield
-
-    except ImportError:
-        yield
-
-
-def dumps(obj):
-    """pickle an object to a string"""
-    file = StringIO()
-    with _no_cache_fields(obj):
-        dump(obj, file)
-    return file.getvalue()
-
-
-def pklregister(t):
-    def proxy(func):
-        Pickler.dispatch[t] = func
-        return func
-
-    return proxy
-
-
-if config.DILL_VERSION < version.parse("0.3.6"):
-
-    @pklregister(CodeType)
-    def _save_code(pickler, obj):
-        """
-        From dill._dill.save_code
-        This is a modified version that removes the origin (filename + line no.)
-        of functions created in notebooks or shells for example.
-        """
-        dill._dill.log.info(f"Co: {obj}")
-        # The filename of a function is the .py file where it is defined.
-        # Filenames of functions created in notebooks or shells start with '<'
-        # ex: <ipython-input-13-9ed2afe61d25> for ipython, and <stdin> for shell
-        # Filenames of functions created in ipykernel the filename
-        # look like f"{tempdir}/ipykernel_{id1}/{id2}.py"
-        # Moreover lambda functions have a special name: '<lambda>'
-        # ex: (lambda x: x).__code__.co_name == "<lambda>"  # True
-        #
-        # For the hashing mechanism we ignore where the function has been defined
-        # More specifically:
-        # - we ignore the filename of special functions (filename starts with '<')
-        # - we always ignore the line number
-        # - we only use the base name of the file instead of the whole path,
-        # to be robust in case a script is moved for example.
-        #
-        # Only those two lines are different from the original implementation:
-        co_filename = (
-            ""
-            if obj.co_filename.startswith("<")
-            or (
-                len(obj.co_filename.split(os.path.sep)) > 1
-                and obj.co_filename.split(os.path.sep)[-2].startswith("ipykernel_")
-            )
-            or obj.co_name == "<lambda>"
-            else os.path.basename(obj.co_filename)
-        )
-        co_firstlineno = 1
-        # The rest is the same as in the original dill implementation
-        if dill._dill.PY3:
-            if hasattr(obj, "co_posonlyargcount"):
-                args = (
-                    obj.co_argcount,
-                    obj.co_posonlyargcount,
-                    obj.co_kwonlyargcount,
-                    obj.co_nlocals,
-                    obj.co_stacksize,
-                    obj.co_flags,
-                    obj.co_code,
-                    obj.co_consts,
-                    obj.co_names,
-                    obj.co_varnames,
-                    co_filename,
-                    obj.co_name,
-                    co_firstlineno,
-                    obj.co_lnotab,
-                    obj.co_freevars,
-                    obj.co_cellvars,
-                )
-            else:
-                args = (
-                    obj.co_argcount,
-                    obj.co_kwonlyargcount,
-                    obj.co_nlocals,
-                    obj.co_stacksize,
-                    obj.co_flags,
-                    obj.co_code,
-                    obj.co_consts,
-                    obj.co_names,
-                    obj.co_varnames,
-                    co_filename,
-                    obj.co_name,
-                    co_firstlineno,
-                    obj.co_lnotab,
-                    obj.co_freevars,
-                    obj.co_cellvars,
-                )
-        else:
-            args = (
-                obj.co_argcount,
-                obj.co_nlocals,
-                obj.co_stacksize,
-                obj.co_flags,
-                obj.co_code,
-                obj.co_consts,
-                obj.co_names,
-                obj.co_varnames,
-                co_filename,
-                obj.co_name,
-                co_firstlineno,
-                obj.co_lnotab,
-                obj.co_freevars,
-                obj.co_cellvars,
-            )
-        pickler.save_reduce(CodeType, args, obj=obj)
-        dill._dill.log.info("# Co")
-        return
-
-elif config.DILL_VERSION.release[:3] in [version.parse("0.3.6").release, version.parse("0.3.7").release]:
-    # From: https://github.com/uqfoundation/dill/blob/dill-0.3.6/dill/_dill.py#L1104
-    @pklregister(CodeType)
-    def save_code(pickler, obj):
-        dill._dill.logger.trace(pickler, "Co: %s", obj)
-
-        ############################################################################################################
-        # Modification here for huggingface/datasets
-        # The filename of a function is the .py file where it is defined.
-        # Filenames of functions created in notebooks or shells start with '<'
-        # ex: <ipython-input-13-9ed2afe61d25> for ipython, and <stdin> for shell
-        # Filenames of functions created in ipykernel the filename
-        # look like f"{tempdir}/ipykernel_{id1}/{id2}.py"
-        # Moreover lambda functions have a special name: '<lambda>'
-        # ex: (lambda x: x).__code__.co_name == "<lambda>"  # True
-        #
-        # For the hashing mechanism we ignore where the function has been defined
-        # More specifically:
-        # - we ignore the filename of special functions (filename starts with '<')
-        # - we always ignore the line number
-        # - we only use the base name of the file instead of the whole path,
-        # to be robust in case a script is moved for example.
-        #
-        # Only those two lines are different from the original implementation:
-        co_filename = (
-            ""
-            if obj.co_filename.startswith("<")
-            or (
-                len(obj.co_filename.split(os.path.sep)) > 1
-                and obj.co_filename.split(os.path.sep)[-2].startswith("ipykernel_")
-            )
-            or obj.co_name == "<lambda>"
-            else os.path.basename(obj.co_filename)
-        )
-        co_firstlineno = 1
-        # The rest is the same as in the original dill implementation, except for the replacements:
-        # - obj.co_filename => co_filename
-        # - obj.co_firstlineno => co_firstlineno
-        ############################################################################################################
-
-        if hasattr(obj, "co_endlinetable"):  # python 3.11a (20 args)
-            args = (
-                obj.co_lnotab,  # for < python 3.10 [not counted in args]
-                obj.co_argcount,
-                obj.co_posonlyargcount,
-                obj.co_kwonlyargcount,
-                obj.co_nlocals,
-                obj.co_stacksize,
-                obj.co_flags,
-                obj.co_code,
-                obj.co_consts,
-                obj.co_names,
-                obj.co_varnames,
-                co_filename,  # Modification for huggingface/datasets ############################################
-                obj.co_name,
-                obj.co_qualname,
-                co_firstlineno,  # Modification for huggingface/datasets #########################################
-                obj.co_linetable,
-                obj.co_endlinetable,
-                obj.co_columntable,
-                obj.co_exceptiontable,
-                obj.co_freevars,
-                obj.co_cellvars,
-            )
-        elif hasattr(obj, "co_exceptiontable"):  # python 3.11 (18 args)
-            args = (
-                obj.co_lnotab,  # for < python 3.10 [not counted in args]
-                obj.co_argcount,
-                obj.co_posonlyargcount,
-                obj.co_kwonlyargcount,
-                obj.co_nlocals,
-                obj.co_stacksize,
-                obj.co_flags,
-                obj.co_code,
-                obj.co_consts,
-                obj.co_names,
-                obj.co_varnames,
-                co_filename,  # Modification for huggingface/datasets ############################################
-                obj.co_name,
-                obj.co_qualname,
-                co_firstlineno,  # Modification for huggingface/datasets #########################################
-                obj.co_linetable,
-                obj.co_exceptiontable,
-                obj.co_freevars,
-                obj.co_cellvars,
-            )
-        elif hasattr(obj, "co_linetable"):  # python 3.10 (16 args)
-            args = (
-                obj.co_lnotab,  # for < python 3.10 [not counted in args]
-                obj.co_argcount,
-                obj.co_posonlyargcount,
-                obj.co_kwonlyargcount,
-                obj.co_nlocals,
-                obj.co_stacksize,
-                obj.co_flags,
-                obj.co_code,
-                obj.co_consts,
-                obj.co_names,
-                obj.co_varnames,
-                co_filename,  # Modification for huggingface/datasets ############################################
-                obj.co_name,
-                co_firstlineno,  # Modification for huggingface/datasets #########################################
-                obj.co_linetable,
-                obj.co_freevars,
-                obj.co_cellvars,
-            )
-        elif hasattr(obj, "co_posonlyargcount"):  # python 3.8 (16 args)
-            args = (
-                obj.co_argcount,
-                obj.co_posonlyargcount,
-                obj.co_kwonlyargcount,
-                obj.co_nlocals,
-                obj.co_stacksize,
-                obj.co_flags,
-                obj.co_code,
-                obj.co_consts,
-                obj.co_names,
-                obj.co_varnames,
-                co_filename,  # Modification for huggingface/datasets ############################################
-                obj.co_name,
-                co_firstlineno,  # Modification for huggingface/datasets #########################################
-                obj.co_lnotab,
-                obj.co_freevars,
-                obj.co_cellvars,
-            )
-        else:  # python 3.7 (15 args)
-            args = (
-                obj.co_argcount,
-                obj.co_kwonlyargcount,
-                obj.co_nlocals,
-                obj.co_stacksize,
-                obj.co_flags,
-                obj.co_code,
-                obj.co_consts,
-                obj.co_names,
-                obj.co_varnames,
-                co_filename,  # Modification for huggingface/datasets ############################################
-                obj.co_name,
-                co_firstlineno,  # Modification for huggingface/datasets #########################################
-                obj.co_lnotab,
-                obj.co_freevars,
-                obj.co_cellvars,
-            )
-
-        pickler.save_reduce(dill._dill._create_code, args, obj=obj)
-        dill._dill.logger.trace(pickler, "# Co")
-        return
-
-
-if config.DILL_VERSION < version.parse("0.3.5"):
-
-    @pklregister(FunctionType)
-    def save_function(pickler, obj):
-        """
-        From dill._dill.save_function
-        This is a modified version that make globs deterministic since the order of
-        the keys in the output dictionary of globalvars can change.
-        """
-        if not dill._dill._locate_function(obj):
-            dill._dill.log.info(f"F1: {obj}")
-            if getattr(pickler, "_recurse", False):
-                # recurse to get all globals referred to by obj
-                globalvars = dill.detect.globalvars
-                globs = globalvars(obj, recurse=True, builtin=True)
-                if id(obj) in dill._dill.stack:
-                    globs = obj.__globals__ if dill._dill.PY3 else obj.func_globals
-            else:
-                globs = obj.__globals__ if dill._dill.PY3 else obj.func_globals
-            # globs is a dictionary with keys = var names (str) and values = python objects
-            # however the dictionary is not always loaded in the same order
-            # therefore we have to sort the keys to make deterministic.
-            # This is important to make `dump` deterministic.
-            # Only this line is different from the original implementation:
-            globs = dict(sorted(globs.items()))
-            # The rest is the same as in the original dill implementation
-            _byref = getattr(pickler, "_byref", None)
-            _recurse = getattr(pickler, "_recurse", None)
-            _memo = (id(obj) in dill._dill.stack) and (_recurse is not None)
-            dill._dill.stack[id(obj)] = len(dill._dill.stack), obj
-            if dill._dill.PY3:
-                _super = ("super" in getattr(obj.__code__, "co_names", ())) and (_byref is not None)
-                if _super:
-                    pickler._byref = True
-                if _memo:
-                    pickler._recurse = False
-                fkwdefaults = getattr(obj, "__kwdefaults__", None)
-                pickler.save_reduce(
-                    dill._dill._create_function,
-                    (obj.__code__, globs, obj.__name__, obj.__defaults__, obj.__closure__, obj.__dict__, fkwdefaults),
-                    obj=obj,
-                )
-            else:
-                _super = (
-                    ("super" in getattr(obj.func_code, "co_names", ()))
-                    and (_byref is not None)
-                    and getattr(pickler, "_recurse", False)
-                )
-                if _super:
-                    pickler._byref = True
-                if _memo:
-                    pickler._recurse = False
-                pickler.save_reduce(
-                    dill._dill._create_function,
-                    (obj.func_code, globs, obj.func_name, obj.func_defaults, obj.func_closure, obj.__dict__),
-                    obj=obj,
-                )
-            if _super:
-                pickler._byref = _byref
-            if _memo:
-                pickler._recurse = _recurse
-            if (
-                dill._dill.OLDER
-                and not _byref
-                and (_super or (not _super and _memo) or (not _super and not _memo and _recurse))
-            ):
-                pickler.clear_memo()
-            dill._dill.log.info("# F1")
-        else:
-            dill._dill.log.info(f"F2: {obj}")
-            name = getattr(obj, "__qualname__", getattr(obj, "__name__", None))
-            dill._dill.StockPickler.save_global(pickler, obj, name=name)
-            dill._dill.log.info("# F2")
-        return
-
-elif config.DILL_VERSION.release[:3] == version.parse("0.3.5").release:  # 0.3.5, 0.3.5.1
-    # https://github.com/uqfoundation/dill/blob/dill-0.3.5.1/dill/_dill.py
-    @pklregister(FunctionType)
-    def save_function(pickler, obj):
-        if not dill._dill._locate_function(obj, pickler):
-            dill._dill.log.info("F1: %s" % obj)
-            _recurse = getattr(pickler, "_recurse", None)
-            _postproc = getattr(pickler, "_postproc", None)
-            _main_modified = getattr(pickler, "_main_modified", None)
-            _original_main = getattr(pickler, "_original_main", dill._dill.__builtin__)  # 'None'
-            postproc_list = []
-            if _recurse:
-                # recurse to get all globals referred to by obj
-                from dill.detect import globalvars
-
-                globs_copy = globalvars(obj, recurse=True, builtin=True)
-
-                # Add the name of the module to the globs dictionary to prevent
-                # the duplication of the dictionary. Pickle the unpopulated
-                # globals dictionary and set the remaining items after the function
-                # is created to correctly handle recursion.
-                globs = {"__name__": obj.__module__}
-            else:
-                globs_copy = obj.__globals__ if dill._dill.PY3 else obj.func_globals
-
-                # If the globals is the __dict__ from the module being saved as a
-                # session, substitute it by the dictionary being actually saved.
-                if _main_modified and globs_copy is _original_main.__dict__:
-                    globs_copy = getattr(pickler, "_main", _original_main).__dict__
-                    globs = globs_copy
-                # If the globals is a module __dict__, do not save it in the pickle.
-                elif (
-                    globs_copy is not None
-                    and obj.__module__ is not None
-                    and getattr(dill._dill._import_module(obj.__module__, True), "__dict__", None) is globs_copy
-                ):
-                    globs = globs_copy
-                else:
-                    globs = {"__name__": obj.__module__}
-
-            # DONE: modified here for huggingface/datasets
-            # - globs is a dictionary with keys = var names (str) and values = python objects
-            # - globs_copy is a dictionary with keys = var names (str) and values = ids of the python objects
-            # however the dictionary is not always loaded in the same order
-            # therefore we have to sort the keys to make deterministic.
-            # This is important to make `dump` deterministic.
-            # Only these line are different from the original implementation:
-            # START
-            globs_is_globs_copy = globs is globs_copy
-            globs = dict(sorted(globs.items()))
-            if globs_is_globs_copy:
-                globs_copy = globs
-            elif globs_copy is not None:
-                globs_copy = dict(sorted(globs_copy.items()))
-            # END
-
-            if globs_copy is not None and globs is not globs_copy:
-                # In the case that the globals are copied, we need to ensure that
-                # the globals dictionary is updated when all objects in the
-                # dictionary are already created.
-                if dill._dill.PY3:
-                    glob_ids = {id(g) for g in globs_copy.values()}
-                else:
-                    glob_ids = {id(g) for g in globs_copy.itervalues()}
-                for stack_element in _postproc:
-                    if stack_element in glob_ids:
-                        _postproc[stack_element].append((dill._dill._setitems, (globs, globs_copy)))
-                        break
-                else:
-                    postproc_list.append((dill._dill._setitems, (globs, globs_copy)))
-
-            if dill._dill.PY3:
-                closure = obj.__closure__
-                state_dict = {}
-                for fattrname in ("__doc__", "__kwdefaults__", "__annotations__"):
-                    fattr = getattr(obj, fattrname, None)
-                    if fattr is not None:
-                        state_dict[fattrname] = fattr
-                if obj.__qualname__ != obj.__name__:
-                    state_dict["__qualname__"] = obj.__qualname__
-                if "__name__" not in globs or obj.__module__ != globs["__name__"]:
-                    state_dict["__module__"] = obj.__module__
-
-                state = obj.__dict__
-                if type(state) is not dict:  # noqa: E721
-                    state_dict["__dict__"] = state
-                    state = None
-                if state_dict:
-                    state = state, state_dict
-
-                dill._dill._save_with_postproc(
-                    pickler,
-                    (
-                        dill._dill._create_function,
-                        (obj.__code__, globs, obj.__name__, obj.__defaults__, closure),
-                        state,
-                    ),
-                    obj=obj,
-                    postproc_list=postproc_list,
-                )
-            else:
-                closure = obj.func_closure
-                if obj.__doc__ is not None:
-                    postproc_list.append((setattr, (obj, "__doc__", obj.__doc__)))
-                if "__name__" not in globs or obj.__module__ != globs["__name__"]:
-                    postproc_list.append((setattr, (obj, "__module__", obj.__module__)))
-                if obj.__dict__:
-                    postproc_list.append((setattr, (obj, "__dict__", obj.__dict__)))
-
-                dill._dill._save_with_postproc(
-                    pickler,
-                    (dill._dill._create_function, (obj.func_code, globs, obj.func_name, obj.func_defaults, closure)),
-                    obj=obj,
-                    postproc_list=postproc_list,
-                )
-
-            # Lift closure cell update to earliest function (#458)
-            if _postproc:
-                topmost_postproc = next(iter(_postproc.values()), None)
-                if closure and topmost_postproc:
-                    for cell in closure:
-                        possible_postproc = (setattr, (cell, "cell_contents", obj))
-                        try:
-                            topmost_postproc.remove(possible_postproc)
-                        except ValueError:
-                            continue
-
-                        # Change the value of the cell
-                        pickler.save_reduce(*possible_postproc)
-                        # pop None created by calling preprocessing step off stack
-                        if dill._dill.PY3:
-                            pickler.write(bytes("0", "UTF-8"))
-                        else:
-                            pickler.write("0")
-
-            dill._dill.log.info("# F1")
-        else:
-            dill._dill.log.info("F2: %s" % obj)
-            name = getattr(obj, "__qualname__", getattr(obj, "__name__", None))
-            dill._dill.StockPickler.save_global(pickler, obj, name=name)
-            dill._dill.log.info("# F2")
-        return
-
-elif config.DILL_VERSION.release[:3] in [version.parse("0.3.6").release, version.parse("0.3.7").release]:
-    # From: https://github.com/uqfoundation/dill/blob/dill-0.3.6/dill/_dill.py#L1739
-    @pklregister(FunctionType)
-    def save_function(pickler, obj):
-        if not dill._dill._locate_function(obj, pickler):
-            if type(obj.__code__) is not CodeType:
-                # Some PyPy builtin functions have no module name, and thus are not
-                # able to be located
-                module_name = getattr(obj, "__module__", None)
-                if module_name is None:
-                    module_name = dill._dill.__builtin__.__name__
-                module = dill._dill._import_module(module_name, safe=True)
-                _pypy_builtin = False
-                try:
-                    found, _ = dill._dill._getattribute(module, obj.__qualname__)
-                    if getattr(found, "__func__", None) is obj:
-                        _pypy_builtin = True
-                except AttributeError:
-                    pass
-
-                if _pypy_builtin:
-                    dill._dill.logger.trace(pickler, "F3: %s", obj)
-                    pickler.save_reduce(getattr, (found, "__func__"), obj=obj)
-                    dill._dill.logger.trace(pickler, "# F3")
-                    return
-
-            dill._dill.logger.trace(pickler, "F1: %s", obj)
-            _recurse = getattr(pickler, "_recurse", None)
-            _postproc = getattr(pickler, "_postproc", None)
-            _main_modified = getattr(pickler, "_main_modified", None)
-            _original_main = getattr(pickler, "_original_main", dill._dill.__builtin__)  # 'None'
-            postproc_list = []
-            if _recurse:
-                # recurse to get all globals referred to by obj
-                from dill.detect import globalvars
-
-                globs_copy = globalvars(obj, recurse=True, builtin=True)
-
-                # Add the name of the module to the globs dictionary to prevent
-                # the duplication of the dictionary. Pickle the unpopulated
-                # globals dictionary and set the remaining items after the function
-                # is created to correctly handle recursion.
-                globs = {"__name__": obj.__module__}
-            else:
-                globs_copy = obj.__globals__
-
-                # If the globals is the __dict__ from the module being saved as a
-                # session, substitute it by the dictionary being actually saved.
-                if _main_modified and globs_copy is _original_main.__dict__:
-                    globs_copy = getattr(pickler, "_main", _original_main).__dict__
-                    globs = globs_copy
-                # If the globals is a module __dict__, do not save it in the pickle.
-                elif (
-                    globs_copy is not None
-                    and obj.__module__ is not None
-                    and getattr(dill._dill._import_module(obj.__module__, True), "__dict__", None) is globs_copy
-                ):
-                    globs = globs_copy
-                else:
-                    globs = {"__name__": obj.__module__}
-
-            ########################################################################################################
-            # Modification here for huggingface/datasets
-            # - globs is a dictionary with keys = var names (str) and values = python objects
-            # - globs_copy is a dictionary with keys = var names (str) and values = ids of the python objects
-            # However the dictionary is not always loaded in the same order,
-            # therefore we have to sort the keys to make deterministic.
-            # This is important to make `dump` deterministic.
-            # Only these line are different from the original implementation:
-            # START
-            globs_is_globs_copy = globs is globs_copy
-            globs = dict(sorted(globs.items()))
-            if globs_is_globs_copy:
-                globs_copy = globs
-            elif globs_copy is not None:
-                globs_copy = dict(sorted(globs_copy.items()))
-            # END
-            ########################################################################################################
-
-            if globs_copy is not None and globs is not globs_copy:
-                # In the case that the globals are copied, we need to ensure that
-                # the globals dictionary is updated when all objects in the
-                # dictionary are already created.
-                glob_ids = {id(g) for g in globs_copy.values()}
-                for stack_element in _postproc:
-                    if stack_element in glob_ids:
-                        _postproc[stack_element].append((dill._dill._setitems, (globs, globs_copy)))
-                        break
-                else:
-                    postproc_list.append((dill._dill._setitems, (globs, globs_copy)))
-
-            closure = obj.__closure__
-            state_dict = {}
-            for fattrname in ("__doc__", "__kwdefaults__", "__annotations__"):
-                fattr = getattr(obj, fattrname, None)
-                if fattr is not None:
-                    state_dict[fattrname] = fattr
-            if obj.__qualname__ != obj.__name__:
-                state_dict["__qualname__"] = obj.__qualname__
-            if "__name__" not in globs or obj.__module__ != globs["__name__"]:
-                state_dict["__module__"] = obj.__module__
-
-            state = obj.__dict__
-            if type(state) is not dict:  # noqa: E721
-                state_dict["__dict__"] = state
-                state = None
-            if state_dict:
-                state = state, state_dict
-
-            dill._dill._save_with_postproc(
-                pickler,
-                (dill._dill._create_function, (obj.__code__, globs, obj.__name__, obj.__defaults__, closure), state),
-                obj=obj,
-                postproc_list=postproc_list,
-            )
-
-            # Lift closure cell update to earliest function (#458)
-            if _postproc:
-                topmost_postproc = next(iter(_postproc.values()), None)
-                if closure and topmost_postproc:
-                    for cell in closure:
-                        possible_postproc = (setattr, (cell, "cell_contents", obj))
-                        try:
-                            topmost_postproc.remove(possible_postproc)
-                        except ValueError:
-                            continue
-
-                        # Change the value of the cell
-                        pickler.save_reduce(*possible_postproc)
-                        # pop None created by calling preprocessing step off stack
-                        pickler.write(bytes("0", "UTF-8"))
-
-            dill._dill.logger.trace(pickler, "# F1")
-        else:
-            dill._dill.logger.trace(pickler, "F2: %s", obj)
-            name = getattr(obj, "__qualname__", getattr(obj, "__name__", None))
-            dill._dill.StockPickler.save_global(pickler, obj, name=name)
-            dill._dill.logger.trace(pickler, "# F2")
-        return
 
 
 def copyfunc(func):

@@ -1,6 +1,6 @@
 import copy
 import os
-from pathlib import Path, PurePath
+from pathlib import Path
 from typing import List
 from unittest.mock import patch
 
@@ -12,10 +12,13 @@ from fsspec.spec import AbstractFileSystem
 from datasets.data_files import (
     DataFilesDict,
     DataFilesList,
+    DataFilesPatternsDict,
+    DataFilesPatternsList,
     _get_data_files_patterns,
     _get_metadata_files_patterns,
     _is_inside_unrequested_special_dir,
     _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir,
+    get_data_patterns,
     resolve_pattern,
 )
 from datasets.fingerprint import Hasher
@@ -412,8 +415,6 @@ def test_DataFilesDict_from_patterns_in_dataset_repository(
         ("**", 4, None, "train"),
         ("**", 4, "data", "train"),
         ("**", 2, "data/subdir", "train"),
-        ("**train*", 1, "data/subdir", "train"),
-        ("**test*", 1, "data/subdir", "test"),
         ("**", 0, "data/subdir2", "train"),
     ],
 )
@@ -449,14 +450,6 @@ def test_DataFilesDict_from_patterns_in_dataset_repository_hashing(hub_dataset_r
     data_files2 = DataFilesDict(sorted(data_files1.items(), reverse=True))
     assert Hasher.hash(data_files1) == Hasher.hash(data_files2)
 
-    patterns2 = {"train": ["data/**train.txt"], "test": ["data/**test.txt"]}
-    data_files2 = DataFilesDict.from_patterns(patterns2, hub_dataset_repo_path)
-    assert Hasher.hash(data_files1) == Hasher.hash(data_files2)
-
-    patterns2 = {"train": ["data/**train.txt"], "test": ["data/**train.txt"]}
-    data_files2 = DataFilesDict.from_patterns(patterns2, hub_dataset_repo_path)
-    assert Hasher.hash(data_files1) != Hasher.hash(data_files2)
-
     # the tmpfs used to mock the hub repo is based on a local directory
     # therefore os.stat is used to get the mtime of the data files
     with patch("os.stat", return_value=os.stat(__file__)):
@@ -486,6 +479,37 @@ def test_DataFilesDict_from_patterns_locally_or_remote_hashing(text_file):
         assert Hasher.hash(data_files1) != Hasher.hash(data_files2)
 
 
+def test_DataFilesPatternsList(text_file):
+    data_files_patterns = DataFilesPatternsList([str(text_file)], allowed_extensions=[None])
+    data_files = data_files_patterns.resolve(base_path="")
+    assert data_files == [text_file.as_posix()]
+    assert isinstance(data_files, DataFilesList)
+    data_files_patterns = DataFilesPatternsList([str(text_file)], allowed_extensions=[[".txt"]])
+    data_files = data_files_patterns.resolve(base_path="")
+    assert data_files == [text_file.as_posix()]
+    assert isinstance(data_files, DataFilesList)
+    data_files_patterns = DataFilesPatternsList([str(text_file).replace(".txt", ".tx*")], allowed_extensions=[None])
+    data_files = data_files_patterns.resolve(base_path="")
+    assert data_files == [text_file.as_posix()]
+    assert isinstance(data_files, DataFilesList)
+    data_files_patterns = DataFilesPatternsList([Path(text_file).name], allowed_extensions=[None])
+    data_files = data_files_patterns.resolve(base_path=str(Path(text_file).parent))
+    assert data_files == [text_file.as_posix()]
+    data_files_patterns = DataFilesPatternsList([str(text_file)], allowed_extensions=[[".zip"]])
+    with pytest.raises(FileNotFoundError):
+        data_files_patterns.resolve(base_path="")
+
+
+def test_DataFilesPatternsDict(text_file):
+    data_files_patterns_dict = DataFilesPatternsDict(
+        {"train": DataFilesPatternsList([str(text_file)], allowed_extensions=[None])}
+    )
+    data_files_dict = data_files_patterns_dict.resolve(base_path="")
+    assert data_files_dict == {"train": [text_file.as_posix()]}
+    assert isinstance(data_files_dict, DataFilesDict)
+    assert isinstance(data_files_dict["train"], DataFilesList)
+
+
 def mock_fs(file_paths: List[str]):
     """
     Set up a mock filesystem for fsspec containing the provided files
@@ -493,15 +517,18 @@ def mock_fs(file_paths: List[str]):
     Example:
 
     ```py
-    >>> fs = mock_fs(["data/train.txt", "data.test.txt"])
+    >>> DummyTestFS = mock_fs(["data/train.txt", "data.test.txt"])
+    >>> fs = DummyTestFS()
     >>> assert fsspec.get_filesystem_class("mock").__name__ == "DummyTestFS"
     >>> assert type(fs).__name__ == "DummyTestFS"
     >>> print(fs.glob("**"))
     ["data", "data/train.txt", "data.test.txt"]
     ```
     """
-
-    dir_paths = {file_path.rsplit("/")[0] for file_path in file_paths if "/" in file_path}
+    file_paths = [file_path.split("://")[-1] for file_path in file_paths]
+    dir_paths = {
+        "/".join(file_path.split("/")[: i + 1]) for file_path in file_paths for i in range(file_path.count("/"))
+    }
     fs_contents = [{"name": dir_path, "type": "directory"} for dir_path in dir_paths] + [
         {"name": file_path, "type": "file", "size": 10} for file_path in file_paths
     ]
@@ -527,6 +554,7 @@ def mock_fs(file_paths: List[str]):
     return DummyTestFS
 
 
+@pytest.mark.parametrize("base_path", ["", "mock://", "my_dir"])
 @pytest.mark.parametrize(
     "data_file_per_split",
     [
@@ -571,6 +599,18 @@ def mock_fs(file_paths: List[str]):
         {"test": "data/my_test_file.txt"},
         {"validation": "my_validation_dir/dataset.txt"},
         {"validation": "data/my_validation_file.txt"},
+        {"train": "train_dir/dataset.txt"},
+        {"train": "data/train_file.txt"},
+        {"test": "test_dir/dataset.txt"},
+        {"test": "data/test_file.txt"},
+        {"validation": "validation_dir/dataset.txt"},
+        {"validation": "data/validation_file.txt"},
+        {"train": "my_train/dataset.txt"},
+        {"train": "data/my_train.txt"},
+        {"test": "my_test/dataset.txt"},
+        {"test": "data/my_test.txt"},
+        {"validation": "my_validation/dataset.txt"},
+        {"validation": "data/my_validation.txt"},
         # With test<>eval aliases
         {"test": "eval.txt"},
         {"test": "data/eval.txt"},
@@ -593,23 +633,40 @@ def mock_fs(file_paths: List[str]):
         {"test": "my-test-file.txt"},
         {"test": "my_test_file.txt"},
         {"test": "my test file.txt"},
+        {"test": "my-test_file.txt"},
         {"test": "test00001.txt"},
     ],
 )
-def test_get_data_files_patterns(data_file_per_split):
+def test_get_data_files_patterns(base_path, data_file_per_split):
     data_file_per_split = {k: v if isinstance(v, list) else [v] for k, v in data_file_per_split.items()}
-    file_paths = [file_path for split_file_paths in data_file_per_split.values() for file_path in split_file_paths]
+    data_file_per_split = {
+        split: [
+            base_path + ("/" if base_path and base_path[-1] != "/" else "") + file_path
+            for file_path in data_file_per_split[split]
+        ]
+        for split in data_file_per_split
+    }
+    file_paths = sum(data_file_per_split.values(), [])
     DummyTestFS = mock_fs(file_paths)
     fs = DummyTestFS()
 
     def resolver(pattern):
-        return [file_path for file_path in fs.glob(pattern) if fs.isfile(file_path)]
+        pattern = base_path + ("/" if base_path and base_path[-1] != "/" else "") + pattern
+        return [
+            file_path[len(fs._strip_protocol(base_path)) :].lstrip("/")
+            for file_path in fs.glob(pattern)
+            if fs.isfile(file_path)
+        ]
 
     patterns_per_split = _get_data_files_patterns(resolver)
     assert list(patterns_per_split.keys()) == list(data_file_per_split.keys())  # Test split order with list()
     for split, patterns in patterns_per_split.items():
         matched = [file_path for pattern in patterns for file_path in resolver(pattern)]
-        assert matched == data_file_per_split[split]
+        expected = [
+            fs._strip_protocol(file_path)[len(fs._strip_protocol(base_path)) :].lstrip("/")
+            for file_path in data_file_per_split[split]
+        ]
+        assert matched == expected
 
 
 @pytest.mark.parametrize(
@@ -619,16 +676,27 @@ def test_get_data_files_patterns(data_file_per_split):
         ["metadata.jsonl"],
         ["metadata.csv"],
         # nested metadata files
-        ["data/metadata.jsonl", "data/train/metadata.jsonl"],
-        ["data/metadata.csv", "data/train/metadata.csv"],
+        ["metadata.jsonl", "data/metadata.jsonl"],
+        ["metadata.csv", "data/metadata.csv"],
     ],
 )
 def test_get_metadata_files_patterns(metadata_files):
+    DummyTestFS = mock_fs(metadata_files)
+    fs = DummyTestFS()
+
     def resolver(pattern):
-        return [PurePath(path) for path in set(metadata_files) if PurePath(path).match(pattern)]
+        return [file_path for file_path in fs.glob(pattern) if fs.isfile(file_path)]
 
     patterns = _get_metadata_files_patterns(resolver)
-    matched = [path for path in metadata_files for pattern in patterns if PurePath(path).match(pattern)]
-    # Use set to remove the difference between in behavior between PurePath.match and mathcing via fsspec.glob
-    assert len(set(matched)) == len(metadata_files)
-    assert sorted(set(matched)) == sorted(metadata_files)
+    matched = [file_path for pattern in patterns for file_path in resolver(pattern)]
+    assert sorted(matched) == sorted(metadata_files)
+
+
+def test_get_data_patterns_from_directory_with_the_word_data_twice(tmp_path):
+    repo_dir = tmp_path / "directory-name-ending-with-the-word-data"  # parent directory contains the word "data/"
+    data_dir = repo_dir / "data"
+    data_dir.mkdir(parents=True)
+    data_file = data_dir / "train-00001-of-00009.parquet"
+    data_file.touch()
+    data_file_patterns = get_data_patterns(repo_dir.as_posix())
+    assert data_file_patterns == {"train": ["data/train-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"]}

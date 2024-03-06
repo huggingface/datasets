@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # Lint as: python3
-""" DatasetInfo and MetricInfo record information we know about a dataset and a metric.
+"""DatasetInfo and MetricInfo record information we know about a dataset and a metric.
 
 This includes things that we know about the dataset statically, i.e.:
  - description
@@ -43,7 +43,6 @@ from huggingface_hub import DatasetCard, DatasetCardData
 
 from . import config
 from .features import Features, Value
-from .filesystems import is_remote_filesystem
 from .splits import SplitDict
 from .tasks import TaskTemplate, task_template_from_dict
 from .utils import Version
@@ -251,16 +250,12 @@ class DatasetInfo:
             )
             storage_options = fs.storage_options
 
-        fs_token_paths = fsspec.get_fs_token_paths(dataset_info_dir, storage_options=storage_options)
-        fs: fsspec.AbstractFileSystem = fs_token_paths[0]
-
-        is_local = not is_remote_filesystem(fs)
-        path_join = os.path.join if is_local else posixpath.join
-
-        with fs.open(path_join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb") as f:
+        fs: fsspec.AbstractFileSystem
+        fs, _, _ = fsspec.get_fs_token_paths(dataset_info_dir, storage_options=storage_options)
+        with fs.open(posixpath.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb") as f:
             self._dump_info(f, pretty_print=pretty_print)
         if self.license:
-            with fs.open(path_join(dataset_info_dir, config.LICENSE_FILENAME), "wb") as f:
+            with fs.open(posixpath.join(dataset_info_dir, config.LICENSE_FILENAME), "wb") as f:
                 self._dump_license(f)
 
     def _dump_info(self, file, pretty_print=False):
@@ -274,6 +269,11 @@ class DatasetInfo:
     @classmethod
     def from_merge(cls, dataset_infos: List["DatasetInfo"]):
         dataset_infos = [dset_info.copy() for dset_info in dataset_infos if dset_info is not None]
+
+        if len(dataset_infos) > 0 and all(dataset_infos[0] == dset_info for dset_info in dataset_infos):
+            # if all dataset_infos are equal we don't need to merge. Just return the first.
+            return dataset_infos[0]
+
         description = "\n\n".join(unique_values(info.description for info in dataset_infos)).strip()
         citation = "\n\n".join(unique_values(info.citation for info in dataset_infos)).strip()
         homepage = "\n\n".join(unique_values(info.homepage for info in dataset_infos)).strip()
@@ -346,17 +346,12 @@ class DatasetInfo:
             )
             storage_options = fs.storage_options
 
-        fs_token_paths = fsspec.get_fs_token_paths(dataset_info_dir, storage_options=storage_options)
-        fs: fsspec.AbstractFileSystem = fs_token_paths[0]
-
+        fs: fsspec.AbstractFileSystem
+        fs, _, _ = fsspec.get_fs_token_paths(dataset_info_dir, storage_options=storage_options)
         logger.info(f"Loading Dataset info from {dataset_info_dir}")
         if not dataset_info_dir:
             raise ValueError("Calling DatasetInfo.from_directory() with undefined dataset_info_dir.")
-
-        is_local = not is_remote_filesystem(fs)
-        path_join = os.path.join if is_local else posixpath.join
-
-        with fs.open(path_join(dataset_info_dir, config.DATASET_INFO_FILENAME), "r", encoding="utf-8") as f:
+        with fs.open(posixpath.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "r", encoding="utf-8") as f:
             dataset_info_dict = json.load(f)
         return cls.from_dict(dataset_info_dict)
 
@@ -407,7 +402,7 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
     def write_to_directory(self, dataset_infos_dir, overwrite=False, pretty_print=False) -> None:
         total_dataset_infos = {}
         dataset_infos_path = os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME)
-        dataset_readme_path = os.path.join(dataset_infos_dir, "README.md")
+        dataset_readme_path = os.path.join(dataset_infos_dir, config.REPOCARD_FILENAME)
         if not overwrite:
             total_dataset_infos = self.from_directory(dataset_infos_dir)
         total_dataset_infos.update(self)
@@ -436,8 +431,8 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
     def from_directory(cls, dataset_infos_dir) -> "DatasetInfosDict":
         logger.info(f"Loading Dataset Infos from {dataset_infos_dir}")
         # Load the info from the YAML part of README.md
-        if os.path.exists(os.path.join(dataset_infos_dir, "README.md")):
-            dataset_card_data = DatasetCard.load(Path(dataset_infos_dir) / "README.md").data
+        if os.path.exists(os.path.join(dataset_infos_dir, config.REPOCARD_FILENAME)):
+            dataset_card_data = DatasetCard.load(Path(dataset_infos_dir) / config.REPOCARD_FILENAME).data
             if "dataset_info" in dataset_card_data:
                 return cls.from_dataset_card_data(dataset_card_data)
         if os.path.exists(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME)):

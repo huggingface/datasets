@@ -17,9 +17,6 @@ if TYPE_CHECKING:
     from .features import FeatureType
 
 
-_ffmpeg_warned, _librosa_warned, _audioread_warned = False, False, False
-
-
 @dataclass
 class Audio:
     """Audio [`Feature`] to extract audio data from an audio file.

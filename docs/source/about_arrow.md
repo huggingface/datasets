@@ -43,8 +43,8 @@ Iterating over a memory-mapped dataset using Arrow is fast. Iterating over Wikip
 ...     ...
 ... """
 
->>> time = timeit.timeit(stmt=s, number=1, globals=globals())
->>> print(f"Time to iterate over the {wiki.dataset_size >> 30} GB dataset: {time:.1f} sec, "
-...       f"ie. {float(wiki.dataset_size >> 27)/time:.1f} Gb/s")
+>>> elapsed_time = timeit.timeit(stmt=s, number=1, globals=globals())
+>>> print(f"Time to iterate over the {wiki.dataset_size >> 30} GB dataset: {elapsed_time:.1f} sec, "
+...       f"ie. {float(wiki.dataset_size >> 27)/elapsed_time:.1f} Gb/s")
 Time to iterate over the 18 GB dataset: 31.8 sec, ie. 4.8 Gb/s
 ```

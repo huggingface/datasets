@@ -198,10 +198,8 @@ This directory structure allows your dataset to be loaded in one line:
 ```
 
 This guide will show you how to create a dataset loading script for audio datasets, which is a bit different from <a class="underline decoration-green-400 decoration-2 font-semibold" href="./dataset_script">creating a loading script for text datasets</a>.
-Audio datasets are commonly stored in `tar.gz` archives which requires a particular approach to support streaming mode. While streaming is not required, we highly encourage implementing streaming support in your audio dataset because:
+Audio datasets are commonly stored in `tar.gz` archives which requires a particular approach to support streaming mode. While streaming is not required, we highly encourage implementing streaming support in your audio dataset because users without a lot of disk space can use your dataset without downloading it. Learn more about streaming in the [Stream](./stream) guide!
 
-1. Users without a lot of disk space can use your dataset without downloading it. Learn more about streaming in the [Stream](./stream) guide!
-2. Users can preview a dataset in the dataset viewer.
 
 Here is an example using TAR archives:
 
@@ -295,7 +293,7 @@ class LibriVoxIndonesiaConfig(datasets.BuilderConfig):
 Define your configurations in the `BUILDER_CONFIGS` class variable inside [`GeneratorBasedBuilder`]. In this example, the author imports the languages from a separate `release_stats.py` [file](https://huggingface.co/datasets/indonesian-nlp/librivox-indonesia/blob/main/release_stats.py) from their repository, and then loops through each language to create a configuration:
 
 ```py
-class LibriVoxIndonesiaConfig(datasets.GeneratorBasedBuilder):
+class LibriVoxIndonesia(datasets.GeneratorBasedBuilder):
     DEFAULT_CONFIG_NAME = "all"
 
     BUILDER_CONFIGS = [

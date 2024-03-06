@@ -127,14 +127,15 @@ def _convert_to_arrow(
             Drop the last batch if it is smaller than `batch_size`.
     """
     if batch_size is None or batch_size <= 0:
-        yield "all", pa.Table.from_pylist(
-            cast_to_python_objects([example for _, example in iterable], only_1d_for_numpy=True)
+        yield (
+            "all",
+            pa.Table.from_pylist(cast_to_python_objects([example for _, example in iterable], only_1d_for_numpy=True)),
         )
         return
     iterator = iter(iterable)
     for key, example in iterator:
         iterator_batch = islice(iterator, batch_size - 1)
-        key_examples_list = [(key, example)] + [(key, example) for key, example in iterator_batch]
+        key_examples_list = [(key, example)] + list(iterator_batch)
         if len(key_examples_list) < batch_size and drop_last_batch:
             return
         keys, examples = zip(*key_examples_list)
@@ -697,7 +698,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     if self.batch_size is None or self.batch_size <= 0
                     else islice(iterator, self.batch_size - 1)
                 )
-                key_examples_list = [(key, example)] + [(key, example) for key, example in iterator_batch]
+                key_examples_list = [(key, example)] + list(iterator_batch)
                 keys, examples = zip(*key_examples_list)
                 if (
                     self.drop_last_batch
@@ -733,9 +734,9 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 # the new key is the concatenation of the examples keys from the batch
                 new_key = "_".join(str(key) for key in keys)
                 # yield one example at a time from the transformed batch
-                for batch_idx, example in enumerate(_batch_to_examples(transformed_batch)):
+                for example in _batch_to_examples(transformed_batch):
                     yield new_key, example
-                current_idx += batch_idx + 1
+                    current_idx += 1
         else:
             for key, example in iterator:
                 # If not batched, we can apply the transform and yield the example directly
@@ -803,8 +804,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             input_columns=self.input_columns,
             batched=self.batched,
             batch_size=self.batch_size,
+            drop_last_batch=self.drop_last_batch,
             remove_columns=self.remove_columns,
             fn_kwargs=self.fn_kwargs,
+            formatting=self.formatting,
         )
 
     def shard_data_sources(self, worker_id: int, num_workers: int) -> "MappedExamplesIterable":
@@ -816,8 +819,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             input_columns=self.input_columns,
             batched=self.batched,
             batch_size=self.batch_size,
+            drop_last_batch=self.drop_last_batch,
             remove_columns=self.remove_columns,
             fn_kwargs=self.fn_kwargs,
+            formatting=self.formatting,
         )
 
     @property
@@ -880,7 +885,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                     if self.batch_size is None or self.batch_size <= 0
                     else islice(iterator, self.batch_size - 1)
                 )
-                key_examples_list = [(key, example)] + [(key, example) for key, example in iterator_batch]
+                key_examples_list = [(key, example)] + list(iterator_batch)
                 keys, examples = zip(*key_examples_list)
                 batch = _examples_to_batch(examples)
                 batch = format_dict(batch) if format_dict else batch
@@ -891,10 +896,10 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                     function_args.append([current_idx + i for i in range(len(key_examples_list))])
                 mask = self.function(*function_args, **self.fn_kwargs)
                 # yield one example at a time from the batch
-                for batch_idx, (key_example, to_keep) in enumerate(zip(key_examples_list, mask)):
+                for key_example, to_keep in zip(key_examples_list, mask):
                     if to_keep:
                         yield key_example
-                current_idx += batch_idx + 1
+                    current_idx += 1
         else:
             for key, example in iterator:
                 # If not batched, we can apply the filtering function direcly
@@ -1112,8 +1117,9 @@ class TypedExamplesIterable(_BaseExamplesIterable):
         # Then for each example, `TypedExamplesIterable` automatically fills missing columns with None.
         # This is done with `_apply_feature_types_on_example`.
         for key, example in self.ex_iterable:
-            yield key, _apply_feature_types_on_example(
-                example, self.features, token_per_repo_id=self.token_per_repo_id
+            yield (
+                key,
+                _apply_feature_types_on_example(example, self.features, token_per_repo_id=self.token_per_repo_id),
             )
 
     def _iter_arrow(self) -> Iterator[Tuple[Key, pa.Table]]:
@@ -1218,6 +1224,9 @@ class IterableDataset(DatasetInfoMixin):
         self._token_per_repo_id: Dict[str, Union[str, bool, None]] = token_per_repo_id or {}
         _maybe_add_torch_iterable_dataset_parent_class(self.__class__)
 
+    def __repr__(self):
+        return f"IterableDataset({{\n    features: {list(self._info.features.keys()) if self._info.features is not None else 'Unknown'},\n    n_shards: {self.n_shards}\n}})"
+
     def __getstate__(self):
         return self.__dict__
 
@@ -1266,7 +1275,7 @@ class IterableDataset(DatasetInfoMixin):
             )
         # split workload
         _log_prefix = f"node#{self._distributed.rank} " if self._distributed else ""
-        shards_indices = self._ex_iterable.split_shard_indices_by_worker(worker_info.id, worker_info.num_workers)
+        shards_indices = ex_iterable.split_shard_indices_by_worker(worker_info.id, worker_info.num_workers)
         if shards_indices:
             logger.debug(
                 f"{_log_prefix}dataloader worker#{worker_info.id}, ': Starting to iterate over {len(shards_indices)}/{ex_iterable.n_shards} shards."
@@ -1781,7 +1790,7 @@ class IterableDataset(DatasetInfoMixin):
         Args:
             seed (`int`, *optional*, defaults to `None`):
                 Random seed that will be used to shuffle the dataset.
-                It is used to sample from the shuffle buffe and also to shuffle the data shards.
+                It is used to sample from the shuffle buffer and also to shuffle the data shards.
             generator (`numpy.random.Generator`, *optional*):
                 Numpy random Generator to use to compute the permutation of the dataset rows.
                 If `generator=None` (default), uses `np.random.default_rng` (the default BitGenerator (PCG64) of NumPy).
@@ -2058,13 +2067,13 @@ class IterableDataset(DatasetInfoMixin):
         if self._info:
             info = copy.deepcopy(self._info)
             if self._info.features is not None:
-                for column_name in column_names:
-                    if column_name not in self._info.features:
-                        raise ValueError(
-                            f"Column name {column_name} not in the "
-                            "dataset. Columns in the dataset: "
-                            f"{list(self._info.features.keys())}."
-                        )
+                missing_columns = set(column_names) - set(self._info.features.keys())
+                if missing_columns:
+                    raise ValueError(
+                        f"Column name {list(missing_columns)} not in the "
+                        "dataset. Columns in the dataset: "
+                        f"{list(self._info.features.keys())}."
+                    )
                 info.features = Features({c: info.features[c] for c in column_names})
                 # check that it's still valid, especially with regard to task templates
                 try:

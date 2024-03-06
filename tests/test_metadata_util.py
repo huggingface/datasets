@@ -9,6 +9,7 @@ import yaml
 from huggingface_hub import DatasetCard, DatasetCardData
 
 from datasets.config import METADATA_CONFIGS_FIELD
+from datasets.info import DatasetInfo
 from datasets.utils.metadata import MetadataConfigs
 
 
@@ -223,7 +224,7 @@ class TestMetadataUtils(unittest.TestCase):
 @pytest.mark.parametrize(
     "readme_content, expected_metadata_configs_dict, expected_default_config_name",
     [
-        (README_METADATA_SINGLE_CONFIG, EXPECTED_METADATA_SINGLE_CONFIG, None),
+        (README_METADATA_SINGLE_CONFIG, EXPECTED_METADATA_SINGLE_CONFIG, "custom"),
         (README_METADATA_TWO_CONFIGS_WITH_DEFAULT_FLAG, EXPECTED_METADATA_TWO_CONFIGS_DEFAULT_FLAG, "v2"),
         (README_METADATA_TWO_CONFIGS_WITH_DEFAULT_NAME, EXPECTED_METADATA_TWO_CONFIGS_DEFAULT_NAME, "default"),
     ],
@@ -249,3 +250,85 @@ def test_metadata_configs_incorrect_yaml():
         dataset_card_data = DatasetCard.load(path).data
         with pytest.raises(ValueError):
             _ = MetadataConfigs.from_dataset_card_data(dataset_card_data)
+
+
+def test_split_order_in_metadata_configs_from_exported_parquet_files_and_dataset_infos():
+    exported_parquet_files = [
+        {
+            "dataset": "beans",
+            "config": "default",
+            "split": "test",
+            "url": "https://huggingface.co/datasets/beans/resolve/refs%2Fconvert%2Fparquet/default/test/0000.parquet",
+            "filename": "0000.parquet",
+            "size": 17707203,
+        },
+        {
+            "dataset": "beans",
+            "config": "default",
+            "split": "train",
+            "url": "https://huggingface.co/datasets/beans/resolve/refs%2Fconvert%2Fparquet/default/train/0000.parquet",
+            "filename": "0000.parquet",
+            "size": 143780164,
+        },
+        {
+            "dataset": "beans",
+            "config": "default",
+            "split": "validation",
+            "url": "https://huggingface.co/datasets/beans/resolve/refs%2Fconvert%2Fparquet/default/validation/0000.parquet",
+            "filename": "0000.parquet",
+            "size": 18500862,
+        },
+    ]
+    dataset_infos = {
+        "default": DatasetInfo(
+            dataset_name="beans",
+            config_name="default",
+            version="0.0.0",
+            splits={
+                "train": {
+                    "name": "train",
+                    "num_bytes": 143996486,
+                    "num_examples": 1034,
+                    "shard_lengths": None,
+                    "dataset_name": "beans",
+                },
+                "validation": {
+                    "name": "validation",
+                    "num_bytes": 18525985,
+                    "num_examples": 133,
+                    "shard_lengths": None,
+                    "dataset_name": "beans",
+                },
+                "test": {
+                    "name": "test",
+                    "num_bytes": 17730506,
+                    "num_examples": 128,
+                    "shard_lengths": None,
+                    "dataset_name": "beans",
+                },
+            },
+            download_checksums={
+                "https://huggingface.co/datasets/beans/resolve/main/data/train.zip": {
+                    "num_bytes": 143812152,
+                    "checksum": None,
+                },
+                "https://huggingface.co/datasets/beans/resolve/main/data/validation.zip": {
+                    "num_bytes": 18504213,
+                    "checksum": None,
+                },
+                "https://huggingface.co/datasets/beans/resolve/main/data/test.zip": {
+                    "num_bytes": 17708541,
+                    "checksum": None,
+                },
+            },
+            download_size=180024906,
+            post_processing_size=None,
+            dataset_size=180252977,
+            size_in_bytes=360277883,
+        )
+    }
+    metadata_configs = MetadataConfigs._from_exported_parquet_files_and_dataset_infos(
+        "123", exported_parquet_files, dataset_infos
+    )
+    split_names = [data_file["split"] for data_file in metadata_configs["default"]["data_files"]]
+    assert split_names == ["train", "validation", "test"]
