@@ -32,26 +32,35 @@ if TYPE_CHECKING:
 
 class PolarsArrowExtractor(BaseArrowExtractor["pl.DataFrame", "pl.Series", "pl.DataFrame"]):
     def extract_row(self, pa_table: pa.Table) -> "pl.DataFrame":
-        if config.POLARS_AVAILABLE and "polars" in sys.modules:
-            import polars as pl
+        if config.POLARS_AVAILABLE:
+            if "polars" not in sys.modules:
+                import polars
+            else:
+                polars = sys.modules["polars"]
 
-            return pl.from_arrow(pa_table.slice(length=1))
+            return polars.from_arrow(pa_table.slice(length=1))
         else:
             raise ValueError("Polars needs to be installed to be able to return Polars dataframes.")
 
     def extract_column(self, pa_table: pa.Table) -> "pl.Series":
-        if config.POLARS_AVAILABLE and "polars" in sys.modules:
-            import polars as pl
+        if config.POLARS_AVAILABLE:
+            if "polars" not in sys.modules:
+                import polars
+            else:
+                polars = sys.modules["polars"]
 
-            return pl.from_arrow(pa_table.select([0]))[pa_table.column_names[0]]
+            return polars.from_arrow(pa_table.select([0]))[pa_table.column_names[0]]
         else:
             raise ValueError("Polars needs to be installed to be able to return Polars dataframes.")
 
     def extract_batch(self, pa_table: pa.Table) -> "pl.DataFrame":
-        if config.POLARS_AVAILABLE and "polars" in sys.modules:
-            import polars as pl
+        if config.POLARS_AVAILABLE:
+            if "polars" not in sys.modules:
+                import polars
+            else:
+                polars = sys.modules["polars"]
             
-            return pl.from_arrow(pa_table)
+            return polars.from_arrow(pa_table)
         else:
             raise ValueError("Polars needs to be installed to be able to return Polars dataframes.")
     
