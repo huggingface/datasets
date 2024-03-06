@@ -13,9 +13,7 @@
 # limitations under the License.
 
 # Lint as: python3
-"""Some python utils function and classes.
-
-"""
+"""Some python utils function and classes."""
 
 import copy
 import functools
@@ -462,7 +460,18 @@ def map_nested(
 
     if num_proc is None:
         num_proc = 1
-    if num_proc != -1 and num_proc <= 1 or len(iterable) < parallel_min_length:
+    if any(isinstance(v, types) and len(v) > len(iterable) for v in iterable):
+        mapped = [
+            map_nested(
+                function=function,
+                data_struct=obj,
+                num_proc=num_proc,
+                parallel_min_length=parallel_min_length,
+                types=types,
+            )
+            for obj in iterable
+        ]
+    elif num_proc != -1 and num_proc <= 1 or len(iterable) < parallel_min_length:
         mapped = [
             _single_map_nested((function, obj, types, None, True, None))
             for obj in hf_tqdm(iterable, disable=disable_tqdm, desc=desc)

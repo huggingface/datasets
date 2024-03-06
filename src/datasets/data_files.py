@@ -15,6 +15,7 @@ from tqdm.contrib.concurrent import thread_map
 from . import config
 from .download import DownloadConfig
 from .download.streaming_download_manager import _prepare_path_and_storage_options, xbasename, xjoin
+from .naming import _split_re
 from .splits import Split
 from .utils import logging
 from .utils import tqdm as hf_tqdm
@@ -46,8 +47,17 @@ SPLIT_KEYWORDS = {
 NON_WORDS_CHARS = "-._ 0-9"
 if config.FSSPEC_VERSION < version.parse("2023.9.0"):
     KEYWORDS_IN_PATH_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**[{sep}/]{keyword}[{sep}/]**"]
-else:
+elif config.FSSPEC_VERSION < version.parse("2023.12.0"):
     KEYWORDS_IN_PATH_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**/*[{sep}/]{keyword}[{sep}/]**"]
+else:
+    KEYWORDS_IN_PATH_NAME_BASE_PATTERNS = [
+        "**/{keyword}[{sep}]*",
+        "**/{keyword}/**",
+        "**/*[{sep}]{keyword}[{sep}]*",
+        "**/*[{sep}]{keyword}[{sep}]*/**",
+        "**/{keyword}[{sep}]*/**",
+        "**/*[{sep}]{keyword}/**",
+    ]
 
 DEFAULT_SPLITS = [Split.TRAIN, Split.VALIDATION, Split.TEST]
 DEFAULT_PATTERNS_SPLIT_IN_PATH_NAME = {
@@ -247,6 +257,8 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], List[str]]) -> Di
                 string_to_dict(xbasename(p), glob_pattern_to_regex(xbasename(split_pattern)))["split"]
                 for p in data_files
             }
+            if any(not re.match(_split_re, split) for split in splits):
+                raise ValueError(f"Split name should match '{_split_re}'' but got '{splits}'.")
             sorted_splits = [str(split) for split in DEFAULT_SPLITS if split in splits] + sorted(
                 splits - set(DEFAULT_SPLITS)
             )
@@ -300,11 +312,9 @@ def resolve_pattern(
     - data/* to match all the files inside "data"
     - data/** to match all the files inside "data" and its subdirectories
 
-    The patterns are resolved using the fsspec glob.
-
-    glob.glob, Path.glob, Path.match or fnmatch do not support ** with a prefix/suffix other than a forward slash /.
-    For instance, this means **.json is the same as *.json. On the contrary, the fsspec glob has no limits regarding the ** prefix/suffix,
-    resulting in **.json being equivalent to **/*.json.
+    The patterns are resolved using the fsspec glob. In fsspec>=2023.12.0 this is equivalent to
+    Python's glob.glob, Path.glob, Path.match and fnmatch where ** is unsupported with a prefix/suffix
+    other than a forward slash /.
 
     More generally:
     - '*' matches any character except a forward-slash (to match just the file or directory name)
@@ -522,7 +532,8 @@ def _get_origin_metadata(
         max_workers=max_workers,
         tqdm_class=hf_tqdm,
         desc="Resolving data files",
-        disable=len(data_files) <= 16,
+        # set `disable=None` rather than `disable=False` by default to disable progress bar when no TTY attached
+        disable=len(data_files) <= 16 or None,
     )
 
 

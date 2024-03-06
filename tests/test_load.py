@@ -193,6 +193,32 @@ def data_dir_with_single_config_in_metadata(tmp_path):
 
 
 @pytest.fixture
+def data_dir_with_config_and_data_files(tmp_path):
+    data_dir = tmp_path / "data_dir_with_config_and_data_files"
+
+    cats_data_dir = data_dir / "data" / "cats"
+    cats_data_dir.mkdir(parents=True)
+    dogs_data_dir = data_dir / "data" / "dogs"
+    dogs_data_dir.mkdir(parents=True)
+
+    with open(cats_data_dir / "cat.jpg", "wb") as f:
+        f.write(b"this_is_a_cat_image_bytes")
+    with open(dogs_data_dir / "dog.jpg", "wb") as f:
+        f.write(b"this_is_a_dog_image_bytes")
+    with open(data_dir / "README.md", "w") as f:
+        f.write(
+            f"""\
+---
+{METADATA_CONFIGS_FIELD}:
+  - config_name: custom
+    data_files: "data/**/*.jpg"
+---
+        """
+        )
+    return str(data_dir)
+
+
+@pytest.fixture
 def data_dir_with_two_config_in_metadata(tmp_path):
     data_dir = tmp_path / "data_dir_with_two_configs_in_metadata"
     cats_data_dir = data_dir / "cats"
@@ -318,6 +344,8 @@ def metric_loading_script_dir(tmp_path):
         (["train.json"], "json", {}),
         (["train.jsonl"], "json", {}),
         (["train.parquet"], "parquet", {}),
+        (["train.geoparquet"], "parquet", {}),
+        (["train.gpq"], "parquet", {}),
         (["train.arrow"], "arrow", {}),
         (["train.txt"], "text", {}),
         (["uppercase.TXT"], "text", {}),
@@ -362,6 +390,7 @@ class ModuleFactoryTest(TestCase):
         data_dir,
         data_dir_with_metadata,
         data_dir_with_single_config_in_metadata,
+        data_dir_with_config_and_data_files,
         data_dir_with_two_config_in_metadata,
         sub_data_dirs,
         dataset_loading_script_dir,
@@ -371,6 +400,7 @@ class ModuleFactoryTest(TestCase):
         self._data_dir = data_dir
         self._data_dir_with_metadata = data_dir_with_metadata
         self._data_dir_with_single_config_in_metadata = data_dir_with_single_config_in_metadata
+        self._data_dir_with_config_and_data_files = data_dir_with_config_and_data_files
         self._data_dir_with_two_config_in_metadata = data_dir_with_two_config_in_metadata
         self._data_dir2 = sub_data_dirs[0]
         self._sub_data_dir = sub_data_dirs[1]
@@ -387,14 +417,14 @@ class ModuleFactoryTest(TestCase):
         )
 
     def test_HubDatasetModuleFactoryWithScript_dont_trust_remote_code(self):
-        # "squad" has a dataset script
+        # "lhoestq/test" has a dataset script
         factory = HubDatasetModuleFactoryWithScript(
-            "squad", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+            "lhoestq/test", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
         )
         with patch.object(config, "HF_DATASETS_TRUST_REMOTE_CODE", None):  # this will be the default soon
             self.assertRaises(ValueError, factory.get_module)
         factory = HubDatasetModuleFactoryWithScript(
-            "squad",
+            "lhoestq/test",
             download_config=self.download_config,
             dynamic_modules_path=self.dynamic_modules_path,
             trust_remote_code=False,
@@ -521,10 +551,42 @@ class ModuleFactoryTest(TestCase):
         assert module_builder_configs[0].drop_labels is True  # parameter is passed from metadata
 
         # config named "default" is automatically considered to be a default config
-        assert module_factory_result.builder_configs_parameters.default_config_name is None
+        assert module_factory_result.builder_configs_parameters.default_config_name == "custom"
 
         # we don't pass config params to builder in builder_kwargs, they are stored in builder_configs directly
         assert "drop_labels" not in module_factory_result.builder_kwargs
+
+    def test_LocalDatasetModuleFactoryWithoutScript_with_config_and_data_files(self):
+        factory = LocalDatasetModuleFactoryWithoutScript(
+            self._data_dir_with_config_and_data_files,
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+
+        module_metadata_configs = module_factory_result.builder_configs_parameters.metadata_configs
+        builder_kwargs = module_factory_result.builder_kwargs
+        assert module_metadata_configs is not None
+        assert len(module_metadata_configs) == 1
+        assert next(iter(module_metadata_configs)) == "custom"
+        assert "data_files" in next(iter(module_metadata_configs.values()))
+        assert next(iter(module_metadata_configs.values()))["data_files"] == "data/**/*.jpg"
+        assert "data_files" not in builder_kwargs
+
+    def test_LocalDatasetModuleFactoryWithoutScript_data_dir_with_config_and_data_files(self):
+        factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir_with_config_and_data_files, data_dir="data")
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+
+        module_metadata_configs = module_factory_result.builder_configs_parameters.metadata_configs
+        builder_kwargs = module_factory_result.builder_kwargs
+        assert module_metadata_configs is not None
+        assert len(module_metadata_configs) == 1
+        assert next(iter(module_metadata_configs)) == "custom"
+        assert "data_files" in next(iter(module_metadata_configs.values()))
+        assert next(iter(module_metadata_configs.values()))["data_files"] == "data/**/*.jpg"
+        assert "data_files" in builder_kwargs
+        assert "train" in builder_kwargs["data_files"]
+        assert len(builder_kwargs["data_files"]["train"]) == 2
 
     def test_LocalDatasetModuleFactoryWithoutScript_with_two_configs_in_metadata(self):
         factory = LocalDatasetModuleFactoryWithoutScript(
@@ -693,7 +755,7 @@ class ModuleFactoryTest(TestCase):
         assert module_builder_configs[0].drop_labels is True  # parameter is passed from metadata
 
         # config named "default" is automatically considered to be a default config
-        assert module_factory_result.builder_configs_parameters.default_config_name is None
+        assert module_factory_result.builder_configs_parameters.default_config_name == "custom"
 
         # we don't pass config params to builder in builder_kwargs, they are stored in builder_configs directly
         assert "drop_labels" not in module_factory_result.builder_kwargs
@@ -1688,3 +1750,21 @@ def test_reload_old_cache_from_2_15(tmp_path: Path):
             cache_dir / "polinaeterna___audiofolder_two_configs_in_metadata" / "v2" / "0.0.0" / str(builder.hash)
         ).as_posix()
     )  # new cache
+
+
+@pytest.mark.integration
+def test_update_dataset_card_data_with_standalone_yaml():
+    # Labels defined in .huggingface.yml because they are too long to be in README.md
+    from datasets.utils.metadata import MetadataConfigs
+
+    with patch(
+        "datasets.utils.metadata.MetadataConfigs.from_dataset_card_data",
+        side_effect=MetadataConfigs.from_dataset_card_data,
+    ) as card_data_read_mock:
+        builder = load_dataset_builder("datasets-maintainers/dataset-with-standalone-yaml")
+    assert card_data_read_mock.call_args.args[0]["license"] is not None  # from README.md
+    assert card_data_read_mock.call_args.args[0]["dataset_info"] is not None  # from standalone yaml
+    assert card_data_read_mock.call_args.args[0]["tags"] == ["test"]  # standalone yaml has precedence
+    assert isinstance(
+        builder.info.features["label"], datasets.ClassLabel
+    )  # correctly loaded from long labels list in standalone yaml
