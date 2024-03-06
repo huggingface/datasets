@@ -14,7 +14,6 @@ from .utils.logging import get_logger
 
 
 if TYPE_CHECKING:
-    import polars as pl
     from .features.features import Features, FeatureType
 
 
