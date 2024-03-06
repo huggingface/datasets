@@ -882,7 +882,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         This operation is mostly zero copy.
 
-        Data types that do not copy:
+        Data types that do copy:
             * CategoricalType
         
         Args:
@@ -4956,6 +4956,50 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 ).to_pandas(types_mapper=pandas_types_mapper)
                 for offset in range(0, len(self), batch_size)
             )
+            
+    def to_polars(
+        self, batch_size: Optional[int] = None, batched: bool = False
+    ) -> Union["pl.DataFrame", Iterator["pl.DataFrame"]]:
+        """Returns the dataset as a `polars.DataFrame`. Can also return a generator for large datasets.
+
+        Args:
+            batched (`bool`):
+                Set to `True` to return a generator that yields the dataset as batches
+                of `batch_size` rows. Defaults to `False` (returns the whole datasets once).
+            batch_size (`int`, *optional*):
+                The size (number of rows) of the batches if `batched` is `True`.
+                Defaults to `genomicsml.datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+
+        Returns:
+            `polars.DataFrame` or `Iterator[polars.DataFrame]`
+
+        Example:
+
+        ```py
+        >>> ds.to_polars()
+        ```
+        """
+        if config.POLARS_AVAILABLE:
+            import polars as pl
+            if not batched:
+                return pl.from_arrow(query_table(
+                    table=self._data,
+                    key=slice(0, len(self)),
+                    indices=self._indices if self._indices is not None else None,
+                ))
+            else:
+                batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
+                return (
+                    pl.from_arrow(query_table(
+                        table=self._data,
+                        key=slice(offset, offset + batch_size),
+                        indices=self._indices if self._indices is not None else None,
+                    ))
+                    for offset in range(0, len(self), batch_size)
+                )
+        else:
+            raise ValueError("Polars needs to be installed to be able to return Polars dataframes.")
+
 
     def to_parquet(
         self,
