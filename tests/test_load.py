@@ -1684,7 +1684,7 @@ def distributed_load_dataset_with_script(args):
 @require_not_windows  # windows doesn't support overwriting Arrow files from other processes
 @pytest.mark.parametrize("download_mode", [None, "force_redownload"])
 def test_load_dataset_distributed_with_script(tmp_path, download_mode):
-    # we need to cehck in the "force_redownload" case
+    # we need to check in the "force_redownload" case
     # since in `_copy_script_and_other_resources_in_importable_dir()` we might delete the directory
     # containing the .py file while the other processes use it
     num_workers = 5
