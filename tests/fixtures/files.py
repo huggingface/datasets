@@ -7,6 +7,7 @@ import tarfile
 import textwrap
 import zipfile
 
+import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
@@ -329,6 +330,14 @@ def parquet_path(tmp_path_factory):
         pa_table = pa.Table.from_pydict({k: [DATA[i][k] for i in range(len(DATA))] for k in DATA[0]}, schema=schema)
         writer.write_table(pa_table)
         writer.close()
+    return path
+
+
+@pytest.fixture(scope="session")
+def geoparquet_path(tmp_path_factory):
+    df = pd.read_parquet(path="https://github.com/opengeospatial/geoparquet/raw/v1.0.0/examples/example.parquet")
+    path = str(tmp_path_factory.mktemp("data") / "dataset.geoparquet")
+    df.to_parquet(path=path)
     return path
 
 

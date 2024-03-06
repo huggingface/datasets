@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# flake8: noqa
-# Lint as: python3
+# ruff: noqa
 
 from . import tqdm as _tqdm  # _tqdm is the module
 from .info_utils import VerificationMode

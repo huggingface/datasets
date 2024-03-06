@@ -1,3 +1,4 @@
+import re
 import textwrap
 from collections import Counter
 from itertools import groupby
@@ -10,6 +11,7 @@ from huggingface_hub import DatasetCardData
 
 from ..config import METADATA_CONFIGS_FIELD
 from ..info import DatasetInfo, DatasetInfosDict
+from ..naming import _split_re
 from ..utils.logging import get_logger
 from .deprecation_utils import deprecated
 
@@ -155,6 +157,8 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
                       - train/part2/*
                     - split: test
                       path: test/*
+
+                PS: some symbols like dashes '-' are not allowed in split names
                 """
             )
             if not isinstance(yaml_data_files, (list, str)):
@@ -167,6 +171,7 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
                         and not (
                             len(yaml_data_files_item) == 2
                             and "split" in yaml_data_files_item
+                            and re.match(_split_re, yaml_data_files_item["split"])
                             and isinstance(yaml_data_files_item.get("path"), (str, list))
                         )
                     ):
@@ -248,7 +253,7 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
     def get_default_config_name(self) -> Optional[str]:
         default_config_name = None
         for config_name, metadata_config in self.items():
-            if config_name == "default" or metadata_config.get("default"):
+            if len(self) == 1 or config_name == "default" or metadata_config.get("default"):
                 if default_config_name is None:
                     default_config_name = config_name
                 else:
