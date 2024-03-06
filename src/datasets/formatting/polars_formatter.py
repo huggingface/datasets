@@ -15,17 +15,16 @@
 import sys
 from collections.abc import Mapping
 from functools import partial
+from typing import TYPE_CHECKING, Optional
 
 import pyarrow as pa
 
 from .. import config
-from .formatting import TensorFormatter, BaseArrowExtractor
-from ..features import Features
 from ..features import Features
 from ..features.features import decode_nested_example
 from ..utils.py_utils import no_op_if_value_is_null
+from .formatting import BaseArrowExtractor, TensorFormatter
 
-from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     import polars as pl
@@ -59,11 +58,11 @@ class PolarsArrowExtractor(BaseArrowExtractor["pl.DataFrame", "pl.Series", "pl.D
                 import polars
             else:
                 polars = sys.modules["polars"]
-            
+
             return polars.from_arrow(pa_table)
         else:
             raise ValueError("Polars needs to be installed to be able to return Polars dataframes.")
-    
+
 class PolarsFeaturesDecoder:
     def __init__(self, features: Optional[Features]):
         self.features = features

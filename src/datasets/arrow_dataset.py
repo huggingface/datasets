@@ -134,10 +134,9 @@ from .utils.typing import ListLike, PathLike
 if TYPE_CHECKING:
     import sqlite3
 
+    import polars as pl
     import pyspark
     import sqlalchemy
-
-    import polars as pl
 
     from .dataset_dict import DatasetDict
     from .iterable_dataset import IterableDataset
@@ -885,13 +884,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Data types that do copy:
             * CategoricalType
-        
+
         Args:
-            df (`polars.DataFrame`): DataFrame to convert to Arrow Table   
+            df (`polars.DataFrame`): DataFrame to convert to Arrow Table
             features (`Features`, optional): Dataset features.
             info (`DatasetInfo`, optional): Dataset information, like description, citation, etc.
             split (`NamedSplit`, optional): Name of the dataset split.
-                    
+
         Examples:
         ```py
         >>> ds = Dataset.from_polars(df)
@@ -5006,7 +5005,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 ).to_pandas(types_mapper=pandas_types_mapper)
                 for offset in range(0, len(self), batch_size)
             )
-            
+
     def to_polars(
         self, batch_size: Optional[int] = None, batched: bool = False
     ) -> Union["pl.DataFrame", Iterator["pl.DataFrame"]]:
