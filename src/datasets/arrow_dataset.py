@@ -4716,7 +4716,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             path_or_buf (`PathLike` or `FileOrBuffer`):
-                Either a path to a file (e.g. `file.csv`), a remote URI (e.g. `s3://my-bucket/file.csv`),
+                Either a path to a file (e.g. `file.csv`), a remote URI (e.g. `hf://datasets/username/my_dataset_name/data.csv`),
                 or a BinaryIO, where the dataset will be saved to in the specified format.
             batch_size (`int`, *optional*):
                 Size of the batch to load in memory and write at once.
@@ -4729,7 +4729,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             storage_options (`dict`, *optional*):
                 Key/value pairs to be passed on to the file-system backend, if any.
 
-                <Added version="2.15.0"/>
+                <Added version="2.19.0"/>
             **to_csv_kwargs (additional keyword arguments):
                 Parameters to pass to pandas's [`pandas.DataFrame.to_csv`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_json.html).
 
@@ -4844,7 +4844,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             path_or_buf (`PathLike` or `FileOrBuffer`):
-                Either a path to a file (e.g. `file.json`), a remote URI (e.g. `s3://my-bucket/file.json`),
+                Either a path to a file (e.g. `file.json`), a remote URI (e.g. `hf://datasets/username/my_dataset_name/data.json`),
                 or a BinaryIO, where the dataset will be saved to in the specified format.
             batch_size (`int`, *optional*):
                 Size of the batch to load in memory and write at once.
@@ -4857,7 +4857,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             storage_options (`dict`, *optional*):
                 Key/value pairs to be passed on to the file-system backend, if any.
 
-                <Added version="2.15.0"/>
+                <Added version="2.19.0"/>
             **to_json_kwargs (additional keyword arguments):
                 Parameters to pass to pandas's [`pandas.DataFrame.to_json`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_json.html).
 
@@ -4940,7 +4940,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             path_or_buf (`PathLike` or `FileOrBuffer`):
-                Either a path to a file (e.g. `file.parquet`), a remote URI (e.g. `s3://my-bucket/file.parquet`),
+                Either a path to a file (e.g. `file.parquet`), a remote URI (e.g. `hf://datasets/username/my_dataset_name/data.parquet`),
                 or a BinaryIO, where the dataset will be saved to in the specified format.
             batch_size (`int`, *optional*):
                 Size of the batch to load in memory and write at once.
@@ -4948,7 +4948,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             storage_options (`dict`, *optional*):
                 Key/value pairs to be passed on to the file-system backend, if any.
 
-                <Added version="2.15.0"/>
+                <Added version="2.19.0"/>
             **parquet_writer_kwargs (additional keyword arguments):
                 Parameters to pass to PyArrow's `pyarrow.parquet.ParquetWriter`.
 
