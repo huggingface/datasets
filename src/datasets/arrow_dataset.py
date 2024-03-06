@@ -4729,13 +4729,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         path_or_buf: Union[PathLike, BinaryIO],
         batch_size: Optional[int] = None,
         num_proc: Optional[int] = None,
+        storage_options: Optional[dict] = None,
         **to_csv_kwargs,
     ) -> int:
         """Exports the dataset to csv
 
         Args:
             path_or_buf (`PathLike` or `FileOrBuffer`):
-                Either a path to a file or a BinaryIO.
+                Either a path to a file (e.g. `file.csv`), a remote URI (e.g. `hf://datasets/username/my_dataset_name/data.csv`),
+                or a BinaryIO, where the dataset will be saved to in the specified format.
             batch_size (`int`, *optional*):
                 Size of the batch to load in memory and write at once.
                 Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
@@ -4744,6 +4746,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 use multiprocessing. `batch_size` in this case defaults to
                 `datasets.config.DEFAULT_MAX_BATCH_SIZE` but feel free to make it 5x or 10x of the default
                 value if you have sufficient compute power.
+            storage_options (`dict`, *optional*):
+                Key/value pairs to be passed on to the file-system backend, if any.
+
+                <Added version="2.19.0"/>
             **to_csv_kwargs (additional keyword arguments):
                 Parameters to pass to pandas's [`pandas.DataFrame.to_csv`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_json.html).
 
@@ -4768,7 +4774,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Dynamic import to avoid circular dependency
         from .io.csv import CsvDatasetWriter
 
-        return CsvDatasetWriter(self, path_or_buf, batch_size=batch_size, num_proc=num_proc, **to_csv_kwargs).write()
+        return CsvDatasetWriter(
+            self,
+            path_or_buf,
+            batch_size=batch_size,
+            num_proc=num_proc,
+            storage_options=storage_options,
+            **to_csv_kwargs,
+        ).write()
 
     def to_dict(self, batch_size: Optional[int] = None, batched="deprecated") -> Union[dict, Iterator[dict]]:
         """Returns the dataset as a Python dict. Can also return a generator for large datasets.
@@ -4844,13 +4857,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         path_or_buf: Union[PathLike, BinaryIO],
         batch_size: Optional[int] = None,
         num_proc: Optional[int] = None,
+        storage_options: Optional[dict] = None,
         **to_json_kwargs,
     ) -> int:
         """Export the dataset to JSON Lines or JSON.
 
         Args:
             path_or_buf (`PathLike` or `FileOrBuffer`):
-                Either a path to a file or a BinaryIO.
+                Either a path to a file (e.g. `file.json`), a remote URI (e.g. `hf://datasets/username/my_dataset_name/data.json`),
+                or a BinaryIO, where the dataset will be saved to in the specified format.
             batch_size (`int`, *optional*):
                 Size of the batch to load in memory and write at once.
                 Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
@@ -4859,6 +4874,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 use multiprocessing. `batch_size` in this case defaults to
                 `datasets.config.DEFAULT_MAX_BATCH_SIZE` but feel free to make it 5x or 10x of the default
                 value if you have sufficient compute power.
+            storage_options (`dict`, *optional*):
+                Key/value pairs to be passed on to the file-system backend, if any.
+
+                <Added version="2.19.0"/>
             **to_json_kwargs (additional keyword arguments):
                 Parameters to pass to pandas's [`pandas.DataFrame.to_json`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_json.html).
 
@@ -4882,7 +4901,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Dynamic import to avoid circular dependency
         from .io.json import JsonDatasetWriter
 
-        return JsonDatasetWriter(self, path_or_buf, batch_size=batch_size, num_proc=num_proc, **to_json_kwargs).write()
+        return JsonDatasetWriter(
+            self,
+            path_or_buf,
+            batch_size=batch_size,
+            num_proc=num_proc,
+            storage_options=storage_options,
+            **to_json_kwargs,
+        ).write()
 
     def to_pandas(
         self, batch_size: Optional[int] = None, batched: bool = False
@@ -4927,16 +4953,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         self,
         path_or_buf: Union[PathLike, BinaryIO],
         batch_size: Optional[int] = None,
+        storage_options: Optional[dict] = None,
         **parquet_writer_kwargs,
     ) -> int:
         """Exports the dataset to parquet
 
         Args:
             path_or_buf (`PathLike` or `FileOrBuffer`):
-                Either a path to a file or a BinaryIO.
+                Either a path to a file (e.g. `file.parquet`), a remote URI (e.g. `hf://datasets/username/my_dataset_name/data.parquet`),
+                or a BinaryIO, where the dataset will be saved to in the specified format.
             batch_size (`int`, *optional*):
                 Size of the batch to load in memory and write at once.
                 Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            storage_options (`dict`, *optional*):
+                Key/value pairs to be passed on to the file-system backend, if any.
+
+                <Added version="2.19.0"/>
             **parquet_writer_kwargs (additional keyword arguments):
                 Parameters to pass to PyArrow's `pyarrow.parquet.ParquetWriter`.
 
@@ -4952,7 +4984,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Dynamic import to avoid circular dependency
         from .io.parquet import ParquetDatasetWriter
 
-        return ParquetDatasetWriter(self, path_or_buf, batch_size=batch_size, **parquet_writer_kwargs).write()
+        return ParquetDatasetWriter(
+            self, path_or_buf, batch_size=batch_size, storage_options=storage_options, **parquet_writer_kwargs
+        ).write()
 
     def to_sql(
         self,
