@@ -18,7 +18,7 @@ from datasets.formatting.formatting import (
 )
 from datasets.table import InMemoryTable
 
-from .utils import require_jax, require_pil, require_sndfile, require_tf, require_torch
+from .utils import require_jax, require_pil, require_sndfile, require_tf, require_torch, require_polars
 
 
 class AnyArray:
@@ -142,6 +142,59 @@ class ArrowExtractorTest(TestCase):
         batch = extractor.extract_batch(pa_table)
         self.assertTrue(isinstance(batch["d"][0], datetime.datetime))
         self.assertTrue(pd.api.types.is_datetime64_any_dtype(batch["d"].dtype))
+
+    @require_polars
+    def test_polars_extractor(self):
+        from datasets.formatting.polars_formatter import PolarsArrowExtractor
+        import polars as pl
+
+        pa_table = self._create_dummy_table()
+        extractor = PolarsArrowExtractor()
+        row = extractor.extract_row(pa_table)
+        self.assertIsInstance(row, pl.DataFrame)
+        assert pl.Series.eq(row["a"], pl.Series("a", _COL_A)[:1]).all()
+        assert pl.Series.eq(row["b"], pl.Series("b", _COL_B)[:1]).all()
+        col = extractor.extract_column(pa_table)
+        assert pl.Series.eq(col, pl.Series("a", _COL_A)).all()
+        batch = extractor.extract_batch(pa_table)
+        self.assertIsInstance(batch, pl.DataFrame)
+        assert pl.Series.eq(batch["a"], pl.Series("a", _COL_A)).all()
+        assert pl.Series.eq(batch["b"], pl.Series("b", _COL_B)).all()
+
+    @require_polars
+    def test_polars_nested(self):
+        from datasets.formatting.polars_formatter import PolarsArrowExtractor
+        import polars as pl
+
+        pa_table = self._create_dummy_table().drop(["a", "b", "d"])
+        extractor = PolarsArrowExtractor()
+        row = extractor.extract_row(pa_table)
+        self.assertEqual(row["c"][0][0].dtype, pl.Float64)
+        self.assertEqual(row["c"].dtype, pl.List(pl.List(pl.Float64)))
+        col = extractor.extract_column(pa_table)
+        self.assertEqual(col[0][0].dtype, pl.Float64)
+        self.assertEqual(col[0].dtype, pl.List(pl.Float64))
+        self.assertEqual(col.dtype, pl.List(pl.List(pl.Float64)))
+        batch = extractor.extract_batch(pa_table)
+        self.assertEqual(batch["c"][0][0].dtype, pl.Float64)
+        self.assertEqual(batch["c"][0].dtype, pl.List(pl.Float64))
+        self.assertEqual(batch["c"].dtype, pl.List(pl.List(pl.Float64)))
+
+    @require_polars
+    def test_polars_temporal(self):
+        from datasets.formatting.polars_formatter import PolarsArrowExtractor
+        import polars as pl
+
+        pa_table = self._create_dummy_table().drop(["a", "b", "c"])
+        extractor = PolarsArrowExtractor()
+        row = extractor.extract_row(pa_table)
+        self.assertTrue(pl.Series.is_temporal(row["d"]))
+        col = extractor.extract_column(pa_table)
+        self.assertTrue(isinstance(col[0], datetime.datetime))
+        self.assertTrue(pl.Series.is_temporal(col))
+        batch = extractor.extract_batch(pa_table)
+        self.assertTrue(isinstance(batch["d"][0], datetime.datetime))
+        self.assertTrue(pl.Series.is_temporal(batch["d"]))
 
 
 class LazyDictTest(TestCase):
@@ -270,6 +323,24 @@ class FormatterTest(TestCase):
         self.assertIsInstance(batch, pd.DataFrame)
         pd.testing.assert_series_equal(batch["a"], pd.Series(_COL_A, name="a"))
         pd.testing.assert_series_equal(batch["b"], pd.Series(_COL_B, name="b"))
+
+    @require_polars
+    def test_polars_formatter(self):
+        from datasets.formatting import PolarsFormatter
+        import polars as pl
+
+        pa_table = self._create_dummy_table()
+        formatter = PolarsFormatter()
+        row = formatter.format_row(pa_table)
+        self.assertIsInstance(row, pl.DataFrame)
+        assert pl.Series.eq(row["a"], pl.Series("a", _COL_A)[:1]).all()
+        assert pl.Series.eq(row["b"], pl.Series("b", _COL_B)[:1]).all()
+        col = formatter.format_column(pa_table)
+        assert pl.Series.eq(col, pl.Series("a", _COL_A)).all()
+        batch = formatter.format_batch(pa_table)
+        self.assertIsInstance(batch, pl.DataFrame)
+        assert pl.Series.eq(batch["a"], pl.Series("a", _COL_A)).all()
+        assert pl.Series.eq(batch["b"], pl.Series("b", _COL_B)).all()
 
     @require_torch
     def test_torch_formatter(self):
