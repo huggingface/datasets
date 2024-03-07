@@ -3520,7 +3520,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                                 and "polars" in sys.modules
                                 and isinstance(example, pl.DataFrame)
                             ):
-                                writer.write_table(example.to_arrow())
+                                writer.write_row(example.to_arrow())
                             else:
                                 writer.write(example)
                         num_examples_progress_update += 1
