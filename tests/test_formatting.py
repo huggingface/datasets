@@ -184,8 +184,6 @@ class ArrowExtractorTest(TestCase):
 
     @require_polars
     def test_polars_temporal(self):
-        import polars as pl
-
         from datasets.formatting.polars_formatter import PolarsArrowExtractor
 
         pa_table = self._create_dummy_table().drop(["a", "b", "c"])
