@@ -3515,7 +3515,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                                 writer.write_row(example)
                             elif isinstance(example, pd.DataFrame):
                                 writer.write_row(pa.Table.from_pandas(example))
-                            elif config.POLARS_AVAILABLE and isinstance(example, pl.DataFrame):
+                            elif config.POLARS_AVAILABLE and "polars" in sys.modules and isinstance(example, pl.DataFrame):
                                 writer.write_table(example.to_arrow())
                             else:
                                 writer.write(example)
