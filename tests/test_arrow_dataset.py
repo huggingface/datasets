@@ -2384,6 +2384,7 @@ class BaseDatasetTest(TestCase):
 
     @require_polars
     def test_to_polars(self, in_memory):
+        import gc
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Batched
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
@@ -2403,7 +2404,7 @@ class BaseDatasetTest(TestCase):
                 self.assertListEqual(sorted(dset_to_polars.columns), sorted(dset.column_names))
                 for col_name in dset.column_names:
                     self.assertEqual(len(dset_to_polars[col_name]), len(dset))
-
+                
                 # With index mapping
                 with dset.select([1, 0, 3]) as dset:
                     dset_to_polars = dset.to_polars()
@@ -2414,6 +2415,7 @@ class BaseDatasetTest(TestCase):
                     for col_name in dset.column_names:
                         self.assertEqual(len(dset_to_polars[col_name]), dset.num_rows)
                     del dset_to_polars
+                gc.collect()
 
     def test_to_parquet(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
