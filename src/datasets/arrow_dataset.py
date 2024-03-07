@@ -3550,7 +3550,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                                 writer.write_table(batch)
                             elif isinstance(batch, pd.DataFrame):
                                 writer.write_table(pa.Table.from_pandas(batch))
-                            elif config.POLARS_AVAILABLE and isinstance(batch, pl.DataFrame):
+                            elif config.POLARS_AVAILABLE and "polars" in sys.modules and isinstance(batch, pl.DataFrame):
                                 writer.write_table(batch.to_arrow())
                             else:
                                 writer.write_batch(batch)
