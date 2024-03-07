@@ -370,6 +370,9 @@ def get_dataset_default_config_name(
 ) -> Optional[str]:
     """Get the default config name for a particular dataset.
 
+    The default config name is "default" or the config with `default: true` in the README YAML. It's None when there are multiple configs
+    and no default config.
+
     Args:
         path (`str`): path to the dataset processing script with the dataset builder. Can be either:
 
