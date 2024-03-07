@@ -904,7 +904,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if info is None:
             info = DatasetInfo()
         info.features = features
-        table = InMemoryTable.from_polars(df=df)
+        table = InMemoryTable(df.to_arrow())
         if features is not None:
             # more expensive cast than InMemoryTable.from_polars(..., schema=features.arrow_schema)
             # needed to support the str to Audio conversion for instance
