@@ -26,7 +26,7 @@ from urllib.parse import urljoin, urlparse
 import fsspec
 import huggingface_hub
 import requests
-from fsspec.core import strip_protocol
+from fsspec.core import strip_protocol, url_to_fs
 from fsspec.utils import can_be_local
 from huggingface_hub.utils import insecure_hashlib
 from packaging import version
@@ -315,10 +315,8 @@ def _request_with_retry(
 
 def fsspec_head(url, storage_options=None):
     _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
-    fs, _, paths = fsspec.get_fs_token_paths(url, storage_options=storage_options)
-    if len(paths) > 1:
-        raise ValueError(f"HEAD can be called with at most one path but was called with {paths}")
-    return fs.info(paths[0])
+    fs, path = url_to_fs(url, **(storage_options or {}))
+    return fs.info(path)
 
 
 def stack_multiprocessing_download_progress_bars():
@@ -335,9 +333,7 @@ class TqdmCallback(fsspec.callbacks.TqdmCallback):
 
 def fsspec_get(url, temp_file, storage_options=None, desc=None):
     _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
-    fs, _, paths = fsspec.get_fs_token_paths(url, storage_options=storage_options)
-    if len(paths) > 1:
-        raise ValueError(f"GET can be called with at most one path but was called with {paths}")
+    fs, path = url_to_fs(url, **(storage_options or {}))
     callback = TqdmCallback(
         tqdm_kwargs={
             "desc": desc or "Downloading",

@@ -39,6 +39,7 @@ from pathlib import Path
 from typing import ClassVar, Dict, List, Optional, Union
 
 import fsspec
+from fsspec.core import url_to_fs
 from huggingface_hub import DatasetCard, DatasetCardData
 
 from . import config
@@ -251,7 +252,7 @@ class DatasetInfo:
             storage_options = fs.storage_options
 
         fs: fsspec.AbstractFileSystem
-        fs, _, _ = fsspec.get_fs_token_paths(dataset_info_dir, storage_options=storage_options)
+        fs, *_ = url_to_fs(dataset_info_dir, **(storage_options or {}))
         with fs.open(posixpath.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb") as f:
             self._dump_info(f, pretty_print=pretty_print)
         if self.license:
@@ -347,7 +348,7 @@ class DatasetInfo:
             storage_options = fs.storage_options
 
         fs: fsspec.AbstractFileSystem
-        fs, _, _ = fsspec.get_fs_token_paths(dataset_info_dir, storage_options=storage_options)
+        fs, *_ = url_to_fs(dataset_info_dir, **(storage_options or {}))
         logger.info(f"Loading Dataset info from {dataset_info_dir}")
         if not dataset_info_dir:
             raise ValueError("Calling DatasetInfo.from_directory() with undefined dataset_info_dir.")

@@ -24,6 +24,7 @@ import fsspec
 import numpy as np
 import pyarrow as pa
 import pyarrow.parquet as pq
+from fsspec.core import url_to_fs
 
 from . import config
 from .features import Features, Image, Value
@@ -327,14 +328,10 @@ class ArrowWriter:
         self._disable_nullable = disable_nullable
 
         if stream is None:
-            fs_token_paths = fsspec.get_fs_token_paths(path, storage_options=storage_options)
-            self._fs: fsspec.AbstractFileSystem = fs_token_paths[0]
-            self._path = (
-                fs_token_paths[2][0]
-                if not is_remote_filesystem(self._fs)
-                else self._fs.unstrip_protocol(fs_token_paths[2][0])
-            )
-            self.stream = self._fs.open(fs_token_paths[2][0], "wb")
+            fs, path = url_to_fs(path, **(storage_options or {}))
+            self._fs: fsspec.AbstractFileSystem = fs
+            self._path = path if not is_remote_filesystem(self._fs) else self._fs.unstrip_protocol(path)
+            self.stream = self._fs.open(path, "wb")
             self._closable_stream = True
         else:
             self._fs = None
@@ -681,7 +678,7 @@ class BeamWriter:
         """
 
         # Beam FileSystems require the system's path separator in the older versions
-        fs, _, [parquet_path] = fsspec.get_fs_token_paths(self._parquet_path)
+        fs, parquet_path = url_to_fs(self._parquet_path)
         parquet_path = str(Path(parquet_path)) if not is_remote_filesystem(fs) else fs.unstrip_protocol(parquet_path)
 
         shards = fs.glob(parquet_path + "*.parquet")

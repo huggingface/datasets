@@ -34,6 +34,7 @@ from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Type, Un
 import fsspec
 import requests
 import yaml
+from fsspec.core import url_to_fs
 from huggingface_hub import DatasetCard, DatasetCardData, HfApi, HfFileSystem
 
 from . import config
@@ -2676,7 +2677,7 @@ def load_from_disk(
         storage_options = fs.storage_options
 
     fs: fsspec.AbstractFileSystem
-    fs, _, _ = fsspec.get_fs_token_paths(dataset_path, storage_options=storage_options)
+    fs, *_ = url_to_fs(dataset_path, **(storage_options or {}))
     if not fs.exists(dataset_path):
         raise FileNotFoundError(f"Directory {dataset_path} not found")
     if fs.isfile(posixpath.join(dataset_path, config.DATASET_INFO_FILENAME)) and fs.isfile(
