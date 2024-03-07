@@ -191,13 +191,13 @@ class ArrowExtractorTest(TestCase):
         pa_table = self._create_dummy_table().drop(["a", "b", "c"])
         extractor = PolarsArrowExtractor()
         row = extractor.extract_row(pa_table)
-        self.assertTrue(pl.Series.is_temporal(row["d"]))
+        self.assertTrue(row["d"].dtype.is_temporal())
         col = extractor.extract_column(pa_table)
         self.assertTrue(isinstance(col[0], datetime.datetime))
-        self.assertTrue(pl.Series.is_temporal(col))
+        self.assertTrue(col.dtype.is_temporal())
         batch = extractor.extract_batch(pa_table)
         self.assertTrue(isinstance(batch["d"][0], datetime.datetime))
-        self.assertTrue(pl.Series.is_temporal(batch["d"]))
+        self.assertTrue(batch["d"].dtype.is_temporal())
 
 
 class LazyDictTest(TestCase):

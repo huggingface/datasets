@@ -2384,7 +2384,6 @@ class BaseDatasetTest(TestCase):
 
     @require_polars
     def test_to_polars(self, in_memory):
-        import polars as pl
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Batched
@@ -2393,14 +2392,14 @@ class BaseDatasetTest(TestCase):
                 to_polars_generator = dset.to_polars(batched=True, batch_size=batch_size)
 
                 for batch in to_polars_generator:
-                    self.assertIsInstance(batch, pl.DataFrame)
+                    self.assertIsInstance(batch, sys.modules["polars"].DataFrame)
                     self.assertListEqual(sorted(batch.columns), sorted(dset.column_names))
                     for col_name in dset.column_names:
                         self.assertLessEqual(len(batch[col_name]), batch_size)
 
                 # Full
                 dset_to_polars = dset.to_polars()
-                self.assertIsInstance(dset_to_polars, pl.DataFrame)
+                self.assertIsInstance(dset_to_polars, sys.modules["polars"].DataFrame)
                 self.assertListEqual(sorted(dset_to_polars.columns), sorted(dset.column_names))
                 for col_name in dset.column_names:
                     self.assertEqual(len(dset_to_polars[col_name]), len(dset))
@@ -2408,12 +2407,12 @@ class BaseDatasetTest(TestCase):
                 # With index mapping
                 with dset.select([1, 0, 3]) as dset:
                     dset_to_polars = dset.to_polars()
-                    self.assertIsInstance(dset_to_polars, pl.DataFrame)
+                    self.assertIsInstance(dset_to_polars, sys.modules["polars"].DataFrame)
                     self.assertEqual(len(dset_to_polars), 3)
                     self.assertListEqual(sorted(dset_to_polars.columns), sorted(dset.column_names))
 
                     for col_name in dset.column_names:
-                        self.assertEqual(len(dset_to_polars[col_name]), dset.num_rows)
+                        self.assertEqual(dset_to_polars[col_name].shape[0], dset.num_rows)
 
     def test_to_parquet(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
