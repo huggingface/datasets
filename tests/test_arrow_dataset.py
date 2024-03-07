@@ -2384,7 +2384,6 @@ class BaseDatasetTest(TestCase):
 
     @require_polars
     def test_to_polars(self, in_memory):
-
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Batched
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
