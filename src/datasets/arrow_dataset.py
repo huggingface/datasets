@@ -3557,7 +3557,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             elif (
                                 config.POLARS_AVAILABLE
                                 and "polars" in sys.modules
-                                and isinstance(example, pl.DataFrame)
+                                and isinstance(batch, pl.DataFrame)
                             ):
                                 writer.write_table(batch.to_arrow())
                             else:
