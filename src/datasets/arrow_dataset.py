@@ -904,9 +904,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if info is None:
             info = DatasetInfo()
         info.features = features
-        table = InMemoryTable.from_polars(
-            df=df
-        )
+        table = InMemoryTable.from_polars(df=df)
         if features is not None:
             # more expensive cast than InMemoryTable.from_polars(..., schema=features.arrow_schema)
             # needed to support the str to Audio conversion for instance
@@ -3515,6 +3513,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                                 writer.write_row(pa.Table.from_pandas(example))
                             elif config.POLARS_AVAILABLE:
                                 import polars as pl
+
                                 if isinstance(example, pl.DataFrame):
                                     writer.write_table(example.to_arrow())
                             else:
@@ -3552,6 +3551,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                                 writer.write_table(pa.Table.from_pandas(batch))
                             elif config.POLARS_AVAILABLE:
                                 import polars as pl
+
                                 if isinstance(batch, pl.DataFrame):
                                     writer.write_table(batch.to_arrow())
                             else:
@@ -5030,25 +5030,29 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         if config.POLARS_AVAILABLE:
             import polars as pl
+
             if not batched:
-                return pl.from_arrow(query_table(
-                    table=self._data,
-                    key=slice(0, len(self)),
-                    indices=self._indices if self._indices is not None else None,
-                ))
+                return pl.from_arrow(
+                    query_table(
+                        table=self._data,
+                        key=slice(0, len(self)),
+                        indices=self._indices if self._indices is not None else None,
+                    )
+                )
             else:
                 batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
                 return (
-                    pl.from_arrow(query_table(
-                        table=self._data,
-                        key=slice(offset, offset + batch_size),
-                        indices=self._indices if self._indices is not None else None,
-                    ))
+                    pl.from_arrow(
+                        query_table(
+                            table=self._data,
+                            key=slice(offset, offset + batch_size),
+                            indices=self._indices if self._indices is not None else None,
+                        )
+                    )
                     for offset in range(0, len(self), batch_size)
                 )
         else:
             raise ValueError("Polars needs to be installed to be able to return Polars dataframes.")
-
 
     def to_parquet(
         self,

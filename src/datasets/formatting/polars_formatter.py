@@ -29,6 +29,7 @@ from .formatting import BaseArrowExtractor, TensorFormatter
 if TYPE_CHECKING:
     import polars as pl
 
+
 class PolarsArrowExtractor(BaseArrowExtractor["pl.DataFrame", "pl.Series", "pl.DataFrame"]):
     def extract_row(self, pa_table: pa.Table) -> "pl.DataFrame":
         if config.POLARS_AVAILABLE:
@@ -63,6 +64,7 @@ class PolarsArrowExtractor(BaseArrowExtractor["pl.DataFrame", "pl.Series", "pl.D
         else:
             raise ValueError("Polars needs to be installed to be able to return Polars dataframes.")
 
+
 class PolarsFeaturesDecoder:
     def __init__(self, features: Optional[Features]):
         self.features = features
@@ -94,6 +96,7 @@ class PolarsFeaturesDecoder:
 
     def decode_batch(self, batch: "pl.DataFrame") -> "pl.DataFrame":
         return self.decode_row(batch)
+
 
 class PolarsFormatter(TensorFormatter[Mapping, "pl.DataFrame", Mapping]):
     def __init__(self, features=None, **np_array_kwargs):
