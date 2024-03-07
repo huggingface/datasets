@@ -185,7 +185,7 @@ TESTS_REQUIRE = [
     "transformers",
     "typing-extensions>=4.6.1",  # due to conflict between apache-beam and pydantic
     "zstandard",
-    "polars>=0.20.0",
+    "polars[timezone]>=0.20.0",
 ]
 
 
@@ -241,7 +241,7 @@ EXTRAS_REQUIRE = {
     ],
     "tensorflow_gpu": ["tensorflow-gpu>=2.2.0,!=2.6.0,!=2.6.1"],
     "torch": ["torch"],
-    "polars": ["polars"],
+    "polars": ["polars[timezone]"],
     "jax": ["jax>=0.3.14", "jaxlib>=0.3.14"],
     "s3": ["s3fs"],
     "streaming": [],  # for backward compatibility
