@@ -369,6 +369,7 @@ def get_dataset_default_config_name(
     **download_kwargs,
 ) -> Optional[str]:
     """Get the default config name for a particular dataset.
+    Can return None only if the dataset has multiple configurations and no default configuration.
 
     Args:
         path (`str`): path to the dataset processing script with the dataset builder. Can be either:
@@ -397,7 +398,7 @@ def get_dataset_default_config_name(
             for example `token`.
 
     Returns:
-        Optional[str]
+        Optional[str]: the default config name if there is one
 
     Example:
 
