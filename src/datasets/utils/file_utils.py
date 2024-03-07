@@ -345,7 +345,7 @@ def fsspec_get(url, temp_file, storage_options=None, desc=None):
             else None,
         }
     )
-    fs.get_file(paths[0], temp_file.name, callback=callback)
+    fs.get_file(path, temp_file.name, callback=callback)
 
 
 def ftp_head(url, timeout=10.0):
