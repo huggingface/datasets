@@ -2384,7 +2384,6 @@ class BaseDatasetTest(TestCase):
 
     @require_polars
     def test_to_polars(self, in_memory):
-        import gc
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Batched
