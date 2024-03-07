@@ -5011,7 +5011,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
 
     def to_polars(
-        self, batch_size: Optional[int] = None, batched: bool = False
+        self,
+        batch_size: Optional[int] = None,
+        batched: bool = False,
+        schema_overrides: Optional[dict] = None,
+        rechunk: bool = True,
     ) -> Union["pl.DataFrame", Iterator["pl.DataFrame"]]:
         """Returns the dataset as a `polars.DataFrame`. Can also return a generator for large datasets.
 
@@ -5022,7 +5026,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             batch_size (`int`, *optional*):
                 The size (number of rows) of the batches if `batched` is `True`.
                 Defaults to `genomicsml.datasets.config.DEFAULT_MAX_BATCH_SIZE`.
-
+            schema_overrides (`dict`, *optional*):
+                Support type specification or override of one or more columns; note that
+                any dtypes inferred from the schema param will be overridden.
+            rechunk (`bool`):
+                Make sure that all data is in contiguous memory. Defaults to `True`.
         Returns:
             `polars.DataFrame` or `Iterator[polars.DataFrame]`
 
@@ -5041,7 +5049,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         table=self._data,
                         key=slice(0, len(self)),
                         indices=self._indices if self._indices is not None else None,
-                    )
+                    ),
+                    schema_overrides=schema_overrides,
+                    rechunk=rechunk,
                 )
             else:
                 batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
@@ -5051,7 +5061,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             table=self._data,
                             key=slice(offset, offset + batch_size),
                             indices=self._indices if self._indices is not None else None,
-                        )
+                        ),
+                        schema_overrides=schema_overrides,
+                        rechunk=rechunk,
                     )
                     for offset in range(0, len(self), batch_size)
                 )
