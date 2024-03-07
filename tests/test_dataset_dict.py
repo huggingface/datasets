@@ -16,9 +16,9 @@ from datasets.splits import NamedSplit
 from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
+    require_polars,
     require_tf,
     require_torch,
-    require_polars,
 )
 
 

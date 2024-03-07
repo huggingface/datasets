@@ -18,7 +18,7 @@ from datasets.formatting.formatting import (
 )
 from datasets.table import InMemoryTable
 
-from .utils import require_jax, require_pil, require_sndfile, require_tf, require_torch, require_polars
+from .utils import require_jax, require_pil, require_polars, require_sndfile, require_tf, require_torch
 
 
 class AnyArray:
@@ -145,8 +145,9 @@ class ArrowExtractorTest(TestCase):
 
     @require_polars
     def test_polars_extractor(self):
-        from datasets.formatting.polars_formatter import PolarsArrowExtractor
         import polars as pl
+
+        from datasets.formatting.polars_formatter import PolarsArrowExtractor
 
         pa_table = self._create_dummy_table()
         extractor = PolarsArrowExtractor()
@@ -163,8 +164,9 @@ class ArrowExtractorTest(TestCase):
 
     @require_polars
     def test_polars_nested(self):
-        from datasets.formatting.polars_formatter import PolarsArrowExtractor
         import polars as pl
+
+        from datasets.formatting.polars_formatter import PolarsArrowExtractor
 
         pa_table = self._create_dummy_table().drop(["a", "b", "d"])
         extractor = PolarsArrowExtractor()
@@ -182,8 +184,9 @@ class ArrowExtractorTest(TestCase):
 
     @require_polars
     def test_polars_temporal(self):
-        from datasets.formatting.polars_formatter import PolarsArrowExtractor
         import polars as pl
+
+        from datasets.formatting.polars_formatter import PolarsArrowExtractor
 
         pa_table = self._create_dummy_table().drop(["a", "b", "c"])
         extractor = PolarsArrowExtractor()
@@ -326,8 +329,9 @@ class FormatterTest(TestCase):
 
     @require_polars
     def test_polars_formatter(self):
-        from datasets.formatting import PolarsFormatter
         import polars as pl
+
+        from datasets.formatting import PolarsFormatter
 
         pa_table = self._create_dummy_table()
         formatter = PolarsFormatter()

@@ -58,12 +58,12 @@ from .utils import (
     require_jax,
     require_not_windows,
     require_pil,
+    require_polars,
     require_pyspark,
     require_sqlalchemy,
     require_tf,
     require_torch,
     require_transformers,
-    require_polars,
     set_current_working_directory_to_temp_dir,
 )
 
