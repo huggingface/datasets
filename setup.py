@@ -185,6 +185,7 @@ TESTS_REQUIRE = [
     "transformers",
     "typing-extensions>=4.6.1",  # due to conflict between apache-beam and pydantic
     "zstandard",
+    "polars[timezone]>=0.20.0",
 ]
 
 
