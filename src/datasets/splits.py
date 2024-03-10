@@ -15,7 +15,6 @@
 # Lint as: python3
 """Splits related API."""
 
-
 import abc
 import collections
 import copy
@@ -540,8 +539,6 @@ class SplitDict(dict):
     def __setitem__(self, key: Union[SplitBase, str], value: SplitInfo):
         if key != value.name:
             raise ValueError(f"Cannot add elem. (key mismatch: '{key}' != '{value.name}')")
-        if key in self:
-            raise ValueError(f"Split {key} already present")
         super().__setitem__(key, value)
 
     def add(self, split_info: SplitInfo):

@@ -1,3 +1,4 @@
+import fsspec
 import pyarrow.parquet as pq
 import pytest
 
@@ -67,6 +68,25 @@ def test_dataset_from_parquet_path_type(path_type, parquet_path, tmp_path):
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     dataset = ParquetDatasetReader(path, cache_dir=cache_dir).read()
     _check_parquet_dataset(dataset, expected_features)
+
+
+def test_parquet_read_geoparquet(geoparquet_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    dataset = ParquetDatasetReader(path_or_paths=geoparquet_path, cache_dir=cache_dir).read()
+
+    expected_features = {
+        "pop_est": "float64",
+        "continent": "string",
+        "name": "string",
+        "gdp_md_est": "int64",
+        "geometry": "binary",
+    }
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == 5
+    assert dataset.num_columns == 6
+    assert dataset.column_names == ["pop_est", "continent", "name", "iso_a3", "gdp_md_est", "geometry"]
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
 
 
 def _check_parquet_datasetdict(dataset_dict, expected_features, splits=("train",)):
@@ -194,3 +214,13 @@ def test_dataset_to_parquet_keeps_features(shared_datadir, tmp_path):
 )
 def test_get_writer_batch_size(feature, expected):
     assert get_writer_batch_size(feature) == expected
+
+
+def test_dataset_to_parquet_fsspec(dataset, mockfs):
+    dataset_path = "mock://my_dataset.csv"
+    writer = ParquetDatasetWriter(dataset, dataset_path, storage_options=mockfs.storage_options)
+    assert writer.write() > 0
+    assert mockfs.isfile(dataset_path)
+
+    with fsspec.open(dataset_path, "rb", **mockfs.storage_options) as f:
+        assert f.read()

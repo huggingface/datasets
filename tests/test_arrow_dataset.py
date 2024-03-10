@@ -58,6 +58,7 @@ from .utils import (
     require_jax,
     require_not_windows,
     require_pil,
+    require_polars,
     require_pyspark,
     require_sqlalchemy,
     require_tf,
@@ -73,6 +74,10 @@ class PickableMagicMock(MagicMock):
 
 
 class Unpicklable:
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
     def __getstate__(self):
         raise pickle.PicklingError()
 
@@ -95,6 +100,10 @@ def picklable_map_function_with_indices_and_rank(x, i, r):
 
 def picklable_filter_function(x):
     return int(x["filename"].split("_")[-1]) < 10
+
+
+def picklable_filter_function_with_rank(x, r):
+    return r == 0
 
 
 def assert_arrow_metadata_are_synced_with_dataset_features(dataset: Dataset):
@@ -475,6 +484,22 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(len(dset[0].columns), 2)
                 self.assertEqual(dset[0]["col_2"].item(), "a")
 
+    @require_polars
+    def test_set_format_polars(self, in_memory):
+        import polars as pl
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                dset.set_format(type="polars", columns=["col_1"])
+                self.assertEqual(len(dset[0].columns), 1)
+                self.assertIsInstance(dset[0], pl.DataFrame)
+                self.assertListEqual(list(dset[0].shape), [1, 1])
+                self.assertEqual(dset[0]["col_1"].item(), 3)
+
+                dset.set_format(type="polars", columns=["col_1", "col_2"])
+                self.assertEqual(len(dset[0].columns), 2)
+                self.assertEqual(dset[0]["col_2"].item(), "a")
+
     def test_set_transform(self, in_memory):
         def transform(batch):
             return {k: [str(i).upper() for i in v] for k, v in batch.items()}
@@ -807,6 +832,7 @@ class BaseDatasetTest(TestCase):
                 Dataset.from_dict(data2, info=info2),
                 Dataset.from_dict(data3),
             )
+            schema = dset1.data.schema
             # mix from in-memory and on-disk datasets
             dset1, dset2 = self._to(in_memory, tmp_dir, dset1, dset2)
             dset3 = self._to(not in_memory, tmp_dir, dset3)
@@ -831,13 +857,13 @@ class BaseDatasetTest(TestCase):
             dset3 = dset3.rename_column("foo", "new_foo")
             dset3 = dset3.remove_columns("new_foo")
             if in_memory:
-                dset3._data.table = Unpicklable()
+                dset3._data.table = Unpicklable(schema=schema)
             else:
-                dset1._data.table, dset2._data.table = Unpicklable(), Unpicklable()
+                dset1._data.table, dset2._data.table = Unpicklable(schema=schema), Unpicklable(schema=schema)
             dset1, dset2, dset3 = (pickle.loads(pickle.dumps(d)) for d in (dset1, dset2, dset3))
             with concatenate_datasets([dset3, dset2, dset1]) as dset_concat:
                 if not in_memory:
-                    dset_concat._data.table = Unpicklable()
+                    dset_concat._data.table = Unpicklable(schema=schema)
                 with pickle.loads(pickle.dumps(dset_concat)) as dset_concat:
                     self.assertTupleEqual((len(dset1), len(dset2), len(dset3)), (3, 3, 2))
                     self.assertEqual(len(dset_concat), len(dset1) + len(dset2) + len(dset3))
@@ -1442,6 +1468,24 @@ class BaseDatasetTest(TestCase):
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertRaises(ValueError, dset.map, func_return_multi_row_pa_table)
 
+        # arrow formatted dataset
+        def func_return_table_from_expression(t):
+            import pyarrow.dataset as pds
+
+            return pds.dataset(t).to_table(
+                columns={"new_column": pds.field("")._call("ascii_capitalize", [pds.field("filename")])}
+            )
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.with_format("arrow").map(func_return_table_from_expression, batched=True) as dset_test:
+                    self.assertEqual(len(dset_test), 30)
+                    self.assertDictEqual(
+                        dset_test.features,
+                        Features({"new_column": Value("string")}),
+                    )
+                    self.assertEqual(dset_test.with_format(None)[0]["new_column"], dset[0]["filename"].capitalize())
+
     def test_map_return_pd_dataframe(self, in_memory):
         def func_return_single_row_pd_dataframe(x):
             return pd.DataFrame({"id": [0], "text": ["a"]})
@@ -1755,6 +1799,18 @@ class BaseDatasetTest(TestCase):
                     self.assertDictEqual(dset_filter_first_ten.features, Features({"filename": Value("string")}))
                     self.assertEqual(len(dset_filter_first_ten.cache_files), 0 if in_memory else 2)
                     self.assertNotEqual(dset_filter_first_ten._fingerprint, fingerprint)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:  # with_rank
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                fingerprint = dset._fingerprint
+                with dset.filter(
+                    picklable_filter_function_with_rank, num_proc=2, with_rank=True
+                ) as dset_filter_first_rank:
+                    self.assertEqual(len(dset_filter_first_rank), min(len(dset) // 2, len(dset)))
+                    self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                    self.assertDictEqual(dset_filter_first_rank.features, Features({"filename": Value("string")}))
+                    self.assertEqual(len(dset_filter_first_rank.cache_files), 0 if in_memory else 2)
+                    self.assertNotEqual(dset_filter_first_rank._fingerprint, fingerprint)
 
     def test_filter_caching(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -2326,6 +2382,38 @@ class BaseDatasetTest(TestCase):
                     for col_name in dset.column_names:
                         self.assertEqual(len(dset_to_pandas[col_name]), dset.num_rows)
 
+    @require_polars
+    def test_to_polars(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            # Batched
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                batch_size = dset.num_rows - 1
+                to_polars_generator = dset.to_polars(batched=True, batch_size=batch_size)
+
+                for batch in to_polars_generator:
+                    self.assertIsInstance(batch, sys.modules["polars"].DataFrame)
+                    self.assertListEqual(sorted(batch.columns), sorted(dset.column_names))
+                    for col_name in dset.column_names:
+                        self.assertLessEqual(len(batch[col_name]), batch_size)
+                    del batch
+
+                # Full
+                dset_to_polars = dset.to_polars()
+                self.assertIsInstance(dset_to_polars, sys.modules["polars"].DataFrame)
+                self.assertListEqual(sorted(dset_to_polars.columns), sorted(dset.column_names))
+                for col_name in dset.column_names:
+                    self.assertEqual(len(dset_to_polars[col_name]), len(dset))
+
+                # With index mapping
+                with dset.select([1, 0, 3]) as dset:
+                    dset_to_polars = dset.to_polars()
+                    self.assertIsInstance(dset_to_polars, sys.modules["polars"].DataFrame)
+                    self.assertEqual(len(dset_to_polars), 3)
+                    self.assertListEqual(sorted(dset_to_polars.columns), sorted(dset.column_names))
+
+                    for col_name in dset.column_names:
+                        self.assertEqual(len(dset_to_polars[col_name]), dset.num_rows)
+
     def test_to_parquet(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             # File path argument
@@ -2752,6 +2840,17 @@ class BaseDatasetTest(TestCase):
                 self.assertIsInstance(dset[:2], pd.DataFrame)
                 self.assertIsInstance(dset["col_1"], pd.Series)
 
+    @require_polars
+    def test_format_polars(self, in_memory):
+        import polars as pl
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                dset.set_format("polars")
+                self.assertIsInstance(dset[0], pl.DataFrame)
+                self.assertIsInstance(dset[:2], pl.DataFrame)
+                self.assertIsInstance(dset["col_1"], pl.Series)
+
     def test_transmit_format_single(self, in_memory):
         @transmit_format
         def my_single_transform(self, return_factory, *args, **kwargs):
@@ -3017,6 +3116,35 @@ class MiscellaneousDatasetTest(TestCase):
 
         features = Features({"col_1": Sequence(Value("string")), "col_2": Value("string")})
         self.assertRaises(TypeError, Dataset.from_pandas, df, features=features)
+
+    @require_polars
+    def test_from_polars(self):
+        import polars as pl
+
+        data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}
+        df = pl.from_dict(data)
+        with Dataset.from_polars(df) as dset:
+            self.assertListEqual(dset["col_1"], data["col_1"])
+            self.assertListEqual(dset["col_2"], data["col_2"])
+            self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
+            self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("large_string")}))
+
+        features = Features({"col_1": Value("int64"), "col_2": Value("large_string")})
+        with Dataset.from_polars(df, features=features) as dset:
+            self.assertListEqual(dset["col_1"], data["col_1"])
+            self.assertListEqual(dset["col_2"], data["col_2"])
+            self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
+            self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("large_string")}))
+
+        features = Features({"col_1": Value("int64"), "col_2": Value("large_string")})
+        with Dataset.from_polars(df, features=features, info=DatasetInfo(features=features)) as dset:
+            self.assertListEqual(dset["col_1"], data["col_1"])
+            self.assertListEqual(dset["col_2"], data["col_2"])
+            self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
+            self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("large_string")}))
+
+        features = Features({"col_1": Sequence(Value("string")), "col_2": Value("large_string")})
+        self.assertRaises(TypeError, Dataset.from_polars, df, features=features)
 
     def test_from_dict(self):
         data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"], "col_3": pa.array([True, False, True, False])}
@@ -3995,8 +4123,8 @@ def test_build_local_temp_path(uri_or_path):
     path_relative_to_tmp_dir = Path(local_temp_path).relative_to(Path(tempfile.gettempdir())).as_posix()
 
     assert (
-        "hdfs" not in path_relative_to_tmp_dir
-        and "s3" not in path_relative_to_tmp_dir
+        "hdfs://" not in path_relative_to_tmp_dir
+        and "s3://" not in path_relative_to_tmp_dir
         and not local_temp_path.startswith(extracted_path_without_anchor)
         and local_temp_path.endswith(extracted_path_without_anchor)
     ), f"Local temp path: {local_temp_path}"

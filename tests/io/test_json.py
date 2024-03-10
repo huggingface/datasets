@@ -268,3 +268,12 @@ class TestJsonDatasetWriter:
         with fsspec.open(original_path, "rb", compression="infer") as f:
             original_content = f.read()
         assert exported_content == original_content
+
+    def test_dataset_to_json_fsspec(self, dataset, mockfs):
+        dataset_path = "mock://my_dataset.json"
+        writer = JsonDatasetWriter(dataset, dataset_path, storage_options=mockfs.storage_options)
+        assert writer.write() > 0
+        assert mockfs.isfile(dataset_path)
+
+        with fsspec.open(dataset_path, "rb", **mockfs.storage_options) as f:
+            assert f.read()
