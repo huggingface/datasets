@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # Lint as: python3
-""" Arrow ArrowReader."""
+"""Arrow ArrowReader."""
 
 import copy
 import math
@@ -21,16 +21,19 @@ import os
 import re
 import shutil
 from dataclasses import dataclass
+from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional, Union
 
 import pyarrow as pa
 import pyarrow.parquet as pq
+from tqdm.contrib.concurrent import thread_map
 
 from .download.download_config import DownloadConfig
 from .naming import _split_re, filenames_for_dataset_split
 from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables
 from .utils import logging
+from .utils import tqdm as hf_tqdm
 from .utils.file_utils import cached_path
 
 
@@ -140,8 +143,11 @@ def make_file_instructions(
         to = split_length if abs_instr.to is None else abs_instr.to
         if shard_lengths is None:  # not sharded
             for filename in filenames:
-                num_examples += to - from_
-                file_instructions.append({"filename": filename, "skip": from_, "take": to - from_})
+                take = to - from_
+                if take == 0:
+                    continue
+                num_examples += take
+                file_instructions.append({"filename": filename, "skip": from_, "take": take})
         else:  # sharded
             index_start = 0  # Beginning (included) of moving window.
             index_end = 0  # End (excluded) of moving window.
@@ -192,13 +198,18 @@ class BaseReader:
         """
         if len(files) == 0 or not all(isinstance(f, dict) for f in files):
             raise ValueError("please provide valid file informations")
-        pa_tables = []
         files = copy.deepcopy(files)
         for f in files:
             f["filename"] = os.path.join(self._path, f["filename"])
-        for f_dict in files:
-            pa_table: Table = self._get_table_from_filename(f_dict, in_memory=in_memory)
-            pa_tables.append(pa_table)
+
+        pa_tables = thread_map(
+            partial(self._get_table_from_filename, in_memory=in_memory),
+            files,
+            tqdm_class=hf_tqdm,
+            desc="Loading dataset shards",
+            # set `disable=None` rather than `disable=False` by default to disable progress bar when no TTY attached
+            disable=len(files) <= 16 or None,
+        )
         pa_tables = [t for t in pa_tables if len(t) > 0]
         if not pa_tables and (self._info is None or self._info.features is None):
             raise ValueError(
@@ -286,7 +297,9 @@ class BaseReader:
         remote_cache_dir = HF_GCP_BASE_URL + "/" + relative_data_dir.replace(os.sep, "/")
         try:
             remote_dataset_info = os.path.join(remote_cache_dir, "dataset_info.json")
-            downloaded_dataset_info = cached_path(remote_dataset_info.replace(os.sep, "/"))
+            downloaded_dataset_info = cached_path(
+                remote_dataset_info.replace(os.sep, "/"), download_config=download_config
+            )
             shutil.move(downloaded_dataset_info, os.path.join(self._path, "dataset_info.json"))
             if self._info is not None:
                 self._info.update(self._info.from_directory(self._path))
@@ -472,17 +485,12 @@ def _rel_to_abs_instr(rel_instr, name2len):
     else:
         from_ = 0 if from_ is None else from_
         to = num_examples if to is None else to
-    if abs(from_) > num_examples or abs(to) > num_examples:
-        msg = f'Requested slice [{from_ or ""}:{to or ""}] incompatible with {num_examples} examples.'
-        raise ValueError(msg)
     if from_ < 0:
-        from_ = num_examples + from_
-    elif from_ == 0:
-        from_ = None
+        from_ = max(num_examples + from_, 0)
     if to < 0:
-        to = num_examples + to
-    elif to == num_examples:
-        to = None
+        to = max(num_examples + to, 0)
+    from_ = min(from_, num_examples)
+    to = min(to, num_examples)
     return _AbsoluteInstruction(split, from_, to)
 
 

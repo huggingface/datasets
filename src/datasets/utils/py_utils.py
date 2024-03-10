@@ -13,9 +13,7 @@
 # limitations under the License.
 
 # Lint as: python3
-"""Some python utils function and classes.
-
-"""
+"""Some python utils function and classes."""
 
 import copy
 import functools
@@ -29,6 +27,7 @@ import warnings
 from contextlib import contextmanager
 from dataclasses import fields, is_dataclass
 from multiprocessing import Manager
+from pathlib import Path
 from queue import Empty
 from shutil import disk_usage
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, TypeVar, Union
@@ -49,6 +48,7 @@ from ._dill import (  # noqa: F401 # imported for backward compatibility. TODO: 
     dumps,
     pklregister,
 )
+from ._filelock import FileLock
 
 
 try:  # pragma: no branch
@@ -462,7 +462,18 @@ def map_nested(
 
     if num_proc is None:
         num_proc = 1
-    if num_proc != -1 and num_proc <= 1 or len(iterable) < parallel_min_length:
+    if any(isinstance(v, types) and len(v) > len(iterable) for v in iterable):
+        mapped = [
+            map_nested(
+                function=function,
+                data_struct=obj,
+                num_proc=num_proc,
+                parallel_min_length=parallel_min_length,
+                types=types,
+            )
+            for obj in iterable
+        ]
+    elif num_proc != -1 and num_proc <= 1 or len(iterable) < parallel_min_length:
         mapped = [
             _single_map_nested((function, obj, types, None, True, None))
             for obj in hf_tqdm(iterable, disable=disable_tqdm, desc=desc)
@@ -526,6 +537,15 @@ def _convert_github_url(url_path: str) -> Tuple[str, Optional[str]]:
             url_path = f"https://github.com/{repo_owner}/{repo_name}/archive/{branch}.zip"
             sub_directory = f"{repo_name}-{branch}"
     return url_path, sub_directory
+
+
+def lock_importable_file(importable_local_file: str) -> FileLock:
+    # Check the directory with a unique name in our dataset folder
+    # path is: ./datasets/dataset_name/hash_from_code/script.py
+    # we use a hash as subdirectory_name to be able to have multiple versions of a dataset/metric processing file together
+    importable_directory_path = str(Path(importable_local_file).resolve().parent.parent)
+    lock_path = importable_directory_path + ".lock"
+    return FileLock(lock_path)
 
 
 def get_imports(file_path: str) -> Tuple[str, str, str, str]:

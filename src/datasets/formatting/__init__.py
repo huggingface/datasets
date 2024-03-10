@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# flake8: noqa
-# Lint as: python3
+# ruff: noqa
 
 from typing import Dict, List, Optional, Type
 
@@ -80,6 +79,14 @@ _register_formatter(ArrowFormatter, "arrow", aliases=["pa", "pyarrow"])
 _register_formatter(NumpyFormatter, "numpy", aliases=["np"])
 _register_formatter(PandasFormatter, "pandas", aliases=["pd"])
 _register_formatter(CustomFormatter, "custom")
+
+if config.POLARS_AVAILABLE:
+    from .polars_formatter import PolarsFormatter
+
+    _register_formatter(PolarsFormatter, "polars", aliases=["pl"])
+else:
+    _polars_error = ValueError("Polars needs to be installed to be able to return Polars dataframes.")
+    _register_unavailable_formatter(_polars_error, "polars", aliases=["pl"])
 
 if config.TORCH_AVAILABLE:
     from .torch_formatter import TorchFormatter
