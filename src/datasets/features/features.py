@@ -1341,7 +1341,7 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Uni
     return obj
 
 
-_FEATURE_TYPES: Dict[Optional[str], FeatureType] = {k: v for k, v in globals().items() if isinstance(v, FeatureType)}
+_FEATURE_TYPES: Dict[Optional[str], FeatureType] = {}
 
 
 def register_feature(
@@ -1378,7 +1378,7 @@ def generate_from_dict(obj: Any):
         return {key: generate_from_dict(value) for key, value in obj.items()}
     obj = dict(obj)
     _type = obj.pop("_type")
-    class_type = _FEATURE_TYPES.get(_type, None)
+    class_type = _FEATURE_TYPES.get(_type, None) or globals().get(_type, None)
 
     if class_type is None:
         raise ValueError(f"Feature type '{_type}' not found. Available feature types: {list(_FEATURE_TYPES.keys())}")
