@@ -1344,7 +1344,7 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Uni
 _FEATURE_TYPES: Dict[Optional[str], FeatureType] = {k: v for k, v in globals().items() if isinstance(v, FeatureType)}
 
 
-def _register_feature(
+def register_feature(
     feature_cls: type,
     feature_type: Optional[str],
 ):
