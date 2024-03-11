@@ -2,10 +2,12 @@ import multiprocessing
 import os
 from typing import BinaryIO, Optional, Union
 
+import fsspec
+
 from .. import Dataset, Features, NamedSplit, config
 from ..formatting import query_table
 from ..packaged_modules.csv.csv import Csv
-from ..utils import logging
+from ..utils import tqdm as hf_tqdm
 from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
 
@@ -72,6 +74,7 @@ class CsvDatasetWriter:
         path_or_buf: Union[PathLike, BinaryIO],
         batch_size: Optional[int] = None,
         num_proc: Optional[int] = None,
+        storage_options: Optional[dict] = None,
         **to_csv_kwargs,
     ):
         if num_proc is not None and num_proc <= 0:
@@ -82,6 +85,7 @@ class CsvDatasetWriter:
         self.batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
         self.num_proc = num_proc
         self.encoding = "utf-8"
+        self.storage_options = storage_options or {}
         self.to_csv_kwargs = to_csv_kwargs
 
     def write(self) -> int:
@@ -90,7 +94,7 @@ class CsvDatasetWriter:
         index = self.to_csv_kwargs.pop("index", False)
 
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
-            with open(self.path_or_buf, "wb+") as buffer:
+            with fsspec.open(self.path_or_buf, "wb", **(self.storage_options or {})) as buffer:
                 written = self._write(file_obj=buffer, header=header, index=index, **self.to_csv_kwargs)
         else:
             written = self._write(file_obj=self.path_or_buf, header=header, index=index, **self.to_csv_kwargs)
@@ -117,10 +121,9 @@ class CsvDatasetWriter:
         written = 0
 
         if self.num_proc is None or self.num_proc == 1:
-            for offset in logging.tqdm(
+            for offset in hf_tqdm(
                 range(0, len(self.dataset), self.batch_size),
                 unit="ba",
-                disable=not logging.is_progress_bar_enabled(),
                 desc="Creating CSV from Arrow format",
             ):
                 csv_str = self._batch_csv((offset, header, index, to_csv_kwargs))
@@ -129,14 +132,13 @@ class CsvDatasetWriter:
         else:
             num_rows, batch_size = len(self.dataset), self.batch_size
             with multiprocessing.Pool(self.num_proc) as pool:
-                for csv_str in logging.tqdm(
+                for csv_str in hf_tqdm(
                     pool.imap(
                         self._batch_csv,
                         [(offset, header, index, to_csv_kwargs) for offset in range(0, num_rows, batch_size)],
                     ),
                     total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
                     unit="ba",
-                    disable=not logging.is_progress_bar_enabled(),
                     desc="Creating CSV from Arrow format",
                 ):
                     written += file_obj.write(csv_str)

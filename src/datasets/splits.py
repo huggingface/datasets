@@ -15,7 +15,6 @@
 # Lint as: python3
 """Splits related API."""
 
-
 import abc
 import collections
 import copy
@@ -111,6 +110,7 @@ class SplitBase(metaclass=abc.ABCMeta):
              to define which files to read and how to skip examples within file.
 
     """
+
     # pylint: enable=line-too-long
 
     @abc.abstractmethod
@@ -265,6 +265,7 @@ class PercentSlice(metaclass=PercentSliceMeta):
     [guide on splits](../loading#slice-splits)
     for more information.
     """
+
     # pylint: enable=line-too-long
     pass
 
@@ -438,6 +439,7 @@ class Split:
     ... )
     ```
     """
+
     # pylint: enable=line-too-long
     TRAIN = NamedSplit("train")
     TEST = NamedSplit("test")
@@ -537,8 +539,6 @@ class SplitDict(dict):
     def __setitem__(self, key: Union[SplitBase, str], value: SplitInfo):
         if key != value.name:
             raise ValueError(f"Cannot add elem. (key mismatch: '{key}' != '{value.name}')")
-        if key in self:
-            raise ValueError(f"Split {key} already present")
         super().__setitem__(key, value)
 
     def add(self, split_info: SplitInfo):

@@ -7,7 +7,7 @@ import fsspec
 from .. import Dataset, Features, NamedSplit, config
 from ..formatting import query_table
 from ..packaged_modules.json.json import Json
-from ..utils import logging
+from ..utils import tqdm as hf_tqdm
 from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
 
@@ -77,6 +77,7 @@ class JsonDatasetWriter:
         path_or_buf: Union[PathLike, BinaryIO],
         batch_size: Optional[int] = None,
         num_proc: Optional[int] = None,
+        storage_options: Optional[dict] = None,
         **to_json_kwargs,
     ):
         if num_proc is not None and num_proc <= 0:
@@ -87,6 +88,7 @@ class JsonDatasetWriter:
         self.batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
         self.num_proc = num_proc
         self.encoding = "utf-8"
+        self.storage_options = storage_options or {}
         self.to_json_kwargs = to_json_kwargs
 
     def write(self) -> int:
@@ -95,13 +97,18 @@ class JsonDatasetWriter:
         lines = self.to_json_kwargs.pop("lines", True if orient == "records" else False)
         if "index" not in self.to_json_kwargs and orient in ["split", "table"]:
             self.to_json_kwargs["index"] = False
-        compression = self.to_json_kwargs.pop("compression", None)
+
+        # Determine the default compression value based on self.path_or_buf type
+        default_compression = "infer" if isinstance(self.path_or_buf, (str, bytes, os.PathLike)) else None
+        compression = self.to_json_kwargs.pop("compression", default_compression)
 
         if compression not in [None, "infer", "gzip", "bz2", "xz"]:
             raise NotImplementedError(f"`datasets` currently does not support {compression} compression")
 
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
-            with fsspec.open(self.path_or_buf, "wb", compression=compression) as buffer:
+            with fsspec.open(
+                self.path_or_buf, "wb", compression=compression, **(self.storage_options or {})
+            ) as buffer:
                 written = self._write(file_obj=buffer, orient=orient, lines=lines, **self.to_json_kwargs)
         else:
             if compression:
@@ -139,10 +146,9 @@ class JsonDatasetWriter:
         written = 0
 
         if self.num_proc is None or self.num_proc == 1:
-            for offset in logging.tqdm(
+            for offset in hf_tqdm(
                 range(0, len(self.dataset), self.batch_size),
                 unit="ba",
-                disable=not logging.is_progress_bar_enabled(),
                 desc="Creating json from Arrow format",
             ):
                 json_str = self._batch_json((offset, orient, lines, to_json_kwargs))
@@ -150,14 +156,13 @@ class JsonDatasetWriter:
         else:
             num_rows, batch_size = len(self.dataset), self.batch_size
             with multiprocessing.Pool(self.num_proc) as pool:
-                for json_str in logging.tqdm(
+                for json_str in hf_tqdm(
                     pool.imap(
                         self._batch_json,
                         [(offset, orient, lines, to_json_kwargs) for offset in range(0, num_rows, batch_size)],
                     ),
                     total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
                     unit="ba",
-                    disable=not logging.is_progress_bar_enabled(),
                     desc="Creating json from Arrow format",
                 ):
                     written += file_obj.write(json_str)

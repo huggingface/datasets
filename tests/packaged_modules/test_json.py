@@ -55,6 +55,23 @@ def json_file_with_list_of_dicts(tmp_path):
 
 
 @pytest.fixture
+def json_file_with_list_of_strings(tmp_path):
+    filename = tmp_path / "file_with_list_of_strings.json"
+    data = textwrap.dedent(
+        """\
+        [
+            "First text.",
+            "Second text.",
+            "Third text."
+        ]
+        """
+    )
+    with open(filename, "w") as f:
+        f.write(data)
+    return str(filename)
+
+
+@pytest.fixture
 def json_file_with_list_of_dicts_field(tmp_path):
     filename = tmp_path / "file_with_list_of_dicts_field.json"
     data = textwrap.dedent(
@@ -82,13 +99,18 @@ def json_file_with_list_of_dicts_field(tmp_path):
         ("jsonl_file_utf16_encoded", {"encoding": "utf-16"}),
         ("json_file_with_list_of_dicts", {}),
         ("json_file_with_list_of_dicts_field", {"field": "field3"}),
+        ("json_file_with_list_of_strings", {}),
     ],
 )
 def test_json_generate_tables(file_fixture, config_kwargs, request):
     json = Json(**config_kwargs)
     generator = json._generate_tables([[request.getfixturevalue(file_fixture)]])
     pa_table = pa.concat_tables([table for _, table in generator])
-    assert pa_table.to_pydict() == {"col_1": [-1, 1, 10], "col_2": [None, 2, 20]}
+    if file_fixture == "json_file_with_list_of_strings":
+        expected = {"text": ["First text.", "Second text.", "Third text."]}
+    else:
+        expected = {"col_1": [-1, 1, 10], "col_2": [None, 2, 20]}
+    assert pa_table.to_pydict() == expected
 
 
 @pytest.mark.parametrize(

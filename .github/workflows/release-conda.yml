@@ -17,10 +17,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install miniconda
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           auto-activate-base: false
@@ -38,8 +38,8 @@ jobs:
       - name: Build conda packages
         run: |
           conda info
-          conda-build .github/conda
+          conda build .github/conda
 
       - name: Upload to Anaconda
         run: |
-          anaconda upload `conda-build .github/conda --output -c conda-forge` --force
+          anaconda upload `conda build .github/conda --output -c conda-forge` --force

@@ -16,6 +16,8 @@ from xml.etree import ElementTree as ET
 
 import fsspec
 from aiohttp.client_exceptions import ClientError
+from huggingface_hub.utils import EntryNotFoundError
+from packaging import version
 
 from .. import config
 from ..filesystems import COMPRESSION_FILESYSTEMS
@@ -156,6 +158,7 @@ def xexists(urlpath: str, download_config: Optional[DownloadConfig] = None):
         return os.path.exists(main_hop)
     else:
         urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config=download_config)
+        main_hop, *rest_hops = urlpath.split("::")
         fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
         return fs.exists(main_hop)
 
@@ -255,6 +258,7 @@ def xisfile(path, download_config: Optional[DownloadConfig] = None) -> bool:
         return os.path.isfile(path)
     else:
         path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
+        main_hop, *rest_hops = path.split("::")
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
         return fs.isfile(main_hop)
 
@@ -274,8 +278,12 @@ def xgetsize(path, download_config: Optional[DownloadConfig] = None) -> int:
         return os.path.getsize(path)
     else:
         path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
+        main_hop, *rest_hops = path.split("::")
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
-        size = fs.size(main_hop)
+        try:
+            size = fs.size(main_hop)
+        except EntryNotFoundError:
+            raise FileNotFoundError(f"No such file: {path}")
         if size is None:
             # use xopen instead of fs.open to make data fetching more robust
             with xopen(path, download_config=download_config) as f:
@@ -298,8 +306,9 @@ def xisdir(path, download_config: Optional[DownloadConfig] = None) -> bool:
         return os.path.isdir(path)
     else:
         path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
+        main_hop, *rest_hops = path.split("::")
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
-        inner_path = main_hop.split("://")[1]
+        inner_path = main_hop.split("://")[-1]
         if not inner_path.strip("/"):
             return True
         return fs.isdir(inner_path)
@@ -423,6 +432,8 @@ def _prepare_single_hop_path_and_storage_options(
     Storage options are formatted in the form {protocol: storage_options_for_protocol}
     """
     token = None if download_config is None else download_config.token
+    if urlpath.startswith(config.HF_ENDPOINT) and "/resolve/" in urlpath:
+        urlpath = "hf://" + urlpath[len(config.HF_ENDPOINT) + 1 :].replace("/resolve/", "@", 1)
     protocol = urlpath.split("://")[0] if "://" in urlpath else "file"
     if download_config is not None and protocol in download_config.storage_options:
         storage_options = download_config.storage_options[protocol]
@@ -465,6 +476,9 @@ def _prepare_single_hop_path_and_storage_options(
             "endpoint": config.HF_ENDPOINT,
             **storage_options.get(protocol, {}),
         }
+        # streaming with block_size=0 is only implemented in 0.21 (see https://github.com/huggingface/huggingface_hub/pull/1967)
+        if config.HF_HUB_VERSION < version.parse("0.21.0"):
+            storage_options[protocol]["block_size"] = "default"
     return urlpath, storage_options
 
 
@@ -488,6 +502,8 @@ def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] 
     file_str = _as_str(file)
     main_hop, *rest_hops = file_str.split("::")
     if is_local_path(main_hop):
+        # ignore fsspec-specific kwargs
+        kwargs.pop("block_size", None)
         return open(main_hop, mode, *args, **kwargs)
     # add headers and cookies for authentication on the HF Hub and for Google Drive
     file, storage_options = _prepare_path_and_storage_options(file_str, download_config=download_config)
@@ -529,12 +545,13 @@ def xlistdir(path: str, download_config: Optional[DownloadConfig] = None) -> Lis
     else:
         # globbing inside a zip in a private repo requires authentication
         path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
+        main_hop, *rest_hops = path.split("::")
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
-        inner_path = main_hop.split("://")[1]
+        inner_path = main_hop.split("://")[-1]
         if inner_path.strip("/") and not fs.isdir(inner_path):
             raise FileNotFoundError(f"Directory doesn't exist: {path}")
-        objects = fs.listdir(inner_path)
-        return [os.path.basename(obj["name"]) for obj in objects]
+        paths = fs.listdir(inner_path, detail=False)
+        return [os.path.basename(path.rstrip("/")) for path in paths]
 
 
 def xglob(urlpath, *, recursive=False, download_config: Optional[DownloadConfig] = None):
@@ -555,6 +572,7 @@ def xglob(urlpath, *, recursive=False, download_config: Optional[DownloadConfig]
     else:
         # globbing inside a zip in a private repo requires authentication
         urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config=download_config)
+        main_hop, *rest_hops = urlpath.split("::")
         fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
         # - If there's no "*" in the pattern, get_fs_token_paths() doesn't do any pattern matching
         #   so to be able to glob patterns like "[0-9]", we have to call `fs.glob`.
@@ -584,8 +602,9 @@ def xwalk(urlpath, download_config: Optional[DownloadConfig] = None, **kwargs):
     else:
         # walking inside a zip in a private repo requires authentication
         urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config=download_config)
+        main_hop, *rest_hops = urlpath.split("::")
         fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
-        inner_path = main_hop.split("://")[1]
+        inner_path = main_hop.split("://")[-1]
         if inner_path.strip("/") and not fs.isdir(inner_path):
             return []
         protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[-1]
@@ -898,7 +917,9 @@ class ArchiveIterable(_IterableFromGenerator):
         cls, urlpath: str, download_config: Optional[DownloadConfig] = None
     ) -> Generator[Tuple, None, None]:
         compression = _get_extraction_protocol(urlpath, download_config=download_config)
-        with xopen(urlpath, "rb", download_config=download_config) as f:
+        # Set block_size=0 to get faster streaming
+        # (e.g. for hf:// and https:// it uses streaming Requests file-like instances)
+        with xopen(urlpath, "rb", download_config=download_config, block_size=0) as f:
             if compression == "zip":
                 yield from cls._iter_zip(f)
             else:

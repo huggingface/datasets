@@ -3,7 +3,6 @@ import copy
 import fnmatch
 import json
 import math
-import os
 import posixpath
 import re
 import warnings
@@ -14,6 +13,7 @@ from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
 import fsspec
 import numpy as np
 from huggingface_hub import (
+    CommitInfo,
     CommitOperationAdd,
     CommitOperationDelete,
     DatasetCard,
@@ -25,7 +25,6 @@ from . import config
 from .arrow_dataset import PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED, Dataset
 from .features import Features
 from .features.features import FeatureType
-from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .info import DatasetInfo, DatasetInfosDict
 from .naming import _split_re
 from .splits import NamedSplit, Split, SplitDict, SplitInfo
@@ -34,6 +33,7 @@ from .tasks import TaskTemplate
 from .utils import logging
 from .utils.deprecation_utils import deprecated
 from .utils.doc_utils import is_documented_by
+from .utils.hub import list_files_info
 from .utils.metadata import MetadataConfigs
 from .utils.py_utils import asdict, glob_pattern_to_regex, string_to_dict
 from .utils.typing import PathLike
@@ -57,6 +57,17 @@ class DatasetDict(dict):
                 raise ValueError(
                     f"All datasets in `DatasetDict` should have the same features but features for '{item_a[0]}' and '{item_b[0]}' don't match: {item_a[1].features} != {item_b[1].features}"
                 )
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # Here `del` is used to del the pyarrow tables. This properly closes the files used for memory mapped tables
+        for dataset in self.values():
+            if hasattr(dataset, "_data"):
+                del dataset._data
+            if hasattr(dataset, "_indices"):
+                del dataset._indices
 
     def __getitem__(self, k) -> Dataset:
         if isinstance(k, (str, NamedSplit)) or len(self) == 0:
@@ -880,8 +891,9 @@ class DatasetDict(dict):
 
     def filter(
         self,
-        function,
-        with_indices=False,
+        function: Optional[Callable] = None,
+        with_indices: bool = False,
+        with_rank: bool = False,
         input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
@@ -898,14 +910,20 @@ class DatasetDict(dict):
         The transformation is applied to all the datasets of the dataset dictionary.
 
         Args:
-            function (`callable`):
-                With one of the following signature:
-                - `function(example: Dict[str, Any]) -> bool` if `with_indices=False, batched=False`
-                - `function(example: Dict[str, Any], indices: int) -> bool` if `with_indices=True, batched=False`
-                - `function(example: Dict[str, List]) -> List[bool]` if `with_indices=False, batched=True`
-                - `function(example: Dict[str, List], indices: List[int]) -> List[bool]` if ``with_indices=True, batched=True`
+            function (`Callable`): Callable with one of the following signatures:
+
+                - `function(example: Dict[str, Any]) -> bool` if `batched=False` and `with_indices=False` and `with_rank=False`
+                - `function(example: Dict[str, Any], *extra_args) -> bool` if `batched=False` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+                - `function(batch: Dict[str, List]) -> List[bool]` if `batched=True` and `with_indices=False` and `with_rank=False`
+                - `function(batch: Dict[str, List], *extra_args) -> List[bool]` if `batched=True` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+
+                If no function is provided, defaults to an always `True` function: `lambda x: True`.
             with_indices (`bool`, defaults to `False`):
-                Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
+                Provide example indices to `function`. Note that in this case the
+                signature of `function` should be `def function(example, idx[, rank]): ...`.
+            with_rank (`bool`, defaults to `False`):
+                Provide process rank to `function`. Note that in this case the
+                signature of `function` should be `def function(example[, idx], rank): ...`.
             input_columns (`[Union[str, List[str]]]`, *optional*, defaults to `None`):
                 The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
@@ -965,6 +983,7 @@ class DatasetDict(dict):
                 k: dataset.filter(
                     function=function,
                     with_indices=with_indices,
+                    with_rank=with_rank,
                     input_columns=input_columns,
                     batched=batched,
                     batch_size=batch_size,
@@ -1260,10 +1279,8 @@ class DatasetDict(dict):
             )
             storage_options = fs.storage_options
 
-        fs_token_paths = fsspec.get_fs_token_paths(dataset_dict_path, storage_options=storage_options)
-        fs: fsspec.AbstractFileSystem = fs_token_paths[0]
-        is_local = not is_remote_filesystem(fs)
-        path_join = os.path.join if is_local else posixpath.join
+        fs: fsspec.AbstractFileSystem
+        fs, _, _ = fsspec.get_fs_token_paths(dataset_dict_path, storage_options=storage_options)
 
         if num_shards is None:
             num_shards = {k: None for k in self}
@@ -1272,16 +1289,13 @@ class DatasetDict(dict):
                 "Please provide one `num_shards` per dataset in the dataset dictionary, e.g. {{'train': 128, 'test': 4}}"
             )
 
-        if is_local:
-            Path(dataset_dict_path).expanduser().resolve().mkdir(parents=True, exist_ok=True)
-        else:
-            fs.makedirs(dataset_dict_path, exist_ok=True)
+        fs.makedirs(dataset_dict_path, exist_ok=True)
 
-        with fs.open(path_join(dataset_dict_path, config.DATASETDICT_JSON_FILENAME), "w", encoding="utf-8") as f:
+        with fs.open(posixpath.join(dataset_dict_path, config.DATASETDICT_JSON_FILENAME), "w", encoding="utf-8") as f:
             json.dump({"splits": list(self)}, f)
         for k, dataset in self.items():
             dataset.save_to_disk(
-                path_join(dataset_dict_path, k),
+                posixpath.join(dataset_dict_path, k),
                 num_shards=num_shards.get(k),
                 max_shard_size=max_shard_size,
                 num_proc=num_proc,
@@ -1339,20 +1353,12 @@ class DatasetDict(dict):
             )
             storage_options = fs.storage_options
 
-        fs_token_paths = fsspec.get_fs_token_paths(dataset_dict_path, storage_options=storage_options)
-        fs: fsspec.AbstractFileSystem = fs_token_paths[0]
+        fs: fsspec.AbstractFileSystem
+        fs, _, [dataset_dict_path] = fsspec.get_fs_token_paths(dataset_dict_path, storage_options=storage_options)
 
-        if is_remote_filesystem(fs):
-            dest_dataset_dict_path = extract_path_from_uri(dataset_dict_path)
-            path_join = posixpath.join
-        else:
-            fs = fsspec.filesystem("file")
-            dest_dataset_dict_path = Path(dataset_dict_path).expanduser().resolve()
-            path_join = os.path.join
-
-        dataset_dict_json_path = path_join(dest_dataset_dict_path, config.DATASETDICT_JSON_FILENAME)
-        dataset_state_json_path = path_join(dest_dataset_dict_path, config.DATASET_STATE_JSON_FILENAME)
-        dataset_info_path = path_join(dest_dataset_dict_path, config.DATASET_INFO_FILENAME)
+        dataset_dict_json_path = posixpath.join(dataset_dict_path, config.DATASETDICT_JSON_FILENAME)
+        dataset_state_json_path = posixpath.join(dataset_dict_path, config.DATASET_STATE_JSON_FILENAME)
+        dataset_info_path = posixpath.join(dataset_dict_path, config.DATASET_INFO_FILENAME)
         if not fs.isfile(dataset_dict_json_path):
             if fs.isfile(dataset_info_path) and fs.isfile(dataset_state_json_path):
                 raise FileNotFoundError(
@@ -1367,11 +1373,7 @@ class DatasetDict(dict):
 
         dataset_dict = DatasetDict()
         for k in splits:
-            dataset_dict_split_path = (
-                dataset_dict_path.split("://")[0] + "://" + path_join(dest_dataset_dict_path, k)
-                if is_remote_filesystem(fs)
-                else path_join(dest_dataset_dict_path, k)
-            )
+            dataset_dict_split_path = posixpath.join(fs.unstrip_protocol(dataset_dict_path), k)
             dataset_dict[k] = Dataset.load_from_disk(
                 dataset_dict_split_path, keep_in_memory=keep_in_memory, storage_options=storage_options
             )
@@ -1563,7 +1565,10 @@ class DatasetDict(dict):
         self,
         repo_id,
         config_name: str = "default",
+        set_default: Optional[bool] = None,
+        data_dir: Optional[str] = None,
         commit_message: Optional[str] = None,
+        commit_description: Optional[str] = None,
         private: Optional[bool] = False,
         token: Optional[str] = None,
         revision: Optional[str] = None,
@@ -1572,7 +1577,7 @@ class DatasetDict(dict):
         max_shard_size: Optional[Union[int, str]] = None,
         num_shards: Optional[Dict[str, int]] = None,
         embed_external_files: bool = True,
-    ):
+    ) -> CommitInfo:
         """Pushes the [`DatasetDict`] to the hub as a Parquet dataset.
         The [`DatasetDict`] is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
 
@@ -1589,8 +1594,21 @@ class DatasetDict(dict):
                 of the logged-in user.
             config_name (`str`):
                 Configuration name of a dataset. Defaults to "default".
+            set_default (`bool`, *optional*):
+                Whether to set this configuration as the default one. Otherwise, the default configuration is the one
+                named "default".
+            data_dir (`str`, *optional*):
+                Directory name that will contain the uploaded data files. Defaults to the `config_name` if different
+                from "default", else "data".
+
+                <Added version="2.17.0"/>
             commit_message (`str`, *optional*):
                 Message to commit while pushing. Will default to `"Upload dataset"`.
+            commit_description (`str`, *optional*):
+                Description of the commit that will be created.
+                Additionally, description of the PR if a PR is created (`create_pr` is True).
+
+                <Added version="2.16.0"/>
             private (`bool`, *optional*):
                 Whether the dataset repository should be set to private or not. Only affects repository creation:
                 a repository that already exists will not be affected by that parameter.
@@ -1612,14 +1630,14 @@ class DatasetDict(dict):
 
                 </Deprecated>
             create_pr (`bool`, *optional*, defaults to `False`):
-                Whether or not to create a PR with the uploaded files or directly commit.
+                Whether to create a PR with the uploaded files or directly commit.
 
                 <Added version="2.15.0"/>
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
                 (like `"500MB"` or `"1GB"`).
             num_shards (`Dict[str, int]`, *optional*):
-                Number of shards to write. By default the number of shards depends on `max_shard_size`.
+                Number of shards to write. By default, the number of shards depends on `max_shard_size`.
                 Use a dictionary to define a different num_shards for each split.
 
                 <Added version="2.8.0"/>
@@ -1628,6 +1646,9 @@ class DatasetDict(dict):
                 In particular, this will do the following before the push for the fields of type:
 
                 - [`Audio`] and [`Image`] removes local path information and embed file content in the Parquet files.
+
+        Return:
+            huggingface_hub.CommitInfo
 
         Example:
 
@@ -1690,7 +1711,8 @@ class DatasetDict(dict):
         if revision is not None:
             api.create_branch(repo_id, branch=revision, token=token, repo_type="dataset", exist_ok=True)
 
-        data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
+        if not data_dir:
+            data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
 
         additions = []
         for split in self.keys():
@@ -1716,18 +1738,14 @@ class DatasetDict(dict):
         info_to_dump.dataset_size = total_dataset_nbytes
         info_to_dump.size_in_bytes = total_uploaded_size + total_dataset_nbytes
 
-        metadata_config_to_dump = {
-            "data_files": [{"split": split, "path": f"{data_dir}/{split}-*"} for split in self.keys()],
-        }
-
         # Check if the repo already has a README.md and/or a dataset_infos.json to update them with the new split info (size and pattern)
         # and delete old split shards (if they exist)
         repo_with_dataset_card, repo_with_dataset_infos = False, False
         repo_splits = []  # use a list to keep the order of the splits
         deletions = []
         repo_files_to_add = [addition.path_in_repo for addition in additions]
-        for repo_file in api.list_files_info(repo_id, revision=revision, repo_type="dataset", token=token):
-            if repo_file.rfilename == "README.md":
+        for repo_file in list_files_info(api, repo_id=repo_id, revision=revision, repo_type="dataset", token=token):
+            if repo_file.rfilename == config.REPOCARD_FILENAME:
                 repo_with_dataset_card = True
             elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:
                 repo_with_dataset_infos = True
@@ -1748,7 +1766,9 @@ class DatasetDict(dict):
 
         # get the info from the README to update them
         if repo_with_dataset_card:
-            dataset_card_path = api.hf_hub_download(repo_id, "README.md", repo_type="dataset", revision=revision)
+            dataset_card_path = api.hf_hub_download(
+                repo_id, config.REPOCARD_FILENAME, repo_type="dataset", revision=revision
+            )
             dataset_card = DatasetCard.load(Path(dataset_card_path))
             dataset_card_data = dataset_card.data
             metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
@@ -1767,6 +1787,20 @@ class DatasetDict(dict):
                 "data_files": [{"split": split, "path": f"data/{split}-*"} for split in repo_splits]
             }
             MetadataConfigs({"default": default_metadata_configs_to_dump}).to_dataset_card_data(dataset_card_data)
+        metadata_config_to_dump = {
+            "data_files": [{"split": split, "path": f"{data_dir}/{split}-*"} for split in self.keys()],
+        }
+        if set_default and config_name != "default":
+            if metadata_configs:
+                default_config_name = metadata_configs.get_default_config_name()
+                if default_config_name == "default":
+                    raise ValueError(
+                        "There exists a configuration named 'default'. To set a different configuration as default, "
+                        "rename the 'default' one first."
+                    )
+                else:
+                    _ = metadata_configs[default_config_name].pop("default")
+            metadata_config_to_dump["default"] = True
         # push to the deprecated dataset_infos.json
         if repo_with_dataset_infos:
             dataset_infos_path = api.hf_hub_download(
@@ -1784,14 +1818,17 @@ class DatasetDict(dict):
         DatasetInfosDict({config_name: info_to_dump}).to_dataset_card_data(dataset_card_data)
         MetadataConfigs({config_name: metadata_config_to_dump}).to_dataset_card_data(dataset_card_data)
         dataset_card = DatasetCard(f"---\n{dataset_card_data}\n---\n") if dataset_card is None else dataset_card
-        additions.append(CommitOperationAdd(path_in_repo="README.md", path_or_fileobj=str(dataset_card).encode()))
+        additions.append(
+            CommitOperationAdd(path_in_repo=config.REPOCARD_FILENAME, path_or_fileobj=str(dataset_card).encode())
+        )
 
         commit_message = commit_message if commit_message is not None else "Upload dataset"
         if len(additions) <= config.UPLOADS_MAX_NUMBER_PER_COMMIT:
-            api.create_commit(
+            commit_info = api.create_commit(
                 repo_id,
                 operations=additions + deletions,
                 commit_message=commit_message,
+                commit_description=commit_description,
                 token=token,
                 repo_type="dataset",
                 revision=revision,
@@ -1806,10 +1843,11 @@ class DatasetDict(dict):
                 operations = additions[
                     i * config.UPLOADS_MAX_NUMBER_PER_COMMIT : (i + 1) * config.UPLOADS_MAX_NUMBER_PER_COMMIT
                 ] + (deletions if i == 0 else [])
-                api.create_commit(
+                commit_info = api.create_commit(
                     repo_id,
                     operations=operations,
                     commit_message=commit_message + f" (part {i:05d}-of-{num_commits:05d})",
+                    commit_description=commit_description,
                     token=token,
                     repo_type="dataset",
                     revision=revision,
@@ -1820,9 +1858,15 @@ class DatasetDict(dict):
                     + (f" (still {num_commits - i - 1} to go)" if num_commits - i - 1 else "")
                     + "."
                 )
+        return commit_info
 
 
 class IterableDatasetDict(dict):
+    def __repr__(self):
+        repr = "\n".join([f"{k}: {v}" for k, v in self.items()])
+        repr = re.sub(r"^", " " * 4, repr, 0, re.M)
+        return f"IterableDatasetDict({{\n{repr}\n}})"
+
     def with_format(
         self,
         type: Optional[str] = None,
