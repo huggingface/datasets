@@ -54,6 +54,7 @@ from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
     offline,
+    require_not_windows,
     require_pil,
     require_sndfile,
     set_current_working_directory_to_temp_dir,
@@ -186,6 +187,32 @@ def data_dir_with_single_config_in_metadata(tmp_path):
 {METADATA_CONFIGS_FIELD}:
   - config_name: custom
     drop_labels: true
+---
+        """
+        )
+    return str(data_dir)
+
+
+@pytest.fixture
+def data_dir_with_config_and_data_files(tmp_path):
+    data_dir = tmp_path / "data_dir_with_config_and_data_files"
+
+    cats_data_dir = data_dir / "data" / "cats"
+    cats_data_dir.mkdir(parents=True)
+    dogs_data_dir = data_dir / "data" / "dogs"
+    dogs_data_dir.mkdir(parents=True)
+
+    with open(cats_data_dir / "cat.jpg", "wb") as f:
+        f.write(b"this_is_a_cat_image_bytes")
+    with open(dogs_data_dir / "dog.jpg", "wb") as f:
+        f.write(b"this_is_a_dog_image_bytes")
+    with open(data_dir / "README.md", "w") as f:
+        f.write(
+            f"""\
+---
+{METADATA_CONFIGS_FIELD}:
+  - config_name: custom
+    data_files: "data/**/*.jpg"
 ---
         """
         )
@@ -364,6 +391,7 @@ class ModuleFactoryTest(TestCase):
         data_dir,
         data_dir_with_metadata,
         data_dir_with_single_config_in_metadata,
+        data_dir_with_config_and_data_files,
         data_dir_with_two_config_in_metadata,
         sub_data_dirs,
         dataset_loading_script_dir,
@@ -373,6 +401,7 @@ class ModuleFactoryTest(TestCase):
         self._data_dir = data_dir
         self._data_dir_with_metadata = data_dir_with_metadata
         self._data_dir_with_single_config_in_metadata = data_dir_with_single_config_in_metadata
+        self._data_dir_with_config_and_data_files = data_dir_with_config_and_data_files
         self._data_dir_with_two_config_in_metadata = data_dir_with_two_config_in_metadata
         self._data_dir2 = sub_data_dirs[0]
         self._sub_data_dir = sub_data_dirs[1]
@@ -527,6 +556,38 @@ class ModuleFactoryTest(TestCase):
 
         # we don't pass config params to builder in builder_kwargs, they are stored in builder_configs directly
         assert "drop_labels" not in module_factory_result.builder_kwargs
+
+    def test_LocalDatasetModuleFactoryWithoutScript_with_config_and_data_files(self):
+        factory = LocalDatasetModuleFactoryWithoutScript(
+            self._data_dir_with_config_and_data_files,
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+
+        module_metadata_configs = module_factory_result.builder_configs_parameters.metadata_configs
+        builder_kwargs = module_factory_result.builder_kwargs
+        assert module_metadata_configs is not None
+        assert len(module_metadata_configs) == 1
+        assert next(iter(module_metadata_configs)) == "custom"
+        assert "data_files" in next(iter(module_metadata_configs.values()))
+        assert next(iter(module_metadata_configs.values()))["data_files"] == "data/**/*.jpg"
+        assert "data_files" not in builder_kwargs
+
+    def test_LocalDatasetModuleFactoryWithoutScript_data_dir_with_config_and_data_files(self):
+        factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir_with_config_and_data_files, data_dir="data")
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+
+        module_metadata_configs = module_factory_result.builder_configs_parameters.metadata_configs
+        builder_kwargs = module_factory_result.builder_kwargs
+        assert module_metadata_configs is not None
+        assert len(module_metadata_configs) == 1
+        assert next(iter(module_metadata_configs)) == "custom"
+        assert "data_files" in next(iter(module_metadata_configs.values()))
+        assert next(iter(module_metadata_configs.values()))["data_files"] == "data/**/*.jpg"
+        assert "data_files" in builder_kwargs
+        assert "train" in builder_kwargs["data_files"]
+        assert len(builder_kwargs["data_files"]["train"]) == 2
 
     def test_LocalDatasetModuleFactoryWithoutScript_with_two_configs_in_metadata(self):
         factory = LocalDatasetModuleFactoryWithoutScript(
@@ -777,10 +838,10 @@ class ModuleFactoryTest(TestCase):
         )
         assert module_factory_result.builder_configs_parameters.builder_configs[0].data_files == {
             "train": [
-                "hf://datasets/hf-internal-testing/dataset_with_script@da4ed81df5a1bcd916043c827b75994de8ef7eda/default/train/0000.parquet"
+                "hf://datasets/hf-internal-testing/dataset_with_script@8f965694d611974ef8661618ada1b5aeb1072915/default/train/0000.parquet"
             ],
             "validation": [
-                "hf://datasets/hf-internal-testing/dataset_with_script@da4ed81df5a1bcd916043c827b75994de8ef7eda/default/validation/0000.parquet"
+                "hf://datasets/hf-internal-testing/dataset_with_script@8f965694d611974ef8661618ada1b5aeb1072915/default/validation/0000.parquet"
             ],
         }
 
@@ -1608,6 +1669,28 @@ def test_load_dataset_distributed(tmp_path, csv_path):
     args = "csv", str(tmp_path), csv_path
     with Pool(processes=num_workers) as pool:  # start num_workers processes
         datasets = pool.map(distributed_load_dataset, [args] * num_workers)
+        assert len(datasets) == num_workers
+        assert all(len(dataset) == len(datasets[0]) > 0 for dataset in datasets)
+        assert len(datasets[0].cache_files) > 0
+        assert all(dataset.cache_files == datasets[0].cache_files for dataset in datasets)
+
+
+def distributed_load_dataset_with_script(args):
+    data_name, tmp_dir, download_mode = args
+    dataset = load_dataset(data_name, cache_dir=tmp_dir, download_mode=download_mode)
+    return dataset
+
+
+@require_not_windows  # windows doesn't support overwriting Arrow files from other processes
+@pytest.mark.parametrize("download_mode", [None, "force_redownload"])
+def test_load_dataset_distributed_with_script(tmp_path, download_mode):
+    # we need to check in the "force_redownload" case
+    # since in `_copy_script_and_other_resources_in_importable_dir()` we might delete the directory
+    # containing the .py file while the other processes use it
+    num_workers = 5
+    args = (SAMPLE_DATASET_IDENTIFIER, str(tmp_path), download_mode)
+    with Pool(processes=num_workers) as pool:  # start num_workers processes
+        datasets = pool.map(distributed_load_dataset_with_script, [args] * num_workers)
         assert len(datasets) == num_workers
         assert all(len(dataset) == len(datasets[0]) > 0 for dataset in datasets)
         assert len(datasets[0].cache_files) > 0

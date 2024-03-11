@@ -52,13 +52,11 @@ class ExtractManager:
 class BaseExtractor(ABC):
     @classmethod
     @abstractmethod
-    def is_extractable(cls, path: Union[Path, str], **kwargs) -> bool:
-        ...
+    def is_extractable(cls, path: Union[Path, str], **kwargs) -> bool: ...
 
     @staticmethod
     @abstractmethod
-    def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:
-        ...
+    def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None: ...
 
 
 class MagicNumberBaseExtractor(BaseExtractor, ABC):
@@ -130,7 +128,7 @@ class TarExtractor(BaseExtractor):
 
 
 class GzipExtractor(MagicNumberBaseExtractor):
-    magic_numbers = [b"\x1F\x8B"]
+    magic_numbers = [b"\x1f\x8b"]
 
     @staticmethod
     def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:
@@ -192,7 +190,7 @@ class ZipExtractor(MagicNumberBaseExtractor):
 
 
 class XzExtractor(MagicNumberBaseExtractor):
-    magic_numbers = [b"\xFD\x37\x7A\x58\x5A\x00"]
+    magic_numbers = [b"\xfd\x37\x7a\x58\x5a\x00"]
 
     @staticmethod
     def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:
@@ -217,7 +215,7 @@ class RarExtractor(MagicNumberBaseExtractor):
 
 
 class ZstdExtractor(MagicNumberBaseExtractor):
-    magic_numbers = [b"\x28\xb5\x2F\xFD"]
+    magic_numbers = [b"\x28\xb5\x2f\xfd"]
 
     @staticmethod
     def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:
@@ -231,7 +229,7 @@ class ZstdExtractor(MagicNumberBaseExtractor):
 
 
 class Bzip2Extractor(MagicNumberBaseExtractor):
-    magic_numbers = [b"\x42\x5A\x68"]
+    magic_numbers = [b"\x42\x5a\x68"]
 
     @staticmethod
     def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:
@@ -241,7 +239,7 @@ class Bzip2Extractor(MagicNumberBaseExtractor):
 
 
 class SevenZipExtractor(MagicNumberBaseExtractor):
-    magic_numbers = [b"\x37\x7A\xBC\xAF\x27\x1C"]
+    magic_numbers = [b"\x37\x7a\xbc\xaf\x27\x1c"]
 
     @staticmethod
     def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:
@@ -255,7 +253,7 @@ class SevenZipExtractor(MagicNumberBaseExtractor):
 
 
 class Lz4Extractor(MagicNumberBaseExtractor):
-    magic_numbers = [b"\x04\x22\x4D\x18"]
+    magic_numbers = [b"\x04\x22\x4d\x18"]
 
     @staticmethod
     def extract(input_path: Union[Path, str], output_path: Union[Path, str]) -> None:

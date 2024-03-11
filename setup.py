@@ -1,5 +1,5 @@
 # Lint as: python3
-""" HuggingFace/Datasets is an open library of datasets.
+"""HuggingFace/Datasets is an open library of datasets.
 
 Note:
 
@@ -62,7 +62,7 @@ Steps to make a release:
      ```
    Check that you can install it in a virtualenv/notebook by running:
      ```
-     pip install huggingface_hub fsspec aiohttp pyarrow-hotfix
+     pip install huggingface-hub fsspec aiohttp pyarrow-hotfix
      pip install -U tqdm
      pip install -i https://testpypi.python.org/pypi datasets
      ```
@@ -131,11 +131,11 @@ REQUIRED_PKGS = [
     "multiprocess",
     # to save datasets locally or on any filesystem
     # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
-    "fsspec[http]>=2023.1.0,<=2023.10.0",
+    "fsspec[http]>=2023.1.0,<=2024.2.0",
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface_hub>=0.19.4",
+    "huggingface-hub>=0.21.2",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     # To parse YAML metadata from dataset cards
@@ -185,6 +185,7 @@ TESTS_REQUIRE = [
     "transformers",
     "typing-extensions>=4.6.1",  # due to conflict between apache-beam and pydantic
     "zstandard",
+    "polars[timezone]>=0.20.0",
 ]
 
 
@@ -218,7 +219,7 @@ METRICS_TESTS_REQUIRE = [
 TESTS_REQUIRE.extend(VISION_REQUIRE)
 TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
-QUALITY_REQUIRE = ["ruff>=0.1.5"]
+QUALITY_REQUIRE = ["ruff>=0.3.0"]
 
 DOCS_REQUIRE = [
     # Might need to add doc-builder and some specific deps in the future
@@ -253,7 +254,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.17.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.18.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

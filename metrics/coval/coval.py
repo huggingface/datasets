@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" CoVal metric. """
+"""CoVal metric."""
+
 import coval  # From: git+https://github.com/ns-moosavi/coval.git # noqa: F401
 from coval.conll import reader, util
 from coval.eval import evaluator
