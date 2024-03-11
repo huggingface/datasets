@@ -39,7 +39,7 @@ from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 from .. import config
 from ..naming import camelcase_to_snakecase, snakecase_to_camelcase
 from ..table import array_cast
-from ..utils import logging
+from ..utils import logging, experimental
 from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
 from .image import Image, encode_pil_image
@@ -1342,12 +1342,25 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Uni
     return obj
 
 
-_FEATURE_TYPES: Dict[Optional[str], FeatureType] = {}
+_FEATURE_TYPES: Dict[str, FeatureType] = {
+    Value.__name__: Value,
+    ClassLabel.__name__: ClassLabel,
+    Translation.__name__: Translation,
+    TranslationVariableLanguages.__name__: TranslationVariableLanguages,
+    Sequence.__name__: Sequence,
+    Array2D.__name__: Array2D,
+    Array3D.__name__: Array3D,
+    Array4D.__name__: Array4D,
+    Array5D.__name__: Array5D,
+    Audio.__name__: Audio,
+    Image.__name__: Image,
+}
 
 
+@experimental
 def register_feature(
     feature_cls: type,
-    feature_type: Optional[str],
+    feature_type: str,
 ):
     """
     Register a Feature object using a name and class.
