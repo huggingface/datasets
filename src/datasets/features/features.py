@@ -39,7 +39,7 @@ from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 from .. import config
 from ..naming import camelcase_to_snakecase, snakecase_to_camelcase
 from ..table import array_cast
-from ..utils import logging, experimental
+from ..utils import experimental, logging
 from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
 from .image import Image, encode_pil_image
