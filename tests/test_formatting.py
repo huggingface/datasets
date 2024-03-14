@@ -392,13 +392,14 @@ class FormatterTest(TestCase):
         formatter = TorchFormatter(features=Features({"image": Image()}))
         row = formatter.format_row(pa_table)
         self.assertEqual(row["image"].dtype, torch.uint8)
-        self.assertEqual(row["image"].shape, (480, 640, 3))
+        # torch uses CHW format contrary to numpy which uses HWC
+        self.assertEqual(row["image"].shape, (3, 480, 640))
         col = formatter.format_column(pa_table)
         self.assertEqual(col.dtype, torch.uint8)
-        self.assertEqual(col.shape, (2, 480, 640, 3))
+        self.assertEqual(col.shape, (2, 3, 480, 640))
         batch = formatter.format_batch(pa_table)
         self.assertEqual(batch["image"].dtype, torch.uint8)
-        self.assertEqual(batch["image"].shape, (2, 480, 640, 3))
+        self.assertEqual(batch["image"].shape, (2, 3, 480, 640))
 
         # different dimensions
         pa_table = pa.table(
@@ -407,15 +408,15 @@ class FormatterTest(TestCase):
         formatter = TorchFormatter(features=Features({"image": Image()}))
         row = formatter.format_row(pa_table)
         self.assertEqual(row["image"].dtype, torch.uint8)
-        self.assertEqual(row["image"].shape, (480, 640, 3))
+        self.assertEqual(row["image"].shape, (3, 480, 640))
         col = formatter.format_column(pa_table)
         self.assertIsInstance(col, list)
         self.assertEqual(col[0].dtype, torch.uint8)
-        self.assertEqual(col[0].shape, (480, 640, 3))
+        self.assertEqual(col[0].shape, (3, 480, 640))
         batch = formatter.format_batch(pa_table)
         self.assertIsInstance(batch["image"], list)
         self.assertEqual(batch["image"][0].dtype, torch.uint8)
-        self.assertEqual(batch["image"][0].shape, (480, 640, 3))
+        self.assertEqual(batch["image"][0].shape, (3, 480, 640))
 
     @require_torch
     @require_sndfile
