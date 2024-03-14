@@ -47,7 +47,6 @@ from .data_files import (
     DataFilesPatternsDict,
     DataFilesPatternsList,
     EmptyDatasetError,
-    cached_pattern_resolution,
     get_data_patterns,
     get_metadata_patterns,
     sanitize_patterns,
@@ -1024,18 +1023,17 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         # we need a set of data files to find which dataset builder to use
         # because we need to infer module name by files extensions
         base_path = Path(self.path, self.data_dir or "").expanduser().resolve().as_posix()
-        with cached_pattern_resolution():
-            if self.data_files is not None:
-                patterns = sanitize_patterns(self.data_files)
-            elif metadata_configs and not self.data_dir and "data_files" in next(iter(metadata_configs.values())):
-                patterns = sanitize_patterns(next(iter(metadata_configs.values()))["data_files"])
-            else:
-                patterns = get_data_patterns(base_path)
-            data_files = DataFilesDict.from_patterns(
-                patterns,
-                base_path=base_path,
-                allowed_extensions=ALL_ALLOWED_EXTENSIONS,
-            )
+        if self.data_files is not None:
+            patterns = sanitize_patterns(self.data_files)
+        elif metadata_configs and not self.data_dir and "data_files" in next(iter(metadata_configs.values())):
+            patterns = sanitize_patterns(next(iter(metadata_configs.values()))["data_files"])
+        else:
+            patterns = get_data_patterns(base_path)
+        data_files = DataFilesDict.from_patterns(
+            patterns,
+            base_path=base_path,
+            allowed_extensions=ALL_ALLOWED_EXTENSIONS,
+        )
         module_name, default_builder_kwargs = infer_module_for_data_files(
             data_files=data_files,
             path=self.path,
@@ -1044,20 +1042,19 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         # Collect metadata files if the module supports them
         supports_metadata = module_name in _MODULE_SUPPORTS_METADATA
         if self.data_files is None and supports_metadata:
-            with cached_pattern_resolution():
-                try:
-                    metadata_patterns = get_metadata_patterns(base_path)
-                except FileNotFoundError:
-                    metadata_patterns = None
-                if metadata_patterns is not None:
-                    metadata_data_files_list = DataFilesList.from_patterns(metadata_patterns, base_path=base_path)
-                    if metadata_data_files_list:
-                        data_files = DataFilesDict(
-                            {
-                                split: data_files_list + metadata_data_files_list
-                                for split, data_files_list in data_files.items()
-                            }
-                        )
+            try:
+                metadata_patterns = get_metadata_patterns(base_path)
+            except FileNotFoundError:
+                metadata_patterns = None
+            if metadata_patterns is not None:
+                metadata_data_files_list = DataFilesList.from_patterns(metadata_patterns, base_path=base_path)
+                if metadata_data_files_list:
+                    data_files = DataFilesDict(
+                        {
+                            split: data_files_list + metadata_data_files_list
+                            for split, data_files_list in data_files.items()
+                        }
+                    )
 
         module_path, _ = _PACKAGED_DATASETS_MODULES[module_name]
         if metadata_configs:

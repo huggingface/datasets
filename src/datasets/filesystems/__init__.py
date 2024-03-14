@@ -47,17 +47,6 @@ def extract_path_from_uri(dataset_path: str) -> str:
     return dataset_path
 
 
-def is_local_filesystem(fs: fsspec.AbstractFileSystem) -> bool:
-    """
-    Checks if `fs` is a local filesystem.
-
-    Args:
-        fs (`fsspec.spec.AbstractFileSystem`):
-            An abstract super-class for pythonic file-systems, e.g. `fsspec.filesystem(\'file\')` or [`datasets.filesystems.S3FileSystem`].
-    """
-    return isinstance(fs, LocalFileSystem)
-
-
 def is_remote_filesystem(fs: fsspec.AbstractFileSystem) -> bool:
     """
     Checks if `fs` is a remote filesystem.
