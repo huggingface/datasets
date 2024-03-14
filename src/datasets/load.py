@@ -27,6 +27,7 @@ import signal
 import time
 import warnings
 from collections import Counter
+from contextlib import nullcontext
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Type, Union
@@ -71,7 +72,6 @@ from .packaged_modules import (
 )
 from .splits import Split
 from .utils import _datasets_server
-from .utils._filelock import FileLock
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import (
     OfflineModeIsEnabled,
@@ -88,7 +88,7 @@ from .utils.hub import hf_hub_url
 from .utils.info_utils import VerificationMode, is_small_dataset
 from .utils.logging import get_logger
 from .utils.metadata import MetadataConfigs
-from .utils.py_utils import get_imports
+from .utils.py_utils import get_imports, lock_importable_file
 from .utils.version import Version
 
 
@@ -245,7 +245,10 @@ def configure_builder_class(
 def get_dataset_builder_class(
     dataset_module: "DatasetModule", dataset_name: Optional[str] = None
 ) -> Type[DatasetBuilder]:
-    builder_cls = import_main_class(dataset_module.module_path)
+    with lock_importable_file(
+        dataset_module.importable_file_path
+    ) if dataset_module.importable_file_path else nullcontext():
+        builder_cls = import_main_class(dataset_module.module_path)
     if dataset_module.builder_configs_parameters.builder_configs:
         dataset_name = dataset_name or dataset_module.builder_kwargs.get("dataset_name")
         if dataset_name is None:
@@ -376,17 +379,15 @@ def _copy_script_and_other_resources_in_importable_dir(
         download_mode (Optional[Union[DownloadMode, str]]): download mode
 
     Return:
-        importable_local_file: path to an importable module with importlib.import_module
+        importable_file: path to an importable module with importlib.import_module
     """
-
     # Define a directory with a unique name in our dataset or metric folder
     # path is: ./datasets|metrics/dataset|metric_name/hash_from_code/script.py
     # we use a hash as subdirectory_name to be able to have multiple versions of a dataset/metric processing file together
     importable_subdirectory = os.path.join(importable_directory_path, subdirectory_name)
-    importable_local_file = os.path.join(importable_subdirectory, name + ".py")
+    importable_file = os.path.join(importable_subdirectory, name + ".py")
     # Prevent parallel disk operations
-    lock_path = importable_directory_path + ".lock"
-    with FileLock(lock_path):
+    with lock_importable_file(importable_file):
         # Create main dataset/metrics folder if needed
         if download_mode == DownloadMode.FORCE_REDOWNLOAD and os.path.exists(importable_directory_path):
             shutil.rmtree(importable_directory_path)
@@ -407,13 +408,13 @@ def _copy_script_and_other_resources_in_importable_dir(
                 pass
 
         # Copy dataset.py file in hash folder if needed
-        if not os.path.exists(importable_local_file):
-            shutil.copyfile(original_local_path, importable_local_file)
+        if not os.path.exists(importable_file):
+            shutil.copyfile(original_local_path, importable_file)
         # Record metadata associating original dataset path with local unique folder
         # Use os.path.splitext to split extension from importable_local_file
-        meta_path = os.path.splitext(importable_local_file)[0] + ".json"
+        meta_path = os.path.splitext(importable_file)[0] + ".json"
         if not os.path.exists(meta_path):
-            meta = {"original file path": original_local_path, "local file path": importable_local_file}
+            meta = {"original file path": original_local_path, "local file path": importable_file}
             # the filename is *.py in our case, so better rename to filename.json instead of filename.py.json
             with open(meta_path, "w", encoding="utf-8") as meta_file:
                 json.dump(meta, meta_file)
@@ -438,7 +439,7 @@ def _copy_script_and_other_resources_in_importable_dir(
                 original_path, destination_additional_path
             ):
                 shutil.copyfile(original_path, destination_additional_path)
-        return importable_local_file
+        return importable_file
 
 
 def _get_importable_file_path(
@@ -448,7 +449,7 @@ def _get_importable_file_path(
     name: str,
 ) -> str:
     importable_directory_path = os.path.join(dynamic_modules_path, module_namespace, name.replace("/", "--"))
-    return os.path.join(importable_directory_path, subdirectory_name, name + ".py")
+    return os.path.join(importable_directory_path, subdirectory_name, name.split("/")[-1] + ".py")
 
 
 def _create_importable_file(
@@ -693,6 +694,7 @@ class DatasetModule:
     builder_kwargs: dict
     builder_configs_parameters: BuilderConfigsParameters = field(default_factory=BuilderConfigsParameters)
     dataset_infos: Optional[DatasetInfosDict] = None
+    importable_file_path: Optional[str] = None
 
 
 @dataclass
@@ -984,7 +986,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         # make the new module to be noticed by the import system
         importlib.invalidate_caches()
         builder_kwargs = {"base_path": str(Path(self.path).parent)}
-        return DatasetModule(module_path, hash, builder_kwargs)
+        return DatasetModule(module_path, hash, builder_kwargs, importable_file_path=importable_file_path)
 
 
 class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
@@ -1537,7 +1539,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
             "base_path": hf_hub_url(self.name, "", revision=self.revision).rstrip("/"),
             "repo_id": self.name,
         }
-        return DatasetModule(module_path, hash, builder_kwargs)
+        return DatasetModule(module_path, hash, builder_kwargs, importable_file_path=importable_file_path)
 
 
 class CachedDatasetModuleFactory(_DatasetModuleFactory):
@@ -1583,21 +1585,24 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
             if not config.HF_DATASETS_OFFLINE:
                 warning_msg += ", or remotely on the Hugging Face Hub."
             logger.warning(warning_msg)
-            # make the new module to be noticed by the import system
-            module_path = ".".join(
-                [
-                    os.path.basename(dynamic_modules_path),
-                    "datasets",
-                    self.name.replace("/", "--"),
-                    hash,
-                    self.name.split("/")[-1],
-                ]
+            importable_file_path = _get_importable_file_path(
+                dynamic_modules_path=dynamic_modules_path,
+                module_namespace="datasets",
+                subdirectory_name=hash,
+                name=self.name,
             )
+            module_path, hash = _load_importable_file(
+                dynamic_modules_path=dynamic_modules_path,
+                module_namespace="datasets",
+                subdirectory_name=hash,
+                name=self.name,
+            )
+            # make the new module to be noticed by the import system
             importlib.invalidate_caches()
             builder_kwargs = {
                 "repo_id": self.name,
             }
-            return DatasetModule(module_path, hash, builder_kwargs)
+            return DatasetModule(module_path, hash, builder_kwargs, importable_file_path=importable_file_path)
         cache_dir = os.path.expanduser(str(self.cache_dir or config.HF_DATASETS_CACHE))
         cached_datasets_directory_path_root = os.path.join(cache_dir, self.name.replace("/", "___"))
         cached_directory_paths = [
@@ -2590,16 +2595,11 @@ def load_dataset(
     if streaming:
         return builder_instance.as_streaming_dataset(split=split)
 
-    # Some datasets are already processed on the HF google storage
-    # Don't try downloading from Google storage for the packaged datasets as text, json, csv or pandas
-    try_from_hf_gcs = path not in _PACKAGED_DATASETS_MODULES
-
     # Download and prepare data
     builder_instance.download_and_prepare(
         download_config=download_config,
         download_mode=download_mode,
         verification_mode=verification_mode,
-        try_from_hf_gcs=try_from_hf_gcs,
         num_proc=num_proc,
         storage_options=storage_options,
     )

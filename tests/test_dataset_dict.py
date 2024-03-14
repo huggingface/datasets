@@ -13,7 +13,13 @@ from datasets.features import ClassLabel, Features, Sequence, Value
 from datasets.iterable_dataset import IterableDataset
 from datasets.splits import NamedSplit
 
-from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, require_tf, require_torch
+from .utils import (
+    assert_arrow_memory_doesnt_increase,
+    assert_arrow_memory_increases,
+    require_polars,
+    require_tf,
+    require_torch,
+)
 
 
 class DatasetDictTest(TestCase):
@@ -165,6 +171,24 @@ class DatasetDictTest(TestCase):
             self.assertEqual(dset_split[0]["col_1"].item(), 3)
 
         dset.set_format(type="pandas", columns=["col_1", "col_2"])
+        for dset_split in dset.values():
+            self.assertEqual(len(dset_split[0].columns), 2)
+            self.assertEqual(dset_split[0]["col_2"].item(), "a")
+        del dset
+
+    @require_polars
+    def test_set_format_polars(self):
+        import polars as pl
+
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset.set_format(type="polars", columns=["col_1"])
+        for dset_split in dset.values():
+            self.assertEqual(len(dset_split[0].columns), 1)
+            self.assertIsInstance(dset_split[0], pl.DataFrame)
+            self.assertEqual(dset_split[0].shape, (1, 1))
+            self.assertEqual(dset_split[0]["col_1"].item(), 3)
+
+        dset.set_format(type="polars", columns=["col_1", "col_2"])
         for dset_split in dset.values():
             self.assertEqual(len(dset_split[0].columns), 2)
             self.assertEqual(dset_split[0]["col_2"].item(), "a")

@@ -54,6 +54,7 @@ from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
     offline,
+    require_not_windows,
     require_pil,
     require_sndfile,
     set_current_working_directory_to_temp_dir,
@@ -837,10 +838,10 @@ class ModuleFactoryTest(TestCase):
         )
         assert module_factory_result.builder_configs_parameters.builder_configs[0].data_files == {
             "train": [
-                "hf://datasets/hf-internal-testing/dataset_with_script@da4ed81df5a1bcd916043c827b75994de8ef7eda/default/train/0000.parquet"
+                "hf://datasets/hf-internal-testing/dataset_with_script@8f965694d611974ef8661618ada1b5aeb1072915/default/train/0000.parquet"
             ],
             "validation": [
-                "hf://datasets/hf-internal-testing/dataset_with_script@da4ed81df5a1bcd916043c827b75994de8ef7eda/default/validation/0000.parquet"
+                "hf://datasets/hf-internal-testing/dataset_with_script@8f965694d611974ef8661618ada1b5aeb1072915/default/validation/0000.parquet"
             ],
         }
 
@@ -1668,6 +1669,28 @@ def test_load_dataset_distributed(tmp_path, csv_path):
     args = "csv", str(tmp_path), csv_path
     with Pool(processes=num_workers) as pool:  # start num_workers processes
         datasets = pool.map(distributed_load_dataset, [args] * num_workers)
+        assert len(datasets) == num_workers
+        assert all(len(dataset) == len(datasets[0]) > 0 for dataset in datasets)
+        assert len(datasets[0].cache_files) > 0
+        assert all(dataset.cache_files == datasets[0].cache_files for dataset in datasets)
+
+
+def distributed_load_dataset_with_script(args):
+    data_name, tmp_dir, download_mode = args
+    dataset = load_dataset(data_name, cache_dir=tmp_dir, download_mode=download_mode)
+    return dataset
+
+
+@require_not_windows  # windows doesn't support overwriting Arrow files from other processes
+@pytest.mark.parametrize("download_mode", [None, "force_redownload"])
+def test_load_dataset_distributed_with_script(tmp_path, download_mode):
+    # we need to check in the "force_redownload" case
+    # since in `_copy_script_and_other_resources_in_importable_dir()` we might delete the directory
+    # containing the .py file while the other processes use it
+    num_workers = 5
+    args = (SAMPLE_DATASET_IDENTIFIER, str(tmp_path), download_mode)
+    with Pool(processes=num_workers) as pool:  # start num_workers processes
+        datasets = pool.map(distributed_load_dataset_with_script, [args] * num_workers)
         assert len(datasets) == num_workers
         assert all(len(dataset) == len(datasets[0]) > 0 for dataset in datasets)
         assert len(datasets[0].cache_files) > 0

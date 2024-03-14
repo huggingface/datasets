@@ -71,6 +71,7 @@ from .table import CastError
 from .utils import logging
 from .utils import tqdm as hf_tqdm
 from .utils._filelock import FileLock
+from .utils.deprecation_utils import deprecated
 from .utils.file_utils import cached_path, is_remote_url
 from .utils.info_utils import VerificationMode, get_size_checksum_dict, verify_checksums, verify_splits
 from .utils.py_utils import (
@@ -749,7 +750,7 @@ class DatasetBuilder:
         download_mode: Optional[Union[DownloadMode, str]] = None,
         verification_mode: Optional[Union[VerificationMode, str]] = None,
         ignore_verifications="deprecated",
-        try_from_hf_gcs: bool = True,
+        try_from_hf_gcs="deprecated",
         dl_manager: Optional[DownloadManager] = None,
         base_path: Optional[str] = None,
         use_auth_token="deprecated",
@@ -786,6 +787,13 @@ class DatasetBuilder:
                 </Deprecated>
             try_from_hf_gcs (`bool`):
                 If `True`, it will try to download the already prepared dataset from the HF Google cloud storage.
+
+                <Deprecated version="2.16.0">
+
+                `try_from_hf_gcs` was deprecated in version 2.16.0 and will be removed in 3.0.0.
+                Host the processed files on the Hugging Face Hub instead.
+
+                </Deprecated>
             dl_manager (`DownloadManager`, *optional*):
                 Specific `DownloadManger` to use.
             base_path (`str`, *optional*):
@@ -865,6 +873,14 @@ class DatasetBuilder:
             token = use_auth_token
         else:
             token = self.token
+
+        if try_from_hf_gcs != "deprecated":
+            warnings.warn(
+                "'try_from_hf_gcs' was deprecated in version 2.16.0 and will be removed in 3.0.0.",
+                FutureWarning,
+            )
+        else:
+            try_from_hf_gcs = False
 
         output_dir = output_dir if output_dir is not None else self._cache_dir
         # output_dir can be a remote bucket on GCS or S3 (when using BeamBasedBuilder for distributed data processing)
@@ -2026,6 +2042,7 @@ class MissingBeamOptions(ValueError):
     pass
 
 
+@deprecated("Use `GeneratorBasedBuilder` or `ArrowBasedBuilder` instead.")
 class BeamBasedBuilder(DatasetBuilder):
     """Beam-based Builder."""
 

@@ -58,6 +58,7 @@ from .utils import (
     require_jax,
     require_not_windows,
     require_pil,
+    require_polars,
     require_pyspark,
     require_sqlalchemy,
     require_tf,
@@ -480,6 +481,22 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(dset[0]["col_1"].item(), 3)
 
                 dset.set_format(type="pandas", columns=["col_1", "col_2"])
+                self.assertEqual(len(dset[0].columns), 2)
+                self.assertEqual(dset[0]["col_2"].item(), "a")
+
+    @require_polars
+    def test_set_format_polars(self, in_memory):
+        import polars as pl
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                dset.set_format(type="polars", columns=["col_1"])
+                self.assertEqual(len(dset[0].columns), 1)
+                self.assertIsInstance(dset[0], pl.DataFrame)
+                self.assertListEqual(list(dset[0].shape), [1, 1])
+                self.assertEqual(dset[0]["col_1"].item(), 3)
+
+                dset.set_format(type="polars", columns=["col_1", "col_2"])
                 self.assertEqual(len(dset[0].columns), 2)
                 self.assertEqual(dset[0]["col_2"].item(), "a")
 
@@ -2365,6 +2382,38 @@ class BaseDatasetTest(TestCase):
                     for col_name in dset.column_names:
                         self.assertEqual(len(dset_to_pandas[col_name]), dset.num_rows)
 
+    @require_polars
+    def test_to_polars(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            # Batched
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                batch_size = dset.num_rows - 1
+                to_polars_generator = dset.to_polars(batched=True, batch_size=batch_size)
+
+                for batch in to_polars_generator:
+                    self.assertIsInstance(batch, sys.modules["polars"].DataFrame)
+                    self.assertListEqual(sorted(batch.columns), sorted(dset.column_names))
+                    for col_name in dset.column_names:
+                        self.assertLessEqual(len(batch[col_name]), batch_size)
+                    del batch
+
+                # Full
+                dset_to_polars = dset.to_polars()
+                self.assertIsInstance(dset_to_polars, sys.modules["polars"].DataFrame)
+                self.assertListEqual(sorted(dset_to_polars.columns), sorted(dset.column_names))
+                for col_name in dset.column_names:
+                    self.assertEqual(len(dset_to_polars[col_name]), len(dset))
+
+                # With index mapping
+                with dset.select([1, 0, 3]) as dset:
+                    dset_to_polars = dset.to_polars()
+                    self.assertIsInstance(dset_to_polars, sys.modules["polars"].DataFrame)
+                    self.assertEqual(len(dset_to_polars), 3)
+                    self.assertListEqual(sorted(dset_to_polars.columns), sorted(dset.column_names))
+
+                    for col_name in dset.column_names:
+                        self.assertEqual(len(dset_to_polars[col_name]), dset.num_rows)
+
     def test_to_parquet(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             # File path argument
@@ -2791,6 +2840,17 @@ class BaseDatasetTest(TestCase):
                 self.assertIsInstance(dset[:2], pd.DataFrame)
                 self.assertIsInstance(dset["col_1"], pd.Series)
 
+    @require_polars
+    def test_format_polars(self, in_memory):
+        import polars as pl
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                dset.set_format("polars")
+                self.assertIsInstance(dset[0], pl.DataFrame)
+                self.assertIsInstance(dset[:2], pl.DataFrame)
+                self.assertIsInstance(dset["col_1"], pl.Series)
+
     def test_transmit_format_single(self, in_memory):
         @transmit_format
         def my_single_transform(self, return_factory, *args, **kwargs):
@@ -3056,6 +3116,35 @@ class MiscellaneousDatasetTest(TestCase):
 
         features = Features({"col_1": Sequence(Value("string")), "col_2": Value("string")})
         self.assertRaises(TypeError, Dataset.from_pandas, df, features=features)
+
+    @require_polars
+    def test_from_polars(self):
+        import polars as pl
+
+        data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}
+        df = pl.from_dict(data)
+        with Dataset.from_polars(df) as dset:
+            self.assertListEqual(dset["col_1"], data["col_1"])
+            self.assertListEqual(dset["col_2"], data["col_2"])
+            self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
+            self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("large_string")}))
+
+        features = Features({"col_1": Value("int64"), "col_2": Value("large_string")})
+        with Dataset.from_polars(df, features=features) as dset:
+            self.assertListEqual(dset["col_1"], data["col_1"])
+            self.assertListEqual(dset["col_2"], data["col_2"])
+            self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
+            self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("large_string")}))
+
+        features = Features({"col_1": Value("int64"), "col_2": Value("large_string")})
+        with Dataset.from_polars(df, features=features, info=DatasetInfo(features=features)) as dset:
+            self.assertListEqual(dset["col_1"], data["col_1"])
+            self.assertListEqual(dset["col_2"], data["col_2"])
+            self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
+            self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("large_string")}))
+
+        features = Features({"col_1": Sequence(Value("string")), "col_2": Value("large_string")})
+        self.assertRaises(TypeError, Dataset.from_polars, df, features=features)
 
     def test_from_dict(self):
         data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"], "col_3": pa.array([True, False, True, False])}
