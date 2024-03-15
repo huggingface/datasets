@@ -16,6 +16,7 @@ from xml.etree import ElementTree as ET
 
 import fsspec
 from aiohttp.client_exceptions import ClientError
+from fsspec.core import url_to_fs
 from huggingface_hub.utils import EntryNotFoundError
 from packaging import version
 
@@ -159,7 +160,7 @@ def xexists(urlpath: str, download_config: Optional[DownloadConfig] = None):
     else:
         urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config=download_config)
         main_hop, *rest_hops = urlpath.split("::")
-        fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
+        fs, *_ = url_to_fs(urlpath, **storage_options)
         return fs.exists(main_hop)
 
 
@@ -259,7 +260,7 @@ def xisfile(path, download_config: Optional[DownloadConfig] = None) -> bool:
     else:
         path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
         main_hop, *rest_hops = path.split("::")
-        fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
+        fs, *_ = url_to_fs(path, **storage_options)
         return fs.isfile(main_hop)
 
 
@@ -279,7 +280,7 @@ def xgetsize(path, download_config: Optional[DownloadConfig] = None) -> int:
     else:
         path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
         main_hop, *rest_hops = path.split("::")
-        fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
+        fs, *_ = fs, *_ = url_to_fs(path, **storage_options)
         try:
             size = fs.size(main_hop)
         except EntryNotFoundError:
@@ -307,7 +308,7 @@ def xisdir(path, download_config: Optional[DownloadConfig] = None) -> bool:
     else:
         path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
         main_hop, *rest_hops = path.split("::")
-        fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
+        fs, *_ = fs, *_ = url_to_fs(path, **storage_options)
         inner_path = main_hop.split("://")[-1]
         if not inner_path.strip("/"):
             return True
@@ -546,7 +547,7 @@ def xlistdir(path: str, download_config: Optional[DownloadConfig] = None) -> Lis
         # globbing inside a zip in a private repo requires authentication
         path, storage_options = _prepare_path_and_storage_options(path, download_config=download_config)
         main_hop, *rest_hops = path.split("::")
-        fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
+        fs, *_ = url_to_fs(path, **storage_options)
         inner_path = main_hop.split("://")[-1]
         if inner_path.strip("/") and not fs.isdir(inner_path):
             raise FileNotFoundError(f"Directory doesn't exist: {path}")
@@ -573,11 +574,7 @@ def xglob(urlpath, *, recursive=False, download_config: Optional[DownloadConfig]
         # globbing inside a zip in a private repo requires authentication
         urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config=download_config)
         main_hop, *rest_hops = urlpath.split("::")
-        fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
-        # - If there's no "*" in the pattern, get_fs_token_paths() doesn't do any pattern matching
-        #   so to be able to glob patterns like "[0-9]", we have to call `fs.glob`.
-        # - Also "*" in get_fs_token_paths() only matches files: we have to call `fs.glob` to match directories.
-        # - If there is "**" in the pattern, `fs.glob` must be called anyway.
+        fs, *_ = url_to_fs(urlpath, **storage_options)
         inner_path = main_hop.split("://")[1]
         globbed_paths = fs.glob(inner_path)
         protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[-1]
@@ -603,7 +600,7 @@ def xwalk(urlpath, download_config: Optional[DownloadConfig] = None, **kwargs):
         # walking inside a zip in a private repo requires authentication
         urlpath, storage_options = _prepare_path_and_storage_options(urlpath, download_config=download_config)
         main_hop, *rest_hops = urlpath.split("::")
-        fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
+        fs, *_ = url_to_fs(urlpath, **storage_options)
         inner_path = main_hop.split("://")[-1]
         if inner_path.strip("/") and not fs.isdir(inner_path):
             return []
@@ -659,11 +656,7 @@ class xPath(type(Path())):
                 posix_path = "::".join([main_hop, urlpath, *rest_hops[1:]])
             else:
                 storage_options = None
-            fs, *_ = fsspec.get_fs_token_paths(xjoin(posix_path, pattern), storage_options=storage_options)
-            # - If there's no "*" in the pattern, get_fs_token_paths() doesn't do any pattern matching
-            #   so to be able to glob patterns like "[0-9]", we have to call `fs.glob`.
-            # - Also "*" in get_fs_token_paths() only matches files: we have to call `fs.glob` to match directories.
-            # - If there is "**" in the pattern, `fs.glob` must be called anyway.
+            fs, *_ = url_to_fs(xjoin(posix_path, pattern), **(storage_options or {}))
             globbed_paths = fs.glob(xjoin(main_hop, pattern))
             for globbed_path in globbed_paths:
                 yield type(self)("::".join([f"{fs.protocol}://{globbed_path}"] + rest_hops))

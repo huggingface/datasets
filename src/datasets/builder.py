@@ -34,6 +34,7 @@ from unittest.mock import patch
 
 import fsspec
 import pyarrow as pa
+from fsspec.core import url_to_fs
 from multiprocess import Pool
 from tqdm.contrib.concurrent import thread_map
 
@@ -883,7 +884,7 @@ class DatasetBuilder:
 
         output_dir = output_dir if output_dir is not None else self._cache_dir
         # output_dir can be a remote bucket on GCS or S3 (when using BeamBasedBuilder for distributed data processing)
-        fs, _, [output_dir] = fsspec.get_fs_token_paths(output_dir, storage_options=storage_options)
+        fs, output_dir = url_to_fs(output_dir, **(storage_options or {}))
         self._fs = fs
         self._output_dir = output_dir if not is_remote_filesystem(self._fs) else self._fs.unstrip_protocol(output_dir)
 

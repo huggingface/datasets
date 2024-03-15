@@ -59,6 +59,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
+from fsspec.core import url_to_fs
 from huggingface_hub import CommitInfo, CommitOperationAdd, CommitOperationDelete, DatasetCard, DatasetCardData, HfApi
 from multiprocess import Pool
 from tqdm.contrib.concurrent import thread_map
@@ -1504,7 +1505,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         num_shards = num_shards if num_shards is not None else num_proc
 
         fs: fsspec.AbstractFileSystem
-        fs, _, _ = fsspec.get_fs_token_paths(dataset_path, storage_options=storage_options)
+        fs, _ = url_to_fs(dataset_path, **(storage_options or {}))
 
         if not is_remote_filesystem(fs):
             parent_cache_files_paths = {
@@ -1694,7 +1695,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             storage_options = fs.storage_options
 
         fs: fsspec.AbstractFileSystem
-        fs, _, [dataset_path] = fsspec.get_fs_token_paths(dataset_path, storage_options=storage_options)
+        fs, dataset_path = url_to_fs(dataset_path, **(storage_options or {}))
 
         dest_dataset_path = dataset_path
         dataset_dict_json_path = posixpath.join(dest_dataset_path, config.DATASETDICT_JSON_FILENAME)

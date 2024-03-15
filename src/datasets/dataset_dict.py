@@ -12,6 +12,7 @@ from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import fsspec
 import numpy as np
+from fsspec.core import url_to_fs
 from huggingface_hub import (
     CommitInfo,
     CommitOperationAdd,
@@ -1280,7 +1281,7 @@ class DatasetDict(dict):
             storage_options = fs.storage_options
 
         fs: fsspec.AbstractFileSystem
-        fs, _, _ = fsspec.get_fs_token_paths(dataset_dict_path, storage_options=storage_options)
+        fs, _ = url_to_fs(dataset_dict_path, **(storage_options or {}))
 
         if num_shards is None:
             num_shards = {k: None for k in self}
@@ -1354,7 +1355,7 @@ class DatasetDict(dict):
             storage_options = fs.storage_options
 
         fs: fsspec.AbstractFileSystem
-        fs, _, [dataset_dict_path] = fsspec.get_fs_token_paths(dataset_dict_path, storage_options=storage_options)
+        fs, dataset_dict_path = url_to_fs(dataset_dict_path, **(storage_options or {}))
 
         dataset_dict_json_path = posixpath.join(dataset_dict_path, config.DATASETDICT_JSON_FILENAME)
         dataset_state_json_path = posixpath.join(dataset_dict_path, config.DATASET_STATE_JSON_FILENAME)
