@@ -186,7 +186,7 @@ class Image:
         else:
             image = PIL.Image.open(BytesIO(bytes_))
         image.load()  # to avoid "Too many open files" errors
-        if self.mode:
+        if self.mode and self.mode != image.mode:
             image = image.convert(self.mode)
         return image
 
