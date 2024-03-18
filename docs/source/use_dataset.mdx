@@ -172,7 +172,7 @@ The most common preprocessing you'll do with image datasets is *data augmentatio
 Most image models expect the image to be in the RGB mode. The Beans images are already in the RGB mode, but if your dataset contains images in a different mode, you can use the [`~Dataset.cast_column`] function to set the mode to RGB:
 
 ```py
->>> dataset = dataset.cast_column("image", Image(image_mode="RGB"))
+>>> dataset = dataset.cast_column("image", Image(mode="RGB"))
 ```
 
 **3**. Now, you can apply some transforms to the image. Feel free to take a look at the [various transforms available](https://pytorch.org/vision/stable/auto_examples/plot_transforms.html#sphx-glr-auto-examples-plot-transforms-py) in torchvision and choose one you'd like to experiment with. This example applies a transform that randomly rotates the image:
