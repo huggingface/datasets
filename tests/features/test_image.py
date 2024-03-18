@@ -91,6 +91,20 @@ def test_image_decode_example(shared_datadir):
 
 
 @require_pil
+def test_image_change_mode(shared_datadir):
+    import PIL.Image
+
+    image_path = str(shared_datadir / "test_image_rgb.jpg")
+    image = Image(mode="YCbCr")
+    decoded_example = image.decode_example({"path": image_path, "bytes": None})
+
+    assert isinstance(decoded_example, PIL.Image.Image)
+    assert not hasattr(decoded_example, "filename")  # changing the mode drops the filename
+    assert decoded_example.size == (640, 480)
+    assert decoded_example.mode == "YCbCr"
+
+
+@require_pil
 def test_dataset_with_image_feature(shared_datadir):
     import PIL.Image
 

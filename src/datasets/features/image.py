@@ -60,6 +60,8 @@ class Image:
     - A `PIL.Image.Image`: PIL image object.
 
     Args:
+        mode (`str`, *optional*):
+            The mode to convert the image to. If `None`, the native mode of the image is used.
         decode (`bool`, defaults to `True`):
             Whether to decode the image data. If `False`,
             returns the underlying dictionary in the format `{"path": image_path, "bytes": image_bytes}`.
@@ -79,6 +81,7 @@ class Image:
     ```
     """
 
+    mode: Optional[str] = None
     decode: bool = True
     id: Optional[str] = None
     # Automatically constructed
@@ -183,6 +186,8 @@ class Image:
         else:
             image = PIL.Image.open(BytesIO(bytes_))
         image.load()  # to avoid "Too many open files" errors
+        if self.mode and self.mode != image.mode:
+            image = image.convert(self.mode)
         return image
 
     def flatten(self) -> Union["FeatureType", Dict[str, "FeatureType"]]:
