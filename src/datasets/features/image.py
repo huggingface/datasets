@@ -154,6 +154,7 @@ class Image:
 
         if config.PIL_AVAILABLE:
             import PIL.Image
+            import PIL.ImageOps
         else:
             raise ImportError("To support decoding images, please install 'Pillow'.")
 
@@ -186,6 +187,8 @@ class Image:
         else:
             image = PIL.Image.open(BytesIO(bytes_))
         image.load()  # to avoid "Too many open files" errors
+        if image.getexif().get(PIL.Image.ExifTags.Base.Orientation) is not None:
+            image = PIL.ImageOps.exif_transpose(image)
         if self.mode and self.mode != image.mode:
             image = image.convert(self.mode)
         return image

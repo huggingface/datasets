@@ -1,6 +1,7 @@
 import os
 import tarfile
 import warnings
+from io import BytesIO
 
 import numpy as np
 import pandas as pd
@@ -88,6 +89,24 @@ def test_image_decode_example(shared_datadir):
 
     with pytest.raises(RuntimeError):
         Image(decode=False).decode_example(image_path)
+
+
+@require_pil
+def test_image_decode_example_with_exif_orientation_tag(shared_datadir):
+    import PIL.Image
+
+    image_path = str(shared_datadir / "test_image_rgb.jpg")
+    buffer = BytesIO()
+    exif = PIL.Image.Exif()
+    exif[PIL.Image.ExifTags.Base.Orientation] = 8  # rotate the image for 90°
+    PIL.Image.open(image_path).save(buffer, format="JPEG", exif=exif.tobytes())
+    image = Image()
+
+    decoded_example = image.decode_example({"path": None, "bytes": buffer.getvalue()})
+
+    assert isinstance(decoded_example, PIL.Image.Image)
+    assert decoded_example.size == (480, 640)  # rotated
+    assert decoded_example.mode == "RGB"
 
 
 @require_pil
