@@ -114,16 +114,23 @@ class Cache(datasets.ArrowBasedBuilder):
         if data_dir is not None:
             config_kwargs["data_dir"] = data_dir
         if hash == "auto" and version == "auto":
-            # First we try to find a folder that takes the config_kwargs into account
-            # e.g. with "default-data_dir=data%2Ffortran" as config_id
-            config_id = self.BUILDER_CONFIG_CLASS(config_name or "default").create_config_id(
-                config_kwargs=config_kwargs, custom_features=features
-            )
-            config_name, version, hash = _find_hash_in_cache(
-                dataset_name=repo_id or dataset_name,
-                config_name=config_id,
-                cache_dir=cache_dir,
-            )
+            if config_name or config_kwargs:
+                # First we try to find a folder that takes the config_kwargs into account
+                # e.g. with "default-data_dir=data%2Ffortran" as config_id
+                config_id = self.BUILDER_CONFIG_CLASS(config_name or "default").create_config_id(
+                    config_kwargs=config_kwargs, custom_features=features
+                )
+                config_name, version, hash = _find_hash_in_cache(
+                    dataset_name=repo_id or dataset_name,
+                    config_name=config_id,
+                    cache_dir=cache_dir,
+                )
+            else:
+                config_name, version, hash = _find_hash_in_cache(
+                    dataset_name=repo_id or dataset_name,
+                    config_name=None,
+                    cache_dir=cache_dir,
+                )
         elif hash == "auto" or version == "auto":
             raise NotImplementedError("Pass both hash='auto' and version='auto' instead")
         super().__init__(

@@ -6,6 +6,7 @@ from datasets import load_dataset
 from datasets.packaged_modules.cache.cache import Cache
 
 
+SAMPLE_DATASET_SINGLE_CONFIG_IN_METADATA = "hf-internal-testing/audiofolder_single_config_in_metadata"
 SAMPLE_DATASET_TWO_CONFIG_IN_METADATA = "hf-internal-testing/audiofolder_two_configs_in_metadata"
 
 
@@ -68,6 +69,25 @@ def test_cache_multi_configs():
     config_name = "v1"
     ds = load_dataset(repo_id, config_name)
     cache = Cache(dataset_name=dataset_name, repo_id=repo_id, config_name=config_name, version="auto", hash="auto")
+    reloaded = cache.as_dataset()
+    assert list(ds) == list(reloaded)
+    assert len(ds["train"]) == len(reloaded["train"])
+    with pytest.raises(ValueError) as excinfo:
+        Cache(dataset_name=dataset_name, repo_id=repo_id, config_name="missing", version="auto", hash="auto")
+    assert config_name in str(excinfo.value)
+
+
+@pytest.mark.integration
+def test_cache_single_config():
+    repo_id = SAMPLE_DATASET_SINGLE_CONFIG_IN_METADATA
+    dataset_name = repo_id.split("/")[-1]
+    config_name = "custom"
+    ds = load_dataset(repo_id)
+    cache = Cache(dataset_name=dataset_name, repo_id=repo_id, version="auto", hash="auto")
+    reloaded = cache.as_dataset()
+    assert list(ds) == list(reloaded)
+    assert len(ds["train"]) == len(reloaded["train"])
+    cache = Cache(dataset_name=dataset_name, config_name=config_name, repo_id=repo_id, version="auto", hash="auto")
     reloaded = cache.as_dataset()
     assert list(ds) == list(reloaded)
     assert len(ds["train"]) == len(reloaded["train"])
