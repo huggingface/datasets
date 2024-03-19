@@ -1937,7 +1937,7 @@ class Features(dict):
             `list[Any]`
         """
         column = cast_to_python_objects(column)
-        return [encode_nested_example(self[column_name], obj) for obj in column]
+        return [encode_nested_example(self[column_name], obj, level=1) for obj in column]
 
     def encode_batch(self, batch):
         """
@@ -1955,7 +1955,7 @@ class Features(dict):
             raise ValueError(f"Column mismatch between batch {set(batch)} and features {set(self)}")
         for key, column in batch.items():
             column = cast_to_python_objects(column)
-            encoded_batch[key] = [encode_nested_example(self[key], obj) for obj in column]
+            encoded_batch[key] = [encode_nested_example(self[key], obj, level=1) for obj in column]
         return encoded_batch
 
     def decode_example(self, example: dict, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None):
