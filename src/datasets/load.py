@@ -621,7 +621,7 @@ def create_builder_configs_from_metadata_configs(
             config_patterns = (
                 sanitize_patterns(config_data_files)
                 if config_data_files is not None
-                else get_data_patterns(config_base_path)
+                else get_data_patterns(config_base_path, download_config=download_config)
             )
             config_data_files_dict = DataFilesPatternsDict.from_patterns(
                 config_patterns,
@@ -1133,7 +1133,11 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
 
     def get_module(self) -> DatasetModule:
         base_path = Path(self.data_dir or "").expanduser().resolve().as_posix()
-        patterns = sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns(base_path)
+        patterns = (
+            sanitize_patterns(self.data_files)
+            if self.data_files is not None
+            else get_data_patterns(base_path, download_config=self.download_config)
+        )
         data_files = DataFilesDict.from_patterns(
             patterns,
             download_config=self.download_config,
