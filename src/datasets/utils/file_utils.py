@@ -329,7 +329,7 @@ class TqdmCallback(fsspec.callbacks.TqdmCallback):
     def __init__(self, tqdm_kwargs=None, *args, **kwargs):
         if config.FSSPEC_VERSION < version.parse("2024.2.0"):
             super().__init__(tqdm_kwargs, *args, **kwargs)
-            self._tqdm = _tqdm  # replace tqdm.tqdm by datasets.tqdm.tqdm
+            self._tqdm = _tqdm  # replace tqdm module by datasets.utils.tqdm module
         else:
             kwargs["tqdm_cls"] = _tqdm.tqdm
             super().__init__(tqdm_kwargs, *args, **kwargs)
