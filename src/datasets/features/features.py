@@ -316,12 +316,22 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
         elif not only_1d_for_numpy or obj.ndim == 1:
             return obj.detach().cpu().numpy(), True
         else:
+            if obj.dtype == torch.bfloat16:
+                return (
+                    [
+                        _cast_to_python_objects(
+                            x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
+                        )[0]
+                        for x in obj.detach().to(torch.float).cpu().numpy()
+                    ],
+                    True,
+                )
             return (
                 [
                     _cast_to_python_objects(
                         x, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
                     )[0]
-                    for x in obj.detach().to(torch.float).cpu().numpy()
+                    for x in obj.detach().cpu().numpy()
                 ],
                 True,
             )
