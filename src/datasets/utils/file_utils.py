@@ -327,8 +327,12 @@ def stack_multiprocessing_download_progress_bars():
 
 class TqdmCallback(fsspec.callbacks.TqdmCallback):
     def __init__(self, tqdm_kwargs=None, *args, **kwargs):
-        super().__init__(tqdm_kwargs, *args, **kwargs)
-        self._tqdm = _tqdm  # replace tqdm.tqdm by datasets.tqdm.tqdm
+        if config.FSSPEC_VERSION < version.parse("2024.2.0"):
+            super().__init__(tqdm_kwargs, *args, **kwargs)
+            self._tqdm = _tqdm  # replace tqdm.tqdm by datasets.tqdm.tqdm
+        else:
+            kwargs["tqdm_cls"] = _tqdm.tqdm
+            super().__init__(tqdm_kwargs, *args, **kwargs)
 
 
 def fsspec_get(url, temp_file, storage_options=None, desc=None):
