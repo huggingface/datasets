@@ -101,12 +101,15 @@ class FRUGALSCORE(datasets.Metric):
             no_cuda=(device == "cpu"),
             log_level="warning",
         )
-        dataset = {"sentence1": predictions, "sentence2": references}
+        dataset = {"sentence1": references, "sentence2": predictions}
         raw_datasets = datasets.Dataset.from_dict(dataset)
 
         def tokenize_function(data):
             return self.tokenizer(
-                data["sentence1"], data["sentence2"], max_length=max_length, truncation=True, padding=True
+                data["sentence1"],
+                data["sentence2"],
+                max_length=max_length,
+                truncation=True,
             )
 
         tokenized_datasets = raw_datasets.map(tokenize_function, batched=True)
