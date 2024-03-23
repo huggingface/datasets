@@ -27,6 +27,7 @@ class FolderBasedBuilderConfig(datasets.BuilderConfig):
     features: Optional[datasets.Features] = None
     drop_labels: bool = None
     drop_metadata: bool = None
+    metadata_filename: str = None
 
 
 class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
@@ -117,7 +118,6 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                 logger.info(f"Searching for labels and/or metadata files in {split_name} data files...")
                 analyze(files, downloaded_files, split_name)
                 analyze(archives, downloaded_dirs, split_name)
-
                 if metadata_files:
                     # add metadata if `metadata_files` are found and `drop_metadata` is None (default) or False
                     add_metadata = not self.config.drop_metadata
