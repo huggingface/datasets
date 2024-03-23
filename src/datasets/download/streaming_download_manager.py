@@ -762,7 +762,8 @@ def xnumpy_load(filepath_or_buffer, *args, download_config: Optional[DownloadCon
         return np.load(filepath_or_buffer, *args, **kwargs)
     else:
         filepath_or_buffer = str(filepath_or_buffer)
-        return np.load(xopen(filepath_or_buffer, "rb", download_config=download_config), *args, **kwargs)
+        with xopen(filepath_or_buffer, "rb", download_config=download_config) as file_obj:
+            return np.load(file_obj, *args, **kwargs)
 
 
 def xpandas_read_csv(filepath_or_buffer, download_config: Optional[DownloadConfig] = None, **kwargs):
@@ -774,7 +775,8 @@ def xpandas_read_csv(filepath_or_buffer, download_config: Optional[DownloadConfi
         filepath_or_buffer = str(filepath_or_buffer)
         if kwargs.get("compression", "infer") == "infer":
             kwargs["compression"] = _get_extraction_protocol(filepath_or_buffer, download_config=download_config)
-        return pd.read_csv(xopen(filepath_or_buffer, "rb", download_config=download_config), **kwargs)
+        with xopen(filepath_or_buffer, "rb", download_config=download_config) as file_obj:
+            return pd.read_csv(file_obj, **kwargs)
 
 
 def xpandas_read_excel(filepath_or_buffer, download_config: Optional[DownloadConfig] = None, **kwargs):
@@ -802,7 +804,8 @@ def xpyarrow_parquet_read_table(filepath_or_buffer, download_config: Optional[Do
         return pq.read_table(filepath_or_buffer, **kwargs)
     else:
         filepath_or_buffer = str(filepath_or_buffer)
-        return pq.read_table(xopen(filepath_or_buffer, mode="rb", download_config=download_config), **kwargs)
+        with xopen(filepath_or_buffer, mode="rb", download_config=download_config) as file_obj:
+            return pq.read_table(file_obj, **kwargs)
 
 
 def xsio_loadmat(filepath_or_buffer, download_config: Optional[DownloadConfig] = None, **kwargs):
