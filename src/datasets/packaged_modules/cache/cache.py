@@ -11,7 +11,7 @@ import pyarrow as pa
 import datasets
 import datasets.config
 import datasets.data_files
-from datasets.naming import filenames_for_dataset_split
+from datasets.naming import camelcase_to_snakecase, filenames_for_dataset_split
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -25,7 +25,10 @@ def _find_hash_in_cache(
     dataset_name: str, config_name: Optional[str], cache_dir: Optional[str]
 ) -> Tuple[str, str, str]:
     cache_dir = os.path.expanduser(str(cache_dir or datasets.config.HF_DATASETS_CACHE))
-    cached_datasets_directory_path_root = os.path.join(cache_dir, dataset_name.replace("/", "___"))
+    dataset_basename = Path(dataset_name).name
+    dataset_basename_snakecase = camelcase_to_snakecase(dataset_basename)
+    cached_relative_path = dataset_name.replace("/", "___").replace(dataset_basename, dataset_basename_snakecase)
+    cached_datasets_directory_path_root = os.path.join(cache_dir, cached_relative_path)
     cached_directory_paths = [
         cached_directory_path
         for cached_directory_path in glob.glob(
