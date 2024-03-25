@@ -46,7 +46,7 @@ def _find_hash_in_cache(
         and (
             config_kwargs
             or custom_features
-            or json.load(open(os.path.join(cached_directory_path, "dataset_info.json"), "r"))["config_name"]
+            or json.loads(Path(cached_directory_path, "dataset_info.json").read_text(encoding="utf-8"))["config_name"]
             == Path(cached_directory_path).parts[-3]  # no extra params => config_id == config_name
         )
     ]
@@ -74,7 +74,7 @@ def _find_hash_in_cache(
         and (
             config_kwargs
             or custom_features
-            or json.load(open(os.path.join(_cached_directory_path, "dataset_info.json"), "r"))["config_name"]
+            or json.loads(Path(_cached_directory_path, "dataset_info.json").read_text(encoding="utf-8"))["config_name"]
             == Path(_cached_directory_path).parts[-3]  # no extra params => config_id == config_name
         )
     ]
