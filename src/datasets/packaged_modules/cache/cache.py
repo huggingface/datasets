@@ -53,9 +53,7 @@ def _find_hash_in_cache(
     if not cached_directory_paths:
         cached_directory_paths = [
             cached_directory_path
-            for cached_directory_path in glob.glob(
-                os.path.join(cached_datasets_directory_path_root, "*", "*", "*")
-            )
+            for cached_directory_path in glob.glob(os.path.join(cached_datasets_directory_path_root, "*", "*", "*"))
             if os.path.isdir(cached_directory_path)
         ]
         available_configs = sorted(
