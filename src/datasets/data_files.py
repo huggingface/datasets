@@ -617,6 +617,7 @@ class DataFilesList(List[str]):
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
         download_config: Optional[DownloadConfig] = None,
+        drop_duplicates: bool = True,
     ) -> "DataFilesList":
         base_path = base_path if base_path is not None else Path().resolve().as_posix()
         data_files = []
@@ -633,6 +634,8 @@ class DataFilesList(List[str]):
             except FileNotFoundError:
                 if not has_magic(pattern):
                     raise
+        if drop_duplicates:
+            data_files = list({data_file: None for data_file in data_files})
         origin_metadata = _get_origin_metadata(data_files, download_config=download_config)
         return cls(data_files, origin_metadata)
 
@@ -714,6 +717,7 @@ class DataFilesDict(Dict[str, DataFilesList]):
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
         download_config: Optional[DownloadConfig] = None,
+        drop_duplicates: bool = True,
     ) -> "DataFilesDict":
         out = cls()
         for key, patterns_for_key in patterns.items():
@@ -723,6 +727,7 @@ class DataFilesDict(Dict[str, DataFilesList]):
                     base_path=base_path,
                     allowed_extensions=allowed_extensions,
                     download_config=download_config,
+                    drop_duplicates=drop_duplicates,
                 )
                 if not isinstance(patterns_for_key, DataFilesList)
                 else patterns_for_key
