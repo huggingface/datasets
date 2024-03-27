@@ -15,6 +15,7 @@ jobs:
       commit_sha: ${{ github.sha }}
       package: datasets
       notebook_folder: datasets_doc
+      custom_container: "" # no need for transformer's docker image
     secrets:
       token: ${{ secrets.HUGGINGFACE_PUSH }}
       hf_token: ${{ secrets.HF_DOC_BUILD_PUSH }}
