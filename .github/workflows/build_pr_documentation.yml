@@ -14,4 +14,3 @@ jobs:
       commit_sha: ${{ github.event.pull_request.head.sha }}
       pr_number: ${{ github.event.number }}
       package: datasets
-      custom_container: "" # no need for transformer's docker image
