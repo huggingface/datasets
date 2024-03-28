@@ -68,7 +68,6 @@ from huggingface_hub import (
     DatasetCardData,
     HfApi,
     list_repo_tree,
-    preupload_lfs_files,
 )
 from huggingface_hub.hf_api import RepoFile
 from multiprocess import Pool
@@ -5397,10 +5396,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             shard.to_parquet(buffer)
             uploaded_size += buffer.tell()
             shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=buffer)
-            preupload_lfs_files(
+            api.preupload_lfs_files(
                 repo_id=repo_id,
                 additions=[shard_addition],
-                token=token,
                 repo_type="dataset",
                 revision=revision,
                 create_pr=create_pr,
