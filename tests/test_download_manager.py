@@ -6,7 +6,8 @@ import pytest
 
 from datasets.download.download_config import DownloadConfig
 from datasets.download.download_manager import DownloadManager
-from datasets.utils.file_utils import hash_url_to_filename
+from datasets.download.streaming_download_manager import StreamingDownloadManager
+from datasets.utils.file_utils import hash_url_to_filename, xopen
 
 
 URL = "http://www.mocksite.com/file1.txt"
@@ -75,7 +76,8 @@ def test_download_manager_download(urls_type, tmp_path, monkeypatch):
 
 
 @pytest.mark.parametrize("paths_type", [str, list, dict])
-def test_download_manager_extract(paths_type, xz_file, text_file):
+@pytest.mark.parametrize("extract_on_the_fly", [False, True])
+def test_download_manager_extract(paths_type, xz_file, text_file, extract_on_the_fly):
     filename = str(xz_file)
     if issubclass(paths_type, str):
         paths = filename
@@ -89,6 +91,7 @@ def test_download_manager_extract(paths_type, xz_file, text_file):
     download_config = DownloadConfig(
         cache_dir=cache_dir,
         use_etag=False,
+        extract_on_the_fly=extract_on_the_fly,
     )
     dl_manager = DownloadManager(dataset_name=dataset_name, download_config=download_config)
     extracted_paths = dl_manager.extract(paths)
@@ -104,14 +107,20 @@ def test_download_manager_extract(paths_type, xz_file, text_file):
         assert extracted_paths
         for extracted_path, input_path in zip(extracted_paths, input_paths):
             assert extracted_path == dl_manager.extracted_paths[input_path]
-            extracted_path = Path(extracted_path)
-            parts = extracted_path.parts
-            assert parts[-1] == hash_url_to_filename(input_path, etag=None)
-            assert parts[-2] == extracted_subdir
-            assert extracted_path.exists()
-            extracted_file_content = extracted_path.read_text()
-            expected_file_content = text_file.read_text()
-            assert extracted_file_content == expected_file_content
+            if not extract_on_the_fly:
+                extracted_path = Path(extracted_path)
+                parts = extracted_path.parts
+                assert parts[-1] == hash_url_to_filename(input_path, etag=None)
+                assert parts[-2] == extracted_subdir
+                assert extracted_path.exists()
+                extracted_file_content = extracted_path.read_text()
+                expected_file_content = text_file.read_text()
+                assert extracted_file_content == expected_file_content
+            else:
+                assert extracted_path == StreamingDownloadManager(
+                    dataset_name=dataset_name, download_config=download_config
+                ).extract(xz_file)
+                assert xopen(extracted_path).read() == text_file.read_text()
 
 
 def _test_jsonl(path, file):

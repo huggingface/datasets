@@ -33,6 +33,8 @@ class DownloadConfig:
             was already extracted, re-extract the archive and override the folder where it was extracted.
         delete_extracted (`bool`, defaults to `False`):
             Whether to delete (or keep) the extracted files.
+        extract_on_the_fly (`bool`, defaults to `False`):
+            If `True`, extract compressed files while they are being read.
         use_etag (`bool`, defaults to `True`):
             Whether to use the ETag HTTP response header to validate the cached files.
         num_proc (`int`, *optional*):
@@ -70,6 +72,7 @@ class DownloadConfig:
     extract_compressed_file: bool = False
     force_extract: bool = False
     delete_extracted: bool = False
+    extract_on_the_fly: bool = False
     use_etag: bool = True
     num_proc: Optional[int] = None
     max_retries: int = 1
