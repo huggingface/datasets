@@ -5398,7 +5398,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             uploaded_size += buffer.tell()
             shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=buffer)
             preupload_lfs_files(
-                api,
                 repo_id=repo_id,
                 additions=[shard_addition],
                 token=token,
