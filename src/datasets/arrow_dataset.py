@@ -68,6 +68,7 @@ from huggingface_hub import (
     DatasetCardData,
     HfApi,
     list_repo_tree,
+    preupload_lfs_files,
 )
 from huggingface_hub.hf_api import RepoFile
 from multiprocess import Pool
@@ -124,7 +125,6 @@ from .utils import logging
 from .utils import tqdm as hf_tqdm
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
-from .utils.hub import preupload_lfs_files
 from .utils.info_utils import is_small_dataset
 from .utils.metadata import MetadataConfigs
 from .utils.py_utils import (
