@@ -2,6 +2,8 @@ import multiprocessing
 import os
 from typing import BinaryIO, Optional, Union
 
+import fsspec
+
 from .. import Dataset, Features, NamedSplit, config
 from ..formatting import query_table
 from ..packaged_modules.csv.csv import Csv
@@ -55,7 +57,6 @@ class CsvDatasetReader(AbstractDatasetReader):
                 download_config=download_config,
                 download_mode=download_mode,
                 verification_mode=verification_mode,
-                # try_from_hf_gcs=try_from_hf_gcs,
                 base_path=base_path,
                 num_proc=self.num_proc,
             )
@@ -72,6 +73,7 @@ class CsvDatasetWriter:
         path_or_buf: Union[PathLike, BinaryIO],
         batch_size: Optional[int] = None,
         num_proc: Optional[int] = None,
+        storage_options: Optional[dict] = None,
         **to_csv_kwargs,
     ):
         if num_proc is not None and num_proc <= 0:
@@ -82,6 +84,7 @@ class CsvDatasetWriter:
         self.batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
         self.num_proc = num_proc
         self.encoding = "utf-8"
+        self.storage_options = storage_options or {}
         self.to_csv_kwargs = to_csv_kwargs
 
     def write(self) -> int:
@@ -90,7 +93,7 @@ class CsvDatasetWriter:
         index = self.to_csv_kwargs.pop("index", False)
 
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
-            with open(self.path_or_buf, "wb+") as buffer:
+            with fsspec.open(self.path_or_buf, "wb", **(self.storage_options or {})) as buffer:
                 written = self._write(file_obj=buffer, header=header, index=index, **self.to_csv_kwargs)
         else:
             written = self._write(file_obj=self.path_or_buf, header=header, index=index, **self.to_csv_kwargs)

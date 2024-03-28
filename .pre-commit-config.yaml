@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/charliermarsh/ruff-pre-commit # https://github.com/charliermarsh/ruff#usage
-    rev: 'v0.1.5'
+    rev: 'v0.3.0'
     hooks:
       # Run the linter.
       - id: ruff

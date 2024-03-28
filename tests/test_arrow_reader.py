@@ -158,7 +158,7 @@ def test_read_instruction_spec():
     assert ReadInstruction.from_spec(spec_train_test_pct_rounding).to_spec() == spec_train_test_pct_rounding
 
 
-def test_make_file_instructions():
+def test_make_file_instructions_basic():
     name = "dummy"
     split_infos = [SplitInfo(name="train", num_examples=100)]
     instruction = "train[:33%]"
@@ -182,6 +182,81 @@ def test_make_file_instructions():
         {"filename": os.path.join(prefix_path, f"{name}-train-00002-of-00010.arrow"), "skip": 0, "take": -1},
         {"filename": os.path.join(prefix_path, f"{name}-train-00003-of-00010.arrow"), "skip": 0, "take": 3},
     ]
+
+
+@pytest.mark.parametrize(
+    "split_name, instruction, shard_lengths, read_range",
+    [
+        ("train", "train[-20%:]", 100, (80, 100)),
+        ("train", "train[:200]", 100, (0, 100)),
+        ("train", "train[:-200]", 100, None),
+        ("train", "train[-200:]", 100, (0, 100)),
+        ("train", "train[-20%:]", [10] * 10, (80, 100)),
+        ("train", "train[:200]", [10] * 10, (0, 100)),
+        ("train", "train[:-200]", [10] * 10, None),
+        ("train", "train[-200:]", [10] * 10, (0, 100)),
+    ],
+)
+def test_make_file_instructions(split_name, instruction, shard_lengths, read_range):
+    name = "dummy"
+    split_infos = split_infos = [
+        SplitInfo(
+            name="train",
+            num_examples=shard_lengths if not isinstance(shard_lengths, list) else sum(shard_lengths),
+            shard_lengths=shard_lengths if isinstance(shard_lengths, list) else None,
+        )
+    ]
+    filetype_suffix = "arrow"
+    prefix_path = "prefix"
+    file_instructions = make_file_instructions(name, split_infos, instruction, filetype_suffix, prefix_path)
+    assert isinstance(file_instructions, FileInstructions)
+    assert file_instructions.num_examples == (read_range[1] - read_range[0] if read_range is not None else 0)
+    if read_range is None:
+        assert file_instructions.file_instructions == []
+    else:
+        if not isinstance(shard_lengths, list):
+            assert file_instructions.file_instructions == [
+                {
+                    "filename": os.path.join(prefix_path, f"{name}-{split_name}.arrow"),
+                    "skip": read_range[0],
+                    "take": read_range[1] - read_range[0],
+                }
+            ]
+        else:
+            file_instructions_list = []
+            shard_offset = 0
+            for i, shard_length in enumerate(shard_lengths):
+                filename = os.path.join(prefix_path, f"{name}-{split_name}-{i:05d}-of-{len(shard_lengths):05d}.arrow")
+                if shard_offset <= read_range[0] < shard_offset + shard_length:
+                    file_instructions_list.append(
+                        {
+                            "filename": filename,
+                            "skip": read_range[0] - shard_offset,
+                            "take": read_range[1] - read_range[0]
+                            if read_range[1] < shard_offset + shard_length
+                            else -1,
+                        }
+                    )
+                elif shard_offset < read_range[1] <= shard_offset + shard_length:
+                    file_instructions_list.append(
+                        {
+                            "filename": filename,
+                            "skip": 0,
+                            "take": read_range[1] - shard_offset
+                            if read_range[1] < shard_offset + shard_length
+                            else -1,
+                        }
+                    )
+                elif read_range[0] < shard_offset and read_range[1] > shard_offset + shard_length:
+                    file_instructions_list.append(
+                        {
+                            "filename": filename,
+                            "skip": 0,
+                            "take": -1,
+                        }
+                    )
+                shard_offset += shard_length
+            assert file_instructions.file_instructions == file_instructions_list
 
 
 @pytest.mark.parametrize("name, expected_exception", [(None, TypeError), ("", ValueError)])

@@ -30,7 +30,14 @@ from typing import Callable, Dict, Generator, List, Optional, Tuple, Union
 from .. import config
 from ..utils import tqdm as hf_tqdm
 from ..utils.deprecation_utils import DeprecatedEnum, deprecated
-from ..utils.file_utils import cached_path, get_from_cache, hash_url_to_filename, is_relative_path, url_or_path_join
+from ..utils.file_utils import (
+    cached_path,
+    get_from_cache,
+    hash_url_to_filename,
+    is_relative_path,
+    stack_multiprocessing_download_progress_bars,
+    url_or_path_join,
+)
 from ..utils.info_utils import get_size_checksum_dict
 from ..utils.logging import get_logger
 from ..utils.py_utils import NestedDataStructure, map_nested, size_str
@@ -423,13 +430,14 @@ class DownloadManager:
         download_func = partial(self._download, download_config=download_config)
 
         start_time = datetime.now()
-        downloaded_path_or_paths = map_nested(
-            download_func,
-            url_or_urls,
-            map_tuple=True,
-            num_proc=download_config.num_proc,
-            desc="Downloading data files",
-        )
+        with stack_multiprocessing_download_progress_bars():
+            downloaded_path_or_paths = map_nested(
+                download_func,
+                url_or_urls,
+                map_tuple=True,
+                num_proc=download_config.num_proc,
+                desc="Downloading data files",
+            )
         duration = datetime.now() - start_time
         logger.info(f"Downloading took {duration.total_seconds() // 60} min")
         url_or_urls = NestedDataStructure(url_or_urls)
@@ -531,10 +539,6 @@ class DownloadManager:
             )
         download_config = self.download_config.copy()
         download_config.extract_compressed_file = True
-        # Extract downloads the file first if it is not already downloaded
-        if download_config.download_desc is None:
-            download_config.download_desc = "Downloading data"
-
         extract_func = partial(self._download, download_config=download_config)
         extracted_paths = map_nested(
             extract_func,

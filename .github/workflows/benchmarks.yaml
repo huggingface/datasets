@@ -8,7 +8,7 @@ jobs:
     runs-on: [ubuntu-latest]
     container: ghcr.io/iterative/cml
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: cml_run
         env:
           CML_DRIVER_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,5 +1,11 @@
 # Beam Datasets
 
+<Tip warning={true}>
+
+The Beam API is deprecated and will be removed in the next major release. 
+
+</Tip>
+
 Some datasets are too large to be processed on a single machine. Instead, you can process them with [Apache Beam](https://beam.apache.org/), a library for parallel data processing. The processing pipeline is executed on a distributed processing backend such as [Apache Flink](https://flink.apache.org/), [Apache Spark](https://spark.apache.org/), or [Google Cloud Dataflow](https://cloud.google.com/dataflow).
 
 We have already created Beam pipelines for some of the larger datasets like [wikipedia](https://huggingface.co/datasets/wikipedia), and [wiki40b](https://huggingface.co/datasets/wiki40b). You can load these normally with [`load_dataset`]. But if you want to run your own Beam pipeline with Dataflow, here is how:

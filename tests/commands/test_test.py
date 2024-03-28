@@ -20,8 +20,9 @@ _TestCommandArgs = namedtuple(
         "ignore_verifications",
         "force_redownload",
         "clear_cache",
+        "num_proc",
     ],
-    defaults=[None, None, None, False, False, False, False, False],
+    defaults=[None, None, None, False, False, False, False, False, None],
 )
 
 

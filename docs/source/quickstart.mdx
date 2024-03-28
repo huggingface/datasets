@@ -178,6 +178,14 @@ Image datasets are loaded just like text datasets. However, instead of a tokeniz
 >>> dataset = load_dataset("beans", split="train")
 ```
 
+Most image models work with RBG images. If your dataset contains images in a different mode, you can use the [`~Dataset.cast_column`] function to set the mode to RGB:
+
+```py
+>>> dataset = dataset.cast_column("image", Image(mode="RGB"))
+```
+
+The Beans dataset contains only RGB images, so this step is unnecessary here.
+
 **2**. Now you can add some data augmentations with any library ([Albumentations](https://albumentations.ai/), [imgaug](https://imgaug.readthedocs.io/en/latest/), [Kornia](https://kornia.readthedocs.io/en/latest/)) you like. Here, you'll use [torchvision](https://pytorch.org/vision/stable/transforms.html) to randomly change the color properties of an image:
 
 ```py

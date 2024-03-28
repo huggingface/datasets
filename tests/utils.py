@@ -141,6 +141,18 @@ def require_torch(test_case):
     return test_case
 
 
+def require_polars(test_case):
+    """
+    Decorator marking a test that requires Polars.
+
+    These tests are skipped when Polars isn't installed.
+
+    """
+    if not config.POLARS_AVAILABLE:
+        test_case = unittest.skip("test requires Polars")(test_case)
+    return test_case
+
+
 def require_tf(test_case):
     """
     Decorator marking a test that requires TensorFlow.
