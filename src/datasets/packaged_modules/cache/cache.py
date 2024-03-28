@@ -36,7 +36,7 @@ def _find_hash_in_cache(
     else:
         config_id = None
     cache_dir = os.path.expanduser(str(cache_dir or datasets.config.HF_DATASETS_CACHE))
-    cached_datasets_directory_path_root = os.path.join(cache_dir, dataset_name.replace("/", "___"))
+    cached_datasets_directory_path_root = os.path.join(cache_dir, dataset_name.lower().replace("/", "___"))
     cached_directory_paths = [
         cached_directory_path
         for cached_directory_path in glob.glob(
