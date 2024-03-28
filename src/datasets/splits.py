@@ -15,7 +15,6 @@
 # Lint as: python3
 """Splits related API."""
 
-
 import abc
 import collections
 import copy

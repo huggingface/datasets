@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # Lint as: python3
-""" DatasetInfo and MetricInfo record information we know about a dataset and a metric.
+"""DatasetInfo and MetricInfo record information we know about a dataset and a metric.
 
 This includes things that we know about the dataset statically, i.e.:
  - description

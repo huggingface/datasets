@@ -1,4 +1,4 @@
-""" Official evaluation script for v1.1 of the SQuAD dataset. """
+"""Official evaluation script for v1.1 of the SQuAD dataset."""
 
 import argparse
 import json

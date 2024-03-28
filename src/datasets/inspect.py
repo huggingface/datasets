@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # Lint as: python3
-""" List and inspect datasets."""
+"""List and inspect datasets."""
 
 import inspect
 import os

@@ -13,9 +13,7 @@
 # limitations under the License.
 
 # Lint as: python3
-"""Some python utils function and classes.
-
-"""
+"""Some python utils function and classes."""
 
 import copy
 import functools

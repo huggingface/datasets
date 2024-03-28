@@ -1,4 +1,4 @@
-""" Official evaluation script for CUAD dataset. """
+"""Official evaluation script for CUAD dataset."""
 
 import argparse
 import json

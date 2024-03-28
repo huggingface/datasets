@@ -13,7 +13,8 @@
 # limitations under the License.
 
 # Lint as: python3
-""" Metrics base class."""
+"""Metrics base class."""
+
 import os
 import types
 import uuid

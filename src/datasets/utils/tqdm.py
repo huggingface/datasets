@@ -39,6 +39,7 @@ Example:
        do_something()
     ```
 """
+
 import warnings
 
 from tqdm.auto import tqdm as old_tqdm

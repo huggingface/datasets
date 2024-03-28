@@ -12,6 +12,7 @@
 
 # Lint as: python3
 """To write records into Parquet files."""
+
 import errno
 import json
 import os

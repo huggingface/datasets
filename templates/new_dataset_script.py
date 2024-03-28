@@ -14,7 +14,6 @@
 # TODO: Address all TODOs and remove all explanatory comments
 """TODO: Add a description here."""
 
-
 import csv
 import json
 import os
@@ -72,20 +71,28 @@ class NewDataset(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="first_domain", version=VERSION, description="This part of my dataset covers a first domain"),
-        datasets.BuilderConfig(name="second_domain", version=VERSION, description="This part of my dataset covers a second domain"),
+        datasets.BuilderConfig(
+            name="first_domain", version=VERSION, description="This part of my dataset covers a first domain"
+        ),
+        datasets.BuilderConfig(
+            name="second_domain", version=VERSION, description="This part of my dataset covers a second domain"
+        ),
     ]
 
-    DEFAULT_CONFIG_NAME = "first_domain"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+    DEFAULT_CONFIG_NAME = (
+        "first_domain"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+    )
 
     def _info(self):
         # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
-        if self.config.name == "first_domain":  # This is the name of the configuration selected in BUILDER_CONFIGS above
+        if (
+            self.config.name == "first_domain"
+        ):  # This is the name of the configuration selected in BUILDER_CONFIGS above
             features = datasets.Features(
                 {
                     "sentence": datasets.Value("string"),
                     "option1": datasets.Value("string"),
-                    "answer": datasets.Value("string")
+                    "answer": datasets.Value("string"),
                     # These are the features of your dataset like images, labels ...
                 }
             )
@@ -94,7 +101,7 @@ class NewDataset(datasets.GeneratorBasedBuilder):
                 {
                     "sentence": datasets.Value("string"),
                     "option2": datasets.Value("string"),
-                    "second_domain_answer": datasets.Value("string")
+                    "second_domain_answer": datasets.Value("string"),
                     # These are the features of your dataset like images, labels ...
                 }
             )
@@ -143,10 +150,7 @@ class NewDataset(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "test.jsonl"),
-                    "split": "test"
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, "test.jsonl"), "split": "test"},
             ),
         ]
 
@@ -159,14 +163,20 @@ class NewDataset(datasets.GeneratorBasedBuilder):
                 data = json.loads(row)
                 if self.config.name == "first_domain":
                     # Yields examples as (key, example) tuples
-                    yield key, {
-                        "sentence": data["sentence"],
-                        "option1": data["option1"],
-                        "answer": "" if split == "test" else data["answer"],
-                    }
+                    yield (
+                        key,
+                        {
+                            "sentence": data["sentence"],
+                            "option1": data["option1"],
+                            "answer": "" if split == "test" else data["answer"],
+                        },
+                    )
                 else:
-                    yield key, {
-                        "sentence": data["sentence"],
-                        "option2": data["option2"],
-                        "second_domain_answer": "" if split == "test" else data["second_domain_answer"],
-                    }
+                    yield (
+                        key,
+                        {
+                            "sentence": data["sentence"],
+                            "option2": data["option2"],
+                            "second_domain_answer": "" if split == "test" else data["second_domain_answer"],
+                        },
+                    )

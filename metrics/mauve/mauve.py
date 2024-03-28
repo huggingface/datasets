@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" MAUVE metric from https://github.com/krishnap25/mauve. """
+"""MAUVE metric from https://github.com/krishnap25/mauve."""
 
 import faiss  # noqa: F401 # Here to have a nice missing dependency error message early on
 import numpy  # noqa: F401 # Here to have a nice missing dependency error message early on
