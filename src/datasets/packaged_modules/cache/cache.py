@@ -25,9 +25,9 @@ def _find_hash_in_cache(
     dataset_name: str, config_name: Optional[str], cache_dir: Optional[str]
 ) -> Tuple[str, str, str]:
     cache_dir = os.path.expanduser(str(cache_dir or datasets.config.HF_DATASETS_CACHE))
-    dataset_basename = Path(dataset_name).name
-    dataset_basename_snakecase = camelcase_to_snakecase(dataset_basename)
-    cached_relative_path = dataset_name.replace("/", "___").replace(dataset_basename, dataset_basename_snakecase)
+        namespace_and_dataset_name = self.name.split("/")
+        namespace_and_dataset_name[-1] = camelcase_to_snakecase(namespace_and_dataset_name[-1])
+        cached_relative_path = "___".join(dataset_name_parts)
     cached_datasets_directory_path_root = os.path.join(cache_dir, cached_relative_path)
     cached_directory_paths = [
         cached_directory_path
