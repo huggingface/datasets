@@ -20,7 +20,6 @@ from huggingface_hub import (
     DatasetCard,
     DatasetCardData,
     HfApi,
-    list_repo_tree,
 )
 from huggingface_hub.hf_api import RepoFile
 
@@ -1746,8 +1745,8 @@ class DatasetDict(dict):
         repo_splits = []  # use a list to keep the order of the splits
         deletions = []
         repo_files_to_add = [addition.path_in_repo for addition in additions]
-        for repo_file in list_repo_tree(
-            api, repo_id=repo_id, revision=revision, repo_type="dataset", token=token, recursive=True
+        for repo_file in api.list_repo_tree(
+            repo_id=repo_id, revision=revision, repo_type="dataset", token=token, recursive=True
         ):
             if not isinstance(repo_file, RepoFile):
                 continue
