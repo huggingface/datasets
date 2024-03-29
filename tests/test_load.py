@@ -100,6 +100,7 @@ SAMPLE_DATASET_TWO_CONFIG_IN_METADATA = "hf-internal-testing/audiofolder_two_con
 SAMPLE_DATASET_TWO_CONFIG_IN_METADATA_WITH_DEFAULT = (
     "hf-internal-testing/audiofolder_two_configs_in_metadata_with_default"
 )
+SAMPLE_DATASET_CAPITAL_LETTERS_IN_NAME = "hf-internal-testing/DatasetWithCapitalLetters"
 
 
 METRIC_LOADING_SCRIPT_NAME = "__dummy_metric1__"
@@ -1021,6 +1022,19 @@ class LoadTest(TestCase):
                 self.assertEqual(dataset_module_2.module_path, dataset_module_3.module_path)
                 self.assertNotEqual(dataset_module_1.module_path, dataset_module_3.module_path)
                 self.assertIn("Using the latest cached version of the module", self._caplog.text)
+
+    @pytest.mark.integration
+    def test_offline_dataset_module_factory_with_capital_letters_in_name(self):
+        repo_id = SAMPLE_DATASET_CAPITAL_LETTERS_IN_NAME
+        builder = load_dataset_builder(repo_id, cache_dir=self.cache_dir)
+        builder.download_and_prepare()
+        for offline_simulation_mode in list(OfflineSimulationMode):
+            with offline(offline_simulation_mode):
+                self._caplog.clear()
+                # allow provide the repo id without an explicit path to remote or local actual file
+                dataset_module = datasets.load.dataset_module_factory(repo_id, cache_dir=self.cache_dir)
+                self.assertEqual(dataset_module.module_path, "datasets.packaged_modules.cache.cache")
+                self.assertIn("Using the latest cached version of the dataset", self._caplog.text)
 
     def test_load_dataset_from_hub(self):
         with self.assertRaises(DatasetNotFoundError) as context:
