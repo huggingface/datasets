@@ -935,7 +935,7 @@ class DatasetDict(dict):
                 `batch_size <= 0` or `batch_size == None` then provide the full dataset as a single batch to `function`.
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`Optional[bool]`, defaults to `True` if chaching is enabled):
+            load_from_cache_file (`Optional[bool]`, defaults to `True` if caching is enabled):
                 If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
             cache_file_names (`[Dict[str, str]]`, *optional*, defaults to `None`):
