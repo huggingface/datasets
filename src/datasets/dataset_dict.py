@@ -135,7 +135,7 @@ class DatasetDict(dict):
 
     @property
     def num_rows(self) -> Dict[str, int]:
-        """Number of rows in each split of the dataset (same as :func:`datasets.Dataset.__len__`).
+        """Number of rows in each split of the dataset.
 
         Example:
 
@@ -222,7 +222,7 @@ class DatasetDict(dict):
 
         Args:
             column (`str`):
-                column name (list all the column names with [`~datasets.Dataset.column_names`])
+                column name (list all the column names with [`~datasets.DatasetDict.column_names`])
 
         Returns:
             Dict[`str`, `list`]: Dictionary of unique elements in the given column.
@@ -268,15 +268,12 @@ class DatasetDict(dict):
         Cast the dataset to a new set of features.
         The transformation is applied to all the datasets of the dataset dictionary.
 
-        You can also remove a column using [`Dataset.map`] with `feature` but `cast`
-        is in-place (doesn't copy the data to a new dataset) and is thus faster.
-
         Args:
             features ([`Features`]):
                 New features to cast the dataset to.
                 The name and order of the fields in the features must match the current column names.
                 The type of the data must also be convertible from one type to the other.
-                For non-trivial conversion, e.g. `string` <-> `ClassLabel` you should use [`~Dataset.map`] to update the Dataset.
+                For non-trivial conversion, e.g. `string` <-> `ClassLabel` you should use [`~DatasetDict.map`] to update the dataset.
 
         Example:
 
@@ -334,12 +331,15 @@ class DatasetDict(dict):
 
         The transformation is applied to all the splits of the dataset dictionary.
 
-        You can also remove a column using [`Dataset.map`] with `remove_columns` but the present method
-        is in-place (doesn't copy the data to a new dataset) and is thus faster.
+        You can also remove a column using [`~DatasetDict.map`] with `remove_columns` but the present method
+        doesn't copy the data of the remaining columns and is thus faster.
 
         Args:
             column_names (`Union[str, List[str]]`):
                 Name of the column(s) to remove.
+
+        Returns:
+            [`DatasetDict`]: A copy of the dataset object without the columns to remove.
 
         Example:
 
@@ -371,7 +371,7 @@ class DatasetDict(dict):
         Rename a column in the dataset and move the features associated to the original column under the new column name.
         The transformation is applied to all the datasets of the dataset dictionary.
 
-        You can also rename a column using [`~Dataset.map`] with `remove_columns` but the present method:
+        You can also rename a column using [`~DatasetDict.map`] with `remove_columns` but the present method:
             - takes care of moving the original features under the new column name.
             - doesn't copy the data to a new dataset and is thus much faster.
 
@@ -386,7 +386,7 @@ class DatasetDict(dict):
         ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rotten_tomatoes")
-        >>> ds.rename_column("label", "label_new")
+        >>> ds = ds.rename_column("label", "label_new")
         DatasetDict({
             train: Dataset({
                 features: ['text', 'label_new'],

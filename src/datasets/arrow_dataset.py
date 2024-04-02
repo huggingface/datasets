@@ -2166,7 +2166,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Remove one or several column(s) in the dataset and the features associated to them.
 
         You can also remove a column using [`~datasets.Dataset.map`] with `remove_columns` but the present method
-        is in-place (doesn't copy the data to a new dataset) and is thus faster.
+        doesn't copy the data of the remaining columns and is thus faster.
 
         Args:
             column_names (`Union[str, List[str]]`):
@@ -2183,7 +2183,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rotten_tomatoes", split="validation")
-        >>> ds.remove_columns('label')
+        >>> ds = ds.remove_columns('label')
         Dataset({
             features: ['text'],
             num_rows: 1066
@@ -2418,7 +2418,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def __iter__(self):
         """Iterate through the examples.
 
-        If a formatting is set with :meth:`Dataset.set_format` rows will be returned with the
+        If a formatting is set with [`Dataset.set_format`] rows will be returned with the
         selected format.
         """
         if self._indices is None:
@@ -5951,7 +5951,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The column of the documents to add to the index.
             index_name (`str`, *optional*):
                 The `index_name`/identifier of the index.
-                This is the index name that is used to call [`~Dataset.get_nearest_examples`] or [`Dataset.search`].
+                This is the index name that is used to call [`~Dataset.get_nearest_examples`] or [`~Dataset.search`].
                 By default it corresponds to `column`.
             host (`str`, *optional*, defaults to `localhost`):
                 Host of where ElasticSearch is running.
