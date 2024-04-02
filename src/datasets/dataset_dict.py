@@ -346,7 +346,7 @@ class DatasetDict(dict):
         ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rotten_tomatoes")
-        >>> ds.remove_columns("label")
+        >>> ds = ds.remove_columns("label")
         DatasetDict({
             train: Dataset({
                 features: ['text'],

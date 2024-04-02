@@ -2188,7 +2188,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features: ['text'],
             num_rows: 1066
         })
-        >>> ds.remove_columns(column_names=ds.column_names) # Removing all the columns returns an empty dataset with the `num_rows` property set to 0
+        >>> ds = ds.remove_columns(column_names=ds.column_names) # Removing all the columns returns an empty dataset with the `num_rows` property set to 0
         Dataset({
             features: [],
             num_rows: 0
@@ -2240,7 +2240,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rotten_tomatoes", split="validation")
-        >>> ds.rename_column('label', 'label_new')
+        >>> ds = ds.rename_column('label', 'label_new')
         Dataset({
             features: ['text', 'label_new'],
             num_rows: 1066
@@ -2303,7 +2303,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rotten_tomatoes", split="validation")
-        >>> ds.rename_columns({'text': 'text_new', 'label': 'label_new'})
+        >>> ds = ds.rename_columns({'text': 'text_new', 'label': 'label_new'})
         Dataset({
             features: ['text_new', 'label_new'],
             num_rows: 1066
