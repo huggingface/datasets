@@ -3989,7 +3989,6 @@ def test_dataset_from_sql_con_type(con_type, sqlite_path, tmp_path, set_sqlalche
         import sqlalchemy
 
         con = sqlalchemy.create_engine("sqlite:///" + sqlite_path)
-    # https://github.com/huggingface/datasets/issues/2832 needs to be fixed first for this to work
     with caplog.at_level(INFO, logger=get_logger().name):
         dataset = Dataset.from_sql(
             "dataset",
