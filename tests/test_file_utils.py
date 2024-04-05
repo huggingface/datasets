@@ -259,7 +259,7 @@ class DummyTestFS(AbstractFileSystem):
 
 
 @pytest.fixture
-def mock_fsspec():
+def mock_fsspec2():  # to avoid the name collision with `mock_fsspec` from fixtures/fsspec.py
     _fsspec_registry["mock"] = DummyTestFS
     yield
     del _fsspec_registry["mock"]
@@ -354,7 +354,7 @@ def test_xdirname(input_path, expected_path):
         ("mock://top_level/second_level/date=2019-10-01/file_that_doesnt_exist.parquet", False),
     ],
 )
-def test_xexists(input_path, exists, tmp_path, mock_fsspec):
+def test_xexists(input_path, exists, tmp_path, mock_fsspec2):
     if input_path.startswith("tmp_path"):
         input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
         (tmp_path / "file.txt").touch()
@@ -437,7 +437,7 @@ def test_xopen_remote():
         ("mock://top_level/second_level/date=2019-10-01", ["a.parquet", "b.parquet"]),
     ],
 )
-def test_xlistdir(input_path, expected_paths, tmp_path, mock_fsspec):
+def test_xlistdir(input_path, expected_paths, tmp_path, mock_fsspec2):
     if input_path.startswith("tmp_path"):
         input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
         for file in ["file1.txt", "file2.txt"]:
@@ -468,7 +468,7 @@ def test_xlistdir_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
         ("mock://dir_that_doesnt_exist", False),
     ],
 )
-def test_xisdir(input_path, isdir, tmp_path, mock_fsspec):
+def test_xisdir(input_path, isdir, tmp_path, mock_fsspec2):
     if input_path.startswith("tmp_path"):
         input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
         (tmp_path / "file.txt").touch()
@@ -494,7 +494,7 @@ def test_xisdir_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
         ("mock://top_level/second_level/date=2019-10-01/a.parquet", True),
     ],
 )
-def test_xisfile(input_path, isfile, tmp_path, mock_fsspec):
+def test_xisfile(input_path, isfile, tmp_path, mock_fsspec2):
     if input_path.startswith("tmp_path"):
         input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
         (tmp_path / "file.txt").touch()
@@ -517,7 +517,7 @@ def test_xisfile_private(hf_private_dataset_repo_txt_data, hf_token):
         ("mock://top_level/second_level/date=2019-10-01/a.parquet", 100),
     ],
 )
-def test_xgetsize(input_path, size, tmp_path, mock_fsspec):
+def test_xgetsize(input_path, size, tmp_path, mock_fsspec2):
     if input_path.startswith("tmp_path"):
         input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
         (tmp_path / "file.txt").touch()
@@ -559,7 +559,7 @@ def test_xgetsize_private(hf_private_dataset_repo_txt_data, hf_token):
         ),
     ],
 )
-def test_xglob(input_path, expected_paths, tmp_path, mock_fsspec):
+def test_xglob(input_path, expected_paths, tmp_path, mock_fsspec2):
     if input_path.startswith("tmp_path"):
         input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
         expected_paths = [str(tmp_path / file) for file in expected_paths]
@@ -592,7 +592,7 @@ def test_xglob_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
         ),
     ],
 )
-def test_xwalk(input_path, expected_outputs, tmp_path, mock_fsspec):
+def test_xwalk(input_path, expected_outputs, tmp_path, mock_fsspec2):
     if input_path.startswith("tmp_path"):
         input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
         expected_outputs = sorted(
@@ -676,7 +676,7 @@ class TestxPath:
             ("mock://top_level/second_level/date=2019-10-01/file_that_doesnt_exist.parquet", False),
         ],
     )
-    def test_xpath_exists(self, input_path, exists, tmp_path, mock_fsspec):
+    def test_xpath_exists(self, input_path, exists, tmp_path, mock_fsspec2):
         if input_path.startswith("tmp_path"):
             input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
             (tmp_path / "file.txt").touch()
@@ -709,7 +709,7 @@ class TestxPath:
             ),
         ],
     )
-    def test_xpath_glob(self, input_path, pattern, expected_paths, tmp_path, mock_fsspec):
+    def test_xpath_glob(self, input_path, pattern, expected_paths, tmp_path, mock_fsspec2):
         if input_path == "tmp_path":
             input_path = tmp_path
             expected_paths = [tmp_path / file for file in expected_paths]
@@ -764,7 +764,7 @@ class TestxPath:
             ),
         ],
     )
-    def test_xpath_rglob(self, input_path, pattern, expected_paths, tmp_path, mock_fsspec):
+    def test_xpath_rglob(self, input_path, pattern, expected_paths, tmp_path, mock_fsspec2):
         if input_path == "tmp_path":
             input_path = tmp_path
             dir_path = tmp_path / "dir"
