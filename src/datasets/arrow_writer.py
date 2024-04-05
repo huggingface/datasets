@@ -561,8 +561,9 @@ class ArrowWriter:
             else:
                 col_try_type = try_features[col] if try_features is not None and col in try_features else None
                 typed_sequence = OptimizedTypedSequence(col_values, type=col_type, try_type=col_try_type, col=col)
-                arrays.append(pa.array(typed_sequence))
-                inferred_features[col] = typed_sequence.get_inferred_type()
+                array = pa.array(typed_sequence)
+                arrays.append(array)
+                inferred_features[col] = generate_from_arrow_type(array.type)
         schema = inferred_features.arrow_schema if self.pa_writer is None else self.schema
         pa_table = pa.Table.from_arrays(arrays, schema=schema)
         self.write_table(pa_table, writer_batch_size)
