@@ -60,7 +60,15 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 from fsspec.core import url_to_fs
-from huggingface_hub import CommitInfo, CommitOperationAdd, CommitOperationDelete, DatasetCard, DatasetCardData, HfApi
+from huggingface_hub import (
+    CommitInfo,
+    CommitOperationAdd,
+    CommitOperationDelete,
+    DatasetCard,
+    DatasetCardData,
+    HfApi,
+)
+from huggingface_hub.hf_api import RepoFile
 from multiprocess import Pool
 from tqdm.contrib.concurrent import thread_map
 
@@ -115,7 +123,6 @@ from .utils import logging
 from .utils import tqdm as hf_tqdm
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
-from .utils.hub import list_files_info, preupload_lfs_files
 from .utils.info_utils import is_small_dataset
 from .utils.metadata import MetadataConfigs
 from .utils.py_utils import (
@@ -2166,7 +2173,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Remove one or several column(s) in the dataset and the features associated to them.
 
         You can also remove a column using [`~datasets.Dataset.map`] with `remove_columns` but the present method
-        is in-place (doesn't copy the data to a new dataset) and is thus faster.
+        doesn't copy the data of the remaining columns and is thus faster.
 
         Args:
             column_names (`Union[str, List[str]]`):
@@ -2183,12 +2190,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rotten_tomatoes", split="validation")
-        >>> ds.remove_columns('label')
+        >>> ds = ds.remove_columns('label')
         Dataset({
             features: ['text'],
             num_rows: 1066
         })
-        >>> ds.remove_columns(column_names=ds.column_names) # Removing all the columns returns an empty dataset with the `num_rows` property set to 0
+        >>> ds = ds.remove_columns(column_names=ds.column_names) # Removing all the columns returns an empty dataset with the `num_rows` property set to 0
         Dataset({
             features: [],
             num_rows: 0
@@ -2240,7 +2247,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rotten_tomatoes", split="validation")
-        >>> ds.rename_column('label', 'label_new')
+        >>> ds = ds.rename_column('label', 'label_new')
         Dataset({
             features: ['text', 'label_new'],
             num_rows: 1066
@@ -2303,7 +2310,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rotten_tomatoes", split="validation")
-        >>> ds.rename_columns({'text': 'text_new', 'label': 'label_new'})
+        >>> ds = ds.rename_columns({'text': 'text_new', 'label': 'label_new'})
         Dataset({
             features: ['text_new', 'label_new'],
             num_rows: 1066
@@ -2418,7 +2425,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def __iter__(self):
         """Iterate through the examples.
 
-        If a formatting is set with :meth:`Dataset.set_format` rows will be returned with the
+        If a formatting is set with [`Dataset.set_format`] rows will be returned with the
         selected format.
         """
         if self._indices is None:
@@ -5388,11 +5395,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             shard.to_parquet(buffer)
             uploaded_size += buffer.tell()
             shard_addition = CommitOperationAdd(path_in_repo=shard_path_in_repo, path_or_fileobj=buffer)
-            preupload_lfs_files(
-                api,
+            api.preupload_lfs_files(
                 repo_id=repo_id,
                 additions=[shard_addition],
-                token=token,
                 repo_type="dataset",
                 revision=revision,
                 create_pr=create_pr,
@@ -5577,7 +5582,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         deletions, deleted_size = [], 0
         repo_splits = []  # use a list to keep the order of the splits
         repo_files_to_add = [addition.path_in_repo for addition in additions]
-        for repo_file in list_files_info(api, repo_id=repo_id, revision=revision, repo_type="dataset", token=token):
+        for repo_file in api.list_repo_tree(
+            repo_id=repo_id, revision=revision, repo_type="dataset", token=token, recursive=True
+        ):
+            if not isinstance(repo_file, RepoFile):
+                continue
             if repo_file.rfilename == config.REPOCARD_FILENAME:
                 repo_with_dataset_card = True
             elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:
@@ -5951,7 +5960,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The column of the documents to add to the index.
             index_name (`str`, *optional*):
                 The `index_name`/identifier of the index.
-                This is the index name that is used to call [`~Dataset.get_nearest_examples`] or [`Dataset.search`].
+                This is the index name that is used to call [`~Dataset.get_nearest_examples`] or [`~Dataset.search`].
                 By default it corresponds to `column`.
             host (`str`, *optional*, defaults to `localhost`):
                 Host of where ElasticSearch is running.

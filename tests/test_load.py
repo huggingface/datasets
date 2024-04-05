@@ -418,24 +418,28 @@ class ModuleFactoryTest(TestCase):
         )
 
     def test_HubDatasetModuleFactoryWithScript_dont_trust_remote_code(self):
-        # "lhoestq/test" has a dataset script
         factory = HubDatasetModuleFactoryWithScript(
-            "lhoestq/test", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+            "hf-internal-testing/dataset_with_script",
+            download_config=self.download_config,
+            dynamic_modules_path=self.dynamic_modules_path,
         )
         with patch.object(config, "HF_DATASETS_TRUST_REMOTE_CODE", None):  # this will be the default soon
             self.assertRaises(ValueError, factory.get_module)
         factory = HubDatasetModuleFactoryWithScript(
-            "lhoestq/test",
+            "hf-internal-testing/dataset_with_script",
             download_config=self.download_config,
             dynamic_modules_path=self.dynamic_modules_path,
             trust_remote_code=False,
         )
         self.assertRaises(ValueError, factory.get_module)
 
-    def test_HubDatasetModuleFactoryWithScript_with_github_dataset(self):
+    def test_HubDatasetModuleFactoryWithScript_with_hub_dataset(self):
         # "wmt_t2t" has additional imports (internal)
         factory = HubDatasetModuleFactoryWithScript(
-            "wmt_t2t", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+            "wmt_t2t",
+            download_config=self.download_config,
+            dynamic_modules_path=self.dynamic_modules_path,
+            revision="861aac88b2c6247dd93ade8b1c189ce714627750",
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None

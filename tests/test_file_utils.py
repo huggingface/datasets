@@ -36,7 +36,7 @@ from datasets.utils.file_utils import (
     xsplitext,
     xwalk,
 )
-from datasets.utils.hub import hf_hub_url
+from datasets.utils.hub import hf_dataset_url
 
 from .utils import slow
 
@@ -363,7 +363,7 @@ def test_xexists(input_path, exists, tmp_path, mock_fsspec):
 
 @pytest.mark.integration
 def test_xexists_private(hf_private_dataset_repo_txt_data, hf_token):
-    root_url = hf_hub_url(hf_private_dataset_repo_txt_data, "")
+    root_url = hf_dataset_url(hf_private_dataset_repo_txt_data, "")
     download_config = DownloadConfig(token=hf_token)
     assert xexists(root_url + "data/text_data.txt", download_config=download_config)
     assert not xexists(root_url + "file_that_doesnt_exist.txt", download_config=download_config)
@@ -448,7 +448,7 @@ def test_xlistdir(input_path, expected_paths, tmp_path, mock_fsspec):
 
 @pytest.mark.integration
 def test_xlistdir_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
-    root_url = hf_hub_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
+    root_url = hf_dataset_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
     download_config = DownloadConfig(token=hf_token)
     assert len(xlistdir("zip://::" + root_url, download_config=download_config)) == 1
     assert len(xlistdir("zip://main_dir::" + root_url, download_config=download_config)) == 2
@@ -477,7 +477,7 @@ def test_xisdir(input_path, isdir, tmp_path, mock_fsspec):
 
 @pytest.mark.integration
 def test_xisdir_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
-    root_url = hf_hub_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
+    root_url = hf_dataset_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
     download_config = DownloadConfig(token=hf_token)
     assert xisdir("zip://::" + root_url, download_config=download_config) is True
     assert xisdir("zip://main_dir::" + root_url, download_config=download_config) is True
@@ -503,7 +503,7 @@ def test_xisfile(input_path, isfile, tmp_path, mock_fsspec):
 
 @pytest.mark.integration
 def test_xisfile_private(hf_private_dataset_repo_txt_data, hf_token):
-    root_url = hf_hub_url(hf_private_dataset_repo_txt_data, "")
+    root_url = hf_dataset_url(hf_private_dataset_repo_txt_data, "")
     download_config = DownloadConfig(token=hf_token)
     assert xisfile(root_url + "data/text_data.txt", download_config=download_config) is True
     assert xisfile(root_url + "qwertyuiop", download_config=download_config) is False
@@ -527,7 +527,7 @@ def test_xgetsize(input_path, size, tmp_path, mock_fsspec):
 
 @pytest.mark.integration
 def test_xgetsize_private(hf_private_dataset_repo_txt_data, hf_token):
-    root_url = hf_hub_url(hf_private_dataset_repo_txt_data, "")
+    root_url = hf_dataset_url(hf_private_dataset_repo_txt_data, "")
     download_config = DownloadConfig(token=hf_token)
     assert xgetsize(root_url + "data/text_data.txt", download_config=download_config) == 39
     with pytest.raises(FileNotFoundError):
@@ -571,7 +571,7 @@ def test_xglob(input_path, expected_paths, tmp_path, mock_fsspec):
 
 @pytest.mark.integration
 def test_xglob_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
-    root_url = hf_hub_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
+    root_url = hf_dataset_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
     download_config = DownloadConfig(token=hf_token)
     assert len(xglob("zip://**::" + root_url, download_config=download_config)) == 3
     assert len(xglob("zip://qwertyuiop/*::" + root_url, download_config=download_config)) == 0
@@ -610,7 +610,7 @@ def test_xwalk(input_path, expected_outputs, tmp_path, mock_fsspec):
 
 @pytest.mark.integration
 def test_xwalk_private(hf_private_dataset_repo_zipped_txt_data, hf_token):
-    root_url = hf_hub_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
+    root_url = hf_dataset_url(hf_private_dataset_repo_zipped_txt_data, "data.zip")
     download_config = DownloadConfig(token=hf_token)
     assert len(list(xwalk("zip://::" + root_url, download_config=download_config))) == 2
     assert len(list(xwalk("zip://main_dir::" + root_url, download_config=download_config))) == 1
