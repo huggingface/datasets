@@ -245,7 +245,7 @@ class Image:
                     [bytes_array, path_array], ["bytes", "path"], mask=storage.is_null()
                 )
             elif pa.types.is_list(storage.type):
-                from .features import Array3DExtensionType
+                from .features import Array2DExtensionType, Array3DExtensionType
 
                 arrays = []
                 for i, is_null in enumerate(storage.is_null()):
@@ -256,7 +256,10 @@ class Image:
                         shape = get_shapes_from_listarray(storage_part)
                         dtype = get_dtypes_from_listarray(storage_part)
 
-                        extension_type = Array3DExtensionType(shape=shape, dtype=str(dtype))
+                        if len(shape) == 2:
+                            extension_type = Array2DExtensionType(shape=shape, dtype=str(dtype))
+                        else:
+                            extension_type = Array3DExtensionType(shape=shape, dtype=str(dtype))
                         array = pa.ExtensionArray.from_storage(extension_type, storage_part)
                         arrays.append(array.to_numpy().squeeze(0))
 
