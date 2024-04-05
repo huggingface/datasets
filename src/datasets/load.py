@@ -1245,7 +1245,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                     for config_name in exported_dataset_infos
                 }
             )
-        except _dataset_viewer.DatasetsServerError:
+        except _dataset_viewer.DatasetViewerError:
             exported_dataset_infos = None
         if exported_dataset_infos:
             exported_dataset_infos.update(dataset_infos)
@@ -1864,7 +1864,7 @@ def dataset_module_factory(
                         return HubDatasetModuleFactoryWithParquetExport(
                             path, download_config=download_config, revision=dataset_info.sha
                         ).get_module()
-                    except _dataset_viewer.DatasetsServerError:
+                    except _dataset_viewer.DatasetViewerError:
                         pass
                 # Otherwise we must use the dataset script if the user trusts it
                 return HubDatasetModuleFactoryWithScript(

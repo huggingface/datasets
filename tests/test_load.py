@@ -862,7 +862,7 @@ class ModuleFactoryTest(TestCase):
             download_config=self.download_config,
             revision="wrong_sha",
         )
-        with self.assertRaises(_dataset_viewer.DatasetsServerError):
+        with self.assertRaises(_dataset_viewer.DatasetViewerError):
             factory.get_module()
 
     @pytest.mark.integration
