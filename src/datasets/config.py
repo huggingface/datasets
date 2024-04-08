@@ -193,7 +193,7 @@ HF_DATASETS_TRUST_REMOTE_CODE: Optional[bool] = (
 )
 TIME_OUT_REMOTE_CODE = 15
 
-# Datasets-server
+# Dataset viewer API
 USE_PARQUET_EXPORT = True
 
 # Batch size constants. For more info, see:
