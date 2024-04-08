@@ -123,6 +123,26 @@ def test_download_manager_extract(paths_type, xz_file, text_file, extract_on_the
                 assert xopen(extracted_path).read() == text_file.read_text()
 
 
+def test_download_manager_delete_extracted_files(xz_file):
+    dataset_name = "dummy"
+    cache_dir = xz_file.parent
+    extracted_subdir = "extracted"
+    download_config = DownloadConfig(
+        cache_dir=cache_dir,
+        use_etag=False,
+    )
+    dl_manager = DownloadManager(dataset_name=dataset_name, download_config=download_config)
+    extracted_path = dl_manager.extract(xz_file)
+    assert extracted_path == dl_manager.extracted_paths[xz_file]
+    extracted_path = Path(extracted_path)
+    parts = extracted_path.parts
+    assert parts[-1] == hash_url_to_filename(str(xz_file), etag=None)
+    assert parts[-2] == extracted_subdir
+    assert extracted_path.exists()
+    dl_manager.delete_extracted_files()
+    assert not extracted_path.exists()
+
+
 def _test_jsonl(path, file):
     assert path.endswith(".jsonl")
     for num_items, line in enumerate(file, start=1):
