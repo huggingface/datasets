@@ -234,28 +234,6 @@ def require_spacy(test_case):
         return test_case
 
 
-def require_spacy_model(model):
-    """
-    Decorator marking a test that requires a spacy model.
-
-    These tests are skipped when they aren't installed.
-    """
-
-    def _require_spacy_model(test_case):
-        try:
-            import spacy  # noqa F401
-
-            spacy.load(model)
-        except ImportError:
-            return unittest.skip("test requires spacy")(test_case)
-        except OSError:
-            return unittest.skip("test requires spacy model '{}'".format(model))(test_case)
-        else:
-            return test_case
-
-    return _require_spacy_model
-
-
 def require_pyspark(test_case):
     """
     Decorator marking a test that requires pyspark.

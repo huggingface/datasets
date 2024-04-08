@@ -71,7 +71,7 @@ from .packaged_modules import (
     _hash_python_lines,
 )
 from .splits import Split
-from .utils import _datasets_server
+from .utils import _dataset_viewer
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import (
     OfflineModeIsEnabled,
@@ -1236,7 +1236,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
         dataset_infos = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
         try:
-            exported_dataset_infos = _datasets_server.get_exported_dataset_infos(
+            exported_dataset_infos = _dataset_viewer.get_exported_dataset_infos(
                 dataset=self.name, revision=self.revision, token=self.download_config.token
             )
             exported_dataset_infos = DatasetInfosDict(
@@ -1245,7 +1245,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                     for config_name in exported_dataset_infos
                 }
             )
-        except _datasets_server.DatasetsServerError:
+        except _dataset_viewer.DatasetViewerError:
             exported_dataset_infos = None
         if exported_dataset_infos:
             exported_dataset_infos.update(dataset_infos)
@@ -1372,10 +1372,10 @@ class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
-        exported_parquet_files = _datasets_server.get_exported_parquet_files(
+        exported_parquet_files = _dataset_viewer.get_exported_parquet_files(
             dataset=self.name, revision=self.revision, token=self.download_config.token
         )
-        exported_dataset_infos = _datasets_server.get_exported_dataset_infos(
+        exported_dataset_infos = _dataset_viewer.get_exported_dataset_infos(
             dataset=self.name, revision=self.revision, token=self.download_config.token
         )
         dataset_infos = DatasetInfosDict(
@@ -1864,7 +1864,7 @@ def dataset_module_factory(
                         return HubDatasetModuleFactoryWithParquetExport(
                             path, download_config=download_config, revision=dataset_info.sha
                         ).get_module()
-                    except _datasets_server.DatasetsServerError:
+                    except _dataset_viewer.DatasetViewerError:
                         pass
                 # Otherwise we must use the dataset script if the user trusts it
                 return HubDatasetModuleFactoryWithScript(

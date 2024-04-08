@@ -177,8 +177,8 @@ TESTS_REQUIRE = [
     "rarfile>=4.0",
     "sqlalchemy",
     "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1; test only on python 3.7 for now
-    "tensorflow>=2.3,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
-    "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
+    "protobuf<4.0.0",  # 4.0.0 breaks compatibility with tensorflow<2.12
+    "tensorflow>=2.6.0",
     "tiktoken",
     "torch>=2.0.0",
     "soundfile>=0.12.1",
@@ -227,8 +227,7 @@ DOCS_REQUIRE = [
     # Following dependencies are required for the Python reference to be built properly
     "transformers",
     "torch",
-    "tensorflow>=2.2.0,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
-    "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
+    "tensorflow>=2.6.0",
 ]
 
 EXTRAS_REQUIRE = {
@@ -236,10 +235,9 @@ EXTRAS_REQUIRE = {
     "vision": VISION_REQUIRE,
     "apache-beam": ["apache-beam>=2.26.0"],
     "tensorflow": [
-        "tensorflow>=2.2.0,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
-        "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
+        "tensorflow>=2.6.0",
     ],
-    "tensorflow_gpu": ["tensorflow-gpu>=2.2.0,!=2.6.0,!=2.6.1"],
+    "tensorflow_gpu": ["tensorflow>=2.6.0"],
     "torch": ["torch"],
     "jax": ["jax>=0.3.14", "jaxlib>=0.3.14"],
     "s3": ["s3fs"],
