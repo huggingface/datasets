@@ -91,46 +91,39 @@ def infer_pr(dataset_id, token=None):
 def delete_files(dataset_id, revision=None, token=None):
     dataset_name = dataset_id.split("/")[-1]
     hf_api = HfApi(token=token)
-    try:
-        hf_api.delete_file(
-            f"{dataset_name}.py",
-            dataset_id,
-            repo_type="dataset",
-            revision=revision,
-            commit_message="Delete loading script",
-        )
-    except EntryNotFoundError:
-        pass
-    try:
-        hf_api.delete_file(
-            "dataset_infos.json",
-            dataset_id,
-            repo_type="dataset",
-            revision=revision,
-            commit_message="Delete legacy dataset_infos.json",
-        )
-    except EntryNotFoundError:
-        pass
     repo_files = hf_api.list_repo_files(
         dataset_id,
         repo_type="dataset",
     )
-    if ".gitattributes" in repo_files:
-        repo_files.remove(".gitattributes")
-    if "README.md" in repo_files:
-        repo_files.remove("README.md")
-    if f"{dataset_name}.py" in repo_files:
-        repo_files.remove(f"{dataset_name}.py")
-    if "dataset_infos.json" in repo_files:
-        repo_files.remove("dataset_infos.json")
     if repo_files:
+        legacy_json_file = []
         python_files = []
         data_files = []
         for filename in repo_files:
-            if filename.endswith(".py"):
+            if filename in {".gitattributes", "README.md"}:
+                continue
+            elif filename == f"{dataset_name}.py":
+                hf_api.delete_file(
+                    filename,
+                    dataset_id,
+                    repo_type="dataset",
+                    revision=revision,
+                    commit_message="Delete loading script",
+                )
+            elif filename == "dataset_infos.json":
+                legacy_json_file.append(filename)
+            elif filename.endswith(".py"):
                 python_files.append(filename)
             else:
                 data_files.append(filename)
+        if legacy_json_file:
+            hf_api.delete_file(
+                "dataset_infos.json",
+                dataset_id,
+                repo_type="dataset",
+                revision=revision,
+                commit_message="Delete legacy dataset_infos.json",
+            )
         if python_files:
             for filename in python_files:
                 hf_api.delete_file(
