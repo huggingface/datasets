@@ -496,7 +496,7 @@ def map_nested(
     elif num_proc != -1 and num_proc <= 1 or len(iterable) < parallel_min_length:
         if batched:
             if batch_size is None or batch_size <= 0:
-                batch_size = len(iterable) // num_proc + int(len(iterable) % num_proc > 0)
+                batch_size = max(len(iterable) // num_proc + int(len(iterable) % num_proc > 0), 1)
             iterable = list(iter_batched(iterable, batch_size))
         mapped = [
             _single_map_nested((function, obj, batched, batch_size, types, None, True, None))
