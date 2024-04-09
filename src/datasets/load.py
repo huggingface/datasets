@@ -71,7 +71,7 @@ from .packaged_modules import (
     _hash_python_lines,
 )
 from .splits import Split
-from .utils import _datasets_server
+from .utils import _dataset_viewer
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import (
     OfflineModeIsEnabled,
@@ -84,7 +84,7 @@ from .utils.file_utils import (
     relative_to_absolute_path,
     url_or_path_join,
 )
-from .utils.hub import hf_hub_url
+from .utils.hub import hf_dataset_url
 from .utils.info_utils import VerificationMode, is_small_dataset
 from .utils.logging import get_logger
 from .utils.metadata import MetadataConfigs
@@ -1211,7 +1211,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             download_config.download_desc = "Downloading readme"
         try:
             dataset_readme_path = cached_path(
-                hf_hub_url(self.name, config.REPOCARD_FILENAME, revision=revision),
+                hf_dataset_url(self.name, config.REPOCARD_FILENAME, revision=revision),
                 download_config=download_config,
             )
             dataset_card_data = DatasetCard.load(Path(dataset_readme_path)).data
@@ -1222,7 +1222,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             download_config.download_desc = "Downloading standalone yaml"
         try:
             standalone_yaml_path = cached_path(
-                hf_hub_url(self.name, config.REPOYAML_FILENAME, revision=revision),
+                hf_dataset_url(self.name, config.REPOYAML_FILENAME, revision=revision),
                 download_config=download_config,
             )
             with open(standalone_yaml_path, "r", encoding="utf-8") as f:
@@ -1236,7 +1236,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
         dataset_infos = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
         try:
-            exported_dataset_infos = _datasets_server.get_exported_dataset_infos(
+            exported_dataset_infos = _dataset_viewer.get_exported_dataset_infos(
                 dataset=self.name, revision=self.revision, token=self.download_config.token
             )
             exported_dataset_infos = DatasetInfosDict(
@@ -1245,7 +1245,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                     for config_name in exported_dataset_infos
                 }
             )
-        except _datasets_server.DatasetsServerError:
+        except _dataset_viewer.DatasetViewerError:
             exported_dataset_infos = None
         if exported_dataset_infos:
             exported_dataset_infos.update(dataset_infos)
@@ -1308,7 +1308,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             ]
             default_config_name = None
         builder_kwargs = {
-            "base_path": hf_hub_url(self.name, "", revision=revision).rstrip("/"),
+            "base_path": hf_dataset_url(self.name, "", revision=revision).rstrip("/"),
             "repo_id": self.name,
             "dataset_name": camelcase_to_snakecase(Path(self.name).name),
         }
@@ -1320,7 +1320,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         try:
             # this file is deprecated and was created automatically in old versions of push_to_hub
             dataset_infos_path = cached_path(
-                hf_hub_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=revision),
+                hf_dataset_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=revision),
                 download_config=download_config,
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
@@ -1372,10 +1372,10 @@ class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
-        exported_parquet_files = _datasets_server.get_exported_parquet_files(
+        exported_parquet_files = _dataset_viewer.get_exported_parquet_files(
             dataset=self.name, revision=self.revision, token=self.download_config.token
         )
-        exported_dataset_infos = _datasets_server.get_exported_dataset_infos(
+        exported_dataset_infos = _dataset_viewer.get_exported_dataset_infos(
             dataset=self.name, revision=self.revision, token=self.download_config.token
         )
         dataset_infos = DatasetInfosDict(
@@ -1444,14 +1444,14 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def download_loading_script(self) -> str:
-        file_path = hf_hub_url(self.name, self.name.split("/")[-1] + ".py", revision=self.revision)
+        file_path = hf_dataset_url(self.name, self.name.split("/")[-1] + ".py", revision=self.revision)
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading builder script"
         return cached_path(file_path, download_config=download_config)
 
     def download_dataset_infos_file(self) -> str:
-        dataset_infos = hf_hub_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=self.revision)
+        dataset_infos = hf_dataset_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=self.revision)
         # Download the dataset infos file if available
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
@@ -1465,7 +1465,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
             return None
 
     def download_dataset_readme_file(self) -> str:
-        readme_url = hf_hub_url(self.name, config.REPOCARD_FILENAME, revision=self.revision)
+        readme_url = hf_dataset_url(self.name, config.REPOCARD_FILENAME, revision=self.revision)
         # Download the dataset infos file if available
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
@@ -1494,7 +1494,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         imports = get_imports(local_path)
         local_imports = _download_additional_modules(
             name=self.name,
-            base_path=hf_hub_url(self.name, "", revision=self.revision),
+            base_path=hf_dataset_url(self.name, "", revision=self.revision),
             imports=imports,
             download_config=self.download_config,
         )
@@ -1540,7 +1540,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         # make the new module to be noticed by the import system
         importlib.invalidate_caches()
         builder_kwargs = {
-            "base_path": hf_hub_url(self.name, "", revision=self.revision).rstrip("/"),
+            "base_path": hf_dataset_url(self.name, "", revision=self.revision).rstrip("/"),
             "repo_id": self.name,
         }
         return DatasetModule(module_path, hash, builder_kwargs, importable_file_path=importable_file_path)
@@ -1867,7 +1867,7 @@ def dataset_module_factory(
                         return HubDatasetModuleFactoryWithParquetExport(
                             path, download_config=download_config, revision=dataset_info.sha
                         ).get_module()
-                    except _datasets_server.DatasetsServerError:
+                    except _dataset_viewer.DatasetViewerError:
                         pass
                 # Otherwise we must use the dataset script if the user trusts it
                 return HubDatasetModuleFactoryWithScript(
