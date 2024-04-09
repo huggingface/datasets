@@ -494,6 +494,8 @@ def map_nested(
                 data_struct=obj,
                 num_proc=num_proc,
                 parallel_min_length=parallel_min_length,
+                batched=batched,
+                batch_size=batch_size,
                 types=types,
             )
             for obj in iterable
