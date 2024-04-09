@@ -389,9 +389,11 @@ def _single_map_nested(args):
     pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
     with hf_tqdm(pbar_iterable, disable=disable_tqdm, position=rank, unit="obj", desc=pbar_desc) as pbar:
         if isinstance(data_struct, dict):
-            return {k: _single_map_nested((function, v, types, None, True, None)) for k, v in pbar}
+            return {
+                k: _single_map_nested((function, v, batched, batch_size, types, None, True, None)) for k, v in pbar
+            }
         else:
-            mapped = [_single_map_nested((function, v, types, None, True, None)) for v in pbar]
+            mapped = [_single_map_nested((function, v, batched, batch_size, types, None, True, None)) for v in pbar]
             if isinstance(data_struct, list):
                 return mapped
             elif isinstance(data_struct, tuple):
@@ -513,7 +515,6 @@ def map_nested(
                 if batch_size is None or batch_size <= 0:
                     batch_size = len(iterable) // num_proc + int(len(iterable) % num_proc > 0)
                 iterable = list(iter_batched(iterable, batch_size))
-            print(iterable)
             mapped = parallel_map(
                 function, iterable, num_proc, batched, batch_size, types, disable_tqdm, desc, _single_map_nested
             )
@@ -711,12 +712,13 @@ T = TypeVar("T")
 
 
 def iter_batched(iterable: Iterable[T], n: int) -> Iterable[List[T]]:
+    if n < 1:
+        raise ValueError(f"Invalid batch size {n}")
     batch = []
     for item in iterable:
+        batch.append(item)
         if len(batch) == n:
             yield batch
             batch = []
-        else:
-            batch.append(item)
     if batch:
         yield batch
