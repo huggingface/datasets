@@ -476,7 +476,12 @@ def map_nested(
 
     # Singleton
     if not isinstance(data_struct, dict) and not isinstance(data_struct, types):
-        return function(data_struct)
+        if batched:
+            data_struct = [data_struct]
+        mapped = function(data_struct)
+        if batched:
+            mapped = mapped[0]
+        return mapped
 
     iterable = list(data_struct.values()) if isinstance(data_struct, dict) else data_struct
 
