@@ -363,11 +363,18 @@ class classproperty(property):  # pylint: disable=invalid-name
 
 def _single_map_nested(args):
     """Apply a function recursively to each element of a nested data struct."""
-    function, data_struct, types, rank, disable_tqdm, desc = args
+    function, data_struct, batched, batch_size, types, rank, disable_tqdm, desc = args
 
     # Singleton first to spare some computation
     if not isinstance(data_struct, dict) and not isinstance(data_struct, types):
         return function(data_struct)
+    if (
+        batched
+        and not isinstance(data_struct, dict)
+        and isinstance(data_struct, types)
+        and all(not isinstance(v, types) for v in data_struct)
+    ):
+        return [mapped_item for batch in iter_batched(data_struct, batch_size) for mapped_item in function(batch)]
 
     # Reduce logging to keep things readable in multiprocessing with tqdm
     if rank is not None and logging.get_verbosity() < logging.WARNING:
@@ -402,6 +409,8 @@ def map_nested(
     map_numpy: bool = False,
     num_proc: Optional[int] = None,
     parallel_min_length: int = 2,
+    batched: bool = False,
+    batch_size: Optional[int] = 1000,
     types: Optional[tuple] = None,
     disable_tqdm: bool = True,
     desc: Optional[str] = None,
@@ -432,9 +441,18 @@ def map_nested(
         map_numpy (`bool, default `False`): Whether also apply `function` recursively to `numpy.array` elements (besides
             `dict` values).
         num_proc (`int`, *optional*): Number of processes.
+            The level in the data struct used for multiprocessing is the first level that has smaller sub-structs,
+            starting from the root.
         parallel_min_length (`int`, default `2`): Minimum length of `data_struct` required for parallel
             processing.
             <Added version="2.5.0"/>
+        batched (`bool`, defaults to `False`):
+            Provide batch of items to `function`.
+            <Added version="2.18.1"/>
+        batch_size (`int`, *optional*, defaults to `1000`):
+            Number of items per batch provided to `function` if `batched=True`.
+            If `batch_size <= 0` or `batch_size == None`, provide the full iterable as a single batch to `function`.
+            <Added version="2.18.1"/>
         types (`tuple`, *optional*): Additional types (besides `dict` values) to apply `function` recursively to their
             elements.
         disable_tqdm (`bool`, default `True`): Whether to disable the tqdm progressbar.
@@ -474,10 +492,16 @@ def map_nested(
             for obj in iterable
         ]
     elif num_proc != -1 and num_proc <= 1 or len(iterable) < parallel_min_length:
+        if batched:
+            if batch_size is None or batch_size <= 0:
+                batch_size = len(iterable) // num_proc + int(len(iterable) % num_proc > 0)
+            iterable = list(iter_batched(iterable, batch_size))
         mapped = [
-            _single_map_nested((function, obj, types, None, True, None))
+            _single_map_nested((function, obj, batched, batch_size, types, None, True, None))
             for obj in hf_tqdm(iterable, disable=disable_tqdm, desc=desc)
         ]
+        if batched:
+            mapped = [mapped_item for mapped_batch in mapped for mapped_item in mapped_batch]
     else:
         with warnings.catch_warnings():
             warnings.filterwarnings(
@@ -485,7 +509,16 @@ def map_nested(
                 message=".* is experimental and might be subject to breaking changes in the future\\.$",
                 category=UserWarning,
             )
-            mapped = parallel_map(function, iterable, num_proc, types, disable_tqdm, desc, _single_map_nested)
+            if batched:
+                if batch_size is None or batch_size <= 0:
+                    batch_size = len(iterable) // num_proc + int(len(iterable) % num_proc > 0)
+                iterable = list(iter_batched(iterable, batch_size))
+            print(iterable)
+            mapped = parallel_map(
+                function, iterable, num_proc, batched, batch_size, types, disable_tqdm, desc, _single_map_nested
+            )
+            if batched:
+                mapped = [mapped_item for mapped_batch in mapped for mapped_item in mapped_batch]
 
     if isinstance(data_struct, dict):
         return dict(zip(data_struct.keys(), mapped))
@@ -672,3 +705,18 @@ def iflatmap_unordered(
             if not pool_changed:
                 # we get the result in case there's an error to raise
                 [async_result.get(timeout=0.05) for async_result in async_results]
+
+
+T = TypeVar("T")
+
+
+def iter_batched(iterable: Iterable[T], n: int) -> Iterable[List[T]]:
+    batch = []
+    for item in iterable:
+        if len(batch) == n:
+            yield batch
+            batch = []
+        else:
+            batch.append(item)
+    if batch:
+        yield batch

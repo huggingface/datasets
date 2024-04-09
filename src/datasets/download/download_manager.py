@@ -17,6 +17,7 @@
 
 import enum
 import io
+import multiprocessing
 import os
 import posixpath
 import tarfile
@@ -26,6 +27,8 @@ from datetime import datetime
 from functools import partial
 from itertools import chain
 from typing import Callable, Dict, Generator, List, Optional, Tuple, Union
+
+from tqdm.contrib.concurrent import thread_map
 
 from .. import config
 from ..utils import tqdm as hf_tqdm
@@ -39,7 +42,7 @@ from ..utils.file_utils import (
     url_or_path_join,
 )
 from ..utils.info_utils import get_size_checksum_dict
-from ..utils.logging import get_logger
+from ..utils.logging import get_logger, tqdm
 from ..utils.py_utils import NestedDataStructure, map_nested, size_str
 from ..utils.track import TrackedIterable, tracked_str
 from .download_config import DownloadConfig
@@ -427,7 +430,7 @@ class DownloadManager:
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading data"
 
-        download_func = partial(self._download, download_config=download_config)
+        download_func = partial(self._download_batched, download_config=download_config)
 
         start_time = datetime.now()
         with stack_multiprocessing_download_progress_bars():
@@ -437,6 +440,8 @@ class DownloadManager:
                 map_tuple=True,
                 num_proc=download_config.num_proc,
                 desc="Downloading data files",
+                batched=True,
+                batch_size=-1,
             )
         duration = datetime.now() - start_time
         logger.info(f"Downloading took {duration.total_seconds() // 60} min")
@@ -450,6 +455,34 @@ class DownloadManager:
         logger.info(f"Checksum Computation took {duration.total_seconds() // 60} min")
 
         return downloaded_path_or_paths.data
+
+    def _download_batched(
+        self,
+        url_or_filenames: List[str],
+        download_config: DownloadConfig,
+        max_workers=max(32, multiprocessing.cpu_count() + 4),
+    ) -> List[str]:
+        if len(url_or_filenames) >= max_workers:
+            download_config = download_config.copy()
+            download_config.disable_tqdm = True
+            download_func = partial(self._download, download_config=download_config)
+            return thread_map(
+                download_func,
+                url_or_filenames,
+                desc=download_config.download_desc or "Downloading",
+                unit="files",
+                position=multiprocessing.current_process()._identity[-1]  # contains the ranks of subprocesses
+                if os.environ.get("HF_DATASETS_STACK_MULTIPROCESSING_DOWNLOAD_PROGRESS_BARS") == "1"
+                and multiprocessing.current_process()._identity
+                else None,
+                max_workers=max_workers,
+                tqdm_class=tqdm,
+            )
+        else:
+            return [
+                self._download(url_or_filename, download_config=download_config)
+                for url_or_filename in url_or_filenames
+            ]
 
     def _download(self, url_or_filename: str, download_config: DownloadConfig) -> str:
         url_or_filename = str(url_or_filename)
