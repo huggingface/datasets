@@ -28,6 +28,8 @@ from functools import partial
 from itertools import chain
 from typing import Callable, Dict, Generator, List, Optional, Tuple, Union
 
+import fsspec
+from fsspec.core import url_to_fs
 from tqdm.contrib.concurrent import thread_map
 
 from .. import config
@@ -460,12 +462,21 @@ class DownloadManager:
         self,
         url_or_filenames: List[str],
         download_config: DownloadConfig,
-        max_workers=max(32, multiprocessing.cpu_count() + 4),
     ) -> List[str]:
-        if len(url_or_filenames) >= max_workers:
+        if len(url_or_filenames) >= 16:
             download_config = download_config.copy()
             download_config.disable_tqdm = True
             download_func = partial(self._download, download_config=download_config)
+
+            fs: fsspec.AbstractFileSystem
+            fs, path = url_to_fs(url_or_filenames[0], **download_config.storage_options)
+            size = 0
+            try:
+                size = fs.info(path).get("size", 0)
+            except Exception:
+                pass
+            max_workers = 16 if size < (20 << 20) else 1  # enable multithreading if files are small
+
             return thread_map(
                 download_func,
                 url_or_filenames,
