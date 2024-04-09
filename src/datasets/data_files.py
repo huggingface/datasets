@@ -1,4 +1,3 @@
-import multiprocessing
 import os
 import re
 from functools import partial
@@ -546,7 +545,7 @@ def _get_single_origin_metadata(
 def _get_origin_metadata(
     data_files: List[str],
     download_config: Optional[DownloadConfig] = None,
-    max_workers: int = max(32, multiprocessing.cpu_count() + 4),
+    max_workers: int = 16,
 ) -> Tuple[str]:
     return thread_map(
         partial(_get_single_origin_metadata, download_config=download_config),
