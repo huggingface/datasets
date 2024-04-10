@@ -3,7 +3,6 @@ from argparse import ArgumentParser
 from typing import Optional
 
 from huggingface_hub import HfApi, get_repo_discussions
-from huggingface_hub.utils import EntryNotFoundError
 
 from datasets import get_dataset_config_names, get_dataset_default_config_name, load_dataset
 from datasets.commands import BaseDatasetsCLICommand
