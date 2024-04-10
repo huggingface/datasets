@@ -1695,10 +1695,10 @@ def test_load_dataset_distributed_with_script(tmp_path, download_mode):
     args = (SAMPLE_DATASET_IDENTIFIER, str(tmp_path), download_mode)
     with Pool(processes=num_workers) as pool:  # start num_workers processes
         datasets = pool.map(distributed_load_dataset_with_script, [args] * num_workers)
-        assert len(datasets) == num_workers
-        assert all(len(dataset) == len(datasets[0]) > 0 for dataset in datasets)
-        assert len(datasets[0].cache_files) > 0
-        assert all(dataset.cache_files == datasets[0].cache_files for dataset in datasets)
+    assert len(datasets) == num_workers
+    assert all(len(dataset) == len(datasets[0]) > 0 for dataset in datasets)
+    assert len(datasets[0].cache_files) > 0
+    assert all(dataset.cache_files == datasets[0].cache_files for dataset in datasets)
 
 
 def test_load_dataset_with_storage_options(mockfs):
