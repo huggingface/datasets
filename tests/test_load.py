@@ -46,7 +46,7 @@ from datasets.load import (
 from datasets.packaged_modules.audiofolder.audiofolder import AudioFolder, AudioFolderConfig
 from datasets.packaged_modules.imagefolder.imagefolder import ImageFolder, ImageFolderConfig
 from datasets.packaged_modules.parquet.parquet import ParquetConfig
-from datasets.utils import _datasets_server
+from datasets.utils import _dataset_viewer
 from datasets.utils.logging import INFO, get_logger
 
 from .utils import (
@@ -862,7 +862,7 @@ class ModuleFactoryTest(TestCase):
             download_config=self.download_config,
             revision="wrong_sha",
         )
-        with self.assertRaises(_datasets_server.DatasetsServerError):
+        with self.assertRaises(_dataset_viewer.DatasetViewerError):
             factory.get_module()
 
     @pytest.mark.integration

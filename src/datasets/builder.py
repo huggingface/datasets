@@ -370,6 +370,7 @@ class DatasetBuilder:
             config_kwargs["data_files"] = data_files
         if data_dir is not None:
             config_kwargs["data_dir"] = data_dir
+        self.config_kwargs = config_kwargs
         self.config, self.config_id = self._create_builder_config(
             config_name=config_name,
             custom_features=features,
@@ -488,7 +489,11 @@ class DatasetBuilder:
 
     def _check_legacy_cache2(self, dataset_module: "DatasetModule") -> Optional[str]:
         """Check for the old cache directory template {cache_dir}/{namespace}___{dataset_name}/{config_name}-xxx from 2.14 and 2.15"""
-        if self.__module__.startswith("datasets.") and not is_remote_url(self._cache_dir_root):
+        if (
+            self.__module__.startswith("datasets.")
+            and not is_remote_url(self._cache_dir_root)
+            and not (set(self.config_kwargs) - {"data_files", "data_dir"})
+        ):
             from .packaged_modules import _PACKAGED_DATASETS_MODULES
             from .utils._dill import Pickler
 
