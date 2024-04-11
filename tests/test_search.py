@@ -34,6 +34,13 @@ class IndexableDatasetTest(TestCase):
         self.assertEqual(examples["filename"][0], "my_name-train_29")
         dset.drop_index("vecs")
 
+    def test_add_faiss_index_errors(self):
+        import faiss
+
+        dset: Dataset = self._create_dummy_dataset()
+        with pytest.raises(ValueError, match="Wrong feature type for column 'filename'"):
+            _ = dset.add_faiss_index("filename", batch_size=100, metric_type=faiss.METRIC_INNER_PRODUCT)
+
     def test_add_faiss_index_from_external_arrays(self):
         import faiss
 
