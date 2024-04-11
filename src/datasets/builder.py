@@ -1446,7 +1446,7 @@ class DatasetBuilder:
         return None
 
     @abc.abstractmethod
-    def _split_generators(self, dl_manager: DownloadManager):
+    def _split_generators(self, dl_manager: Union[DownloadManager, StreamingDownloadManager]):
         """Specify feature dictionary generators and dataset splits.
 
         This function returns a list of `SplitGenerator`s defining how to generate
@@ -1484,7 +1484,7 @@ class DatasetBuilder:
         distribute the relevant parts to each split with the `gen_kwargs` argument
 
         Args:
-            dl_manager (`DownloadManager`):
+            dl_manager (`Union[DownloadManager, StreamingDownloadManager]`):
                 Download manager to download the data
 
         Returns:
