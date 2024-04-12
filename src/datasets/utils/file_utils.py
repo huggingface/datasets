@@ -1074,7 +1074,13 @@ def _add_retries_to_file_obj_read_method(file_obj):
             raise ConnectionError("Server Disconnected") from disconnect_err
         return out
 
-    file_obj.read = read_with_retries
+    try:
+        file_obj.read = read_with_retries
+    except AttributeError:  # read-only attribute
+        file_obj = io.RawIOBase()
+        file_obj.read = read_with_retries
+        file_obj.__getattr__ = lambda _, attr: getattr(file_obj, attr)
+    return file_obj
 
 
 def _prepare_path_and_storage_options(
