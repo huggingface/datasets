@@ -545,8 +545,9 @@ def _get_single_origin_metadata(
 def _get_origin_metadata(
     data_files: List[str],
     download_config: Optional[DownloadConfig] = None,
-    max_workers: int = config.HF_DATASETS_MULTITHREADING_MAX_WORKERS,
+    max_workers: Optional[int] = None,
 ) -> Tuple[str]:
+    max_workers = max_workers if max_workers is not None else config.HF_DATASETS_MULTITHREADING_MAX_WORKERS
     return thread_map(
         partial(_get_single_origin_metadata, download_config=download_config),
         data_files,
