@@ -13,6 +13,7 @@ def _command_factory(args):
         args.dataset_id,
         args.token,
         args.revision,
+        args.trust_remote_code,
     )
 
 
@@ -23,6 +24,9 @@ class ConvertToParquetCommand(BaseDatasetsCLICommand):
         parser.add_argument("dataset_id", help="source dataset ID")
         parser.add_argument("--token", help="access token to the Hugging Face Hub")
         parser.add_argument("--revision", help="source revision")
+        parser.add_argument(
+            "--trust_remote_code", action="store_true", help="whether to trust the code execution of the load script"
+        )
         parser.set_defaults(func=_command_factory)
 
     def __init__(
@@ -30,19 +34,26 @@ class ConvertToParquetCommand(BaseDatasetsCLICommand):
         dataset_id: str,
         token: Optional[str],
         revision: Optional[str],
+        trust_remote_code: bool,
     ):
         self._dataset_id = dataset_id
         self._token = token
         self._revision = revision
+        self._trust_remote_code = trust_remote_code
 
     def run(self) -> None:
         dataset_id = self._dataset_id
         token = self._token
         revision = self._revision
+        trust_remote_code = self._trust_remote_code
         print(f"{dataset_id}")
-        configs = get_dataset_config_names(dataset_id, token=token, revision=revision)
+        configs = get_dataset_config_names(
+            dataset_id, token=token, revision=revision, trust_remote_code=trust_remote_code
+        )
         print(f"{configs = }")
-        default_config = get_dataset_default_config_name(dataset_id, token=token, revision=revision)
+        default_config = get_dataset_default_config_name(
+            dataset_id, token=token, revision=revision, trust_remote_code=trust_remote_code
+        )
         print(f"{default_config = }")
         if default_config:
             config = default_config
@@ -50,7 +61,7 @@ class ConvertToParquetCommand(BaseDatasetsCLICommand):
         else:
             config = configs.pop(0)
         print(f"{config = }")
-        dataset = load_dataset(dataset_id, config, revision=revision)
+        dataset = load_dataset(dataset_id, config, revision=revision, trust_remote_code=trust_remote_code)
         commit_info = dataset.push_to_hub(
             dataset_id,
             config_name=config,
@@ -67,7 +78,7 @@ class ConvertToParquetCommand(BaseDatasetsCLICommand):
             pr_revision, pr_url = infer_pr(dataset_id, token=token)
         for config in configs:
             print(f"{config = }")
-            dataset = load_dataset(dataset_id, config, revision=revision)
+            dataset = load_dataset(dataset_id, config, revision=revision, trust_remote_code=trust_remote_code)
             dataset.push_to_hub(
                 dataset_id,
                 config_name=config,
