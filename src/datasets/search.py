@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Union
 import fsspec
 import numpy as np
 
+from .features import Sequence
 from .utils import logging
 from .utils import tqdm as hf_tqdm
 
@@ -264,6 +265,11 @@ class FaissIndex(BaseIndex):
         If the arrays are inside a certain column, you can specify it using the `column` argument.
         """
         import faiss  # noqa: F811
+
+        if column and not isinstance(vectors.features[column], Sequence):
+            raise ValueError(
+                f"Wrong feature type for column '{column}'. Expected 1d array, got {vectors.features[column]}"
+            )
 
         # Create index
         if self.faiss_index is None:
