@@ -842,10 +842,10 @@ class ModuleFactoryTest(TestCase):
         )
         assert module_factory_result.builder_configs_parameters.builder_configs[0].data_files == {
             "train": [
-                "hf://datasets/hf-internal-testing/dataset_with_script@8f965694d611974ef8661618ada1b5aeb1072915/default/train/0000.parquet"
+                "hf://datasets/hf-internal-testing/dataset_with_script@0c97cd1168f31e683059ddcf0703e3f45d9007c4/default/train/0000.parquet"
             ],
             "validation": [
-                "hf://datasets/hf-internal-testing/dataset_with_script@8f965694d611974ef8661618ada1b5aeb1072915/default/validation/0000.parquet"
+                "hf://datasets/hf-internal-testing/dataset_with_script@0c97cd1168f31e683059ddcf0703e3f45d9007c4/default/validation/0000.parquet"
             ],
         }
 
