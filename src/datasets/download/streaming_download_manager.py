@@ -1002,10 +1002,10 @@ class StreamingDownloadManager:
         >>> downloaded_files = dl_manager.download('https://storage.googleapis.com/seldon-datasets/sentence_polarity_v1/rt-polaritydata.tar.gz')
         ```
         """
-        url_or_urls = map_nested(self._download, url_or_urls, map_tuple=True)
+        url_or_urls = map_nested(self._download_single, url_or_urls, map_tuple=True)
         return url_or_urls
 
-    def _download(self, urlpath: str) -> str:
+    def _download_single(self, urlpath: str) -> str:
         urlpath = str(urlpath)
         if is_relative_path(urlpath):
             # append the relative path to the base_path

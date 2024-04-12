@@ -466,7 +466,7 @@ class DownloadManager:
         if len(url_or_filenames) >= 16:
             download_config = download_config.copy()
             download_config.disable_tqdm = True
-            download_func = partial(self._download, download_config=download_config)
+            download_func = partial(self._download_single, download_config=download_config)
 
             fs: fsspec.AbstractFileSystem
             fs, path = url_to_fs(url_or_filenames[0], **download_config.storage_options)
@@ -475,7 +475,9 @@ class DownloadManager:
                 size = fs.info(path).get("size", 0)
             except Exception:
                 pass
-            max_workers = 16 if size < (20 << 20) else 1  # enable multithreading if files are small
+            max_workers = (
+                config.HF_DATASETS_MULTITHREADING_MAX_WORKERS if size < (20 << 20) else 1
+            )  # enable multithreading if files are small
 
             return thread_map(
                 download_func,
@@ -491,11 +493,11 @@ class DownloadManager:
             )
         else:
             return [
-                self._download(url_or_filename, download_config=download_config)
+                self._download_single(url_or_filename, download_config=download_config)
                 for url_or_filename in url_or_filenames
             ]
 
-    def _download(self, url_or_filename: str, download_config: DownloadConfig) -> str:
+    def _download_single(self, url_or_filename: str, download_config: DownloadConfig) -> str:
         url_or_filename = str(url_or_filename)
         if is_relative_path(url_or_filename):
             # append the relative path to the base_path
@@ -583,7 +585,7 @@ class DownloadManager:
             )
         download_config = self.download_config.copy()
         download_config.extract_compressed_file = True
-        extract_func = partial(self._download, download_config=download_config)
+        extract_func = partial(self._download_single, download_config=download_config)
         extracted_paths = map_nested(
             extract_func,
             path_or_paths,
