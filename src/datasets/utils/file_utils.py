@@ -1077,9 +1077,10 @@ def _add_retries_to_file_obj_read_method(file_obj):
     try:
         file_obj.read = read_with_retries
     except AttributeError:  # read-only attribute
+        orig_file_obj = file_obj
         file_obj = io.RawIOBase()
         file_obj.read = read_with_retries
-        file_obj.__getattr__ = lambda _, attr: getattr(file_obj, attr)
+        file_obj.__getattr__ = lambda _, attr: getattr(orig_file_obj, attr)
     return file_obj
 
 
@@ -1200,7 +1201,7 @@ def xopen(file: str, mode="r", *args, download_config: Optional[DownloadConfig] 
             ) from None
         else:
             raise
-    _add_retries_to_file_obj_read_method(file_obj)
+    file_obj = _add_retries_to_file_obj_read_method(file_obj)
     return file_obj
 
 
