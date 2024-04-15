@@ -1940,15 +1940,17 @@ def array_cast(
             array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
             return pa.ListArray.from_arrays(array_offsets, _c(array.values, pa_type.value_type), mask=array.is_null())
     else:
-        if pa.types.is_string(pa_type) and (
-            (not allow_primitive_to_str and pa.types.is_primitive(array.type))
-            or (not allow_decimal_to_str and pa.types.is_decimal(array.type))
-        ):
-            raise TypeError(
-                f"Couldn't cast array of type {array.type} to {pa_type} "
-                f"since allow_primitive_to_str is set to {allow_primitive_to_str} "
-                f"and allow_decimal_to_str is set to {allow_decimal_to_str}."
-            )
+        if pa.types.is_string(pa_type):
+            if not allow_primitive_to_str and pa.types.is_primitive(array.type):
+                raise TypeError(
+                    f"Couldn't cast array of type {array.type} to {pa_type} "
+                    f"since allow_primitive_to_str is set to {allow_primitive_to_str} "
+                )
+            if not allow_decimal_to_str and pa.types.is_decimal(array.type):
+                raise TypeError(
+                    f"Couldn't cast array of type {array.type} to {pa_type} "
+                    f"and allow_decimal_to_str is set to {allow_decimal_to_str}"
+                )
         if pa.types.is_null(pa_type) and not pa.types.is_null(array.type):
             raise TypeError(f"Couldn't cast array of type {array.type} to {pa_type}")
         return array.cast(pa_type)
