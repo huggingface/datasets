@@ -205,7 +205,9 @@ class TypedSequence:
                 # We use cast_array_to_feature to support casting to custom types like Audio and Image
                 # Also, when trying type "string", we don't want to convert integers or floats to "string".
                 # We only do it if trying_type is False - since this is what the user asks for.
-                out = cast_array_to_feature(out, type, allow_number_to_str=not self.trying_type)
+                out = cast_array_to_feature(
+                    out, type, allow_primitive_to_str=not self.trying_type, allow_decimal_to_str=not self.trying_type
+                )
             return out
         except (
             TypeError,
@@ -241,7 +243,7 @@ class TypedSequence:
                             cast_to_python_objects(data, only_1d_for_numpy=True, optimize_list_casting=False)
                         )
                         if type is not None:
-                            out = cast_array_to_feature(out, type, allow_number_to_str=True)
+                            out = cast_array_to_feature(out, type, allow_primitive_to_str=True)
                         return out
                     else:
                         raise
@@ -256,7 +258,7 @@ class TypedSequence:
             elif trying_cast_to_python_objects and "Could not convert" in str(e):
                 out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True, optimize_list_casting=False))
                 if type is not None:
-                    out = cast_array_to_feature(out, type, allow_number_to_str=True)
+                    out = cast_array_to_feature(out, type, allow_primitive_to_str=True)
                 return out
             else:
                 raise

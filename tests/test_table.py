@@ -1,5 +1,6 @@
 import copy
 import pickle
+from decimal import Decimal
 from typing import List, Union
 
 import numpy as np
@@ -1098,11 +1099,44 @@ def test_indexed_table_mixin():
     assert table.fast_slice(2, 13) == pa_table.slice(2, 13)
 
 
-def test_cast_array_to_features():
+def test_cast_integer_array_to_features():
     arr = pa.array([[0, 1]])
     assert cast_array_to_feature(arr, Sequence(Value("string"))).type == pa.list_(pa.string())
+    assert cast_array_to_feature(arr, Sequence(Value("string")), allow_decimal_to_str=False).type == pa.list_(
+        pa.string()
+    )
     with pytest.raises(TypeError):
-        cast_array_to_feature(arr, Sequence(Value("string")), allow_number_to_str=False)
+        cast_array_to_feature(arr, Sequence(Value("string")), allow_primitive_to_str=False)
+
+
+def test_cast_float_array_to_features():
+    arr = pa.array([[0.0, 1.0]])
+    assert cast_array_to_feature(arr, Sequence(Value("string"))).type == pa.list_(pa.string())
+    assert cast_array_to_feature(arr, Sequence(Value("string")), allow_decimal_to_str=False).type == pa.list_(
+        pa.string()
+    )
+    with pytest.raises(TypeError):
+        cast_array_to_feature(arr, Sequence(Value("string")), allow_primitive_to_str=False)
+
+
+def test_cast_boolean_array_to_features():
+    arr = pa.array([[False, True]])
+    assert cast_array_to_feature(arr, Sequence(Value("string"))).type == pa.list_(pa.string())
+    assert cast_array_to_feature(arr, Sequence(Value("string")), allow_decimal_to_str=False).type == pa.list_(
+        pa.string()
+    )
+    with pytest.raises(TypeError):
+        cast_array_to_feature(arr, Sequence(Value("string")), allow_primitive_to_str=False)
+
+
+def test_cast_decimal_array_to_features():
+    arr = pa.array([[Decimal(0), Decimal(1)]])
+    assert cast_array_to_feature(arr, Sequence(Value("string"))).type == pa.list_(pa.string())
+    assert cast_array_to_feature(arr, Sequence(Value("string")), allow_primitive_to_str=False).type == pa.list_(
+        pa.string()
+    )
+    with pytest.raises(TypeError):
+        cast_array_to_feature(arr, Sequence(Value("string")), allow_decimal_to_str=False)
 
 
 def test_cast_array_to_features_nested():
