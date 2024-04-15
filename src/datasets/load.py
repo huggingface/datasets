@@ -1608,7 +1608,10 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
             }
             return DatasetModule(module_path, hash, builder_kwargs, importable_file_path=importable_file_path)
         cache_dir = os.path.expanduser(str(self.cache_dir or config.HF_DATASETS_CACHE))
-        cached_datasets_directory_path_root = os.path.join(cache_dir, self.name.replace("/", "___"))
+        namespace_and_dataset_name = self.name.split("/")
+        namespace_and_dataset_name[-1] = camelcase_to_snakecase(namespace_and_dataset_name[-1])
+        cached_relative_path = "___".join(namespace_and_dataset_name)
+        cached_datasets_directory_path_root = os.path.join(cache_dir, cached_relative_path)
         cached_directory_paths = [
             cached_directory_path
             for cached_directory_path in glob.glob(os.path.join(cached_datasets_directory_path_root, "*", "*", "*"))
