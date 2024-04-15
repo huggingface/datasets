@@ -14,7 +14,7 @@ class ParallelBackendConfig:
 
 
 @experimental
-def parallel_map(function, iterable, num_proc, types, disable_tqdm, desc, single_map_nested_func):
+def parallel_map(function, iterable, num_proc, batched, batch_size, types, disable_tqdm, desc, single_map_nested_func):
     """
     **Experimental.** Apply a function to iterable elements in parallel, where the implementation uses either
     multiprocessing.Pool or joblib for parallelization.
@@ -32,13 +32,17 @@ def parallel_map(function, iterable, num_proc, types, disable_tqdm, desc, single
     """
     if ParallelBackendConfig.backend_name is None:
         return _map_with_multiprocessing_pool(
-            function, iterable, num_proc, types, disable_tqdm, desc, single_map_nested_func
+            function, iterable, num_proc, batched, batch_size, types, disable_tqdm, desc, single_map_nested_func
         )
 
-    return _map_with_joblib(function, iterable, num_proc, types, disable_tqdm, desc, single_map_nested_func)
+    return _map_with_joblib(
+        function, iterable, num_proc, batched, batch_size, types, disable_tqdm, desc, single_map_nested_func
+    )
 
 
-def _map_with_multiprocessing_pool(function, iterable, num_proc, types, disable_tqdm, desc, single_map_nested_func):
+def _map_with_multiprocessing_pool(
+    function, iterable, num_proc, batched, batch_size, types, disable_tqdm, desc, single_map_nested_func
+):
     num_proc = num_proc if num_proc <= len(iterable) else len(iterable)
     split_kwds = []  # We organize the splits ourselve (contiguous splits)
     for index in range(num_proc):
@@ -46,7 +50,7 @@ def _map_with_multiprocessing_pool(function, iterable, num_proc, types, disable_
         mod = len(iterable) % num_proc
         start = div * index + min(index, mod)
         end = start + div + (1 if index < mod else 0)
-        split_kwds.append((function, iterable[start:end], types, index, disable_tqdm, desc))
+        split_kwds.append((function, iterable[start:end], batched, batch_size, types, index, disable_tqdm, desc))
 
     if len(iterable) != sum(len(i[1]) for i in split_kwds):
         raise ValueError(
@@ -70,14 +74,17 @@ def _map_with_multiprocessing_pool(function, iterable, num_proc, types, disable_
     return mapped
 
 
-def _map_with_joblib(function, iterable, num_proc, types, disable_tqdm, desc, single_map_nested_func):
+def _map_with_joblib(
+    function, iterable, num_proc, batched, batch_size, types, disable_tqdm, desc, single_map_nested_func
+):
     # progress bar is not yet supported for _map_with_joblib, because tqdm couldn't accurately be applied to joblib,
     # and it requires monkey-patching joblib internal classes which is subject to change
     import joblib
 
     with joblib.parallel_backend(ParallelBackendConfig.backend_name, n_jobs=num_proc):
         return joblib.Parallel()(
-            joblib.delayed(single_map_nested_func)((function, obj, types, None, True, None)) for obj in iterable
+            joblib.delayed(single_map_nested_func)((function, obj, batched, batch_size, types, None, True, None))
+            for obj in iterable
         )
 
 
