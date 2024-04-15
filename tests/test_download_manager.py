@@ -136,6 +136,7 @@ def test_download_manager_delete_extracted_files(xz_file):
     assert extracted_path == dl_manager.extracted_paths[xz_file]
     extracted_path = Path(extracted_path)
     parts = extracted_path.parts
+    # import pdb; pdb.set_trace()
     assert parts[-1] == hash_url_to_filename(str(xz_file), etag=None)
     assert parts[-2] == extracted_subdir
     assert extracted_path.exists()

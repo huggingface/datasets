@@ -28,11 +28,8 @@ from .. import config
 from ..utils import tqdm as hf_tqdm
 from ..utils.deprecation_utils import DeprecatedEnum, deprecated
 from ..utils.file_utils import (
-    SINGLE_FILE_COMPRESSION_PROTOCOLS,
     ArchiveIterable,
     FilesIterable,
-    _get_extraction_protocol,
-    _get_path_extension,
     cached_path,
     get_from_cache,
     hash_url_to_filename,
@@ -326,27 +323,6 @@ class DownloadManager:
         """
         return FilesIterable.from_urlpaths(paths)
 
-    def _extract_on_the_fly(self, path: str, download_config: DownloadConfig) -> str:
-        """
-        Adds a compression prefix to the compressed file so that it can be extracted as it's being read using fsspec.open.
-
-        If the compression format is not supported by fsspec, extracts the file in the standard fashion.
-        """
-        protocol = _get_extraction_protocol(path, download_config=self.download_config)
-        extension = _get_path_extension(path)
-        # import pdb; pdb.set_trace()
-        if protocol and extension not in ["tgz", "tar"] and not path.endswith((".tar.gz", ".tar.bz2", ".tar.xz")):
-            if protocol in SINGLE_FILE_COMPRESSION_PROTOCOLS:
-                # there is one single file which is the uncompressed file
-                inner_file = os.path.basename(path)
-                inner_file = inner_file[: inner_file.rindex(".")] if "." in inner_file else inner_file
-                return f"{protocol}://{inner_file}::{path}"
-            else:
-                return f"{protocol}://::{path}"
-        else:
-            download_config.extract_compressed_file = True
-            return self._download(path, download_config=download_config)
-
     def extract(self, path_or_paths, num_proc="deprecated"):
         """Extract given path(s).
 
@@ -380,11 +356,8 @@ class DownloadManager:
                 FutureWarning,
             )
         download_config = self.download_config.copy()
-        if download_config.extract_on_the_fly:
-            extract_func = partial(self._extract_on_the_fly, download_config=download_config)
-        else:
-            download_config.extract_compressed_file = True
-            extract_func = partial(self._download, download_config=download_config)
+        download_config.extract_compressed_file = True
+        extract_func = partial(self._download, download_config=download_config)
         extracted_paths = map_nested(
             extract_func,
             path_or_paths,

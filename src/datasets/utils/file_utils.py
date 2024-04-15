@@ -227,10 +227,29 @@ def cached_path(
         return output_path
 
     if download_config.extract_compressed_file:
+        if download_config.extract_on_the_fly:
+            # Add a compression prefix to the compressed file so that it can be extracted
+            # as it's being read using xopen.
+            protocol = _get_extraction_protocol(output_path, download_config=download_config)
+            extension = _get_path_extension(url_or_filename)
+            if (
+                protocol
+                and extension not in ["tgz", "tar"]
+                and not url_or_filename.endswith((".tar.gz", ".tar.bz2", ".tar.xz"))
+            ):
+                if protocol in SINGLE_FILE_COMPRESSION_PROTOCOLS:
+                    # there is one single file which is the uncompressed file
+                    inner_file = os.path.basename(output_path)
+                    inner_file = inner_file[: inner_file.rindex(".")] if "." in inner_file else inner_file
+                    output_path = f"{protocol}://{inner_file}::{output_path}"
+                else:
+                    output_path = f"{protocol}://::{output_path}"
+                return output_path
+
+        # Eager extraction
         output_path = ExtractManager(cache_dir=download_config.cache_dir).extract(
             output_path, force_extract=download_config.force_extract
         )
-
     return relative_to_absolute_path(output_path)
 
 
