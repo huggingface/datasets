@@ -237,6 +237,7 @@ def cached_path(
                 and extension not in ["tgz", "tar"]
                 and not url_or_filename.endswith((".tar.gz", ".tar.bz2", ".tar.xz"))
             ):
+                output_path = relative_to_absolute_path(output_path)
                 if protocol in SINGLE_FILE_COMPRESSION_PROTOCOLS:
                     # there is one single file which is the uncompressed file
                     inner_file = os.path.basename(output_path)
