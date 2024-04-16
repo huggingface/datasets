@@ -243,7 +243,9 @@ class TypedSequence:
                             cast_to_python_objects(data, only_1d_for_numpy=True, optimize_list_casting=False)
                         )
                         if type is not None:
-                            out = cast_array_to_feature(out, type, allow_primitive_to_str=True, allow_decimal_to_str=True)
+                            out = cast_array_to_feature(
+                                out, type, allow_primitive_to_str=True, allow_decimal_to_str=True
+                            )
                         return out
                     else:
                         raise
