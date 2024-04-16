@@ -107,8 +107,6 @@ def mockfs(tmp_path_factory, mock_fsspec):
 
 @pytest.fixture
 def tmpfs(tmp_path_factory, mock_fsspec):
-    print("Executed" * 10)
-    print(_fsspec_registry["tmp"])
     tmp_fs_dir = tmp_path_factory.mktemp("tmpfs")
     with patch.object(TmpDirFileSystem, "tmp_dir", tmp_fs_dir):
         yield TmpDirFileSystem()

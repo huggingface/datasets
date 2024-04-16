@@ -232,11 +232,11 @@ def cached_path(
             # Add a compression prefix to the compressed file so that it can be extracted
             # as it's being read using xopen.
             protocol = _get_extraction_protocol(output_path, download_config=download_config)
-            extension = _get_path_extension(url_or_filename)
+            extension = _get_path_extension(url_or_filename.split("::")[0])
             if (
                 protocol
                 and extension not in ["tgz", "tar"]
-                and not url_or_filename.endswith((".tar.gz", ".tar.bz2", ".tar.xz"))
+                and not url_or_filename.split("::")[0].endswith((".tar.gz", ".tar.bz2", ".tar.xz"))
             ):
                 output_path = relative_to_absolute_path(output_path)
                 if protocol in SINGLE_FILE_COMPRESSION_PROTOCOLS:
