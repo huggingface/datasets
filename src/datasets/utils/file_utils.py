@@ -212,6 +212,7 @@ def cached_path(
             ignore_url_params=download_config.ignore_url_params,
             storage_options=download_config.storage_options,
             download_desc=download_config.download_desc,
+            disable_tqdm=download_config.disable_tqdm,
         )
     elif os.path.exists(url_or_filename):
         # File, and it exists.
@@ -366,7 +367,7 @@ class TqdmCallback(fsspec.callbacks.TqdmCallback):
             super().__init__(tqdm_kwargs, *args, **kwargs)
 
 
-def fsspec_get(url, temp_file, storage_options=None, desc=None):
+def fsspec_get(url, temp_file, storage_options=None, desc=None, disable_tqdm=False):
     _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
     fs, path = url_to_fs(url, **(storage_options or {}))
     callback = TqdmCallback(
@@ -378,6 +379,7 @@ def fsspec_get(url, temp_file, storage_options=None, desc=None):
             if os.environ.get("HF_DATASETS_STACK_MULTIPROCESSING_DOWNLOAD_PROGRESS_BARS") == "1"
             and multiprocessing.current_process()._identity
             else None,
+            "disable": disable_tqdm,
         }
     )
     fs.get_file(path, temp_file.name, callback=callback)
@@ -404,7 +406,16 @@ def ftp_get(url, temp_file, timeout=10.0):
 
 
 def http_get(
-    url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, timeout=100.0, max_retries=0, desc=None
+    url,
+    temp_file,
+    proxies=None,
+    resume_size=0,
+    headers=None,
+    cookies=None,
+    timeout=100.0,
+    max_retries=0,
+    desc=None,
+    disable_tqdm=False,
 ) -> Optional[requests.Response]:
     headers = dict(headers) if headers is not None else {}
     headers["user-agent"] = get_datasets_user_agent(user_agent=headers.get("user-agent"))
@@ -436,6 +447,7 @@ def http_get(
         if os.environ.get("HF_DATASETS_STACK_MULTIPROCESSING_DOWNLOAD_PROGRESS_BARS") == "1"
         and multiprocessing.current_process()._identity
         else None,
+        disable=disable_tqdm,
     ) as progress:
         for chunk in response.iter_content(chunk_size=1024):
             progress.update(len(chunk))
@@ -495,6 +507,7 @@ def get_from_cache(
     ignore_url_params=False,
     storage_options=None,
     download_desc=None,
+    disable_tqdm=False,
 ) -> str:
     """
     Given a URL, look for the corresponding file in the local cache.
@@ -660,7 +673,9 @@ def get_from_cache(
             if scheme == "ftp":
                 ftp_get(url, temp_file)
             elif scheme not in ("http", "https"):
-                fsspec_get(url, temp_file, storage_options=storage_options, desc=download_desc)
+                fsspec_get(
+                    url, temp_file, storage_options=storage_options, desc=download_desc, disable_tqdm=disable_tqdm
+                )
             else:
                 http_get(
                     url,
@@ -671,6 +686,7 @@ def get_from_cache(
                     cookies=cookies,
                     max_retries=max_retries,
                     desc=download_desc,
+                    disable_tqdm=disable_tqdm,
                 )
 
         logger.info(f"storing {url} in cache at {cache_path}")
