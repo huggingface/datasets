@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import operator
 from collections.abc import Mapping, MutableMapping
 from functools import partial
 
@@ -74,6 +75,11 @@ def _query_table_with_indices_mapping(
     if isinstance(key, Iterable):
         return _query_table(table, [indices.fast_slice(i, 1).column(0)[0].as_py() for i in key])
 
+    try:
+        return operator.index(key)
+    except TypeError:
+        pass
+
     _raise_bad_key_type(key)
 
 
@@ -98,6 +104,11 @@ def _query_table(table: Table, key: Union[int, slice, range, str, Iterable]) -> 
             return table.table.slice(0, 0)
         # don't use pyarrow.Table.take even for pyarrow >=1.0 (see https://issues.apache.org/jira/browse/ARROW-9773)
         return table.fast_gather(key % table.num_rows)
+
+    try:
+        return operator.index(key)
+    except TypeError:
+        pass
 
     _raise_bad_key_type(key)
 
@@ -575,7 +586,10 @@ def query_table(
     """
     # Check if key is valid
     if not isinstance(key, (int, slice, range, str, Iterable)):
-        _raise_bad_key_type(key)
+        try:
+            key = operator.index(key)
+        except TypeError:
+            _raise_bad_key_type(key)
     if isinstance(key, str):
         _check_valid_column_key(key, table.column_names)
     else:
