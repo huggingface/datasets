@@ -122,6 +122,8 @@ class FaissIndexTest(TestCase):
         self.assertRaises(ValueError, index.search, query.reshape(-1, 1))
         self.assertGreater(scores[0], 0)
         self.assertEqual(indices[0], 1)
+        self.assertIsInstance(indices, list)
+        self.assertIsInstance(indices[0], int)
 
         # batched queries
         queries = np.eye(5, dtype=np.float32)[::-1]
@@ -131,6 +133,8 @@ class FaissIndexTest(TestCase):
         best_indices = [indices[0] for indices in total_indices]
         self.assertGreater(np.min(best_scores), 0)
         self.assertListEqual([4, 3, 2, 1, 0], best_indices)
+        self.assertIsInstance(total_indices, list)
+        self.assertIsInstance(total_indices[0][0], int)
 
     def test_factory(self):
         import faiss

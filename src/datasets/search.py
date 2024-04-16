@@ -364,7 +364,7 @@ class FaissIndex(BaseIndex):
         if not queries.flags.c_contiguous:
             queries = np.asarray(queries, order="C")
         scores, indices = self.faiss_index.search(queries, k, **kwargs)
-        return SearchResults(scores[0], indices[0].astype(int))
+        return SearchResults(scores[0], indices[0].astype(int).tolist())
 
     def search_batch(self, queries: np.array, k=10, **kwargs) -> BatchedSearchResults:
         """Find the nearest examples indices to the queries.
@@ -382,7 +382,7 @@ class FaissIndex(BaseIndex):
         if not queries.flags.c_contiguous:
             queries = np.asarray(queries, order="C")
         scores, indices = self.faiss_index.search(queries, k, **kwargs)
-        return BatchedSearchResults(scores, indices.astype(int))
+        return BatchedSearchResults(scores, indices.astype(int).tolist())
 
     def save(self, file: Union[str, PurePath], storage_options: Optional[Dict] = None):
         """Serialize the FaissIndex on disk"""
