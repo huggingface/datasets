@@ -309,7 +309,7 @@ class Extractor:
         return False if not return_extractor else (False, None)
 
     @classmethod
-    def infer_extractor_format(cls, path: Union[Path, str]) -> str:  # <Added version="2.4.0"/>
+    def infer_extractor_format(cls, path: Union[Path, str]) -> Optional[str]:  # <Added version="2.4.0"/>
         magic_number_max_length = cls._get_magic_number_max_length()
         magic_number = cls._read_magic_number(path, magic_number_max_length)
         for extractor_format, extractor in cls.extractors.items():

@@ -1839,7 +1839,7 @@ class IterableDataset(DatasetInfoMixin):
     def set_epoch(self, epoch: int):
         self._epoch = epoch
 
-    def skip(self, n) -> "IterableDataset":
+    def skip(self, n: int) -> "IterableDataset":
         """
         Create a new [`IterableDataset`] that skips the first `n` elements.
 
@@ -1878,7 +1878,7 @@ class IterableDataset(DatasetInfoMixin):
             token_per_repo_id=self._token_per_repo_id,
         )
 
-    def take(self, n) -> "IterableDataset":
+    def take(self, n: int) -> "IterableDataset":
         """
         Create a new [`IterableDataset`] with only the first `n` elements.
 

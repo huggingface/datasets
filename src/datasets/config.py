@@ -182,6 +182,9 @@ HF_UPDATE_DOWNLOAD_COUNTS = (
     os.environ.get("HF_UPDATE_DOWNLOAD_COUNTS", "AUTO").upper() in ENV_VARS_TRUE_AND_AUTO_VALUES
 )
 
+# For downloads and to check remote files metadata
+HF_DATASETS_MULTITHREADING_MAX_WORKERS = 16
+
 # Remote dataset scripts support
 __HF_DATASETS_TRUST_REMOTE_CODE = os.environ.get("HF_DATASETS_TRUST_REMOTE_CODE", "1")
 HF_DATASETS_TRUST_REMOTE_CODE: Optional[bool] = (

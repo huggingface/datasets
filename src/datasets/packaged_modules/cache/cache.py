@@ -12,7 +12,7 @@ import pyarrow as pa
 import datasets
 import datasets.config
 import datasets.data_files
-from datasets.naming import filenames_for_dataset_split
+from datasets.naming import camelcase_to_snakecase, filenames_for_dataset_split
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -36,7 +36,10 @@ def _find_hash_in_cache(
     else:
         config_id = None
     cache_dir = os.path.expanduser(str(cache_dir or datasets.config.HF_DATASETS_CACHE))
-    cached_datasets_directory_path_root = os.path.join(cache_dir, dataset_name.replace("/", "___"))
+    namespace_and_dataset_name = dataset_name.split("/")
+    namespace_and_dataset_name[-1] = camelcase_to_snakecase(namespace_and_dataset_name[-1])
+    cached_relative_path = "___".join(namespace_and_dataset_name)
+    cached_datasets_directory_path_root = os.path.join(cache_dir, cached_relative_path)
     cached_directory_paths = [
         cached_directory_path
         for cached_directory_path in glob.glob(
