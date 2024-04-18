@@ -18,7 +18,7 @@ from datasets.packaged_modules.csv import csv
 pytestmark = pytest.mark.integration
 
 
-@pytest.mark.parametrize("path", ["lhoestq/test", csv.__file__])
+@pytest.mark.parametrize("path", ["hf-internal-testing/dataset_with_script", csv.__file__])
 def test_inspect_dataset(path, tmp_path):
     inspect_dataset(path, tmp_path)
     script_name = Path(path).stem + ".py"

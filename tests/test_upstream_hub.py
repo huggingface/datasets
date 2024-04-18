@@ -13,7 +13,6 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 from huggingface_hub import DatasetCard, HfApi
-from huggingface_hub.utils import RepositoryNotFoundError
 
 from datasets import (
     Audio,
@@ -34,7 +33,7 @@ from datasets.packaged_modules.folder_based_builder.folder_based_builder import 
     FolderBasedBuilderConfig,
 )
 from datasets.utils.file_utils import cached_path
-from datasets.utils.hub import hf_hub_url
+from datasets.utils.hub import hf_dataset_url
 from tests.fixtures.hub import CI_HUB_ENDPOINT, CI_HUB_USER, CI_HUB_USER_TOKEN
 from tests.utils import for_all_test_methods, require_pil, require_sndfile, xfail_if_500_502_http_error
 
@@ -71,9 +70,16 @@ class TestPushToHub:
         local_ds = DatasetDict({"train": ds})
 
         with temporary_repo() as ds_name:
-            # cannot create a repo without namespace
-            with pytest.raises(RepositoryNotFoundError):
-                local_ds.push_to_hub(ds_name.split("/")[-1], token=self._token)
+            local_ds.push_to_hub(ds_name.split("/")[-1], token=self._token)
+            hub_ds = load_dataset(ds_name, download_mode="force_redownload")
+
+            assert local_ds.column_names == hub_ds.column_names
+            assert list(local_ds["train"].features.keys()) == list(hub_ds["train"].features.keys())
+            assert local_ds["train"].features == hub_ds["train"].features
+
+            # Ensure that there is a single file on the repository that has the correct name
+            files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset"))
+            assert files == [".gitattributes", "README.md", "data/train-00000-of-00001.parquet"]
 
     def test_push_dataset_dict_to_hub_datasets_with_different_features(self, cleanup_repo):
         ds_train = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
@@ -602,7 +608,7 @@ class TestPushToHub:
             ds_config2.push_to_hub(ds_name, "config2", token=self._token)
 
             # check that configs args was correctly pushed to README.md
-            ds_readme_path = cached_path(hf_hub_url(ds_name, "README.md"))
+            ds_readme_path = cached_path(hf_dataset_url(ds_name, "README.md"))
             dataset_card_data = DatasetCard.load(ds_readme_path).data
             assert METADATA_CONFIGS_FIELD in dataset_card_data
             assert isinstance(dataset_card_data[METADATA_CONFIGS_FIELD], list)
@@ -751,7 +757,7 @@ class TestPushToHub:
             ds_config2.push_to_hub(ds_name, "config2", token=self._token)
 
             # check that configs args was correctly pushed to README.md
-            ds_readme_path = cached_path(hf_hub_url(ds_name, "README.md"))
+            ds_readme_path = cached_path(hf_dataset_url(ds_name, "README.md"))
             dataset_card_data = DatasetCard.load(ds_readme_path).data
             assert METADATA_CONFIGS_FIELD in dataset_card_data
             assert isinstance(dataset_card_data[METADATA_CONFIGS_FIELD], list)

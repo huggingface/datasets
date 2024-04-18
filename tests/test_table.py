@@ -1,15 +1,14 @@
 import copy
 import pickle
-import warnings
+from decimal import Decimal
 from typing import List, Union
 
 import numpy as np
 import pyarrow as pa
 import pytest
 
-import datasets
 from datasets import Sequence, Value
-from datasets.features.features import Array2D, Array2DExtensionType, ClassLabel, Features, Image
+from datasets.features.features import Array2D, Array2DExtensionType, ClassLabel, Features, Image, get_nested_type
 from datasets.table import (
     ConcatenationTable,
     InMemoryTable,
@@ -19,9 +18,7 @@ from datasets.table import (
     _in_memory_arrow_table_from_buffer,
     _in_memory_arrow_table_from_file,
     _interpolation_search,
-    _is_extension_type,
     _memory_mapped_arrow_table_from_file,
-    array_concat,
     cast_array_to_feature,
     concat_tables,
     embed_array_storage,
@@ -791,6 +788,27 @@ def test_concatenation_table_slice(
     assert isinstance(table, ConcatenationTable)
 
 
+def test_concatenation_table_slice_mixed_schemas_vertically(arrow_file):
+    t1 = MemoryMappedTable.from_file(arrow_file)
+    t2 = InMemoryTable.from_pydict({"additional_column": ["foo"]})
+    expected = pa.table(
+        {
+            **{column: values + [None] for column, values in t1.to_pydict().items()},
+            "additional_column": [None] * len(t1) + ["foo"],
+        }
+    )
+    blocks = [[t1], [t2]]
+    table = ConcatenationTable.from_blocks(blocks)
+    assert table.to_pydict() == expected.to_pydict()
+    assert isinstance(table, ConcatenationTable)
+    reloaded = pickle.loads(pickle.dumps(table))
+    assert reloaded.to_pydict() == expected.to_pydict()
+    assert isinstance(reloaded, ConcatenationTable)
+    reloaded = pickle.loads(pickle.dumps(table.slice(1, 2)))
+    assert reloaded.to_pydict() == expected.slice(1, 2).to_pydict()
+    assert isinstance(reloaded, ConcatenationTable)
+
+
 @pytest.mark.parametrize("blocks_type", ["in_memory", "memory_mapped", "mixed"])
 def test_concatenation_table_filter(
     blocks_type, in_memory_pa_table, in_memory_blocks, memory_mapped_blocks, mixed_in_memory_and_memory_mapped_blocks
@@ -1081,40 +1099,44 @@ def test_indexed_table_mixin():
     assert table.fast_slice(2, 13) == pa_table.slice(2, 13)
 
 
-@pytest.mark.parametrize(
-    "arrays",
-    [
-        [pa.array([[1, 2, 3, 4]]), pa.array([[10, 2]])],
-        [
-            pa.array([[[1, 2], [3]]], pa.list_(pa.list_(pa.int32()), 2)),
-            pa.array([[[10, 2, 3], [2]]], pa.list_(pa.list_(pa.int32()), 2)),
-        ],
-        [pa.array([[[1, 2, 3]], [[2, 3], [20, 21]], [[4]]]).slice(1), pa.array([[[1, 2, 3]]])],
-    ],
-)
-def test_concat_arrays(arrays):
-    assert array_concat(arrays) == pa.concat_arrays(arrays)
-
-
-def test_concat_arrays_nested_with_nulls():
-    arrays = [pa.array([{"a": 21, "b": [[1, 2], [3]]}]), pa.array([{"a": 100, "b": [[1], None]}])]
-    concatenated_arrays = array_concat(arrays)
-    assert concatenated_arrays == pa.array([{"a": 21, "b": [[1, 2], [3]]}, {"a": 100, "b": [[1], None]}])
-
-
-def test_concat_extension_arrays():
-    arrays = [pa.array([[[1, 2], [3, 4]]]), pa.array([[[10, 2], [3, 4]]])]
-    extension_type = Array2DExtensionType((2, 2), "int64")
-    assert array_concat([extension_type.wrap_array(array) for array in arrays]) == extension_type.wrap_array(
-        pa.concat_arrays(arrays)
-    )
-
-
-def test_cast_array_to_features():
+def test_cast_integer_array_to_features():
     arr = pa.array([[0, 1]])
     assert cast_array_to_feature(arr, Sequence(Value("string"))).type == pa.list_(pa.string())
+    assert cast_array_to_feature(arr, Sequence(Value("string")), allow_decimal_to_str=False).type == pa.list_(
+        pa.string()
+    )
     with pytest.raises(TypeError):
-        cast_array_to_feature(arr, Sequence(Value("string")), allow_number_to_str=False)
+        cast_array_to_feature(arr, Sequence(Value("string")), allow_primitive_to_str=False)
+
+
+def test_cast_float_array_to_features():
+    arr = pa.array([[0.0, 1.0]])
+    assert cast_array_to_feature(arr, Sequence(Value("string"))).type == pa.list_(pa.string())
+    assert cast_array_to_feature(arr, Sequence(Value("string")), allow_decimal_to_str=False).type == pa.list_(
+        pa.string()
+    )
+    with pytest.raises(TypeError):
+        cast_array_to_feature(arr, Sequence(Value("string")), allow_primitive_to_str=False)
+
+
+def test_cast_boolean_array_to_features():
+    arr = pa.array([[False, True]])
+    assert cast_array_to_feature(arr, Sequence(Value("string"))).type == pa.list_(pa.string())
+    assert cast_array_to_feature(arr, Sequence(Value("string")), allow_decimal_to_str=False).type == pa.list_(
+        pa.string()
+    )
+    with pytest.raises(TypeError):
+        cast_array_to_feature(arr, Sequence(Value("string")), allow_primitive_to_str=False)
+
+
+def test_cast_decimal_array_to_features():
+    arr = pa.array([[Decimal(0), Decimal(1)]])
+    assert cast_array_to_feature(arr, Sequence(Value("string"))).type == pa.list_(pa.string())
+    assert cast_array_to_feature(arr, Sequence(Value("string")), allow_primitive_to_str=False).type == pa.list_(
+        pa.string()
+    )
+    with pytest.raises(TypeError):
+        cast_array_to_feature(arr, Sequence(Value("string")), allow_decimal_to_str=False)
 
 
 def test_cast_array_to_features_nested():
@@ -1130,28 +1152,17 @@ def test_cast_array_to_features_to_nested_with_no_fields():
     assert cast_array_to_feature(arr, {}).to_pylist() == arr.to_pylist()
 
 
-def test_cast_array_to_features_nested_with_null_values():
+def test_cast_array_to_features_nested_with_nulls():
     # same type
     arr = pa.array([{"foo": [None, [0]]}], pa.struct({"foo": pa.list_(pa.list_(pa.int64()))}))
     casted_array = cast_array_to_feature(arr, {"foo": [[Value("int64")]]})
     assert casted_array.type == pa.struct({"foo": pa.list_(pa.list_(pa.int64()))})
     assert casted_array.to_pylist() == arr.to_pylist()
-
     # different type
     arr = pa.array([{"foo": [None, [0]]}], pa.struct({"foo": pa.list_(pa.list_(pa.int64()))}))
-    if datasets.config.PYARROW_VERSION.major < 10:
-        with pytest.warns(UserWarning, match="None values are converted to empty lists.+"):
-            casted_array = cast_array_to_feature(arr, {"foo": [[Value("int32")]]})
-        assert casted_array.type == pa.struct({"foo": pa.list_(pa.list_(pa.int32()))})
-        assert casted_array.to_pylist() == [
-            {"foo": [[], [0]]}
-        ]  # empty list because of https://github.com/huggingface/datasets/issues/3676
-    else:
-        with warnings.catch_warnings():
-            warnings.simplefilter("error")
-            casted_array = cast_array_to_feature(arr, {"foo": [[Value("int32")]]})
-        assert casted_array.type == pa.struct({"foo": pa.list_(pa.list_(pa.int32()))})
-        assert casted_array.to_pylist() == [{"foo": [None, [0]]}]
+    casted_array = cast_array_to_feature(arr, {"foo": [[Value("int32")]]})
+    assert casted_array.type == pa.struct({"foo": pa.list_(pa.list_(pa.int32()))})
+    assert casted_array.to_pylist() == [{"foo": [None, [0]]}]
 
 
 def test_cast_array_to_features_to_null_type():
@@ -1199,23 +1210,67 @@ def test_cast_array_to_features_sequence_classlabel():
         assert cast_array_to_feature(arr, Sequence(ClassLabel(names=["foo", "bar"])))
 
 
-def test_cast_fixed_size_array_to_features_sequence():
-    arr = pa.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]], pa.list_(pa.int32(), 3))
+@pytest.mark.parametrize(
+    "arr",
+    [
+        pa.array([[0, 1, 2], [3, None, 5], None, [6, 7, 8], None], pa.list_(pa.int32(), 3)),
+    ],
+)
+@pytest.mark.parametrize("slice", [None, slice(1, None), slice(-1), slice(1, 3), slice(2, 3), slice(1, 1)])
+@pytest.mark.parametrize("target_value_feature", [Value("int64")])
+def test_cast_fixed_size_list_array_to_features_sequence(arr, slice, target_value_feature):
+    arr = arr if slice is None else arr[slice]
     # Fixed size list
-    casted_array = cast_array_to_feature(arr, Sequence(Value("int64"), length=3))
-    assert casted_array.type == pa.list_(pa.int64(), 3)
+    casted_array = cast_array_to_feature(arr, Sequence(target_value_feature, length=arr.type.list_size))
+    assert casted_array.type == get_nested_type(Sequence(target_value_feature, length=arr.type.list_size))
     assert casted_array.to_pylist() == arr.to_pylist()
+    with pytest.raises(TypeError):
+        cast_array_to_feature(arr, Sequence(target_value_feature, length=arr.type.list_size + 1))
     # Variable size list
-    casted_array = cast_array_to_feature(arr, Sequence(Value("int64")))
-    assert casted_array.type == pa.list_(pa.int64())
+    casted_array = cast_array_to_feature(arr, Sequence(target_value_feature))
+    assert casted_array.type == get_nested_type(Sequence(target_value_feature))
+    assert casted_array.to_pylist() == arr.to_pylist()
+    casted_array = cast_array_to_feature(arr, [target_value_feature])
+    assert casted_array.type == get_nested_type([target_value_feature])
     assert casted_array.to_pylist() == arr.to_pylist()
 
 
-def test_cast_sliced_fixed_size_array_to_features():
-    arr = pa.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]], pa.list_(pa.int32(), 3))
-    casted_array = cast_array_to_feature(arr[1:], Sequence(Value("int64"), length=3))
-    assert casted_array.type == pa.list_(pa.int64(), 3)
-    assert casted_array.to_pylist() == arr[1:].to_pylist()
+@pytest.mark.parametrize(
+    "arr",
+    [
+        pa.array([[0, 1, 2], [3, None, 5], None, [6, 7, 8], None], pa.list_(pa.int32())),
+    ],
+)
+@pytest.mark.parametrize("slice", [None, slice(1, None), slice(-1), slice(1, 3), slice(2, 3), slice(1, 1)])
+@pytest.mark.parametrize("target_value_feature", [Value("int64")])
+def test_cast_list_array_to_features_sequence(arr, slice, target_value_feature):
+    arr = arr if slice is None else arr[slice]
+    # Variable size list
+    casted_array = cast_array_to_feature(arr, Sequence(target_value_feature))
+    assert casted_array.type == get_nested_type(Sequence(target_value_feature))
+    assert casted_array.to_pylist() == arr.to_pylist()
+    casted_array = cast_array_to_feature(arr, [target_value_feature])
+    assert casted_array.type == get_nested_type([target_value_feature])
+    assert casted_array.to_pylist() == arr.to_pylist()
+    # Fixed size list
+    list_size = arr.value_lengths().drop_null()[0].as_py() if arr.value_lengths().drop_null() else 2
+    casted_array = cast_array_to_feature(arr, Sequence(target_value_feature, length=list_size))
+    assert casted_array.type == get_nested_type(Sequence(target_value_feature, length=list_size))
+    assert casted_array.to_pylist() == arr.to_pylist()
+
+
+def test_cast_array_xd_to_features_sequence():
+    arr = np.random.randint(0, 10, size=(8, 2, 3)).tolist()
+    arr = Array2DExtensionType(shape=(2, 3), dtype="int64").wrap_array(pa.array(arr, pa.list_(pa.list_(pa.int64()))))
+    arr = pa.ListArray.from_arrays([0, None, 4, 8], arr)
+    # Variable size list
+    casted_array = cast_array_to_feature(arr, Sequence(Array2D(shape=(2, 3), dtype="int32")))
+    assert casted_array.type == get_nested_type(Sequence(Array2D(shape=(2, 3), dtype="int32")))
+    assert casted_array.to_pylist() == arr.to_pylist()
+    # Fixed size list
+    casted_array = cast_array_to_feature(arr, Sequence(Array2D(shape=(2, 3), dtype="int32"), length=4))
+    assert casted_array.type == get_nested_type(Sequence(Array2D(shape=(2, 3), dtype="int32"), length=4))
+    assert casted_array.to_pylist() == arr.to_pylist()
 
 
 def test_embed_array_storage(image_file):
@@ -1268,17 +1323,3 @@ def test_table_iter(table, batch_size, drop_last_batch):
     if num_rows > 0:
         reloaded = pa.concat_tables(subtables)
         assert table.slice(0, num_rows).to_pydict() == reloaded.to_pydict()
-
-
-@pytest.mark.parametrize(
-    "pa_type, expected",
-    [
-        (pa.int8(), False),
-        (pa.struct({"col1": pa.int8(), "col2": pa.int64()}), False),
-        (pa.struct({"col1": pa.list_(pa.int8()), "col2": Array2DExtensionType((1, 3), "int64")}), True),
-        (pa.list_(pa.int8()), False),
-        (pa.list_(Array2DExtensionType((1, 3), "int64"), 4), True),
-    ],
-)
-def test_is_extension_type(pa_type, expected):
-    assert _is_extension_type(pa_type) == expected

@@ -12,6 +12,7 @@ from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import fsspec
 import numpy as np
+from fsspec.core import url_to_fs
 from huggingface_hub import (
     CommitInfo,
     CommitOperationAdd,
@@ -20,6 +21,7 @@ from huggingface_hub import (
     DatasetCardData,
     HfApi,
 )
+from huggingface_hub.hf_api import RepoFile
 
 from . import config
 from .arrow_dataset import PUSH_TO_HUB_WITHOUT_METADATA_CONFIGS_SPLIT_PATTERN_SHARDED, Dataset
@@ -33,7 +35,6 @@ from .tasks import TaskTemplate
 from .utils import logging
 from .utils.deprecation_utils import deprecated
 from .utils.doc_utils import is_documented_by
-from .utils.hub import list_files_info
 from .utils.metadata import MetadataConfigs
 from .utils.py_utils import asdict, glob_pattern_to_regex, string_to_dict
 from .utils.typing import PathLike
@@ -134,7 +135,7 @@ class DatasetDict(dict):
 
     @property
     def num_rows(self) -> Dict[str, int]:
-        """Number of rows in each split of the dataset (same as :func:`datasets.Dataset.__len__`).
+        """Number of rows in each split of the dataset.
 
         Example:
 
@@ -221,7 +222,7 @@ class DatasetDict(dict):
 
         Args:
             column (`str`):
-                column name (list all the column names with [`~datasets.Dataset.column_names`])
+                column name (list all the column names with [`~datasets.DatasetDict.column_names`])
 
         Returns:
             Dict[`str`, `list`]: Dictionary of unique elements in the given column.
@@ -267,15 +268,12 @@ class DatasetDict(dict):
         Cast the dataset to a new set of features.
         The transformation is applied to all the datasets of the dataset dictionary.
 
-        You can also remove a column using [`Dataset.map`] with `feature` but `cast`
-        is in-place (doesn't copy the data to a new dataset) and is thus faster.
-
         Args:
             features ([`Features`]):
                 New features to cast the dataset to.
                 The name and order of the fields in the features must match the current column names.
                 The type of the data must also be convertible from one type to the other.
-                For non-trivial conversion, e.g. `string` <-> `ClassLabel` you should use [`~Dataset.map`] to update the Dataset.
+                For non-trivial conversion, e.g. `string` <-> `ClassLabel` you should use [`~DatasetDict.map`] to update the dataset.
 
         Example:
 
@@ -333,19 +331,22 @@ class DatasetDict(dict):
 
         The transformation is applied to all the splits of the dataset dictionary.
 
-        You can also remove a column using [`Dataset.map`] with `remove_columns` but the present method
-        is in-place (doesn't copy the data to a new dataset) and is thus faster.
+        You can also remove a column using [`~DatasetDict.map`] with `remove_columns` but the present method
+        doesn't copy the data of the remaining columns and is thus faster.
 
         Args:
             column_names (`Union[str, List[str]]`):
                 Name of the column(s) to remove.
+
+        Returns:
+            [`DatasetDict`]: A copy of the dataset object without the columns to remove.
 
         Example:
 
         ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rotten_tomatoes")
-        >>> ds.remove_columns("label")
+        >>> ds = ds.remove_columns("label")
         DatasetDict({
             train: Dataset({
                 features: ['text'],
@@ -370,7 +371,7 @@ class DatasetDict(dict):
         Rename a column in the dataset and move the features associated to the original column under the new column name.
         The transformation is applied to all the datasets of the dataset dictionary.
 
-        You can also rename a column using [`~Dataset.map`] with `remove_columns` but the present method:
+        You can also rename a column using [`~DatasetDict.map`] with `remove_columns` but the present method:
             - takes care of moving the original features under the new column name.
             - doesn't copy the data to a new dataset and is thus much faster.
 
@@ -385,7 +386,7 @@ class DatasetDict(dict):
         ```py
         >>> from datasets import load_dataset
         >>> ds = load_dataset("rotten_tomatoes")
-        >>> ds.rename_column("label", "label_new")
+        >>> ds = ds.rename_column("label", "label_new")
         DatasetDict({
             train: Dataset({
                 features: ['text', 'label_new'],
@@ -934,7 +935,7 @@ class DatasetDict(dict):
                 `batch_size <= 0` or `batch_size == None` then provide the full dataset as a single batch to `function`.
             keep_in_memory (`bool`, defaults to `False`):
                 Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`Optional[bool]`, defaults to `True` if chaching is enabled):
+            load_from_cache_file (`Optional[bool]`, defaults to `True` if caching is enabled):
                 If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
             cache_file_names (`[Dict[str, str]]`, *optional*, defaults to `None`):
@@ -1280,7 +1281,7 @@ class DatasetDict(dict):
             storage_options = fs.storage_options
 
         fs: fsspec.AbstractFileSystem
-        fs, _, _ = fsspec.get_fs_token_paths(dataset_dict_path, storage_options=storage_options)
+        fs, _ = url_to_fs(dataset_dict_path, **(storage_options or {}))
 
         if num_shards is None:
             num_shards = {k: None for k in self}
@@ -1354,7 +1355,7 @@ class DatasetDict(dict):
             storage_options = fs.storage_options
 
         fs: fsspec.AbstractFileSystem
-        fs, _, [dataset_dict_path] = fsspec.get_fs_token_paths(dataset_dict_path, storage_options=storage_options)
+        fs, dataset_dict_path = url_to_fs(dataset_dict_path, **(storage_options or {}))
 
         dataset_dict_json_path = posixpath.join(dataset_dict_path, config.DATASETDICT_JSON_FILENAME)
         dataset_state_json_path = posixpath.join(dataset_dict_path, config.DATASET_STATE_JSON_FILENAME)
@@ -1566,6 +1567,7 @@ class DatasetDict(dict):
         repo_id,
         config_name: str = "default",
         set_default: Optional[bool] = None,
+        data_dir: Optional[str] = None,
         commit_message: Optional[str] = None,
         commit_description: Optional[str] = None,
         private: Optional[bool] = False,
@@ -1596,6 +1598,11 @@ class DatasetDict(dict):
             set_default (`bool`, *optional*):
                 Whether to set this configuration as the default one. Otherwise, the default configuration is the one
                 named "default".
+            data_dir (`str`, *optional*):
+                Directory name that will contain the uploaded data files. Defaults to the `config_name` if different
+                from "default", else "data".
+
+                <Added version="2.17.0"/>
             commit_message (`str`, *optional*):
                 Message to commit while pushing. Will default to `"Upload dataset"`.
             commit_description (`str`, *optional*):
@@ -1693,18 +1700,20 @@ class DatasetDict(dict):
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
 
-        _ = api.create_repo(
+        repo_url = api.create_repo(
             repo_id,
             token=token,
             repo_type="dataset",
             private=private,
             exist_ok=True,
         )
+        repo_id = repo_url.repo_id
 
         if revision is not None:
             api.create_branch(repo_id, branch=revision, token=token, repo_type="dataset", exist_ok=True)
 
-        data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
+        if not data_dir:
+            data_dir = config_name if config_name != "default" else "data"  # for backward compatibility
 
         additions = []
         for split in self.keys():
@@ -1736,7 +1745,11 @@ class DatasetDict(dict):
         repo_splits = []  # use a list to keep the order of the splits
         deletions = []
         repo_files_to_add = [addition.path_in_repo for addition in additions]
-        for repo_file in list_files_info(api, repo_id=repo_id, revision=revision, repo_type="dataset", token=token):
+        for repo_file in api.list_repo_tree(
+            repo_id=repo_id, revision=revision, repo_type="dataset", token=token, recursive=True
+        ):
+            if not isinstance(repo_file, RepoFile):
+                continue
             if repo_file.rfilename == config.REPOCARD_FILENAME:
                 repo_with_dataset_card = True
             elif repo_file.rfilename == config.DATASETDICT_INFOS_FILENAME:

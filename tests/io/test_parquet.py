@@ -1,3 +1,4 @@
+import fsspec
 import pyarrow.parquet as pq
 import pytest
 
@@ -213,3 +214,13 @@ def test_dataset_to_parquet_keeps_features(shared_datadir, tmp_path):
 )
 def test_get_writer_batch_size(feature, expected):
     assert get_writer_batch_size(feature) == expected
+
+
+def test_dataset_to_parquet_fsspec(dataset, mockfs):
+    dataset_path = "mock://my_dataset.csv"
+    writer = ParquetDatasetWriter(dataset, dataset_path, storage_options=mockfs.storage_options)
+    assert writer.write() > 0
+    assert mockfs.isfile(dataset_path)
+
+    with fsspec.open(dataset_path, "rb", **mockfs.storage_options) as f:
+        assert f.read()

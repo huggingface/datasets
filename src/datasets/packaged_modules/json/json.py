@@ -48,6 +48,7 @@ class Json(datasets.ArrowBasedBuilder):
         """We handle string, list and dicts in datafiles"""
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
+        dl_manager.download_config.extract_on_the_fly = True
         data_files = dl_manager.download_and_extract(self.config.data_files)
         if isinstance(data_files, (str, list, tuple)):
             files = data_files
@@ -145,12 +146,20 @@ class Json(datasets.ArrowBasedBuilder):
                             except json.JSONDecodeError:
                                 logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                                 raise e
-                            # If possible, parse the file as a list of json objects and exit the loop
+                            # If possible, parse the file as a list of json objects/strings and exit the loop
                             if isinstance(dataset, list):  # list is the only sequence type supported in JSON
                                 try:
-                                    keys = set().union(*[row.keys() for row in dataset])
-                                    mapping = {col: [row.get(col) for row in dataset] for col in keys}
-                                    pa_table = pa.Table.from_pydict(mapping)
+                                    if dataset and isinstance(dataset[0], str):
+                                        pa_table_names = (
+                                            list(self.config.features)
+                                            if self.config.features is not None
+                                            else ["text"]
+                                        )
+                                        pa_table = pa.Table.from_arrays([pa.array(dataset)], names=pa_table_names)
+                                    else:
+                                        keys = set().union(*[row.keys() for row in dataset])
+                                        mapping = {col: [row.get(col) for row in dataset] for col in keys}
+                                        pa_table = pa.Table.from_pydict(mapping)
                                 except (pa.ArrowInvalid, AttributeError) as e:
                                     logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                                     raise ValueError(f"Not able to read records in the JSON file at {file}.") from None

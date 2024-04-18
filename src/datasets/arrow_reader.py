@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # Lint as: python3
-""" Arrow ArrowReader."""
+"""Arrow ArrowReader."""
 
 import copy
 import math
@@ -34,6 +34,7 @@ from .naming import _split_re, filenames_for_dataset_split
 from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables
 from .utils import logging
 from .utils import tqdm as hf_tqdm
+from .utils.deprecation_utils import deprecated
 from .utils.file_utils import cached_path
 
 
@@ -284,6 +285,7 @@ class BaseReader:
         dataset_kwargs = {"arrow_table": pa_table, "info": self._info, "split": split}
         return dataset_kwargs
 
+    @deprecated()
     def download_from_hf_gcs(self, download_config: DownloadConfig, relative_data_dir):
         """
         Download the dataset files from the Hf GCS
@@ -297,7 +299,9 @@ class BaseReader:
         remote_cache_dir = HF_GCP_BASE_URL + "/" + relative_data_dir.replace(os.sep, "/")
         try:
             remote_dataset_info = os.path.join(remote_cache_dir, "dataset_info.json")
-            downloaded_dataset_info = cached_path(remote_dataset_info.replace(os.sep, "/"))
+            downloaded_dataset_info = cached_path(
+                remote_dataset_info.replace(os.sep, "/"), download_config=download_config
+            )
             shutil.move(downloaded_dataset_info, os.path.join(self._path, "dataset_info.json"))
             if self._info is not None:
                 self._info.update(self._info.from_directory(self._path))

@@ -1,5 +1,5 @@
 # Lint as: python3
-""" HuggingFace/Datasets is an open library of datasets.
+"""HuggingFace/Datasets is an open library of datasets.
 
 Note:
 
@@ -41,7 +41,7 @@ Steps to make a release:
      git commit -m "Release: VERSION"
      git push upstream release-VERSION
      ```
-   - Go to: https://github.com/huggingface/datasets/pull/new/release
+   - Go to: https://github.com/huggingface/datasets/pull/new/release-VERSION
    - Create pull request
 
 4. From your local release branch, build both the sources and the wheel. Do not change anything in setup.py between
@@ -58,11 +58,11 @@ Steps to make a release:
 
 5. Check that everything looks correct by uploading the package to the test PyPI server:
      ```
-     twine upload dist/* -r pypitest --repository-url=https://test.pypi.org/legacy/
+     twine upload dist/* -r testpypi
      ```
    Check that you can install it in a virtualenv/notebook by running:
      ```
-     pip install huggingface_hub fsspec aiohttp pyarrow-hotfix
+     pip install huggingface-hub fsspec aiohttp pyarrow-hotfix
      pip install -U tqdm
      pip install -i https://testpypi.python.org/pypi datasets
      ```
@@ -113,8 +113,8 @@ REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
     # Backend and serialization.
-    # Minimum 8.0.0 to be able to use .to_reader()
-    "pyarrow>=8.0.0",
+    # Minimum 12.0.0 to be able to concatenate extension arrays
+    "pyarrow>=12.0.0",
     # As long as we allow pyarrow < 14.0.1, to fix vulnerability CVE-2023-47248
     "pyarrow-hotfix",
     # For smart caching dataset processing
@@ -131,11 +131,11 @@ REQUIRED_PKGS = [
     "multiprocess",
     # to save datasets locally or on any filesystem
     # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
-    "fsspec[http]>=2023.1.0,<=2023.10.0",
+    "fsspec[http]>=2023.1.0,<=2024.3.1",
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface_hub>=0.19.4",
+    "huggingface-hub>=0.21.2",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     # To parse YAML metadata from dataset cards
@@ -166,7 +166,7 @@ TESTS_REQUIRE = [
     "pytest-datadir",
     "pytest-xdist",
     # optional dependencies
-    "apache-beam>=2.26.0,<2.44.0;python_version<'3.10'",  # doesn't support recent dill versions for recent python versions
+    "apache-beam>=2.26.0; sys_platform != 'win32' and python_version<'3.10'",  # doesn't support recent dill versions for recent python versions and on windows requires pyarrow<12.0.0
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch()
     "faiss-cpu>=1.6.4",
     "jax>=0.3.14; sys_platform != 'win32'",
@@ -177,14 +177,15 @@ TESTS_REQUIRE = [
     "rarfile>=4.0",
     "sqlalchemy",
     "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1; test only on python 3.7 for now
-    "tensorflow>=2.3,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
-    "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
+    "protobuf<4.0.0",  # 4.0.0 breaks compatibility with tensorflow<2.12
+    "tensorflow>=2.6.0",
     "tiktoken",
     "torch>=2.0.0",
     "soundfile>=0.12.1",
     "transformers",
     "typing-extensions>=4.6.1",  # due to conflict between apache-beam and pydantic
     "zstandard",
+    "polars[timezone]>=0.20.0",
 ]
 
 
@@ -218,7 +219,7 @@ METRICS_TESTS_REQUIRE = [
 TESTS_REQUIRE.extend(VISION_REQUIRE)
 TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
-QUALITY_REQUIRE = ["ruff>=0.1.5"]
+QUALITY_REQUIRE = ["ruff>=0.3.0"]
 
 DOCS_REQUIRE = [
     # Might need to add doc-builder and some specific deps in the future
@@ -226,19 +227,17 @@ DOCS_REQUIRE = [
     # Following dependencies are required for the Python reference to be built properly
     "transformers",
     "torch",
-    "tensorflow>=2.2.0,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
-    "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
+    "tensorflow>=2.6.0",
 ]
 
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
     "vision": VISION_REQUIRE,
-    "apache-beam": ["apache-beam>=2.26.0,<2.44.0"],
+    "apache-beam": ["apache-beam>=2.26.0"],
     "tensorflow": [
-        "tensorflow>=2.2.0,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
-        "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
+        "tensorflow>=2.6.0",
     ],
-    "tensorflow_gpu": ["tensorflow-gpu>=2.2.0,!=2.6.0,!=2.6.1"],
+    "tensorflow_gpu": ["tensorflow>=2.6.0"],
     "torch": ["torch"],
     "jax": ["jax>=0.3.14", "jaxlib>=0.3.14"],
     "s3": ["s3fs"],
@@ -253,7 +252,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.16.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.18.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

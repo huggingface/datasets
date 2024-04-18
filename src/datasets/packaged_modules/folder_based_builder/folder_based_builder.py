@@ -57,7 +57,7 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
-
+        dl_manager.download_config.extract_on_the_fly = True
         # Do an early pass if:
         # * `drop_labels` is None (default) or False, to infer the class labels
         # * `drop_metadata` is None (default) or False, to find the metadata files

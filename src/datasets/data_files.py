@@ -6,7 +6,7 @@ from pathlib import Path, PurePath
 from typing import Callable, Dict, List, Optional, Set, Tuple, Union
 
 import huggingface_hub
-from fsspec import get_fs_token_paths
+from fsspec.core import url_to_fs
 from fsspec.implementations.http import HTTPFileSystem
 from huggingface_hub import HfFileSystem
 from packaging import version
@@ -14,12 +14,11 @@ from tqdm.contrib.concurrent import thread_map
 
 from . import config
 from .download import DownloadConfig
-from .download.streaming_download_manager import _prepare_path_and_storage_options, xbasename, xjoin
 from .naming import _split_re
 from .splits import Split
 from .utils import logging
 from .utils import tqdm as hf_tqdm
-from .utils.file_utils import is_local_path, is_relative_path
+from .utils.file_utils import _prepare_path_and_storage_options, is_local_path, is_relative_path, xbasename, xjoin
 from .utils.py_utils import glob_pattern_to_regex, string_to_dict
 
 
@@ -46,19 +45,48 @@ SPLIT_KEYWORDS = {
 }
 NON_WORDS_CHARS = "-._ 0-9"
 if config.FSSPEC_VERSION < version.parse("2023.9.0"):
-    KEYWORDS_IN_PATH_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**[{sep}/]{keyword}[{sep}/]**"]
+    KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**[{sep}/]{keyword}[{sep}]*", "{keyword}[{sep}]*"]
+    KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = [
+        "{keyword}/**",
+        "{keyword}[{sep}]*/**",
+        "**[{sep}/]{keyword}/**",
+        "**[{sep}/]{keyword}[{sep}]*/**",
+    ]
+elif config.FSSPEC_VERSION < version.parse("2023.12.0"):
+    KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**/*[{sep}/]{keyword}[{sep}]*", "{keyword}[{sep}]*"]
+    KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = [
+        "{keyword}/**/*",
+        "{keyword}[{sep}]*/**/*",
+        "**/*[{sep}/]{keyword}/**/*",
+        "**/*[{sep}/]{keyword}[{sep}]*/**/*",
+    ]
 else:
-    KEYWORDS_IN_PATH_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**/*[{sep}/]{keyword}[{sep}/]**"]
+    KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**/{keyword}[{sep}]*", "**/*[{sep}]{keyword}[{sep}]*"]
+    KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = [
+        "**/{keyword}/**",
+        "**/{keyword}[{sep}]*/**",
+        "**/*[{sep}]{keyword}/**",
+        "**/*[{sep}]{keyword}[{sep}]*/**",
+    ]
 
 DEFAULT_SPLITS = [Split.TRAIN, Split.VALIDATION, Split.TEST]
-DEFAULT_PATTERNS_SPLIT_IN_PATH_NAME = {
+DEFAULT_PATTERNS_SPLIT_IN_FILENAME = {
     split: [
         pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
         for keyword in SPLIT_KEYWORDS[split]
-        for pattern in KEYWORDS_IN_PATH_NAME_BASE_PATTERNS
+        for pattern in KEYWORDS_IN_FILENAME_BASE_PATTERNS
     ]
     for split in DEFAULT_SPLITS
 }
+DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME = {
+    split: [
+        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
+        for keyword in SPLIT_KEYWORDS[split]
+        for pattern in KEYWORDS_IN_DIR_NAME_BASE_PATTERNS
+    ]
+    for split in DEFAULT_SPLITS
+}
+
 
 DEFAULT_PATTERNS_ALL = {
     Split.TRAIN: ["**"],
@@ -66,7 +94,8 @@ DEFAULT_PATTERNS_ALL = {
 
 ALL_SPLIT_PATTERNS = [SPLIT_PATTERN_SHARDED]
 ALL_DEFAULT_PATTERNS = [
-    DEFAULT_PATTERNS_SPLIT_IN_PATH_NAME,
+    DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME,
+    DEFAULT_PATTERNS_SPLIT_IN_FILENAME,
     DEFAULT_PATTERNS_ALL,
 ]
 if config.FSSPEC_VERSION < version.parse("2023.9.0"):
@@ -303,11 +332,9 @@ def resolve_pattern(
     - data/* to match all the files inside "data"
     - data/** to match all the files inside "data" and its subdirectories
 
-    The patterns are resolved using the fsspec glob.
-
-    glob.glob, Path.glob, Path.match or fnmatch do not support ** with a prefix/suffix other than a forward slash /.
-    For instance, this means **.json is the same as *.json. On the contrary, the fsspec glob has no limits regarding the ** prefix/suffix,
-    resulting in **.json being equivalent to **/*.json.
+    The patterns are resolved using the fsspec glob. In fsspec>=2023.12.0 this is equivalent to
+    Python's glob.glob, Path.glob, Path.match and fnmatch where ** is unsupported with a prefix/suffix
+    other than a forward slash /.
 
     More generally:
     - '*' matches any character except a forward-slash (to match just the file or directory name)
@@ -344,9 +371,7 @@ def resolve_pattern(
     else:
         base_path = ""
     pattern, storage_options = _prepare_path_and_storage_options(pattern, download_config=download_config)
-    fs, _, _ = get_fs_token_paths(pattern, storage_options=storage_options)
-    fs_base_path = base_path.split("::")[0].split("://")[-1] or fs.root_marker
-    fs_pattern = pattern.split("::")[0].split("://")[-1]
+    fs, fs_pattern = url_to_fs(pattern, **storage_options)
     files_to_ignore = set(FILES_TO_IGNORE) - {xbasename(pattern)}
     protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[0]
     protocol_prefix = protocol + "://" if protocol != "file" else ""
@@ -359,12 +384,8 @@ def resolve_pattern(
         for filepath, info in fs.glob(pattern, detail=True, **glob_kwargs).items()
         if info["type"] == "file"
         and (xbasename(filepath) not in files_to_ignore)
-        and not _is_inside_unrequested_special_dir(
-            os.path.relpath(filepath, fs_base_path), os.path.relpath(fs_pattern, fs_base_path)
-        )
-        and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(
-            os.path.relpath(filepath, fs_base_path), os.path.relpath(fs_pattern, fs_base_path)
-        )
+        and not _is_inside_unrequested_special_dir(filepath, fs_pattern)
+        and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(filepath, fs_pattern)
     ]  # ignore .ipynb and __pycache__, but keep /../
     if allowed_extensions is not None:
         out = [
@@ -402,7 +423,7 @@ def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] 
 
     Output:
 
-        {"train": ["**"]}
+        {'train': ['**']}
 
     Input:
 
@@ -428,8 +449,8 @@ def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] 
 
     Output:
 
-        {'train': ['train[-._ 0-9/]**', '**/*[-._ 0-9/]train[-._ 0-9/]**', 'training[-._ 0-9/]**', '**/*[-._ 0-9/]training[-._ 0-9/]**'],
-         'test': ['test[-._ 0-9/]**', '**/*[-._ 0-9/]test[-._ 0-9/]**', 'testing[-._ 0-9/]**', '**/*[-._ 0-9/]testing[-._ 0-9/]**', ...]}
+        {'train': ['**/train[-._ 0-9]*', '**/*[-._ 0-9]train[-._ 0-9]*', '**/training[-._ 0-9]*', '**/*[-._ 0-9]training[-._ 0-9]*'],
+         'test': ['**/test[-._ 0-9]*', '**/*[-._ 0-9]test[-._ 0-9]*', '**/testing[-._ 0-9]*', '**/*[-._ 0-9]testing[-._ 0-9]*', ...]}
 
     Input:
 
@@ -447,8 +468,8 @@ def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] 
 
     Output:
 
-        {'train': ['train[-._ 0-9/]**', '**/*[-._ 0-9/]train[-._ 0-9/]**', 'training[-._ 0-9/]**', '**/*[-._ 0-9/]training[-._ 0-9/]**'],
-         'test': ['test[-._ 0-9/]**', '**/*[-._ 0-9/]test[-._ 0-9/]**', 'testing[-._ 0-9/]**', '**/*[-._ 0-9/]testing[-._ 0-9/]**', ...]}
+        {'train': ['**/train/**', '**/train[-._ 0-9]*/**', '**/*[-._ 0-9]train/**', '**/*[-._ 0-9]train[-._ 0-9]*/**', ...],
+         'test': ['**/test/**', '**/test[-._ 0-9]*/**', '**/*[-._ 0-9]test/**', '**/*[-._ 0-9]test[-._ 0-9]*/**', ...]}
 
     Input:
 
@@ -497,7 +518,7 @@ def _get_single_origin_metadata(
     download_config: Optional[DownloadConfig] = None,
 ) -> Tuple[str]:
     data_file, storage_options = _prepare_path_and_storage_options(data_file, download_config=download_config)
-    fs, _, _ = get_fs_token_paths(data_file, storage_options=storage_options)
+    fs, *_ = url_to_fs(data_file, **storage_options)
     if isinstance(fs, HfFileSystem):
         resolved_path = fs.resolve_path(data_file)
         return (resolved_path.repo_id, resolved_path.revision)
@@ -516,9 +537,10 @@ def _get_single_origin_metadata(
 
 def _get_origin_metadata(
     data_files: List[str],
-    max_workers=64,
     download_config: Optional[DownloadConfig] = None,
+    max_workers: Optional[int] = None,
 ) -> Tuple[str]:
+    max_workers = max_workers if max_workers is not None else config.HF_DATASETS_MULTITHREADING_MAX_WORKERS
     return thread_map(
         partial(_get_single_origin_metadata, download_config=download_config),
         data_files,
