@@ -35,7 +35,7 @@ def delete_from_hub(
     # README.md
     dataset_card = DatasetCard.load(repo_id)
     # config_names
-    if "config_names" in dataset_card.data and config_name in dataset_card.data["config_names"]:
+    if dataset_card.data.get("config_names", None) and config_name in dataset_card.data["config_names"]:
         dataset_card.data["config_names"].remove(config_name)
     # metadata_configs
     metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card.data)
