@@ -43,14 +43,20 @@ def delete_from_hub(
         _ = metadata_configs.pop(config_name, None)
         dataset_card_data = DatasetCardData()
         metadata_configs.to_dataset_card_data(dataset_card_data)
-        dataset_card.data[config.METADATA_CONFIGS_FIELD] = dataset_card_data[config.METADATA_CONFIGS_FIELD]
+        if config.METADATA_CONFIGS_FIELD in dataset_card_data:
+            dataset_card.data[config.METADATA_CONFIGS_FIELD] = dataset_card_data[config.METADATA_CONFIGS_FIELD]
+        else:
+            _ = dataset_card.data.pop(config.METADATA_CONFIGS_FIELD, None)
     # dataset_info
     dataset_infos: DatasetInfosDict = DatasetInfosDict.from_dataset_card_data(dataset_card.data)
     if dataset_infos:
         _ = dataset_infos.pop(config_name, None)
         dataset_card_data = DatasetCardData()
         dataset_infos.to_dataset_card_data(dataset_card_data)
-        dataset_card.data["dataset_info"] = dataset_card_data["dataset_info"]
+        if "dataset_info" in dataset_card_data:
+            dataset_card.data["dataset_info"] = dataset_card_data["dataset_info"]
+        else:
+            _ = dataset_card.data.pop("dataset_info", None)
     # Commit
     operations.append(
         CommitOperationAdd(path_in_repo=config.REPOCARD_FILENAME, path_or_fileobj=str(dataset_card).encode())
