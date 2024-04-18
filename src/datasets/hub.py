@@ -20,9 +20,6 @@ from datasets.utils.metadata import MetadataConfigs
 def delete_from_hub(
     repo_id: str,
     config_name: Optional[str] = None,
-    commit_message: Optional[str] = None,
-    commit_description: Optional[str] = None,
-    create_pr: Optional[bool] = False,
     revision: Optional[str] = None,
     token: Optional[Union[bool, str]] = None,
 ) -> CommitInfo:
@@ -61,16 +58,16 @@ def delete_from_hub(
     operations.append(
         CommitOperationAdd(path_in_repo=config.REPOCARD_FILENAME, path_or_fileobj=str(dataset_card).encode())
     )
-    commit_message = commit_message if commit_message is not None else "Delete dataset config"
     api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
     commit_info = api.create_commit(
         repo_id,
         operations=operations,
-        commit_message=commit_message,
-        commit_description=commit_description,
+        commit_message=f"Delete '{config_name}' config",
+        commit_description=f"Delete '{config_name}' config.",
         token=token,
         repo_type="dataset",
         revision=revision,
-        create_pr=create_pr,
+        create_pr=True,
     )
+    print(f"You can find your PR to delete the dataset config at: {commit_info.pr_url}")
     return commit_info
