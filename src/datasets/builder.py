@@ -75,6 +75,7 @@ from .utils.deprecation_utils import deprecated
 from .utils.file_utils import cached_path, is_remote_url
 from .utils.info_utils import VerificationMode, get_size_checksum_dict, verify_checksums, verify_splits
 from .utils.py_utils import (
+    NestedDataStructure,
     classproperty,
     convert_file_size_to_int,
     has_sufficient_disk_space,
@@ -751,7 +752,7 @@ class DatasetBuilder:
     def download_and_prepare(
         self,
         output_dir: Optional[str] = None,
-        splits: Optional[List[str]] = None,
+        split: Optional[Union[str, ReadInstruction, Split]] = None,
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[Union[DownloadMode, str]] = None,
         verification_mode: Optional[Union[VerificationMode, str]] = None,
@@ -774,6 +775,8 @@ class DatasetBuilder:
                 Default to this builder's `cache_dir`, which is inside `~/.cache/huggingface/datasets` by default.
 
                 <Added version="2.5.0"/>
+            split (`Union[str, ReadInstruction, Split]`, *optional*):
+                Splits to generate. Default to all splits.
             download_config (`DownloadConfig`, *optional*):
                 Specific download configuration parameters.
             download_mode ([`DownloadMode`] or `str`, *optional*):
@@ -957,14 +960,28 @@ class DatasetBuilder:
                 # for example when calling load_dataset from multiple workers.
                 self.info = self._load_info()
             _dataset_name = self.name if self._check_legacy_cache() else self.dataset_name
-            if splits is not None:
-                for split in splits:
-                    num_shards = len(self.info.splits[split].shard_lengths or ()) if self.info.splits else 1
+            splits: Optional[List[str]] = None
+            if split:
+                splits = []
+                for split in NestedDataStructure(split).flatten():
+                    if not isinstance(split, ReadInstruction):
+                        split = str(split)
+                        if split == Split.ALL:
+                            splits = None  # generate all splits
+                            break
+                        split = ReadInstruction.from_spec(split)
+                    split_names = [rel_instr.splitname for rel_instr in split._relative_instructions]
+                    splits.extend(split_names)
+            if not splits and info_exists and self.info.splits:
+                splits = list(self.info.splits)
+            if splits:
+                for split_name in splits:
+                    num_shards = len(self.info.splits[split_name].shard_lengths or ()) if self.info.splits else 1
                     _filename = filenames_for_dataset_split(
-                        self._output_dir, _dataset_name, split, filetype_suffix=file_format, num_shards=num_shards
+                        self._output_dir, _dataset_name, split_name, filetype_suffix=file_format, num_shards=num_shards
                     )[0]
                     if self._fs.exists(_filename):
-                        splits.pop(split)  # split is already cached
+                        splits.pop(split_name)  # split is already cached
             requested_splits_exist = not splits
             if info_exists and requested_splits_exist and download_mode == DownloadMode.REUSE_DATASET_IF_EXISTS:
                 logger.info(f"Found cached dataset {self.dataset_name} ({self._output_dir})")
@@ -1031,7 +1048,7 @@ class DatasetBuilder:
                         except ConnectionError:
                             logger.warning("HF google storage unreachable. Downloading and preparing it from source")
                     if not downloaded_from_gcs:
-                        prepare_split_kwargs = {"file_format": file_format}
+                        prepare_split_kwargs = {"file_format": file_format, "splits": splits}
                         if max_shard_size is not None:
                             prepare_split_kwargs["max_shard_size"] = max_shard_size
                         if num_proc is not None:
@@ -1106,6 +1123,7 @@ class DatasetBuilder:
                 if `NO_CHECKS`, do not perform any verification.
             prepare_split_kwargs: Additional options, such as `file_format`, `max_shard_size`
         """
+        splits = prepare_split_kwargs.get("splits", None)
         # Generating data for all splits
         split_dict = SplitDict(dataset_name=self.dataset_name)
         split_generators_kwargs = self._make_split_generators_kwargs(prepare_split_kwargs)
@@ -1149,7 +1167,11 @@ class DatasetBuilder:
             dl_manager.manage_extracted_files()
 
         if verification_mode == VerificationMode.BASIC_CHECKS or verification_mode == VerificationMode.ALL_CHECKS:
-            verify_splits(self.info.splits, split_dict)
+            expected_splits = self.info.splits
+            if splits is not None:
+                expected_splits = {split: expected_splits[split] for split in splits}
+            # import pdb; pdb.set_trace()
+            verify_splits(expected_splits, split_dict)
 
         # Update the info object with the splits.
         self.info.splits = split_dict
@@ -1194,7 +1216,8 @@ class DatasetBuilder:
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
         """Get kwargs for `self._split_generators()` from `prepare_split_kwargs`."""
-        del prepare_split_kwargs
+        if "splits" in inspect.signature(self._split_generators).parameters:
+            return {"splits": prepare_split_kwargs.pop("splits", None)}
         return {}
 
     def as_dataset(
@@ -1300,7 +1323,7 @@ class DatasetBuilder:
         """as_dataset for a single split."""
         if not isinstance(split, ReadInstruction):
             split = str(split)
-            if split == "all":
+            if split == Split.ALL:
                 split = "+".join(self.info.splits.keys())
             split = Split(split)
 

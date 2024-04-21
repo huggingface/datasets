@@ -2607,6 +2607,7 @@ def load_dataset(
 
     # Download and prepare data
     builder_instance.download_and_prepare(
+        split=split,
         download_config=download_config,
         download_mode=download_mode,
         verification_mode=verification_mode,

@@ -181,7 +181,7 @@ class DatasetInfo:
             else:
                 self.version = Version.from_dict(self.version)
         if self.splits is not None and not isinstance(self.splits, SplitDict):
-            self.splits = SplitDict.from_split_dict(self.splits)
+            self.splits = SplitDict.from_split_dict(self.splits, self.dataset_name)
         if self.supervised_keys is not None and not isinstance(self.supervised_keys, SupervisedKeysData):
             if isinstance(self.supervised_keys, (tuple, list)):
                 self.supervised_keys = SupervisedKeysData(*self.supervised_keys)
