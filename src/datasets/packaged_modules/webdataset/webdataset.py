@@ -39,12 +39,18 @@ class WebDataset(datasets.GeneratorBasedBuilder):
     def _info(self) -> datasets.DatasetInfo:
         return datasets.DatasetInfo()
 
-    def _split_generators(self, dl_manager):
+    def _split_generators(self, dl_manager, splits):
         """We handle string, list and dicts in datafiles"""
         # Download the data files
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
-        data_files = dl_manager.download(self.config.data_files)
+        data_files = self.config.data_files
+        if splits and isinstance(data_files, dict):
+            missing_splits = set(splits) - set(self.config.data_files)
+            if missing_splits:
+                raise ValueError(f"Split names {list(missing_splits)} not found in data files={data_files}")
+            data_files = {split: data_files[split] for split in splits}
+        data_files = dl_manager.download_and_extract(data_files)
         if isinstance(data_files, (str, list, tuple)):
             tar_paths = data_files
             if isinstance(tar_paths, str):
