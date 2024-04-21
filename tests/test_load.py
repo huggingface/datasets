@@ -1441,12 +1441,35 @@ def test_load_dataset_with_unsupported_extensions(text_dir_with_unsupported_exte
     assert ds.num_rows == 4
 
 
+def test_load_dataset_specific_splits(data_dir):
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        with load_dataset(data_dir, split="train", cache_dir=tmp_dir) as dataset:
+            assert isinstance(dataset, Dataset)
+            assert len(dataset) > 0
+
+        processed_dataset_dir = load_dataset_builder(data_dir, cache_dir=tmp_dir).cache_dir
+        arrow_files = Path(processed_dataset_dir).glob("*.arrow")
+        assert all(arrow_file.name.split("-", 1)[1].startswith("train") for arrow_file in arrow_files)
+
+
 @pytest.mark.integration
 def test_loading_from_the_datasets_hub():
     with tempfile.TemporaryDirectory() as tmp_dir:
         with load_dataset(SAMPLE_DATASET_IDENTIFIER, cache_dir=tmp_dir) as dataset:
             assert len(dataset["train"]) == 2
             assert len(dataset["validation"]) == 3
+
+
+@pytest.mark.integration
+def test_loading_from_dataset_from_hub_specific_splits():
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        with load_dataset(SAMPLE_DATASET_IDENTIFIER2, split="train", cache_dir=tmp_dir) as dataset:
+            assert isinstance(dataset, Dataset)
+            assert len(dataset) > 0
+
+        processed_dataset_dir = load_dataset_builder(SAMPLE_DATASET_IDENTIFIER2, cache_dir=tmp_dir).cache_dir
+        arrow_files = Path(processed_dataset_dir).glob("*.arrow")
+        assert all(arrow_file.name.split("-", 1)[1].startswith("train") for arrow_file in arrow_files)
 
 
 @pytest.mark.integration
