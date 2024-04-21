@@ -1170,7 +1170,6 @@ class DatasetBuilder:
             expected_splits = self.info.splits
             if splits is not None:
                 expected_splits = {split: expected_splits[split] for split in splits}
-            # import pdb; pdb.set_trace()
             verify_splits(expected_splits, split_dict)
 
         # Update the info object with the splits.
