@@ -2122,9 +2122,9 @@ class BeamBasedBuilder(DatasetBuilder):
         # it's in the call signature of `_split_generators()`.
         # This allows for global preprocessing in beam.
         split_generators_kwargs = {}
-        split_generators_arg_names = inspect.signature(self._split_generators).parameters.keys()
-        if "pipeline" in split_generators_arg_names:
+        if "pipeline" in inspect.signature(self._split_generators).parameters:
             split_generators_kwargs["pipeline"] = prepare_split_kwargs["pipeline"]
+        split_generators_kwargs.update(super()._make_split_generators_kwargs(prepare_split_kwargs))
         return split_generators_kwargs
 
     @abc.abstractmethod

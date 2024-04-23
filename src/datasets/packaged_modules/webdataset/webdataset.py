@@ -50,7 +50,7 @@ class WebDataset(datasets.GeneratorBasedBuilder):
             if missing_splits:
                 raise ValueError(f"Splits {list(missing_splits)} not found. Available splits: {list(data_files)}")
             data_files = {split: data_files[split] for split in splits}
-        data_files = dl_manager.download_and_extract(data_files)
+        data_files = dl_manager.download(data_files)
         if isinstance(data_files, (str, list, tuple)):
             tar_paths = data_files
             if isinstance(tar_paths, str):
