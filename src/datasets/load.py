@@ -36,6 +36,7 @@ import fsspec
 import requests
 import yaml
 from fsspec.core import url_to_fs
+from fsspec.utils import stringify_path
 from huggingface_hub import DatasetCard, DatasetCardData, HfApi, HfFileSystem
 
 from . import config
@@ -89,6 +90,7 @@ from .utils.info_utils import VerificationMode, is_small_dataset
 from .utils.logging import get_logger
 from .utils.metadata import MetadataConfigs
 from .utils.py_utils import get_imports, lock_importable_file
+from .utils.typing import PathLike
 from .utils.version import Version
 
 
@@ -2632,14 +2634,17 @@ def load_dataset(
 
 
 def load_from_disk(
-    dataset_path: str, fs="deprecated", keep_in_memory: Optional[bool] = None, storage_options: Optional[dict] = None
+    dataset_path: PathLike,
+    fs="deprecated",
+    keep_in_memory: Optional[bool] = None,
+    storage_options: Optional[dict] = None,
 ) -> Union[Dataset, DatasetDict]:
     """
     Loads a dataset that was previously saved using [`~Dataset.save_to_disk`] from a dataset directory, or
     from a filesystem using any implementation of `fsspec.spec.AbstractFileSystem`.
 
     Args:
-        dataset_path (`str`):
+        dataset_path (`PathLike`):
             Path (e.g. `"dataset/train"`) or remote URI (e.g.
             `"s3://my-bucket/dataset/train"`) of the [`Dataset`] or [`DatasetDict`] directory where the dataset will be
             loaded from.
@@ -2684,7 +2689,7 @@ def load_from_disk(
         storage_options = fs.storage_options
 
     fs: fsspec.AbstractFileSystem
-    fs, *_ = url_to_fs(dataset_path, **(storage_options or {}))
+    fs, *_ = url_to_fs(stringify_path(dataset_path), **(storage_options or {}))
     if not fs.exists(dataset_path):
         raise FileNotFoundError(f"Directory {dataset_path} not found")
     if fs.isfile(posixpath.join(dataset_path, config.DATASET_INFO_FILENAME)) and fs.isfile(
