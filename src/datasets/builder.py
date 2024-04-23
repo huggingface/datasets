@@ -991,7 +991,7 @@ class DatasetBuilder:
                     if self._fs.exists(_filename):
                         cached_splits.append(split_name)
                 splits = [split for split in splits if split not in cached_splits]  # only download missing splits
-            requested_splits_exist = splits is not None and not splits
+            requested_splits_exist = not splits
             if info_exists and requested_splits_exist and download_mode == DownloadMode.REUSE_DATASET_IF_EXISTS:
                 logger.info(f"Found cached dataset {self.dataset_name} ({self._output_dir})")
                 self.download_post_processing_resources(dl_manager)

@@ -1462,6 +1462,27 @@ def test_load_dataset_specific_splits(data_dir):
             load_dataset(data_dir, split="non-existing-split", cache_dir=tmp_dir)
 
 
+def test_load_dataset_specific_splits_then_full(data_dir):
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        with load_dataset(data_dir, split="train", cache_dir=tmp_dir) as dataset:
+            assert isinstance(dataset, Dataset)
+            assert len(dataset) > 0
+
+        processed_dataset_dir = load_dataset_builder(data_dir, cache_dir=tmp_dir).cache_dir
+        arrow_files = Path(processed_dataset_dir).glob("*.arrow")
+        assert all(arrow_file.name.split("-", 1)[1].startswith("train") for arrow_file in arrow_files)
+
+        with load_dataset(data_dir, cache_dir=tmp_dir) as dataset:
+            assert isinstance(dataset, DatasetDict)
+            assert len(dataset) > 0
+            assert "train" in dataset
+            assert "test" in dataset
+            dataset_splits = list(dataset.keys())
+
+        arrow_files = Path(processed_dataset_dir).glob("*.arrow")
+        assert all(arrow_file.name.split("-", 1)[1].startswith(tuple(dataset_splits)) for arrow_file in arrow_files)
+
+
 @pytest.mark.integration
 def test_loading_from_the_datasets_hub():
     with tempfile.TemporaryDirectory() as tmp_dir:
