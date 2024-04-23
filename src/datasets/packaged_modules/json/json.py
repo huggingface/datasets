@@ -51,9 +51,9 @@ class Json(datasets.ArrowBasedBuilder):
         dl_manager.download_config.extract_on_the_fly = True
         data_files = self.config.data_files
         if splits and isinstance(data_files, dict):
-            missing_splits = set(splits) - set(self.config.data_files)
+            missing_splits = set(splits) - set(data_files)
             if missing_splits:
-                raise ValueError(f"Split names {list(missing_splits)} not found in data files={data_files}")
+                raise ValueError(f"Splits {list(missing_splits)} not found. Available splits: {list(data_files)}")
             data_files = {split: data_files[split] for split in splits}
         data_files = dl_manager.download_and_extract(data_files)
         if isinstance(data_files, (str, list, tuple)):

@@ -107,9 +107,9 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
 
         data_files = self.config.data_files
         if splits and isinstance(data_files, dict):
-            missing_splits = set(splits) - set(self.config.data_files)
+            missing_splits = set(splits) - set(data_files)
             if missing_splits:
-                raise ValueError(f"Split names {list(missing_splits)} not found in data files={data_files}")
+                raise ValueError(f"Splits {list(missing_splits)} not found. Available splits: {list(data_files)}")
             data_files = {split: data_files[split] for split in splits}
         splits = []
         for split_name, files in data_files.items():
