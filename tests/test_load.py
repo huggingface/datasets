@@ -1451,6 +1451,16 @@ def test_load_dataset_specific_splits(data_dir):
         arrow_files = Path(processed_dataset_dir).glob("*.arrow")
         assert all(arrow_file.name.split("-", 1)[1].startswith("train") for arrow_file in arrow_files)
 
+        with load_dataset(data_dir, split="test", cache_dir=tmp_dir) as dataset:
+            assert isinstance(dataset, Dataset)
+            assert len(dataset) > 0
+
+        arrow_files = Path(processed_dataset_dir).glob("*.arrow")
+        assert all(arrow_file.name.split("-", 1)[1].startswith(("train", "test")) for arrow_file in arrow_files)
+
+        with pytest.raises(ValueError):
+            load_dataset(data_dir, split="non-existing-split", cache_dir=tmp_dir)
+
 
 @pytest.mark.integration
 def test_loading_from_the_datasets_hub():
@@ -1470,6 +1480,16 @@ def test_loading_from_dataset_from_hub_specific_splits():
         processed_dataset_dir = load_dataset_builder(SAMPLE_DATASET_IDENTIFIER2, cache_dir=tmp_dir).cache_dir
         arrow_files = Path(processed_dataset_dir).glob("*.arrow")
         assert all(arrow_file.name.split("-", 1)[1].startswith("train") for arrow_file in arrow_files)
+
+        with load_dataset(SAMPLE_DATASET_IDENTIFIER2, split="test", cache_dir=tmp_dir) as dataset:
+            assert isinstance(dataset, Dataset)
+            assert len(dataset) > 0
+
+        arrow_files = Path(processed_dataset_dir).glob("*.arrow")
+        assert all(arrow_file.name.split("-", 1)[1].startswith(("train", "test")) for arrow_file in arrow_files)
+
+        with pytest.raises(ValueError):
+            load_dataset(SAMPLE_DATASET_IDENTIFIER2, split="non-existing-split", cache_dir=tmp_dir)
 
 
 @pytest.mark.integration
