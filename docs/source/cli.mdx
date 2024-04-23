@@ -1,0 +1,48 @@
+# Command Line Interface (CLI)
+
+🤗 Datasets provides a command line interface (CLI) with useful shell commands to interact with your dataset.
+
+You can check the available commands:
+```shell
+$ datasets-cli --help
+usage: datasets-cli <command> [<args>]
+
+positional arguments:
+  {convert,env,test,run_beam,dummy_data,convert_to_parquet}
+                        datasets-cli command helpers
+    convert             Convert a TensorFlow Datasets dataset to a HuggingFace Datasets dataset.
+    env                 Print relevant system environment info.
+    test                Test dataset implementation.
+    run_beam            Run a Beam dataset processing pipeline
+    dummy_data          Generate dummy data.
+    convert_to_parquet  Convert dataset to Parquet
+
+optional arguments:
+  -h, --help            show this help message and exit
+```
+
+## Convert to Parquet
+
+Easily convert your Hub script-dataset to Parquet files, so that the dataset viewer will be supported.
+
+```shell
+$ datasets-cli convert_to_parquet --help
+usage: datasets-cli <command> [<args>] convert_to_parquet [-h] [--token TOKEN] [--revision REVISION] [--trust_remote_code] dataset_id
+
+positional arguments:
+  dataset_id           source dataset ID
+
+optional arguments:
+  -h, --help           show this help message and exit
+  --token TOKEN        access token to the Hugging Face Hub
+  --revision REVISION  source revision
+  --trust_remote_code  whether to trust the code execution of the load script
+```
+
+This command:
+- makes a copy of the script on the "main" branch into a dedicated branch called "script" (if it does not already exists)
+- creates a pull request to the Hub dataset to convert it to Parquet files (and deletes the script from the main branch)
+
+If in the future you need to recreate the Parquet files from the "script" branch, pass the `--revision script` argument.
+
+Note that you should pass the `--trust_remote_code` argument only if you trust the remote code to be executed locally on your machine.
