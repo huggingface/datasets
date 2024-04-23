@@ -2,7 +2,7 @@ import time
 from argparse import ArgumentParser
 from typing import Optional
 
-from huggingface_hub import HfApi, get_repo_discussions
+from huggingface_hub import HfApi, create_branch, get_repo_discussions
 
 from datasets import get_dataset_config_names, get_dataset_default_config_name, load_dataset
 from datasets.commands import BaseDatasetsCLICommand
@@ -88,6 +88,8 @@ class ConvertToParquetCommand(BaseDatasetsCLICommand):
             )
             time.sleep(5)
         delete_files(dataset_id, revision=pr_revision, token=token)
+        if not revision:
+            create_branch(dataset_id, branch="script", repo_type="dataset", token=token, exist_ok=True)
         print(f"You can find your PR to convert the dataset to Parquet at: {pr_url}")
 
 
