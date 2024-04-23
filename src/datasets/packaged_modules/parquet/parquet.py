@@ -36,7 +36,7 @@ class Parquet(datasets.ArrowBasedBuilder):
             )
         return datasets.DatasetInfo(features=self.config.features)
 
-    def _split_generators(self, dl_manager, splits):
+    def _split_generators(self, dl_manager, splits: Optional[List[str]] = None):
         """We handle string, list and dicts in datafiles"""
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")

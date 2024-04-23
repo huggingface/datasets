@@ -2,7 +2,7 @@ import itertools
 import warnings
 from dataclasses import InitVar, dataclass
 from io import StringIO
-from typing import Optional
+from typing import List, Optional
 
 import pyarrow as pa
 
@@ -42,7 +42,7 @@ class Text(datasets.ArrowBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
 
-    def _split_generators(self, dl_manager, splits):
+    def _split_generators(self, dl_manager, splits: Optional[List[str]] = None):
         """The `data_files` kwarg in load_dataset() can be a str, List[str], Dict[str,str], or Dict[str,List[str]].
 
         If str or List[str], then the dataset returns only the 'train' split.

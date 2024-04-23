@@ -2,7 +2,7 @@ import io
 import itertools
 import json
 from dataclasses import dataclass
-from typing import Optional
+from typing import List, Optional
 
 import pyarrow as pa
 import pyarrow.json as paj
@@ -44,7 +44,7 @@ class Json(datasets.ArrowBasedBuilder):
             raise ValueError("The JSON loader parameter `newlines_in_values` is no longer supported")
         return datasets.DatasetInfo(features=self.config.features)
 
-    def _split_generators(self, dl_manager, splits):
+    def _split_generators(self, dl_manager, splits: Optional[List[str]] = None):
         """We handle string, list and dicts in datafiles"""
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")

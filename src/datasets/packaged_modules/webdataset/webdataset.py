@@ -1,7 +1,7 @@
 import io
 import json
 from itertools import islice
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
 import pyarrow as pa
@@ -39,7 +39,7 @@ class WebDataset(datasets.GeneratorBasedBuilder):
     def _info(self) -> datasets.DatasetInfo:
         return datasets.DatasetInfo()
 
-    def _split_generators(self, dl_manager, splits):
+    def _split_generators(self, dl_manager, splits: Optional[List[str]] = None):
         """We handle string, list and dicts in datafiles"""
         # Download the data files
         if not self.config.data_files:

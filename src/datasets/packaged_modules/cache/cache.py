@@ -169,7 +169,7 @@ class Cache(datasets.ArrowBasedBuilder):
         if output_dir is not None and output_dir != self.cache_dir:
             shutil.copytree(self.cache_dir, output_dir)
 
-    def _split_generators(self, dl_manager, splits):
+    def _split_generators(self, dl_manager, splits: Optional[List[str]] = None):
         # used to stream from cache
         if isinstance(self.info.splits, datasets.SplitDict):
             split_infos: List[datasets.SplitInfo] = list(self.info.splits.values())
