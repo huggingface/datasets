@@ -54,6 +54,9 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
 
+    def _available_splits(self) -> Optional[List[str]]:
+        return [str(split) for split in self.config.data_files] if isinstance(self.config.data_files, dict) else None
+
     def _split_generators(self, dl_manager, splits: Optional[List[str]] = None):
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
@@ -107,9 +110,6 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
 
         data_files = self.config.data_files
         if splits and isinstance(data_files, dict):
-            missing_splits = set(splits) - set(data_files)
-            if missing_splits:
-                raise ValueError(f"Splits {list(missing_splits)} not found. Available splits: {list(data_files)}")
             data_files = {split: data_files[split] for split in splits}
         splits = []
         for split_name, files in data_files.items():

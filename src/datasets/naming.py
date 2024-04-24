@@ -59,12 +59,13 @@ def filename_prefix_for_split(name, split):
     return f"{filename_prefix_for_name(name)}-{split}"
 
 
-def filepattern_for_dataset_split(dataset_name, split, data_dir, filetype_suffix=None):
+def filepattern_for_dataset_split(path, dataset_name, split, filetype_suffix=None):
     prefix = filename_prefix_for_split(dataset_name, split)
+    filepath = posixpath.join(path, prefix)
+    filepath = f"{filepath}*"
     if filetype_suffix:
-        prefix += f".{filetype_suffix}"
-    filepath = posixpath.join(data_dir, prefix)
-    return f"{filepath}*"
+        filepath += f".{filetype_suffix}"
+    return filepath
 
 
 def filenames_for_dataset_split(path, dataset_name, split, filetype_suffix=None, num_shards=1):

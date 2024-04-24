@@ -42,6 +42,9 @@ class Text(datasets.ArrowBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
 
+    def _available_splits(self) -> Optional[List[str]]:
+        return [str(split) for split in self.config.data_files] if isinstance(self.config.data_files, dict) else None
+
     def _split_generators(self, dl_manager, splits: Optional[List[str]] = None):
         """The `data_files` kwarg in load_dataset() can be a str, List[str], Dict[str,str], or Dict[str,List[str]].
 
@@ -53,9 +56,6 @@ class Text(datasets.ArrowBasedBuilder):
         dl_manager.download_config.extract_on_the_fly = True
         data_files = self.config.data_files
         if splits and isinstance(data_files, dict):
-            missing_splits = set(splits) - set(data_files)
-            if missing_splits:
-                raise ValueError(f"Splits {list(missing_splits)} not found. Available splits: {list(data_files)}")
             data_files = {split: data_files[split] for split in splits}
         data_files = dl_manager.download_and_extract(data_files)
         if isinstance(data_files, (str, list, tuple)):
