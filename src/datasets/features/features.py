@@ -1418,7 +1418,7 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
         return {field.name: generate_from_arrow_type(field.type) for field in pa_type}
     elif isinstance(pa_type, pa.FixedSizeListType):
         return Sequence(feature=generate_from_arrow_type(pa_type.value_type), length=pa_type.list_size)
-    elif isinstance(pa_type, pa.ListType):
+    elif isinstance(pa_type, pa.ListType | pa.LargeListType):
         feature = generate_from_arrow_type(pa_type.value_type)
         if isinstance(feature, (dict, tuple, list)):
             return [feature]
