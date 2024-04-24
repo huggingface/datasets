@@ -1110,10 +1110,10 @@ class DatasetBuilder:
                             **download_and_prepare_kwargs,
                         )
                     # Sync info
-                    if self.info.download_checksums is None:
-                        self.info.download_checksums = dl_manager.get_recorded_sizes_checksums()
-                    else:
+                    if supports_partial_generation and self.info.download_checksums is not None:
                         self.info.download_checksums.update(dl_manager.get_recorded_sizes_checksums())
+                    else:
+                        self.info.download_checksums = dl_manager.get_recorded_sizes_checksums()
                     self.info.dataset_size = sum(split.num_bytes for split in self.info.splits.values())
                     self.info.download_size = sum(
                         checksum["num_bytes"] for checksum in self.info.download_checksums.values()
@@ -1228,10 +1228,17 @@ class DatasetBuilder:
             verify_splits(self.info.splits, split_dict)
 
         # Update the info object with the generated splits.
-        if self.info.splits is None:
-            self.info.splits = split_dict
+        if self._supports_partial_generation():
+            split_infos = self.info.splits or {}
+            ordered_split_infos = {}
+            for split_name in self._available_splits():
+                if split_name in split_dict:
+                    ordered_split_infos[split_name] = split_dict[split_name]
+                elif split_name in split_infos:
+                    ordered_split_infos[split_name] = split_infos[split_name]
+            self.info.splits = SplitDict.from_split_dict(ordered_split_infos, dataset_name=self.dataset_name)
         else:
-            self.info.splits.update(split_dict)
+            self.info.splits = split_dict
 
     def download_post_processing_resources(self, dl_manager):
         for split in self.info.splits or []:
