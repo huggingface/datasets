@@ -1477,7 +1477,7 @@ def test_load_dataset_specific_splits_then_full(data_dir):
             assert len(dataset) > 0
             assert "train" in dataset
             assert "test" in dataset
-            dataset_splits = list(dataset.keys())
+            dataset_splits = list(dataset)
 
         arrow_files = Path(processed_dataset_dir).glob("*.arrow")
         assert all(arrow_file.name.split("-", 1)[1].startswith(tuple(dataset_splits)) for arrow_file in arrow_files)
