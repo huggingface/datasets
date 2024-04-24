@@ -28,7 +28,9 @@ def delete_from_hub(
     fs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=token)
     builder = load_dataset_builder(repo_id, config_name, revision=revision, token=token, trust_remote_code=False)
     for data_file in chain(*builder.config.data_files.values()):
-        operations.append(CommitOperationDelete(path_in_repo=fs.resolve_path(data_file).path_in_repo))
+        data_file_resolved_path = fs.resolve_path(data_file)
+        if data_file_resolved_path.repo_id == repo_id:
+            operations.append(CommitOperationDelete(path_in_repo=data_file_resolved_path.path_in_repo))
     # README.md
     dataset_card = DatasetCard.load(repo_id)
     # config_names
