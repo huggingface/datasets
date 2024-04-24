@@ -46,3 +46,8 @@ This command:
 If in the future you need to recreate the Parquet files from the "script" branch, pass the `--revision script` argument.
 
 Note that you should pass the `--trust_remote_code` argument only if you trust the remote code to be executed locally on your machine.
+
+For example:
+```shell
+$ datasets-cli convert_to_parquet USERNAME/DATASET_NAME --token USER_ACCESS_TOKEN
+```
