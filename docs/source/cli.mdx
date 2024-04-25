@@ -3,7 +3,7 @@
 🤗 Datasets provides a command line interface (CLI) with useful shell commands to interact with your dataset.
 
 You can check the available commands:
-```shell
+```bash
 >>> datasets-cli --help
 usage: datasets-cli <command> [<args>]
 
@@ -25,7 +25,7 @@ optional arguments:
 
 Easily convert your Hub [script-based dataset](dataset_script) to Parquet [data-only dataset](repository_structure), so that the dataset viewer will be supported.
 
-```shell
+```bash
 >>> datasets-cli convert_to_parquet --help
 usage: datasets-cli <command> [<args>] convert_to_parquet [-h] [--token TOKEN] [--revision REVISION] [--trust_remote_code] dataset_id
 
@@ -48,6 +48,6 @@ If in the future you need to recreate the Parquet files from the "script" branch
 Note that you should pass the `--trust_remote_code` argument only if you trust the remote code to be executed locally on your machine.
 
 For example:
-```shell
+```bash
 >>> datasets-cli convert_to_parquet USERNAME/DATASET_NAME --token USER_ACCESS_TOKEN
 ```
