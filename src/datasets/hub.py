@@ -23,6 +23,18 @@ def delete_from_hub(
     revision: Optional[str] = None,
     token: Optional[Union[bool, str]] = None,
 ) -> CommitInfo:
+    """Delete a dataset configuration from a [data-only dataset](repository_structure) on the Hub.
+
+    Args:
+        repo_id (`str`): ID of the Hub dataset repository, in the following format: `<user>/<dataset_name>` or
+            `<org>/<dataset_name>`.
+        config_name (`str`): Name of the dataset configuration.
+        revision (`str`, *optional*): Branch to delete the configuration from. Defaults to the `"main"` branch.
+        token (`bool` or `str`, *optional*): Authentication token for the Hugging Face Hub.
+
+    Returns:
+        huggingface_hub.CommitInfo
+    """
     operations = []
     # data_files
     fs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=token)
