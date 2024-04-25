@@ -24,7 +24,7 @@ class ConvertToParquetCommand(BaseDatasetsCLICommand):
         parser.add_argument(
             "dataset_id", help="source dataset ID, e.g. USERNAME/DATASET_NAME or ORGANIZATION/DATASET_NAME"
         )
-        parser.add_argument("--token", help="access token to the Hugging Face Hub")
+        parser.add_argument("--token", help="access token to the Hugging Face Hub (defaults to logged-in user's one)")
         parser.add_argument("--revision", help="source revision")
         parser.add_argument(
             "--trust_remote_code", action="store_true", help="whether to trust the code execution of the load script"
