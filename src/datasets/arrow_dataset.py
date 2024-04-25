@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # Lint as: python3
-""" Simple Dataset wrapping an Arrow Table."""
+"""Simple Dataset wrapping an Arrow Table."""
 
 import contextlib
 import copy
