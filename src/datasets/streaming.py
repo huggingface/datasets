@@ -4,7 +4,7 @@ from functools import wraps
 from typing import TYPE_CHECKING, Optional
 
 from .download.download_config import DownloadConfig
-from .download.streaming_download_manager import (
+from .utils.file_utils import (
     xbasename,
     xdirname,
     xet_parse,

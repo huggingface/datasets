@@ -879,6 +879,33 @@ class QueryTest(TestCase):
             assert len(indices) < n
             query_table(table, [len(indices)], indices=indices)
 
+    def test_query_table_indexable_type(self):
+        pa_table = self._create_dummy_table()
+        table = InMemoryTable(pa_table)
+        n = pa_table.num_rows
+        # classical usage
+        subtable = query_table(table, np.int64(0))
+        self.assertTableEqual(subtable, pa.Table.from_pydict({"a": _COL_A[:1], "b": _COL_B[:1], "c": _COL_C[:1]}))
+        subtable = query_table(table, np.int64(1))
+        self.assertTableEqual(subtable, pa.Table.from_pydict({"a": _COL_A[1:2], "b": _COL_B[1:2], "c": _COL_C[1:2]}))
+        subtable = query_table(table, np.int64(-1))
+        self.assertTableEqual(subtable, pa.Table.from_pydict({"a": _COL_A[-1:], "b": _COL_B[-1:], "c": _COL_C[-1:]}))
+        # raise an IndexError
+        with self.assertRaises(IndexError):
+            query_table(table, np.int64(n))
+        with self.assertRaises(IndexError):
+            query_table(table, np.int64(-(n + 1)))
+        # with indices
+        indices = InMemoryTable(self._create_dummy_arrow_indices())
+        subtable = query_table(table, np.int64(0), indices=indices)
+        self.assertTableEqual(
+            subtable,
+            pa.Table.from_pydict({"a": [_COL_A[_INDICES[0]]], "b": [_COL_B[_INDICES[0]]], "c": [_COL_C[_INDICES[0]]]}),
+        )
+        with self.assertRaises(IndexError):
+            assert len(indices) < n
+            query_table(table, np.int64(len(indices)), indices=indices)
+
     def test_query_table_invalid_key_type(self):
         pa_table = self._create_dummy_table()
         table = InMemoryTable(pa_table)

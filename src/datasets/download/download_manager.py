@@ -17,20 +17,24 @@
 
 import enum
 import io
+import multiprocessing
 import os
 import posixpath
-import tarfile
 import warnings
-import zipfile
 from datetime import datetime
 from functools import partial
-from itertools import chain
-from typing import Callable, Dict, Generator, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
+
+import fsspec
+from fsspec.core import url_to_fs
+from tqdm.contrib.concurrent import thread_map
 
 from .. import config
 from ..utils import tqdm as hf_tqdm
 from ..utils.deprecation_utils import DeprecatedEnum, deprecated
 from ..utils.file_utils import (
+    ArchiveIterable,
+    FilesIterable,
     cached_path,
     get_from_cache,
     hash_url_to_filename,
@@ -39,47 +43,13 @@ from ..utils.file_utils import (
     url_or_path_join,
 )
 from ..utils.info_utils import get_size_checksum_dict
-from ..utils.logging import get_logger
+from ..utils.logging import get_logger, tqdm
 from ..utils.py_utils import NestedDataStructure, map_nested, size_str
-from ..utils.track import TrackedIterable, tracked_str
+from ..utils.track import tracked_str
 from .download_config import DownloadConfig
 
 
 logger = get_logger(__name__)
-
-
-BASE_KNOWN_EXTENSIONS = [
-    "txt",
-    "csv",
-    "json",
-    "jsonl",
-    "tsv",
-    "conll",
-    "conllu",
-    "orig",
-    "parquet",
-    "pkl",
-    "pickle",
-    "rel",
-    "xml",
-]
-MAGIC_NUMBER_TO_COMPRESSION_PROTOCOL = {
-    bytes.fromhex("504B0304"): "zip",
-    bytes.fromhex("504B0506"): "zip",  # empty archive
-    bytes.fromhex("504B0708"): "zip",  # spanned archive
-    bytes.fromhex("425A68"): "bz2",
-    bytes.fromhex("1F8B"): "gzip",
-    bytes.fromhex("FD377A585A00"): "xz",
-    bytes.fromhex("04224D18"): "lz4",
-    bytes.fromhex("28B52FFD"): "zstd",
-}
-MAGIC_NUMBER_TO_UNSUPPORTED_COMPRESSION_PROTOCOL = {
-    b"Rar!": "rar",
-}
-MAGIC_NUMBER_MAX_LENGTH = max(
-    len(magic_number)
-    for magic_number in chain(MAGIC_NUMBER_TO_COMPRESSION_PROTOCOL, MAGIC_NUMBER_TO_UNSUPPORTED_COMPRESSION_PROTOCOL)
-)
 
 
 class DownloadMode(enum.Enum):
@@ -111,153 +81,6 @@ class GenerateMode(DeprecatedEnum):
     @property
     def help_message(self):
         return "Use 'DownloadMode' instead."
-
-
-def _get_path_extension(path: str) -> str:
-    # Get extension: train.json.gz -> gz
-    extension = path.split(".")[-1]
-    # Remove query params ("dl=1", "raw=true"): gz?dl=1 -> gz
-    # Remove shards infos (".txt_1", ".txt-00000-of-00100"): txt_1 -> txt
-    for symb in "?-_":
-        extension = extension.split(symb)[0]
-    return extension
-
-
-def _get_extraction_protocol_with_magic_number(f) -> Optional[str]:
-    """read the magic number from a file-like object and return the compression protocol"""
-    # Check if the file object is seekable even before reading the magic number (to avoid https://bugs.python.org/issue26440)
-    try:
-        f.seek(0)
-    except (AttributeError, io.UnsupportedOperation):
-        return None
-    magic_number = f.read(MAGIC_NUMBER_MAX_LENGTH)
-    f.seek(0)
-    for i in range(MAGIC_NUMBER_MAX_LENGTH):
-        compression = MAGIC_NUMBER_TO_COMPRESSION_PROTOCOL.get(magic_number[: MAGIC_NUMBER_MAX_LENGTH - i])
-        if compression is not None:
-            return compression
-        compression = MAGIC_NUMBER_TO_UNSUPPORTED_COMPRESSION_PROTOCOL.get(magic_number[: MAGIC_NUMBER_MAX_LENGTH - i])
-        if compression is not None:
-            raise NotImplementedError(f"Compression protocol '{compression}' not implemented.")
-
-
-def _get_extraction_protocol(path: str) -> Optional[str]:
-    path = str(path)
-    extension = _get_path_extension(path)
-    # TODO(mariosasko): The below check will be useful once we can preserve the original extension in the new cache layout (use the `filename` parameter of `hf_hub_download`)
-    if (
-        extension in BASE_KNOWN_EXTENSIONS
-        or extension in ["tgz", "tar"]
-        or path.endswith((".tar.gz", ".tar.bz2", ".tar.xz"))
-    ):
-        return None
-    with open(path, "rb") as f:
-        return _get_extraction_protocol_with_magic_number(f)
-
-
-class _IterableFromGenerator(TrackedIterable):
-    """Utility class to create an iterable from a generator function, in order to reset the generator when needed."""
-
-    def __init__(self, generator: Callable, *args, **kwargs):
-        super().__init__()
-        self.generator = generator
-        self.args = args
-        self.kwargs = kwargs
-
-    def __iter__(self):
-        for x in self.generator(*self.args, **self.kwargs):
-            self.last_item = x
-            yield x
-        self.last_item = None
-
-
-class ArchiveIterable(_IterableFromGenerator):
-    """An iterable of (path, fileobj) from a TAR archive, used by `iter_archive`"""
-
-    @staticmethod
-    def _iter_tar(f):
-        stream = tarfile.open(fileobj=f, mode="r|*")
-        for tarinfo in stream:
-            file_path = tarinfo.name
-            if not tarinfo.isreg():
-                continue
-            if file_path is None:
-                continue
-            if os.path.basename(file_path).startswith((".", "__")):
-                # skipping hidden files
-                continue
-            file_obj = stream.extractfile(tarinfo)
-            yield file_path, file_obj
-            stream.members = []
-        del stream
-
-    @staticmethod
-    def _iter_zip(f):
-        zipf = zipfile.ZipFile(f)
-        for member in zipf.infolist():
-            file_path = member.filename
-            if member.is_dir():
-                continue
-            if file_path is None:
-                continue
-            if os.path.basename(file_path).startswith((".", "__")):
-                # skipping hidden files
-                continue
-            file_obj = zipf.open(member)
-            yield file_path, file_obj
-
-    @classmethod
-    def _iter_from_fileobj(cls, f) -> Generator[Tuple, None, None]:
-        compression = _get_extraction_protocol_with_magic_number(f)
-        if compression == "zip":
-            yield from cls._iter_zip(f)
-        else:
-            yield from cls._iter_tar(f)
-
-    @classmethod
-    def _iter_from_path(cls, urlpath: str) -> Generator[Tuple, None, None]:
-        compression = _get_extraction_protocol(urlpath)
-        with open(urlpath, "rb") as f:
-            if compression == "zip":
-                yield from cls._iter_zip(f)
-            else:
-                yield from cls._iter_tar(f)
-
-    @classmethod
-    def from_buf(cls, fileobj) -> "ArchiveIterable":
-        return cls(cls._iter_from_fileobj, fileobj)
-
-    @classmethod
-    def from_path(cls, urlpath_or_buf) -> "ArchiveIterable":
-        return cls(cls._iter_from_path, urlpath_or_buf)
-
-
-class FilesIterable(_IterableFromGenerator):
-    """An iterable of paths from a list of directories or files"""
-
-    @classmethod
-    def _iter_from_paths(cls, urlpaths: Union[str, List[str]]) -> Generator[str, None, None]:
-        if not isinstance(urlpaths, list):
-            urlpaths = [urlpaths]
-        for urlpath in urlpaths:
-            if os.path.isfile(urlpath):
-                yield urlpath
-            else:
-                for dirpath, dirnames, filenames in os.walk(urlpath):
-                    # in-place modification to prune the search
-                    dirnames[:] = sorted([dirname for dirname in dirnames if not dirname.startswith((".", "__"))])
-                    if os.path.basename(dirpath).startswith((".", "__")):
-                        # skipping hidden directories
-                        continue
-                    for filename in sorted(filenames):
-                        if filename.startswith((".", "__")):
-                            # skipping hidden files
-                            continue
-                        yield os.path.join(dirpath, filename)
-
-    @classmethod
-    def from_paths(cls, urlpaths) -> "FilesIterable":
-        return cls(cls._iter_from_paths, urlpaths)
 
 
 class DownloadManager:
@@ -427,7 +250,7 @@ class DownloadManager:
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading data"
 
-        download_func = partial(self._download, download_config=download_config)
+        download_func = partial(self._download_batched, download_config=download_config)
 
         start_time = datetime.now()
         with stack_multiprocessing_download_progress_bars():
@@ -437,6 +260,8 @@ class DownloadManager:
                 map_tuple=True,
                 num_proc=download_config.num_proc,
                 desc="Downloading data files",
+                batched=True,
+                batch_size=-1,
             )
         duration = datetime.now() - start_time
         logger.info(f"Downloading took {duration.total_seconds() // 60} min")
@@ -451,7 +276,46 @@ class DownloadManager:
 
         return downloaded_path_or_paths.data
 
-    def _download(self, url_or_filename: str, download_config: DownloadConfig) -> str:
+    def _download_batched(
+        self,
+        url_or_filenames: List[str],
+        download_config: DownloadConfig,
+    ) -> List[str]:
+        if len(url_or_filenames) >= 16:
+            download_config = download_config.copy()
+            download_config.disable_tqdm = True
+            download_func = partial(self._download_single, download_config=download_config)
+
+            fs: fsspec.AbstractFileSystem
+            fs, path = url_to_fs(url_or_filenames[0], **download_config.storage_options)
+            size = 0
+            try:
+                size = fs.info(path).get("size", 0)
+            except Exception:
+                pass
+            max_workers = (
+                config.HF_DATASETS_MULTITHREADING_MAX_WORKERS if size < (20 << 20) else 1
+            )  # enable multithreading if files are small
+
+            return thread_map(
+                download_func,
+                url_or_filenames,
+                desc=download_config.download_desc or "Downloading",
+                unit="files",
+                position=multiprocessing.current_process()._identity[-1]  # contains the ranks of subprocesses
+                if os.environ.get("HF_DATASETS_STACK_MULTIPROCESSING_DOWNLOAD_PROGRESS_BARS") == "1"
+                and multiprocessing.current_process()._identity
+                else None,
+                max_workers=max_workers,
+                tqdm_class=tqdm,
+            )
+        else:
+            return [
+                self._download_single(url_or_filename, download_config=download_config)
+                for url_or_filename in url_or_filenames
+            ]
+
+    def _download_single(self, url_or_filename: str, download_config: DownloadConfig) -> str:
         url_or_filename = str(url_or_filename)
         if is_relative_path(url_or_filename):
             # append the relative path to the base_path
@@ -484,7 +348,7 @@ class DownloadManager:
         if hasattr(path_or_buf, "read"):
             return ArchiveIterable.from_buf(path_or_buf)
         else:
-            return ArchiveIterable.from_path(path_or_buf)
+            return ArchiveIterable.from_urlpath(path_or_buf)
 
     def iter_files(self, paths: Union[str, List[str]]):
         """Iterate over file paths.
@@ -503,7 +367,7 @@ class DownloadManager:
         >>> files = dl_manager.iter_files(files)
         ```
         """
-        return FilesIterable.from_paths(paths)
+        return FilesIterable.from_urlpaths(paths)
 
     def extract(self, path_or_paths, num_proc="deprecated"):
         """Extract given path(s).
@@ -539,7 +403,7 @@ class DownloadManager:
             )
         download_config = self.download_config.copy()
         download_config.extract_compressed_file = True
-        extract_func = partial(self._download, download_config=download_config)
+        extract_func = partial(self._download_single, download_config=download_config)
         extracted_paths = map_nested(
             extract_func,
             path_or_paths,

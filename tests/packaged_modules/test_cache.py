@@ -8,6 +8,7 @@ from datasets.packaged_modules.cache.cache import Cache
 
 SAMPLE_DATASET_SINGLE_CONFIG_IN_METADATA = "hf-internal-testing/audiofolder_single_config_in_metadata"
 SAMPLE_DATASET_TWO_CONFIG_IN_METADATA = "hf-internal-testing/audiofolder_two_configs_in_metadata"
+SAMPLE_DATASET_CAPITAL_LETTERS_IN_NAME = "hf-internal-testing/DatasetWithCapitalLetters"
 
 
 def test_cache(text_dir: Path, tmp_path: Path):
@@ -133,3 +134,25 @@ def test_cache_single_config(tmp_path: Path):
             hash="auto",
         )
     assert config_name in str(excinfo.value)
+
+
+@pytest.mark.integration
+def test_cache_capital_letters(tmp_path: Path):
+    cache_dir = tmp_path / "test_cache_capital_letters"
+    repo_id = SAMPLE_DATASET_CAPITAL_LETTERS_IN_NAME
+    dataset_name = repo_id.split("/")[-1]
+    ds = load_dataset(repo_id, cache_dir=str(cache_dir))
+    cache = Cache(cache_dir=str(cache_dir), dataset_name=dataset_name, repo_id=repo_id, version="auto", hash="auto")
+    reloaded = cache.as_dataset()
+    assert list(ds) == list(reloaded)
+    assert len(ds["train"]) == len(reloaded["train"])
+    cache = Cache(
+        cache_dir=str(cache_dir),
+        dataset_name=dataset_name,
+        repo_id=repo_id,
+        version="auto",
+        hash="auto",
+    )
+    reloaded = cache.as_dataset()
+    assert list(ds) == list(reloaded)
+    assert len(ds["train"]) == len(reloaded["train"])

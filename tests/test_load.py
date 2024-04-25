@@ -46,7 +46,7 @@ from datasets.load import (
 from datasets.packaged_modules.audiofolder.audiofolder import AudioFolder, AudioFolderConfig
 from datasets.packaged_modules.imagefolder.imagefolder import ImageFolder, ImageFolderConfig
 from datasets.packaged_modules.parquet.parquet import ParquetConfig
-from datasets.utils import _datasets_server
+from datasets.utils import _dataset_viewer
 from datasets.utils.logging import INFO, get_logger
 
 from .utils import (
@@ -100,6 +100,7 @@ SAMPLE_DATASET_TWO_CONFIG_IN_METADATA = "hf-internal-testing/audiofolder_two_con
 SAMPLE_DATASET_TWO_CONFIG_IN_METADATA_WITH_DEFAULT = (
     "hf-internal-testing/audiofolder_two_configs_in_metadata_with_default"
 )
+SAMPLE_DATASET_CAPITAL_LETTERS_IN_NAME = "hf-internal-testing/DatasetWithCapitalLetters"
 
 
 METRIC_LOADING_SCRIPT_NAME = "__dummy_metric1__"
@@ -418,24 +419,28 @@ class ModuleFactoryTest(TestCase):
         )
 
     def test_HubDatasetModuleFactoryWithScript_dont_trust_remote_code(self):
-        # "lhoestq/test" has a dataset script
         factory = HubDatasetModuleFactoryWithScript(
-            "lhoestq/test", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+            "hf-internal-testing/dataset_with_script",
+            download_config=self.download_config,
+            dynamic_modules_path=self.dynamic_modules_path,
         )
         with patch.object(config, "HF_DATASETS_TRUST_REMOTE_CODE", None):  # this will be the default soon
             self.assertRaises(ValueError, factory.get_module)
         factory = HubDatasetModuleFactoryWithScript(
-            "lhoestq/test",
+            "hf-internal-testing/dataset_with_script",
             download_config=self.download_config,
             dynamic_modules_path=self.dynamic_modules_path,
             trust_remote_code=False,
         )
         self.assertRaises(ValueError, factory.get_module)
 
-    def test_HubDatasetModuleFactoryWithScript_with_github_dataset(self):
+    def test_HubDatasetModuleFactoryWithScript_with_hub_dataset(self):
         # "wmt_t2t" has additional imports (internal)
         factory = HubDatasetModuleFactoryWithScript(
-            "wmt_t2t", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+            "wmt_t2t",
+            download_config=self.download_config,
+            dynamic_modules_path=self.dynamic_modules_path,
+            revision="861aac88b2c6247dd93ade8b1c189ce714627750",
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
@@ -838,10 +843,10 @@ class ModuleFactoryTest(TestCase):
         )
         assert module_factory_result.builder_configs_parameters.builder_configs[0].data_files == {
             "train": [
-                "hf://datasets/hf-internal-testing/dataset_with_script@8f965694d611974ef8661618ada1b5aeb1072915/default/train/0000.parquet"
+                "hf://datasets/hf-internal-testing/dataset_with_script@0c97cd1168f31e683059ddcf0703e3f45d9007c4/default/train/0000.parquet"
             ],
             "validation": [
-                "hf://datasets/hf-internal-testing/dataset_with_script@8f965694d611974ef8661618ada1b5aeb1072915/default/validation/0000.parquet"
+                "hf://datasets/hf-internal-testing/dataset_with_script@0c97cd1168f31e683059ddcf0703e3f45d9007c4/default/validation/0000.parquet"
             ],
         }
 
@@ -858,7 +863,7 @@ class ModuleFactoryTest(TestCase):
             download_config=self.download_config,
             revision="wrong_sha",
         )
-        with self.assertRaises(_datasets_server.DatasetsServerError):
+        with self.assertRaises(_dataset_viewer.DatasetViewerError):
             factory.get_module()
 
     @pytest.mark.integration
@@ -1021,6 +1026,19 @@ class LoadTest(TestCase):
                 self.assertEqual(dataset_module_2.module_path, dataset_module_3.module_path)
                 self.assertNotEqual(dataset_module_1.module_path, dataset_module_3.module_path)
                 self.assertIn("Using the latest cached version of the module", self._caplog.text)
+
+    @pytest.mark.integration
+    def test_offline_dataset_module_factory_with_capital_letters_in_name(self):
+        repo_id = SAMPLE_DATASET_CAPITAL_LETTERS_IN_NAME
+        builder = load_dataset_builder(repo_id, cache_dir=self.cache_dir)
+        builder.download_and_prepare()
+        for offline_simulation_mode in list(OfflineSimulationMode):
+            with offline(offline_simulation_mode):
+                self._caplog.clear()
+                # allow provide the repo id without an explicit path to remote or local actual file
+                dataset_module = datasets.load.dataset_module_factory(repo_id, cache_dir=self.cache_dir)
+                self.assertEqual(dataset_module.module_path, "datasets.packaged_modules.cache.cache")
+                self.assertIn("Using the latest cached version of the dataset", self._caplog.text)
 
     def test_load_dataset_from_hub(self):
         with self.assertRaises(DatasetNotFoundError) as context:
@@ -1639,23 +1657,6 @@ def test_remote_data_files():
     assert isinstance(ds, IterableDataset)
     ds_item = next(iter(ds))
     assert ds_item.keys() == {"langs", "ner_tags", "spans", "tokens"}
-
-
-@pytest.mark.parametrize("deleted", [False, True])
-def test_load_dataset_deletes_extracted_files(deleted, jsonl_gz_path, tmp_path):
-    data_files = jsonl_gz_path
-    cache_dir = tmp_path / "cache"
-    if deleted:
-        download_config = DownloadConfig(delete_extracted=True, cache_dir=cache_dir / "downloads")
-        ds = load_dataset(
-            "json", split="train", data_files=data_files, cache_dir=cache_dir, download_config=download_config
-        )
-    else:  # default
-        ds = load_dataset("json", split="train", data_files=data_files, cache_dir=cache_dir)
-    assert ds[0] == {"col_1": "0", "col_2": 0, "col_3": 0.0}
-    assert (
-        [path for path in (cache_dir / "downloads" / "extracted").iterdir() if path.suffix != ".lock"] == []
-    ) is deleted
 
 
 def distributed_load_dataset(args):

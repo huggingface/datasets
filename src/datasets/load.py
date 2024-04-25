@@ -71,7 +71,7 @@ from .packaged_modules import (
     _hash_python_lines,
 )
 from .splits import Split
-from .utils import _datasets_server
+from .utils import _dataset_viewer
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import (
     OfflineModeIsEnabled,
@@ -1235,17 +1235,20 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             pass
         metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
         dataset_infos = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
-        try:
-            exported_dataset_infos = _datasets_server.get_exported_dataset_infos(
-                dataset=self.name, revision=self.revision, token=self.download_config.token
-            )
-            exported_dataset_infos = DatasetInfosDict(
-                {
-                    config_name: DatasetInfo.from_dict(exported_dataset_infos[config_name])
-                    for config_name in exported_dataset_infos
-                }
-            )
-        except _datasets_server.DatasetsServerError:
+        if config.USE_PARQUET_EXPORT:  # maybe don't use the infos from the parquet export
+            try:
+                exported_dataset_infos = _dataset_viewer.get_exported_dataset_infos(
+                    dataset=self.name, revision=self.revision, token=self.download_config.token
+                )
+                exported_dataset_infos = DatasetInfosDict(
+                    {
+                        config_name: DatasetInfo.from_dict(exported_dataset_infos[config_name])
+                        for config_name in exported_dataset_infos
+                    }
+                )
+            except _dataset_viewer.DatasetViewerError:
+                exported_dataset_infos = None
+        else:
             exported_dataset_infos = None
         if exported_dataset_infos:
             exported_dataset_infos.update(dataset_infos)
@@ -1372,10 +1375,10 @@ class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
-        exported_parquet_files = _datasets_server.get_exported_parquet_files(
+        exported_parquet_files = _dataset_viewer.get_exported_parquet_files(
             dataset=self.name, revision=self.revision, token=self.download_config.token
         )
-        exported_dataset_infos = _datasets_server.get_exported_dataset_infos(
+        exported_dataset_infos = _dataset_viewer.get_exported_dataset_infos(
             dataset=self.name, revision=self.revision, token=self.download_config.token
         )
         dataset_infos = DatasetInfosDict(
@@ -1608,7 +1611,10 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
             }
             return DatasetModule(module_path, hash, builder_kwargs, importable_file_path=importable_file_path)
         cache_dir = os.path.expanduser(str(self.cache_dir or config.HF_DATASETS_CACHE))
-        cached_datasets_directory_path_root = os.path.join(cache_dir, self.name.replace("/", "___"))
+        namespace_and_dataset_name = self.name.split("/")
+        namespace_and_dataset_name[-1] = camelcase_to_snakecase(namespace_and_dataset_name[-1])
+        cached_relative_path = "___".join(namespace_and_dataset_name)
+        cached_datasets_directory_path_root = os.path.join(cache_dir, cached_relative_path)
         cached_directory_paths = [
             cached_directory_path
             for cached_directory_path in glob.glob(os.path.join(cached_datasets_directory_path_root, "*", "*", "*"))
@@ -1864,7 +1870,7 @@ def dataset_module_factory(
                         return HubDatasetModuleFactoryWithParquetExport(
                             path, download_config=download_config, revision=dataset_info.sha
                         ).get_module()
-                    except _datasets_server.DatasetsServerError:
+                    except _dataset_viewer.DatasetViewerError:
                         pass
                 # Otherwise we must use the dataset script if the user trusts it
                 return HubDatasetModuleFactoryWithScript(
