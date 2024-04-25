@@ -9,6 +9,7 @@ from functools import partial
 from itertools import cycle, islice
 from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
+import fsspec.asyn
 import numpy as np
 import pyarrow as pa
 
@@ -16,7 +17,6 @@ from . import config
 from .arrow_dataset import Dataset, DatasetInfoMixin
 from .features import Features
 from .features.features import FeatureType, _align_features, _check_if_features_can_be_aligned, cast_to_python_objects
-from .filesystems import _reset_fsspec_lock
 from .formatting import PythonFormatter, TensorFormatter, get_format_type_from_alias, get_formatter
 from .info import DatasetInfo
 from .splits import NamedSplit
@@ -804,8 +804,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             input_columns=self.input_columns,
             batched=self.batched,
             batch_size=self.batch_size,
+            drop_last_batch=self.drop_last_batch,
             remove_columns=self.remove_columns,
             fn_kwargs=self.fn_kwargs,
+            formatting=self.formatting,
         )
 
     def shard_data_sources(self, worker_id: int, num_workers: int) -> "MappedExamplesIterable":
@@ -817,8 +819,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             input_columns=self.input_columns,
             batched=self.batched,
             batch_size=self.batch_size,
+            drop_last_batch=self.drop_last_batch,
             remove_columns=self.remove_columns,
             fn_kwargs=self.fn_kwargs,
+            formatting=self.formatting,
         )
 
     @property
@@ -1253,8 +1257,9 @@ class IterableDataset(DatasetInfoMixin):
 
     def _iter_pytorch(self):
         ex_iterable = self._prepare_ex_iterable_for_iteration()
-        # fix for fsspec when using multiprocess
-        _reset_fsspec_lock()
+        # Fix for fsspec when using multiprocess to avoid hanging in the ML training loop. (only required for fsspec >= 0.9.0)
+        # See https://github.com/fsspec/gcsfs/issues/379
+        fsspec.asyn.reset_lock()
         # check if there aren't too many workers
         import torch.utils.data
 
@@ -1271,7 +1276,7 @@ class IterableDataset(DatasetInfoMixin):
             )
         # split workload
         _log_prefix = f"node#{self._distributed.rank} " if self._distributed else ""
-        shards_indices = self._ex_iterable.split_shard_indices_by_worker(worker_info.id, worker_info.num_workers)
+        shards_indices = ex_iterable.split_shard_indices_by_worker(worker_info.id, worker_info.num_workers)
         if shards_indices:
             logger.debug(
                 f"{_log_prefix}dataloader worker#{worker_info.id}, ': Starting to iterate over {len(shards_indices)}/{ex_iterable.n_shards} shards."
@@ -2063,13 +2068,13 @@ class IterableDataset(DatasetInfoMixin):
         if self._info:
             info = copy.deepcopy(self._info)
             if self._info.features is not None:
-                for column_name in column_names:
-                    if column_name not in self._info.features:
-                        raise ValueError(
-                            f"Column name {column_name} not in the "
-                            "dataset. Columns in the dataset: "
-                            f"{list(self._info.features.keys())}."
-                        )
+                missing_columns = set(column_names) - set(self._info.features.keys())
+                if missing_columns:
+                    raise ValueError(
+                        f"Column name {list(missing_columns)} not in the "
+                        "dataset. Columns in the dataset: "
+                        f"{list(self._info.features.keys())}."
+                    )
                 info.features = Features({c: info.features[c] for c in column_names})
                 # check that it's still valid, especially with regard to task templates
                 try:

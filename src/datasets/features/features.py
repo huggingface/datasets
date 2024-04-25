@@ -39,7 +39,7 @@ from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 from .. import config
 from ..naming import camelcase_to_snakecase, snakecase_to_camelcase
 from ..table import array_cast
-from ..utils import logging
+from ..utils import experimental, logging
 from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
 from .image import Image, encode_pil_image
@@ -371,7 +371,7 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
                 key: _cast_to_python_objects(
                     value, only_1d_for_numpy=only_1d_for_numpy, optimize_list_casting=optimize_list_casting
                 )[0]
-                for key, value in obj.to_dict("list").items()
+                for key, value in obj.to_dict("series").items()
             },
             True,
         )
@@ -1241,10 +1241,7 @@ def encode_nested_example(schema, obj, level=0):
         if level == 0 and obj is None:
             raise ValueError("Got None but expected a dictionary instead")
         return (
-            {
-                k: encode_nested_example(sub_schema, sub_obj, level=level + 1)
-                for k, (sub_schema, sub_obj) in zip_dict(schema, obj)
-            }
+            {k: encode_nested_example(schema[k], obj.get(k), level=level + 1) for k in schema}
             if obj is not None
             else None
         )
@@ -1270,13 +1267,17 @@ def encode_nested_example(schema, obj, level=0):
             list_dict = {}
             if isinstance(obj, (list, tuple)):
                 # obj is a list of dict
-                for k, dict_tuples in zip_dict(schema.feature, *obj):
-                    list_dict[k] = [encode_nested_example(dict_tuples[0], o, level=level + 1) for o in dict_tuples[1:]]
+                for k in schema.feature:
+                    list_dict[k] = [encode_nested_example(schema.feature[k], o.get(k), level=level + 1) for o in obj]
                 return list_dict
             else:
                 # obj is a single dict
-                for k, (sub_schema, sub_objs) in zip_dict(schema.feature, obj):
-                    list_dict[k] = [encode_nested_example(sub_schema, o, level=level + 1) for o in sub_objs]
+                for k in schema.feature:
+                    list_dict[k] = (
+                        [encode_nested_example(schema.feature[k], o, level=level + 1) for o in obj[k]]
+                        if k in obj
+                        else None
+                    )
                 return list_dict
         # schema.feature is not a dict
         if isinstance(obj, str):  # don't interpret a string as a list
@@ -1341,6 +1342,37 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Uni
     return obj
 
 
+_FEATURE_TYPES: Dict[str, FeatureType] = {
+    Value.__name__: Value,
+    ClassLabel.__name__: ClassLabel,
+    Translation.__name__: Translation,
+    TranslationVariableLanguages.__name__: TranslationVariableLanguages,
+    Sequence.__name__: Sequence,
+    Array2D.__name__: Array2D,
+    Array3D.__name__: Array3D,
+    Array4D.__name__: Array4D,
+    Array5D.__name__: Array5D,
+    Audio.__name__: Audio,
+    Image.__name__: Image,
+}
+
+
+@experimental
+def register_feature(
+    feature_cls: type,
+    feature_type: str,
+):
+    """
+    Register a Feature object using a name and class.
+    This function must be used on a Feature class.
+    """
+    if feature_type in _FEATURE_TYPES:
+        logger.warning(
+            f"Overwriting feature type '{feature_type}' ({_FEATURE_TYPES[feature_type].__name__} -> {feature_cls.__name__})"
+        )
+    _FEATURE_TYPES[feature_type] = feature_cls
+
+
 def generate_from_dict(obj: Any):
     """Regenerate the nested feature object from a deserialized dict.
     We use the '_type' fields to get the dataclass name to load.
@@ -1359,7 +1391,11 @@ def generate_from_dict(obj: Any):
     if "_type" not in obj or isinstance(obj["_type"], dict):
         return {key: generate_from_dict(value) for key, value in obj.items()}
     obj = dict(obj)
-    class_type = globals()[obj.pop("_type")]
+    _type = obj.pop("_type")
+    class_type = _FEATURE_TYPES.get(_type, None) or globals().get(_type, None)
+
+    if class_type is None:
+        raise ValueError(f"Feature type '{_type}' not found. Available feature types: {list(_FEATURE_TYPES.keys())}")
 
     if class_type == Sequence:
         return Sequence(feature=generate_from_dict(obj["feature"]), length=obj.get("length", -1))
@@ -1669,11 +1705,20 @@ class Features(dict):
             [`Features`]
         """
         # try to load features from the arrow schema metadata
+        metadata_features = Features()
         if pa_schema.metadata is not None and "huggingface".encode("utf-8") in pa_schema.metadata:
             metadata = json.loads(pa_schema.metadata["huggingface".encode("utf-8")].decode())
             if "info" in metadata and "features" in metadata["info"] and metadata["info"]["features"] is not None:
-                return Features.from_dict(metadata["info"]["features"])
-        obj = {field.name: generate_from_arrow_type(field.type) for field in pa_schema}
+                metadata_features = Features.from_dict(metadata["info"]["features"])
+        metadata_features_schema = metadata_features.arrow_schema
+        obj = {
+            field.name: (
+                metadata_features[field.name]
+                if field.name in metadata_features and metadata_features_schema.field(field.name) == field
+                else generate_from_arrow_type(field.type)
+            )
+            for field in pa_schema
+        }
         return cls(**obj)
 
     @classmethod
@@ -1892,7 +1937,7 @@ class Features(dict):
             `list[Any]`
         """
         column = cast_to_python_objects(column)
-        return [encode_nested_example(self[column_name], obj) for obj in column]
+        return [encode_nested_example(self[column_name], obj, level=1) for obj in column]
 
     def encode_batch(self, batch):
         """
@@ -1910,7 +1955,7 @@ class Features(dict):
             raise ValueError(f"Column mismatch between batch {set(batch)} and features {set(self)}")
         for key, column in batch.items():
             column = cast_to_python_objects(column)
-            encoded_batch[key] = [encode_nested_example(self[key], obj) for obj in column]
+            encoded_batch[key] = [encode_nested_example(self[key], obj, level=1) for obj in column]
         return encoded_batch
 
     def decode_example(self, example: dict, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None):
@@ -2126,7 +2171,10 @@ def _align_features(features_list: List[Features]) -> List[Features]:
     name2feature = {}
     for features in features_list:
         for k, v in features.items():
-            if k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):
+            if k in name2feature and isinstance(v, dict):
+                # Recursively align features.
+                name2feature[k] = _align_features([name2feature[k], v])[0]
+            elif k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):
                 name2feature[k] = v
 
     return [Features({k: name2feature[k] for k in features.keys()}) for features in features_list]
@@ -2145,7 +2193,10 @@ def _check_if_features_can_be_aligned(features_list: List[Features]):
 
     for features in features_list:
         for k, v in features.items():
-            if not (isinstance(v, Value) and v.dtype == "null") and name2feature[k] != v:
+            if isinstance(v, dict) and isinstance(name2feature[k], dict):
+                # Deep checks for structure.
+                _check_if_features_can_be_aligned([name2feature[k], v])
+            elif not (isinstance(v, Value) and v.dtype == "null") and name2feature[k] != v:
                 raise ValueError(
                     f'The features can\'t be aligned because the key {k} of features {features} has unexpected type - {v} (expected either {name2feature[k]} or Value("null").'
                 )

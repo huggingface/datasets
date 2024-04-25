@@ -34,6 +34,7 @@ from unittest.mock import patch
 
 import fsspec
 import pyarrow as pa
+from fsspec.core import url_to_fs
 from multiprocess import Pool
 from tqdm.contrib.concurrent import thread_map
 
@@ -70,6 +71,7 @@ from .table import CastError
 from .utils import logging
 from .utils import tqdm as hf_tqdm
 from .utils._filelock import FileLock
+from .utils.deprecation_utils import deprecated
 from .utils.file_utils import cached_path, is_remote_url
 from .utils.info_utils import VerificationMode, get_size_checksum_dict, verify_checksums, verify_splits
 from .utils.py_utils import (
@@ -572,16 +574,18 @@ class DatasetBuilder:
                 logger.info(f"No config specified, defaulting to: {self.dataset_name}/{builder_config.name}")
             else:
                 if len(self.BUILDER_CONFIGS) > 1:
-                    example_of_usage = f"load_dataset('{self.dataset_name}', '{self.BUILDER_CONFIGS[0].name}')"
-                    raise ValueError(
-                        "Config name is missing."
-                        f"\nPlease pick one among the available configs: {list(self.builder_configs.keys())}"
-                        + f"\nExample of usage:\n\t`{example_of_usage}`"
+                    if not config_kwargs:
+                        example_of_usage = f"load_dataset('{self.dataset_name}', '{self.BUILDER_CONFIGS[0].name}')"
+                        raise ValueError(
+                            "Config name is missing."
+                            f"\nPlease pick one among the available configs: {list(self.builder_configs.keys())}"
+                            + f"\nExample of usage:\n\t`{example_of_usage}`"
+                        )
+                else:
+                    builder_config = self.BUILDER_CONFIGS[0]
+                    logger.info(
+                        f"No config specified, defaulting to the single config: {self.dataset_name}/{builder_config.name}"
                     )
-                builder_config = self.BUILDER_CONFIGS[0]
-                logger.info(
-                    f"No config specified, defaulting to the single config: {self.dataset_name}/{builder_config.name}"
-                )
 
         # try to get config by name
         if isinstance(config_name, str):
@@ -746,7 +750,7 @@ class DatasetBuilder:
         download_mode: Optional[Union[DownloadMode, str]] = None,
         verification_mode: Optional[Union[VerificationMode, str]] = None,
         ignore_verifications="deprecated",
-        try_from_hf_gcs: bool = True,
+        try_from_hf_gcs="deprecated",
         dl_manager: Optional[DownloadManager] = None,
         base_path: Optional[str] = None,
         use_auth_token="deprecated",
@@ -783,6 +787,13 @@ class DatasetBuilder:
                 </Deprecated>
             try_from_hf_gcs (`bool`):
                 If `True`, it will try to download the already prepared dataset from the HF Google cloud storage.
+
+                <Deprecated version="2.16.0">
+
+                `try_from_hf_gcs` was deprecated in version 2.16.0 and will be removed in 3.0.0.
+                Host the processed files on the Hugging Face Hub instead.
+
+                </Deprecated>
             dl_manager (`DownloadManager`, *optional*):
                 Specific `DownloadManger` to use.
             base_path (`str`, *optional*):
@@ -863,9 +874,17 @@ class DatasetBuilder:
         else:
             token = self.token
 
+        if try_from_hf_gcs != "deprecated":
+            warnings.warn(
+                "'try_from_hf_gcs' was deprecated in version 2.16.0 and will be removed in 3.0.0.",
+                FutureWarning,
+            )
+        else:
+            try_from_hf_gcs = False
+
         output_dir = output_dir if output_dir is not None else self._cache_dir
         # output_dir can be a remote bucket on GCS or S3 (when using BeamBasedBuilder for distributed data processing)
-        fs, _, [output_dir] = fsspec.get_fs_token_paths(output_dir, storage_options=storage_options)
+        fs, output_dir = url_to_fs(output_dir, **(storage_options or {}))
         self._fs = fs
         self._output_dir = output_dir if not is_remote_filesystem(self._fs) else self._fs.unstrip_protocol(output_dir)
 
@@ -2023,6 +2042,7 @@ class MissingBeamOptions(ValueError):
     pass
 
 
+@deprecated("Use `GeneratorBasedBuilder` or `ArrowBasedBuilder` instead.")
 class BeamBasedBuilder(DatasetBuilder):
     """Beam-based Builder."""
 

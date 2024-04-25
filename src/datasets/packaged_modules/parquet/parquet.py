@@ -16,7 +16,7 @@ logger = datasets.utils.logging.get_logger(__name__)
 class ParquetConfig(datasets.BuilderConfig):
     """BuilderConfig for Parquet."""
 
-    batch_size: int = 10_000
+    batch_size: Optional[int] = None
     columns: Optional[List[str]] = None
     features: Optional[datasets.Features] = None
 
@@ -83,15 +83,17 @@ class Parquet(datasets.ArrowBasedBuilder):
         for file_idx, file in enumerate(itertools.chain.from_iterable(files)):
             with open(file, "rb") as f:
                 parquet_file = pq.ParquetFile(f)
-                try:
-                    for batch_idx, record_batch in enumerate(
-                        parquet_file.iter_batches(batch_size=self.config.batch_size, columns=self.config.columns)
-                    ):
-                        pa_table = pa.Table.from_batches([record_batch])
-                        # Uncomment for debugging (will print the Arrow table size and elements)
-                        # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
-                        # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                        yield f"{file_idx}_{batch_idx}", self._cast_table(pa_table)
-                except ValueError as e:
-                    logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
-                    raise
+                if parquet_file.metadata.num_row_groups > 0:
+                    batch_size = self.config.batch_size or parquet_file.metadata.row_group(0).num_rows
+                    try:
+                        for batch_idx, record_batch in enumerate(
+                            parquet_file.iter_batches(batch_size=batch_size, columns=self.config.columns)
+                        ):
+                            pa_table = pa.Table.from_batches([record_batch])
+                            # Uncomment for debugging (will print the Arrow table size and elements)
+                            # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
+                            # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
+                            yield f"{file_idx}_{batch_idx}", self._cast_table(pa_table)
+                    except ValueError as e:
+                        logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
+                        raise

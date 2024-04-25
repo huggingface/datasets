@@ -7,6 +7,7 @@ Copyright by the AllenNLP authors.
 import copy
 import io
 import json
+import multiprocessing
 import os
 import posixpath
 import re
@@ -19,12 +20,13 @@ from contextlib import closing, contextmanager
 from functools import partial
 from pathlib import Path
 from typing import Optional, TypeVar, Union
+from unittest.mock import patch
 from urllib.parse import urljoin, urlparse
 
 import fsspec
 import huggingface_hub
 import requests
-from fsspec.core import strip_protocol
+from fsspec.core import strip_protocol, url_to_fs
 from fsspec.utils import can_be_local
 from huggingface_hub.utils import insecure_hashlib
 from packaging import version
@@ -218,7 +220,7 @@ def cached_path(
             output_path, force_extract=download_config.force_extract
         )
 
-    return output_path
+    return relative_to_absolute_path(output_path)
 
 
 def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
@@ -313,31 +315,41 @@ def _request_with_retry(
 
 def fsspec_head(url, storage_options=None):
     _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
-    fs, _, paths = fsspec.get_fs_token_paths(url, storage_options=storage_options)
-    if len(paths) > 1:
-        raise ValueError(f"HEAD can be called with at most one path but was called with {paths}")
-    return fs.info(paths[0])
+    fs, path = url_to_fs(url, **(storage_options or {}))
+    return fs.info(path)
+
+
+def stack_multiprocessing_download_progress_bars():
+    # Stack downloads progress bars automatically using HF_DATASETS_STACK_MULTIPROCESSING_DOWNLOAD_PROGRESS_BARS=1
+    # We use environment variables since the download may happen in a subprocess
+    return patch.dict(os.environ, {"HF_DATASETS_STACK_MULTIPROCESSING_DOWNLOAD_PROGRESS_BARS": "1"})
 
 
 class TqdmCallback(fsspec.callbacks.TqdmCallback):
     def __init__(self, tqdm_kwargs=None, *args, **kwargs):
-        super().__init__(tqdm_kwargs, *args, **kwargs)
-        self._tqdm = _tqdm  # replace tqdm.tqdm by datasets.tqdm.tqdm
+        if config.FSSPEC_VERSION < version.parse("2024.2.0"):
+            super().__init__(tqdm_kwargs, *args, **kwargs)
+            self._tqdm = _tqdm  # replace tqdm module by datasets.utils.tqdm module
+        else:
+            kwargs["tqdm_cls"] = _tqdm.tqdm
+            super().__init__(tqdm_kwargs, *args, **kwargs)
 
 
 def fsspec_get(url, temp_file, storage_options=None, desc=None):
     _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
-    fs, _, paths = fsspec.get_fs_token_paths(url, storage_options=storage_options)
-    if len(paths) > 1:
-        raise ValueError(f"GET can be called with at most one path but was called with {paths}")
+    fs, path = url_to_fs(url, **(storage_options or {}))
     callback = TqdmCallback(
         tqdm_kwargs={
             "desc": desc or "Downloading",
             "unit": "B",
             "unit_scale": True,
+            "position": multiprocessing.current_process()._identity[-1]  # contains the ranks of subprocesses
+            if os.environ.get("HF_DATASETS_STACK_MULTIPROCESSING_DOWNLOAD_PROGRESS_BARS") == "1"
+            and multiprocessing.current_process()._identity
+            else None,
         }
     )
-    fs.get_file(paths[0], temp_file.name, callback=callback)
+    fs.get_file(path, temp_file.name, callback=callback)
 
 
 def ftp_head(url, timeout=10.0):
@@ -389,6 +401,10 @@ def http_get(
         total=total,
         initial=resume_size,
         desc=desc or "Downloading",
+        position=multiprocessing.current_process()._identity[-1]  # contains the ranks of subprocesses
+        if os.environ.get("HF_DATASETS_STACK_MULTIPROCESSING_DOWNLOAD_PROGRESS_BARS") == "1"
+        and multiprocessing.current_process()._identity
+        else None,
     ) as progress:
         for chunk in response.iter_content(chunk_size=1024):
             progress.update(len(chunk))

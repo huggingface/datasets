@@ -27,12 +27,15 @@ import signal
 import time
 import warnings
 from collections import Counter
+from contextlib import nullcontext
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Type, Union
 
 import fsspec
 import requests
+import yaml
+from fsspec.core import url_to_fs
 from huggingface_hub import DatasetCard, DatasetCardData, HfApi, HfFileSystem
 
 from . import config
@@ -69,7 +72,6 @@ from .packaged_modules import (
 )
 from .splits import Split
 from .utils import _datasets_server
-from .utils._filelock import FileLock
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import (
     OfflineModeIsEnabled,
@@ -82,11 +84,11 @@ from .utils.file_utils import (
     relative_to_absolute_path,
     url_or_path_join,
 )
-from .utils.hub import hf_hub_url
+from .utils.hub import hf_dataset_url
 from .utils.info_utils import VerificationMode, is_small_dataset
 from .utils.logging import get_logger
 from .utils.metadata import MetadataConfigs
-from .utils.py_utils import get_imports
+from .utils.py_utils import get_imports, lock_importable_file
 from .utils.version import Version
 
 
@@ -243,7 +245,10 @@ def configure_builder_class(
 def get_dataset_builder_class(
     dataset_module: "DatasetModule", dataset_name: Optional[str] = None
 ) -> Type[DatasetBuilder]:
-    builder_cls = import_main_class(dataset_module.module_path)
+    with lock_importable_file(
+        dataset_module.importable_file_path
+    ) if dataset_module.importable_file_path else nullcontext():
+        builder_cls = import_main_class(dataset_module.module_path)
     if dataset_module.builder_configs_parameters.builder_configs:
         dataset_name = dataset_name or dataset_module.builder_kwargs.get("dataset_name")
         if dataset_name is None:
@@ -343,6 +348,8 @@ def _download_additional_modules(
         _them_str = "them" if len(needs_to_be_installed) > 1 else "it"
         if "sklearn" in needs_to_be_installed.keys():
             needs_to_be_installed["sklearn"] = "scikit-learn"
+        if "Bio" in needs_to_be_installed.keys():
+            needs_to_be_installed["Bio"] = "biopython"
         raise ImportError(
             f"To be able to use {name}, you need to install the following {_dependencies_str}: "
             f"{', '.join(needs_to_be_installed)}.\nPlease install {_them_str} using 'pip install "
@@ -372,17 +379,15 @@ def _copy_script_and_other_resources_in_importable_dir(
         download_mode (Optional[Union[DownloadMode, str]]): download mode
 
     Return:
-        importable_local_file: path to an importable module with importlib.import_module
+        importable_file: path to an importable module with importlib.import_module
     """
-
     # Define a directory with a unique name in our dataset or metric folder
     # path is: ./datasets|metrics/dataset|metric_name/hash_from_code/script.py
     # we use a hash as subdirectory_name to be able to have multiple versions of a dataset/metric processing file together
     importable_subdirectory = os.path.join(importable_directory_path, subdirectory_name)
-    importable_local_file = os.path.join(importable_subdirectory, name + ".py")
+    importable_file = os.path.join(importable_subdirectory, name + ".py")
     # Prevent parallel disk operations
-    lock_path = importable_directory_path + ".lock"
-    with FileLock(lock_path):
+    with lock_importable_file(importable_file):
         # Create main dataset/metrics folder if needed
         if download_mode == DownloadMode.FORCE_REDOWNLOAD and os.path.exists(importable_directory_path):
             shutil.rmtree(importable_directory_path)
@@ -403,13 +408,13 @@ def _copy_script_and_other_resources_in_importable_dir(
                 pass
 
         # Copy dataset.py file in hash folder if needed
-        if not os.path.exists(importable_local_file):
-            shutil.copyfile(original_local_path, importable_local_file)
+        if not os.path.exists(importable_file):
+            shutil.copyfile(original_local_path, importable_file)
         # Record metadata associating original dataset path with local unique folder
         # Use os.path.splitext to split extension from importable_local_file
-        meta_path = os.path.splitext(importable_local_file)[0] + ".json"
+        meta_path = os.path.splitext(importable_file)[0] + ".json"
         if not os.path.exists(meta_path):
-            meta = {"original file path": original_local_path, "local file path": importable_local_file}
+            meta = {"original file path": original_local_path, "local file path": importable_file}
             # the filename is *.py in our case, so better rename to filename.json instead of filename.py.json
             with open(meta_path, "w", encoding="utf-8") as meta_file:
                 json.dump(meta, meta_file)
@@ -434,7 +439,7 @@ def _copy_script_and_other_resources_in_importable_dir(
                 original_path, destination_additional_path
             ):
                 shutil.copyfile(original_path, destination_additional_path)
-        return importable_local_file
+        return importable_file
 
 
 def _get_importable_file_path(
@@ -444,7 +449,7 @@ def _get_importable_file_path(
     name: str,
 ) -> str:
     importable_directory_path = os.path.join(dynamic_modules_path, module_namespace, name.replace("/", "--"))
-    return os.path.join(importable_directory_path, subdirectory_name, name + ".py")
+    return os.path.join(importable_directory_path, subdirectory_name, name.split("/")[-1] + ".py")
 
 
 def _create_importable_file(
@@ -492,7 +497,7 @@ def _load_importable_file(
 
 def infer_module_for_data_files_list(
     data_files_list: DataFilesList, download_config: Optional[DownloadConfig] = None
-) -> Optional[Tuple[str, str]]:
+) -> Tuple[Optional[str], dict]:
     """Infer module (and builder kwargs) from list of data files.
 
     It picks the module based on the most common file extension.
@@ -508,18 +513,18 @@ def infer_module_for_data_files_list(
             - dict of builder kwargs
     """
     extensions_counter = Counter(
-        "." + suffix.lower()
+        ("." + suffix.lower(), xbasename(filepath) in ("metadata.jsonl", "metadata.csv"))
         for filepath in data_files_list[: config.DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE]
         for suffix in xbasename(filepath).split(".")[1:]
     )
     if extensions_counter:
 
-        def sort_key(ext_count: Tuple[str, int]) -> Tuple[int, bool]:
-            """Sort by count and set ".parquet" as the favorite in case of a draw"""
-            ext, count = ext_count
-            return (count, ext == ".parquet", ext)
+        def sort_key(ext_count: Tuple[Tuple[str, bool], int]) -> Tuple[int, bool]:
+            """Sort by count and set ".parquet" as the favorite in case of a draw, and ignore metadata files"""
+            (ext, is_metadata), count = ext_count
+            return (not is_metadata, count, ext == ".parquet", ext)
 
-        for ext, _ in sorted(extensions_counter.items(), key=sort_key, reverse=True):
+        for (ext, _), _ in sorted(extensions_counter.items(), key=sort_key, reverse=True):
             if ext in _EXTENSION_TO_MODULE:
                 return _EXTENSION_TO_MODULE[ext]
             elif ext == ".zip":
@@ -529,7 +534,7 @@ def infer_module_for_data_files_list(
 
 def infer_module_for_data_files_list_in_archives(
     data_files_list: DataFilesList, download_config: Optional[DownloadConfig] = None
-) -> Optional[Tuple[str, str]]:
+) -> Tuple[Optional[str], dict]:
     """Infer module (and builder kwargs) from list of archive data files.
 
     Args:
@@ -616,7 +621,7 @@ def create_builder_configs_from_metadata_configs(
             config_patterns = (
                 sanitize_patterns(config_data_files)
                 if config_data_files is not None
-                else get_data_patterns(config_base_path)
+                else get_data_patterns(config_base_path, download_config=download_config)
             )
             config_data_files_dict = DataFilesPatternsDict.from_patterns(
                 config_patterns,
@@ -689,6 +694,7 @@ class DatasetModule:
     builder_kwargs: dict
     builder_configs_parameters: BuilderConfigsParameters = field(default_factory=BuilderConfigsParameters)
     dataset_infos: Optional[DatasetInfosDict] = None
+    importable_file_path: Optional[str] = None
 
 
 @dataclass
@@ -929,7 +935,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
             )
         # get script and other files
         dataset_infos_path = Path(self.path).parent / config.DATASETDICT_INFOS_FILENAME
-        dataset_readme_path = Path(self.path).parent / "README.md"
+        dataset_readme_path = Path(self.path).parent / config.REPOCARD_FILENAME
         imports = get_imports(self.path)
         local_imports = _download_additional_modules(
             name=self.name,
@@ -941,7 +947,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         if dataset_infos_path.is_file():
             additional_files.append((config.DATASETDICT_INFOS_FILENAME, str(dataset_infos_path)))
         if dataset_readme_path.is_file():
-            additional_files.append(("README.md", dataset_readme_path))
+            additional_files.append((config.REPOCARD_FILENAME, dataset_readme_path))
         # copy the script and the files in an importable directory
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
         hash = files_to_hash([self.path] + [loc[1] for loc in local_imports])
@@ -980,7 +986,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         # make the new module to be noticed by the import system
         importlib.invalidate_caches()
         builder_kwargs = {"base_path": str(Path(self.path).parent)}
-        return DatasetModule(module_path, hash, builder_kwargs)
+        return DatasetModule(module_path, hash, builder_kwargs, importable_file_path=importable_file_path)
 
 
 class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
@@ -1004,8 +1010,16 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self.download_mode = download_mode
 
     def get_module(self) -> DatasetModule:
-        readme_path = os.path.join(self.path, "README.md")
+        readme_path = os.path.join(self.path, config.REPOCARD_FILENAME)
+        standalone_yaml_path = os.path.join(self.path, config.REPOYAML_FILENAME)
         dataset_card_data = DatasetCard.load(readme_path).data if os.path.isfile(readme_path) else DatasetCardData()
+        if os.path.exists(standalone_yaml_path):
+            with open(standalone_yaml_path, "r", encoding="utf-8") as f:
+                standalone_yaml_data = yaml.safe_load(f.read())
+                if standalone_yaml_data:
+                    _dataset_card_data_dict = dataset_card_data.to_dict()
+                    _dataset_card_data_dict.update(standalone_yaml_data)
+                    dataset_card_data = DatasetCardData(**_dataset_card_data_dict)
         metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
         dataset_infos = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
         # we need a set of data files to find which dataset builder to use
@@ -1013,7 +1027,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         base_path = Path(self.path, self.data_dir or "").expanduser().resolve().as_posix()
         if self.data_files is not None:
             patterns = sanitize_patterns(self.data_files)
-        elif metadata_configs and "data_files" in next(iter(metadata_configs.values())):
+        elif metadata_configs and not self.data_dir and "data_files" in next(iter(metadata_configs.values())):
             patterns = sanitize_patterns(next(iter(metadata_configs.values()))["data_files"])
         else:
             patterns = get_data_patterns(base_path)
@@ -1065,6 +1079,8 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             "base_path": self.path,
             "dataset_name": camelcase_to_snakecase(Path(self.path).name),
         }
+        if self.data_dir:
+            builder_kwargs["data_files"] = data_files
         # this file is deprecated and was created automatically in old versions of push_to_hub
         if os.path.isfile(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME)):
             with open(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
@@ -1117,7 +1133,11 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
 
     def get_module(self) -> DatasetModule:
         base_path = Path(self.data_dir or "").expanduser().resolve().as_posix()
-        patterns = sanitize_patterns(self.data_files) if self.data_files is not None else get_data_patterns(base_path)
+        patterns = (
+            sanitize_patterns(self.data_files)
+            if self.data_files is not None
+            else get_data_patterns(base_path, download_config=self.download_config)
+        )
         data_files = DataFilesDict.from_patterns(
             patterns,
             download_config=self.download_config,
@@ -1191,19 +1211,50 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             download_config.download_desc = "Downloading readme"
         try:
             dataset_readme_path = cached_path(
-                hf_hub_url(self.name, "README.md", revision=revision),
+                hf_dataset_url(self.name, config.REPOCARD_FILENAME, revision=revision),
                 download_config=download_config,
             )
             dataset_card_data = DatasetCard.load(Path(dataset_readme_path)).data
         except FileNotFoundError:
             dataset_card_data = DatasetCardData()
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading standalone yaml"
+        try:
+            standalone_yaml_path = cached_path(
+                hf_dataset_url(self.name, config.REPOYAML_FILENAME, revision=revision),
+                download_config=download_config,
+            )
+            with open(standalone_yaml_path, "r", encoding="utf-8") as f:
+                standalone_yaml_data = yaml.safe_load(f.read())
+                if standalone_yaml_data:
+                    _dataset_card_data_dict = dataset_card_data.to_dict()
+                    _dataset_card_data_dict.update(standalone_yaml_data)
+                    dataset_card_data = DatasetCardData(**_dataset_card_data_dict)
+        except FileNotFoundError:
+            pass
         metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
         dataset_infos = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
+        try:
+            exported_dataset_infos = _datasets_server.get_exported_dataset_infos(
+                dataset=self.name, revision=self.revision, token=self.download_config.token
+            )
+            exported_dataset_infos = DatasetInfosDict(
+                {
+                    config_name: DatasetInfo.from_dict(exported_dataset_infos[config_name])
+                    for config_name in exported_dataset_infos
+                }
+            )
+        except _datasets_server.DatasetsServerError:
+            exported_dataset_infos = None
+        if exported_dataset_infos:
+            exported_dataset_infos.update(dataset_infos)
+            dataset_infos = exported_dataset_infos
         # we need a set of data files to find which dataset builder to use
         # because we need to infer module name by files extensions
         if self.data_files is not None:
             patterns = sanitize_patterns(self.data_files)
-        elif metadata_configs and "data_files" in next(iter(metadata_configs.values())):
+        elif metadata_configs and not self.data_dir and "data_files" in next(iter(metadata_configs.values())):
             patterns = sanitize_patterns(next(iter(metadata_configs.values()))["data_files"])
         else:
             patterns = get_data_patterns(base_path, download_config=self.download_config)
@@ -1257,17 +1308,19 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             ]
             default_config_name = None
         builder_kwargs = {
-            "base_path": hf_hub_url(self.name, "", revision=revision).rstrip("/"),
+            "base_path": hf_dataset_url(self.name, "", revision=revision).rstrip("/"),
             "repo_id": self.name,
             "dataset_name": camelcase_to_snakecase(Path(self.name).name),
         }
+        if self.data_dir:
+            builder_kwargs["data_files"] = data_files
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading metadata"
         try:
             # this file is deprecated and was created automatically in old versions of push_to_hub
             dataset_infos_path = cached_path(
-                hf_hub_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=revision),
+                hf_dataset_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=revision),
                 download_config=download_config,
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
@@ -1391,14 +1444,14 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def download_loading_script(self) -> str:
-        file_path = hf_hub_url(self.name, self.name.split("/")[-1] + ".py", revision=self.revision)
+        file_path = hf_dataset_url(self.name, self.name.split("/")[-1] + ".py", revision=self.revision)
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading builder script"
         return cached_path(file_path, download_config=download_config)
 
     def download_dataset_infos_file(self) -> str:
-        dataset_infos = hf_hub_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=self.revision)
+        dataset_infos = hf_dataset_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=self.revision)
         # Download the dataset infos file if available
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
@@ -1412,7 +1465,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
             return None
 
     def download_dataset_readme_file(self) -> str:
-        readme_url = hf_hub_url(self.name, "README.md", revision=self.revision)
+        readme_url = hf_dataset_url(self.name, config.REPOCARD_FILENAME, revision=self.revision)
         # Download the dataset infos file if available
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
@@ -1441,7 +1494,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         imports = get_imports(local_path)
         local_imports = _download_additional_modules(
             name=self.name,
-            base_path=hf_hub_url(self.name, "", revision=self.revision),
+            base_path=hf_dataset_url(self.name, "", revision=self.revision),
             imports=imports,
             download_config=self.download_config,
         )
@@ -1449,7 +1502,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         if dataset_infos_path:
             additional_files.append((config.DATASETDICT_INFOS_FILENAME, dataset_infos_path))
         if dataset_readme_path:
-            additional_files.append(("README.md", dataset_readme_path))
+            additional_files.append((config.REPOCARD_FILENAME, dataset_readme_path))
         # copy the script and the files in an importable directory
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
         hash = files_to_hash([local_path] + [loc[1] for loc in local_imports])
@@ -1487,10 +1540,10 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         # make the new module to be noticed by the import system
         importlib.invalidate_caches()
         builder_kwargs = {
-            "base_path": hf_hub_url(self.name, "", revision=self.revision).rstrip("/"),
+            "base_path": hf_dataset_url(self.name, "", revision=self.revision).rstrip("/"),
             "repo_id": self.name,
         }
-        return DatasetModule(module_path, hash, builder_kwargs)
+        return DatasetModule(module_path, hash, builder_kwargs, importable_file_path=importable_file_path)
 
 
 class CachedDatasetModuleFactory(_DatasetModuleFactory):
@@ -1536,21 +1589,24 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
             if not config.HF_DATASETS_OFFLINE:
                 warning_msg += ", or remotely on the Hugging Face Hub."
             logger.warning(warning_msg)
-            # make the new module to be noticed by the import system
-            module_path = ".".join(
-                [
-                    os.path.basename(dynamic_modules_path),
-                    "datasets",
-                    self.name.replace("/", "--"),
-                    hash,
-                    self.name.split("/")[-1],
-                ]
+            importable_file_path = _get_importable_file_path(
+                dynamic_modules_path=dynamic_modules_path,
+                module_namespace="datasets",
+                subdirectory_name=hash,
+                name=self.name,
             )
+            module_path, hash = _load_importable_file(
+                dynamic_modules_path=dynamic_modules_path,
+                module_namespace="datasets",
+                subdirectory_name=hash,
+                name=self.name,
+            )
+            # make the new module to be noticed by the import system
             importlib.invalidate_caches()
             builder_kwargs = {
                 "repo_id": self.name,
             }
-            return DatasetModule(module_path, hash, builder_kwargs)
+            return DatasetModule(module_path, hash, builder_kwargs, importable_file_path=importable_file_path)
         cache_dir = os.path.expanduser(str(self.cache_dir or config.HF_DATASETS_CACHE))
         cached_datasets_directory_path_root = os.path.join(cache_dir, self.name.replace("/", "___"))
         cached_directory_paths = [
@@ -1635,6 +1691,7 @@ def dataset_module_factory(
     cache_dir: Optional[str] = None,
     trust_remote_code: Optional[bool] = None,
     _require_default_config_name=True,
+    _require_custom_configs=False,
     **download_kwargs,
 ) -> DatasetModule:
     """
@@ -1779,20 +1836,23 @@ def dataset_module_factory(
                 ):
                     raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({type(e).__name__})")
                 elif "404" in str(e):
-                    msg = f"Dataset '{path}' doesn't exist on the Hub"
+                    msg = f"Dataset '{path}' doesn't exist on the Hub or cannot be accessed"
                     raise DatasetNotFoundError(msg + f" at revision '{revision}'" if revision else msg)
                 elif "401" in str(e):
-                    msg = f"Dataset '{path}' doesn't exist on the Hub"
+                    msg = f"Dataset '{path}' doesn't exist on the Hub or cannot be accessed"
                     msg = msg + f" at revision '{revision}'" if revision else msg
                     raise DatasetNotFoundError(
-                        msg + ". If the repo is private or gated, make sure to log in with `huggingface-cli login`."
+                        msg
+                        + f". If the dataset is private or gated, make sure to log in with `huggingface-cli login` or visit the dataset page at https://huggingface.co/datasets/{path} to ask for access."
                     )
                 else:
                     raise e
             if filename in [sibling.rfilename for sibling in dataset_info.siblings]:  # contains a dataset script
                 fs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=download_config.token)
-                if _require_default_config_name:
-                    with fs.open(f"datasets/{path}/{filename}", "r", revision=revision, encoding="utf-8") as f:
+                if _require_custom_configs or (revision and revision != "main"):
+                    can_load_config_from_parquet_export = False
+                elif _require_default_config_name:
+                    with fs.open(f"datasets/{path}/{filename}", "r", encoding="utf-8") as f:
                         can_load_config_from_parquet_export = "DEFAULT_CONFIG_NAME" not in f.read()
                 else:
                     can_load_config_from_parquet_export = True
@@ -2200,6 +2260,7 @@ def load_dataset_builder(
         cache_dir=cache_dir,
         trust_remote_code=trust_remote_code,
         _require_default_config_name=_require_default_config_name,
+        _require_custom_configs=bool(config_kwargs),
     )
     # Get dataset builder class from the processing script
     builder_kwargs = dataset_module.builder_kwargs
@@ -2538,16 +2599,11 @@ def load_dataset(
     if streaming:
         return builder_instance.as_streaming_dataset(split=split)
 
-    # Some datasets are already processed on the HF google storage
-    # Don't try downloading from Google storage for the packaged datasets as text, json, csv or pandas
-    try_from_hf_gcs = path not in _PACKAGED_DATASETS_MODULES
-
     # Download and prepare data
     builder_instance.download_and_prepare(
         download_config=download_config,
         download_mode=download_mode,
         verification_mode=verification_mode,
-        try_from_hf_gcs=try_from_hf_gcs,
         num_proc=num_proc,
         storage_options=storage_options,
     )
@@ -2622,7 +2678,7 @@ def load_from_disk(
         storage_options = fs.storage_options
 
     fs: fsspec.AbstractFileSystem
-    fs, _, _ = fsspec.get_fs_token_paths(dataset_path, storage_options=storage_options)
+    fs, *_ = url_to_fs(dataset_path, **(storage_options or {}))
     if not fs.exists(dataset_path):
         raise FileNotFoundError(f"Directory {dataset_path} not found")
     if fs.isfile(posixpath.join(dataset_path, config.DATASET_INFO_FILENAME)) and fs.isfile(

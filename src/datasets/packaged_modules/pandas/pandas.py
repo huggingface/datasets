@@ -1,4 +1,5 @@
 import itertools
+import warnings
 from dataclasses import dataclass
 from typing import Optional
 
@@ -20,6 +21,10 @@ class Pandas(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = PandasConfig
 
     def _info(self):
+        warnings.warn(
+            "The Pandas builder is deprecated and will be removed in the next major version of datasets.",
+            FutureWarning,
+        )
         return datasets.DatasetInfo(features=self.config.features)
 
     def _split_generators(self, dl_manager):

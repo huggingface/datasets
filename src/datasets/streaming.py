@@ -31,7 +31,7 @@ from .download.streaming_download_manager import (
 )
 from .utils.logging import get_logger
 from .utils.patching import patch_submodule
-from .utils.py_utils import get_imports
+from .utils.py_utils import get_imports, lock_importable_file
 
 
 logger = get_logger(__name__)
@@ -120,11 +120,13 @@ def extend_dataset_builder_for_streaming(builder: "DatasetBuilder"):
     extend_module_for_streaming(builder.__module__, download_config=download_config)
     # if needed, we also have to extend additional internal imports (like wmt14 -> wmt_utils)
     if not builder.__module__.startswith("datasets."):  # check that it's not a packaged builder like csv
-        for imports in get_imports(inspect.getfile(builder.__class__)):
-            if imports[0] == "internal":
-                internal_import_name = imports[1]
-                internal_module_name = ".".join(builder.__module__.split(".")[:-1] + [internal_import_name])
-                extend_module_for_streaming(internal_module_name, download_config=download_config)
+        importable_file = inspect.getfile(builder.__class__)
+        with lock_importable_file(importable_file):
+            for imports in get_imports(importable_file):
+                if imports[0] == "internal":
+                    internal_import_name = imports[1]
+                    internal_module_name = ".".join(builder.__module__.split(".")[:-1] + [internal_import_name])
+                    extend_module_for_streaming(internal_module_name, download_config=download_config)
 
     # builders can inherit from other builders that might use streaming functionality
     # (for example, ImageFolder and AudioFolder inherit from FolderBuilder which implements examples generation)

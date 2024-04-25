@@ -77,6 +77,7 @@ class JsonDatasetWriter:
         path_or_buf: Union[PathLike, BinaryIO],
         batch_size: Optional[int] = None,
         num_proc: Optional[int] = None,
+        storage_options: Optional[dict] = None,
         **to_json_kwargs,
     ):
         if num_proc is not None and num_proc <= 0:
@@ -87,6 +88,7 @@ class JsonDatasetWriter:
         self.batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
         self.num_proc = num_proc
         self.encoding = "utf-8"
+        self.storage_options = storage_options or {}
         self.to_json_kwargs = to_json_kwargs
 
     def write(self) -> int:
@@ -95,13 +97,18 @@ class JsonDatasetWriter:
         lines = self.to_json_kwargs.pop("lines", True if orient == "records" else False)
         if "index" not in self.to_json_kwargs and orient in ["split", "table"]:
             self.to_json_kwargs["index"] = False
-        compression = self.to_json_kwargs.pop("compression", None)
+
+        # Determine the default compression value based on self.path_or_buf type
+        default_compression = "infer" if isinstance(self.path_or_buf, (str, bytes, os.PathLike)) else None
+        compression = self.to_json_kwargs.pop("compression", default_compression)
 
         if compression not in [None, "infer", "gzip", "bz2", "xz"]:
             raise NotImplementedError(f"`datasets` currently does not support {compression} compression")
 
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
-            with fsspec.open(self.path_or_buf, "wb", compression=compression) as buffer:
+            with fsspec.open(
+                self.path_or_buf, "wb", compression=compression, **(self.storage_options or {})
+            ) as buffer:
                 written = self._write(file_obj=buffer, orient=orient, lines=lines, **self.to_json_kwargs)
         else:
             if compression:

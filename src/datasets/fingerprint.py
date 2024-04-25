@@ -241,11 +241,12 @@ class Hasher:
 # Fingerprinting
 #################
 
+fingerprint_rng = random.Random()
 # we show a warning only once when fingerprinting fails to avoid spam
 fingerprint_warnings: Dict[str, bool] = {}
 
 
-def generate_fingerprint(dataset) -> str:
+def generate_fingerprint(dataset: "Dataset") -> str:
     state = dataset.__dict__
     hasher = Hasher()
     for key in sorted(state):
@@ -259,8 +260,8 @@ def generate_fingerprint(dataset) -> str:
     return hasher.hexdigest()
 
 
-def generate_random_fingerprint(nbits=64) -> str:
-    return f"{random.getrandbits(nbits):0{nbits//4}x}"
+def generate_random_fingerprint(nbits: int = 64) -> str:
+    return f"{fingerprint_rng.getrandbits(nbits):0{nbits//4}x}"
 
 
 def update_fingerprint(fingerprint, transform, transform_args):
