@@ -1659,23 +1659,6 @@ def test_remote_data_files():
     assert ds_item.keys() == {"langs", "ner_tags", "spans", "tokens"}
 
 
-@pytest.mark.parametrize("deleted", [False, True])
-def test_load_dataset_deletes_extracted_files(deleted, jsonl_gz_path, tmp_path):
-    data_files = jsonl_gz_path
-    cache_dir = tmp_path / "cache"
-    if deleted:
-        download_config = DownloadConfig(delete_extracted=True, cache_dir=cache_dir / "downloads")
-        ds = load_dataset(
-            "json", split="train", data_files=data_files, cache_dir=cache_dir, download_config=download_config
-        )
-    else:  # default
-        ds = load_dataset("json", split="train", data_files=data_files, cache_dir=cache_dir)
-    assert ds[0] == {"col_1": "0", "col_2": 0, "col_3": 0.0}
-    assert (
-        [path for path in (cache_dir / "downloads" / "extracted").iterdir() if path.suffix != ".lock"] == []
-    ) is deleted
-
-
 def distributed_load_dataset(args):
     data_name, tmp_dir, datafiles = args
     dataset = load_dataset(data_name, cache_dir=tmp_dir, data_files=datafiles)

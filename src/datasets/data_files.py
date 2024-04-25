@@ -14,12 +14,11 @@ from tqdm.contrib.concurrent import thread_map
 
 from . import config
 from .download import DownloadConfig
-from .download.streaming_download_manager import _prepare_path_and_storage_options, xbasename, xjoin
 from .naming import _split_re
 from .splits import Split
 from .utils import logging
 from .utils import tqdm as hf_tqdm
-from .utils.file_utils import is_local_path, is_relative_path
+from .utils.file_utils import _prepare_path_and_storage_options, is_local_path, is_relative_path, xbasename, xjoin
 from .utils.py_utils import glob_pattern_to_regex, string_to_dict
 
 
@@ -372,9 +371,7 @@ def resolve_pattern(
     else:
         base_path = ""
     pattern, storage_options = _prepare_path_and_storage_options(pattern, download_config=download_config)
-    fs, *_ = url_to_fs(pattern, **storage_options)
-    fs_base_path = base_path.split("::")[0].split("://")[-1] or fs.root_marker
-    fs_pattern = pattern.split("::")[0].split("://")[-1]
+    fs, fs_pattern = url_to_fs(pattern, **storage_options)
     files_to_ignore = set(FILES_TO_IGNORE) - {xbasename(pattern)}
     protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[0]
     protocol_prefix = protocol + "://" if protocol != "file" else ""
@@ -387,12 +384,8 @@ def resolve_pattern(
         for filepath, info in fs.glob(pattern, detail=True, **glob_kwargs).items()
         if info["type"] == "file"
         and (xbasename(filepath) not in files_to_ignore)
-        and not _is_inside_unrequested_special_dir(
-            os.path.relpath(filepath, fs_base_path), os.path.relpath(fs_pattern, fs_base_path)
-        )
-        and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(
-            os.path.relpath(filepath, fs_base_path), os.path.relpath(fs_pattern, fs_base_path)
-        )
+        and not _is_inside_unrequested_special_dir(filepath, fs_pattern)
+        and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(filepath, fs_pattern)
     ]  # ignore .ipynb and __pycache__, but keep /../
     if allowed_extensions is not None:
         out = [

@@ -1838,20 +1838,26 @@ def _storage_type(type: pa.DataType) -> pa.DataType:
 
 
 @_wrap_for_chunked_arrays
-def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
+def array_cast(
+    array: pa.Array, pa_type: pa.DataType, allow_primitive_to_str: bool = True, allow_decimal_to_str: bool = True
+) -> Union[pa.Array, pa.FixedSizeListArray, pa.ListArray, pa.StructArray, pa.ExtensionArray]:
     """Improved version of `pa.Array.cast`
 
     It supports casting `pa.StructArray` objects to re-order the fields.
     It also let you control certain aspects of the casting, e.g. whether
-    to disable numbers (`floats` or `ints`) to strings.
+    to disable casting primitives (`booleans`, `floats` or `ints`) or
+    disable casting decimals to strings.
 
     Args:
         array (`pa.Array`):
             PyArrow array to cast
         pa_type (`pa.DataType`):
             Target PyArrow type
-        allow_number_to_str (`bool`, defaults to `True`):
-            Whether to allow casting numbers to strings.
+        allow_primitive_to_str (`bool`, defaults to `True`):
+            Whether to allow casting primitives to strings.
+            Defaults to `True`.
+        allow_decimal_to_str (`bool`, defaults to `True`):
+            Whether to allow casting decimals to strings.
             Defaults to `True`.
 
     Raises:
@@ -1859,12 +1865,13 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
         `TypeError`: if the target type is not supported according, e.g.
 
             - if a field is missing
-            - if casting from numbers to strings and `allow_number_to_str` is `False`
+            - if casting from primitives to strings and `allow_primitive_to_str` is `False`
+            - if casting from decimals to strings and `allow_decimal_to_str` is `False`
 
     Returns:
         `List[pyarrow.Array]`: the casted array
     """
-    _c = partial(array_cast, allow_number_to_str=allow_number_to_str)
+    _c = partial(array_cast, allow_primitive_to_str=allow_primitive_to_str, allow_decimal_to_str=allow_decimal_to_str)
     if isinstance(array, pa.ExtensionArray):
         array = array.storage
     if isinstance(pa_type, pa.ExtensionType):
@@ -1933,14 +1940,17 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
             array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
             return pa.ListArray.from_arrays(array_offsets, _c(array.values, pa_type.value_type), mask=array.is_null())
     else:
-        if (
-            not allow_number_to_str
-            and pa.types.is_string(pa_type)
-            and (pa.types.is_floating(array.type) or pa.types.is_integer(array.type))
-        ):
-            raise TypeError(
-                f"Couldn't cast array of type {array.type} to {pa_type} since allow_number_to_str is set to {allow_number_to_str}"
-            )
+        if pa.types.is_string(pa_type):
+            if not allow_primitive_to_str and pa.types.is_primitive(array.type):
+                raise TypeError(
+                    f"Couldn't cast array of type {array.type} to {pa_type} "
+                    f"since allow_primitive_to_str is set to {allow_primitive_to_str} "
+                )
+            if not allow_decimal_to_str and pa.types.is_decimal(array.type):
+                raise TypeError(
+                    f"Couldn't cast array of type {array.type} to {pa_type} "
+                    f"and allow_decimal_to_str is set to {allow_decimal_to_str}"
+                )
         if pa.types.is_null(pa_type) and not pa.types.is_null(array.type):
             raise TypeError(f"Couldn't cast array of type {array.type} to {pa_type}")
         return array.cast(pa_type)
@@ -1948,7 +1958,9 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
 
 
 @_wrap_for_chunked_arrays
-def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_to_str=True):
+def cast_array_to_feature(
+    array: pa.Array, feature: "FeatureType", allow_primitive_to_str: bool = True, allow_decimal_to_str: bool = True
+) -> pa.Array:
     """Cast an array to the arrow type that corresponds to the requested feature type.
     For custom features like [`Audio`] or [`Image`], it takes into account the "cast_storage" methods
     they defined to enable casting from other arrow types.
@@ -1958,8 +1970,11 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
             The PyArrow array to cast.
         feature (`datasets.features.FeatureType`):
             The target feature type.
-        allow_number_to_str (`bool`, defaults to `True`):
-            Whether to allow casting numbers to strings.
+        allow_primitive_to_str (`bool`, defaults to `True`):
+            Whether to allow casting primitives to strings.
+            Defaults to `True`.
+        allow_decimal_to_str (`bool`, defaults to `True`):
+            Whether to allow casting decimals to strings.
             Defaults to `True`.
 
     Raises:
@@ -1967,14 +1982,19 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
         `TypeError`: if the target type is not supported according, e.g.
 
             - if a field is missing
-            - if casting from numbers to strings and `allow_number_to_str` is `False`
+            - if casting from primitives and `allow_primitive_to_str` is `False`
+            - if casting from decimals and `allow_decimal_to_str` is `False`
 
     Returns:
         array (`pyarrow.Array`): the casted array
     """
     from .features.features import Sequence, get_nested_type
 
-    _c = partial(cast_array_to_feature, allow_number_to_str=allow_number_to_str)
+    _c = partial(
+        cast_array_to_feature,
+        allow_primitive_to_str=allow_primitive_to_str,
+        allow_decimal_to_str=allow_decimal_to_str,
+    )
 
     if isinstance(array, pa.ExtensionArray):
         array = array.storage
@@ -2011,9 +2031,19 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
                         storage_type = _storage_type(array_type)
                         if array_type != storage_type:
                             # Temporarily convert to the storage type to support extension types in the slice operation
-                            array = array_cast(array, storage_type, allow_number_to_str=allow_number_to_str)
+                            array = array_cast(
+                                array,
+                                storage_type,
+                                allow_primitive_to_str=allow_primitive_to_str,
+                                allow_decimal_to_str=allow_decimal_to_str,
+                            )
                             array = pc.list_slice(array, 0, feature.length, return_fixed_size_list=True)
-                            array = array_cast(array, array_type, allow_number_to_str=allow_number_to_str)
+                            array = array_cast(
+                                array,
+                                array_type,
+                                allow_primitive_to_str=allow_primitive_to_str,
+                                allow_decimal_to_str=allow_decimal_to_str,
+                            )
                         else:
                             array = pc.list_slice(array, 0, feature.length, return_fixed_size_list=True)
                         array_values = array.values
@@ -2069,9 +2099,19 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
                 array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
                 return pa.ListArray.from_arrays(array_offsets, _c(array.values, feature.feature), mask=array.is_null())
     if pa.types.is_null(array.type):
-        return array_cast(array, get_nested_type(feature), allow_number_to_str=allow_number_to_str)
+        return array_cast(
+            array,
+            get_nested_type(feature),
+            allow_primitive_to_str=allow_primitive_to_str,
+            allow_decimal_to_str=allow_decimal_to_str,
+        )
     elif not isinstance(feature, (Sequence, dict, list, tuple)):
-        return array_cast(array, feature(), allow_number_to_str=allow_number_to_str)
+        return array_cast(
+            array,
+            feature(),
+            allow_primitive_to_str=allow_primitive_to_str,
+            allow_decimal_to_str=allow_decimal_to_str,
+        )
     raise TypeError(f"Couldn't cast array of type\n{array.type}\nto\n{feature}")
 
 
