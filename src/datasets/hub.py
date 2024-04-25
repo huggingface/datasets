@@ -19,7 +19,7 @@ from datasets.utils.metadata import MetadataConfigs
 
 def delete_from_hub(
     repo_id: str,
-    config_name: Optional[str] = None,
+    config_name: str,
     revision: Optional[str] = None,
     token: Optional[Union[bool, str]] = None,
 ) -> CommitInfo:
