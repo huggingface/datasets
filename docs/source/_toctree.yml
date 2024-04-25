@@ -46,6 +46,8 @@
       title: Cloud storage
     - local: faiss_es
       title: Search index
+    - local: cli
+      title: CLI
     - local: how_to_metrics
       title: Metrics
     - local: beam
