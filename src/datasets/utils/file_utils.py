@@ -37,7 +37,7 @@ import requests
 from aiohttp.client_exceptions import ClientError
 from fsspec.core import strip_protocol, url_to_fs
 from fsspec.utils import can_be_local
-from huggingface_hub.utils import EntryNotFoundError, insecure_hashlib
+from huggingface_hub.utils import EntryNotFoundError, HfHubHTTPError, insecure_hashlib
 from packaging import version
 
 from .. import __version__, config
@@ -1100,7 +1100,7 @@ def _add_retries_to_file_obj_read_method(file_obj):
             try:
                 out = read(*args, **kwargs)
                 break
-            except (ClientError, TimeoutError) as err:
+            except (HfHubHTTPError, ClientError, TimeoutError) as err:
                 disconnect_err = err
                 logger.warning(
                     f"Got disconnected from remote data host. Retrying in {config.STREAMING_READ_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
