@@ -21,8 +21,10 @@ class ConvertToParquetCommand(BaseDatasetsCLICommand):
     @staticmethod
     def register_subcommand(parser):
         parser: ArgumentParser = parser.add_parser("convert_to_parquet", help="Convert dataset to Parquet")
-        parser.add_argument("dataset_id", help="source dataset ID")
-        parser.add_argument("--token", help="access token to the Hugging Face Hub")
+        parser.add_argument(
+            "dataset_id", help="source dataset ID, e.g. USERNAME/DATASET_NAME or ORGANIZATION/DATASET_NAME"
+        )
+        parser.add_argument("--token", help="access token to the Hugging Face Hub (defaults to logged-in user's one)")
         parser.add_argument("--revision", help="source revision")
         parser.add_argument(
             "--trust_remote_code", action="store_true", help="whether to trust the code execution of the load script"
