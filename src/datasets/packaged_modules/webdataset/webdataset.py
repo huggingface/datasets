@@ -1,5 +1,6 @@
 import io
 import json
+import os
 from itertools import islice
 from typing import Any, Callable, Dict, List
 
@@ -24,7 +25,8 @@ class WebDataset(datasets.GeneratorBasedBuilder):
         current_example = {}
         for filename, f in tar_iterator:
             if "." in filename:
-                example_key, field_name = filename.split(".", 1)
+                example_key, field_name = os.path.splitext(filename)
+                field_name = field_name.lstrip(".")
                 if current_example and current_example["__key__"] != example_key:
                     yield current_example
                     current_example = {}
