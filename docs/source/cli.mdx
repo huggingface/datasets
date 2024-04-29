@@ -35,7 +35,7 @@ positional arguments:
 
 optional arguments:
   -h, --help           show this help message and exit
-  --token TOKEN        access token to the Hugging Face Hub
+  --token TOKEN        access token to the Hugging Face Hub (defaults to logged-in user's one)
   --revision REVISION  source revision
   --trust_remote_code  whether to trust the code execution of the load script
 ```
@@ -50,8 +50,17 @@ Note that you should pass the `--trust_remote_code` argument only if you trust t
 
 For example:
 ```bash
->>> datasets-cli convert_to_parquet USERNAME/DATASET_NAME --token USER_ACCESS_TOKEN
+>>> datasets-cli convert_to_parquet USERNAME/DATASET_NAME
 ```
+
+<Tip>
+
+Do not forget that you need to log in first to your Hugging Face account:
+```bash
+>>> huggingface-cli login
+```
+
+</Tip>
 
 ## Delete from Hub
 
