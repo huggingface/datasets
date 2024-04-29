@@ -79,3 +79,17 @@ optional arguments:
   --token TOKEN        access token to the Hugging Face Hub
   --revision REVISION  source revision
 ```
+
+For example:
+```bash
+>>> datasets-cli delete_from_hub USERNAME/DATASET_NAME CONFIG_NAME
+```
+
+<Tip>
+
+Do not forget that you need to log in first to your Hugging Face account:
+```bash
+>>> huggingface-cli login
+```
+
+</Tip>
