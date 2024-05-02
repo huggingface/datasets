@@ -70,9 +70,7 @@ def delete_from_hub(
             _ = dataset_card.data.pop("dataset_info", None)
     # Commit
     operations.append(
-        CommitOperationAdd(
-            path_in_repo=config.REPOCARD_FILENAME, path_or_fileobj=str(dataset_card).encode(encoding="utf-8")
-        )
+        CommitOperationAdd(path_in_repo=config.REPOCARD_FILENAME, path_or_fileobj=str(dataset_card).encode())
     )
     api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
     commit_info = api.create_commit(

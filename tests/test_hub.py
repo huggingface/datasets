@@ -76,7 +76,7 @@ def test_delete_from_hub(temporary_repo, hf_api, hf_token, csv_path, ci_hub_conf
               - split: train
                 path: cats/train/*
             ---
-            """).encode(encoding="utf-8"),
+            """).encode(),
         ),
     ]
     assert mock_method.call_args.kwargs.get("operations") == expected_operations
