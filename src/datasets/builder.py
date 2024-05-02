@@ -580,7 +580,8 @@ class DatasetBuilder:
             else:
                 if len(self.BUILDER_CONFIGS) > 1:
                     if not config_kwargs:
-                        example_of_usage = f"load_dataset('{self.dataset_name}', '{self.BUILDER_CONFIGS[0].name}')"
+                        dataset_id = self.repo_id if self.repo_id else self.dataset_name
+                        example_of_usage = f"load_dataset('{dataset_id}', '{self.BUILDER_CONFIGS[0].name}')"
                         raise ValueError(
                             "Config name is missing."
                             f"\nPlease pick one among the available configs: {list(self.builder_configs.keys())}"
