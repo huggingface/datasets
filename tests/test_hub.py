@@ -53,7 +53,8 @@ def test_delete_from_hub(
           - split: train
             path: dogs/train/*
         ---
-        """)
+        """),
+            encoding="utf-8",
         )
         hf_api.upload_file(
             token=hf_token,
