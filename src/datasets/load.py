@@ -1545,7 +1545,6 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         builder_kwargs = {
             "base_path": hf_dataset_url(self.name, "", revision=self.revision).rstrip("/"),
             "repo_id": self.name,
-            "dataset_name": self.name,
         }
         return DatasetModule(module_path, hash, builder_kwargs, importable_file_path=importable_file_path)
 
