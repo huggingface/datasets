@@ -68,9 +68,15 @@ def test_delete_from_hub(temporary_repo, hf_api, hf_token, csv_path, ci_hub_conf
         CommitOperationDelete(path_in_repo="dogs/train/0000.csv", is_folder=False),
         CommitOperationAdd(
             path_in_repo="README.md",
-            path_or_fileobj="---\nconfigs:\n- config_name: cats\n  data_files:\n  - split: train\n    path: cats/train/*\n---\n".encode(
-                encoding="utf-8"
-            ),
+            path_or_fileobj=dedent(f"""\
+            ---
+            {METADATA_CONFIGS_FIELD}:
+            - config_name: cats
+              data_files:
+              - split: train
+                path: cats/train/*
+            ---
+            """).encode(encoding="utf-8"),
         ),
     ]
     assert mock_method.call_args.kwargs.get("operations") == expected_operations
