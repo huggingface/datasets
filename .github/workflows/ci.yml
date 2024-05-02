@@ -61,7 +61,7 @@ jobs:
           uv pip install --system -r additional-tests-requirements.txt --no-deps
       - name: Install dependencies (latest versions)
         if: ${{ matrix.deps_versions == 'deps-latest' }}
-        run: uv pip install --system --upgrade pyarrow huggingface-hub dill
+        run: uv pip install --system --upgrade pyarrow "huggingface-hub<0.23.0" dill
       - name: Install dependencies (minimum versions)
         if: ${{ matrix.deps_versions != 'deps-latest' }}
         run: uv pip install --system pyarrow==12.0.0 huggingface-hub==0.21.2 transformers dill==0.3.1.1

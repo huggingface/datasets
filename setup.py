@@ -135,7 +135,7 @@ REQUIRED_PKGS = [
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface-hub>=0.21.2",
+    "huggingface-hub>=0.21.2,<0.23.0",  # temporary pin: see https://github.com/huggingface/datasets/issues/6860
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     # To parse YAML metadata from dataset cards
