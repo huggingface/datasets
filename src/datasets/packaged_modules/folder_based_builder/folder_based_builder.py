@@ -242,7 +242,9 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
             return pa.Table.from_pandas(pd.read_csv(metadata_file))
         else:
             with open(metadata_file, "rb") as f:
-                return paj.read_json(f)
+                file_size = os.stat(f.fileno()).st_size
+                read_options = paj.ReadOptions(block_size=file_size)
+                return paj.read_json(f, read_options=read_options)
 
     def _generate_examples(self, files, metadata_files, split_name, add_metadata, add_labels):
         split_metadata_files = metadata_files.get(split_name, [])
