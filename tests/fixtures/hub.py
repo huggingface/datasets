@@ -75,13 +75,13 @@ def temporary_repo(cleanup_repo):
 
 
 @pytest.fixture(scope="session")
-def hf_private_dataset_repo_txt_data_(hf_api: HfApi, hf_token, text_file):
+def hf_private_dataset_repo_txt_data_(hf_api: HfApi, hf_token, text_file_content):
     repo_name = f"repo_txt_data-{int(time.time() * 10e6)}"
     repo_id = f"{CI_HUB_USER}/{repo_name}"
     hf_api.create_repo(repo_id, token=hf_token, repo_type="dataset", private=True)
     hf_api.upload_file(
         token=hf_token,
-        path_or_fileobj=str(text_file),
+        path_or_fileobj=text_file_content.encode(),
         path_in_repo="data/text_data.txt",
         repo_id=repo_id,
         repo_type="dataset",

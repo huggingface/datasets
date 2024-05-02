@@ -20,9 +20,7 @@ def test_dataset_url(repo_id, filename, revision):
     assert url == f"https://huggingface.co/datasets/{repo_id}/resolve/{revision or 'main'}/{quote(filename)}"
 
 
-def test_delete_from_hub(
-    temporary_repo, hf_api, hf_token, csv_path, tmp_path, ci_hub_config, ci_hfh_hf_hub_url
-) -> None:
+def test_delete_from_hub(temporary_repo, hf_api, hf_token, csv_path, ci_hub_config, ci_hfh_hf_hub_url) -> None:
     with temporary_repo() as repo_id:
         hf_api.create_repo(repo_id, token=hf_token, repo_type="dataset")
         hf_api.upload_file(
@@ -39,25 +37,21 @@ def test_delete_from_hub(
             repo_type="dataset",
             token=hf_token,
         )
-        readme_path = tmp_path / "README.md"
-        readme_path.write_text(
-            dedent(f"""\
-        ---
-        {METADATA_CONFIGS_FIELD}:
-        - config_name: cats
-          data_files:
-          - split: train
-            path: cats/train/*
-        - config_name: dogs
-          data_files:
-          - split: train
-            path: dogs/train/*
-        ---
-        """)
-        )
         hf_api.upload_file(
             token=hf_token,
-            path_or_fileobj=str(readme_path),
+            path_or_fileobj=dedent(f"""\
+            ---
+            {METADATA_CONFIGS_FIELD}:
+            - config_name: cats
+              data_files:
+              - split: train
+                path: cats/train/*
+            - config_name: dogs
+              data_files:
+              - split: train
+                path: dogs/train/*
+            ---
+            """).encode(),
             path_in_repo="README.md",
             repo_id=repo_id,
             repo_type="dataset",
@@ -74,7 +68,15 @@ def test_delete_from_hub(
         CommitOperationDelete(path_in_repo="dogs/train/0000.csv", is_folder=False),
         CommitOperationAdd(
             path_in_repo="README.md",
-            path_or_fileobj=b"---\nconfigs:\n- config_name: cats\n  data_files:\n  - split: train\n    path: cats/train/*\n---\n",
+            path_or_fileobj=dedent(f"""\
+            ---
+            {METADATA_CONFIGS_FIELD}:
+            - config_name: cats
+              data_files:
+              - split: train
+                path: cats/train/*
+            ---
+            """).encode(),
         ),
     ]
     assert mock_method.call_args.kwargs.get("operations") == expected_operations
