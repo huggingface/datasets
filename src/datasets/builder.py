@@ -580,7 +580,9 @@ class DatasetBuilder:
             else:
                 if len(self.BUILDER_CONFIGS) > 1:
                     if not config_kwargs:
-                        example_of_usage = f"load_dataset('{self.dataset_name}', '{self.BUILDER_CONFIGS[0].name}')"
+                        example_of_usage = (
+                            f"load_dataset('{self.repo_id or self.dataset_name}', '{self.BUILDER_CONFIGS[0].name}')"
+                        )
                         raise ValueError(
                             "Config name is missing."
                             f"\nPlease pick one among the available configs: {list(self.builder_configs.keys())}"
@@ -1054,7 +1056,7 @@ class DatasetBuilder:
                     Please follow the manual download instructions:
                      {self.manual_download_instructions}
                     Manual data can be loaded with:
-                     datasets.load_dataset("{self.dataset_name}", data_dir="<path/to/manual/data>")"""
+                     datasets.load_dataset("{self.repo_id or self.dataset_name}", data_dir="<path/to/manual/data>")"""
                 )
             )
 
@@ -2116,7 +2118,7 @@ class BeamBasedBuilder(DatasetBuilder):
         beam_options = self._beam_options
 
         if not beam_runner and not beam_options:
-            usage_example = f"load_dataset('{self.name}', '{self.config.name}', beam_runner='DirectRunner')"
+            usage_example = f"load_dataset('{self.repo_id or self.dataset_name}', '{self.config.name}', beam_runner='DirectRunner')"
             raise MissingBeamOptions(
                 "Trying to generate a dataset using Apache Beam, yet no Beam Runner "
                 "or PipelineOptions() has been provided in `load_dataset` or in the "
