@@ -568,6 +568,10 @@ def get_from_cache(
         if scheme == "ftp":
             connected = ftp_head(url)
         elif scheme not in ("http", "https"):
+            if scheme in ("s3", "s3a") and storage_options is not None and "hf" in storage_options:
+                # Issue 6598: **storage_options is passed to botocore.session.Session() 
+                # and must not contain keys that become invalid kwargs.
+                del storage_options["hf"]
             response = fsspec_head(url, storage_options=storage_options)
             # s3fs uses "ETag", gcsfs uses "etag"
             etag = (response.get("ETag", None) or response.get("etag", None)) if use_etag else None

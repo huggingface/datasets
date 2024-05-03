@@ -4,16 +4,19 @@ import pickle
 import shutil
 import tempfile
 import time
+from contextlib import contextmanager
 from hashlib import sha256
 from multiprocessing import Pool
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
 
+import boto3
 import dill
 import pyarrow as pa
 import pytest
 import requests
+from moto.server import ThreadedMotoServer
 
 import datasets
 from datasets import config, load_dataset, load_from_disk
@@ -1646,6 +1649,41 @@ def test_load_from_disk_with_default_in_memory(
 
     with assert_arrow_memory_increases() if expected_in_memory else assert_arrow_memory_doesnt_increase():
         _ = load_from_disk(dataset_path)
+
+
+@contextmanager
+def moto_server():
+    with patch.dict(os.environ, {"AWS_ENDPOINT_URL": "http://localhost:5000"}):
+        server = ThreadedMotoServer()
+        server.start()
+        try:
+            yield
+        finally:
+            server.stop()
+
+
+def test_load_file_from_s3():
+    # we need server mode here because of an aiobotocore incompatibility with moto.mock_aws 
+    # (https://github.com/getmoto/moto/issues/6836)
+    with moto_server():  
+        # Create a mock S3 bucket
+        bucket_name = "test-bucket"
+        s3 = boto3.client("s3", region_name="us-east-1")
+        s3.create_bucket(Bucket=bucket_name)
+
+        # Upload a file to the mock bucket
+        key = "test-file.csv"
+        csv_data = "Name\nPatrick\nMat"
+
+        s3.put_object(Bucket=bucket_name, Key=key, Body=csv_data)
+
+        # Load the file from the mock bucket
+        ds = datasets.load_dataset(
+            "csv", data_files={"train": "s3://test-bucket/test-file.csv"}
+        )
+
+        # Check if the loaded content matches the original content
+        assert list(ds["train"]) == [{"Name": "Patrick"}, {"Name": "Mat"}]
 
 
 @pytest.mark.integration
