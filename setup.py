@@ -124,7 +124,7 @@ REQUIRED_PKGS = [
     # for downloading datasets over HTTPS
     "requests>=2.19.0",
     # progress bars in download and scripts
-    "tqdm>=4.62.1",
+    "tqdm>=4.66.3",
     # for fast hashing
     "xxhash",
     # for better multiprocessing
