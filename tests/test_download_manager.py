@@ -8,6 +8,7 @@ from datasets.download.download_config import DownloadConfig
 from datasets.download.download_manager import DownloadManager
 from datasets.download.streaming_download_manager import StreamingDownloadManager
 from datasets.utils.file_utils import hash_url_to_filename, xopen
+from datasets.utils.py_utils import NestedDataStructure
 
 
 URL = "http://www.mocksite.com/file1.txt"
@@ -28,19 +29,15 @@ def mock_request(*args, **kwargs):
     return MockResponse()
 
 
-@pytest.mark.parametrize("urls_type", [str, list, dict])
+@pytest.mark.parametrize("urls_type", ["str", "list", "dict", "dict_of_dict"])
 def test_download_manager_download(urls_type, tmp_path, monkeypatch):
     import requests
 
     monkeypatch.setattr(requests, "request", mock_request)
 
     url = URL
-    if issubclass(urls_type, str):
-        urls = url
-    elif issubclass(urls_type, list):
-        urls = [url]
-    elif issubclass(urls_type, dict):
-        urls = {"train": url}
+    urls_types = {"str": url, "list": [url], "dict": {"train": url}, "dict_of_dict": {"train": {"en": url}}}
+    urls = urls_types[urls_type]
     dataset_name = "dummy"
     cache_subdir = "downloads"
     cache_dir_root = tmp_path
@@ -50,29 +47,29 @@ def test_download_manager_download(urls_type, tmp_path, monkeypatch):
     )
     dl_manager = DownloadManager(dataset_name=dataset_name, download_config=download_config)
     downloaded_paths = dl_manager.download(urls)
-    input_urls = urls
-    for downloaded_paths in [downloaded_paths]:
-        if isinstance(urls, str):
-            downloaded_paths = [downloaded_paths]
-            input_urls = [urls]
-        elif isinstance(urls, dict):
-            assert "train" in downloaded_paths.keys()
-            downloaded_paths = downloaded_paths.values()
-            input_urls = urls.values()
-        assert downloaded_paths
-        for downloaded_path, input_url in zip(downloaded_paths, input_urls):
-            assert downloaded_path == dl_manager.downloaded_paths[input_url]
-            downloaded_path = Path(downloaded_path)
-            parts = downloaded_path.parts
-            assert parts[-1] == HASH
-            assert parts[-2] == cache_subdir
-            assert downloaded_path.exists()
-            content = downloaded_path.read_text()
-            assert content == CONTENT
-            metadata_downloaded_path = downloaded_path.with_suffix(".json")
-            assert metadata_downloaded_path.exists()
-            metadata_content = json.loads(metadata_downloaded_path.read_text())
-            assert metadata_content == {"url": URL, "etag": None}
+    assert isinstance(downloaded_paths, type(urls))
+    if "urls_type".startswith("list"):
+        assert len(downloaded_paths) == len(urls)
+    elif "urls_type".startswith("dict"):
+        assert downloaded_paths.keys() == urls.keys()
+        if "urls_type" == "dict_of_dict":
+            key = list(urls.keys())[0]
+            assert isinstance(downloaded_paths[key], dict)
+            assert downloaded_paths[key].keys() == urls[key].keys()
+    for downloaded_path, url in zip(
+        NestedDataStructure(downloaded_paths).flatten(), NestedDataStructure(urls).flatten()
+    ):
+        downloaded_path = Path(downloaded_path)
+        parts = downloaded_path.parts
+        assert parts[-1] == HASH
+        assert parts[-2] == cache_subdir
+        assert downloaded_path.exists()
+        content = downloaded_path.read_text()
+        assert content == CONTENT
+        metadata_downloaded_path = downloaded_path.with_suffix(".json")
+        assert metadata_downloaded_path.exists()
+        metadata_content = json.loads(metadata_downloaded_path.read_text())
+        assert metadata_content == {"url": URL, "etag": None}
 
 
 @pytest.mark.parametrize("paths_type", [str, list, dict])
