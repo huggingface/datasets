@@ -15,6 +15,14 @@ from datasets.utils.file_utils import readline
 logger = datasets.utils.logging.get_logger(__name__)
 
 
+def ujson_loads(*args, **kwargs):
+    try:
+        return pd.io.json.ujson_loads(*args, **kwargs)
+    except AttributeError:
+        # Before pandas-2.1.0, ujson_loads was renamed to loads: import ujson_loads as loads
+        return pd.io.json.loads(*args, **kwargs)
+
+
 @dataclass
 class JsonConfig(datasets.BuilderConfig):
     """BuilderConfig for JSON."""
@@ -80,7 +88,7 @@ class Json(datasets.ArrowBasedBuilder):
             # If the file is one json object and if we need to look at the list of items in one specific field
             if self.config.field is not None:
                 with open(file, encoding=self.config.encoding, errors=self.config.encoding_errors) as f:
-                    dataset = pd.io.json.ujson_loads(f.read())
+                    dataset = ujson_loads(f.read())
 
                 # We keep only the field we are interested in
                 dataset = dataset[self.config.field]
@@ -142,7 +150,7 @@ class Json(datasets.ArrowBasedBuilder):
                                 with open(
                                     file, encoding=self.config.encoding, errors=self.config.encoding_errors
                                 ) as f:
-                                    dataset = pd.io.json.ujson_loads(f.read())
+                                    dataset = ujson_loads(f.read())
                             except ValueError:
                                 logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                                 raise e
