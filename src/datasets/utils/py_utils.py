@@ -453,11 +453,11 @@ def map_nested(
             <Added version="2.5.0"/>
         batched (`bool`, defaults to `False`):
             Provide batch of items to `function`.
-            <Added version="2.18.1"/>
+            <Added version="2.19.0"/>
         batch_size (`int`, *optional*, defaults to `1000`):
             Number of items per batch provided to `function` if `batched=True`.
             If `batch_size <= 0` or `batch_size == None`, provide the full iterable as a single batch to `function`.
-            <Added version="2.18.1"/>
+            <Added version="2.19.0"/>
         types (`tuple`, *optional*): Additional types (besides `dict` values) to apply `function` recursively to their
             elements.
         disable_tqdm (`bool`, default `True`): Whether to disable the tqdm progressbar.
