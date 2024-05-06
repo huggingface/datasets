@@ -19,7 +19,7 @@ def ujson_loads(*args, **kwargs):
     try:
         return pd.io.json.ujson_loads(*args, **kwargs)
     except AttributeError:
-        # Before pandas-2.1.0, ujson_loads was renamed to loads: import ujson_loads as loads
+        # Before pandas-2.2.0, ujson_loads was renamed to loads: import ujson_loads as loads
         return pd.io.json.loads(*args, **kwargs)
 
 
