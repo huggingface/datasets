@@ -367,12 +367,15 @@ def _single_map_nested(args):
 
     # Singleton first to spare some computation
     if not isinstance(data_struct, dict) and not isinstance(data_struct, types):
-        return function(data_struct)
+        if batched:
+            return function([data_struct])[0]
+        else:
+            return function(data_struct)
     if (
         batched
         and not isinstance(data_struct, dict)
         and isinstance(data_struct, types)
-        and all(not isinstance(v, types) for v in data_struct)
+        and all(not isinstance(v, (dict, types)) for v in data_struct)
     ):
         return [mapped_item for batch in iter_batched(data_struct, batch_size) for mapped_item in function(batch)]
 
