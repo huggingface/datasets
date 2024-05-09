@@ -19,8 +19,9 @@ def image_wds_file(tmp_path, image_file):
         f.write(json.dumps({"caption": "this is an image"}))
     with tarfile.open(str(filename), "w") as f:
         for example_idx in range(num_examples):
-            f.add(json_file, f"file_basename_with_dot.{example_idx:05d}.json")
-            f.add(image_file, f"file_basename_with_dot.{example_idx:05d}.jpg")
+            prefix = "" if example_idx % 2 == 0 else "file_basename_with_dot."
+            f.add(json_file, f"{prefix}{example_idx:05d}.json")
+            f.add(image_file, f"{prefix}{example_idx:05d}.jpg")
     return str(filename)
 
 
@@ -33,8 +34,9 @@ def audio_wds_file(tmp_path, audio_file):
         f.write(json.dumps({"transcript": "this is a transcript"}))
     with tarfile.open(str(filename), "w") as f:
         for example_idx in range(num_examples):
-            f.add(json_file, f"file_basename_with_dot.{example_idx:05d}.json")
-            f.add(audio_file, f"file_basename_with_dot.{example_idx:05d}.wav")
+            prefix = "" if example_idx % 2 == 0 else "file_basename_with_dot."
+            f.add(json_file, f"{prefix}{example_idx:05d}.json")
+            f.add(audio_file, f"{prefix}{example_idx:05d}.wav")
     return str(filename)
 
 
