@@ -24,7 +24,7 @@ class WebDataset(datasets.GeneratorBasedBuilder):
         current_example = {}
         for filename, f in tar_iterator:
             if "." in filename:
-                example_key, field_name = filename.split(".", 1)
+                example_key, field_name = filename.rsplit(".", 1)
                 if current_example and current_example["__key__"] != example_key:
                     yield current_example
                     current_example = {}
