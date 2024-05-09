@@ -1,4 +1,5 @@
 import io
+import os
 import itertools
 import json
 from dataclasses import dataclass
@@ -96,85 +97,86 @@ class Json(datasets.ArrowBasedBuilder):
 
             # If the file has one json object per line
             else:
-                with open(file, "rb") as f:
-                    batch_idx = 0
-                    # Use block_size equal to the chunk size divided by 32 to leverage multithreading
-                    # Set a default minimum value of 16kB if the chunk size is really small
-                    block_size = max(self.config.chunksize // 32, 16 << 10)
-                    encoding_errors = (
-                        self.config.encoding_errors if self.config.encoding_errors is not None else "strict"
-                    )
-                    while True:
-                        batch = f.read(self.config.chunksize)
-                        if not batch:
-                            break
-                        # Finish current line
-                        try:
-                            batch += f.readline()
-                        except (AttributeError, io.UnsupportedOperation):
-                            batch += readline(f)
-                        # PyArrow only accepts utf-8 encoded bytes
-                        if self.config.encoding != "utf-8":
-                            batch = batch.decode(self.config.encoding, errors=encoding_errors).encode("utf-8")
-                        try:
-                            while True:
-                                try:
-                                    pa_table = paj.read_json(
-                                        io.BytesIO(batch), read_options=paj.ReadOptions(block_size=block_size)
-                                    )
-                                    break
-                                except (pa.ArrowInvalid, pa.ArrowNotImplementedError) as e:
-                                    if (
-                                        isinstance(e, pa.ArrowInvalid)
-                                        and "straddling" not in str(e)
-                                        or block_size > len(batch)
-                                    ):
-                                        raise
-                                    else:
-                                        # Increase the block size in case it was too small.
-                                        # The block size will be reset for the next file.
-                                        logger.debug(
-                                            f"Batch of {len(batch)} bytes couldn't be parsed with block_size={block_size}. Retrying with block_size={block_size * 2}."
-                                        )
-                                        block_size *= 2
-                        except pa.ArrowInvalid as e:
+                f = open(file, "rb")
+                batch_idx = 0
+                # Use block_size equal to the chunk size divided by 32 to leverage multithreading
+                # Set a default minimum value of 16kB if the chunk size is really small
+                block_size = max(self.config.chunksize // 32, 16 << 10)
+                encoding_errors = (
+                    self.config.encoding_errors if self.config.encoding_errors is not None else "strict"
+                )
+                while True:
+                    batch = f.read(self.config.chunksize)
+                    if not batch:
+                        break
+                    # Finish current line
+                    try:
+                        batch += f.readline()
+                    except (AttributeError, io.UnsupportedOperation):
+                        batch += readline(f)
+                    # PyArrow only accepts utf-8 encoded bytes
+                    if self.config.encoding != "utf-8":
+                        batch = batch.decode(self.config.encoding, errors=encoding_errors).encode("utf-8")
+                    try:
+                        while True:
                             try:
-                                with open(
-                                    file, encoding=self.config.encoding, errors=self.config.encoding_errors
-                                ) as f:
-                                    dataset = json.load(f)
-                            except json.JSONDecodeError:
-                                logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
-                                raise e
-                            # If possible, parse the file as a list of json objects/strings and exit the loop
-                            if isinstance(dataset, list):  # list is the only sequence type supported in JSON
-                                try:
-                                    if dataset and isinstance(dataset[0], str):
-                                        pa_table_names = (
-                                            list(self.config.features)
-                                            if self.config.features is not None
-                                            else ["text"]
-                                        )
-                                        pa_table = pa.Table.from_arrays([pa.array(dataset)], names=pa_table_names)
-                                    else:
-                                        keys = set().union(*[row.keys() for row in dataset])
-                                        mapping = {col: [row.get(col) for row in dataset] for col in keys}
-                                        pa_table = pa.Table.from_pydict(mapping)
-                                except (pa.ArrowInvalid, AttributeError) as e:
-                                    logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
-                                    raise ValueError(f"Not able to read records in the JSON file at {file}.") from None
-                                yield file_idx, self._cast_table(pa_table)
+                                pa_table = paj.read_json(
+                                    io.BytesIO(batch), read_options=paj.ReadOptions(block_size=block_size)
+                                )
                                 break
-                            else:
+                            except (pa.ArrowInvalid, pa.ArrowNotImplementedError) as e:
+                                if (
+                                    isinstance(e, pa.ArrowInvalid)
+                                    and "straddling" not in str(e)
+                                    or block_size > len(batch)
+                                ):
+                                    raise
+                                else:
+                                    # Increase the block size in case it was too small.
+                                    # The block size will be reset for the next file.
+                                    logger.debug(
+                                        f"Batch of {len(batch)} bytes couldn't be parsed with block_size={block_size}. Retrying with block_size={block_size * 2}."
+                                    )
+                                    block_size *= 2
+                    except pa.ArrowInvalid as e:
+                        try:
+                            with open(
+                                file, encoding=self.config.encoding, errors=self.config.encoding_errors
+                            ) as f:
+                                dataset = json.load(f)
+                        except json.JSONDecodeError:
+                            logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
+                            raise e
+                        # If possible, parse the file as a list of json objects/strings and exit the loop
+                        if isinstance(dataset, list):  # list is the only sequence type supported in JSON
+                            try:
+                                if dataset and isinstance(dataset[0], str):
+                                    pa_table_names = (
+                                        list(self.config.features)
+                                        if self.config.features is not None
+                                        else ["text"]
+                                    )
+                                    pa_table = pa.Table.from_arrays([pa.array(dataset)], names=pa_table_names)
+                                else:
+                                    keys = set().union(*[row.keys() for row in dataset])
+                                    mapping = {col: [row.get(col) for row in dataset] for col in keys}
+                                    pa_table = pa.Table.from_pydict(mapping)
+                            except (pa.ArrowInvalid, AttributeError) as e:
                                 logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
-                                raise ValueError(
-                                    f"Not able to read records in the JSON file at {file}. "
-                                    f"You should probably indicate the field of the JSON file containing your records. "
-                                    f"This JSON file contain the following fields: {str(list(dataset.keys()))}. "
-                                    f"Select the correct one and provide it as `field='XXX'` to the dataset loading method. "
-                                ) from None
-                        # Uncomment for debugging (will print the Arrow table size and elements)
-                        # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
-                        # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                        yield (file_idx, batch_idx), self._cast_table(pa_table)
-                        batch_idx += 1
+                                raise ValueError(f"Not able to read records in the JSON file at {file}.") from None
+                            yield file_idx, self._cast_table(pa_table)
+                            break
+                        else:
+                            logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
+                            raise ValueError(
+                                f"Not able to read records in the JSON file at {file}. "
+                                f"You should probably indicate the field of the JSON file containing your records. "
+                                f"This JSON file contain the following fields: {str(list(dataset.keys()))}. "
+                                f"Select the correct one and provide it as `field='XXX'` to the dataset loading method. "
+                            ) from None
+                    # Uncomment for debugging (will print the Arrow table size and elements)
+                    # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
+                    # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
+                    yield (file_idx, batch_idx), self._cast_table(pa_table)
+                    batch_idx += 1
+                os.close(f.fileno())
