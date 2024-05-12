@@ -4826,3 +4826,20 @@ def test_dataset_getitem_raises():
         ds[False]
     with pytest.raises(TypeError):
         ds._getitem(True)
+
+def test_categorical_dataset(tmpdir):
+    n_legs = pa.array([2, 4, 5, 100])
+    animals = pa.array([
+        "Flamingo", "Horse", "Brittle stars", "Centipede"
+    ]).cast(pa.dictionary(pa.int32(), pa.string()))
+    names = ["n_legs", "animals"]
+
+    table = pa.Table.from_arrays([n_legs, animals], names=names)
+    table_path = str(tmpdir / 'data.parquet')
+    pa.parquet.write_table(table, table_path)
+
+    dataset = Dataset.from_parquet(table_path)
+    entry = dataset[0]
+
+    # Categorical types get transparently converted to string
+    assert entry['animals'] == "Flamingo"
