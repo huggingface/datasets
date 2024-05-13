@@ -33,6 +33,7 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
             target_options (:obj:``dict``, optional): Kwargs passed when instantiating the target FS.
         """
         super().__init__(self, **kwargs)
+        self.fo = fo
         # always open as "rb" since fsspec can then use the TextIOWrapper to make it work for "r" mode
         self._open_with_fsspec = partial(
             fsspec.open,
