@@ -62,7 +62,7 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
 
     def _get_dirs(self):
         if self.dir_cache is None:
-            f = {**self.file.fs.info(self.file.path), "name": self.uncompressed_name}
+            f = {**self._open_with_fsspec().fs.info(self.fo), "name": self.uncompressed_name}
             self.dir_cache = {f["name"]: f}
 
     def cat(self, path: str):
@@ -80,7 +80,7 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
     ):
         path = self._strip_protocol(path)
         if mode != "rb":
-            raise ValueError(f"Tried to read with mode {mode} on file {self.file.path} opened with mode 'rb'")
+            raise ValueError(f"Tried to read with mode {mode} on file {self.fo} opened with mode 'rb'")
         return self._open_with_fsspec().open()
 
 
