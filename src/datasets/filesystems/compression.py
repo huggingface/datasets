@@ -33,11 +33,11 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
             target_options (:obj:``dict``, optional): Kwargs passed when instantiating the target FS.
         """
         super().__init__(self, **kwargs)
-        self.fo = fo
+        self.fo = fo.__fspath__() if hasattr(fo, "__fspath__") else fo
         # always open as "rb" since fsspec can then use the TextIOWrapper to make it work for "r" mode
         self._open_with_fsspec = partial(
             fsspec.open,
-            fo,
+            self.fo,
             mode="rb",
             protocol=target_protocol,
             compression=self.compression,
@@ -48,7 +48,7 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
             },
             **(target_options or {}),
         )
-        self.compressed_name = os.path.basename(fo.split("::")[0])
+        self.compressed_name = os.path.basename(self.fo.split("::")[0])
         self.uncompressed_name = (
             self.compressed_name[: self.compressed_name.rindex(".")]
             if "." in self.compressed_name
