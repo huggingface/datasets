@@ -34,7 +34,7 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
         """
         super().__init__(self, **kwargs)
         # always open as "rb" since fsspec can then use the TextIOWrapper to make it work for "r" mode
-        self._get_file = partial(
+        self._open_with_fsspec = partial(
             fsspec.open,
             fo,
             mode="rb",
@@ -47,7 +47,7 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
             },
             **(target_options or {}),
         )
-        self.compressed_name = os.path.basename(self.file.path.split("::")[0])
+        self.compressed_name = os.path.basename(fo.split("::")[0])
         self.uncompressed_name = (
             self.compressed_name[: self.compressed_name.rindex(".")]
             if "." in self.compressed_name
@@ -66,7 +66,7 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
             self.dir_cache = {f["name"]: f}
 
     def cat(self, path: str):
-        with self._get_file().open() as f:
+        with self._open_with_fsspec().open() as f:
             return f.read()
 
     def _open(
@@ -81,7 +81,7 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
         path = self._strip_protocol(path)
         if mode != "rb":
             raise ValueError(f"Tried to read with mode {mode} on file {self.file.path} opened with mode 'rb'")
-        return self._get_file().open()
+        return self._open_with_fsspec().open()
 
 
 class Bz2FileSystem(BaseCompressedFileFileSystem):
