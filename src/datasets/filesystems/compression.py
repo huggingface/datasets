@@ -1,4 +1,5 @@
 import os
+from functools import partial
 from typing import Optional
 
 import fsspec
@@ -33,7 +34,8 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
         """
         super().__init__(self, **kwargs)
         # always open as "rb" since fsspec can then use the TextIOWrapper to make it work for "r" mode
-        self.file = fsspec.open(
+        self._get_file = partial(
+            fsspec.open,
             fo,
             mode="rb",
             protocol=target_protocol,
@@ -64,7 +66,8 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
             self.dir_cache = {f["name"]: f}
 
     def cat(self, path: str):
-        return self.file.open().read()
+        with self._get_file().open() as f:
+            return f.read()
 
     def _open(
         self,
@@ -78,7 +81,7 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
         path = self._strip_protocol(path)
         if mode != "rb":
             raise ValueError(f"Tried to read with mode {mode} on file {self.file.path} opened with mode 'rb'")
-        return self.file.open()
+        return self._get_file().open()
 
 
 class Bz2FileSystem(BaseCompressedFileFileSystem):
