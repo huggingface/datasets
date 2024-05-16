@@ -13,7 +13,7 @@ from huggingface_hub import (
     create_branch,
 )
 
-from datasets import config
+import datasets.config
 from datasets.info import DatasetInfosDict
 from datasets.inspect import get_dataset_config_names, get_dataset_default_config_name
 from datasets.load import load_dataset, load_dataset_builder
@@ -118,7 +118,7 @@ def delete_from_hub(
     """
     operations = []
     # data_files
-    fs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=token)
+    fs = HfFileSystem(endpoint=datasets.config.HF_ENDPOINT, token=token)
     builder = load_dataset_builder(repo_id, config_name, revision=revision, token=token, trust_remote_code=False)
     for data_file in chain(*builder.config.data_files.values()):
         data_file_resolved_path = fs.resolve_path(data_file)
@@ -135,10 +135,12 @@ def delete_from_hub(
         _ = metadata_configs.pop(config_name, None)
         dataset_card_data = DatasetCardData()
         metadata_configs.to_dataset_card_data(dataset_card_data)
-        if config.METADATA_CONFIGS_FIELD in dataset_card_data:
-            dataset_card.data[config.METADATA_CONFIGS_FIELD] = dataset_card_data[config.METADATA_CONFIGS_FIELD]
+        if datasets.config.METADATA_CONFIGS_FIELD in dataset_card_data:
+            dataset_card.data[datasets.config.METADATA_CONFIGS_FIELD] = dataset_card_data[
+                datasets.config.METADATA_CONFIGS_FIELD
+            ]
         else:
-            _ = dataset_card.data.pop(config.METADATA_CONFIGS_FIELD, None)
+            _ = dataset_card.data.pop(datasets.config.METADATA_CONFIGS_FIELD, None)
     # dataset_info
     dataset_infos: DatasetInfosDict = DatasetInfosDict.from_dataset_card_data(dataset_card.data)
     if dataset_infos:
@@ -151,9 +153,9 @@ def delete_from_hub(
             _ = dataset_card.data.pop("dataset_info", None)
     # Commit
     operations.append(
-        CommitOperationAdd(path_in_repo=config.REPOCARD_FILENAME, path_or_fileobj=str(dataset_card).encode())
+        CommitOperationAdd(path_in_repo=datasets.config.REPOCARD_FILENAME, path_or_fileobj=str(dataset_card).encode())
     )
-    api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
+    api = HfApi(endpoint=datasets.config.HF_ENDPOINT, token=token)
     commit_info = api.create_commit(
         repo_id,
         operations=operations,
