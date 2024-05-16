@@ -85,7 +85,7 @@ def convert_to_parquet(
         dataset.push_to_hub(
             repo_id,
             config_name=config,
-            commit_message=f"Add {config} data files",
+            commit_message=f"Add '{config}' config data files",
             revision=pr_revision,
             token=token,
         )
