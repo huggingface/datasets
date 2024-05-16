@@ -148,7 +148,7 @@ AUDIO_REQUIRE = [
 ]
 
 VISION_REQUIRE = [
-    "Pillow>=6.2.1",
+    "Pillow>=9.4.0",  # When PIL.Image.ExifTags was introduced
 ]
 
 BENCHMARKS_REQUIRE = [
