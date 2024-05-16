@@ -172,7 +172,7 @@ def delete_from_hub(
 
 def _delete_files(dataset_id, revision=None, token=None):
     dataset_name = dataset_id.split("/")[-1]
-    hf_api = HfApi(token=token)
+    hf_api = HfApi(endpoint=datasets.config.HF_ENDPOINT, token=token)
     repo_files = hf_api.list_repo_files(
         dataset_id,
         repo_type="dataset",
