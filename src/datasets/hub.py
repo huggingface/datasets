@@ -11,6 +11,7 @@ from huggingface_hub import (
     HfApi,
     HfFileSystem,
 )
+from huggingface_hub.utils import HfHubHTTPError
 
 import datasets.config
 from datasets.info import DatasetInfosDict
@@ -93,7 +94,10 @@ def convert_to_parquet(
     _delete_files(repo_id, revision=pr_revision, token=token)
     if not revision:
         api = HfApi(endpoint=datasets.config.HF_ENDPOINT, token=token)
-        api.create_branch(repo_id, branch="script", repo_type="dataset", token=token, exist_ok=True)
+        try:
+            api.create_branch(repo_id, branch="script", repo_type="dataset", token=token, exist_ok=True)
+        except HfHubHTTPError:
+            pass
     print(f"You can find your PR to convert the dataset to Parquet at: {pr_url}")
     return commit_info
 
