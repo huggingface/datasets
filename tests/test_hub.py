@@ -59,12 +59,10 @@ def test_convert_to_parquet(temporary_repo, hf_api, hf_token, ci_hub_config, ci_
             pr_revision="refs/pr/1",  # "main", #
             pr_url="https:///hub-ci.huggingface.co/datasets/__DUMMY_USER__/__DUMMY_DATASET__/refs%2Fpr%2F1",
         )
-        with (
-            patch.object(datasets.hub.HfApi, "create_branch") as mock_create_branch,
-            patch.object(datasets.hub.HfApi, "create_commit", return_value=commit_info) as mock_create_commit,
-            patch.object(datasets.hub.HfApi, "list_repo_tree", return_value=[]),  # not needed
-        ):
-            _ = convert_to_parquet(repo_id, token=hf_token)
+        with patch.object(datasets.hub.HfApi, "create_commit", return_value=commit_info) as mock_create_commit:
+            with patch.object(datasets.hub.HfApi, "create_branch") as mock_create_branch:
+                with patch.object(datasets.hub.HfApi, "list_repo_tree", return_value=[]):  # not needed
+                    _ = convert_to_parquet(repo_id, token=hf_token)
     # mock_create_branch
     assert mock_create_branch.called
     assert mock_create_branch.call_count == 2
