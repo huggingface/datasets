@@ -1,6 +1,6 @@
 ---
-YAML tags (full spec here: https://github.com/huggingface/hub-docs/blob/main/datasetcard.md?plain=1):
-- copy-paste the tags obtained with the online tagging app: https://huggingface.co/spaces/huggingface/datasets-tagging
+TODO: "Add YAML tags here. Delete these instructions and copy-paste the YAML tags obtained with the online tagging app: https://huggingface.co/spaces/huggingface/datasets-tagging"
+YAML tags: "Find the full spec here: https://github.com/huggingface/hub-docs/blob/main/datasetcard.md?plain=1"
 ---
 
 # Dataset Card Creation Guide
