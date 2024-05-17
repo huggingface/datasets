@@ -1250,6 +1250,8 @@ def encode_nested_example(schema, obj, level=0):
         sub_schema = schema[0]
         if obj is None:
             return None
+        elif isinstance(obj, np.ndarray):
+            return encode_nested_example(schema, obj.tolist())
         else:
             if len(obj) > 0:
                 for first_elmt in obj:
