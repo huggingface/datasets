@@ -31,8 +31,8 @@ class WebDataset(datasets.GeneratorBasedBuilder):
                 current_example["__key__"] = example_key
                 current_example["__url__"] = tar_path
                 current_example[field_name.lower()] = f.read()
-                if field_name in cls.DECODERS:
-                    current_example[field_name] = cls.DECODERS[field_name](current_example[field_name])
+                if field_name.split(".")[-1] in cls.DECODERS:
+                    current_example[field_name] = cls.DECODERS[field_name.split(".")[-1]](current_example[field_name])
         if current_example:
             yield current_example
 
