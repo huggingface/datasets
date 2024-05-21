@@ -122,7 +122,7 @@ REQUIRED_PKGS = [
     # For performance gains with apache arrow
     "pandas",
     # for downloading datasets over HTTPS
-    "requests>=2.19.0",
+    "requests>=2.32.1",
     # progress bars in download and scripts
     "tqdm>=4.66.3",
     # for fast hashing
