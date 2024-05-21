@@ -666,14 +666,14 @@ class DataFilesDict(Dict[str, DataFilesList]):
         out = cls()
         for key, patterns_for_key in patterns.items():
             out[key] = (
-                DataFilesList.from_local_or_remote(
+                patterns_for_key
+                if isinstance(patterns_for_key, DataFilesList)
+                else DataFilesList.from_local_or_remote(
                     patterns_for_key,
                     base_path=base_path,
                     allowed_extensions=allowed_extensions,
                     download_config=download_config,
                 )
-                if not isinstance(patterns_for_key, DataFilesList)
-                else patterns_for_key
             )
         return out
 
@@ -689,15 +689,15 @@ class DataFilesDict(Dict[str, DataFilesList]):
         out = cls()
         for key, patterns_for_key in patterns.items():
             out[key] = (
-                DataFilesList.from_hf_repo(
+                patterns_for_key
+                if isinstance(patterns_for_key, DataFilesList)
+                else DataFilesList.from_hf_repo(
                     patterns_for_key,
                     dataset_info=dataset_info,
                     base_path=base_path,
                     allowed_extensions=allowed_extensions,
                     download_config=download_config,
                 )
-                if not isinstance(patterns_for_key, DataFilesList)
-                else patterns_for_key
             )
         return out
 
@@ -712,14 +712,14 @@ class DataFilesDict(Dict[str, DataFilesList]):
         out = cls()
         for key, patterns_for_key in patterns.items():
             out[key] = (
-                DataFilesList.from_patterns(
+                patterns_for_key
+                if isinstance(patterns_for_key, DataFilesList)
+                else DataFilesList.from_patterns(
                     patterns_for_key,
                     base_path=base_path,
                     allowed_extensions=allowed_extensions,
                     download_config=download_config,
                 )
-                if not isinstance(patterns_for_key, DataFilesList)
-                else patterns_for_key
             )
         return out
 
@@ -795,12 +795,12 @@ class DataFilesPatternsDict(Dict[str, DataFilesPatternsList]):
         out = cls()
         for key, patterns_for_key in patterns.items():
             out[key] = (
-                DataFilesPatternsList.from_patterns(
+                patterns_for_key
+                if isinstance(patterns_for_key, DataFilesPatternsList)
+                else DataFilesPatternsList.from_patterns(
                     patterns_for_key,
                     allowed_extensions=allowed_extensions,
                 )
-                if not isinstance(patterns_for_key, DataFilesPatternsList)
-                else patterns_for_key
             )
         return out
 
