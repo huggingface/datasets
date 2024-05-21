@@ -364,6 +364,7 @@ def resolve_pattern(
         base_path (str): Base path to use when resolving relative paths.
         allowed_extensions (Optional[list], optional): White-list of file extensions to use. Defaults to None (all extensions).
             For example: allowed_extensions=[".csv", ".json", ".txt", ".parquet"]
+        download_config ([`DownloadConfig`], *optional*): Specific download configuration parameters.
     Returns:
         List[str]: List of paths or URLs to the local or remote files that match the patterns.
     """
