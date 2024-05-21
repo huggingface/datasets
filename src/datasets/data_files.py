@@ -751,7 +751,7 @@ class DataFilesPatternsList(List[str]):
     @classmethod
     def from_patterns(
         cls, patterns: List[str], allowed_extensions: Optional[List[str]] = None
-    ) -> "DataFilesPatternsDict":
+    ) -> "DataFilesPatternsList":
         return cls(patterns, [allowed_extensions] * len(patterns))
 
     def resolve(
@@ -777,7 +777,7 @@ class DataFilesPatternsList(List[str]):
         origin_metadata = _get_origin_metadata(data_files, download_config=download_config)
         return DataFilesList(data_files, origin_metadata)
 
-    def filter_extensions(self, extensions: List[str]) -> "DataFilesList":
+    def filter_extensions(self, extensions: List[str]) -> "DataFilesPatternsList":
         return DataFilesPatternsList(
             self, [allowed_extensions + extensions for allowed_extensions in self.allowed_extensions]
         )
