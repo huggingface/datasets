@@ -122,9 +122,9 @@ REQUIRED_PKGS = [
     # For performance gains with apache arrow
     "pandas",
     # for downloading datasets over HTTPS
-    "requests>=2.19.0",
+    "requests>=2.32.1",
     # progress bars in download and scripts
-    "tqdm>=4.62.1",
+    "tqdm>=4.66.3",
     # for fast hashing
     "xxhash",
     # for better multiprocessing
@@ -135,7 +135,7 @@ REQUIRED_PKGS = [
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface-hub>=0.21.2",
+    "huggingface-hub>=0.21.2,<0.23.0",  # temporary pin: see https://github.com/huggingface/datasets/issues/6860
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     # To parse YAML metadata from dataset cards
@@ -148,7 +148,7 @@ AUDIO_REQUIRE = [
 ]
 
 VISION_REQUIRE = [
-    "Pillow>=6.2.1",
+    "Pillow>=9.4.0",  # When PIL.Image.ExifTags was introduced
 ]
 
 BENCHMARKS_REQUIRE = [
@@ -252,7 +252,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.19.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.19.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

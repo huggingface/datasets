@@ -20,7 +20,7 @@ requirements:
     - dill
     - pandas
     - requests >=2.19.0
-    - tqdm >=4.62.1
+    - tqdm >=4.66.3
     - dataclasses
     - multiprocess
     - fsspec
@@ -37,7 +37,7 @@ requirements:
     - dill
     - pandas
     - requests >=2.19.0
-    - tqdm >=4.62.1
+    - tqdm >=4.66.3
     - dataclasses
     - multiprocess
     - fsspec

@@ -29,49 +29,39 @@ def add_one(i):  # picklable for multiprocessing
     return i + 1
 
 
+def add_one_to_batch(batch):  # picklable for multiprocessing
+    return [i + 1 for i in batch]
+
+
 @dataclass
 class A:
     x: int
     y: str
 
 
+@pytest.mark.parametrize("batched, function", [(False, add_one), (True, add_one_to_batch)])
+@pytest.mark.parametrize("num_proc", [None, 2])
+@pytest.mark.parametrize(
+    "data_struct, expected_result",
+    [
+        ({}, {}),
+        ([], []),
+        (1, 2),
+        ([1, 2], [2, 3]),
+        ({"a": 1, "b": 2}, {"a": 2, "b": 3}),
+        ({"a": [1, 2], "b": [3, 4]}, {"a": [2, 3], "b": [4, 5]}),
+        ({"a": {"1": 1}, "b": {"2": 2}}, {"a": {"1": 2}, "b": {"2": 3}}),
+        ({"a": 1, "b": [2, 3], "c": {"1": 4}}, {"a": 2, "b": [3, 4], "c": {"1": 5}}),
+        ({"a": 1, "b": 2, "c": 3, "d": 4}, {"a": 2, "b": 3, "c": 4, "d": 5}),
+    ],
+)
+def test_map_nested(data_struct, expected_result, num_proc, batched, function):
+    assert map_nested(function, data_struct, num_proc=num_proc, batched=batched) == expected_result
+
+
 class PyUtilsTest(TestCase):
     def test_map_nested(self):
-        s1 = {}
-        s2 = []
-        s3 = 1
-        s4 = [1, 2]
-        s5 = {"a": 1, "b": 2}
-        s6 = {"a": [1, 2], "b": [3, 4]}
-        s7 = {"a": {"1": 1}, "b": 2}
-        s8 = {"a": 1, "b": 2, "c": 3, "d": 4}
-        expected_map_nested_s1 = {}
-        expected_map_nested_s2 = []
-        expected_map_nested_s3 = 2
-        expected_map_nested_s4 = [2, 3]
-        expected_map_nested_s5 = {"a": 2, "b": 3}
-        expected_map_nested_s6 = {"a": [2, 3], "b": [4, 5]}
-        expected_map_nested_s7 = {"a": {"1": 2}, "b": 3}
-        expected_map_nested_s8 = {"a": 2, "b": 3, "c": 4, "d": 5}
-        self.assertEqual(map_nested(add_one, s1), expected_map_nested_s1)
-        self.assertEqual(map_nested(add_one, s2), expected_map_nested_s2)
-        self.assertEqual(map_nested(add_one, s3), expected_map_nested_s3)
-        self.assertEqual(map_nested(add_one, s4), expected_map_nested_s4)
-        self.assertEqual(map_nested(add_one, s5), expected_map_nested_s5)
-        self.assertEqual(map_nested(add_one, s6), expected_map_nested_s6)
-        self.assertEqual(map_nested(add_one, s7), expected_map_nested_s7)
-        self.assertEqual(map_nested(add_one, s8), expected_map_nested_s8)
-
         num_proc = 2
-        self.assertEqual(map_nested(add_one, s1, num_proc=num_proc), expected_map_nested_s1)
-        self.assertEqual(map_nested(add_one, s2, num_proc=num_proc), expected_map_nested_s2)
-        self.assertEqual(map_nested(add_one, s3, num_proc=num_proc), expected_map_nested_s3)
-        self.assertEqual(map_nested(add_one, s4, num_proc=num_proc), expected_map_nested_s4)
-        self.assertEqual(map_nested(add_one, s5, num_proc=num_proc), expected_map_nested_s5)
-        self.assertEqual(map_nested(add_one, s6, num_proc=num_proc), expected_map_nested_s6)
-        self.assertEqual(map_nested(add_one, s7, num_proc=num_proc), expected_map_nested_s7)
-        self.assertEqual(map_nested(add_one, s8, num_proc=num_proc), expected_map_nested_s8)
-
         sn1 = {"a": np.eye(2), "b": np.zeros(3), "c": np.ones(2)}
         expected_map_nested_sn1_sum = {"a": 2, "b": 0, "c": 2}
         expected_map_nested_sn1_int = {

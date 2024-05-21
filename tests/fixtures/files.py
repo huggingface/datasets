@@ -63,6 +63,11 @@ FILE_CONTENT = """\
 
 
 @pytest.fixture(scope="session")
+def text_file_content():
+    return FILE_CONTENT
+
+
+@pytest.fixture(scope="session")
 def text_file(tmp_path_factory):
     filename = tmp_path_factory.mktemp("data") / "file.txt"
     data = FILE_CONTENT

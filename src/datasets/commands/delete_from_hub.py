@@ -2,45 +2,41 @@ from argparse import ArgumentParser
 from typing import Optional
 
 from datasets.commands import BaseDatasetsCLICommand
-from datasets.hub import convert_to_parquet
+from datasets.hub import delete_from_hub
 
 
 def _command_factory(args):
-    return ConvertToParquetCommand(
+    return DeleteFromHubCommand(
         args.dataset_id,
+        args.config_name,
         args.token,
         args.revision,
-        args.trust_remote_code,
     )
 
 
-class ConvertToParquetCommand(BaseDatasetsCLICommand):
+class DeleteFromHubCommand(BaseDatasetsCLICommand):
     @staticmethod
     def register_subcommand(parser):
-        parser: ArgumentParser = parser.add_parser("convert_to_parquet", help="Convert dataset to Parquet")
+        parser: ArgumentParser = parser.add_parser("delete_from_hub", help="Delete dataset config from the Hub")
         parser.add_argument(
             "dataset_id", help="source dataset ID, e.g. USERNAME/DATASET_NAME or ORGANIZATION/DATASET_NAME"
         )
-        parser.add_argument("--token", help="access token to the Hugging Face Hub (defaults to logged-in user's one)")
+        parser.add_argument("config_name", help="config name to delete")
+        parser.add_argument("--token", help="access token to the Hugging Face Hub")
         parser.add_argument("--revision", help="source revision")
-        parser.add_argument(
-            "--trust_remote_code", action="store_true", help="whether to trust the code execution of the load script"
-        )
         parser.set_defaults(func=_command_factory)
 
     def __init__(
         self,
         dataset_id: str,
+        config_name: str,
         token: Optional[str],
         revision: Optional[str],
-        trust_remote_code: bool,
     ):
         self._dataset_id = dataset_id
+        self._config_name = config_name
         self._token = token
         self._revision = revision
-        self._trust_remote_code = trust_remote_code
 
     def run(self) -> None:
-        _ = convert_to_parquet(
-            self._dataset_id, revision=self._revision, token=self._token, trust_remote_code=self._trust_remote_code
-        )
+        _ = delete_from_hub(self._dataset_id, self._config_name, revision=self._revision, token=self._token)

@@ -627,13 +627,13 @@ class FormatterTest(TestCase):
         device = jax.devices()[0]
         formatter = JaxFormatter(device=str(device))
         row = formatter.format_row(pa_table)
-        assert row["a"].device() == device
-        assert row["c"].device() == device
+        assert row["a"].devices().pop() == device
+        assert row["c"].devices().pop() == device
         col = formatter.format_column(pa_table)
-        assert col.device() == device
+        assert col.devices().pop() == device
         batch = formatter.format_batch(pa_table)
-        assert batch["a"].device() == device
-        assert batch["c"].device() == device
+        assert batch["a"].devices().pop() == device
+        assert batch["c"].devices().pop() == device
 
 
 class QueryTest(TestCase):

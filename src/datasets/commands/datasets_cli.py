@@ -3,6 +3,7 @@ from argparse import ArgumentParser
 
 from datasets.commands.convert import ConvertCommand
 from datasets.commands.convert_to_parquet import ConvertToParquetCommand
+from datasets.commands.delete_from_hub import DeleteFromHubCommand
 from datasets.commands.dummy_data import DummyDataCommand
 from datasets.commands.env import EnvironmentCommand
 from datasets.commands.run_beam import RunBeamCommand
@@ -28,6 +29,7 @@ def main():
     RunBeamCommand.register_subcommand(commands_parser)
     DummyDataCommand.register_subcommand(commands_parser)
     ConvertToParquetCommand.register_subcommand(commands_parser)
+    DeleteFromHubCommand.register_subcommand(commands_parser)
 
     # Parse args
     args, unknown_args = parser.parse_known_args()
