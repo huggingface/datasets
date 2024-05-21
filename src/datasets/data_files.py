@@ -3,7 +3,7 @@ import re
 from functools import partial
 from glob import has_magic
 from pathlib import Path, PurePath
-from typing import Callable, Dict, List, Optional, Set, Tuple, TypeAlias, Union
+from typing import Callable, Dict, List, Optional, Set, Tuple, Union
 
 import huggingface_hub
 from fsspec.core import url_to_fs
@@ -22,7 +22,7 @@ from .utils.file_utils import _prepare_path_and_storage_options, is_local_path, 
 from .utils.py_utils import glob_pattern_to_regex, string_to_dict
 
 
-SingleOriginMetadata: TypeAlias = Union[Tuple[str, str], Tuple[str], Tuple[()]]
+SingleOriginMetadata = Union[Tuple[str, str], Tuple[str], Tuple[()]]
 
 
 SANITIZED_DEFAULT_SPLIT = str(Split.TRAIN)
