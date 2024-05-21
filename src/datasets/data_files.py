@@ -3,7 +3,7 @@ import re
 from functools import partial
 from glob import has_magic
 from pathlib import Path, PurePath
-from typing import Callable, Dict, List, Optional, Set, Tuple, Union
+from typing import Callable, Dict, List, Optional, Set, Tuple, TypeAlias, Union
 
 import huggingface_hub
 from fsspec.core import url_to_fs
@@ -20,6 +20,9 @@ from .utils import logging
 from .utils import tqdm as hf_tqdm
 from .utils.file_utils import _prepare_path_and_storage_options, is_local_path, is_relative_path, xbasename, xjoin
 from .utils.py_utils import glob_pattern_to_regex, string_to_dict
+
+
+SingleOriginMetadata: TypeAlias = Union[Tuple[str, str], Tuple[str], Tuple[()]]
 
 
 SANITIZED_DEFAULT_SPLIT = str(Split.TRAIN)
@@ -516,17 +519,17 @@ def get_metadata_patterns(
 def _get_single_origin_metadata(
     data_file: str,
     download_config: Optional[DownloadConfig] = None,
-) -> Tuple[str]:
+) -> SingleOriginMetadata:
     data_file, storage_options = _prepare_path_and_storage_options(data_file, download_config=download_config)
     fs, *_ = url_to_fs(data_file, **storage_options)
     if isinstance(fs, HfFileSystem):
         resolved_path = fs.resolve_path(data_file)
-        return (resolved_path.repo_id, resolved_path.revision)
+        return resolved_path.repo_id, resolved_path.revision
     elif isinstance(fs, HTTPFileSystem) and data_file.startswith(config.HF_ENDPOINT):
         hffs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=download_config.token)
         data_file = "hf://" + data_file[len(config.HF_ENDPOINT) + 1 :].replace("/resolve/", "@", 1)
         resolved_path = hffs.resolve_path(data_file)
-        return (resolved_path.repo_id, resolved_path.revision)
+        return resolved_path.repo_id, resolved_path.revision
     info = fs.info(data_file)
     # s3fs uses "ETag", gcsfs uses "etag", and for local we simply check mtime
     for key in ["ETag", "etag", "mtime"]:
@@ -539,7 +542,7 @@ def _get_origin_metadata(
     data_files: List[str],
     download_config: Optional[DownloadConfig] = None,
     max_workers: Optional[int] = None,
-) -> Tuple[str]:
+) -> List[SingleOriginMetadata]:
     max_workers = max_workers if max_workers is not None else config.HF_DATASETS_MULTITHREADING_MAX_WORKERS
     return thread_map(
         partial(_get_single_origin_metadata, download_config=download_config),
