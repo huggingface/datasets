@@ -570,11 +570,11 @@ class DataFilesList(List[str]):
     This is useful for caching Dataset objects that are obtained from a list of data files.
     """
 
-    def __init__(self, data_files: List[str], origin_metadata: List[Tuple[str]]):
+    def __init__(self, data_files: List[str], origin_metadata: List[SingleOriginMetadata]) -> None:
         super().__init__(data_files)
         self.origin_metadata = origin_metadata
 
-    def __add__(self, other):
+    def __add__(self, other: "DataFilesList") -> "DataFilesList":
         return DataFilesList([*self, *other], self.origin_metadata + other.origin_metadata)
 
     @classmethod
