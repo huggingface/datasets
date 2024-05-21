@@ -559,11 +559,11 @@ def _get_origin_metadata(
 class DataFilesList(List[str]):
     """
     List of data files (absolute local paths or URLs).
-    It has two construction methods given the user's data files patterns :
+    It has two construction methods given the user's data files patterns:
     - ``from_hf_repo``: resolve patterns inside a dataset repository
     - ``from_local_or_remote``: resolve patterns from a local path
 
-    Moreover DataFilesList has an additional attribute ``origin_metadata``.
+    Moreover, DataFilesList has an additional attribute ``origin_metadata``.
     It can store:
     - the last modified time of local files
     - ETag of remote files
@@ -650,9 +650,9 @@ class DataFilesDict(Dict[str, DataFilesList]):
     - ``from_hf_repo``: resolve patterns inside a dataset repository
     - ``from_local_or_remote``: resolve patterns from a local path
 
-    Moreover each list is a DataFilesList. It is possible to hash the dictionary
+    Moreover, each list is a DataFilesList. It is possible to hash the dictionary
     and get a different hash if and only if at least one file changed.
-    For more info, see ``DataFilesList``.
+    For more info, see [`DataFilesList`].
 
     This is useful for caching Dataset objects that are obtained from a list of data files.
 
