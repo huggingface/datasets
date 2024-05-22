@@ -228,7 +228,7 @@ def test_json_generate_tables_with_missing_features(file_fixture, config_kwargs,
     [
         ("json_file_with_list_of_dicts_with_sorted_columns", {}),
         ("json_file_with_list_of_dicts_with_sorted_columns_field", {"field": "field3"}),
-]
+    ],
 )
 def test_json_generate_tables_with_sorted_columns(file_fixture, config_kwargs, request):
     builder = Json(**config_kwargs)
