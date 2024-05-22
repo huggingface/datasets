@@ -93,6 +93,47 @@ def json_file_with_list_of_dicts_field(tmp_path):
 
 
 @pytest.fixture
+def json_file_with_list_of_strings_field(tmp_path):
+    path = tmp_path / "file.json"
+    data = textwrap.dedent(
+        """\
+        {
+            "field1": 1,
+            "field2": "aabb",
+            "field3": [
+                "First text.",
+                "Second text.",
+                "Third text."
+            ]
+        }
+        """
+    )
+    with open(path, "w") as f:
+        f.write(data)
+    return str(path)
+
+
+@pytest.fixture
+def json_file_with_dict_of_lists_field(tmp_path):
+    path = tmp_path / "file.json"
+    data = textwrap.dedent(
+        """\
+        {
+            "field1": 1,
+            "field2": "aabb",
+            "field3": {
+                "col_1": [-1, 1, 10],
+                "col_2": [null, 2, 20]
+            }
+        }
+        """
+    )
+    with open(path, "w") as f:
+        f.write(data)
+    return str(path)
+
+
+@pytest.fixture
 def json_file_with_list_of_dicts_with_sorted_columns(tmp_path):
     path = tmp_path / "file.json"
     data = textwrap.dedent(
@@ -138,13 +179,15 @@ def json_file_with_list_of_dicts_with_sorted_columns_field(tmp_path):
         ("json_file_with_list_of_dicts", {}),
         ("json_file_with_list_of_dicts_field", {"field": "field3"}),
         ("json_file_with_list_of_strings", {}),
+        ("json_file_with_list_of_strings_field", {"field": "field3"}),
+        ("json_file_with_dict_of_lists_field", {"field": "field3"}),
     ],
 )
 def test_json_generate_tables(file_fixture, config_kwargs, request):
     json = Json(**config_kwargs)
     generator = json._generate_tables([[request.getfixturevalue(file_fixture)]])
     pa_table = pa.concat_tables([table for _, table in generator])
-    if file_fixture == "json_file_with_list_of_strings":
+    if "list_of_strings" in file_fixture:
         expected = {"text": ["First text.", "Second text.", "Third text."]}
     else:
         expected = {"col_1": [-1, 1, 10], "col_2": [None, 2, 20]}
