@@ -45,27 +45,16 @@ class WebDataset(datasets.GeneratorBasedBuilder):
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
         data_files = dl_manager.download(self.config.data_files)
-        if isinstance(data_files, (str, list, tuple)):
-            tar_paths = data_files
+        splits = []
+        for split_name, tar_paths in data_files.items():
             if isinstance(tar_paths, str):
                 tar_paths = [tar_paths]
             tar_iterators = [dl_manager.iter_archive(tar_path) for tar_path in tar_paths]
-            splits = [
+            splits.append(
                 datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN, gen_kwargs={"tar_paths": tar_paths, "tar_iterators": tar_iterators}
+                    name=split_name, gen_kwargs={"tar_paths": tar_paths, "tar_iterators": tar_iterators}
                 )
-            ]
-        else:
-            splits = []
-            for split_name, tar_paths in data_files.items():
-                if isinstance(tar_paths, str):
-                    tar_paths = [tar_paths]
-                tar_iterators = [dl_manager.iter_archive(tar_path) for tar_path in tar_paths]
-                splits.append(
-                    datasets.SplitGenerator(
-                        name=split_name, gen_kwargs={"tar_paths": tar_paths, "tar_iterators": tar_iterators}
-                    )
-                )
+            )
         if not self.info.features:
             # Get one example to get the feature types
             pipeline = self._get_pipeline_from_tar(tar_paths[0], tar_iterators[0])
