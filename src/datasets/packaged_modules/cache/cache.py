@@ -169,10 +169,15 @@ class Cache(datasets.ArrowBasedBuilder):
         if output_dir is not None and output_dir != self.cache_dir:
             shutil.copytree(self.cache_dir, output_dir)
 
-    def _split_generators(self, dl_manager):
+    def _available_splits(self) -> Optional[List[str]]:
+        return [str(split) for split in self.info.splits]
+
+    def _split_generators(self, dl_manager, splits: Optional[List[str]] = None):
         # used to stream from cache
         if isinstance(self.info.splits, datasets.SplitDict):
             split_infos: List[datasets.SplitInfo] = list(self.info.splits.values())
+            if splits:
+                split_infos = [split_info for split_info in split_infos if split_info.name in splits]
         else:
             raise ValueError(f"Missing splits info for {self.dataset_name} in cache directory {self.cache_dir}")
         return [
@@ -184,7 +189,7 @@ class Cache(datasets.ArrowBasedBuilder):
                         dataset_name=self.dataset_name,
                         split=split_info.name,
                         filetype_suffix="arrow",
-                        shard_lengths=split_info.shard_lengths,
+                        num_shards=len(split_info.shard_lengths or ()),
                     )
                 },
             )

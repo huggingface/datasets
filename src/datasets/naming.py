@@ -16,7 +16,7 @@
 """Utilities for file names."""
 
 import itertools
-import os
+import posixpath
 import re
 
 
@@ -46,33 +46,33 @@ def snakecase_to_camelcase(name):
 
 
 def filename_prefix_for_name(name):
-    if os.path.basename(name) != name:
+    if posixpath.basename(name) != name:
         raise ValueError(f"Should be a dataset name, not a path: {name}")
     return camelcase_to_snakecase(name)
 
 
 def filename_prefix_for_split(name, split):
-    if os.path.basename(name) != name:
+    if posixpath.basename(name) != name:
         raise ValueError(f"Should be a dataset name, not a path: {name}")
     if not re.match(_split_re, split):
         raise ValueError(f"Split name should match '{_split_re}'' but got '{split}'.")
     return f"{filename_prefix_for_name(name)}-{split}"
 
 
-def filepattern_for_dataset_split(dataset_name, split, data_dir, filetype_suffix=None):
+def filepattern_for_dataset_split(path, dataset_name, split, filetype_suffix=None):
     prefix = filename_prefix_for_split(dataset_name, split)
+    filepath = posixpath.join(path, prefix)
+    filepath = f"{filepath}*"
     if filetype_suffix:
-        prefix += f".{filetype_suffix}"
-    filepath = os.path.join(data_dir, prefix)
-    return f"{filepath}*"
+        filepath += f".{filetype_suffix}"
+    return filepath
 
 
-def filenames_for_dataset_split(path, dataset_name, split, filetype_suffix=None, shard_lengths=None):
+def filenames_for_dataset_split(path, dataset_name, split, filetype_suffix=None, num_shards=1):
     prefix = filename_prefix_for_split(dataset_name, split)
-    prefix = os.path.join(path, prefix)
+    prefix = posixpath.join(path, prefix)
 
-    if shard_lengths:
-        num_shards = len(shard_lengths)
+    if num_shards > 1:
         filenames = [f"{prefix}-{shard_id:05d}-of-{num_shards:05d}" for shard_id in range(num_shards)]
         if filetype_suffix:
             filenames = [filename + f".{filetype_suffix}" for filename in filenames]

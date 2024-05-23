@@ -2,7 +2,7 @@ import itertools
 import warnings
 from dataclasses import InitVar, dataclass
 from io import StringIO
-from typing import Optional
+from typing import List, Optional
 
 import pyarrow as pa
 
@@ -42,7 +42,10 @@ class Text(datasets.ArrowBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
 
-    def _split_generators(self, dl_manager):
+    def _available_splits(self) -> Optional[List[str]]:
+        return [str(split) for split in self.config.data_files] if isinstance(self.config.data_files, dict) else None
+
+    def _split_generators(self, dl_manager, splits: Optional[List[str]] = None):
         """The `data_files` kwarg in load_dataset() can be a str, List[str], Dict[str,str], or Dict[str,List[str]].
 
         If str or List[str], then the dataset returns only the 'train' split.
@@ -51,7 +54,10 @@ class Text(datasets.ArrowBasedBuilder):
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
         dl_manager.download_config.extract_on_the_fly = True
-        data_files = dl_manager.download_and_extract(self.config.data_files)
+        data_files = self.config.data_files
+        if splits and isinstance(data_files, dict):
+            data_files = {split: data_files[split] for split in splits}
+        data_files = dl_manager.download_and_extract(data_files)
         if isinstance(data_files, (str, list, tuple)):
             files = data_files
             if isinstance(files, str):
