@@ -2,6 +2,7 @@ import json
 import os
 import pickle
 import subprocess
+import warnings
 from functools import partial
 from pathlib import Path
 from tempfile import gettempdir
@@ -87,15 +88,21 @@ class TokenizersHashTest(TestCase):
             return tokenizer(x)
 
         # TODO: add hash consistency tests across sessions
-        tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
         hash1 = Hasher.hash(tokenizer)
         hash1_lambda = Hasher.hash(lambda x: tokenizer(x))
         hash1_encode = Hasher.hash(encode)
-        tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
         hash2 = Hasher.hash(tokenizer)
         hash2_lambda = Hasher.hash(lambda x: tokenizer(x))
         hash2_encode = Hasher.hash(encode)
-        tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
         hash3 = Hasher.hash(tokenizer)
         hash3_lambda = Hasher.hash(lambda x: tokenizer(x))
         hash3_encode = Hasher.hash(encode)
