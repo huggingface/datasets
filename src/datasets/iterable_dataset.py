@@ -558,6 +558,8 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
                         break
                     # otherwise reinitialise the iterator and yield the first example
                     iterators[i] = _HasNextIterator(self.ex_iterables[i])
+                    if self._state_dict:
+                        self._state_dict["ex_iterables"][i] = self.ex_iterables[i]._init_state_dict()
 
             except StopIteration:
                 # here it means that the i-th iterabledataset is empty, i.e we never have the occasion to yield an element of the i-th dataset.
