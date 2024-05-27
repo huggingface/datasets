@@ -525,8 +525,7 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
 
     def _get_indices_iterator(self):
         # this is an infinite iterator to keep track of which iterator we want to pick examples from
-        if self._state_dict:
-            ex_iterable_idx = self._state_dict["ex_iterable_idx"] if self._state_dict else 0
+        ex_iterable_idx = self._state_dict["ex_iterable_idx"] if self._state_dict else 0
         for next_ex_iterable_idx in islice(cycle(range(len(self.ex_iterables))), ex_iterable_idx + 1, None):
             if self._state_dict:
                 self._state_dict["ex_iterable_idx"] = next_ex_iterable_idx
@@ -1399,7 +1398,7 @@ class IterableDataset(DatasetInfoMixin):
         info = info.copy() if info is not None else DatasetInfo()
         DatasetInfoMixin.__init__(self, info=info, split=split)
 
-        self._ex_iterable = ex_iterable
+        self._ex_iterable = copy.copy(ex_iterable)
         self._formatting = formatting
         self._shuffling = shuffling
         self._distributed = distributed

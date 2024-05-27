@@ -1523,8 +1523,8 @@ def test_iterable_dataset_shuffle_after_skip_or_take(method):
     assert sorted(dataset, key=key) == sorted(shuffled_dataset, key=key)
 
 
-def test_iterable_dataset_add_column(dataset_with_several_columns):
-    new_column = list(range(DEFAULT_N_EXAMPLES))
+def test_iterable_dataset_add_column(dataset_with_several_columns: IterableDataset):
+    new_column = list(range(3 * DEFAULT_N_EXAMPLES))
     new_dataset = dataset_with_several_columns.add_column("new_column", new_column)
     assert list(new_dataset) == [
         {**example, "new_column": idx} for idx, example in enumerate(dataset_with_several_columns)
@@ -1533,7 +1533,7 @@ def test_iterable_dataset_add_column(dataset_with_several_columns):
     assert "new_column" in new_dataset.column_names
 
 
-def test_iterable_dataset_rename_column(dataset_with_several_columns):
+def test_iterable_dataset_rename_column(dataset_with_several_columns: IterableDataset):
     new_dataset = dataset_with_several_columns.rename_column("id", "new_id")
     assert list(new_dataset) == [
         {("new_id" if k == "id" else k): v for k, v in example.items()} for example in dataset_with_several_columns
@@ -1548,7 +1548,7 @@ def test_iterable_dataset_rename_column(dataset_with_several_columns):
     assert "new_id" in new_dataset.column_names
 
 
-def test_iterable_dataset_rename_columns(dataset_with_several_columns):
+def test_iterable_dataset_rename_columns(dataset_with_several_columns: IterableDataset):
     column_mapping = {"id": "new_id", "filepath": "filename"}
     new_dataset = dataset_with_several_columns.rename_columns(column_mapping)
     assert list(new_dataset) == [
@@ -1564,7 +1564,7 @@ def test_iterable_dataset_rename_columns(dataset_with_several_columns):
     assert all(c in new_dataset.column_names for c in ["new_id", "filename"])
 
 
-def test_iterable_dataset_remove_columns(dataset_with_several_columns):
+def test_iterable_dataset_remove_columns(dataset_with_several_columns: IterableDataset):
     new_dataset = dataset_with_several_columns.remove_columns("id")
     assert list(new_dataset) == [
         {k: v for k, v in example.items() if k != "id"} for example in dataset_with_several_columns
@@ -1584,7 +1584,7 @@ def test_iterable_dataset_remove_columns(dataset_with_several_columns):
     assert all(c not in new_dataset.column_names for c in ["id", "filepath"])
 
 
-def test_iterable_dataset_select_columns(dataset_with_several_columns):
+def test_iterable_dataset_select_columns(dataset_with_several_columns: IterableDataset):
     new_dataset = dataset_with_several_columns.select_columns("id")
     assert list(new_dataset) == [
         {k: v for k, v in example.items() if k == "id"} for example in dataset_with_several_columns
@@ -1945,3 +1945,18 @@ def test_pickle_after_many_transforms(dataset_with_several_columns):
     unpickled_dataset = pickle.loads(pickle.dumps(dataset))
 
     assert list(unpickled_dataset) == list(dataset)
+
+
+def test_resume_dataloader(dataset: IterableDataset):
+    from torchdata.stateful_dataloader import StatefulDataLoader
+
+    dl = StatefulDataLoader(dataset)
+    remaining = []
+    for i, x in enumerate(dl):
+        if i == 2:
+            state_dict = dl.state_dict()
+        elif i > 2:
+            remaining.append(x)
+    dl = StatefulDataLoader(dataset)
+    dl.load_state_dict(state_dict)
+    assert remaining == list(dl)
