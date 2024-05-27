@@ -15,9 +15,10 @@ known-first-party = ["datasets"]
 
 [tool.pytest.ini_options]
 # Test fails if a FutureWarning is thrown by `huggingface_hub`
-filterwarnings = [
-    "error::FutureWarning:huggingface_hub*",
-]
+# Temporarily disabled because transformers 4.41.1 calls deprecated code from `huggingface_hub` that causes FutureWarning
+# filterwarnings = [
+#     "error::FutureWarning:huggingface_hub*",
+# ]
 markers = [
     "unit: unit test",
     "integration: integration test",
