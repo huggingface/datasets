@@ -1,5 +1,6 @@
 import copy
 import pickle
+from decimal import Decimal
 from typing import List, Union
 
 import numpy as np
@@ -787,6 +788,27 @@ def test_concatenation_table_slice(
     assert isinstance(table, ConcatenationTable)
 
 
+def test_concatenation_table_slice_mixed_schemas_vertically(arrow_file):
+    t1 = MemoryMappedTable.from_file(arrow_file)
+    t2 = InMemoryTable.from_pydict({"additional_column": ["foo"]})
+    expected = pa.table(
+        {
+            **{column: values + [None] for column, values in t1.to_pydict().items()},
+            "additional_column": [None] * len(t1) + ["foo"],
+        }
+    )
+    blocks = [[t1], [t2]]
+    table = ConcatenationTable.from_blocks(blocks)
+    assert table.to_pydict() == expected.to_pydict()
+    assert isinstance(table, ConcatenationTable)
+    reloaded = pickle.loads(pickle.dumps(table))
+    assert reloaded.to_pydict() == expected.to_pydict()
+    assert isinstance(reloaded, ConcatenationTable)
+    reloaded = pickle.loads(pickle.dumps(table.slice(1, 2)))
+    assert reloaded.to_pydict() == expected.slice(1, 2).to_pydict()
+    assert isinstance(reloaded, ConcatenationTable)
+
+
 @pytest.mark.parametrize("blocks_type", ["in_memory", "memory_mapped", "mixed"])
 def test_concatenation_table_filter(
     blocks_type, in_memory_pa_table, in_memory_blocks, memory_mapped_blocks, mixed_in_memory_and_memory_mapped_blocks
@@ -1077,11 +1099,44 @@ def test_indexed_table_mixin():
     assert table.fast_slice(2, 13) == pa_table.slice(2, 13)
 
 
-def test_cast_array_to_features():
+def test_cast_integer_array_to_features():
     arr = pa.array([[0, 1]])
     assert cast_array_to_feature(arr, Sequence(Value("string"))).type == pa.list_(pa.string())
+    assert cast_array_to_feature(arr, Sequence(Value("string")), allow_decimal_to_str=False).type == pa.list_(
+        pa.string()
+    )
     with pytest.raises(TypeError):
-        cast_array_to_feature(arr, Sequence(Value("string")), allow_number_to_str=False)
+        cast_array_to_feature(arr, Sequence(Value("string")), allow_primitive_to_str=False)
+
+
+def test_cast_float_array_to_features():
+    arr = pa.array([[0.0, 1.0]])
+    assert cast_array_to_feature(arr, Sequence(Value("string"))).type == pa.list_(pa.string())
+    assert cast_array_to_feature(arr, Sequence(Value("string")), allow_decimal_to_str=False).type == pa.list_(
+        pa.string()
+    )
+    with pytest.raises(TypeError):
+        cast_array_to_feature(arr, Sequence(Value("string")), allow_primitive_to_str=False)
+
+
+def test_cast_boolean_array_to_features():
+    arr = pa.array([[False, True]])
+    assert cast_array_to_feature(arr, Sequence(Value("string"))).type == pa.list_(pa.string())
+    assert cast_array_to_feature(arr, Sequence(Value("string")), allow_decimal_to_str=False).type == pa.list_(
+        pa.string()
+    )
+    with pytest.raises(TypeError):
+        cast_array_to_feature(arr, Sequence(Value("string")), allow_primitive_to_str=False)
+
+
+def test_cast_decimal_array_to_features():
+    arr = pa.array([[Decimal(0), Decimal(1)]])
+    assert cast_array_to_feature(arr, Sequence(Value("string"))).type == pa.list_(pa.string())
+    assert cast_array_to_feature(arr, Sequence(Value("string")), allow_primitive_to_str=False).type == pa.list_(
+        pa.string()
+    )
+    with pytest.raises(TypeError):
+        cast_array_to_feature(arr, Sequence(Value("string")), allow_decimal_to_str=False)
 
 
 def test_cast_array_to_features_nested():

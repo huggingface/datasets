@@ -58,6 +58,7 @@ from .utils import (
     require_jax,
     require_not_windows,
     require_pil,
+    require_polars,
     require_pyspark,
     require_sqlalchemy,
     require_tf,
@@ -73,6 +74,10 @@ class PickableMagicMock(MagicMock):
 
 
 class Unpicklable:
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
     def __getstate__(self):
         raise pickle.PicklingError()
 
@@ -479,6 +484,22 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(len(dset[0].columns), 2)
                 self.assertEqual(dset[0]["col_2"].item(), "a")
 
+    @require_polars
+    def test_set_format_polars(self, in_memory):
+        import polars as pl
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                dset.set_format(type="polars", columns=["col_1"])
+                self.assertEqual(len(dset[0].columns), 1)
+                self.assertIsInstance(dset[0], pl.DataFrame)
+                self.assertListEqual(list(dset[0].shape), [1, 1])
+                self.assertEqual(dset[0]["col_1"].item(), 3)
+
+                dset.set_format(type="polars", columns=["col_1", "col_2"])
+                self.assertEqual(len(dset[0].columns), 2)
+                self.assertEqual(dset[0]["col_2"].item(), "a")
+
     def test_set_transform(self, in_memory):
         def transform(batch):
             return {k: [str(i).upper() for i in v] for k, v in batch.items()}
@@ -811,6 +832,7 @@ class BaseDatasetTest(TestCase):
                 Dataset.from_dict(data2, info=info2),
                 Dataset.from_dict(data3),
             )
+            schema = dset1.data.schema
             # mix from in-memory and on-disk datasets
             dset1, dset2 = self._to(in_memory, tmp_dir, dset1, dset2)
             dset3 = self._to(not in_memory, tmp_dir, dset3)
@@ -835,13 +857,13 @@ class BaseDatasetTest(TestCase):
             dset3 = dset3.rename_column("foo", "new_foo")
             dset3 = dset3.remove_columns("new_foo")
             if in_memory:
-                dset3._data.table = Unpicklable()
+                dset3._data.table = Unpicklable(schema=schema)
             else:
-                dset1._data.table, dset2._data.table = Unpicklable(), Unpicklable()
+                dset1._data.table, dset2._data.table = Unpicklable(schema=schema), Unpicklable(schema=schema)
             dset1, dset2, dset3 = (pickle.loads(pickle.dumps(d)) for d in (dset1, dset2, dset3))
             with concatenate_datasets([dset3, dset2, dset1]) as dset_concat:
                 if not in_memory:
-                    dset_concat._data.table = Unpicklable()
+                    dset_concat._data.table = Unpicklable(schema=schema)
                 with pickle.loads(pickle.dumps(dset_concat)) as dset_concat:
                     self.assertTupleEqual((len(dset1), len(dset2), len(dset3)), (3, 3, 2))
                     self.assertEqual(len(dset_concat), len(dset1) + len(dset2) + len(dset3))
@@ -2360,6 +2382,38 @@ class BaseDatasetTest(TestCase):
                     for col_name in dset.column_names:
                         self.assertEqual(len(dset_to_pandas[col_name]), dset.num_rows)
 
+    @require_polars
+    def test_to_polars(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            # Batched
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                batch_size = dset.num_rows - 1
+                to_polars_generator = dset.to_polars(batched=True, batch_size=batch_size)
+
+                for batch in to_polars_generator:
+                    self.assertIsInstance(batch, sys.modules["polars"].DataFrame)
+                    self.assertListEqual(sorted(batch.columns), sorted(dset.column_names))
+                    for col_name in dset.column_names:
+                        self.assertLessEqual(len(batch[col_name]), batch_size)
+                    del batch
+
+                # Full
+                dset_to_polars = dset.to_polars()
+                self.assertIsInstance(dset_to_polars, sys.modules["polars"].DataFrame)
+                self.assertListEqual(sorted(dset_to_polars.columns), sorted(dset.column_names))
+                for col_name in dset.column_names:
+                    self.assertEqual(len(dset_to_polars[col_name]), len(dset))
+
+                # With index mapping
+                with dset.select([1, 0, 3]) as dset:
+                    dset_to_polars = dset.to_polars()
+                    self.assertIsInstance(dset_to_polars, sys.modules["polars"].DataFrame)
+                    self.assertEqual(len(dset_to_polars), 3)
+                    self.assertListEqual(sorted(dset_to_polars.columns), sorted(dset.column_names))
+
+                    for col_name in dset.column_names:
+                        self.assertEqual(len(dset_to_polars[col_name]), dset.num_rows)
+
     def test_to_parquet(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             # File path argument
@@ -2786,6 +2840,17 @@ class BaseDatasetTest(TestCase):
                 self.assertIsInstance(dset[:2], pd.DataFrame)
                 self.assertIsInstance(dset["col_1"], pd.Series)
 
+    @require_polars
+    def test_format_polars(self, in_memory):
+        import polars as pl
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                dset.set_format("polars")
+                self.assertIsInstance(dset[0], pl.DataFrame)
+                self.assertIsInstance(dset[:2], pl.DataFrame)
+                self.assertIsInstance(dset["col_1"], pl.Series)
+
     def test_transmit_format_single(self, in_memory):
         @transmit_format
         def my_single_transform(self, return_factory, *args, **kwargs):
@@ -3051,6 +3116,35 @@ class MiscellaneousDatasetTest(TestCase):
 
         features = Features({"col_1": Sequence(Value("string")), "col_2": Value("string")})
         self.assertRaises(TypeError, Dataset.from_pandas, df, features=features)
+
+    @require_polars
+    def test_from_polars(self):
+        import polars as pl
+
+        data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}
+        df = pl.from_dict(data)
+        with Dataset.from_polars(df) as dset:
+            self.assertListEqual(dset["col_1"], data["col_1"])
+            self.assertListEqual(dset["col_2"], data["col_2"])
+            self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
+            self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("large_string")}))
+
+        features = Features({"col_1": Value("int64"), "col_2": Value("large_string")})
+        with Dataset.from_polars(df, features=features) as dset:
+            self.assertListEqual(dset["col_1"], data["col_1"])
+            self.assertListEqual(dset["col_2"], data["col_2"])
+            self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
+            self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("large_string")}))
+
+        features = Features({"col_1": Value("int64"), "col_2": Value("large_string")})
+        with Dataset.from_polars(df, features=features, info=DatasetInfo(features=features)) as dset:
+            self.assertListEqual(dset["col_1"], data["col_1"])
+            self.assertListEqual(dset["col_2"], data["col_2"])
+            self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
+            self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("large_string")}))
+
+        features = Features({"col_1": Sequence(Value("string")), "col_2": Value("large_string")})
+        self.assertRaises(TypeError, Dataset.from_polars, df, features=features)
 
     def test_from_dict(self):
         data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"], "col_3": pa.array([True, False, True, False])}
@@ -3886,7 +3980,7 @@ def _check_sql_dataset(dataset, expected_features):
 
 @require_sqlalchemy
 @pytest.mark.parametrize("con_type", ["string", "engine"])
-def test_dataset_from_sql_con_type(con_type, sqlite_path, tmp_path, set_sqlalchemy_silence_uber_warning):
+def test_dataset_from_sql_con_type(con_type, sqlite_path, tmp_path, set_sqlalchemy_silence_uber_warning, caplog):
     cache_dir = tmp_path / "cache"
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     if con_type == "string":
@@ -3895,17 +3989,16 @@ def test_dataset_from_sql_con_type(con_type, sqlite_path, tmp_path, set_sqlalche
         import sqlalchemy
 
         con = sqlalchemy.create_engine("sqlite:///" + sqlite_path)
-    # # https://github.com/huggingface/datasets/issues/2832 needs to be fixed first for this to work
-    # with caplog.at_level(INFO):
-    #     dataset = Dataset.from_sql(
-    #         "dataset",
-    #         con,
-    #         cache_dir=cache_dir,
-    #     )
-    # if con_type == "string":
-    #     assert "couldn't be hashed properly" not in caplog.text
-    # elif con_type == "engine":
-    #     assert "couldn't be hashed properly" in caplog.text
+    with caplog.at_level(INFO, logger=get_logger().name):
+        dataset = Dataset.from_sql(
+            "dataset",
+            con,
+            cache_dir=cache_dir,
+        )
+    if con_type == "string":
+        assert "couldn't be hashed properly" not in caplog.text
+    elif con_type == "engine":
+        assert "couldn't be hashed properly" in caplog.text
     dataset = Dataset.from_sql(
         "dataset",
         con,

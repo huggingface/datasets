@@ -12,10 +12,10 @@ from .logging import get_logger
 logger = get_logger(__name__)
 
 
-class DatasetsServerError(DatasetsError):
-    """Dataset-server error.
+class DatasetViewerError(DatasetsError):
+    """Dataset viewer error.
 
-    Raised when trying to use the Datasets-server HTTP API and when trying to access:
+    Raised when trying to use the dataset viewer HTTP API and when trying to access:
     - a missing dataset, or
     - a private/gated dataset and the user is not authenticated.
     - unavailable /parquet or /info responses
@@ -27,10 +27,10 @@ def get_exported_parquet_files(dataset: str, revision: str, token: Optional[Unio
     Get the dataset exported parquet files
     Docs: https://huggingface.co/docs/datasets-server/parquet
     """
-    datasets_server_parquet_url = config.HF_ENDPOINT.replace("://", "://datasets-server.") + "/parquet?dataset="
+    dataset_viewer_parquet_url = config.HF_ENDPOINT.replace("://", "://datasets-server.") + "/parquet?dataset="
     try:
         parquet_data_files_response = http_get(
-            url=datasets_server_parquet_url + dataset,
+            url=dataset_viewer_parquet_url + dataset,
             temp_file=None,
             headers=get_authentication_headers_for_url(config.HF_ENDPOINT + f"datasets/{dataset}", token=token),
             timeout=100.0,
@@ -53,9 +53,9 @@ def get_exported_parquet_files(dataset: str, revision: str, token: Optional[Unio
                 logger.debug(
                     f"Parquet export for {dataset} is available but outdated (revision='{parquet_data_files_response.headers['X-Revision']}')"
                 )
-    except Exception as e:  # noqa catch any exception of the datasets-server and consider the parquet export doesn't exist
+    except Exception as e:  # noqa catch any exception of the dataset viewer API and consider the parquet export doesn't exist
         logger.debug(f"No parquet export for {dataset} available ({type(e).__name__}: {e})")
-    raise DatasetsServerError("No exported Parquet files available.")
+    raise DatasetViewerError("No exported Parquet files available.")
 
 
 def get_exported_dataset_infos(
@@ -65,10 +65,10 @@ def get_exported_dataset_infos(
     Get the dataset information, can be useful to get e.g. the dataset features.
     Docs: https://huggingface.co/docs/datasets-server/info
     """
-    datasets_server_info_url = config.HF_ENDPOINT.replace("://", "://datasets-server.") + "/info?dataset="
+    dataset_viewer_info_url = config.HF_ENDPOINT.replace("://", "://datasets-server.") + "/info?dataset="
     try:
         info_response = http_get(
-            url=datasets_server_info_url + dataset,
+            url=dataset_viewer_info_url + dataset,
             temp_file=None,
             headers=get_authentication_headers_for_url(config.HF_ENDPOINT + f"datasets/{dataset}", token=token),
             timeout=100.0,
@@ -91,6 +91,6 @@ def get_exported_dataset_infos(
                 logger.debug(
                     f"Dataset info for {dataset} is available but outdated (revision='{info_response.headers['X-Revision']}')"
                 )
-    except Exception as e:  # noqa catch any exception of the datasets-server and consider the dataset info doesn't exist
+    except Exception as e:  # noqa catch any exception of the dataset viewer API and consider the dataset info doesn't exist
         logger.debug(f"No dataset info for {dataset} available ({type(e).__name__}: {e})")
-    raise DatasetsServerError("No exported dataset infos available.")
+    raise DatasetViewerError("No exported dataset infos available.")

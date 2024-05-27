@@ -6,7 +6,7 @@ from pathlib import Path, PurePath
 from typing import Callable, Dict, List, Optional, Set, Tuple, Union
 
 import huggingface_hub
-from fsspec import get_fs_token_paths
+from fsspec.core import url_to_fs
 from fsspec.implementations.http import HTTPFileSystem
 from huggingface_hub import HfFileSystem
 from packaging import version
@@ -14,13 +14,15 @@ from tqdm.contrib.concurrent import thread_map
 
 from . import config
 from .download import DownloadConfig
-from .download.streaming_download_manager import _prepare_path_and_storage_options, xbasename, xjoin
 from .naming import _split_re
 from .splits import Split
 from .utils import logging
 from .utils import tqdm as hf_tqdm
-from .utils.file_utils import is_local_path, is_relative_path
+from .utils.file_utils import _prepare_path_and_storage_options, is_local_path, is_relative_path, xbasename, xjoin
 from .utils.py_utils import glob_pattern_to_regex, string_to_dict
+
+
+SingleOriginMetadata = Union[Tuple[str, str], Tuple[str], Tuple[()]]
 
 
 SANITIZED_DEFAULT_SPLIT = str(Split.TRAIN)
@@ -46,19 +48,48 @@ SPLIT_KEYWORDS = {
 }
 NON_WORDS_CHARS = "-._ 0-9"
 if config.FSSPEC_VERSION < version.parse("2023.9.0"):
-    KEYWORDS_IN_PATH_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**[{sep}/]{keyword}[{sep}/]**"]
+    KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**[{sep}/]{keyword}[{sep}]*", "{keyword}[{sep}]*"]
+    KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = [
+        "{keyword}/**",
+        "{keyword}[{sep}]*/**",
+        "**[{sep}/]{keyword}/**",
+        "**[{sep}/]{keyword}[{sep}]*/**",
+    ]
+elif config.FSSPEC_VERSION < version.parse("2023.12.0"):
+    KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**/*[{sep}/]{keyword}[{sep}]*", "{keyword}[{sep}]*"]
+    KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = [
+        "{keyword}/**/*",
+        "{keyword}[{sep}]*/**/*",
+        "**/*[{sep}/]{keyword}/**/*",
+        "**/*[{sep}/]{keyword}[{sep}]*/**/*",
+    ]
 else:
-    KEYWORDS_IN_PATH_NAME_BASE_PATTERNS = ["{keyword}[{sep}/]**", "**/*[{sep}/]{keyword}[{sep}/]**"]
+    KEYWORDS_IN_FILENAME_BASE_PATTERNS = ["**/{keyword}[{sep}]*", "**/*[{sep}]{keyword}[{sep}]*"]
+    KEYWORDS_IN_DIR_NAME_BASE_PATTERNS = [
+        "**/{keyword}/**",
+        "**/{keyword}[{sep}]*/**",
+        "**/*[{sep}]{keyword}/**",
+        "**/*[{sep}]{keyword}[{sep}]*/**",
+    ]
 
 DEFAULT_SPLITS = [Split.TRAIN, Split.VALIDATION, Split.TEST]
-DEFAULT_PATTERNS_SPLIT_IN_PATH_NAME = {
+DEFAULT_PATTERNS_SPLIT_IN_FILENAME = {
     split: [
         pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
         for keyword in SPLIT_KEYWORDS[split]
-        for pattern in KEYWORDS_IN_PATH_NAME_BASE_PATTERNS
+        for pattern in KEYWORDS_IN_FILENAME_BASE_PATTERNS
     ]
     for split in DEFAULT_SPLITS
 }
+DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME = {
+    split: [
+        pattern.format(keyword=keyword, sep=NON_WORDS_CHARS)
+        for keyword in SPLIT_KEYWORDS[split]
+        for pattern in KEYWORDS_IN_DIR_NAME_BASE_PATTERNS
+    ]
+    for split in DEFAULT_SPLITS
+}
+
 
 DEFAULT_PATTERNS_ALL = {
     Split.TRAIN: ["**"],
@@ -66,7 +97,8 @@ DEFAULT_PATTERNS_ALL = {
 
 ALL_SPLIT_PATTERNS = [SPLIT_PATTERN_SHARDED]
 ALL_DEFAULT_PATTERNS = [
-    DEFAULT_PATTERNS_SPLIT_IN_PATH_NAME,
+    DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME,
+    DEFAULT_PATTERNS_SPLIT_IN_FILENAME,
     DEFAULT_PATTERNS_ALL,
 ]
 if config.FSSPEC_VERSION < version.parse("2023.9.0"):
@@ -303,11 +335,9 @@ def resolve_pattern(
     - data/* to match all the files inside "data"
     - data/** to match all the files inside "data" and its subdirectories
 
-    The patterns are resolved using the fsspec glob.
-
-    glob.glob, Path.glob, Path.match or fnmatch do not support ** with a prefix/suffix other than a forward slash /.
-    For instance, this means **.json is the same as *.json. On the contrary, the fsspec glob has no limits regarding the ** prefix/suffix,
-    resulting in **.json being equivalent to **/*.json.
+    The patterns are resolved using the fsspec glob. In fsspec>=2023.12.0 this is equivalent to
+    Python's glob.glob, Path.glob, Path.match and fnmatch where ** is unsupported with a prefix/suffix
+    other than a forward slash /.
 
     More generally:
     - '*' matches any character except a forward-slash (to match just the file or directory name)
@@ -334,6 +364,7 @@ def resolve_pattern(
         base_path (str): Base path to use when resolving relative paths.
         allowed_extensions (Optional[list], optional): White-list of file extensions to use. Defaults to None (all extensions).
             For example: allowed_extensions=[".csv", ".json", ".txt", ".parquet"]
+        download_config ([`DownloadConfig`], *optional*): Specific download configuration parameters.
     Returns:
         List[str]: List of paths or URLs to the local or remote files that match the patterns.
     """
@@ -344,9 +375,7 @@ def resolve_pattern(
     else:
         base_path = ""
     pattern, storage_options = _prepare_path_and_storage_options(pattern, download_config=download_config)
-    fs, _, _ = get_fs_token_paths(pattern, storage_options=storage_options)
-    fs_base_path = base_path.split("::")[0].split("://")[-1] or fs.root_marker
-    fs_pattern = pattern.split("::")[0].split("://")[-1]
+    fs, fs_pattern = url_to_fs(pattern, **storage_options)
     files_to_ignore = set(FILES_TO_IGNORE) - {xbasename(pattern)}
     protocol = fs.protocol if isinstance(fs.protocol, str) else fs.protocol[0]
     protocol_prefix = protocol + "://" if protocol != "file" else ""
@@ -359,12 +388,8 @@ def resolve_pattern(
         for filepath, info in fs.glob(pattern, detail=True, **glob_kwargs).items()
         if info["type"] == "file"
         and (xbasename(filepath) not in files_to_ignore)
-        and not _is_inside_unrequested_special_dir(
-            os.path.relpath(filepath, fs_base_path), os.path.relpath(fs_pattern, fs_base_path)
-        )
-        and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(
-            os.path.relpath(filepath, fs_base_path), os.path.relpath(fs_pattern, fs_base_path)
-        )
+        and not _is_inside_unrequested_special_dir(filepath, fs_pattern)
+        and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(filepath, fs_pattern)
     ]  # ignore .ipynb and __pycache__, but keep /../
     if allowed_extensions is not None:
         out = [
@@ -402,7 +427,7 @@ def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] 
 
     Output:
 
-        {"train": ["**"]}
+        {'train': ['**']}
 
     Input:
 
@@ -428,8 +453,8 @@ def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] 
 
     Output:
 
-        {'train': ['train[-._ 0-9/]**', '**/*[-._ 0-9/]train[-._ 0-9/]**', 'training[-._ 0-9/]**', '**/*[-._ 0-9/]training[-._ 0-9/]**'],
-         'test': ['test[-._ 0-9/]**', '**/*[-._ 0-9/]test[-._ 0-9/]**', 'testing[-._ 0-9/]**', '**/*[-._ 0-9/]testing[-._ 0-9/]**', ...]}
+        {'train': ['**/train[-._ 0-9]*', '**/*[-._ 0-9]train[-._ 0-9]*', '**/training[-._ 0-9]*', '**/*[-._ 0-9]training[-._ 0-9]*'],
+         'test': ['**/test[-._ 0-9]*', '**/*[-._ 0-9]test[-._ 0-9]*', '**/testing[-._ 0-9]*', '**/*[-._ 0-9]testing[-._ 0-9]*', ...]}
 
     Input:
 
@@ -447,8 +472,8 @@ def get_data_patterns(base_path: str, download_config: Optional[DownloadConfig] 
 
     Output:
 
-        {'train': ['train[-._ 0-9/]**', '**/*[-._ 0-9/]train[-._ 0-9/]**', 'training[-._ 0-9/]**', '**/*[-._ 0-9/]training[-._ 0-9/]**'],
-         'test': ['test[-._ 0-9/]**', '**/*[-._ 0-9/]test[-._ 0-9/]**', 'testing[-._ 0-9/]**', '**/*[-._ 0-9/]testing[-._ 0-9/]**', ...]}
+        {'train': ['**/train/**', '**/train[-._ 0-9]*/**', '**/*[-._ 0-9]train/**', '**/*[-._ 0-9]train[-._ 0-9]*/**', ...],
+         'test': ['**/test/**', '**/test[-._ 0-9]*/**', '**/*[-._ 0-9]test/**', '**/*[-._ 0-9]test[-._ 0-9]*/**', ...]}
 
     Input:
 
@@ -495,17 +520,17 @@ def get_metadata_patterns(
 def _get_single_origin_metadata(
     data_file: str,
     download_config: Optional[DownloadConfig] = None,
-) -> Tuple[str]:
+) -> SingleOriginMetadata:
     data_file, storage_options = _prepare_path_and_storage_options(data_file, download_config=download_config)
-    fs, _, _ = get_fs_token_paths(data_file, storage_options=storage_options)
+    fs, *_ = url_to_fs(data_file, **storage_options)
     if isinstance(fs, HfFileSystem):
         resolved_path = fs.resolve_path(data_file)
-        return (resolved_path.repo_id, resolved_path.revision)
+        return resolved_path.repo_id, resolved_path.revision
     elif isinstance(fs, HTTPFileSystem) and data_file.startswith(config.HF_ENDPOINT):
         hffs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=download_config.token)
         data_file = "hf://" + data_file[len(config.HF_ENDPOINT) + 1 :].replace("/resolve/", "@", 1)
         resolved_path = hffs.resolve_path(data_file)
-        return (resolved_path.repo_id, resolved_path.revision)
+        return resolved_path.repo_id, resolved_path.revision
     info = fs.info(data_file)
     # s3fs uses "ETag", gcsfs uses "etag", and for local we simply check mtime
     for key in ["ETag", "etag", "mtime"]:
@@ -516,9 +541,10 @@ def _get_single_origin_metadata(
 
 def _get_origin_metadata(
     data_files: List[str],
-    max_workers=64,
     download_config: Optional[DownloadConfig] = None,
-) -> Tuple[str]:
+    max_workers: Optional[int] = None,
+) -> List[SingleOriginMetadata]:
+    max_workers = max_workers if max_workers is not None else config.HF_DATASETS_MULTITHREADING_MAX_WORKERS
     return thread_map(
         partial(_get_single_origin_metadata, download_config=download_config),
         data_files,
@@ -533,11 +559,11 @@ def _get_origin_metadata(
 class DataFilesList(List[str]):
     """
     List of data files (absolute local paths or URLs).
-    It has two construction methods given the user's data files patterns :
+    It has two construction methods given the user's data files patterns:
     - ``from_hf_repo``: resolve patterns inside a dataset repository
     - ``from_local_or_remote``: resolve patterns from a local path
 
-    Moreover DataFilesList has an additional attribute ``origin_metadata``.
+    Moreover, DataFilesList has an additional attribute ``origin_metadata``.
     It can store:
     - the last modified time of local files
     - ETag of remote files
@@ -548,11 +574,11 @@ class DataFilesList(List[str]):
     This is useful for caching Dataset objects that are obtained from a list of data files.
     """
 
-    def __init__(self, data_files: List[str], origin_metadata: List[Tuple[str]]):
+    def __init__(self, data_files: List[str], origin_metadata: List[SingleOriginMetadata]) -> None:
         super().__init__(data_files)
         self.origin_metadata = origin_metadata
 
-    def __add__(self, other):
+    def __add__(self, other: "DataFilesList") -> "DataFilesList":
         return DataFilesList([*self, *other], self.origin_metadata + other.origin_metadata)
 
     @classmethod
@@ -624,9 +650,9 @@ class DataFilesDict(Dict[str, DataFilesList]):
     - ``from_hf_repo``: resolve patterns inside a dataset repository
     - ``from_local_or_remote``: resolve patterns from a local path
 
-    Moreover each list is a DataFilesList. It is possible to hash the dictionary
+    Moreover, each list is a DataFilesList. It is possible to hash the dictionary
     and get a different hash if and only if at least one file changed.
-    For more info, see ``DataFilesList``.
+    For more info, see [`DataFilesList`].
 
     This is useful for caching Dataset objects that are obtained from a list of data files.
 
@@ -644,14 +670,14 @@ class DataFilesDict(Dict[str, DataFilesList]):
         out = cls()
         for key, patterns_for_key in patterns.items():
             out[key] = (
-                DataFilesList.from_local_or_remote(
+                patterns_for_key
+                if isinstance(patterns_for_key, DataFilesList)
+                else DataFilesList.from_local_or_remote(
                     patterns_for_key,
                     base_path=base_path,
                     allowed_extensions=allowed_extensions,
                     download_config=download_config,
                 )
-                if not isinstance(patterns_for_key, DataFilesList)
-                else patterns_for_key
             )
         return out
 
@@ -667,15 +693,15 @@ class DataFilesDict(Dict[str, DataFilesList]):
         out = cls()
         for key, patterns_for_key in patterns.items():
             out[key] = (
-                DataFilesList.from_hf_repo(
+                patterns_for_key
+                if isinstance(patterns_for_key, DataFilesList)
+                else DataFilesList.from_hf_repo(
                     patterns_for_key,
                     dataset_info=dataset_info,
                     base_path=base_path,
                     allowed_extensions=allowed_extensions,
                     download_config=download_config,
                 )
-                if not isinstance(patterns_for_key, DataFilesList)
-                else patterns_for_key
             )
         return out
 
@@ -690,14 +716,14 @@ class DataFilesDict(Dict[str, DataFilesList]):
         out = cls()
         for key, patterns_for_key in patterns.items():
             out[key] = (
-                DataFilesList.from_patterns(
+                patterns_for_key
+                if isinstance(patterns_for_key, DataFilesList)
+                else DataFilesList.from_patterns(
                     patterns_for_key,
                     base_path=base_path,
                     allowed_extensions=allowed_extensions,
                     download_config=download_config,
                 )
-                if not isinstance(patterns_for_key, DataFilesList)
-                else patterns_for_key
             )
         return out
 
@@ -729,7 +755,7 @@ class DataFilesPatternsList(List[str]):
     @classmethod
     def from_patterns(
         cls, patterns: List[str], allowed_extensions: Optional[List[str]] = None
-    ) -> "DataFilesPatternsDict":
+    ) -> "DataFilesPatternsList":
         return cls(patterns, [allowed_extensions] * len(patterns))
 
     def resolve(
@@ -755,7 +781,7 @@ class DataFilesPatternsList(List[str]):
         origin_metadata = _get_origin_metadata(data_files, download_config=download_config)
         return DataFilesList(data_files, origin_metadata)
 
-    def filter_extensions(self, extensions: List[str]) -> "DataFilesList":
+    def filter_extensions(self, extensions: List[str]) -> "DataFilesPatternsList":
         return DataFilesPatternsList(
             self, [allowed_extensions + extensions for allowed_extensions in self.allowed_extensions]
         )
@@ -773,12 +799,12 @@ class DataFilesPatternsDict(Dict[str, DataFilesPatternsList]):
         out = cls()
         for key, patterns_for_key in patterns.items():
             out[key] = (
-                DataFilesPatternsList.from_patterns(
+                patterns_for_key
+                if isinstance(patterns_for_key, DataFilesPatternsList)
+                else DataFilesPatternsList.from_patterns(
                     patterns_for_key,
                     allowed_extensions=allowed_extensions,
                 )
-                if not isinstance(patterns_for_key, DataFilesPatternsList)
-                else patterns_for_key
             )
         return out
 

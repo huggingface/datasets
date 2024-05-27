@@ -2,7 +2,7 @@ import copy
 import os
 from functools import partial
 from itertools import groupby
-from typing import TYPE_CHECKING, Callable, Iterator, List, Optional, Tuple, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Callable, Iterator, List, Optional, Tuple, TypeVar, Union
 
 import numpy as np
 import pyarrow as pa
@@ -1307,15 +1307,24 @@ class ConcatenationTable(Table):
                 if not isinstance(subtable, TableBlock):
                     raise TypeError(
                         "The blocks of a ConcatenationTable must be InMemoryTable or MemoryMappedTable objects"
-                        f", but got {subtable}."
+                        f", but got {_short_str(subtable)}."
                     )
 
     def __getstate__(self):
-        return {"blocks": self.blocks}
+        return {"blocks": self.blocks, "schema": self.table.schema}
 
     def __setstate__(self, state):
         blocks = state["blocks"]
+        schema = state["schema"]
         table = self._concat_blocks_horizontally_and_vertically(blocks)
+        if schema is not None and table.schema != schema:
+            # We fix the columns by concatenating with an empty table with the right columns
+            empty_table = pa.Table.from_batches([], schema=schema)
+            # we set promote=True to fill missing columns with null values
+            if config.PYARROW_VERSION.major < 14:
+                table = pa.concat_tables([table, empty_table], promote=True)
+            else:
+                table = pa.concat_tables([table, empty_table], promote_options="default")
         ConcatenationTable.__init__(self, table, blocks=blocks)
 
     @staticmethod
@@ -1828,21 +1837,34 @@ def _storage_type(type: pa.DataType) -> pa.DataType:
     return type
 
 
+def _short_str(value: Any) -> str:
+    out = str(value)
+    if len(out) > 3000:
+        out = out[:1500] + "\n...\n" + out[-1500:]
+    return out
+
+
 @_wrap_for_chunked_arrays
-def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
+def array_cast(
+    array: pa.Array, pa_type: pa.DataType, allow_primitive_to_str: bool = True, allow_decimal_to_str: bool = True
+) -> Union[pa.Array, pa.FixedSizeListArray, pa.ListArray, pa.StructArray, pa.ExtensionArray]:
     """Improved version of `pa.Array.cast`
 
     It supports casting `pa.StructArray` objects to re-order the fields.
     It also let you control certain aspects of the casting, e.g. whether
-    to disable numbers (`floats` or `ints`) to strings.
+    to disable casting primitives (`booleans`, `floats` or `ints`) or
+    disable casting decimals to strings.
 
     Args:
         array (`pa.Array`):
             PyArrow array to cast
         pa_type (`pa.DataType`):
             Target PyArrow type
-        allow_number_to_str (`bool`, defaults to `True`):
-            Whether to allow casting numbers to strings.
+        allow_primitive_to_str (`bool`, defaults to `True`):
+            Whether to allow casting primitives to strings.
+            Defaults to `True`.
+        allow_decimal_to_str (`bool`, defaults to `True`):
+            Whether to allow casting decimals to strings.
             Defaults to `True`.
 
     Raises:
@@ -1850,12 +1872,13 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
         `TypeError`: if the target type is not supported according, e.g.
 
             - if a field is missing
-            - if casting from numbers to strings and `allow_number_to_str` is `False`
+            - if casting from primitives to strings and `allow_primitive_to_str` is `False`
+            - if casting from decimals to strings and `allow_decimal_to_str` is `False`
 
     Returns:
         `List[pyarrow.Array]`: the casted array
     """
-    _c = partial(array_cast, allow_number_to_str=allow_number_to_str)
+    _c = partial(array_cast, allow_primitive_to_str=allow_primitive_to_str, allow_decimal_to_str=allow_decimal_to_str)
     if isinstance(array, pa.ExtensionArray):
         array = array.storage
     if isinstance(pa_type, pa.ExtensionType):
@@ -1924,22 +1947,27 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
             array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
             return pa.ListArray.from_arrays(array_offsets, _c(array.values, pa_type.value_type), mask=array.is_null())
     else:
-        if (
-            not allow_number_to_str
-            and pa.types.is_string(pa_type)
-            and (pa.types.is_floating(array.type) or pa.types.is_integer(array.type))
-        ):
-            raise TypeError(
-                f"Couldn't cast array of type {array.type} to {pa_type} since allow_number_to_str is set to {allow_number_to_str}"
-            )
+        if pa.types.is_string(pa_type):
+            if not allow_primitive_to_str and pa.types.is_primitive(array.type):
+                raise TypeError(
+                    f"Couldn't cast array of type {_short_str(array.type)} to {_short_str(pa_type)} "
+                    f"since allow_primitive_to_str is set to {allow_primitive_to_str} "
+                )
+            if not allow_decimal_to_str and pa.types.is_decimal(array.type):
+                raise TypeError(
+                    f"Couldn't cast array of type {_short_str(array.type)} to {_short_str(pa_type)} "
+                    f"and allow_decimal_to_str is set to {allow_decimal_to_str}"
+                )
         if pa.types.is_null(pa_type) and not pa.types.is_null(array.type):
-            raise TypeError(f"Couldn't cast array of type {array.type} to {pa_type}")
+            raise TypeError(f"Couldn't cast array of type {_short_str(array.type)} to {_short_str(pa_type)}")
         return array.cast(pa_type)
-    raise TypeError(f"Couldn't cast array of type\n{array.type}\nto\n{pa_type}")
+    raise TypeError(f"Couldn't cast array of type {_short_str(array.type)} to {_short_str(pa_type)}")
 
 
 @_wrap_for_chunked_arrays
-def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_to_str=True):
+def cast_array_to_feature(
+    array: pa.Array, feature: "FeatureType", allow_primitive_to_str: bool = True, allow_decimal_to_str: bool = True
+) -> pa.Array:
     """Cast an array to the arrow type that corresponds to the requested feature type.
     For custom features like [`Audio`] or [`Image`], it takes into account the "cast_storage" methods
     they defined to enable casting from other arrow types.
@@ -1949,8 +1977,11 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
             The PyArrow array to cast.
         feature (`datasets.features.FeatureType`):
             The target feature type.
-        allow_number_to_str (`bool`, defaults to `True`):
-            Whether to allow casting numbers to strings.
+        allow_primitive_to_str (`bool`, defaults to `True`):
+            Whether to allow casting primitives to strings.
+            Defaults to `True`.
+        allow_decimal_to_str (`bool`, defaults to `True`):
+            Whether to allow casting decimals to strings.
             Defaults to `True`.
 
     Raises:
@@ -1958,14 +1989,19 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
         `TypeError`: if the target type is not supported according, e.g.
 
             - if a field is missing
-            - if casting from numbers to strings and `allow_number_to_str` is `False`
+            - if casting from primitives and `allow_primitive_to_str` is `False`
+            - if casting from decimals and `allow_decimal_to_str` is `False`
 
     Returns:
         array (`pyarrow.Array`): the casted array
     """
     from .features.features import Sequence, get_nested_type
 
-    _c = partial(cast_array_to_feature, allow_number_to_str=allow_number_to_str)
+    _c = partial(
+        cast_array_to_feature,
+        allow_primitive_to_str=allow_primitive_to_str,
+        allow_decimal_to_str=allow_decimal_to_str,
+    )
 
     if isinstance(array, pa.ExtensionArray):
         array = array.storage
@@ -2002,9 +2038,19 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
                         storage_type = _storage_type(array_type)
                         if array_type != storage_type:
                             # Temporarily convert to the storage type to support extension types in the slice operation
-                            array = array_cast(array, storage_type, allow_number_to_str=allow_number_to_str)
+                            array = array_cast(
+                                array,
+                                storage_type,
+                                allow_primitive_to_str=allow_primitive_to_str,
+                                allow_decimal_to_str=allow_decimal_to_str,
+                            )
                             array = pc.list_slice(array, 0, feature.length, return_fixed_size_list=True)
-                            array = array_cast(array, array_type, allow_number_to_str=allow_number_to_str)
+                            array = array_cast(
+                                array,
+                                array_type,
+                                allow_primitive_to_str=allow_primitive_to_str,
+                                allow_decimal_to_str=allow_decimal_to_str,
+                            )
                         else:
                             array = pc.list_slice(array, 0, feature.length, return_fixed_size_list=True)
                         array_values = array.values
@@ -2060,10 +2106,20 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
                 array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
                 return pa.ListArray.from_arrays(array_offsets, _c(array.values, feature.feature), mask=array.is_null())
     if pa.types.is_null(array.type):
-        return array_cast(array, get_nested_type(feature), allow_number_to_str=allow_number_to_str)
+        return array_cast(
+            array,
+            get_nested_type(feature),
+            allow_primitive_to_str=allow_primitive_to_str,
+            allow_decimal_to_str=allow_decimal_to_str,
+        )
     elif not isinstance(feature, (Sequence, dict, list, tuple)):
-        return array_cast(array, feature(), allow_number_to_str=allow_number_to_str)
-    raise TypeError(f"Couldn't cast array of type\n{array.type}\nto\n{feature}")
+        return array_cast(
+            array,
+            feature(),
+            allow_primitive_to_str=allow_primitive_to_str,
+            allow_decimal_to_str=allow_decimal_to_str,
+        )
+    raise TypeError(f"Couldn't cast array of type\n{_short_str(array.type)}\nto\n{_short_str(feature)}")
 
 
 @_wrap_for_chunked_arrays
@@ -2131,7 +2187,7 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
                 return pa.FixedSizeListArray.from_arrays(embedded_array_values, feature.length, mask=array.is_null())
     if not isinstance(feature, (Sequence, dict, list, tuple)):
         return array
-    raise TypeError(f"Couldn't embed array of type\n{array.type}\nwith\n{feature}")
+    raise TypeError(f"Couldn't embed array of type\n{_short_str(array.type)}\nwith\n{_short_str(feature)}")
 
 
 class CastError(ValueError):
@@ -2142,15 +2198,21 @@ class CastError(ValueError):
         self.table_column_names = table_column_names
         self.requested_column_names = requested_column_names
 
+    def __reduce__(self):
+        # Fix unpickling: TypeError: __init__() missing 2 required keyword-only arguments: 'table_column_names' and 'requested_column_names'
+        return partial(
+            CastError, table_column_names=self.table_column_names, requested_column_names=self.requested_column_names
+        ), ()
+
     def details(self):
         new_columns = set(self.table_column_names) - set(self.requested_column_names)
         missing_columns = set(self.requested_column_names) - set(self.table_column_names)
         if new_columns and missing_columns:
-            return f"there are {len(new_columns)} new columns ({', '.join(new_columns)}) and {len(missing_columns)} missing columns ({', '.join(missing_columns)})."
+            return f"there are {len(new_columns)} new columns ({_short_str(new_columns)}) and {len(missing_columns)} missing columns ({_short_str(missing_columns)})."
         elif new_columns:
-            return f"there are {len(new_columns)} new columns ({new_columns})"
+            return f"there are {len(new_columns)} new columns ({_short_str(new_columns)})"
         else:
-            return f"there are {len(missing_columns)} missing columns ({missing_columns})"
+            return f"there are {len(missing_columns)} missing columns ({_short_str(missing_columns)})"
 
 
 def cast_table_to_features(table: pa.Table, features: "Features"):
@@ -2167,7 +2229,7 @@ def cast_table_to_features(table: pa.Table, features: "Features"):
     """
     if sorted(table.column_names) != sorted(features):
         raise CastError(
-            f"Couldn't cast\n{table.schema}\nto\n{features}\nbecause column names don't match",
+            f"Couldn't cast\n{_short_str(table.schema)}\nto\n{_short_str(features)}\nbecause column names don't match",
             table_column_names=table.column_names,
             requested_column_names=list(features),
         )
@@ -2192,7 +2254,7 @@ def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
     features = Features.from_arrow_schema(schema)
     if sorted(table.column_names) != sorted(features):
         raise CastError(
-            f"Couldn't cast\n{table.schema}\nto\n{features}\nbecause column names don't match",
+            f"Couldn't cast\n{_short_str(table.schema)}\nto\n{_short_str(features)}\nbecause column names don't match",
             table_column_names=table.column_names,
             requested_column_names=list(features),
         )

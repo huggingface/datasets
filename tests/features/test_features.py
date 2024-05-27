@@ -405,6 +405,16 @@ def test_encode_batch_with_example_with_empty_first_elem():
     assert encoded_batch == {"x": [[[0], [1]], [[], [1]]]}
 
 
+def test_encode_column_dict_with_none():
+    features = Features(
+        {
+            "x": {"a": ClassLabel(names=["a", "b"]), "b": Value("int32")},
+        }
+    )
+    encoded_column = features.encode_column([{"a": "a", "b": 1}, None], "x")
+    assert encoded_column == [{"a": 0, "b": 1}, None]
+
+
 @pytest.mark.parametrize(
     "feature",
     [

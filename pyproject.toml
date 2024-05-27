@@ -1,25 +1,24 @@
-[tool.black]
-line-length = 119
-target_version = ['py37']
-
 [tool.ruff]
+line-length = 119
+
+[tool.ruff.lint]
 # Ignored rules:
 #   "E501" -> line length violation
 #   "F821" -> undefined named in type annotation (e.g. Literal["something"])
 #   "C901" -> `function_name` is too complex
 ignore = ["E501", "F821", "C901"]
 select = ["C", "E", "F", "I", "W"]
-line-length = 119
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 lines-after-imports = 2
 known-first-party = ["datasets"]
 
 [tool.pytest.ini_options]
 # Test fails if a FutureWarning is thrown by `huggingface_hub`
-filterwarnings = [
-    "error::FutureWarning:huggingface_hub*",
-]
+# Temporarily disabled because transformers 4.41.1 calls deprecated code from `huggingface_hub` that causes FutureWarning
+# filterwarnings = [
+#     "error::FutureWarning:huggingface_hub*",
+# ]
 markers = [
     "unit: unit test",
     "integration: integration test",

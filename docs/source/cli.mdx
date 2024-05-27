@@ -1,0 +1,95 @@
+# Command Line Interface (CLI)
+
+🤗 Datasets provides a command line interface (CLI) with useful shell commands to interact with your dataset.
+
+You can check the available commands:
+```bash
+>>> datasets-cli --help
+usage: datasets-cli <command> [<args>]
+
+positional arguments:
+  {convert,env,test,run_beam,dummy_data,convert_to_parquet}
+                        datasets-cli command helpers
+    convert             Convert a TensorFlow Datasets dataset to a HuggingFace Datasets dataset.
+    env                 Print relevant system environment info.
+    test                Test dataset implementation.
+    run_beam            Run a Beam dataset processing pipeline
+    dummy_data          Generate dummy data.
+    convert_to_parquet  Convert dataset to Parquet
+    delete_from_hub     Delete dataset config from the Hub
+
+optional arguments:
+  -h, --help            show this help message and exit
+```
+
+## Convert to Parquet
+
+Easily convert your Hub [script-based dataset](dataset_script) to Parquet [data-only dataset](repository_structure), so that the dataset viewer will be supported.
+
+```bash
+>>> datasets-cli convert_to_parquet --help
+usage: datasets-cli <command> [<args>] convert_to_parquet [-h] [--token TOKEN] [--revision REVISION] [--trust_remote_code] dataset_id
+
+positional arguments:
+  dataset_id           source dataset ID, e.g. USERNAME/DATASET_NAME or ORGANIZATION/DATASET_NAME
+
+optional arguments:
+  -h, --help           show this help message and exit
+  --token TOKEN        access token to the Hugging Face Hub (defaults to logged-in user's one)
+  --revision REVISION  source revision
+  --trust_remote_code  whether to trust the code execution of the load script
+```
+
+This command:
+- makes a copy of the script on the "main" branch into a dedicated branch called "script" (if it does not already exist)
+- creates a pull request to the Hub dataset to convert it to Parquet files (and deletes the script from the main branch)
+
+If in the future you need to recreate the Parquet files from the "script" branch, pass the `--revision script` argument.
+
+Note that you should pass the `--trust_remote_code` argument only if you trust the remote code to be executed locally on your machine.
+
+For example:
+```bash
+>>> datasets-cli convert_to_parquet USERNAME/DATASET_NAME
+```
+
+<Tip>
+
+Do not forget that you need to log in first to your Hugging Face account:
+```bash
+>>> huggingface-cli login
+```
+
+</Tip>
+
+## Delete from Hub
+
+Delete a dataset configuration from a [data-only dataset](repository_structure) on the Hub.
+
+```bash
+>>> datasets-cli delete_from_hub --help
+usage: datasets-cli <command> [<args>] delete_from_hub [-h] [--token TOKEN] [--revision REVISION] dataset_id config_name
+
+positional arguments:
+  dataset_id           source dataset ID, e.g. USERNAME/DATASET_NAME or ORGANIZATION/DATASET_NAME
+  config_name          config name to delete
+
+optional arguments:
+  -h, --help           show this help message and exit
+  --token TOKEN        access token to the Hugging Face Hub
+  --revision REVISION  source revision
+```
+
+For example:
+```bash
+>>> datasets-cli delete_from_hub USERNAME/DATASET_NAME CONFIG_NAME
+```
+
+<Tip>
+
+Do not forget that you need to log in first to your Hugging Face account:
+```bash
+>>> huggingface-cli login
+```
+
+</Tip>

@@ -7,6 +7,7 @@ import numpy as np
 import pyarrow as pa
 
 import datasets
+from datasets.features.features import cast_to_python_objects
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -31,8 +32,8 @@ class WebDataset(datasets.GeneratorBasedBuilder):
                 current_example["__key__"] = example_key
                 current_example["__url__"] = tar_path
                 current_example[field_name.lower()] = f.read()
-                if field_name in cls.DECODERS:
-                    current_example[field_name] = cls.DECODERS[field_name](current_example[field_name])
+                if field_name.split(".")[-1] in cls.DECODERS:
+                    current_example[field_name] = cls.DECODERS[field_name.split(".")[-1]](current_example[field_name])
         if current_example:
             yield current_example
 
@@ -45,27 +46,16 @@ class WebDataset(datasets.GeneratorBasedBuilder):
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
         data_files = dl_manager.download(self.config.data_files)
-        if isinstance(data_files, (str, list, tuple)):
-            tar_paths = data_files
+        splits = []
+        for split_name, tar_paths in data_files.items():
             if isinstance(tar_paths, str):
                 tar_paths = [tar_paths]
             tar_iterators = [dl_manager.iter_archive(tar_path) for tar_path in tar_paths]
-            splits = [
+            splits.append(
                 datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN, gen_kwargs={"tar_paths": tar_paths, "tar_iterators": tar_iterators}
+                    name=split_name, gen_kwargs={"tar_paths": tar_paths, "tar_iterators": tar_iterators}
                 )
-            ]
-        else:
-            splits = []
-            for split_name, tar_paths in data_files.items():
-                if isinstance(tar_paths, str):
-                    tar_paths = [tar_paths]
-                tar_iterators = [dl_manager.iter_archive(tar_path) for tar_path in tar_paths]
-                splits.append(
-                    datasets.SplitGenerator(
-                        name=split_name, gen_kwargs={"tar_paths": tar_paths, "tar_iterators": tar_iterators}
-                    )
-                )
+            )
         if not self.info.features:
             # Get one example to get the feature types
             pipeline = self._get_pipeline_from_tar(tar_paths[0], tar_iterators[0])
@@ -75,7 +65,10 @@ class WebDataset(datasets.GeneratorBasedBuilder):
                     "The TAR archives of the dataset should be in WebDataset format, "
                     "but the files in the archive don't share the same prefix or the same types."
                 )
-            pa_tables = [pa.Table.from_pylist([example]) for example in first_examples]
+            pa_tables = [
+                pa.Table.from_pylist(cast_to_python_objects([example], only_1d_for_numpy=True))
+                for example in first_examples
+            ]
             if datasets.config.PYARROW_VERSION.major < 14:
                 inferred_arrow_schema = pa.concat_tables(pa_tables, promote=True).schema
             else:
@@ -196,7 +189,7 @@ WebDataset.IMAGE_EXTENSIONS = IMAGE_EXTENSIONS
 #
 # AUDIO_EXTENSIONS = [f".{format.lower()}" for format in sf.available_formats().keys()]
 #
-# # .mp3 is currently decoded via `torchaudio`, .opus decoding is supported if version of `libsndfile` >= 1.0.30:
+# # .opus decoding is supported if libsndfile >= 1.0.31:
 # AUDIO_EXTENSIONS.extend([".mp3", ".opus"])
 # ```
 # We intentionally do not run this code on launch because:
@@ -267,16 +260,21 @@ def cbor_loads(data: bytes):
     return cbor.loads(data)
 
 
+def torch_loads(data: bytes):
+    import torch
+
+    return torch.load(io.BytesIO(data), weights_only=True)
+
+
 # Obtained by checking `decoders` in `webdataset.autodecode`
 # and removing unsafe extension decoders.
 # Removed Pickle decoders:
 # - "pyd": lambda data: pickle.loads(data)
 # - "pickle": lambda data: pickle.loads(data)
-# Removed Torch decoders:
-# - "pth": lambda data: torch_loads(data)
-# Modified NumPy decoders to fix CVE-2019-6446 (add allow_pickle=False):
+# Modified NumPy decoders to fix CVE-2019-6446 (add allow_pickle=False and weights_only=True):
 # - "npy": npy_loads,
 # - "npz": lambda data: np.load(io.BytesIO(data)),
+# - "pth": lambda data: torch_loads(data)
 DECODERS = {
     "txt": text_loads,
     "text": text_loads,
@@ -295,5 +293,6 @@ DECODERS = {
     "npy": npy_loads,
     "npz": npz_loads,
     "cbor": cbor_loads,
+    "pth": torch_loads,
 }
 WebDataset.DECODERS = DECODERS

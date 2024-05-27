@@ -1,9 +1,9 @@
 import os
+from functools import partial
 from typing import Optional
 
 import fsspec
 from fsspec.archive import AbstractArchiveFileSystem
-from fsspec.utils import DEFAULT_BLOCK_SIZE
 
 
 class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
@@ -33,9 +33,11 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
             target_options (:obj:``dict``, optional): Kwargs passed when instantiating the target FS.
         """
         super().__init__(self, **kwargs)
+        self.fo = fo.__fspath__() if hasattr(fo, "__fspath__") else fo
         # always open as "rb" since fsspec can then use the TextIOWrapper to make it work for "r" mode
-        self.file = fsspec.open(
-            fo,
+        self._open_with_fsspec = partial(
+            fsspec.open,
+            self.fo,
             mode="rb",
             protocol=target_protocol,
             compression=self.compression,
@@ -46,7 +48,7 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
             },
             **(target_options or {}),
         )
-        self.compressed_name = os.path.basename(self.file.path.split("::")[0])
+        self.compressed_name = os.path.basename(self.fo.split("::")[0])
         self.uncompressed_name = (
             self.compressed_name[: self.compressed_name.rindex(".")]
             if "." in self.compressed_name
@@ -61,11 +63,12 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
 
     def _get_dirs(self):
         if self.dir_cache is None:
-            f = {**self.file.fs.info(self.file.path), "name": self.uncompressed_name}
+            f = {**self._open_with_fsspec().fs.info(self.fo), "name": self.uncompressed_name}
             self.dir_cache = {f["name"]: f}
 
     def cat(self, path: str):
-        return self.file.open().read()
+        with self._open_with_fsspec().open() as f:
+            return f.read()
 
     def _open(
         self,
@@ -78,8 +81,8 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
     ):
         path = self._strip_protocol(path)
         if mode != "rb":
-            raise ValueError(f"Tried to read with mode {mode} on file {self.file.path} opened with mode 'rb'")
-        return self.file.open()
+            raise ValueError(f"Tried to read with mode {mode} on file {self.fo} opened with mode 'rb'")
+        return self._open_with_fsspec().open()
 
 
 class Bz2FileSystem(BaseCompressedFileFileSystem):
@@ -116,63 +119,9 @@ class XzFileSystem(BaseCompressedFileFileSystem):
 
 class ZstdFileSystem(BaseCompressedFileFileSystem):
     """
-    Read contents of zstd file as a filesystem with one file inside.
-
-    Note that reading in binary mode with fsspec isn't supported yet:
-    https://github.com/indygreg/python-zstandard/issues/136
+    Read contents of .zstd file as a filesystem with one file inside.
     """
 
     protocol = "zstd"
     compression = "zstd"
     extension = ".zst"
-
-    def __init__(
-        self,
-        fo: str,
-        mode: str = "rb",
-        target_protocol: Optional[str] = None,
-        target_options: Optional[dict] = None,
-        block_size: int = DEFAULT_BLOCK_SIZE,
-        **kwargs,
-    ):
-        super().__init__(
-            fo=fo,
-            mode=mode,
-            target_protocol=target_protocol,
-            target_options=target_options,
-            block_size=block_size,
-            **kwargs,
-        )
-        # We need to wrap the zstd decompressor to avoid this error in fsspec==2021.7.0 and zstandard==0.15.2:
-        #
-        # File "/Users/user/.virtualenvs/hf-datasets/lib/python3.7/site-packages/fsspec/core.py", line 145, in open
-        #     out.close = close
-        # AttributeError: 'zstd.ZstdDecompressionReader' object attribute 'close' is read-only
-        #
-        # see https://github.com/intake/filesystem_spec/issues/725
-        _enter = self.file.__enter__
-
-        class WrappedFile:
-            def __init__(self, file_):
-                self._file = file_
-
-            def __enter__(self):
-                self._file.__enter__()
-                return self
-
-            def __exit__(self, *args, **kwargs):
-                self._file.__exit__(*args, **kwargs)
-
-            def __iter__(self):
-                return iter(self._file)
-
-            def __next__(self):
-                return next(self._file)
-
-            def __getattr__(self, attr):
-                return getattr(self._file, attr)
-
-        def fixed_enter(*args, **kwargs):
-            return WrappedFile(_enter(*args, **kwargs))
-
-        self.file.__enter__ = fixed_enter

@@ -58,6 +58,12 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
 
         if isinstance(value, (np.number, np.ndarray)) and np.issubdtype(value.dtype, np.integer):
             default_dtype = {"dtype": torch.int64}
+
+            # Convert dtype to np.int64 if it's either np.uint16 or np.uint32 to ensure compatibility.
+            # np.uint64 is excluded from this conversion as there is no compatible PyTorch dtype that can handle it without loss.
+            if value.dtype in [np.uint16, np.uint32]:
+                value = value.astype(np.int64)
+
         elif isinstance(value, (np.number, np.ndarray)) and np.issubdtype(value.dtype, np.floating):
             default_dtype = {"dtype": torch.float32}
         elif config.PIL_AVAILABLE and "PIL" in sys.modules:
@@ -65,6 +71,10 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
 
             if isinstance(value, PIL.Image.Image):
                 value = np.asarray(value)
+                if value.ndim == 2:
+                    value = value[:, :, np.newaxis]
+
+                value = value.transpose((2, 0, 1))
         return torch.tensor(value, **{**default_dtype, **self.torch_tensor_kwargs})
 
     def _recursive_tensorize(self, data_struct):

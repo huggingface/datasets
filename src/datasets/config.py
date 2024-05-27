@@ -61,6 +61,16 @@ if USE_TORCH in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TF not in ENV_VARS_TRUE_VA
 else:
     logger.info("Disabling PyTorch because USE_TF is set")
 
+POLARS_VERSION = "N/A"
+POLARS_AVAILABLE = importlib.util.find_spec("polars") is not None
+
+if POLARS_AVAILABLE:
+    try:
+        POLARS_VERSION = version.parse(importlib.metadata.version("polars"))
+        logger.info(f"Polars version {POLARS_VERSION} available.")
+    except importlib.metadata.PackageNotFoundError:
+        pass
+
 TF_VERSION = "N/A"
 TF_AVAILABLE = False
 
@@ -172,6 +182,9 @@ HF_UPDATE_DOWNLOAD_COUNTS = (
     os.environ.get("HF_UPDATE_DOWNLOAD_COUNTS", "AUTO").upper() in ENV_VARS_TRUE_AND_AUTO_VALUES
 )
 
+# For downloads and to check remote files metadata
+HF_DATASETS_MULTITHREADING_MAX_WORKERS = 16
+
 # Remote dataset scripts support
 __HF_DATASETS_TRUST_REMOTE_CODE = os.environ.get("HF_DATASETS_TRUST_REMOTE_CODE", "1")
 HF_DATASETS_TRUST_REMOTE_CODE: Optional[bool] = (
@@ -183,7 +196,7 @@ HF_DATASETS_TRUST_REMOTE_CODE: Optional[bool] = (
 )
 TIME_OUT_REMOTE_CODE = 15
 
-# Datasets-server
+# Dataset viewer API
 USE_PARQUET_EXPORT = True
 
 # Batch size constants. For more info, see:
