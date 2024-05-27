@@ -18,7 +18,6 @@ import importlib
 import inspect
 import os
 import re
-import warnings
 from contextlib import contextmanager
 from functools import wraps
 from unittest.mock import patch
@@ -106,8 +105,7 @@ class LocalMetricTest(parameterized.TestCase):
         parameters = inspect.signature(metric._compute).parameters
         self.assertTrue(all(p.kind != p.VAR_KEYWORD for p in parameters.values()))  # no **kwargs
         # run doctest
-        with self.patch_intensive_calls(metric_name, metric_module.__name__), warnings.catch_warnings():
-            warnings.simplefilter("ignore")
+        with self.patch_intensive_calls(metric_name, metric_module.__name__):
             with self.use_local_metrics():
                 try:
                     results = doctest.testmod(metric_module, verbose=True, raise_on_error=True)
