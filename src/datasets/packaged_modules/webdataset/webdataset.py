@@ -7,6 +7,7 @@ import numpy as np
 import pyarrow as pa
 
 import datasets
+from datasets.features.features import cast_to_python_objects
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -75,7 +76,10 @@ class WebDataset(datasets.GeneratorBasedBuilder):
                     "The TAR archives of the dataset should be in WebDataset format, "
                     "but the files in the archive don't share the same prefix or the same types."
                 )
-            pa_tables = [pa.Table.from_pylist([example]) for example in first_examples]
+            pa_tables = [
+                pa.Table.from_pylist(cast_to_python_objects([example], only_1d_for_numpy=True))
+                for example in first_examples
+            ]
             if datasets.config.PYARROW_VERSION.major < 14:
                 inferred_arrow_schema = pa.concat_tables(pa_tables, promote=True).schema
             else:
@@ -267,16 +271,21 @@ def cbor_loads(data: bytes):
     return cbor.loads(data)
 
 
+def torch_loads(data: bytes):
+    import torch
+
+    return torch.load(io.BytesIO(data), weights_only=True)
+
+
 # Obtained by checking `decoders` in `webdataset.autodecode`
 # and removing unsafe extension decoders.
 # Removed Pickle decoders:
 # - "pyd": lambda data: pickle.loads(data)
 # - "pickle": lambda data: pickle.loads(data)
-# Removed Torch decoders:
-# - "pth": lambda data: torch_loads(data)
-# Modified NumPy decoders to fix CVE-2019-6446 (add allow_pickle=False):
+# Modified NumPy decoders to fix CVE-2019-6446 (add allow_pickle=False and weights_only=True):
 # - "npy": npy_loads,
 # - "npz": lambda data: np.load(io.BytesIO(data)),
+# - "pth": lambda data: torch_loads(data)
 DECODERS = {
     "txt": text_loads,
     "text": text_loads,
@@ -295,5 +304,6 @@ DECODERS = {
     "npy": npy_loads,
     "npz": npz_loads,
     "cbor": cbor_loads,
+    "pth": torch_loads,
 }
 WebDataset.DECODERS = DECODERS
