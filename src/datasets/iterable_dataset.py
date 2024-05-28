@@ -88,6 +88,8 @@ class _HasNextIterator(Iterator):
     def __init__(self, it):
         self.it = iter(it)
         self._hasnext = None
+        # be sure to always have 1 example in advance for RandomlyCyclingMultiSourcesExamplesIterable resuming
+        self.hasnext()
 
     def __iter__(self):
         return self
@@ -98,6 +100,8 @@ class _HasNextIterator(Iterator):
         else:
             result = next(self.it)
         self._hasnext = None
+        # be sure to always have 1 example in advance for RandomlyCyclingMultiSourcesExamplesIterable resuming
+        self.hasnext()
         return result
 
     def hasnext(self):
@@ -229,11 +233,11 @@ class _BaseExamplesIterable:
 
     def load_state_dict(self, state_dict: dict) -> dict:
         def _inner_load_state_dict(state, new_state):
-            if isinstance(state, dict):
+            if new_state and isinstance(state, dict):
                 for key in state:
                     state[key] = _inner_load_state_dict(state[key], new_state[key])
                 return state
-            elif isinstance(state, list):
+            elif new_state and isinstance(state, list):
                 for i in range(len(state)):
                     state[i] = _inner_load_state_dict(state[i], new_state[i])
                 return state
@@ -536,39 +540,52 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
         self._state_dict = {
             "ex_iterable_idx": 0,
             "ex_iterables": [ex_iterable._init_state_dict() for ex_iterable in self.ex_iterables],
+            "previous_states": [None] * len(self.ex_iterables),
+            "is_exhausted": [False] * len(self.ex_iterables),
         }
         return self._state_dict
 
     def __iter__(self):
-        iterators = [_HasNextIterator(ex_iterable) for ex_iterable in self.ex_iterables]
+        # we use this to buffer one example of each iterator to know if an iterator is exhausted
+        nexts = [None] * len(self.ex_iterables)
+        # because of that, we need to rewind 1 example when reloading the state dict
+        if self._state_dict:
+            for i in range(len(self.ex_iterables)):
+                if self._state_dict["previous_states"][i] is not None:
+                    self.ex_iterables[i].load_state_dict(self._state_dict["previous_states"][i])
+        iterators = [iter(ex_iterable) for ex_iterable in self.ex_iterables]
 
         indices_iterator = self._get_indices_iterator()
 
-        is_exhausted = np.full(len(self.ex_iterables), False)
+        is_exhausted = (
+            np.array(self._state_dict["is_exhausted"]) if self._state_dict else np.full(len(self.ex_iterables), False)
+        )
         for i in indices_iterator:
-            try:  # let's pick one example from the iterator at index i
-                yield next(iterators[i])
+            # if the stopping criteria is met, break the main for loop
+            if self.bool_strategy_func(is_exhausted):
+                break
+            # let's pick one example from the iterator at index i
+            if nexts[i] is None:
+                nexts[i] = next(iterators[i], False)
+            result = nexts[i]
+            if self._state_dict:
+                self._state_dict["previous_states"][i] = deepcopy(self._state_dict["ex_iterables"][i])
+            nexts[i] = next(iterators[i], False)
 
-                # it will resume from the yield at the next call so that we can directly test if the iterable is exhausted and if we need to break out of the loop
-                if not iterators[i].hasnext():
-                    is_exhausted[i] = True
-
-                    if self.bool_strategy_func(is_exhausted):
-                        # if the stopping criteria is met, break the main for loop
-                        break
-                    # otherwise reinitialise the iterator and yield the first example
-                    iterators[i] = _HasNextIterator(self.ex_iterables[i])
-                    if self._state_dict:
-                        self._state_dict["ex_iterables"][i] = self.ex_iterables[i]._init_state_dict()
-
-            except StopIteration:
-                # here it means that the i-th iterabledataset is empty, i.e we never have the occasion to yield an element of the i-th dataset.
-                # we still check if the stopping criteria is met and if we break out of the loop in case of an oversampling strategy
+            # the iterator is exhausted
+            if nexts[i] is False:
                 is_exhausted[i] = True
+                if self._state_dict:
+                    self._state_dict["is_exhausted"][i] = True
+                # we reset it in case the stopping crtieria isn't met yet
+                nexts[i] = None
+                if self._state_dict:
+                    self._state_dict["ex_iterables"][i] = self.ex_iterables[i]._init_state_dict()
+                    self._state_dict["previous_states"][i] = None
+                iterators[i] = iter(self.ex_iterables[i])
 
-                if self.bool_strategy_func(is_exhausted):
-                    # if the stopping criteria is met, break the main for loop
-                    break
+            if result is not False:
+                yield result
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "CyclingMultiSourcesExamplesIterable":
         """Shuffle each underlying examples iterable."""
@@ -740,25 +757,44 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         self.probabilities = probabilities
         # TODO(QL): implement iter_arrow
 
-    @staticmethod
-    def _iter_random_indices(
-        rng: np.random.Generator,
-        num_sources: int,
-        random_batch_size=1000,
-        p: Optional[List[float]] = None,
-    ) -> Iterator[int]:
-        """Get an infinite iterator that randomly samples the index of the source to pick examples from."""
-        if p is None:
-            while True:
-                yield from (int(i) for i in rng.integers(0, num_sources, size=random_batch_size))
-        else:
-            while True:
-                yield from (int(i) for i in rng.choice(num_sources, size=random_batch_size, p=p))
-
     def _get_indices_iterator(self):
         rng = deepcopy(self.generator)
+        num_sources = len(self.ex_iterables)
+        random_batch_size = 1000
         # this is an infinite iterator that randomly samples the index of the source to pick examples from
-        return self._iter_random_indices(rng, len(self.ex_iterables), p=self.probabilities)
+        index_offset = self._state_dict["bit_generator_index_offset"] if self._state_dict else 0
+        if self._state_dict:
+            rng.bit_generator.state = self._state_dict["bit_generator_state"]
+        if self.probabilities is None:
+            while True:
+                for i in islice(rng.integers(0, num_sources, size=random_batch_size), index_offset, None):
+                    index_offset = (index_offset + 1) % random_batch_size
+                    if self._state_dict:
+                        self._state_dict["bit_generator_index_offset"] = index_offset
+                        if index_offset == 0:
+                            self._state_dict["bit_generator_state"] = rng.bit_generator.state
+                    yield int(i)
+        else:
+            while True:
+                for i in islice(
+                    rng.choice(num_sources, size=random_batch_size, p=self.probabilities), index_offset, None
+                ):
+                    index_offset = (index_offset + 1) % random_batch_size
+                    if self._state_dict:
+                        self._state_dict["bit_generator_index_offset"] = index_offset
+                        if index_offset == 0:
+                            self._state_dict["bit_generator_state"] = rng.bit_generator.state
+                    yield int(i)
+
+    def _init_state_dict(self) -> dict:
+        self._state_dict = {
+            "bit_generator_state": self.generator.bit_generator.state,
+            "bit_generator_index_offset": 0,
+            "ex_iterables": [ex_iterable._init_state_dict() for ex_iterable in self.ex_iterables],
+            "previous_states": [None] * len(self.ex_iterables),
+            "is_exhausted": [False] * len(self.ex_iterables),
+        }
+        return self._state_dict
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "RandomlyCyclingMultiSourcesExamplesIterable":
         """Shuffle the data sources of each wrapped examples iterable."""

@@ -1,6 +1,6 @@
 import pickle
 from copy import deepcopy
-from itertools import chain, islice
+from itertools import chain, cycle, islice
 
 import numpy as np
 import pandas as pd
@@ -334,6 +334,32 @@ def test_randomly_cycling_multi_sources_examples_iterable(probabilities):
 
     assert next(iter(ex_iterable)) == expected[0]
     assert list(ex_iterable) == expected
+
+
+@pytest.mark.parametrize("probabilities", [None, (0.5, 0.5), (0.9, 0.1)])
+@pytest.mark.parametrize("stopping_strategy", ["first_exhausted", "all_exhausted"])
+@pytest.mark.parametrize("step", [-1, 0, 5, 20, 30, 300])
+def test_randomly_cycling_multi_sources_examples_iterable_state(probabilities, stopping_strategy, step):
+    seed = 42
+    generator = np.random.default_rng(seed)
+    ex_iterable1 = ExamplesIterable(generate_examples_fn, {"text": "foo"})
+    ex_iterable2 = ExamplesIterable(generate_examples_fn, {"text": "bar"})
+    ex_iterable = RandomlyCyclingMultiSourcesExamplesIterable(
+        [ex_iterable1, ex_iterable2],
+        generator=generator,
+        probabilities=probabilities,
+        stopping_strategy=stopping_strategy,
+    )
+    step = min(step, len(list(ex_iterable)) - 1)
+    ex_iterable._init_state_dict()
+    state_dict = ex_iterable.state_dict()
+    examples = []
+    for i, x in enumerate(ex_iterable):
+        examples.append(x)
+        if i == step:
+            state_dict = ex_iterable.state_dict()
+    ex_iterable.load_state_dict(state_dict)
+    assert examples[step + 1 :] == list(ex_iterable)
 
 
 @pytest.mark.parametrize(
@@ -1772,7 +1798,7 @@ def test_interleave_datasets(dataset: IterableDataset, probas, seed, expected_le
     # Check first example
     if seed is not None:
         rng = np.random.default_rng(seed)
-        i = next(iter(RandomlyCyclingMultiSourcesExamplesIterable._iter_random_indices(rng, len(datasets), p=probas)))
+        i = next(iter(cycle(rng.choice(len(datasets), size=1000, p=probas))))
         assert next(iter(merged_dataset)) == fill_default(next(iter(datasets[i])))
     else:
         assert any(next(iter(merged_dataset)) == fill_default(next(iter(dataset))) for dataset in datasets)
@@ -1782,7 +1808,7 @@ def test_interleave_datasets(dataset: IterableDataset, probas, seed, expected_le
         counts = np.array([len(list(d)) for d in datasets])
         bool_strategy_func = np.all if stopping_strategy == "all_exhausted" else np.any
         rng = np.random.default_rng(seed)
-        for i in RandomlyCyclingMultiSourcesExamplesIterable._iter_random_indices(rng, len(datasets), p=probas):
+        for i in cycle(rng.choice(len(datasets), size=1000, p=probas)):
             counts[i] -= 1
             expected_length += 1
             if bool_strategy_func(counts <= 0):
