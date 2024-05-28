@@ -75,44 +75,11 @@ def _examples_to_batch(examples: List[Dict[str, Any]]) -> Dict[str, list]:
     return dict(zip(cols, arrays))
 
 
-def _batch_to_examples(batch: Dict[str, list]) -> List[Dict[str, Any]]:
+def _batch_to_examples(batch: Dict[str, list]) -> Iterator[Dict[str, Any]]:
     """Convert a batch (dict of examples) to examples list"""
     n_examples = len(batch[next(iter(batch))])
     for i in range(n_examples):
         yield {col: array[i] for col, array in batch.items()}
-
-
-class _HasNextIterator(Iterator):
-    """Iterator with an hasnext() function. Taken from https://stackoverflow.com/questions/1966591/has-next-in-python-iterators."""
-
-    def __init__(self, it):
-        self.it = iter(it)
-        self._hasnext = None
-        # be sure to always have 1 example in advance for RandomlyCyclingMultiSourcesExamplesIterable resuming
-        self.hasnext()
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        if self._hasnext:
-            result = self._thenext
-        else:
-            result = next(self.it)
-        self._hasnext = None
-        # be sure to always have 1 example in advance for RandomlyCyclingMultiSourcesExamplesIterable resuming
-        self.hasnext()
-        return result
-
-    def hasnext(self):
-        if self._hasnext is None:
-            try:
-                self._thenext = next(self.it)
-            except StopIteration:
-                self._hasnext = False
-            else:
-                self._hasnext = True
-        return self._hasnext
 
 
 def _convert_to_arrow(
