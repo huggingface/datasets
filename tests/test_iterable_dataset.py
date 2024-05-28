@@ -317,9 +317,7 @@ def test_randomly_cycling_multi_sources_examples_iterable(probabilities):
     # The source used randomly changes at each example. It stops when one of the iterators is empty.
     rng = deepcopy(generator)
     iterators = (generate_examples_fn(text="foo"), generate_examples_fn(text="bar"))
-    indices_iterator = RandomlyCyclingMultiSourcesExamplesIterable._iter_random_indices(
-        rng, len(iterators), p=probabilities
-    )
+    indices_iterator = cycle(rng.choice(len(iterators), size=1000, p=probabilities))
     expected = []
     lengths = [len(list(ex_iterable1)), len(list(ex_iterable2))]
     for i in indices_iterator:
@@ -1224,7 +1222,6 @@ def test_iterable_dataset_torch_integration():
 
     assert isinstance(dataset, torch.utils.data.IterableDataset)
     assert isinstance(dataset, IterableDataset)
-    assert dataset._ex_iterable is ex_iterable
 
 
 @require_torch

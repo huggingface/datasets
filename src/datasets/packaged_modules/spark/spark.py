@@ -2,6 +2,7 @@ import os
 import posixpath
 import uuid
 from dataclasses import dataclass
+from itertools import islice
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
@@ -42,25 +43,33 @@ def _reorder_dataframe_by_partition(df: "pyspark.sql.DataFrame", new_partition_o
 def _generate_iterable_examples(
     df: "pyspark.sql.DataFrame",
     partition_order: List[int],
+    state_dict: Optional[dict] = None,
 ):
     import pyspark
 
     def generate_fn():
         df_with_partition_id = df.select("*", pyspark.sql.functions.spark_partition_id().alias("part_id"))
-        partition_df = _reorder_dataframe_by_partition(df_with_partition_id, partition_order)
+        partition_idx_start = state_dict["partition_idx"] if state_dict else 0
+        partition_df = _reorder_dataframe_by_partition(df_with_partition_id, partition_order[partition_idx_start:])
         row_id = 0
         # pipeline next partition in parallel to hide latency
         rows = partition_df.toLocalIterator(prefetchPartitions=True)
         curr_partition = -1
-        for row in rows:
+        partition_example_idx_start = state_dict["partition_example_idx"] if state_dict else 0
+        for row in islice(rows, partition_example_idx_start, None):
             row_as_dict = row.asDict()
             part_id = row_as_dict["part_id"]
             row_as_dict.pop("part_id")
             if curr_partition != part_id:
                 curr_partition = part_id
                 row_id = 0
+            if state_dict:
+                state_dict["partition_example_idx"] += 1
             yield f"{part_id}_{row_id}", row_as_dict
             row_id += 1
+            if state_dict:
+                state_dict["partition_idx"] += 1
+                state_dict["partition_example_idx"] = 0
 
     return generate_fn
 
@@ -73,10 +82,13 @@ class SparkExamplesIterable(_BaseExamplesIterable):
     ):
         self.df = df
         self.partition_order = partition_order or range(self.df.rdd.getNumPartitions())
-        self.generate_examples_fn = _generate_iterable_examples(self.df, self.partition_order)
+
+    def _init_state_dict(self) -> dict:
+        self._state_dict = {"partition_idx": 0, "partition_example_idx": 0}
+        return self._state_dict
 
     def __iter__(self):
-        yield from self.generate_examples_fn()
+        yield from _generate_iterable_examples(self.df, self.partition_order, self._state_dict)
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "SparkExamplesIterable":
         partition_order = list(range(self.df.rdd.getNumPartitions()))
