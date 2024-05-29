@@ -94,7 +94,7 @@ def test_gzipped_text_webdataset(gzipped_text_wds_file, text_path):
     assert len(examples) == 3
     assert isinstance(examples[0]["txt.gz"], str)
     with open(text_path, "r") as f:
-        assert examples[0]["txt.gz"] == f.read()
+        assert examples[0]["txt.gz"] == f.read().replace("\r\n", "\n")
 
 
 @require_pil
