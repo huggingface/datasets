@@ -23,6 +23,7 @@ logger = datasets.utils.logging.get_logger(__name__)
 
 if TYPE_CHECKING:
     import pyspark
+    import pyspark.sql
 
 
 @dataclass
@@ -47,31 +48,27 @@ def _generate_iterable_examples(
 ):
     import pyspark
 
-    def generate_fn():
-        df_with_partition_id = df.select("*", pyspark.sql.functions.spark_partition_id().alias("part_id"))
-        partition_idx_start = state_dict["partition_idx"] if state_dict else 0
-        partition_df = _reorder_dataframe_by_partition(df_with_partition_id, partition_order[partition_idx_start:])
-        row_id = 0
-        # pipeline next partition in parallel to hide latency
-        rows = partition_df.toLocalIterator(prefetchPartitions=True)
-        curr_partition = -1
-        partition_example_idx_start = state_dict["partition_example_idx"] if state_dict else 0
-        for row in islice(rows, partition_example_idx_start, None):
-            row_as_dict = row.asDict()
-            part_id = row_as_dict["part_id"]
-            row_as_dict.pop("part_id")
-            if curr_partition != part_id:
-                curr_partition = part_id
-                row_id = 0
-            if state_dict:
-                state_dict["partition_example_idx"] += 1
-            yield f"{part_id}_{row_id}", row_as_dict
-            row_id += 1
-            if state_dict:
-                state_dict["partition_idx"] += 1
-                state_dict["partition_example_idx"] = 0
-
-    return generate_fn
+    df_with_partition_id = df.select("*", pyspark.sql.functions.spark_partition_id().alias("part_id"))
+    partition_idx_start = state_dict["partition_idx"] if state_dict else 0
+    partition_df = _reorder_dataframe_by_partition(df_with_partition_id, partition_order[partition_idx_start:])
+    # pipeline next partition in parallel to hide latency
+    rows = partition_df.toLocalIterator(prefetchPartitions=True)
+    curr_partition = -1
+    row_id = state_dict["partition_example_idx"] if state_dict else 0
+    for row in islice(rows, row_id, None):
+        row_as_dict = row.asDict()
+        part_id = row_as_dict["part_id"]
+        row_as_dict.pop("part_id")
+        if curr_partition != part_id:
+            curr_partition = part_id
+            row_id = 0
+        if state_dict:
+            state_dict["partition_example_idx"] += 1
+        yield f"{part_id}_{row_id}", row_as_dict
+        row_id += 1
+        if state_dict:
+            state_dict["partition_idx"] += 1
+            state_dict["partition_example_idx"] = 0
 
 
 class SparkExamplesIterable(_BaseExamplesIterable):
@@ -80,6 +77,7 @@ class SparkExamplesIterable(_BaseExamplesIterable):
         df: "pyspark.sql.DataFrame",
         partition_order=None,
     ):
+        super().__init__()
         self.df = df
         self.partition_order = partition_order or range(self.df.rdd.getNumPartitions())
 

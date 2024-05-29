@@ -42,10 +42,10 @@ def test_generate_iterable_examples():
     spark = pyspark.sql.SparkSession.builder.master("local[*]").appName("pyspark").getOrCreate()
     df = spark.range(10).repartition(2)
     partition_order = [1, 0]
-    generate_fn = _generate_iterable_examples(df, partition_order)  # Reverse the partitions.
+    iterator = _generate_iterable_examples(df, partition_order)  # Reverse the partitions.
     expected_row_ids_and_row_dicts = _get_expected_row_ids_and_row_dicts_for_partition_order(df, partition_order)
 
-    for i, (row_id, row_dict) in enumerate(generate_fn()):
+    for i, (row_id, row_dict) in enumerate(iterator):
         expected_row_id, expected_row_dict = expected_row_ids_and_row_dicts[i]
         assert row_id == expected_row_id
         assert row_dict == expected_row_dict
