@@ -58,7 +58,7 @@ jobs:
       - name: Install dependencies
         run: |
           uv pip install --system "datasets[tests,metrics-tests] @ ."
-          git config --system core.longpaths true && uv pip install --system -r additional-tests-requirements.txt --no-deps
+          sudo git config --system core.longpaths true && uv pip install --system -r additional-tests-requirements.txt --no-deps
       - name: Install dependencies (latest versions)
         if: ${{ matrix.deps_versions == 'deps-latest' }}
         run: uv pip install --system --upgrade pyarrow huggingface-hub dill
