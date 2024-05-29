@@ -53,6 +53,7 @@ from .utils import (
     require_pyspark,
     require_tf,
     require_torch,
+    require_torchdata_stateful_dataloader,
 )
 
 
@@ -1970,6 +1971,7 @@ def test_pickle_after_many_transforms(dataset_with_several_columns):
     assert list(unpickled_dataset) == list(dataset)
 
 
+@require_torchdata_stateful_dataloader
 def test_resume_dataloader(dataset: IterableDataset):
     from torchdata.stateful_dataloader import StatefulDataLoader
 

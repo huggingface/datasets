@@ -264,6 +264,21 @@ def require_joblibspark(test_case):
         return test_case
 
 
+def require_torchdata_stateful_dataloader(test_case):
+    """
+    Decorator marking a test that requires torchdata.stateful_dataloader.
+
+    These tests are skipped when torchdata with stateful_dataloader module isn't installed.
+
+    """
+    try:
+        import torchdata.stateful_dataloader  # noqa F401
+    except (ImportError, AssertionError):
+        return unittest.skip("test requires torchdata.stateful_dataloader")(test_case)
+    else:
+        return test_case
+
+
 def slow(test_case):
     """
     Decorator marking a test as slow.
