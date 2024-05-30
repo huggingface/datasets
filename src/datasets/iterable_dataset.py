@@ -170,12 +170,15 @@ class _BaseExamplesIterable:
     """Base class for the examples iterable used by an IterableDataset"""
 
     def __init__(self) -> None:
-        self.iter_arrow: Optional[Callable[[], Iterator[Tuple[Key, pa.Table]]]] = None
         self._state_dict: Optional[Union[list, dict]] = None
 
     def __iter__(self) -> Iterator[Tuple[Key, dict]]:
         """An examples iterable should yield tuples (example_key, example) of type (int/str, dict)"""
         raise NotImplementedError(f"{type(self)} doesn't implement __iter__ yet")
+
+    @property
+    def iter_arrow(self) -> Optional[Callable[[], Iterator[Tuple[Key, pa.Table]]]]:
+        return None
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "_BaseExamplesIterable":
         """
@@ -200,11 +203,11 @@ class _BaseExamplesIterable:
 
     def load_state_dict(self, state_dict: dict) -> dict:
         def _inner_load_state_dict(state, new_state):
-            if new_state and isinstance(state, dict):
+            if new_state is not None and isinstance(state, dict):
                 for key in state:
                     state[key] = _inner_load_state_dict(state[key], new_state[key])
                 return state
-            elif new_state and isinstance(state, list):
+            elif new_state is not None and isinstance(state, list):
                 for i in range(len(state)):
                     state[i] = _inner_load_state_dict(state[i], new_state[i])
                 return state
@@ -297,7 +300,10 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
         super().__init__()
         self.generate_tables_fn = generate_tables_fn
         self.kwargs = kwargs
-        self.iter_arrow = self._iter_arrow
+
+    @property
+    def iter_arrow(self):
+        return self._iter_arrow
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {"shard_idx": 0, "shard_example_idx": 0}
@@ -417,8 +423,11 @@ class SelectColumnsIterable(_BaseExamplesIterable):
         super().__init__()
         self.ex_iterable = ex_iterable
         self.column_names = column_names
+
+    @property
+    def iter_arrow(self):
         if self.ex_iterable.iter_arrow:
-            self.iter_arrow = self._iter_arrow
+            return self._iter_arrow
 
     def _init_state_dict(self) -> dict:
         self._state_dict = self.ex_iterable._init_state_dict()
@@ -587,8 +596,11 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
     def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
         super().__init__()
         self.ex_iterables = ex_iterables
-        if all(ex_iterable.iter_arrow is not None for ex_iterable in ex_iterables):
-            self.iter_arrow = self._iter_arrow
+
+    @property
+    def iter_arrow(self):
+        if all(ex_iterable.iter_arrow is not None for ex_iterable in self.ex_iterables):
+            return self._iter_arrow
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {
@@ -814,8 +826,11 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         self.input_columns = input_columns
         self.fn_kwargs = fn_kwargs or {}
         self.formatting = formatting
+
+    @property
+    def iter_arrow(self):
         if self.formatting and self.formatting.format_type == "arrow":
-            self.iter_arrow = self._iter_arrow
+            return self._iter_arrow
 
     def _init_state_dict(self) -> dict:
         self._state_dict = self.ex_iterable._init_state_dict()
@@ -1006,8 +1021,11 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
         self.input_columns = input_columns
         self.fn_kwargs = fn_kwargs or {}
         self.formatting = formatting
+
+    @property
+    def iter_arrow(self):
         if self.formatting and self.formatting.format_type == "arrow":
-            self.iter_arrow = self._iter_arrow
+            return self._iter_arrow
 
     def _init_state_dict(self) -> dict:
         self._state_dict = self.ex_iterable._init_state_dict()
@@ -1292,8 +1310,11 @@ class TypedExamplesIterable(_BaseExamplesIterable):
         self.ex_iterable = ex_iterable
         self.features = features
         self.token_per_repo_id = token_per_repo_id
+
+    @property
+    def iter_arrow(self):
         if self.ex_iterable.iter_arrow is not None:
-            self.iter_arrow = self._iter_arrow
+            return self._iter_arrow
 
     def _init_state_dict(self) -> dict:
         if not self._state_dict:
@@ -1580,6 +1601,7 @@ class IterableDataset(DatasetInfoMixin):
             format_dict = None
 
         if self._formatting and (ex_iterable.iter_arrow or self._formatting.format_type == "arrow"):
+            assert self._state_dict is ex_iterable._state_dict
             if ex_iterable.iter_arrow:
                 iterator = _batch_arrow_tables(ex_iterable.iter_arrow(), batch_size=1)
             else:
