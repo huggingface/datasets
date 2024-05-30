@@ -9,9 +9,9 @@ import requests
 from huggingface_hub.hf_api import HfApi, RepositoryNotFoundError
 
 
-CI_HUB_USER = "DVUser"
+CI_HUB_USER = "__DUMMY_TRANSFORMERS_USER__"
 CI_HUB_USER_FULL_NAME = "Dummy User"
-CI_HUB_USER_TOKEN = "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"
+CI_HUB_USER_TOKEN = "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"
 
 CI_HUB_ENDPOINT = "https://hub-ci.huggingface.co"
 CI_HUB_DATASETS_URL = CI_HUB_ENDPOINT + "/datasets/{repo_id}/resolve/{revision}/{path}"
