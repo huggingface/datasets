@@ -316,6 +316,9 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
             shard_example_idx_start = self._state_dict["shard_example_idx"] if self._state_dict else 0
             shard_example_idx = 0
             for key, pa_table in self.generate_tables_fn(**gen_kwags):
+                if shard_example_idx + len(pa_table) <= shard_example_idx_start:
+                    shard_example_idx += len(pa_table)
+                    continue
                 for pa_subtable in pa_table.to_reader(max_chunksize=config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER):
                     formatted_batch = formatter.format_batch(pa_subtable)
                     for example in _batch_to_examples(formatted_batch):
@@ -332,7 +335,11 @@ class ArrowExamplesIterable(_BaseExamplesIterable):
         shard_idx_start = self._state_dict["shard_idx"] if self._state_dict else 0
         for gen_kwags in islice(_split_gen_kwargs(self.kwargs, max_num_jobs=self.n_shards), shard_idx_start, None):
             shard_example_idx_start = self._state_dict["shard_example_idx"] if self._state_dict else 0
-            for key, pa_table in islice(self.generate_tables_fn(**gen_kwags), shard_example_idx_start, None):
+            shard_example_idx = 0
+            for key, pa_table in self.generate_tables_fn(**gen_kwags):
+                shard_example_idx += len(pa_table)
+                if shard_example_idx <= shard_example_idx_start:
+                    continue
                 if self._state_dict:
                     self._state_dict["shard_example_idx"] += len(pa_table)
                 yield key, pa_table
@@ -381,6 +388,9 @@ class ShuffledDataSourcesArrowExamplesIterable(ArrowExamplesIterable):
             shard_example_idx_start = self._state_dict["shard_example_idx"] if self._state_dict else 0
             shard_example_idx = 0
             for key, pa_table in self.generate_tables_fn(**gen_kwags):
+                if shard_example_idx + len(pa_table) <= shard_example_idx_start:
+                    shard_example_idx += len(pa_table)
+                    continue
                 for pa_subtable in pa_table.to_reader(max_chunksize=config.ARROW_READER_BATCH_SIZE_IN_DATASET_ITER):
                     formatted_batch = formatter.format_batch(pa_subtable)
                     for example in _batch_to_examples(formatted_batch):
@@ -401,7 +411,11 @@ class ShuffledDataSourcesArrowExamplesIterable(ArrowExamplesIterable):
             _split_gen_kwargs(kwargs_with_shuffled_shards, max_num_jobs=self.n_shards), shard_idx_start, None
         ):
             shard_example_idx_start = self._state_dict["shard_example_idx"] if self._state_dict else 0
-            for key, pa_table in islice(self.generate_tables_fn(**gen_kwags), shard_example_idx_start, None):
+            shard_example_idx = 0
+            for key, pa_table in self.generate_tables_fn(**gen_kwags):
+                shard_example_idx += len(pa_table)
+                if shard_example_idx <= shard_example_idx_start:
+                    continue
                 if self._state_dict:
                     self._state_dict["shard_example_idx"] += len(pa_table)
                 yield key, pa_table
@@ -1153,7 +1167,7 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
         if self._state_dict:
             if state_dict != self._original_state_dict:
                 logger.warning(
-                    "Loading a state dict of shuffle buffer of a dataset without the buffer content."
+                    "Loading a state dict of a shuffle buffer of a dataset without the buffer content."
                     "The shuffle buffer will be refilled before starting to yield new examples."
                 )
         return super().load_state_dict(state_dict)
@@ -1212,9 +1226,9 @@ class SkipExamplesIterable(_BaseExamplesIterable):
 
     def __iter__(self):
         ex_iterable_idx_start = 0 if self._state_dict and self._state_dict["skipped"] else self.n
-        yield from islice(self.ex_iterable, ex_iterable_idx_start, None)
         if self._state_dict:
             self._state_dict["skipped"] = True
+        yield from islice(self.ex_iterable, ex_iterable_idx_start, None)
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "SkipExamplesIterable":
         """Doesn't shuffle the wrapped examples iterable since it would skip examples from other shards instead."""

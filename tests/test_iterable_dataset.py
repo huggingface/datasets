@@ -116,6 +116,55 @@ def arrow_file(tmp_path_factory, dataset: IterableDataset):
     return filename
 
 
+def assert_load_state_dict_resumes_iteration(ex_iterable: _BaseExamplesIterable, num_allowed_lost_samples=0):
+    ex_iterable._init_state_dict()
+    state_dicts = [ex_iterable.state_dict()]
+    examples = []
+    for _, example in ex_iterable:
+        state_dicts.append(ex_iterable.state_dict())
+        examples.append(example)
+    if num_allowed_lost_samples < 0:
+        num_allowed_lost_samples = len(examples)
+    for i, state_dict in enumerate(state_dicts):
+        ex_iterable.load_state_dict(state_dict)
+        exmples_after_resuming = [example for _, example in ex_iterable]
+        if num_allowed_lost_samples > 0:
+            for j in range(num_allowed_lost_samples):
+                if exmples_after_resuming == examples[i + j :]:
+                    break
+            else:
+                raise AssertionError(f"Failed to resume iteration, even with {num_allowed_lost_samples=}")
+        else:
+            assert exmples_after_resuming == examples[i:]
+
+
+def assert_load_state_dict_resumes_arrow_iteration(ex_iterable: _BaseExamplesIterable, num_allowed_lost_samples=0):
+    assert ex_iterable.iter_arrow is not None
+    ex_iterable._init_state_dict()
+    state_dicts = [ex_iterable.state_dict()]
+    examples = []
+    indices = [0]
+    for _, pa_table in ex_iterable.iter_arrow():
+        state_dicts.append(ex_iterable.state_dict())
+        examples.extend(pa_table.to_pylist())
+        indices.append(indices[-1] + len(pa_table))
+    if num_allowed_lost_samples < 0:
+        num_allowed_lost_samples = len(examples)
+    for i, state_dict in zip(indices, state_dicts):
+        ex_iterable.load_state_dict(state_dict)
+        exmples_after_resuming = [
+            example for _, pa_table in ex_iterable.iter_arrow() for example in pa_table.to_pylist()
+        ]
+        if num_allowed_lost_samples > 0:
+            for j in range(num_allowed_lost_samples):
+                if exmples_after_resuming == examples[i + j :]:
+                    break
+            else:
+                raise AssertionError(f"Failed to resume iteration, even with {num_allowed_lost_samples=}")
+        else:
+            assert exmples_after_resuming == examples[i:]
+
+
 ################################
 #
 #   Utilities tests
@@ -189,6 +238,7 @@ def test_examples_iterable():
     assert next(iter(ex_iterable)) == expected[0]
     assert list(ex_iterable) == expected
     assert ex_iterable.iter_arrow is None
+    assert_load_state_dict_resumes_iteration(ex_iterable)
 
 
 def test_examples_iterable_with_kwargs():
@@ -197,6 +247,7 @@ def test_examples_iterable_with_kwargs():
     assert list(ex_iterable) == expected
     assert all("split" in ex for _, ex in ex_iterable)
     assert sorted({ex["filepath"] for _, ex in ex_iterable}) == ["0.txt", "1.txt"]
+    assert_load_state_dict_resumes_iteration(ex_iterable)
 
 
 def test_examples_iterable_shuffle_data_sources():
@@ -204,6 +255,7 @@ def test_examples_iterable_shuffle_data_sources():
     ex_iterable = ex_iterable.shuffle_data_sources(np.random.default_rng(40))
     expected = list(generate_examples_fn(filepaths=["1.txt", "0.txt"]))  # shuffle the filepaths
     assert list(ex_iterable) == expected
+    assert_load_state_dict_resumes_iteration(ex_iterable)
 
 
 def test_examples_iterable_shuffle_shards_and_metadata():
@@ -223,6 +275,7 @@ def test_examples_iterable_shuffle_shards_and_metadata():
     filepaths_ids = [x["filepath"].split(".")[0] for _, x in out]
     metadata_ids = [x["metadata"]["id"] for _, x in out]
     assert filepaths_ids == metadata_ids, "entangled lists of shards/metadata should be shuffled the same way"
+    assert_load_state_dict_resumes_iteration(ex_iterable)
 
 
 def test_arrow_examples_iterable():
@@ -232,6 +285,7 @@ def test_arrow_examples_iterable():
     assert [example for _, example in ex_iterable] == expected
     expected = list(generate_tables_fn())
     assert list(ex_iterable.iter_arrow()) == expected
+    assert_load_state_dict_resumes_iteration(ex_iterable)
 
 
 def test_arrow_examples_iterable_with_kwargs():
@@ -244,6 +298,7 @@ def test_arrow_examples_iterable_with_kwargs():
     assert sorted({ex["filepath"] for _, ex in ex_iterable}) == ["0.txt", "1.txt"]
     expected = list(generate_tables_fn(filepaths=["0.txt", "1.txt"], split="train"))
     assert list(ex_iterable.iter_arrow()) == expected
+    assert_load_state_dict_resumes_iteration(ex_iterable)
 
 
 def test_arrow_examples_iterable_shuffle_data_sources():
@@ -255,6 +310,7 @@ def test_arrow_examples_iterable_shuffle_data_sources():
     assert [example for _, example in ex_iterable] == expected
     expected = list(generate_tables_fn(filepaths=["1.txt", "0.txt"]))
     assert list(ex_iterable.iter_arrow()) == expected
+    assert_load_state_dict_resumes_iteration(ex_iterable)
 
 
 @pytest.mark.parametrize("seed", [42, 1337, 101010, 123456])
@@ -289,6 +345,7 @@ def test_buffer_shuffled_examples_iterable(seed):
     assert next(iter(ex_iterable)) == expected[0]
     assert list(ex_iterable) == expected
     assert sorted(ex_iterable) == sorted(all_examples)
+    assert_load_state_dict_resumes_iteration(ex_iterable)
 
 
 def test_cycling_multi_sources_examples_iterable():
@@ -303,6 +360,7 @@ def test_cycling_multi_sources_examples_iterable():
     assert next(iter(ex_iterable)) == expected[0]
     assert list(ex_iterable) == expected
     assert all((x["id"], x["text"]) == (i // 2, "bar" if i % 2 else "foo") for i, (_, x) in enumerate(ex_iterable))
+    assert_load_state_dict_resumes_iteration(ex_iterable)
 
 
 @pytest.mark.parametrize("probabilities", [None, (0.5, 0.5), (0.9, 0.1)])
@@ -333,6 +391,7 @@ def test_randomly_cycling_multi_sources_examples_iterable(probabilities):
 
     assert next(iter(ex_iterable)) == expected[0]
     assert list(ex_iterable) == expected
+    assert_load_state_dict_resumes_iteration(ex_iterable)
 
 
 @pytest.mark.parametrize("probabilities", [None, (0.5, 0.5), (0.9, 0.1)])
@@ -395,6 +454,13 @@ def test_mapped_examples_iterable(n, func, batched, batch_size):
         expected = list(_batch_to_examples(expected))
     assert next(iter(ex_iterable))[1] == expected[0]
     assert [x for _, x in ex_iterable] == expected
+    if not batched:
+        num_allowed_lost_samples = 0
+    elif batch_size is None or batch_size < 0:
+        num_allowed_lost_samples = -1
+    else:
+        num_allowed_lost_samples = batch_size + 1
+    assert_load_state_dict_resumes_iteration(ex_iterable, num_allowed_lost_samples=num_allowed_lost_samples)
 
 
 @pytest.mark.parametrize(
@@ -487,6 +553,13 @@ def test_mapped_examples_iterable_with_indices(n, func, batched, batch_size):
         expected = list(_batch_to_examples(expected))
     assert next(iter(ex_iterable))[1] == expected[0]
     assert [x for _, x in ex_iterable] == expected
+    if not batched:
+        num_allowed_lost_samples = 0
+    elif batch_size is None or batch_size < 0:
+        num_allowed_lost_samples = -1
+    else:
+        num_allowed_lost_samples = batch_size + 1
+    assert_load_state_dict_resumes_iteration(ex_iterable, num_allowed_lost_samples=num_allowed_lost_samples)
 
 
 @pytest.mark.parametrize(
@@ -530,6 +603,13 @@ def test_mapped_examples_iterable_remove_columns(n, func, batched, batch_size, r
         expected = list(_batch_to_examples(expected))
     assert next(iter(ex_iterable))[1] == expected[0]
     assert [x for _, x in ex_iterable] == expected
+    if not batched:
+        num_allowed_lost_samples = 0
+    elif batch_size is None or batch_size < 0:
+        num_allowed_lost_samples = -1
+    else:
+        num_allowed_lost_samples = batch_size + 1
+    assert_load_state_dict_resumes_iteration(ex_iterable, num_allowed_lost_samples=num_allowed_lost_samples)
 
 
 @pytest.mark.parametrize(
@@ -568,6 +648,13 @@ def test_mapped_examples_iterable_fn_kwargs(n, func, batched, batch_size, fn_kwa
         expected = list(_batch_to_examples(expected))
     assert next(iter(ex_iterable))[1] == expected[0]
     assert [x for _, x in ex_iterable] == expected
+    if not batched:
+        num_allowed_lost_samples = 0
+    elif batch_size is None or batch_size < 0:
+        num_allowed_lost_samples = -1
+    else:
+        num_allowed_lost_samples = batch_size + 1
+    assert_load_state_dict_resumes_iteration(ex_iterable, num_allowed_lost_samples=num_allowed_lost_samples)
 
 
 @pytest.mark.parametrize(
@@ -604,6 +691,13 @@ def test_mapped_examples_iterable_input_columns(n, func, batched, batch_size, in
         expected = list(_batch_to_examples(expected))
     assert next(iter(ex_iterable))[1] == expected[0]
     assert [x for _, x in ex_iterable] == expected
+    if not batched:
+        num_allowed_lost_samples = 0
+    elif batch_size is None or batch_size < 0:
+        num_allowed_lost_samples = -1
+    else:
+        num_allowed_lost_samples = batch_size + 1
+    assert_load_state_dict_resumes_iteration(ex_iterable, num_allowed_lost_samples=num_allowed_lost_samples)
 
 
 @pytest.mark.parametrize(
@@ -641,6 +735,13 @@ def test_mapped_examples_iterable_arrow_format(n, func, batched, batch_size):
             expected.extend(func(batch).to_pylist())
     assert next(iter(ex_iterable))[1] == expected[0]
     assert [x for _, x in ex_iterable] == expected
+    if not batched:
+        num_allowed_lost_samples = 0
+    elif batch_size is None or batch_size < 0:
+        num_allowed_lost_samples = -1
+    else:
+        num_allowed_lost_samples = batch_size + 1
+    assert_load_state_dict_resumes_iteration(ex_iterable, num_allowed_lost_samples=num_allowed_lost_samples)
 
 
 @pytest.mark.parametrize(
@@ -741,6 +842,13 @@ def test_mapped_examples_iterable_with_indices_and_arrow_format(n, func, batched
             expected.extend(func(batch, list(range(batch_offset, batch_offset + len(batch)))).to_pylist())
     assert next(iter(ex_iterable))[1] == expected[0]
     assert [x for _, x in ex_iterable] == expected
+    if not batched:
+        num_allowed_lost_samples = 0
+    elif batch_size is None or batch_size < 0:
+        num_allowed_lost_samples = -1
+    else:
+        num_allowed_lost_samples = batch_size + 1
+    assert_load_state_dict_resumes_iteration(ex_iterable, num_allowed_lost_samples=num_allowed_lost_samples)
 
 
 @pytest.mark.parametrize(
@@ -795,6 +903,13 @@ def test_mapped_examples_iterable_remove_columns_arrow_format(n, func, batched, 
             )
     assert next(iter(ex_iterable))[1] == expected[0]
     assert [x for _, x in ex_iterable] == expected
+    if not batched:
+        num_allowed_lost_samples = 0
+    elif batch_size is None or batch_size < 0:
+        num_allowed_lost_samples = -1
+    else:
+        num_allowed_lost_samples = batch_size + 1
+    assert_load_state_dict_resumes_iteration(ex_iterable, num_allowed_lost_samples=num_allowed_lost_samples)
 
 
 @pytest.mark.parametrize(
@@ -833,6 +948,13 @@ def test_mapped_examples_iterable_fn_kwargs_and_arrow_format(n, func, batched, b
             expected.extend(func(batch, **fn_kwargs).to_pylist())
     assert next(iter(ex_iterable))[1] == expected[0]
     assert [x for _, x in ex_iterable] == expected
+    if not batched:
+        num_allowed_lost_samples = 0
+    elif batch_size is None or batch_size < 0:
+        num_allowed_lost_samples = -1
+    else:
+        num_allowed_lost_samples = batch_size + 1
+    assert_load_state_dict_resumes_iteration(ex_iterable, num_allowed_lost_samples=num_allowed_lost_samples)
 
 
 @pytest.mark.parametrize(
@@ -871,6 +993,13 @@ def test_mapped_examples_iterable_input_columns_and_arrow_format(n, func, batche
             expected.extend(func(*[batch[col] for col in columns_to_input]).to_pylist())
     assert next(iter(ex_iterable))[1] == expected[0]
     assert [x for _, x in ex_iterable] == expected
+    if not batched:
+        num_allowed_lost_samples = 0
+    elif batch_size is None or batch_size < 0:
+        num_allowed_lost_samples = -1
+    else:
+        num_allowed_lost_samples = batch_size + 1
+    assert_load_state_dict_resumes_iteration(ex_iterable, num_allowed_lost_samples=num_allowed_lost_samples)
 
 
 @pytest.mark.parametrize(
@@ -905,6 +1034,13 @@ def test_filtered_examples_iterable(n, func, batched, batch_size):
     if expected:
         assert next(iter(ex_iterable))[1] == expected[0]
     assert [x for _, x in ex_iterable] == expected
+    if not batched:
+        num_allowed_lost_samples = 0
+    elif batch_size is None or batch_size < 0:
+        num_allowed_lost_samples = -1
+    else:
+        num_allowed_lost_samples = batch_size + 1
+    assert_load_state_dict_resumes_iteration(ex_iterable, num_allowed_lost_samples=num_allowed_lost_samples)
 
 
 @pytest.mark.parametrize(
@@ -938,6 +1074,13 @@ def test_filtered_examples_iterable_with_indices(n, func, batched, batch_size):
             expected.extend([x for x, to_keep in zip(examples, mask) if to_keep])
     assert next(iter(ex_iterable))[1] == expected[0]
     assert [x for _, x in ex_iterable] == expected
+    if not batched:
+        num_allowed_lost_samples = 0
+    elif batch_size is None or batch_size < 0:
+        num_allowed_lost_samples = -1
+    else:
+        num_allowed_lost_samples = batch_size + 1
+    assert_load_state_dict_resumes_iteration(ex_iterable, num_allowed_lost_samples=num_allowed_lost_samples)
 
 
 @pytest.mark.parametrize(
@@ -971,6 +1114,13 @@ def test_filtered_examples_iterable_input_columns(n, func, batched, batch_size, 
             expected.extend([x for x, to_keep in zip(examples, mask) if to_keep])
     assert next(iter(ex_iterable))[1] == expected[0]
     assert [x for _, x in ex_iterable] == expected
+    if not batched:
+        num_allowed_lost_samples = 0
+    elif batch_size is None or batch_size < 0:
+        num_allowed_lost_samples = -1
+    else:
+        num_allowed_lost_samples = batch_size + 1
+    assert_load_state_dict_resumes_iteration(ex_iterable, num_allowed_lost_samples=num_allowed_lost_samples)
 
 
 def test_skip_examples_iterable():
@@ -982,6 +1132,7 @@ def test_skip_examples_iterable():
     assert (
         skip_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is skip_ex_iterable
     ), "skip examples makes the shards order fixed"
+    assert_load_state_dict_resumes_iteration(skip_ex_iterable)
 
 
 def test_take_examples_iterable():
@@ -993,6 +1144,7 @@ def test_take_examples_iterable():
     assert (
         take_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is take_ex_iterable
     ), "skip examples makes the shards order fixed"
+    assert_load_state_dict_resumes_iteration(take_ex_iterable)
 
 
 def test_vertically_concatenated_examples_iterable():
@@ -1001,6 +1153,7 @@ def test_vertically_concatenated_examples_iterable():
     concatenated_ex_iterable = VerticallyConcatenatedMultiSourcesExamplesIterable([ex_iterable1, ex_iterable2])
     expected = [x for _, x in ex_iterable1] + [x for _, x in ex_iterable2]
     assert [x for _, x in concatenated_ex_iterable] == expected
+    assert_load_state_dict_resumes_iteration(concatenated_ex_iterable)
 
 
 def test_vertically_concatenated_examples_iterable_with_different_columns():
@@ -1011,6 +1164,7 @@ def test_vertically_concatenated_examples_iterable_with_different_columns():
     concatenated_ex_iterable = VerticallyConcatenatedMultiSourcesExamplesIterable([ex_iterable1, ex_iterable2])
     expected = [x for _, x in ex_iterable1] + [x for _, x in ex_iterable2]
     assert [x for _, x in concatenated_ex_iterable] == expected
+    assert_load_state_dict_resumes_iteration(concatenated_ex_iterable)
 
 
 def test_vertically_concatenated_examples_iterable_shuffle_data_sources():
@@ -1024,6 +1178,7 @@ def test_vertically_concatenated_examples_iterable_shuffle_data_sources():
         x for _, x in ex_iterable1.shuffle_data_sources(rng)
     ]
     assert [x for _, x in shuffled_ex_iterable] == expected
+    assert_load_state_dict_resumes_iteration(shuffled_ex_iterable)
 
 
 def test_horizontally_concatenated_examples_iterable():
@@ -1039,6 +1194,7 @@ def test_horizontally_concatenated_examples_iterable():
     assert (
         concatenated_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is concatenated_ex_iterable
     ), "horizontally concatenated examples makes the shards order fixed"
+    assert_load_state_dict_resumes_iteration(concatenated_ex_iterable)
 
 
 @pytest.mark.parametrize(
@@ -1068,6 +1224,8 @@ def test_horizontally_concatenated_examples_iterable():
 )
 def test_no_iter_arrow(ex_iterable: _BaseExamplesIterable):
     assert ex_iterable.iter_arrow is None
+    if not isinstance(ex_iterable, BufferShuffledExamplesIterable):
+        assert_load_state_dict_resumes_iteration(ex_iterable)
 
 
 @pytest.mark.parametrize(
@@ -1111,6 +1269,7 @@ def test_iter_arrow(ex_iterable: _BaseExamplesIterable):
     assert ex_iterable.iter_arrow is not None
     key, pa_table = next(ex_iterable.iter_arrow())
     assert isinstance(pa_table, pa.Table)
+    assert_load_state_dict_resumes_arrow_iteration(ex_iterable)
 
 
 ############################
