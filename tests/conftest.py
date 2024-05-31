@@ -16,10 +16,6 @@ def pytest_collection_modifyitems(config, items):
         item.add_marker(pytest.mark.unit)
 
 
-def pytest_configure(config):
-    config.addinivalue_line("markers", "torchaudio_latest: mark test to run with torchaudio>=0.12")
-
-
 @pytest.fixture(autouse=True)
 def set_test_cache_config(tmp_path_factory, monkeypatch):
     # test_hf_cache_home = tmp_path_factory.mktemp("cache")  # TODO: why a cache dir per test function does not work?
