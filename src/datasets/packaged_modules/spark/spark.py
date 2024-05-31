@@ -16,6 +16,7 @@ from datasets.filesystems import (
     rename,
 )
 from datasets.iterable_dataset import _BaseExamplesIterable
+from datasets.utils import experimental
 from datasets.utils.py_utils import convert_file_size_to_int
 
 
@@ -83,6 +84,10 @@ class SparkExamplesIterable(_BaseExamplesIterable):
     def _init_state_dict(self) -> dict:
         self._state_dict = {"partition_idx": 0, "partition_example_idx": 0}
         return self._state_dict
+
+    @experimental
+    def load_state_dict(self, state_dict: dict) -> dict:
+        return super().load_state_dict(state_dict)
 
     def __iter__(self):
         yield from _generate_iterable_examples(self.df, self.partition_order, self._state_dict)
