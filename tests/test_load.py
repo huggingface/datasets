@@ -1210,15 +1210,24 @@ def test_load_dataset_builder_for_community_dataset_with_script_no_parquet_expor
 
 
 @pytest.mark.integration
-def test_load_dataset_builder_use_parquet_export_if_dont_trust_remote_code_keeps_features():
+def test_load_dataset_builder_load_features_and_splits_info():
     dataset_name = "food101"
-    builder = datasets.load_dataset_builder(dataset_name, trust_remote_code=False)
+    builder = datasets.load_dataset_builder(dataset_name)
     assert isinstance(builder, DatasetBuilder)
     assert builder.name == "parquet"
     assert builder.dataset_name == dataset_name
     assert builder.config.name == "default"
     assert list(builder.info.features) == ["image", "label"]
     assert builder.info.features["image"] == Image()
+    assert builder.info.splits is not None
+    builder = datasets.load_dataset_builder(dataset_name, data_files="data/validation-00000-of-00003.parquet")
+    assert isinstance(builder, DatasetBuilder)
+    assert builder.name == "parquet"
+    assert builder.dataset_name == dataset_name
+    assert builder.config.name == "default"
+    assert list(builder.info.features) == ["image", "label"]
+    assert builder.info.features["image"] == Image()
+    assert builder.info.splits is None
 
 
 @pytest.mark.integration

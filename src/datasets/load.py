@@ -2277,6 +2277,8 @@ def load_dataset_builder(
     )
     dataset_name = builder_kwargs.pop("dataset_name", None)
     info = dataset_module.dataset_infos.get(config_name) if dataset_module.dataset_infos else None
+    if data_dir or data_files:
+        info.splits = None
 
     if (
         path in _PACKAGED_DATASETS_MODULES
