@@ -1235,7 +1235,12 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             pass
         metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
         dataset_infos = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
-        if config.USE_PARQUET_EXPORT:  # maybe don't use the infos from the parquet export
+        # Use the infos from the parquet export except in some cases:
+        if self.data_dir or self.data_files or (self.revision and self.revision != "main"):
+            use_exported_dataset_infos = False
+        else:
+            use_exported_dataset_infos = True
+        if config.USE_PARQUET_EXPORT and use_exported_dataset_infos:
             try:
                 exported_dataset_infos = _dataset_viewer.get_exported_dataset_infos(
                     dataset=self.name, revision=self.revision, token=self.download_config.token
