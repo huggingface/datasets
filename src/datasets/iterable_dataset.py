@@ -453,7 +453,8 @@ class SelectColumnsIterable(_BaseExamplesIterable):
 
     def _iter_arrow(self) -> Iterator[Tuple[Key, pa.Table]]:
         for idx, pa_table in self.ex_iterable.iter_arrow():
-            yield idx, pa_table.select(self.column_names)
+            if len(pa_table) > 0:  # empty tables have no schema
+                yield idx, pa_table.select(self.column_names)
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "SelectColumnsIterable":
         return SelectColumnsIterable(self.ex_iterable.shuffle_data_sources(generator), self.column_names)
@@ -847,7 +848,12 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             return self._iter_arrow
 
     def _init_state_dict(self) -> dict:
-        self._state_dict = self.ex_iterable._init_state_dict()
+        self._state_dict = {
+            "ex_iterable": self.ex_iterable._init_state_dict(),
+            "previous_state": None,
+            "num_examples_since_previous_state": 0,
+            "previous_state_example_idx": 0,
+        }
         return self._state_dict
 
     def __iter__(self):
@@ -857,8 +863,13 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             yield from self._iter()
 
     def _iter(self):
+        current_idx = self._state_dict["previous_state_example_idx"] if self._state_dict else 0
+        if self._state_dict and self._state_dict["previous_state"]:
+            self.ex_iterable.load_state_dict(self._state_dict["previous_state"])
+            num_examples_to_skip = self._state_dict["num_examples_since_previous_state"]
+        else:
+            num_examples_to_skip = 0
         iterator = iter(self.ex_iterable)
-        current_idx = 0
 
         if self.formatting:
             formatter = get_formatter(self.formatting.format_type)
@@ -869,6 +880,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             format_dict = None
 
         if self.batched:
+            if self._state_dict:
+                self._state_dict["previous_state"] = self.ex_iterable.state_dict()
+                self._state_dict["num_examples_since_previous_state"] = 0
+                self._state_dict["previous_state_example_idx"] = current_idx
             for key, example in iterator:
                 # If `batched`, first build the batch, if `batch_size` is None or <=0, then the batch is the whole dataset
                 iterator_batch = (
@@ -913,8 +928,17 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 new_key = "_".join(str(key) for key in keys)
                 # yield one example at a time from the transformed batch
                 for example in _batch_to_examples(transformed_batch):
-                    yield new_key, example
                     current_idx += 1
+                    if self._state_dict:
+                        self._state_dict["num_examples_since_previous_state"] += 1
+                    if num_examples_to_skip > 0:
+                        num_examples_to_skip -= 1
+                        continue
+                    yield new_key, example
+                if self._state_dict:
+                    self._state_dict["previous_state"] = self.ex_iterable.state_dict()
+                    self._state_dict["num_examples_since_previous_state"] = 0
+                    self._state_dict["previous_state_example_idx"] = current_idx
         else:
             for key, example in iterator:
                 # If not batched, we can apply the transform and yield the example directly
@@ -932,8 +956,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 if self.remove_columns:
                     for c in self.remove_columns:
                         del transformed_example[c]
-                yield key, transformed_example
                 current_idx += 1
+                if self._state_dict:
+                    self._state_dict["previous_state_example_idx"] += 1
+                yield key, transformed_example
 
     def _iter_arrow(self) -> Iterator[Tuple[Key, pa.Table]]:
         if self.ex_iterable.iter_arrow:
@@ -948,7 +974,18 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 batch_size=self.batch_size if self.batched else 1,
                 drop_last_batch=self.drop_last_batch,
             )
-        current_idx = 0
+
+        current_idx = self._state_dict["previous_state_example_idx"] if self._state_dict else 0
+        if self._state_dict and self._state_dict["previous_state"]:
+            self.ex_iterable.load_state_dict(self._state_dict["previous_state"])
+            num_examples_to_skip = self._state_dict["num_examples_since_previous_state"]
+        else:
+            num_examples_to_skip = 0
+        if self._state_dict:
+            self._state_dict["previous_state"] = self.ex_iterable.state_dict()
+            self._state_dict["num_examples_since_previous_state"] = 0
+            self._state_dict["previous_state_example_idx"] = current_idx
+
         for key, pa_table in iterator:
             # first build the batch
             function_args = [pa_table] if self.input_columns is None else [pa_table[col] for col in self.input_columns]
@@ -970,8 +1007,17 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     if column in output_table.column_names:
                         output_table = output_table.remove_column(output_table.column_names.index(column))
             # return output
-            yield key, output_table
             current_idx += len(pa_table)
+            if self._state_dict:
+                self._state_dict["num_examples_since_previous_state"] += len(pa_table)
+            if num_examples_to_skip > 0:
+                num_examples_to_skip -= len(pa_table)
+                continue
+            yield key, output_table
+            if self._state_dict:
+                self._state_dict["previous_state"] = self.ex_iterable.state_dict()
+                self._state_dict["num_examples_since_previous_state"] = 0
+                self._state_dict["previous_state_example_idx"] = current_idx
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "MappedExamplesIterable":
         """Shuffle the wrapped examples iterable."""
@@ -1042,7 +1088,12 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
             return self._iter_arrow
 
     def _init_state_dict(self) -> dict:
-        self._state_dict = self.ex_iterable._init_state_dict()
+        self._state_dict = {
+            "ex_iterable": self.ex_iterable._init_state_dict(),
+            "previous_state": None,
+            "num_examples_since_previous_state": 0,
+            "previous_state_example_idx": 0,
+        }
         return self._state_dict
 
     def __iter__(self):
@@ -1052,6 +1103,14 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
             yield from self._iter()
 
     def _iter(self):
+        current_idx = self._state_dict["previous_state_example_idx"] if self._state_dict else 0
+        if self._state_dict and self._state_dict["previous_state"]:
+            self.ex_iterable.load_state_dict(self._state_dict["previous_state"])
+            num_examples_to_skip = self._state_dict["num_examples_since_previous_state"]
+        else:
+            num_examples_to_skip = 0
+        iterator = iter(self.ex_iterable)
+
         if self.formatting:
             formatter = get_formatter(self.formatting.format_type)
             format_dict = (
@@ -1060,9 +1119,11 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
         else:
             format_dict = None
 
-        iterator = iter(self.ex_iterable)
-        current_idx = 0
         if self.batched:
+            if self._state_dict:
+                self._state_dict["previous_state"] = self.ex_iterable.state_dict()
+                self._state_dict["num_examples_since_previous_state"] = 0
+                self._state_dict["previous_state_example_idx"] = current_idx
             for key, example in iterator:
                 # If `batched`, first build the batch, if `batch_size` is None or <=0, then the batch is the whole dataset
                 iterator_batch = (
@@ -1082,9 +1143,18 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                 mask = self.function(*function_args, **self.fn_kwargs)
                 # yield one example at a time from the batch
                 for key_example, to_keep in zip(key_examples_list, mask):
+                    current_idx += 1
+                    if self._state_dict:
+                        self._state_dict["num_examples_since_previous_state"] += 1
+                    if num_examples_to_skip > 0:
+                        num_examples_to_skip -= 1
+                        continue
                     if to_keep:
                         yield key_example
-                    current_idx += 1
+                if self._state_dict:
+                    self._state_dict["previous_state"] = self.ex_iterable.state_dict()
+                    self._state_dict["num_examples_since_previous_state"] = 0
+                    self._state_dict["previous_state_example_idx"] = current_idx
         else:
             for key, example in iterator:
                 # If not batched, we can apply the filtering function direcly
@@ -1094,9 +1164,11 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                 if self.with_indices:
                     function_args.append(current_idx)
                 to_keep = self.function(*function_args, **self.fn_kwargs)
+                current_idx += 1
+                if self._state_dict:
+                    self._state_dict["previous_state_example_idx"] += 1
                 if to_keep:
                     yield key, example
-                current_idx += 1
 
     def _iter_arrow(self):
         if self.ex_iterable.iter_arrow:
@@ -1105,7 +1177,18 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
             )
         else:
             iterator = _convert_to_arrow(self.ex_iterable, batch_size=self.batch_size if self.batched else 1)
-        current_idx = 0
+
+        current_idx = self._state_dict["previous_state_example_idx"] if self._state_dict else 0
+        if self._state_dict and self._state_dict["previous_state"]:
+            self.ex_iterable.load_state_dict(self._state_dict["previous_state"])
+            num_examples_to_skip = self._state_dict["num_examples_since_previous_state"]
+        else:
+            num_examples_to_skip = 0
+        if self._state_dict:
+            self._state_dict["previous_state"] = self.ex_iterable.state_dict()
+            self._state_dict["num_examples_since_previous_state"] = 0
+            self._state_dict["previous_state_example_idx"] = current_idx
+
         for key, pa_table in iterator:
             # first build the batch
             function_args = [pa_table] if self.input_columns is None else [pa_table[col] for col in self.input_columns]
@@ -1117,11 +1200,20 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
             # then apply the transform
             mask = self.function(*function_args, **self.fn_kwargs)
             # yield the filtered table
+            current_idx += len(pa_table)
+            if self._state_dict:
+                self._state_dict["num_examples_since_previous_state"] += len(pa_table)
+            if num_examples_to_skip > 0:
+                num_examples_to_skip -= len(pa_table)
+                continue
             if self.batched:
                 yield key, pa_table.filter(mask)
             elif mask.as_py() if isinstance(mask, pa.BooleanScalar) else mask:
                 yield key, pa_table
-            current_idx += len(pa_table)
+            if self._state_dict:
+                self._state_dict["previous_state"] = self.ex_iterable.state_dict()
+                self._state_dict["num_examples_since_previous_state"] = 0
+                self._state_dict["previous_state_example_idx"] = current_idx
 
     def shuffle_data_sources(self, seed: Optional[int]) -> "FilteredExamplesIterable":
         """Shuffle the wrapped examples iterable."""
