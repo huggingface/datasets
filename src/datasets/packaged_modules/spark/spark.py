@@ -53,22 +53,21 @@ def _generate_iterable_examples(
     partition_df = _reorder_dataframe_by_partition(df_with_partition_id, partition_order[partition_idx_start:])
     # pipeline next partition in parallel to hide latency
     rows = partition_df.toLocalIterator(prefetchPartitions=True)
-    curr_partition = -1
+    curr_partition = None
     row_id = state_dict["partition_example_idx"] if state_dict else 0
     for row in islice(rows, row_id, None):
         row_as_dict = row.asDict()
         part_id = row_as_dict["part_id"]
         row_as_dict.pop("part_id")
         if curr_partition != part_id:
+            if state_dict and curr_partition is not None:
+                state_dict["partition_idx"] += 1
             curr_partition = part_id
             row_id = 0
         if state_dict:
-            state_dict["partition_example_idx"] += 1
+            state_dict["partition_example_idx"] = row_id + 1
         yield f"{part_id}_{row_id}", row_as_dict
         row_id += 1
-        if state_dict:
-            state_dict["partition_idx"] += 1
-            state_dict["partition_example_idx"] = 0
 
 
 class SparkExamplesIterable(_BaseExamplesIterable):
