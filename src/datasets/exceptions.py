@@ -83,3 +83,35 @@ class DatasetGenerationCastError(DatasetGenerationError):
             explanation_message += f"\n\nThis happened while the {builder_name} dataset builder was generating data using\n\n{', '.join(formatted_tracked_gen_kwargs)}"
         help_message = "\n\nPlease either edit the data files to have matching columns, or separate them into different configurations (see docs at https://hf.co/docs/hub/datasets-manual-configuration#multiple-configurations)"
         return cls("An error occurred while generating the dataset" + explanation_message + help_message)
+
+
+class ChecksumVerificationException(Exception):
+    """Exceptions during checksums verifications of downloaded files."""
+
+
+class UnexpectedDownloadedFile(ChecksumVerificationException):
+    """Some downloaded files were not expected."""
+
+
+class ExpectedMoreDownloadedFiles(ChecksumVerificationException):
+    """Some files were supposed to be downloaded but were not."""
+
+
+class NonMatchingChecksumError(ChecksumVerificationException):
+    """The downloaded file checksum don't match the expected checksum."""
+
+
+class SplitsVerificationException(Exception):
+    """Exceptions during splis verifications"""
+
+
+class UnexpectedSplits(SplitsVerificationException):
+    """The expected splits of the downloaded file is missing."""
+
+
+class ExpectedMoreSplits(SplitsVerificationException):
+    """Some recorded splits are missing."""
+
+
+class NonMatchingSplitsSizesError(SplitsVerificationException):
+    """The splits sizes don't match the expected splits sizes."""

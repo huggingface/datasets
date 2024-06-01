@@ -5,6 +5,14 @@ from typing import Optional
 from huggingface_hub.utils import insecure_hashlib
 
 from .. import config
+from ..exceptions import (
+    ExpectedMoreDownloadedFiles,
+    ExpectedMoreSplits,
+    NonMatchingChecksumError,
+    NonMatchingSplitsSizesError,
+    UnexpectedDownloadedFile,
+    UnexpectedSplits,
+)
 from .logging import get_logger
 
 
@@ -33,22 +41,6 @@ class VerificationMode(enum.Enum):
     NO_CHECKS = "no_checks"
 
 
-class ChecksumVerificationException(Exception):
-    """Exceptions during checksums verifications of downloaded files."""
-
-
-class UnexpectedDownloadedFile(ChecksumVerificationException):
-    """Some downloaded files were not expected."""
-
-
-class ExpectedMoreDownloadedFiles(ChecksumVerificationException):
-    """Some files were supposed to be downloaded but were not."""
-
-
-class NonMatchingChecksumError(ChecksumVerificationException):
-    """The downloaded file checksum don't match the expected checksum."""
-
-
 def verify_checksums(expected_checksums: Optional[dict], recorded_checksums: dict, verification_name=None):
     if expected_checksums is None:
         logger.info("Unable to verify checksums.")
@@ -66,22 +58,6 @@ def verify_checksums(expected_checksums: Optional[dict], recorded_checksums: dic
             "Set `verification_mode='no_checks'` to skip checksums verification and ignore this error"
         )
     logger.info("All the checksums matched successfully" + for_verification_name)
-
-
-class SplitsVerificationException(Exception):
-    """Exceptions during splis verifications"""
-
-
-class UnexpectedSplits(SplitsVerificationException):
-    """The expected splits of the downloaded file is missing."""
-
-
-class ExpectedMoreSplits(SplitsVerificationException):
-    """Some recorded splits are missing."""
-
-
-class NonMatchingSplitsSizesError(SplitsVerificationException):
-    """The splits sizes don't match the expected splits sizes."""
 
 
 def verify_splits(expected_splits: Optional[dict], recorded_splits: dict):
