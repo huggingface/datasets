@@ -213,6 +213,20 @@ If the dataset is split in several shards (i.e. if the dataset consists of multi
 
 In this case each worker is given a subset of the list of shards to stream from.
 
+If you need a DataLoader that you can checkpoint and resume in the middle of training, you can use the `StatefulDataLoader` from [torchdata](https://github.com/pytorch/data):
+
+```py
+>>> from torchdata.stateful_dataloader import StatefulDataLoader
+>>> my_iterable_dataset = load_dataset("deepmind/code_contests", streaming=True, split="train")
+>>> dataloader = StatefulDataLoader(my_iterable_dataset, batch_size=32, num_workers=4)
+>>> # save in the middle of training
+>>> state_dict = dataloader.state_dict()
+>>> # and resume later
+>>> dataloader.load_state_dict(state_dict)
+```
+
+This is possible thanks to [`IterableDataset.state_dict`] and [`IterableDataset.load_state_dict`].
+
 ### Distributed
 
 To split your dataset across your training nodes, you can use [`datasets.distributed.split_dataset_by_node`]:

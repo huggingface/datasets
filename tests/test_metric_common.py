@@ -39,7 +39,8 @@ pytestmark = pytest.mark.integration
 REQUIRE_FAIRSEQ = {"comet"}
 _has_fairseq = importlib.util.find_spec("fairseq") is not None
 
-UNSUPPORTED_ON_WINDOWS = {"code_eval"}
+# code_eval is unsupported, and the other are not installed in the windows CI
+UNSUPPORTED_ON_WINDOWS = {"code_eval", "bleurt", "competition_math", "coval"}
 _on_windows = os.name == "nt"
 
 REQUIRE_TRANSFORMERS = {"bertscore", "frugalscore", "perplexity"}
