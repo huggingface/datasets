@@ -1,1 +1,1 @@
-from .parallel import parallel_backend, parallel_map, ParallelBackendConfig
+from .parallel import ParallelBackendConfig, parallel_backend, parallel_map
