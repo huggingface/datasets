@@ -1564,7 +1564,7 @@ class IterableDataset(DatasetInfoMixin):
         ...     print(example)
         ```
 
-        Returns:
+        which returns:
         ```
         {'a': 0}
         {'a': 1}
@@ -1609,7 +1609,7 @@ class IterableDataset(DatasetInfoMixin):
         ...     print(example)
         ```
 
-        Returns:
+        which returns:
         ```
         {'a': 0}
         {'a': 1}
