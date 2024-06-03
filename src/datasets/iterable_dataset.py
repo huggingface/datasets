@@ -1544,6 +1544,11 @@ class IterableDataset(DatasetInfoMixin):
         """Get the current state_dict of the dataset.
         It corresponds to the state at the latest example it yielded.
 
+        Resuming returns exactly where the checkpoint was saved except in two cases:
+
+        1. examples from shuffle buffers are lost when resuming and the buffers are refilled with new data
+        2. combinations of `.with_format(arrow)` and batched `.map()` may skip one batch.
+
         Returns:
             `dict`
 
@@ -1591,6 +1596,11 @@ class IterableDataset(DatasetInfoMixin):
     def load_state_dict(self, state_dict: dict) -> None:
         """Load the state_dict of the dataset.
         The iteration will restart at the next example from when the state was saved.
+
+        Resuming returns exactly where the checkpoint was saved except in two cases:
+
+        1. examples from shuffle buffers are lost when resuming and the buffers are refilled with new data
+        2. combinations of `.with_format(arrow)` and batched `.map()` may skip one batch.
 
         Example:
 
