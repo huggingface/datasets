@@ -1541,9 +1541,96 @@ class IterableDataset(DatasetInfoMixin):
         _maybe_add_torch_iterable_dataset_parent_class(self.__class__)
 
     def state_dict(self) -> dict:
+        """Get the current state_dict of the dataset.
+        It corresponds to the state at the latest example it yielded.
+
+        Returns:
+            `dict`
+
+        Example:
+
+        ```py
+        >>> from datasets import Dataset, concatenate_datasets
+        >>> ds = Dataset.from_dict({"a": range(6)}).to_iterable_dataset(num_shards=3)
+        >>> for idx, example in enumerate(ds):
+        ...     print(example)
+        ...     if idx == 2:
+        ...         state_dict = ds.state_dict()
+        ...         print("checkpoint")
+        ...         break
+        >>> ds.load_state_dict(state_dict)
+        >>> print(f"restart from checkpoint")
+        >>> for example in ds:
+        ...     print(example)
+        ```
+
+        Returns:
+        ```
+        {'a': 0}
+        {'a': 1}
+        {'a': 2}
+        checkpoint
+        restart from checkpoint
+        {'a': 3}
+        {'a': 4}
+        {'a': 5}
+        ```
+
+        ```py
+        >>> from torchdata.stateful_dataloader import StatefulDataLoader
+        >>> ds = load_dataset("deepmind/code_contests", streaming=True, split="train")
+        >>> dataloader = StatefulDataLoader(ds, batch_size=32, num_workers=4)
+        >>> # checkpoint
+        >>> state_dict = dataloader.state_dict()  # uses ds.state_dict() under the hood
+        >>> # resume from checkpoint
+        >>> dataloader.load_state_dict(state_dict)  # uses ds.load_state_dict() under the hood
+        ```
+        """
         return copy.deepcopy(self._state_dict)
 
     def load_state_dict(self, state_dict: dict) -> None:
+        """Load the state_dict of the dataset.
+        The iteration will restart at the next example from when the state was saved.
+
+        Example:
+
+        ```py
+        >>> from datasets import Dataset, concatenate_datasets
+        >>> ds = Dataset.from_dict({"a": range(6)}).to_iterable_dataset(num_shards=3)
+        >>> for idx, example in enumerate(ds):
+        ...     print(example)
+        ...     if idx == 2:
+        ...         state_dict = ds.state_dict()
+        ...         print("checkpoint")
+        ...         break
+        >>> ds.load_state_dict(state_dict)
+        >>> print(f"restart from checkpoint")
+        >>> for example in ds:
+        ...     print(example)
+        ```
+
+        Returns:
+        ```
+        {'a': 0}
+        {'a': 1}
+        {'a': 2}
+        checkpoint
+        restart from checkpoint
+        {'a': 3}
+        {'a': 4}
+        {'a': 5}
+        ```
+
+        ```py
+        >>> from torchdata.stateful_dataloader import StatefulDataLoader
+        >>> ds = load_dataset("deepmind/code_contests", streaming=True, split="train")
+        >>> dataloader = StatefulDataLoader(ds, batch_size=32, num_workers=4)
+        >>> # checkpoint
+        >>> state_dict = dataloader.state_dict()  # uses ds.state_dict() under the hood
+        >>> # resume from checkpoint
+        >>> dataloader.load_state_dict(state_dict)  # uses ds.load_state_dict() under the hood
+        ```
+        """
         self._ex_iterable.load_state_dict(state_dict)
         self._starting_state_dict = state_dict
 
