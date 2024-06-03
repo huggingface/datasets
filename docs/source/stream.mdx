@@ -412,3 +412,9 @@ This can be used with the `StatefulDataLoader` from `torchdata`:
 >>> # resume from checkpoint
 >>> dataloader.load_state_dict(state_dict)  # uses iterable_dataset.load_state_dict() under the hood
 ```
+
+<Tip>
+
+Resuming returns exactly where the checkpoint was saved except in two cases: 1) examples from shuffle buffers are lost when resuming and the buffers are refilled with new data and 2) combinations of `.with_format(arrow)` and batched `.map()` may skip one batch.
+
+</Tip>
