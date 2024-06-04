@@ -6,12 +6,12 @@ from huggingface_hub.utils import insecure_hashlib
 
 from .. import config
 from ..exceptions import (
-    ExpectedMoreDownloadedFiles,
-    ExpectedMoreSplits,
+    ExpectedMoreDownloadedFilesError,
+    ExpectedMoreSplitsError,
     NonMatchingChecksumError,
     NonMatchingSplitsSizesError,
-    UnexpectedDownloadedFile,
-    UnexpectedSplits,
+    UnexpectedDownloadedFileError,
+    UnexpectedSplitsError,
 )
 from .logging import get_logger
 
@@ -46,9 +46,9 @@ def verify_checksums(expected_checksums: Optional[dict], recorded_checksums: dic
         logger.info("Unable to verify checksums.")
         return
     if len(set(expected_checksums) - set(recorded_checksums)) > 0:
-        raise ExpectedMoreDownloadedFiles(str(set(expected_checksums) - set(recorded_checksums)))
+        raise ExpectedMoreDownloadedFilesError(str(set(expected_checksums) - set(recorded_checksums)))
     if len(set(recorded_checksums) - set(expected_checksums)) > 0:
-        raise UnexpectedDownloadedFile(str(set(recorded_checksums) - set(expected_checksums)))
+        raise UnexpectedDownloadedFileError(str(set(recorded_checksums) - set(expected_checksums)))
     bad_urls = [url for url in expected_checksums if expected_checksums[url] != recorded_checksums[url]]
     for_verification_name = " for " + verification_name if verification_name is not None else ""
     if len(bad_urls) > 0:
@@ -65,9 +65,9 @@ def verify_splits(expected_splits: Optional[dict], recorded_splits: dict):
         logger.info("Unable to verify splits sizes.")
         return
     if len(set(expected_splits) - set(recorded_splits)) > 0:
-        raise ExpectedMoreSplits(str(set(expected_splits) - set(recorded_splits)))
+        raise ExpectedMoreSplitsError(str(set(expected_splits) - set(recorded_splits)))
     if len(set(recorded_splits) - set(expected_splits)) > 0:
-        raise UnexpectedSplits(str(set(recorded_splits) - set(expected_splits)))
+        raise UnexpectedSplitsError(str(set(recorded_splits) - set(expected_splits)))
     bad_splits = [
         {"expected": expected_splits[name], "recorded": recorded_splits[name]}
         for name in expected_splits
