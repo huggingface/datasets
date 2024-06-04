@@ -79,9 +79,7 @@ device which is `jax.devices()[0]`.
 
 ## N-dimensional arrays
 
-If your dataset consists of N-dimensional arrays, you will see that by default they are considered as nested lists.
-In particular, a JAX formatted dataset outputs a `DeviceArray` object, which is a numpy-like array, so it does not
-need the [`Array`] feature type to be specified as opposed to PyTorch or TensorFlow formatters.
+If your dataset consists of N-dimensional arrays, you will see that by default they are considered as the same tensor if the shape is fixed:
 
 ```py
 >>> from datasets import Dataset
@@ -89,8 +87,36 @@ need the [`Array`] feature type to be specified as opposed to PyTorch or TensorF
 >>> ds = Dataset.from_dict({"data": data})
 >>> ds = ds.with_format("jax")
 >>> ds[0]
-{'data': DeviceArray([[1, 2],
-             [3, 4]], dtype=int32)}
+{'data': Array([[1, 2],
+        [3, 4]], dtype=int32)}
+```
+
+```py
+>>> from datasets import Dataset
+>>> data = [[[1, 2],[3]], [[4, 5, 6],[7, 8]]]
+>>> ds = Dataset.from_dict({"data": data})
+>>> ds = ds.with_format("jax")
+>>> ds[0]
+{'data': [Array([1, 2], dtype=int32), Array([3], dtype=int32)]}
+```
+
+However this logic often requires slow shape comparisions and data copies, to avoid this you must explicitly use the [`Array`] feature type and specify the shape of your tensors:
+
+```py
+>>> from datasets import Dataset, Features, Array2D
+>>> data = [[[1, 2],[3, 4]],[[5, 6],[7, 8]]]
+>>> features = Features({"data": Array2D(shape=(2, 2), dtype='int32')})
+>>> ds = Dataset.from_dict({"data": data}, features=features)
+>>> ds = ds.with_format("torch")
+>>> ds[0]
+{'data': Array([[1, 2],
+        [3, 4]], dtype=int32)}
+>>> ds[:2]
+{'data': Array([[[1, 2],
+         [3, 4]],
+ 
+        [[5, 6],
+         [7, 8]]], dtype=int32)}
 ```
 
 ## Other feature types
