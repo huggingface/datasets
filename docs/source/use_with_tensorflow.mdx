@@ -46,7 +46,7 @@ Otherwise, a TensorFlow formatted dataset outputs a `RaggedTensor` instead of a 
 
 ```py
 >>> from datasets import Dataset
->>> data = [[[1, 2],[3, 4]],[[5, 6],[7, 8]]]
+>>> data = [[[1, 2],[3, 4]],[[5, 6],[7, 8]]]  # fixed shape
 >>> ds = Dataset.from_dict({"data": data})
 >>> ds = ds.with_format("tf")
 >>> ds[0]
