@@ -12,16 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# ruff: noqa
-
 from . import tqdm as _tqdm  # _tqdm is the module
+from .experimental import experimental
 from .info_utils import VerificationMode
 from .logging import disable_progress_bar, enable_progress_bar, is_progress_bar_enabled
-from .version import Version
-from .experimental import experimental
 from .tqdm import (
+    are_progress_bars_disabled,
     disable_progress_bars,
     enable_progress_bars,
-    are_progress_bars_disabled,
     tqdm,
 )
+from .version import Version
