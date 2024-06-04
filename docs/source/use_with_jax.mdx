@@ -83,7 +83,7 @@ If your dataset consists of N-dimensional arrays, you will see that by default t
 
 ```py
 >>> from datasets import Dataset
->>> data = [[[1, 2],[3, 4]], [[5, 6],[7, 8]]]
+>>> data = [[[1, 2],[3, 4]], [[5, 6],[7, 8]]]  # fixed shape
 >>> ds = Dataset.from_dict({"data": data})
 >>> ds = ds.with_format("jax")
 >>> ds[0]
@@ -93,7 +93,7 @@ If your dataset consists of N-dimensional arrays, you will see that by default t
 
 ```py
 >>> from datasets import Dataset
->>> data = [[[1, 2],[3]], [[4, 5, 6],[7, 8]]]
+>>> data = [[[1, 2],[3]], [[4, 5, 6],[7, 8]]]  # varying shape
 >>> ds = Dataset.from_dict({"data": data})
 >>> ds = ds.with_format("jax")
 >>> ds[0]
