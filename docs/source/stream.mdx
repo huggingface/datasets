@@ -363,7 +363,7 @@ Lastly, create a simple training loop and start training:
 
 ### Save a dataset checkpoint and resume iteration
 
-If you training loop stops, you may want to restart the training from where it was. To do so you can save a checkpoint of your model and optimizers, as well as your data loader.
+If your training loop stops, you may want to restart the training from where it was. To do so you can save a checkpoint of your model and optimizers, as well as your data loader.
 
 Iterable datasets don't provide random access to a specific example index to resume from, but you can use [`IterableDataset.state_dict`] and [`IterableDataset.load_state_dict`] to resume from a checkpoint instead, similarly to what you can do for models and optimizers:
 
