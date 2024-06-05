@@ -614,7 +614,9 @@ def test_load_dataset_with_image_feature(shared_datadir, data_dir, dataset_loadi
     import PIL.Image
 
     image_path = str(shared_datadir / "test_image_rgb.jpg")
-    dset = load_dataset(dataset_loading_script_dir, split="train", data_dir=data_dir, streaming=streaming)
+    dset = load_dataset(
+        dataset_loading_script_dir, split="train", data_dir=data_dir, streaming=streaming, trust_remote_code=True
+    )
     item = dset[0] if not streaming else next(iter(dset))
     assert item.keys() == {"image", "caption"}
     assert isinstance(item["image"], PIL.Image.Image)

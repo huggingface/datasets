@@ -72,6 +72,7 @@ class TestDatasetOnHfGcp(TestCase):
                 config_name,
                 revision=revision,
                 cache_dir=tmp_dir,
+                trust_remote_code=True,
             )
 
             dataset_info_url = "/".join(

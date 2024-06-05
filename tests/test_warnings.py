@@ -25,9 +25,14 @@ def mock_hfh(monkeypatch):
 
 
 @pytest.mark.parametrize(
-    "func, args", [(load_metric, ("metrics/mse",)), (list_metrics, ()), (inspect_metric, ("metrics/mse", "tmp_path"))]
+    "func, args, kwargs",
+    [
+        (load_metric, ("metrics/mse",), {"trust_remote_code": True}),
+        (list_metrics, (), {}),
+        (inspect_metric, ("metrics/mse", "tmp_path"), {}),
+    ],
 )
-def test_metric_deprecation_warning(func, args, mock_emitted_deprecation_warnings, mock_hfh, tmp_path):
+def test_metric_deprecation_warning(func, args, kwargs, mock_emitted_deprecation_warnings, mock_hfh, tmp_path):
     if "tmp_path" in args:
         args = tuple(arg if arg != "tmp_path" else tmp_path for arg in args)
     with pytest.warns(FutureWarning, match="https://huggingface.co/docs/evaluate"):
