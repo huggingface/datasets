@@ -64,7 +64,7 @@ Otherwise, a TensorFlow formatted dataset outputs a `RaggedTensor` instead of a 
 {'data': <tf.RaggedTensor [[1, 2], [3]]>}
 ```
 
-However this logic often requires slow shape comparisions and data copies, to avoid this you must explicitly use the [`Array`] feature type and specify the shape of your tensors:
+However this logic often requires slow shape comparisons and data copies, to avoid this you must explicitly use the [`Array`] feature type and specify the shape of your tensors:
 
 ```py
 >>> from datasets import Dataset, Features, Array2D
