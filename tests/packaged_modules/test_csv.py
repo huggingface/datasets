@@ -93,7 +93,7 @@ def test_config_raises_when_invalid_name() -> None:
         _ = CsvConfig(name="name-with-*-invalid-character")
 
 
-@pytest.mark.parametrize("data_files", ["str_path", ["str_path"], DataFilesList["str_path"]])
+@pytest.mark.parametrize("data_files", ["str_path", ["str_path"], DataFilesList(["str_path"], [()])])
 def test_config_raises_when_invalid_data_files(data_files) -> None:
     with pytest.raises(ValueError, match="Expected a DataFilesDict"):
         _ = CsvConfig(name="name", data_files=data_files)
