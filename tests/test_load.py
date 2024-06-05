@@ -1268,6 +1268,21 @@ def test_load_dataset_cached_local_script(dataset_loading_script_dir, data_dir, 
 
 
 @pytest.mark.integration
+@pytest.mark.parametrize(
+    "kwargs, expected_train_num_rows, expected_test_num_rows",
+    [
+        ({}, 2, 2),
+        ({"data_dir": "data1"}, 1, 1),  # GH-6918: NonMatchingSplitsSizesError
+        ({"data_files": "data1/train.txt"}, 1, None),  # GH-6939: ExpectedMoreSplits
+    ],
+)
+def test_load_dataset_without_script_from_hub(kwargs, expected_train_num_rows, expected_test_num_rows):
+    dataset = load_dataset(SAMPLE_DATASET_IDENTIFIER3, **kwargs)
+    assert dataset["train"].num_rows == expected_train_num_rows
+    assert (dataset["test"].num_rows == expected_test_num_rows) if expected_test_num_rows else ("test" not in dataset)
+
+
+@pytest.mark.integration
 @pytest.mark.parametrize("stream_from_cache, ", [False, True])
 def test_load_dataset_cached_from_hub(stream_from_cache, caplog):
     dataset = load_dataset(SAMPLE_DATASET_IDENTIFIER3)

@@ -6,13 +6,13 @@ from huggingface_hub.utils import insecure_hashlib
 
 from .arrow import arrow
 from .audiofolder import audiofolder
-from .cache import cache  # noqa F401
+from .cache import cache
 from .csv import csv
 from .imagefolder import imagefolder
 from .json import json
 from .pandas import pandas
 from .parquet import parquet
-from .sql import sql  # noqa F401
+from .sql import sql
 from .text import text
 from .webdataset import webdataset
 

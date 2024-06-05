@@ -13,11 +13,15 @@ select = ["C", "E", "F", "I", "W"]
 lines-after-imports = 2
 known-first-party = ["datasets"]
 
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401", "F403", "F405"]
+
 [tool.pytest.ini_options]
 # Test fails if a FutureWarning is thrown by `huggingface_hub`
-filterwarnings = [
-    "error::FutureWarning:huggingface_hub*",
-]
+# Temporarily disabled because transformers 4.41.1 calls deprecated code from `huggingface_hub` that causes FutureWarning
+# filterwarnings = [
+#     "error::FutureWarning:huggingface_hub*",
+# ]
 markers = [
     "unit: unit test",
     "integration: integration test",

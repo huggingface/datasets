@@ -1,5 +1,3 @@
-# ruff: noqa
-
 __all__ = [
     "Audio",
     "Array2D",

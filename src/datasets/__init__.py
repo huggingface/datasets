@@ -1,4 +1,3 @@
-# ruff: noqa
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__version__ = "2.19.2.dev0"
+__version__ = "2.19.3.dev0"
 
 from .arrow_dataset import Dataset
 from .arrow_reader import ReadInstruction
@@ -54,10 +53,13 @@ from .utils import *
 from .utils import logging
 
 
-# deprecated modules
-from datasets import arrow_dataset as _arrow_dataset  # isort:skip
-from datasets import utils as _utils  # isort:skip
-from datasets.utils import download_manager as _deprecated_download_manager  # isort:skip
+# isort: split
+
+# Deprecated modules
+from . import arrow_dataset as _arrow_dataset
+from . import utils as _utils
+from .utils import download_manager as _deprecated_download_manager
+
 
 _arrow_dataset.concatenate_datasets = concatenate_datasets
 _utils.DownloadConfig = DownloadConfig
