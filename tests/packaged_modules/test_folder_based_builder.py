@@ -5,7 +5,8 @@ import textwrap
 import pytest
 
 from datasets import ClassLabel, DownloadManager, Features, Value
-from datasets.data_files import DataFilesDict, get_data_patterns
+from datasets.builder import InvalidConfigName
+from datasets.data_files import DataFilesDict, DataFilesList, get_data_patterns
 from datasets.download.streaming_download_manager import StreamingDownloadManager
 from datasets.packaged_modules.folder_based_builder.folder_based_builder import (
     FolderBasedBuilder,
@@ -263,6 +264,17 @@ def data_files_with_zip_archives(tmp_path, auto_text_file):
     assert len(data_files_with_zip_archives) == 1
     assert len(data_files_with_zip_archives["train"]) == 1
     return data_files_with_zip_archives
+
+
+def test_config_raises_when_invalid_name() -> None:
+    with pytest.raises(InvalidConfigName, match="Bad characters"):
+        _ = FolderBasedBuilderConfig(name="name-with-*-invalid-character")
+
+
+@pytest.mark.parametrize("data_files", ["str_path", ["str_path"], DataFilesList["str_path"]])
+def test_config_raises_when_invalid_data_files(data_files) -> None:
+    with pytest.raises(ValueError, match="Expected a DataFilesDict"):
+        _ = FolderBasedBuilderConfig(name="name", data_files=data_files)
 
 
 def test_inferring_labels_from_data_dirs(data_files_with_labels_no_metadata, cache_dir):

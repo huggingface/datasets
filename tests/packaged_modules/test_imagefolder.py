@@ -5,9 +5,10 @@ import numpy as np
 import pytest
 
 from datasets import ClassLabel, Features, Image, Value
-from datasets.data_files import DataFilesDict, get_data_patterns
+from datasets.builder import InvalidConfigName
+from datasets.data_files import DataFilesDict, DataFilesList, get_data_patterns
 from datasets.download.streaming_download_manager import StreamingDownloadManager
-from datasets.packaged_modules.imagefolder.imagefolder import ImageFolder
+from datasets.packaged_modules.imagefolder.imagefolder import ImageFolder, ImageFolderConfig
 
 from ..utils import require_pil
 
@@ -237,6 +238,17 @@ def data_files_with_zip_archives(tmp_path, image_file):
     assert len(data_files_with_zip_archives) == 1
     assert len(data_files_with_zip_archives["train"]) == 1
     return data_files_with_zip_archives
+
+
+def test_config_raises_when_invalid_name() -> None:
+    with pytest.raises(InvalidConfigName, match="Bad characters"):
+        _ = ImageFolderConfig(name="name-with-*-invalid-character")
+
+
+@pytest.mark.parametrize("data_files", ["str_path", ["str_path"], DataFilesList["str_path"]])
+def test_config_raises_when_invalid_data_files(data_files) -> None:
+    with pytest.raises(ValueError, match="Expected a DataFilesDict"):
+        _ = ImageFolderConfig(name="name", data_files=data_files)
 
 
 @require_pil
