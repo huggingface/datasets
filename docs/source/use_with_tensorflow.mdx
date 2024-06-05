@@ -42,7 +42,6 @@ array([[1, 2],
 ## N-dimensional arrays
 
 If your dataset consists of N-dimensional arrays, you will see that by default they are considered as the same tensor if the shape is fixed:
-Otherwise, a TensorFlow formatted dataset outputs a `RaggedTensor` instead of a single tensor:
 
 ```py
 >>> from datasets import Dataset
@@ -55,6 +54,8 @@ Otherwise, a TensorFlow formatted dataset outputs a `RaggedTensor` instead of a 
         [3, 4]])>}
 ```
 
+Otherwise, a TensorFlow formatted dataset outputs a `RaggedTensor` instead of a single tensor:
+
 ```py
 >>> from datasets import Dataset
 >>> data = [[[1, 2],[3]],[[4, 5, 6],[7, 8]]]  # varying shape
@@ -64,7 +65,8 @@ Otherwise, a TensorFlow formatted dataset outputs a `RaggedTensor` instead of a 
 {'data': <tf.RaggedTensor [[1, 2], [3]]>}
 ```
 
-However this logic often requires slow shape comparisions and data copies, to avoid this you must explicitly use the [`Array`] feature type and specify the shape of your tensors:
+However this logic often requires slow shape comparisons and data copies.
+To avoid this, you must explicitly use the [`Array`] feature type and specify the shape of your tensors:
 
 ```py
 >>> from datasets import Dataset, Features, Array2D
