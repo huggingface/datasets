@@ -42,7 +42,6 @@ array([[1, 2],
 ## N-dimensional arrays
 
 If your dataset consists of N-dimensional arrays, you will see that by default they are considered as the same tensor if the shape is fixed:
-Otherwise, a TensorFlow formatted dataset outputs a `RaggedTensor` instead of a single tensor:
 
 ```py
 >>> from datasets import Dataset
@@ -54,6 +53,8 @@ Otherwise, a TensorFlow formatted dataset outputs a `RaggedTensor` instead of a 
  array([[1, 2],
         [3, 4]])>}
 ```
+
+Otherwise, a TensorFlow formatted dataset outputs a `RaggedTensor` instead of a single tensor:
 
 ```py
 >>> from datasets import Dataset
