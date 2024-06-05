@@ -17,7 +17,15 @@ from multiprocess.pool import Pool
 from datasets.arrow_dataset import Dataset
 from datasets.arrow_reader import DatasetNotOnHfGcsError
 from datasets.arrow_writer import ArrowWriter
-from datasets.builder import ArrowBasedBuilder, BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
+from datasets.builder import (
+    ArrowBasedBuilder,
+    BeamBasedBuilder,
+    BuilderConfig,
+    DatasetBuilder,
+    GeneratorBasedBuilder,
+    InvalidConfigName,
+)
+from datasets.data_files import DataFilesList
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.download.download_manager import DownloadMode
 from datasets.features import Features, Value
@@ -834,6 +842,17 @@ class BuilderTest(TestCase):
             self.assertEqual(builder.cache_dir, other_builder.cache_dir)
             other_builder = builder_cls(cache_dir=tmp_dir, hash="def")
             self.assertNotEqual(builder.cache_dir, other_builder.cache_dir)
+
+
+def test_config_raises_when_invalid_name() -> None:
+    with pytest.raises(InvalidConfigName, match="Bad characters"):
+        _ = BuilderConfig(name="name-with-*-invalid-character")
+
+
+@pytest.mark.parametrize("data_files", ["str_path", ["str_path"], DataFilesList["str_path"]])
+def test_config_raises_when_invalid_data_files(data_files) -> None:
+    with pytest.raises(ValueError, match="Expected a DataFilesDict"):
+        _ = BuilderConfig(name="name", data_files=data_files)
 
 
 def test_arrow_based_download_and_prepare(tmp_path):
