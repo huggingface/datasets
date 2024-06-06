@@ -835,6 +835,7 @@ class ModuleFactoryTest(TestCase):
             SAMPLE_DATASET_IDENTIFIER,
             download_config=self.download_config,
             dynamic_modules_path=self.dynamic_modules_path,
+            trust_remote_code=True
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
@@ -992,7 +993,7 @@ class LoadTest(TestCase):
             module_dir = self._dummy_module_dir(tmp_dir, "__dummy_module_name1__", dummy_code)
             module_path = os.path.join(module_dir, "__dummy_module_name1__.py")
             dataset_module = datasets.load.dataset_module_factory(
-                module_path, dynamic_modules_path=self.dynamic_modules_path
+                module_path, dynamic_modules_path=self.dynamic_modules_path, trust_remote_code=True
             )
             dummy_module = importlib.import_module(dataset_module.module_path)
             self.assertEqual(dummy_module.MY_DUMMY_VARIABLE, "general kenobi")
@@ -1031,7 +1032,7 @@ class LoadTest(TestCase):
             dummy_code = "MY_DUMMY_VARIABLE = 'general kenobi'"
             module_dir = self._dummy_module_dir(tmp_dir, "__dummy_module_name2__", dummy_code)
             dataset_module_2 = datasets.load.dataset_module_factory(
-                module_dir, dynamic_modules_path=self.dynamic_modules_path
+                module_dir, dynamic_modules_path=self.dynamic_modules_path, trust_remote_code=True
             )
         for offline_simulation_mode in list(OfflineSimulationMode):
             with offline(offline_simulation_mode):
