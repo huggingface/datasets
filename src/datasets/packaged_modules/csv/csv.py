@@ -68,6 +68,7 @@ class CsvConfig(datasets.BuilderConfig):
     date_format: Optional[str] = None
 
     def __post_init__(self):
+        super().__post_init__()
         if self.delimiter is not None:
             self.sep = self.delimiter
         if self.column_names is not None:

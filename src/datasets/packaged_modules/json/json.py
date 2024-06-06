@@ -44,6 +44,9 @@ class JsonConfig(datasets.BuilderConfig):
     chunksize: int = 10 << 20  # 10MB
     newlines_in_values: Optional[bool] = None
 
+    def __post_init__(self):
+        super().__post_init__()
+
 
 class Json(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = JsonConfig

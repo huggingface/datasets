@@ -27,6 +27,7 @@ class TextConfig(datasets.BuilderConfig):
     sample_by: str = "line"
 
     def __post_init__(self, errors):
+        super().__post_init__()
         if errors != "deprecated":
             warnings.warn(
                 "'errors' was deprecated in favor of 'encoding_errors' in version 2.14.0 and will be removed in 3.0.0.\n"

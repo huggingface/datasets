@@ -33,6 +33,9 @@ class SparkConfig(datasets.BuilderConfig):
 
     features: Optional[datasets.Features] = None
 
+    def __post_init__(self):
+        super().__post_init__()
+
 
 def _reorder_dataframe_by_partition(df: "pyspark.sql.DataFrame", new_partition_order: List[int]):
     df_combined = df.select("*").where(f"part_id = {new_partition_order[0]}")

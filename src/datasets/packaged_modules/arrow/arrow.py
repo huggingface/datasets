@@ -17,6 +17,9 @@ class ArrowConfig(datasets.BuilderConfig):
 
     features: Optional[datasets.Features] = None
 
+    def __post_init__(self):
+        super().__post_init__()
+
 
 class Arrow(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = ArrowConfig

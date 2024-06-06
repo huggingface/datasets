@@ -20,6 +20,9 @@ class ParquetConfig(datasets.BuilderConfig):
     columns: Optional[List[str]] = None
     features: Optional[datasets.Features] = None
 
+    def __post_init__(self):
+        super().__post_init__()
+
 
 class Parquet(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = ParquetConfig

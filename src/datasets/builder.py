@@ -494,7 +494,7 @@ class DatasetBuilder:
             and not is_remote_url(self._cache_dir_root)
             and not (set(self.config_kwargs) - {"data_files", "data_dir"})
         ):
-            from .packaged_modules import _PACKAGED_DATASETS_MODULES
+            from .packaged_modules import _PACKAGED_DATASETS_MODULES_2_15_HASHES
             from .utils._dill import Pickler
 
             def update_hash_with_config_parameters(hash: str, config_parameters: dict) -> str:
@@ -516,7 +516,7 @@ class DatasetBuilder:
             namespace = self.repo_id.split("/")[0] if self.repo_id and self.repo_id.count("/") > 0 else None
             with patch.object(Pickler, "_legacy_no_dict_keys_sorting", True):
                 config_id = self.config.name + "-" + Hasher.hash({"data_files": self.config.data_files})
-            hash = _PACKAGED_DATASETS_MODULES.get(self.name, "missing")[1]
+            hash = _PACKAGED_DATASETS_MODULES_2_15_HASHES.get(self.name, "missing")
             if (
                 dataset_module.builder_configs_parameters.metadata_configs
                 and self.config.name in dataset_module.builder_configs_parameters.metadata_configs

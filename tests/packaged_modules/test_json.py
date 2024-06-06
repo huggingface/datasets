@@ -4,7 +4,9 @@ import pyarrow as pa
 import pytest
 
 from datasets import Features, Value
-from datasets.packaged_modules.json.json import Json
+from datasets.builder import InvalidConfigName
+from datasets.data_files import DataFilesList
+from datasets.packaged_modules.json.json import Json, JsonConfig
 
 
 @pytest.fixture
@@ -169,6 +171,17 @@ def json_file_with_list_of_dicts_with_sorted_columns_field(tmp_path):
     with open(path, "w") as f:
         f.write(data)
     return str(path)
+
+
+def test_config_raises_when_invalid_name() -> None:
+    with pytest.raises(InvalidConfigName, match="Bad characters"):
+        _ = JsonConfig(name="name-with-*-invalid-character")
+
+
+@pytest.mark.parametrize("data_files", ["str_path", ["str_path"], DataFilesList(["str_path"], [()])])
+def test_config_raises_when_invalid_data_files(data_files) -> None:
+    with pytest.raises(ValueError, match="Expected a DataFilesDict"):
+        _ = JsonConfig(name="name", data_files=data_files)
 
 
 @pytest.mark.parametrize(
