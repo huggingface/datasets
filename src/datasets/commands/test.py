@@ -3,7 +3,7 @@ import os
 from argparse import ArgumentParser
 from pathlib import Path
 from shutil import copyfile, rmtree
-from typing import Generator
+from typing import Generator, Optional
 
 import datasets.config
 from datasets.builder import DatasetBuilder
@@ -29,6 +29,7 @@ def _test_command_factory(args):
         args.force_redownload,
         args.clear_cache,
         args.num_proc,
+        args.trust_remote_code,
     )
 
 
@@ -67,6 +68,9 @@ class TestCommand(BaseDatasetsCLICommand):
             help="Remove downloaded files and cached datasets after each config test",
         )
         test_parser.add_argument("--num_proc", type=int, default=None, help="Number of processes")
+        test_parser.add_argument(
+            "--trust_remote_code", action="store_true", help="whether to trust the code execution of the load script"
+        )
         # aliases
         test_parser.add_argument("--save_infos", action="store_true", help="alias to save_info")
         test_parser.add_argument("dataset", type=str, help="Name of the dataset to download")
@@ -84,6 +88,7 @@ class TestCommand(BaseDatasetsCLICommand):
         force_redownload: bool,
         clear_cache: bool,
         num_proc: int,
+        trust_remote_code: Optional[bool],
     ):
         self._dataset = dataset
         self._name = name
@@ -95,6 +100,7 @@ class TestCommand(BaseDatasetsCLICommand):
         self._force_redownload = force_redownload
         self._clear_cache = clear_cache
         self._num_proc = num_proc
+        self._trust_remote_code = trust_remote_code
         if clear_cache and not cache_dir:
             print(
                 "When --clear_cache is used, specifying a cache directory is mandatory.\n"
@@ -111,7 +117,7 @@ class TestCommand(BaseDatasetsCLICommand):
             print("Both parameters `config` and `all_configs` can't be used at once.")
             exit(1)
         path, config_name = self._dataset, self._name
-        module = dataset_module_factory(path)
+        module = dataset_module_factory(path, trust_remote_code=self._trust_remote_code)
         builder_cls = import_main_class(module.module_path)
         n_builders = len(builder_cls.BUILDER_CONFIGS) if self._all_configs and builder_cls.BUILDER_CONFIGS else 1
 

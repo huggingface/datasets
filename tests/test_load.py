@@ -982,7 +982,7 @@ class LoadTest(TestCase):
             dummy_code = "MY_DUMMY_VARIABLE = 'hello there'"
             module_dir = self._dummy_module_dir(tmp_dir, "__dummy_module_name1__", dummy_code)
             dataset_module = datasets.load.dataset_module_factory(
-                module_dir, dynamic_modules_path=self.dynamic_modules_path
+                module_dir, dynamic_modules_path=self.dynamic_modules_path, trust_remote_code=True
             )
             dummy_module = importlib.import_module(dataset_module.module_path)
             self.assertEqual(dummy_module.MY_DUMMY_VARIABLE, "hello there")
@@ -1025,7 +1025,7 @@ class LoadTest(TestCase):
             dummy_code = "MY_DUMMY_VARIABLE = 'hello there'"
             module_dir = self._dummy_module_dir(tmp_dir, "__dummy_module_name2__", dummy_code)
             dataset_module_1 = datasets.load.dataset_module_factory(
-                module_dir, dynamic_modules_path=self.dynamic_modules_path
+                module_dir, dynamic_modules_path=self.dynamic_modules_path, trust_remote_code=True
             )
             time.sleep(0.1)  # make sure there's a difference in the OS update time of the python file
             dummy_code = "MY_DUMMY_VARIABLE = 'general kenobi'"
@@ -1218,7 +1218,7 @@ def test_load_dataset_builder_for_community_dataset_with_script():
 @pytest.mark.integration
 def test_load_dataset_builder_for_community_dataset_with_script_no_parquet_export():
     with patch.object(config, "USE_PARQUET_EXPORT", False):
-        builder = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER)
+        builder = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER, trust_remote_code=True)
     assert isinstance(builder, DatasetBuilder)
     assert builder.name == SAMPLE_DATASET_IDENTIFIER.split("/")[-1]
     assert builder.dataset_name == SAMPLE_DATASET_IDENTIFIER.split("/")[-1]

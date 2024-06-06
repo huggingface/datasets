@@ -29,7 +29,7 @@ def test_inspect_dataset(path, tmp_path):
 @pytest.mark.filterwarnings("ignore:metric_module_factory is deprecated:FutureWarning")
 @pytest.mark.parametrize("path", ["accuracy"])
 def test_inspect_metric(path, tmp_path):
-    inspect_metric(path, tmp_path)
+    inspect_metric(path, tmp_path, trust_remote_code=True)
     script_name = path + ".py"
     assert script_name in os.listdir(tmp_path)
     assert "__pycache__" not in os.listdir(tmp_path)
@@ -79,7 +79,7 @@ def test_get_dataset_config_info_error(path, config_name, expected_exception):
     ],
 )
 def test_get_dataset_config_names(path, expected):
-    config_names = get_dataset_config_names(path)
+    config_names = get_dataset_config_names(path, trust_remote_code=True)
     assert config_names == expected
 
 
@@ -97,7 +97,7 @@ def test_get_dataset_config_names(path, expected):
     ],
 )
 def test_get_dataset_default_config_name(path, expected):
-    default_config_name = get_dataset_default_config_name(path)
+    default_config_name = get_dataset_default_config_name(path, trust_remote_code=True)
     if expected:
         assert default_config_name == expected
     else:

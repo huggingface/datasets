@@ -89,7 +89,7 @@ class TestDatasetOnHfGcp(TestCase):
 @pytest.mark.integration
 def test_as_dataset_from_hf_gcs(tmp_path_factory):
     tmp_dir = tmp_path_factory.mktemp("test_hf_gcp") / "test_wikipedia_simple"
-    builder = load_dataset_builder("wikipedia", "20220301.frr", cache_dir=tmp_dir)
+    builder = load_dataset_builder("wikipedia", "20220301.frr", cache_dir=tmp_dir, trust_remote_code=True)
     # use the HF cloud storage, not the original download_and_prepare that uses apache-beam
     builder._download_and_prepare = None
     builder.download_and_prepare(try_from_hf_gcs=True)
@@ -100,7 +100,11 @@ def test_as_dataset_from_hf_gcs(tmp_path_factory):
 @pytest.mark.integration
 def test_as_streaming_dataset_from_hf_gcs(tmp_path):
     builder = load_dataset_builder(
-        "wikipedia", "20220301.frr", revision="4d013bdd32c475c8536aae00a56efc774f061649", cache_dir=tmp_path
+        "wikipedia",
+        "20220301.frr",
+        revision="4d013bdd32c475c8536aae00a56efc774f061649",
+        cache_dir=tmp_path,
+        trust_remote_code=True,
     )
     ds = builder.as_streaming_dataset()
     assert ds
