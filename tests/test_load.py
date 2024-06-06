@@ -835,7 +835,7 @@ class ModuleFactoryTest(TestCase):
             SAMPLE_DATASET_IDENTIFIER,
             download_config=self.download_config,
             dynamic_modules_path=self.dynamic_modules_path,
-            trust_remote_code=True
+            trust_remote_code=True,
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
