@@ -2007,7 +2007,10 @@ def metric_module_factory(
                 raise FileNotFoundError(f"Couldn't find a metric script at {relative_to_absolute_path(path)}")
         elif os.path.isfile(combined_path):
             return LocalMetricModuleFactory(
-                combined_path, download_mode=download_mode, dynamic_modules_path=dynamic_modules_path
+                combined_path,
+                download_mode=download_mode,
+                dynamic_modules_path=dynamic_modules_path,
+                trust_remote_code=trust_remote_code,
             ).get_module()
         elif is_relative_path(path) and path.count("/") == 0:
             try:
