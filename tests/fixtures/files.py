@@ -552,6 +552,16 @@ def audio_file():
 
 
 @pytest.fixture(scope="session")
+def tensor_file(tmp_path_factory):
+    import torch
+
+    path = tmp_path_factory.mktemp("data") / "tensor.pth"
+    with open(path, "wb") as f:
+        torch.save(torch.ones(128), f)
+    return path
+
+
+@pytest.fixture(scope="session")
 def zip_image_path(image_file, tmp_path_factory):
     path = tmp_path_factory.mktemp("data") / "dataset.img.zip"
     with zipfile.ZipFile(path, "w") as f:

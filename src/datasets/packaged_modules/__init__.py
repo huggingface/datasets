@@ -6,13 +6,13 @@ from huggingface_hub.utils import insecure_hashlib
 
 from .arrow import arrow
 from .audiofolder import audiofolder
-from .cache import cache  # noqa F401
+from .cache import cache
 from .csv import csv
 from .imagefolder import imagefolder
 from .json import json
 from .pandas import pandas
 from .parquet import parquet
-from .sql import sql  # noqa F401
+from .sql import sql
 from .text import text
 from .webdataset import webdataset
 
@@ -41,6 +41,18 @@ _PACKAGED_DATASETS_MODULES = {
     "imagefolder": (imagefolder.__name__, _hash_python_lines(inspect.getsource(imagefolder).splitlines())),
     "audiofolder": (audiofolder.__name__, _hash_python_lines(inspect.getsource(audiofolder).splitlines())),
     "webdataset": (webdataset.__name__, _hash_python_lines(inspect.getsource(webdataset).splitlines())),
+}
+
+# get importable module names and hash for caching
+_PACKAGED_DATASETS_MODULES_2_15_HASHES = {
+    "csv": "eea64c71ca8b46dd3f537ed218fc9bf495d5707789152eb2764f5c78fa66d59d",
+    "json": "8bb11242116d547c741b2e8a1f18598ffdd40a1d4f2a2872c7a28b697434bc96",
+    "pandas": "3ac4ffc4563c796122ef66899b9485a3f1a977553e2d2a8a318c72b8cc6f2202",
+    "parquet": "ca31c69184d9832faed373922c2acccec0b13a0bb5bbbe19371385c3ff26f1d1",
+    "arrow": "74f69db2c14c2860059d39860b1f400a03d11bf7fb5a8258ca38c501c878c137",
+    "text": "c4a140d10f020282918b5dd1b8a49f0104729c6177f60a6b49ec2a365ec69f34",
+    "imagefolder": "7b7ce5247a942be131d49ad4f3de5866083399a0f250901bd8dc202f8c5f7ce5",
+    "audiofolder": "d3c1655c66c8f72e4efb5c79e952975fa6e2ce538473a6890241ddbddee9071c",
 }
 
 # Used to infer the module to use based on the data files extensions
