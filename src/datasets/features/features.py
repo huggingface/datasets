@@ -109,6 +109,8 @@ def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
         return "string"
     elif pyarrow.types.is_large_string(arrow_type):
         return "large_string"
+    elif pyarrow.types.is_dictionary(arrow_type):
+        return _arrow_to_datasets_dtype(arrow_type.value_type)
     else:
         raise ValueError(f"Arrow type {arrow_type} does not have a datasets dtype equivalent.")
 
@@ -1434,8 +1436,6 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
     elif isinstance(pa_type, _ArrayXDExtensionType):
         array_feature = [None, None, Array2D, Array3D, Array4D, Array5D][pa_type.ndims]
         return array_feature(shape=pa_type.shape, dtype=pa_type.value_type)
-    elif isinstance(pa_type, pa.DictionaryType):
-        raise NotImplementedError  # TODO(thom) this will need access to the dictionary as well (for labels). I.e. to the py_table
     elif isinstance(pa_type, pa.DataType):
         return Value(dtype=_arrow_to_datasets_dtype(pa_type))
     else:
@@ -1704,6 +1704,9 @@ class Features(dict):
         Construct [`Features`] from Arrow Schema.
         It also checks the schema metadata for Hugging Face Datasets features.
         Non-nullable fields are not supported and set to nullable.
+
+        Also, pa.dictionary is not supported and it uses its underlying type instead.
+        Therefore datasets convert DictionaryArray objects to their actual values.
 
         Args:
             pa_schema (`pyarrow.Schema`):

@@ -113,8 +113,8 @@ REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
     # Backend and serialization.
-    # Minimum 12.0.0 to be able to concatenate extension arrays
-    "pyarrow>=12.0.0",
+    # Minimum 15.0.0 to be able to cast dictionary types to their underlying types
+    "pyarrow>=15.0.0",
     # As long as we allow pyarrow < 14.0.1, to fix vulnerability CVE-2023-47248
     "pyarrow-hotfix",
     # For smart caching dataset processing
@@ -166,7 +166,6 @@ TESTS_REQUIRE = [
     "pytest-datadir",
     "pytest-xdist",
     # optional dependencies
-    "apache-beam>=2.26.0; sys_platform != 'win32' and python_version<'3.10'",  # doesn't support recent dill versions for recent python versions and on windows requires pyarrow<12.0.0
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch()
     "faiss-cpu>=1.6.4",
     "jax>=0.3.14; sys_platform != 'win32'",

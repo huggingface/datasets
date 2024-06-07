@@ -98,6 +98,12 @@ class FeaturesTest(TestCase):
             with self.assertRaises(ValueError):
                 string_to_arrow(sdt)
 
+    def test_categorical_one_way(self):
+        # Categorical types (aka dictionary types) need special handling as there isn't a bijection
+        categorical_type = pa.dictionary(pa.int32(), pa.string())
+
+        self.assertEqual("string", _arrow_to_datasets_dtype(categorical_type))
+
     def test_feature_named_type(self):
         """reference: issue #1110"""
         features = Features({"_type": Value("string")})

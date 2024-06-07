@@ -711,6 +711,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     f"{e}\nThe 'source' features come from dataset_info.json, and the 'target' ones are those of the dataset arrow file."
                 )
 
+        # In case there are types like pa.dictionary that we need to convert to the underlying type
+
+        if self.data.schema != self.info.features.arrow_schema:
+            self._data = self.data.cast(self.info.features.arrow_schema)
+
         # Infer fingerprint if None
 
         if self._fingerprint is None:
