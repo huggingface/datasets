@@ -99,7 +99,9 @@ class LocalMetricTest(parameterized.TestCase):
     def test_load_metric(self, metric_name):
         doctest.ELLIPSIS_MARKER = "[...]"
         metric_module = importlib.import_module(
-            datasets.load.metric_module_factory(os.path.join("metrics", metric_name)).module_path
+            datasets.load.metric_module_factory(
+                os.path.join("metrics", metric_name), trust_remote_code=True
+            ).module_path
         )
         metric = datasets.load.import_main_class(metric_module.__name__, dataset=False)
         # check parameters
@@ -213,7 +215,7 @@ def patch_comet(module_name):
 
 
 def test_seqeval_raises_when_incorrect_scheme():
-    metric = load_metric(os.path.join("metrics", "seqeval"))
+    metric = load_metric(os.path.join("metrics", "seqeval"), trust_remote_code=True)
     wrong_scheme = "ERROR"
     error_message = f"Scheme should be one of [IOB1, IOB2, IOE1, IOE2, IOBES, BILOU], got {wrong_scheme}"
     with pytest.raises(ValueError, match=re.escape(error_message)):
