@@ -1844,9 +1844,12 @@ def dataset_module_factory(
             ) as e:
                 raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({e.__class__.__name__})") from e
             except GatedRepoError as e:
-                raise DatasetNotFoundError(
-                    f"Dataset '{path}' is a gated dataset on the Hub. Visit the dataset page at https://huggingface.co/datasets/{path} to ask for access."
-                ) from e
+                message = f"Dataset '{path}' is a gated dataset on the Hub."
+                if "401 Client Error" in str(e):
+                    message += " You must be authenticated to access it."
+                elif "403 Client Error" in str(e):
+                    message += f" Visit the dataset page at https://huggingface.co/datasets/{path} to ask for access."
+                raise DatasetNotFoundError(message) from e
             except RevisionNotFoundError as e:
                 raise DatasetNotFoundError(
                     f"Revision '{revision}' doesn't exist for dataset '{path}' on the Hub."
