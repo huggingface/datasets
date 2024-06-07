@@ -1697,6 +1697,9 @@ class Features(dict):
         It also checks the schema metadata for Hugging Face Datasets features.
         Non-nullable fields are not supported and set to nullable.
 
+        Also, pa.dictionary is not supported and it uses its underlying type instead.
+        Therefore datasets convert DictionaryArray objects to their actual values.
+
         Args:
             pa_schema (`pyarrow.Schema`):
                 Arrow Schema.
