@@ -37,6 +37,7 @@ import requests
 import yaml
 from fsspec.core import url_to_fs
 from huggingface_hub import DatasetCard, DatasetCardData, HfApi, HfFileSystem
+from huggingface_hub.utils import GatedRepoError, RepositoryNotFoundError, RevisionNotFoundError
 
 from . import config
 from .arrow_dataset import Dataset
@@ -1836,28 +1837,23 @@ def dataset_module_factory(
                     token=download_config.token,
                     timeout=100.0,
                 )
-            except Exception as e:  # noqa catch any exception of hf_hub and consider that the dataset doesn't exist
-                if isinstance(
-                    e,
-                    (
-                        OfflineModeIsEnabled,
-                        requests.exceptions.ConnectTimeout,
-                        requests.exceptions.ConnectionError,
-                    ),
-                ):
-                    raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({type(e).__name__})")
-                elif "404" in str(e):
-                    msg = f"Dataset '{path}' doesn't exist on the Hub or cannot be accessed"
-                    raise DatasetNotFoundError(msg + f" at revision '{revision}'" if revision else msg)
-                elif "401" in str(e):
-                    msg = f"Dataset '{path}' doesn't exist on the Hub or cannot be accessed"
-                    msg = msg + f" at revision '{revision}'" if revision else msg
-                    raise DatasetNotFoundError(
-                        msg
-                        + f". If the dataset is private or gated, make sure to log in with `huggingface-cli login` or visit the dataset page at https://huggingface.co/datasets/{path} to ask for access."
-                    )
-                else:
-                    raise e
+            except (
+                OfflineModeIsEnabled,
+                requests.exceptions.ConnectTimeout,
+                requests.exceptions.ConnectionError,
+            ) as e:
+                raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({e.__class__.__name__})") from e
+            except GatedRepoError as e:
+                raise DatasetNotFoundError(
+                    f"Dataset '{path}' is a gated dataset on the Hub. Visit the dataset page at https://huggingface.co/datasets/{path} to ask for access."
+                ) from e
+            except RevisionNotFoundError as e:
+                raise DatasetNotFoundError(
+                    f"Revision '{revision}' doesn't exist for dataset '{path}' on the Hub."
+                ) from e
+            except RepositoryNotFoundError as e:
+                raise DatasetNotFoundError(f"Dataset '{path}' doesn't exist on the Hub or cannot be accessed.") from e
+
             if filename in [sibling.rfilename for sibling in dataset_info.siblings]:  # contains a dataset script
                 fs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=download_config.token)
                 if _require_custom_configs or (revision and revision != "main"):
