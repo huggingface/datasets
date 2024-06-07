@@ -113,8 +113,8 @@ REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
     # Backend and serialization.
-    # Minimum 12.0.0 to be able to concatenate extension arrays
-    "pyarrow>=12.0.0",
+    # Minimum 15.0.0 to be able to cast dictionary types to their underlying types
+    "pyarrow>=15.0.0",
     # As long as we allow pyarrow < 14.0.1, to fix vulnerability CVE-2023-47248
     "pyarrow-hotfix",
     # For smart caching dataset processing
