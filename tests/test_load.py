@@ -1067,13 +1067,9 @@ class LoadTest(TestCase):
             str(context.exception),
         )
         with self.assertRaises(DatasetNotFoundError) as context:
-            datasets.load_dataset("_dummy", revision="0.0.0")
+            datasets.load_dataset("HuggingFaceFW/fineweb-edu", revision="0.0.0")
         self.assertIn(
-            "Dataset '_dummy' doesn't exist on the Hub",
-            str(context.exception),
-        )
-        self.assertIn(
-            "at revision '0.0.0'",
+            "Revision '0.0.0' doesn't exist for dataset 'HuggingFaceFW/fineweb-edu' on the Hub.",
             str(context.exception),
         )
         for offline_simulation_mode in list(OfflineSimulationMode):
