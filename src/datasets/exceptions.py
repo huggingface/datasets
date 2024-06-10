@@ -101,6 +101,9 @@ class ChecksumVerificationException(Exception):
 class ChecksumVerificationError(DatasetsError, ChecksumVerificationException):
     """Error raised during checksums verifications of downloaded files."""
 
+    def __init__(self, *args, **kwargs):
+        DatasetsError.__init__(self, *args, **kwargs)
+
 
 @deprecated("Use 'UnexpectedDownloadedFileError' instead.")
 class UnexpectedDownloadedFile(ChecksumVerificationException):
@@ -152,6 +155,9 @@ class SplitsVerificationException(Exception):
 
 class SplitsVerificationError(DatasetsError, SplitsVerificationException):
     """Error raised during splits verifications."""
+
+    def __init__(self, *args, **kwargs):
+        DatasetsError.__init__(self, *args, **kwargs)
 
 
 @deprecated("Use 'UnexpectedSplitsError' instead.")
