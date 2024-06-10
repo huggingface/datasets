@@ -58,7 +58,9 @@ from .utils import logging
 # Deprecated modules
 from . import arrow_dataset as _arrow_dataset
 from . import utils as _utils
+from .exceptions import ExpectedMoreDownloadedFiles, ExpectedMoreSplits, UnexpectedDownloadedFile, UnexpectedSplits
 from .utils import download_manager as _deprecated_download_manager
+from .utils import info_utils as _deprecated_info_utils
 
 
 _arrow_dataset.concatenate_datasets = concatenate_datasets
@@ -68,5 +70,10 @@ _utils.DownloadMode = DownloadMode
 _deprecated_download_manager.DownloadConfig = DownloadConfig
 _deprecated_download_manager.DownloadMode = DownloadMode
 _deprecated_download_manager.DownloadManager = DownloadManager
+_deprecated_info_utils.ExpectedMoreDownloadedFiles = ExpectedMoreDownloadedFiles
+_deprecated_info_utils.ExpectedMoreSplits = ExpectedMoreSplits
+_deprecated_info_utils.UnexpectedDownloadedFile = UnexpectedDownloadedFile
+_deprecated_info_utils.UnexpectedSplits = UnexpectedSplits
 
 del _arrow_dataset, _utils, _deprecated_download_manager
+del _deprecated_info_utils, ExpectedMoreDownloadedFiles, ExpectedMoreSplits, UnexpectedDownloadedFile, UnexpectedSplits

@@ -6,6 +6,7 @@ from huggingface_hub import HfFileSystem
 
 from . import config
 from .table import CastError
+from .utils.deprecation_utils import deprecated
 from .utils.track import TrackedIterable, tracked_list, tracked_str
 
 
@@ -83,3 +84,113 @@ class DatasetGenerationCastError(DatasetGenerationError):
             explanation_message += f"\n\nThis happened while the {builder_name} dataset builder was generating data using\n\n{', '.join(formatted_tracked_gen_kwargs)}"
         help_message = "\n\nPlease either edit the data files to have matching columns, or separate them into different configurations (see docs at https://hf.co/docs/hub/datasets-manual-configuration#multiple-configurations)"
         return cls("An error occurred while generating the dataset" + explanation_message + help_message)
+
+
+@deprecated("Use 'ChecksumVerificationError' instead.")
+class ChecksumVerificationException(Exception):
+    """Exceptions during checksums verifications of downloaded files.
+
+    <Deprecated version="2.20.0">
+
+    Use `ChecksumVerificationError` instead.
+
+    </Deprecated>
+    """
+
+
+class ChecksumVerificationError(DatasetsError, ChecksumVerificationException):
+    """Error raised during checksums verifications of downloaded files."""
+
+    def __init__(self, *args, **kwargs):
+        DatasetsError.__init__(self, *args, **kwargs)
+
+
+@deprecated("Use 'UnexpectedDownloadedFileError' instead.")
+class UnexpectedDownloadedFile(ChecksumVerificationException):
+    """Some downloaded files were not expected.
+
+    <Deprecated version="2.20.0">
+
+    Use `UnexpectedDownloadedFileError` instead.
+
+    </Deprecated>
+    """
+
+
+class UnexpectedDownloadedFileError(ChecksumVerificationError, UnexpectedDownloadedFile):
+    """Some downloaded files were not expected."""
+
+
+@deprecated("Use 'ExpectedMoreDownloadedFilesError' instead.")
+class ExpectedMoreDownloadedFiles(ChecksumVerificationException):
+    """Some files were supposed to be downloaded but were not.
+
+    <Deprecated version="2.20.0">
+
+    Use `ExpectedMoreDownloadedFilesError` instead.
+
+    </Deprecated>
+    """
+
+
+class ExpectedMoreDownloadedFilesError(ChecksumVerificationError, ExpectedMoreDownloadedFiles):
+    """Some files were supposed to be downloaded but were not."""
+
+
+class NonMatchingChecksumError(ChecksumVerificationError):
+    """The downloaded file checksum don't match the expected checksum."""
+
+
+@deprecated("Use 'SplitsVerificationError' instead.")
+class SplitsVerificationException(Exception):
+    """Exceptions during splits verifications.
+
+    <Deprecated version="2.20.0">
+
+    Use `SplitsVerificationError` instead.
+
+    </Deprecated>
+    """
+
+
+class SplitsVerificationError(DatasetsError, SplitsVerificationException):
+    """Error raised during splits verifications."""
+
+    def __init__(self, *args, **kwargs):
+        DatasetsError.__init__(self, *args, **kwargs)
+
+
+@deprecated("Use 'UnexpectedSplitsError' instead.")
+class UnexpectedSplits(SplitsVerificationException):
+    """The expected splits of the downloaded file is missing.
+
+    <Deprecated version="2.20.0">
+
+    Use `UnexpectedSplitsError` instead.
+
+    </Deprecated>
+    """
+
+
+class UnexpectedSplitsError(SplitsVerificationError, UnexpectedSplits):
+    """The expected splits of the downloaded file is missing."""
+
+
+@deprecated("Use 'ExpectedMoreSplitsError' instead.")
+class ExpectedMoreSplits(SplitsVerificationException):
+    """Some recorded splits are missing.
+
+    <Deprecated version="2.20.0">
+
+    Use `ExpectedMoreSplitsError` instead.
+
+    </Deprecated>
+    """
+
+
+class ExpectedMoreSplitsError(SplitsVerificationError, ExpectedMoreSplits):
+    """Some recorded splits are missing."""
+
+
+class NonMatchingSplitsSizesError(SplitsVerificationError):
+    """The splits sizes don't match the expected splits sizes."""
