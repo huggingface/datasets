@@ -1249,14 +1249,7 @@ def test_iter_arrow(ex_iterable: _BaseExamplesIterable):
     assert ex_iterable.iter_arrow is not None
     key, pa_table = next(ex_iterable.iter_arrow())
     assert isinstance(pa_table, pa.Table)
-    if (
-        isinstance(ex_iterable, (MappedExamplesIterable, FilteredExamplesIterable))
-        and ex_iterable.ex_iterable.iter_arrow
-    ):
-        num_allowed_lost_samples = len(next(iter(ex_iterable.ex_iterable.iter_arrow()))[1])
-    else:
-        num_allowed_lost_samples = 0
-    assert_load_state_dict_resumes_arrow_iteration(ex_iterable, num_allowed_lost_samples=num_allowed_lost_samples)
+    assert_load_state_dict_resumes_arrow_iteration(ex_iterable)
 
 
 ############################
