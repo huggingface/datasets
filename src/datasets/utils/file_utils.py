@@ -1103,7 +1103,12 @@ def _add_retries_to_file_obj_read_method(file_obj):
             try:
                 out = read(*args, **kwargs)
                 break
-            except (ClientError, TimeoutError) as err:
+            except (
+                ClientError,
+                TimeoutError,
+                requests.exceptions.ConnectTimeout,
+                requests.exceptions.ConnectionError,
+            ) as err:
                 disconnect_err = err
                 logger.warning(
                     f"Got disconnected from remote data host. Retrying in {config.STREAMING_READ_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
