@@ -430,9 +430,7 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
             self._state_dict["previous_state"] = previous_state
         for key, pa_table in iterator:
             for num_chunks_since_previous_state, chunk in enumerate(pa_table.to_reader(max_chunksize=self.batch_size)):
-                if len(chunk) == 0:
-                    continue
-                elif num_chunks_to_skip > 1:
+                if num_chunks_to_skip > 1:
                     num_chunks_to_skip -= 1
                     continue
                 elif num_chunks_to_skip == 1 and chunk_length_to_crop == 0:
@@ -442,6 +440,8 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
                     chunk = chunk.slice(chunk_length_to_crop, len(chunk) - chunk_length_to_crop)
                     num_chunks_to_skip = 0
                     chunk_length_to_crop = 0
+                if len(chunk) == 0:
+                    continue
 
                 if chunks_buffer_size + len(chunk) < self.batch_size:
                     keys_buffer.append(key)
@@ -484,6 +484,7 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
         if not self.drop_last_batch and chunks_buffer:
             new_key = "_".join(str(_key) for _key in keys_buffer)
             if self._state_dict:
+                self._state_dict["previous_state"] = previous_state
                 self._state_dict["batch_idx"] += 1
                 self._state_dict["num_chunks_since_previous_state"] = 0
                 self._state_dict["cropped_chunk_length"] = 0
