@@ -1361,7 +1361,7 @@ class SkipExamplesIterable(_BaseExamplesIterable):
                 split_when_sharding=self.split_when_sharding,
             )
         else:
-            self
+            return self
 
     @property
     def n_shards(self) -> int:
