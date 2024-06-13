@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__version__ = "2.20.0"
+__version__ = "2.20.1.dev0"
 
 from .arrow_dataset import Dataset
 from .arrow_reader import ReadInstruction
