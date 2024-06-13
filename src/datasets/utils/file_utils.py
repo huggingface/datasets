@@ -299,8 +299,8 @@ class OfflineModeIsEnabled(ConnectionError):
 
 
 def _raise_if_offline_mode_is_enabled(msg: Optional[str] = None):
-    """Raise an OfflineModeIsEnabled error (subclass of ConnectionError) if HF_DATASETS_OFFLINE is True."""
-    if config.HF_DATASETS_OFFLINE:
+    """Raise an OfflineModeIsEnabled error (subclass of ConnectionError) if HF_HUB_OFFLINE is True."""
+    if config.HF_HUB_OFFLINE:
         raise OfflineModeIsEnabled(
             "Offline mode is enabled." if msg is None else "Offline mode is enabled. " + str(msg)
         )
@@ -317,7 +317,7 @@ def _request_with_retry(
 ) -> requests.Response:
     """Wrapper around requests to retry in case it fails with a ConnectTimeout, with exponential backoff.
 
-    Note that if the environment variable HF_DATASETS_OFFLINE is set to 1, then a OfflineModeIsEnabled error is raised.
+    Note that if the environment variable HF_HUB_OFFLINE is set to 1, then a OfflineModeIsEnabled error is raised.
 
     Args:
         method (str): HTTP method, such as 'GET' or 'HEAD'.

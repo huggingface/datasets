@@ -143,13 +143,13 @@ def test_get_from_cache_fsspec(tmpfs_file):
     assert output_file_content == FILE_CONTENT
 
 
-@patch("datasets.config.HF_DATASETS_OFFLINE", True)
+@patch("datasets.config.HF_HUB_OFFLINE", True)
 def test_cached_path_offline():
     with pytest.raises(OfflineModeIsEnabled):
         cached_path("https://huggingface.co")
 
 
-@patch("datasets.config.HF_DATASETS_OFFLINE", True)
+@patch("datasets.config.HF_HUB_OFFLINE", True)
 def test_http_offline(tmp_path_factory):
     filename = tmp_path_factory.mktemp("data") / "file.html"
     with pytest.raises(OfflineModeIsEnabled):
@@ -158,7 +158,7 @@ def test_http_offline(tmp_path_factory):
         http_head("https://huggingface.co")
 
 
-@patch("datasets.config.HF_DATASETS_OFFLINE", True)
+@patch("datasets.config.HF_HUB_OFFLINE", True)
 def test_ftp_offline(tmp_path_factory):
     filename = tmp_path_factory.mktemp("data") / "file.html"
     with pytest.raises(OfflineModeIsEnabled):
@@ -167,7 +167,7 @@ def test_ftp_offline(tmp_path_factory):
         ftp_head("ftp://huggingface.co")
 
 
-@patch("datasets.config.HF_DATASETS_OFFLINE", True)
+@patch("datasets.config.HF_HUB_OFFLINE", True)
 def test_fsspec_offline(tmp_path_factory):
     filename = tmp_path_factory.mktemp("data") / "file.html"
     with pytest.raises(OfflineModeIsEnabled):
