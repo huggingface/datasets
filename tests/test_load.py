@@ -1076,7 +1076,7 @@ class LoadTest(TestCase):
             with offline(offline_simulation_mode):
                 with self.assertRaises(ConnectionError) as context:
                     datasets.load_dataset("_dummy")
-                if offline_simulation_mode != OfflineSimulationMode.HF_DATASETS_OFFLINE_SET_TO_1:
+                if offline_simulation_mode != OfflineSimulationMode.HF_HUB_OFFLINE_SET_TO_1:
                     self.assertIn(
                         "Couldn't reach '_dummy' on the Hub",
                         str(context.exception),

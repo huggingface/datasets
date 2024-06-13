@@ -285,7 +285,7 @@ def files_to_hash(file_paths: List[str]) -> str:
 
 def increase_load_count(name: str, resource_type: str):
     """Update the download count of a dataset or metric."""
-    if not config.HF_DATASETS_OFFLINE and config.HF_UPDATE_DOWNLOAD_COUNTS:
+    if not config.HF_HUB_OFFLINE and config.HF_UPDATE_DOWNLOAD_COUNTS:
         try:
             head_hf_s3(name, filename=name + ".py", dataset=(resource_type == "dataset"))
         except Exception:
@@ -1595,7 +1595,7 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
                 f"(last modified on {time.ctime(_get_modification_time(hash))}) since it "
                 f"couldn't be found locally at {self.name}"
             )
-            if not config.HF_DATASETS_OFFLINE:
+            if not config.HF_HUB_OFFLINE:
                 warning_msg += ", or remotely on the Hugging Face Hub."
             logger.warning(warning_msg)
             importable_file_path = _get_importable_file_path(
@@ -1632,7 +1632,7 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
                 "dataset_name": self.name.split("/")[-1],
             }
             warning_msg = f"Using the latest cached version of the dataset since {self.name} couldn't be found on the Hugging Face Hub"
-            if config.HF_DATASETS_OFFLINE:
+            if config.HF_HUB_OFFLINE:
                 warning_msg += " (offline mode is enabled)."
             logger.warning(warning_msg)
             return DatasetModule(

@@ -6,6 +6,7 @@ import platform
 from pathlib import Path
 from typing import Optional
 
+from huggingface_hub import constants
 from packaging import version
 
 
@@ -215,7 +216,9 @@ PARQUET_ROW_GROUP_SIZE_FOR_IMAGE_DATASETS = 100
 PARQUET_ROW_GROUP_SIZE_FOR_BINARY_DATASETS = 100
 
 # Offline mode
-HF_DATASETS_OFFLINE = os.environ.get("HF_DATASETS_OFFLINE", "AUTO").upper() in ENV_VARS_TRUE_VALUES
+_offline = os.environ.get("HF_DATASETS_OFFLINE")
+HF_HUB_OFFLINE = constants.HF_HUB_OFFLINE  if _offline is None else _offline.upper() in ENV_VARS_TRUE_VALUES
+HF_DATASETS_OFFLINE = HF_HUB_OFFLINE # kept for backward-compatibility
 
 # Here, `True` will disable progress bars globally without possibility of enabling it
 # programmatically. `False` will enable them without possibility of disabling them.
