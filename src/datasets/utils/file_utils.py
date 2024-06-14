@@ -1567,17 +1567,19 @@ def xxml_dom_minidom_parse(filename_or_file, download_config: Optional[DownloadC
 class _IterableFromGenerator(TrackedIterable):
     """Utility class to create an iterable from a generator function, in order to reset the generator when needed."""
 
-    def __init__(self, generator: Callable, *args, **kwargs):
+    def __init__(self, generator: Callable, *args):
         super().__init__()
         self.generator = generator
         self.args = args
-        self.kwargs = kwargs
 
     def __iter__(self):
-        for x in self.generator(*self.args, **self.kwargs):
+        for x in self.generator(*self.args):
             self.last_item = x
             yield x
         self.last_item = None
+
+    def __reduce__(self):
+        return (self.__class__, (self.generator, *self.args))
 
 
 class ArchiveIterable(_IterableFromGenerator):

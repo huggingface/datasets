@@ -44,6 +44,6 @@ class TrackedIterable(Iterable):
 
     def __repr__(self) -> str:
         if self.last_item is None:
-            super().__repr__()
+            return super().__repr__()
         else:
             return f"{self.__class__.__name__}(current={self.last_item})"
