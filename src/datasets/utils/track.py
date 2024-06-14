@@ -37,9 +37,19 @@ class tracked_list(list):
             return f"{self.__class__.__name__}(current={self.last_item})"
 
 
-class TrackedIterable(Iterable):
-    def __init__(self) -> None:
+class TrackedIterableFromGenerator(Iterable):
+    """Utility class to create an iterable from a generator function, in order to reset the generator when needed."""
+
+    def __init__(self, generator, *args):
         super().__init__()
+        self.generator = generator
+        self.args = args
+        self.last_item = None
+
+    def __iter__(self):
+        for x in self.generator(*self.args):
+            self.last_item = x
+            yield x
         self.last_item = None
 
     def __repr__(self) -> str:
@@ -47,3 +57,6 @@ class TrackedIterable(Iterable):
             return super().__repr__()
         else:
             return f"{self.__class__.__name__}(current={self.last_item})"
+
+    def __reduce__(self):
+        return (self.__class__, (self.generator, *self.args))

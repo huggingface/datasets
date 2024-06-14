@@ -26,7 +26,7 @@ from functools import partial
 from io import BytesIO
 from itertools import chain
 from pathlib import Path, PurePosixPath
-from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, TypeVar, Union
+from typing import Any, Dict, Generator, List, Optional, Tuple, TypeVar, Union
 from unittest.mock import patch
 from urllib.parse import urljoin, urlparse
 from xml.etree import ElementTree as ET
@@ -47,7 +47,7 @@ from . import _tqdm, logging
 from . import tqdm as hf_tqdm
 from ._filelock import FileLock
 from .extract import ExtractManager
-from .track import TrackedIterable
+from .track import TrackedIterableFromGenerator
 
 
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
@@ -1564,25 +1564,7 @@ def xxml_dom_minidom_parse(filename_or_file, download_config: Optional[DownloadC
             return xml.dom.minidom.parse(f, **kwargs)
 
 
-class _IterableFromGenerator(TrackedIterable):
-    """Utility class to create an iterable from a generator function, in order to reset the generator when needed."""
-
-    def __init__(self, generator: Callable, *args):
-        super().__init__()
-        self.generator = generator
-        self.args = args
-
-    def __iter__(self):
-        for x in self.generator(*self.args):
-            self.last_item = x
-            yield x
-        self.last_item = None
-
-    def __reduce__(self):
-        return (self.__class__, (self.generator, *self.args))
-
-
-class ArchiveIterable(_IterableFromGenerator):
+class ArchiveIterable(TrackedIterableFromGenerator):
     """An iterable of (path, fileobj) from a TAR archive, used by `iter_archive`"""
 
     @staticmethod
@@ -1647,7 +1629,7 @@ class ArchiveIterable(_IterableFromGenerator):
         return cls(cls._iter_from_urlpath, urlpath_or_buf, download_config)
 
 
-class FilesIterable(_IterableFromGenerator):
+class FilesIterable(TrackedIterableFromGenerator):
     """An iterable of paths from a list of directories or files"""
 
     @classmethod
