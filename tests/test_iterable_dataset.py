@@ -29,6 +29,7 @@ from datasets.iterable_dataset import (
     IterableDataset,
     MappedExamplesIterable,
     RandomlyCyclingMultiSourcesExamplesIterable,
+    RebatchedArrowExamplesIterable,
     SelectColumnsIterable,
     ShuffledDataSourcesArrowExamplesIterable,
     ShuffledDataSourcesExamplesIterable,
@@ -39,7 +40,6 @@ from datasets.iterable_dataset import (
     TypedExamplesIterable,
     VerticallyConcatenatedMultiSourcesExamplesIterable,
     _BaseExamplesIterable,
-    _batch_arrow_tables,
     _batch_to_examples,
     _convert_to_arrow,
     _examples_to_batch,
@@ -116,29 +116,20 @@ def arrow_file(tmp_path_factory, dataset: IterableDataset):
     return filename
 
 
-def assert_load_state_dict_resumes_iteration(ex_iterable: _BaseExamplesIterable, num_allowed_lost_samples=0):
+def assert_load_state_dict_resumes_iteration(ex_iterable: _BaseExamplesIterable):
     ex_iterable._init_state_dict()
     state_dicts = [ex_iterable.state_dict()]
     examples = []
     for _, example in ex_iterable:
         state_dicts.append(ex_iterable.state_dict())
         examples.append(example)
-    if num_allowed_lost_samples < 0:
-        num_allowed_lost_samples = len(examples)
     for i, state_dict in enumerate(state_dicts):
         ex_iterable.load_state_dict(state_dict)
         examples_after_resuming = [example for _, example in ex_iterable]
-        if num_allowed_lost_samples > 0:
-            for j in range(num_allowed_lost_samples):
-                if examples_after_resuming == examples[i + j :]:
-                    break
-            else:
-                raise AssertionError(f"Failed to resume iteration, even with {num_allowed_lost_samples=}")
-        else:
-            assert examples_after_resuming == examples[i:]
+        assert examples_after_resuming == examples[i:], f"resuming from idx {i} with {state_dict=}"
 
 
-def assert_load_state_dict_resumes_arrow_iteration(ex_iterable: _BaseExamplesIterable, num_allowed_lost_samples=0):
+def assert_load_state_dict_resumes_arrow_iteration(ex_iterable: _BaseExamplesIterable):
     assert ex_iterable.iter_arrow is not None
     ex_iterable._init_state_dict()
     state_dicts = [ex_iterable.state_dict()]
@@ -148,23 +139,12 @@ def assert_load_state_dict_resumes_arrow_iteration(ex_iterable: _BaseExamplesIte
         state_dicts.append(ex_iterable.state_dict())
         examples.extend(pa_table.to_pylist())
         indices.append(indices[-1] + len(pa_table))
-    if num_allowed_lost_samples < 0:
-        num_allowed_lost_samples = len(examples)
     for i, state_dict in zip(indices, state_dicts):
         ex_iterable.load_state_dict(state_dict)
         examples_after_resuming = [
             example for _, pa_table in ex_iterable.iter_arrow() for example in pa_table.to_pylist()
         ]
-        if num_allowed_lost_samples > 0:
-            for j in range(num_allowed_lost_samples):
-                if examples_after_resuming == examples[i + j :]:
-                    break
-            else:
-                raise AssertionError(
-                    f"Failed to resume iteration from state {i}, even with {num_allowed_lost_samples=}"
-                )
-        else:
-            assert examples_after_resuming == examples[i:]
+        assert examples_after_resuming == examples[i:], f"resuming from idx {i} with {state_dict=}"
 
 
 ################################
@@ -187,34 +167,6 @@ def test_convert_to_arrow(batch_size, drop_last_batch):
             batch_size=batch_size,
             drop_last_batch=drop_last_batch,
         )
-    )
-    assert len(subtables) == num_batches
-    if drop_last_batch:
-        assert all(len(subtable) == batch_size for _, subtable in subtables)
-    else:
-        assert all(len(subtable) == batch_size for _, subtable in subtables[:-1])
-        assert len(subtables[-1][1]) <= batch_size
-    if num_rows > 0:
-        reloaded = pa.concat_tables([subtable for _, subtable in subtables])
-        assert full_table.slice(0, num_rows).to_pydict() == reloaded.to_pydict()
-
-
-@pytest.mark.parametrize(
-    "tables",
-    [
-        [pa.table({"foo": range(10)})],
-        [pa.table({"foo": range(0, 5)}), pa.table({"foo": range(5, 10)})],
-        [pa.table({"foo": [i]}) for i in range(10)],
-    ],
-)
-@pytest.mark.parametrize("batch_size", [1, 2, 3, 9, 10, 11, 20])
-@pytest.mark.parametrize("drop_last_batch", [False, True])
-def test_batch_arrow_tables(tables, batch_size, drop_last_batch):
-    full_table = pa.concat_tables(tables)
-    num_rows = len(full_table) if not drop_last_batch else len(full_table) // batch_size * batch_size
-    num_batches = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
-    subtables = list(
-        _batch_arrow_tables(list(enumerate(tables)), batch_size=batch_size, drop_last_batch=drop_last_batch)
     )
     assert len(subtables) == num_batches
     if drop_last_batch:
@@ -313,6 +265,42 @@ def test_arrow_examples_iterable_shuffle_data_sources():
     expected = list(generate_tables_fn(filepaths=["1.txt", "0.txt"]))
     assert list(ex_iterable.iter_arrow()) == expected
     assert_load_state_dict_resumes_iteration(ex_iterable)
+
+
+@pytest.mark.parametrize(
+    "tables",
+    [
+        [pa.table({"foo": range(10)})],
+        [pa.table({"foo": range(5 * i, 5 * (i + 1))}) for i in range(2)],
+        [pa.table({"foo": range(5 * i, 5 * (i + 1))}) for i in range(7)],
+        [pa.table({"foo": [i]}) for i in range(10)],
+    ],
+)
+@pytest.mark.parametrize("batch_size", [1, 2, 3, 7, 9, 10, 11, 13, 20])
+@pytest.mark.parametrize("drop_last_batch", [False, True])
+def test_rebatched_arrow_examples_iterable(tables, batch_size, drop_last_batch):
+    full_table = pa.concat_tables(tables)
+    num_rows = len(full_table) if not drop_last_batch else len(full_table) // batch_size * batch_size
+    num_batches = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
+
+    def gen(tables):
+        for i, table in enumerate(tables):
+            yield str(i), table
+
+    ex_iterable = ArrowExamplesIterable(gen, {"tables": tables})
+    ex_iterable = RebatchedArrowExamplesIterable(ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch)
+    subtables = list(ex_iterable.iter_arrow())
+    assert len(subtables) == num_batches
+    if drop_last_batch:
+        assert all(len(subtable) == batch_size for _, subtable in subtables)
+    else:
+        assert all(len(subtable) == batch_size for _, subtable in subtables[:-1])
+        assert len(subtables[-1][1]) <= batch_size
+    if num_rows > 0:
+        reloaded = pa.concat_tables([subtable for _, subtable in subtables])
+        assert full_table.slice(0, num_rows).to_pydict() == reloaded.to_pydict()
+    assert_load_state_dict_resumes_iteration(ex_iterable)
+    assert_load_state_dict_resumes_arrow_iteration(ex_iterable)
 
 
 @pytest.mark.parametrize("seed", [42, 1337, 101010, 123456])
@@ -685,6 +673,7 @@ def test_mapped_examples_iterable_input_columns(n, func, batched, batch_size, in
 )
 def test_mapped_examples_iterable_arrow_format(n, func, batched, batch_size):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
+    base_ex_iterable = RebatchedArrowExamplesIterable(base_ex_iterable, batch_size=batch_size if batched else 1)
     ex_iterable = MappedExamplesIterable(
         base_ex_iterable,
         func,
@@ -706,13 +695,48 @@ def test_mapped_examples_iterable_arrow_format(n, func, batched, batch_size):
             expected.extend(func(batch).to_pylist())
     assert next(iter(ex_iterable))[1] == expected[0]
     assert [x for _, x in ex_iterable] == expected
-    if not batched:
-        num_allowed_lost_samples = 0
-    elif batch_size is None or batch_size < 0:
-        num_allowed_lost_samples = -1
+    assert_load_state_dict_resumes_iteration(ex_iterable)
+    assert_load_state_dict_resumes_arrow_iteration(ex_iterable)
+
+
+@pytest.mark.parametrize(
+    "n, func, batched, batch_size",
+    [
+        (3, lambda t: t.append_column("id+1", pc.add(t["id"], 1)), False, None),  # just add 1 to the id
+        (3, lambda t: t.append_column("id+1", pc.add(t["id"], 1)), True, 1),  # same with bs=1
+        (5, lambda t: t.append_column("id+1", pc.add(t["id"], 1)), True, 10),  # same with bs=10
+        (25, lambda t: t.append_column("id+1", pc.add(t["id"], 1)), True, 10),  # same with bs=10
+        (5, lambda t: t.append_column("id+1", pc.add(t["id"], 1)), True, None),  # same with bs=None
+        (5, lambda t: t.append_column("id+1", pc.add(t["id"], 1)), True, -1),  # same with bs<=0
+        (3, lambda t: pa.concat_tables([t] * 2), True, 1),  # make a duplicate of each example
+    ],
+)
+def test_mapped_examples_iterable_arrow_format_from_arrow_examples_iterable(n, func, batched, batch_size):
+    base_ex_iterable = ArrowExamplesIterable(generate_tables_fn, {"n": n})
+    base_ex_iterable = RebatchedArrowExamplesIterable(base_ex_iterable, batch_size=batch_size if batched else 1)
+    ex_iterable = MappedExamplesIterable(
+        base_ex_iterable,
+        func,
+        batched=batched,
+        batch_size=batch_size,
+        formatting=FormattingConfig(format_type="arrow"),
+    )
+    all_examples = [x for _, x in generate_examples_fn(n=n)]
+    if batched is False:
+        expected = [func(pa.Table.from_pylist([x])).to_pylist()[0] for x in all_examples]
     else:
-        num_allowed_lost_samples = batch_size + 1
-    assert_load_state_dict_resumes_iteration(ex_iterable, num_allowed_lost_samples=num_allowed_lost_samples)
+        expected = []
+        # If batch_size is None or <=0, we use the whole dataset as a single batch
+        if batch_size is None or batch_size <= 0:
+            batch_size = len(all_examples)
+        for batch_offset in range(0, len(all_examples), batch_size):
+            examples = all_examples[batch_offset : batch_offset + batch_size]
+            batch = pa.Table.from_pylist(examples)
+            expected.extend(func(batch).to_pylist())
+    assert next(iter(ex_iterable))[1] == expected[0]
+    assert [x for _, x in ex_iterable] == expected
+    assert_load_state_dict_resumes_iteration(ex_iterable)
+    assert_load_state_dict_resumes_arrow_iteration(ex_iterable)
 
 
 @pytest.mark.parametrize(
@@ -729,6 +753,7 @@ def test_mapped_examples_iterable_arrow_format(n, func, batched, batch_size):
 )
 def test_mapped_examples_iterable_drop_last_batch_and_arrow_format(n, func, batched, batch_size):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
+    base_ex_iterable = RebatchedArrowExamplesIterable(base_ex_iterable, batch_size=batch_size if batched else 1)
     ex_iterable = MappedExamplesIterable(
         base_ex_iterable,
         func,
@@ -791,6 +816,7 @@ def test_mapped_examples_iterable_drop_last_batch_and_arrow_format(n, func, batc
 )
 def test_mapped_examples_iterable_with_indices_and_arrow_format(n, func, batched, batch_size):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
+    base_ex_iterable = RebatchedArrowExamplesIterable(base_ex_iterable, batch_size=batch_size if batched else 1)
     ex_iterable = MappedExamplesIterable(
         base_ex_iterable,
         func,
@@ -813,13 +839,8 @@ def test_mapped_examples_iterable_with_indices_and_arrow_format(n, func, batched
             expected.extend(func(batch, list(range(batch_offset, batch_offset + len(batch)))).to_pylist())
     assert next(iter(ex_iterable))[1] == expected[0]
     assert [x for _, x in ex_iterable] == expected
-    if not batched:
-        num_allowed_lost_samples = 0
-    elif batch_size is None or batch_size < 0:
-        num_allowed_lost_samples = -1
-    else:
-        num_allowed_lost_samples = batch_size + 1
-    assert_load_state_dict_resumes_iteration(ex_iterable, num_allowed_lost_samples=num_allowed_lost_samples)
+    assert_load_state_dict_resumes_iteration(ex_iterable)
+    assert_load_state_dict_resumes_arrow_iteration(ex_iterable)
 
 
 @pytest.mark.parametrize(
@@ -846,6 +867,7 @@ def test_mapped_examples_iterable_with_indices_and_arrow_format(n, func, batched
 )
 def test_mapped_examples_iterable_remove_columns_arrow_format(n, func, batched, batch_size, remove_columns):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n, "extra_column": "foo"})
+    base_ex_iterable = RebatchedArrowExamplesIterable(base_ex_iterable, batch_size=batch_size if batched else 1)
     ex_iterable = MappedExamplesIterable(
         base_ex_iterable,
         func,
@@ -874,13 +896,8 @@ def test_mapped_examples_iterable_remove_columns_arrow_format(n, func, batched, 
             )
     assert next(iter(ex_iterable))[1] == expected[0]
     assert [x for _, x in ex_iterable] == expected
-    if not batched:
-        num_allowed_lost_samples = 0
-    elif batch_size is None or batch_size < 0:
-        num_allowed_lost_samples = -1
-    else:
-        num_allowed_lost_samples = batch_size + 1
-    assert_load_state_dict_resumes_iteration(ex_iterable, num_allowed_lost_samples=num_allowed_lost_samples)
+    assert_load_state_dict_resumes_iteration(ex_iterable)
+    assert_load_state_dict_resumes_arrow_iteration(ex_iterable)
 
 
 @pytest.mark.parametrize(
@@ -895,6 +912,7 @@ def test_mapped_examples_iterable_remove_columns_arrow_format(n, func, batched, 
 )
 def test_mapped_examples_iterable_fn_kwargs_and_arrow_format(n, func, batched, batch_size, fn_kwargs):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
+    base_ex_iterable = RebatchedArrowExamplesIterable(base_ex_iterable, batch_size=batch_size if batched else 1)
     ex_iterable = MappedExamplesIterable(
         base_ex_iterable,
         func,
@@ -919,13 +937,8 @@ def test_mapped_examples_iterable_fn_kwargs_and_arrow_format(n, func, batched, b
             expected.extend(func(batch, **fn_kwargs).to_pylist())
     assert next(iter(ex_iterable))[1] == expected[0]
     assert [x for _, x in ex_iterable] == expected
-    if not batched:
-        num_allowed_lost_samples = 0
-    elif batch_size is None or batch_size < 0:
-        num_allowed_lost_samples = -1
-    else:
-        num_allowed_lost_samples = batch_size + 1
-    assert_load_state_dict_resumes_iteration(ex_iterable, num_allowed_lost_samples=num_allowed_lost_samples)
+    assert_load_state_dict_resumes_iteration(ex_iterable)
+    assert_load_state_dict_resumes_arrow_iteration(ex_iterable)
 
 
 @pytest.mark.parametrize(
@@ -939,6 +952,7 @@ def test_mapped_examples_iterable_fn_kwargs_and_arrow_format(n, func, batched, b
 )
 def test_mapped_examples_iterable_input_columns_and_arrow_format(n, func, batched, batch_size, input_columns):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
+    base_ex_iterable = RebatchedArrowExamplesIterable(base_ex_iterable, batch_size=batch_size if batched else 1)
     ex_iterable = MappedExamplesIterable(
         base_ex_iterable,
         func,
@@ -964,13 +978,8 @@ def test_mapped_examples_iterable_input_columns_and_arrow_format(n, func, batche
             expected.extend(func(*[batch[col] for col in columns_to_input]).to_pylist())
     assert next(iter(ex_iterable))[1] == expected[0]
     assert [x for _, x in ex_iterable] == expected
-    if not batched:
-        num_allowed_lost_samples = 0
-    elif batch_size is None or batch_size < 0:
-        num_allowed_lost_samples = -1
-    else:
-        num_allowed_lost_samples = batch_size + 1
-    assert_load_state_dict_resumes_iteration(ex_iterable, num_allowed_lost_samples=num_allowed_lost_samples)
+    assert_load_state_dict_resumes_iteration(ex_iterable)
+    assert_load_state_dict_resumes_arrow_iteration(ex_iterable)
 
 
 @pytest.mark.parametrize(
@@ -1193,20 +1202,22 @@ def test_no_iter_arrow(ex_iterable: _BaseExamplesIterable):
         # HorizontallyConcatenatedMultiSourcesExamplesIterable([ArrowExamplesIterable(generate_tables_fn, {})]),  # not implemented
         # RandomlyCyclingMultiSourcesExamplesIterable([ArrowExamplesIterable(generate_tables_fn, {})], np.random.default_rng(42)),  # not implemented
         MappedExamplesIterable(
-            ExamplesIterable(generate_examples_fn, {}), lambda t: t, formatting=FormattingConfig(format_type="arrow")
+            RebatchedArrowExamplesIterable(ExamplesIterable(generate_examples_fn, {}), batch_size=1),
+            lambda t: t,
+            formatting=FormattingConfig(format_type="arrow"),
         ),
         MappedExamplesIterable(
-            ArrowExamplesIterable(generate_tables_fn, {}),
+            RebatchedArrowExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), batch_size=1),
             lambda t: t,
             formatting=FormattingConfig(format_type="arrow"),
         ),
         FilteredExamplesIterable(
-            ExamplesIterable(generate_examples_fn, {}),
+            RebatchedArrowExamplesIterable(ExamplesIterable(generate_examples_fn, {}), batch_size=1),
             lambda t: True,
             formatting=FormattingConfig(format_type="arrow"),
         ),
         FilteredExamplesIterable(
-            ArrowExamplesIterable(generate_tables_fn, {}),
+            RebatchedArrowExamplesIterable(ArrowExamplesIterable(generate_tables_fn, {}), batch_size=1),
             lambda t: True,
             formatting=FormattingConfig(format_type="arrow"),
         ),
@@ -1222,14 +1233,7 @@ def test_iter_arrow(ex_iterable: _BaseExamplesIterable):
     assert ex_iterable.iter_arrow is not None
     key, pa_table = next(ex_iterable.iter_arrow())
     assert isinstance(pa_table, pa.Table)
-    if (
-        isinstance(ex_iterable, (MappedExamplesIterable, FilteredExamplesIterable))
-        and ex_iterable.ex_iterable.iter_arrow
-    ):
-        num_allowed_lost_samples = len(next(iter(ex_iterable.ex_iterable.iter_arrow()))[1])
-    else:
-        num_allowed_lost_samples = 0
-    assert_load_state_dict_resumes_arrow_iteration(ex_iterable, num_allowed_lost_samples=num_allowed_lost_samples)
+    assert_load_state_dict_resumes_arrow_iteration(ex_iterable)
 
 
 ############################

@@ -114,58 +114,6 @@ def _convert_to_arrow(
         yield new_key, pa.Table.from_pylist(cast_to_python_objects(examples, only_1d_for_numpy=True))
 
 
-def _batch_arrow_tables(
-    iterable: Iterable[Tuple[Key, pa.Table]],
-    batch_size: Optional[int],
-    drop_last_batch: bool = False,
-) -> Iterator[Tuple[Key, pa.Table]]:
-    """Iterate over sub-tables of size `batch_size`.
-
-    Args:
-        iterable (`Iterable[Tuple[Key, pa.Table]]`):
-            A tables iterable containing tuples (table_key, table) of type (int/str, pa.Table)
-        batch_size (`Optional[int]`):
-            Size of each sub-table to yield. If None or <= 0, yields the full table.
-        drop_last_batch (`bool`, defaults to `False`):
-            Drop the last batch if it is smaller than `batch_size`.
-    """
-    if batch_size is None or batch_size <= 0:
-        yield "all", pa.concat_tables([pa_table for _, pa_table in iterable])
-        return
-    keys_buffer = []
-    chunks_buffer = []
-    chunks_buffer_size = 0
-    for key, pa_table in iterable:
-        for chunk in pa_table.to_reader(max_chunksize=batch_size):
-            if len(chunk) == 0:
-                continue
-            elif chunks_buffer_size + len(chunk) < batch_size:
-                keys_buffer.append(key)
-                chunks_buffer.append(chunk)
-                chunks_buffer_size += len(chunk)
-                continue
-            elif chunks_buffer_size + len(chunk) == batch_size:
-                keys_buffer.append(key)
-                chunks_buffer.append(chunk)
-                new_key = "_".join(str(_key) for _key in keys_buffer)
-                yield new_key, pa.Table.from_batches(chunks_buffer)
-                keys_buffer = []
-                chunks_buffer = []
-                chunks_buffer_size = 0
-            else:
-                cropped_chunk_length = batch_size - chunks_buffer_size
-                keys_buffer.append(f"{key}[:{cropped_chunk_length}]")
-                chunks_buffer.append(chunk.slice(0, cropped_chunk_length))
-                new_key = "_".join(str(_key) for _key in keys_buffer)
-                yield new_key, pa.Table.from_batches(chunks_buffer)
-                keys_buffer = [f"{key}[{cropped_chunk_length}:]"]
-                chunks_buffer = [chunk.slice(cropped_chunk_length, len(chunk) - cropped_chunk_length)]
-                chunks_buffer_size = len(chunk) - cropped_chunk_length
-    if not drop_last_batch and chunks_buffer:
-        new_key = "_".join(str(_key) for _key in keys_buffer)
-        yield new_key, pa.Table.from_batches(chunks_buffer)
-
-
 class _BaseExamplesIterable:
     """Base class for the examples iterable used by an IterableDataset"""
 
@@ -204,7 +152,7 @@ class _BaseExamplesIterable:
     def load_state_dict(self, state_dict: dict) -> dict:
         def _inner_load_state_dict(state, new_state):
             if new_state is not None and isinstance(state, dict):
-                for key in state:
+                for key in new_state:
                     state[key] = _inner_load_state_dict(state[key], new_state[key])
                 return state
             elif new_state is not None and isinstance(state, list):
@@ -430,6 +378,131 @@ class ShuffledDataSourcesArrowExamplesIterable(ArrowExamplesIterable):
         return ArrowExamplesIterable(self.generate_tables_fn, kwargs_with_shuffled_shards).shard_data_sources(
             worker_id, num_workers
         )
+
+
+class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
+    def __init__(self, ex_iterable: _BaseExamplesIterable, batch_size: Optional[int], drop_last_batch: bool = False):
+        super().__init__()
+        self.ex_iterable = ex_iterable
+        self.batch_size = batch_size
+        self.drop_last_batch = drop_last_batch
+
+    @property
+    def iter_arrow(self):
+        return self._iter_arrow
+
+    def _init_state_dict(self) -> dict:
+        self._state_dict = {
+            "ex_iterable": self.ex_iterable._init_state_dict(),
+            "previous_state": None,
+            "batch_idx": 0,
+            "num_chunks_since_previous_state": 0,
+            "cropped_chunk_length": 0,
+        }
+        return self._state_dict
+
+    def __iter__(self):
+        yield from self.ex_iterable
+
+    def _iter_arrow(self) -> Iterator[Tuple[Key, pa.Table]]:
+        """Iterate over sub-tables of size `batch_size`."""
+        if self._state_dict and self._state_dict["previous_state"]:
+            self.ex_iterable.load_state_dict(self._state_dict["previous_state"])
+        if self.ex_iterable.iter_arrow:
+            iterator = self.ex_iterable.iter_arrow()
+        else:
+            iterator = _convert_to_arrow(self.ex_iterable, batch_size=1)
+        if self.batch_size is None or self.batch_size <= 0:
+            if self._state_dict and self._state_dict["batch_idx"] > 0:
+                return
+            all_pa_table = pa.concat_tables([pa_table for _, pa_table in iterator])
+            if self._state_dict:
+                self._state_dict["batch_idx"] = 1
+            yield "all", all_pa_table
+            return
+        keys_buffer = []
+        chunks_buffer = []
+        chunks_buffer_size = 0
+        num_chunks_to_skip = self._state_dict["num_chunks_since_previous_state"] if self._state_dict else 0
+        chunk_length_to_crop = self._state_dict["cropped_chunk_length"] if self._state_dict else 0
+        if self._state_dict:
+            previous_state = self.ex_iterable.state_dict()
+            self._state_dict["previous_state"] = previous_state
+        for key, pa_table in iterator:
+            for num_chunks_since_previous_state, chunk in enumerate(pa_table.to_reader(max_chunksize=self.batch_size)):
+                if num_chunks_to_skip > 1:
+                    num_chunks_to_skip -= 1
+                    continue
+                elif num_chunks_to_skip == 1 and chunk_length_to_crop == 0:
+                    num_chunks_to_skip -= 1
+                    continue
+                elif num_chunks_to_skip == 1 and chunk_length_to_crop > 0:
+                    chunk = chunk.slice(chunk_length_to_crop, len(chunk) - chunk_length_to_crop)
+                    num_chunks_to_skip = 0
+                    chunk_length_to_crop = 0
+                if len(chunk) == 0:
+                    continue
+
+                if chunks_buffer_size + len(chunk) < self.batch_size:
+                    keys_buffer.append(key)
+                    chunks_buffer.append(chunk)
+                    chunks_buffer_size += len(chunk)
+                    continue
+                elif chunks_buffer_size + len(chunk) == self.batch_size:
+                    keys_buffer.append(key)
+                    chunks_buffer.append(chunk)
+                    new_key = "_".join(str(_key) for _key in keys_buffer)
+                    if self._state_dict:
+                        self._state_dict["batch_idx"] += 1
+                        self._state_dict["num_chunks_since_previous_state"] += len(chunks_buffer)
+                        self._state_dict["cropped_chunk_length"] = 0
+                    yield new_key, pa.Table.from_batches(chunks_buffer)
+                    keys_buffer = []
+                    chunks_buffer = []
+                    chunks_buffer_size = 0
+                    if self._state_dict:
+                        self._state_dict["previous_state"] = previous_state
+                        self._state_dict["num_chunks_since_previous_state"] = num_chunks_since_previous_state + 1
+                else:
+                    cropped_chunk_length = self.batch_size - chunks_buffer_size
+                    keys_buffer.append(f"{key}[:{cropped_chunk_length}]")
+                    chunks_buffer.append(chunk.slice(0, cropped_chunk_length))
+                    new_key = "_".join(str(_key) for _key in keys_buffer)
+                    if self._state_dict:
+                        self._state_dict["batch_idx"] += 1
+                        self._state_dict["num_chunks_since_previous_state"] += len(chunks_buffer)
+                        self._state_dict["cropped_chunk_length"] = cropped_chunk_length
+                    yield new_key, pa.Table.from_batches(chunks_buffer)
+                    keys_buffer = [f"{key}[{cropped_chunk_length}:]"]
+                    chunks_buffer = [chunk.slice(cropped_chunk_length, len(chunk) - cropped_chunk_length)]
+                    chunks_buffer_size = len(chunk) - cropped_chunk_length
+                    if self._state_dict:
+                        self._state_dict["previous_state"] = previous_state
+                        self._state_dict["num_chunks_since_previous_state"] = num_chunks_since_previous_state
+            if self._state_dict:
+                previous_state = self.ex_iterable.state_dict()
+        if not self.drop_last_batch and chunks_buffer:
+            new_key = "_".join(str(_key) for _key in keys_buffer)
+            if self._state_dict:
+                self._state_dict["previous_state"] = previous_state
+                self._state_dict["batch_idx"] += 1
+                self._state_dict["num_chunks_since_previous_state"] = 0
+                self._state_dict["cropped_chunk_length"] = 0
+            yield new_key, pa.Table.from_batches(chunks_buffer)
+
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "RebatchedArrowExamplesIterable":
+        return RebatchedArrowExamplesIterable(
+            self.ex_iterable.shuffle_data_sources(generator), self.batch_size, self.drop_last_batch
+        )
+
+    def shard_data_sources(self, worker_id: int, num_workers: int) -> "RebatchedArrowExamplesIterable":
+        return RebatchedArrowExamplesIterable(
+            self.ex_iterable.shard_data_sources(worker_id, num_workers), self.batch_size, self.drop_last_batch
+        )
+
+    @property
+    def n_shards(self) -> int:
+        return self.ex_iterable.n_shards
 
 
 class SelectColumnsIterable(_BaseExamplesIterable):
@@ -841,6 +914,19 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         self.input_columns = input_columns
         self.fn_kwargs = fn_kwargs or {}
         self.formatting = formatting
+        # sanity checks
+        if formatting and formatting.format_type == "arrow":
+            # batch_size should match for iter_arrow
+            if not isinstance(ex_iterable, RebatchedArrowExamplesIterable):
+                raise ValueError(
+                    "The Arrow-formatted MappedExamplesIterable has underlying iterable"
+                    f"that is a {type(ex_iterable).__name__} instead of a RebatchedArrowExamplesIterable."
+                )
+            elif ex_iterable.batch_size != (batch_size if batched else 1):
+                raise ValueError(
+                    f"The Arrow-formatted MappedExamplesIterable has batch_size={batch_size if batched else 1} which is"
+                    f"different from {ex_iterable.batch_size=} from its underlying iterable."
+                )
 
     @property
     def iter_arrow(self):
@@ -858,7 +944,9 @@ class MappedExamplesIterable(_BaseExamplesIterable):
 
     def __iter__(self):
         if self.formatting and self.formatting.format_type == "arrow":
-            yield from ArrowExamplesIterable(self._iter_arrow, {})
+            formatter = PythonFormatter()
+            for key, pa_table in self._iter_arrow(max_chunksize=1):
+                yield key, formatter.format_row(pa_table)
         else:
             yield from self._iter()
 
@@ -961,32 +1049,32 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     self._state_dict["previous_state_example_idx"] += 1
                 yield key, transformed_example
 
-    def _iter_arrow(self) -> Iterator[Tuple[Key, pa.Table]]:
+    def _iter_arrow(self, max_chunksize: Optional[int] = None) -> Iterator[Tuple[Key, pa.Table]]:
         if self.ex_iterable.iter_arrow:
-            iterator = _batch_arrow_tables(
-                self.ex_iterable.iter_arrow(),
-                batch_size=self.batch_size if self.batched else 1,
-                drop_last_batch=self.drop_last_batch,
-            )
+            iterator = self.ex_iterable.iter_arrow()
         else:
             iterator = _convert_to_arrow(
                 self.ex_iterable,
                 batch_size=self.batch_size if self.batched else 1,
                 drop_last_batch=self.drop_last_batch,
             )
-
-        current_idx = self._state_dict["previous_state_example_idx"] if self._state_dict else 0
         if self._state_dict and self._state_dict["previous_state"]:
             self.ex_iterable.load_state_dict(self._state_dict["previous_state"])
             num_examples_to_skip = self._state_dict["num_examples_since_previous_state"]
         else:
             num_examples_to_skip = 0
-        if self._state_dict:
+        if self._state_dict and max_chunksize is not None:
             self._state_dict["previous_state"] = self.ex_iterable.state_dict()
             self._state_dict["num_examples_since_previous_state"] = 0
-            self._state_dict["previous_state_example_idx"] = current_idx
-
+        current_idx = self._state_dict["previous_state_example_idx"] if self._state_dict else 0
         for key, pa_table in iterator:
+            if (
+                self.batched
+                and self.batch_size is not None
+                and len(pa_table) < self.batch_size
+                and self.drop_last_batch
+            ):
+                return
             # first build the batch
             function_args = [pa_table] if self.input_columns is None else [pa_table[col] for col in self.input_columns]
             if self.with_indices:
@@ -1007,17 +1095,24 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     if column in output_table.column_names:
                         output_table = output_table.remove_column(output_table.column_names.index(column))
             # return output
-            current_idx += len(pa_table)
-            if self._state_dict:
-                self._state_dict["num_examples_since_previous_state"] += len(pa_table)
-            if num_examples_to_skip > 0:
-                num_examples_to_skip -= len(pa_table)
-                continue
-            yield key, output_table
-            if self._state_dict:
-                self._state_dict["previous_state"] = self.ex_iterable.state_dict()
-                self._state_dict["num_examples_since_previous_state"] = 0
-                self._state_dict["previous_state_example_idx"] = current_idx
+            if max_chunksize is None:
+                current_idx += len(pa_table)
+                if self._state_dict:
+                    self._state_dict["previous_state_example_idx"] += len(pa_table)
+                yield key, output_table
+            else:
+                for i, pa_subtable in enumerate(output_table.to_reader(max_chunksize=max_chunksize)):
+                    current_idx += 1
+                    if self._state_dict:
+                        self._state_dict["num_examples_since_previous_state"] += 1
+                    if num_examples_to_skip > 0:
+                        num_examples_to_skip -= 1
+                        continue
+                    yield f"{key}_{i}", pa_subtable
+                if self._state_dict:
+                    self._state_dict["previous_state"] = self.ex_iterable.state_dict()
+                    self._state_dict["num_examples_since_previous_state"] = 0
+                    self._state_dict["previous_state_example_idx"] += len(pa_table)
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "MappedExamplesIterable":
         """Shuffle the wrapped examples iterable."""
@@ -1081,6 +1176,19 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
         self.input_columns = input_columns
         self.fn_kwargs = fn_kwargs or {}
         self.formatting = formatting
+        # sanity checks
+        if formatting and formatting.format_type == "arrow":
+            # batch_size should match for iter_arrow
+            if not isinstance(ex_iterable, RebatchedArrowExamplesIterable):
+                raise ValueError(
+                    "The Arrow-formatted FilteredExamplesIterable has underlying iterable"
+                    f"that is a {type(ex_iterable).__name__} instead of a RebatchedArrowExamplesIterable."
+                )
+            elif ex_iterable.batch_size != (batch_size if batched else 1):
+                raise ValueError(
+                    f"The Arrow-formatted FilteredExamplesIterable has batch_size={batch_size if batched else 1} which is"
+                    f"different from {ex_iterable.batch_size=} from its underlying iterable."
+                )
 
     @property
     def iter_arrow(self):
@@ -1098,7 +1206,9 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
 
     def __iter__(self):
         if self.formatting and self.formatting.format_type == "arrow":
-            yield from ArrowExamplesIterable(self._iter_arrow, {})
+            formatter = PythonFormatter()
+            for key, pa_table in self._iter_arrow(max_chunksize=1):
+                yield key, formatter.format_row(pa_table)
         else:
             yield from self._iter()
 
@@ -1170,26 +1280,29 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                 if to_keep:
                     yield key, example
 
-    def _iter_arrow(self):
+    def _iter_arrow(self, max_chunksize: Optional[int] = None):
         if self.ex_iterable.iter_arrow:
-            iterator = _batch_arrow_tables(
-                self.ex_iterable.iter_arrow(), batch_size=self.batch_size if self.batched else 1
-            )
+            iterator = self.ex_iterable.iter_arrow()
         else:
             iterator = _convert_to_arrow(self.ex_iterable, batch_size=self.batch_size if self.batched else 1)
 
-        current_idx = self._state_dict["previous_state_example_idx"] if self._state_dict else 0
         if self._state_dict and self._state_dict["previous_state"]:
             self.ex_iterable.load_state_dict(self._state_dict["previous_state"])
             num_examples_to_skip = self._state_dict["num_examples_since_previous_state"]
         else:
             num_examples_to_skip = 0
-        if self._state_dict:
+        if self._state_dict and max_chunksize is not None:
             self._state_dict["previous_state"] = self.ex_iterable.state_dict()
             self._state_dict["num_examples_since_previous_state"] = 0
-            self._state_dict["previous_state_example_idx"] = current_idx
-
+        current_idx = self._state_dict["previous_state_example_idx"] if self._state_dict else 0
         for key, pa_table in iterator:
+            if (
+                self.batched
+                and self.batch_size is not None
+                and len(pa_table) < self.batch_size
+                and self.drop_last_batch
+            ):
+                return
             # first build the batch
             function_args = [pa_table] if self.input_columns is None else [pa_table[col] for col in self.input_columns]
             if self.with_indices:
@@ -1199,21 +1312,33 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                     function_args.append(current_idx)
             # then apply the transform
             mask = self.function(*function_args, **self.fn_kwargs)
-            # yield the filtered table
-            current_idx += len(pa_table)
-            if self._state_dict:
-                self._state_dict["num_examples_since_previous_state"] += len(pa_table)
-            if num_examples_to_skip > 0:
-                num_examples_to_skip -= len(pa_table)
-                continue
+            # return output
             if self.batched:
-                yield key, pa_table.filter(mask)
+                output_table = pa_table.filter(mask)
             elif mask.as_py() if isinstance(mask, pa.BooleanScalar) else mask:
-                yield key, pa_table
-            if self._state_dict:
-                self._state_dict["previous_state"] = self.ex_iterable.state_dict()
-                self._state_dict["num_examples_since_previous_state"] = 0
-                self._state_dict["previous_state_example_idx"] = current_idx
+                output_table = pa_table
+            else:
+                output_table = pa_table.slice(0, 0)
+
+            if max_chunksize is None:
+                current_idx += len(pa_table)
+                if self._state_dict:
+                    self._state_dict["previous_state_example_idx"] += len(pa_table)
+                if len(output_table) > 0:
+                    yield key, output_table
+            else:
+                for i, pa_subtable in enumerate(output_table.to_reader(max_chunksize=max_chunksize)):
+                    current_idx += 1
+                    if self._state_dict:
+                        self._state_dict["num_examples_since_previous_state"] += 1
+                    if num_examples_to_skip > 0:
+                        num_examples_to_skip -= 1
+                        continue
+                    yield f"{key}_{i}", pa_subtable
+                if self._state_dict:
+                    self._state_dict["previous_state"] = self.ex_iterable.state_dict()
+                    self._state_dict["num_examples_since_previous_state"] = 0
+                    self._state_dict["previous_state_example_idx"] += len(pa_table)
 
     def shuffle_data_sources(self, seed: Optional[int]) -> "FilteredExamplesIterable":
         """Shuffle the wrapped examples iterable."""
@@ -1536,8 +1661,9 @@ class IterableDataset(DatasetInfoMixin):
         self._distributed = distributed
         self._epoch = 0
         self._token_per_repo_id: Dict[str, Union[str, bool, None]] = token_per_repo_id or {}
-        self._state_dict = ex_iterable._init_state_dict()
         self._starting_state_dict: Optional[dict] = None
+        self._prepared_ex_iterable = self._prepare_ex_iterable_for_iteration()
+        self._state_dict = self._prepared_ex_iterable._init_state_dict()
         _maybe_add_torch_iterable_dataset_parent_class(self.__class__)
 
     def state_dict(self) -> dict:
@@ -1641,7 +1767,7 @@ class IterableDataset(DatasetInfoMixin):
         >>> dataloader.load_state_dict(state_dict)  # uses ds.load_state_dict() under the hood
         ```
         """
-        self._ex_iterable.load_state_dict(state_dict)
+        self._prepared_ex_iterable.load_state_dict(state_dict)
         self._starting_state_dict = state_dict
 
     def __repr__(self):
@@ -1716,7 +1842,7 @@ class IterableDataset(DatasetInfoMixin):
 
             if self._formatting and (ex_iterable.iter_arrow or self._formatting == "arrow"):
                 if ex_iterable.iter_arrow:
-                    iterator = _batch_arrow_tables(ex_iterable.iter_arrow(), batch_size=1)
+                    iterator = ex_iterable.iter_arrow()
                 else:
                     iterator = _convert_to_arrow(ex_iterable, batch_size=1)
                 for key, pa_table in iterator:
@@ -1750,11 +1876,18 @@ class IterableDataset(DatasetInfoMixin):
                 return False
         return True
 
-    def _prepare_ex_iterable_for_iteration(self) -> _BaseExamplesIterable:
+    def _prepare_ex_iterable_for_iteration(
+        self, batch_size: int = 1, drop_last_batch: bool = False
+    ) -> _BaseExamplesIterable:
+        ex_iterable = self._ex_iterable
+        if self._formatting and (ex_iterable.iter_arrow or self._formatting.format_type == "arrow"):
+            ex_iterable = RebatchedArrowExamplesIterable(
+                ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch
+            )
         if self._shuffling:
-            ex_iterable = self._ex_iterable.shuffle_data_sources(self._effective_generator())
+            ex_iterable = ex_iterable.shuffle_data_sources(self._effective_generator())
         else:
-            ex_iterable = self._ex_iterable
+            ex_iterable = ex_iterable
 
         if self._distributed:
             rank = self._distributed.rank
@@ -1779,6 +1912,9 @@ class IterableDataset(DatasetInfoMixin):
                     )
                 ex_iterable = StepExamplesIterable(ex_iterable, step=world_size, offset=rank)
 
+        self._state_dict = ex_iterable._init_state_dict()
+        if self._starting_state_dict:
+            ex_iterable.load_state_dict(self._starting_state_dict)
         return ex_iterable
 
     def __iter__(self):
@@ -1792,9 +1928,6 @@ class IterableDataset(DatasetInfoMixin):
                 return
 
         ex_iterable = self._prepare_ex_iterable_for_iteration()
-        self._state_dict = ex_iterable._init_state_dict()
-        if self._starting_state_dict:
-            ex_iterable.load_state_dict(self._starting_state_dict)
         if self._formatting:
             formatter = get_formatter(self._formatting.format_type, features=self.features)
             format_dict = (
@@ -1804,9 +1937,8 @@ class IterableDataset(DatasetInfoMixin):
             format_dict = None
 
         if self._formatting and (ex_iterable.iter_arrow or self._formatting.format_type == "arrow"):
-            assert self._state_dict is ex_iterable._state_dict
             if ex_iterable.iter_arrow:
-                iterator = _batch_arrow_tables(ex_iterable.iter_arrow(), batch_size=1)
+                iterator = ex_iterable.iter_arrow()
             else:
                 iterator = _convert_to_arrow(ex_iterable, batch_size=1)
             for key, pa_table in iterator:
@@ -1839,12 +1971,10 @@ class IterableDataset(DatasetInfoMixin):
         else:
             format_dict = None
 
-        ex_iterable = self._prepare_ex_iterable_for_iteration()
+        ex_iterable = self._prepare_ex_iterable_for_iteration(batch_size=batch_size, drop_last_batch=drop_last_batch)
         if self._formatting and (ex_iterable.iter_arrow or self._formatting == "arrow"):
             if ex_iterable.iter_arrow:
-                iterator = _batch_arrow_tables(
-                    ex_iterable.iter_arrow(), batch_size=batch_size, drop_last_batch=drop_last_batch
-                )
+                iterator = ex_iterable.iter_arrow()
             else:
                 iterator = _convert_to_arrow(ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch)
             for key, pa_table in iterator:
@@ -2092,10 +2222,18 @@ class IterableDataset(DatasetInfoMixin):
             function = identity_func
         if fn_kwargs is None:
             fn_kwargs = {}
-        ex_iterable = MappedExamplesIterable(
+        ex_iterable = (
             TypedExamplesIterable(self._ex_iterable, self._info.features, token_per_repo_id=self._token_per_repo_id)
             if self._info.features is not None
-            else self._ex_iterable,
+            else self._ex_iterable
+        )
+        ex_iterable = (
+            RebatchedArrowExamplesIterable(ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch)
+            if self._formatting and self._formatting.format_type == "arrow"
+            else ex_iterable
+        )
+        ex_iterable = MappedExamplesIterable(
+            ex_iterable,
             function=function,
             with_indices=with_indices,
             input_columns=input_columns,
