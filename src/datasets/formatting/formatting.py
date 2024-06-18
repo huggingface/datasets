@@ -195,7 +195,7 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
                 for x in array
             ):
                 if np.lib.NumpyVersion(np.__version__) >= '2.0.0b1':
-                    return np.array(array, dtype=object)
+                    return np.asarray(array, dtype=object)
                 return np.array(array, copy=False, dtype=object)
         if np.lib.NumpyVersion(np.__version__) >= '2.0.0b1':
             return np.asarray(array)
