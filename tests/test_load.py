@@ -1673,7 +1673,7 @@ def test_load_file_from_s3():
 
         # Upload a file to the mock bucket
         key = "test-file.csv"
-        csv_data = "Name\nPatrick\nMat"
+        csv_data = "Island\nIsabela\nBaltra"
 
         s3.put_object(Bucket=bucket_name, Key=key, Body=csv_data)
 
@@ -1683,7 +1683,7 @@ def test_load_file_from_s3():
         )
 
         # Check if the loaded content matches the original content
-        assert list(ds["train"]) == [{"Name": "Patrick"}, {"Name": "Mat"}]
+        assert list(ds["train"]) == [{"Island": "Isabela"}, {"Island": "Baltra"}]
 
 
 @pytest.mark.integration
