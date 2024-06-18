@@ -8,6 +8,7 @@ import pyarrow as pa
 import pyarrow.json as paj
 
 import datasets
+import datasets.config
 from datasets.table import table_cast
 from datasets.utils.file_utils import readline
 
@@ -29,6 +30,12 @@ def ujson_loads(*args, **kwargs):
     except AttributeError:
         # Before pandas-2.2.0, ujson_loads was renamed to loads: import ujson_loads as loads
         return pd.io.json.loads(*args, **kwargs)
+
+
+def pandas_read_json(path_or_buf, **kwargs):
+    if datasets.config.PANDAS_VERSION.major >= 2:
+        kwargs["dtype_backend"] = "pyarrow"
+    return pd.read_json(path_or_buf, **kwargs)
 
 
 @dataclass
@@ -96,7 +103,7 @@ class Json(datasets.ArrowBasedBuilder):
                     dataset = ujson_loads(f.read())
                 # We keep only the field we are interested in
                 dataset = dataset[self.config.field]
-                df = pd.read_json(io.StringIO(ujson_dumps(dataset)), dtype_backend="pyarrow")
+                df = pandas_read_json(io.StringIO(ujson_dumps(dataset)))
                 if df.columns.tolist() == [0]:
                     df.columns = list(self.config.features) if self.config.features else ["text"]
                 pa_table = pa.Table.from_pandas(df, preserve_index=False)
@@ -150,7 +157,7 @@ class Json(datasets.ArrowBasedBuilder):
                                 with open(
                                     file, encoding=self.config.encoding, errors=self.config.encoding_errors
                                 ) as f:
-                                    df = pd.read_json(f, dtype_backend="pyarrow")
+                                    df = pandas_read_json(f)
                             except ValueError:
                                 logger.error(f"Failed to load JSON from file '{file}' with error {type(e)}: {e}")
                                 raise e
