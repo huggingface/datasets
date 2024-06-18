@@ -1663,9 +1663,9 @@ def moto_server():
 
 
 def test_load_file_from_s3():
-    # we need server mode here because of an aiobotocore incompatibility with moto.mock_aws 
+    # we need server mode here because of an aiobotocore incompatibility with moto.mock_aws
     # (https://github.com/getmoto/moto/issues/6836)
-    with moto_server():  
+    with moto_server():
         # Create a mock S3 bucket
         bucket_name = "test-bucket"
         s3 = boto3.client("s3", region_name="us-east-1")
@@ -1678,9 +1678,7 @@ def test_load_file_from_s3():
         s3.put_object(Bucket=bucket_name, Key=key, Body=csv_data)
 
         # Load the file from the mock bucket
-        ds = datasets.load_dataset(
-            "csv", data_files={"train": "s3://test-bucket/test-file.csv"}
-        )
+        ds = datasets.load_dataset("csv", data_files={"train": "s3://test-bucket/test-file.csv"})
 
         # Check if the loaded content matches the original content
         assert list(ds["train"]) == [{"Island": "Isabela"}, {"Island": "Baltra"}]
