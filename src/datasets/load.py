@@ -274,11 +274,11 @@ def files_to_hash(file_paths: List[str]) -> str:
     return _hash_python_lines(lines)
 
 
-def increase_load_count(name: str, resource_type: str):
+def increase_load_count(name: str):
     """Update the download count of a dataset or metric."""
     if not config.HF_HUB_OFFLINE and config.HF_UPDATE_DOWNLOAD_COUNTS:
         try:
-            head_hf_s3(name, filename=name + ".py", dataset=(resource_type == "dataset"))
+            head_hf_s3(name, filename=name + ".py")
         except Exception:
             pass
 
@@ -923,7 +923,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         self.data_dir = data_dir
         self.download_config = download_config
         self.download_mode = download_mode
-        increase_load_count(name, resource_type="dataset")
+        increase_load_count(name)
 
     def get_module(self) -> DatasetModule:
         base_path = Path(self.data_dir or "").expanduser().resolve().as_posix()
@@ -986,7 +986,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self.data_dir = data_dir
         self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
-        increase_load_count(name, resource_type="dataset")
+        increase_load_count(name)
 
     def get_module(self) -> DatasetModule:
         hfh_dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
@@ -1171,7 +1171,7 @@ class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
         self.name = name
         self.revision = revision
         self.download_config = download_config or DownloadConfig()
-        increase_load_count(name, resource_type="dataset")
+        increase_load_count(name)
 
     def get_module(self) -> DatasetModule:
         exported_parquet_files = _dataset_viewer.get_exported_parquet_files(
@@ -1243,7 +1243,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
         self.trust_remote_code = trust_remote_code
-        increase_load_count(name, resource_type="dataset")
+        increase_load_count(name)
 
     def download_loading_script(self) -> str:
         file_path = hf_dataset_url(self.name, self.name.split("/")[-1] + ".py", revision=self.revision)

@@ -97,19 +97,14 @@ def relative_to_absolute_path(path: T) -> T:
     return Path(abs_path_str) if isinstance(path, Path) else abs_path_str
 
 
-def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -> str:
-    if dataset:
-        endpoint = config.CLOUDFRONT_DATASETS_DISTRIB_PREFIX if use_cdn else config.S3_DATASETS_BUCKET_PREFIX
-    else:
-        endpoint = config.CLOUDFRONT_METRICS_DISTRIB_PREFIX if use_cdn else config.S3_METRICS_BUCKET_PREFIX
+def hf_bucket_url(identifier: str, filename: str, use_cdn=False) -> str:
+    endpoint = config.CLOUDFRONT_DATASETS_DISTRIB_PREFIX if use_cdn else config.S3_DATASETS_BUCKET_PREFIX
     return "/".join((endpoint, identifier, filename))
 
 
-def head_hf_s3(
-    identifier: str, filename: str, use_cdn=False, dataset=True, max_retries=0
-) -> Union[requests.Response, Exception]:
+def head_hf_s3(identifier: str, filename: str, use_cdn=False, max_retries=0) -> Union[requests.Response, Exception]:
     return http_head(
-        hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn, dataset=dataset),
+        hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn),
         max_retries=max_retries,
     )
 
