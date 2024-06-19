@@ -100,23 +100,6 @@ SAMPLE_DATASET_TWO_CONFIG_IN_METADATA_WITH_DEFAULT = (
 SAMPLE_DATASET_CAPITAL_LETTERS_IN_NAME = "hf-internal-testing/DatasetWithCapitalLetters"
 
 
-METRIC_LOADING_SCRIPT_NAME = "__dummy_metric1__"
-
-METRIC_LOADING_SCRIPT_CODE = """
-import datasets
-from datasets import MetricInfo, Features, Value
-
-
-class __DummyMetric1__(datasets.Metric):
-
-    def _info(self):
-        return MetricInfo(features=Features({"predictions": Value("int"), "references": Value("int")}))
-
-    def _compute(self, predictions, references):
-        return {"__dummy_metric1__": sum(int(p == r) for p, r in zip(predictions, references))}
-"""
-
-
 @pytest.fixture
 def data_dir(tmp_path):
     data_dir = tmp_path / "data_dir"
@@ -324,17 +307,6 @@ def dataset_loading_script_dir_readonly(tmp_path):
     return dataset_loading_script_dir
 
 
-@pytest.fixture
-def metric_loading_script_dir(tmp_path):
-    script_name = METRIC_LOADING_SCRIPT_NAME
-    script_dir = tmp_path / script_name
-    script_dir.mkdir()
-    script_path = script_dir / f"{script_name}.py"
-    with open(script_path, "w") as f:
-        f.write(METRIC_LOADING_SCRIPT_CODE)
-    return str(script_dir)
-
-
 @pytest.mark.parametrize(
     "data_files, expected_module, expected_builder_kwargs",
     [
@@ -393,7 +365,6 @@ class ModuleFactoryTest(TestCase):
         data_dir_with_two_config_in_metadata,
         sub_data_dirs,
         dataset_loading_script_dir,
-        metric_loading_script_dir,
     ):
         self._jsonl_path = jsonl_path
         self._data_dir = data_dir
@@ -404,7 +375,6 @@ class ModuleFactoryTest(TestCase):
         self._data_dir2 = sub_data_dirs[0]
         self._sub_data_dir = sub_data_dirs[1]
         self._dataset_loading_script_dir = dataset_loading_script_dir
-        self._metric_loading_script_dir = metric_loading_script_dir
 
     def setUp(self):
         self.hf_modules_cache = tempfile.mkdtemp()
