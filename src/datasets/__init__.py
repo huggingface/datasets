@@ -30,9 +30,7 @@ from .inspect import (
     get_dataset_infos,
     get_dataset_split_names,
     inspect_dataset,
-    inspect_metric,
     list_datasets,
-    list_metrics,
 )
 from .iterable_dataset import IterableDataset
 from .load import load_dataset, load_dataset_builder, load_from_disk, load_metric
