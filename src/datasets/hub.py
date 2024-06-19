@@ -42,7 +42,7 @@ def convert_to_parquet(
             `<org>/<dataset_name>`.
         revision (`str`, *optional*): Branch of the source Hub dataset repository. Defaults to the `"main"` branch.
         token (`bool` or `str`, *optional*): Authentication token for the Hugging Face Hub.
-        trust_remote_code (`bool`, defaults to `True`): Whether you trust the remote code of the Hub script-based
+        trust_remote_code (`bool`, defaults to `False`): Whether you trust the remote code of the Hub script-based
             dataset to be executed locally on your machine. This option should only be set to `True` for repositories
             where you have read the code and which you trust.
 
