@@ -143,7 +143,7 @@ def init_dynamic_modules(
 ):
     """
     Create a module with name `name` in which you can add dynamic modules
-    such as metrics or datasets. The module can be imported using its name.
+    such as datasets. The module can be imported using its name.
     The module is created in the HF_MODULE_CACHE directory by default (~/.cache/huggingface/modules) but it can
     be overridden by specifying a path to another directory in `hf_modules_cache`.
     """
@@ -275,7 +275,7 @@ def files_to_hash(file_paths: List[str]) -> str:
 
 
 def increase_load_count(name: str):
-    """Update the download count of a dataset or metric."""
+    """Update the download count of a dataset."""
     if not config.HF_HUB_OFFLINE and config.HF_UPDATE_DOWNLOAD_COUNTS:
         try:
             head_hf_s3(name, filename=name + ".py")
@@ -373,14 +373,14 @@ def _copy_script_and_other_resources_in_importable_dir(
     Return:
         importable_file: path to an importable module with importlib.import_module
     """
-    # Define a directory with a unique name in our dataset or metric folder
-    # path is: ./datasets|metrics/dataset|metric_name/hash_from_code/script.py
-    # we use a hash as subdirectory_name to be able to have multiple versions of a dataset/metric processing file together
+    # Define a directory with a unique name in our dataset folder
+    # path is: ./datasets/dataset_name/hash_from_code/script.py
+    # we use a hash as subdirectory_name to be able to have multiple versions of a dataset processing file together
     importable_subdirectory = os.path.join(importable_directory_path, subdirectory_name)
     importable_file = os.path.join(importable_subdirectory, name + ".py")
     # Prevent parallel disk operations
     with lock_importable_file(importable_file):
-        # Create main dataset/metrics folder if needed
+        # Create main dataset folder if needed
         if download_mode == DownloadMode.FORCE_REDOWNLOAD and os.path.exists(importable_directory_path):
             shutil.rmtree(importable_directory_path)
         os.makedirs(importable_directory_path, exist_ok=True)
@@ -1485,7 +1485,7 @@ def dataset_module_factory(
         download_mode (:class:`DownloadMode` or :obj:`str`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
             Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
-            By default, the datasets and metrics are stored inside the `datasets_modules` module.
+            By default, the datasets are stored inside the `datasets_modules` module.
         data_dir (:obj:`str`, optional): Directory with the data files. Used only if `data_files` is not specified,
             in which case it's equal to pass `os.path.join(data_dir, "**")` as `data_files`.
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.

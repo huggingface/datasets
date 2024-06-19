@@ -231,7 +231,7 @@ def get_dataset_config_names(
             Download/generate mode.
         dynamic_modules_path (`str`, defaults to `~/.cache/huggingface/modules/datasets_modules`):
             Optional path to the directory in which the dynamic modules are saved. It must have been initialized with `init_dynamic_modules`.
-            By default the datasets and metrics are stored inside the `datasets_modules` module.
+            By default the datasets are stored inside the `datasets_modules` module.
         data_files (`Union[Dict, List, str]`, *optional*):
             Defining the data_files of the dataset configuration.
         **download_kwargs (additional keyword arguments):
@@ -303,7 +303,7 @@ def get_dataset_default_config_name(
             Download/generate mode.
         dynamic_modules_path (`str`, defaults to `~/.cache/huggingface/modules/datasets_modules`):
             Optional path to the directory in which the dynamic modules are saved. It must have been initialized with `init_dynamic_modules`.
-            By default the datasets and metrics are stored inside the `datasets_modules` module.
+            By default the datasets are stored inside the `datasets_modules` module.
         data_files (`Union[Dict, List, str]`, *optional*):
             Defining the data_files of the dataset configuration.
         **download_kwargs (additional keyword arguments):
