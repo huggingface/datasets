@@ -34,7 +34,6 @@ from .inspect import (
 )
 from .iterable_dataset import IterableDataset
 from .load import load_dataset, load_dataset_builder, load_from_disk
-from .metric import Metric
 from .splits import (
     NamedSplit,
     NamedSplitAll,
