@@ -1754,13 +1754,14 @@ def dataset_module_factory(
             should only be set to `True` for repositories you trust and in which you have read the code, as it will
             execute code present on the Hub on your local machine.
 
-            <Tip warning={true}>
-
-            `trust_remote_code` will default to False in the next major release.
-
-            </Tip>
-
             <Added version="2.16.0"/>
+
+            <Changed version="2.20.0">
+
+            `trust_remote_code` defaults to `False` if not specified.
+
+            </Changed>
+
         **download_kwargs (additional keyword arguments): optional attributes for DownloadConfig() which will override
             the attributes in download_config if supplied.
 
@@ -1966,13 +1967,14 @@ def metric_module_factory(
             should only be set to `True` for repositories you trust and in which you have read the code, as it will
             execute code present on the Hub on your local machine.
 
-            <Tip warning={true}>
-
-            `trust_remote_code` will default to False in the next major release.
-
-            </Tip>
-
             <Added version="2.16.0"/>
+
+            <Changed version="2.20.0">
+
+            `trust_remote_code` defaults to `False` if not specified.
+
+            </Changed>
+
         **download_kwargs (additional keyword arguments): optional attributes for DownloadConfig() which will override
             the attributes in download_config if supplied.
 
@@ -2083,13 +2085,13 @@ def load_metric(
             should only be set to `True` for repositories you trust and in which you have read the code, as it will
             execute code present on the Hub on your local machine.
 
-            <Tip warning={true}>
-
-            `trust_remote_code` will default to False in the next major release.
-
-            </Tip>
-
             <Added version="2.16.0"/>
+
+            <Changed version="2.20.0">
+
+            `trust_remote_code` defaults to `False` if not specified.
+
+            </Changed>
 
     Returns:
         `datasets.Metric`
@@ -2225,13 +2227,14 @@ def load_dataset_builder(
             should only be set to `True` for repositories you trust and in which you have read the code, as it will
             execute code present on the Hub on your local machine.
 
-            <Tip warning={true}>
-
-            `trust_remote_code` will default to False in the next major release.
-
-            </Tip>
-
             <Added version="2.16.0"/>
+
+            <Changed version="2.20.0">
+
+            `trust_remote_code` defaults to `False` if not specified.
+
+            </Changed>
+
         **config_kwargs (additional keyword arguments):
             Keyword arguments to be passed to the [`BuilderConfig`]
             and used in the [`DatasetBuilder`].
@@ -2486,13 +2489,14 @@ def load_dataset(
             should only be set to `True` for repositories you trust and in which you have read the code, as it will
             execute code present on the Hub on your local machine.
 
-            <Tip warning={true}>
-
-            `trust_remote_code` will default to False in the next major release.
-
-            </Tip>
-
             <Added version="2.16.0"/>
+
+            <Changed version="2.20.0">
+
+            `trust_remote_code` defaults to `False` if not specified.
+
+            </Changed>
+
         **config_kwargs (additional keyword arguments):
             Keyword arguments to be passed to the `BuilderConfig`
             and used in the [`DatasetBuilder`].
