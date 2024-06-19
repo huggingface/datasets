@@ -157,9 +157,7 @@ def init_dynamic_modules(
 
 
 def import_main_class(module_path) -> Optional[Type[DatasetBuilder]]:
-    """Import a module at module_path and return its main class:
-    - a DatasetBuilder if dataset is True
-    - a Metric if dataset is False
+    """Import a module at module_path and return its main class: a DatasetBuilder
     """
     module = importlib.import_module(module_path)
     # Find the main class in our imported module
