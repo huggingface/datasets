@@ -62,7 +62,6 @@ from .features import Features
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict
 from .iterable_dataset import IterableDataset
-from .metric import Metric
 from .naming import camelcase_to_snakecase, snakecase_to_camelcase
 from .packaged_modules import (
     _EXTENSION_TO_MODULE,
@@ -157,22 +156,16 @@ def init_dynamic_modules(
     return dynamic_modules_path
 
 
-def import_main_class(module_path, dataset=True) -> Optional[Union[Type[DatasetBuilder], Type[Metric]]]:
+def import_main_class(module_path) -> Optional[Type[DatasetBuilder]]:
     """Import a module at module_path and return its main class:
     - a DatasetBuilder if dataset is True
     - a Metric if dataset is False
     """
     module = importlib.import_module(module_path)
-
-    if dataset:
-        main_cls_type = DatasetBuilder
-    else:
-        main_cls_type = Metric
-
     # Find the main class in our imported module
     module_main_cls = None
     for name, obj in module.__dict__.items():
-        if inspect.isclass(obj) and issubclass(obj, main_cls_type):
+        if inspect.isclass(obj) and issubclass(obj, DatasetBuilder):
             if inspect.isabstract(obj):
                 continue
             module_main_cls = obj
