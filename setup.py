@@ -186,33 +186,6 @@ TESTS_REQUIRE = [
 ]
 
 
-METRICS_TESTS_REQUIRE = [
-    # metrics dependencies
-    "accelerate",  # for frugalscore (calls transformers' Trainer)
-    "bert_score>=0.3.6",
-    "jiwer",
-    "langdetect",
-    "mauve-text",
-    "nltk",
-    "rouge_score",
-    "sacrebleu",
-    "sacremoses",
-    "scikit-learn",
-    "scipy",
-    "sentencepiece",  # for bleurt
-    "seqeval",
-    "spacy>=3.0.0",
-    "tldextract",
-    # to speed up pip backtracking
-    "toml>=0.10.1",
-    "typer<0.5.0",  # pinned to work with Spacy==3.4.3 on Windows: see https://github.com/tiangolo/typer/issues/427
-    "requests_file>=1.5.1",
-    "tldextract>=3.1.0",
-    "texttable>=1.6.3",
-    "Werkzeug>=1.0.1",
-    "six~=1.15.0",
-]
-
 TESTS_REQUIRE.extend(VISION_REQUIRE)
 TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
@@ -241,7 +214,6 @@ EXTRAS_REQUIRE = {
     "streaming": [],  # for backward compatibility
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE + DOCS_REQUIRE,
     "tests": TESTS_REQUIRE,
-    "metrics-tests": METRICS_TESTS_REQUIRE,
     "quality": QUALITY_REQUIRE,
     "benchmarks": BENCHMARKS_REQUIRE,
     "docs": DOCS_REQUIRE,

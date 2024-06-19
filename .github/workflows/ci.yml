@@ -56,7 +56,7 @@ jobs:
       - name: Install uv
         run: pip install --upgrade uv
       - name: Install dependencies
-        run: uv pip install --system "datasets[tests,metrics-tests] @ ."
+        run: uv pip install --system "datasets[tests] @ ."
       - name: Install dependencies (latest versions)
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: uv pip install --system -r additional-tests-requirements.txt --no-deps
