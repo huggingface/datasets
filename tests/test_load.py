@@ -29,14 +29,11 @@ from datasets.features import Features, Image, Value
 from datasets.iterable_dataset import IterableDataset
 from datasets.load import (
     CachedDatasetModuleFactory,
-    CachedMetricModuleFactory,
-    GithubMetricModuleFactory,
     HubDatasetModuleFactoryWithoutScript,
     HubDatasetModuleFactoryWithParquetExport,
     HubDatasetModuleFactoryWithScript,
     LocalDatasetModuleFactoryWithoutScript,
     LocalDatasetModuleFactoryWithScript,
-    LocalMetricModuleFactory,
     PackagedDatasetModuleFactory,
     infer_module_for_data_files_list,
     infer_module_for_data_files_list_in_archives,
@@ -446,40 +443,6 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
         assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
-
-    def test_GithubMetricModuleFactory_with_internal_import(self):
-        # "squad_v2" requires additional imports (internal)
-        factory = GithubMetricModuleFactory(
-            "squad_v2",
-            download_config=self.download_config,
-            dynamic_modules_path=self.dynamic_modules_path,
-            trust_remote_code=True,
-        )
-        module_factory_result = factory.get_module()
-        assert importlib.import_module(module_factory_result.module_path) is not None
-
-    @pytest.mark.filterwarnings("ignore:GithubMetricModuleFactory is deprecated:FutureWarning")
-    def test_GithubMetricModuleFactory_with_external_import(self):
-        # "bleu" requires additional imports (external from github)
-        factory = GithubMetricModuleFactory(
-            "bleu",
-            download_config=self.download_config,
-            dynamic_modules_path=self.dynamic_modules_path,
-            trust_remote_code=True,
-        )
-        module_factory_result = factory.get_module()
-        assert importlib.import_module(module_factory_result.module_path) is not None
-
-    def test_LocalMetricModuleFactory(self):
-        path = os.path.join(self._metric_loading_script_dir, f"{METRIC_LOADING_SCRIPT_NAME}.py")
-        factory = LocalMetricModuleFactory(
-            path,
-            download_config=self.download_config,
-            dynamic_modules_path=self.dynamic_modules_path,
-            trust_remote_code=True,
-        )
-        module_factory_result = factory.get_module()
-        assert importlib.import_module(module_factory_result.module_path) is not None
 
     def test_LocalDatasetModuleFactoryWithScript(self):
         path = os.path.join(self._dataset_loading_script_dir, f"{DATASET_LOADING_SCRIPT_NAME}.py")
@@ -910,38 +873,15 @@ class ModuleFactoryTest(TestCase):
                 module_factory_result = factory.get_module()
                 assert importlib.import_module(module_factory_result.module_path) is not None
 
-    @pytest.mark.filterwarnings("ignore:LocalMetricModuleFactory is deprecated:FutureWarning")
-    @pytest.mark.filterwarnings("ignore:CachedMetricModuleFactory is deprecated:FutureWarning")
-    def test_CachedMetricModuleFactory(self):
-        path = os.path.join(self._metric_loading_script_dir, f"{METRIC_LOADING_SCRIPT_NAME}.py")
-        factory = LocalMetricModuleFactory(
-            path,
-            download_config=self.download_config,
-            dynamic_modules_path=self.dynamic_modules_path,
-            trust_remote_code=True,
-        )
-        module_factory_result = factory.get_module()
-        for offline_mode in OfflineSimulationMode:
-            with offline(offline_mode):
-                factory = CachedMetricModuleFactory(
-                    METRIC_LOADING_SCRIPT_NAME,
-                    dynamic_modules_path=self.dynamic_modules_path,
-                )
-                module_factory_result = factory.get_module()
-                assert importlib.import_module(module_factory_result.module_path) is not None
-
 
 @pytest.mark.parametrize(
     "factory_class",
     [
         CachedDatasetModuleFactory,
-        CachedMetricModuleFactory,
-        GithubMetricModuleFactory,
         HubDatasetModuleFactoryWithoutScript,
         HubDatasetModuleFactoryWithScript,
         LocalDatasetModuleFactoryWithoutScript,
         LocalDatasetModuleFactoryWithScript,
-        LocalMetricModuleFactory,
         PackagedDatasetModuleFactory,
     ],
 )
