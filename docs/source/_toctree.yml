@@ -15,8 +15,6 @@
     title: Know your dataset
   - local: use_dataset
     title: Preprocess
-  - local: metrics
-    title: Evaluate predictions
   - local: create_dataset
     title: Create a dataset
   - local: upload_dataset
@@ -48,8 +46,6 @@
       title: Search index
     - local: cli
       title: CLI
-    - local: how_to_metrics
-      title: Metrics
     - local: beam
       title: Beam Datasets
     - local: troubleshoot
@@ -113,8 +109,6 @@
     title: Build and load
   - local: about_map_batch
     title: Batch mapping
-  - local: about_metrics
-    title: All about metrics
   title: "Conceptual guides"
 - sections:
   - local: package_reference/main_classes
