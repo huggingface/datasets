@@ -9,24 +9,12 @@
 </p>
 
 <p align="center">
-    <a href="https://github.com/huggingface/datasets/actions/workflows/ci.yml?query=branch%3Amain">
-        <img alt="Build" src="https://github.com/huggingface/datasets/actions/workflows/ci.yml/badge.svg?branch=main">
-    </a>
-    <a href="https://github.com/huggingface/datasets/blob/main/LICENSE">
-        <img alt="GitHub" src="https://img.shields.io/github/license/huggingface/datasets.svg?color=blue">
-    </a>
-    <a href="https://huggingface.co/docs/datasets/index.html">
-        <img alt="Documentation" src="https://img.shields.io/website/http/huggingface.co/docs/datasets/index.html.svg?down_color=red&down_message=offline&up_message=online">
-    </a>
-    <a href="https://github.com/huggingface/datasets/releases">
-        <img alt="GitHub release" src="https://img.shields.io/github/release/huggingface/datasets.svg">
-    </a>
-    <a href="https://huggingface.co/datasets/">
-        <img alt="Number of datasets" src="https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen">
-    </a>
-    <a href="CODE_OF_CONDUCT.md">
-        <img alt="Contributor Covenant" src="https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg">
-    </a>
+    <a href="https://github.com/huggingface/datasets/actions/workflows/ci.yml?query=branch%3Amain"><img alt="Build" src="https://github.com/huggingface/datasets/actions/workflows/ci.yml/badge.svg?branch=main"></a>
+    <a href="https://github.com/huggingface/datasets/blob/main/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/huggingface/datasets.svg?color=blue"></a>
+    <a href="https://huggingface.co/docs/datasets/index.html"><img alt="Documentation" src="https://img.shields.io/website/http/huggingface.co/docs/datasets/index.html.svg?down_color=red&down_message=offline&up_message=online"></a>
+    <a href="https://github.com/huggingface/datasets/releases"><img alt="GitHub release" src="https://img.shields.io/github/release/huggingface/datasets.svg"></a>
+    <a href="https://huggingface.co/datasets/"><img alt="Number of datasets" src="https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen"></a>
+    <a href="CODE_OF_CONDUCT.md"><img alt="Contributor Covenant" src="https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg"></a>
     <a href="https://zenodo.org/badge/latestdoi/250213286"><img src="https://zenodo.org/badge/250213286.svg" alt="DOI"></a>
 </p>
 
