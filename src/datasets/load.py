@@ -689,12 +689,6 @@ class DatasetModule:
     importable_file_path: Optional[str] = None
 
 
-@dataclass
-class MetricModule:
-    module_path: str
-    hash: str
-
-
 class _DatasetModuleFactory:
     def get_module(self) -> DatasetModule:
         raise NotImplementedError
