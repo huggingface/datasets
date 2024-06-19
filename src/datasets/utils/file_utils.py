@@ -109,13 +109,10 @@ def head_hf_s3(identifier: str, filename: str, use_cdn=False, max_retries=0) -> 
     )
 
 
-def hf_github_url(path: str, name: str, dataset=True, revision: Optional[str] = None) -> str:
+def hf_github_url(path: str, name: str, revision: Optional[str] = None) -> str:
     default_revision = "main" if version.parse(__version__).is_devrelease else __version__
     revision = revision or default_revision
-    if dataset:
-        return config.REPO_DATASETS_URL.format(revision=revision, path=path, name=name)
-    else:
-        return config.REPO_METRICS_URL.format(revision=revision, path=path, name=name)
+    return config.REPO_DATASETS_URL.format(revision=revision, path=path, name=name)
 
 
 def url_or_path_join(base_name: str, *pathnames: str) -> str:

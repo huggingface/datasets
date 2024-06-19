@@ -17,9 +17,6 @@ S3_DATASETS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/da
 CLOUDFRONT_DATASETS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/datasets/datasets"
 REPO_DATASETS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{revision}/datasets/{path}/{name}"
 
-# Metrics
-REPO_METRICS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{revision}/metrics/{path}/{name}"
-
 # Hub
 HF_ENDPOINT = os.environ.get("HF_ENDPOINT", "https://huggingface.co")
 HUB_DATASETS_URL = HF_ENDPOINT + "/datasets/{repo_id}/resolve/{revision}/{path}"
