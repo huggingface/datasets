@@ -22,7 +22,7 @@ from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download import *
 from .features import *
 from .fingerprint import disable_caching, enable_caching, is_caching_enabled, set_caching_enabled
-from .info import DatasetInfo, MetricInfo
+from .info import DatasetInfo
 from .inspect import (
     get_dataset_config_info,
     get_dataset_config_names,
