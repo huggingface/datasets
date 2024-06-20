@@ -230,7 +230,6 @@ DOCS_REQUIRE = [
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
     "vision": VISION_REQUIRE,
-    "apache-beam": ["apache-beam>=2.26.0"],
     "tensorflow": [
         "tensorflow>=2.6.0",
     ],
