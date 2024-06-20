@@ -5841,7 +5841,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         MetadataConfigs({config_name: metadata_config_to_dump}).to_dataset_card_data(dataset_card_data)
         return DatasetCard(f"---\n{dataset_card_data}\n---\n")
 
-
     @transmit_format
     @fingerprint_transform(inplace=False)
     def add_column(self, name: str, column: Union[list, np.array], new_fingerprint: str):
