@@ -391,7 +391,7 @@ class DatasetBuilder:
             self.info.features = features
 
         # Prepare data dirs:
-        # cache_dir can be a remote bucket on GCS or S3 (when using BeamBasedBuilder for distributed data processing)
+        # cache_dir can be a remote bucket on GCS or S3
         self._cache_dir_root = str(cache_dir or config.HF_DATASETS_CACHE)
         self._cache_dir_root = (
             self._cache_dir_root if is_remote_url(self._cache_dir_root) else os.path.expanduser(self._cache_dir_root)
@@ -888,7 +888,7 @@ class DatasetBuilder:
             try_from_hf_gcs = False
 
         output_dir = output_dir if output_dir is not None else self._cache_dir
-        # output_dir can be a remote bucket on GCS or S3 (when using BeamBasedBuilder for distributed data processing)
+        # output_dir can be a remote bucket on GCS or S3
         fs, output_dir = url_to_fs(output_dir, **(storage_options or {}))
         self._fs = fs
         self._output_dir = output_dir if not is_remote_filesystem(self._fs) else self._fs.unstrip_protocol(output_dir)
@@ -1518,8 +1518,7 @@ class DatasetBuilder:
                 Multiprocessing is disabled by default.
 
                 <Added version="2.7.0"/>
-            **kwargs: Additional kwargs forwarded from _download_and_prepare (ex:
-                beam pipeline)
+            **kwargs: Additional kwargs forwarded from _download_and_prepare
         """
         raise NotImplementedError()
 

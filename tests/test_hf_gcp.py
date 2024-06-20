@@ -90,7 +90,7 @@ class TestDatasetOnHfGcp(TestCase):
 def test_as_dataset_from_hf_gcs(tmp_path_factory):
     tmp_dir = tmp_path_factory.mktemp("test_hf_gcp") / "test_wikipedia_simple"
     builder = load_dataset_builder("wikipedia", "20220301.frr", cache_dir=tmp_dir, trust_remote_code=True)
-    # use the HF cloud storage, not the original download_and_prepare that uses apache-beam
+    # use the HF cloud storage, not the original download_and_prepare
     builder._download_and_prepare = None
     builder.download_and_prepare(try_from_hf_gcs=True)
     ds = builder.as_dataset()
