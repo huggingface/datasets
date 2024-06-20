@@ -157,8 +157,7 @@ def init_dynamic_modules(
 
 
 def import_main_class(module_path) -> Optional[Type[DatasetBuilder]]:
-    """Import a module at module_path and return its main class: a DatasetBuilder
-    """
+    """Import a module at module_path and return its main class: a DatasetBuilder"""
     module = importlib.import_module(module_path)
     # Find the main class in our imported module
     module_main_cls = None
@@ -1485,18 +1484,19 @@ def dataset_module_factory(
             Directory to read/write data. Defaults to `"~/.cache/huggingface/datasets"`.
 
             <Added version="2.16.0"/>
-        trust_remote_code (`bool`, defaults to `True`):
+        trust_remote_code (`bool`, defaults to `False`):
             Whether or not to allow for datasets defined on the Hub using a dataset script. This option
             should only be set to `True` for repositories you trust and in which you have read the code, as it will
             execute code present on the Hub on your local machine.
 
-            <Tip warning={true}>
-
-            `trust_remote_code` will default to False in the next major release.
-
-            </Tip>
-
             <Added version="2.16.0"/>
+
+            <Changed version="2.20.0">
+
+            `trust_remote_code` defaults to `False` if not specified.
+
+            </Changed>
+
         **download_kwargs (additional keyword arguments): optional attributes for DownloadConfig() which will override
             the attributes in download_config if supplied.
 
@@ -1742,18 +1742,19 @@ def load_dataset_builder(
             **Experimental**. Key/value pairs to be passed on to the dataset file-system backend, if any.
 
             <Added version="2.11.0"/>
-        trust_remote_code (`bool`, defaults to `True`):
+        trust_remote_code (`bool`, defaults to `False`):
             Whether or not to allow for datasets defined on the Hub using a dataset script. This option
             should only be set to `True` for repositories you trust and in which you have read the code, as it will
             execute code present on the Hub on your local machine.
 
-            <Tip warning={true}>
-
-            `trust_remote_code` will default to False in the next major release.
-
-            </Tip>
-
             <Added version="2.16.0"/>
+
+            <Changed version="2.20.0">
+
+            `trust_remote_code` defaults to `False` if not specified.
+
+            </Changed>
+
         **config_kwargs (additional keyword arguments):
             Keyword arguments to be passed to the [`BuilderConfig`]
             and used in the [`DatasetBuilder`].
@@ -2003,18 +2004,19 @@ def load_dataset(
             **Experimental**. Key/value pairs to be passed on to the dataset file-system backend, if any.
 
             <Added version="2.11.0"/>
-        trust_remote_code (`bool`, defaults to `True`):
+        trust_remote_code (`bool`, defaults to `False`):
             Whether or not to allow for datasets defined on the Hub using a dataset script. This option
             should only be set to `True` for repositories you trust and in which you have read the code, as it will
             execute code present on the Hub on your local machine.
 
-            <Tip warning={true}>
-
-            `trust_remote_code` will default to False in the next major release.
-
-            </Tip>
-
             <Added version="2.16.0"/>
+
+            <Changed version="2.20.0">
+
+            `trust_remote_code` defaults to `False` if not specified.
+
+            </Changed>
+
         **config_kwargs (additional keyword arguments):
             Keyword arguments to be passed to the `BuilderConfig`
             and used in the [`DatasetBuilder`].
