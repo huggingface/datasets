@@ -2940,8 +2940,8 @@ def _split_by_node_iterable_dataset(dataset: IterableDataset, rank: int, world_s
         [`IterableDataset`]: The iterable dataset to be used on the node at rank `rank`.
     """
     if dataset._distributed:
-        world_size = world_size * dataset._distributed.world_size
         rank = world_size * dataset._distributed.rank + rank
+        world_size = world_size * dataset._distributed.world_size
     distributed = DistributedConfig(rank=rank, world_size=world_size)
     return IterableDataset(
         ex_iterable=dataset._ex_iterable,
