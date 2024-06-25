@@ -1431,10 +1431,18 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
 
 
 class SkipExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, ex_iterable: _BaseExamplesIterable, n: int):
+    def __init__(
+        self,
+        ex_iterable: _BaseExamplesIterable,
+        n: int,
+        block_sources_order_when_shuffling: bool = True,
+        split_when_sharding: bool = True,
+    ):
         super().__init__()
         self.ex_iterable = ex_iterable
         self.n = n
+        self.block_sources_order_when_shuffling = block_sources_order_when_shuffling
+        self.split_when_sharding = split_when_sharding
         # TODO(QL): implement iter_arrow
 
     def _init_state_dict(self) -> dict:
@@ -1447,9 +1455,38 @@ class SkipExamplesIterable(_BaseExamplesIterable):
             self._state_dict["skipped"] = True
         yield from islice(self.ex_iterable, ex_iterable_idx_start, None)
 
+    @staticmethod
+    def split_number(num, n):
+        quotient = num // n
+        remainder = num % n
+        result = [quotient] * n
+        for i in range(remainder):
+            result[i] += 1
+        return result
+
     def shuffle_data_sources(self, generator: np.random.Generator) -> "SkipExamplesIterable":
-        """Doesn't shuffle the wrapped examples iterable since it would skip examples from other shards instead."""
-        return self
+        """May not shuffle the wrapped examples iterable since it would skip examples from other shards instead."""
+        if self.block_sources_order_when_shuffling:
+            return self
+        else:
+            return SkipExamplesIterable(
+                self.ex_iterable.shuffle_data_sources(generator),
+                n=self.n,
+                block_sources_order_when_shuffling=self.block_sources_order_when_shuffling,
+                split_when_sharding=self.split_when_sharding,
+            )
+
+    def shard_data_sources(self, worker_id: int, num_workers: int) -> "SkipExamplesIterable":
+        """Keep only the requested shard."""
+        if self.split_when_sharding:
+            return SkipExamplesIterable(
+                self.ex_iterable.shard_data_sources(worker_id, num_workers),
+                n=self.split_number(self.n, num_workers)[worker_id],
+                block_sources_order_when_shuffling=self.block_sources_order_when_shuffling,
+                split_when_sharding=self.split_when_sharding,
+            )
+        else:
+            return self
 
     @property
     def n_shards(self) -> int:
@@ -1457,10 +1494,18 @@ class SkipExamplesIterable(_BaseExamplesIterable):
 
 
 class TakeExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, ex_iterable: _BaseExamplesIterable, n: int):
+    def __init__(
+        self,
+        ex_iterable: _BaseExamplesIterable,
+        n: int,
+        block_sources_order_when_shuffling: bool = True,
+        split_when_sharding: bool = True,
+    ):
         super().__init__()
         self.ex_iterable = ex_iterable
         self.n = n
+        self.block_sources_order_when_shuffling = block_sources_order_when_shuffling
+        self.split_when_sharding = split_when_sharding
         # TODO(QL): implement iter_arrow
 
     def _init_state_dict(self) -> dict:
@@ -1474,10 +1519,6 @@ class TakeExamplesIterable(_BaseExamplesIterable):
                 self._state_dict["num_taken"] += 1
             yield key_example
 
-    def shuffle_data_sources(self, generator: np.random.Generator) -> "TakeExamplesIterable":
-        """Doesn't shuffle the wrapped examples iterable since it would take examples from other shards instead."""
-        return self
-
     @staticmethod
     def split_number(num, n):
         quotient = num // n
@@ -1487,12 +1528,34 @@ class TakeExamplesIterable(_BaseExamplesIterable):
             result[i] += 1
         return result
 
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "TakeExamplesIterable":
+        """May not shuffle the wrapped examples iterable since it would take examples from other shards instead."""
+        if self.block_sources_order_when_shuffling:
+            return self
+        else:
+            return TakeExamplesIterable(
+                self.ex_iterable.shuffle_data_sources(generator),
+                n=self.n,
+                block_sources_order_when_shuffling=self.block_sources_order_when_shuffling,
+                split_when_sharding=self.split_when_sharding,
+            )
+
     def shard_data_sources(self, worker_id: int, num_workers: int) -> "TakeExamplesIterable":
         """Keep only the requested shard."""
-        return TakeExamplesIterable(
-            self.ex_iterable.shard_data_sources(worker_id, num_workers),
-            n=self.split_number(self.n, num_workers)[worker_id],
-        )
+        if self.split_when_sharding:
+            return TakeExamplesIterable(
+                self.ex_iterable.shard_data_sources(worker_id, num_workers),
+                n=self.split_number(self.n, num_workers)[worker_id],
+                block_sources_order_when_shuffling=self.block_sources_order_when_shuffling,
+                split_when_sharding=self.split_when_sharding,
+            )
+        else:
+            return TakeExamplesIterable(
+                self.ex_iterable.shard_data_sources(worker_id, num_workers),
+                n=self.n,
+                block_sources_order_when_shuffling=self.block_sources_order_when_shuffling,
+                split_when_sharding=self.split_when_sharding,
+            )
 
     @property
     def n_shards(self) -> int:
@@ -2392,7 +2455,7 @@ class IterableDataset(DatasetInfoMixin):
         return IterableDataset(
             ex_iterable=BufferShuffledExamplesIterable(
                 self._ex_iterable, buffer_size=buffer_size, generator=generator
-            ).shuffle_data_sources(generator),
+            ),
             info=self._info.copy(),
             split=self._split,
             formatting=self._formatting,
@@ -2432,7 +2495,12 @@ class IterableDataset(DatasetInfoMixin):
          'text': 'if you sometimes like to go to the movies to have fun , wasabi is a good place to start .'}]
         ```
         """
-        ex_iterable = SkipExamplesIterable(self._ex_iterable, n)
+        ex_iterable = SkipExamplesIterable(
+            self._ex_iterable,
+            n,
+            block_sources_order_when_shuffling=self._shuffling is None,
+            split_when_sharding=self._distributed is None,
+        )
         return IterableDataset(
             ex_iterable=ex_iterable,
             info=self._info.copy(),
@@ -2464,7 +2532,12 @@ class IterableDataset(DatasetInfoMixin):
          'text': 'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .'}]
         ```
         """
-        ex_iterable = TakeExamplesIterable(self._ex_iterable, n)
+        ex_iterable = TakeExamplesIterable(
+            self._ex_iterable,
+            n,
+            block_sources_order_when_shuffling=self._shuffling is None,
+            split_when_sharding=self._distributed is None,
+        )
         return IterableDataset(
             ex_iterable=ex_iterable,
             info=self._info.copy(),
