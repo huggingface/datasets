@@ -45,7 +45,6 @@ from huggingface_hub import DatasetCard, DatasetCardData
 from . import config
 from .features import Features, Value
 from .splits import SplitDict
-from .tasks import TaskTemplate, task_template_from_dict
 from .utils import Version
 from .utils.logging import get_logger
 from .utils.py_utils import asdict, unique_values
@@ -132,8 +131,6 @@ class DatasetInfo:
             The combined size in bytes of the Arrow tables for all splits.
         size_in_bytes (`int`, *optional*):
             The combined size in bytes of all files associated with the dataset (downloaded files + Arrow files).
-        task_templates (`List[TaskTemplate]`, *optional*):
-            The task templates to prepare the dataset for during training and evaluation. Each template casts the dataset's [`Features`] to standardized column names and types as detailed in `datasets.tasks`.
         **config_kwargs (additional keyword arguments):
             Keyword arguments to be passed to the [`BuilderConfig`] and used in the [`DatasetBuilder`].
     """
@@ -146,7 +143,6 @@ class DatasetInfo:
     features: Optional[Features] = None
     post_processed: Optional[PostProcessedInfo] = None
     supervised_keys: Optional[SupervisedKeysData] = None
-    task_templates: Optional[List[TaskTemplate]] = None
 
     # Set later by the builder
     builder_name: Optional[str] = None
@@ -187,28 +183,6 @@ class DatasetInfo:
                 self.supervised_keys = SupervisedKeysData(*self.supervised_keys)
             else:
                 self.supervised_keys = SupervisedKeysData(**self.supervised_keys)
-
-        # Parse and make a list of templates
-        if self.task_templates is not None:
-            if isinstance(self.task_templates, (list, tuple)):
-                templates = [
-                    template if isinstance(template, TaskTemplate) else task_template_from_dict(template)
-                    for template in self.task_templates
-                ]
-                self.task_templates = [template for template in templates if template is not None]
-            elif isinstance(self.task_templates, TaskTemplate):
-                self.task_templates = [self.task_templates]
-            else:
-                template = task_template_from_dict(self.task_templates)
-                self.task_templates = [template] if template is not None else []
-
-        # Align task templates with features
-        if self.task_templates is not None:
-            self.task_templates = list(self.task_templates)
-            if self.features is not None:
-                self.task_templates = [
-                    template.align_with_features(self.features) for template in (self.task_templates)
-                ]
 
     def write_to_directory(
         self, dataset_info_dir, pretty_print=False, fs="deprecated", storage_options: Optional[dict] = None
@@ -281,16 +255,6 @@ class DatasetInfo:
         license = "\n\n".join(unique_values(info.license for info in dataset_infos)).strip()
         features = None
         supervised_keys = None
-        task_templates = None
-
-        # Find common task templates across all dataset infos
-        all_task_templates = [info.task_templates for info in dataset_infos if info.task_templates is not None]
-        if len(all_task_templates) > 1:
-            task_templates = list(set(all_task_templates[0]).intersection(*all_task_templates[1:]))
-        elif len(all_task_templates):
-            task_templates = list(set(all_task_templates[0]))
-        # If no common task templates found, replace empty list with None
-        task_templates = task_templates if task_templates else None
 
         return cls(
             description=description,
@@ -299,7 +263,6 @@ class DatasetInfo:
             license=license,
             features=features,
             supervised_keys=supervised_keys,
-            task_templates=task_templates,
         )
 
     @classmethod

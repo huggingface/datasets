@@ -222,10 +222,6 @@ class DatasetInfoMixin:
         return self._info.supervised_keys
 
     @property
-    def task_templates(self):
-        return self._info.task_templates
-
-    @property
     def version(self):
         return self._info.version
 
@@ -598,18 +594,6 @@ def transmit_tasks(func):
             self: "Dataset" = kwargs.pop("self")
         # apply actual function
         out: Union["Dataset", "DatasetDict"] = func(self, *args, **kwargs)
-        datasets: List["Dataset"] = list(out.values()) if isinstance(out, dict) else [out]
-        for dataset in datasets:
-            # Remove task templates if a column mapping of the template is no longer valid
-            if self.info.task_templates is not None:
-                dataset.info.task_templates = [
-                    template
-                    for template in self.info.task_templates
-                    if all(
-                        dataset._info.features.get(k) == self._info.features.get(k)
-                        for k in template.column_mapping.keys()
-                    )
-                ]
         return out
 
     wrapper._decorator_name_ = "transmit_tasks"
@@ -3081,7 +3065,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 if os.path.exists(shard_kwargs["cache_file_name"]) and load_from_cache_file:
                     info = shard.info.copy()
                     info.features = features
-                    info.task_templates = None
                     return Dataset.from_file(shard_kwargs["cache_file_name"], info=info, split=shard.split)
             raise NonExistentDatasetError
 
@@ -3550,7 +3533,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # Create new Dataset from buffer or file
             info = shard.info.copy()
             info.features = writer._features
-            info.task_templates = None
             if buf_writer is None:
                 yield rank, True, Dataset.from_file(cache_file_name, info=info, split=shard.split)
             else:
