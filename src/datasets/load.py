@@ -2630,12 +2630,6 @@ def load_dataset(
         keep_in_memory if keep_in_memory is not None else is_small_dataset(builder_instance.info.dataset_size)
     )
     ds = builder_instance.as_dataset(split=split, verification_mode=verification_mode, in_memory=keep_in_memory)
-    # Rename and cast features to match task schema
-    if task is not None:
-        # To avoid issuing the same warning twice
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", FutureWarning)
-            ds = ds.prepare_for_task(task)
     if save_infos:
         builder_instance._save_infos()
 

@@ -118,7 +118,6 @@ from .table import (
     table_iter,
     table_visitor,
 )
-from .tasks import TaskTemplate
 from .utils import logging
 from .utils import tqdm as hf_tqdm
 from .utils.deprecation_utils import deprecated
@@ -132,7 +131,6 @@ from .utils.py_utils import (
     glob_pattern_to_regex,
     iflatmap_unordered,
     string_to_dict,
-    unique_values,
 )
 from .utils.stratify import stratified_shuffle_split_generate_indices
 from .utils.tf_utils import dataset_to_tf, minimal_tf_collate_fn, multiprocess_dataset_to_tf
@@ -2780,57 +2778,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         dataset = copy.deepcopy(self)
         dataset.set_transform(transform=transform, columns=columns, output_all_columns=output_all_columns)
-        return dataset
-
-    @deprecated()
-    def prepare_for_task(self, task: Union[str, TaskTemplate], id: int = 0) -> "Dataset":
-        """
-        Prepare a dataset for the given task by casting the dataset's [`Features`] to standardized column names and types as detailed in [`datasets.tasks`](./task_templates).
-
-        Casts [`datasets.DatasetInfo.features`] according to a task-specific schema. Intended for single-use only, so all task templates are removed from [`datasets.DatasetInfo.task_templates`] after casting.
-
-        Args:
-            task (`Union[str, TaskTemplate]`):
-                The task to prepare the dataset for during training and evaluation. If `str`, supported tasks include:
-
-                - `"text-classification"`
-                - `"question-answering"`
-
-                If [`TaskTemplate`], must be one of the task templates in [`datasets.tasks`](./task_templates).
-            id (`int`, defaults to `0`):
-                The id required to unambiguously identify the task template when multiple task templates of the same type are supported.
-        """
-        # TODO(lewtun): Add support for casting nested features like answers.text and answers.answer_start in SQuAD
-        if isinstance(task, str):
-            tasks = [template.task for template in (self.info.task_templates or [])]
-            compatible_templates = [template for template in (self.info.task_templates or []) if template.task == task]
-            if not compatible_templates:
-                raise ValueError(
-                    f"Task {task} is not compatible with this dataset! Available tasks: {list(unique_values(tasks))}"
-                )
-
-            if not 0 <= id < len(compatible_templates):
-                templates_list_str = "\n".join(
-                    f"- `{idx}` for task {template}" for idx, template in enumerate(compatible_templates)
-                )
-                raise ValueError(
-                    f"Id {id} for task {task} is not in a valid range. Supported ids:\n{templates_list_str}"
-                )
-            template = compatible_templates[id]
-        elif isinstance(task, TaskTemplate):
-            template = task
-        else:
-            raise ValueError(
-                f"Expected a `str` or `datasets.TaskTemplate` object but got task {task} with type {type(task)}."
-            )
-        template = template.align_with_features(self.info.features)
-        column_mapping = template.column_mapping
-        columns_to_drop = [column for column in self.column_names if column not in column_mapping]
-        dataset = self.remove_columns(columns_to_drop)
-        dataset = dataset.rename_columns(column_mapping)
-        # We found a template so now flush `DatasetInfo` to skip the template update in `DatasetInfo.__post_init__`
-        dataset.info.task_templates = None
-        dataset = dataset.cast(features=template.features)
         return dataset
 
     def _getitem(self, key: Union[int, slice, str, ListLike[int]], **kwargs) -> Union[Dict, List]:
