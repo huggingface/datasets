@@ -42,7 +42,6 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
         BUILDER_CONFIG_CLASS: builder config inherited from `folder_based_builder.FolderBasedBuilderConfig`
         EXTENSIONS: list of allowed extensions (only files with these extensions and METADATA_FILENAME files
             will be included in a dataset)
-        CLASSIFICATION_TASK: classification task to use if labels are obtained from the folder structure
     """
 
     BASE_FEATURE: Type[FeatureType]
