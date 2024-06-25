@@ -165,7 +165,7 @@ def _save_torchTensor(pickler, obj):
     def create_torchTensor(np_array, dtype=None):
         tensor = torch.from_numpy(np_array)
         if dtype:
-            tensor = tensor.type(torch.bfloat16)
+            tensor = tensor.type(dtype)
         return tensor
 
     log(pickler, f"To: {obj}")
