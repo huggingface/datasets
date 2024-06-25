@@ -10,7 +10,6 @@ import pyarrow.json as paj
 
 import datasets
 from datasets.features.features import FeatureType
-from datasets.tasks.base import TaskTemplate
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -50,7 +49,6 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
     BASE_COLUMN_NAME: str
     BUILDER_CONFIG_CLASS: FolderBasedBuilderConfig
     EXTENSIONS: List[str]
-    CLASSIFICATION_TASK: TaskTemplate
 
     METADATA_FILENAMES: List[str] = ["metadata.csv", "metadata.jsonl"]
 
@@ -203,7 +201,6 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                         "label": datasets.ClassLabel(names=sorted(labels)),
                     }
                 )
-                self.info.task_templates = [self.CLASSIFICATION_TASK.align_with_features(self.info.features)]
             else:
                 self.info.features = datasets.Features({self.BASE_COLUMN_NAME: self.BASE_FEATURE()})
 

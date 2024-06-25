@@ -1,7 +1,6 @@
 from typing import List
 
 import datasets
-from datasets.tasks import ImageClassification
 
 from ..folder_based_builder import folder_based_builder
 
@@ -24,7 +23,6 @@ class ImageFolder(folder_based_builder.FolderBasedBuilder):
     BASE_COLUMN_NAME = "image"
     BUILDER_CONFIG_CLASS = ImageFolderConfig
     EXTENSIONS: List[str]  # definition at the bottom of the script
-    CLASSIFICATION_TASK = ImageClassification(image_column="image", label_column="label")
 
 
 # Obtained with:
