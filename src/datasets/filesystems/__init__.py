@@ -11,11 +11,6 @@ from ..utils.deprecation_utils import deprecated
 from . import compression
 
 
-_has_s3fs = importlib.util.find_spec("s3fs") is not None
-
-if _has_s3fs:
-    from .s3filesystem import S3FileSystem
-
 COMPRESSION_FILESYSTEMS: List[compression.BaseCompressedFileFileSystem] = [
     compression.Bz2FileSystem,
     compression.GzipFileSystem,
@@ -53,7 +48,7 @@ def is_remote_filesystem(fs: fsspec.AbstractFileSystem) -> bool:
 
     Args:
         fs (`fsspec.spec.AbstractFileSystem`):
-            An abstract super-class for pythonic file-systems, e.g. `fsspec.filesystem(\'file\')` or [`datasets.filesystems.S3FileSystem`].
+            An abstract super-class for pythonic file-systems, e.g. `fsspec.filesystem(\'file\')` or `s3fs.S3FileSystem`.
     """
     return not isinstance(fs, LocalFileSystem)
 
