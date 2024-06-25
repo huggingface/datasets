@@ -127,6 +127,4 @@
     title: Table Classes
   - local: package_reference/utilities
     title: Utilities
-  - local: package_reference/task_templates
-    title: Task templates
   title: "Reference"
