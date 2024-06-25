@@ -7,7 +7,8 @@ import pytest
 from datasets import Dataset, IterableDataset
 from datasets.distributed import split_dataset_by_node
 
-from .utils import execute_subprocess_async, get_torch_dist_unique_port, require_torch
+from .utils import (execute_subprocess_async, get_torch_dist_unique_port,
+                    require_torch)
 
 
 def test_split_dataset_by_node_map_style():
@@ -53,6 +54,24 @@ def test_split_dataset_by_node_iterable_sharded(shards_per_node):
     assert [ds.n_shards for ds in datasets_per_rank] == [shards_per_node] * world_size
     assert sum(len(list(ds)) for ds in datasets_per_rank) == full_size
     assert len({tuple(x.values()) for ds in datasets_per_rank for x in ds}) == full_size
+
+
+def test_split_dataset_by_node_iterable_distributed():
+    def gen():
+        return ({"i": i} for i in range(100))
+
+    world_size = 3
+    num_workers = 3
+    full_ds = IterableDataset.from_generator(gen)
+    full_size = len(list(full_ds))
+    datasets_per_rank = [
+        split_dataset_by_node(full_ds, rank=rank, world_size=world_size) for rank in range(world_size)
+    ]
+    datasets_per_rank_per_worker = [
+        split_dataset_by_node(ds, rank=worker, world_size=num_workers) for ds in datasets_per_rank for worker in range(num_workers)
+    ]
+    assert sum(len(list(ds)) for ds in datasets_per_rank_per_worker) == full_size
+    assert len({tuple(x.values()) for ds in datasets_per_rank_per_worker for x in ds}) == full_size
 
 
 def test_distributed_shuffle_iterable():
