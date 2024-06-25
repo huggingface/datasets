@@ -582,24 +582,6 @@ def transmit_format(func):
     return wrapper
 
 
-def transmit_tasks(func):
-    """Wrapper for dataset transforms that recreate a new Dataset to transmit the task templates of the original dataset to the new dataset"""
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if args:
-            self: "Dataset" = args[0]
-            args = args[1:]
-        else:
-            self: "Dataset" = kwargs.pop("self")
-        # apply actual function
-        out: Union["Dataset", "DatasetDict"] = func(self, *args, **kwargs)
-        return out
-
-    wrapper._decorator_name_ = "transmit_tasks"
-    return wrapper
-
-
 def update_metadata_with_features(table: Table, features: Features):
     """To be used in dataset transforms that modify the features of the dataset, in order to update the features stored in the metadata of its schema."""
     features = Features({col_name: features[col_name] for col_name in table.column_names})
@@ -2152,7 +2134,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features[column] = feature
             return self.cast(features)
 
-    @transmit_tasks
     @transmit_format
     @fingerprint_transform(inplace=False)
     def remove_columns(self, column_names: Union[str, List[str]], new_fingerprint: Optional[str] = None) -> "Dataset":
@@ -2208,7 +2189,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
-    @transmit_tasks
     @fingerprint_transform(inplace=False)
     def rename_column(
         self, original_column_name: str, new_column_name: str, new_fingerprint: Optional[str] = None
@@ -2275,7 +2255,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
-    @transmit_tasks
     @fingerprint_transform(inplace=False)
     def rename_columns(self, column_mapping: Dict[str, str], new_fingerprint: Optional[str] = None) -> "Dataset":
         """
@@ -2343,7 +2322,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
-    @transmit_tasks
     @transmit_format
     @fingerprint_transform(inplace=False)
     def select_columns(self, column_names: Union[str, List[str]], new_fingerprint: Optional[str] = None) -> "Dataset":
@@ -2849,7 +2827,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         cache_file_path = os.path.join(cache_directory, cache_file_name)
         return cache_file_path
 
-    @transmit_tasks
     @transmit_format
     def map(
         self,
