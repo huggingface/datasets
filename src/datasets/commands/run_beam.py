@@ -116,6 +116,7 @@ class RunBeamCommand(BaseDatasetsCLICommand):
                         beam_options=beam_options,
                         cache_dir=self._cache_dir,
                         base_path=dataset_module.builder_kwargs.get("base_path"),
+                        **self._config_kwargs,
                     )
                 )
         else:
