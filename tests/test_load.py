@@ -1653,7 +1653,15 @@ def test_load_from_disk_with_default_in_memory(
 
 @contextmanager
 def moto_server():
-    with patch.dict(os.environ, {"AWS_ENDPOINT_URL": "http://localhost:5000"}):
+    with patch.dict(
+        os.environ,
+        {
+            "AWS_ENDPOINT_URL": "http://localhost:5000",
+            "AWS_DEFAULT_REGION": "us-east-1",
+            "AWS_ACCESS_KEY_ID": "FOO",
+            "AWS_SECRET_ACCESS_KEY": "BAR",
+        },
+    ):
         server = ThreadedMotoServer()
         server.start()
         try:
