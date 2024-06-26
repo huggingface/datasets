@@ -180,7 +180,6 @@ TESTS_REQUIRE = [
     "torch>=2.0.0",
     "soundfile>=0.12.1",
     "transformers",
-    "typing-extensions>=4.6.1",  # due to conflict between apache-beam and pydantic
     "zstandard",
     "polars[timezone]>=0.20.0",
 ]
@@ -230,7 +229,6 @@ DOCS_REQUIRE = [
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
     "vision": VISION_REQUIRE,
-    "apache-beam": ["apache-beam>=2.26.0"],
     "tensorflow": [
         "tensorflow>=2.6.0",
     ],

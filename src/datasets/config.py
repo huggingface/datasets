@@ -123,20 +123,6 @@ else:
     logger.info("Disabling JAX because USE_JAX is set to False")
 
 
-USE_BEAM = os.environ.get("USE_BEAM", "AUTO").upper()
-BEAM_VERSION = "N/A"
-BEAM_AVAILABLE = False
-if USE_BEAM in ENV_VARS_TRUE_AND_AUTO_VALUES:
-    try:
-        BEAM_VERSION = version.parse(importlib.metadata.version("apache_beam"))
-        BEAM_AVAILABLE = True
-        logger.info(f"Apache Beam version {BEAM_VERSION} available.")
-    except importlib.metadata.PackageNotFoundError:
-        pass
-else:
-    logger.info("Disabling Apache Beam because USE_BEAM is set to False")
-
-
 # Optional tools for data loading
 SQLALCHEMY_AVAILABLE = importlib.util.find_spec("sqlalchemy") is not None
 

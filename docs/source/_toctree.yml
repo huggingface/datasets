@@ -50,8 +50,6 @@
       title: CLI
     - local: how_to_metrics
       title: Metrics
-    - local: beam
-      title: Beam Datasets
     - local: troubleshoot
       title: Troubleshooting
     title: "General usage"
