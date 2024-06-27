@@ -3,7 +3,6 @@ import json
 import os
 import shutil
 import time
-import warnings
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
@@ -113,15 +112,8 @@ class Cache(datasets.ArrowBasedBuilder):
         data_dir: Optional[str] = None,
         storage_options: Optional[dict] = None,
         writer_batch_size: Optional[int] = None,
-        name="deprecated",
         **config_kwargs,
     ):
-        if name != "deprecated":
-            warnings.warn(
-                "Parameter 'name' was renamed to 'config_name' in version 2.3.0 and will be removed in 3.0.0.",
-                category=FutureWarning,
-            )
-            config_name = name
         if repo_id is None and dataset_name is None:
             raise ValueError("repo_id or dataset_name is required for the Cache dataset builder")
         if data_files is not None:

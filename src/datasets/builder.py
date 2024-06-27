@@ -279,14 +279,6 @@ class DatasetBuilder:
             It defines the number of samples that are kept in memory before writing them
             and also the length of the arrow chunks.
             None means that the ArrowWriter will use its default value.
-        name (`str`): Configuration name for the dataset.
-
-            <Deprecated version="2.3.0">
-
-            Use `config_name` instead.
-
-            </Deprecated>
-
         **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the corresponding builder
             configuration class, set on the class attribute [`DatasetBuilder.BUILDER_CONFIG_CLASS`]. The builder
             configuration class is [`BuilderConfig`] or a subclass of it.
@@ -325,15 +317,8 @@ class DatasetBuilder:
         data_dir: Optional[str] = None,
         storage_options: Optional[dict] = None,
         writer_batch_size: Optional[int] = None,
-        name="deprecated",
         **config_kwargs,
     ):
-        if name != "deprecated":
-            warnings.warn(
-                "Parameter 'name' was renamed to 'config_name' in version 2.3.0 and will be removed in 3.0.0.",
-                category=FutureWarning,
-            )
-            config_name = name
         # DatasetBuilder name
         self.name: str = camelcase_to_snakecase(self.__module__.split(".")[-1])
         self.hash: Optional[str] = hash
