@@ -30,7 +30,6 @@ from tqdm.contrib.concurrent import thread_map
 
 from .. import config
 from ..utils import tqdm as hf_tqdm
-from ..utils.deprecation_utils import DeprecatedEnum
 from ..utils.file_utils import (
     ArchiveIterable,
     FilesIterable,
@@ -68,16 +67,6 @@ class DownloadMode(enum.Enum):
     REUSE_DATASET_IF_EXISTS = "reuse_dataset_if_exists"
     REUSE_CACHE_IF_EXISTS = "reuse_cache_if_exists"
     FORCE_REDOWNLOAD = "force_redownload"
-
-
-class GenerateMode(DeprecatedEnum):
-    REUSE_DATASET_IF_EXISTS = "reuse_dataset_if_exists"
-    REUSE_CACHE_IF_EXISTS = "reuse_cache_if_exists"
-    FORCE_REDOWNLOAD = "force_redownload"
-
-    @property
-    def help_message(self):
-        return "Use 'DownloadMode' instead."
 
 
 class DownloadManager:
