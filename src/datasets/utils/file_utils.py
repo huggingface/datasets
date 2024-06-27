@@ -266,8 +266,6 @@ def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> st
         ua += f"; tensorflow/{config.TF_VERSION}"
     if config.JAX_AVAILABLE:
         ua += f"; jax/{config.JAX_VERSION}"
-    if config.BEAM_AVAILABLE:
-        ua += f"; apache_beam/{config.BEAM_VERSION}"
     if isinstance(user_agent, dict):
         ua += f"; {'; '.join(f'{k}/{v}' for k, v in user_agent.items())}"
     elif isinstance(user_agent, str):
