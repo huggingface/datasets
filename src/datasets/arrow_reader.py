@@ -27,6 +27,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 from tqdm.contrib.concurrent import thread_map
 
+from .download.download_config import DownloadConfig  # noqa: F401
 from .naming import _split_re, filenames_for_dataset_split
 from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables
 from .utils import logging
