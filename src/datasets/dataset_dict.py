@@ -5,7 +5,6 @@ import json
 import math
 import posixpath
 import re
-import warnings
 from io import BytesIO
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
@@ -1524,7 +1523,6 @@ class DatasetDict(dict):
         private: Optional[bool] = False,
         token: Optional[str] = None,
         revision: Optional[str] = None,
-        branch="deprecated",
         create_pr: Optional[bool] = False,
         max_shard_size: Optional[Union[int, str]] = None,
         num_shards: Optional[Dict[str, int]] = None,
@@ -1572,15 +1570,6 @@ class DatasetDict(dict):
                 Branch to push the uploaded files to. Defaults to the `"main"` branch.
 
                 <Added version="2.15.0"/>
-            branch (`str`, *optional*):
-                The git branch on which to push the dataset. This defaults to the default branch as specified
-                in your repository, which defaults to `"main"`.
-
-                <Deprecated version="2.15.0">
-
-                `branch` was deprecated in favor of `revision` in version 2.15.0 and will be removed in 3.0.0.
-
-                </Deprecated>
             create_pr (`bool`, *optional*, defaults to `False`):
                 Whether to create a PR with the uploaded files or directly commit.
 
@@ -1621,21 +1610,12 @@ class DatasetDict(dict):
         >>> french_dataset = load_dataset("<organization>/<dataset_id>", "fr")
         ```
         """
-
         if num_shards is None:
             num_shards = {k: None for k in self}
         elif not isinstance(num_shards, dict):
             raise ValueError(
                 "Please provide one `num_shards` per dataset in the dataset dictionary, e.g. {{'train': 128, 'test': 4}}"
             )
-
-        if branch != "deprecated":
-            warnings.warn(
-                "'branch' was deprecated in favor of 'revision' in version 2.15.0 and will be removed in 3.0.0.\n"
-                f"You can remove this warning by passing 'revision={branch}' instead.",
-                FutureWarning,
-            )
-            revision = branch
 
         self._check_values_type()
         self._check_values_features()

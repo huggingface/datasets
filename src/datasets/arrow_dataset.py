@@ -5306,7 +5306,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         private: Optional[bool] = False,
         token: Optional[str] = None,
         revision: Optional[str] = None,
-        branch="deprecated",
         create_pr: Optional[bool] = False,
         max_shard_size: Optional[Union[int, str]] = None,
         num_shards: Optional[int] = None,
@@ -5354,15 +5353,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Branch to push the uploaded files to. Defaults to the `"main"` branch.
 
                 <Added version="2.15.0"/>
-            branch (`str`, *optional*):
-                The git branch on which to push the dataset. This defaults to the default branch as specified
-                in your repository, which defaults to `"main"`.
-
-                <Deprecated version="2.15.0">
-
-                `branch` was deprecated in favor of `revision` in version 2.15.0 and will be removed in 3.0.0.
-
-                </Deprecated>
             create_pr (`bool`, *optional*, defaults to `False`):
                 Whether to create a PR with the uploaded files or directly commit.
 
@@ -5426,14 +5416,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if not re.match(_split_re, split):
             raise ValueError(f"Split name should match '{_split_re}' but got '{split}'.")
-
-        if branch != "deprecated":
-            warnings.warn(
-                "'branch' was deprecated in favor of 'revision' in version 2.15.0 and will be removed in 3.0.0.\n"
-                f"You can remove this warning by passing 'revision={branch}' instead.",
-                FutureWarning,
-            )
-            revision = branch
 
         api = HfApi(endpoint=config.HF_ENDPOINT, token=token)
 
