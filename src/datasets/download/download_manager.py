@@ -19,7 +19,6 @@ import enum
 import io
 import multiprocessing
 import os
-import warnings
 from datetime import datetime
 from functools import partial
 from typing import Dict, List, Optional, Union
@@ -272,21 +271,12 @@ class DownloadManager:
         """
         return FilesIterable.from_urlpaths(paths)
 
-    def extract(self, path_or_paths, num_proc="deprecated"):
+    def extract(self, path_or_paths):
         """Extract given path(s).
 
         Args:
             path_or_paths (path or `list` or `dict`):
                 Path of file to extract. Each path is a `str`.
-            num_proc (`int`):
-                Use multi-processing if `num_proc` > 1 and the length of
-                `path_or_paths` is larger than `num_proc`.
-
-                <Deprecated version="2.6.2">
-
-                Pass `DownloadConfig(num_proc=<num_proc>)` to the initializer instead.
-
-                </Deprecated>
 
         Returns:
             extracted_path(s): `str`, The extracted paths matching the given input
@@ -299,11 +289,6 @@ class DownloadManager:
         >>> extracted_files = dl_manager.extract(downloaded_files)
         ```
         """
-        if num_proc != "deprecated":
-            warnings.warn(
-                "'num_proc' was deprecated in version 2.6.2 and will be removed in 3.0.0. Pass `DownloadConfig(num_proc=<num_proc>)` to the initializer instead.",
-                FutureWarning,
-            )
         download_config = self.download_config.copy()
         download_config.extract_compressed_file = True
         extract_func = partial(self._download_single, download_config=download_config)
