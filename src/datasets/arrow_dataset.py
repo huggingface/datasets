@@ -1439,7 +1439,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def save_to_disk(
         self,
         dataset_path: PathLike,
-        fs="deprecated",
         max_shard_size: Optional[Union[str, int]] = None,
         num_shards: Optional[int] = None,
         num_proc: Optional[int] = None,
@@ -1457,16 +1456,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dataset_path (`str`):
                 Path (e.g. `dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`)
                 of the dataset directory where the dataset will be saved to.
-            fs (`fsspec.spec.AbstractFileSystem`, *optional*):
-                Instance of the remote filesystem where the dataset will be saved to.
-
-                <Deprecated version="2.8.0">
-
-                `fs` was deprecated in version 2.8.0 and will be removed in 3.0.0.
-                Please use `storage_options` instead, e.g. `storage_options=fs.storage_options`
-
-                </Deprecated>
-
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
                 (like `"50MB"`).
@@ -1496,14 +1485,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             raise ValueError(
                 "Failed to push_to_hub: please specify either max_shard_size or num_shards, but not both."
             )
-        if fs != "deprecated":
-            warnings.warn(
-                "'fs' was deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
-                "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
-                FutureWarning,
-            )
-            storage_options = fs.storage_options
-
         if self.list_indexes():
             raise ValueError("please remove all the indexes using `dataset.drop_index` before saving a dataset")
 
@@ -1655,7 +1636,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @staticmethod
     def load_from_disk(
         dataset_path: str,
-        fs="deprecated",
         keep_in_memory: Optional[bool] = None,
         storage_options: Optional[dict] = None,
     ) -> "Dataset":
@@ -1667,16 +1647,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dataset_path (`str`):
                 Path (e.g. `"dataset/train"`) or remote URI (e.g. `"s3//my-bucket/dataset/train"`)
                 of the dataset directory where the dataset will be loaded from.
-            fs (`fsspec.spec.AbstractFileSystem`, *optional*):
-                Instance of the remote filesystem where the dataset will be saved to.
-
-                <Deprecated version="2.8.0">
-
-                `fs` was deprecated in version 2.8.0 and will be removed in 3.0.0.
-                Please use `storage_options` instead, e.g. `storage_options=fs.storage_options`
-
-                </Deprecated>
-
             keep_in_memory (`bool`, defaults to `None`):
                 Whether to copy the dataset in-memory. If `None`, the
                 dataset will not be copied in-memory unless explicitly enabled by setting
@@ -1698,14 +1668,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> ds = load_from_disk("path/to/dataset/directory")
         ```
         """
-        if fs != "deprecated":
-            warnings.warn(
-                "'fs' was deprecated in favor of 'storage_options' in version 2.8.0 and will be removed in 3.0.0.\n"
-                "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
-                FutureWarning,
-            )
-            storage_options = fs.storage_options
-
         fs: fsspec.AbstractFileSystem
         fs, dataset_path = url_to_fs(dataset_path, **(storage_options or {}))
 
