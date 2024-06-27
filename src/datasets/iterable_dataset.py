@@ -1,7 +1,6 @@
 import copy
 import itertools
 import sys
-import warnings
 from collections import Counter
 from copy import deepcopy
 from dataclasses import dataclass
@@ -896,13 +895,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         remove_columns: Optional[List[str]] = None,
         fn_kwargs: Optional[dict] = None,
         formatting: Optional["FormattingConfig"] = None,
-        format_type="deprecated",
     ):
-        if format_type != "deprecated":
-            warning_msg = "'format_type' is deprecated and will be removed in the next major version of datasets. "
-            help_message = "Please use 'formatting=FormattingConfig(format_type=format_type)' instead."
-            warnings.warn(warning_msg + help_message, category=FutureWarning, stacklevel=2)
-            formatting = FormattingConfig(format_type=format_type)
         super().__init__()
         self.ex_iterable = ex_iterable
         self.function = function
@@ -1160,13 +1153,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
         batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
         formatting: Optional["FormattingConfig"] = None,
-        format_type="deprecated",
     ):
-        if format_type != "deprecated":
-            warning_msg = "'format_type' is deprecated and will be removed in the next major version of datasets. "
-            help_message = "Please use 'formatting=FormattingConfig(format_type=format_type)' instead."
-            warnings.warn(warning_msg + help_message, category=FutureWarning, stacklevel=2)
-            formatting = FormattingConfig(format_type=format_type)
         super().__init__()
         self.ex_iterable = ex_iterable
         self.function = function
@@ -1702,18 +1689,12 @@ class IterableDataset(DatasetInfoMixin):
         shuffling: Optional[ShufflingConfig] = None,
         distributed: Optional[DistributedConfig] = None,
         token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None,
-        format_type="deprecated",
     ):
         if distributed and distributed.world_size > 1 and shuffling and shuffling._original_seed is None:
             raise RuntimeError(
                 "The dataset doesn't have a fixed random seed across nodes to shuffle and split the list of dataset shards by node. "
                 "Please pass e.g. `seed=42` in `.shuffle()` to make all the nodes use the same seed. "
             )
-        if format_type != "deprecated":
-            warning_msg = "'format_type' is deprecated and will be removed in the next major version of datasets. "
-            help_message = "Please use 'formatting=FormattingConfig(format_type=format_type)' instead."
-            warnings.warn(warning_msg + help_message, category=FutureWarning, stacklevel=2)
-            formatting = FormattingConfig(format_type=format_type)
 
         info = info.copy() if info is not None else DatasetInfo()
         DatasetInfoMixin.__init__(self, info=info, split=split)
