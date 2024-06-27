@@ -48,39 +48,6 @@ class SplitsNotFoundError(ValueError):
     pass
 
 
-@deprecated("Use 'huggingface_hub.list_datasets' instead.")
-def list_datasets(with_community_datasets=True, with_details=False):
-    """List all the datasets scripts available on the Hugging Face Hub.
-
-    Args:
-        with_community_datasets (`bool`, *optional*, defaults to `True`):
-            Include the community provided datasets.
-        with_details (`bool`, *optional*, defaults to `False`):
-            Return the full details on the datasets instead of only the short name.
-
-    Example:
-
-    ```py
-    >>> from datasets import list_datasets
-    >>> list_datasets()
-    ['acronym_identification',
-     'ade_corpus_v2',
-     'adversarial_qa',
-     'aeslc',
-     'afrikaans_ner_corpus',
-     'ag_news',
-     ...
-    ]
-    ```
-    """
-    datasets = huggingface_hub.list_datasets(full=with_details)
-    if not with_community_datasets:
-        datasets = [dataset for dataset in datasets if "/" not in dataset.id]
-    if not with_details:
-        datasets = [dataset.id for dataset in datasets]
-    return list(datasets)
-
-
 @deprecated(
     "Use 'evaluate.list_evaluation_modules' instead, from the new library 🤗 Evaluate: https://huggingface.co/docs/evaluate"
 )
@@ -181,7 +148,7 @@ def get_dataset_infos(
 
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. `'./dataset/squad'` or `'./dataset/squad/squad.py'`
-            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`datasets.list_datasets`])
+            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`huggingface_hub.list_datasets`]),
                 e.g. `'squad'`, `'glue'` or``'openai/webtext'`
         revision (`Union[str, datasets.Version]`, *optional*):
             If specified, the dataset module will be loaded from the datasets repository at this version.
@@ -266,7 +233,7 @@ def get_dataset_config_names(
 
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. `'./dataset/squad'` or `'./dataset/squad/squad.py'`
-            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`datasets.list_datasets`])
+            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`huggingface_hub.list_datasets`]),
                 e.g. `'squad'`, `'glue'` or `'openai/webtext'`
         revision (`Union[str, datasets.Version]`, *optional*):
             If specified, the dataset module will be loaded from the datasets repository at this version.
@@ -338,7 +305,7 @@ def get_dataset_default_config_name(
 
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. `'./dataset/squad'` or `'./dataset/squad/squad.py'`
-            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`datasets.list_datasets`])
+            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`huggingface_hub.list_datasets`]),
                 e.g. `'squad'`, `'glue'` or `'openai/webtext'`
         revision (`Union[str, datasets.Version]`, *optional*):
             If specified, the dataset module will be loaded from the datasets repository at this version.
@@ -406,7 +373,7 @@ def get_dataset_config_info(
 
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
-            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
+            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`huggingface_hub.list_datasets`]),
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         config_name (:obj:`str`, optional): Defining the name of the dataset configuration.
         data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
@@ -485,7 +452,7 @@ def get_dataset_split_names(
 
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. `'./dataset/squad'` or `'./dataset/squad/squad.py'`
-            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`datasets.list_datasets`])
+            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`huggingface_hub.list_datasets`]),
                 e.g. `'squad'`, `'glue'` or `'openai/webtext'`
         config_name (`str`, *optional*):
             Defining the name of the dataset configuration.
