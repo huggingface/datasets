@@ -116,7 +116,8 @@ class WebDataset(datasets.GeneratorBasedBuilder):
                     if field_name not in example:
                         example[field_name] = None
                 for field_name in image_field_names + audio_field_names:
-                    example[field_name] = {"path": example["__key__"] + "." + field_name, "bytes": example[field_name]}
+                    if example[field_name] is not None:
+                        example[field_name] = {"path": example["__key__"] + "." + field_name, "bytes": example[field_name]}
                 yield f"{tar_idx}_{example_idx}", example
 
 
