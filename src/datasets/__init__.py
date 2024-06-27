@@ -49,22 +49,3 @@ from .splits import (
 from .tasks import *
 from .utils import *
 from .utils import logging
-
-
-# isort: split
-
-# Deprecated modules
-from . import arrow_dataset as _arrow_dataset
-from . import utils as _utils
-from .utils import download_manager as _deprecated_download_manager
-
-
-_arrow_dataset.concatenate_datasets = concatenate_datasets
-_utils.DownloadConfig = DownloadConfig
-_utils.DownloadManager = DownloadManager
-_utils.DownloadMode = DownloadMode
-_deprecated_download_manager.DownloadConfig = DownloadConfig
-_deprecated_download_manager.DownloadMode = DownloadMode
-_deprecated_download_manager.DownloadManager = DownloadManager
-
-del _arrow_dataset, _utils, _deprecated_download_manager
