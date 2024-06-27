@@ -54,12 +54,6 @@ require_sndfile = pytest.mark.skipif(
     reason="test requires sndfile>=0.12.1: 'pip install \"soundfile>=0.12.1\"'; ",
 )
 
-# Beam
-require_beam = pytest.mark.skipif(
-    not config.BEAM_AVAILABLE or config.DILL_VERSION >= version.parse("0.3.2"),
-    reason="test requires apache-beam and a compatible dill version",
-)
-
 # Dill-cloudpickle compatibility
 require_dill_gt_0_3_2 = pytest.mark.skipif(
     config.DILL_VERSION <= version.parse("0.3.2"),
