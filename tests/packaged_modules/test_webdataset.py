@@ -128,6 +128,29 @@ def test_image_webdataset(image_wds_file):
     assert isinstance(decoded["jpg"], PIL.Image.Image)
 
 
+@require_pil
+def test_image_webdataset_missing_keys(image_wds_file):
+    webdataset = WebDataset()
+    split_generators = webdataset._split_generators(DownloadManager())
+    assert webdataset.info.features == Features(
+        {
+            "__key__": Value("string"),
+            "__url__": Value("string"),
+            "json": {"caption": Value("string")},
+            "jpg": Image(),
+        }
+    )
+    assert len(split_generators) == 1
+    split_generator = split_generators[0] 
+    assert split_generator.name == "train"
+    generator = webdataset._generate_examples(**split_generator.gen_kwargs)
+    _, examples = zip(*generator)
+    assert len(examples) == 3
+    assert isinstance(examples[0]["json"], None)
+    assert isinstance(examples[0]["json"]["caption"], None)
+    assert isinstance(examples[0]["jpg"], None)
+
+
 @require_sndfile
 def test_audio_webdataset(audio_wds_file):
     data_files = {"train": [audio_wds_file]}
