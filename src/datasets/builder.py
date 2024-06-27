@@ -729,7 +729,6 @@ class DatasetBuilder:
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[Union[DownloadMode, str]] = None,
         verification_mode: Optional[Union[VerificationMode, str]] = None,
-        ignore_verifications="deprecated",
         try_from_hf_gcs="deprecated",
         dl_manager: Optional[DownloadManager] = None,
         base_path: Optional[str] = None,
@@ -755,15 +754,6 @@ class DatasetBuilder:
                 Verification mode determining the checks to run on the downloaded/processed dataset information (checksums/size/splits/...).
 
                 <Added version="2.9.1"/>
-            ignore_verifications (`bool`, defaults to `False`):
-                Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...).
-
-                <Deprecated version="2.9.1">
-
-                `ignore_verifications` was deprecated in version 2.9.1 and will be removed in 3.0.0.
-                Please use `verification_mode` instead.
-
-                </Deprecated>
             try_from_hf_gcs (`bool`):
                 If `True`, it will try to download the already prepared dataset from the HF Google cloud storage.
 
@@ -828,13 +818,6 @@ class DatasetBuilder:
         >>> builder.download_and_prepare("s3://my-bucket/my_rotten_tomatoes", storage_options=storage_options, file_format="parquet")
         ```
         """
-        if ignore_verifications != "deprecated":
-            verification_mode = VerificationMode.NO_CHECKS if ignore_verifications else VerificationMode.ALL_CHECKS
-            warnings.warn(
-                "'ignore_verifications' was deprecated in favor of 'verification_mode' in version 2.9.1 and will be removed in 3.0.0.\n"
-                f"You can remove this warning by passing 'verification_mode={verification_mode.value}' instead.",
-                FutureWarning,
-            )
         if try_from_hf_gcs != "deprecated":
             warnings.warn(
                 "'try_from_hf_gcs' was deprecated in version 2.16.0 and will be removed in 3.0.0.",
@@ -1146,7 +1129,6 @@ class DatasetBuilder:
         split: Optional[Split] = None,
         run_post_process=True,
         verification_mode: Optional[Union[VerificationMode, str]] = None,
-        ignore_verifications="deprecated",
         in_memory=False,
     ) -> Union[Dataset, DatasetDict]:
         """Return a Dataset for the specified split.
@@ -1162,16 +1144,6 @@ class DatasetBuilder:
                 downloaded/processed dataset information (checksums/size/splits/...).
 
                 <Added version="2.9.1"/>
-            ignore_verifications (`bool`, defaults to `False`):
-                Whether to ignore the verifications of the
-                downloaded/processed dataset information (checksums/size/splits/...).
-
-                <Deprecated version="2.9.1">
-
-                `ignore_verifications` was deprecated in version 2.9.1 and will be removed in 3.0.0.
-                Please use `verification_mode` instead.
-
-                </Deprecated>
             in_memory (`bool`, defaults to `False`):
                 Whether to copy the data in-memory.
 
@@ -1192,13 +1164,6 @@ class DatasetBuilder:
         })
         ```
         """
-        if ignore_verifications != "deprecated":
-            verification_mode = verification_mode.NO_CHECKS if ignore_verifications else VerificationMode.ALL_CHECKS
-            warnings.warn(
-                "'ignore_verifications' was deprecated in favor of 'verification' in version 2.9.1 and will be removed in 3.0.0.\n"
-                f"You can remove this warning by passing 'verification_mode={verification_mode.value}' instead.",
-                FutureWarning,
-            )
         if self._file_format is not None and self._file_format != "arrow":
             raise FileFormatError('Loading a dataset not written in the "arrow" format is not supported.')
         if is_remote_filesystem(self._fs):

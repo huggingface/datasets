@@ -2316,7 +2316,6 @@ def load_dataset(
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[Union[DownloadMode, str]] = None,
     verification_mode: Optional[Union[VerificationMode, str]] = None,
-    ignore_verifications="deprecated",
     keep_in_memory: Optional[bool] = None,
     save_infos: bool = False,
     revision: Optional[Union[str, Version]] = None,
@@ -2411,15 +2410,6 @@ def load_dataset(
             Verification mode determining the checks to run on the downloaded/processed dataset information (checksums/size/splits/...).
 
             <Added version="2.9.1"/>
-        ignore_verifications (`bool`, defaults to `False`):
-            Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...).
-
-            <Deprecated version="2.9.1">
-
-            `ignore_verifications` was deprecated in version 2.9.1 and will be removed in 3.0.0.
-            Please use `verification_mode` instead.
-
-            </Deprecated>
         keep_in_memory (`bool`, defaults to `None`):
             Whether to copy the dataset in-memory. If `None`, the dataset
             will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
@@ -2527,13 +2517,6 @@ def load_dataset(
     >>> ds = load_dataset('imagefolder', data_dir='/path/to/images', split='train')
     ```
     """
-    if ignore_verifications != "deprecated":
-        verification_mode = VerificationMode.NO_CHECKS if ignore_verifications else VerificationMode.ALL_CHECKS
-        warnings.warn(
-            "'ignore_verifications' was deprecated in favor of 'verification_mode' in version 2.9.1 and will be removed in 3.0.0.\n"
-            f"You can remove this warning by passing 'verification_mode={verification_mode.value}' instead.",
-            FutureWarning,
-        )
     if task != "deprecated":
         warnings.warn(
             "'task' was deprecated in version 2.13.0 and will be removed in 3.0.0.\n",
