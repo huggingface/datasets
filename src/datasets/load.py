@@ -506,7 +506,7 @@ def infer_module_for_data_files_list(
 
     Args:
         data_files_list (DataFilesList): List of data files.
-        download_config (bool or str, optional): mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config (bool or str, optional): Mainly use `token` or `storage_options` to support different platforms and auth types.
 
     Returns:
         tuple[str, dict[str, Any]]: Tuple with
@@ -540,7 +540,7 @@ def infer_module_for_data_files_list_in_archives(
 
     Args:
         data_files_list (DataFilesList): List of data files.
-        download_config (bool or str, optional): mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config (bool or str, optional): Mainly use `token` or `storage_options` to support different platforms and auth types.
 
     Returns:
         tuple[str, dict[str, Any]]: Tuple with
@@ -2145,7 +2145,6 @@ def load_dataset_builder(
     download_mode: Optional[Union[DownloadMode, str]] = None,
     revision: Optional[Union[str, Version]] = None,
     token: Optional[Union[bool, str]] = None,
-    use_auth_token="deprecated",
     storage_options: Optional[Dict] = None,
     trust_remote_code: Optional[bool] = None,
     _require_default_config_name=True,
@@ -2209,15 +2208,6 @@ def load_dataset_builder(
         token (`str` or `bool`, *optional*):
             Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If `True`, or not specified, will get token from `"~/.huggingface"`.
-        use_auth_token (`str` or `bool`, *optional*):
-            Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-            If `True`, or not specified, will get token from `"~/.huggingface"`.
-
-            <Deprecated version="2.14.0">
-
-            `use_auth_token` was deprecated in favor of `token` in version 2.14.0 and will be removed in 3.0.0.
-
-            </Deprecated>
         storage_options (`dict`, *optional*, defaults to `None`):
             **Experimental**. Key/value pairs to be passed on to the dataset file-system backend, if any.
 
@@ -2252,13 +2242,6 @@ def load_dataset_builder(
      'text': Value(dtype='string', id=None)}
     ```
     """
-    if use_auth_token != "deprecated":
-        warnings.warn(
-            "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
-            "You can remove this warning by passing 'token=<use_auth_token>' instead.",
-            FutureWarning,
-        )
-        token = use_auth_token
     download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     if token is not None:
         download_config = download_config.copy() if download_config else DownloadConfig()
@@ -2338,7 +2321,6 @@ def load_dataset(
     save_infos: bool = False,
     revision: Optional[Union[str, Version]] = None,
     token: Optional[Union[bool, str]] = None,
-    use_auth_token="deprecated",
     task="deprecated",
     streaming: bool = False,
     num_proc: Optional[int] = None,
@@ -2451,15 +2433,6 @@ def load_dataset(
         token (`str` or `bool`, *optional*):
             Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If `True`, or not specified, will get token from `"~/.huggingface"`.
-        use_auth_token (`str` or `bool`, *optional*):
-            Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-            If `True`, or not specified, will get token from `"~/.huggingface"`.
-
-            <Deprecated version="2.14.0">
-
-            `use_auth_token` was deprecated in favor of `token` in version 2.14.0 and will be removed in 3.0.0.
-
-            </Deprecated>
         task (`str`):
             The task to prepare the dataset for during training and evaluation. Casts the dataset's [`Features`] to standardized column names and types as detailed in `datasets.tasks`.
 
@@ -2554,13 +2527,6 @@ def load_dataset(
     >>> ds = load_dataset('imagefolder', data_dir='/path/to/images', split='train')
     ```
     """
-    if use_auth_token != "deprecated":
-        warnings.warn(
-            "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
-            "You can remove this warning by passing 'token=<use_auth_token>' instead.",
-            FutureWarning,
-        )
-        token = use_auth_token
     if ignore_verifications != "deprecated":
         verification_mode = VerificationMode.NO_CHECKS if ignore_verifications else VerificationMode.ALL_CHECKS
         warnings.warn(

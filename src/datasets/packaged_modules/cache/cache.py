@@ -108,7 +108,6 @@ class Cache(datasets.ArrowBasedBuilder):
         info: Optional[datasets.DatasetInfo] = None,
         features: Optional[datasets.Features] = None,
         token: Optional[Union[bool, str]] = None,
-        use_auth_token="deprecated",
         repo_id: Optional[str] = None,
         data_files: Optional[Union[str, list, dict, datasets.data_files.DataFilesDict]] = None,
         data_dir: Optional[str] = None,
@@ -117,13 +116,6 @@ class Cache(datasets.ArrowBasedBuilder):
         name="deprecated",
         **config_kwargs,
     ):
-        if use_auth_token != "deprecated":
-            warnings.warn(
-                "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
-                f"You can remove this warning by passing 'token={use_auth_token}' instead.",
-                FutureWarning,
-            )
-            token = use_auth_token
         if name != "deprecated":
             warnings.warn(
                 "Parameter 'name' was renamed to 'config_name' in version 2.3.0 and will be removed in 3.0.0.",

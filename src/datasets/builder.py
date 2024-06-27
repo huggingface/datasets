@@ -320,7 +320,6 @@ class DatasetBuilder:
         info: Optional[DatasetInfo] = None,
         features: Optional[Features] = None,
         token: Optional[Union[bool, str]] = None,
-        use_auth_token="deprecated",
         repo_id: Optional[str] = None,
         data_files: Optional[Union[str, list, dict, DataFilesDict]] = None,
         data_dir: Optional[str] = None,
@@ -329,13 +328,6 @@ class DatasetBuilder:
         name="deprecated",
         **config_kwargs,
     ):
-        if use_auth_token != "deprecated":
-            warnings.warn(
-                "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
-                f"You can remove this warning by passing 'token={use_auth_token}' instead.",
-                FutureWarning,
-            )
-            token = use_auth_token
         if name != "deprecated":
             warnings.warn(
                 "Parameter 'name' was renamed to 'config_name' in version 2.3.0 and will be removed in 3.0.0.",
@@ -347,8 +339,6 @@ class DatasetBuilder:
         self.hash: Optional[str] = hash
         self.base_path = base_path
         self.token = token
-        # For backwards compatibility (e.g. if accessed in a dataset script)
-        self.use_auth_token = token
         self.repo_id = repo_id
         self.storage_options = storage_options or {}
         self.dataset_name = camelcase_to_snakecase(dataset_name) if dataset_name else self.name
@@ -758,7 +748,6 @@ class DatasetBuilder:
         try_from_hf_gcs="deprecated",
         dl_manager: Optional[DownloadManager] = None,
         base_path: Optional[str] = None,
-        use_auth_token="deprecated",
         file_format: str = "arrow",
         max_shard_size: Optional[Union[int, str]] = None,
         num_proc: Optional[int] = None,
@@ -804,15 +793,6 @@ class DatasetBuilder:
             base_path (`str`, *optional*):
                 Base path for relative paths that are used to download files. This can be a remote url.
                 If not specified, the value of the `base_path` attribute (`self.base_path`) will be used instead.
-            use_auth_token (`Union[str, bool]`, *optional*):
-                Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-                If True, or not specified, will get token from ~/.huggingface.
-
-                <Deprecated version="2.7.1">
-
-                Pass `use_auth_token` to `load_dataset_builder` instead.
-
-                </Deprecated>
             file_format (`str`, *optional*):
                 Format of the data files in which the dataset will be written.
                 Supported formats: "arrow", "parquet". Default to "arrow" format.
@@ -870,15 +850,6 @@ class DatasetBuilder:
                 f"You can remove this warning by passing 'verification_mode={verification_mode.value}' instead.",
                 FutureWarning,
             )
-        if use_auth_token != "deprecated":
-            warnings.warn(
-                "'use_auth_token' was deprecated in version 2.7.1 and will be removed in 3.0.0. Pass `token` to `load_dataset_builder` instead.",
-                FutureWarning,
-            )
-            token = use_auth_token
-        else:
-            token = self.token
-
         if try_from_hf_gcs != "deprecated":
             warnings.warn(
                 "'try_from_hf_gcs' was deprecated in version 2.16.0 and will be removed in 3.0.0.",
@@ -918,7 +889,7 @@ class DatasetBuilder:
                     force_extract=download_mode == DownloadMode.FORCE_REDOWNLOAD,
                     use_etag=False,
                     num_proc=num_proc,
-                    token=token,
+                    token=self.token,
                     storage_options=self.storage_options,
                 )  # We don't use etag for data files to speed up the process
 
