@@ -4093,7 +4093,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         self,
         column_names: Union[str, Sequence_[str]],
         reverse: Union[bool, Sequence_[bool]] = False,
-        kind="deprecated",
         null_placement: str = "at_end",
         keep_in_memory: bool = False,
         load_from_cache_file: Optional[bool] = None,
@@ -4110,15 +4109,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 If `True`, sort by descending order rather than ascending. If a single bool is provided,
                 the value is applied to the sorting of all column names. Otherwise a list of bools with the
                 same length and order as column_names must be provided.
-            kind (`str`, *optional*):
-                Pandas algorithm for sorting selected in `{quicksort, mergesort, heapsort, stable}`,
-                The default is `quicksort`. Note that both `stable` and `mergesort` use `timsort` under the covers and, in general,
-                the actual implementation will vary with data type. The `mergesort` option is retained for backwards compatibility.
-                <Deprecated version="2.8.0">
-
-                `kind` was deprecated in version 2.10.0 and will be removed in 3.0.0.
-
-                </Deprecated>
             null_placement (`str`, defaults to `at_end`):
                 Put `None` values at the beginning if `at_start` or `first` or at the end if `at_end` or `last`
 
@@ -4160,13 +4150,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # If the array is empty we do nothing
         if len(self) == 0:
             return self
-
-        # Deprecation warning
-        if kind != "deprecated":
-            warnings.warn(
-                "'kind' was deprecated in version 2.10.0 and will be removed in 3.0.0.",
-                category=FutureWarning,
-            )
 
         # Check proper format of and for duplicates in column_names
         if isinstance(column_names, str):
