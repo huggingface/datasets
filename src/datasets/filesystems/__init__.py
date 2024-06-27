@@ -7,7 +7,6 @@ import fsspec
 import fsspec.asyn
 from fsspec.implementations.local import LocalFileSystem
 
-from ..utils.deprecation_utils import deprecated
 from . import compression
 
 
