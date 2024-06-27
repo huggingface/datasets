@@ -4,12 +4,12 @@ Your data can be stored in various places; they can be on your local machine's d
 
 This guide will show you how to load a dataset from:
 
-- The Hub without a dataset loading script
-- Local loading script
+- The Hugging Face Hub
 - Local files
 - In-memory data
 - Offline
 - A specific slice of a split
+- Local loading script (legacy)
 
 For more details specific to loading other dataset modalities, take a look at the <a class="underline decoration-pink-400 decoration-2 font-semibold" href="./audio_load">load audio dataset guide</a>, the <a class="underline decoration-yellow-400 decoration-2 font-semibold" href="./image_load">load image dataset guide</a>, or the <a class="underline decoration-green-400 decoration-2 font-semibold" href="./nlp_load">load text dataset guide</a>.
 
@@ -71,35 +71,6 @@ The `split` parameter can also map a data file to a specific split:
 ```py
 >>> data_files = {"validation": "en/c4-validation.*.json.gz"}
 >>> c4_validation = load_dataset("allenai/c4", data_files=data_files, split="validation")
-```
-
-## Local loading script
-
-You may have a 🤗 Datasets loading script locally on your computer. In this case, load the dataset by passing one of the following paths to [`load_dataset`]:
-
-- The local path to the loading script file.
-- The local path to the directory containing the loading script file (only if the script file has the same name as the directory).
-
-Pass `trust_remote_code=True` to allow 🤗 Datasets to execute the loading script:
-
-```py
->>> dataset = load_dataset("path/to/local/loading_script/loading_script.py", split="train", trust_remote_code=True)
->>> dataset = load_dataset("path/to/local/loading_script", split="train", trust_remote_code=True)  # equivalent because the file has the same name as the directory
-```
-
-### Edit loading script
-
-You can also edit a loading script from the Hub to add your own modifications. Download the dataset repository locally so any data files referenced by a relative path in the loading script can be loaded:
-
-```bash
-git clone https://huggingface.co/datasets/eli5
-```
-
-Make your edits to the loading script and then load it by passing its local path to [`~datasets.load_dataset`]:
-
-```py
->>> from datasets import load_dataset
->>> eli5 = load_dataset("path/to/local/eli5")
 ```
 
 ## Local and remote files
@@ -533,4 +504,18 @@ In some instances, you may be simultaneously running multiple independent distri
 ```py
 >>> from datasets import load_metric
 >>> metric = load_metric('glue', 'mrpc', num_process=num_process, process_id=process_id, experiment_id="My_experiment_10")
+```
+
+## (Legacy) Local loading script
+
+You may have a 🤗 Datasets loading script locally on your computer. In this case, load the dataset by passing one of the following paths to [`load_dataset`]:
+
+- The local path to the loading script file.
+- The local path to the directory containing the loading script file (only if the script file has the same name as the directory).
+
+Pass `trust_remote_code=True` to allow 🤗 Datasets to execute the loading script:
+
+```py
+>>> dataset = load_dataset("path/to/local/loading_script/loading_script.py", split="train", trust_remote_code=True)
+>>> dataset = load_dataset("path/to/local/loading_script", split="train", trust_remote_code=True)  # equivalent because the file has the same name as the directory
 ```
