@@ -4,6 +4,7 @@ This file is adapted from the AllenNLP library at https://github.com/allenai/all
 Copyright by the AllenNLP authors.
 """
 
+import asyncio
 import copy
 import glob
 import io
@@ -20,7 +21,6 @@ import urllib
 import warnings
 import xml.dom.minidom
 import zipfile
-from asyncio import TimeoutError
 from contextlib import closing, contextmanager
 from functools import partial
 from io import BytesIO
@@ -31,10 +31,10 @@ from unittest.mock import patch
 from urllib.parse import urljoin, urlparse
 from xml.etree import ElementTree as ET
 
+import aiohttp.client_exceptions
 import fsspec
 import huggingface_hub
 import requests
-from aiohttp.client_exceptions import ClientError
 from fsspec.core import strip_protocol, url_to_fs
 from fsspec.utils import can_be_local
 from huggingface_hub.utils import EntryNotFoundError, insecure_hashlib
@@ -1094,8 +1094,8 @@ def _add_retries_to_file_obj_read_method(file_obj):
                 out = read(*args, **kwargs)
                 break
             except (
-                ClientError,
-                TimeoutError,
+                aiohttp.client_exceptions.ClientError,
+                asyncio.TimeoutError,
                 requests.exceptions.ConnectTimeout,
                 requests.exceptions.ConnectionError,
             ) as err:
