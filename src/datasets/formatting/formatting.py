@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import operator
 from collections.abc import Mapping, MutableMapping
 from functools import partial
 
@@ -186,14 +187,20 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
             else:
                 zero_copy_only = _is_zero_copy_only(pa_array.type) and not _is_array_with_nulls(pa_array)
                 array: List = pa_array.to_numpy(zero_copy_only=zero_copy_only).tolist()
+
         if len(array) > 0:
             if any(
                 (isinstance(x, np.ndarray) and (x.dtype == object or x.shape != array[0].shape))
                 or (isinstance(x, float) and np.isnan(x))
                 for x in array
             ):
+                if np.lib.NumpyVersion(np.__version__) >= "2.0.0b1":
+                    return np.asarray(array, dtype=object)
                 return np.array(array, copy=False, dtype=object)
-        return np.array(array, copy=False)
+        if np.lib.NumpyVersion(np.__version__) >= "2.0.0b1":
+            return np.asarray(array)
+        else:
+            return np.array(array, copy=False)
 
 
 class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFrame]):
@@ -575,7 +582,10 @@ def query_table(
     """
     # Check if key is valid
     if not isinstance(key, (int, slice, range, str, Iterable)):
-        _raise_bad_key_type(key)
+        try:
+            key = operator.index(key)
+        except TypeError:
+            _raise_bad_key_type(key)
     if isinstance(key, str):
         _check_valid_column_key(key, table.column_names)
     else:

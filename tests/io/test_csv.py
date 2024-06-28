@@ -1,6 +1,7 @@
 import csv
 import os
 
+import fsspec
 import pytest
 
 from datasets import Dataset, DatasetDict, Features, NamedSplit, Value
@@ -162,3 +163,13 @@ def test_dataset_to_csv_invalidproc(csv_path, tmp_path):
     dataset = CsvDatasetReader({"train": csv_path}, cache_dir=cache_dir).read()
     with pytest.raises(ValueError):
         CsvDatasetWriter(dataset["train"], output_csv, num_proc=0)
+
+
+def test_dataset_to_csv_fsspec(dataset, mockfs):
+    dataset_path = "mock://my_dataset.csv"
+    writer = CsvDatasetWriter(dataset, dataset_path, storage_options=mockfs.storage_options)
+    assert writer.write() > 0
+    assert mockfs.isfile(dataset_path)
+
+    with fsspec.open(dataset_path, "rb", **mockfs.storage_options) as f:
+        assert f.read()

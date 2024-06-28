@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# ruff: noqa
-
 from typing import Dict, List, Optional, Type
 
 from .. import config
@@ -80,6 +78,14 @@ _register_formatter(NumpyFormatter, "numpy", aliases=["np"])
 _register_formatter(PandasFormatter, "pandas", aliases=["pd"])
 _register_formatter(CustomFormatter, "custom")
 
+if config.POLARS_AVAILABLE:
+    from .polars_formatter import PolarsFormatter
+
+    _register_formatter(PolarsFormatter, "polars", aliases=["pl"])
+else:
+    _polars_error = ValueError("Polars needs to be installed to be able to return Polars dataframes.")
+    _register_unavailable_formatter(_polars_error, "polars", aliases=["pl"])
+
 if config.TORCH_AVAILABLE:
     from .torch_formatter import TorchFormatter
 
@@ -126,6 +132,4 @@ def get_formatter(format_type: Optional[str], **format_kwargs) -> Formatter:
     if format_type in _FORMAT_TYPES_ALIASES_UNAVAILABLE:
         raise _FORMAT_TYPES_ALIASES_UNAVAILABLE[format_type]
     else:
-        raise ValueError(
-            f"Return type should be None or selected in {list(type for type in _FORMAT_TYPES.keys() if type != None)}, but got '{format_type}'"
-        )
+        raise ValueError(f"Format type should be one of {list(_FORMAT_TYPES.keys())}, but got '{format_type}'")

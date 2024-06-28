@@ -63,6 +63,11 @@ FILE_CONTENT = """\
 
 
 @pytest.fixture(scope="session")
+def text_file_content():
+    return FILE_CONTENT
+
+
+@pytest.fixture(scope="session")
 def text_file(tmp_path_factory):
     filename = tmp_path_factory.mktemp("data") / "file.txt"
     data = FILE_CONTENT
@@ -544,6 +549,16 @@ def image_file():
 @pytest.fixture(scope="session")
 def audio_file():
     return os.path.join("tests", "features", "data", "test_audio_44100.wav")
+
+
+@pytest.fixture(scope="session")
+def tensor_file(tmp_path_factory):
+    import torch
+
+    path = tmp_path_factory.mktemp("data") / "tensor.pth"
+    with open(path, "wb") as f:
+        torch.save(torch.ones(128), f)
+    return path
 
 
 @pytest.fixture(scope="session")

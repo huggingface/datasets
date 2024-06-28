@@ -33,6 +33,8 @@ class DownloadConfig:
             was already extracted, re-extract the archive and override the folder where it was extracted.
         delete_extracted (`bool`, defaults to `False`):
             Whether to delete (or keep) the extracted files.
+        extract_on_the_fly (`bool`, defaults to `False`):
+            If `True`, extract compressed files while they are being read.
         use_etag (`bool`, defaults to `True`):
             Whether to use the ETag HTTP response header to validate the cached files.
         num_proc (`int`, *optional*):
@@ -59,6 +61,8 @@ class DownloadConfig:
             Key/value pairs to be passed on to the dataset file-system backend, if any.
         download_desc (`str`, *optional*):
             A description to be displayed alongside with the progress bar while downloading the files.
+        disable_tqdm (`bool`, defaults to `False`):
+            Whether to disable the individual files download progress bar
     """
 
     cache_dir: Optional[Union[str, Path]] = None
@@ -70,6 +74,7 @@ class DownloadConfig:
     extract_compressed_file: bool = False
     force_extract: bool = False
     delete_extracted: bool = False
+    extract_on_the_fly: bool = False
     use_etag: bool = True
     num_proc: Optional[int] = None
     max_retries: int = 1
@@ -78,6 +83,7 @@ class DownloadConfig:
     ignore_url_params: bool = False
     storage_options: Dict[str, Any] = field(default_factory=dict)
     download_desc: Optional[str] = None
+    disable_tqdm: bool = False
 
     def __post_init__(self, use_auth_token):
         if use_auth_token != "deprecated":

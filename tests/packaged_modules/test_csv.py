@@ -5,7 +5,9 @@ import pyarrow as pa
 import pytest
 
 from datasets import ClassLabel, Features, Image
-from datasets.packaged_modules.csv.csv import Csv
+from datasets.builder import InvalidConfigName
+from datasets.data_files import DataFilesList
+from datasets.packaged_modules.csv.csv import Csv, CsvConfig
 
 from ..utils import require_pil
 
@@ -84,6 +86,17 @@ def csv_file_with_int_list(tmp_path):
     with open(filename, "w") as f:
         f.write(data)
     return str(filename)
+
+
+def test_config_raises_when_invalid_name() -> None:
+    with pytest.raises(InvalidConfigName, match="Bad characters"):
+        _ = CsvConfig(name="name-with-*-invalid-character")
+
+
+@pytest.mark.parametrize("data_files", ["str_path", ["str_path"], DataFilesList(["str_path"], [()])])
+def test_config_raises_when_invalid_data_files(data_files) -> None:
+    with pytest.raises(ValueError, match="Expected a DataFilesDict"):
+        _ = CsvConfig(name="name", data_files=data_files)
 
 
 def test_csv_generate_tables_raises_error_with_malformed_csv(csv_file, malformed_csv_file, caplog):

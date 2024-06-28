@@ -41,19 +41,32 @@ array([[1, 2],
 
 ## N-dimensional arrays
 
-If your dataset consists of N-dimensional arrays, you will see that by default they are considered as nested lists.
-In particular, a TensorFlow formatted dataset outputs a `RaggedTensor` instead of a single tensor:
+If your dataset consists of N-dimensional arrays, you will see that by default they are considered as the same tensor if the shape is fixed:
 
 ```py
 >>> from datasets import Dataset
->>> data = [[[1, 2],[3, 4]],[[5, 6],[7, 8]]]
+>>> data = [[[1, 2],[3, 4]],[[5, 6],[7, 8]]]  # fixed shape
 >>> ds = Dataset.from_dict({"data": data})
 >>> ds = ds.with_format("tf")
 >>> ds[0]
-{'data': <tf.RaggedTensor [[1, 2], [3, 4]]>}
+{'data': <tf.Tensor: shape=(2, 2), dtype=int64, numpy=
+ array([[1, 2],
+        [3, 4]])>}
 ```
 
-To get a single tensor, you must explicitly use the [`Array`] feature type and specify the shape of your tensors:
+Otherwise, a TensorFlow formatted dataset outputs a `RaggedTensor` instead of a single tensor:
+
+```py
+>>> from datasets import Dataset
+>>> data = [[[1, 2],[3]],[[4, 5, 6],[7, 8]]]  # varying shape
+>>> ds = Dataset.from_dict({"data": data})
+>>> ds = ds.with_format("torch")
+>>> ds[0]
+{'data': <tf.RaggedTensor [[1, 2], [3]]>}
+```
+
+However this logic often requires slow shape comparisons and data copies.
+To avoid this, you must explicitly use the [`Array`] feature type and specify the shape of your tensors:
 
 ```py
 >>> from datasets import Dataset, Features, Array2D

@@ -362,7 +362,7 @@ def test_table_to_pandas(dtype, dummy_value):
     features = datasets.Features({"foo": datasets.Array2D(dtype=dtype, shape=(2, 2))})
     dataset = datasets.Dataset.from_dict({"foo": [[[dummy_value] * 2] * 2]}, features=features)
     df = dataset._data.to_pandas()
-    assert type(df.foo.dtype) == PandasArrayExtensionDtype
+    assert isinstance(df.foo.dtype, PandasArrayExtensionDtype)
     arr = df.foo.to_numpy()
     np.testing.assert_equal(arr, np.array([[[dummy_value] * 2] * 2], dtype=np.dtype(dtype)))
 

@@ -5,6 +5,14 @@ from typing import Optional
 from huggingface_hub.utils import insecure_hashlib
 
 from .. import config
+from ..exceptions import (
+    ExpectedMoreDownloadedFilesError,
+    ExpectedMoreSplitsError,
+    NonMatchingChecksumError,
+    NonMatchingSplitsSizesError,
+    UnexpectedDownloadedFileError,
+    UnexpectedSplitsError,
+)
 from .logging import get_logger
 
 
@@ -33,30 +41,14 @@ class VerificationMode(enum.Enum):
     NO_CHECKS = "no_checks"
 
 
-class ChecksumVerificationException(Exception):
-    """Exceptions during checksums verifications of downloaded files."""
-
-
-class UnexpectedDownloadedFile(ChecksumVerificationException):
-    """Some downloaded files were not expected."""
-
-
-class ExpectedMoreDownloadedFiles(ChecksumVerificationException):
-    """Some files were supposed to be downloaded but were not."""
-
-
-class NonMatchingChecksumError(ChecksumVerificationException):
-    """The downloaded file checksum don't match the expected checksum."""
-
-
 def verify_checksums(expected_checksums: Optional[dict], recorded_checksums: dict, verification_name=None):
     if expected_checksums is None:
         logger.info("Unable to verify checksums.")
         return
     if len(set(expected_checksums) - set(recorded_checksums)) > 0:
-        raise ExpectedMoreDownloadedFiles(str(set(expected_checksums) - set(recorded_checksums)))
+        raise ExpectedMoreDownloadedFilesError(str(set(expected_checksums) - set(recorded_checksums)))
     if len(set(recorded_checksums) - set(expected_checksums)) > 0:
-        raise UnexpectedDownloadedFile(str(set(recorded_checksums) - set(expected_checksums)))
+        raise UnexpectedDownloadedFileError(str(set(recorded_checksums) - set(expected_checksums)))
     bad_urls = [url for url in expected_checksums if expected_checksums[url] != recorded_checksums[url]]
     for_verification_name = " for " + verification_name if verification_name is not None else ""
     if len(bad_urls) > 0:
@@ -68,30 +60,14 @@ def verify_checksums(expected_checksums: Optional[dict], recorded_checksums: dic
     logger.info("All the checksums matched successfully" + for_verification_name)
 
 
-class SplitsVerificationException(Exception):
-    """Exceptions during splis verifications"""
-
-
-class UnexpectedSplits(SplitsVerificationException):
-    """The expected splits of the downloaded file is missing."""
-
-
-class ExpectedMoreSplits(SplitsVerificationException):
-    """Some recorded splits are missing."""
-
-
-class NonMatchingSplitsSizesError(SplitsVerificationException):
-    """The splits sizes don't match the expected splits sizes."""
-
-
 def verify_splits(expected_splits: Optional[dict], recorded_splits: dict):
     if expected_splits is None:
         logger.info("Unable to verify splits sizes.")
         return
     if len(set(expected_splits) - set(recorded_splits)) > 0:
-        raise ExpectedMoreSplits(str(set(expected_splits) - set(recorded_splits)))
+        raise ExpectedMoreSplitsError(str(set(expected_splits) - set(recorded_splits)))
     if len(set(recorded_splits) - set(expected_splits)) > 0:
-        raise UnexpectedSplits(str(set(recorded_splits) - set(expected_splits)))
+        raise UnexpectedSplitsError(str(set(recorded_splits) - set(expected_splits)))
     bad_splits = [
         {"expected": expected_splits[name], "recorded": recorded_splits[name]}
         for name in expected_splits

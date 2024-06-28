@@ -54,12 +54,6 @@ require_sndfile = pytest.mark.skipif(
     reason="test requires sndfile>=0.12.1: 'pip install \"soundfile>=0.12.1\"'; ",
 )
 
-# Beam
-require_beam = pytest.mark.skipif(
-    not config.BEAM_AVAILABLE or config.DILL_VERSION >= version.parse("0.3.2"),
-    reason="test requires apache-beam and a compatible dill version",
-)
-
 # Dill-cloudpickle compatibility
 require_dill_gt_0_3_2 = pytest.mark.skipif(
     config.DILL_VERSION <= version.parse("0.3.2"),
@@ -138,6 +132,18 @@ def require_torch(test_case):
     """
     if not config.TORCH_AVAILABLE:
         test_case = unittest.skip("test requires PyTorch")(test_case)
+    return test_case
+
+
+def require_polars(test_case):
+    """
+    Decorator marking a test that requires Polars.
+
+    These tests are skipped when Polars isn't installed.
+
+    """
+    if not config.POLARS_AVAILABLE:
+        test_case = unittest.skip("test requires Polars")(test_case)
     return test_case
 
 
@@ -222,28 +228,6 @@ def require_spacy(test_case):
         return test_case
 
 
-def require_spacy_model(model):
-    """
-    Decorator marking a test that requires a spacy model.
-
-    These tests are skipped when they aren't installed.
-    """
-
-    def _require_spacy_model(test_case):
-        try:
-            import spacy  # noqa F401
-
-            spacy.load(model)
-        except ImportError:
-            return unittest.skip("test requires spacy")(test_case)
-        except OSError:
-            return unittest.skip("test requires spacy model '{}'".format(model))(test_case)
-        else:
-            return test_case
-
-    return _require_spacy_model
-
-
 def require_pyspark(test_case):
     """
     Decorator marking a test that requires pyspark.
@@ -270,6 +254,21 @@ def require_joblibspark(test_case):
         import joblibspark  # noqa F401
     except ImportError:
         return unittest.skip("test requires joblibspark")(test_case)
+    else:
+        return test_case
+
+
+def require_torchdata_stateful_dataloader(test_case):
+    """
+    Decorator marking a test that requires torchdata.stateful_dataloader.
+
+    These tests are skipped when torchdata with stateful_dataloader module isn't installed.
+
+    """
+    try:
+        import torchdata.stateful_dataloader  # noqa F401
+    except (ImportError, AssertionError):
+        return unittest.skip("test requires torchdata.stateful_dataloader")(test_case)
     else:
         return test_case
 
@@ -342,7 +341,7 @@ class RequestWouldHangIndefinitelyError(Exception):
 class OfflineSimulationMode(Enum):
     CONNECTION_FAILS = 0
     CONNECTION_TIMES_OUT = 1
-    HF_DATASETS_OFFLINE_SET_TO_1 = 2
+    HF_HUB_OFFLINE_SET_TO_1 = 2
 
 
 @contextmanager
@@ -357,7 +356,7 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
     CONNECTION_TIMES_OUT: the connection hangs until it times out.
         The default timeout value is low (1e-16) to speed up the tests.
         Timeout errors are created by mocking requests.request
-    HF_DATASETS_OFFLINE_SET_TO_1: the HF_DATASETS_OFFLINE environment variable is set to 1.
+    HF_HUB_OFFLINE_SET_TO_1: the HF_HUB_OFFLINE environment variable is set to 1.
         This makes the http/ftp calls of the library instantly fail and raise an OfflineModeEmabled error.
     """
     online_request = requests.Session().request
@@ -390,8 +389,8 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
         # inspired from https://stackoverflow.com/a/904609
         with patch("requests.Session.request", timeout_request):
             yield
-    elif mode is OfflineSimulationMode.HF_DATASETS_OFFLINE_SET_TO_1:
-        with patch("datasets.config.HF_DATASETS_OFFLINE", True):
+    elif mode is OfflineSimulationMode.HF_HUB_OFFLINE_SET_TO_1:
+        with patch("datasets.config.HF_HUB_OFFLINE", True):
             yield
     else:
         raise ValueError("Please use a value from the OfflineSimulationMode enum.")

@@ -33,7 +33,7 @@ from datasets.packaged_modules.folder_based_builder.folder_based_builder import 
     FolderBasedBuilderConfig,
 )
 from datasets.utils.file_utils import cached_path
-from datasets.utils.hub import hf_hub_url
+from datasets.utils.hub import hf_dataset_url
 from tests.fixtures.hub import CI_HUB_ENDPOINT, CI_HUB_USER, CI_HUB_USER_TOKEN
 from tests.utils import for_all_test_methods, require_pil, require_sndfile, xfail_if_500_502_http_error
 
@@ -608,7 +608,7 @@ class TestPushToHub:
             ds_config2.push_to_hub(ds_name, "config2", token=self._token)
 
             # check that configs args was correctly pushed to README.md
-            ds_readme_path = cached_path(hf_hub_url(ds_name, "README.md"))
+            ds_readme_path = cached_path(hf_dataset_url(ds_name, "README.md"))
             dataset_card_data = DatasetCard.load(ds_readme_path).data
             assert METADATA_CONFIGS_FIELD in dataset_card_data
             assert isinstance(dataset_card_data[METADATA_CONFIGS_FIELD], list)
@@ -757,7 +757,7 @@ class TestPushToHub:
             ds_config2.push_to_hub(ds_name, "config2", token=self._token)
 
             # check that configs args was correctly pushed to README.md
-            ds_readme_path = cached_path(hf_hub_url(ds_name, "README.md"))
+            ds_readme_path = cached_path(hf_dataset_url(ds_name, "README.md"))
             dataset_card_data = DatasetCard.load(ds_readme_path).data
             assert METADATA_CONFIGS_FIELD in dataset_card_data
             assert isinstance(dataset_card_data[METADATA_CONFIGS_FIELD], list)

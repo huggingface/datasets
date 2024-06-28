@@ -604,9 +604,9 @@ def test_load_dataset_with_audio_feature(streaming, jsonl_audio_dataset_path, sh
 @pytest.mark.integration
 def test_dataset_with_audio_feature_loaded_from_cache():
     # load first time
-    ds = load_dataset("patrickvonplaten/librispeech_asr_dummy", "clean")
+    ds = load_dataset("patrickvonplaten/librispeech_asr_dummy", "clean", trust_remote_code=True)
     # load from cache
-    ds = load_dataset("patrickvonplaten/librispeech_asr_dummy", "clean", split="validation")
+    ds = load_dataset("patrickvonplaten/librispeech_asr_dummy", "clean", trust_remote_code=True, split="validation")
     assert isinstance(ds, Dataset)
 
 

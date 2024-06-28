@@ -98,6 +98,12 @@ class FeaturesTest(TestCase):
             with self.assertRaises(ValueError):
                 string_to_arrow(sdt)
 
+    def test_categorical_one_way(self):
+        # Categorical types (aka dictionary types) need special handling as there isn't a bijection
+        categorical_type = pa.dictionary(pa.int32(), pa.string())
+
+        self.assertEqual("string", _arrow_to_datasets_dtype(categorical_type))
+
     def test_feature_named_type(self):
         """reference: issue #1110"""
         features = Features({"_type": Value("string")})
@@ -403,6 +409,16 @@ def test_encode_batch_with_example_with_empty_first_elem():
         }
     )
     assert encoded_batch == {"x": [[[0], [1]], [[], [1]]]}
+
+
+def test_encode_column_dict_with_none():
+    features = Features(
+        {
+            "x": {"a": ClassLabel(names=["a", "b"]), "b": Value("int32")},
+        }
+    )
+    encoded_column = features.encode_column([{"a": "a", "b": 1}, None], "x")
+    assert encoded_column == [{"a": 0, "b": 1}, None]
 
 
 @pytest.mark.parametrize(

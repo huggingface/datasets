@@ -10,9 +10,8 @@ import pyarrow as pa
 
 from .. import config
 from ..download.download_config import DownloadConfig
-from ..download.streaming_download_manager import xopen
 from ..table import array_cast
-from ..utils.file_utils import is_local_path
+from ..utils.file_utils import is_local_path, xopen
 from ..utils.py_utils import first_non_null_value, no_op_if_value_is_null, string_to_dict
 
 
@@ -60,6 +59,8 @@ class Image:
     - A `PIL.Image.Image`: PIL image object.
 
     Args:
+        mode (`str`, *optional*):
+            The mode to convert the image to. If `None`, the native mode of the image is used.
         decode (`bool`, defaults to `True`):
             Whether to decode the image data. If `False`,
             returns the underlying dictionary in the format `{"path": image_path, "bytes": image_bytes}`.
@@ -79,6 +80,7 @@ class Image:
     ```
     """
 
+    mode: Optional[str] = None
     decode: bool = True
     id: Optional[str] = None
     # Automatically constructed
@@ -151,6 +153,7 @@ class Image:
 
         if config.PIL_AVAILABLE:
             import PIL.Image
+            import PIL.ImageOps
         else:
             raise ImportError("To support decoding images, please install 'Pillow'.")
 
@@ -183,6 +186,10 @@ class Image:
         else:
             image = PIL.Image.open(BytesIO(bytes_))
         image.load()  # to avoid "Too many open files" errors
+        if image.getexif().get(PIL.Image.ExifTags.Base.Orientation) is not None:
+            image = PIL.ImageOps.exif_transpose(image)
+        if self.mode and self.mode != image.mode:
+            image = image.convert(self.mode)
         return image
 
     def flatten(self) -> Union["FeatureType", Dict[str, "FeatureType"]]:

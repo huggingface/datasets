@@ -32,14 +32,13 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.types
-import pyarrow_hotfix  # noqa: F401  # to fix vulnerability on pyarrow<14.0.1
 from pandas.api.extensions import ExtensionArray as PandasExtensionArray
 from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 
 from .. import config
 from ..naming import camelcase_to_snakecase, snakecase_to_camelcase
 from ..table import array_cast
-from ..utils import logging
+from ..utils import experimental, logging
 from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
 from .image import Image, encode_pil_image
@@ -109,6 +108,8 @@ def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
         return "string"
     elif pyarrow.types.is_large_string(arrow_type):
         return "large_string"
+    elif pyarrow.types.is_dictionary(arrow_type):
+        return _arrow_to_datasets_dtype(arrow_type.value_type)
     else:
         raise ValueError(f"Arrow type {arrow_type} does not have a datasets dtype equivalent.")
 
@@ -312,6 +313,12 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
                 True,
             )
     elif config.TORCH_AVAILABLE and "torch" in sys.modules and isinstance(obj, torch.Tensor):
+        if obj.dtype == torch.bfloat16:
+            return _cast_to_python_objects(
+                obj.detach().to(torch.float).cpu().numpy(),
+                only_1d_for_numpy=only_1d_for_numpy,
+                optimize_list_casting=optimize_list_casting,
+            )[0], True
         if obj.ndim == 0:
             return obj.detach().cpu().numpy()[()], True
         elif not only_1d_for_numpy or obj.ndim == 1:
@@ -834,7 +841,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.api.extensions.ExtensionArray.html#pandas.api.extensions.ExtensionArray
 
         """
-        if dtype == object:
+        if dtype == np.dtype(object):
             out = np.empty(len(self._data), dtype=object)
             for i in range(len(self._data)):
                 out[i] = self._data[i]
@@ -1250,6 +1257,8 @@ def encode_nested_example(schema, obj, level=0):
         sub_schema = schema[0]
         if obj is None:
             return None
+        elif isinstance(obj, np.ndarray):
+            return encode_nested_example(schema, obj.tolist())
         else:
             if len(obj) > 0:
                 for first_elmt in obj:
@@ -1342,6 +1351,37 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Uni
     return obj
 
 
+_FEATURE_TYPES: Dict[str, FeatureType] = {
+    Value.__name__: Value,
+    ClassLabel.__name__: ClassLabel,
+    Translation.__name__: Translation,
+    TranslationVariableLanguages.__name__: TranslationVariableLanguages,
+    Sequence.__name__: Sequence,
+    Array2D.__name__: Array2D,
+    Array3D.__name__: Array3D,
+    Array4D.__name__: Array4D,
+    Array5D.__name__: Array5D,
+    Audio.__name__: Audio,
+    Image.__name__: Image,
+}
+
+
+@experimental
+def register_feature(
+    feature_cls: type,
+    feature_type: str,
+):
+    """
+    Register a Feature object using a name and class.
+    This function must be used on a Feature class.
+    """
+    if feature_type in _FEATURE_TYPES:
+        logger.warning(
+            f"Overwriting feature type '{feature_type}' ({_FEATURE_TYPES[feature_type].__name__} -> {feature_cls.__name__})"
+        )
+    _FEATURE_TYPES[feature_type] = feature_cls
+
+
 def generate_from_dict(obj: Any):
     """Regenerate the nested feature object from a deserialized dict.
     We use the '_type' fields to get the dataclass name to load.
@@ -1360,7 +1400,11 @@ def generate_from_dict(obj: Any):
     if "_type" not in obj or isinstance(obj["_type"], dict):
         return {key: generate_from_dict(value) for key, value in obj.items()}
     obj = dict(obj)
-    class_type = globals()[obj.pop("_type")]
+    _type = obj.pop("_type")
+    class_type = _FEATURE_TYPES.get(_type, None) or globals().get(_type, None)
+
+    if class_type is None:
+        raise ValueError(f"Feature type '{_type}' not found. Available feature types: {list(_FEATURE_TYPES.keys())}")
 
     if class_type == Sequence:
         return Sequence(feature=generate_from_dict(obj["feature"]), length=obj.get("length", -1))
@@ -1391,8 +1435,6 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
     elif isinstance(pa_type, _ArrayXDExtensionType):
         array_feature = [None, None, Array2D, Array3D, Array4D, Array5D][pa_type.ndims]
         return array_feature(shape=pa_type.shape, dtype=pa_type.value_type)
-    elif isinstance(pa_type, pa.DictionaryType):
-        raise NotImplementedError  # TODO(thom) this will need access to the dictionary as well (for labels). I.e. to the py_table
     elif isinstance(pa_type, pa.DataType):
         return Value(dtype=_arrow_to_datasets_dtype(pa_type))
     else:
@@ -1662,6 +1704,9 @@ class Features(dict):
         It also checks the schema metadata for Hugging Face Datasets features.
         Non-nullable fields are not supported and set to nullable.
 
+        Also, pa.dictionary is not supported and it uses its underlying type instead.
+        Therefore datasets convert DictionaryArray objects to their actual values.
+
         Args:
             pa_schema (`pyarrow.Schema`):
                 Arrow Schema.
@@ -1902,7 +1947,7 @@ class Features(dict):
             `list[Any]`
         """
         column = cast_to_python_objects(column)
-        return [encode_nested_example(self[column_name], obj) for obj in column]
+        return [encode_nested_example(self[column_name], obj, level=1) for obj in column]
 
     def encode_batch(self, batch):
         """
@@ -1920,7 +1965,7 @@ class Features(dict):
             raise ValueError(f"Column mismatch between batch {set(batch)} and features {set(self)}")
         for key, column in batch.items():
             column = cast_to_python_objects(column)
-            encoded_batch[key] = [encode_nested_example(self[key], obj) for obj in column]
+            encoded_batch[key] = [encode_nested_example(self[key], obj, level=1) for obj in column]
         return encoded_batch
 
     def decode_example(self, example: dict, token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None):

@@ -1,5 +1,5 @@
 ---
-TODO: Add YAML tags here. Copy-paste the tags obtained with the online tagging app: https://huggingface.co/spaces/huggingface/datasets-tagging
+TODO: "Add YAML tags here. Delete these instructions and copy-paste the YAML tags obtained with the online tagging app: https://huggingface.co/spaces/huggingface/datasets-tagging"
 ---
 
 # Dataset Card for [Dataset Name]

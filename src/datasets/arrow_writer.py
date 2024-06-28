@@ -13,17 +13,15 @@
 # Lint as: python3
 """To write records into Parquet files."""
 
-import errno
 import json
-import os
 import sys
-from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 import fsspec
 import numpy as np
 import pyarrow as pa
 import pyarrow.parquet as pq
+from fsspec.core import url_to_fs
 
 from . import config
 from .features import Features, Image, Value
@@ -42,8 +40,6 @@ from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
 from .table import array_cast, cast_array_to_feature, embed_table_storage, table_cast
 from .utils import logging
-from .utils import tqdm as hf_tqdm
-from .utils.file_utils import hash_url_to_filename
 from .utils.py_utils import asdict, first_non_null_value
 
 
@@ -204,7 +200,9 @@ class TypedSequence:
                 # We use cast_array_to_feature to support casting to custom types like Audio and Image
                 # Also, when trying type "string", we don't want to convert integers or floats to "string".
                 # We only do it if trying_type is False - since this is what the user asks for.
-                out = cast_array_to_feature(out, type, allow_number_to_str=not self.trying_type)
+                out = cast_array_to_feature(
+                    out, type, allow_primitive_to_str=not self.trying_type, allow_decimal_to_str=not self.trying_type
+                )
             return out
         except (
             TypeError,
@@ -240,7 +238,9 @@ class TypedSequence:
                             cast_to_python_objects(data, only_1d_for_numpy=True, optimize_list_casting=False)
                         )
                         if type is not None:
-                            out = cast_array_to_feature(out, type, allow_number_to_str=True)
+                            out = cast_array_to_feature(
+                                out, type, allow_primitive_to_str=True, allow_decimal_to_str=True
+                            )
                         return out
                     else:
                         raise
@@ -255,7 +255,7 @@ class TypedSequence:
             elif trying_cast_to_python_objects and "Could not convert" in str(e):
                 out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True, optimize_list_casting=False))
                 if type is not None:
-                    out = cast_array_to_feature(out, type, allow_number_to_str=True)
+                    out = cast_array_to_feature(out, type, allow_primitive_to_str=True, allow_decimal_to_str=True)
                 return out
             else:
                 raise
@@ -327,14 +327,10 @@ class ArrowWriter:
         self._disable_nullable = disable_nullable
 
         if stream is None:
-            fs_token_paths = fsspec.get_fs_token_paths(path, storage_options=storage_options)
-            self._fs: fsspec.AbstractFileSystem = fs_token_paths[0]
-            self._path = (
-                fs_token_paths[2][0]
-                if not is_remote_filesystem(self._fs)
-                else self._fs.unstrip_protocol(fs_token_paths[2][0])
-            )
-            self.stream = self._fs.open(fs_token_paths[2][0], "wb")
+            fs, path = url_to_fs(path, **(storage_options or {}))
+            self._fs: fsspec.AbstractFileSystem = fs
+            self._path = path if not is_remote_filesystem(self._fs) else self._fs.unstrip_protocol(path)
+            self.stream = self._fs.open(path, "wb")
             self._closable_stream = True
         else:
             self._fs = None
@@ -616,130 +612,3 @@ class ArrowWriter:
 
 class ParquetWriter(ArrowWriter):
     _WRITER_CLASS = pq.ParquetWriter
-
-
-class BeamWriter:
-    """
-    Shuffles and writes Examples to Arrow files.
-    The Arrow files are converted from Parquet files that are the output of Apache Beam pipelines.
-    """
-
-    def __init__(
-        self,
-        features: Optional[Features] = None,
-        schema: Optional[pa.Schema] = None,
-        path: Optional[str] = None,
-        namespace: Optional[str] = None,
-        cache_dir: Optional[str] = None,
-    ):
-        if features is None and schema is None:
-            raise ValueError("At least one of features and schema must be provided.")
-        if path is None:
-            raise ValueError("Path must be provided.")
-
-        if features is not None:
-            self._features: Features = features
-            self._schema: pa.Schema = features.arrow_schema
-        else:
-            self._schema: pa.Schema = schema
-            self._features: Features = Features.from_arrow_schema(schema)
-
-        self._path = path
-        self._parquet_path = os.path.splitext(path)[0]  # remove extension
-        self._namespace = namespace or "default"
-        self._num_examples = None
-        self._cache_dir = cache_dir or config.HF_DATASETS_CACHE
-
-    def write_from_pcollection(self, pcoll_examples):
-        """Add the final steps of the beam pipeline: write to parquet files."""
-        import apache_beam as beam
-
-        def inc_num_examples(example):
-            beam.metrics.Metrics.counter(self._namespace, "num_examples").inc()
-
-        # count examples
-        _ = pcoll_examples | "Count N. Examples" >> beam.Map(inc_num_examples)
-
-        # save dataset
-        return (
-            pcoll_examples
-            | "Get values" >> beam.Values()
-            | "Save to parquet"
-            >> beam.io.parquetio.WriteToParquet(
-                self._parquet_path, self._schema, shard_name_template="-SSSSS-of-NNNNN.parquet"
-            )
-        )
-
-    def finalize(self, metrics_query_result: dict):
-        """
-        Run after the pipeline has finished.
-        It converts the resulting parquet files to arrow and it completes the info from the pipeline metrics.
-
-        Args:
-            metrics_query_result: `dict` obtained from pipeline_results.metrics().query(m_filter). Make sure
-                that the filter keeps only the metrics for the considered split, under the namespace `split_name`.
-        """
-
-        # Beam FileSystems require the system's path separator in the older versions
-        fs, _, [parquet_path] = fsspec.get_fs_token_paths(self._parquet_path)
-        parquet_path = str(Path(parquet_path)) if not is_remote_filesystem(fs) else fs.unstrip_protocol(parquet_path)
-
-        shards = fs.glob(parquet_path + "*.parquet")
-        num_bytes = sum(fs.sizes(shards))
-        shard_lengths = get_parquet_lengths(shards)
-
-        # Convert to arrow
-        if self._path.endswith(".arrow"):
-            logger.info(f"Converting parquet files {self._parquet_path} to arrow {self._path}")
-            try:  # stream conversion
-                num_bytes = 0
-                for shard in hf_tqdm(shards, unit="shards"):
-                    with fs.open(shard, "rb") as source:
-                        with fs.open(shard.replace(".parquet", ".arrow"), "wb") as destination:
-                            shard_num_bytes, _ = parquet_to_arrow(source, destination)
-                            num_bytes += shard_num_bytes
-            except OSError as e:  # broken pipe can happen if the connection is unstable, do local conversion instead
-                if e.errno != errno.EPIPE:  # not a broken pipe
-                    raise
-                logger.warning(
-                    "Broken Pipe during stream conversion from parquet to arrow. Using local convert instead"
-                )
-                local_convert_dir = os.path.join(self._cache_dir, "beam_convert")
-                os.makedirs(local_convert_dir, exist_ok=True)
-                num_bytes = 0
-                for shard in hf_tqdm(shards, unit="shards"):
-                    local_parquet_path = os.path.join(local_convert_dir, hash_url_to_filename(shard) + ".parquet")
-                    fs.download(shard, local_parquet_path)
-                    local_arrow_path = local_parquet_path.replace(".parquet", ".arrow")
-                    shard_num_bytes, _ = parquet_to_arrow(local_parquet_path, local_arrow_path)
-                    num_bytes += shard_num_bytes
-                    remote_arrow_path = shard.replace(".parquet", ".arrow")
-                    fs.upload(local_arrow_path, remote_arrow_path)
-
-        # Save metrics
-        counters_dict = {metric.key.metric.name: metric.result for metric in metrics_query_result["counters"]}
-        self._num_examples = counters_dict["num_examples"]
-        self._num_bytes = num_bytes
-        self._shard_lengths = shard_lengths
-        return self._num_examples, self._num_bytes
-
-
-def get_parquet_lengths(sources) -> List[int]:
-    shard_lengths = []
-    for source in hf_tqdm(sources, unit="parquet files"):
-        parquet_file = pa.parquet.ParquetFile(source)
-        shard_lengths.append(parquet_file.metadata.num_rows)
-    return shard_lengths
-
-
-def parquet_to_arrow(source, destination) -> List[int]:
-    """Convert parquet file to arrow file. Inputs can be str paths or file-like objects"""
-    stream = None if isinstance(destination, str) else destination
-    parquet_file = pa.parquet.ParquetFile(source)
-    # Beam can create empty Parquet files, so we need to pass the source Parquet file's schema
-    with ArrowWriter(schema=parquet_file.schema_arrow, path=destination, stream=stream) as writer:
-        for record_batch in parquet_file.iter_batches():
-            pa_table = pa.Table.from_batches([record_batch])
-            writer.write_table(pa_table)
-        num_bytes, num_examples = writer.finalize()
-    return num_bytes, num_examples

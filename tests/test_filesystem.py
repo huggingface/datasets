@@ -4,6 +4,7 @@ import os
 import fsspec
 import pytest
 from fsspec import register_implementation
+from fsspec.core import url_to_fs
 from fsspec.registry import _registry as _fsspec_registry
 
 from datasets.filesystems import COMPRESSION_FILESYSTEMS, extract_path_from_uri, is_remote_filesystem
@@ -68,7 +69,7 @@ def test_fs_isfile(protocol, zip_jsonl_path, jsonl_gz_path):
     compressed_file_path = compressed_file_paths[protocol]
     member_file_path = "dataset.jsonl"
     path = f"{protocol}://{member_file_path}::{compressed_file_path}"
-    fs, *_ = fsspec.get_fs_token_paths(path)
+    fs, *_ = url_to_fs(path)
     assert fs.isfile(member_file_path)
     assert not fs.isfile("non_existing_" + member_file_path)
 

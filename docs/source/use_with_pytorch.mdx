@@ -40,19 +40,29 @@ To load the data as tensors on a GPU, specify the `device` argument:
 
 ## N-dimensional arrays
 
-If your dataset consists of N-dimensional arrays, you will see that by default they are considered as nested lists.
-In particular, a PyTorch formatted dataset outputs nested lists instead of a single tensor:
+If your dataset consists of N-dimensional arrays, you will see that by default they are considered as the same tensor if the shape is fixed:
 
 ```py
 >>> from datasets import Dataset
->>> data = [[[1, 2],[3, 4]],[[5, 6],[7, 8]]]
+>>> data = [[[1, 2],[3, 4]],[[5, 6],[7, 8]]]  # fixed shape
 >>> ds = Dataset.from_dict({"data": data})
 >>> ds = ds.with_format("torch")
 >>> ds[0]
-{'data': [tensor([1, 2]), tensor([3, 4])]}
+{'data': tensor([[1, 2],
+         [3, 4]])}
 ```
 
-To get a single tensor, you must explicitly use the [`Array`] feature type and specify the shape of your tensors:
+```py
+>>> from datasets import Dataset
+>>> data = [[[1, 2],[3]],[[4, 5, 6],[7, 8]]]  # varying shape
+>>> ds = Dataset.from_dict({"data": data})
+>>> ds = ds.with_format("torch")
+>>> ds[0]
+{'data': [tensor([1, 2]), tensor([3])]}
+```
+
+However this logic often requires slow shape comparisons and data copies.
+To avoid this, you must explicitly use the [`Array`] feature type and specify the shape of your tensors:
 
 ```py
 >>> from datasets import Dataset, Features, Array2D
@@ -212,6 +222,20 @@ If the dataset is split in several shards (i.e. if the dataset consists of multi
 ```
 
 In this case each worker is given a subset of the list of shards to stream from.
+
+If you need a DataLoader that you can checkpoint and resume in the middle of training, you can use the `StatefulDataLoader` from [torchdata](https://github.com/pytorch/data):
+
+```py
+>>> from torchdata.stateful_dataloader import StatefulDataLoader
+>>> my_iterable_dataset = load_dataset("deepmind/code_contests", streaming=True, split="train")
+>>> dataloader = StatefulDataLoader(my_iterable_dataset, batch_size=32, num_workers=4)
+>>> # save in the middle of training
+>>> state_dict = dataloader.state_dict()
+>>> # and resume later
+>>> dataloader.load_state_dict(state_dict)
+```
+
+This is possible thanks to [`IterableDataset.state_dict`] and [`IterableDataset.load_state_dict`].
 
 ### Distributed
 

@@ -6,7 +6,9 @@ import pytest
 
 from datasets.download.download_config import DownloadConfig
 from datasets.download.download_manager import DownloadManager
-from datasets.utils.file_utils import hash_url_to_filename
+from datasets.download.streaming_download_manager import StreamingDownloadManager
+from datasets.utils.file_utils import hash_url_to_filename, xopen
+from datasets.utils.py_utils import NestedDataStructure
 
 
 URL = "http://www.mocksite.com/file1.txt"
@@ -27,19 +29,15 @@ def mock_request(*args, **kwargs):
     return MockResponse()
 
 
-@pytest.mark.parametrize("urls_type", [str, list, dict])
+@pytest.mark.parametrize("urls_type", ["str", "list", "dict", "dict_of_dict"])
 def test_download_manager_download(urls_type, tmp_path, monkeypatch):
     import requests
 
     monkeypatch.setattr(requests, "request", mock_request)
 
     url = URL
-    if issubclass(urls_type, str):
-        urls = url
-    elif issubclass(urls_type, list):
-        urls = [url]
-    elif issubclass(urls_type, dict):
-        urls = {"train": url}
+    urls_types = {"str": url, "list": [url], "dict": {"train": url}, "dict_of_dict": {"train": {"en": url}}}
+    urls = urls_types[urls_type]
     dataset_name = "dummy"
     cache_subdir = "downloads"
     cache_dir_root = tmp_path
@@ -49,33 +47,34 @@ def test_download_manager_download(urls_type, tmp_path, monkeypatch):
     )
     dl_manager = DownloadManager(dataset_name=dataset_name, download_config=download_config)
     downloaded_paths = dl_manager.download(urls)
-    input_urls = urls
-    for downloaded_paths in [downloaded_paths]:
-        if isinstance(urls, str):
-            downloaded_paths = [downloaded_paths]
-            input_urls = [urls]
-        elif isinstance(urls, dict):
-            assert "train" in downloaded_paths.keys()
-            downloaded_paths = downloaded_paths.values()
-            input_urls = urls.values()
-        assert downloaded_paths
-        for downloaded_path, input_url in zip(downloaded_paths, input_urls):
-            assert downloaded_path == dl_manager.downloaded_paths[input_url]
-            downloaded_path = Path(downloaded_path)
-            parts = downloaded_path.parts
-            assert parts[-1] == HASH
-            assert parts[-2] == cache_subdir
-            assert downloaded_path.exists()
-            content = downloaded_path.read_text()
-            assert content == CONTENT
-            metadata_downloaded_path = downloaded_path.with_suffix(".json")
-            assert metadata_downloaded_path.exists()
-            metadata_content = json.loads(metadata_downloaded_path.read_text())
-            assert metadata_content == {"url": URL, "etag": None}
+    assert isinstance(downloaded_paths, type(urls))
+    if "urls_type".startswith("list"):
+        assert len(downloaded_paths) == len(urls)
+    elif "urls_type".startswith("dict"):
+        assert downloaded_paths.keys() == urls.keys()
+        if "urls_type" == "dict_of_dict":
+            key = list(urls.keys())[0]
+            assert isinstance(downloaded_paths[key], dict)
+            assert downloaded_paths[key].keys() == urls[key].keys()
+    for downloaded_path, url in zip(
+        NestedDataStructure(downloaded_paths).flatten(), NestedDataStructure(urls).flatten()
+    ):
+        downloaded_path = Path(downloaded_path)
+        parts = downloaded_path.parts
+        assert parts[-1] == HASH
+        assert parts[-2] == cache_subdir
+        assert downloaded_path.exists()
+        content = downloaded_path.read_text()
+        assert content == CONTENT
+        metadata_downloaded_path = downloaded_path.with_suffix(".json")
+        assert metadata_downloaded_path.exists()
+        metadata_content = json.loads(metadata_downloaded_path.read_text())
+        assert metadata_content == {"url": URL, "etag": None}
 
 
 @pytest.mark.parametrize("paths_type", [str, list, dict])
-def test_download_manager_extract(paths_type, xz_file, text_file):
+@pytest.mark.parametrize("extract_on_the_fly", [False, True])
+def test_download_manager_extract(paths_type, xz_file, text_file, extract_on_the_fly):
     filename = str(xz_file)
     if issubclass(paths_type, str):
         paths = filename
@@ -89,6 +88,7 @@ def test_download_manager_extract(paths_type, xz_file, text_file):
     download_config = DownloadConfig(
         cache_dir=cache_dir,
         use_etag=False,
+        extract_on_the_fly=extract_on_the_fly,
     )
     dl_manager = DownloadManager(dataset_name=dataset_name, download_config=download_config)
     extracted_paths = dl_manager.extract(paths)
@@ -104,14 +104,41 @@ def test_download_manager_extract(paths_type, xz_file, text_file):
         assert extracted_paths
         for extracted_path, input_path in zip(extracted_paths, input_paths):
             assert extracted_path == dl_manager.extracted_paths[input_path]
-            extracted_path = Path(extracted_path)
-            parts = extracted_path.parts
-            assert parts[-1] == hash_url_to_filename(input_path, etag=None)
-            assert parts[-2] == extracted_subdir
-            assert extracted_path.exists()
-            extracted_file_content = extracted_path.read_text()
-            expected_file_content = text_file.read_text()
-            assert extracted_file_content == expected_file_content
+            if not extract_on_the_fly:
+                extracted_path = Path(extracted_path)
+                parts = extracted_path.parts
+                assert parts[-1] == hash_url_to_filename(input_path, etag=None)
+                assert parts[-2] == extracted_subdir
+                assert extracted_path.exists()
+                extracted_file_content = extracted_path.read_text()
+                expected_file_content = text_file.read_text()
+                assert extracted_file_content == expected_file_content
+            else:
+                assert extracted_path == StreamingDownloadManager(
+                    dataset_name=dataset_name, download_config=download_config
+                ).extract(xz_file)
+                assert xopen(extracted_path).read() == text_file.read_text()
+
+
+def test_download_manager_delete_extracted_files(xz_file):
+    dataset_name = "dummy"
+    cache_dir = xz_file.parent
+    extracted_subdir = "extracted"
+    download_config = DownloadConfig(
+        cache_dir=cache_dir,
+        use_etag=False,
+    )
+    dl_manager = DownloadManager(dataset_name=dataset_name, download_config=download_config)
+    extracted_path = dl_manager.extract(xz_file)
+    assert extracted_path == dl_manager.extracted_paths[xz_file]
+    extracted_path = Path(extracted_path)
+    parts = extracted_path.parts
+    # import pdb; pdb.set_trace()
+    assert parts[-1] == hash_url_to_filename(str(xz_file), etag=None)
+    assert parts[-2] == extracted_subdir
+    assert extracted_path.exists()
+    dl_manager.delete_extracted_files()
+    assert not extracted_path.exists()
 
 
 def _test_jsonl(path, file):

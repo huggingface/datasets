@@ -62,7 +62,7 @@ Steps to make a release:
      ```
    Check that you can install it in a virtualenv/notebook by running:
      ```
-     pip install huggingface_hub fsspec aiohttp pyarrow-hotfix
+     pip install huggingface-hub fsspec aiohttp
      pip install -U tqdm
      pip install -i https://testpypi.python.org/pypi datasets
      ```
@@ -111,31 +111,29 @@ REQUIRED_PKGS = [
     # For file locking
     "filelock",
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
-    "numpy>=1.17",
+    "numpy>=1.17,<2.0.0",  # Temporary upper version
     # Backend and serialization.
-    # Minimum 12.0.0 to be able to concatenate extension arrays
-    "pyarrow>=12.0.0",
-    # As long as we allow pyarrow < 14.0.1, to fix vulnerability CVE-2023-47248
-    "pyarrow-hotfix",
+    # Minimum 15.0.0 to be able to cast dictionary types to their underlying types
+    "pyarrow>=15.0.0",
     # For smart caching dataset processing
     "dill>=0.3.0,<0.3.9",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
     # For performance gains with apache arrow
     "pandas",
     # for downloading datasets over HTTPS
-    "requests>=2.19.0",
+    "requests>=2.32.2",
     # progress bars in download and scripts
-    "tqdm>=4.62.1",
+    "tqdm>=4.66.3",
     # for fast hashing
     "xxhash",
     # for better multiprocessing
     "multiprocess",
     # to save datasets locally or on any filesystem
     # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
-    "fsspec[http]>=2023.1.0,<=2024.2.0",
+    "fsspec[http]>=2023.1.0,<=2024.5.0",
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface_hub>=0.19.4",
+    "huggingface-hub>=0.21.2",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
     # To parse YAML metadata from dataset cards
@@ -148,7 +146,7 @@ AUDIO_REQUIRE = [
 ]
 
 VISION_REQUIRE = [
-    "Pillow>=6.2.1",
+    "Pillow>=9.4.0",  # When PIL.Image.ExifTags was introduced
 ]
 
 BENCHMARKS_REQUIRE = [
@@ -166,7 +164,6 @@ TESTS_REQUIRE = [
     "pytest-datadir",
     "pytest-xdist",
     # optional dependencies
-    "apache-beam>=2.26.0; sys_platform != 'win32' and python_version<'3.10'",  # doesn't support recent dill versions for recent python versions and on windows requires pyarrow<12.0.0
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch()
     "faiss-cpu>=1.6.4",
     "jax>=0.3.14; sys_platform != 'win32'",
@@ -177,43 +174,16 @@ TESTS_REQUIRE = [
     "rarfile>=4.0",
     "sqlalchemy",
     "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1; test only on python 3.7 for now
-    "tensorflow>=2.3,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
-    "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
+    "protobuf<4.0.0",  # 4.0.0 breaks compatibility with tensorflow<2.12
+    "tensorflow>=2.6.0",
     "tiktoken",
     "torch>=2.0.0",
     "soundfile>=0.12.1",
     "transformers",
-    "typing-extensions>=4.6.1",  # due to conflict between apache-beam and pydantic
     "zstandard",
+    "polars[timezone]>=0.20.0",
 ]
 
-
-METRICS_TESTS_REQUIRE = [
-    # metrics dependencies
-    "accelerate",  # for frugalscore (calls transformers' Trainer)
-    "bert_score>=0.3.6",
-    "jiwer",
-    "langdetect",
-    "mauve-text",
-    "nltk",
-    "rouge_score",
-    "sacrebleu",
-    "sacremoses",
-    "scikit-learn",
-    "scipy",
-    "sentencepiece",  # for bleurt
-    "seqeval",
-    "spacy>=3.0.0",
-    "tldextract",
-    # to speed up pip backtracking
-    "toml>=0.10.1",
-    "typer<0.5.0",  # pinned to work with Spacy==3.4.3 on Windows: see https://github.com/tiangolo/typer/issues/427
-    "requests_file>=1.5.1",
-    "tldextract>=3.1.0",
-    "texttable>=1.6.3",
-    "Werkzeug>=1.0.1",
-    "six~=1.15.0",
-]
 
 TESTS_REQUIRE.extend(VISION_REQUIRE)
 TESTS_REQUIRE.extend(AUDIO_REQUIRE)
@@ -226,26 +196,22 @@ DOCS_REQUIRE = [
     # Following dependencies are required for the Python reference to be built properly
     "transformers",
     "torch",
-    "tensorflow>=2.2.0,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
-    "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
+    "tensorflow>=2.6.0",
 ]
 
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
     "vision": VISION_REQUIRE,
-    "apache-beam": ["apache-beam>=2.26.0"],
     "tensorflow": [
-        "tensorflow>=2.2.0,!=2.6.0,!=2.6.1; sys_platform != 'darwin' or platform_machine != 'arm64'",
-        "tensorflow-macos; sys_platform == 'darwin' and platform_machine == 'arm64'",
+        "tensorflow>=2.6.0",
     ],
-    "tensorflow_gpu": ["tensorflow-gpu>=2.2.0,!=2.6.0,!=2.6.1"],
+    "tensorflow_gpu": ["tensorflow>=2.6.0"],
     "torch": ["torch"],
     "jax": ["jax>=0.3.14", "jaxlib>=0.3.14"],
     "s3": ["s3fs"],
     "streaming": [],  # for backward compatibility
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE + DOCS_REQUIRE,
     "tests": TESTS_REQUIRE,
-    "metrics-tests": METRICS_TESTS_REQUIRE,
     "quality": QUALITY_REQUIRE,
     "benchmarks": BENCHMARKS_REQUIRE,
     "docs": DOCS_REQUIRE,
@@ -253,7 +219,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.18.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.20.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
@@ -285,6 +251,6 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
-    keywords="datasets machine learning datasets metrics",
+    keywords="datasets machine learning datasets",
     zip_safe=False,  # Required for mypy to find the py.typed file
 )

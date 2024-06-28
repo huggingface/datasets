@@ -635,6 +635,8 @@ def mock_fs(file_paths: List[str]):
         {"test": "my test file.txt"},
         {"test": "my-test_file.txt"},
         {"test": "test00001.txt"},
+        # <split>.<split> case
+        {"test": "test/train.txt"},
     ],
 )
 def test_get_data_files_patterns(base_path, data_file_per_split):

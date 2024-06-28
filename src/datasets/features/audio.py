@@ -8,8 +8,8 @@ import pyarrow as pa
 
 from .. import config
 from ..download.download_config import DownloadConfig
-from ..download.streaming_download_manager import xopen, xsplitext
 from ..table import array_cast
+from ..utils.file_utils import xopen, xsplitext
 from ..utils.py_utils import no_op_if_value_is_null, string_to_dict
 
 

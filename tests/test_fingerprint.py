@@ -23,7 +23,6 @@ from .utils import (
     require_not_windows,
     require_regex,
     require_spacy,
-    require_spacy_model,
     require_tiktoken,
     require_torch,
     require_transformers,
@@ -331,17 +330,15 @@ class HashingTest(TestCase):
         self.assertNotEqual(hash1, hash2)
 
     @require_spacy
-    @require_spacy_model("en_core_web_sm")
-    @require_spacy_model("fr_core_news_sm")
     @pytest.mark.integration
     def test_hash_spacy_model(self):
         import spacy
 
-        nlp = spacy.load("en_core_web_sm")
+        nlp = spacy.blank("en")
         hash1 = Hasher.hash(nlp)
-        nlp = spacy.load("fr_core_news_sm")
+        nlp = spacy.blank("fr")
         hash2 = Hasher.hash(nlp)
-        nlp = spacy.load("en_core_web_sm")
+        nlp = spacy.blank("en")
         hash3 = Hasher.hash(nlp)
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)
