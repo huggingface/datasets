@@ -179,7 +179,7 @@ TESTS_REQUIRE = [
     "tiktoken",
     "torch>=2.0.0",
     "soundfile>=0.12.1",
-    "transformers",
+    "transformers<4.42",
     "zstandard",
     "polars[timezone]>=0.20.0",
 ]
