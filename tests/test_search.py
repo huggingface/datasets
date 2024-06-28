@@ -10,13 +10,14 @@ import pytest
 from datasets.arrow_dataset import Dataset
 from datasets.search import ElasticSearchIndex, FaissIndex, MissingIndex
 
-from .utils import require_elasticsearch, require_faiss
+from .utils import require_elasticsearch, require_faiss, require_not_windows
 
 
 pytestmark = pytest.mark.integration
 
 
 @require_faiss
+@require_not_windows
 class IndexableDatasetTest(TestCase):
     def _create_dummy_dataset(self) -> Dataset:
         dset = Dataset.from_dict({"filename": ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]})
