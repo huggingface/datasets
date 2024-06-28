@@ -130,25 +130,33 @@ def test_image_webdataset(image_wds_file):
 
 @require_pil
 def test_image_webdataset_missing_keys(image_wds_file):
-    webdataset = WebDataset()
-    split_generators = webdataset._split_generators(DownloadManager())
-    assert webdataset.info.features == Features(
+    import PIL.Image
+
+    data_files = {"train": [image_wds_file]}
+    features = Features(
         {
             "__key__": Value("string"),
             "__url__": Value("string"),
             "json": {"caption": Value("string")},
             "jpg": Image(),
+            "jpeg": Image(),  # additional field
+            "txt": Value("string"),  # additional field
         }
     )
-    assert len(split_generators) == 1
-    split_generator = split_generators[0] 
+    webdataset = WebDataset(data_files=data_files, features=features)
+    split_generators = webdataset._split_generators(DownloadManager())
+    assert webdataset.info.features == features
+    split_generator = split_generators[0]
     assert split_generator.name == "train"
     generator = webdataset._generate_examples(**split_generator.gen_kwargs)
-    _, examples = zip(*generator)
-    assert len(examples) == 3
-    assert isinstance(examples[0]["json"], None)
-    assert isinstance(examples[0]["json"]["caption"], None)
-    assert isinstance(examples[0]["jpg"], None)
+    _, example = next(iter(generator))
+    encoded = webdataset.info.features.encode_example(example)
+    decoded = webdataset.info.features.decode_example(encoded)
+    assert isinstance(decoded["json"], dict)
+    assert isinstance(decoded["json"]["caption"], str)
+    assert isinstance(decoded["jpg"], PIL.Image.Image)
+    assert decoded["jpeg"] is None
+    assert decoded["txt"] is None
 
 
 @require_sndfile
