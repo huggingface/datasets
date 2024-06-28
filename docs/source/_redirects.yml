@@ -8,7 +8,6 @@ splits: loading#slice-splits
 processing: process
 faiss_and_ea: faiss_es
 features: about_dataset_features
-using_metrics: how_to_metrics
 exploring: access
 package_reference/logging_methods: package_reference/utilities
 # end of first_section

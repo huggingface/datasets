@@ -586,7 +586,7 @@ def _convert_github_url(url_path: str) -> Tuple[str, Optional[str]]:
 def lock_importable_file(importable_local_file: str) -> FileLock:
     # Check the directory with a unique name in our dataset folder
     # path is: ./datasets/dataset_name/hash_from_code/script.py
-    # we use a hash as subdirectory_name to be able to have multiple versions of a dataset/metric processing file together
+    # we use a hash as subdirectory_name to be able to have multiple versions of a dataset processing file together
     importable_directory_path = str(Path(importable_local_file).resolve().parent.parent)
     lock_path = importable_directory_path + ".lock"
     return FileLock(lock_path)
