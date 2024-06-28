@@ -109,10 +109,18 @@ class WebDataset(datasets.GeneratorBasedBuilder):
         audio_field_names = [
             field_name for field_name, feature in self.info.features.items() if isinstance(feature, datasets.Audio)
         ]
+        all_field_names = list(self.info.features.keys())
         for tar_idx, (tar_path, tar_iterator) in enumerate(zip(tar_paths, tar_iterators)):
             for example_idx, example in enumerate(self._get_pipeline_from_tar(tar_path, tar_iterator)):
+                for field_name in all_field_names:
+                    if field_name not in example:
+                        example[field_name] = None
                 for field_name in image_field_names + audio_field_names:
-                    example[field_name] = {"path": example["__key__"] + "." + field_name, "bytes": example[field_name]}
+                    if example[field_name] is not None:
+                        example[field_name] = {
+                            "path": example["__key__"] + "." + field_name,
+                            "bytes": example[field_name],
+                        }
                 yield f"{tar_idx}_{example_idx}", example
 
 
