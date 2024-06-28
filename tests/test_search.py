@@ -175,6 +175,7 @@ class FaissIndexTest(TestCase):
 
 
 @require_faiss
+@require_not_windows
 def test_serialization_fs(mockfs):
     import faiss
 
