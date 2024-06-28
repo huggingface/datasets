@@ -101,6 +101,7 @@ class IndexableDatasetTest(TestCase):
 
 
 @require_faiss
+@require_not_windows
 class FaissIndexTest(TestCase):
     def test_flat_ip(self):
         import faiss
