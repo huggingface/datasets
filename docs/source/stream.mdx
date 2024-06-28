@@ -415,6 +415,6 @@ This can be used with the `StatefulDataLoader` from `torchdata`:
 
 <Tip>
 
-Resuming returns exactly where the checkpoint was saved except in two cases: 1) examples from shuffle buffers are lost when resuming and the buffers are refilled with new data and 2) combinations of `.with_format(arrow)` and batched `.map()` may skip one batch.
+Resuming returns exactly where the checkpoint was saved except if `.shuffle()` is used: examples from shuffle buffers are lost when resuming and the buffers are refilled with new data.
 
 </Tip>

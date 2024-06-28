@@ -29,14 +29,11 @@ from datasets.features import Features, Image, Value
 from datasets.iterable_dataset import IterableDataset
 from datasets.load import (
     CachedDatasetModuleFactory,
-    CachedMetricModuleFactory,
-    GithubMetricModuleFactory,
     HubDatasetModuleFactoryWithoutScript,
     HubDatasetModuleFactoryWithParquetExport,
     HubDatasetModuleFactoryWithScript,
     LocalDatasetModuleFactoryWithoutScript,
     LocalDatasetModuleFactoryWithScript,
-    LocalMetricModuleFactory,
     PackagedDatasetModuleFactory,
     infer_module_for_data_files_list,
     infer_module_for_data_files_list_in_archives,
@@ -101,23 +98,6 @@ SAMPLE_DATASET_TWO_CONFIG_IN_METADATA_WITH_DEFAULT = (
     "hf-internal-testing/audiofolder_two_configs_in_metadata_with_default"
 )
 SAMPLE_DATASET_CAPITAL_LETTERS_IN_NAME = "hf-internal-testing/DatasetWithCapitalLetters"
-
-
-METRIC_LOADING_SCRIPT_NAME = "__dummy_metric1__"
-
-METRIC_LOADING_SCRIPT_CODE = """
-import datasets
-from datasets import MetricInfo, Features, Value
-
-
-class __DummyMetric1__(datasets.Metric):
-
-    def _info(self):
-        return MetricInfo(features=Features({"predictions": Value("int"), "references": Value("int")}))
-
-    def _compute(self, predictions, references):
-        return {"__dummy_metric1__": sum(int(p == r) for p, r in zip(predictions, references))}
-"""
 
 
 @pytest.fixture
@@ -327,17 +307,6 @@ def dataset_loading_script_dir_readonly(tmp_path):
     return dataset_loading_script_dir
 
 
-@pytest.fixture
-def metric_loading_script_dir(tmp_path):
-    script_name = METRIC_LOADING_SCRIPT_NAME
-    script_dir = tmp_path / script_name
-    script_dir.mkdir()
-    script_path = script_dir / f"{script_name}.py"
-    with open(script_path, "w") as f:
-        f.write(METRIC_LOADING_SCRIPT_CODE)
-    return str(script_dir)
-
-
 @pytest.mark.parametrize(
     "data_files, expected_module, expected_builder_kwargs",
     [
@@ -396,7 +365,6 @@ class ModuleFactoryTest(TestCase):
         data_dir_with_two_config_in_metadata,
         sub_data_dirs,
         dataset_loading_script_dir,
-        metric_loading_script_dir,
     ):
         self._jsonl_path = jsonl_path
         self._data_dir = data_dir
@@ -407,7 +375,6 @@ class ModuleFactoryTest(TestCase):
         self._data_dir2 = sub_data_dirs[0]
         self._sub_data_dir = sub_data_dirs[1]
         self._dataset_loading_script_dir = dataset_loading_script_dir
-        self._metric_loading_script_dir = metric_loading_script_dir
 
     def setUp(self):
         self.hf_modules_cache = tempfile.mkdtemp()
@@ -446,40 +413,6 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
         assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
-
-    def test_GithubMetricModuleFactory_with_internal_import(self):
-        # "squad_v2" requires additional imports (internal)
-        factory = GithubMetricModuleFactory(
-            "squad_v2",
-            download_config=self.download_config,
-            dynamic_modules_path=self.dynamic_modules_path,
-            trust_remote_code=True,
-        )
-        module_factory_result = factory.get_module()
-        assert importlib.import_module(module_factory_result.module_path) is not None
-
-    @pytest.mark.filterwarnings("ignore:GithubMetricModuleFactory is deprecated:FutureWarning")
-    def test_GithubMetricModuleFactory_with_external_import(self):
-        # "bleu" requires additional imports (external from github)
-        factory = GithubMetricModuleFactory(
-            "bleu",
-            download_config=self.download_config,
-            dynamic_modules_path=self.dynamic_modules_path,
-            trust_remote_code=True,
-        )
-        module_factory_result = factory.get_module()
-        assert importlib.import_module(module_factory_result.module_path) is not None
-
-    def test_LocalMetricModuleFactory(self):
-        path = os.path.join(self._metric_loading_script_dir, f"{METRIC_LOADING_SCRIPT_NAME}.py")
-        factory = LocalMetricModuleFactory(
-            path,
-            download_config=self.download_config,
-            dynamic_modules_path=self.dynamic_modules_path,
-            trust_remote_code=True,
-        )
-        module_factory_result = factory.get_module()
-        assert importlib.import_module(module_factory_result.module_path) is not None
 
     def test_LocalDatasetModuleFactoryWithScript(self):
         path = os.path.join(self._dataset_loading_script_dir, f"{DATASET_LOADING_SCRIPT_NAME}.py")
@@ -910,38 +843,15 @@ class ModuleFactoryTest(TestCase):
                 module_factory_result = factory.get_module()
                 assert importlib.import_module(module_factory_result.module_path) is not None
 
-    @pytest.mark.filterwarnings("ignore:LocalMetricModuleFactory is deprecated:FutureWarning")
-    @pytest.mark.filterwarnings("ignore:CachedMetricModuleFactory is deprecated:FutureWarning")
-    def test_CachedMetricModuleFactory(self):
-        path = os.path.join(self._metric_loading_script_dir, f"{METRIC_LOADING_SCRIPT_NAME}.py")
-        factory = LocalMetricModuleFactory(
-            path,
-            download_config=self.download_config,
-            dynamic_modules_path=self.dynamic_modules_path,
-            trust_remote_code=True,
-        )
-        module_factory_result = factory.get_module()
-        for offline_mode in OfflineSimulationMode:
-            with offline(offline_mode):
-                factory = CachedMetricModuleFactory(
-                    METRIC_LOADING_SCRIPT_NAME,
-                    dynamic_modules_path=self.dynamic_modules_path,
-                )
-                module_factory_result = factory.get_module()
-                assert importlib.import_module(module_factory_result.module_path) is not None
-
 
 @pytest.mark.parametrize(
     "factory_class",
     [
         CachedDatasetModuleFactory,
-        CachedMetricModuleFactory,
-        GithubMetricModuleFactory,
         HubDatasetModuleFactoryWithoutScript,
         HubDatasetModuleFactoryWithScript,
         LocalDatasetModuleFactoryWithoutScript,
         LocalDatasetModuleFactoryWithScript,
-        LocalMetricModuleFactory,
         PackagedDatasetModuleFactory,
     ],
 )
@@ -1076,7 +986,7 @@ class LoadTest(TestCase):
             with offline(offline_simulation_mode):
                 with self.assertRaises(ConnectionError) as context:
                     datasets.load_dataset("_dummy")
-                if offline_simulation_mode != OfflineSimulationMode.HF_DATASETS_OFFLINE_SET_TO_1:
+                if offline_simulation_mode != OfflineSimulationMode.HF_HUB_OFFLINE_SET_TO_1:
                     self.assertIn(
                         "Couldn't reach '_dummy' on the Hub",
                         str(context.exception),

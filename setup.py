@@ -62,7 +62,7 @@ Steps to make a release:
      ```
    Check that you can install it in a virtualenv/notebook by running:
      ```
-     pip install huggingface-hub fsspec aiohttp pyarrow-hotfix
+     pip install huggingface-hub fsspec aiohttp
      pip install -U tqdm
      pip install -i https://testpypi.python.org/pypi datasets
      ```
@@ -111,12 +111,10 @@ REQUIRED_PKGS = [
     # For file locking
     "filelock",
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
-    "numpy>=1.17",
+    "numpy>=1.17,<2.0.0",  # Temporary upper version
     # Backend and serialization.
     # Minimum 15.0.0 to be able to cast dictionary types to their underlying types
     "pyarrow>=15.0.0",
-    # As long as we allow pyarrow < 14.0.1, to fix vulnerability CVE-2023-47248
-    "pyarrow-hotfix",
     # For smart caching dataset processing
     "dill>=0.3.0,<0.3.9",  # tmp pin until dill has official support for determinism see https://github.com/uqfoundation/dill/issues/19
     # For performance gains with apache arrow
@@ -182,38 +180,10 @@ TESTS_REQUIRE = [
     "torch>=2.0.0",
     "soundfile>=0.12.1",
     "transformers",
-    "typing-extensions>=4.6.1",  # due to conflict between apache-beam and pydantic
     "zstandard",
     "polars[timezone]>=0.20.0",
 ]
 
-
-METRICS_TESTS_REQUIRE = [
-    # metrics dependencies
-    "accelerate",  # for frugalscore (calls transformers' Trainer)
-    "bert_score>=0.3.6",
-    "jiwer",
-    "langdetect",
-    "mauve-text",
-    "nltk",
-    "rouge_score",
-    "sacrebleu",
-    "sacremoses",
-    "scikit-learn",
-    "scipy",
-    "sentencepiece",  # for bleurt
-    "seqeval",
-    "spacy>=3.0.0",
-    "tldextract",
-    # to speed up pip backtracking
-    "toml>=0.10.1",
-    "typer<0.5.0",  # pinned to work with Spacy==3.4.3 on Windows: see https://github.com/tiangolo/typer/issues/427
-    "requests_file>=1.5.1",
-    "tldextract>=3.1.0",
-    "texttable>=1.6.3",
-    "Werkzeug>=1.0.1",
-    "six~=1.15.0",
-]
 
 TESTS_REQUIRE.extend(VISION_REQUIRE)
 TESTS_REQUIRE.extend(AUDIO_REQUIRE)
@@ -232,7 +202,6 @@ DOCS_REQUIRE = [
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
     "vision": VISION_REQUIRE,
-    "apache-beam": ["apache-beam>=2.26.0"],
     "tensorflow": [
         "tensorflow>=2.6.0",
     ],
@@ -243,7 +212,6 @@ EXTRAS_REQUIRE = {
     "streaming": [],  # for backward compatibility
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE + DOCS_REQUIRE,
     "tests": TESTS_REQUIRE,
-    "metrics-tests": METRICS_TESTS_REQUIRE,
     "quality": QUALITY_REQUIRE,
     "benchmarks": BENCHMARKS_REQUIRE,
     "docs": DOCS_REQUIRE,
@@ -251,7 +219,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="2.19.3.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="2.20.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
@@ -283,6 +251,6 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
-    keywords="datasets machine learning datasets metrics",
+    keywords="datasets machine learning datasets",
     zip_safe=False,  # Required for mypy to find the py.typed file
 )

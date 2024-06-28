@@ -7,7 +7,7 @@ from huggingface_hub import HfFileSystem
 from . import config
 from .table import CastError
 from .utils.deprecation_utils import deprecated
-from .utils.track import TrackedIterable, tracked_list, tracked_str
+from .utils.track import TrackedIterableFromGenerator, tracked_list, tracked_str
 
 
 class DatasetsError(Exception):
@@ -65,9 +65,11 @@ class DatasetGenerationCastError(DatasetGenerationError):
         )
         formatted_tracked_gen_kwargs: List[str] = []
         for gen_kwarg in gen_kwargs.values():
-            if not isinstance(gen_kwarg, (tracked_str, tracked_list, TrackedIterable)):
+            if not isinstance(gen_kwarg, (tracked_str, tracked_list, TrackedIterableFromGenerator)):
                 continue
-            while isinstance(gen_kwarg, (tracked_list, TrackedIterable)) and gen_kwarg.last_item is not None:
+            while (
+                isinstance(gen_kwarg, (tracked_list, TrackedIterableFromGenerator)) and gen_kwarg.last_item is not None
+            ):
                 gen_kwarg = gen_kwarg.last_item
             if isinstance(gen_kwarg, tracked_str):
                 gen_kwarg = gen_kwarg.get_origin()

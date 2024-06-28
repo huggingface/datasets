@@ -23,6 +23,6 @@ def test_offline_with_connection_error():
 
 
 def test_offline_with_datasets_offline_mode_enabled():
-    with offline(OfflineSimulationMode.HF_DATASETS_OFFLINE_SET_TO_1):
+    with offline(OfflineSimulationMode.HF_HUB_OFFLINE_SET_TO_1):
         with pytest.raises(ConnectionError):
             http_head("https://huggingface.co")
