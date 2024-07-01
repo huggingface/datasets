@@ -1641,6 +1641,28 @@ def test_iterable_dataset_is_torch_iterable_dataset(dataset: IterableDataset):
     assert len(out) == DEFAULT_N_EXAMPLES
 
 
+@require_torch
+def test_iterable_dataset_persists_epoch_in_torch_workers(dataset: IterableDataset):
+    from torch.utils.data import DataLoader
+
+    dataset = dataset.shuffle(seed=42)
+    dataloader = DataLoader(dataset, num_workers=1, persistent_workers=True)
+    epoch0 = list(dataloader)
+    assert list(dataloader) == epoch0
+    dataset.set_epoch(1)
+    assert list(dataloader) != epoch0
+
+    # Make sure pickle works even with torch objects in shared memory
+    dataset_copy: IterableDataset = pickle.loads(pickle.dumps(dataset))
+    dataloader = DataLoader(dataset_copy, num_workers=1, persistent_workers=True)
+    epoch1 = list(dataloader)
+    assert list(dataloader) == epoch1
+    dataset.set_epoch(2)  # this should not affect the copy
+    assert list(dataloader) == epoch1
+    dataset_copy.set_epoch(2)
+    assert list(dataloader) != epoch1
+
+
 @pytest.mark.parametrize("n", [0, 2, int(1e10)])
 def test_iterable_dataset_skip(dataset: IterableDataset, n):
     skip_dataset = dataset.skip(n)
