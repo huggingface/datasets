@@ -17,11 +17,6 @@ S3_DATASETS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/da
 CLOUDFRONT_DATASETS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/datasets/datasets"
 REPO_DATASETS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{revision}/datasets/{path}/{name}"
 
-# Metrics
-S3_METRICS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/datasets/metrics"
-CLOUDFRONT_METRICS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/datasets/metric"
-REPO_METRICS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{revision}/metrics/{path}/{name}"
-
 # Hub
 HF_ENDPOINT = os.environ.get("HF_ENDPOINT", "https://huggingface.co")
 HUB_DATASETS_URL = HF_ENDPOINT + "/datasets/{repo_id}/resolve/{revision}/{path}"
@@ -150,9 +145,6 @@ HF_CACHE_HOME = os.path.expanduser(os.getenv("HF_HOME", DEFAULT_HF_CACHE_HOME))
 DEFAULT_HF_DATASETS_CACHE = os.path.join(HF_CACHE_HOME, "datasets")
 HF_DATASETS_CACHE = Path(os.getenv("HF_DATASETS_CACHE", DEFAULT_HF_DATASETS_CACHE))
 
-DEFAULT_HF_METRICS_CACHE = os.path.join(HF_CACHE_HOME, "metrics")
-HF_METRICS_CACHE = Path(os.getenv("HF_METRICS_CACHE", DEFAULT_HF_METRICS_CACHE))
-
 DEFAULT_HF_MODULES_CACHE = os.path.join(HF_CACHE_HOME, "modules")
 HF_MODULES_CACHE = Path(os.getenv("HF_MODULES_CACHE", DEFAULT_HF_MODULES_CACHE))
 
@@ -229,7 +221,6 @@ DATASET_STATE_JSON_FILENAME = "state.json"
 DATASET_INFO_FILENAME = "dataset_info.json"
 DATASETDICT_INFOS_FILENAME = "dataset_infos.json"
 LICENSE_FILENAME = "LICENSE"
-METRIC_INFO_FILENAME = "metric_info.json"
 DATASETDICT_JSON_FILENAME = "dataset_dict.json"
 METADATA_CONFIGS_FIELD = "configs"
 REPOCARD_FILENAME = "README.md"

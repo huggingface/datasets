@@ -22,19 +22,16 @@ from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download import *
 from .features import *
 from .fingerprint import disable_caching, enable_caching, is_caching_enabled
-from .info import DatasetInfo, MetricInfo
+from .info import DatasetInfo
 from .inspect import (
     get_dataset_config_info,
     get_dataset_config_names,
     get_dataset_default_config_name,
     get_dataset_infos,
     get_dataset_split_names,
-    inspect_metric,
-    list_metrics,
 )
 from .iterable_dataset import IterableDataset
-from .load import load_dataset, load_dataset_builder, load_from_disk, load_metric
-from .metric import Metric
+from .load import load_dataset, load_dataset_builder, load_from_disk
 from .splits import (
     NamedSplit,
     NamedSplitAll,
