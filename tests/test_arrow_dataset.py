@@ -3867,10 +3867,11 @@ def data_generator():
     return _gen
 
 
-def _check_generator_dataset(dataset, expected_features):
+def _check_generator_dataset(dataset, expected_features, split):
     assert isinstance(dataset, Dataset)
     assert dataset.num_rows == 4
     assert dataset.num_columns == 3
+    assert dataset.split == split
     assert dataset.column_names == ["col_1", "col_2", "col_3"]
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
@@ -3880,9 +3881,12 @@ def _check_generator_dataset(dataset, expected_features):
 def test_dataset_from_generator_keep_in_memory(keep_in_memory, data_generator, tmp_path):
     cache_dir = tmp_path / "cache"
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    split = NamedSplit("validation")
     with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
-        dataset = Dataset.from_generator(data_generator, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
-    _check_generator_dataset(dataset, expected_features)
+        dataset = Dataset.from_generator(
+            data_generator, cache_dir=cache_dir, keep_in_memory=keep_in_memory, split=split
+        )
+    _check_generator_dataset(dataset, expected_features, split)
 
 
 @pytest.mark.parametrize(
@@ -3898,12 +3902,13 @@ def test_dataset_from_generator_keep_in_memory(keep_in_memory, data_generator, t
 def test_dataset_from_generator_features(features, data_generator, tmp_path):
     cache_dir = tmp_path / "cache"
     default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    split = NamedSplit("validation")
     expected_features = features.copy() if features else default_expected_features
     features = (
         Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
     )
-    dataset = Dataset.from_generator(data_generator, features=features, cache_dir=cache_dir)
-    _check_generator_dataset(dataset, expected_features)
+    dataset = Dataset.from_generator(data_generator, features=features, cache_dir=cache_dir, split=split)
+    _check_generator_dataset(dataset, expected_features, split)
 
 
 @require_not_windows

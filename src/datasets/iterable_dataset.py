@@ -2062,6 +2062,7 @@ class IterableDataset(DatasetInfoMixin):
         generator: Callable,
         features: Optional[Features] = None,
         gen_kwargs: Optional[dict] = None,
+        split: Optional[NamedSplit] = None,
     ) -> "IterableDataset":
         """Create an Iterable Dataset from a generator.
 
@@ -2074,7 +2075,8 @@ class IterableDataset(DatasetInfoMixin):
                 Keyword arguments to be passed to the `generator` callable.
                 You can define a sharded iterable dataset by passing the list of shards in `gen_kwargs`.
                 This can be used to improve shuffling and when iterating over the dataset with multiple workers.
-
+            split(`str`, default="train"):
+                Split name to be assigned to the dataset.
         Returns:
             `IterableDataset`
 
@@ -2105,10 +2107,7 @@ class IterableDataset(DatasetInfoMixin):
         from .io.generator import GeneratorDatasetInputStream
 
         return GeneratorDatasetInputStream(
-            generator=generator,
-            features=features,
-            gen_kwargs=gen_kwargs,
-            streaming=True,
+            generator=generator, features=features, gen_kwargs=gen_kwargs, streaming=True, split=split
         ).read()
 
     @staticmethod
