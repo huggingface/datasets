@@ -67,18 +67,7 @@ require_not_windows = pytest.mark.skipif(
 )
 
 
-def require_faiss(test_case):
-    """
-    Decorator marking a test that requires Faiss.
-
-    These tests are skipped when Faiss isn't installed.
-
-    """
-    try:
-        import faiss  # noqa
-    except ImportError:
-        test_case = unittest.skip("test requires faiss")(test_case)
-    return test_case
+require_faiss = pytest.mark.skipif(find_spec("faiss") is None or sys.platform == "win32", reason="test requires faiss")
 
 
 def require_regex(test_case):
