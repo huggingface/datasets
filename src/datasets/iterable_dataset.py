@@ -1856,7 +1856,7 @@ class IterableDataset(DatasetInfoMixin):
 
     def __setstate__(self, d):
         self.__dict__ = d
-        # Re-add torch shared memory, since shared mrmory are not always kept when pickling
+        # Re-add torch shared memory, since shared memory is not always kept when pickling
         self._epoch = _maybe_share_with_torch_persistent_workers(self._epoch)
         # Re-add torch iterable dataset as a parent class, since dynamically added parent classes are not kept when pickling
         _maybe_add_torch_iterable_dataset_parent_class(self.__class__)
