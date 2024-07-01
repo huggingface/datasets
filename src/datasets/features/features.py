@@ -32,6 +32,7 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.types
+import pyarrow_hotfix  # noqa: F401  # to fix vulnerability on pyarrow<14.0.1
 from pandas.api.extensions import ExtensionArray as PandasExtensionArray
 from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 
@@ -841,7 +842,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.api.extensions.ExtensionArray.html#pandas.api.extensions.ExtensionArray
 
         """
-        if dtype == np.dtype(object):
+        if dtype == object:
             out = np.empty(len(self._data), dtype=object)
             for i in range(len(self._data)):
                 out[i] = self._data[i]
@@ -1247,12 +1248,13 @@ def encode_nested_example(schema, obj, level=0):
     if isinstance(schema, dict):
         if level == 0 and obj is None:
             raise ValueError("Got None but expected a dictionary instead")
-        return (
-            {k: encode_nested_example(schema[k], obj.get(k), level=level + 1) for k in schema}
-            if obj is not None
-            else None
-        )
-
+        k = None
+        try:
+            ret= {k: encode_nested_example(schema[k], obj.get(k), level=level + 1) for k in schema}
+            return ret
+        except AttributeError:
+            raise ValueError(f"Got {obj} but expected a dictionary instead at level {level} ")
+    
     elif isinstance(schema, (list, tuple)):
         sub_schema = schema[0]
         if obj is None:
