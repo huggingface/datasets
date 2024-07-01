@@ -67,7 +67,7 @@ require_not_windows = pytest.mark.skipif(
 )
 
 
-require_faiss = pytest.mark.skipif(find_spec("faiss") is None, reason="test requires faiss")
+require_faiss = pytest.mark.skipif(find_spec("faiss") is None or sys.platform == "win32", reason="test requires faiss")
 
 
 def require_regex(test_case):
