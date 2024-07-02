@@ -698,7 +698,7 @@ def test_features_alignment(features: Tuple[List[Features], Features]):
 
 
 @pytest.mark.parametrize("dtype", [pa.int32, pa.string])
-def test_features_from_arrow_schema_scalar_data_type(dtype):
+def test_features_from_arrow_schema_primitive_data_type(dtype):
     schema = pa.schema([("column_name", dtype())])
     assert schema == Features.from_arrow_schema(schema).arrow_schema
 
