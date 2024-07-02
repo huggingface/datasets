@@ -4844,3 +4844,8 @@ def test_categorical_dataset(tmpdir):
 
     # Categorical types get transparently converted to string
     assert entry["animals"] == "Flamingo"
+
+
+def test_polars_round_trip():
+    ds = Dataset.from_dict({"x": [[1, 2], [3, 4, 5]], "y": ["a", "b"]})
+    assert isinstance(Dataset.from_polars(ds.to_polars()), Dataset)
