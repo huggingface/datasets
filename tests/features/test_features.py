@@ -695,3 +695,16 @@ def test_features_alignment(features: Tuple[List[Features], Features]):
     inputs, expected = features
     _check_if_features_can_be_aligned(inputs)  # Check that we can align, will raise otherwise.
     assert _align_features(inputs) == expected
+
+
+@pytest.mark.parametrize("dtype", [pa.int32, pa.string])
+def test_features_from_arrow_schema_scalar_data_type(dtype):
+    schema = pa.schema([("column_name", dtype())])
+    assert schema == Features.from_arrow_schema(schema).arrow_schema
+
+
+@pytest.mark.parametrize("scalar_dtype", [pa.int32, pa.string])
+@pytest.mark.parametrize("list_dtype", [pa.list_, pa.large_list])
+def test_features_from_arrow_schema_list_data_type(list_dtype, scalar_dtype):
+    schema = pa.schema([("column_name", list_dtype(scalar_dtype()))])
+    assert schema == Features.from_arrow_schema(schema).arrow_schema
