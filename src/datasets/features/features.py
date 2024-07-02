@@ -1143,6 +1143,7 @@ class Sequence:
             A list of features of a single type or a dictionary of types.
         length (`int`):
             Length of the sequence.
+        large (`bool`, default `False`): Whether Sequence is backed by LargeListType.
 
     Example:
 
@@ -1156,6 +1157,7 @@ class Sequence:
 
     feature: Any
     length: int = -1
+    large: bool = False
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "list"
