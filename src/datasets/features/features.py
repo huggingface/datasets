@@ -1281,7 +1281,7 @@ def encode_nested_example(schema, obj, level=0):
     elif isinstance(schema, Sequence):
         if obj is None:
             return None
-        # We allow to reverse list of dict => dict of list for compatiblity with tfds
+        # We allow to reverse list of dict => dict of list for compatibility with tfds
         if isinstance(schema.feature, dict):
             # dict of list to fill
             list_dict = {}
@@ -1349,7 +1349,7 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Uni
                     return [decode_nested_example(sub_schema, o) for o in obj]
             return list(obj)
     elif isinstance(schema, Sequence):
-        # We allow to reverse list of dict => dict of list for compatiblity with tfds
+        # We allow to reverse list of dict => dict of list for compatibility with tfds
         if isinstance(schema.feature, dict):
             return {k: decode_nested_example([schema.feature[k]], obj[k]) for k in schema.feature}
         else:
@@ -1653,7 +1653,7 @@ class Features(dict):
           <Tip>
 
            A [`~datasets.Sequence`] with a internal dictionary feature will be automatically converted into a dictionary of
-           lists. This behavior is implemented to have a compatilbity layer with the TensorFlow Datasets library but may be
+           lists. This behavior is implemented to have a compatibility layer with the TensorFlow Datasets library but may be
            un-wanted in some cases. If you don't want this behavior, you can use a python `list` instead of the
            [`~datasets.Sequence`].
 
