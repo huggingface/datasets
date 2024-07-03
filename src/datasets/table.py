@@ -1919,7 +1919,7 @@ def array_cast(
                         )
                 else:
                     array_values = array.values[
-                        array.offset * pa_type.length : (array.offset + len(array)) * pa_type.length
+                        array.offset * pa_type.list_size : (array.offset + len(array)) * pa_type.list_size
                     ]
                     return pa.FixedSizeListArray.from_arrays(_c(array_values, pa_type.value_type), pa_type.list_size)
         elif pa.types.is_list(pa_type):
