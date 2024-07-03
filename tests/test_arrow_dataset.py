@@ -4847,6 +4847,15 @@ def test_categorical_dataset(tmpdir):
 
 
 @require_polars
+def test_from_polars_large_list():
+    import polars as pl
+
+    df = pl.from_dict({"col_1": [[1, 2], [3, 4]]})
+    ds = Dataset.from_polars(df)
+    assert isinstance(ds, Dataset)
+
+
+@require_polars
 def test_polars_round_trip():
     ds = Dataset.from_dict({"x": [[1, 2], [3, 4, 5]], "y": ["a", "b"]})
     assert isinstance(Dataset.from_polars(ds.to_polars()), Dataset)
