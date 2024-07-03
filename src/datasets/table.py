@@ -9,7 +9,6 @@ import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.types
 
-from . import config
 from .utils.logging import get_logger
 
 
@@ -1320,22 +1319,16 @@ class ConcatenationTable(Table):
         if schema is not None and table.schema != schema:
             # We fix the columns by concatenating with an empty table with the right columns
             empty_table = pa.Table.from_batches([], schema=schema)
-            # we set promote=True to fill missing columns with null values
-            if config.PYARROW_VERSION.major < 14:
-                table = pa.concat_tables([table, empty_table], promote=True)
-            else:
-                table = pa.concat_tables([table, empty_table], promote_options="default")
+            # We set promote_options="default" to fill missing columns with null values
+            table = pa.concat_tables([table, empty_table], promote_options="default")
         ConcatenationTable.__init__(self, table, blocks=blocks)
 
     @staticmethod
     def _concat_blocks(blocks: List[Union[TableBlock, pa.Table]], axis: int = 0) -> pa.Table:
         pa_tables = [table.table if hasattr(table, "table") else table for table in blocks]
         if axis == 0:
-            # we set promote=True to fill missing columns with null values
-            if config.PYARROW_VERSION.major < 14:
-                return pa.concat_tables(pa_tables, promote=True)
-            else:
-                return pa.concat_tables(pa_tables, promote_options="default")
+            # We set promote_options="default" to fill missing columns with null values
+            return pa.concat_tables(pa_tables, promote_options="default")
         elif axis == 1:
             for i, table in enumerate(pa_tables):
                 if i == 0:
@@ -1906,17 +1899,9 @@ def array_cast(
                     else:
                         array = pc.list_slice(array, 0, pa_type.list_size, return_fixed_size_list=True)
                     array_values = array.values
-                    if config.PYARROW_VERSION.major < 15:
-                        return pa.Array.from_buffers(
-                            pa_type,
-                            len(array),
-                            [array.is_valid().buffers()[1]],
-                            children=[_c(array_values, pa_type.value_type)],
-                        )
-                    else:
-                        return pa.FixedSizeListArray.from_arrays(
-                            _c(array_values, pa_type.value_type), pa_type.list_size, mask=array.is_null()
-                        )
+                    return pa.FixedSizeListArray.from_arrays(
+                        _c(array_values, pa_type.value_type), pa_type.list_size, mask=array.is_null()
+                    )
                 else:
                     array_values = array.values[
                         array.offset * pa_type.list_size : (array.offset + len(array)) * pa_type.list_size
@@ -1932,17 +1917,9 @@ def array_cast(
                 array_values = array.values[
                     array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
                 ]
-                if config.PYARROW_VERSION.major < 15:
-                    return pa.Array.from_buffers(
-                        pa_type,
-                        len(array),
-                        [array.is_valid().buffers()[1]],
-                        children=[_c(array_values, pa_type.value_type)],
-                    )
-                else:
-                    return pa.FixedSizeListArray.from_arrays(
-                        _c(array_values, pa_type.value_type), pa_type.list_size, mask=array.is_null()
-                    )
+                return pa.FixedSizeListArray.from_arrays(
+                    _c(array_values, pa_type.value_type), pa_type.list_size, mask=array.is_null()
+                )
         elif pa.types.is_list(pa_type):
             array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
             return pa.ListArray.from_arrays(array_offsets, _c(array.values, pa_type.value_type), mask=array.is_null())
@@ -2055,17 +2032,9 @@ def cast_array_to_feature(
                             array = pc.list_slice(array, 0, feature.length, return_fixed_size_list=True)
                         array_values = array.values
                         casted_array_values = _c(array_values, feature.feature)
-                        if config.PYARROW_VERSION.major < 15:
-                            return pa.Array.from_buffers(
-                                pa.list_(casted_array_values.type, feature.length),
-                                len(array),
-                                [array.is_valid().buffers()[1]],
-                                children=[casted_array_values],
-                            )
-                        else:
-                            return pa.FixedSizeListArray.from_arrays(
-                                casted_array_values, feature.length, mask=array.is_null()
-                            )
+                        return pa.FixedSizeListArray.from_arrays(
+                            casted_array_values, feature.length, mask=array.is_null()
+                        )
                     else:
                         array_values = array.values[
                             array.offset * feature.length : (array.offset + len(array)) * feature.length
@@ -2091,17 +2060,7 @@ def cast_array_to_feature(
                         array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
                     ]
                     casted_array_values = _c(array_values, feature.feature)
-                    if config.PYARROW_VERSION.major < 15:
-                        return pa.Array.from_buffers(
-                            pa.list_(casted_array_values.type, feature.length),
-                            len(array),
-                            [array.is_valid().buffers()[1]],
-                            children=[casted_array_values],
-                        )
-                    else:
-                        return pa.FixedSizeListArray.from_arrays(
-                            casted_array_values, feature.length, mask=array.is_null()
-                        )
+                    return pa.FixedSizeListArray.from_arrays(casted_array_values, feature.length, mask=array.is_null())
             else:
                 array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
                 return pa.ListArray.from_arrays(array_offsets, _c(array.values, feature.feature), mask=array.is_null())
@@ -2176,15 +2135,7 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
                 array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
             ]
             embedded_array_values = _e(array_values, feature.feature)
-            if config.PYARROW_VERSION.major < 15:
-                return pa.Array.from_buffers(
-                    pa.list_(array_values.type, feature.length),
-                    len(array),
-                    [array.is_valid().buffers()[1]],
-                    children=[embedded_array_values],
-                )
-            else:
-                return pa.FixedSizeListArray.from_arrays(embedded_array_values, feature.length, mask=array.is_null())
+            return pa.FixedSizeListArray.from_arrays(embedded_array_values, feature.length, mask=array.is_null())
     if not isinstance(feature, (Sequence, dict, list, tuple)):
         return array
     raise TypeError(f"Couldn't embed array of type\n{_short_str(array.type)}\nwith\n{_short_str(feature)}")
