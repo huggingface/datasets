@@ -1320,22 +1320,16 @@ class ConcatenationTable(Table):
         if schema is not None and table.schema != schema:
             # We fix the columns by concatenating with an empty table with the right columns
             empty_table = pa.Table.from_batches([], schema=schema)
-            # we set promote=True to fill missing columns with null values
-            if config.PYARROW_VERSION.major < 14:
-                table = pa.concat_tables([table, empty_table], promote=True)
-            else:
-                table = pa.concat_tables([table, empty_table], promote_options="default")
+            # We set promote_options="default" to fill missing columns with null values
+            table = pa.concat_tables([table, empty_table], promote_options="default")
         ConcatenationTable.__init__(self, table, blocks=blocks)
 
     @staticmethod
     def _concat_blocks(blocks: List[Union[TableBlock, pa.Table]], axis: int = 0) -> pa.Table:
         pa_tables = [table.table if hasattr(table, "table") else table for table in blocks]
         if axis == 0:
-            # we set promote=True to fill missing columns with null values
-            if config.PYARROW_VERSION.major < 14:
-                return pa.concat_tables(pa_tables, promote=True)
-            else:
-                return pa.concat_tables(pa_tables, promote_options="default")
+            # We set promote_options="default" to fill missing columns with null values
+            return pa.concat_tables(pa_tables, promote_options="default")
         elif axis == 1:
             for i, table in enumerate(pa_tables):
                 if i == 0:
