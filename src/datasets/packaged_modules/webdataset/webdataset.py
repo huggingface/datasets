@@ -82,10 +82,7 @@ class WebDataset(datasets.GeneratorBasedBuilder):
                 pa.Table.from_pylist(cast_to_python_objects([example], only_1d_for_numpy=True))
                 for example in first_examples
             ]
-            if datasets.config.PYARROW_VERSION.major < 14:
-                inferred_arrow_schema = pa.concat_tables(pa_tables, promote=True).schema
-            else:
-                inferred_arrow_schema = pa.concat_tables(pa_tables, promote_options="default").schema
+            inferred_arrow_schema = pa.concat_tables(pa_tables, promote_options="default").schema
             features = datasets.Features.from_arrow_schema(inferred_arrow_schema)
 
             # Set Image types
