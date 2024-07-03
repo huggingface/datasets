@@ -1333,3 +1333,4 @@ def test_array_cast(from_type, to_type):
     arr = pa.array([[0, 1]], type=array_type[from_type])
     cast_arr = array_cast(arr, array_type[to_type])
     assert cast_arr.type == array_type[to_type]
+    assert cast_arr.values == arr.values
