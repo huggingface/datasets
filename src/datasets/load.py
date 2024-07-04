@@ -336,6 +336,10 @@ def _download_additional_modules(
             local_import_path = os.path.join(local_import_path, sub_directory)
         local_imports.append((import_name, local_import_path))
 
+    return local_imports
+
+
+def _check_library_imports(name: str, library_imports: List[Tuple[str, str]]) -> None:
     # Check library imports
     needs_to_be_installed = {}
     for library_import_name, library_import_path in library_imports:
@@ -356,7 +360,6 @@ def _download_additional_modules(
             f"{', '.join(needs_to_be_installed)}.\nPlease install {_them_str} using 'pip install "
             f"{' '.join(needs_to_be_installed.values())}' for instance."
         )
-    return local_imports
 
 
 def _copy_script_and_other_resources_in_importable_dir(
@@ -977,6 +980,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
                     " repo on your local machine. Make sure you have read the code there to avoid malicious use, then"
                     " set the option `trust_remote_code=True` to remove this error."
                 )
+        _check_library_imports(name=self.name, local_imports=local_imports)
         module_path, hash = _load_importable_file(
             dynamic_modules_path=dynamic_modules_path,
             module_namespace="datasets",
