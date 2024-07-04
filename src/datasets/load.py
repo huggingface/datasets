@@ -294,7 +294,7 @@ def increase_load_count(name: str, resource_type: str):
 
 def _download_additional_modules(
     name: str, base_path: str, imports: Tuple[str, str, str, str], download_config: Optional[DownloadConfig]
-) -> List[Tuple[str, str]]:
+) -> Tuple[List[Tuple[str, str]], List[Tuple[str, str]]]:
     """
     Download additional module for a module <name>.py at URL (or local path) <base_path>/<name>.py
     The imports must have been parsed first using ``get_imports``.
@@ -336,7 +336,7 @@ def _download_additional_modules(
             local_import_path = os.path.join(local_import_path, sub_directory)
         local_imports.append((import_name, local_import_path))
 
-    return local_imports
+    return local_imports, library_imports
 
 
 def _check_library_imports(name: str, library_imports: List[Tuple[str, str]]) -> None:
@@ -941,7 +941,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         dataset_infos_path = Path(self.path).parent / config.DATASETDICT_INFOS_FILENAME
         dataset_readme_path = Path(self.path).parent / config.REPOCARD_FILENAME
         imports = get_imports(self.path)
-        local_imports = _download_additional_modules(
+        local_imports, library_imports = _download_additional_modules(
             name=self.name,
             base_path=str(Path(self.path).parent),
             imports=imports,
@@ -980,7 +980,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
                     " repo on your local machine. Make sure you have read the code there to avoid malicious use, then"
                     " set the option `trust_remote_code=True` to remove this error."
                 )
-        _check_library_imports(name=self.name, local_imports=local_imports)
+        _check_library_imports(name=self.name, library_imports=library_imports)
         module_path, hash = _load_importable_file(
             dynamic_modules_path=dynamic_modules_path,
             module_namespace="datasets",
@@ -1505,7 +1505,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         dataset_infos_path = self.download_dataset_infos_file()
         dataset_readme_path = self.download_dataset_readme_file()
         imports = get_imports(local_path)
-        local_imports = _download_additional_modules(
+        local_imports, library_imports = _download_additional_modules(
             name=self.name,
             base_path=hf_dataset_url(self.name, "", revision=self.revision),
             imports=imports,
@@ -1544,7 +1544,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
                     " repo on your local machine. Make sure you have read the code there to avoid malicious use, then"
                     " set the option `trust_remote_code=True` to remove this error."
                 )
-        _check_library_imports(name=self.name, local_imports=local_imports)
+        _check_library_imports(name=self.name, library_imports=library_imports)
         module_path, hash = _load_importable_file(
             dynamic_modules_path=dynamic_modules_path,
             module_namespace="datasets",
