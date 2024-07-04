@@ -1544,6 +1544,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
                     " repo on your local machine. Make sure you have read the code there to avoid malicious use, then"
                     " set the option `trust_remote_code=True` to remove this error."
                 )
+        _check_library_imports(name=self.name, local_imports=local_imports)
         module_path, hash = _load_importable_file(
             dynamic_modules_path=dynamic_modules_path,
             module_namespace="datasets",
