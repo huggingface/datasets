@@ -751,6 +751,7 @@ COMPRESSION_EXTENSION_TO_PROTOCOL = {
     **{fs_class.extension.lstrip("."): fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS},
     # archive compression
     "zip": "zip",
+    "zstd": "zstd",
 }
 SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTOCOL = {
     fs_class.extension.lstrip("."): fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS
