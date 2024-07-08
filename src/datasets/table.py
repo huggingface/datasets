@@ -2057,13 +2057,9 @@ def cast_array_to_feature(
                     # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
                     array_offsets = _combine_list_array_offsets_with_mask(array)
                     if feature.large:
-                        return pa.LargeListArray.from_arrays(
-                            array_offsets, _c(array.values, feature.feature), mask=array.is_null()
-                        )
+                        return pa.LargeListArray.from_arrays(array_offsets, casted_array_values)
                     else:
-                        return pa.ListArray.from_arrays(
-                            array_offsets, _c(array.values, feature.feature), mask=array.is_null()
-                        )
+                        return pa.ListArray.from_arrays(array_offsets, casted_array_values)
     elif pa.types.is_fixed_size_list(array.type):
         # feature must be either [subfeature] or Sequence(subfeature)
         if isinstance(feature, list):
