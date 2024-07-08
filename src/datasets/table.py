@@ -1884,45 +1884,45 @@ def array_cast(
                 return array
             arrays = [_c(array.field(field.name), field.type) for field in pa_type]
             return pa.StructArray.from_arrays(arrays, fields=list(pa_type), mask=array.is_null())
-    elif pa.types.is_list(array.type):
-        if pa.types.is_fixed_size_list(pa_type):
-            if _are_list_values_of_length(array, pa_type.list_size):
-                if array.null_count > 0:
-                    # Ensure each null value in the array translates to [null] * pa_type.list_size in the array's values array
-                    array_type = array.type
-                    storage_type = _storage_type(array_type)
-                    if array_type != storage_type:
-                        # Temporarily convert to the storage type to support extension types in the slice operation
-                        array = _c(array, storage_type)
-                        array = pc.list_slice(array, 0, pa_type.list_size, return_fixed_size_list=True)
-                        array = _c(array, array_type)
-                    else:
-                        array = pc.list_slice(array, 0, pa_type.list_size, return_fixed_size_list=True)
-                    array_values = array.values
-                    return pa.FixedSizeListArray.from_arrays(
-                        _c(array_values, pa_type.value_type), pa_type.list_size, mask=array.is_null()
-                    )
-                else:
-                    array_values = array.values[
-                        array.offset * pa_type.list_size : (array.offset + len(array)) * pa_type.list_size
-                    ]
-                    return pa.FixedSizeListArray.from_arrays(_c(array_values, pa_type.value_type), pa_type.list_size)
-        elif pa.types.is_list(pa_type):
-            # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
-            array_offsets = _combine_list_array_offsets_with_mask(array)
-            return pa.ListArray.from_arrays(array_offsets, _c(array.values, pa_type.value_type))
-    elif pa.types.is_fixed_size_list(array.type):
-        if pa.types.is_fixed_size_list(pa_type):
-            if pa_type.list_size == array.type.list_size:
-                array_values = array.values[
-                    array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
-                ]
-                return pa.FixedSizeListArray.from_arrays(
-                    _c(array_values, pa_type.value_type), pa_type.list_size, mask=array.is_null()
-                )
-        elif pa.types.is_list(pa_type):
-            array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
-            return pa.ListArray.from_arrays(array_offsets, _c(array.values, pa_type.value_type), mask=array.is_null())
+    # elif pa.types.is_list(array.type):
+    #     if pa.types.is_fixed_size_list(pa_type):
+    #         if _are_list_values_of_length(array, pa_type.list_size):
+    #             if array.null_count > 0:
+    #                 # Ensure each null value in the array translates to [null] * pa_type.list_size in the array's values array
+    #                 array_type = array.type
+    #                 storage_type = _storage_type(array_type)
+    #                 if array_type != storage_type:
+    #                     # Temporarily convert to the storage type to support extension types in the slice operation
+    #                     array = _c(array, storage_type)
+    #                     array = pc.list_slice(array, 0, pa_type.list_size, return_fixed_size_list=True)
+    #                     array = _c(array, array_type)
+    #                 else:
+    #                     array = pc.list_slice(array, 0, pa_type.list_size, return_fixed_size_list=True)
+    #                 array_values = array.values
+    #                 return pa.FixedSizeListArray.from_arrays(
+    #                     _c(array_values, pa_type.value_type), pa_type.list_size, mask=array.is_null()
+    #                 )
+    #             else:
+    #                 array_values = array.values[
+    #                     array.offset * pa_type.list_size : (array.offset + len(array)) * pa_type.list_size
+    #                 ]
+    #                 return pa.FixedSizeListArray.from_arrays(_c(array_values, pa_type.value_type), pa_type.list_size)
+    #     elif pa.types.is_list(pa_type):
+    #         # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
+    #         array_offsets = _combine_list_array_offsets_with_mask(array)
+    #         return pa.ListArray.from_arrays(array_offsets, _c(array.values, pa_type.value_type))
+    # elif pa.types.is_fixed_size_list(array.type):
+    #     if pa.types.is_fixed_size_list(pa_type):
+    #         if pa_type.list_size == array.type.list_size:
+    #             array_values = array.values[
+    #                 array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
+    #             ]
+    #             return pa.FixedSizeListArray.from_arrays(
+    #                 _c(array_values, pa_type.value_type), pa_type.list_size, mask=array.is_null()
+    #             )
+    #     elif pa.types.is_list(pa_type):
+    #         array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
+    #         return pa.ListArray.from_arrays(array_offsets, _c(array.values, pa_type.value_type), mask=array.is_null())
     else:
         if pa.types.is_string(pa_type):
             if not allow_primitive_to_str and pa.types.is_primitive(array.type):
