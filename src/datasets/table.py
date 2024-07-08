@@ -1884,7 +1884,7 @@ def array_cast(
                 return array
             arrays = [_c(array.field(field.name), field.type) for field in pa_type]
             return pa.StructArray.from_arrays(arrays, fields=list(pa_type), mask=array.is_null())
-    elif pa.types.is_list(array.type):
+    elif pa.types.is_list(array.type) or pa.types.is_large_list(array.type):
         if pa.types.is_fixed_size_list(pa_type):
             if _are_list_values_of_length(array, pa_type.list_size):
                 if array.null_count > 0:
@@ -1911,6 +1911,10 @@ def array_cast(
             # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
             array_offsets = _combine_list_array_offsets_with_mask(array)
             return pa.ListArray.from_arrays(array_offsets, _c(array.values, pa_type.value_type))
+        elif pa.types.is_large_list(pa_type):
+            # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
+            array_offsets = _combine_list_array_offsets_with_mask(array)
+            return pa.LargeListArray.from_arrays(array_offsets, _c(array.values, pa_type.value_type))
     elif pa.types.is_fixed_size_list(array.type):
         if pa.types.is_fixed_size_list(pa_type):
             if pa_type.list_size == array.type.list_size:
@@ -1923,6 +1927,11 @@ def array_cast(
         elif pa.types.is_list(pa_type):
             array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
             return pa.ListArray.from_arrays(array_offsets, _c(array.values, pa_type.value_type), mask=array.is_null())
+        elif pa.types.is_large_list(pa_type):
+            array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
+            return pa.LargeListArray.from_arrays(
+                array_offsets, _c(array.values, pa_type.value_type), mask=array.is_null()
+            )
     else:
         if pa.types.is_string(pa_type):
             if not allow_primitive_to_str and pa.types.is_primitive(array.type):
