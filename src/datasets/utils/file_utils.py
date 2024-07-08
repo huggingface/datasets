@@ -749,9 +749,9 @@ BASE_KNOWN_EXTENSIONS = [
 COMPRESSION_EXTENSION_TO_PROTOCOL = {
     # single file compression
     **{fs_class.extension.lstrip("."): fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS},
+    "zstd": "zstd",  # in addition to `zst`, see ZstdFileSystem.extension
     # archive compression
     "zip": "zip",
-    "zstd": "zstd",
 }
 SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTOCOL = {
     fs_class.extension.lstrip("."): fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS
