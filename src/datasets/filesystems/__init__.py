@@ -16,7 +16,7 @@ _has_s3fs = importlib.util.find_spec("s3fs") is not None
 if _has_s3fs:
     from .s3filesystem import S3FileSystem
 
-COMPRESSION_FILESYSTEMS: List[compression.BaseCompressedFileFileSystem] = [
+COMPRESSION_FILESYSTEMS: List[type[compression.BaseCompressedFileFileSystem]] = [
     compression.Bz2FileSystem,
     compression.GzipFileSystem,
     compression.Lz4FileSystem,
