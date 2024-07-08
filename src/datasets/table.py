@@ -2005,7 +2005,7 @@ def cast_array_to_feature(
                 return array
             arrays = [_c(array.field(name), subfeature) for name, subfeature in feature.items()]
             return pa.StructArray.from_arrays(arrays, names=list(feature), mask=array.is_null())
-    elif pa.types.is_list(array.type):
+    elif pa.types.is_list(array.type) or pa.types.is_large_list(array.type):
         # feature must be either [subfeature] or Sequence(subfeature)
         if isinstance(feature, list):
             casted_array_values = _c(array.values, feature[0])
@@ -2056,7 +2056,14 @@ def cast_array_to_feature(
                 else:
                     # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
                     array_offsets = _combine_list_array_offsets_with_mask(array)
-                    return pa.ListArray.from_arrays(array_offsets, casted_array_values)
+                    if feature.large:
+                        return pa.LargeListArray.from_arrays(
+                            array_offsets, _c(array.values, feature.feature), mask=array.is_null()
+                        )
+                    else:
+                        return pa.ListArray.from_arrays(
+                            array_offsets, _c(array.values, feature.feature), mask=array.is_null()
+                        )
     elif pa.types.is_fixed_size_list(array.type):
         # feature must be either [subfeature] or Sequence(subfeature)
         if isinstance(feature, list):
@@ -2072,7 +2079,14 @@ def cast_array_to_feature(
                     return pa.FixedSizeListArray.from_arrays(casted_array_values, feature.length, mask=array.is_null())
             else:
                 array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
-                return pa.ListArray.from_arrays(array_offsets, _c(array.values, feature.feature), mask=array.is_null())
+                if feature.large:
+                    return pa.LargeListArray.from_arrays(
+                        array_offsets, _c(array.values, feature.feature), mask=array.is_null()
+                    )
+                else:
+                    return pa.ListArray.from_arrays(
+                        array_offsets, _c(array.values, feature.feature), mask=array.is_null()
+                    )
     if pa.types.is_null(array.type):
         return array_cast(
             array,
