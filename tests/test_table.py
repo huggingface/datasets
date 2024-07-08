@@ -1,6 +1,7 @@
 import copy
 import pickle
 from decimal import Decimal
+from functools import partial
 from typing import List, Union
 
 import numpy as np
@@ -1258,6 +1259,20 @@ def test_cast_list_array_to_features_sequence(arr, slice, target_value_feature):
     casted_array = cast_array_to_feature(arr, Sequence(target_value_feature, length=list_size))
     assert casted_array.type == get_nested_type(Sequence(target_value_feature, length=list_size))
     assert casted_array.to_pylist() == arr.to_pylist()
+
+
+@pytest.mark.parametrize("large_sequence", [False, True])
+@pytest.mark.parametrize("from_type", ["list", "fixed_size_list", "large_list"])
+def test_cast_array_to_feature_sequence(from_type, large_sequence):
+    list_type = {
+        "list": pa.list_,
+        "fixed_size_list": partial(pa.list_, list_size=2),
+        "large_list": pa.large_list,
+    }
+    arr = pa.array([[0, 1]], type=list_type[from_type](pa.int64()))
+    cast_array = cast_array_to_feature(arr, Sequence(Value("string"), large=large_sequence))
+    to_type = "large_list" if large_sequence else "list"
+    assert cast_array.type == list_type[to_type](pa.string())
 
 
 def test_cast_array_xd_to_features_sequence():
