@@ -4041,12 +4041,13 @@ def test_dataset_from_sql_keep_in_memory(keep_in_memory, sqlite_path, tmp_path, 
     _check_sql_dataset(dataset, expected_features)
 
 
-def test_dataset_to_json(dataset, tmp_path):
+@pytest.mark.parametrize("lines", [True, False])
+def test_dataset_to_json(lines, dataset, tmp_path):
     file_path = tmp_path / "test_path.jsonl"
-    bytes_written = dataset.to_json(path_or_buf=file_path)
+    bytes_written = dataset.to_json(path_or_buf=file_path, lines=lines)
     assert file_path.is_file()
     assert bytes_written == file_path.stat().st_size
-    df = pd.read_json(file_path, orient="records", lines=True)
+    df = pd.read_json(file_path, orient="records", lines=lines)
     assert df.shape == dataset.shape
     assert list(df.columns) == list(dataset.column_names)
 
