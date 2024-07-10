@@ -39,7 +39,6 @@ class AbstractDatasetInputStream(ABC):
         keep_in_memory: bool = False,
         streaming: bool = False,
         num_proc: Optional[int] = None,
-        split: Optional[NamedSplit] = None,
         **kwargs,
     ):
         self.features = features
@@ -48,7 +47,6 @@ class AbstractDatasetInputStream(ABC):
         self.streaming = streaming
         self.num_proc = num_proc
         self.kwargs = kwargs
-        self.split = split if split else "train"
 
     @abstractmethod
     def read(self) -> Union[Dataset, IterableDataset]:

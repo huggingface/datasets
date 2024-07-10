@@ -1068,7 +1068,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         keep_in_memory: bool = False,
         gen_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
-        split: Optional[NamedSplit] = None,
+        split: NamedSplit = Split.TRAIN,
         **kwargs,
     ):
         """Create a Dataset from a generator.
@@ -1089,10 +1089,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Number of processes when downloading and generating the dataset locally.
                 This is helpful if the dataset is made of multiple files. Multiprocessing is disabled by default.
                 If `num_proc` is greater than one, then all list values in `gen_kwargs` must be the same length. These values will be split between calls to the generator. The number of shards will be the minimum of the shortest list in `gen_kwargs` and `num_proc`.
-            split (`str`, defaults to `"train"`):
-                Split name to be assigned to the dataset.
 
                 <Added version="2.7.0"/>
+            split ([`NamedSplit`], defaults to `Split.TRAIN`):
+                Split name to be assigned to the dataset.
+
+                <Added version="2.21.0"/>
             **kwargs (additional keyword arguments):
                 Keyword arguments to be passed to :[`GeneratorConfig`].
 

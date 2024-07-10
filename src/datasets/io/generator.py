@@ -15,7 +15,7 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
         streaming: bool = False,
         gen_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
-        split: Optional[NamedSplit] = None,
+        split: NamedSplit = Split.TRAIN,
         **kwargs,
     ):
         super().__init__(
@@ -24,7 +24,6 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
             keep_in_memory=keep_in_memory,
             streaming=streaming,
             num_proc=num_proc,
-            split=split,
             **kwargs,
         )
         self.builder = Generator(
@@ -39,7 +38,7 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
     def read(self):
         # Build iterable dataset
         if self.streaming:
-            dataset = self.builder.as_streaming_dataset(split=self.split)
+            dataset = self.builder.as_streaming_dataset(split=self.builder.config.split)
         # Build regular (map-style) dataset
         else:
             download_config = None
@@ -55,6 +54,6 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
                 num_proc=self.num_proc,
             )
             dataset = self.builder.as_dataset(
-                split=self.split, verification_mode=verification_mode, in_memory=self.keep_in_memory
+                split=self.builder.config.split, verification_mode=verification_mode, in_memory=self.keep_in_memory
             )
         return dataset

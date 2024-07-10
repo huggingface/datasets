@@ -2062,7 +2062,7 @@ class IterableDataset(DatasetInfoMixin):
         generator: Callable,
         features: Optional[Features] = None,
         gen_kwargs: Optional[dict] = None,
-        split: Optional[NamedSplit] = None,
+        split: NamedSplit = Split.TRAIN,
     ) -> "IterableDataset":
         """Create an Iterable Dataset from a generator.
 
@@ -2075,7 +2075,7 @@ class IterableDataset(DatasetInfoMixin):
                 Keyword arguments to be passed to the `generator` callable.
                 You can define a sharded iterable dataset by passing the list of shards in `gen_kwargs`.
                 This can be used to improve shuffling and when iterating over the dataset with multiple workers.
-            split(`str`, default="train"):
+            split(`NamedSplit`, default=Split.TRAIN):
                 Split name to be assigned to the dataset.
         Returns:
             `IterableDataset`
@@ -2867,7 +2867,7 @@ class IterableDataset(DatasetInfoMixin):
 def _concatenate_iterable_datasets(
     dsets: List[IterableDataset],
     info: Optional[DatasetInfo] = None,
-    split: Optional[NamedSplit] = None,
+    split: NamedSplit = None,
     axis: int = 0,
 ) -> IterableDataset:
     """
