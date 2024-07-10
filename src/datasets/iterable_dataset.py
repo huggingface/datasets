@@ -2077,6 +2077,8 @@ class IterableDataset(DatasetInfoMixin):
                 This can be used to improve shuffling and when iterating over the dataset with multiple workers.
             split(`NamedSplit`, default=Split.TRAIN):
                 Split name to be assigned to the dataset.
+
+                <Added version="2.21.0"/>
         Returns:
             `IterableDataset`
 
@@ -2867,7 +2869,7 @@ class IterableDataset(DatasetInfoMixin):
 def _concatenate_iterable_datasets(
     dsets: List[IterableDataset],
     info: Optional[DatasetInfo] = None,
-    split: NamedSplit = None,
+    split: Optional[NamedSplit] = None,
     axis: int = 0,
 ) -> IterableDataset:
     """
