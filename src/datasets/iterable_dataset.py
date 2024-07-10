@@ -2075,7 +2075,7 @@ class IterableDataset(DatasetInfoMixin):
                 Keyword arguments to be passed to the `generator` callable.
                 You can define a sharded iterable dataset by passing the list of shards in `gen_kwargs`.
                 This can be used to improve shuffling and when iterating over the dataset with multiple workers.
-            split(`NamedSplit`, default=Split.TRAIN):
+            split ([`NamedSplit`], defaults to `Split.TRAIN`)
                 Split name to be assigned to the dataset.
 
                 <Added version="2.21.0"/>
