@@ -1,6 +1,6 @@
 from typing import Callable, Optional
 
-from .. import Features, NamedSplit
+from .. import Features, NamedSplit, Split
 from ..packaged_modules.generator.generator import Generator
 from .abc import AbstractDatasetInputStream
 

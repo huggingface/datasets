@@ -19,7 +19,7 @@ from .features import Features
 from .features.features import FeatureType, _align_features, _check_if_features_can_be_aligned, cast_to_python_objects
 from .formatting import PythonFormatter, TensorFormatter, get_format_type_from_alias, get_formatter
 from .info import DatasetInfo
-from .splits import NamedSplit
+from .splits import NamedSplit, Split
 from .table import cast_table_to_features, read_schema_from_file, table_cast
 from .utils.logging import get_logger
 from .utils.py_utils import Literal
