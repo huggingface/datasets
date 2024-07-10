@@ -23,14 +23,6 @@ class GeneratorConfig(datasets.BuilderConfig):
 class Generator(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = GeneratorConfig
 
-    def __init__(
-        self,
-        **kwargs,
-    ):
-        return super().__init__(
-            **kwargs,
-        )
-
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
 
