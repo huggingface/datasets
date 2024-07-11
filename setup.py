@@ -165,7 +165,7 @@ TESTS_REQUIRE = [
     "pytest-xdist",
     # optional dependencies
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch()
-    "faiss-cpu>=1.6.4",
+    "faiss-cpu>=1.8",
     "jax>=0.3.14; sys_platform != 'win32'",
     "jaxlib>=0.3.14; sys_platform != 'win32'",
     "lz4",
@@ -175,11 +175,11 @@ TESTS_REQUIRE = [
     "sqlalchemy",
     "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1; test only on python 3.7 for now
     "protobuf<4.0.0",  # 4.0.0 breaks compatibility with tensorflow<2.12
-    "tensorflow>=2.6.0",
+    "tensorflow>=2.16.0",
     "tiktoken",
     "torch>=2.0.0",
     "soundfile>=0.12.1",
-    "transformers",
+    "transformers>=4.42.3",
     "zstandard",
     "polars[timezone]>=0.20.0",
 ]
