@@ -3916,7 +3916,10 @@ def test_dataset_from_generator_split(split, data_generator, tmp_path):
     default_expected_split = "train"
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     expected_split = split if split else default_expected_split
-    dataset = Dataset.from_generator(data_generator, cache_dir=cache_dir, split=split)
+    if split:
+        dataset = Dataset.from_generator(data_generator, cache_dir=cache_dir, split=split)
+    else:
+        dataset = Dataset.from_generator(data_generator, cache_dir=cache_dir)
     _check_generator_dataset(dataset, expected_features, expected_split)
 
 
