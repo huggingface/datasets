@@ -19,6 +19,7 @@ from datasets.table import (
     _in_memory_arrow_table_from_file,
     _interpolation_search,
     _memory_mapped_arrow_table_from_file,
+    array_cast,
     cast_array_to_feature,
     concat_tables,
     embed_array_storage,
@@ -1323,3 +1324,13 @@ def test_table_iter(table, batch_size, drop_last_batch):
     if num_rows > 0:
         reloaded = pa.concat_tables(subtables)
         assert table.slice(0, num_rows).to_pydict() == reloaded.to_pydict()
+
+
+@pytest.mark.parametrize("to_type", ["list", "fixed_size_list"])
+@pytest.mark.parametrize("from_type", ["list", "fixed_size_list"])
+def test_array_cast(from_type, to_type):
+    array_type = {"list": pa.list_(pa.int64()), "fixed_size_list": pa.list_(pa.int64(), 2)}
+    arr = pa.array([[0, 1]], type=array_type[from_type])
+    cast_arr = array_cast(arr, array_type[to_type])
+    assert cast_arr.type == array_type[to_type]
+    assert cast_arr.values == arr.values
