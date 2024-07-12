@@ -189,6 +189,14 @@ TESTS_REQUIRE = [
 TESTS_REQUIRE.extend(VISION_REQUIRE)
 TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
+LIBRARIES_NOT_SUPPORTING_NUMPY2 = [
+    "faiss-cpu>=1.6.4",
+    "librosa",
+    "tensorflow>=2.6.0",
+    "transformers",
+]
+TESTS_NUMPY2_REQUIRE = [library for library in TESTS_REQUIRE if library not in LIBRARIES_NOT_SUPPORTING_NUMPY2]
+
 QUALITY_REQUIRE = ["ruff>=0.3.0"]
 
 DOCS_REQUIRE = [
@@ -213,6 +221,7 @@ EXTRAS_REQUIRE = {
     "streaming": [],  # for backward compatibility
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE + DOCS_REQUIRE,
     "tests": TESTS_REQUIRE,
+    "tests_numpy2": TESTS_NUMPY2_REQUIRE,
     "quality": QUALITY_REQUIRE,
     "benchmarks": BENCHMARKS_REQUIRE,
     "docs": DOCS_REQUIRE,
