@@ -166,7 +166,7 @@ TESTS_REQUIRE = [
     "pytest-xdist",
     # optional dependencies
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch()
-    "faiss-cpu>=1.6.4",
+    "faiss-cpu>=1.8.0.post1",
     "jax>=0.3.14; sys_platform != 'win32'",
     "jaxlib>=0.3.14; sys_platform != 'win32'",
     "lz4",
