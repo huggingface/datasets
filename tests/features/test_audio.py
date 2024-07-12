@@ -8,6 +8,7 @@ from datasets import Dataset, concatenate_datasets, load_dataset
 from datasets.features import Audio, Features, Sequence, Value
 
 from ..utils import (
+    require_librosa,
     require_sndfile,
 )
 
@@ -57,6 +58,7 @@ def test_audio_feature_type_to_arrow():
     assert features.arrow_schema == pa.schema({"sequence_of_audios": pa.list_(Audio().pa_type)})
 
 
+@require_librosa
 @pytest.mark.parametrize(
     "build_example",
     [
@@ -81,6 +83,7 @@ def test_audio_feature_encode_example(shared_datadir, build_example):
     assert decoded_example.keys() == {"path", "array", "sampling_rate"}
 
 
+@require_librosa
 @pytest.mark.parametrize(
     "build_example",
     [
@@ -101,6 +104,7 @@ def test_audio_feature_encode_example_pcm(shared_datadir, build_example):
     assert decoded_example.keys() == {"path", "array", "sampling_rate"}
 
 
+@require_librosa
 @require_sndfile
 def test_audio_decode_example(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
@@ -115,6 +119,7 @@ def test_audio_decode_example(shared_datadir):
         Audio(decode=False).decode_example(audio_path)
 
 
+@require_librosa
 @require_sndfile
 def test_audio_resampling(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
@@ -126,6 +131,7 @@ def test_audio_resampling(shared_datadir):
     assert decoded_example["sampling_rate"] == 16000
 
 
+@require_librosa
 @require_sndfile
 def test_audio_decode_example_mp3(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.mp3")
@@ -137,6 +143,7 @@ def test_audio_decode_example_mp3(shared_datadir):
     assert decoded_example["sampling_rate"] == 44100
 
 
+@require_librosa
 @require_sndfile
 def test_audio_decode_example_opus(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_48000.opus")
@@ -148,6 +155,7 @@ def test_audio_decode_example_opus(shared_datadir):
     assert decoded_example["sampling_rate"] == 48000
 
 
+@require_librosa
 @pytest.mark.parametrize("sampling_rate", [16_000, 48_000])
 def test_audio_decode_example_pcm(shared_datadir, sampling_rate):
     audio_path = str(shared_datadir / "test_audio_16000.pcm")
@@ -160,6 +168,7 @@ def test_audio_decode_example_pcm(shared_datadir, sampling_rate):
     assert decoded_example["sampling_rate"] == sampling_rate
 
 
+@require_librosa
 @require_sndfile
 def test_audio_resampling_mp3_different_sampling_rates(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.mp3")
@@ -179,6 +188,7 @@ def test_audio_resampling_mp3_different_sampling_rates(shared_datadir):
     assert decoded_example["sampling_rate"] == 48000
 
 
+@require_librosa
 @require_sndfile
 def test_dataset_with_audio_feature(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
@@ -206,6 +216,7 @@ def test_dataset_with_audio_feature(shared_datadir):
     assert column[0]["sampling_rate"] == 44100
 
 
+@require_librosa
 @require_sndfile
 def test_dataset_with_audio_feature_tar_wav(tar_wav_path):
     audio_filename = "test_audio_44100.wav"
@@ -236,6 +247,7 @@ def test_dataset_with_audio_feature_tar_wav(tar_wav_path):
     assert column[0]["sampling_rate"] == 44100
 
 
+@require_librosa
 @require_sndfile
 def test_dataset_with_audio_feature_tar_mp3(tar_mp3_path):
     audio_filename = "test_audio_44100.mp3"
@@ -300,6 +312,7 @@ def test_dataset_with_audio_feature_with_none():
     assert item["nested"]["audio"] is None
 
 
+@require_librosa
 @require_sndfile
 def test_resampling_at_loading_dataset_with_audio_feature(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
@@ -327,6 +340,7 @@ def test_resampling_at_loading_dataset_with_audio_feature(shared_datadir):
     assert column[0]["sampling_rate"] == 16000
 
 
+@require_librosa
 @require_sndfile
 def test_resampling_at_loading_dataset_with_audio_feature_mp3(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.mp3")
@@ -354,6 +368,7 @@ def test_resampling_at_loading_dataset_with_audio_feature_mp3(shared_datadir):
     assert column[0]["sampling_rate"] == 16000
 
 
+@require_librosa
 @require_sndfile
 def test_resampling_after_loading_dataset_with_audio_feature(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
@@ -384,6 +399,7 @@ def test_resampling_after_loading_dataset_with_audio_feature(shared_datadir):
     assert column[0]["sampling_rate"] == 16000
 
 
+@require_librosa
 @require_sndfile
 def test_resampling_after_loading_dataset_with_audio_feature_mp3(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.mp3")
@@ -414,6 +430,7 @@ def test_resampling_after_loading_dataset_with_audio_feature_mp3(shared_datadir)
     assert column[0]["sampling_rate"] == 16000
 
 
+@require_librosa
 @pytest.mark.parametrize(
     "build_data",
     [
@@ -438,6 +455,7 @@ def test_dataset_cast_to_audio_features(shared_datadir, build_data):
     assert item["audio"].keys() == {"path", "array", "sampling_rate"}
 
 
+@require_librosa
 def test_dataset_concatenate_audio_features(shared_datadir):
     # we use a different data structure between 1 and 2 to make sure they are compatible with each other
     audio_path = str(shared_datadir / "test_audio_44100.wav")
@@ -451,6 +469,7 @@ def test_dataset_concatenate_audio_features(shared_datadir):
     assert concatenated_dataset[1]["audio"]["array"].shape == dset2[0]["audio"]["array"].shape
 
 
+@require_librosa
 def test_dataset_concatenate_nested_audio_features(shared_datadir):
     # we use a different data structure between 1 and 2 to make sure they are compatible with each other
     audio_path = str(shared_datadir / "test_audio_44100.wav")
@@ -493,6 +512,7 @@ def test_dataset_with_audio_feature_map_is_not_decoded(shared_datadir):
         assert item == {"audio": expected_audio, "text": "Hello World!"}
 
 
+@require_librosa
 @require_sndfile
 def test_dataset_with_audio_feature_map_is_decoded(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
@@ -522,6 +542,7 @@ def test_dataset_with_audio_feature_map_is_decoded(shared_datadir):
         assert item["double_sampling_rate"] == 88200
 
 
+@require_librosa
 @require_sndfile
 def test_formatted_dataset_with_audio_feature(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
@@ -585,6 +606,7 @@ def jsonl_audio_dataset_path(shared_datadir, tmp_path_factory):
     return path
 
 
+@require_librosa
 @require_sndfile
 @pytest.mark.parametrize("streaming", [False, True])
 def test_load_dataset_with_audio_feature(streaming, jsonl_audio_dataset_path, shared_datadir):
