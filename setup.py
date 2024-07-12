@@ -158,6 +158,7 @@ BENCHMARKS_REQUIRE = [
 TESTS_REQUIRE = [
     # test dependencies
     "absl-py",
+    "decorator",
     "joblib<1.3.0",  # joblibspark doesn't support recent joblib versions
     "joblibspark",
     "pytest",
