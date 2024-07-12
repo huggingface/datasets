@@ -421,7 +421,7 @@ class BaseDatasetTest(TestCase):
                 self.assertIsInstance(dset[0]["col_2"], np.str_)
                 self.assertEqual(dset[0]["col_2"].item(), "a")
 
-    @require_numpy_on_windows
+    @require_numpy1_on_windows
     @require_torch
     def test_set_format_torch(self, in_memory):
         import torch
