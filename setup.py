@@ -190,7 +190,7 @@ TESTS_REQUIRE.extend(VISION_REQUIRE)
 TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
 LIBRARIES_NOT_SUPPORTING_NUMPY2 = [
-    "faiss-cpu>=1.6.4",
+    "faiss-cpu>=1.8.0.post1",
     "librosa",
     "tensorflow>=2.6.0",
     "transformers",
