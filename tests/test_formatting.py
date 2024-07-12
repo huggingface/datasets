@@ -21,6 +21,7 @@ from datasets.table import InMemoryTable
 from .utils import (
     require_jax,
     require_librosa,
+    require_numpy1_on_windows,
     require_pil,
     require_polars,
     require_sndfile,
@@ -353,6 +354,7 @@ class FormatterTest(TestCase):
         assert pl.Series.eq(batch["a"], pl.Series("a", _COL_A)).all()
         assert pl.Series.eq(batch["b"], pl.Series("b", _COL_B)).all()
 
+    @require_numpy1_on_windows
     @require_torch
     def test_torch_formatter(self):
         import torch
@@ -373,6 +375,7 @@ class FormatterTest(TestCase):
         torch.testing.assert_close(batch["c"], torch.tensor(_COL_C, dtype=torch.float32))
         assert batch["c"].shape == np.array(_COL_C).shape
 
+    @require_numpy1_on_windows
     @require_torch
     def test_torch_formatter_torch_tensor_kwargs(self):
         import torch
@@ -389,6 +392,7 @@ class FormatterTest(TestCase):
         self.assertEqual(batch["a"].dtype, torch.float16)
         self.assertEqual(batch["c"].dtype, torch.float16)
 
+    @require_numpy1_on_windows
     @require_torch
     @require_pil
     def test_torch_formatter_image(self):
@@ -975,6 +979,7 @@ def test_tf_formatter_sets_default_dtypes(cast_schema, arrow_table):
     tf.debugging.assert_equal(batch["col_float"], tf.ragged.constant(list_float, dtype=tf.float32))
 
 
+@require_numpy1_on_windows
 @require_torch
 @pytest.mark.parametrize(
     "cast_schema",
