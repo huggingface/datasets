@@ -189,13 +189,15 @@ TESTS_REQUIRE = [
 TESTS_REQUIRE.extend(VISION_REQUIRE)
 TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
-LIBRARIES_NOT_SUPPORTING_NUMPY2 = [
-    "faiss-cpu>=1.8.0.post1",
+NUMPY2_INCOMPATIBLE_LIBRARIES = [
+    "faiss-cpu",
     "librosa",
-    "tensorflow>=2.16.0",
-    "transformers>=4.42.0",
+    "tensorflow",
+    "transformers",
 ]
-TESTS_NUMPY2_REQUIRE = [library for library in TESTS_REQUIRE if library not in LIBRARIES_NOT_SUPPORTING_NUMPY2]
+TESTS_NUMPY2_REQUIRE = [
+    library for library in TESTS_REQUIRE if library.partition(">")[0] not in NUMPY2_INCOMPATIBLE_LIBRARIES
+]
 
 QUALITY_REQUIRE = ["ruff>=0.3.0"]
 
