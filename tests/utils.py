@@ -48,6 +48,7 @@ require_py7zr = pytest.mark.skipif(not config.PY7ZR_AVAILABLE, reason="test requ
 require_zstandard = pytest.mark.skipif(not config.ZSTANDARD_AVAILABLE, reason="test requires zstandard")
 
 # Audio
+require_librosa = pytest.mark.skipif(find_spec("soundfile") is None, reason="test requires librosa")
 require_sndfile = pytest.mark.skipif(
     # On Windows and OS X, soundfile installs sndfile
     find_spec("soundfile") is None or version.parse(importlib.metadata.version("soundfile")) < version.parse("0.12.0"),
