@@ -57,6 +57,7 @@ from .utils import (
     require_dill_gt_0_3_2,
     require_jax,
     require_not_windows,
+    require_numpy1_on_windows,
     require_pil,
     require_polars,
     require_pyspark,
@@ -420,6 +421,7 @@ class BaseDatasetTest(TestCase):
                 self.assertIsInstance(dset[0]["col_2"], np.str_)
                 self.assertEqual(dset[0]["col_2"].item(), "a")
 
+    @require_numpy_on_windows
     @require_torch
     def test_set_format_torch(self, in_memory):
         import torch
@@ -1525,6 +1527,7 @@ class BaseDatasetTest(TestCase):
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertRaises(ValueError, dset.map, func_return_multi_row_pd_dataframe)
 
+    @require_numpy1_on_windows
     @require_torch
     def test_map_torch(self, in_memory):
         import torch
@@ -1590,6 +1593,7 @@ class BaseDatasetTest(TestCase):
                     )
                     self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
 
+    @require_numpy1_on_windows
     @require_torch
     def test_map_tensor_batched(self, in_memory):
         import torch
