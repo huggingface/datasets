@@ -70,6 +70,11 @@ require_not_windows = pytest.mark.skipif(
 
 require_faiss = pytest.mark.skipif(find_spec("faiss") is None or sys.platform == "win32", reason="test requires faiss")
 
+require_numpy1_on_windows = pytest.mark.skipif(
+    version.parse(importlib.metadata.version("numpy")) >= version.parse("2.0.0") and sys.platform == "win32",
+    reason="test requires faiss",
+)
+
 
 def require_regex(test_case):
     """
