@@ -111,7 +111,7 @@ REQUIRED_PKGS = [
     # For file locking
     "filelock",
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
-    "numpy>=1.17,<2.0.0",  # Temporary upper version
+    "numpy>=1.17",
     # Backend and serialization.
     # Minimum 15.0.0 to be able to cast dictionary types to their underlying types
     "pyarrow>=15.0.0",
@@ -166,7 +166,7 @@ TESTS_REQUIRE = [
     "pytest-xdist",
     # optional dependencies
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch()
-    "faiss-cpu>=1.6.4",
+    "faiss-cpu>=1.8.0.post1",  # Pins numpy < 2
     "jax>=0.3.14; sys_platform != 'win32'",
     "jaxlib>=0.3.14; sys_platform != 'win32'",
     "lz4",
@@ -176,11 +176,11 @@ TESTS_REQUIRE = [
     "sqlalchemy",
     "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1; test only on python 3.7 for now
     "protobuf<4.0.0",  # 4.0.0 breaks compatibility with tensorflow<2.12
-    "tensorflow>=2.6.0",
+    "tensorflow>=2.6.0",  # Issue installing 2.16.0 with Python 3.8; we rely on other dependencies pinning numpy < 2
     "tiktoken",
     "torch>=2.0.0",
     "soundfile>=0.12.1",
-    "transformers",
+    "transformers>=4.42.0",  # Pins numpy < 2
     "typing-extensions>=4.6.1",  # due to conflict between apache-beam and pydantic
     "zstandard",
     "polars[timezone]>=0.20.0",
@@ -217,6 +217,16 @@ METRICS_TESTS_REQUIRE = [
 TESTS_REQUIRE.extend(VISION_REQUIRE)
 TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
+NUMPY2_INCOMPATIBLE_LIBRARIES = [
+    "faiss-cpu",
+    "librosa",
+    "tensorflow",
+    "transformers",
+]
+TESTS_NUMPY2_REQUIRE = [
+    library for library in TESTS_REQUIRE if library.partition(">")[0] not in NUMPY2_INCOMPATIBLE_LIBRARIES
+]
+
 QUALITY_REQUIRE = ["ruff>=0.3.0"]
 
 DOCS_REQUIRE = [
@@ -242,6 +252,7 @@ EXTRAS_REQUIRE = {
     "streaming": [],  # for backward compatibility
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE + DOCS_REQUIRE,
     "tests": TESTS_REQUIRE,
+    "tests_numpy2": TESTS_NUMPY2_REQUIRE,
     "metrics-tests": METRICS_TESTS_REQUIRE,
     "quality": QUALITY_REQUIRE,
     "benchmarks": BENCHMARKS_REQUIRE,

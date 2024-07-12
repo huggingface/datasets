@@ -51,6 +51,7 @@ from .utils import (
     is_rng_equal,
     require_dill_gt_0_3_2,
     require_not_windows,
+    require_numpy1_on_windows,
     require_pyspark,
     require_tf,
     require_torch,
@@ -1279,6 +1280,7 @@ def test_iterable_dataset_from_generator_with_shards():
     assert dataset.n_shards == len(shard_names)
 
 
+@require_numpy1_on_windows
 def test_iterable_dataset_from_file(dataset: IterableDataset, arrow_file: str):
     with assert_arrow_memory_doesnt_increase():
         dataset_from_file = IterableDataset.from_file(arrow_file)

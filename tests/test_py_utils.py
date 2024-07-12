@@ -18,7 +18,7 @@ from datasets.utils.py_utils import (
     zip_dict,
 )
 
-from .utils import require_tf, require_torch
+from .utils import require_numpy1_on_windows, require_tf, require_torch
 
 
 def np_sum(x):  # picklable for multiprocessing
@@ -151,6 +151,7 @@ class TempSeedTest(TestCase):
         np.testing.assert_equal(out1, out2)
         self.assertGreater(np.abs(out1 - out3).sum(), 0)
 
+    @require_numpy1_on_windows
     @require_torch
     def test_torch(self):
         import torch
