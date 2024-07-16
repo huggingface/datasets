@@ -10,7 +10,7 @@ import pytest
 
 from datasets import Array2D
 from datasets.arrow_dataset import Dataset
-from datasets.features import Audio, ClassLabel, Features, Image, Sequence, Value
+from datasets.features import Audio, ClassLabel, Features, Image, Music, Sequence, Value
 from datasets.features.features import (
     _align_features,
     _arrow_to_datasets_dtype,
@@ -609,8 +609,10 @@ CUSTOM_FEATURES = [
     Features({"array": Array2D(dtype="float32", shape=(4, 4))}),
     Features({"image": Image()}),
     Features({"audio": Audio()}),
+    Features({"music": Music()}),
     Features({"image": Image(decode=False)}),
     Features({"audio": Audio(decode=False)}),
+    Features({"music": Music(decode=False)}),
     Features({"translation": Translation(["en", "fr"])}),
     Features({"translation": TranslationVariableLanguages(["en", "fr"])}),
 ]

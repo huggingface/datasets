@@ -19,6 +19,7 @@ class WebDataset(datasets.GeneratorBasedBuilder):
     DEFAULT_WRITER_BATCH_SIZE = 100
     IMAGE_EXTENSIONS: List[str]  # definition at the bottom of the script
     AUDIO_EXTENSIONS: List[str]  # definition at the bottom of the script
+    MUSIC_EXTENSIONS: List[str]  # definition at the bottom of the script
     DECODERS: Dict[str, Callable[[Any], Any]]  # definition at the bottom of the script
     NUM_EXAMPLES_FOR_FEATURES_INFERENCE = 5
 
@@ -95,24 +96,31 @@ class WebDataset(datasets.GeneratorBasedBuilder):
                 extension = field_name.rsplit(".", 1)[-1]
                 if extension in self.AUDIO_EXTENSIONS:
                     features[field_name] = datasets.Audio()
+            # Set Music types
+            for field_name in first_examples[0]:
+                extension = field_name.rsplit(".", 1)[-1]
+                if extension in self.MUSIC_EXTENSIONS:
+                    features[field_name] = datasets.Music()
             self.info.features = features
 
         return splits
 
     def _generate_examples(self, tar_paths, tar_iterators):
-        image_field_names = [
-            field_name for field_name, feature in self.info.features.items() if isinstance(feature, datasets.Image)
-        ]
-        audio_field_names = [
-            field_name for field_name, feature in self.info.features.items() if isinstance(feature, datasets.Audio)
-        ]
+        image_field_names, audio_field_names, music_field_names = [], [], []
+        for field_name, feature in self.info.features.items():
+            if isinstance(feature, datasets.Image):
+                image_field_names.append(field_name)
+            elif isinstance(feature, datasets.Audio):
+                audio_field_names.append(field_name)
+            elif isinstance(feature, datasets.Music):
+                music_field_names.append(field_name)
         all_field_names = list(self.info.features.keys())
         for tar_idx, (tar_path, tar_iterator) in enumerate(zip(tar_paths, tar_iterators)):
             for example_idx, example in enumerate(self._get_pipeline_from_tar(tar_path, tar_iterator)):
                 for field_name in all_field_names:
                     if field_name not in example:
                         example[field_name] = None
-                for field_name in image_field_names + audio_field_names:
+                for field_name in image_field_names + audio_field_names + music_field_names:
                     if example[field_name] is not None:
                         example[field_name] = {
                             "path": example["__key__"] + "." + field_name,
@@ -243,6 +251,8 @@ AUDIO_EXTENSIONS = [
     "opus",
 ]
 WebDataset.AUDIO_EXTENSIONS = AUDIO_EXTENSIONS
+MUSIC_EXTENSIONS = ["mid", "midi", "abc"]
+WebDataset.MUSIC_EXTENSIONS = MUSIC_EXTENSIONS
 
 
 def text_loads(data: bytes):

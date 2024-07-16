@@ -42,6 +42,7 @@ from ..utils import experimental, logging
 from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
 from .image import Image, encode_pil_image
+from .music import Music
 from .translation import Translation, TranslationVariableLanguages
 
 
@@ -1178,6 +1179,7 @@ FeatureType = Union[
     Array5D,
     Audio,
     Image,
+    Music,
 ]
 
 
@@ -1305,7 +1307,7 @@ def encode_nested_example(schema, obj, level=0):
             return list(obj)
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
-    elif isinstance(schema, (Audio, Image, ClassLabel, TranslationVariableLanguages, Value, _ArrayXD)):
+    elif isinstance(schema, (Audio, Image, Music, ClassLabel, TranslationVariableLanguages, Value, _ArrayXD)):
         return schema.encode_example(obj) if obj is not None else None
     # Other object should be directly convertible to a native Arrow type (like Translation and Translation)
     return obj
@@ -1344,7 +1346,7 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Uni
         else:
             return decode_nested_example([schema.feature], obj)
     # Object with special decoding:
-    elif isinstance(schema, (Audio, Image)):
+    elif isinstance(schema, (Audio, Image, Music)):
         # we pass the token to read and decode files from private repositories in streaming mode
         if obj is not None and schema.decode:
             return schema.decode_example(obj, token_per_repo_id=token_per_repo_id)
@@ -1363,6 +1365,7 @@ _FEATURE_TYPES: Dict[str, FeatureType] = {
     Array5D.__name__: Array5D,
     Audio.__name__: Audio,
     Image.__name__: Image,
+    Music.__name__: Music,
 }
 
 

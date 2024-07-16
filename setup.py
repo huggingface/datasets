@@ -150,6 +150,10 @@ VISION_REQUIRE = [
     "Pillow>=9.4.0",  # When PIL.Image.ExifTags was introduced
 ]
 
+MUSIC_REQUIRE = [
+    "symusic>=0.4.8",
+]
+
 BENCHMARKS_REQUIRE = [
     "tensorflow==2.12.0",
     "torch==2.0.1",
@@ -190,6 +194,7 @@ TESTS_REQUIRE = [
 
 TESTS_REQUIRE.extend(VISION_REQUIRE)
 TESTS_REQUIRE.extend(AUDIO_REQUIRE)
+TESTS_REQUIRE.extend(MUSIC_REQUIRE)
 
 NUMPY2_INCOMPATIBLE_LIBRARIES = [
     "faiss-cpu",
@@ -214,6 +219,7 @@ DOCS_REQUIRE = [
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
     "vision": VISION_REQUIRE,
+    "music": MUSIC_REQUIRE,
     "tensorflow": [
         "tensorflow>=2.6.0",
     ],

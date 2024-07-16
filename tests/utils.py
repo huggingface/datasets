@@ -178,6 +178,18 @@ def require_pil(test_case):
     return test_case
 
 
+def require_symusic(test_case):
+    """
+    Decorator marking a test that requires symusic.
+
+    These tests are skipped when symusic isn't installed.
+
+    """
+    if not config.SYMUSIC_AVAILABLE:
+        test_case = unittest.skip("test requires symusic")(test_case)
+    return test_case
+
+
 def require_transformers(test_case):
     """
     Decorator marking a test that requires transformers.

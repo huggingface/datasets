@@ -123,6 +123,7 @@ SQLALCHEMY_AVAILABLE = importlib.util.find_spec("sqlalchemy") is not None
 
 # Optional tools for feature decoding
 PIL_AVAILABLE = importlib.util.find_spec("PIL") is not None
+SYMUSIC_AVAILABLE = importlib.util.find_spec("symusic") is not None
 IS_OPUS_SUPPORTED = importlib.util.find_spec("soundfile") is not None and version.parse(
     importlib.import_module("soundfile").__libsndfile_version__
 ) >= version.parse("1.0.31")
@@ -191,6 +192,7 @@ MAX_SHARD_SIZE = "500MB"
 # Parquet configuration
 PARQUET_ROW_GROUP_SIZE_FOR_AUDIO_DATASETS = 100
 PARQUET_ROW_GROUP_SIZE_FOR_IMAGE_DATASETS = 100
+PARQUET_ROW_GROUP_SIZE_FOR_MUSIC_DATASETS = 100
 PARQUET_ROW_GROUP_SIZE_FOR_BINARY_DATASETS = 100
 
 # Offline mode

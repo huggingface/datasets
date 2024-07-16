@@ -5,7 +5,7 @@ import fsspec
 import numpy as np
 import pyarrow.parquet as pq
 
-from .. import Audio, Dataset, Features, Image, NamedSplit, Value, config
+from .. import Audio, Dataset, Features, Image, Music, NamedSplit, Value, config
 from ..features.features import FeatureType, _visit
 from ..formatting import query_table
 from ..packaged_modules import _PACKAGED_DATASETS_MODULES
@@ -42,6 +42,8 @@ def get_writer_batch_size(features: Features) -> Optional[int]:
             batch_size = min(batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_IMAGE_DATASETS)
         elif isinstance(feature, Audio):
             batch_size = min(batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_AUDIO_DATASETS)
+        elif isinstance(feature, Music):
+            batch_size = min(batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_MUSIC_DATASETS)
         elif isinstance(feature, Value) and feature.dtype == "binary":
             batch_size = min(batch_size, config.PARQUET_ROW_GROUP_SIZE_FOR_BINARY_DATASETS)
 

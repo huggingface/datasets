@@ -77,7 +77,7 @@ from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .data_files import sanitize_patterns
 from .download.streaming_download_manager import xgetsize
-from .features import Audio, ClassLabel, Features, Image, Sequence, Value
+from .features import Audio, ClassLabel, Features, Image, Music, Sequence, Value
 from .features.features import (
     FeatureType,
     _align_features,
@@ -315,7 +315,7 @@ class TensorflowDatasetMixin:
             else:
                 raise RuntimeError(
                     f"Unrecognized array dtype {np_arrays[0].dtype}. \n"
-                    "Nested types and image/audio types are not supported yet."
+                    "Nested types and image/audio/music types are not supported yet."
                 )
             shapes = [array.shape for array in np_arrays]
             static_shape = []
@@ -1448,9 +1448,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         Saves a dataset to a dataset directory, or in a filesystem using any implementation of `fsspec.spec.AbstractFileSystem`.
 
-        For [`Image`] and [`Audio`] data:
+        For [`Image`], [`Audio`] and [`Music`] data:
 
-        All the Image() and Audio() data are stored in the arrow files.
+        All the Image(), Audio() and Music() data are stored in the arrow files.
         If you want to store paths or urls, please use the Value("string") type.
 
         Args:
@@ -5243,7 +5243,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
             def extra_nbytes_visitor(array, feature):
                 nonlocal extra_nbytes
-                if isinstance(feature, (Audio, Image)):
+                if isinstance(feature, (Audio, Image, Music)):
                     for x in array.to_pylist():
                         if x is not None and x["bytes"] is None and x["path"] is not None:
                             size = xgetsize(x["path"])
@@ -5489,8 +5489,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Pushes the dataset to the hub as a Parquet dataset.
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
 
-        The resulting Parquet files are self-contained by default. If your dataset contains [`Image`] or [`Audio`]
-        data, the Parquet files will store the bytes of your images or audio files.
+        The resulting Parquet files are self-contained by default. If your dataset contains [`Image`], [`Audio`] or
+        [`Music`] data, the Parquet files will store the bytes of your images, audio or music files.
         You can disable this by setting `embed_external_files` to `False`.
 
         Args:
@@ -5552,7 +5552,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Whether to embed file bytes in the shards.
                 In particular, this will do the following before the push for the fields of type:
 
-                - [`Audio`] and [`Image`]: remove local path information and embed file content in the Parquet files.
+                - [`Audio`], [`Image`] and [`Music`]: remove local path information and embed file content in the Parquet files.
 
         Return:
             huggingface_hub.CommitInfo
