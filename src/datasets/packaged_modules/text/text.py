@@ -1,6 +1,5 @@
 import itertools
-import warnings
-from dataclasses import InitVar, dataclass
+from dataclasses import dataclass
 from io import StringIO
 from typing import Optional
 
@@ -20,21 +19,10 @@ class TextConfig(datasets.BuilderConfig):
 
     features: Optional[datasets.Features] = None
     encoding: str = "utf-8"
-    errors: InitVar[Optional[str]] = "deprecated"
     encoding_errors: Optional[str] = None
     chunksize: int = 10 << 20  # 10MB
     keep_linebreaks: bool = False
     sample_by: str = "line"
-
-    def __post_init__(self, errors):
-        super().__post_init__()
-        if errors != "deprecated":
-            warnings.warn(
-                "'errors' was deprecated in favor of 'encoding_errors' in version 2.14.0 and will be removed in 3.0.0.\n"
-                f"You can remove this warning by passing 'encoding_errors={errors}' instead.",
-                FutureWarning,
-            )
-            self.encoding_errors = errors
 
 
 class Text(datasets.ArrowBasedBuilder):

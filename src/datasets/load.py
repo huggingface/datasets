@@ -497,7 +497,7 @@ def infer_module_for_data_files_list(
 
     Args:
         data_files_list (DataFilesList): List of data files.
-        download_config (bool or str, optional): mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config (bool or str, optional): Mainly use `token` or `storage_options` to support different platforms and auth types.
 
     Returns:
         tuple[str, dict[str, Any]]: Tuple with
@@ -531,7 +531,7 @@ def infer_module_for_data_files_list_in_archives(
 
     Args:
         data_files_list (DataFilesList): List of data files.
-        download_config (bool or str, optional): mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config (bool or str, optional): Mainly use `token` or `storage_options` to support different platforms and auth types.
 
     Returns:
         tuple[str, dict[str, Any]]: Tuple with
@@ -1670,7 +1670,6 @@ def load_dataset_builder(
     download_mode: Optional[Union[DownloadMode, str]] = None,
     revision: Optional[Union[str, Version]] = None,
     token: Optional[Union[bool, str]] = None,
-    use_auth_token="deprecated",
     storage_options: Optional[Dict] = None,
     trust_remote_code: Optional[bool] = None,
     _require_default_config_name=True,
@@ -1734,15 +1733,6 @@ def load_dataset_builder(
         token (`str` or `bool`, *optional*):
             Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If `True`, or not specified, will get token from `"~/.huggingface"`.
-        use_auth_token (`str` or `bool`, *optional*):
-            Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-            If `True`, or not specified, will get token from `"~/.huggingface"`.
-
-            <Deprecated version="2.14.0">
-
-            `use_auth_token` was deprecated in favor of `token` in version 2.14.0 and will be removed in 3.0.0.
-
-            </Deprecated>
         storage_options (`dict`, *optional*, defaults to `None`):
             **Experimental**. Key/value pairs to be passed on to the dataset file-system backend, if any.
 
@@ -1777,13 +1767,6 @@ def load_dataset_builder(
      'text': Value(dtype='string', id=None)}
     ```
     """
-    if use_auth_token != "deprecated":
-        warnings.warn(
-            "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
-            "You can remove this warning by passing 'token=<use_auth_token>' instead.",
-            FutureWarning,
-        )
-        token = use_auth_token
     download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     if token is not None:
         download_config = download_config.copy() if download_config else DownloadConfig()
@@ -1858,12 +1841,10 @@ def load_dataset(
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[Union[DownloadMode, str]] = None,
     verification_mode: Optional[Union[VerificationMode, str]] = None,
-    ignore_verifications="deprecated",
     keep_in_memory: Optional[bool] = None,
     save_infos: bool = False,
     revision: Optional[Union[str, Version]] = None,
     token: Optional[Union[bool, str]] = None,
-    use_auth_token="deprecated",
     task="deprecated",
     streaming: bool = False,
     num_proc: Optional[int] = None,
@@ -1954,15 +1935,6 @@ def load_dataset(
             Verification mode determining the checks to run on the downloaded/processed dataset information (checksums/size/splits/...).
 
             <Added version="2.9.1"/>
-        ignore_verifications (`bool`, defaults to `False`):
-            Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...).
-
-            <Deprecated version="2.9.1">
-
-            `ignore_verifications` was deprecated in version 2.9.1 and will be removed in 3.0.0.
-            Please use `verification_mode` instead.
-
-            </Deprecated>
         keep_in_memory (`bool`, defaults to `None`):
             Whether to copy the dataset in-memory. If `None`, the dataset
             will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
@@ -1976,15 +1948,6 @@ def load_dataset(
         token (`str` or `bool`, *optional*):
             Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If `True`, or not specified, will get token from `"~/.huggingface"`.
-        use_auth_token (`str` or `bool`, *optional*):
-            Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-            If `True`, or not specified, will get token from `"~/.huggingface"`.
-
-            <Deprecated version="2.14.0">
-
-            `use_auth_token` was deprecated in favor of `token` in version 2.14.0 and will be removed in 3.0.0.
-
-            </Deprecated>
         task (`str`):
             The task to prepare the dataset for during training and evaluation. Casts the dataset's [`Features`] to standardized column names and types as detailed in `datasets.tasks`.
 
@@ -2079,20 +2042,6 @@ def load_dataset(
     >>> ds = load_dataset('imagefolder', data_dir='/path/to/images', split='train')
     ```
     """
-    if use_auth_token != "deprecated":
-        warnings.warn(
-            "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
-            "You can remove this warning by passing 'token=<use_auth_token>' instead.",
-            FutureWarning,
-        )
-        token = use_auth_token
-    if ignore_verifications != "deprecated":
-        verification_mode = VerificationMode.NO_CHECKS if ignore_verifications else VerificationMode.ALL_CHECKS
-        warnings.warn(
-            "'ignore_verifications' was deprecated in favor of 'verification_mode' in version 2.9.1 and will be removed in 3.0.0.\n"
-            f"You can remove this warning by passing 'verification_mode={verification_mode.value}' instead.",
-            FutureWarning,
-        )
     if task != "deprecated":
         warnings.warn(
             "'task' was deprecated in version 2.13.0 and will be removed in 3.0.0.\n",
@@ -2168,7 +2117,7 @@ def load_dataset(
 
 
 def load_from_disk(
-    dataset_path: str, fs="deprecated", keep_in_memory: Optional[bool] = None, storage_options: Optional[dict] = None
+    dataset_path: str, keep_in_memory: Optional[bool] = None, storage_options: Optional[dict] = None
 ) -> Union[Dataset, DatasetDict]:
     """
     Loads a dataset that was previously saved using [`~Dataset.save_to_disk`] from a dataset directory, or
@@ -2179,16 +2128,6 @@ def load_from_disk(
             Path (e.g. `"dataset/train"`) or remote URI (e.g.
             `"s3://my-bucket/dataset/train"`) of the [`Dataset`] or [`DatasetDict`] directory where the dataset will be
             loaded from.
-        fs (`~filesystems.S3FileSystem` or `fsspec.spec.AbstractFileSystem`, *optional*):
-            Instance of the remote filesystem used to download the files from.
-
-            <Deprecated version="2.9.0">
-
-            `fs` was deprecated in version 2.9.0 and will be removed in 3.0.0.
-            Please use `storage_options` instead, e.g. `storage_options=fs.storage_options`.
-
-            </Deprecated>
-
         keep_in_memory (`bool`, defaults to `None`):
             Whether to copy the dataset in-memory. If `None`, the dataset
             will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
@@ -2211,14 +2150,6 @@ def load_from_disk(
     >>> ds = load_from_disk('path/to/dataset/directory')
     ```
     """
-    if fs != "deprecated":
-        warnings.warn(
-            "'fs' was deprecated in favor of 'storage_options' in version 2.9.0 and will be removed in 3.0.0.\n"
-            "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
-            FutureWarning,
-        )
-        storage_options = fs.storage_options
-
     fs: fsspec.AbstractFileSystem
     fs, *_ = url_to_fs(dataset_path, **(storage_options or {}))
     if not fs.exists(dataset_path):

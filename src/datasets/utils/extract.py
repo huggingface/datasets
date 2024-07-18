@@ -321,31 +321,12 @@ class Extractor:
         cls,
         input_path: Union[Path, str],
         output_path: Union[Path, str],
-        extractor_format: Optional[str] = None,  # <Added version="2.4.0"/>
-        extractor: Optional[BaseExtractor] = "deprecated",
+        extractor_format: str,
     ) -> None:
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         # Prevent parallel extractions
         lock_path = str(Path(output_path).with_suffix(".lock"))
         with FileLock(lock_path):
             shutil.rmtree(output_path, ignore_errors=True)
-            if extractor_format or extractor != "deprecated":
-                if extractor != "deprecated" or not isinstance(extractor_format, str):  # passed as positional arg
-                    warnings.warn(
-                        "Parameter 'extractor' was deprecated in version 2.4.0 and will be removed in 3.0.0. "
-                        "Use 'extractor_format' instead.",
-                        category=FutureWarning,
-                    )
-                    extractor = extractor if extractor != "deprecated" else extractor_format
-                else:
-                    extractor = cls.extractors[extractor_format]
-                return extractor.extract(input_path, output_path)
-            else:
-                warnings.warn(
-                    "Parameter 'extractor_format' was made required in version 2.4.0 and not passing it will raise an "
-                    "exception in 3.0.0.",
-                    category=FutureWarning,
-                )
-                for extractor in cls.extractors.values():
-                    if extractor.is_extractable(input_path):
-                        return extractor.extract(input_path, output_path)
+            extractor = cls.extractors[extractor_format]
+            return extractor.extract(input_path, output_path)

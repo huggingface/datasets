@@ -33,7 +33,6 @@ import dataclasses
 import json
 import os
 import posixpath
-import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from typing import ClassVar, Dict, List, Optional, Union
@@ -210,9 +209,7 @@ class DatasetInfo:
                     template.align_with_features(self.features) for template in (self.task_templates)
                 ]
 
-    def write_to_directory(
-        self, dataset_info_dir, pretty_print=False, fs="deprecated", storage_options: Optional[dict] = None
-    ):
+    def write_to_directory(self, dataset_info_dir, pretty_print=False, storage_options: Optional[dict] = None):
         """Write `DatasetInfo` and license (if present) as JSON files to `dataset_info_dir`.
 
         Args:
@@ -220,16 +217,6 @@ class DatasetInfo:
                 Destination directory.
             pretty_print (`bool`, defaults to `False`):
                 If `True`, the JSON will be pretty-printed with the indent level of 4.
-            fs (`fsspec.spec.AbstractFileSystem`, *optional*):
-                Instance of the remote filesystem used to download the files from.
-
-                <Deprecated version="2.9.0">
-
-                `fs` was deprecated in version 2.9.0 and will be removed in 3.0.0.
-                Please use `storage_options` instead, e.g. `storage_options=fs.storage_options`.
-
-                </Deprecated>
-
             storage_options (`dict`, *optional*):
                 Key/value pairs to be passed on to the file-system backend, if any.
 
@@ -243,14 +230,6 @@ class DatasetInfo:
         >>> ds.info.write_to_directory("/path/to/directory/")
         ```
         """
-        if fs != "deprecated":
-            warnings.warn(
-                "'fs' was deprecated in favor of 'storage_options' in version 2.9.0 and will be removed in 3.0.0.\n"
-                "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
-                FutureWarning,
-            )
-            storage_options = fs.storage_options
-
         fs: fsspec.AbstractFileSystem
         fs, *_ = url_to_fs(dataset_info_dir, **(storage_options or {}))
         with fs.open(posixpath.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb") as f:
@@ -303,9 +282,7 @@ class DatasetInfo:
         )
 
     @classmethod
-    def from_directory(
-        cls, dataset_info_dir: str, fs="deprecated", storage_options: Optional[dict] = None
-    ) -> "DatasetInfo":
+    def from_directory(cls, dataset_info_dir: str, storage_options: Optional[dict] = None) -> "DatasetInfo":
         """Create [`DatasetInfo`] from the JSON file in `dataset_info_dir`.
 
         This function updates all the dynamically generated fields (num_examples,
@@ -317,16 +294,6 @@ class DatasetInfo:
             dataset_info_dir (`str`):
                 The directory containing the metadata file. This
                 should be the root directory of a specific dataset version.
-            fs (`fsspec.spec.AbstractFileSystem`, *optional*):
-                Instance of the remote filesystem used to download the files from.
-
-                <Deprecated version="2.9.0">
-
-                `fs` was deprecated in version 2.9.0 and will be removed in 3.0.0.
-                Please use `storage_options` instead, e.g. `storage_options=fs.storage_options`.
-
-                </Deprecated>
-
             storage_options (`dict`, *optional*):
                 Key/value pairs to be passed on to the file-system backend, if any.
 
@@ -339,14 +306,6 @@ class DatasetInfo:
         >>> ds_info = DatasetInfo.from_directory("/path/to/directory/")
         ```
         """
-        if fs != "deprecated":
-            warnings.warn(
-                "'fs' was deprecated in favor of 'storage_options' in version 2.9.0 and will be removed in 3.0.0.\n"
-                "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
-                FutureWarning,
-            )
-            storage_options = fs.storage_options
-
         fs: fsspec.AbstractFileSystem
         fs, *_ = url_to_fs(dataset_info_dir, **(storage_options or {}))
         logger.info(f"Loading Dataset info from {dataset_info_dir}")

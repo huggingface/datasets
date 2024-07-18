@@ -1,6 +1,3 @@
-import os
-from pathlib import Path
-
 import pytest
 
 from datasets.inspect import (
@@ -9,19 +6,10 @@ from datasets.inspect import (
     get_dataset_default_config_name,
     get_dataset_infos,
     get_dataset_split_names,
-    inspect_dataset,
 )
-from datasets.packaged_modules.csv import csv
 
 
 pytestmark = pytest.mark.integration
-
-
-@pytest.mark.parametrize("path", ["hf-internal-testing/dataset_with_script", csv.__file__])
-def test_inspect_dataset(path, tmp_path):
-    inspect_dataset(path, tmp_path)
-    script_name = Path(path).stem + ".py"
-    assert script_name in os.listdir(tmp_path)
 
 
 @pytest.mark.parametrize(
