@@ -1418,7 +1418,8 @@ def generate_from_dict(obj: Any):
         raise ValueError(f"Feature type '{_type}' not found. Available feature types: {list(_FEATURE_TYPES.keys())}")
 
     if class_type == Sequence:
-        return Sequence(feature=generate_from_dict(obj["feature"]), length=obj.get("length", -1))
+        feature = obj.pop("feature")
+        return Sequence(feature=generate_from_dict(feature), **obj)
 
     field_names = {f.name for f in fields(class_type)}
     return class_type(**{k: v for k, v in obj.items() if k in field_names})
