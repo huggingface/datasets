@@ -619,8 +619,10 @@ NESTED_FEATURES = [
     Features({"foo": {"bar": Value("int32")}}),
     Features({"foo": {"bar1": Value("int32"), "bar2": Value("float64")}}),
     Features({"foo": Sequence(Value("int32"))}),
+    Features({"foo": Sequence(Value("int32"), large=True)}),
     Features({"foo": Sequence({})}),
     Features({"foo": Sequence({"bar": Value("int32")})}),
+    Features({"foo": Sequence({"bar": Value("int32")}, large=True)}),
     Features({"foo": [Value("int32")]}),
     Features({"foo": [{"bar": Value("int32")}]}),
 ]
@@ -635,7 +637,7 @@ NESTED_CUSTOM_FEATURES = [
 
 
 @pytest.mark.parametrize("features", SIMPLE_FEATURES + CUSTOM_FEATURES + NESTED_FEATURES + NESTED_CUSTOM_FEATURES)
-def test_features_to_dict(features: Features):
+def test_features_to_dict_and_from_dict_round_trip(features: Features):
     features_dict = features.to_dict()
     assert isinstance(features_dict, dict)
     reloaded = Features.from_dict(features_dict)
