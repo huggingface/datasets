@@ -2085,11 +2085,11 @@ class Features(dict):
         Example::
 
             >>> from datasets import Features, Sequence, Value
-            >>> # let's say we have to features with a different order of nested fields (for a and b for example)
+            >>> # let's say we have two features with a different order of nested fields (for a and b for example)
             >>> f1 = Features({"root": Sequence({"a": Value("string"), "b": Value("string")})})
             >>> f2 = Features({"root": {"b": Sequence(Value("string")), "a": Sequence(Value("string"))}})
             >>> assert f1.type != f2.type
-            >>> # re-ordering keeps the base structure (here Sequence is defined at the root level), but make the fields order match
+            >>> # re-ordering keeps the base structure (here Sequence is defined at the root level), but makes the fields order match
             >>> f1.reorder_fields_as(f2)
             {'root': Sequence(feature={'b': Value(dtype='string', id=None), 'a': Value(dtype='string', id=None)}, length=-1, id=None)}
             >>> assert f1.reorder_fields_as(f2).type == f2.type
@@ -2104,15 +2104,16 @@ class Features(dict):
                 else:
                     target = [target]
             if isinstance(source, Sequence):
-                source, id_, length = source.feature, source.id, source.length
+                sequence_kwargs = vars(source).copy()
+                source = sequence_kwargs.pop("feature")
                 if isinstance(source, dict):
                     source = {k: [v] for k, v in source.items()}
                     reordered = recursive_reorder(source, target, stack)
-                    return Sequence({k: v[0] for k, v in reordered.items()}, id=id_, length=length)
+                    return Sequence({k: v[0] for k, v in reordered.items()}, **sequence_kwargs)
                 else:
                     source = [source]
                     reordered = recursive_reorder(source, target, stack)
-                    return Sequence(reordered[0], id=id_, length=length)
+                    return Sequence(reordered[0], **sequence_kwargs)
             elif isinstance(source, dict):
                 if not isinstance(target, dict):
                     raise ValueError(f"Type mismatch: between {source} and {target}" + stack_position)
