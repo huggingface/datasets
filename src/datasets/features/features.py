@@ -1229,7 +1229,6 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
         return pa.list_(value_type)
     elif isinstance(schema, Sequence):
         value_type = get_nested_type(schema.feature)
-        # list_type = pa.large_list if schema.large else pa.list_
         is_large = getattr(schema, "large", False)
         # We allow to reverse list of dict => dict of list for compatibility with tfds
         if isinstance(schema.feature, dict):
@@ -1238,7 +1237,6 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
                 if is_large
                 else pa.struct({f.name: pa.list_(f.type, schema.length) for f in value_type})
             )
-        # return pa.list_(value_type, schema.length)
         else:
             data_type = pa.large_list(value_type) if is_large else pa.list_(value_type, schema.length)
         return data_type
