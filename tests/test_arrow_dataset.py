@@ -4847,12 +4847,23 @@ def test_categorical_dataset(tmpdir):
 
 
 @require_polars
-def test_from_polars_large_list():
+def test_from_polars_with_large_list():
     import polars as pl
 
     df = pl.from_dict({"col_1": [[1, 2], [3, 4]]})
     ds = Dataset.from_polars(df)
     assert isinstance(ds, Dataset)
+
+
+@require_polars
+def test_from_polars_save_to_disk_with_large_list(tmp_path):
+    import polars as pl
+
+    df = pl.from_dict({"col_1": [[1, 2], [3, 4]]})
+    ds = Dataset.from_polars(df)
+    dataset_path = tmp_path / "dataset_dir"
+    ds.save_to_disk(dataset_path)
+    assert (dataset_path / "data-00000-of-00001.arrow").exists()
 
 
 @require_polars
