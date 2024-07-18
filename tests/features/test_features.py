@@ -708,3 +708,11 @@ def test_features_from_arrow_schema_primitive_data_type(dtype):
 def test_features_from_arrow_schema_list_data_type(list_dtype, scalar_dtype):
     schema = pa.schema([("column_name", list_dtype(scalar_dtype()))])
     assert schema == Features.from_arrow_schema(schema).arrow_schema
+
+
+@pytest.mark.parametrize("large_sequence", [False, True])
+def test_features_reorder_fields_as_with_sequence(large_sequence):
+    features = Features({"col_1": Sequence(feature=Value("int64"), large=large_sequence)})
+    other_features = Features({"col_1": Sequence(feature=Value("int64"), large=large_sequence)})
+    new_features = features.reorder_fields_as(other_features)
+    assert new_features == features
