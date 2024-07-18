@@ -7,7 +7,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from functools import partial
 from itertools import cycle, islice
-from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 import fsspec.asyn
 import numpy as np
@@ -25,6 +25,9 @@ from .utils.logging import get_logger
 from .utils.py_utils import Literal
 from .utils.sharding import _merge_gen_kwargs, _number_of_shards_in_gen_kwargs, _shuffle_gen_kwargs, _split_gen_kwargs
 
+
+if TYPE_CHECKING:
+    import torch
 
 logger = get_logger(__name__)
 
@@ -1431,10 +1434,18 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
 
 
 class SkipExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, ex_iterable: _BaseExamplesIterable, n: int):
+    def __init__(
+        self,
+        ex_iterable: _BaseExamplesIterable,
+        n: int,
+        block_sources_order_when_shuffling: bool = True,
+        split_when_sharding: bool = True,
+    ):
         super().__init__()
         self.ex_iterable = ex_iterable
         self.n = n
+        self.block_sources_order_when_shuffling = block_sources_order_when_shuffling
+        self.split_when_sharding = split_when_sharding
         # TODO(QL): implement iter_arrow
 
     def _init_state_dict(self) -> dict:
@@ -1447,9 +1458,38 @@ class SkipExamplesIterable(_BaseExamplesIterable):
             self._state_dict["skipped"] = True
         yield from islice(self.ex_iterable, ex_iterable_idx_start, None)
 
+    @staticmethod
+    def split_number(num, n):
+        quotient = num // n
+        remainder = num % n
+        result = [quotient] * n
+        for i in range(remainder):
+            result[i] += 1
+        return result
+
     def shuffle_data_sources(self, generator: np.random.Generator) -> "SkipExamplesIterable":
-        """Doesn't shuffle the wrapped examples iterable since it would skip examples from other shards instead."""
-        return self
+        """May not shuffle the wrapped examples iterable since it would skip examples from other shards instead."""
+        if self.block_sources_order_when_shuffling:
+            return self
+        else:
+            return SkipExamplesIterable(
+                self.ex_iterable.shuffle_data_sources(generator),
+                n=self.n,
+                block_sources_order_when_shuffling=self.block_sources_order_when_shuffling,
+                split_when_sharding=self.split_when_sharding,
+            )
+
+    def shard_data_sources(self, worker_id: int, num_workers: int) -> "SkipExamplesIterable":
+        """Keep only the requested shard."""
+        if self.split_when_sharding:
+            return SkipExamplesIterable(
+                self.ex_iterable.shard_data_sources(worker_id, num_workers),
+                n=self.split_number(self.n, num_workers)[worker_id],
+                block_sources_order_when_shuffling=self.block_sources_order_when_shuffling,
+                split_when_sharding=self.split_when_sharding,
+            )
+        else:
+            return self
 
     @property
     def n_shards(self) -> int:
@@ -1457,10 +1497,18 @@ class SkipExamplesIterable(_BaseExamplesIterable):
 
 
 class TakeExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, ex_iterable: _BaseExamplesIterable, n: int):
+    def __init__(
+        self,
+        ex_iterable: _BaseExamplesIterable,
+        n: int,
+        block_sources_order_when_shuffling: bool = True,
+        split_when_sharding: bool = True,
+    ):
         super().__init__()
         self.ex_iterable = ex_iterable
         self.n = n
+        self.block_sources_order_when_shuffling = block_sources_order_when_shuffling
+        self.split_when_sharding = split_when_sharding
         # TODO(QL): implement iter_arrow
 
     def _init_state_dict(self) -> dict:
@@ -1474,10 +1522,6 @@ class TakeExamplesIterable(_BaseExamplesIterable):
                 self._state_dict["num_taken"] += 1
             yield key_example
 
-    def shuffle_data_sources(self, generator: np.random.Generator) -> "TakeExamplesIterable":
-        """Doesn't shuffle the wrapped examples iterable since it would take examples from other shards instead."""
-        return self
-
     @staticmethod
     def split_number(num, n):
         quotient = num // n
@@ -1487,12 +1531,34 @@ class TakeExamplesIterable(_BaseExamplesIterable):
             result[i] += 1
         return result
 
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "TakeExamplesIterable":
+        """May not shuffle the wrapped examples iterable since it would take examples from other shards instead."""
+        if self.block_sources_order_when_shuffling:
+            return self
+        else:
+            return TakeExamplesIterable(
+                self.ex_iterable.shuffle_data_sources(generator),
+                n=self.n,
+                block_sources_order_when_shuffling=self.block_sources_order_when_shuffling,
+                split_when_sharding=self.split_when_sharding,
+            )
+
     def shard_data_sources(self, worker_id: int, num_workers: int) -> "TakeExamplesIterable":
         """Keep only the requested shard."""
-        return TakeExamplesIterable(
-            self.ex_iterable.shard_data_sources(worker_id, num_workers),
-            n=self.split_number(self.n, num_workers)[worker_id],
-        )
+        if self.split_when_sharding:
+            return TakeExamplesIterable(
+                self.ex_iterable.shard_data_sources(worker_id, num_workers),
+                n=self.split_number(self.n, num_workers)[worker_id],
+                block_sources_order_when_shuffling=self.block_sources_order_when_shuffling,
+                split_when_sharding=self.split_when_sharding,
+            )
+        else:
+            return TakeExamplesIterable(
+                self.ex_iterable.shard_data_sources(worker_id, num_workers),
+                n=self.n,
+                block_sources_order_when_shuffling=self.block_sources_order_when_shuffling,
+                split_when_sharding=self.split_when_sharding,
+            )
 
     @property
     def n_shards(self) -> int:
@@ -1627,6 +1693,18 @@ def _maybe_add_torch_iterable_dataset_parent_class(cls):
             cls.__bases__ += (torch.utils.data.IterableDataset,)
 
 
+def _maybe_share_with_torch_persistent_workers(value: Union[int, "torch.Tensor"]) -> Union[int, "torch.Tensor"]:
+    if config.TORCH_AVAILABLE:
+        import torch
+
+        if isinstance(value, torch.Tensor):
+            return value.share_memory_()
+        else:
+            return torch.tensor(value).share_memory_()
+    else:
+        return value
+
+
 class IterableDataset(DatasetInfoMixin):
     """A Dataset backed by an iterable."""
 
@@ -1659,8 +1737,8 @@ class IterableDataset(DatasetInfoMixin):
         self._formatting = formatting
         self._shuffling = shuffling
         self._distributed = distributed
-        self._epoch = 0
         self._token_per_repo_id: Dict[str, Union[str, bool, None]] = token_per_repo_id or {}
+        self._epoch: Union[int, "torch.Tensor"] = _maybe_share_with_torch_persistent_workers(0)
         self._starting_state_dict: Optional[dict] = None
         self._prepared_ex_iterable = self._prepare_ex_iterable_for_iteration()
         self._state_dict = self._prepared_ex_iterable._init_state_dict()
@@ -1778,18 +1856,24 @@ class IterableDataset(DatasetInfoMixin):
 
     def __setstate__(self, d):
         self.__dict__ = d
+        # Re-add torch shared memory, since shared memory is not always kept when pickling
+        self._epoch = _maybe_share_with_torch_persistent_workers(self._epoch)
         # Re-add torch iterable dataset as a parent class, since dynamically added parent classes are not kept when pickling
         _maybe_add_torch_iterable_dataset_parent_class(self.__class__)
 
     def _head(self, n=5):
         return _examples_to_batch(list(self.take(n)))
 
+    @property
+    def epoch(self) -> int:
+        return int(self._epoch)
+
     def _effective_generator(self):
-        if self._shuffling and self._epoch == 0:
+        if self._shuffling and self.epoch == 0:
             return self._shuffling.generator
         elif self._shuffling:
-            # Create effective seed using self._epoch (we subtract in order to avoir overflow in long_scalars)
-            effective_seed = deepcopy(self._shuffling.generator).integers(0, 1 << 63) - self._epoch
+            # Create effective seed using self.epoch (we subtract in order to avoir overflow in long_scalars)
+            effective_seed = deepcopy(self._shuffling.generator).integers(0, 1 << 63) - self.epoch
             effective_seed = (1 << 63) + effective_seed if effective_seed < 0 else effective_seed
             return np.random.default_rng(effective_seed)
         else:
@@ -2392,7 +2476,7 @@ class IterableDataset(DatasetInfoMixin):
         return IterableDataset(
             ex_iterable=BufferShuffledExamplesIterable(
                 self._ex_iterable, buffer_size=buffer_size, generator=generator
-            ).shuffle_data_sources(generator),
+            ),
             info=self._info.copy(),
             split=self._split,
             formatting=self._formatting,
@@ -2402,7 +2486,7 @@ class IterableDataset(DatasetInfoMixin):
         )
 
     def set_epoch(self, epoch: int):
-        self._epoch = epoch
+        self._epoch += epoch - self._epoch  # update torch value in shared memory in-place
 
     def skip(self, n: int) -> "IterableDataset":
         """
@@ -2432,7 +2516,12 @@ class IterableDataset(DatasetInfoMixin):
          'text': 'if you sometimes like to go to the movies to have fun , wasabi is a good place to start .'}]
         ```
         """
-        ex_iterable = SkipExamplesIterable(self._ex_iterable, n)
+        ex_iterable = SkipExamplesIterable(
+            self._ex_iterable,
+            n,
+            block_sources_order_when_shuffling=self._shuffling is None,
+            split_when_sharding=self._distributed is None,
+        )
         return IterableDataset(
             ex_iterable=ex_iterable,
             info=self._info.copy(),
@@ -2464,7 +2553,12 @@ class IterableDataset(DatasetInfoMixin):
          'text': 'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .'}]
         ```
         """
-        ex_iterable = TakeExamplesIterable(self._ex_iterable, n)
+        ex_iterable = TakeExamplesIterable(
+            self._ex_iterable,
+            n,
+            block_sources_order_when_shuffling=self._shuffling is None,
+            split_when_sharding=self._distributed is None,
+        )
         return IterableDataset(
             ex_iterable=ex_iterable,
             info=self._info.copy(),
@@ -2940,8 +3034,8 @@ def _split_by_node_iterable_dataset(dataset: IterableDataset, rank: int, world_s
         [`IterableDataset`]: The iterable dataset to be used on the node at rank `rank`.
     """
     if dataset._distributed:
-        world_size = world_size * dataset._distributed.world_size
         rank = world_size * dataset._distributed.rank + rank
+        world_size = world_size * dataset._distributed.world_size
     distributed = DistributedConfig(rank=rank, world_size=world_size)
     return IterableDataset(
         ex_iterable=dataset._ex_iterable,

@@ -4,6 +4,7 @@ This file is adapted from the AllenNLP library at https://github.com/allenai/all
 Copyright by the AllenNLP authors.
 """
 
+import asyncio
 import copy
 import glob
 import io
@@ -20,7 +21,6 @@ import urllib
 import warnings
 import xml.dom.minidom
 import zipfile
-from asyncio import TimeoutError
 from contextlib import closing, contextmanager
 from functools import partial
 from io import BytesIO
@@ -31,10 +31,10 @@ from unittest.mock import patch
 from urllib.parse import urljoin, urlparse
 from xml.etree import ElementTree as ET
 
+import aiohttp.client_exceptions
 import fsspec
 import huggingface_hub
 import requests
-from aiohttp.client_exceptions import ClientError
 from fsspec.core import strip_protocol, url_to_fs
 from fsspec.utils import can_be_local
 from huggingface_hub.utils import EntryNotFoundError, insecure_hashlib
@@ -97,30 +97,22 @@ def relative_to_absolute_path(path: T) -> T:
     return Path(abs_path_str) if isinstance(path, Path) else abs_path_str
 
 
-def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -> str:
-    if dataset:
-        endpoint = config.CLOUDFRONT_DATASETS_DISTRIB_PREFIX if use_cdn else config.S3_DATASETS_BUCKET_PREFIX
-    else:
-        endpoint = config.CLOUDFRONT_METRICS_DISTRIB_PREFIX if use_cdn else config.S3_METRICS_BUCKET_PREFIX
+def hf_bucket_url(identifier: str, filename: str, use_cdn=False) -> str:
+    endpoint = config.CLOUDFRONT_DATASETS_DISTRIB_PREFIX if use_cdn else config.S3_DATASETS_BUCKET_PREFIX
     return "/".join((endpoint, identifier, filename))
 
 
-def head_hf_s3(
-    identifier: str, filename: str, use_cdn=False, dataset=True, max_retries=0
-) -> Union[requests.Response, Exception]:
+def head_hf_s3(identifier: str, filename: str, use_cdn=False, max_retries=0) -> Union[requests.Response, Exception]:
     return http_head(
-        hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn, dataset=dataset),
+        hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn),
         max_retries=max_retries,
     )
 
 
-def hf_github_url(path: str, name: str, dataset=True, revision: Optional[str] = None) -> str:
+def hf_github_url(path: str, name: str, revision: Optional[str] = None) -> str:
     default_revision = "main" if version.parse(__version__).is_devrelease else __version__
     revision = revision or default_revision
-    if dataset:
-        return config.REPO_DATASETS_URL.format(revision=revision, path=path, name=name)
-    else:
-        return config.REPO_METRICS_URL.format(revision=revision, path=path, name=name)
+    return config.REPO_DATASETS_URL.format(revision=revision, path=path, name=name)
 
 
 def url_or_path_join(base_name: str, *pathnames: str) -> str:
@@ -266,8 +258,6 @@ def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> st
         ua += f"; tensorflow/{config.TF_VERSION}"
     if config.JAX_AVAILABLE:
         ua += f"; jax/{config.JAX_VERSION}"
-    if config.BEAM_AVAILABLE:
-        ua += f"; apache_beam/{config.BEAM_VERSION}"
     if isinstance(user_agent, dict):
         ua += f"; {'; '.join(f'{k}/{v}' for k, v in user_agent.items())}"
     elif isinstance(user_agent, str):
@@ -1103,7 +1093,12 @@ def _add_retries_to_file_obj_read_method(file_obj):
             try:
                 out = read(*args, **kwargs)
                 break
-            except (ClientError, TimeoutError) as err:
+            except (
+                aiohttp.client_exceptions.ClientError,
+                asyncio.TimeoutError,
+                requests.exceptions.ConnectTimeout,
+                requests.exceptions.ConnectionError,
+            ) as err:
                 disconnect_err = err
                 logger.warning(
                     f"Got disconnected from remote data host. Retrying in {config.STREAMING_READ_RETRY_INTERVAL}sec [{retry}/{max_retries}]"

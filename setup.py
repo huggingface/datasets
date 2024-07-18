@@ -111,7 +111,7 @@ REQUIRED_PKGS = [
     # For file locking
     "filelock",
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
-    "numpy>=1.17,<2.0.0",  # Temporary upper version
+    "numpy>=1.17",
     # Backend and serialization.
     # Minimum 15.0.0 to be able to cast dictionary types to their underlying types
     "pyarrow>=15.0.0",
@@ -129,7 +129,7 @@ REQUIRED_PKGS = [
     "multiprocess",
     # to save datasets locally or on any filesystem
     # minimum 2023.1.0 to support protocol=kwargs in fsspec's `open`, `get_fs_token_paths`, etc.: see https://github.com/fsspec/filesystem_spec/pull/1143
-    "fsspec[http]>=2023.1.0,<=2024.5.0",
+    "fsspec[http]>=2023.1.0,<=2024.6.1",
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
@@ -143,6 +143,7 @@ REQUIRED_PKGS = [
 AUDIO_REQUIRE = [
     "soundfile>=0.12.1",
     "librosa",
+    "soxr>=0.4.0b1; python_version>='3.10'",  # Supports numpy-2
 ]
 
 VISION_REQUIRE = [
@@ -158,6 +159,7 @@ BENCHMARKS_REQUIRE = [
 TESTS_REQUIRE = [
     # test dependencies
     "absl-py",
+    "decorator",
     "joblib<1.3.0",  # joblibspark doesn't support recent joblib versions
     "joblibspark",
     "pytest",
@@ -165,7 +167,7 @@ TESTS_REQUIRE = [
     "pytest-xdist",
     # optional dependencies
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch()
-    "faiss-cpu>=1.6.4",
+    "faiss-cpu>=1.8.0.post1",  # Pins numpy < 2
     "jax>=0.3.14; sys_platform != 'win32'",
     "jaxlib>=0.3.14; sys_platform != 'win32'",
     "lz4",
@@ -175,46 +177,28 @@ TESTS_REQUIRE = [
     "sqlalchemy",
     "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1; test only on python 3.7 for now
     "protobuf<4.0.0",  # 4.0.0 breaks compatibility with tensorflow<2.12
-    "tensorflow>=2.6.0",
+    "tensorflow>=2.6.0; python_version<'3.10'",  # numpy-2 is not supported for Python < 3.10
+    "tensorflow>=2.16.0; python_version>='3.10'",  # Pins numpy < 2
     "tiktoken",
     "torch>=2.0.0",
     "soundfile>=0.12.1",
-    "transformers",
-    "typing-extensions>=4.6.1",  # due to conflict between apache-beam and pydantic
+    "transformers>=4.42.0",  # Pins numpy < 2
     "zstandard",
     "polars[timezone]>=0.20.0",
 ]
 
 
-METRICS_TESTS_REQUIRE = [
-    # metrics dependencies
-    "accelerate",  # for frugalscore (calls transformers' Trainer)
-    "bert_score>=0.3.6",
-    "jiwer",
-    "langdetect",
-    "mauve-text",
-    "nltk",
-    "rouge_score",
-    "sacrebleu",
-    "sacremoses",
-    "scikit-learn",
-    "scipy",
-    "sentencepiece",  # for bleurt
-    "seqeval",
-    "spacy>=3.0.0",
-    "tldextract",
-    # to speed up pip backtracking
-    "toml>=0.10.1",
-    "typer<0.5.0",  # pinned to work with Spacy==3.4.3 on Windows: see https://github.com/tiangolo/typer/issues/427
-    "requests_file>=1.5.1",
-    "tldextract>=3.1.0",
-    "texttable>=1.6.3",
-    "Werkzeug>=1.0.1",
-    "six~=1.15.0",
-]
-
 TESTS_REQUIRE.extend(VISION_REQUIRE)
 TESTS_REQUIRE.extend(AUDIO_REQUIRE)
+
+NUMPY2_INCOMPATIBLE_LIBRARIES = [
+    "faiss-cpu",
+    "tensorflow",
+    "transformers",
+]
+TESTS_NUMPY2_REQUIRE = [
+    library for library in TESTS_REQUIRE if library.partition(">")[0] not in NUMPY2_INCOMPATIBLE_LIBRARIES
+]
 
 QUALITY_REQUIRE = ["ruff>=0.3.0"]
 
@@ -230,7 +214,6 @@ DOCS_REQUIRE = [
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
     "vision": VISION_REQUIRE,
-    "apache-beam": ["apache-beam>=2.26.0"],
     "tensorflow": [
         "tensorflow>=2.6.0",
     ],
@@ -241,7 +224,7 @@ EXTRAS_REQUIRE = {
     "streaming": [],  # for backward compatibility
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE + DOCS_REQUIRE,
     "tests": TESTS_REQUIRE,
-    "metrics-tests": METRICS_TESTS_REQUIRE,
+    "tests_numpy2": TESTS_NUMPY2_REQUIRE,
     "quality": QUALITY_REQUIRE,
     "benchmarks": BENCHMARKS_REQUIRE,
     "docs": DOCS_REQUIRE,
@@ -281,6 +264,6 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
-    keywords="datasets machine learning datasets metrics",
+    keywords="datasets machine learning datasets",
     zip_safe=False,  # Required for mypy to find the py.typed file
 )

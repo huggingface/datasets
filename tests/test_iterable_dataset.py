@@ -10,6 +10,7 @@ import pytest
 
 from datasets import Dataset, load_dataset
 from datasets.combine import concatenate_datasets, interleave_datasets
+from datasets.distributed import split_dataset_by_node
 from datasets.features import (
     ClassLabel,
     Features,
@@ -50,6 +51,7 @@ from .utils import (
     is_rng_equal,
     require_dill_gt_0_3_2,
     require_not_windows,
+    require_numpy1_on_windows,
     require_pyspark,
     require_tf,
     require_torch,
@@ -1278,6 +1280,7 @@ def test_iterable_dataset_from_generator_with_shards():
     assert dataset.n_shards == len(shard_names)
 
 
+@require_numpy1_on_windows
 def test_iterable_dataset_from_file(dataset: IterableDataset, arrow_file: str):
     with assert_arrow_memory_doesnt_increase():
         dataset_from_file = IterableDataset.from_file(arrow_file)
@@ -1640,6 +1643,28 @@ def test_iterable_dataset_is_torch_iterable_dataset(dataset: IterableDataset):
     assert len(out) == DEFAULT_N_EXAMPLES
 
 
+@require_torch
+def test_iterable_dataset_persists_epoch_in_torch_workers(dataset: IterableDataset):
+    from torch.utils.data import DataLoader
+
+    dataset = dataset.shuffle(seed=42)
+    dataloader = DataLoader(dataset, num_workers=1, persistent_workers=True)
+    epoch0 = list(dataloader)
+    assert list(dataloader) == epoch0
+    dataset.set_epoch(1)
+    assert list(dataloader) != epoch0
+
+    # Make sure pickle works even with torch objects in shared memory
+    dataset_copy: IterableDataset = pickle.loads(pickle.dumps(dataset))
+    dataloader = DataLoader(dataset_copy, num_workers=1, persistent_workers=True)
+    epoch1 = list(dataloader)
+    assert list(dataloader) == epoch1
+    dataset.set_epoch(2)  # this should not affect the copy
+    assert list(dataloader) == epoch1
+    dataset_copy.set_epoch(2)
+    assert list(dataloader) != epoch1
+
+
 @pytest.mark.parametrize("n", [0, 2, int(1e10)])
 def test_iterable_dataset_skip(dataset: IterableDataset, n):
     skip_dataset = dataset.skip(n)
@@ -1657,17 +1682,60 @@ def test_iterable_dataset_take(dataset: IterableDataset, n):
 
 
 @pytest.mark.parametrize("method", ["skip", "take"])
-def test_iterable_dataset_shuffle_after_skip_or_take(method):
+@pytest.mark.parametrize("after_shuffle", [False, True])
+@pytest.mark.parametrize("count", [2, 5, 11])
+def test_iterable_dataset_skip_or_take_after_shuffle(method, after_shuffle, count):
     seed = 42
     n, n_shards = 3, 10
-    count = 7
     ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n, "filepaths": [f"{i}.txt" for i in range(n_shards)]})
     dataset = IterableDataset(ex_iterable)
-    dataset = dataset.skip(n) if method == "skip" else dataset.take(count)
-    shuffled_dataset = dataset.shuffle(seed, buffer_size=DEFAULT_N_EXAMPLES)
-    # shuffling a skip/take dataset should keep the same examples and don't shuffle the shards
-    key = lambda x: f"{x['filepath']}_{x['id']}"  # noqa: E731
-    assert sorted(dataset, key=key) == sorted(shuffled_dataset, key=key)
+    shuffled_dataset = dataset
+    if after_shuffle:
+        shuffled_dataset = shuffled_dataset.shuffle(seed, buffer_size=DEFAULT_N_EXAMPLES)
+        shuffled_dataset = shuffled_dataset.skip(count) if method == "skip" else shuffled_dataset.take(count)
+        # skip/take a shuffled dataset should not keep the same examples and shuffle the shards
+        key = lambda x: f"{x['filepath']}_{x['id']}"  # noqa: E731
+        assert (len(list(dataset)) - count if method == "skip" else count) == len(list(shuffled_dataset))
+        assert sorted(list(dataset)[count:] if method == "skip" else list(dataset)[:count], key=key) != sorted(
+            shuffled_dataset, key=key
+        )
+    else:
+        shuffled_dataset = shuffled_dataset.skip(count) if method == "skip" else shuffled_dataset.take(count)
+        shuffled_dataset = shuffled_dataset.shuffle(seed, buffer_size=DEFAULT_N_EXAMPLES)
+        # shuffling a skip/take dataset should keep the same examples and don't shuffle the shards
+        key = lambda x: f"{x['filepath']}_{x['id']}"  # noqa: E731
+        assert (len(list(dataset)) - count if method == "skip" else count) == len(list(shuffled_dataset))
+        assert sorted(list(dataset)[count:] if method == "skip" else list(dataset)[:count], key=key) == sorted(
+            shuffled_dataset, key=key
+        )
+
+
+@pytest.mark.parametrize("method", ["skip", "take"])
+@pytest.mark.parametrize("after_split_by_node", [False, True])
+@pytest.mark.parametrize("count", [2, 5, 11])
+def test_iterable_dataset_skip_or_take_after_split_by_node(method, after_split_by_node, count):
+    n, n_shards = 3, 10
+    rank, world_size = 1, 2
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n, "filepaths": [f"{i}.txt" for i in range(n_shards)]})
+    dataset = IterableDataset(ex_iterable)
+    distributed_dataset = dataset
+    true_distributed_dataset = split_dataset_by_node(dataset, rank=rank, world_size=world_size)
+    if after_split_by_node:
+        distributed_dataset = split_dataset_by_node(distributed_dataset, rank=rank, world_size=world_size)
+        distributed_dataset = distributed_dataset.skip(count) if method == "skip" else distributed_dataset.take(count)
+        assert (
+            list(true_distributed_dataset)[count:]
+            if method == "skip"
+            else list(true_distributed_dataset)[:count] == list(distributed_dataset)
+        )
+    else:
+        distributed_dataset = distributed_dataset.skip(count) if method == "skip" else distributed_dataset.take(count)
+        distributed_dataset = split_dataset_by_node(distributed_dataset, rank=rank, world_size=world_size)
+        assert len(
+            list(true_distributed_dataset)[count // world_size :]
+            if method == "skip"
+            else list(true_distributed_dataset)[: count // world_size]
+        ) == len(list(distributed_dataset))
 
 
 def test_iterable_dataset_add_column(dataset_with_several_columns: IterableDataset):

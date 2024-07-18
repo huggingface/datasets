@@ -7,7 +7,7 @@ import pytest
 from datasets import Audio, DownloadManager, Features, Image, Sequence, Value
 from datasets.packaged_modules.webdataset.webdataset import WebDataset
 
-from ..utils import require_pil, require_sndfile, require_torch
+from ..utils import require_librosa, require_numpy1_on_windows, require_pil, require_sndfile, require_torch
 
 
 @pytest.fixture
@@ -128,6 +128,38 @@ def test_image_webdataset(image_wds_file):
     assert isinstance(decoded["jpg"], PIL.Image.Image)
 
 
+@require_pil
+def test_image_webdataset_missing_keys(image_wds_file):
+    import PIL.Image
+
+    data_files = {"train": [image_wds_file]}
+    features = Features(
+        {
+            "__key__": Value("string"),
+            "__url__": Value("string"),
+            "json": {"caption": Value("string")},
+            "jpg": Image(),
+            "jpeg": Image(),  # additional field
+            "txt": Value("string"),  # additional field
+        }
+    )
+    webdataset = WebDataset(data_files=data_files, features=features)
+    split_generators = webdataset._split_generators(DownloadManager())
+    assert webdataset.info.features == features
+    split_generator = split_generators[0]
+    assert split_generator.name == "train"
+    generator = webdataset._generate_examples(**split_generator.gen_kwargs)
+    _, example = next(iter(generator))
+    encoded = webdataset.info.features.encode_example(example)
+    decoded = webdataset.info.features.decode_example(encoded)
+    assert isinstance(decoded["json"], dict)
+    assert isinstance(decoded["json"]["caption"], str)
+    assert isinstance(decoded["jpg"], PIL.Image.Image)
+    assert decoded["jpeg"] is None
+    assert decoded["txt"] is None
+
+
+@require_librosa
 @require_sndfile
 def test_audio_webdataset(audio_wds_file):
     data_files = {"train": [audio_wds_file]}
@@ -194,6 +226,7 @@ def test_webdataset_with_features(image_wds_file):
     assert isinstance(decoded["jpg"], PIL.Image.Image)
 
 
+@require_numpy1_on_windows
 @require_torch
 def test_tensor_webdataset(tensor_wds_file):
     import torch

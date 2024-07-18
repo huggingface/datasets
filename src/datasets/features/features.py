@@ -849,7 +849,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.api.extensions.ExtensionArray.html#pandas.api.extensions.ExtensionArray
 
         """
-        if dtype == object:
+        if dtype == np.dtype(object):
             out = np.empty(len(self._data), dtype=object)
             for i in range(len(self._data)):
                 out[i] = self._data[i]

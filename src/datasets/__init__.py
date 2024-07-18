@@ -16,13 +16,13 @@ __version__ = "2.20.1.dev0"
 
 from .arrow_dataset import Dataset
 from .arrow_reader import ReadInstruction
-from .builder import ArrowBasedBuilder, BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
+from .builder import ArrowBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
 from .combine import concatenate_datasets, interleave_datasets
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download import *
 from .features import *
 from .fingerprint import disable_caching, enable_caching, is_caching_enabled, set_caching_enabled
-from .info import DatasetInfo, MetricInfo
+from .info import DatasetInfo
 from .inspect import (
     get_dataset_config_info,
     get_dataset_config_names,
@@ -30,13 +30,10 @@ from .inspect import (
     get_dataset_infos,
     get_dataset_split_names,
     inspect_dataset,
-    inspect_metric,
     list_datasets,
-    list_metrics,
 )
 from .iterable_dataset import IterableDataset
-from .load import load_dataset, load_dataset_builder, load_from_disk, load_metric
-from .metric import Metric
+from .load import load_dataset, load_dataset_builder, load_from_disk
 from .splits import (
     NamedSplit,
     NamedSplitAll,

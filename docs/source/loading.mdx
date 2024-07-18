@@ -4,12 +4,12 @@ Your data can be stored in various places; they can be on your local machine's d
 
 This guide will show you how to load a dataset from:
 
-- The Hub without a dataset loading script
-- Local loading script
+- The Hugging Face Hub
 - Local files
 - In-memory data
 - Offline
 - A specific slice of a split
+- Local loading script (legacy)
 
 For more details specific to loading other dataset modalities, take a look at the <a class="underline decoration-pink-400 decoration-2 font-semibold" href="./audio_load">load audio dataset guide</a>, the <a class="underline decoration-yellow-400 decoration-2 font-semibold" href="./image_load">load image dataset guide</a>, or the <a class="underline decoration-green-400 decoration-2 font-semibold" href="./nlp_load">load text dataset guide</a>.
 
@@ -71,35 +71,6 @@ The `split` parameter can also map a data file to a specific split:
 ```py
 >>> data_files = {"validation": "en/c4-validation.*.json.gz"}
 >>> c4_validation = load_dataset("allenai/c4", data_files=data_files, split="validation")
-```
-
-## Local loading script
-
-You may have a 🤗 Datasets loading script locally on your computer. In this case, load the dataset by passing one of the following paths to [`load_dataset`]:
-
-- The local path to the loading script file.
-- The local path to the directory containing the loading script file (only if the script file has the same name as the directory).
-
-Pass `trust_remote_code=True` to allow 🤗 Datasets to execute the loading script:
-
-```py
->>> dataset = load_dataset("path/to/local/loading_script/loading_script.py", split="train", trust_remote_code=True)
->>> dataset = load_dataset("path/to/local/loading_script", split="train", trust_remote_code=True)  # equivalent because the file has the same name as the directory
-```
-
-### Edit loading script
-
-You can also edit a loading script from the Hub to add your own modifications. Download the dataset repository locally so any data files referenced by a relative path in the loading script can be loaded:
-
-```bash
-git clone https://huggingface.co/datasets/eli5
-```
-
-Make your edits to the loading script and then load it by passing its local path to [`~datasets.load_dataset`]:
-
-```py
->>> from datasets import load_dataset
->>> eli5 = load_dataset("path/to/local/eli5")
 ```
 
 ## Local and remote files
@@ -467,70 +438,16 @@ Now when you look at your dataset features, you can see it uses the custom label
 'label': ClassLabel(num_classes=6, names=['sadness', 'joy', 'love', 'anger', 'fear', 'surprise'], names_file=None, id=None)}
 ```
 
-## Metrics
+## (Legacy) Local loading script
 
-<Tip warning={true}>
+You may have a 🤗 Datasets loading script locally on your computer. In this case, load the dataset by passing one of the following paths to [`load_dataset`]:
 
-Metrics is deprecated in 🤗 Datasets. To learn more about how to use metrics, take a look at the library 🤗 [Evaluate](https://huggingface.co/docs/evaluate/index)! In addition to metrics, you can find more tools for evaluating models and datasets.
+- The local path to the loading script file.
+- The local path to the directory containing the loading script file (only if the script file has the same name as the directory).
 
-</Tip>
-
-When the metric you want to use is not supported by 🤗 Datasets, you can write and use your own metric script. Load your metric by providing the path to your local metric loading script:
-
-```py
->>> from datasets import load_metric
->>> metric = load_metric('PATH/TO/MY/METRIC/SCRIPT')
-
->>> # Example of typical usage
->>> for batch in dataset:
-...     inputs, references = batch
-...     predictions = model(inputs)
-...     metric.add_batch(predictions=predictions, references=references)
->>> score = metric.compute()
-```
-
-<Tip>
-
-See the [Metrics](./how_to_metrics#custom-metric-loading-script) guide for more details on how to write your own metric loading script.
-
-</Tip>
-
-### Load configurations
-
-It is possible for a metric to have different configurations. The configurations are stored in the `config_name` parameter in [`MetricInfo`] attribute. When you load a metric, provide the configuration name as shown in the following:
-
-```
->>> from datasets import load_metric
->>> metric = load_metric('bleurt', name='bleurt-base-128')
->>> metric = load_metric('bleurt', name='bleurt-base-512')
-```
-
-### Distributed setup
-
-When working in a distributed or parallel processing environment, loading and computing a metric can be tricky because these processes are executed in parallel on separate subsets of the data. 🤗 Datasets supports distributed usage with a few additional arguments when you load a metric.
-
-For example, imagine you are training and evaluating on eight parallel processes. Here's how you would load a metric in this distributed setting:
-
-1. Define the total number of processes with the `num_process` argument.
-
-2. Set the process `rank` as an integer between zero and `num_process - 1`. 
-
-3. Load your metric with [`load_metric`] with these arguments:
+Pass `trust_remote_code=True` to allow 🤗 Datasets to execute the loading script:
 
 ```py
->>> from datasets import load_metric
->>> metric = load_metric('glue', 'mrpc', num_process=num_process, process_id=rank)
-```
-
-<Tip>
-
-Once you've loaded a metric for distributed usage, you can compute the metric as usual. Behind the scenes, [`Metric.compute`] gathers all the predictions and references from the nodes, and computes the final metric.
-
-</Tip>
-
-In some instances, you may be simultaneously running multiple independent distributed evaluations on the same server and files. To avoid any conflicts, it is important to provide an `experiment_id` to distinguish the separate evaluations:
-
-```py
->>> from datasets import load_metric
->>> metric = load_metric('glue', 'mrpc', num_process=num_process, process_id=process_id, experiment_id="My_experiment_10")
+>>> dataset = load_dataset("path/to/local/loading_script/loading_script.py", split="train", trust_remote_code=True)
+>>> dataset = load_dataset("path/to/local/loading_script", split="train", trust_remote_code=True)  # equivalent because the file has the same name as the directory
 ```
