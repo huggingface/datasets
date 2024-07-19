@@ -4846,6 +4846,36 @@ def test_categorical_dataset(tmpdir):
     assert entry["animals"] == "Flamingo"
 
 
+def test_dataset_from_dict_with_large_sequence():
+    data = {"col_1": [[1, 2], [3, 4]]}
+    features = Features({"col_1": Sequence(feature=Value("int64"), large=True)})
+    ds = Dataset.from_dict(data, features=features)
+    assert isinstance(ds, Dataset)
+    assert pa.types.is_large_list(ds.data.schema.field("col_1").type)
+
+
+def test_dataset_save_to_disk_with_large_sequence(tmp_path):
+    data = {"col_1": [[1, 2], [3, 4]]}
+    features = Features({"col_1": Sequence(feature=Value("int64"), large=True)})
+    ds = Dataset.from_dict(data, features=features)
+    dataset_path = tmp_path / "dataset_dir"
+    ds.save_to_disk(dataset_path)
+    assert (dataset_path / "data-00000-of-00001.arrow").exists()
+
+
+def test_dataset_save_to_disk_and_load_from_disk_round_trip_with_large_sequence(tmp_path):
+    data = {"col_1": [[1, 2], [3, 4]]}
+    features = Features({"col_1": Sequence(feature=Value("int64"), large=True)})
+    ds = Dataset.from_dict(data, features=features)
+    dataset_path = tmp_path / "dataset_dir"
+    ds.save_to_disk(dataset_path)
+    assert (dataset_path / "data-00000-of-00001.arrow").exists()
+    loaded_ds = load_from_disk(dataset_path)
+    assert len(loaded_ds) == len(ds)
+    assert loaded_ds.features == ds.features
+    assert loaded_ds.to_dict() == ds.to_dict()
+
+
 @require_polars
 def test_from_polars_with_large_list():
     import polars as pl
