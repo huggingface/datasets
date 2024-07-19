@@ -2051,7 +2051,11 @@ def cast_array_to_feature(
                         return pa.FixedSizeListArray.from_arrays(_c(array_values, feature.feature), feature.length)
             else:
                 casted_array_values = _c(array.values, feature.feature)
-                if casted_array_values.type == array.values.type:
+                if (
+                    type(array.type) is type(get_nested_type(feature))
+                    and casted_array_values.type == array.values.type
+                ):
+                    # Both array and feature have equal: list type and values (within the list) types
                     return array
                 else:
                     # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
