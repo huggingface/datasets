@@ -1262,17 +1262,29 @@ def test_cast_list_array_to_features_sequence(arr, slice, target_value_feature):
 
 
 @pytest.mark.parametrize("large_sequence", [False, True])
-@pytest.mark.parametrize("from_type", ["list", "fixed_size_list", "large_list"])
-def test_cast_array_to_feature_sequence(from_type, large_sequence):
+@pytest.mark.parametrize("from_list_type", ["list", "fixed_size_list", "large_list"])
+@pytest.mark.parametrize("list_within_struct", [False, True])
+def test_cast_array_to_feature_with_list_array_and_sequence_feature(
+    list_within_struct, from_list_type, large_sequence
+):
     list_type = {
         "list": pa.list_,
         "fixed_size_list": partial(pa.list_, list_size=2),
         "large_list": pa.large_list,
     }
-    arr = pa.array([[0, 1]], type=list_type[from_type](pa.int64()))
-    cast_array = cast_array_to_feature(arr, Sequence(Value("string"), large=large_sequence))
     to_type = "large_list" if large_sequence else "list"
-    assert cast_array.type == list_type[to_type](pa.string())
+    array_data = [0, 1]
+    array_type = list_type[from_list_type](pa.int64())
+    feature = Sequence(Value("string"), large=large_sequence)
+    expected_array_type = list_type[to_type](pa.string())
+    if list_within_struct:
+        array_data = {"col_1": array_data}
+        array_type = pa.struct({"col_1": array_type})
+        feature = Sequence({"col_1": Value("string")}, large=large_sequence)
+        expected_array_type = pa.struct({"col_1": expected_array_type})
+    array = pa.array([array_data], type=array_type)
+    cast_array = cast_array_to_feature(array, feature)
+    assert cast_array.type == expected_array_type
 
 
 def test_cast_array_xd_to_features_sequence():
