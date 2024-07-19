@@ -2910,6 +2910,7 @@ class IterableDataset(DatasetInfoMixin):
 
 class BatchedExamplesIterable(_BaseExamplesIterable):
     """Iterable that groups examples into batches of a specified size."""
+
     def __init__(self, ex_iterable: _BaseExamplesIterable, batch_size: int, drop_last_batch: bool = False):
         super().__init__()
         self.ex_iterable = ex_iterable
