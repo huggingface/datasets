@@ -1997,9 +1997,9 @@ def cast_array_to_feature(
     elif pa.types.is_struct(array.type):
         # feature must be a dict or Sequence(subfeatures_dict)
         if isinstance(feature, Sequence) and isinstance(feature.feature, dict):
-            feature = {
-                name: Sequence(subfeature, length=feature.length) for name, subfeature in feature.feature.items()
-            }
+            sequence_kwargs = vars(feature).copy()
+            feature = sequence_kwargs.pop("feature")
+            feature = {name: Sequence(subfeature, **sequence_kwargs) for name, subfeature in feature.items()}
         if isinstance(feature, dict) and {field.name for field in array.type} == set(feature):
             if array.type.num_fields == 0:
                 return array
