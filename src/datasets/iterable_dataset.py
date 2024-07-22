@@ -2887,75 +2887,25 @@ class IterableDataset(DatasetInfoMixin):
 
     def batch(self, batch_size: int, drop_last_batch: bool = False) -> "IterableDataset":
         """
-        Group samples into batches.
+        Group samples from the dataset into batches.
 
         Args:
-            batch_size (int): The size of each batch.
-            drop_last_batch (bool, optional): Whether to drop the last incomplete batch. Defaults to False.
+            batch_size (int):
+                The number of samples in each batch.
+            drop_last_batch (bool, defaults to `False`):
+                Whether to drop the last incomplete batch.
 
-        Returns:
-            IterableDataset: A new IterableDataset with batched samples.
+        Example:
+        ```py
+        >>> ds = load_dataset("some_dataset", streaming=True)
+        >>> batched_ds = ds.batch(batch_size=32)
+        ```
         """
-        ex_iterable = BatchedExamplesIterable(self._ex_iterable, batch_size, drop_last_batch)
-        return IterableDataset(
-            ex_iterable=ex_iterable,
-            info=self._info.copy(),
-            split=self._split,
-            formatting=self._formatting,
-            shuffling=copy.deepcopy(self._shuffling),
-            distributed=copy.deepcopy(self._distributed),
-            token_per_repo_id=self._token_per_repo_id,
-        )
 
+        def batch_fn(unbatched: dict[str, list]) -> dict[str, list]:
+            return {k: [v] for k, v in unbatched.items()}
 
-class BatchedExamplesIterable(_BaseExamplesIterable):
-    """Iterable that groups examples into batches of a specified size."""
-
-    def __init__(self, ex_iterable: _BaseExamplesIterable, batch_size: int, drop_last_batch: bool = False):
-        super().__init__()
-        self.ex_iterable = ex_iterable
-        self.batch_size = batch_size
-        self.drop_last_batch = drop_last_batch
-
-    def _init_state_dict(self) -> dict:
-        return self.ex_iterable._init_state_dict()
-
-    def __iter__(self) -> Iterator[Tuple[str, Dict[str, List[Any]]]]:
-        iterator = iter(self.ex_iterable)
-        batch = []
-        batch_keys = []
-        for key, example in iterator:
-            batch.append(example)
-            batch_keys.append(key)
-            if len(batch) == self.batch_size:
-                yield self._create_batch(batch_keys, batch)
-                batch = []
-                batch_keys = []
-        if batch and not self.drop_last_batch:
-            yield self._create_batch(batch_keys, batch)
-
-    def _create_batch(self, keys: List[str], examples: List[Dict[str, Any]]) -> Tuple[str, Dict[str, List[Any]]]:
-        batch_key = "_".join(keys)
-        batch = {k: [example[k] for example in examples] for k in examples[0].keys()}
-        return batch_key, batch
-
-    def shuffle_data_sources(self, generator: np.random.Generator) -> "BatchedExamplesIterable":
-        return BatchedExamplesIterable(
-            self.ex_iterable.shuffle_data_sources(generator),
-            batch_size=self.batch_size,
-            drop_last_batch=self.drop_last_batch,
-        )
-
-    def shard_data_sources(self, worker_id: int, num_workers: int) -> "BatchedExamplesIterable":
-        return BatchedExamplesIterable(
-            self.ex_iterable.shard_data_sources(worker_id, num_workers),
-            batch_size=self.batch_size,
-            drop_last_batch=self.drop_last_batch,
-        )
-
-    @property
-    def n_shards(self) -> int:
-        return self.ex_iterable.n_shards
+        return self.map(batch_fn, batched=True, batch_size=batch_size, drop_last_batch=drop_last_batch)
 
 
 def _concatenate_iterable_datasets(
