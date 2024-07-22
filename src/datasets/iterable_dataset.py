@@ -2902,7 +2902,7 @@ class IterableDataset(DatasetInfoMixin):
         ```
         """
 
-        def batch_fn(unbatched: dict[str, list]) -> dict[str, list]:
+        def batch_fn(unbatched):
             return {k: [v] for k, v in unbatched.items()}
 
         return self.map(batch_fn, batched=True, batch_size=batch_size, drop_last_batch=drop_last_batch)
