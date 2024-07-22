@@ -1,7 +1,8 @@
 import io
 import json
+from dataclasses import dataclass
 from itertools import islice
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 import fsspec
 import numpy as np
@@ -15,12 +16,23 @@ from datasets.utils.file_utils import SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTO
 logger = datasets.utils.logging.get_logger(__name__)
 
 
+@dataclass
+class WebDatasetConfig(datasets.BuilderConfig):
+    """BuilderConfig for WebDataset."""
+
+    features: Optional[datasets.Features] = None
+
+    def __post_init__(self):
+        super().__post_init__()
+
+
 class WebDataset(datasets.GeneratorBasedBuilder):
     DEFAULT_WRITER_BATCH_SIZE = 100
     IMAGE_EXTENSIONS: List[str]  # definition at the bottom of the script
     AUDIO_EXTENSIONS: List[str]  # definition at the bottom of the script
     DECODERS: Dict[str, Callable[[Any], Any]]  # definition at the bottom of the script
     NUM_EXAMPLES_FOR_FEATURES_INFERENCE = 5
+    BUILDER_CONFIG_CLASS = WebDatasetConfig
 
     @classmethod
     def _get_pipeline_from_tar(cls, tar_path, tar_iterator):
@@ -51,7 +63,7 @@ class WebDataset(datasets.GeneratorBasedBuilder):
             yield current_example
 
     def _info(self) -> datasets.DatasetInfo:
-        return datasets.DatasetInfo()
+        return datasets.DatasetInfo(features=self.config.features)
 
     def _split_generators(self, dl_manager):
         """We handle string, list and dicts in datafiles"""
