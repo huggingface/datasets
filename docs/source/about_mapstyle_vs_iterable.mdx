@@ -205,6 +205,43 @@ for epoch in range(n_epochs):
         pass
 ```
 
+## Batching data in IterableDataset
+
+When working with large datasets, it's often beneficial to process data in batches. 
+This is particularly useful for machine learning tasks where models typically expect inputs in batches. 
+The `IterableDataset` provides a `batch` method that allows you to easily group samples into batches while maintaining the lazy evaluation nature of the dataset.
+
+You can use the `batch` method like this:
+
+```python
+from datasets import load_dataset
+
+# Load a dataset in streaming mode
+dataset = load_dataset("some_dataset", split="train", streaming=True)
+
+# Create batches of 32 samples
+batched_dataset = dataset.batch(batch_size=32)
+
+# Iterate over the batched dataset
+for batch in batched_dataset:
+    print(batch)
+    break
+```
+
+In this example, `batched_dataset` is still an `IterableDataset`, but each item yielded is now a batch of 32 samples instead of a single sample.
+This batching is done on-the-fly as you iterate over the dataset, preserving the memory-efficient nature of `IterableDataset`.
+
+The `batch` method also provides a `drop_last_batch` parameter. 
+When set to `True`, it will discard the last batch if it's smaller than the specified `batch_size`. 
+This can be useful in scenarios where your downstream processing requires all batches to be of the same size:
+
+```python
+batched_dataset = dataset.batch(batch_size=32, drop_last_batch=True)
+```
+
+Batching with `IterableDataset` combines the benefits of processing data in larger chunks with the memory efficiency of streaming data. 
+This makes it an excellent choice for working with large datasets that don't fit in memory, especially when used with deep learning frameworks that expect batched inputs.
+
 ## Checkpoint and resuming differences
 
 If you training loop stops, you may want to restart the training from where it was. To do so you can save a checkpoint of your model and optimizers, as well as your data loader.
