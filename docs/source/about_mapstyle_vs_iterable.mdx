@@ -205,10 +205,6 @@ for epoch in range(n_epochs):
         pass
 ```
 
-## Checkpoint and resuming differences
-
-If you training loop stops, you may want to restart the training from where it was. To do so you can save a checkpoint of your model and optimizers, as well as your data loader.
-
 To restart the iteration of a map-style dataset, you can simply skip the first examples:
 
 ```python
