@@ -190,6 +190,9 @@ def cached_path(
 
     if is_remote_url(url_or_filename):
         # URL, so get it from the cache (downloading if necessary)
+        url_or_filename, storage_options = _prepare_path_and_storage_options(
+            url_or_filename, download_config=download_config
+        )
         output_path = get_from_cache(
             url_or_filename,
             cache_dir=cache_dir,
@@ -202,7 +205,7 @@ def cached_path(
             max_retries=download_config.max_retries,
             token=download_config.token,
             ignore_url_params=download_config.ignore_url_params,
-            storage_options=download_config.storage_options,
+            storage_options=storage_options,
             download_desc=download_config.download_desc,
             disable_tqdm=download_config.disable_tqdm,
         )
