@@ -318,6 +318,44 @@ You can filter rows in the dataset based on a predicate function using [`Dataset
  {'id': 4, 'text': 'Are you looking for Number the Stars (Essential Modern Classics)? Normally, ...'}]
 ```
 
+## Batch
+
+The `batch` method transforms your `IterableDataset` into an iterable of batches. This is particularly useful when you want to work with batches in your training loop or when using frameworks that expect batched inputs.
+
+<Tip>
+
+There is also a "Batch Processing" option when using the `map` function to apply a function to batches of data, which is discussed in the [Map section](#map) above. The `batch` method described here is different and provides a more direct way to create batches from your dataset.
+
+</Tip>
+
+You can use the `batch` method like this:
+
+```python
+from datasets import load_dataset
+
+# Load a dataset in streaming mode
+dataset = load_dataset("some_dataset", split="train", streaming=True)
+
+# Create batches of 32 samples
+batched_dataset = dataset.batch(batch_size=32)
+
+# Iterate over the batched dataset
+for batch in batched_dataset:
+    print(batch)
+    break
+```
+
+In this example, batched_dataset is still an IterableDataset, but each item yielded is now a batch of 32 samples instead of a single sample.
+This batching is done on-the-fly as you iterate over the dataset, preserving the memory-efficient nature of IterableDataset.
+
+The batch method also provides a drop_last_batch parameter. 
+When set to True, it will discard the last batch if it's smaller than the specified batch_size. 
+This can be useful in scenarios where your downstream processing requires all batches to be of the same size:
+
+```python
+batched_dataset = dataset.batch(batch_size=32, drop_last_batch=True)
+```
+
 ## Stream in a training loop
 
 [`IterableDataset`] can be integrated into a training loop. First, shuffle the dataset:

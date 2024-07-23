@@ -2885,6 +2885,26 @@ class IterableDataset(DatasetInfoMixin):
             token_per_repo_id=self._token_per_repo_id,
         )
 
+    def batch(self, batch_size: int, drop_last_batch: bool = False) -> "IterableDataset":
+        """
+        Group samples from the dataset into batches.
+
+        Args:
+            batch_size (`int`): The number of samples in each batch.
+            drop_last_batch (`bool`, defaults to `False`): Whether to drop the last incomplete batch.
+
+        Example:
+        ```py
+        >>> ds = load_dataset("some_dataset", streaming=True)
+        >>> batched_ds = ds.batch(batch_size=32)
+        ```
+        """
+
+        def batch_fn(unbatched):
+            return {k: [v] for k, v in unbatched.items()}
+
+        return self.map(batch_fn, batched=True, batch_size=batch_size, drop_last_batch=drop_last_batch)
+
 
 def _concatenate_iterable_datasets(
     dsets: List[IterableDataset],
