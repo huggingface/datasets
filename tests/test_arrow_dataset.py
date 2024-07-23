@@ -57,6 +57,7 @@ from .utils import (
     require_dill_gt_0_3_2,
     require_jax,
     require_not_windows,
+    require_numpy1_on_windows,
     require_pil,
     require_polars,
     require_pyspark,
@@ -420,6 +421,7 @@ class BaseDatasetTest(TestCase):
                 self.assertIsInstance(dset[0]["col_2"], np.str_)
                 self.assertEqual(dset[0]["col_2"].item(), "a")
 
+    @require_numpy1_on_windows
     @require_torch
     def test_set_format_torch(self, in_memory):
         import torch
@@ -1525,6 +1527,7 @@ class BaseDatasetTest(TestCase):
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertRaises(ValueError, dset.map, func_return_multi_row_pd_dataframe)
 
+    @require_numpy1_on_windows
     @require_torch
     def test_map_torch(self, in_memory):
         import torch
@@ -1590,6 +1593,7 @@ class BaseDatasetTest(TestCase):
                     )
                     self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
 
+    @require_numpy1_on_windows
     @require_torch
     def test_map_tensor_batched(self, in_memory):
         import torch
@@ -4826,3 +4830,21 @@ def test_dataset_getitem_raises():
         ds[False]
     with pytest.raises(TypeError):
         ds._getitem(True)
+
+
+def test_categorical_dataset(tmpdir):
+    n_legs = pa.array([2, 4, 5, 100])
+    animals = pa.array(["Flamingo", "Horse", "Brittle stars", "Centipede"]).cast(
+        pa.dictionary(pa.int32(), pa.string())
+    )
+    names = ["n_legs", "animals"]
+
+    table = pa.Table.from_arrays([n_legs, animals], names=names)
+    table_path = str(tmpdir / "data.parquet")
+    pa.parquet.write_table(table, table_path)
+
+    dataset = Dataset.from_parquet(table_path)
+    entry = dataset[0]
+
+    # Categorical types get transparently converted to string
+    assert entry["animals"] == "Flamingo"

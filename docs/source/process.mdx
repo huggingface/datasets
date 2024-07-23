@@ -131,7 +131,7 @@ For example, the [imdb](https://huggingface.co/datasets/imdb) dataset has 25000 
 
 ```py
 >>> from datasets import load_dataset
->>> datasets = load_dataset("imdb", split="train")
+>>> dataset = load_dataset("imdb", split="train")
 >>> print(dataset)
 Dataset({
     features: ['text', 'label'],
@@ -345,7 +345,7 @@ You can also use [`~Dataset.map`] with indices if you set `with_indices=True`. T
 Multiprocessing significantly speeds up processing by parallelizing processes on the CPU. Set the `num_proc` parameter in [`~Dataset.map`] to set the number of processes to use:
 
 ```py
->>> updated_dataset = dataset.map(lambda example, idx: {"sentence2": f"{idx}: " + example["sentence2"]}, num_proc=4)
+>>> updated_dataset = dataset.map(lambda example, idx: {"sentence2": f"{idx}: " + example["sentence2"]}, with_indices=True, num_proc=4)
 ```
 
 The [`~Dataset.map`] also works with the rank of the process if you set `with_rank=True`. This is analogous to the `with_indices` parameter. The `with_rank` parameter in the mapped function goes after the `index` one if it is already present. 
@@ -578,6 +578,7 @@ You can define sampling probabilities for each of the original datasets to speci
 In this case, the new dataset is constructed by getting examples one by one from a random dataset until one of the datasets runs out of samples.
 
 ```py
+>>> from datasets import Dataset, interleave_datasets
 >>> seed = 42
 >>> probabilities = [0.3, 0.5, 0.2]
 >>> d1 = Dataset.from_dict({"a": [0, 1, 2]})
@@ -643,7 +644,7 @@ The [`~Dataset.set_transform`] function applies a custom formatting transform on
 
 >>> tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 >>> def encode(batch):
-...     return tokenizer(batch["sentence1"], padding="longest", truncation=True, max_length=512, return_tensors="pt")
+...     return tokenizer(batch["sentence1"], batch["sentence2"], padding="longest", truncation=True, max_length=512, return_tensors="pt")
 >>> dataset.set_transform(encode)
 >>> dataset.format
 {'type': 'custom', 'format_kwargs': {'transform': <function __main__.encode(batch)>}, 'columns': ['idx', 'label', 'sentence1', 'sentence2'], 'output_all_columns': False}

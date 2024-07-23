@@ -16,6 +16,9 @@ class PandasConfig(datasets.BuilderConfig):
 
     features: Optional[datasets.Features] = None
 
+    def __post_init__(self):
+        super().__post_init__()
+
 
 class Pandas(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = PandasConfig

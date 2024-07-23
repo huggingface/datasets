@@ -2,14 +2,13 @@ import copy
 import os
 from functools import partial
 from itertools import groupby
-from typing import TYPE_CHECKING, Callable, Iterator, List, Optional, Tuple, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Callable, Iterator, List, Optional, Tuple, TypeVar, Union
 
 import numpy as np
 import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.types
 
-from . import config
 from .utils.logging import get_logger
 
 
@@ -1307,7 +1306,7 @@ class ConcatenationTable(Table):
                 if not isinstance(subtable, TableBlock):
                     raise TypeError(
                         "The blocks of a ConcatenationTable must be InMemoryTable or MemoryMappedTable objects"
-                        f", but got {subtable}."
+                        f", but got {_short_str(subtable)}."
                     )
 
     def __getstate__(self):
@@ -1320,22 +1319,16 @@ class ConcatenationTable(Table):
         if schema is not None and table.schema != schema:
             # We fix the columns by concatenating with an empty table with the right columns
             empty_table = pa.Table.from_batches([], schema=schema)
-            # we set promote=True to fill missing columns with null values
-            if config.PYARROW_VERSION.major < 14:
-                table = pa.concat_tables([table, empty_table], promote=True)
-            else:
-                table = pa.concat_tables([table, empty_table], promote_options="default")
+            # We set promote_options="default" to fill missing columns with null values
+            table = pa.concat_tables([table, empty_table], promote_options="default")
         ConcatenationTable.__init__(self, table, blocks=blocks)
 
     @staticmethod
     def _concat_blocks(blocks: List[Union[TableBlock, pa.Table]], axis: int = 0) -> pa.Table:
         pa_tables = [table.table if hasattr(table, "table") else table for table in blocks]
         if axis == 0:
-            # we set promote=True to fill missing columns with null values
-            if config.PYARROW_VERSION.major < 14:
-                return pa.concat_tables(pa_tables, promote=True)
-            else:
-                return pa.concat_tables(pa_tables, promote_options="default")
+            # We set promote_options="default" to fill missing columns with null values
+            return pa.concat_tables(pa_tables, promote_options="default")
         elif axis == 1:
             for i, table in enumerate(pa_tables):
                 if i == 0:
@@ -1837,6 +1830,13 @@ def _storage_type(type: pa.DataType) -> pa.DataType:
     return type
 
 
+def _short_str(value: Any) -> str:
+    out = str(value)
+    if len(out) > 3000:
+        out = out[:1500] + "\n...\n" + out[-1500:]
+    return out
+
+
 @_wrap_for_chunked_arrays
 def array_cast(
     array: pa.Array, pa_type: pa.DataType, allow_primitive_to_str: bool = True, allow_decimal_to_str: bool = True
@@ -1899,20 +1899,12 @@ def array_cast(
                     else:
                         array = pc.list_slice(array, 0, pa_type.list_size, return_fixed_size_list=True)
                     array_values = array.values
-                    if config.PYARROW_VERSION.major < 15:
-                        return pa.Array.from_buffers(
-                            pa_type,
-                            len(array),
-                            [array.is_valid().buffers()[1]],
-                            children=[_c(array_values, pa_type.value_type)],
-                        )
-                    else:
-                        return pa.FixedSizeListArray.from_arrays(
-                            _c(array_values, pa_type.value_type), pa_type.list_size, mask=array.is_null()
-                        )
+                    return pa.FixedSizeListArray.from_arrays(
+                        _c(array_values, pa_type.value_type), pa_type.list_size, mask=array.is_null()
+                    )
                 else:
                     array_values = array.values[
-                        array.offset * pa_type.length : (array.offset + len(array)) * pa_type.length
+                        array.offset * pa_type.list_size : (array.offset + len(array)) * pa_type.list_size
                     ]
                     return pa.FixedSizeListArray.from_arrays(_c(array_values, pa_type.value_type), pa_type.list_size)
         elif pa.types.is_list(pa_type):
@@ -1925,17 +1917,9 @@ def array_cast(
                 array_values = array.values[
                     array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
                 ]
-                if config.PYARROW_VERSION.major < 15:
-                    return pa.Array.from_buffers(
-                        pa_type,
-                        len(array),
-                        [array.is_valid().buffers()[1]],
-                        children=[_c(array_values, pa_type.value_type)],
-                    )
-                else:
-                    return pa.FixedSizeListArray.from_arrays(
-                        _c(array_values, pa_type.value_type), pa_type.list_size, mask=array.is_null()
-                    )
+                return pa.FixedSizeListArray.from_arrays(
+                    _c(array_values, pa_type.value_type), pa_type.list_size, mask=array.is_null()
+                )
         elif pa.types.is_list(pa_type):
             array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
             return pa.ListArray.from_arrays(array_offsets, _c(array.values, pa_type.value_type), mask=array.is_null())
@@ -1943,18 +1927,18 @@ def array_cast(
         if pa.types.is_string(pa_type):
             if not allow_primitive_to_str and pa.types.is_primitive(array.type):
                 raise TypeError(
-                    f"Couldn't cast array of type {array.type} to {pa_type} "
+                    f"Couldn't cast array of type {_short_str(array.type)} to {_short_str(pa_type)} "
                     f"since allow_primitive_to_str is set to {allow_primitive_to_str} "
                 )
             if not allow_decimal_to_str and pa.types.is_decimal(array.type):
                 raise TypeError(
-                    f"Couldn't cast array of type {array.type} to {pa_type} "
+                    f"Couldn't cast array of type {_short_str(array.type)} to {_short_str(pa_type)} "
                     f"and allow_decimal_to_str is set to {allow_decimal_to_str}"
                 )
         if pa.types.is_null(pa_type) and not pa.types.is_null(array.type):
-            raise TypeError(f"Couldn't cast array of type {array.type} to {pa_type}")
+            raise TypeError(f"Couldn't cast array of type {_short_str(array.type)} to {_short_str(pa_type)}")
         return array.cast(pa_type)
-    raise TypeError(f"Couldn't cast array of type\n{array.type}\nto\n{pa_type}")
+    raise TypeError(f"Couldn't cast array of type {_short_str(array.type)} to {_short_str(pa_type)}")
 
 
 @_wrap_for_chunked_arrays
@@ -2048,17 +2032,9 @@ def cast_array_to_feature(
                             array = pc.list_slice(array, 0, feature.length, return_fixed_size_list=True)
                         array_values = array.values
                         casted_array_values = _c(array_values, feature.feature)
-                        if config.PYARROW_VERSION.major < 15:
-                            return pa.Array.from_buffers(
-                                pa.list_(casted_array_values.type, feature.length),
-                                len(array),
-                                [array.is_valid().buffers()[1]],
-                                children=[casted_array_values],
-                            )
-                        else:
-                            return pa.FixedSizeListArray.from_arrays(
-                                casted_array_values, feature.length, mask=array.is_null()
-                            )
+                        return pa.FixedSizeListArray.from_arrays(
+                            casted_array_values, feature.length, mask=array.is_null()
+                        )
                     else:
                         array_values = array.values[
                             array.offset * feature.length : (array.offset + len(array)) * feature.length
@@ -2084,17 +2060,7 @@ def cast_array_to_feature(
                         array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
                     ]
                     casted_array_values = _c(array_values, feature.feature)
-                    if config.PYARROW_VERSION.major < 15:
-                        return pa.Array.from_buffers(
-                            pa.list_(casted_array_values.type, feature.length),
-                            len(array),
-                            [array.is_valid().buffers()[1]],
-                            children=[casted_array_values],
-                        )
-                    else:
-                        return pa.FixedSizeListArray.from_arrays(
-                            casted_array_values, feature.length, mask=array.is_null()
-                        )
+                    return pa.FixedSizeListArray.from_arrays(casted_array_values, feature.length, mask=array.is_null())
             else:
                 array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
                 return pa.ListArray.from_arrays(array_offsets, _c(array.values, feature.feature), mask=array.is_null())
@@ -2112,7 +2078,7 @@ def cast_array_to_feature(
             allow_primitive_to_str=allow_primitive_to_str,
             allow_decimal_to_str=allow_decimal_to_str,
         )
-    raise TypeError(f"Couldn't cast array of type\n{array.type}\nto\n{feature}")
+    raise TypeError(f"Couldn't cast array of type\n{_short_str(array.type)}\nto\n{_short_str(feature)}")
 
 
 @_wrap_for_chunked_arrays
@@ -2169,18 +2135,10 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
                 array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
             ]
             embedded_array_values = _e(array_values, feature.feature)
-            if config.PYARROW_VERSION.major < 15:
-                return pa.Array.from_buffers(
-                    pa.list_(array_values.type, feature.length),
-                    len(array),
-                    [array.is_valid().buffers()[1]],
-                    children=[embedded_array_values],
-                )
-            else:
-                return pa.FixedSizeListArray.from_arrays(embedded_array_values, feature.length, mask=array.is_null())
+            return pa.FixedSizeListArray.from_arrays(embedded_array_values, feature.length, mask=array.is_null())
     if not isinstance(feature, (Sequence, dict, list, tuple)):
         return array
-    raise TypeError(f"Couldn't embed array of type\n{array.type}\nwith\n{feature}")
+    raise TypeError(f"Couldn't embed array of type\n{_short_str(array.type)}\nwith\n{_short_str(feature)}")
 
 
 class CastError(ValueError):
@@ -2201,11 +2159,11 @@ class CastError(ValueError):
         new_columns = set(self.table_column_names) - set(self.requested_column_names)
         missing_columns = set(self.requested_column_names) - set(self.table_column_names)
         if new_columns and missing_columns:
-            return f"there are {len(new_columns)} new columns ({', '.join(new_columns)}) and {len(missing_columns)} missing columns ({', '.join(missing_columns)})."
+            return f"there are {len(new_columns)} new columns ({_short_str(new_columns)}) and {len(missing_columns)} missing columns ({_short_str(missing_columns)})."
         elif new_columns:
-            return f"there are {len(new_columns)} new columns ({new_columns})"
+            return f"there are {len(new_columns)} new columns ({_short_str(new_columns)})"
         else:
-            return f"there are {len(missing_columns)} missing columns ({missing_columns})"
+            return f"there are {len(missing_columns)} missing columns ({_short_str(missing_columns)})"
 
 
 def cast_table_to_features(table: pa.Table, features: "Features"):
@@ -2222,7 +2180,7 @@ def cast_table_to_features(table: pa.Table, features: "Features"):
     """
     if sorted(table.column_names) != sorted(features):
         raise CastError(
-            f"Couldn't cast\n{table.schema}\nto\n{features}\nbecause column names don't match",
+            f"Couldn't cast\n{_short_str(table.schema)}\nto\n{_short_str(features)}\nbecause column names don't match",
             table_column_names=table.column_names,
             requested_column_names=list(features),
         )
@@ -2247,7 +2205,7 @@ def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
     features = Features.from_arrow_schema(schema)
     if sorted(table.column_names) != sorted(features):
         raise CastError(
-            f"Couldn't cast\n{table.schema}\nto\n{features}\nbecause column names don't match",
+            f"Couldn't cast\n{_short_str(table.schema)}\nto\n{_short_str(features)}\nbecause column names don't match",
             table_column_names=table.column_names,
             requested_column_names=list(features),
         )

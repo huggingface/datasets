@@ -1,17 +1,17 @@
 import shutil
 import textwrap
 
-import librosa
 import numpy as np
 import pytest
 import soundfile as sf
 
 from datasets import Audio, ClassLabel, Features, Value
-from datasets.data_files import DataFilesDict, get_data_patterns
+from datasets.builder import InvalidConfigName
+from datasets.data_files import DataFilesDict, DataFilesList, get_data_patterns
 from datasets.download.streaming_download_manager import StreamingDownloadManager
-from datasets.packaged_modules.audiofolder.audiofolder import AudioFolder
+from datasets.packaged_modules.audiofolder.audiofolder import AudioFolder, AudioFolderConfig
 
-from ..utils import require_sndfile
+from ..utils import require_librosa, require_sndfile
 
 
 @pytest.fixture
@@ -194,6 +194,8 @@ def data_files_with_two_splits_and_metadata(request, tmp_path, audio_file):
 
 @pytest.fixture
 def data_files_with_zip_archives(tmp_path, audio_file):
+    import librosa
+
     data_dir = tmp_path / "audiofolder_data_dir_with_zip_archives"
     data_dir.mkdir(parents=True, exist_ok=True)
     archive_dir = data_dir / "archive"
@@ -230,6 +232,18 @@ def data_files_with_zip_archives(tmp_path, audio_file):
     return data_files_with_zip_archives
 
 
+def test_config_raises_when_invalid_name() -> None:
+    with pytest.raises(InvalidConfigName, match="Bad characters"):
+        _ = AudioFolderConfig(name="name-with-*-invalid-character")
+
+
+@pytest.mark.parametrize("data_files", ["str_path", ["str_path"], DataFilesList(["str_path"], [()])])
+def test_config_raises_when_invalid_data_files(data_files) -> None:
+    with pytest.raises(ValueError, match="Expected a DataFilesDict"):
+        _ = AudioFolderConfig(name="name", data_files=data_files)
+
+
+@require_librosa
 @require_sndfile
 # check that labels are inferred correctly from dir names
 def test_generate_examples_with_labels(data_files_with_labels_no_metadata, cache_dir):
@@ -244,6 +258,7 @@ def test_generate_examples_with_labels(data_files_with_labels_no_metadata, cache
     assert dataset[1]["label"] == label_feature._str2int["uk"]
 
 
+@require_librosa
 @require_sndfile
 @pytest.mark.parametrize("drop_metadata", [None, True, False])
 @pytest.mark.parametrize("drop_labels", [None, True, False])
@@ -373,6 +388,7 @@ def test_generate_examples_with_metadata_that_misses_one_audio(
         )
 
 
+@require_librosa
 @require_sndfile
 @pytest.mark.parametrize("streaming", [False, True])
 def test_data_files_with_metadata_and_single_split(streaming, cache_dir, data_files_with_one_split_and_metadata):
@@ -391,6 +407,7 @@ def test_data_files_with_metadata_and_single_split(streaming, cache_dir, data_fi
         assert all(example["text"] is not None for example in dataset)
 
 
+@require_librosa
 @require_sndfile
 @pytest.mark.parametrize("streaming", [False, True])
 def test_data_files_with_metadata_and_multiple_splits(streaming, cache_dir, data_files_with_two_splits_and_metadata):
@@ -409,6 +426,7 @@ def test_data_files_with_metadata_and_multiple_splits(streaming, cache_dir, data
         assert all(example["text"] is not None for example in dataset)
 
 
+@require_librosa
 @require_sndfile
 @pytest.mark.parametrize("streaming", [False, True])
 def test_data_files_with_metadata_and_archives(streaming, cache_dir, data_files_with_zip_archives):

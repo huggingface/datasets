@@ -6,6 +6,7 @@ import platform
 from pathlib import Path
 from typing import Optional
 
+from huggingface_hub import constants
 from packaging import version
 
 
@@ -15,11 +16,6 @@ logger = logging.getLogger(__name__.split(".", 1)[0])  # to avoid circular impor
 S3_DATASETS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets"
 CLOUDFRONT_DATASETS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/datasets/datasets"
 REPO_DATASETS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{revision}/datasets/{path}/{name}"
-
-# Metrics
-S3_METRICS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/datasets/metrics"
-CLOUDFRONT_METRICS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/datasets/metric"
-REPO_METRICS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{revision}/metrics/{path}/{name}"
 
 # Hub
 HF_ENDPOINT = os.environ.get("HF_ENDPOINT", "https://huggingface.co")
@@ -122,20 +118,6 @@ else:
     logger.info("Disabling JAX because USE_JAX is set to False")
 
 
-USE_BEAM = os.environ.get("USE_BEAM", "AUTO").upper()
-BEAM_VERSION = "N/A"
-BEAM_AVAILABLE = False
-if USE_BEAM in ENV_VARS_TRUE_AND_AUTO_VALUES:
-    try:
-        BEAM_VERSION = version.parse(importlib.metadata.version("apache_beam"))
-        BEAM_AVAILABLE = True
-        logger.info(f"Apache Beam version {BEAM_VERSION} available.")
-    except importlib.metadata.PackageNotFoundError:
-        pass
-else:
-    logger.info("Disabling Apache Beam because USE_BEAM is set to False")
-
-
 # Optional tools for data loading
 SQLALCHEMY_AVAILABLE = importlib.util.find_spec("sqlalchemy") is not None
 
@@ -163,9 +145,6 @@ HF_CACHE_HOME = os.path.expanduser(os.getenv("HF_HOME", DEFAULT_HF_CACHE_HOME))
 DEFAULT_HF_DATASETS_CACHE = os.path.join(HF_CACHE_HOME, "datasets")
 HF_DATASETS_CACHE = Path(os.getenv("HF_DATASETS_CACHE", DEFAULT_HF_DATASETS_CACHE))
 
-DEFAULT_HF_METRICS_CACHE = os.path.join(HF_CACHE_HOME, "metrics")
-HF_METRICS_CACHE = Path(os.getenv("HF_METRICS_CACHE", DEFAULT_HF_METRICS_CACHE))
-
 DEFAULT_HF_MODULES_CACHE = os.path.join(HF_CACHE_HOME, "modules")
 HF_MODULES_CACHE = Path(os.getenv("HF_MODULES_CACHE", DEFAULT_HF_MODULES_CACHE))
 
@@ -186,7 +165,7 @@ HF_UPDATE_DOWNLOAD_COUNTS = (
 HF_DATASETS_MULTITHREADING_MAX_WORKERS = 16
 
 # Remote dataset scripts support
-__HF_DATASETS_TRUST_REMOTE_CODE = os.environ.get("HF_DATASETS_TRUST_REMOTE_CODE", "1")
+__HF_DATASETS_TRUST_REMOTE_CODE = os.environ.get("HF_DATASETS_TRUST_REMOTE_CODE", "ask")
 HF_DATASETS_TRUST_REMOTE_CODE: Optional[bool] = (
     True
     if __HF_DATASETS_TRUST_REMOTE_CODE.upper() in ENV_VARS_TRUE_VALUES
@@ -215,7 +194,9 @@ PARQUET_ROW_GROUP_SIZE_FOR_IMAGE_DATASETS = 100
 PARQUET_ROW_GROUP_SIZE_FOR_BINARY_DATASETS = 100
 
 # Offline mode
-HF_DATASETS_OFFLINE = os.environ.get("HF_DATASETS_OFFLINE", "AUTO").upper() in ENV_VARS_TRUE_VALUES
+_offline = os.environ.get("HF_DATASETS_OFFLINE")
+HF_HUB_OFFLINE = constants.HF_HUB_OFFLINE if _offline is None else _offline.upper() in ENV_VARS_TRUE_VALUES
+HF_DATASETS_OFFLINE = HF_HUB_OFFLINE  # kept for backward-compatibility
 
 # Here, `True` will disable progress bars globally without possibility of enabling it
 # programmatically. `False` will enable them without possibility of disabling them.
@@ -240,7 +221,6 @@ DATASET_STATE_JSON_FILENAME = "state.json"
 DATASET_INFO_FILENAME = "dataset_info.json"
 DATASETDICT_INFOS_FILENAME = "dataset_infos.json"
 LICENSE_FILENAME = "LICENSE"
-METRIC_INFO_FILENAME = "metric_info.json"
 DATASETDICT_JSON_FILENAME = "dataset_dict.json"
 METADATA_CONFIGS_FIELD = "configs"
 REPOCARD_FILENAME = "README.md"

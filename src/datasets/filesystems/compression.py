@@ -1,4 +1,5 @@
 import os
+from functools import partial
 from typing import Optional
 
 import fsspec
@@ -32,9 +33,11 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
             target_options (:obj:``dict``, optional): Kwargs passed when instantiating the target FS.
         """
         super().__init__(self, **kwargs)
+        self.fo = fo.__fspath__() if hasattr(fo, "__fspath__") else fo
         # always open as "rb" since fsspec can then use the TextIOWrapper to make it work for "r" mode
-        self.file = fsspec.open(
-            fo,
+        self._open_with_fsspec = partial(
+            fsspec.open,
+            self.fo,
             mode="rb",
             protocol=target_protocol,
             compression=self.compression,
@@ -45,7 +48,7 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
             },
             **(target_options or {}),
         )
-        self.compressed_name = os.path.basename(self.file.path.split("::")[0])
+        self.compressed_name = os.path.basename(self.fo.split("::")[0])
         self.uncompressed_name = (
             self.compressed_name[: self.compressed_name.rindex(".")]
             if "." in self.compressed_name
@@ -60,11 +63,12 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
 
     def _get_dirs(self):
         if self.dir_cache is None:
-            f = {**self.file.fs.info(self.file.path), "name": self.uncompressed_name}
+            f = {**self._open_with_fsspec().fs.info(self.fo), "name": self.uncompressed_name}
             self.dir_cache = {f["name"]: f}
 
     def cat(self, path: str):
-        return self.file.open().read()
+        with self._open_with_fsspec().open() as f:
+            return f.read()
 
     def _open(
         self,
@@ -77,8 +81,8 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
     ):
         path = self._strip_protocol(path)
         if mode != "rb":
-            raise ValueError(f"Tried to read with mode {mode} on file {self.file.path} opened with mode 'rb'")
-        return self.file.open()
+            raise ValueError(f"Tried to read with mode {mode} on file {self.fo} opened with mode 'rb'")
+        return self._open_with_fsspec().open()
 
 
 class Bz2FileSystem(BaseCompressedFileFileSystem):

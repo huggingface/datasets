@@ -169,7 +169,7 @@ class DatasetDict(dict):
 
     @property
     def shape(self) -> Dict[str, Tuple[int]]:
-        """Shape of each split of the dataset (number of columns, number of rows).
+        """Shape of each split of the dataset (number of rows, number of columns).
 
         Example:
 

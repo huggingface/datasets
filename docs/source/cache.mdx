@@ -24,13 +24,6 @@ When you load a dataset, you also have the option to change where the data is ca
 >>> dataset = load_dataset('LOADING_SCRIPT', cache_dir="PATH/TO/MY/CACHE/DIR")
 ```
 
-Similarly, you can change where a metric is cached with the `cache_dir` parameter:
-
-```py
->>> from datasets import load_metric
->>> metric = load_metric('glue', 'mrpc', cache_dir="MY/CACHE/DIRECTORY")
-```
-
 ## Download mode
 
 After you download a dataset, control how it is loaded by [`load_dataset`] with the `download_mode` parameter. By default, 🤗 Datasets will reuse a dataset if it exists. But if you need the original dataset without any processing functions applied, re-download the files as shown below:
@@ -74,19 +67,6 @@ When you disable caching, 🤗 Datasets will no longer reload cached files when 
 <Tip>
 
 If you want to reuse a dataset from scratch, try setting the `download_mode` parameter in [`load_dataset`] instead.
-
-</Tip>
-
-You can also avoid caching your metric entirely, and keep it in CPU memory instead:
-
-```py
->>> from datasets import load_metric
->>> metric = load_metric('glue', 'mrpc', keep_in_memory=True)
-```
-
-<Tip warning={true}>
-
-Keeping the predictions in-memory is not possible in a distributed setting since the CPU memory spaces of the various processes are not shared.
 
 </Tip>
 

@@ -4,6 +4,7 @@ This file is adapted from the AllenNLP library at https://github.com/allenai/all
 Copyright by the AllenNLP authors.
 """
 
+import asyncio
 import copy
 import glob
 import io
@@ -20,21 +21,20 @@ import urllib
 import warnings
 import xml.dom.minidom
 import zipfile
-from asyncio import TimeoutError
 from contextlib import closing, contextmanager
 from functools import partial
 from io import BytesIO
 from itertools import chain
 from pathlib import Path, PurePosixPath
-from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, TypeVar, Union
+from typing import Any, Dict, Generator, List, Optional, Tuple, TypeVar, Union
 from unittest.mock import patch
 from urllib.parse import urljoin, urlparse
 from xml.etree import ElementTree as ET
 
+import aiohttp.client_exceptions
 import fsspec
 import huggingface_hub
 import requests
-from aiohttp.client_exceptions import ClientError
 from fsspec.core import strip_protocol, url_to_fs
 from fsspec.utils import can_be_local
 from huggingface_hub.utils import EntryNotFoundError, insecure_hashlib
@@ -47,7 +47,7 @@ from . import _tqdm, logging
 from . import tqdm as hf_tqdm
 from ._filelock import FileLock
 from .extract import ExtractManager
-from .track import TrackedIterable
+from .track import TrackedIterableFromGenerator
 
 
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
@@ -97,30 +97,22 @@ def relative_to_absolute_path(path: T) -> T:
     return Path(abs_path_str) if isinstance(path, Path) else abs_path_str
 
 
-def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -> str:
-    if dataset:
-        endpoint = config.CLOUDFRONT_DATASETS_DISTRIB_PREFIX if use_cdn else config.S3_DATASETS_BUCKET_PREFIX
-    else:
-        endpoint = config.CLOUDFRONT_METRICS_DISTRIB_PREFIX if use_cdn else config.S3_METRICS_BUCKET_PREFIX
+def hf_bucket_url(identifier: str, filename: str, use_cdn=False) -> str:
+    endpoint = config.CLOUDFRONT_DATASETS_DISTRIB_PREFIX if use_cdn else config.S3_DATASETS_BUCKET_PREFIX
     return "/".join((endpoint, identifier, filename))
 
 
-def head_hf_s3(
-    identifier: str, filename: str, use_cdn=False, dataset=True, max_retries=0
-) -> Union[requests.Response, Exception]:
+def head_hf_s3(identifier: str, filename: str, use_cdn=False, max_retries=0) -> Union[requests.Response, Exception]:
     return http_head(
-        hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn, dataset=dataset),
+        hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn),
         max_retries=max_retries,
     )
 
 
-def hf_github_url(path: str, name: str, dataset=True, revision: Optional[str] = None) -> str:
+def hf_github_url(path: str, name: str, revision: Optional[str] = None) -> str:
     default_revision = "main" if version.parse(__version__).is_devrelease else __version__
     revision = revision or default_revision
-    if dataset:
-        return config.REPO_DATASETS_URL.format(revision=revision, path=path, name=name)
-    else:
-        return config.REPO_METRICS_URL.format(revision=revision, path=path, name=name)
+    return config.REPO_DATASETS_URL.format(revision=revision, path=path, name=name)
 
 
 def url_or_path_join(base_name: str, *pathnames: str) -> str:
@@ -269,8 +261,6 @@ def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> st
         ua += f"; tensorflow/{config.TF_VERSION}"
     if config.JAX_AVAILABLE:
         ua += f"; jax/{config.JAX_VERSION}"
-    if config.BEAM_AVAILABLE:
-        ua += f"; apache_beam/{config.BEAM_VERSION}"
     if isinstance(user_agent, dict):
         ua += f"; {'; '.join(f'{k}/{v}' for k, v in user_agent.items())}"
     elif isinstance(user_agent, str):
@@ -302,8 +292,8 @@ class OfflineModeIsEnabled(ConnectionError):
 
 
 def _raise_if_offline_mode_is_enabled(msg: Optional[str] = None):
-    """Raise an OfflineModeIsEnabled error (subclass of ConnectionError) if HF_DATASETS_OFFLINE is True."""
-    if config.HF_DATASETS_OFFLINE:
+    """Raise an OfflineModeIsEnabled error (subclass of ConnectionError) if HF_HUB_OFFLINE is True."""
+    if config.HF_HUB_OFFLINE:
         raise OfflineModeIsEnabled(
             "Offline mode is enabled." if msg is None else "Offline mode is enabled. " + str(msg)
         )
@@ -320,7 +310,7 @@ def _request_with_retry(
 ) -> requests.Response:
     """Wrapper around requests to retry in case it fails with a ConnectTimeout, with exponential backoff.
 
-    Note that if the environment variable HF_DATASETS_OFFLINE is set to 1, then a OfflineModeIsEnabled error is raised.
+    Note that if the environment variable HF_HUB_OFFLINE is set to 1, then a OfflineModeIsEnabled error is raised.
 
     Args:
         method (str): HTTP method, such as 'GET' or 'HEAD'.
@@ -765,6 +755,9 @@ COMPRESSION_EXTENSION_TO_PROTOCOL = {
     # archive compression
     "zip": "zip",
 }
+SINGLE_FILE_COMPRESSION_EXTENSION_TO_PROTOCOL = {
+    fs_class.extension.lstrip("."): fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS
+}
 SINGLE_FILE_COMPRESSION_PROTOCOLS = {fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS}
 SINGLE_SLASH_AFTER_PROTOCOL_PATTERN = re.compile(r"(?<!:):/")
 
@@ -1103,7 +1096,12 @@ def _add_retries_to_file_obj_read_method(file_obj):
             try:
                 out = read(*args, **kwargs)
                 break
-            except (ClientError, TimeoutError) as err:
+            except (
+                aiohttp.client_exceptions.ClientError,
+                asyncio.TimeoutError,
+                requests.exceptions.ConnectTimeout,
+                requests.exceptions.ConnectionError,
+            ) as err:
                 disconnect_err = err
                 logger.warning(
                     f"Got disconnected from remote data host. Retrying in {config.STREAMING_READ_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
@@ -1564,23 +1562,7 @@ def xxml_dom_minidom_parse(filename_or_file, download_config: Optional[DownloadC
             return xml.dom.minidom.parse(f, **kwargs)
 
 
-class _IterableFromGenerator(TrackedIterable):
-    """Utility class to create an iterable from a generator function, in order to reset the generator when needed."""
-
-    def __init__(self, generator: Callable, *args, **kwargs):
-        super().__init__()
-        self.generator = generator
-        self.args = args
-        self.kwargs = kwargs
-
-    def __iter__(self):
-        for x in self.generator(*self.args, **self.kwargs):
-            self.last_item = x
-            yield x
-        self.last_item = None
-
-
-class ArchiveIterable(_IterableFromGenerator):
+class ArchiveIterable(TrackedIterableFromGenerator):
     """An iterable of (path, fileobj) from a TAR archive, used by `iter_archive`"""
 
     @staticmethod
@@ -1645,7 +1627,7 @@ class ArchiveIterable(_IterableFromGenerator):
         return cls(cls._iter_from_urlpath, urlpath_or_buf, download_config)
 
 
-class FilesIterable(_IterableFromGenerator):
+class FilesIterable(TrackedIterableFromGenerator):
     """An iterable of paths from a list of directories or files"""
 
     @classmethod

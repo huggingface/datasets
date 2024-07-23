@@ -15,6 +15,9 @@ class ImageFolderConfig(folder_based_builder.FolderBasedBuilderConfig):
     drop_labels: bool = None
     drop_metadata: bool = None
 
+    def __post_init__(self):
+        super().__post_init__()
+
 
 class ImageFolder(folder_based_builder.FolderBasedBuilder):
     BASE_FEATURE = datasets.Image

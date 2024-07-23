@@ -37,6 +37,7 @@ import requests
 import yaml
 from fsspec.core import url_to_fs
 from huggingface_hub import DatasetCard, DatasetCardData, HfApi, HfFileSystem
+from huggingface_hub.utils import GatedRepoError, RepositoryNotFoundError, RevisionNotFoundError
 
 from . import config
 from .arrow_dataset import Dataset
@@ -61,7 +62,6 @@ from .features import Features
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict
 from .iterable_dataset import IterableDataset
-from .metric import Metric
 from .naming import camelcase_to_snakecase, snakecase_to_camelcase
 from .packaged_modules import (
     _EXTENSION_TO_MODULE,
@@ -72,13 +72,11 @@ from .packaged_modules import (
 )
 from .splits import Split
 from .utils import _dataset_viewer
-from .utils.deprecation_utils import deprecated
 from .utils.file_utils import (
     OfflineModeIsEnabled,
     _raise_if_offline_mode_is_enabled,
     cached_path,
     head_hf_s3,
-    hf_github_url,
     init_hf_modules,
     is_relative_path,
     relative_to_absolute_path,
@@ -145,7 +143,7 @@ def init_dynamic_modules(
 ):
     """
     Create a module with name `name` in which you can add dynamic modules
-    such as metrics or datasets. The module can be imported using its name.
+    such as datasets. The module can be imported using its name.
     The module is created in the HF_MODULE_CACHE directory by default (~/.cache/huggingface/modules) but it can
     be overridden by specifying a path to another directory in `hf_modules_cache`.
     """
@@ -158,22 +156,13 @@ def init_dynamic_modules(
     return dynamic_modules_path
 
 
-def import_main_class(module_path, dataset=True) -> Optional[Union[Type[DatasetBuilder], Type[Metric]]]:
-    """Import a module at module_path and return its main class:
-    - a DatasetBuilder if dataset is True
-    - a Metric if dataset is False
-    """
+def import_main_class(module_path) -> Optional[Type[DatasetBuilder]]:
+    """Import a module at module_path and return its main class: a DatasetBuilder"""
     module = importlib.import_module(module_path)
-
-    if dataset:
-        main_cls_type = DatasetBuilder
-    else:
-        main_cls_type = Metric
-
     # Find the main class in our imported module
     module_main_cls = None
     for name, obj in module.__dict__.items():
-        if inspect.isclass(obj) and issubclass(obj, main_cls_type):
+        if inspect.isclass(obj) and issubclass(obj, DatasetBuilder):
             if inspect.isabstract(obj):
                 continue
             module_main_cls = obj
@@ -282,18 +271,18 @@ def files_to_hash(file_paths: List[str]) -> str:
     return _hash_python_lines(lines)
 
 
-def increase_load_count(name: str, resource_type: str):
-    """Update the download count of a dataset or metric."""
-    if not config.HF_DATASETS_OFFLINE and config.HF_UPDATE_DOWNLOAD_COUNTS:
+def increase_load_count(name: str):
+    """Update the download count of a dataset."""
+    if not config.HF_HUB_OFFLINE and config.HF_UPDATE_DOWNLOAD_COUNTS:
         try:
-            head_hf_s3(name, filename=name + ".py", dataset=(resource_type == "dataset"))
+            head_hf_s3(name, filename=name + ".py")
         except Exception:
             pass
 
 
 def _download_additional_modules(
     name: str, base_path: str, imports: Tuple[str, str, str, str], download_config: Optional[DownloadConfig]
-) -> List[Tuple[str, str]]:
+) -> Tuple[List[Tuple[str, str]], List[Tuple[str, str]]]:
     """
     Download additional module for a module <name>.py at URL (or local path) <base_path>/<name>.py
     The imports must have been parsed first using ``get_imports``.
@@ -335,6 +324,10 @@ def _download_additional_modules(
             local_import_path = os.path.join(local_import_path, sub_directory)
         local_imports.append((import_name, local_import_path))
 
+    return local_imports, library_imports
+
+
+def _check_library_imports(name: str, library_imports: List[Tuple[str, str]]) -> None:
     # Check library imports
     needs_to_be_installed = {}
     for library_import_name, library_import_path in library_imports:
@@ -355,7 +348,6 @@ def _download_additional_modules(
             f"{', '.join(needs_to_be_installed)}.\nPlease install {_them_str} using 'pip install "
             f"{' '.join(needs_to_be_installed.values())}' for instance."
         )
-    return local_imports
 
 
 def _copy_script_and_other_resources_in_importable_dir(
@@ -381,14 +373,14 @@ def _copy_script_and_other_resources_in_importable_dir(
     Return:
         importable_file: path to an importable module with importlib.import_module
     """
-    # Define a directory with a unique name in our dataset or metric folder
-    # path is: ./datasets|metrics/dataset|metric_name/hash_from_code/script.py
-    # we use a hash as subdirectory_name to be able to have multiple versions of a dataset/metric processing file together
+    # Define a directory with a unique name in our dataset folder
+    # path is: ./datasets/dataset_name/hash_from_code/script.py
+    # we use a hash as subdirectory_name to be able to have multiple versions of a dataset processing file together
     importable_subdirectory = os.path.join(importable_directory_path, subdirectory_name)
     importable_file = os.path.join(importable_subdirectory, name + ".py")
     # Prevent parallel disk operations
     with lock_importable_file(importable_file):
-        # Create main dataset/metrics folder if needed
+        # Create main dataset folder if needed
         if download_mode == DownloadMode.FORCE_REDOWNLOAD and os.path.exists(importable_directory_path):
             shutil.rmtree(importable_directory_path)
         os.makedirs(importable_directory_path, exist_ok=True)
@@ -697,213 +689,9 @@ class DatasetModule:
     importable_file_path: Optional[str] = None
 
 
-@dataclass
-class MetricModule:
-    module_path: str
-    hash: str
-
-
 class _DatasetModuleFactory:
     def get_module(self) -> DatasetModule:
         raise NotImplementedError
-
-
-class _MetricModuleFactory:
-    def get_module(self) -> MetricModule:
-        raise NotImplementedError
-
-
-class GithubMetricModuleFactory(_MetricModuleFactory):
-    """Get the module of a metric. The metric script is downloaded from GitHub.
-
-    <Deprecated version="2.5.0">
-
-    Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
-
-    </Deprecated>
-    """
-
-    @deprecated("Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
-    def __init__(
-        self,
-        name: str,
-        revision: Optional[Union[str, Version]] = None,
-        download_config: Optional[DownloadConfig] = None,
-        download_mode: Optional[Union[DownloadMode, str]] = None,
-        dynamic_modules_path: Optional[str] = None,
-        trust_remote_code: Optional[str] = None,
-    ):
-        self.name = name
-        self.revision = revision
-        self.download_config = download_config.copy() if download_config else DownloadConfig()
-        if self.download_config.max_retries < 3:
-            self.download_config.max_retries = 3
-        self.download_mode = download_mode
-        self.dynamic_modules_path = dynamic_modules_path
-        self.trust_remote_code = trust_remote_code
-        assert self.name.count("/") == 0
-        increase_load_count(name, resource_type="metric")
-
-    def download_loading_script(self, revision: Optional[str]) -> str:
-        file_path = hf_github_url(path=self.name, name=self.name + ".py", revision=revision, dataset=False)
-        download_config = self.download_config.copy()
-        if download_config.download_desc is None:
-            download_config.download_desc = "Downloading builder script"
-        return cached_path(file_path, download_config=download_config)
-
-    def get_module(self) -> MetricModule:
-        if config.HF_DATASETS_TRUST_REMOTE_CODE and self.trust_remote_code is None:
-            _loading_script_url = hf_github_url(
-                path=self.name, name=self.name + ".py", revision=self.revision, dataset=False
-            )
-            warnings.warn(
-                f"The repository for {self.name} contains custom code which must be executed to correctly "
-                f"load the metric. You can inspect the repository content at {_loading_script_url}\n"
-                f"You can avoid this message in future by passing the argument `trust_remote_code=True`.\n"
-                f"Passing `trust_remote_code=True` will be mandatory to load this metric from the next major release of `datasets`.",
-                FutureWarning,
-            )
-        # get script and other files
-        revision = self.revision
-        try:
-            local_path = self.download_loading_script(revision)
-            revision = self.revision
-        except FileNotFoundError:
-            if revision is not None:
-                raise
-            else:
-                revision = "main"
-                local_path = self.download_loading_script(revision)
-                logger.warning(
-                    f"Couldn't find a directory or a metric named '{self.name}' in this version. "
-                    f"It was picked from the main branch on github instead."
-                )
-        imports = get_imports(local_path)
-        local_imports = _download_additional_modules(
-            name=self.name,
-            base_path=hf_github_url(path=self.name, name="", revision=revision, dataset=False),
-            imports=imports,
-            download_config=self.download_config,
-        )
-        # copy the script and the files in an importable directory
-        dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
-        hash = files_to_hash([local_path] + [loc[1] for loc in local_imports])
-        importable_file_path = _get_importable_file_path(
-            dynamic_modules_path=dynamic_modules_path,
-            module_namespace="metrics",
-            subdirectory_name=hash,
-            name=self.name,
-        )
-        if not os.path.exists(importable_file_path):
-            trust_remote_code = resolve_trust_remote_code(self.trust_remote_code, self.name)
-            if trust_remote_code:
-                _create_importable_file(
-                    local_path=local_path,
-                    local_imports=local_imports,
-                    additional_files=[],
-                    dynamic_modules_path=dynamic_modules_path,
-                    module_namespace="metrics",
-                    subdirectory_name=hash,
-                    name=self.name,
-                    download_mode=self.download_mode,
-                )
-            else:
-                raise ValueError(
-                    f"Loading {self.name} requires you to execute the dataset script in that"
-                    " repo on your local machine. Make sure you have read the code there to avoid malicious use, then"
-                    " set the option `trust_remote_code=True` to remove this error."
-                )
-        module_path, hash = _load_importable_file(
-            dynamic_modules_path=dynamic_modules_path,
-            module_namespace="metrics",
-            subdirectory_name=hash,
-            name=self.name,
-        )
-        # make the new module to be noticed by the import system
-        importlib.invalidate_caches()
-        return MetricModule(module_path, hash)
-
-
-class LocalMetricModuleFactory(_MetricModuleFactory):
-    """Get the module of a local metric. The metric script is loaded from a local script.
-
-    <Deprecated version="2.5.0">
-
-    Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
-
-    </Deprecated>
-    """
-
-    @deprecated("Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
-    def __init__(
-        self,
-        path: str,
-        download_config: Optional[DownloadConfig] = None,
-        download_mode: Optional[Union[DownloadMode, str]] = None,
-        dynamic_modules_path: Optional[str] = None,
-        trust_remote_code: Optional[str] = None,
-    ):
-        self.path = path
-        self.name = Path(path).stem
-        self.download_config = download_config or DownloadConfig()
-        self.download_mode = download_mode
-        self.dynamic_modules_path = dynamic_modules_path
-        self.trust_remote_code = trust_remote_code
-
-    def get_module(self) -> MetricModule:
-        if config.HF_DATASETS_TRUST_REMOTE_CODE and self.trust_remote_code is None:
-            warnings.warn(
-                f"The repository for {self.name} contains custom code which must be executed to correctly "
-                f"load the metric. You can inspect the repository content at {self.path}\n"
-                f"You can avoid this message in future by passing the argument `trust_remote_code=True`.\n"
-                f"Passing `trust_remote_code=True` will be mandatory to load this metric from the next major release of `datasets`.",
-                FutureWarning,
-            )
-        # get script and other files
-        imports = get_imports(self.path)
-        local_imports = _download_additional_modules(
-            name=self.name,
-            base_path=str(Path(self.path).parent),
-            imports=imports,
-            download_config=self.download_config,
-        )
-        # copy the script and the files in an importable directory
-        dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
-        hash = files_to_hash([self.path] + [loc[1] for loc in local_imports])
-        importable_file_path = _get_importable_file_path(
-            dynamic_modules_path=dynamic_modules_path,
-            module_namespace="metrics",
-            subdirectory_name=hash,
-            name=self.name,
-        )
-        if not os.path.exists(importable_file_path):
-            trust_remote_code = resolve_trust_remote_code(self.trust_remote_code, self.name)
-            if trust_remote_code:
-                _create_importable_file(
-                    local_path=self.path,
-                    local_imports=local_imports,
-                    additional_files=[],
-                    dynamic_modules_path=dynamic_modules_path,
-                    module_namespace="metrics",
-                    subdirectory_name=hash,
-                    name=self.name,
-                    download_mode=self.download_mode,
-                )
-            else:
-                raise ValueError(
-                    f"Loading {self.name} requires you to execute the dataset script in that"
-                    " repo on your local machine. Make sure you have read the code there to avoid malicious use, then"
-                    " set the option `trust_remote_code=True` to remove this error."
-                )
-        module_path, hash = _load_importable_file(
-            dynamic_modules_path=dynamic_modules_path,
-            module_namespace="metrics",
-            subdirectory_name=hash,
-            name=self.name,
-        )
-        # make the new module to be noticed by the import system
-        importlib.invalidate_caches()
-        return MetricModule(module_path, hash)
 
 
 class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
@@ -937,7 +725,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         dataset_infos_path = Path(self.path).parent / config.DATASETDICT_INFOS_FILENAME
         dataset_readme_path = Path(self.path).parent / config.REPOCARD_FILENAME
         imports = get_imports(self.path)
-        local_imports = _download_additional_modules(
+        local_imports, library_imports = _download_additional_modules(
             name=self.name,
             base_path=str(Path(self.path).parent),
             imports=imports,
@@ -976,6 +764,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
                     " repo on your local machine. Make sure you have read the code there to avoid malicious use, then"
                     " set the option `trust_remote_code=True` to remove this error."
                 )
+        _check_library_imports(name=self.name, library_imports=library_imports)
         module_path, hash = _load_importable_file(
             dynamic_modules_path=dynamic_modules_path,
             module_namespace="datasets",
@@ -1129,7 +918,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         self.data_dir = data_dir
         self.download_config = download_config
         self.download_mode = download_mode
-        increase_load_count(name, resource_type="dataset")
+        increase_load_count(name)
 
     def get_module(self) -> DatasetModule:
         base_path = Path(self.data_dir or "").expanduser().resolve().as_posix()
@@ -1192,7 +981,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self.data_dir = data_dir
         self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
-        increase_load_count(name, resource_type="dataset")
+        increase_load_count(name)
 
     def get_module(self) -> DatasetModule:
         hfh_dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
@@ -1235,7 +1024,12 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             pass
         metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
         dataset_infos = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
-        if config.USE_PARQUET_EXPORT:  # maybe don't use the infos from the parquet export
+        # Use the infos from the parquet export except in some cases:
+        if self.data_dir or self.data_files or (self.revision and self.revision != "main"):
+            use_exported_dataset_infos = False
+        else:
+            use_exported_dataset_infos = True
+        if config.USE_PARQUET_EXPORT and use_exported_dataset_infos:
             try:
                 exported_dataset_infos = _dataset_viewer.get_exported_dataset_infos(
                     dataset=self.name, revision=self.revision, token=self.download_config.token
@@ -1372,7 +1166,7 @@ class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
         self.name = name
         self.revision = revision
         self.download_config = download_config or DownloadConfig()
-        increase_load_count(name, resource_type="dataset")
+        increase_load_count(name)
 
     def get_module(self) -> DatasetModule:
         exported_parquet_files = _dataset_viewer.get_exported_parquet_files(
@@ -1444,7 +1238,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
         self.trust_remote_code = trust_remote_code
-        increase_load_count(name, resource_type="dataset")
+        increase_load_count(name)
 
     def download_loading_script(self) -> str:
         file_path = hf_dataset_url(self.name, self.name.split("/")[-1] + ".py", revision=self.revision)
@@ -1495,7 +1289,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         dataset_infos_path = self.download_dataset_infos_file()
         dataset_readme_path = self.download_dataset_readme_file()
         imports = get_imports(local_path)
-        local_imports = _download_additional_modules(
+        local_imports, library_imports = _download_additional_modules(
             name=self.name,
             base_path=hf_dataset_url(self.name, "", revision=self.revision),
             imports=imports,
@@ -1534,6 +1328,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
                     " repo on your local machine. Make sure you have read the code there to avoid malicious use, then"
                     " set the option `trust_remote_code=True` to remove this error."
                 )
+        _check_library_imports(name=self.name, library_imports=library_imports)
         module_path, hash = _load_importable_file(
             dynamic_modules_path=dynamic_modules_path,
             module_namespace="datasets",
@@ -1589,7 +1384,7 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
                 f"(last modified on {time.ctime(_get_modification_time(hash))}) since it "
                 f"couldn't be found locally at {self.name}"
             )
-            if not config.HF_DATASETS_OFFLINE:
+            if not config.HF_HUB_OFFLINE:
                 warning_msg += ", or remotely on the Hugging Face Hub."
             logger.warning(warning_msg)
             importable_file_path = _get_importable_file_path(
@@ -1626,7 +1421,7 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
                 "dataset_name": self.name.split("/")[-1],
             }
             warning_msg = f"Using the latest cached version of the dataset since {self.name} couldn't be found on the Hugging Face Hub"
-            if config.HF_DATASETS_OFFLINE:
+            if config.HF_HUB_OFFLINE:
                 warning_msg += " (offline mode is enabled)."
             logger.warning(warning_msg)
             return DatasetModule(
@@ -1635,55 +1430,6 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
                 {**builder_kwargs, "version": "auto"},
             )
         raise FileNotFoundError(f"Dataset {self.name} is not cached in {self.cache_dir}")
-
-
-class CachedMetricModuleFactory(_MetricModuleFactory):
-    """
-    Get the module of a metric that has been loaded once already and cached.
-    The script that is loaded from the cache is the most recent one with a matching name.
-
-    <Deprecated version="2.5.0">
-
-    Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
-
-    </Deprecated>
-    """
-
-    @deprecated("Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
-    def __init__(
-        self,
-        name: str,
-        dynamic_modules_path: Optional[str] = None,
-    ):
-        self.name = name
-        self.dynamic_modules_path = dynamic_modules_path
-        assert self.name.count("/") == 0
-
-    def get_module(self) -> MetricModule:
-        dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
-        importable_directory_path = os.path.join(dynamic_modules_path, "metrics", self.name)
-        hashes = (
-            [h for h in os.listdir(importable_directory_path) if len(h) == 64]
-            if os.path.isdir(importable_directory_path)
-            else None
-        )
-        if not hashes:
-            raise FileNotFoundError(f"Metric {self.name} is not cached in {dynamic_modules_path}")
-        # get most recent
-
-        def _get_modification_time(module_hash):
-            return (Path(importable_directory_path) / module_hash / (self.name + ".py")).stat().st_mtime
-
-        hash = sorted(hashes, key=_get_modification_time)[-1]
-        logger.warning(
-            f"Using the latest cached version of the module from {os.path.join(importable_directory_path, hash)} "
-            f"(last modified on {time.ctime(_get_modification_time(hash))}) since it "
-            f"couldn't be found locally at {self.name}, or remotely on the Hugging Face Hub."
-        )
-        # make the new module to be noticed by the import system
-        module_path = ".".join([os.path.basename(dynamic_modules_path), "metrics", self.name, hash, self.name])
-        importlib.invalidate_caches()
-        return MetricModule(module_path, hash)
 
 
 def dataset_module_factory(
@@ -1735,7 +1481,7 @@ def dataset_module_factory(
         download_mode (:class:`DownloadMode` or :obj:`str`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
             Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
-            By default, the datasets and metrics are stored inside the `datasets_modules` module.
+            By default, the datasets are stored inside the `datasets_modules` module.
         data_dir (:obj:`str`, optional): Directory with the data files. Used only if `data_files` is not specified,
             in which case it's equal to pass `os.path.join(data_dir, "**")` as `data_files`.
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
@@ -1743,18 +1489,19 @@ def dataset_module_factory(
             Directory to read/write data. Defaults to `"~/.cache/huggingface/datasets"`.
 
             <Added version="2.16.0"/>
-        trust_remote_code (`bool`, defaults to `True`):
+        trust_remote_code (`bool`, defaults to `False`):
             Whether or not to allow for datasets defined on the Hub using a dataset script. This option
             should only be set to `True` for repositories you trust and in which you have read the code, as it will
             execute code present on the Hub on your local machine.
 
-            <Tip warning={true}>
-
-            `trust_remote_code` will default to False in the next major release.
-
-            </Tip>
-
             <Added version="2.16.0"/>
+
+            <Changed version="2.20.0">
+
+            `trust_remote_code` defaults to `False` if not specified.
+
+            </Changed>
+
         **download_kwargs (additional keyword arguments): optional attributes for DownloadConfig() which will override
             the attributes in download_config if supplied.
 
@@ -1831,28 +1578,26 @@ def dataset_module_factory(
                     token=download_config.token,
                     timeout=100.0,
                 )
-            except Exception as e:  # noqa catch any exception of hf_hub and consider that the dataset doesn't exist
-                if isinstance(
-                    e,
-                    (
-                        OfflineModeIsEnabled,
-                        requests.exceptions.ConnectTimeout,
-                        requests.exceptions.ConnectionError,
-                    ),
-                ):
-                    raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({type(e).__name__})")
-                elif "404" in str(e):
-                    msg = f"Dataset '{path}' doesn't exist on the Hub or cannot be accessed"
-                    raise DatasetNotFoundError(msg + f" at revision '{revision}'" if revision else msg)
-                elif "401" in str(e):
-                    msg = f"Dataset '{path}' doesn't exist on the Hub or cannot be accessed"
-                    msg = msg + f" at revision '{revision}'" if revision else msg
-                    raise DatasetNotFoundError(
-                        msg
-                        + f". If the dataset is private or gated, make sure to log in with `huggingface-cli login` or visit the dataset page at https://huggingface.co/datasets/{path} to ask for access."
-                    )
-                else:
-                    raise e
+            except (
+                OfflineModeIsEnabled,
+                requests.exceptions.ConnectTimeout,
+                requests.exceptions.ConnectionError,
+            ) as e:
+                raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({e.__class__.__name__})") from e
+            except GatedRepoError as e:
+                message = f"Dataset '{path}' is a gated dataset on the Hub."
+                if "401 Client Error" in str(e):
+                    message += " You must be authenticated to access it."
+                elif "403 Client Error" in str(e):
+                    message += f" Visit the dataset page at https://huggingface.co/datasets/{path} to ask for access."
+                raise DatasetNotFoundError(message) from e
+            except RevisionNotFoundError as e:
+                raise DatasetNotFoundError(
+                    f"Revision '{revision}' doesn't exist for dataset '{path}' on the Hub."
+                ) from e
+            except RepositoryNotFoundError as e:
+                raise DatasetNotFoundError(f"Dataset '{path}' doesn't exist on the Hub or cannot be accessed.") from e
+
             if filename in [sibling.rfilename for sibling in dataset_info.siblings]:  # contains a dataset script
                 fs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=download_config.token)
                 if _require_custom_configs or (revision and revision != "main"):
@@ -1912,217 +1657,6 @@ def dataset_module_factory(
         raise FileNotFoundError(
             f"Couldn't find a dataset script at {relative_to_absolute_path(combined_path)} or any data file in the same directory."
         )
-
-
-@deprecated("Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate")
-def metric_module_factory(
-    path: str,
-    revision: Optional[Union[str, Version]] = None,
-    download_config: Optional[DownloadConfig] = None,
-    download_mode: Optional[Union[DownloadMode, str]] = None,
-    dynamic_modules_path: Optional[str] = None,
-    trust_remote_code: Optional[bool] = None,
-    **download_kwargs,
-) -> MetricModule:
-    """
-    Download/extract/cache a metric module.
-
-    <Deprecated version="2.5.0">
-
-    Use the new library 🤗 Evaluate instead: https://huggingface.co/docs/evaluate
-
-    </Deprecated>
-
-    Metrics codes are cached inside the dynamic modules cache to allow easy import (avoid ugly sys.path tweaks).
-
-    Args:
-
-        path (str): Path or name of the metric script.
-
-            - if ``path`` is a local metric script or a directory containing a local metric script (if the script has the same name as the directory):
-              -> load the module from the metric script
-              e.g. ``'./metrics/accuracy'`` or ``'./metrics/accuracy/accuracy.py'``.
-            - if ``path`` is a metric on the Hugging Face Hub (ex: `glue`, `squad`)
-              -> load the module from the metric script in the GitHub repository at huggingface/datasets
-              e.g. ``'accuracy'`` or ``'rouge'``.
-
-        revision (Optional ``Union[str, datasets.Version]``):
-            If specified, the module will be loaded from the datasets repository at this version.
-            By default:
-            - it is set to the local version of the lib.
-            - it will also try to load it from the main branch if it's not available at the local version of the lib.
-            Specifying a version that is different from your local version of the lib might cause compatibility issues.
-        download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
-        download_mode (:class:`DownloadMode` or :obj:`str`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
-        dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
-            Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
-            By default, the datasets and metrics are stored inside the `datasets_modules` module.
-        trust_remote_code (`bool`, defaults to `True`):
-            Whether or not to allow for datasets defined on the Hub using a dataset script. This option
-            should only be set to `True` for repositories you trust and in which you have read the code, as it will
-            execute code present on the Hub on your local machine.
-
-            <Tip warning={true}>
-
-            `trust_remote_code` will default to False in the next major release.
-
-            </Tip>
-
-            <Added version="2.16.0"/>
-        **download_kwargs (additional keyword arguments): optional attributes for DownloadConfig() which will override
-            the attributes in download_config if supplied.
-
-    Returns:
-        MetricModule
-    """
-    with warnings.catch_warnings():
-        # Ignore equivalent warnings to the one already issued
-        warnings.filterwarnings("ignore", message=".*https://huggingface.co/docs/evaluate$", category=FutureWarning)
-
-        if download_config is None:
-            download_config = DownloadConfig(**download_kwargs)
-        download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
-        download_config.extract_compressed_file = True
-        download_config.force_extract = True
-
-        filename = list(filter(lambda x: x, path.replace(os.sep, "/").split("/")))[-1]
-        if not filename.endswith(".py"):
-            filename = filename + ".py"
-        combined_path = os.path.join(path, filename)
-        # Try locally
-        if path.endswith(filename):
-            if os.path.isfile(path):
-                return LocalMetricModuleFactory(
-                    path,
-                    download_mode=download_mode,
-                    dynamic_modules_path=dynamic_modules_path,
-                    trust_remote_code=trust_remote_code,
-                ).get_module()
-            else:
-                raise FileNotFoundError(f"Couldn't find a metric script at {relative_to_absolute_path(path)}")
-        elif os.path.isfile(combined_path):
-            return LocalMetricModuleFactory(
-                combined_path, download_mode=download_mode, dynamic_modules_path=dynamic_modules_path
-            ).get_module()
-        elif is_relative_path(path) and path.count("/") == 0:
-            try:
-                return GithubMetricModuleFactory(
-                    path,
-                    revision=revision,
-                    download_config=download_config,
-                    download_mode=download_mode,
-                    dynamic_modules_path=dynamic_modules_path,
-                    trust_remote_code=trust_remote_code,
-                ).get_module()
-            except Exception as e1:  # noqa all the attempts failed, before raising the error we should check if the module is already cached.
-                try:
-                    return CachedMetricModuleFactory(path, dynamic_modules_path=dynamic_modules_path).get_module()
-                except Exception:  # noqa if it's not in the cache, then it doesn't exist.
-                    if not isinstance(e1, FileNotFoundError):
-                        raise e1 from None
-                    raise FileNotFoundError(
-                        f"Couldn't find a metric script at {relative_to_absolute_path(combined_path)}. "
-                        f"Metric '{path}' doesn't exist on the Hugging Face Hub either."
-                    ) from None
-        else:
-            raise FileNotFoundError(f"Couldn't find a metric script at {relative_to_absolute_path(combined_path)}.")
-
-
-@deprecated("Use 'evaluate.load' instead, from the new library 🤗 Evaluate: https://huggingface.co/docs/evaluate")
-def load_metric(
-    path: str,
-    config_name: Optional[str] = None,
-    process_id: int = 0,
-    num_process: int = 1,
-    cache_dir: Optional[str] = None,
-    experiment_id: Optional[str] = None,
-    keep_in_memory: bool = False,
-    download_config: Optional[DownloadConfig] = None,
-    download_mode: Optional[Union[DownloadMode, str]] = None,
-    revision: Optional[Union[str, Version]] = None,
-    trust_remote_code: Optional[bool] = None,
-    **metric_init_kwargs,
-) -> Metric:
-    """Load a `datasets.Metric`.
-
-    <Deprecated version="2.5.0">
-
-    Use `evaluate.load` instead, from the new library 🤗 Evaluate: https://huggingface.co/docs/evaluate
-
-    </Deprecated>
-
-    Args:
-
-        path (``str``):
-            path to the metric processing script with the metric builder. Can be either:
-                - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
-                    e.g. ``'./metrics/rouge'`` or ``'./metrics/rogue/rouge.py'``
-                - a metric identifier on the HuggingFace datasets repo (list all available metrics with ``datasets.list_metrics()``)
-                    e.g. ``'rouge'`` or ``'bleu'``
-        config_name (:obj:`str`, optional): selecting a configuration for the metric (e.g. the GLUE metric has a configuration for each subset)
-        process_id (:obj:`int`, optional): for distributed evaluation: id of the process
-        num_process (:obj:`int`, optional): for distributed evaluation: total number of processes
-        cache_dir (Optional str): path to store the temporary predictions and references (default to `~/.cache/huggingface/metrics/`)
-        experiment_id (``str``): A specific experiment id. This is used if several distributed evaluations share the same file system.
-            This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
-        keep_in_memory (bool): Whether to store the temporary results in memory (defaults to False)
-        download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
-        download_mode (:class:`DownloadMode` or :obj:`str`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
-        revision (Optional ``Union[str, datasets.Version]``): if specified, the module will be loaded from the datasets repository
-            at this version. By default, it is set to the local version of the lib. Specifying a version that is different from
-            your local version of the lib might cause compatibility issues.
-        trust_remote_code (`bool`, defaults to `True`):
-            Whether or not to allow for datasets defined on the Hub using a dataset script. This option
-            should only be set to `True` for repositories you trust and in which you have read the code, as it will
-            execute code present on the Hub on your local machine.
-
-            <Tip warning={true}>
-
-            `trust_remote_code` will default to False in the next major release.
-
-            </Tip>
-
-            <Added version="2.16.0"/>
-
-    Returns:
-        `datasets.Metric`
-
-    Example:
-
-    ```py
-    >>> from datasets import load_metric
-    >>> accuracy = load_metric('accuracy')
-    >>> accuracy.compute(references=[1, 0], predictions=[1, 1])
-    {'accuracy': 0.5}
-    ```
-    """
-    with warnings.catch_warnings():
-        # Ignore equivalent warnings to the one already issued
-        warnings.filterwarnings("ignore", message=".*https://huggingface.co/docs/evaluate$", category=FutureWarning)
-
-        download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
-        metric_module = metric_module_factory(
-            path,
-            revision=revision,
-            download_config=download_config,
-            download_mode=download_mode,
-            trust_remote_code=trust_remote_code,
-        ).module_path
-        metric_cls = import_main_class(metric_module, dataset=False)
-        metric = metric_cls(
-            config_name=config_name,
-            process_id=process_id,
-            num_process=num_process,
-            cache_dir=cache_dir,
-            keep_in_memory=keep_in_memory,
-            experiment_id=experiment_id,
-            **metric_init_kwargs,
-        )
-
-        # Download and prepare resources for the metric
-        metric.download_and_prepare(download_config=download_config)
-
-        return metric
 
 
 def load_dataset_builder(
@@ -2213,18 +1747,19 @@ def load_dataset_builder(
             **Experimental**. Key/value pairs to be passed on to the dataset file-system backend, if any.
 
             <Added version="2.11.0"/>
-        trust_remote_code (`bool`, defaults to `True`):
+        trust_remote_code (`bool`, defaults to `False`):
             Whether or not to allow for datasets defined on the Hub using a dataset script. This option
             should only be set to `True` for repositories you trust and in which you have read the code, as it will
             execute code present on the Hub on your local machine.
 
-            <Tip warning={true}>
-
-            `trust_remote_code` will default to False in the next major release.
-
-            </Tip>
-
             <Added version="2.16.0"/>
+
+            <Changed version="2.20.0">
+
+            `trust_remote_code` defaults to `False` if not specified.
+
+            </Changed>
+
         **config_kwargs (additional keyword arguments):
             Keyword arguments to be passed to the [`BuilderConfig`]
             and used in the [`DatasetBuilder`].
@@ -2474,18 +2009,19 @@ def load_dataset(
             **Experimental**. Key/value pairs to be passed on to the dataset file-system backend, if any.
 
             <Added version="2.11.0"/>
-        trust_remote_code (`bool`, defaults to `True`):
+        trust_remote_code (`bool`, defaults to `False`):
             Whether or not to allow for datasets defined on the Hub using a dataset script. This option
             should only be set to `True` for repositories you trust and in which you have read the code, as it will
             execute code present on the Hub on your local machine.
 
-            <Tip warning={true}>
-
-            `trust_remote_code` will default to False in the next major release.
-
-            </Tip>
-
             <Added version="2.16.0"/>
+
+            <Changed version="2.20.0">
+
+            `trust_remote_code` defaults to `False` if not specified.
+
+            </Changed>
+
         **config_kwargs (additional keyword arguments):
             Keyword arguments to be passed to the `BuilderConfig`
             and used in the [`DatasetBuilder`].

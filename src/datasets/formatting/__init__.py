@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# ruff: noqa
-
 from typing import Dict, List, Optional, Type
 
 from .. import config
@@ -134,6 +132,4 @@ def get_formatter(format_type: Optional[str], **format_kwargs) -> Formatter:
     if format_type in _FORMAT_TYPES_ALIASES_UNAVAILABLE:
         raise _FORMAT_TYPES_ALIASES_UNAVAILABLE[format_type]
     else:
-        raise ValueError(
-            f"Return type should be None or selected in {list(type for type in _FORMAT_TYPES.keys() if type != None)}, but got '{format_type}'"
-        )
+        raise ValueError(f"Format type should be one of {list(_FORMAT_TYPES.keys())}, but got '{format_type}'")

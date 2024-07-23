@@ -32,7 +32,6 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.types
-import pyarrow_hotfix  # noqa: F401  # to fix vulnerability on pyarrow<14.0.1
 from pandas.api.extensions import ExtensionArray as PandasExtensionArray
 from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 
@@ -109,6 +108,8 @@ def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
         return "string"
     elif pyarrow.types.is_large_string(arrow_type):
         return "large_string"
+    elif pyarrow.types.is_dictionary(arrow_type):
+        return _arrow_to_datasets_dtype(arrow_type.value_type)
     else:
         raise ValueError(f"Arrow type {arrow_type} does not have a datasets dtype equivalent.")
 
@@ -312,6 +313,12 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool, optimize_list_cas
                 True,
             )
     elif config.TORCH_AVAILABLE and "torch" in sys.modules and isinstance(obj, torch.Tensor):
+        if obj.dtype == torch.bfloat16:
+            return _cast_to_python_objects(
+                obj.detach().to(torch.float).cpu().numpy(),
+                only_1d_for_numpy=only_1d_for_numpy,
+                optimize_list_casting=optimize_list_casting,
+            )[0], True
         if obj.ndim == 0:
             return obj.detach().cpu().numpy()[()], True
         elif not only_1d_for_numpy or obj.ndim == 1:
@@ -834,7 +841,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.api.extensions.ExtensionArray.html#pandas.api.extensions.ExtensionArray
 
         """
-        if dtype == object:
+        if dtype == np.dtype(object):
             out = np.empty(len(self._data), dtype=object)
             for i in range(len(self._data)):
                 out[i] = self._data[i]
@@ -1250,6 +1257,8 @@ def encode_nested_example(schema, obj, level=0):
         sub_schema = schema[0]
         if obj is None:
             return None
+        elif isinstance(obj, np.ndarray):
+            return encode_nested_example(schema, obj.tolist())
         else:
             if len(obj) > 0:
                 for first_elmt in obj:
@@ -1426,8 +1435,6 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
     elif isinstance(pa_type, _ArrayXDExtensionType):
         array_feature = [None, None, Array2D, Array3D, Array4D, Array5D][pa_type.ndims]
         return array_feature(shape=pa_type.shape, dtype=pa_type.value_type)
-    elif isinstance(pa_type, pa.DictionaryType):
-        raise NotImplementedError  # TODO(thom) this will need access to the dictionary as well (for labels). I.e. to the py_table
     elif isinstance(pa_type, pa.DataType):
         return Value(dtype=_arrow_to_datasets_dtype(pa_type))
     else:
@@ -1696,6 +1703,9 @@ class Features(dict):
         Construct [`Features`] from Arrow Schema.
         It also checks the schema metadata for Hugging Face Datasets features.
         Non-nullable fields are not supported and set to nullable.
+
+        Also, pa.dictionary is not supported and it uses its underlying type instead.
+        Therefore datasets convert DictionaryArray objects to their actual values.
 
         Args:
             pa_schema (`pyarrow.Schema`):

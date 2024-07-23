@@ -711,6 +711,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     f"{e}\nThe 'source' features come from dataset_info.json, and the 'target' ones are those of the dataset arrow file."
                 )
 
+        # In case there are types like pa.dictionary that we need to convert to the underlying type
+
+        if self.data.schema != self.info.features.arrow_schema:
+            self._data = self.data.cast(self.info.features.arrow_schema)
+
         # Infer fingerprint if None
 
         if self._fingerprint is None:
@@ -4984,6 +4989,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     ) -> int:
         """Export the dataset to JSON Lines or JSON.
 
+        The default output format is [JSON Lines](https://jsonlines.org/).
+        To export to [JSON](https://www.json.org), pass `lines=False` argument and the desired `orient`.
+
         Args:
             path_or_buf (`PathLike` or `FileOrBuffer`):
                 Either a path to a file (e.g. `file.json`), a remote URI (e.g. `hf://datasets/username/my_dataset_name/data.json`),
@@ -4992,7 +5000,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Size of the batch to load in memory and write at once.
                 Defaults to `datasets.config.DEFAULT_MAX_BATCH_SIZE`.
             num_proc (`int`, *optional*):
-                Number of processes for multiprocessing. By default it doesn't
+                Number of processes for multiprocessing. By default, it doesn't
                 use multiprocessing. `batch_size` in this case defaults to
                 `datasets.config.DEFAULT_MAX_BATCH_SIZE` but feel free to make it 5x or 10x of the default
                 value if you have sufficient compute power.
@@ -5002,10 +5010,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 <Added version="2.19.0"/>
             **to_json_kwargs (additional keyword arguments):
                 Parameters to pass to pandas's [`pandas.DataFrame.to_json`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_json.html).
+                Default arguments are `lines=True` and `orient="records".
 
                 <Changed version="2.11.0">
 
-                Now, `index` defaults to `False` if `orient` is `"split"` or `"table"`.
+                The parameter `index` defaults to `False` if `orient` is `"split"` or `"table"`.
 
                 If you would like to write the index, pass `index=True`.
 
@@ -5017,7 +5026,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```py
-        >>> ds.to_json("path/to/dataset/directory")
+        >>> ds.to_json("path/to/dataset/directory/filename.jsonl")
         ```
         """
         # Dynamic import to avoid circular dependency

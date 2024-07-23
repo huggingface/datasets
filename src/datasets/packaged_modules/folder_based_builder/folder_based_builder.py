@@ -28,6 +28,9 @@ class FolderBasedBuilderConfig(datasets.BuilderConfig):
     drop_labels: bool = None
     drop_metadata: bool = None
 
+    def __post_init__(self):
+        super().__post_init__()
+
 
 class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
     """

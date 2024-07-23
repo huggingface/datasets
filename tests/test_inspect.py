@@ -10,7 +10,6 @@ from datasets.inspect import (
     get_dataset_infos,
     get_dataset_split_names,
     inspect_dataset,
-    inspect_metric,
 )
 from datasets.packaged_modules.csv import csv
 
@@ -23,16 +22,6 @@ def test_inspect_dataset(path, tmp_path):
     inspect_dataset(path, tmp_path)
     script_name = Path(path).stem + ".py"
     assert script_name in os.listdir(tmp_path)
-
-
-@pytest.mark.filterwarnings("ignore:inspect_metric is deprecated:FutureWarning")
-@pytest.mark.filterwarnings("ignore:metric_module_factory is deprecated:FutureWarning")
-@pytest.mark.parametrize("path", ["accuracy"])
-def test_inspect_metric(path, tmp_path):
-    inspect_metric(path, tmp_path)
-    script_name = path + ".py"
-    assert script_name in os.listdir(tmp_path)
-    assert "__pycache__" not in os.listdir(tmp_path)
 
 
 @pytest.mark.parametrize(
@@ -72,14 +61,14 @@ def test_get_dataset_config_info_error(path, config_name, expected_exception):
         ("squad", ["plain_text"]),
         ("hf-internal-testing/dataset_with_script", ["default"]),
         ("dalle-mini/wit", ["default"]),
-        ("hf-internal-testing/librispeech_asr_dummy", ["clean", "other"]),
+        ("hf-internal-testing/librispeech_asr_dummy", ["clean"]),
         ("hf-internal-testing/audiofolder_no_configs_in_metadata", ["default"]),
         ("hf-internal-testing/audiofolder_single_config_in_metadata", ["custom"]),
         ("hf-internal-testing/audiofolder_two_configs_in_metadata", ["v1", "v2"]),
     ],
 )
 def test_get_dataset_config_names(path, expected):
-    config_names = get_dataset_config_names(path)
+    config_names = get_dataset_config_names(path, trust_remote_code=True)
     assert config_names == expected
 
 
@@ -90,14 +79,14 @@ def test_get_dataset_config_names(path, expected):
         ("squad", "plain_text"),
         ("hf-internal-testing/dataset_with_script", "default"),
         ("dalle-mini/wit", "default"),
-        ("hf-internal-testing/librispeech_asr_dummy", None),
+        ("hf-internal-testing/librispeech_asr_dummy", "clean"),
         ("hf-internal-testing/audiofolder_no_configs_in_metadata", "default"),
         ("hf-internal-testing/audiofolder_single_config_in_metadata", "custom"),
         ("hf-internal-testing/audiofolder_two_configs_in_metadata", None),
     ],
 )
 def test_get_dataset_default_config_name(path, expected):
-    default_config_name = get_dataset_default_config_name(path)
+    default_config_name = get_dataset_default_config_name(path, trust_remote_code=True)
     if expected:
         assert default_config_name == expected
     else:

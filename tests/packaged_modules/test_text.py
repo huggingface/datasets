@@ -4,7 +4,9 @@ import pyarrow as pa
 import pytest
 
 from datasets import Features, Image
-from datasets.packaged_modules.text.text import Text
+from datasets.builder import InvalidConfigName
+from datasets.data_files import DataFilesList
+from datasets.packaged_modules.text.text import Text, TextConfig
 
 from ..utils import require_pil
 
@@ -37,6 +39,17 @@ def text_file_with_image(tmp_path, image_file):
     with open(filename, "w", encoding="utf-8") as f:
         f.write(image_file)
     return str(filename)
+
+
+def test_config_raises_when_invalid_name() -> None:
+    with pytest.raises(InvalidConfigName, match="Bad characters"):
+        _ = TextConfig(name="name-with-*-invalid-character")
+
+
+@pytest.mark.parametrize("data_files", ["str_path", ["str_path"], DataFilesList(["str_path"], [()])])
+def test_config_raises_when_invalid_data_files(data_files) -> None:
+    with pytest.raises(ValueError, match="Expected a DataFilesDict"):
+        _ = TextConfig(name="name", data_files=data_files)
 
 
 @pytest.mark.parametrize("keep_linebreaks", [True, False])

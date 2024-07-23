@@ -28,8 +28,8 @@ jobs:
           pip install .[quality]
       - name: Check quality
         run: |
-          ruff check tests src benchmarks metrics utils setup.py # linter
-          ruff format --check tests src benchmarks metrics utils setup.py # formatter
+          ruff check tests src benchmarks utils setup.py # linter
+          ruff format --check tests src benchmarks utils setup.py # formatter
 
   test:
     needs: check_code_quality
@@ -56,15 +56,16 @@ jobs:
       - name: Install uv
         run: pip install --upgrade uv
       - name: Install dependencies
-        run: |
-          uv pip install --system "datasets[tests,metrics-tests] @ ."
-          uv pip install --system -r additional-tests-requirements.txt --no-deps
+        run: uv pip install --system "datasets[tests] @ ."
+      - name: Install dependencies (latest versions)
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: uv pip install --system -r additional-tests-requirements.txt --no-deps
       - name: Install dependencies (latest versions)
         if: ${{ matrix.deps_versions == 'deps-latest' }}
-        run: uv pip install --system --upgrade pyarrow "huggingface-hub<0.23.0" dill
+        run: uv pip install --system --upgrade pyarrow huggingface-hub dill
       - name: Install dependencies (minimum versions)
         if: ${{ matrix.deps_versions != 'deps-latest' }}
-        run: uv pip install --system pyarrow==12.0.0 huggingface-hub==0.21.2 transformers dill==0.3.1.1
+        run: uv pip install --system pyarrow==15.0.0 huggingface-hub==0.21.2 transformers dill==0.3.1.1
       - name: Test with pytest
         run: |
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
@@ -92,6 +93,33 @@ jobs:
         run: pip install --upgrade uv
       - name: Install dependencies
         run: uv pip install --system "datasets[tests] @ ."
+      - name: Test with pytest
+        run: |
+          python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/
+
+  test_py310_numpy2:
+    needs: check_code_quality
+    strategy:
+      matrix:
+        test: ['unit']
+        os: [ubuntu-latest, windows-latest]
+        deps_versions: [deps-latest]
+    continue-on-error: false
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+      - name: Install uv
+        run: pip install --upgrade uv
+      - name: Install dependencies
+        run: uv pip install --system "datasets[tests_numpy2] @ ."
       - name: Test with pytest
         run: |
           python -m pytest -rfExX -m ${{ matrix.test }} -n 2 --dist loadfile -sv ./tests/

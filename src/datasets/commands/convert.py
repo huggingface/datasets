@@ -156,7 +156,7 @@ class ConvertCommand(BaseDatasetsCLICommand):
                 if "tf." in out_line or "tfds." in out_line or "tensorflow_datasets" in out_line:
                     raise ValueError(f"Error converting {out_line.strip()}")
 
-                if "GeneratorBasedBuilder" in out_line or "BeamBasedBuilder" in out_line:
+                if "GeneratorBasedBuilder" in out_line:
                     is_builder = True
                 out_lines.append(out_line)
 
