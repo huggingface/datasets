@@ -562,49 +562,50 @@ def get_from_cache(
             # s3fs uses "ETag", gcsfs uses "etag"
             etag = (response.get("ETag", None) or response.get("etag", None)) if use_etag else None
             connected = True
-        try:
-            response = http_head(
-                url,
-                allow_redirects=True,
-                proxies=proxies,
-                timeout=etag_timeout,
-                max_retries=max_retries,
-                headers=headers,
-            )
-            if response.status_code == 200:  # ok
-                etag = response.headers.get("ETag") if use_etag else None
-                for k, v in response.cookies.items():
-                    # In some edge cases, we need to get a confirmation token
-                    if k.startswith("download_warning") and "drive.google.com" in url:
-                        url += "&confirm=" + v
-                        cookies = response.cookies
-                connected = True
-                # Fix Google Drive URL to avoid Virus scan warning
-                if "drive.google.com" in url and "confirm=" not in url:
-                    url += "&confirm=t"
-            # In some edge cases, head request returns 400 but the connection is actually ok
-            elif (
-                (response.status_code == 400 and "firebasestorage.googleapis.com" in url)
-                or (response.status_code == 405 and "drive.google.com" in url)
-                or (
-                    response.status_code == 403
-                    and (
-                        re.match(r"^https?://github.com/.*?/.*?/releases/download/.*?/.*?$", url)
-                        or re.match(r"^https://.*?s3.*?amazonaws.com/.*?$", response.url)
+        else:
+            try:
+                response = http_head(
+                    url,
+                    allow_redirects=True,
+                    proxies=proxies,
+                    timeout=etag_timeout,
+                    max_retries=max_retries,
+                    headers=headers,
+                )
+                if response.status_code == 200:  # ok
+                    etag = response.headers.get("ETag") if use_etag else None
+                    for k, v in response.cookies.items():
+                        # In some edge cases, we need to get a confirmation token
+                        if k.startswith("download_warning") and "drive.google.com" in url:
+                            url += "&confirm=" + v
+                            cookies = response.cookies
+                    connected = True
+                    # Fix Google Drive URL to avoid Virus scan warning
+                    if "drive.google.com" in url and "confirm=" not in url:
+                        url += "&confirm=t"
+                # In some edge cases, head request returns 400 but the connection is actually ok
+                elif (
+                    (response.status_code == 400 and "firebasestorage.googleapis.com" in url)
+                    or (response.status_code == 405 and "drive.google.com" in url)
+                    or (
+                        response.status_code == 403
+                        and (
+                            re.match(r"^https?://github.com/.*?/.*?/releases/download/.*?/.*?$", url)
+                            or re.match(r"^https://.*?s3.*?amazonaws.com/.*?$", response.url)
+                        )
                     )
-                )
-                or (response.status_code == 403 and "ndownloader.figstatic.com" in url)
-            ):
-                connected = True
-                logger.info(f"Couldn't get ETag version for url {url}")
-            elif response.status_code == 401 and config.HF_ENDPOINT in url and token is None:
-                raise ConnectionError(
-                    f"Unauthorized for URL {url}. Please use the parameter `token=True` after logging in with `huggingface-cli login`"
-                )
-        except (OSError, requests.exceptions.Timeout) as e:
-            # not connected
-            head_error = e
-            pass
+                    or (response.status_code == 403 and "ndownloader.figstatic.com" in url)
+                ):
+                    connected = True
+                    logger.info(f"Couldn't get ETag version for url {url}")
+                elif response.status_code == 401 and config.HF_ENDPOINT in url and token is None:
+                    raise ConnectionError(
+                        f"Unauthorized for URL {url}. Please use the parameter `token=True` after logging in with `huggingface-cli login`"
+                    )
+            except (OSError, requests.exceptions.Timeout) as e:
+                # not connected
+                head_error = e
+                pass
 
     # connected == False = we don't have a connection, or url doesn't exist, or is otherwise inaccessible.
     # try to get the last downloaded one
