@@ -10,7 +10,6 @@ from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
 
-import boto3
 import dill
 import pyarrow as pa
 import pytest
@@ -1623,6 +1622,8 @@ def moto_server(monkeypatch):
 def test_load_file_from_s3(moto_server):
     # we need server mode here because of an aiobotocore incompatibility with moto.mock_aws
     # (https://github.com/getmoto/moto/issues/6836)
+    import boto3
+
     # Create a mock S3 bucket
     bucket_name = "test-bucket"
     s3 = boto3.client("s3", region_name="us-east-1")
