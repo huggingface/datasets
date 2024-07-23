@@ -16,7 +16,6 @@ import dill
 import pyarrow as pa
 import pytest
 import requests
-from moto.server import ThreadedMotoServer
 
 import datasets
 from datasets import config, load_dataset, load_from_disk
@@ -54,6 +53,7 @@ from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
     offline,
+    require_moto,
     require_not_windows,
     require_pil,
     require_sndfile,
@@ -1601,6 +1601,8 @@ def test_load_from_disk_with_default_in_memory(
 
 @contextmanager
 def moto_server():
+    from moto.server import ThreadedMotoServer
+
     with patch.dict(
         os.environ,
         {
@@ -1618,6 +1620,7 @@ def moto_server():
             server.stop()
 
 
+@require_moto
 def test_load_file_from_s3():
     # we need server mode here because of an aiobotocore incompatibility with moto.mock_aws
     # (https://github.com/getmoto/moto/issues/6836)
