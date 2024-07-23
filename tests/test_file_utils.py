@@ -1,7 +1,7 @@
 import os
 import re
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 import zstandard as zstd
@@ -75,6 +75,27 @@ def tmpfs_file(tmpfs):
     with open(os.path.join(tmpfs.local_root_dir, FILE_PATH), "w") as f:
         f.write(FILE_CONTENT)
     return FILE_PATH
+
+
+@pytest.mark.parametrize("protocol", ["hf", "s3"])
+def test_cached_path_protocols(protocol, monkeypatch, tmp_path):
+    # GH-6598: Test no TypeError: __init__() got an unexpected keyword argument 'hf'
+    mock_fsspec_head = MagicMock(return_value={})
+    mock_fsspec_get = MagicMock(return_value=None)
+    monkeypatch.setattr("datasets.utils.file_utils.fsspec_head", mock_fsspec_head)
+    monkeypatch.setattr("datasets.utils.file_utils.fsspec_get", mock_fsspec_get)
+    cache_dir = tmp_path / "cache"
+    storage_options = {} if protocol == "hf" else {"s3": {"anon": True}}
+    download_config = DownloadConfig(cache_dir=cache_dir, storage_options=storage_options)
+    urls = {"hf": "hf://datasets/org-name/ds-name@main/filename.ext", "s3": "s3://bucket-name/filename.ext"}
+    url = urls[protocol]
+    _ = cached_path(url, download_config=download_config)
+    assert True
+    for mock in [mock_fsspec_head, mock_fsspec_get]:
+        assert mock.called
+        assert mock.call_count == 1
+        assert mock.call_args.args[0] == url
+        assert list(mock.call_args.kwargs["storage_options"].keys()) == [protocol]
 
 
 @pytest.mark.parametrize("compression_format", ["gzip", "xz", "zstd"])
