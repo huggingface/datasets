@@ -2890,10 +2890,8 @@ class IterableDataset(DatasetInfoMixin):
         Group samples from the dataset into batches.
 
         Args:
-            batch_size (int):
-                The number of samples in each batch.
-            drop_last_batch (bool, defaults to `False`):
-                Whether to drop the last incomplete batch.
+            batch_size (`int`): The number of samples in each batch.
+            drop_last_batch (`bool`, defaults to `False`): Whether to drop the last incomplete batch.
 
         Example:
         ```py
