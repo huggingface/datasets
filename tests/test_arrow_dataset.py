@@ -4849,6 +4849,7 @@ def test_categorical_dataset(tmpdir):
     # Categorical types get transparently converted to string
     assert entry["animals"] == "Flamingo"
 
+
 def test_dataset_batch():
     # Create a simple Dataset
     data = {"id": list(range(10)), "text": [f"Text {i}" for i in range(10)]}
