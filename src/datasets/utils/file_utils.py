@@ -1159,12 +1159,10 @@ def _prepare_single_hop_path_and_storage_options(
         }
     else:
         storage_options = {}
-    if storage_options:
-        storage_options = {protocol: storage_options}
     if protocol in {"http", "https"}:
-        storage_options[protocol] = {
+        storage_options = {
             "client_kwargs": {"trust_env": True},  # Enable reading proxy env variables.
-            **(storage_options.get(protocol, {})),
+            **storage_options,
         }
         if "drive.google.com" in urlpath:
             response = http_head(urlpath)
@@ -1172,23 +1170,25 @@ def _prepare_single_hop_path_and_storage_options(
                 if k.startswith("download_warning"):
                     urlpath += "&confirm=" + v
                     cookies = response.cookies
-                    storage_options[protocol] = {"cookies": cookies, **storage_options.get(protocol, {})}
+                    storage_options = {"cookies": cookies, **storage_options}
             # Fix Google Drive URL to avoid Virus scan warning
             if "confirm=" not in urlpath:
                 urlpath += "&confirm=t"
         if urlpath.startswith("https://raw.githubusercontent.com/"):
             # Workaround for served data with gzip content-encoding: https://github.com/fsspec/filesystem_spec/issues/389
-            headers = storage_options[protocol].setdefault("headers", {})
+            headers = storage_options.setdefault("headers", {})
             headers["Accept-Encoding"] = "identity"
     elif protocol == "hf":
-        storage_options[protocol] = {
+        storage_options = {
             "token": token,
             "endpoint": config.HF_ENDPOINT,
-            **storage_options.get(protocol, {}),
+            **storage_options,
         }
         # streaming with block_size=0 is only implemented in 0.21 (see https://github.com/huggingface/huggingface_hub/pull/1967)
         if config.HF_HUB_VERSION < version.parse("0.21.0"):
-            storage_options[protocol]["block_size"] = "default"
+            storage_options["block_size"] = "default"
+    if storage_options:
+        storage_options = {protocol: storage_options}
     return urlpath, storage_options
 
 
