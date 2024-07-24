@@ -1168,7 +1168,6 @@ def _prepare_single_hop_path_and_storage_options(
         }
         if "drive.google.com" in urlpath:
             response = http_head(urlpath)
-            cookies = None
             for k, v in response.cookies.items():
                 if k.startswith("download_warning"):
                     urlpath += "&confirm=" + v
