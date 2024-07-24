@@ -3617,6 +3617,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         self,
         batch_size: int,
         drop_last_batch: bool = False,
+        num_proc: Optional[int] = None,
         new_fingerprint: Optional[str] = None,
     ) -> "Dataset":
         """
@@ -3627,7 +3628,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The number of samples in each batch.
             drop_last_batch (`bool`, defaults to `False`):
                 Whether to drop the last incomplete batch.
-            new_fingerprint (`str`, *optional*):
+            num_proc (`int`, *optional*, defaults to `None`):
+                Max number of processes when generating cache. Already cached shards are loaded sequentially.
+            new_fingerprint (`str`, *optional*, defaults to `None`):
                 The new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
 
@@ -3654,6 +3657,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             batched=True,
             batch_size=batch_size,
             drop_last_batch=drop_last_batch,
+            num_proc=num_proc,
             new_fingerprint=new_fingerprint,
             desc="Batching examples",
         )
