@@ -47,7 +47,7 @@ FILE_CONTENT = """\
 
 FILE_PATH = "file"
 
-TEST_URL = "https://huggingface.co/datasets/hf-internal-testing/dataset_with_script/raw/main/some_text.txt"
+TEST_URL = "https://huggingface.co/datasets/hf-internal-testing/dataset_with_script/resolve/main/some_text.txt"
 TEST_URL_CONTENT = "foo\nbar\nfoobar"
 
 TEST_GG_DRIVE_FILENAME = "train.tsv"
