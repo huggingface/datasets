@@ -1161,7 +1161,7 @@ def _prepare_single_hop_path_and_storage_options(
         storage_options = {}
     if storage_options:
         storage_options = {protocol: storage_options}
-    if protocol in ["http", "https"]:
+    if protocol in {"http", "https"}:
         storage_options[protocol] = {
             "client_kwargs": {"trust_env": True},  # Enable reading proxy env variables.
             **(storage_options.get(protocol, {})),
