@@ -1173,9 +1173,9 @@ def _prepare_single_hop_path_and_storage_options(
                     urlpath += "&confirm=" + v
                     cookies = response.cookies
                     storage_options[protocol] = {"cookies": cookies, **storage_options.get(protocol, {})}
-        # Fix Google Drive URL to avoid Virus scan warning
-        if "drive.google.com" in urlpath and "confirm=" not in urlpath:
-            urlpath += "&confirm=t"
+            # Fix Google Drive URL to avoid Virus scan warning
+            if "confirm=" not in urlpath:
+                urlpath += "&confirm=t"
         if urlpath.startswith("https://raw.githubusercontent.com/"):
             # Workaround for served data with gzip content-encoding: https://github.com/fsspec/filesystem_spec/issues/389
             headers = storage_options[protocol].setdefault("headers", {})
