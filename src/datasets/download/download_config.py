@@ -93,8 +93,6 @@ class DownloadConfig:
                 FutureWarning,
             )
             self.token = use_auth_token
-        if "hf" not in self.storage_options:
-            self.storage_options["hf"] = {"token": self.token, "endpoint": config.HF_ENDPOINT}
 
     def copy(self) -> "DownloadConfig":
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
