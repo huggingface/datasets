@@ -1179,7 +1179,8 @@ def _prepare_single_hop_path_and_storage_options(
             urlpath += "&confirm=t"
         if urlpath.startswith("https://raw.githubusercontent.com/"):
             # Workaround for served data with gzip content-encoding: https://github.com/fsspec/filesystem_spec/issues/389
-            storage_options[protocol]["headers"]["Accept-Encoding"] = "identity"
+            headers = storage_options[protocol].setdefault("headers", {})
+            headers["Accept-Encoding"] = "identity"
     elif protocol == "hf":
         storage_options[protocol] = {
             "token": token,
