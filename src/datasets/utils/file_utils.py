@@ -1160,10 +1160,8 @@ def _prepare_single_hop_path_and_storage_options(
     else:
         storage_options = {}
     if protocol in {"http", "https"}:
-        storage_options = {
-            "client_kwargs": {"trust_env": True},  # Enable reading proxy env variables.
-            **storage_options,
-        }
+        client_kwargs = storage_options.setdefault("client_kwargs", {})
+        _ = client_kwargs.setdefault("trust_env", True)  # Enable reading proxy env variables
         if "drive.google.com" in urlpath:
             response = http_head(urlpath)
             for k, v in response.cookies.items():
