@@ -546,6 +546,36 @@ The following example shows how you can use `torch.distributed.barrier` to synch
 ...     torch.distributed.barrier()
 ```
 
+## Batch
+
+The [`~Dataset.batch`] method allows you to group samples from the dataset into batches. This is particularly useful when you want to create batches of data for training or evaluation, especially when working with deep learning models.
+
+Here's an example of how to use the `batch()` method:
+
+```python
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("rotten_tomatoes", split="train")
+>>> batched_dataset = dataset.batch(batch_size=4)
+>>> next(iter(batched_dataset))
+{'text': ['the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .',
+        'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .',
+        'effective but too-tepid biopic',
+        'if you sometimes like to go to the movies to have fun , wasabi is a good place to start .'],
+'label': [1, 1, 1, 1]}
+```
+
+The `batch()` method accepts the following parameters:
+
+- `batch_size` (`int`): The number of samples in each batch.
+- `drop_last_batch` (`bool`, defaults to `False`): Whether to drop the last incomplete batch if the dataset size is not divisible by the batch size.
+
+Note that `Dataset.batch()` returns a new [`Dataset`] where each item is a batch of multiple samples from the original dataset. This is different from the batched processing in [`~Dataset.map`], which applies a function to batches but returns a dataset with the same number of items as the original.
+
+<Tip>
+The batch() method is also available for [IterableDataset] objects. While Dataset.batch() returns a new [Dataset] with batched examples, IterableDataset.batch() returns an [IterableDataset] that yields batches on-the-fly. This makes IterableDataset.batch() more memory-efficient for very large datasets. For more information on batching with [IterableDataset], refer to the [Batch section in Stream](https://huggingface.co/docs/datasets/main/en/stream#batch) documentation.
+</Tip>
+
+
 ## Concatenate
 
 Separate datasets can be concatenated if they share the same column types. Concatenate datasets with [`concatenate_datasets`]:
