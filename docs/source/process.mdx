@@ -568,6 +568,7 @@ The `batch()` method accepts the following parameters:
 
 - `batch_size` (`int`): The number of samples in each batch.
 - `drop_last_batch` (`bool`, defaults to `False`): Whether to drop the last incomplete batch if the dataset size is not divisible by the batch size.
+- `num_proc` (`int`, optional, defaults to `None`): The number of processes to use for multiprocessing. If None, no multiprocessing is used. This can significantly speed up batching for large datasets.
 
 Note that `Dataset.batch()` returns a new [`Dataset`] where each item is a batch of multiple samples from the original dataset. This is different from the batched processing in [`~Dataset.map`], which applies a function to batches but returns a dataset with the same number of items as the original.
 
