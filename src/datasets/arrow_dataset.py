@@ -5621,7 +5621,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         repo_id = repo_url.repo_id
 
         if revision is not None and not api.revision_exists(repo_id, revision, repo_type="dataset", token=token):
-            # We have checked revision_exists because create_branch raises 403 Forbidden error even if exist_ok
+            # We check revision_exists because create_branch raises 400/403 error even if branch exists and exist_ok
             api.create_branch(repo_id, branch=revision, token=token, repo_type="dataset", exist_ok=True)
 
         if not data_dir:
