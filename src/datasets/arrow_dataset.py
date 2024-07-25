@@ -3612,6 +3612,57 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             yield rank, True, shard
 
     @transmit_format
+    @fingerprint_transform(inplace=False)
+    def batch(
+        self,
+        batch_size: int,
+        drop_last_batch: bool = False,
+        num_proc: Optional[int] = None,
+        new_fingerprint: Optional[str] = None,
+    ) -> "Dataset":
+        """
+        Group samples from the dataset into batches.
+
+        Args:
+            batch_size (`int`):
+                The number of samples in each batch.
+            drop_last_batch (`bool`, defaults to `False`):
+                Whether to drop the last incomplete batch.
+            num_proc (`int`, *optional*, defaults to `None`):
+                Max number of processes when generating cache. Already cached shards are loaded sequentially.
+            new_fingerprint (`str`, *optional*, defaults to `None`):
+                The new fingerprint of the dataset after transform.
+                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
+
+        Returns:
+            [`Dataset`]: A new Dataset where each item is a batch of multiple samples from the original dataset.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> batched_ds = ds.batch(batch_size=4)
+        >>> batched_ds[0]
+        {'text': ['compassionately explores the seemingly irreconcilable situation...', ...],  # 4 items
+        'label': [1, 1, 1, 1]}
+        ```
+        """
+
+        def batch_fn(example):
+            return {k: [v] for k, v in example.items()}
+
+        return self.map(
+            batch_fn,
+            batched=True,
+            batch_size=batch_size,
+            drop_last_batch=drop_last_batch,
+            num_proc=num_proc,
+            new_fingerprint=new_fingerprint,
+            desc="Batching examples",
+        )
+
+    @transmit_format
     @fingerprint_transform(
         inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name", "desc"], version="2.0.1"
     )
