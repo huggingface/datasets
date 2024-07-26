@@ -247,9 +247,12 @@ def test_fsspec_offline(tmp_path_factory):
 def test_prepare_single_hop_path_and_storage_options(
     urlpath, download_config, expected_urlpath, expected_storage_options
 ):
+    original_download_config_storage_options = str(download_config.storage_options)
     prepared_urlpath, storage_options = _prepare_single_hop_path_and_storage_options(urlpath, download_config)
     assert prepared_urlpath == expected_urlpath
     assert storage_options == expected_storage_options
+    # Check that DownloadConfig.storage_options are not modified:
+    assert str(download_config.storage_options) == original_download_config_storage_options
 
 
 class DummyTestFS(AbstractFileSystem):
