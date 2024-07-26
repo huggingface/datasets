@@ -1150,7 +1150,7 @@ def _prepare_single_hop_path_and_storage_options(
         urlpath = "hf://" + urlpath[len(config.HF_ENDPOINT) + 1 :].replace("/resolve/", "@", 1)
     protocol = urlpath.split("://")[0] if "://" in urlpath else "file"
     if download_config is not None and protocol in download_config.storage_options:
-        storage_options = download_config.storage_options[protocol]
+        storage_options = download_config.storage_options[protocol].copy()
     elif download_config is not None and protocol not in download_config.storage_options:
         storage_options = {
             option_name: option_value
@@ -1160,8 +1160,11 @@ def _prepare_single_hop_path_and_storage_options(
     else:
         storage_options = {}
     if protocol in {"http", "https"}:
-        client_kwargs = storage_options.setdefault("client_kwargs", {})
-        _ = client_kwargs.setdefault("trust_env", True)  # Enable reading proxy env variables
+        client_kwargs = storage_options.pop("client_kwargs", {})
+        storage_options = {
+            "client_kwargs": {"trust_env": True, **client_kwargs},  # Enable reading proxy env variables
+            **storage_options,
+        }
         if "drive.google.com" in urlpath:
             response = http_head(urlpath)
             for k, v in response.cookies.items():
