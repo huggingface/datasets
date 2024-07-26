@@ -1,6 +1,8 @@
+import inspect
+
 import pytest
 
-from datasets.splits import SplitDict, SplitInfo
+from datasets.splits import Split, SplitDict, SplitInfo
 from datasets.utils.py_utils import asdict
 
 
@@ -34,3 +36,8 @@ def test_split_dict_asdict_has_dataset_name(split_info):
     split_dict_asdict = asdict(SplitDict({"train": split_info}))
     assert "dataset_name" in split_dict_asdict["train"]
     assert split_dict_asdict["train"]["dataset_name"] == split_info.dataset_name
+
+
+def test_named_split_inequality():
+    # Used while building the docs, when set as a default parameter value in a function signature
+    assert Split.TRAIN != inspect.Parameter.empty
