@@ -242,6 +242,17 @@ def test_fsspec_offline(tmp_path_factory):
             "https://domain.org/data.txt",
             {"https": {"client_kwargs": {"trust_env": False}}},
         ),
+        (
+            "https://raw.githubusercontent.com/data.txt",
+            DownloadConfig(storage_options={"https": {"headers": {"x-test": "true"}}}),
+            "https://raw.githubusercontent.com/data.txt",
+            {
+                "https": {
+                    "client_kwargs": {"trust_env": True},
+                    "headers": {"x-test": "true", "Accept-Encoding": "identity"},
+                }
+            },
+        ),
     ],
 )
 def test_prepare_single_hop_path_and_storage_options(
