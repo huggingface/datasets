@@ -376,7 +376,7 @@ class NamedSplit(SplitBase):
         elif isinstance(other, str):  # Other should be string
             return self._name == other
         else:
-            raise ValueError(f"Equality not supported between split {self} and {other}")
+            return False
 
     def __lt__(self, other):
         return self._name < other._name  # pylint: disable=protected-access

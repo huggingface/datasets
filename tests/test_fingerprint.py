@@ -21,6 +21,7 @@ from datasets.table import InMemoryTable
 
 from .utils import (
     require_not_windows,
+    require_numpy1_on_windows,
     require_regex,
     require_spacy,
     require_tiktoken,
@@ -303,6 +304,7 @@ class HashingTest(TestCase):
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)
 
+    @require_numpy1_on_windows
     @require_torch
     def test_hash_torch_tensor(self):
         import torch
@@ -316,6 +318,7 @@ class HashingTest(TestCase):
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)
 
+    @require_numpy1_on_windows
     @require_torch
     def test_hash_torch_generator(self):
         import torch
