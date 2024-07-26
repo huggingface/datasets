@@ -1,6 +1,6 @@
 from typing import Callable, Optional
 
-from .. import Features
+from .. import Features, NamedSplit, Split
 from ..packaged_modules.generator.generator import Generator
 from .abc import AbstractDatasetInputStream
 
@@ -15,6 +15,7 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
         streaming: bool = False,
         gen_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
+        split: NamedSplit = Split.TRAIN,
         **kwargs,
     ):
         super().__init__(
@@ -30,13 +31,14 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
             features=features,
             generator=generator,
             gen_kwargs=gen_kwargs,
+            split=split,
             **kwargs,
         )
 
     def read(self):
         # Build iterable dataset
         if self.streaming:
-            dataset = self.builder.as_streaming_dataset(split="train")
+            dataset = self.builder.as_streaming_dataset(split=self.builder.config.split)
         # Build regular (map-style) dataset
         else:
             download_config = None
@@ -52,6 +54,6 @@ class GeneratorDatasetInputStream(AbstractDatasetInputStream):
                 num_proc=self.num_proc,
             )
             dataset = self.builder.as_dataset(
-                split="train", verification_mode=verification_mode, in_memory=self.keep_in_memory
+                split=self.builder.config.split, verification_mode=verification_mode, in_memory=self.keep_in_memory
             )
         return dataset
