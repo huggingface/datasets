@@ -45,6 +45,8 @@ def test_dataset_url(repo_id, filename, revision):
     assert url == f"https://huggingface.co/datasets/{repo_id}/resolve/{revision or 'main'}/{quote(filename)}"
 
 
+# Temporarily mark this test as expected to fail: GH-7073
+@pytest.mark.xfail
 def test_convert_to_parquet(temporary_repo, hf_api, hf_token, ci_hub_config, ci_hfh_hf_hub_url):
     with temporary_repo() as repo_id:
         hf_api.create_repo(repo_id, token=hf_token, repo_type="dataset")
