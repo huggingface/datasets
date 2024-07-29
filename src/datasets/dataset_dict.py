@@ -13,6 +13,7 @@ from typing import Callable, Dict, List, Optional, Sequence, Tuple, Union
 import fsspec
 import numpy as np
 from fsspec.core import url_to_fs
+from fsspec.utils import stringify_path
 from huggingface_hub import (
     CommitInfo,
     CommitOperationAdd,
@@ -1231,7 +1232,7 @@ class DatasetDict(dict):
         If you want to store paths or urls, please use the Value("string") type.
 
         Args:
-            dataset_dict_path (`str`):
+            dataset_dict_path (`PathLike`):
                 Path (e.g. `dataset/train`) or remote URI
                 (e.g. `s3://my-bucket/dataset/train`) of the dataset dict directory where the dataset dict will be
                 saved to.
@@ -1281,7 +1282,7 @@ class DatasetDict(dict):
             storage_options = fs.storage_options
 
         fs: fsspec.AbstractFileSystem
-        fs, _ = url_to_fs(dataset_dict_path, **(storage_options or {}))
+        fs, _ = url_to_fs(stringify_path(dataset_dict_path), **(storage_options or {}))
 
         if num_shards is None:
             num_shards = {k: None for k in self}
