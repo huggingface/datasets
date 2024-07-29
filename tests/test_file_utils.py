@@ -12,6 +12,7 @@ from datasets.download.download_config import DownloadConfig
 from datasets.utils.file_utils import (
     OfflineModeIsEnabled,
     _get_extraction_protocol,
+    _prepare_single_hop_path_and_storage_options,
     cached_path,
     fsspec_get,
     fsspec_head,
@@ -47,7 +48,7 @@ FILE_CONTENT = """\
 
 FILE_PATH = "file"
 
-TEST_URL = "https://huggingface.co/datasets/hf-internal-testing/dataset_with_script/raw/main/some_text.txt"
+TEST_URL = "https://huggingface.co/datasets/hf-internal-testing/dataset_with_script/resolve/main/some_text.txt"
 TEST_URL_CONTENT = "foo\nbar\nfoobar"
 
 TEST_GG_DRIVE_FILENAME = "train.tsv"
@@ -90,7 +91,6 @@ def test_cached_path_protocols(protocol, monkeypatch, tmp_path):
     urls = {"hf": "hf://datasets/org-name/ds-name@main/filename.ext", "s3": "s3://bucket-name/filename.ext"}
     url = urls[protocol]
     _ = cached_path(url, download_config=download_config)
-    assert True
     for mock in [mock_fsspec_head, mock_fsspec_get]:
         assert mock.called
         assert mock.call_count == 1
@@ -195,6 +195,75 @@ def test_fsspec_offline(tmp_path_factory):
         fsspec_get("s3://huggingface.co", temp_file=filename)
     with pytest.raises(OfflineModeIsEnabled):
         fsspec_head("s3://huggingface.co")
+
+
+@pytest.mark.parametrize(
+    "urlpath, download_config, expected_urlpath, expected_storage_options",
+    [
+        (
+            "https://huggingface.co/datasets/hf-internal-testing/dataset_with_script/resolve/main/some_text.txt",
+            DownloadConfig(),
+            "hf://datasets/hf-internal-testing/dataset_with_script@main/some_text.txt",
+            {"hf": {"endpoint": "https://huggingface.co", "token": None}},
+        ),
+        (
+            "https://huggingface.co/datasets/hf-internal-testing/dataset_with_script/resolve/main/some_text.txt",
+            DownloadConfig(token="MY-TOKEN"),
+            "hf://datasets/hf-internal-testing/dataset_with_script@main/some_text.txt",
+            {"hf": {"endpoint": "https://huggingface.co", "token": "MY-TOKEN"}},
+        ),
+        (
+            "https://huggingface.co/datasets/hf-internal-testing/dataset_with_script/resolve/main/some_text.txt",
+            DownloadConfig(token="MY-TOKEN", storage_options={"hf": {"on_error": "omit"}}),
+            "hf://datasets/hf-internal-testing/dataset_with_script@main/some_text.txt",
+            {"hf": {"endpoint": "https://huggingface.co", "token": "MY-TOKEN", "on_error": "omit"}},
+        ),
+        (
+            "https://domain.org/data.txt",
+            DownloadConfig(),
+            "https://domain.org/data.txt",
+            {"https": {"client_kwargs": {"trust_env": True}}},
+        ),
+        (
+            "https://domain.org/data.txt",
+            DownloadConfig(storage_options={"https": {"block_size": "omit"}}),
+            "https://domain.org/data.txt",
+            {"https": {"client_kwargs": {"trust_env": True}, "block_size": "omit"}},
+        ),
+        (
+            "https://domain.org/data.txt",
+            DownloadConfig(storage_options={"https": {"client_kwargs": {"raise_for_status": True}}}),
+            "https://domain.org/data.txt",
+            {"https": {"client_kwargs": {"trust_env": True, "raise_for_status": True}}},
+        ),
+        (
+            "https://domain.org/data.txt",
+            DownloadConfig(storage_options={"https": {"client_kwargs": {"trust_env": False}}}),
+            "https://domain.org/data.txt",
+            {"https": {"client_kwargs": {"trust_env": False}}},
+        ),
+        (
+            "https://raw.githubusercontent.com/data.txt",
+            DownloadConfig(storage_options={"https": {"headers": {"x-test": "true"}}}),
+            "https://raw.githubusercontent.com/data.txt",
+            {
+                "https": {
+                    "client_kwargs": {"trust_env": True},
+                    "headers": {"x-test": "true", "Accept-Encoding": "identity"},
+                }
+            },
+        ),
+    ],
+)
+def test_prepare_single_hop_path_and_storage_options(
+    urlpath, download_config, expected_urlpath, expected_storage_options
+):
+    original_download_config_storage_options = str(download_config.storage_options)
+    prepared_urlpath, storage_options = _prepare_single_hop_path_and_storage_options(urlpath, download_config)
+    assert prepared_urlpath == expected_urlpath
+    assert storage_options == expected_storage_options
+    # Check that DownloadConfig.storage_options are not modified:
+    assert str(download_config.storage_options) == original_download_config_storage_options
 
 
 class DummyTestFS(AbstractFileSystem):
