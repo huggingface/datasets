@@ -19,7 +19,7 @@ from .features import Features
 from .features.features import FeatureType, _align_features, _check_if_features_can_be_aligned, cast_to_python_objects
 from .formatting import PythonFormatter, TensorFormatter, get_format_type_from_alias, get_formatter
 from .info import DatasetInfo
-from .splits import NamedSplit
+from .splits import NamedSplit, Split
 from .table import cast_table_to_features, read_schema_from_file, table_cast
 from .utils.logging import get_logger
 from .utils.py_utils import Literal
@@ -2083,6 +2083,7 @@ class IterableDataset(DatasetInfoMixin):
         generator: Callable,
         features: Optional[Features] = None,
         gen_kwargs: Optional[dict] = None,
+        split: NamedSplit = Split.TRAIN,
     ) -> "IterableDataset":
         """Create an Iterable Dataset from a generator.
 
@@ -2095,7 +2096,10 @@ class IterableDataset(DatasetInfoMixin):
                 Keyword arguments to be passed to the `generator` callable.
                 You can define a sharded iterable dataset by passing the list of shards in `gen_kwargs`.
                 This can be used to improve shuffling and when iterating over the dataset with multiple workers.
+            split ([`NamedSplit`], defaults to `Split.TRAIN`):
+                Split name to be assigned to the dataset.
 
+                <Added version="2.21.0"/>
         Returns:
             `IterableDataset`
 
@@ -2126,10 +2130,7 @@ class IterableDataset(DatasetInfoMixin):
         from .io.generator import GeneratorDatasetInputStream
 
         return GeneratorDatasetInputStream(
-            generator=generator,
-            features=features,
-            gen_kwargs=gen_kwargs,
-            streaming=True,
+            generator=generator, features=features, gen_kwargs=gen_kwargs, streaming=True, split=split
         ).read()
 
     @staticmethod
