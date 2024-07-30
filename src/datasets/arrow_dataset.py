@@ -5677,7 +5677,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
         repo_id = repo_url.repo_id
 
-        if revision is not None:
+        if revision is not None and not revision.startswith("refs/pr/"):
+            # We do not call create_branch for a PR reference: 400 Bad Request
             api.create_branch(repo_id, branch=revision, token=token, repo_type="dataset", exist_ok=True)
 
         if not data_dir:
