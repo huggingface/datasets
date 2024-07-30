@@ -1680,7 +1680,7 @@ def test_load_from_disk_with_default_in_memory(
         expected_in_memory = False
 
     dset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, keep_in_memory=True, trust_remote_code=True)
-    dataset_path = os.path.join(tmp_path, "saved_dataset")
+    dataset_path = tmp_path / "saved_dataset"
     dset.save_to_disk(dataset_path)
 
     with assert_arrow_memory_increases() if expected_in_memory else assert_arrow_memory_doesnt_increase():
