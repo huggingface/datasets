@@ -111,7 +111,7 @@ REQUIRED_PKGS = [
     # For file locking
     "filelock",
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
-    "numpy>=1.17,<2.0.0",  # Temporary upper version
+    "numpy>=1.17",
     # Backend and serialization.
     # Minimum 15.0.0 to be able to cast dictionary types to their underlying types
     "pyarrow>=15.0.0",
@@ -143,6 +143,7 @@ REQUIRED_PKGS = [
 AUDIO_REQUIRE = [
     "soundfile>=0.12.1",
     "librosa",
+    "soxr>=0.4.0; python_version>='3.9'",  # Supports numpy-2
 ]
 
 VISION_REQUIRE = [
@@ -158,6 +159,7 @@ BENCHMARKS_REQUIRE = [
 TESTS_REQUIRE = [
     # test dependencies
     "absl-py",
+    "decorator",
     "joblib<1.3.0",  # joblibspark doesn't support recent joblib versions
     "joblibspark",
     "pytest",
@@ -165,21 +167,23 @@ TESTS_REQUIRE = [
     "pytest-xdist",
     # optional dependencies
     "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElasticSearch()
-    "faiss-cpu>=1.6.4",
+    "faiss-cpu>=1.8.0.post1",  # Pins numpy < 2
     "jax>=0.3.14; sys_platform != 'win32'",
     "jaxlib>=0.3.14; sys_platform != 'win32'",
     "lz4",
+    "moto[server]",
     "pyspark>=3.4",  # https://issues.apache.org/jira/browse/SPARK-40991 fixed in 3.4.0
     "py7zr",
     "rarfile>=4.0",
     "sqlalchemy",
     "s3fs>=2021.11.1",  # aligned with fsspec[http]>=2021.11.1; test only on python 3.7 for now
     "protobuf<4.0.0",  # 4.0.0 breaks compatibility with tensorflow<2.12
-    "tensorflow>=2.6.0",
+    "tensorflow>=2.6.0; python_version<'3.10'",  # numpy-2 is not supported for Python < 3.10
+    "tensorflow>=2.16.0; python_version>='3.10'",  # Pins numpy < 2
     "tiktoken",
     "torch>=2.0.0",
     "soundfile>=0.12.1",
-    "transformers",
+    "transformers>=4.42.0",  # Pins numpy < 2
     "zstandard",
     "polars[timezone]>=0.20.0",
 ]
@@ -187,6 +191,15 @@ TESTS_REQUIRE = [
 
 TESTS_REQUIRE.extend(VISION_REQUIRE)
 TESTS_REQUIRE.extend(AUDIO_REQUIRE)
+
+NUMPY2_INCOMPATIBLE_LIBRARIES = [
+    "faiss-cpu",
+    "tensorflow",
+    "transformers",
+]
+TESTS_NUMPY2_REQUIRE = [
+    library for library in TESTS_REQUIRE if library.partition(">")[0] not in NUMPY2_INCOMPATIBLE_LIBRARIES
+]
 
 QUALITY_REQUIRE = ["ruff>=0.3.0"]
 
@@ -212,6 +225,7 @@ EXTRAS_REQUIRE = {
     "streaming": [],  # for backward compatibility
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE + DOCS_REQUIRE,
     "tests": TESTS_REQUIRE,
+    "tests_numpy2": TESTS_NUMPY2_REQUIRE,
     "quality": QUALITY_REQUIRE,
     "benchmarks": BENCHMARKS_REQUIRE,
     "docs": DOCS_REQUIRE,

@@ -25,7 +25,7 @@ from datasets.features.translation import Translation, TranslationVariableLangua
 from datasets.info import DatasetInfo
 from datasets.utils.py_utils import asdict
 
-from ..utils import require_jax, require_tf, require_torch
+from ..utils import require_jax, require_numpy1_on_windows, require_tf, require_torch
 
 
 class FeaturesTest(TestCase):
@@ -543,6 +543,7 @@ class CastToPythonObjectsTest(TestCase):
         casted_obj = cast_to_python_objects(pd.DataFrame({"a": [obj]}))
         self.assertDictEqual(casted_obj, {"a": [expected_obj]})
 
+    @require_numpy1_on_windows
     @require_torch
     def test_cast_to_python_objects_torch(self):
         import torch

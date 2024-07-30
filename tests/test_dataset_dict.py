@@ -16,6 +16,7 @@ from datasets.splits import NamedSplit
 from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
+    require_numpy1_on_windows,
     require_polars,
     require_tf,
     require_torch,
@@ -109,6 +110,7 @@ class DatasetDictTest(TestCase):
             self.assertEqual(dset_split[0]["col_2"].item(), "a")
         del dset
 
+    @require_numpy1_on_windows
     @require_torch
     def test_set_format_torch(self):
         import torch

@@ -1068,6 +1068,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         keep_in_memory: bool = False,
         gen_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
+        split: NamedSplit = Split.TRAIN,
         **kwargs,
     ):
         """Create a Dataset from a generator.
@@ -1090,6 +1091,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 If `num_proc` is greater than one, then all list values in `gen_kwargs` must be the same length. These values will be split between calls to the generator. The number of shards will be the minimum of the shortest list in `gen_kwargs` and `num_proc`.
 
                 <Added version="2.7.0"/>
+            split ([`NamedSplit`], defaults to `Split.TRAIN`):
+                Split name to be assigned to the dataset.
+
+                <Added version="2.21.0"/>
             **kwargs (additional keyword arguments):
                 Keyword arguments to be passed to :[`GeneratorConfig`].
 
@@ -1126,6 +1131,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             keep_in_memory=keep_in_memory,
             gen_kwargs=gen_kwargs,
             num_proc=num_proc,
+            split=split,
             **kwargs,
         ).read()
 
@@ -3610,6 +3616,57 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 yield rank, True, Dataset.from_buffer(buf_writer.getvalue(), info=info, split=shard.split)
         else:
             yield rank, True, shard
+
+    @transmit_format
+    @fingerprint_transform(inplace=False)
+    def batch(
+        self,
+        batch_size: int,
+        drop_last_batch: bool = False,
+        num_proc: Optional[int] = None,
+        new_fingerprint: Optional[str] = None,
+    ) -> "Dataset":
+        """
+        Group samples from the dataset into batches.
+
+        Args:
+            batch_size (`int`):
+                The number of samples in each batch.
+            drop_last_batch (`bool`, defaults to `False`):
+                Whether to drop the last incomplete batch.
+            num_proc (`int`, *optional*, defaults to `None`):
+                Max number of processes when generating cache. Already cached shards are loaded sequentially.
+            new_fingerprint (`str`, *optional*, defaults to `None`):
+                The new fingerprint of the dataset after transform.
+                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
+
+        Returns:
+            [`Dataset`]: A new Dataset where each item is a batch of multiple samples from the original dataset.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> batched_ds = ds.batch(batch_size=4)
+        >>> batched_ds[0]
+        {'text': ['compassionately explores the seemingly irreconcilable situation...', ...],  # 4 items
+        'label': [1, 1, 1, 1]}
+        ```
+        """
+
+        def batch_fn(example):
+            return {k: [v] for k, v in example.items()}
+
+        return self.map(
+            batch_fn,
+            batched=True,
+            batch_size=batch_size,
+            drop_last_batch=drop_last_batch,
+            num_proc=num_proc,
+            new_fingerprint=new_fingerprint,
+            desc="Batching examples",
+        )
 
     @transmit_format
     @fingerprint_transform(
