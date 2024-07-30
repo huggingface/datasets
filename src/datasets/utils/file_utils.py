@@ -194,7 +194,7 @@ def cached_path(
             url_or_filename, download_config=download_config
         )
         # get_from_cache uses storage_options only if scheme not in {"http", "https"}
-        if next(iter(storage_options)) in {"http", "https"}:
+        if storage_options.get("http", storage_options.get("https")):
             storage_options = {}
         output_path = get_from_cache(
             url_or_filename,
