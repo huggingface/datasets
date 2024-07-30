@@ -87,6 +87,7 @@ from .utils.info_utils import VerificationMode, is_small_dataset
 from .utils.logging import get_logger
 from .utils.metadata import MetadataConfigs
 from .utils.py_utils import get_imports, lock_importable_file
+from .utils.typing import PathLike
 from .utils.version import Version
 
 
@@ -2168,7 +2169,10 @@ def load_dataset(
 
 
 def load_from_disk(
-    dataset_path: str, fs="deprecated", keep_in_memory: Optional[bool] = None, storage_options: Optional[dict] = None
+    dataset_path: PathLike,
+    fs="deprecated",
+    keep_in_memory: Optional[bool] = None,
+    storage_options: Optional[dict] = None,
 ) -> Union[Dataset, DatasetDict]:
     """
     Loads a dataset that was previously saved using [`~Dataset.save_to_disk`] from a dataset directory, or

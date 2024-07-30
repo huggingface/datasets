@@ -1660,7 +1660,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def load_from_disk(
-        dataset_path: str,
+        dataset_path: PathLike,
         fs="deprecated",
         keep_in_memory: Optional[bool] = None,
         storage_options: Optional[dict] = None,
