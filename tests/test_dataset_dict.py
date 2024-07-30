@@ -596,7 +596,7 @@ def test_dummy_datasetdict_serialize_fs(mockfs):
     dataset_dict.save_to_disk(dataset_path, storage_options=mockfs.storage_options)
     assert mockfs.isdir(dataset_path)
     assert mockfs.glob(dataset_path + "/*")
-    reloaded = dataset_dict.load_from_disk(dataset_path, storage_options=mockfs.storage_options)
+    reloaded = DatasetDict.load_from_disk(dataset_path, storage_options=mockfs.storage_options)
     assert list(reloaded) == list(dataset_dict)
     for k in dataset_dict:
         assert reloaded[k].features == dataset_dict[k].features

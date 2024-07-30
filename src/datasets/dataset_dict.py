@@ -1231,10 +1231,9 @@ class DatasetDict(dict):
         If you want to store paths or urls, please use the Value("string") type.
 
         Args:
-            dataset_dict_path (`str`):
-                Path (e.g. `dataset/train`) or remote URI
-                (e.g. `s3://my-bucket/dataset/train`) of the dataset dict directory where the dataset dict will be
-                saved to.
+            dataset_dict_path (`path-like`):
+                Path (e.g. `dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`)
+                of the dataset dict directory where the dataset dict will be saved to.
             fs (`fsspec.spec.AbstractFileSystem`, *optional*):
                 Instance of the remote filesystem where the dataset will be saved to.
 
@@ -1314,7 +1313,7 @@ class DatasetDict(dict):
         Load a dataset that was previously saved using [`save_to_disk`] from a filesystem using `fsspec.spec.AbstractFileSystem`.
 
         Args:
-            dataset_dict_path (`str`):
+            dataset_dict_path (`path-like`):
                 Path (e.g. `"dataset/train"`) or remote URI (e.g. `"s3//my-bucket/dataset/train"`)
                 of the dataset dict directory where the dataset dict will be loaded from.
             fs (`fsspec.spec.AbstractFileSystem`, *optional*):
