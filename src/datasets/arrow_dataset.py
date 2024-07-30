@@ -1460,7 +1460,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         If you want to store paths or urls, please use the Value("string") type.
 
         Args:
-            dataset_path (`str`):
+            dataset_path (`path-like`):
                 Path (e.g. `dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`)
                 of the dataset directory where the dataset will be saved to.
             fs (`fsspec.spec.AbstractFileSystem`, *optional*):
