@@ -2179,9 +2179,9 @@ def load_from_disk(
     from a filesystem using any implementation of `fsspec.spec.AbstractFileSystem`.
 
     Args:
-        dataset_path (`str`):
-            Path (e.g. `"dataset/train"`) or remote URI (e.g.
-            `"s3://my-bucket/dataset/train"`) of the [`Dataset`] or [`DatasetDict`] directory where the dataset will be
+        dataset_path (`path-like`):
+            Path (e.g. `"dataset/train"`) or remote URI (e.g. `"s3://my-bucket/dataset/train"`)
+            of the [`Dataset`] or [`DatasetDict`] directory where the dataset/dataset-dict will be
             loaded from.
         fs (`~filesystems.S3FileSystem` or `fsspec.spec.AbstractFileSystem`, *optional*):
             Instance of the remote filesystem used to download the files from.
