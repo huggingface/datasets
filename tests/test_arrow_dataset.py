@@ -4119,7 +4119,7 @@ def test_dummy_dataset_serialize_fs(dataset, mockfs):
     dataset.save_to_disk(dataset_path, storage_options=mockfs.storage_options)
     assert mockfs.isdir(dataset_path)
     assert mockfs.glob(dataset_path + "/*")
-    reloaded = dataset.load_from_disk(dataset_path, storage_options=mockfs.storage_options)
+    reloaded = Dataset.load_from_disk(dataset_path, storage_options=mockfs.storage_options)
     assert len(reloaded) == len(dataset)
     assert reloaded.features == dataset.features
     assert reloaded.to_dict() == dataset.to_dict()
