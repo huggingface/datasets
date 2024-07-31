@@ -749,6 +749,7 @@ BASE_KNOWN_EXTENSIONS = [
     "pickle",
     "rel",
     "xml",
+    "arrow",
 ]
 COMPRESSION_EXTENSION_TO_PROTOCOL = {
     # single file compression
