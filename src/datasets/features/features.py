@@ -1143,7 +1143,6 @@ class Sequence:
             A list of features of a single type or a dictionary of types.
         length (`int`):
             Length of the sequence.
-        large (`bool`, default `False`): Whether Sequence is backed by LargeListType.
 
     Example:
 
@@ -1157,7 +1156,6 @@ class Sequence:
 
     feature: Any
     length: int = -1
-    large: bool = False
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "list"
@@ -1229,16 +1227,11 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
         return pa.list_(value_type)
     elif isinstance(schema, Sequence):
         value_type = get_nested_type(schema.feature)
-        is_large = getattr(schema, "large", False)
         # We allow to reverse list of dict => dict of list for compatibility with tfds
         if isinstance(schema.feature, dict):
-            data_type = (
-                pa.struct({f.name: pa.large_list(f.type) for f in value_type})
-                if is_large
-                else pa.struct({f.name: pa.list_(f.type, schema.length) for f in value_type})
-            )
+            data_type = pa.struct({f.name: pa.list_(f.type, schema.length) for f in value_type})
         else:
-            data_type = pa.large_list(value_type) if is_large else pa.list_(value_type, schema.length)
+            data_type = pa.list_(value_type, schema.length)
         return data_type
 
     # Other objects are callable which returns their data type (ClassLabel, Array2D, Translation, Arrow datatype creation methods)
@@ -1441,8 +1434,7 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
         feature = generate_from_arrow_type(pa_type.value_type)
         if isinstance(feature, (dict, tuple, list)):
             return [feature]
-        large = isinstance(pa_type, pa.LargeListType)
-        return Sequence(feature=feature, large=large)
+        return Sequence(feature=feature)
     elif isinstance(pa_type, _ArrayXDExtensionType):
         array_feature = [None, None, Array2D, Array3D, Array4D, Array5D][pa_type.ndims]
         return array_feature(shape=pa_type.shape, dtype=pa_type.value_type)
