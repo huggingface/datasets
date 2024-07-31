@@ -108,6 +108,8 @@ def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
         return "string"
     elif pyarrow.types.is_large_string(arrow_type):
         return "large_string"
+    elif pyarrow.types.is_large_list(arrow_type):
+        return f"large_list[{_arrow_to_datasets_dtype(arrow_type.value_type)}]"    
     elif pyarrow.types.is_dictionary(arrow_type):
         return _arrow_to_datasets_dtype(arrow_type.value_type)
     else:
@@ -144,7 +146,13 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
 
     if (datasets_dtype + "_") in pa.__dict__:
         return pa.__dict__[datasets_dtype + "_"]()
-
+    
+    large_list_matches = datasets_dtype.startswith("large_list[")
+    if large_list_matches:
+        element_dtype_str = datasets_dtype[len("large_list["):-1]
+        element_pa_dtype = string_to_arrow(element_dtype_str)
+        return pa.large_list(element_pa_dtype)
+        
     timestamp_matches = re.search(r"^timestamp\[(.*)\]$", datasets_dtype)
     if timestamp_matches:
         timestamp_internals = timestamp_matches.group(1)
