@@ -98,6 +98,29 @@ def test_cached_path_protocols(protocol, monkeypatch, tmp_path):
         assert list(mock.call_args.kwargs["storage_options"].keys()) == [protocol]
 
 
+@pytest.mark.parametrize(
+    "download_config_storage_options, expected_storage_options_passed_to_get_from_catch",
+    [
+        ({}, {}),  # No DownloadConfig.storage_options
+        ({"https": {"block_size": "omit"}}, {"https": {"client_kwargs": {"trust_env": True}, "block_size": "omit"}}),
+    ],
+)
+def test_cached_path_passes_http_storage_options_to_get_from_cache_only_if_present_in_download_config(
+    download_config_storage_options, expected_storage_options_passed_to_get_from_catch, monkeypatch, tmp_path
+):
+    # Test cached_path passes HTTP storage_options to get_from_cache only if passed HTTP download_config.storage_options
+    mock_get_from_catch = MagicMock(return_value=None)
+    monkeypatch.setattr("datasets.utils.file_utils.get_from_cache", mock_get_from_catch)
+    url = "https://domain.org/data.txt"
+    cache_dir = tmp_path / "cache"
+    download_config = DownloadConfig(cache_dir=cache_dir, storage_options=download_config_storage_options)
+    _ = cached_path(url, download_config=download_config)
+    assert mock_get_from_catch.called
+    assert mock_get_from_catch.call_count == 1
+    assert mock_get_from_catch.call_args.args[0] == url
+    assert mock_get_from_catch.call_args.kwargs["storage_options"] == expected_storage_options_passed_to_get_from_catch
+
+
 @pytest.mark.parametrize("compression_format", ["gzip", "xz", "zstd"])
 def test_cached_path_extract(compression_format, gz_file, xz_file, zstd_path, tmp_path, text_file):
     input_paths = {"gzip": gz_file, "xz": xz_file, "zstd": zstd_path}
