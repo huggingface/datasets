@@ -620,10 +620,8 @@ NESTED_FEATURES = [
     Features({"foo": {"bar": Value("int32")}}),
     Features({"foo": {"bar1": Value("int32"), "bar2": Value("float64")}}),
     Features({"foo": Sequence(Value("int32"))}),
-    Features({"foo": Sequence(Value("int32"), large=True)}),
     Features({"foo": Sequence({})}),
     Features({"foo": Sequence({"bar": Value("int32")})}),
-    Features({"foo": Sequence({"bar": Value("int32")}, large=True)}),
     Features({"foo": [Value("int32")]}),
     Features({"foo": [{"bar": Value("int32")}]}),
 ]
@@ -713,9 +711,8 @@ def test_features_from_arrow_schema_list_data_type(list_dtype, scalar_dtype):
     assert schema == Features.from_arrow_schema(schema).arrow_schema
 
 
-@pytest.mark.parametrize("large_sequence", [False, True])
-def test_features_reorder_fields_as_with_sequence(large_sequence):
-    features = Features({"col_1": Sequence(feature=Value("int64"), large=large_sequence)})
-    other_features = Features({"col_1": Sequence(feature=Value("int64"), large=large_sequence)})
+def test_features_reorder_fields_as_with_sequence():
+    features = Features({"col_1": Sequence(feature=Value("int64"))})
+    other_features = Features({"col_1": Sequence(feature=Value("int64"))})
     new_features = features.reorder_fields_as(other_features)
     assert new_features == features
