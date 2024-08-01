@@ -3375,7 +3375,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         def validate_function_output(processed_inputs, indices):
             """Validate output of the map function."""
-            if processed_inputs is not None and not isinstance(processed_inputs, (Mapping, pa.Table, pd.DataFrame)):
+            allowed_processed_inputs_types = (Mapping, pa.Table, pd.DataFrame)
+            if config.POLARS_AVAILABLE and "polars" in sys.modules:
+                import polars as pl
+
+                allowed_processed_inputs_types += (pl.DataFrame,)
+            if processed_inputs is not None and not isinstance(processed_inputs, allowed_processed_inputs_types):
                 raise TypeError(
                     f"Provided `function` which is applied to all elements of table returns a variable of type {type(processed_inputs)}. Make sure provided `function` returns a variable of type `dict` (or a pyarrow table) to update the dataset or `None` if you are only interested in side effects."
                 )
