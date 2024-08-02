@@ -1158,7 +1158,7 @@ class Sequence:
     length: int = -1
     id: Optional[str] = None
     # Automatically constructed
-    dtype: ClassVar[str] = "list"
+    # dtype: ClassVar[str] = "list"
     pa_type: ClassVar[Any] = None
     _type: str = field(default="Sequence", init=False, repr=False)
 
