@@ -656,6 +656,24 @@ def test_features_to_yaml_list(features: Features):
 
 
 @pytest.mark.parametrize(
+    "deserialized_features_dict, expected_features_dict",
+    [
+        (
+            {"col": {"dtype": {"dtype": "int32", "_type": "Value"}, "_type": "LargeList"}},
+            {"col": LargeList(Value("int32"))},
+        ),
+        (
+            {"col": {"dtype": {"sub_col": {"dtype": "int32", "_type": "Value"}}, "_type": "LargeList"}},
+            {"col": LargeList({"sub_col": Value("int32")})},
+        ),
+    ],
+)
+def test_features_from_dict_with_large_list(deserialized_features_dict, expected_features_dict):
+    features = Features.from_dict(deserialized_features_dict)
+    assert features == Features(expected_features_dict)
+
+
+@pytest.mark.parametrize(
     "features_dict, expected_features_yaml_list",
     [
         ({"col": LargeList(Value("int32"))}, [{"name": "col", "large_list": "int32"}]),
