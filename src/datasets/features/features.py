@@ -1163,6 +1163,15 @@ class Sequence:
     _type: str = field(default="Sequence", init=False, repr=False)
 
 
+@dataclass
+class LargeList:
+    dtype: Any
+    id: Optional[str] = None
+    # Automatically constructed
+    pa_type: ClassVar[Any] = None
+    _type: str = field(default="LargeList", init=False, repr=False)
+
+
 FeatureType = Union[
     dict,
     list,
@@ -1171,6 +1180,7 @@ FeatureType = Union[
     ClassLabel,
     Translation,
     TranslationVariableLanguages,
+    LargeList,
     Sequence,
     Array2D,
     Array3D,
