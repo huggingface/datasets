@@ -34,7 +34,7 @@ def generate_examples(features: dict, num_examples=100, seq_shapes=None):
                     data = np.random.randint(10, size=1).astype(v.dtype).item()
             elif isinstance(v, datasets.Sequence):
                 while isinstance(v, datasets.Sequence):
-                    v = v.feature
+                    v = v.dtype
                 shape = seq_shapes[k]
                 data = np.random.rand(*shape).astype(v.dtype)
             example[k] = data

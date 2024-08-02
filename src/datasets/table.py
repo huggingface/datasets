@@ -1987,10 +1987,8 @@ def cast_array_to_feature(
 
     elif pa.types.is_struct(array.type):
         # feature must be a dict or Sequence(subfeatures_dict)
-        if isinstance(feature, Sequence) and isinstance(feature.feature, dict):
-            feature = {
-                name: Sequence(subfeature, length=feature.length) for name, subfeature in feature.feature.items()
-            }
+        if isinstance(feature, Sequence) and isinstance(feature.dtype, dict):
+            feature = {name: Sequence(subfeature, length=feature.length) for name, subfeature in feature.dtype.items()}
         if isinstance(feature, dict) and {field.name for field in array.type} == set(feature):
             if array.type.num_fields == 0:
                 return array
@@ -2031,7 +2029,7 @@ def cast_array_to_feature(
                         else:
                             array = pc.list_slice(array, 0, feature.length, return_fixed_size_list=True)
                         array_values = array.values
-                        casted_array_values = _c(array_values, feature.feature)
+                        casted_array_values = _c(array_values, feature.dtype)
                         return pa.FixedSizeListArray.from_arrays(
                             casted_array_values, feature.length, mask=array.is_null()
                         )
@@ -2039,9 +2037,9 @@ def cast_array_to_feature(
                         array_values = array.values[
                             array.offset * feature.length : (array.offset + len(array)) * feature.length
                         ]
-                        return pa.FixedSizeListArray.from_arrays(_c(array_values, feature.feature), feature.length)
+                        return pa.FixedSizeListArray.from_arrays(_c(array_values, feature.dtype), feature.length)
             else:
-                casted_array_values = _c(array.values, feature.feature)
+                casted_array_values = _c(array.values, feature.dtype)
                 if casted_array_values.type == array.values.type:
                     return array
                 else:
@@ -2059,11 +2057,11 @@ def cast_array_to_feature(
                     array_values = array.values[
                         array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
                     ]
-                    casted_array_values = _c(array_values, feature.feature)
+                    casted_array_values = _c(array_values, feature.dtype)
                     return pa.FixedSizeListArray.from_arrays(casted_array_values, feature.length, mask=array.is_null())
             else:
                 array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
-                return pa.ListArray.from_arrays(array_offsets, _c(array.values, feature.feature), mask=array.is_null())
+                return pa.ListArray.from_arrays(array_offsets, _c(array.values, feature.dtype), mask=array.is_null())
     if pa.types.is_null(array.type):
         return array_cast(
             array,
@@ -2113,10 +2111,8 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
         return feature.embed_storage(array)
     elif pa.types.is_struct(array.type):
         # feature must be a dict or Sequence(subfeatures_dict)
-        if isinstance(feature, Sequence) and isinstance(feature.feature, dict):
-            feature = {
-                name: Sequence(subfeature, length=feature.length) for name, subfeature in feature.feature.items()
-            }
+        if isinstance(feature, Sequence) and isinstance(feature.dtype, dict):
+            feature = {name: Sequence(subfeature, length=feature.length) for name, subfeature in feature.dtype.items()}
         if isinstance(feature, dict):
             arrays = [_e(array.field(name), subfeature) for name, subfeature in feature.items()]
             return pa.StructArray.from_arrays(arrays, names=list(feature), mask=array.is_null())
@@ -2127,14 +2123,14 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
         if isinstance(feature, list):
             return pa.ListArray.from_arrays(array_offsets, _e(array.values, feature[0]))
         if isinstance(feature, Sequence) and feature.length == -1:
-            return pa.ListArray.from_arrays(array_offsets, _e(array.values, feature.feature))
+            return pa.ListArray.from_arrays(array_offsets, _e(array.values, feature.dtype))
     elif pa.types.is_fixed_size_list(array.type):
         # feature must be Sequence(subfeature)
         if isinstance(feature, Sequence) and feature.length > -1:
             array_values = array.values[
                 array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
             ]
-            embedded_array_values = _e(array_values, feature.feature)
+            embedded_array_values = _e(array_values, feature.dtype)
             return pa.FixedSizeListArray.from_arrays(embedded_array_values, feature.length, mask=array.is_null())
     if not isinstance(feature, (Sequence, dict, list, tuple)):
         return array
@@ -2321,10 +2317,9 @@ def table_visitor(table: pa.Table, function: Callable[[pa.Array], None]):
                 array = array.storage
             function(array, feature)
             if pa.types.is_struct(array.type) and not hasattr(feature, "cast_storage"):
-                if isinstance(feature, Sequence) and isinstance(feature.feature, dict):
+                if isinstance(feature, Sequence) and isinstance(feature.dtype, dict):
                     feature = {
-                        name: Sequence(subfeature, length=feature.length)
-                        for name, subfeature in feature.feature.items()
+                        name: Sequence(subfeature, length=feature.length) for name, subfeature in feature.dtype.items()
                     }
                 for name, subfeature in feature.items():
                     _visit(array.field(name), subfeature)
@@ -2332,7 +2327,7 @@ def table_visitor(table: pa.Table, function: Callable[[pa.Array], None]):
                 if isinstance(feature, list):
                     _visit(array.values, feature[0])
                 elif isinstance(feature, Sequence):
-                    _visit(array.values, feature.feature)
+                    _visit(array.values, feature.dtype)
 
     for name, feature in features.items():
         _visit(table[name], feature)

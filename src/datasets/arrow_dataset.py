@@ -2026,7 +2026,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> from datasets import load_dataset
         >>> ds = load_dataset("squad", split="train")
         >>> ds.features
-        {'answers': Sequence(feature={'text': Value(dtype='string', id=None), 'answer_start': Value(dtype='int32', id=None)}, length=-1, id=None),
+        {'answers': Sequence({'text': Value(dtype='string', id=None), 'answer_start': Value(dtype='int32', id=None)}, length=-1, id=None),
          'context': Value(dtype='string', id=None),
          'id': Value(dtype='string', id=None),
          'question': Value(dtype='string', id=None),
@@ -6214,7 +6214,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         label_feature = self._info.features[label_column]
         if not (
             isinstance(label_feature, ClassLabel)
-            or (isinstance(label_feature, Sequence) and isinstance(label_feature.feature, ClassLabel))
+            or (isinstance(label_feature, Sequence) and isinstance(label_feature.dtype, ClassLabel))
         ):
             raise ValueError(
                 f"Aligning labels with a mapping is only supported for {ClassLabel.__name__} column or {Sequence.__name__} column with the inner type {ClassLabel.__name__}, and column {label_feature} is of type {type(label_feature).__name__}."
@@ -6226,7 +6226,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Some label mappings use uppercase label names so we lowercase them during alignment
         label2id = {k.lower(): v for k, v in label2id.items()}
         int2str_function = (
-            label_feature.int2str if isinstance(label_feature, ClassLabel) else label_feature.feature.int2str
+            label_feature.int2str if isinstance(label_feature, ClassLabel) else label_feature.dtype.int2str
         )
 
         if isinstance(label_feature, ClassLabel):

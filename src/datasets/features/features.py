@@ -1148,9 +1148,9 @@ class Sequence:
 
     ```py
     >>> from datasets import Features, Sequence, Value, ClassLabel
-    >>> features = Features({'post': Sequence(feature={'text': Value(dtype='string'), 'upvotes': Value(dtype='int32'), 'label': ClassLabel(num_classes=2, names=['hot', 'cold'])})})
+    >>> features = Features({'post': Sequence({'text': Value(dtype='string'), 'upvotes': Value(dtype='int32'), 'label': ClassLabel(num_classes=2, names=['hot', 'cold'])})})
     >>> features
-    {'post': Sequence(feature={'text': Value(dtype='string', id=None), 'upvotes': Value(dtype='int32', id=None), 'label': ClassLabel(num_classes=2, names=['hot', 'cold'], id=None)}, length=-1, id=None)}
+    {'post': Sequence({'text': Value(dtype='string', id=None), 'upvotes': Value(dtype='int32', id=None), 'label': ClassLabel(num_classes=2, names=['hot', 'cold'], id=None)}, length=-1, id=None)}
     ```
     """
 
@@ -1195,7 +1195,7 @@ def _check_non_null_non_empty_recursive(obj, schema: Optional[FeatureType] = Non
             elif isinstance(schema, (list, tuple)):
                 schema = schema[0]
             else:
-                schema = schema.feature
+                schema = schema.dtype
             return _check_non_null_non_empty_recursive(obj[0], schema)
         else:
             return False
@@ -1226,9 +1226,9 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
         value_type = get_nested_type(schema[0])
         return pa.list_(value_type)
     elif isinstance(schema, Sequence):
-        value_type = get_nested_type(schema.feature)
+        value_type = get_nested_type(schema.dtype)
         # We allow to reverse list of dict => dict of list for compatibility with tfds
-        if isinstance(schema.feature, dict):
+        if isinstance(schema.dtype, dict):
             return pa.struct({f.name: pa.list_(f.type, schema.length) for f in value_type})
         return pa.list_(value_type, schema.length)
 
@@ -1271,37 +1271,37 @@ def encode_nested_example(schema, obj, level=0):
         if obj is None:
             return None
         # We allow to reverse list of dict => dict of list for compatiblity with tfds
-        if isinstance(schema.feature, dict):
+        if isinstance(schema.dtype, dict):
             # dict of list to fill
             list_dict = {}
             if isinstance(obj, (list, tuple)):
                 # obj is a list of dict
-                for k in schema.feature:
-                    list_dict[k] = [encode_nested_example(schema.feature[k], o.get(k), level=level + 1) for o in obj]
+                for k in schema.dtype:
+                    list_dict[k] = [encode_nested_example(schema.dtype[k], o.get(k), level=level + 1) for o in obj]
                 return list_dict
             else:
                 # obj is a single dict
-                for k in schema.feature:
+                for k in schema.dtype:
                     list_dict[k] = (
-                        [encode_nested_example(schema.feature[k], o, level=level + 1) for o in obj[k]]
+                        [encode_nested_example(schema.dtype[k], o, level=level + 1) for o in obj[k]]
                         if k in obj
                         else None
                     )
                 return list_dict
-        # schema.feature is not a dict
+        # schema.dtype is not a dict
         if isinstance(obj, str):  # don't interpret a string as a list
             raise ValueError(f"Got a string but expected a list instead: '{obj}'")
         else:
             if len(obj) > 0:
                 for first_elmt in obj:
-                    if _check_non_null_non_empty_recursive(first_elmt, schema.feature):
+                    if _check_non_null_non_empty_recursive(first_elmt, schema.dtype):
                         break
                 # be careful when comparing tensors here
                 if (
                     not isinstance(first_elmt, list)
-                    or encode_nested_example(schema.feature, first_elmt, level=level + 1) != first_elmt
+                    or encode_nested_example(schema.dtype, first_elmt, level=level + 1) != first_elmt
                 ):
-                    return [encode_nested_example(schema.feature, o, level=level + 1) for o in obj]
+                    return [encode_nested_example(schema.dtype, o, level=level + 1) for o in obj]
             return list(obj)
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
@@ -1339,10 +1339,10 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Uni
             return list(obj)
     elif isinstance(schema, Sequence):
         # We allow to reverse list of dict => dict of list for compatiblity with tfds
-        if isinstance(schema.feature, dict):
-            return {k: decode_nested_example([schema.feature[k]], obj[k]) for k in schema.feature}
+        if isinstance(schema.dtype, dict):
+            return {k: decode_nested_example([schema.dtype[k]], obj[k]) for k in schema.dtype}
         else:
-            return decode_nested_example([schema.feature], obj)
+            return decode_nested_example([schema.dtype], obj)
     # Object with special decoding:
     elif isinstance(schema, (Audio, Image)):
         # we pass the token to read and decode files from private repositories in streaming mode
@@ -1407,7 +1407,7 @@ def generate_from_dict(obj: Any):
         raise ValueError(f"Feature type '{_type}' not found. Available feature types: {list(_FEATURE_TYPES.keys())}")
 
     if class_type == Sequence:
-        return Sequence(feature=generate_from_dict(obj["feature"]), length=obj.get("length", -1))
+        return Sequence(generate_from_dict(obj["dtype"]), length=obj.get("length", -1))
 
     field_names = {f.name for f in fields(class_type)}
     return class_type(**{k: v for k, v in obj.items() if k in field_names})
@@ -1426,12 +1426,12 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
     if isinstance(pa_type, pa.StructType):
         return {field.name: generate_from_arrow_type(field.type) for field in pa_type}
     elif isinstance(pa_type, pa.FixedSizeListType):
-        return Sequence(feature=generate_from_arrow_type(pa_type.value_type), length=pa_type.list_size)
+        return Sequence(generate_from_arrow_type(pa_type.value_type), length=pa_type.list_size)
     elif isinstance(pa_type, pa.ListType):
         feature = generate_from_arrow_type(pa_type.value_type)
         if isinstance(feature, (dict, tuple, list)):
             return [feature]
-        return Sequence(feature=feature)
+        return Sequence(feature)
     elif isinstance(pa_type, _ArrayXDExtensionType):
         array_feature = [None, None, Array2D, Array3D, Array4D, Array5D][pa_type.ndims]
         return array_feature(shape=pa_type.shape, dtype=pa_type.value_type)
@@ -1538,7 +1538,7 @@ def _visit(feature: FeatureType, func: Callable[[FeatureType], Optional[FeatureT
     elif isinstance(feature, (list, tuple)):
         out = func([_visit(feature[0], func)])
     elif isinstance(feature, Sequence):
-        out = func(Sequence(_visit(feature.feature, func), length=feature.length))
+        out = func(Sequence(_visit(feature.dtype, func), length=feature.length))
     else:
         out = func(feature)
     return feature if out is None else out
@@ -1559,7 +1559,7 @@ def require_decoding(feature: FeatureType, ignore_decode_attribute: bool = False
     elif isinstance(feature, (list, tuple)):
         return require_decoding(feature[0])
     elif isinstance(feature, Sequence):
-        return require_decoding(feature.feature)
+        return require_decoding(feature.dtype)
     else:
         return hasattr(feature, "decode_example") and (feature.decode if not ignore_decode_attribute else True)
 
@@ -1577,7 +1577,7 @@ def require_storage_cast(feature: FeatureType) -> bool:
     elif isinstance(feature, (list, tuple)):
         return require_storage_cast(feature[0])
     elif isinstance(feature, Sequence):
-        return require_storage_cast(feature.feature)
+        return require_storage_cast(feature.dtype)
     else:
         return hasattr(feature, "cast_storage")
 
@@ -1595,7 +1595,7 @@ def require_storage_embed(feature: FeatureType) -> bool:
     elif isinstance(feature, (list, tuple)):
         return require_storage_cast(feature[0])
     elif isinstance(feature, Sequence):
-        return require_storage_cast(feature.feature)
+        return require_storage_cast(feature.dtype)
     else:
         return hasattr(feature, "embed_storage")
 
@@ -1820,7 +1820,7 @@ class Features(dict):
             if isinstance(obj, dict):
                 _type = obj.pop("_type", None)
                 if _type == "Sequence":
-                    _feature = obj.pop("feature")
+                    _feature = obj.pop("dtype")
                     return simplify({"sequence": to_yaml_inner(_feature), **obj})
                 elif _type == "Value":
                     return obj
@@ -1893,7 +1893,7 @@ class Features(dict):
                 _type = next(iter(obj))
                 if _type == "sequence":
                     _feature = unsimplify(obj).pop(_type)
-                    return {"feature": from_yaml_inner(_feature), **obj, "_type": "Sequence"}
+                    return {"dtype": from_yaml_inner(_feature), **obj, "_type": "Sequence"}
                 if _type == "list":
                     return [from_yaml_inner(unsimplify(obj)[_type])]
                 if _type == "struct":
@@ -2079,20 +2079,20 @@ class Features(dict):
             >>> assert f1.type != f2.type
             >>> # re-ordering keeps the base structure (here Sequence is defined at the root level), but make the fields order match
             >>> f1.reorder_fields_as(f2)
-            {'root': Sequence(feature={'b': Value(dtype='string', id=None), 'a': Value(dtype='string', id=None)}, length=-1, id=None)}
+            {'root': Sequence({'b': Value(dtype='string', id=None), 'a': Value(dtype='string', id=None)}, length=-1, id=None)}
             >>> assert f1.reorder_fields_as(f2).type == f2.type
         """
 
         def recursive_reorder(source, target, stack=""):
             stack_position = " at " + stack[1:] if stack else ""
             if isinstance(target, Sequence):
-                target = target.feature
+                target = target.dtype
                 if isinstance(target, dict):
                     target = {k: [v] for k, v in target.items()}
                 else:
                     target = [target]
             if isinstance(source, Sequence):
-                source, id_, length = source.feature, source.id, source.length
+                source, id_, length = source.dtype, source.id, source.length
                 if isinstance(source, dict):
                     source = {k: [v] for k, v in source.items()}
                     reordered = recursive_reorder(source, target, stack)
@@ -2141,8 +2141,8 @@ class Features(dict):
         >>> from datasets import load_dataset
         >>> ds = load_dataset("squad", split="train")
         >>> ds.features.flatten()
-        {'answers.answer_start': Sequence(feature=Value(dtype='int32', id=None), length=-1, id=None),
-         'answers.text': Sequence(feature=Value(dtype='string', id=None), length=-1, id=None),
+        {'answers.answer_start': Sequence(Value(dtype='int32', id=None), length=-1, id=None),
+         'answers.text': Sequence(Value(dtype='string', id=None), length=-1, id=None),
          'context': Value(dtype='string', id=None),
          'id': Value(dtype='string', id=None),
          'question': Value(dtype='string', id=None),
@@ -2157,12 +2157,12 @@ class Features(dict):
                     no_change = False
                     flattened.update({f"{column_name}.{k}": v for k, v in subfeature.items()})
                     del flattened[column_name]
-                elif isinstance(subfeature, Sequence) and isinstance(subfeature.feature, dict):
+                elif isinstance(subfeature, Sequence) and isinstance(subfeature.dtype, dict):
                     no_change = False
                     flattened.update(
                         {
                             f"{column_name}.{k}": Sequence(v) if not isinstance(v, dict) else [v]
-                            for k, v in subfeature.feature.items()
+                            for k, v in subfeature.dtype.items()
                         }
                     )
                     del flattened[column_name]

@@ -72,7 +72,7 @@ def is_numeric_feature(feature):
     from ..features.features import _ArrayXD
 
     if isinstance(feature, Sequence):
-        return is_numeric_feature(feature.feature)
+        return is_numeric_feature(feature.dtype)
     elif isinstance(feature, list):
         return is_numeric_feature(feature[0])
     elif isinstance(feature, _ArrayXD):

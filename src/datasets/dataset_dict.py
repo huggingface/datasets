@@ -194,7 +194,7 @@ class DatasetDict(dict):
         >>> from datasets import load_dataset
         >>> ds = load_dataset("squad")
         >>> ds["train"].features
-        {'answers': Sequence(feature={'text': Value(dtype='string', id=None), 'answer_start': Value(dtype='int32', id=None)}, length=-1, id=None),
+        {'answers': Sequence({'text': Value(dtype='string', id=None), 'answer_start': Value(dtype='int32', id=None)}, length=-1, id=None),
          'context': Value(dtype='string', id=None),
          'id': Value(dtype='string', id=None),
          'question': Value(dtype='string', id=None),

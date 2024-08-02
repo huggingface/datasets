@@ -148,7 +148,7 @@ class BaseDatasetTest(TestCase):
                 {
                     "col_1": Array2D(shape=(2, 2), dtype="bool"),
                     "col_2": Array3D(shape=(2, 2, 2), dtype="string"),
-                    "col_3": Sequence(feature=Value("int64")),
+                    "col_3": Sequence(Value("int64")),
                 }
             )
             dset = Dataset.from_dict(data, features=features)
@@ -198,7 +198,7 @@ class BaseDatasetTest(TestCase):
                         {
                             "col_1": Array2D(shape=(2, 2), dtype="bool"),
                             "col_2": Array3D(shape=(2, 2, 2), dtype="string"),
-                            "col_3": Sequence(feature=Value("int64")),
+                            "col_3": Sequence(Value("int64")),
                         }
                     ),
                 )
@@ -4430,7 +4430,7 @@ class TaskTemplatesTest(TestCase):
             with dset.align_labels_with_mapping(label2id, "input_labels") as dset:
                 self.assertListEqual(expected_labels, dset["input_labels"])
                 aligned_label_names = [
-                    dset.features["input_labels"].feature.int2str(idx) for idx in dset["input_labels"]
+                    dset.features["input_labels"].dtype.int2str(idx) for idx in dset["input_labels"]
                 ]
                 self.assertListEqual(expected_label_names, aligned_label_names)
 

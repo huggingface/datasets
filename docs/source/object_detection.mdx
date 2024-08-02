@@ -52,7 +52,7 @@ You can visualize the `bboxes` on the image using some internal torch utilities.
 >>> from torchvision.utils import draw_bounding_boxes
 >>> from torchvision.transforms.functional import pil_to_tensor, to_pil_image
 
->>> categories = ds['train'].features['objects'].feature['category']
+>>> categories = ds['train'].features['objects'].dtype['category']
 
 >>> boxes_xywh = torch.tensor(example['objects']['bbox'])
 >>> boxes_xyxy = box_convert(boxes_xywh, 'xywh', 'xyxy')
