@@ -1235,6 +1235,9 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
             raise ValueError("When defining list feature, you should just provide one example of the inner type")
         value_type = get_nested_type(schema[0])
         return pa.list_(value_type)
+    elif isinstance(schema, LargeList):
+        value_type = get_nested_type(schema.dtype)
+        return pa.large_list(value_type)
     elif isinstance(schema, Sequence):
         value_type = get_nested_type(schema.feature)
         # We allow to reverse list of dict => dict of list for compatibility with tfds
