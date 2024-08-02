@@ -1981,7 +1981,7 @@ def cast_array_to_feature(
     Returns:
         array (`pyarrow.Array`): the casted array
     """
-    from .features.features import Sequence, get_nested_type
+    from .features.features import LargeList, Sequence, get_nested_type
 
     _c = partial(
         cast_array_to_feature,
@@ -2009,12 +2009,22 @@ def cast_array_to_feature(
         # feature must be either [subfeature] or Sequence(subfeature)
         if isinstance(feature, list):
             casted_array_values = _c(array.values, feature[0])
-            if casted_array_values.type == array.values.type:
+            if type(array.type) is type(get_nested_type(feature)) and casted_array_values.type == array.values.type:
+                # Both array and feature have equal: list type and values (within the list) types
                 return array
             else:
                 # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
                 array_offsets = _combine_list_array_offsets_with_mask(array)
                 return pa.ListArray.from_arrays(array_offsets, casted_array_values)
+        elif isinstance(feature, LargeList):
+            casted_array_values = _c(array.values, feature.dtype)
+            if type(array.type) is type(get_nested_type(feature)) and casted_array_values.type == array.values.type:
+                # Both array and feature have equal: list type and values (within the list) types
+                return array
+            else:
+                # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
+                array_offsets = _combine_list_array_offsets_with_mask(array)
+                return pa.LargeListArray.from_arrays(array_offsets, casted_array_values)
         elif isinstance(feature, Sequence):
             if feature.length > -1:
                 if _are_list_values_of_length(array, feature.length):
@@ -2066,6 +2076,9 @@ def cast_array_to_feature(
         if isinstance(feature, list):
             array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
             return pa.ListArray.from_arrays(array_offsets, _c(array.values, feature[0]), mask=array.is_null())
+        elif isinstance(feature, LargeList):
+            array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
+            return pa.LargeListArray.from_arrays(array_offsets, _c(array.values, feature.dtype), mask=array.is_null())
         elif isinstance(feature, Sequence):
             if feature.length > -1:
                 if feature.length == array.type.list_size:
