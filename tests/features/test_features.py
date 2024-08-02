@@ -10,7 +10,7 @@ import pytest
 
 from datasets import Array2D
 from datasets.arrow_dataset import Dataset
-from datasets.features import Audio, ClassLabel, Features, Image, Sequence, Value
+from datasets.features import Audio, ClassLabel, Features, Image, LargeList, Sequence, Value
 from datasets.features.features import (
     _align_features,
     _arrow_to_datasets_dtype,
@@ -624,6 +624,8 @@ NESTED_FEATURES = [
     Features({"foo": Sequence({"bar": Value("int32")})}),
     Features({"foo": [Value("int32")]}),
     Features({"foo": [{"bar": Value("int32")}]}),
+    Features({"foo": LargeList(Value("int32"))}),
+    Features({"foo": LargeList({"bar": Value("int32")})}),
 ]
 
 NESTED_CUSTOM_FEATURES = [
@@ -632,6 +634,8 @@ NESTED_CUSTOM_FEATURES = [
     Features({"foo": Sequence({"bar": ClassLabel(names=["negative", "positive"])})}),
     Features({"foo": [ClassLabel(names=["negative", "positive"])]}),
     Features({"foo": [{"bar": ClassLabel(names=["negative", "positive"])}]}),
+    Features({"foo": LargeList(ClassLabel(names=["negative", "positive"]))}),
+    Features({"foo": LargeList({"bar": ClassLabel(names=["negative", "positive"])})}),
 ]
 
 
@@ -714,5 +718,12 @@ def test_features_from_arrow_schema_list_data_type(list_dtype, scalar_dtype):
 def test_features_reorder_fields_as_with_sequence():
     features = Features({"col_1": Sequence(feature=Value("int64"))})
     other_features = Features({"col_1": Sequence(feature=Value("int64"))})
+    new_features = features.reorder_fields_as(other_features)
+    assert new_features == features
+
+
+def test_features_reorder_fields_as_with_large_list():
+    features = Features({"col_1": LargeList(Value("int64"))})
+    other_features = Features({"col_1": LargeList(Value("int64"))})
     new_features = features.reorder_fields_as(other_features)
     assert new_features == features
