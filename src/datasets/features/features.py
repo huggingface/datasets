@@ -1784,37 +1784,22 @@ class Features(dict):
             if not isinstance(feature, dict):
                 raise TypeError(f"Expected a dict but got a {type(feature)}: {feature}")
 
-            #
-            # sequence:                 ->              sequence: int32
-            #   dtype: int32            ->
-            #
-            if isinstance(feature.get("sequence"), dict) and list(feature["sequence"]) == ["dtype"]:
-                feature["sequence"] = feature["sequence"]["dtype"]
+            for list_type in ["large_list", "list", "sequence"]:
+                #
+                # list_type:                ->              list_type: int32
+                #   dtype: int32            ->
+                #
+                if isinstance(feature.get(list_type), dict) and list(feature[list_type]) == ["dtype"]:
+                    feature[list_type] = feature[list_type]["dtype"]
 
-            #
-            # sequence:                 ->              sequence:
-            #   struct:                 ->              - name: foo
-            #   - name: foo             ->                dtype: int32
-            #     dtype: int32          ->
-            #
-            if isinstance(feature.get("sequence"), dict) and list(feature["sequence"]) == ["struct"]:
-                feature["sequence"] = feature["sequence"]["struct"]
-
-            #
-            # list:                     ->              list: int32
-            #   dtype: int32            ->
-            #
-            if isinstance(feature.get("list"), dict) and list(feature["list"]) == ["dtype"]:
-                feature["list"] = feature["list"]["dtype"]
-
-            #
-            # list:                     ->              list:
-            #   struct:                 ->              - name: foo
-            #   - name: foo             ->                dtype: int32
-            #     dtype: int32          ->
-            #
-            if isinstance(feature.get("list"), dict) and list(feature["list"]) == ["struct"]:
-                feature["list"] = feature["list"]["struct"]
+                #
+                # list_type:                ->              list_type:
+                #   struct:                 ->              - name: foo
+                #   - name: foo             ->                dtype: int32
+                #     dtype: int32          ->
+                #
+                if isinstance(feature.get(list_type), dict) and list(feature[list_type]) == ["struct"]:
+                    feature[list_type] = feature[list_type]["struct"]
 
             #
             # class_label:              ->              class_label:
@@ -1832,7 +1817,10 @@ class Features(dict):
         def to_yaml_inner(obj: Union[dict, list]) -> dict:
             if isinstance(obj, dict):
                 _type = obj.pop("_type", None)
-                if _type == "Sequence":
+                if _type == "LargeList":
+                    value_type = obj.pop("dtype")
+                    return simplify({"large_list": to_yaml_inner(value_type), **obj})
+                elif _type == "Sequence":
                     _feature = obj.pop("feature")
                     return simplify({"sequence": to_yaml_inner(_feature), **obj})
                 elif _type == "Value":
