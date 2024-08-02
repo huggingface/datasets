@@ -19,6 +19,7 @@ from datasets.features.features import (
     cast_to_python_objects,
     encode_nested_example,
     generate_from_dict,
+    get_nested_type,
     string_to_arrow,
 )
 from datasets.features.translation import Translation, TranslationVariableLanguages
@@ -26,6 +27,10 @@ from datasets.info import DatasetInfo
 from datasets.utils.py_utils import asdict
 
 from ..utils import require_jax, require_numpy1_on_windows, require_tf, require_torch
+
+
+def list_with(item):
+    return [item]
 
 
 class FeaturesTest(TestCase):
@@ -776,3 +781,26 @@ def test_features_reorder_fields_as_with_large_list():
     other_features = Features({"col_1": LargeList(Value("int64"))})
     new_features = features.reorder_fields_as(other_features)
     assert new_features == features
+
+
+@pytest.mark.parametrize(
+    "feature, expected_arrow_data_type", [(Value("int64"), pa.int64), (Value("string"), pa.string)]
+)
+def test_get_nested_type_with_scalar_feature(feature, expected_arrow_data_type):
+    arrow_data_type = get_nested_type(feature)
+    assert arrow_data_type == expected_arrow_data_type()
+
+
+@pytest.mark.parametrize(
+    "scalar_feature, expected_arrow_primitive_data_type", [(Value("int64"), pa.int64), (Value("string"), pa.string)]
+)
+@pytest.mark.parametrize(
+    "list_feature, expected_arrow_nested_data_type",
+    [(list_with, pa.list_), (LargeList, pa.large_list), (Sequence, pa.list_)],
+)
+def test_get_nested_type_with_list_feature(
+    list_feature, expected_arrow_nested_data_type, scalar_feature, expected_arrow_primitive_data_type
+):
+    feature = list_feature(scalar_feature)
+    arrow_data_type = get_nested_type(feature)
+    assert arrow_data_type == expected_arrow_nested_data_type(expected_arrow_primitive_data_type())
