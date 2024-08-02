@@ -167,11 +167,11 @@ def test_from_merge_same_dataset_infos(dataset_info):
         assert DatasetInfo() == dataset_info_merged
 
 
-def test_dataset_info_from_dict_with_large_sequence():
+def test_dataset_info_from_dict_with_large_list():
     dataset_info_dict = {
         "citation": "",
         "description": "",
-        "features": {"col_1": {"feature": {"dtype": "int64", "_type": "Value"}, "large": True, "_type": "Sequence"}},
+        "features": {"col_1": {"dtype": {"dtype": "int64", "_type": "Value"}, "_type": "LargeList"}},
         "homepage": "",
         "license": "",
     }
