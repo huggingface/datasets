@@ -655,6 +655,22 @@ def test_features_to_yaml_list(features: Features):
     assert features == reloaded
 
 
+@pytest.mark.parametrize(
+    "features_dict, expected_features_yaml_list",
+    [
+        ({"col": LargeList(Value("int32"))}, [{"name": "col", "large_list": "int32"}]),
+        (
+            {"col": LargeList({"sub_col": Value("int32")})},
+            [{"name": "col", "large_list": [{"dtype": "int32", "name": "sub_col"}]}],
+        ),
+    ],
+)
+def test_features_to_yaml_list_with_large_list(features_dict, expected_features_yaml_list):
+    features = Features(features_dict)
+    features_yaml_list = features._to_yaml_list()
+    assert features_yaml_list == expected_features_yaml_list
+
+
 @pytest.mark.parametrize("features", SIMPLE_FEATURES + CUSTOM_FEATURES + NESTED_FEATURES + NESTED_CUSTOM_FEATURES)
 def test_features_to_arrow_schema(features: Features):
     arrow_schema = features.arrow_schema
