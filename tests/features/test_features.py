@@ -18,6 +18,7 @@ from datasets.features.features import (
     _check_if_features_can_be_aligned,
     cast_to_python_objects,
     encode_nested_example,
+    generate_from_arrow_type,
     generate_from_dict,
     get_nested_type,
     string_to_arrow,
@@ -804,3 +805,27 @@ def test_get_nested_type_with_list_feature(
     feature = list_feature(scalar_feature)
     arrow_data_type = get_nested_type(feature)
     assert arrow_data_type == expected_arrow_nested_data_type(expected_arrow_primitive_data_type())
+
+
+@pytest.mark.parametrize(
+    "arrow_primitive_data_type, expected_feature", [(pa.int32, Value("int32")), (pa.string, Value("string"))]
+)
+def test_generate_from_arrow_type_with_arrow_primitive_data_type(arrow_primitive_data_type, expected_feature):
+    arrow_data_type = arrow_primitive_data_type()
+    feature = generate_from_arrow_type(arrow_data_type)
+    assert feature == expected_feature
+
+
+@pytest.mark.parametrize(
+    "arrow_primitive_data_type, expected_scalar_feature", [(pa.int32, Value("int32")), (pa.string, Value("string"))]
+)
+@pytest.mark.parametrize(
+    "arrow_nested_data_type, expected_list_feature", [(pa.list_, Sequence), (pa.large_list, LargeList)]
+)
+def test_generate_from_arrow_type_with_arrow_nested_data_type(
+    arrow_nested_data_type, expected_list_feature, arrow_primitive_data_type, expected_scalar_feature
+):
+    arrow_data_type = arrow_nested_data_type(arrow_primitive_data_type())
+    feature = generate_from_arrow_type(arrow_data_type)
+    expected_feature = expected_list_feature(expected_scalar_feature)
+    assert feature == expected_feature
