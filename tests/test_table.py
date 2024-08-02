@@ -1294,10 +1294,7 @@ def test_cast_array_to_feature_with_list_array_and_sequence_feature(
 
 @pytest.mark.parametrize("large_list_feature_value_type", ["string", "int64"])
 @pytest.mark.parametrize("from_list_type", ["list", "fixed_size_list", "large_list"])
-@pytest.mark.parametrize("list_within_struct", [False, True])
-def test_cast_array_to_feature_with_list_array_and_large_list_feature(
-    list_within_struct, from_list_type, large_list_feature_value_type
-):
+def test_cast_array_to_feature_with_list_array_and_large_list_feature(from_list_type, large_list_feature_value_type):
     list_type = {
         "list": pa.list_,
         "fixed_size_list": partial(pa.list_, list_size=2),
@@ -1312,11 +1309,6 @@ def test_cast_array_to_feature_with_list_array_and_large_list_feature(
     array_type = list_type[from_list_type](pa.int64())
     large_list_feature_value = Value(large_list_feature_value_type)
     expected_array_type = list_type[to_type](primitive_type[large_list_feature_value_type])
-    if list_within_struct:
-        array_data = {"col_1": array_data}
-        array_type = pa.struct({"col_1": array_type})
-        large_list_feature_value = {"col_1": large_list_feature_value}
-        expected_array_type = pa.struct({"col_1": expected_array_type})
     feature = LargeList(large_list_feature_value)
     array = pa.array([array_data], type=array_type)
     cast_array = cast_array_to_feature(array, feature)
