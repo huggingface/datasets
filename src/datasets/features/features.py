@@ -1154,7 +1154,7 @@ class Sequence:
     ```
     """
 
-    feature: Any
+    dtype: Any
     length: int = -1
     id: Optional[str] = None
     # Automatically constructed
