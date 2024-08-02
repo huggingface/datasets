@@ -1368,6 +1368,7 @@ _FEATURE_TYPES: Dict[str, FeatureType] = {
     ClassLabel.__name__: ClassLabel,
     Translation.__name__: Translation,
     TranslationVariableLanguages.__name__: TranslationVariableLanguages,
+    LargeList.__name__: LargeList,
     Sequence.__name__: Sequence,
     Array2D.__name__: Array2D,
     Array3D.__name__: Array3D,
@@ -1418,6 +1419,9 @@ def generate_from_dict(obj: Any):
     if class_type is None:
         raise ValueError(f"Feature type '{_type}' not found. Available feature types: {list(_FEATURE_TYPES.keys())}")
 
+    if class_type == LargeList:
+        dtype = obj.pop("dtype")
+        return LargeList(generate_from_dict(dtype), **obj)
     if class_type == Sequence:
         feature = obj.pop("feature")
         return Sequence(feature=generate_from_dict(feature), **obj)
