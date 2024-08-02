@@ -1863,18 +1863,14 @@ class Features(dict):
         def unsimplify(feature: dict) -> dict:
             if not isinstance(feature, dict):
                 raise TypeError(f"Expected a dict but got a {type(feature)}: {feature}")
-            #
-            # sequence: int32           ->              sequence:
-            #                           ->                dtype: int32
-            #
-            if isinstance(feature.get("sequence"), str):
-                feature["sequence"] = {"dtype": feature["sequence"]}
-            #
-            # list: int32               ->              list:
-            #                           ->                dtype: int32
-            #
-            if isinstance(feature.get("list"), str):
-                feature["list"] = {"dtype": feature["list"]}
+
+            for list_type in ["large_list", "list", "sequence"]:
+                #
+                # list_type: int32          ->              list_type:
+                #                           ->                dtype: int32
+                #
+                if isinstance(feature.get(list_type), str):
+                    feature[list_type] = {"dtype": feature[list_type]}
 
             #
             # class_label:              ->              class_label:
@@ -1896,6 +1892,9 @@ class Features(dict):
                 if not obj:
                     return {}
                 _type = next(iter(obj))
+                if _type == "large_list":
+                    _dtype = unsimplify(obj).pop(_type)
+                    return {"dtype": from_yaml_inner(_dtype), **obj, "_type": "LargeList"}
                 if _type == "sequence":
                     _feature = unsimplify(obj).pop(_type)
                     return {"feature": from_yaml_inner(_feature), **obj, "_type": "Sequence"}
