@@ -1198,12 +1198,14 @@ def _check_non_null_non_empty_recursive(obj, schema: Optional[FeatureType] = Non
     """
     if obj is None:
         return False
-    elif isinstance(obj, (list, tuple)) and (schema is None or isinstance(schema, (list, tuple, Sequence))):
+    elif isinstance(obj, (list, tuple)) and (schema is None or isinstance(schema, (list, tuple, LargeList, Sequence))):
         if len(obj) > 0:
             if schema is None:
                 pass
             elif isinstance(schema, (list, tuple)):
                 schema = schema[0]
+            elif isinstance(schema, LargeList):
+                schema = schema.dtype
             else:
                 schema = schema.feature
             return _check_non_null_non_empty_recursive(obj[0], schema)
