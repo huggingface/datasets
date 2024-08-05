@@ -392,6 +392,15 @@ def test_class_label_to_and_from_dict(class_label_arg, tmp_path_factory):
     assert generated_class_label == class_label
 
 
+@pytest.mark.parametrize(
+    "schema",
+    [[ClassLabel(names=["a", "b"])], LargeList(ClassLabel(names=["a", "b"])), Sequence(ClassLabel(names=["a", "b"]))],
+)
+def test_encode_nested_example_with_list_types(schema):
+    result = encode_nested_example(schema, ["b"])
+    assert result == [1]
+
+
 @pytest.mark.parametrize("inner_type", [Value("int32"), {"subcolumn": Value("int32")}])
 def test_encode_nested_example_sequence_with_none(inner_type):
     schema = Sequence(inner_type)
