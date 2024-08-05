@@ -1,7 +1,7 @@
 import datetime
 from typing import List, Tuple
 from unittest import TestCase
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
@@ -18,6 +18,7 @@ from datasets.features.features import (
     _check_if_features_can_be_aligned,
     _check_non_null_non_empty_recursive,
     cast_to_python_objects,
+    decode_nested_example,
     encode_nested_example,
     generate_from_arrow_type,
     generate_from_dict,
@@ -392,6 +393,19 @@ def test_class_label_to_and_from_dict(class_label_arg, tmp_path_factory):
         class_label = ClassLabel(names_file=names_file)
     generated_class_label = generate_from_dict(asdict(class_label))
     assert generated_class_label == class_label
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [[Audio()], LargeList(Audio()), Sequence(Audio())],
+)
+def test_decode_nested_example_with_list_types(schema, monkeypatch):
+    mock_decode_example = MagicMock()
+    monkeypatch.setattr(Audio, "decode_example", mock_decode_example)
+    audio_example = {"path": "dummy_audio_path"}
+    _ = decode_nested_example(schema, [audio_example])
+    assert mock_decode_example.called
+    assert mock_decode_example.call_args.args[0] == audio_example
 
 
 @pytest.mark.parametrize(
