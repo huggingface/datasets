@@ -1595,6 +1595,8 @@ def require_decoding(feature: FeatureType, ignore_decode_attribute: bool = False
         return any(require_decoding(f) for f in feature.values())
     elif isinstance(feature, (list, tuple)):
         return require_decoding(feature[0])
+    elif isinstance(feature, LargeList):
+        return require_decoding(feature.dtype)
     elif isinstance(feature, Sequence):
         return require_decoding(feature.feature)
     else:
