@@ -16,6 +16,7 @@ from datasets.features.features import (
     _arrow_to_datasets_dtype,
     _cast_to_python_objects,
     _check_if_features_can_be_aligned,
+    _check_non_null_non_empty_recursive,
     cast_to_python_objects,
     encode_nested_example,
     generate_from_arrow_type,
@@ -853,3 +854,23 @@ def test_generate_from_arrow_type_with_arrow_nested_data_type(
     feature = generate_from_arrow_type(arrow_data_type)
     expected_feature = expected_list_feature(expected_scalar_feature)
     assert feature == expected_feature
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [[ClassLabel(names=["a", "b"])], LargeList(ClassLabel(names=["a", "b"])), Sequence(ClassLabel(names=["a", "b"]))],
+)
+def test_check_non_null_non_empty_recursive_with_list_types(schema):
+    assert _check_non_null_non_empty_recursive([], schema) is False
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [
+        [[ClassLabel(names=["a", "b"])]],
+        LargeList(LargeList(ClassLabel(names=["a", "b"]))),
+        Sequence(Sequence(ClassLabel(names=["a", "b"]))),
+    ],
+)
+def test_check_non_null_non_empty_recursive_with_nested_list_types(schema):
+    assert _check_non_null_non_empty_recursive([[]], schema) is False
