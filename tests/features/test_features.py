@@ -22,6 +22,7 @@ from datasets.features.features import (
     generate_from_arrow_type,
     generate_from_dict,
     get_nested_type,
+    require_decoding,
     string_to_arrow,
 )
 from datasets.features.translation import Translation, TranslationVariableLanguages
@@ -874,3 +875,8 @@ def test_check_non_null_non_empty_recursive_with_list_types(schema):
 )
 def test_check_non_null_non_empty_recursive_with_nested_list_types(schema):
     assert _check_non_null_non_empty_recursive([[]], schema) is False
+
+
+@pytest.mark.parametrize("feature", [[Audio()], LargeList(Audio()), Sequence(Audio())])
+def test_require_decoding_with_list_types(feature):
+    assert require_decoding(feature)
