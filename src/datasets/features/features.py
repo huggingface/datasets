@@ -1282,6 +1282,18 @@ def encode_nested_example(schema, obj, level=0):
                 if encode_nested_example(sub_schema, first_elmt, level=level + 1) != first_elmt:
                     return [encode_nested_example(sub_schema, o, level=level + 1) for o in obj]
             return list(obj)
+    elif isinstance(schema, LargeList):
+        if obj is None:
+            return None
+        else:
+            if len(obj) > 0:
+                sub_schema = schema.dtype
+                for first_elmt in obj:
+                    if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
+                        break
+                if encode_nested_example(sub_schema, first_elmt, level=level + 1) != first_elmt:
+                    return [encode_nested_example(sub_schema, o, level=level + 1) for o in obj]
+            return list(obj)
     elif isinstance(schema, Sequence):
         if obj is None:
             return None
