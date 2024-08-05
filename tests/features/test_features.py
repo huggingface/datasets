@@ -400,6 +400,21 @@ def test_encode_nested_example_sequence_with_none(inner_type):
     assert result is None
 
 
+@pytest.mark.parametrize(
+    "features_dict, example, expected_encoded_example",
+    [
+        ({"col_1": ClassLabel(names=["a", "b"])}, {"col_1": "b"}, {"col_1": 1}),
+        ({"col_1": [ClassLabel(names=["a", "b"])]}, {"col_1": ["b"]}, {"col_1": [1]}),
+        ({"col_1": LargeList(ClassLabel(names=["a", "b"]))}, {"col_1": ["b"]}, {"col_1": [1]}),
+        ({"col_1": Sequence(ClassLabel(names=["a", "b"]))}, {"col_1": ["b"]}, {"col_1": [1]}),
+    ],
+)
+def test_encode_example(features_dict, example, expected_encoded_example):
+    features = Features(features_dict)
+    encoded_example = features.encode_example(example)
+    assert encoded_example == expected_encoded_example
+
+
 def test_encode_batch_with_example_with_empty_first_elem():
     features = Features(
         {
