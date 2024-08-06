@@ -705,6 +705,20 @@ def test_features_to_yaml_list(features: Features):
 
 
 @pytest.mark.parametrize(
+    "features_dict, expected_features_dict",
+    [
+        ({"col": [{"sub_col": Value("int32")}]}, {"col": [{"sub_col": Value("int32")}]}),
+        ({"col": LargeList({"sub_col": Value("int32")})}, {"col": LargeList({"sub_col": Value("int32")})}),
+        ({"col": Sequence({"sub_col": Value("int32")})}, {"col.sub_col": Sequence(Value("int32"))}),
+    ],
+)
+def test_features_flatten_with_list_types(features_dict, expected_features_dict):
+    features = Features(features_dict)
+    flattened_features = features.flatten()
+    assert flattened_features == Features(expected_features_dict)
+
+
+@pytest.mark.parametrize(
     "deserialized_features_dict, expected_features_dict",
     [
         (
