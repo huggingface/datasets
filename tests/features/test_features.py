@@ -869,6 +869,18 @@ def test_features_from_arrow_schema_list_data_type(list_dtype, scalar_dtype):
         ([Value("int64")], [Value("int64")]),
         (LargeList(Value("int64")), LargeList(Value("int64"))),
         (Sequence(Value("int64")), Sequence(Value("int64"))),
+        (
+            [{"sub_col_1": Value("int64"), "sub_col_2": Value("int64")}],
+            [{"sub_col_2": Value("int64"), "sub_col_1": Value("int64")}],
+        ),
+        (
+            LargeList({"sub_col_1": Value("int64"), "sub_col_2": Value("int64")}),
+            LargeList({"sub_col_2": Value("int64"), "sub_col_1": Value("int64")}),
+        ),
+        (
+            Sequence({"sub_col_1": Value("int64"), "sub_col_2": Value("int64")}),
+            Sequence({"sub_col_2": Value("int64"), "sub_col_1": Value("int64")}),
+        ),
     ],
 )
 def test_features_reorder_fields_as_with_list_types(feature, other_feature):
