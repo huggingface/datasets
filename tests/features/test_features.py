@@ -26,6 +26,7 @@ from datasets.features.features import (
     get_nested_type,
     require_decoding,
     require_storage_cast,
+    require_storage_embed,
     string_to_arrow,
 )
 from datasets.features.translation import Translation, TranslationVariableLanguages
@@ -951,6 +952,11 @@ def test_require_decoding_with_list_types(feature):
 @pytest.mark.parametrize("feature", [[Audio()], LargeList(Audio()), Sequence(Audio())])
 def test_require_storage_cast_with_list_types(feature):
     assert require_storage_cast(feature)
+
+
+@pytest.mark.parametrize("feature", [[Audio()], LargeList(Audio()), Sequence(Audio())])
+def test_require_storage_embed_with_list_types(feature):
+    assert require_storage_embed(feature)
 
 
 @pytest.mark.parametrize(
