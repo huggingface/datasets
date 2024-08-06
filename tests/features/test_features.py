@@ -867,14 +867,14 @@ def test_features_reorder_fields_as_with_sequence():
     features = Features({"col_1": Sequence(feature=Value("int64"))})
     other_features = Features({"col_1": Sequence(feature=Value("int64"))})
     new_features = features.reorder_fields_as(other_features)
-    assert new_features == features
+    assert new_features.type == other_features.type
 
 
 def test_features_reorder_fields_as_with_large_list():
     features = Features({"col_1": LargeList(Value("int64"))})
     other_features = Features({"col_1": LargeList(Value("int64"))})
     new_features = features.reorder_fields_as(other_features)
-    assert new_features == features
+    assert new_features.type == other_features.type
 
 
 @pytest.mark.parametrize(
