@@ -2154,6 +2154,11 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
             return pa.ListArray.from_arrays(array_offsets, _e(array.values, feature[0]))
         if isinstance(feature, Sequence) and feature.length == -1:
             return pa.ListArray.from_arrays(array_offsets, _e(array.values, feature.feature))
+    elif pa.types.is_large_list(array.type):
+        # feature must be either LargeList(subfeature)
+        # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
+        array_offsets = _combine_list_array_offsets_with_mask(array)
+        return pa.LargeListArray.from_arrays(array_offsets, _e(array.values, feature.dtype))
     elif pa.types.is_fixed_size_list(array.type):
         # feature must be Sequence(subfeature)
         if isinstance(feature, Sequence) and feature.length > -1:
