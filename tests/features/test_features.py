@@ -948,10 +948,7 @@ def test_require_decoding_with_list_types(feature):
     assert require_decoding(feature)
 
 
-@pytest.mark.parametrize(
-    "feature",
-    [[ClassLabel(names=["a", "b"])], LargeList(ClassLabel(names=["a", "b"])), Sequence(ClassLabel(names=["a", "b"]))],
-)
+@pytest.mark.parametrize("feature", [[Audio()], LargeList(Audio()), Sequence(Audio())])
 def test_require_storage_cast_with_list_types(feature):
     assert require_storage_cast(feature)
 
