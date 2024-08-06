@@ -720,6 +720,40 @@ def test_features_from_dict_with_large_list(deserialized_features_dict, expected
 
 
 @pytest.mark.parametrize(
+    "deserialized_feature_dict, expected_feature",
+    [
+        (
+            [{"dtype": "int32", "_type": "Value"}],
+            [Value("int32")],
+        ),
+        (
+            {"dtype": {"dtype": "int32", "_type": "Value"}, "_type": "LargeList"},
+            LargeList(Value("int32")),
+        ),
+        (
+            {"feature": {"dtype": "int32", "_type": "Value"}, "_type": "Sequence"},
+            Sequence(Value("int32")),
+        ),
+        (
+            [{"sub_col": {"dtype": "int32", "_type": "Value"}}],
+            [{"sub_col": Value("int32")}],
+        ),
+        (
+            {"dtype": {"sub_col": {"dtype": "int32", "_type": "Value"}}, "_type": "LargeList"},
+            LargeList({"sub_col": Value("int32")}),
+        ),
+        (
+            {"feature": {"sub_col": {"dtype": "int32", "_type": "Value"}}, "_type": "Sequence"},
+            Sequence({"sub_col": Value("int32")}),
+        ),
+    ],
+)
+def test_generate_from_dict_with_list_types(deserialized_feature_dict, expected_feature):
+    feature = generate_from_dict(deserialized_feature_dict)
+    assert feature == expected_feature
+
+
+@pytest.mark.parametrize(
     "features_dict, expected_features_yaml_list",
     [
         ({"col": LargeList(Value("int32"))}, [{"name": "col", "large_list": "int32"}]),
