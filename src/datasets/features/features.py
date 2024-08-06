@@ -1629,6 +1629,8 @@ def require_storage_cast(feature: FeatureType) -> bool:
         return any(require_storage_cast(f) for f in feature.values())
     elif isinstance(feature, (list, tuple)):
         return require_storage_cast(feature[0])
+    elif isinstance(feature, LargeList):
+        return require_storage_cast(feature.dtype)
     elif isinstance(feature, Sequence):
         return require_storage_cast(feature.feature)
     else:
