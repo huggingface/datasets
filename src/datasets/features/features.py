@@ -1586,6 +1586,8 @@ def _visit(feature: FeatureType, func: Callable[[FeatureType], Optional[FeatureT
         out = func({k: _visit(f, func) for k, f in feature.items()})
     elif isinstance(feature, (list, tuple)):
         out = func([_visit(feature[0], func)])
+    elif isinstance(feature, LargeList):
+        out = func(LargeList(_visit(feature.dtype, func)))
     elif isinstance(feature, Sequence):
         out = func(Sequence(_visit(feature.feature, func), length=feature.length))
     else:
