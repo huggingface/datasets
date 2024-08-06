@@ -863,16 +863,17 @@ def test_features_from_arrow_schema_list_data_type(list_dtype, scalar_dtype):
     assert schema == Features.from_arrow_schema(schema).arrow_schema
 
 
-def test_features_reorder_fields_as_with_sequence():
-    features = Features({"col_1": Sequence(feature=Value("int64"))})
-    other_features = Features({"col_1": Sequence(feature=Value("int64"))})
-    new_features = features.reorder_fields_as(other_features)
-    assert new_features.type == other_features.type
-
-
-def test_features_reorder_fields_as_with_large_list():
-    features = Features({"col_1": LargeList(Value("int64"))})
-    other_features = Features({"col_1": LargeList(Value("int64"))})
+@pytest.mark.parametrize(
+    "feature, other_feature",
+    [
+        ([Value("int64")], [Value("int64")]),
+        (LargeList(Value("int64")), LargeList(Value("int64"))),
+        (Sequence(Value("int64")), Sequence(Value("int64"))),
+    ],
+)
+def test_features_reorder_fields_as_with_list_types(feature, other_feature):
+    features = Features({"col": feature})
+    other_features = Features({"col": other_feature})
     new_features = features.reorder_fields_as(other_features)
     assert new_features.type == other_features.type
 
