@@ -17,6 +17,7 @@ from datasets.features.features import (
     _cast_to_python_objects,
     _check_if_features_can_be_aligned,
     _check_non_null_non_empty_recursive,
+    _visit,
     cast_to_python_objects,
     decode_nested_example,
     encode_nested_example,
@@ -944,3 +945,15 @@ def test_check_non_null_non_empty_recursive_with_nested_list_types(schema):
 @pytest.mark.parametrize("feature", [[Audio()], LargeList(Audio()), Sequence(Audio())])
 def test_require_decoding_with_list_types(feature):
     assert require_decoding(feature)
+
+
+@pytest.mark.parametrize(
+    "feature, expected",
+    [([Value("int32")], [1]), (LargeList(Value("int32")), LargeList(1)), (Sequence(Value("int32")), Sequence(1))],
+)
+def test_visit_with_list_types(feature, expected):
+    def func(x):
+        return 1 if isinstance(x, Value) else x
+
+    result = _visit(feature, func)
+    assert result == expected
