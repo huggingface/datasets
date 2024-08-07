@@ -1165,6 +1165,15 @@ class Sequence:
 
 @dataclass
 class LargeList:
+    """Feature type for large list data composed of child feature data type.
+
+    It is backed by `pyarrow.LargeListType`, which is like `pyarrow.ListType` but with 64-bit rather than 32-bit offsets.
+
+    Args:
+        dtype:
+            Child feature data type of each item within the large list.
+    """
+
     dtype: Any
     id: Optional[str] = None
     # Automatically constructed
