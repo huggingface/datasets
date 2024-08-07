@@ -1,0 +1,28 @@
+# إنشاء بطاقة مجموعة بيانات
+
+يجب أن تحتوي كل مجموعة بيانات على بطاقة مجموعة بيانات لتعزيز الاستخدام المسؤول وإعلام المستخدمين بأي تحيزات محتملة داخل مجموعة البيانات. استلهمت هذه الفكرة من بطاقات النموذج التي اقترحتها [Mitchell, 2018](https://arxiv.org/abs/1810.03993).
+
+تساعد بطاقات مجموعة البيانات المستخدمين على فهم محتويات مجموعة البيانات وسياق استخدامها وكيفية إنشائها وأي اعتبارات أخرى يجب أن يكون المستخدم على دراية بها.
+
+من السهل إنشاء بطاقة مجموعة بيانات ويمكن القيام بذلك في بضع خطوات فقط:
+
+1. انتقل إلى مستودع مجموعة البيانات الخاصة بك على [Hub](https://hf.co/new-dataset) وانقر على **إنشاء بطاقة مجموعة بيانات** لإنشاء ملف `README.md` جديد في مستودعك.
+
+2. استخدم واجهة مستخدم **Metadata** لتحديد العلامات التي تصف مجموعة البيانات الخاصة بك. يمكنك إضافة ترخيص ولغة وpretty_name وtask_categories وsize_categories وأي علامات أخرى تعتقد أنها ذات صلة. تساعد هذه العلامات المستخدمين على اكتشاف والعثور على مجموعة البيانات الخاصة بك على Hub.
+
+   <div class="flex justify-center">
+   <img class="block dark:hidden" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/hub/datasets-metadata-ui.png"/>
+   <img class="hidden dark:block" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/hub/datasets-metadata-ui-dark.png"/>
+   </div>
+
+   <Tip>
+   للحصول على مجموعة كاملة، ولكن غير مطلوبة، من خيارات العلامات، يمكنك أيضًا الاطلاع على [مواصفات بطاقة مجموعة البيانات](https://github.com/huggingface/hub-docs/blob/main/datasetcard.md?plain=1). سيكون لديك بعض خيارات العلامات الإضافية مثل `multilinguality` و`language_creators` والتي تكون مفيدة ولكنها غير ضرورية تمامًا.
+   </Tip>
+
+3. انقر فوق رابط **استيراد قالب بطاقة مجموعة البيانات** لإنشاء قالب تلقائيًا بجميع الحقول ذات الصلة لإكمالها. قم بملء أقسام القالب على أفضل وجه ممكن. راجع [دليل إنشاء بطاقة مجموعة البيانات](https://github.com/huggingface/datasets/blob/main/templates/README_guide.md) للحصول على معلومات أكثر تفصيلاً حول ما يجب تضمينه في كل قسم من أقسام البطاقة. بالنسبة للحقول التي لا يمكنك إكمالها، يمكنك كتابة **[More Information Needed]**.
+
+4. بمجرد الانتهاء، قم بالالتزام بالتغييرات في ملف `README.md` وستشاهد بطاقة مجموعة البيانات المكتملة في مستودعك.
+
+يتيح YAML أيضًا تخصيص طريقة تحميل مجموعة البيانات الخاصة بك من خلال [تحديد التقسيمات و/أو التكوينات](./repository_structure#define-your-splits-and-subsets-in-yaml) دون الحاجة إلى كتابة أي رمز.
+
+لا تتردد في إلقاء نظرة على بطاقات مجموعة بيانات [SNLI](https://huggingface.co/datasets/snli) و[CNN/DailyMail](https://huggingface.co/datasets/cnn_dailymail) و[Allociné](https://huggingface.co/datasets/allocine) كمثال لمساعدتك في البدء.
