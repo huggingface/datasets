@@ -1,601 +1,0 @@
-# إنشاء مجموعة بيانات صوتية 
-
-يمكنك مشاركة مجموعة بيانات مع فريقك أو مع أي شخص في المجتمع من خلال إنشاء مستودع لمجموعة البيانات على Hugging Face Hub: 
-
-هناك عدة طرق لإنشاء ومشاركة مجموعة بيانات صوتية: 
-
-- إنشاء مجموعة بيانات صوتية من ملفات محلية في بايثون باستخدام [Dataset.push_to_hub]. هذه طريقة سهلة تتطلب فقط بضع خطوات في بايثون. 
-
-- إنشاء مستودع لمجموعة بيانات صوتية باستخدام أداة إنشاء AudioFolder. هذا حل بدون كود لإنشاء مجموعة بيانات صوتية بسرعة مع عدة آلاف من ملفات الصوت. 
-
-<Tip> 
-
-يمكنك التحكم في الوصول إلى مجموعة البيانات الخاصة بك من خلال مطالبة المستخدمين بمشاركة معلومات الاتصال الخاصة بهم أولاً. راجع دليل [مجموعات البيانات المحمية](https://huggingface.co/docs/hub/datasets-gated) لمزيد من المعلومات حول كيفية تمكين هذه الميزة على Hub. 
-
-</Tip> 
-
-## الملفات المحلية 
-
-يمكنك تحميل مجموعة البيانات الخاصة بك باستخدام مسارات ملفات الصوت الخاصة بك. استخدم دالة [~Dataset.cast_column] لأخذ عمود من مسارات ملفات الصوت، وتحويله إلى ميزة [Audio]. 
-
-```py
->>> audio_dataset = Dataset.from_dict({"audio": ["path/to/audio_1", "path/to/audio_2", ..., "path/to/audio_n"]}).cast_column("audio", Audio())
->>> audio_dataset[0]["audio"]
-{'array': array([ 0.        ,  0.00024414, -0.00024414, ..., -0.00024414,
-0.        ,  0.        ], dtype=float32),
-'path': 'path/to/audio_1',
-'sampling_rate': 16000}
-``` 
-
-ثم قم بتحميل مجموعة البيانات إلى Hugging Face Hub باستخدام [Dataset.push_to_hub]: 
-
-```py
-audio_dataset.push_to_hub("<username>/my_dataset")
-``` 
-
-سيؤدي هذا إلى إنشاء مستودع لمجموعة بيانات يحتوي على مجموعة البيانات الصوتية الخاصة بك: 
-
-```
-my_dataset/
-├── README.md
-└── data/
-    └── train-00000-of-00001.parquet
-```
-
-## AudioFolder 
-
-AudioFolder هي أداة لإنشاء مجموعات بيانات مصممة لتحميل مجموعة بيانات صوتية تحتوي على عدة آلاف من ملفات الصوت دون الحاجة إلى كتابة أي كود. 
-
-يتم تحميل أي معلومات إضافية حول مجموعة البيانات الخاصة بك - مثل النص المكتوب، أو لهجة المتحدث، أو نية المتحدث - تلقائيًا بواسطة AudioFolder طالما أنك تدرج هذه المعلومات في ملف بيانات وصفية (`metadata.csv` / `metadata.jsonl`). 
-
-<Tip> 
-
-💡 اطلع على [تسلسل هرمي لأنماط التقسيم](repository_structure#split-pattern-hierarchy) لمعرفة المزيد حول كيفية إنشاء AudioFolder لتقسيمات مجموعة البيانات بناءً على هيكل مستودع مجموعة البيانات الخاصة بك. 
-
-</Tip> 
-
-قم بإنشاء مستودع لمجموعة بيانات على Hugging Face Hub وتحميل دليل مجموعة البيانات الخاصة بك باتباع هيكل AudioFolder: 
-
-```
-my_dataset/
-├── README.md
-├── metadata.csv
-└── data/
-``` 
-
-يمكن أن يكون اسم مجلد `data` أي اسم تريده. 
-
-<Tip> 
-
-قد يكون من المفيد تخزين البيانات الوصفية الخاصة بك على أنها ملف `jsonl` إذا كانت أعمدة البيانات تحتوي على تنسيق أكثر تعقيدًا (مثل قائمة من الأرقام العائمة) لتجنب أخطاء التحليل أو قراءة القيم المعقدة كسلاسل. 
-
-</Tip> 
-
-يجب أن يتضمن ملف البيانات الوصفية عمود `file_name` لربط ملف صوتي بالبيانات الوصفية الخاصة به: 
-
-```csv
-file_name,transcription
-data/first_audio_file.mp3,znowu się duch z ciałem zrośnie w młodocianej wstaniesz wiosnie i możesz skutkiem tych leków umierać wstawać wiek wieków dalej tam były przestrogi jak siekać głowę jak nogi
-data/second_audio_file.mpmp3,już u źwierzyńca podwojów król zasiada przy nim książęta i panowie rada a gdzie wzniosły krążył ganek rycerze obok kochanek król skinął palcem zaczęto igrzysko
-data/third_audio_file.mp3,pewnie kędyś w obłędzie ubite minęły szlaki zaczekajmy dzień jaki poślemy szukać wszędzie dziś jutro pewnie będzie posłali wszędzie sługi czekali dzień i drugi gdy nic nie doczekali z płaczem chcą jechać dali
-``` 
-
-بعد ذلك، يمكنك تخزين مجموعة البيانات الخاصة بك في هيكل دليل مثل هذا: 
-
-```
-metadata.csv
-data/first_audio_file.mp3
-data/second_audio_file.mp3
-data/third_audio_file.mp3
-``` 
-
-يمكن للمستخدمين الآن تحميل مجموعة البيانات الخاصة بك والبيانات الوصفية المرتبطة بها من خلال تحديد `audiofolder` في [load_dataset] ومجلد مجموعة البيانات في `data_dir`: 
-
-```py
->>> from datasets import load_dataset
->>> dataset = load_dataset("audiofolder", data_dir="/path/to/data")
->>> dataset["train"][0]
-{'audio':
-    {'path': '/path/to/extracted/audio/first_audio_file.mp3',
-    'array': array([ 0.00088501,  0.0012207 ,  0.00131226, ..., -0.00045776, -0.00054932, -0.00054932], dtype=float32),
-    'sampling_rate': 16000},
- 'transcription': 'znowu się duch z ciałem zrośnie w młodocianej wstaniesz wiosnie i możesz skutkiem tych leków umierać wstawać wiek wieków dalej tam były przestrogi jak siekać głowę jak nogi'
-}
-``` 
-
-يمكنك أيضًا استخدام `audiofolder` لتحميل مجموعات البيانات التي تنطوي على تقسيمات متعددة. للقيام بذلك، قد يكون هيكل دليل مجموعة البيانات الخاصة بك على النحو التالي: 
-
-```
-data/train/first_train_audio_file.mp3
-data/train/second_train_audio_file.mp3
-
-data/test/first_test_audio_file.mp3
-data/test/second_test_audio_file.mp3
-``` 
-
-<Tip warning={true}> 
-
-لاحظ أنه إذا لم تكن ملفات الصوت موجودة بجوار ملف البيانات الوصفية، فيجب أن يكون عمود `file_name` مسارًا نسبيًا كاملًا إلى ملف صوتي، وليس مجرد اسم الملف. 
-
-</Tip> 
-
-بالنسبة لمجموعات البيانات الصوتية التي لا تحتوي على بيانات وصفية مرتبطة بها، يستنتج AudioFolder تلقائيًا تسميات الفئات لمجموعة البيانات بناءً على اسم الدليل. قد يكون هذا مفيدًا لمهام تصنيف الصوت. قد يبدو هيكل دليل مجموعة البيانات الخاصة بك كما يلي: 
-
-```
-data/train/electronic/01.mp3
-data/train/punk/01.mp3
-
-data/test/electronic/09.mp3
-data/test/punk/09.mp3
-``` 
-
-قم بتحميل مجموعة البيانات باستخدام AudioFolder، وسيقوم بإنشاء عمود `label` من اسم الدليل (معرف اللغة): 
-
-```py
->>> from datasets import load_dataset
->>> dataset = load_dataset("audiofolder", data_dir="/path/to/data")
->>> dataset["train"][0]
-{'audio':
-    {'path': '/path/to/electronic/01.mp3',
-     'array': array([ 3.9714024e-07,  7.3031038e-07,  7.5640685e-07, ...,
-         -1.1963668e-01, -1.1681189e-01, -1.1244172e-01], dtype=float32),
-     'sampling_rate': 44100},
- 'label': 0  # "electronic"
-}
->>> dataset["train"][-1]
-{'audio':
-    {'path': '/path/to/punk/01.mp3',
-     'array': array([0.15237972, 0.13222949, 0.10627693, ..., 0.41940814, 0.37578005,
-         0.33717662], dtype=float32),
-     'sampling_rate': 44100},
- 'label': 1  # "punk"
-}
-``` 
-
-<Tip warning={true}> 
-
-إذا كانت جميع ملفات الصوت موجودة في مجلد واحد أو إذا لم تكن على نفس مستوى هيكل الدليل، فلن يتم إضافة عمود `label` تلقائيًا. إذا كنت بحاجة إليه، فقم بتعيين `drop_labels=False` بشكل صريح. 
-
-</Tip> 
-
-<Tip> 
-
-تتوفر بعض مجموعات البيانات الصوتية، مثل تلك الموجودة في [مسابقات Kaggle](https://www.kaggle.com/competitions/kaggle-pog-series-s01e02/overview)، على ملفات بيانات وصفية منفصلة لكل تقسيم. شريطة أن تكون ميزات البيانات الوصفية هي نفسها لكل تقسيم، يمكن استخدام audiofolder لتحميل جميع التقسيمات مرة واحدة. إذا اختلفت ميزات البيانات الوصفية عبر كل تقسيم، فيجب تحميلها باستخدام مكالمات `load_dataset()` منفصلة. 
-
-</Tip> 
-
-## (قديم) نص البرنامج النصي للتحميل 
-
-اكتب نص برنامج تحميل مجموعة البيانات لإنشاء مجموعة بيانات يدويًا. 
-
-يحدد نص البرنامج النصي تقسيمات مجموعة البيانات وتكويناتها، ويتعامل مع تنزيل وتوليد أمثلة مجموعة البيانات. 
-
-يجب أن يكون لنص البرنامج النصي نفس اسم مجلد مجموعة البيانات أو المستودع الخاص بك: 
-
-```
-my_dataset/
-├── README.md
-├── my_dataset.py
-└── data/
-``` 
-
-يمكن أن يكون اسم مجلد `data` أي اسم تريده، ولا يجب أن يكون `data`. هذا المجلد اختياري، ما لم تكن تستضيف مجموعة البيانات الخاصة بك على Hub. 
-
-يسمح هيكل الدليل هذا بتحميل مجموعة البيانات الخاصة بك في سطر واحد: 
-
-```py
->>> from datasets import load_dataset
->>> dataset = load_dataset("path/to/my_dataset")
-``` 
-
-سيوضح هذا الدليل كيفية إنشاء نص برنامج نصي لمجموعة بيانات صوتية، وهو مختلف قليلاً عن <a class="underline decoration-green-400 decoration-2 font-semibold" href="./dataset_script">إنشاء نص برنامج نصي لمجموعات البيانات النصية</a>. 
-
-تُخزن مجموعات البيانات الصوتية عادةً في أرشيفات `tar.gz` والتي تتطلب نهجًا خاصًا لدعم وضع التدفق. في حين أن التدفق غير مطلوب، فإننا نشجع بشدة على تنفيذ دعم التدفق في مجموعة البيانات الصوتية الخاصة بك حتى يتمكن المستخدمون الذين ليس لديهم الكثير من مساحة القرص من استخدام مجموعة البيانات الخاصة بك دون تنزيلها. تعرف على المزيد حول التدفق في دليل [Stream](./stream)! 
-
-فيما يلي مثال باستخدام أرشيفات TAR: 
-
-```
-my_dataset/
-├── README.md
-├── my_dataset.py
-└── data/
-    ├── train.tar.gz
-    ├── test.tar.gz
-    └── metadata.csv
-``` 
-
-بالإضافة إلى تعلم كيفية إنشاء مجموعة بيانات قابلة للتدفق، ستتعلم أيضًا كيفية: 
-
-- إنشاء فئة منشئ مجموعة بيانات. 
-- إنشاء تكوينات مجموعة البيانات. 
-- إضافة البيانات الوصفية لمجموعة البيانات. 
-- تنزيل وتحديد تقسيمات مجموعة البيانات. 
-- إنشاء مجموعة البيانات. 
-- تحميل مجموعة البيانات إلى Hub. 
-
-أفضل طريقة للتعلم هي فتح نص برنامج نصي لمجموعة بيانات صوتية موجودة، مثل [Vivos](https://huggingface.co/datasets/vivos/blob/main/vivos.py)، واتباع التعليمات! 
-
-<Tip warning=True> 
-
-يوضح هذا الدليل كيفية معالجة بيانات الصوت المخزنة في أرشيفات TAR - وهي الحالة الأكثر شيوعًا لمجموعات البيانات الصوتية. راجع مجموعة بيانات [minds14](https://huggingface.co/datasets/PolyAI/minds14/blob/main/minds14.py) للحصول على مثال لنص برنامج نصي صوتي يستخدم أرشيفات ZIP. 
-
-</Tip> 
-
-<Tip> 
-
-لمساعدتك على البدء، قمنا بإنشاء قالب [نص برنامج نصي](https://github.com/huggingface/datasets/blob/main/templates/new_dataset_script.py) يمكنك نسخه واستخدامه كنقطة بداية! 
-
-</Tip> 
-
-### إنشاء فئة منشئ مجموعة بيانات 
-
-[GeneratorBasedBuilder] هي الفئة الأساسية لمجموعات البيانات التي تم إنشاؤها من مولد قاموس. داخل هذه الفئة، هناك ثلاث طرق للمساعدة في إنشاء مجموعة البيانات الخاصة بك: 
-
-- `_info` تخزن معلومات حول مجموعة البيانات الخاصة بك مثل الوصف والترخيص والميزات. 
-- `_split_generators` يقوم بتنزيل مجموعة البيانات وتحديد تقسيماتها. 
-- `_generate_examples` يقوم بتوليد عينات مجموعة البيانات التي تحتوي على بيانات الصوت والميزات الأخرى المحددة في `info` لكل تقسيم. 
-
-ابدأ بإنشاء فئة مجموعة البيانات الخاصة بك كفئة فرعية من [GeneratorBasedBuilder] وأضف الطرق الثلاث. لا تقلق بشأن ملء كل من هذه الطرق بعد، ستطورها على مدار الأقسام القليلة التالية: 
-
-```py
-class VivosDataset(datasets.GeneratorBasedBuilder):
-    """VIVOS is a free Vietnamese speech corpus consisting of 15 hours of recording speech prepared for
-    Vietnamese Automatic Speech Recognition task."""
-
-    def _info(self):
-
-    def _split_generators(self, dl_manager):
-
-    def _generate_examples(self, prompts_path, path_to_clips, audio_files):
-
-``` 
-
-#### تكوينات متعددة 
-
-في بعض الحالات، قد يكون لمجموعة البيانات أكثر من تكوين واحد. على سبيل المثال، تحتوي مجموعة بيانات [LibriVox Indonesia](https://huggingface.co/datasets/indonesian-nlp/librivox-indonesia) على عدة تكوينات تتوافق مع لغات مختلفة. 
-
-لإنشاء تكوينات مختلفة، استخدم فئة [BuilderConfig] لإنشاء فئة فرعية لمجموعة البيانات الخاصة بك. المعلمة الوحيدة المطلوبة هي `name` للتكوين، والتي يجب تمريرها إلى مولد التكوين الفائق `__init__()`. وإلا، فيمكنك تحديد أي معلمات مخصصة تريدها في فئة التكوين الخاصة بك. 
-
-```py
-class LibriVoxIndonesiaConfig(datasets.BuilderConfig):
-    """BuilderConfig for LibriVoxIndonesia."""
-
-    def __init__(self, name, version, **kwargs):
-        self.language = kwargs.pop("language", None)
-        self.release_date = kwargs.pop("release_date", None)
-        self.num_clips = kwargs.pop("num_clips", None)
-        self.num_speakers = kwargs.pop("num_speakers", None)
-        self.validated_hr = kwargs.pop("validated_hr", None)
-        self.total_hr = kwargs.pop("total_hr", None)
-        self.size_bytes = kwargs.pop("size_bytes", None)
-        self.size_human = size_str(self.size_bytes)
-        description = (
-            f"LibriVox-Indonesia speech to text dataset in {self.language} released on {self.release_date}. "
-            f"The dataset comprises {self.validated_hr} hours of transcribed speech data"
-        )
-        super(LibriVoxIndonesiaConfig, self).__init__(
-            name=name,
-            version=datasets.Version(version),
-            description=description,
-            **kwargs,
-        )
-``` 
-
-قم بتعريف تكويناتك في متغير الفئة `BUILDER_CONFIGS` داخل [GeneratorBasedBuilder]. في هذا المثال، يقوم المؤلف باستيراد اللغات من ملف [release_stats.py] منفصل [file](https://huggingface.co/datasets/indonesian-nlp/librivox-indonesia/blob/main/release_stats.py) من مستودعهم، ثم يقوم بالحلقة عبر كل لغة لإنشاء تكوين: 
-
-```py
-class LibriVoxIndonesia(datasets.GeneratorBasedBuilder):
-    DEFAULT_CONFIG_NAME = "all"
-
-    BUILDER_CONFIGS = [
-        LibriVoxIndonesiaConfig(
-            name=lang,
-            version=STATS["version"],
-            language=LANGUAGES[lang],
-            release_date=STATS["date"],
-            num_clips=lang_stats["clips"],
-            num_speakers=lang_stats["users"],
-            total_hr=float(lang_stats["totalHrs"]) if lang_stats["totalHrs"] else None,
-            size_bytes=int(lang_stats["size"]) if lang_stats["size"] else None,
-        )
-        for lang, lang_stats in STATS["locales"].items()
-    ]
-```
-عادةً، يحتاج المستخدمون إلى تحديد تكوين للتحميل في [load_dataset]، وإلا فسيتم ظهور خطأ ValueError. يمكنك تجنب ذلك عن طريق تعيين تكوين مجموعة البيانات الافتراضية للتحميل في DEFAULT_CONFIG_NAME.
-
-الآن إذا أراد المستخدمون تحميل التكوين البالي ( bal ) ، فيمكنهم استخدام اسم التكوين:
-
-```py
->>> from datasets import load_dataset
->>> dataset = load_dataset("indonesian-nlp/librivox-indonesia", "bal", split="train")
-```
-
-## إضافة بيانات وصفية للمجموعة البيانات
-
-إن إضافة معلومات حول مجموعة البيانات الخاصة بك تساعد المستخدمين على معرفة المزيد عنها. يتم تخزين هذه المعلومات في فئة [DatasetInfo] التي يتم إرجاعها بواسطة طريقة "info". يمكن للمستخدمين الوصول إلى هذه المعلومات عن طريق:
-
-```py
->>> from datasets import load_dataset_builder
->>> ds_builder = load_dataset_builder("vivos")
->>> ds_builder.info
-```
-
-هناك الكثير من المعلومات التي يمكنك تضمينها حول مجموعة البيانات الخاصة بك، ولكن بعض العناصر المهمة هي:
-
-1. `description` يقدم وصفًا موجزًا لمجموعة البيانات.
-2. `features` تحدد أنواع أعمدة مجموعة البيانات. نظرًا لأنك تقوم بإنشاء برنامج تحميل صوتي، فستحتاج إلى تضمين ميزة [Audio] ومعدل أخذ العينات لمجموعة البيانات.
-3. `homepage` يقدم رابطًا إلى الصفحة الرئيسية لمجموعة البيانات.
-4. `license` تحدد الأذونات لاستخدام مجموعة البيانات كما هو محدد في نوع الترخيص.
-5. `citation` هو اقتباس BibTeX لمجموعة البيانات.
-
-<Tip>
-ستلاحظ أن الكثير من معلومات مجموعة البيانات محددة مسبقًا في برنامج التحميل، مما يجعله أسهل في القراءة. هناك أيضًا ميزات [~Dataset.Features] أخرى يمكنك إدخالها، لذا تأكد من الاطلاع على القائمة الكاملة و[دليل الميزات](./about_dataset_features) لمزيد من التفاصيل.
-</Tip>
-
-```py
-def _info(self):
-    return datasets.DatasetInfo(
-        description=_DESCRIPTION,
-        features=datasets.Features(
-            {
-                "speaker_id": datasets.Value("string"),
-                "path": datasets.Value("string"),
-                "audio": datasets.Audio(sampling_rate=16_000),
-                "sentence": datasets.Value("string"),
-            }
-        ),
-        supervised_keys=None,
-        homepage=_HOMEPAGE,
-        license=_LICENSE,
-        citation=_CITATION,
-    )
-```
-
-## تنزيل مجموعة البيانات وتحديد التقسيمات
-
-الآن بعد أن أضفت بعض المعلومات حول مجموعة البيانات الخاصة بك، فإن الخطوة التالية هي تنزيل مجموعة البيانات وتحديد التقسيمات.
-
-1. استخدم طريقة [~DownloadManager.download] لتنزيل ملف البيانات الوصفية في _PROMPTS_URLS وأرشيف TAR الصوتي في _DATA_URL. تعيد هذه الطريقة مسار الملف/الأرشيف المحلي. في وضع البث، لا يقوم بتنزيل الملف (الملفات) ويعيد فقط عنوان URL للبث منه. تقبل هذه الطريقة ما يلي:
-
-* مسار نسبي لملف داخل مستودع مجموعة بيانات Hub (على سبيل المثال، في مجلد "data/")
-* عنوان URL لملف مستضاف في مكان آخر
-* قائمة (مُعشَّشة) أو قاموس بأسماء الملفات أو عناوين URL
-
-2. بعد تنزيل مجموعة البيانات، استخدم [SplitGenerator] لتنظيم ملفات الصوت وعبارات المطالبة في كل تقسيم. قم بتسمية كل تقسيم باسم قياسي مثل: `Split.TRAIN`، `Split.TEST`، و`SPLIT.Validation`.
-
-في معلمة `gen_kwargs`، حدد مسار الملف إلى `prompts_path` و`path_to_clips`. بالنسبة إلى `audio_files`، ستحتاج إلى استخدام [~DownloadManager.iter_archive] للتنقل خلال ملفات الصوت في أرشيف TAR. يمكّن هذا البث لمجموعة البيانات الخاصة بك. يتم تمرير جميع مسارات الملفات هذه إلى الخطوة التالية حيث تقوم فعليًا بإنشاء مجموعة البيانات.
-
-```py
-def _split_generators(self, dl_manager):
-    """Returns SplitGenerators."""
-    prompts_paths = dl_manager.download(_PROMPTS_URLS)
-    archive = dl_manager.download(_DATA_URL)
-    train_dir = "vivos/train"
-    test_dir = "vivos/test"
-
-    return [
-        datasets.SplitGenerator(
-            name=datasets.Split.TRAIN,
-            gen_kwargs={
-                "prompts_path": prompts_paths["train"],
-                "path_to_clips": train_dir + "/waves",
-                "audio_files": dl_manager.iter_archive(archive),
-            },
-        ),
-        datasets.SplitGenerator(
-            name=datasets.Split.TEST,
-            gen_kwargs={
-                "prompts_path": prompts_paths["test"],
-                "path_to_clips": test_dir + "/waves",
-                "audio_files": dl_manager.iter_archive(archive),
-            },
-        ),
-    ]
-```
-
-<Tip warning={true}>
-لا يقوم هذا التنفيذ باستخراج الأرشيفات التي تم تنزيلها. إذا كنت تريد استخراج الملفات بعد التنزيل، فيجب عليك أيضًا استخدام [~DownloadManager.extract]، راجع قسم [(Advanced) Extract TAR archives](#advanced-extract-tar-archives-locally).
-</Tip>
-
-## إنشاء مجموعة البيانات
-
-تعد طريقة [GeneratorBasedBuilder] الأخيرة في الفئة هي التي تقوم بالفعل بتوليد العينات في مجموعة البيانات. يقوم بإنتاج مجموعة بيانات وفقًا للهيكل المحدد في `features` من طريقة "info". كما ترى، تقبل `generate_examples` `prompts_path`، و`path_to_clips`، و`audio_files` من الطريقة السابقة كحجج.
-
-يتم الوصول إلى الملفات داخل أرشيفات TAR وإنتاجها بالتتابع. وهذا يعني أنك تحتاج إلى الحصول على البيانات الوصفية المرتبطة بملفات الصوت في ملف TAR في متناول اليد أولاً حتى تتمكن من إنتاجها مع ملف الصوت المقابل لها.
-
-```py
-examples = {}
-with open(prompts_path, encoding="utf-8") as f:
-    for row in f:
-        data = row.strip().split(" ", 1)
-        speaker_id = data[0].split("_")[0]
-        audio_path = "/".join([path_to_clips, speaker_id, data[0] + ".wav"])
-        examples[audio_path] = {
-            "speaker_id": speaker_id,
-            "path": audio_path,
-            "sentence": data[1],
-        }
-```
-
-أخيرًا، قم بالتنقل خلال الملفات في `audio_files` وإنتاجها مع البيانات الوصفية المقابلة. يعيد [~DownloadManager.iter_archive] زوجًا من (`path`، `f`) حيث `path` هو مسار **نسبي** إلى ملف داخل أرشيف TAR و`f` هو كائن الملف نفسه.
-
-```py
-inside_clips_dir = False
-id_ = 0
-for path, f in audio_files:
-    if path.startswith(path_to_clips):
-        inside_clips_dir = True
-        if path in examples:
-            audio = {"path": path, "bytes": f.read()}
-            yield id_, {**examples[path], "audio": audio}
-            id_ += 1
-    elif inside_clips_dir:
-        break
-```
-
-ضع هاتين الخطوتين معًا، ويجب أن تبدو طريقة `_generate_examples` الكاملة كما يلي:
-
-```py
-def _generate_examples(self, prompts_path, path_to_clips, audio_files):
-    """Yields examples as (key, example) tuples."""
-    examples = {}
-    with open(prompts_path, encoding="utf-8") as f:
-        for row in f:
-            data = row.strip().split(" ", 1)
-            speaker_id = data[0].split("_")[0]
-            audio_path = "/".join([path_to_clips, speaker_id, data[0] + ".wav"])
-            examples[audio_path] = {
-                "speaker_id": speaker_id,
-                "path": audio_path,
-                "sentence": data[1],
-            }
-    inside_clips_dir = False
-    id_ = 0
-    for path, f in audio_files:
-        if path.startswith(path_to_clips):
-            inside_clips_dir = True
-            if path in examples:
-                audio = {"path": path, "bytes": f.read()}
-                yield id_, {**examples[path], "audio": audio}
-                id_ += 1
-        elif inside_clips_dir:
-            break
-```
-
-## تحميل مجموعة البيانات إلى Hub
-
-بمجرد أن يكون برنامجك جاهزًا، [أنشئ بطاقة مجموعة بيانات](./dataset_card) و[حمّلها إلى Hub](./share).
-
-تهانينا، يمكنك الآن تحميل مجموعة البيانات الخاصة بك من Hub! 🥳
-
-```py
->>> from datasets import load_dataset
->>> load_dataset("<username>/my_dataset")
-```
-
-## (متقدم) استخراج أرشيفات TAR محليًا
-
-في المثال أعلاه، لا يتم استخراج الأرشيفات التي تم تنزيلها وبالتالي لا تحتوي العينات على معلومات حول مكان تخزينها محليًا.
-
-لشرح كيفية إجراء الاستخراج بطريقة تدعم البث أيضًا، سنلقي نظرة سريعة على برنامج تحميل [LibriVox Indonesia](https://huggingface.co/datasets/indonesian-nlp/librivox-indonesia/blob/main/librivox-indonesia.py) النصي.
-
-#### تنزيل مجموعة البيانات وتحديد التقسيمات
-
-1. استخدم طريقة [~DownloadManager.download] لتنزيل بيانات الصوت في _AUDIO_URL.
-
-2. لاستخراج أرشيف الصوت TAR محليًا، استخدم [~DownloadManager.extract]. يمكنك استخدام هذه الطريقة فقط في وضع عدم البث (عندما `dl_manager.is_streaming=False`). يعيد هذا مسارًا محليًا إلى دليل الأرشيف المستخرج:
-
-```py
-local_extracted_archive = dl_manager.extract(audio_path) if not dl_manager.is_streaming else None
-```
-
-3. استخدم طريقة [~DownloadManager.iter_archive] للتنقل خلال الأرشيف في `audio_path`، تمامًا كما في مثال Vivos أعلاه. لا يوفر [~DownloadManager.iter_archive] أي معلومات حول المسارات الكاملة للملفات من الأرشيف، حتى إذا تم استخراجه. ونتيجة لذلك، تحتاج إلى تمرير مسار `local_extracted_archive` إلى الخطوة التالية في `gen_kwargs`، من أجل الحفاظ على المعلومات حول المكان الذي تم استخراج الأرشيف إليه. هذا مطلوب لبناء المسارات الصحيحة إلى الملفات المحلية عند إنشاء العينات.
-
-<Tip warning={true}>
-السبب في حاجتك إلى استخدام مزيج من [~DownloadManager.download] و[~DownloadManager.iter_archive] هو أنه لا يمكن الوصول إلى الملفات في أرشيفات TAR مباشرة من خلال مساراتها. بدلاً من ذلك، ستحتاج إلى التنقل خلال الملفات داخل الأرشيف! يمكنك استخدام [~DownloadManager.download_and_extract] و[~DownloadManager.extract] مع أرشيفات TAR في وضع عدم البث فقط، وإلا فسيتم إلقاء خطأ.
-</Tip>
-
-4. استخدم طريقة [~DownloadManager.download_and_extract] لتنزيل ملف البيانات الوصفية المحدد في _METADATA_URL. تعيد هذه الطريقة مسارًا إلى ملف محلي في وضع عدم البث. في وضع البث، لا يقوم بتنزيل الملف محليًا ويعيد نفس عنوان URL.
-
-5. الآن استخدم [SplitGenerator] لتنظيم ملفات الصوت والبيانات الوصفية في كل تقسيم. قم بتسمية كل تقسيم باسم قياسي مثل: `Split.TRAIN`، `Split.TEST`، و`SPLIT.Validation`.
-
-في معلمة `gen_kwargs`، حدد مسارات الملفات إلى `local_extracted_archive`، و`audio_files`، و`metadata_path`، و`path_to_clips`. تذكر، بالنسبة إلى `audio_files`، فأنت بحاجة إلى استخدام [~DownloadManager.iter_archive] للتنقل خلال ملفات الصوت في أرشيفات TAR. يمكّن هذا البث لمجموعة البيانات الخاصة بك! يتم تمرير جميع مسارات الملفات هذه إلى الخطوة التالية حيث يتم إنشاء عينات مجموعة البيانات.
-
-```py
-def _split_generators(self, dl_manager):
-    """Returns SplitGenerators."""
-    dl_manager.download_config.ignore_url_params = True
-
-    audio_path = dl_manager.download(_AUDIO_URL)
-    local_extracted_archive = dl_manager.extract(audio_path) if not dl_manager.is_streaming else None
-    path_to_clips = "librivox-indonesia"
-
-    return [
-        datasets.SplitGenerator(
-            name=datasets.Split.TRAIN,
-            gen_kwargs={
-                "local_extracted_archive": local_extracted_archive,
-                "audio_files": dl_manager.iter_archive(audio_path),
-                "metadata_path": dl_manager.download_and_extract(_METADATA_URL + "/metadata_train.csv.gz"),
-                "path_to_clips": path_to_clips,
-            },
-        ),
-        datasets.SplitGenerator(
-            name=datasets.Split.TEST,
-            gen_kwargs={
-                "local_extracted_archive": local_extracted_archive,
-                "audio_files": dl_manager.iter_archive(audio_path),
-                "metadata_path": dl_manager.download_and_extract(_METADATA_URL + "/metadata_test.csv.gz"),
-                "path_to_clips": path_to_clips,
-            },
-        ),
-    ]
-```
-
-#### إنشاء مجموعة البيانات
-
-هنا، تقبل `_generate_examples` `local_extracted_archive`، و`audio_files`، و`metadata_path`، و`path_to_clips` من الطريقة السابقة كحجج.
-
-1. يتم الوصول إلى ملفات TAR وإنتاجها بالتتابع. وهذا يعني أنك تحتاج إلى الحصول على البيانات الوصفية في `metadata_path` المرتبطة بملفات الصوت في ملف TAR في متناول اليد أولاً حتى تتمكن من إنتاجها مع ملف الصوت المقابل لها لاحقًا:
-
-```py
-with open(metadata_path, "r", encoding="utf-8") as f:
-    reader = csv.DictReader(f)
-    for row in reader:
-        if self.config.name == "all" or self.config.name == row["language"]:
-            row["path"] = os.path.join(path_to_clips, row["path"])
-            # if data is incomplete, fill with empty values
-            for field in data_fields:
-                if field not in row:
-                    row[field] = ""
-            metadata[row["path"]] = row
-```
-
-2. الآن يمكنك إنتاج الملفات في أرشيف `audio_files`. عندما تستخدم [~DownloadManager.iter_archive]، فإنه ينتج زوجًا من (`path`، `f`) حيث `path` هو مسار **نسبي** إلى ملف داخل الأرشيف، و`f` هو كائن الملف نفسه. للحصول على المسار **الكامل** إلى الملف المستخرج محليًا، قم بدمج مسار الدليل (`local_extracted_path`) الذي تم استخراج الأرشيف إليه ومسار ملف الصوت النسبي (`path`):
-
-```py
-for path, f in audio_files:
-    if path in metadata:
-        result = dict(metadata[path])
-        # set the audio feature and the path to the extracted file
-        path = os.path.join(local_extracted_archive, path) if local_extracted_archive else path
-        result["audio"] = {"path": path, "bytes": f.read()}
-        result["path"] = path
-        yield id_, result
-        id_ += 1
-````
-
-ضع هاتين الخطوتين معًا، ويجب أن تبدو طريقة `_generate_examples` الكاملة كما يلي:
-
-```py
-def _generate_examples(
-        self,
-        local_extracted_archive,
-        audio_files,
-        metadata_path,
-        path_to_clips,
-    ):
-        """Yields examples."""
-        data_fields = list(self._info().features.keys())
-        metadata = {}
-        with open(metadata_path, "r", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                if self.config.name == "all" or self.config.name == row["language"]:
-                    row["path"] = os.path.join(path_to_clips, row["path"])
-                    # if data is incomplete, fill with empty values
-                    for field in data_fields:
-                        if field not in row:
-                            row[field] = ""
-                    metadata[row["path"]] = row
-        id_ = 0
-        for path, f in audio_files:
-            if path in metadata:
-                result = dict(metadata[path])
-                # set the audio feature and the path to the extracted file
-                path = os.path.join(local_extracted_archive, path) if local_extracted_archive else path
-                result["audio"] = {"path": path, "bytes": f.read()}
-                result["path"] = path
-                yield id_, result
-                id_ += 1
-```

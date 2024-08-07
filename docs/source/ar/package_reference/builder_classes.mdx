@@ -1,65 +1,0 @@
-# فئات البناء Builder Classes
-
-## البناة Builders
-
-🤗 Datasets يعتمد على فئتين رئيسيتين خلال عملية بناء مجموعة البيانات: [`DatasetBuilder`] و [`BuilderConfig`].
-
-[[autodoc]] datasets.DatasetBuilder
-
-الوصف: الفئة الأساسية لجميع بناة مجموعات البيانات. يجب أن يرثها جميع بناة مجموعات البيانات.
-
-الوسائل:
-
-- `__init__` (*args، **kwargs): إنشاء مثيل جديد من DatasetBuilder.
-- `تنزيل` و `تحضير` : تنزيل البيانات ومعالجتها لإنشاء مجموعة البيانات.
-- `load_dataset` (مقطع، *الأشكال، **kwargs): تحميل مجموعة البيانات المقابلة للجزء المحدد.
-- `load_dataset_dict` (self، *args، **kwargs): تحميل جميع الأقسام في قاموس.
-- `load_metadata` (self، ref_version=None): تحميل البيانات الوصفية لمجموعة البيانات.
-
-[[autodoc]] datasets.GeneratorBasedBuilder
-
-الوصف: فئة أساسية لبناة مجموعات البيانات التي تقوم بتوليد البيانات.
-
-الأساليب:
-
-- `__init__` (*args، **kwargs): إنشاء مثيل جديد من GeneratorBasedBuilder.
-- `تنزيل` و `تحضير` : إعادة تنفيذها من DatasetBuilder.
-- `_generate_examples` (self، *args، **kwargs): الأسلوب الذي يجب أن ينفذه المستخدم لتوليد الأمثلة.
-
-[[autodoc]] datasets.ArrowBasedBuilder
-
-الوصف: فئة أساسية لبناة مجموعات البيانات التي تعتمد على Arrow.
-
-[[autodoc]] datasets.BuilderConfig
-
-الوصف: تكوين مشترك لجميع بناة مجموعات البيانات.
-
-## تنزيل Download
-
-[[autodoc]] datasets.DownloadManager
-
-[[autodoc]] datasets.StreamingDownloadManager
-
-[[autodoc]] datasets.DownloadConfig
-
-[[autodoc]] datasets.DownloadMode
-
-## التحقق Verification
-
-[[autodoc]] datasets.VerificationMode
-
-## الانقسامات
-
-[[autodoc]] datasets.SplitGenerator
-
-[[autodoc]] datasets.Split
-
-[[autodoc]] datasets.NamedSplit
-
-[[autodoc]] datasets.NamedSplitAll
-
-[[autodoc]] datasets.ReadInstruction
-
-## الإصدار Version
-
-[[autodoc]] datasets.utils.Version

@@ -1,124 +1,0 @@
-- sections: 
-  - local: index
-    title: 🤗 مجموعات البيانات
-  - local: quickstart
-    title: دليل سريع
-  - local: installation
-    title: التثبيت
-  title: البدء
-- sections:
-  - local: tutorial
-    title: نظرة عامة
-  - local: load_hub
-    title: تحميل مجموعة بيانات من المركز
-  - local: access
-    title: تعرف على مجموعة البيانات الخاصة بك
-  - local: use_dataset
-    title: معالجة مسبقة
-  - local: create_dataset
-    title: إنشاء مجموعة بيانات
-  - local: upload_dataset
-    title: مشاركة مجموعة بيانات في المركز
-  title: "البرامج التعليمية"
-- sections:
-  - local: how_to
-    title: نظرة عامة
-  - sections:
-    - local: loading
-      title: تحميل
-    - local: process
-      title: معالجة
-    - local: stream
-      title: تدفق
-    - local: use_with_tensorflow
-      title: استخدام مع TensorFlow
-    - local: use_with_pytorch
-      title: استخدام مع PyTorch
-    - local: use_with_jax
-      title: استخدام مع جاكس
-    - local: use_with_spark
-      title: استخدام مع شرارة
-    - local: cache
-      title: إدارة ذاكرة التخزين المؤقت
-    - local: filesystems
-      title: التخزين السحابي
-    - local: faiss_es
-      title: فهرس البحث
-    - local: cli
-      title: واجهة سطر الأوامر
-    - local: troubleshoot
-      title: استكشاف الأخطاء وإصلاحها
-    title: "الاستخدام العام"
-  - sections:
-    - local: audio_load
-      title: تحميل بيانات صوتية
-    - local: audio_process
-      title: معالجة البيانات الصوتية
-    - local: audio_dataset
-      title: إنشاء مجموعة بيانات صوتية
-    title: "صوتي"
-  - sections:
-    - local: image_load
-      title: تحميل بيانات الصورة
-    - local: image_process
-      title: معالجة بيانات الصورة
-    - local: image_dataset
-      title: إنشاء مجموعة بيانات الصور
-    - local: depth_estimation
-      title: تقدير العمق
-    - local: image_classification
-      title: تصنيف الصور
-    - local: semantic_segmentation
-      title: تجزئة الصورة الدلالية
-    - local: object_detection
-      title: اكتشاف الأشياء
-    title: "الرؤية"
-  - sections:
-    - local: nlp_load
-      title: تحميل بيانات النص
-    - local: nlp_process
-      title: معالجة بيانات النص
-    title: "نص"
-  - sections:
-    - local: tabular_load
-      title: تحميل البيانات الجدولية
-    title: "جدولي"
-  - sections:
-    - local: share
-      title: حصة
-    - local: dataset_card
-      title: إنشاء بطاقة مجموعة بيانات
-    - local: repository_structure
-      title: هيكل مستودعك
-    - local: dataset_script
-      title: إنشاء نص تحميل مجموعة بيانات
-    title: "مستودع مجموعة البيانات"
-  title: "أدلة كيفية الاستخدام"
-- sections:
-  - local: about_arrow
-    title: مجموعات البيانات 🤝 السهم
-  - local: about_cache
-    title: ذاكرة التخزين المؤقت
-  - local: about_mapstyle_vs_iterable
-    title: مجموعة البيانات أو IterableDataset
-  - local: about_dataset_features
-    title: ميزات مجموعة البيانات
-  - local: about_dataset_load
-    title: إنشاء وتحميل
-  - local: about_map_batch
-    title: تعيين التخصيص
-  title: "أدلة مفاهيمية"
-- sections:
-  - local: package_reference/main_classes
-    title: الفئات الرئيسية
-  - local: package_reference/builder_classes
-    title: فئات الباني
-  - local: package_reference/loading_methods
-    title: أساليب التحميل
-  - local: package_reference/table_classes
-    title: فئات الجدول
-  - local: package_reference/utilities
-    title: المرافق
-  - local: package_reference/task_templates
-    title: قوالب المهام
-  title: "مرجع"
