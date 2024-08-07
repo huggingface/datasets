@@ -1,0 +1,151 @@
+# تعرف على مجموعة بياناتك
+
+هناك نوعان من كائنات مجموعة البيانات، [`Dataset`] العادية، ثم [`IterableDataset`] ✨. يوفر [`Dataset`] وصولاً عشوائياً سريعاً إلى الصفوف، وخرائط الذاكرة بحيث لا يستخدم تحميل مجموعات البيانات الكبيرة سوى كمية صغيرة نسبيًا من ذاكرة الجهاز. ولكن بالنسبة لمجموعات البيانات الكبيرة حقًا، والتي لن تناسب القرص أو الذاكرة، يسمح لك [`IterableDataset`] بالوصول إلى مجموعة البيانات واستخدامها دون انتظار تنزيلها بالكامل!
+
+سيوضح هذا البرنامج التعليمي كيفية تحميل والوصول إلى [`Dataset`] و [`IterableDataset`].
+
+## مجموعة البيانات
+
+عند تحميل تقسيم مجموعة البيانات، ستحصل على كائن [`Dataset`]. يمكنك القيام بالعديد من الأشياء باستخدام كائن [`Dataset`]. ولهذا من المهم معرفة كيفية معالجة البيانات المخزنة داخله والتفاعل معها.
+
+يستخدم هذا البرنامج التعليمي مجموعة بيانات [rotten_tomatoes](https://huggingface.co/datasets/rotten_tomatoes)، ولكن يمكنك تحميل أي مجموعة بيانات تريدها ومتابعة ذلك!
+
+```py
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("rotten_tomatoes", split="train")
+```
+
+### الفهرسة
+
+يحتوي [`Dataset`] على أعمدة من البيانات، ويمكن أن يكون لكل عمود نوع مختلف من البيانات. يستخدم *الفهرس*، أو تسمية المحور، للوصول إلى الأمثلة من مجموعة البيانات. على سبيل المثال، يعيد الفهرسة حسب الصف قاموسًا بمثال من مجموعة البيانات:
+
+```py
+# احصل على الصف الأول في مجموعة البيانات
+>>> dataset[0]
+{'label': 1,
+'text': 'the rock is destined to be the 21st century\'s new "conan" and that he\'s going to make a splash even greater than arnold schwarzenegger, jean-claud van damme or steven segal.'}
+```
+
+استخدم عامل `-` لبدء الفهرسة من نهاية مجموعة البيانات:
+
+```py
+# احصل على الصف الأخير في مجموعة البيانات
+>>> dataset[-1]
+{'label': 0,
+'text': 'things really get weird, though not particularly scary: the movie is all portent and no content.'}
+```
+
+تعيد الفهرسة حسب اسم العمود قائمة بجميع القيم في العمود:
+
+```py
+>>> dataset["text"]
+['the rock is destined to be the 21st century\'s new "conan" and that he\'s going to make a splash even greater than arnold schwarzenegger, jean-claud van damme or steven segal.',
+'the gorgeously elaborate continuation of "the lord of the rings" trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j. r. r. tolkien\'s middle-earth.',
+'effective but too-tepid biopic',
+...,
+'things really get weird, though not particularly scary: the movie is all portent and no content.']
+```
+
+يمكنك الجمع بين فهرسة الصفوف وأسماء الأعمدة لإرجاع قيمة محددة في موضع ما:
+
+```py
+>>> dataset[0]["text"]
+'the rock is destined to be the 21st century\'s new "conan" and that he\'s going to make a splash even greater than arnold schwarzenegger, jean-claud van damme or stevin segal.'
+```
+
+ولكن من المهم أن تتذكر أن ترتيب الفهرسة مهم، خاصة عند العمل مع مجموعات بيانات الصوت والصورة الكبيرة. تعيد الفهرسة حسب اسم العمود جميع القيم في العمود أولاً، ثم تحمّل القيمة في ذلك الموضع. بالنسبة لمجموعات البيانات الكبيرة، قد يكون الفهرسة حسب اسم العمود أولاً أبطأ.
+
+```py
+>>> import time
+
+>>> start_time = time.time()
+>>> text = dataset[0]["text"]
+>>> end_time = time.time()
+>>> print(f"Elapsed time: {end_time - start_time:.4f} seconds")
+Elapsed time: 0.0031 seconds
+
+>>> start_time = time.time()
+>>> text = dataset["text"][0]
+>>> end_time = time.time()
+>>> print(f"Elapsed time: {end_time - start_time:.4f} seconds")
+Elapsed time: 0.0094 seconds
+```
+
+### الشرائح
+
+يعيد التقطيع شريحة - أو جزء فرعي - من مجموعة البيانات، وهو أمر مفيد لعرض عدة صفوف في نفس الوقت. لتقطيع مجموعة بيانات، استخدم عامل `:` لتحديد نطاق المواضع.
+
+```py
+# احصل على أول ثلاثة صفوف
+>>> dataset[:3]
+{'label': [1, 1, 1],
+'text': ['the rock is destined to be the 21st century\'s new "conan" and that he\'s going to make a splash even greater than arnold schwarzenegger, jean-claud van damme or steven segal.',
+'the gorgeously elaborate continuation of "the lord of the rings" trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j. r. r. tolkien\'s middle-earth.',
+'effective but too-tepid biopic']}
+
+# احصل على الصفوف بين ثلاثة وستة
+>>> dataset[3:6]
+{'label': [1, 1, 1],
+'text': ['if you sometimes like to go to the movies to have fun, wasabi is a good place to start.',
+"emerges as something rare, an issue movie that's so honest and keenly observed that it doesn't feel like one.",
+'the film provides some great insight into the neurotic mindset of all comics -- even those who have reached the absolute top of the game.']}
+```
+
+## مجموعة البيانات القابلة للتحديد
+
+يتم تحميل [`IterableDataset`] عند تعيين معلمة `streaming` إلى `True` في [`~datasets.load_dataset`]:
+
+```py
+>>> from datasets import load_dataset
+
+>>> iterable_dataset = load_dataset("food101", split="train", streaming=True)
+>>> for example in iterable_dataset:
+...     print(example)
+...     break
+{'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=384x512 at 0x7F0681F5C520>, 'label': 6}
+```
+
+يمكنك أيضًا إنشاء [`IterableDataset`] من [`Dataset`] *قائمة*، ولكنه أسرع من وضع البث لأن مجموعة البيانات يتم بثها من ملفات محلية:
+
+```py
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("rotten_tomatoes", split="train")
+>>> iterable_dataset = dataset.to_iterable_dataset()
+```
+
+يقوم [`IterableDataset`] بالتقدم بشكل تدريجي عبر مجموعة البيانات مثالًا واحدًا في كل مرة، لذلك لا يتعين عليك الانتظار حتى يتم تنزيل مجموعة البيانات بالكامل قبل أن تتمكن من استخدامها. كما يمكنك أن تتخيل، هذا مفيد جدًا لمجموعات البيانات الكبيرة التي تريد استخدامها على الفور!
+
+ومع ذلك، هذا يعني أن سلوك [`IterableDataset`] يختلف عن [`Dataset`] العادي. لا تحصل على وصول عشوائي إلى الأمثلة في [`IterableDataset`]. بدلاً من ذلك، يجب عليك التكرار خلال عناصره، على سبيل المثال، عن طريق استدعاء `next(iter())` أو باستخدام حلقة `for` لإرجاع العنصر التالي من [`IterableDataset`]:
+
+```py
+>>> next(iter(iterable_dataset))
+{'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=384x512 at 0x7F7479DE82B0>, 'label': 6}
+
+>>> for example in iterable_dataset:
+...     print(example)
+...     break
+{'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=384x512 at 0x7F7479DE82B0>, 'label': 6}
+```
+
+يمكنك إرجاع جزء فرعي من مجموعة البيانات مع عدد محدد من الأمثلة فيه باستخدام [`IterableDataset.take`]:
+
+```py
+# احصل على أول ثلاثة أمثلة
+>>> list(iterable_dataset.take(3))
+[{'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=384x512 at 0x7F7479DEE9D0>,
+'label': 6},
+{'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=512x512 at 0x7F7479DE8190>,
+'label': 6},
+{'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=512x383 at 0x7F7479DE8310>,
+'label': 6}]
+```
+
+ولكن على عكس [الشرائح](access/#slicing)، يقوم [`IterableDataset.take`] بإنشاء [`IterableDataset`] جديدة.
+
+## الخطوات التالية
+
+هل أنت مهتم بمعرفة المزيد عن الاختلافات بين هذين النوعين من مجموعات البيانات؟ تعرف على المزيد حولها في الدليل المفاهيمي [الاختلافات بين `Dataset` و`IterableDataset`](about_mapstyle_vs_iterable).
+
+للحصول على مزيد من التمارين العملية مع أنواع مجموعات البيانات هذه، راجع دليل [Process](process) لمعرفة كيفية معالجة مجموعة بيانات [`Dataset`] أو دليل [Stream](stream) لمعرفة كيفية معالجة مجموعة بيانات [`IterableDataset`].
