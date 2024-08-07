@@ -1,0 +1,360 @@
+# بداية سريعة
+
+[[open-in-colab]]
+
+هذه البداية السريعة مخصصة للمطورين الذين يرغبون في الغوص في الشفرة البرمجية ورؤية مثال على كيفية دمج 🤗 Datasets في سير عمل التدريب على النماذج. إذا كنت مبتدئًا، نوصي بالبدء مع [البرامج التعليمية](./tutorial)، حيث ستتعرف على مقدمة أكثر شمولاً.
+
+يعد كل مجموعة بيانات فريدة من نوعها، واعتمادًا على المهمة، قد تتطلب بعض مجموعات البيانات خطوات إضافية لإعدادها للتدريب. ولكن يمكنك دائمًا استخدام أدوات 🤗 Datasets لتحميل ومعالجة مجموعة البيانات. أسرع وأسهل طريقة للبدء هي تحميل مجموعة بيانات موجودة من [Hugging Face Hub](https://huggingface.co/datasets). هناك الآلاف من مجموعات البيانات للاختيار من بينها، والتي تغطي العديد من المهام. اختر نوع مجموعة البيانات التي تريد العمل بها، ولنبدأ!
+
+<div class="mt-4">
+<div class="w-full flex flex-col space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-y-4 md:gap-x-5">
+<a class="!no-underline border dark:border-gray-700 p-5 rounded-lg shadow hover:shadow-lg" href="#audio"
+><div class="w-full text-center bg-gradient-to-r from-violet-300 via-sky-400 to-green-500 rounded-lg py-1.5 font-semibold mb-5 text-white text-lg leading-relaxed">الصوت</div>
+<p class="text-gray-700">أعد أخذ عينات من مجموعة بيانات صوتية وجعلها جاهزة لنموذج لتصنيف نوع المشكلة المصرفية التي يتصل بها المتحدث.</p>
+</a>
+<a class="!no-underline border dark:border-gray-700 p-5 rounded-lg shadow hover:shadow-lg" href="#vision"
+><div class="w-full text-center bg-gradient-to-r from-pink-400 via-purple-400 to-blue-500 rounded-lg py-1.5 font-semibold mb-5 text-white text-lg leading-relaxed">الرؤية</div>
+<p class="text-gray-700">تطبيق زيادة البيانات على مجموعة بيانات صورة وجعلها جاهزة لنموذج لتشخيص المرض في نباتات الفاصوليا.</p>
+</a>
+<a class="!no-underline border dark:border-gray-700 p-5 rounded-lg shadow hover:shadow-lg" href="#nlp"
+><div class="w-full text-center bg-gradient-to-r from-orange-300 via-red-400 to-violet-500 rounded-lg py-1.5 font-semibold mb-5 text-white text-lg leading-relaxed">NLP</div>
+<p class="text-gray-700">قم برمزية مجموعة بيانات وتحضيرها لنموذج لتحديد ما إذا كان زوج من الجمل لهما نفس المعنى.</p>
+</a>
+</div>
+</div>
+
+<Tip>
+
+اطلع على [الفصل 5](https://huggingface.co/course/chapter5/1؟fw=pt) من دورة Hugging Face للتعرف على المزيد من الموضوعات المهمة مثل تحميل مجموعات البيانات البعيدة أو المحلية، وأدوات لتنظيف مجموعة بيانات، وإنشاء مجموعة البيانات الخاصة بك.
+
+</Tip>
+
+ابدأ بتثبيت 🤗 Datasets:
+
+```bash
+pip install datasets
+```
+
+🤗 Datasets تدعم أيضًا تنسيقات البيانات الصوتية والصور:
+
+* للعمل مع مجموعات البيانات الصوتية، قم بتثبيت ميزة [`Audio`]:
+
+```bash
+pip install datasets[audio]
+```
+
+* للعمل مع مجموعات البيانات الصورية، قم بتثبيت ميزة [`Image`]:
+
+```bash
+pip install datasets[vision]
+```
+
+بالإضافة إلى 🤗 Datasets، تأكد من تثبيت إطار عمل التعلم الآلي المفضل لديك:
+
+<frameworkcontent>
+<pt>
+
+```bash
+pip install torch
+```
+
+</pt>
+<tf>
+
+```bash
+pip install tensorflow
+```
+
+</tf>
+</frameworkcontent>
+
+## الصوت
+
+يتم تحميل مجموعات البيانات الصوتية تمامًا مثل مجموعات البيانات النصية. ومع ذلك، يتم معالجة مجموعة البيانات الصوتية بشكل مختلف قليلاً. بدلاً من أداة التعرف على الكيانات المسماة، ستحتاج إلى [مستخرج الميزات](https://huggingface.co/docs/transformers/main_classes/feature_extractor#feature-extractor). قد يتطلب إدخال الصوت أيضًا إعادة أخذ عينات من معدل العينات الخاص به لمطابقة معدل عينات النموذج المسبق التدريب الذي تستخدمه. في هذه البداية السريعة، ستعد مجموعة بيانات [MInDS-14](https://huggingface.co/datasets/PolyAI/minds14) لتدريب نموذج على تصنيف المشكلة المصرفية التي يواجهها العميل.
+
+**1**. قم بتحميل مجموعة بيانات MInDS-14 عن طريق تزويد الدالة [`load_dataset`] باسم مجموعة البيانات، وتكوين مجموعة البيانات (لا تحتوي جميع مجموعات البيانات على تكوين)، وانقسام مجموعة البيانات:
+
+```py
+>>> from datasets import load_dataset, Audio
+
+>>> dataset = load_dataset("PolyAI/minds14", "en-US", split="train")
+```
+
+**2**. بعد ذلك، قم بتحميل نموذج Wav2Vec2 مسبق التدريب ومستخرج الميزات المقابل له من مكتبة [🤗 Transformers](https://huggingface.co/transformers/). من الطبيعي تمامًا أن ترى تحذيرًا بعد تحميل النموذج حول بعض الأوزان التي لم يتم تهيئتها. هذا متوقع لأنك تقوم بتحميل نقطة تفتيش هذا النموذج للتدريب مع مهمة أخرى.
+
+```py
+>>> from transformers import AutoModelForAudioClassification, AutoFeatureExtractor
+
+>>> model = AutoModelForAudioClassification.from_pretrained("facebook/wav2vec2-base")
+>>> feature_extractor = AutoFeatureExtractor.from_pretrained("facebook/wav2vec2-base")
+```
+
+**3**. تشير بطاقة مجموعة بيانات [MInDS-14](https://huggingface.co/datasets/PolyAI/minds14) إلى أن معدل العينات يبلغ 8 كيلو هرتز، ولكن تم تدريب نموذج Wav2Vec2 مسبقًا على معدل عينات يبلغ 16 كيلو هرتز. ستحتاج إلى إعادة أخذ عينات من عمود "الصوت" باستخدام دالة [`~Dataset.cast_column`] وميزة [`Audio`] لمطابقة معدل عينات النموذج.
+
+```py
+>>> dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
+>>> dataset[0]["audio"]
+{'array': array([ 2.3443763e-05,  2.1729663e-04,  2.2145823e-04, ...,
+3.8356509e-05, -7.3497440e-06, -2.1754686e-05], dtype=float32),
+'path': '/root/.cache/huggingface/datasets/downloads/extracted/f14948e0e84be638dd7943ac36518a4cf3324e8b7aa331c5ab11541518e9368c/en-US~JOINT_ACCOUNT/602ba55abb1e6d0fbce92065.wav',
+'sampling_rate': 16000}
+```
+
+**4**. قم بإنشاء دالة لمعالجة مصفوفة الصوت باستخدام مستخرج الميزات، وقص وتوسيد التسلسلات إلى مصفوفات مستطيلة مرتبة. أهم شيء يجب تذكره هو استدعاء مصفوفة الصوت في مستخرج الميزات لأن المصفوفة - إشارة الكلام الفعلية - هي إدخال النموذج.
+
+بمجرد أن يكون لديك دالة معالجة، استخدم دالة [`~Dataset.map`] لتسريع المعالجة عن طريق تطبيق الدالة على دفعات من الأمثلة في مجموعة البيانات.
+
+```py
+>>> def preprocess_function(examples):
+...     audio_arrays = [x["array"] for x in examples["audio"]]
+...     inputs = feature_extractor(
+...         audio_arrays,
+...         sampling_rate=16000,
+...         padding=True,
+...         max_length=100000,
+...         truncation=True,
+...     )
+...     return inputs
+
+>>> dataset = dataset.map(preprocess_function, batched=True)
+```
+
+**5**. استخدم دالة [`~Dataset.rename_column`] لإعادة تسمية عمود "intent_class" إلى "labels"، وهو اسم الإدخال المتوقع في [Wav2Vec2ForSequenceClassification](https://huggingface.co/docs/transformers/main/en/model_doc/wav2vec2#transformers.Wav2Vec2ForSequenceClassification):
+
+```py
+>>> dataset = dataset.rename_column("intent_class", "labels")
+```
+
+**6**. قم بتعيين تنسيق مجموعة البيانات وفقًا لإطار عمل التعلم الآلي الذي تستخدمه.
+
+<frameworkcontent>
+<pt>
+
+استخدم دالة [`~Dataset.set_format`] لتعيين تنسيق مجموعة البيانات إلى "torch" وحدد الأعمدة التي تريد تنسيقها. تطبق هذه الدالة التنسيق أثناء التنقل. بعد تحويلها إلى مصفوفات PyTorch، قم بلف مجموعة البيانات في [`torch.utils.data.DataLoader`](https://alband.github.io/doc_view/data.html؟highlight=torch%20utils%20data%20dataloader#torch.utils.data.DataLoader):
+
+```py
+>>> from torch.utils.data import DataLoader
+
+>>> dataset.set_format(type="torch", columns=["input_values", "labels"])
+>>> dataloader = DataLoader(dataset, batch_size=4)
+```
+
+</pt>
+<tf>
+
+استخدم طريقة [`~transformers.TFPreTrainedModel.prepare_tf_dataset`] من 🤗 Transformers لإعداد مجموعة البيانات لتكون متوافقة مع TensorFlow، وجاهزة لتدريب/ضبط نموذج، حيث تقوم بتغليف مجموعة بيانات HuggingFace [`~datasets.Dataset`] كـ `tf.data.Dataset`
+
+مع الجمع والتشغيل، حتى تتمكن من تمريره مباشرة إلى أساليب Keras مثل `fit()` دون تعديل آخر.
+
+```py
+>>> import tensorflow as tf
+
+>>> tf_dataset = model.prepare_tf_dataset(
+...     dataset,
+...     batch_size=4,
+...     shuffle=True,
+... )
+```
+
+</tf>
+</frameworkcontent>
+
+**7**. ابدأ التدريب باستخدام إطار عمل التعلم الآلي الخاص بك! اطلع على دليل تصنيف الصوت في 🤗 Transformers للحصول على مثال شامل حول كيفية تدريب نموذج على مجموعة بيانات صوتية.
+
+## الرؤية
+
+يتم تحميل مجموعات البيانات الصورية تمامًا مثل مجموعات البيانات النصية. ومع ذلك، بدلاً من أداة التعرف على الكيانات المسماة، ستحتاج إلى [مستخرج الميزات](https://huggingface.co/docs/transformers/main_classes/feature_extractor#feature-extractor) لمعالجة مجموعة البيانات. يعد تطبيق زيادة البيانات على صورة أمرًا شائعًا في رؤية الكمبيوتر لجعل النموذج أكثر قوة ضد الإفراط في التخصيص. يمكنك استخدام أي مكتبة لزيادة البيانات تريدها، ثم يمكنك تطبيق الزيادات باستخدام 🤗 Datasets. في هذه البداية السريعة، ستقوم بتحميل مجموعة بيانات [Beans](https://huggingface.co/datasets/beans) وجعلها جاهزة للنموذج لتدريب وتحديد المرض من صور الأوراق.
+
+**1**. قم بتحميل مجموعة بيانات Beans عن طريق تزويد دالة [`load_dataset`] باسم مجموعة البيانات وانقسام مجموعة البيانات:
+
+```py
+>>> from datasets import load_dataset, Image
+
+>>> dataset = load_dataset("beans", split="train")
+```
+
+تعمل معظم نماذج الصور مع صور RGB. إذا كانت مجموعة البيانات الخاصة بك تحتوي على صور في وضع مختلف، فيمكنك استخدام دالة [`~Dataset.cast_column`] لتعيين الوضع إلى RGB:
+
+```py
+>>> dataset = dataset.cast_column("image", Image(mode="RGB"))
+```
+
+تحتوي مجموعة بيانات Beans على صور RGB فقط، لذا فإن هذه الخطوة غير ضرورية هنا.
+
+**2**. الآن يمكنك إضافة بعض الزيادات باستخدام أي مكتبة ([Albumentations](https://albumentations.ai/)، [imgaug](https://imgaug.readthedocs.io/en/latest/)، [Kornia](https://kornia.readthedocs.io/en/latest/)) التي تريدها. هنا، ستستخدم [torchvision](https://pytorch.org/vision/stable/transforms.html) لتغيير خصائص اللون في الصورة بشكل عشوائي:
+
+```py
+>>> from torchvision.transforms import Compose, ColorJitter, ToTensor
+
+>>> jitter = Compose(
+...     [ColorJitter(brightness=0.5, hue=0.5), ToTensor()]
+... )
+```
+
+**3**. قم بإنشاء دالة لتطبيق تحويلك على مجموعة البيانات وتوليد إدخال النموذج: `pixel_values`.
+
+```python
+>>> def transforms(examples):
+...     examples["pixel_values"] = [jitter(image.convert("RGB")) for image in examples["image"]]
+...     return examples
+```
+
+**4**. استخدم دالة [`~Dataset.with_transform`] لتطبيق الزيادات أثناء التنقل:
+
+```py
+>>> dataset = dataset.with_transform(transforms)
+```
+
+**5**. قم بتعيين تنسيق مجموعة البيانات وفقًا لإطار عمل التعلم الآلي الذي تستخدمه.
+
+<frameworkcontent>
+<pt>
+
+قم بتغليف مجموعة البيانات في [`torch.utils.data.DataLoader`](https://alband.github.io/doc_view/data.html؟highlight=torch%20utils%20data%20dataloader#torch.utils.data.DataLoader). ستحتاج أيضًا إلى إنشاء دالة تجميع لتجميع العينات في دفعات:
+
+```py
+>>> from torch.utils.data import DataLoader
+
+>>> def collate_fn(examples):
+...     images = []
+...     labels = []
+...     for example in examples:
+...         images.append((example["pixel_values"]))
+...         labels.append(example["labels"])
+...
+...     pixel_values = torch.stack(images)
+...     labels = torch.tensor(labels)
+...     return {"pixel_values": pixel_values, "labels": labels}
+>>> dataloader = DataLoader(dataset, collate_fn=collate_fn, batch_size=4)
+```
+
+</pt>
+<tf>
+
+استخدم طريقة [`~transformers.TFPreTrainedModel.prepare_tf_dataset`] من 🤗 Transformers لإعداد مجموعة البيانات لتكون متوافقة مع TensorFlow، وجاهزة لتدريب/ضبط نموذج، حيث تقوم بتغليف مجموعة بيانات HuggingFace [`~datasets.Dataset`] كـ `tf.data.Dataset`
+
+مع الجمع والتشغيل، حتى تتمكن من تمريره مباشرة إلى أساليب Keras مثل `fit()` دون تعديل آخر.
+
+قبل البدء، تأكد من تثبيت الإصدارات الأحدث من `albumentations` و`cv2`:
+
+```bash
+pip install -U albumentations opencv-python
+```
+
+```py
+>>> import albumentations
+>>> import numpy as np
+
+>>> transform = albumentations.Compose([
+...     albumentations.RandomCrop(width=256, height=256)،
+...     albumentations.HorizontalFlip(p=0.5)،
+...     albumentاءات RandomBrightnessContrast (p=0.2)،
+... ])
+
+>>> def transforms(examples):
+...     examples["pixel_values"] = [
+...         transform(image=np.array(image))["image"] for image in examples["image"]
+...     ]
+...     return examples
+
+>>> dataset.set_transform(transforms)
+>>> tf_dataset = model.prepare_tf_dataset(
+...     dataset,
+...     batch_size=4,
+...     shuffle=True,
+... )
+```
+
+</tf>
+</frameworkcontent>
+
+**6**. ابدأ التدريب باستخدام إطار عمل التعلم الآلي الخاص بك! اطلع على دليل تصنيف الصور في 🤗 Transformers للحصول على مثال شامل حول كيفية تدريب نموذج على مجموعة بيانات صورية.
+## NLP
+
+يجب توكينز النص إلى رموز فردية بواسطة [توكينيزر](https://huggingface.co/docs/transformers/main_classes/tokenizer). بالنسبة للبدء السريع، ستقوم بتحميل مجموعة بيانات التدريب [Microsoft Research Paraphrase Corpus (MRPC)](https://huggingface.co/datasets/glue/viewer/mrpc) لتدريب نموذج لتحديد ما إذا كان زوج من الجمل يعني نفس الشيء.
+
+**1**. قم بتحميل مجموعة بيانات MRPC عن طريق تزويد الدالة [`load_dataset`] باسم مجموعة البيانات، وتكوين مجموعة البيانات (ليس جميع مجموعات البيانات سيكون لها تكوين)، وتقسيم مجموعة البيانات:
+
+```py
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("glue", "mrpc", split="train")
+```
+
+**2**. بعد ذلك، قم بتحميل نموذج BERT مسبق التدريب و tokenizer المقابل من مكتبة [🤗 Transformers](https://huggingface.co/transformers/). من الطبيعي تمامًا أن ترى تحذيرًا بعد تحميل النموذج حول بعض الأوزان التي لم يتم تهيئتها. هذا متوقع لأنك تقوم بتحميل نقطة تفتيش هذا النموذج للتدريب مع مهمة أخرى.
+
+```py
+>>> from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+>>> model = AutoModelForSequenceClassification.from_pretrained("bert-base-uncased")
+>>> tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+===PT-TF-SPLIT===
+>>> from transformers import TFAutoModelForSequenceClassification, AutoTokenizer
+
+>>> model = TFAutoModelForSequenceClassification.from_pretrained("bert-base-uncased")
+>>> tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+```
+
+**3**. قم بإنشاء دالة لتوكينز مجموعة البيانات، ويجب أيضًا تقليم وسادة النص في المنسوجات المستطيلة الأنيقة. يقوم tokenizer بإنشاء ثلاثة أعمدة جديدة في مجموعة البيانات: `input_ids`، و`token_type_ids`، و`attention_mask`. هذه هي مدخلات النموذج.
+
+استخدم وظيفة [`~Dataset.map`] لتسريع المعالجة عن طريق تطبيق دالة tokenization على دفعات من الأمثلة في مجموعة البيانات:
+
+```py
+>>> def encode(examples):
+...     return tokenizer(examples["sentence1"], examples["sentence2"], truncation=True, padding="max_length")
+
+>>> dataset = dataset.map(encode, batched=True)
+>>> dataset[0]
+{'sentence1': 'Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .',
+'sentence2': 'Referring to him as only " the witness " , Amrozi accused his brother of deliberately distorting his evidence .',
+'label': 1,
+'idx': 0,
+'input_ids': array([  101,  7277,  2180,  5303,  4806,  1117,  1711,   117,  2292, 1119,  1270,   107,  1103,  7737,   107,   117,  1104,  9938, 4267, 12223, 21811,  1117,  2554,   119,   102, 11336,  6732, 3384,  1106,  1140,  1112,  1178,   107,  1103,  7737,   107, 117,  7277,  2180,  5303,  4806,  1117,  1711,  1104,  9938, 4267, 12223, 21811,  1117,  2554,   119,   102]),
+'token_type_ids': array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]),
+'attention_mask': array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])}
+```
+
+**4**. أعِد تسمية عمود `label` إلى `labels`، وهو اسم الإدخال المتوقع في [BertForSequenceClassification](https://huggingface.co/docs/transformers/main/en/model_doc/bert#transformers.BertForSequenceClassification):
+
+```py
+>>> dataset = dataset.map(lambda examples: {"labels": examples["label"]}, batched=True)
+```
+
+**5**. قم بتعيين تنسيق مجموعة البيانات وفقًا لإطار عمل التعلم الآلي الذي تستخدمه.
+
+<frameworkcontent>
+<pt>
+استخدم وظيفة [`~Dataset.set_format`] لتعيين تنسيق مجموعة البيانات إلى `torch` وحدد الأعمدة التي تريد تنسيقها. تطبق هذه الدالة التنسيق أثناء التنقل. بعد تحويلها إلى تنسورات PyTorch، قم بلف مجموعة البيانات في [`torch.utils.data.DataLoader`](https://alband.github.io/doc_view/data.html?highlight=torch%20utils%20data%20dataloader#torch.utils.data.DataLoader):
+
+```py
+>>> import torch
+
+>>> dataset.set_format(type="torch", columns=["input_ids", "token_type_ids", "attention_mask", "labels"])
+>>> dataloader = torch.utils.data.DataLoader(dataset, batch_size=32)
+```
+
+</pt>
+<tf>
+
+استخدم طريقة [`~transformers.TFPreTrainedModel.prepare_tf_dataset`] من مكتبة 🤗 Transformers لإعداد مجموعة البيانات لتكون متوافقة مع TensorFlow، وجاهزة لتدريب/ضبط نموذج دقيق، حيث تقوم بلف مجموعة بيانات HuggingFace [`~datasets.Dataset`] كـ `tf.data.Dataset` مع التجميع والدفعات، لذا يمكنك تمريرها مباشرة إلى أساليب Keras مثل `fit()` بدون تعديل إضافي.
+
+```py
+>>> import tensorflow as tf
+
+>>> tf_dataset = model.prepare_tf_dataset(
+...     dataset,
+...     batch_size=4,
+...     shuffle=True,
+... )
+```
+
+</tf>
+</frameworkcontent>
+
+**6**. ابدأ التدريب باستخدام إطار عمل التعلم الآلي الخاص بك! تحقق من دليل تصنيف النص في 🤗 Transformers للحصول على مثال شامل حول كيفية تدريب نموذج على مجموعة بيانات نصية.
+
+## ما هو التالي؟
+
+هذا يكمل دليل البدء السريع لـ 🤗 Datasets! يمكنك تحميل أي نص أو صوت أو صورة مجموعة بيانات باستخدام دالة واحدة وجعلها جاهزة لتدريب نموذجك عليها.
+
+بالنسبة لخطواتك التالية، اطلع على أدلة كيفية القيام بذلك وتعرف على كيفية القيام بأشياء أكثر تحديدًا مثل تحميل تنسيقات مجموعات بيانات مختلفة، ومواءمة التسميات، وبث مجموعات البيانات الكبيرة. إذا كنت مهتمًا بمعرفة المزيد عن المفاهيم الأساسية لـ 🤗 Datasets، فاحصل على فنجان من القهوة واقرأ أدلة المفاهيم لدينا!
