@@ -1,0 +1,81 @@
+# تحميل بيانات الصور
+
+لتحميل بيانات مجموعات الصور، اتبع ما يلي:
+
+## الملفات المحلية
+
+يمكنك تحميل مجموعة بيانات من مسار الصورة. استخدم دالة [`~Dataset.cast_column`] لقبول عمود من مسارات ملفات الصور، وفك ترميزها إلى صورة PIL باستخدام ميزة [`Image`]:
+
+```py
+>>> from datasets import Dataset, Image
+
+>>> dataset = Dataset.from_dict({"image": ["path/to/image_1", "path/to/image_2", ..., "path/to/image_n"]}).cast_column("image", Image())
+>>> dataset[0]["image"]
+<PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1200x215 at 0x15E6D7160>]
+```
+
+إذا كنت تريد فقط تحميل المسار الأساسي لمجموعة بيانات الصور دون فك ترميز كائن الصورة، قم بتعيين `decode=False` في ميزة [`Image`]:
+
+```py
+>>> dataset = load_dataset("beans", split="train").cast_column("image", Image(decode=False))
+>>> dataset[0]["image"]
+{'bytes': None,
+'path': '/root/.cache/huggingface/datasets/downloads/extracted/b0a21163f78769a2cf11f58dfc767fb458fc7cea5c05dccc0144a2c0f0bc1292/train/bean_rust/bean_rust_train.29.jpg'}
+```
+
+## ImageFolder
+
+يمكنك أيضًا تحميل مجموعة بيانات باستخدام منشئ مجموعة بيانات `ImageFolder` والذي لا يتطلب كتابة برنامج تحميل بيانات مخصص. وهذا يجعل `ImageFolder` مثاليًا لإنشاء وتحميل مجموعات بيانات الصور بسرعة والتي تحتوي على عدة آلاف من الصور لمختلف مهام الرؤية الحاسوبية. يجب أن يبدو هيكل مجموعة بيانات الصور على النحو التالي:
+
+```
+folder/train/dog/golden_retriever.png
+folder/train/dog/german_shepherd.png
+folder/train/dog/chihuahua.png
+
+folder/train/cat/maine_coon.png
+folder/train/cat/bengal.png
+folder/train/cat/birman.png
+```
+
+قم بتحميل مجموعة البيانات عن طريق تحديد `imagefolder` ودليل مجموعة البيانات الخاصة بك في `data_dir`:
+
+```py
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("imagefolder", data_dir="/path/to/folder")
+>>> dataset["train"][0]
+{"image": <PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1200x215 at 0x15E6D7160>, "label": 0}
+
+>>> dataset["train"][-1]
+{"image": <PIL.PngImagePlugin.PngImageFile image mode=RGBA size=1200x215 at 0x15E8DAD30>, "label": 1}
+```
+
+لتحميل مجموعات البيانات البعيدة من عناوين URL الخاصة بها، استخدم معلمة `data_files`:
+
+```py
+>>> dataset = load_dataset("imagefolder", data_files="https://download.microsoft.com/download/3/E/1/3E1C3F21-ECDB-4869-8368-6DEBA77B919F/kagglecatsanddogs_5340.zip", split="train")
+```
+
+تأتي بعض مجموعات البيانات بملف بيانات وصفية (`metadata.csv` أو `metadata.jsonl`) يحتوي على معلومات أخرى حول البيانات مثل صناديق الحدود والنصوص التوضيحية والتصنيفات. يتم تحميل البيانات الوصفية تلقائيًا عند استدعاء [`load_dataset`] وتحديد `imagefolder`.
+
+لتجاهل المعلومات الموجودة في ملف البيانات الوصفية، قم بتعيين `drop_labels=False` في [`load_dataset`]`، واسمح لـ `ImageFolder` باستنتاج اسم التصنيف تلقائيًا من اسم الدليل:
+
+```py
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("imagefolder", data_dir="/path/to/folder", drop_labels=False)
+```
+
+## WebDataset
+
+تعتمد صيغة [WebDataset](https://github.com/webdataset/webdataset) على مجلد من أرشيفات TAR وهي مناسبة لمجموعات بيانات الصور الكبيرة.
+
+بسبب حجمها، يتم تحميل WebDatasets عادةً في وضع البث المباشر (باستخدام `streaming=True`).
+
+يمكنك تحميل WebDataset على النحو التالي:
+
+```python
+>>> from datasets import load_dataset
+
+>>> dataset = load_dataset("webdataset", data_dir="/path/to/folder", streaming=True)
+```
