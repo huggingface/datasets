@@ -10,7 +10,6 @@ import pyarrow.json as paj
 
 import datasets
 from datasets.features.features import FeatureType
-from datasets.tasks.base import TaskTemplate
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -43,14 +42,12 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
         BUILDER_CONFIG_CLASS: builder config inherited from `folder_based_builder.FolderBasedBuilderConfig`
         EXTENSIONS: list of allowed extensions (only files with these extensions and METADATA_FILENAME files
             will be included in a dataset)
-        CLASSIFICATION_TASK: classification task to use if labels are obtained from the folder structure
     """
 
     BASE_FEATURE: Type[FeatureType]
     BASE_COLUMN_NAME: str
     BUILDER_CONFIG_CLASS: FolderBasedBuilderConfig
     EXTENSIONS: List[str]
-    CLASSIFICATION_TASK: TaskTemplate
 
     METADATA_FILENAMES: List[str] = ["metadata.csv", "metadata.jsonl"]
 
@@ -203,7 +200,6 @@ class FolderBasedBuilder(datasets.GeneratorBasedBuilder):
                         "label": datasets.ClassLabel(names=sorted(labels)),
                     }
                 )
-                self.info.task_templates = [self.CLASSIFICATION_TASK.align_with_features(self.info.features)]
             else:
                 self.info.features = datasets.Features({self.BASE_COLUMN_NAME: self.BASE_FEATURE()})
 
