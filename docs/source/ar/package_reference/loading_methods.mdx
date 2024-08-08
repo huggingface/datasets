@@ -1,0 +1,86 @@
+# طرق التحميل
+
+طرق لعرض وتحميل مجموعات البيانات:
+
+## مجموعات البيانات
+
+[[autodoc]] datasets.list_datasets
+
+[[autodoc]] datasets.load_dataset
+
+[[autodoc]] datasets.load_from_disk
+
+[[autodoc]] datasets.load_dataset_builder
+
+[[autodoc]] datasets.get_dataset_config_names
+
+[[autodoc]] datasets.get_dataset_infos
+
+[[autodoc]] datasets.get_dataset_split_names
+
+[[autodoc]] datasets.inspect_dataset
+
+## من الملفات
+
+تستخدم التكوينات لتحميل ملفات البيانات. ويتم استخدامها عند تحميل الملفات المحلية أو مستودع مجموعة البيانات:
+
+- الملفات المحلية: `load_dataset("parquet", data_dir="path/to/data/dir")`
+- مستودع مجموعة البيانات: `load_dataset("allenai/c4")`
+
+يمكنك تمرير وسيطات إلى `load_dataset` لتكوين تحميل البيانات. على سبيل المثال، يمكنك تحديد معلمة `sep` لتعريف [`~datasets.packaged_modules.csv.CsvConfig`] التي تستخدم لتحميل البيانات:
+
+```python
+load_dataset("csv", data_dir="path/to/data/dir", sep="\t")
+```
+
+### نص
+
+[[autodoc]] datasets.packaged_modules.text.TextConfig
+
+[[autodoc]] datasets.packaged_modules.text.Text
+
+### CSV
+
+[[autodoc]] datasets.packaged_modules.csv.CsvConfig
+
+[[autodoc]] datasets.packaged_modules.csv.Csv
+
+### JSON
+
+[[autodoc]] datasets.packaged_modules.json.JsonConfig
+
+[[autodoc]] datasets.packaged_modules.json.Json
+
+### Parquet
+
+[[autodoc]] datasets.packaged_modules.parquet.ParquetConfig
+
+[[autodoc]] datasets.packaged_modules.parquet.Parquet
+
+### Arrow
+
+[[autodoc]] datasets.packaged_modules.arrow.ArrowConfig
+
+[[autodoc]] datasets.packaged_modules.arrow.Arrow
+
+### SQL
+
+[[autodoc]] datasets.packaged_modules.sql.SqlConfig
+
+[[autodoc]] datasets.packaged_modules.sql.Sql
+
+### صور
+
+[[autodoc]] datasets.packaged_modules.imagefolder.ImageFolderConfig
+
+[[autodoc]] datasets.packaged_modules.imagefolder.ImageFolder
+
+### صوت
+
+[[autodoc]] datasets.packaged_modules.audiofolder.AudioFolderConfig
+
+[[autodoc]] datasets.packaged_modules.audiofolder.AudioFolder
+
+### WebDataset
+
+[[autodoc]] datasets.packaged_modules.webdataset.WebDataset
