@@ -201,6 +201,13 @@ def cached_path(
         url_or_filename, storage_options = _prepare_path_and_storage_options(
             url_or_filename, download_config=download_config
         )
+        # Pass HTTP storage_options to get_from_cache only if passed HTTP download_config.storage_options
+        if (
+            storage_options
+            and storage_options.keys() < {"http", "https"}
+            and not (download_config.storage_options and download_config.storage_options.keys() < {"http", "https"})
+        ):
+            storage_options = {}
         output_path = get_from_cache(
             url_or_filename,
             cache_dir=cache_dir,
@@ -525,6 +532,8 @@ def get_from_cache(
         ConnectionError: in case of unreachable url
             and no cache on disk
     """
+    if storage_options is None:
+        storage_options = {}
     if use_auth_token != "deprecated":
         warnings.warn(
             "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
@@ -570,7 +579,7 @@ def get_from_cache(
         scheme = urlparse(url).scheme
         if scheme == "ftp":
             connected = ftp_head(url)
-        elif scheme not in ("http", "https"):
+        elif scheme not in {"http", "https"} or storage_options.get(scheme):
             response = fsspec_head(url, storage_options=storage_options)
             # s3fs uses "ETag", gcsfs uses "etag"
             etag = (response.get("ETag", None) or response.get("etag", None)) if use_etag else None
@@ -676,7 +685,7 @@ def get_from_cache(
             # GET file object
             if scheme == "ftp":
                 ftp_get(url, temp_file)
-            elif scheme not in ("http", "https"):
+            elif scheme not in {"http", "https"} or storage_options.get(scheme):
                 fsspec_get(
                     url, temp_file, storage_options=storage_options, desc=download_desc, disable_tqdm=disable_tqdm
                 )
