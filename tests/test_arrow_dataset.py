@@ -32,6 +32,7 @@ from datasets.features import (
     ClassLabel,
     Features,
     Image,
+    LargeList,
     Sequence,
     Translation,
     TranslationVariableLanguages,
@@ -4916,3 +4917,74 @@ def test_dataset_batch():
     assert len(batches[2]["text"]) == 2
     assert batches[2]["id"] == [8, 9]
     assert batches[2]["text"] == ["Text 8", "Text 9"]
+
+
+def test_dataset_from_dict_with_large_list():
+    data = {"col_1": [[1, 2], [3, 4]]}
+    features = Features({"col_1": LargeList(Value("int64"))})
+    ds = Dataset.from_dict(data, features=features)
+    assert isinstance(ds, Dataset)
+    assert pa.types.is_large_list(ds.data.schema.field("col_1").type)
+
+
+def test_dataset_save_to_disk_with_large_list(tmp_path):
+    data = {"col_1": [[1, 2], [3, 4]]}
+    features = Features({"col_1": LargeList(Value("int64"))})
+    ds = Dataset.from_dict(data, features=features)
+    dataset_path = tmp_path / "dataset_dir"
+    ds.save_to_disk(dataset_path)
+    assert (dataset_path / "data-00000-of-00001.arrow").exists()
+
+
+def test_dataset_save_to_disk_and_load_from_disk_round_trip_with_large_list(tmp_path):
+    data = {"col_1": [[1, 2], [3, 4]]}
+    features = Features({"col_1": LargeList(Value("int64"))})
+    ds = Dataset.from_dict(data, features=features)
+    dataset_path = tmp_path / "dataset_dir"
+    ds.save_to_disk(dataset_path)
+    assert (dataset_path / "data-00000-of-00001.arrow").exists()
+    loaded_ds = load_from_disk(dataset_path)
+    assert len(loaded_ds) == len(ds)
+    assert loaded_ds.features == ds.features
+    assert loaded_ds.to_dict() == ds.to_dict()
+
+
+@require_polars
+def test_from_polars_with_large_list():
+    import polars as pl
+
+    df = pl.from_dict({"col_1": [[1, 2], [3, 4]]})
+    ds = Dataset.from_polars(df)
+    assert isinstance(ds, Dataset)
+
+
+@require_polars
+def test_from_polars_save_to_disk_with_large_list(tmp_path):
+    import polars as pl
+
+    df = pl.from_dict({"col_1": [[1, 2], [3, 4]]})
+    ds = Dataset.from_polars(df)
+    dataset_path = tmp_path / "dataset_dir"
+    ds.save_to_disk(dataset_path)
+    assert (dataset_path / "data-00000-of-00001.arrow").exists()
+
+
+@require_polars
+def test_from_polars_save_to_disk_and_load_from_disk_round_trip_with_large_list(tmp_path):
+    import polars as pl
+
+    df = pl.from_dict({"col_1": [[1, 2], [3, 4]]})
+    ds = Dataset.from_polars(df)
+    dataset_path = tmp_path / "dataset_dir"
+    ds.save_to_disk(dataset_path)
+    assert (dataset_path / "data-00000-of-00001.arrow").exists()
+    loaded_ds = load_from_disk(dataset_path)
+    assert len(loaded_ds) == len(ds)
+    assert loaded_ds.features == ds.features
+    assert loaded_ds.to_dict() == ds.to_dict()
+
+
+@require_polars
+def test_polars_round_trip():
+    ds = Dataset.from_dict({"x": [[1, 2], [3, 4, 5]], "y": ["a", "b"]})
+    assert isinstance(Dataset.from_polars(ds.to_polars()), Dataset)

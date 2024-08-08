@@ -1,7 +1,7 @@
 import datetime
 from typing import List, Tuple
 from unittest import TestCase
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
@@ -10,15 +10,23 @@ import pytest
 
 from datasets import Array2D
 from datasets.arrow_dataset import Dataset
-from datasets.features import Audio, ClassLabel, Features, Image, Sequence, Value
+from datasets.features import Audio, ClassLabel, Features, Image, LargeList, Sequence, Value
 from datasets.features.features import (
     _align_features,
     _arrow_to_datasets_dtype,
     _cast_to_python_objects,
     _check_if_features_can_be_aligned,
+    _check_non_null_non_empty_recursive,
+    _visit,
     cast_to_python_objects,
+    decode_nested_example,
     encode_nested_example,
+    generate_from_arrow_type,
     generate_from_dict,
+    get_nested_type,
+    require_decoding,
+    require_storage_cast,
+    require_storage_embed,
     string_to_arrow,
 )
 from datasets.features.translation import Translation, TranslationVariableLanguages
@@ -26,6 +34,10 @@ from datasets.info import DatasetInfo
 from datasets.utils.py_utils import asdict
 
 from ..utils import require_jax, require_numpy1_on_windows, require_tf, require_torch
+
+
+def list_with(item):
+    return [item]
 
 
 class FeaturesTest(TestCase):
@@ -386,12 +398,49 @@ def test_class_label_to_and_from_dict(class_label_arg, tmp_path_factory):
     assert generated_class_label == class_label
 
 
+@pytest.mark.parametrize(
+    "schema",
+    [[Audio()], LargeList(Audio()), Sequence(Audio())],
+)
+def test_decode_nested_example_with_list_types(schema, monkeypatch):
+    mock_decode_example = MagicMock()
+    monkeypatch.setattr(Audio, "decode_example", mock_decode_example)
+    audio_example = {"path": "dummy_audio_path"}
+    _ = decode_nested_example(schema, [audio_example])
+    assert mock_decode_example.called
+    assert mock_decode_example.call_args.args[0] == audio_example
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [[ClassLabel(names=["a", "b"])], LargeList(ClassLabel(names=["a", "b"])), Sequence(ClassLabel(names=["a", "b"]))],
+)
+def test_encode_nested_example_with_list_types(schema):
+    result = encode_nested_example(schema, ["b"])
+    assert result == [1]
+
+
 @pytest.mark.parametrize("inner_type", [Value("int32"), {"subcolumn": Value("int32")}])
 def test_encode_nested_example_sequence_with_none(inner_type):
     schema = Sequence(inner_type)
     obj = None
     result = encode_nested_example(schema, obj)
     assert result is None
+
+
+@pytest.mark.parametrize(
+    "features_dict, example, expected_encoded_example",
+    [
+        ({"col_1": ClassLabel(names=["a", "b"])}, {"col_1": "b"}, {"col_1": 1}),
+        ({"col_1": [ClassLabel(names=["a", "b"])]}, {"col_1": ["b"]}, {"col_1": [1]}),
+        ({"col_1": LargeList(ClassLabel(names=["a", "b"]))}, {"col_1": ["b"]}, {"col_1": [1]}),
+        ({"col_1": Sequence(ClassLabel(names=["a", "b"]))}, {"col_1": ["b"]}, {"col_1": [1]}),
+    ],
+)
+def test_encode_example(features_dict, example, expected_encoded_example):
+    features = Features(features_dict)
+    encoded_example = features.encode_example(example)
+    assert encoded_example == expected_encoded_example
 
 
 def test_encode_batch_with_example_with_empty_first_elem():
@@ -624,6 +673,8 @@ NESTED_FEATURES = [
     Features({"foo": Sequence({"bar": Value("int32")})}),
     Features({"foo": [Value("int32")]}),
     Features({"foo": [{"bar": Value("int32")}]}),
+    Features({"foo": LargeList(Value("int32"))}),
+    Features({"foo": LargeList({"bar": Value("int32")})}),
 ]
 
 NESTED_CUSTOM_FEATURES = [
@@ -632,11 +683,13 @@ NESTED_CUSTOM_FEATURES = [
     Features({"foo": Sequence({"bar": ClassLabel(names=["negative", "positive"])})}),
     Features({"foo": [ClassLabel(names=["negative", "positive"])]}),
     Features({"foo": [{"bar": ClassLabel(names=["negative", "positive"])}]}),
+    Features({"foo": LargeList(ClassLabel(names=["negative", "positive"]))}),
+    Features({"foo": LargeList({"bar": ClassLabel(names=["negative", "positive"])})}),
 ]
 
 
 @pytest.mark.parametrize("features", SIMPLE_FEATURES + CUSTOM_FEATURES + NESTED_FEATURES + NESTED_CUSTOM_FEATURES)
-def test_features_to_dict(features: Features):
+def test_features_to_dict_and_from_dict_round_trip(features: Features):
     features_dict = features.to_dict()
     assert isinstance(features_dict, dict)
     reloaded = Features.from_dict(features_dict)
@@ -649,6 +702,119 @@ def test_features_to_yaml_list(features: Features):
     assert isinstance(features_yaml_list, list)
     reloaded = Features._from_yaml_list(features_yaml_list)
     assert features == reloaded
+
+
+@pytest.mark.parametrize(
+    "features_dict, expected_features_dict",
+    [
+        ({"col": [{"sub_col": Value("int32")}]}, {"col": [{"sub_col": Value("int32")}]}),
+        ({"col": LargeList({"sub_col": Value("int32")})}, {"col": LargeList({"sub_col": Value("int32")})}),
+        ({"col": Sequence({"sub_col": Value("int32")})}, {"col.sub_col": Sequence(Value("int32"))}),
+    ],
+)
+def test_features_flatten_with_list_types(features_dict, expected_features_dict):
+    features = Features(features_dict)
+    flattened_features = features.flatten()
+    assert flattened_features == Features(expected_features_dict)
+
+
+@pytest.mark.parametrize(
+    "deserialized_features_dict, expected_features_dict",
+    [
+        (
+            {"col": [{"dtype": "int32", "_type": "Value"}]},
+            {"col": [Value("int32")]},
+        ),
+        (
+            {"col": {"dtype": {"dtype": "int32", "_type": "Value"}, "_type": "LargeList"}},
+            {"col": LargeList(Value("int32"))},
+        ),
+        (
+            {"col": {"feature": {"dtype": "int32", "_type": "Value"}, "_type": "Sequence"}},
+            {"col": Sequence(Value("int32"))},
+        ),
+        (
+            {"col": [{"sub_col": {"dtype": "int32", "_type": "Value"}}]},
+            {"col": [{"sub_col": Value("int32")}]},
+        ),
+        (
+            {"col": {"dtype": {"sub_col": {"dtype": "int32", "_type": "Value"}}, "_type": "LargeList"}},
+            {"col": LargeList({"sub_col": Value("int32")})},
+        ),
+        (
+            {"col": {"feature": {"sub_col": {"dtype": "int32", "_type": "Value"}}, "_type": "Sequence"}},
+            {"col": Sequence({"sub_col": Value("int32")})},
+        ),
+    ],
+)
+def test_features_from_dict_with_list_types(deserialized_features_dict, expected_features_dict):
+    features = Features.from_dict(deserialized_features_dict)
+    assert features == Features(expected_features_dict)
+
+
+@pytest.mark.parametrize(
+    "deserialized_feature_dict, expected_feature",
+    [
+        (
+            [{"dtype": "int32", "_type": "Value"}],
+            [Value("int32")],
+        ),
+        (
+            {"dtype": {"dtype": "int32", "_type": "Value"}, "_type": "LargeList"},
+            LargeList(Value("int32")),
+        ),
+        (
+            {"feature": {"dtype": "int32", "_type": "Value"}, "_type": "Sequence"},
+            Sequence(Value("int32")),
+        ),
+        (
+            [{"sub_col": {"dtype": "int32", "_type": "Value"}}],
+            [{"sub_col": Value("int32")}],
+        ),
+        (
+            {"dtype": {"sub_col": {"dtype": "int32", "_type": "Value"}}, "_type": "LargeList"},
+            LargeList({"sub_col": Value("int32")}),
+        ),
+        (
+            {"feature": {"sub_col": {"dtype": "int32", "_type": "Value"}}, "_type": "Sequence"},
+            Sequence({"sub_col": Value("int32")}),
+        ),
+    ],
+)
+def test_generate_from_dict_with_list_types(deserialized_feature_dict, expected_feature):
+    feature = generate_from_dict(deserialized_feature_dict)
+    assert feature == expected_feature
+
+
+@pytest.mark.parametrize(
+    "features_dict, expected_features_yaml_list",
+    [
+        ({"col": LargeList(Value("int32"))}, [{"name": "col", "large_list": "int32"}]),
+        (
+            {"col": LargeList({"sub_col": Value("int32")})},
+            [{"name": "col", "large_list": [{"dtype": "int32", "name": "sub_col"}]}],
+        ),
+    ],
+)
+def test_features_to_yaml_list_with_large_list(features_dict, expected_features_yaml_list):
+    features = Features(features_dict)
+    features_yaml_list = features._to_yaml_list()
+    assert features_yaml_list == expected_features_yaml_list
+
+
+@pytest.mark.parametrize(
+    "features_yaml_list, expected_features_dict",
+    [
+        ([{"name": "col", "large_list": "int32"}], {"col": LargeList(Value("int32"))}),
+        (
+            [{"name": "col", "large_list": [{"dtype": "int32", "name": "sub_col"}]}],
+            {"col": LargeList({"sub_col": Value("int32")})},
+        ),
+    ],
+)
+def test_features_from_yaml_list_with_large_list(features_yaml_list, expected_features_dict):
+    features = Features._from_yaml_list(features_yaml_list)
+    assert features == Features(expected_features_dict)
 
 
 @pytest.mark.parametrize("features", SIMPLE_FEATURES + CUSTOM_FEATURES + NESTED_FEATURES + NESTED_CUSTOM_FEATURES)
@@ -696,3 +862,137 @@ def test_features_alignment(features: Tuple[List[Features], Features]):
     inputs, expected = features
     _check_if_features_can_be_aligned(inputs)  # Check that we can align, will raise otherwise.
     assert _align_features(inputs) == expected
+
+
+@pytest.mark.parametrize("dtype", [pa.int32, pa.string])
+def test_features_from_arrow_schema_primitive_data_type(dtype):
+    schema = pa.schema([("column_name", dtype())])
+    assert schema == Features.from_arrow_schema(schema).arrow_schema
+
+
+@pytest.mark.parametrize("scalar_dtype", [pa.int32, pa.string])
+@pytest.mark.parametrize("list_dtype", [pa.list_, pa.large_list])
+def test_features_from_arrow_schema_list_data_type(list_dtype, scalar_dtype):
+    schema = pa.schema([("column_name", list_dtype(scalar_dtype()))])
+    assert schema == Features.from_arrow_schema(schema).arrow_schema
+
+
+@pytest.mark.parametrize(
+    "feature, other_feature",
+    [
+        ([Value("int64")], [Value("int64")]),
+        (LargeList(Value("int64")), LargeList(Value("int64"))),
+        (Sequence(Value("int64")), Sequence(Value("int64"))),
+        (
+            [{"sub_col_1": Value("int64"), "sub_col_2": Value("int64")}],
+            [{"sub_col_2": Value("int64"), "sub_col_1": Value("int64")}],
+        ),
+        (
+            LargeList({"sub_col_1": Value("int64"), "sub_col_2": Value("int64")}),
+            LargeList({"sub_col_2": Value("int64"), "sub_col_1": Value("int64")}),
+        ),
+        (
+            Sequence({"sub_col_1": Value("int64"), "sub_col_2": Value("int64")}),
+            Sequence({"sub_col_2": Value("int64"), "sub_col_1": Value("int64")}),
+        ),
+    ],
+)
+def test_features_reorder_fields_as_with_list_types(feature, other_feature):
+    features = Features({"col": feature})
+    other_features = Features({"col": other_feature})
+    new_features = features.reorder_fields_as(other_features)
+    assert new_features.type == other_features.type
+
+
+@pytest.mark.parametrize(
+    "feature, expected_arrow_data_type", [(Value("int64"), pa.int64), (Value("string"), pa.string)]
+)
+def test_get_nested_type_with_scalar_feature(feature, expected_arrow_data_type):
+    arrow_data_type = get_nested_type(feature)
+    assert arrow_data_type == expected_arrow_data_type()
+
+
+@pytest.mark.parametrize(
+    "scalar_feature, expected_arrow_primitive_data_type", [(Value("int64"), pa.int64), (Value("string"), pa.string)]
+)
+@pytest.mark.parametrize(
+    "list_feature, expected_arrow_nested_data_type",
+    [(list_with, pa.list_), (LargeList, pa.large_list), (Sequence, pa.list_)],
+)
+def test_get_nested_type_with_list_feature(
+    list_feature, expected_arrow_nested_data_type, scalar_feature, expected_arrow_primitive_data_type
+):
+    feature = list_feature(scalar_feature)
+    arrow_data_type = get_nested_type(feature)
+    assert arrow_data_type == expected_arrow_nested_data_type(expected_arrow_primitive_data_type())
+
+
+@pytest.mark.parametrize(
+    "arrow_primitive_data_type, expected_feature", [(pa.int32, Value("int32")), (pa.string, Value("string"))]
+)
+def test_generate_from_arrow_type_with_arrow_primitive_data_type(arrow_primitive_data_type, expected_feature):
+    arrow_data_type = arrow_primitive_data_type()
+    feature = generate_from_arrow_type(arrow_data_type)
+    assert feature == expected_feature
+
+
+@pytest.mark.parametrize(
+    "arrow_primitive_data_type, expected_scalar_feature", [(pa.int32, Value("int32")), (pa.string, Value("string"))]
+)
+@pytest.mark.parametrize(
+    "arrow_nested_data_type, expected_list_feature", [(pa.list_, Sequence), (pa.large_list, LargeList)]
+)
+def test_generate_from_arrow_type_with_arrow_nested_data_type(
+    arrow_nested_data_type, expected_list_feature, arrow_primitive_data_type, expected_scalar_feature
+):
+    arrow_data_type = arrow_nested_data_type(arrow_primitive_data_type())
+    feature = generate_from_arrow_type(arrow_data_type)
+    expected_feature = expected_list_feature(expected_scalar_feature)
+    assert feature == expected_feature
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [[ClassLabel(names=["a", "b"])], LargeList(ClassLabel(names=["a", "b"])), Sequence(ClassLabel(names=["a", "b"]))],
+)
+def test_check_non_null_non_empty_recursive_with_list_types(schema):
+    assert _check_non_null_non_empty_recursive([], schema) is False
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [
+        [[ClassLabel(names=["a", "b"])]],
+        LargeList(LargeList(ClassLabel(names=["a", "b"]))),
+        Sequence(Sequence(ClassLabel(names=["a", "b"]))),
+    ],
+)
+def test_check_non_null_non_empty_recursive_with_nested_list_types(schema):
+    assert _check_non_null_non_empty_recursive([[]], schema) is False
+
+
+@pytest.mark.parametrize("feature", [[Audio()], LargeList(Audio()), Sequence(Audio())])
+def test_require_decoding_with_list_types(feature):
+    assert require_decoding(feature)
+
+
+@pytest.mark.parametrize("feature", [[Audio()], LargeList(Audio()), Sequence(Audio())])
+def test_require_storage_cast_with_list_types(feature):
+    assert require_storage_cast(feature)
+
+
+@pytest.mark.parametrize("feature", [[Audio()], LargeList(Audio()), Sequence(Audio())])
+def test_require_storage_embed_with_list_types(feature):
+    assert require_storage_embed(feature)
+
+
+@pytest.mark.parametrize(
+    "feature, expected",
+    [([Value("int32")], [1]), (LargeList(Value("int32")), LargeList(1)), (Sequence(Value("int32")), Sequence(1))],
+)
+def test_visit_with_list_types(feature, expected):
+    def func(x):
+        return 1 if isinstance(x, Value) else x
+
+    result = _visit(feature, func)
+    assert result == expected
