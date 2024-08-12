@@ -2006,11 +2006,11 @@ def cast_array_to_feature(
             arrays = [_c(array.field(name), subfeature) for name, subfeature in feature.items()]
             return pa.StructArray.from_arrays(arrays, names=list(feature), mask=array.is_null())
     elif pa.types.is_list(array.type) or pa.types.is_large_list(array.type):
-        # feature must be either [subfeature] or Sequence(subfeature)
+        # feature must be either [subfeature] or LargeList(subfeature) or Sequence(subfeature)
         if isinstance(feature, list):
             casted_array_values = _c(array.values, feature[0])
-            if type(array.type) is type(get_nested_type(feature)) and casted_array_values.type == array.values.type:
-                # Both array and feature have equal: list type and values (within the list) types
+            if pa.types.is_list(array.type) and casted_array_values.type == array.values.type:
+                # Both array and feature have equal list type and values (within the list) type
                 return array
             else:
                 # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
@@ -2018,8 +2018,8 @@ def cast_array_to_feature(
                 return pa.ListArray.from_arrays(array_offsets, casted_array_values)
         elif isinstance(feature, LargeList):
             casted_array_values = _c(array.values, feature.dtype)
-            if type(array.type) is type(get_nested_type(feature)) and casted_array_values.type == array.values.type:
-                # Both array and feature have equal: list type and values (within the list) types
+            if pa.types.is_large_list(array.type) and casted_array_values.type == array.values.type:
+                # Both array and feature have equal large_list type and values (within the list) type
                 return array
             else:
                 # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
@@ -2061,11 +2061,8 @@ def cast_array_to_feature(
                         return pa.FixedSizeListArray.from_arrays(_c(array_values, feature.feature), feature.length)
             else:
                 casted_array_values = _c(array.values, feature.feature)
-                if (
-                    type(array.type) is type(get_nested_type(feature))
-                    and casted_array_values.type == array.values.type
-                ):
-                    # Both array and feature have equal: list type and values (within the list) types
+                if pa.types.is_list(array.type) and casted_array_values.type == array.values.type:
+                    # Both array and feature have equal list type and values (within the list) type
                     return array
                 else:
                     # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
@@ -2155,7 +2152,7 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
         if isinstance(feature, Sequence) and feature.length == -1:
             return pa.ListArray.from_arrays(array_offsets, _e(array.values, feature.feature))
     elif pa.types.is_large_list(array.type):
-        # feature must be either LargeList(subfeature)
+        # feature must be LargeList(subfeature)
         # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
         array_offsets = _combine_list_array_offsets_with_mask(array)
         return pa.LargeListArray.from_arrays(array_offsets, _e(array.values, feature.dtype))
