@@ -10,7 +10,7 @@ import pytest
 from datasets.features import Features, Sequence, Value
 from datasets.metric import Metric, MetricInfo
 
-from .utils import require_tf, require_torch
+from .utils import require_numpy1_on_windows, require_tf, require_torch
 
 
 class DummyMetric(Metric):
@@ -433,6 +433,7 @@ class TestMetric(TestCase):
         self.assertDictEqual(expected_results, metric.compute())
         del metric
 
+    @require_numpy1_on_windows
     @require_torch
     def test_input_torch(self):
         import torch

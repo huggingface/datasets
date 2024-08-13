@@ -784,7 +784,7 @@ class GithubMetricModuleFactory(_MetricModuleFactory):
                     f"It was picked from the main branch on github instead."
                 )
         imports = get_imports(local_path)
-        local_imports = _download_additional_modules(
+        local_imports, library_imports = _download_additional_modules(
             name=self.name,
             base_path=hf_github_url(path=self.name, name="", revision=revision, dataset=False),
             imports=imports,
@@ -818,6 +818,7 @@ class GithubMetricModuleFactory(_MetricModuleFactory):
                     " repo on your local machine. Make sure you have read the code there to avoid malicious use, then"
                     " set the option `trust_remote_code=True` to remove this error."
                 )
+        _check_library_imports(name=self.name, library_imports=library_imports)
         module_path, hash = _load_importable_file(
             dynamic_modules_path=dynamic_modules_path,
             module_namespace="metrics",
@@ -866,7 +867,7 @@ class LocalMetricModuleFactory(_MetricModuleFactory):
             )
         # get script and other files
         imports = get_imports(self.path)
-        local_imports = _download_additional_modules(
+        local_imports, library_imports = _download_additional_modules(
             name=self.name,
             base_path=str(Path(self.path).parent),
             imports=imports,
@@ -900,6 +901,7 @@ class LocalMetricModuleFactory(_MetricModuleFactory):
                     " repo on your local machine. Make sure you have read the code there to avoid malicious use, then"
                     " set the option `trust_remote_code=True` to remove this error."
                 )
+        _check_library_imports(name=self.name, library_imports=library_imports)
         module_path, hash = _load_importable_file(
             dynamic_modules_path=dynamic_modules_path,
             module_namespace="metrics",

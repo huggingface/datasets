@@ -452,6 +452,7 @@ class ModuleFactoryTest(TestCase):
         # "squad_v2" requires additional imports (internal)
         factory = GithubMetricModuleFactory(
             "squad_v2",
+            revision="2.21",
             download_config=self.download_config,
             dynamic_modules_path=self.dynamic_modules_path,
             trust_remote_code=True,
@@ -464,6 +465,7 @@ class ModuleFactoryTest(TestCase):
         # "bleu" requires additional imports (external from github)
         factory = GithubMetricModuleFactory(
             "bleu",
+            revision="2.21",
             download_config=self.download_config,
             dynamic_modules_path=self.dynamic_modules_path,
             trust_remote_code=True,

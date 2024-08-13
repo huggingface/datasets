@@ -197,7 +197,7 @@ METRICS_TESTS_REQUIRE = [
     "jiwer",
     "langdetect",
     "mauve-text",
-    "nltk",
+    "nltk<3.8.2",
     "rouge_score",
     "sacrebleu",
     "sacremoses",
