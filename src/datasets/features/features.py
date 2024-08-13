@@ -42,7 +42,7 @@ from ..utils import experimental, logging
 from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
 from .image import Image, encode_pil_image
-from .exr import EXR
+from .exr import Exr
 from .translation import Translation, TranslationVariableLanguages
 
 
@@ -1197,7 +1197,7 @@ FeatureType = Union[
     Array4D,
     Array5D,
     Audio,
-    EXR,
+    Exr,
     Image,
 ]
 
@@ -1396,7 +1396,7 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Uni
         else:
             return decode_nested_example([schema.feature], obj)
     # Object with special decoding:
-    elif isinstance(schema, (Audio, Image, EXR)):
+    elif isinstance(schema, (Audio, Image, Exr)):
         # we pass the token to read and decode files from private repositories in streaming mode
         if obj is not None and schema.decode:
             return schema.decode_example(obj, token_per_repo_id=token_per_repo_id)
@@ -1416,7 +1416,7 @@ _FEATURE_TYPES: Dict[str, FeatureType] = {
     Array5D.__name__: Array5D,
     Audio.__name__: Audio,
     Image.__name__: Image,
-    EXR.__name__: EXR,
+    Exr.__name__: Exr,
     
 }
 

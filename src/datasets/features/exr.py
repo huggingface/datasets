@@ -19,31 +19,31 @@ if TYPE_CHECKING:
     from .features import FeatureType
 
 @dataclass
-class EXR:
-    """EXR [`Feature`] to read EXR image data from an EXR file.
+class Exr:
+    """Exr [`Feature`] to read Exr image data from an Exr file.
 
-    Input: The EXR feature accepts as input:
-    - A `str`: Absolute path to the EXR file (i.e., random access is allowed).
+    Input: The Exr feature accepts as input:
+    - A `str`: Absolute path to the Exr file (i.e., random access is allowed).
     - A `dict` with the keys:
 
-        - `path`: String with relative path of the EXR file to the archive file.
-        - `bytes`: Bytes of the EXR file.
+        - `path`: String with relative path of the Exr file to the archive file.
+        - `bytes`: Bytes of the Exr file.
 
       This is useful for archived files with sequential access.
 
-    - An `np.ndarray`: NumPy array representing the EXR image.
+    - An `np.ndarray`: NumPy array representing the Exr image.
 
     Args:
         decode (`bool`, defaults to `True`):
-            Whether to decode the EXR data. If `False`,
+            Whether to decode the Exr data. If `False`,
             returns the underlying dictionary in the format `{"path": exr_path, "bytes": exr_bytes}`.
 
     Example:
 
     ```py
-    >>> from datasets import load_dataset, EXR
+    >>> from datasets import load_dataset, Exr
     >>> ds = load_dataset("my_dataset")
-    >>> ds = ds.cast_column("exr_image", EXR())
+    >>> ds = ds.cast_column("exr_image", Exr())
     >>> ds[0]["exr_image"]
     {'array': array([...], dtype=float32),
      'path': '/path/to/file.exr'}
@@ -55,7 +55,7 @@ class EXR:
     # Automatically constructed
     dtype: ClassVar[str] = "np.ndarray"
     pa_type: ClassVar[Any] = pa.struct({"bytes": pa.binary(), "path": pa.string()})
-    _type: str = field(default="EXR", init=False, repr=False)
+    _type: str = field(default="Exr", init=False, repr=False)
 
     def __call__(self):
         return self.pa_type
@@ -65,7 +65,7 @@ class EXR:
 
         Args:
             value (`str`, `np.ndarray` or `dict`):
-                Data passed as input to EXR feature.
+                Data passed as input to Exr feature.
 
         Returns:
             `dict` with "path" and "bytes" fields
@@ -75,35 +75,35 @@ class EXR:
         elif isinstance(value, bytes):
             return {"path": None, "bytes": value}
         elif isinstance(value, np.ndarray):
-            # Convert the EXR array to bytes using the provided exwrite function
+            # Convert the Exr array to bytes using the provided exwrite function
             buffer = BytesIO()
-            exwrite(buffer, value)  # exwrite is your custom function to save EXR to bytes
+            exwrite(buffer, value)  # exwrite is your custom function to save Exr to bytes
             return {"path": None, "bytes": buffer.getvalue()}
         elif value.get("path") is not None and os.path.isfile(value["path"]):
             return {"bytes": None, "path": value.get("path")}
         elif value.get("bytes") is not None or value.get("path") is not None:
             return {"bytes": value.get("bytes"), "path": value.get("path")}
         else:
-            raise ValueError(f"An EXR sample should have one of 'path' or 'bytes' but they are missing or None in {value}.")
+            raise ValueError(f"An Exr sample should have one of 'path' or 'bytes' but they are missing or None in {value}.")
 
     def decode_example(self, value: Tuple[Dict, str], token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None) -> np.ndarray:
-        """Decode example EXR file into image data.
+        """Decode example Exr file into image data.
 
         Args:
             value (`str` or `dict`):
-                A string with the absolute EXR file path, a dictionary with keys:
+                A string with the absolute Exr file path, a dictionary with keys:
 
-                - `path`: String with absolute or relative EXR file path.
-                - `bytes`: The bytes of the EXR file.
+                - `path`: String with absolute or relative Exr file path.
+                - `bytes`: The bytes of the Exr file.
             token_per_repo_id (`dict`, *optional*):
-                To access and decode EXR files from private repositories on the Hub, you can pass
+                To access and decode Exr files from private repositories on the Hub, you can pass
                 a dictionary repo_id (`str`) -> token (`bool` or `str`).
 
         Returns:
             `np.ndarray`
         """
         if not self.decode:
-            raise RuntimeError("Decoding is disabled for this feature. Please use EXR(decode=True) instead.")
+            raise RuntimeError("Decoding is disabled for this feature. Please use Exr(decode=True) instead.")
 
         if token_per_repo_id is None:
             token_per_repo_id = {}
@@ -115,10 +115,10 @@ class EXR:
             path, bytes_ = value["path"], value["bytes"]
         if bytes_ is None:
             if path is None:
-                raise ValueError(f"An EXR sample should have one of 'path' or 'bytes' but both are None in {value}.")
+                raise ValueError(f"An Exr sample should have one of 'path' or 'bytes' but both are None in {value}.")
             else:
                 if is_local_path(path):
-                    array = exload(path)  # exload is your custom function to load EXR
+                    array = exload(path)  # exload is your custom function to load Exr
                 else:
                     source_url = path.split("::")[-1]
                     pattern = (
@@ -153,22 +153,22 @@ class EXR:
         )
 
     def cast_storage(self, storage: Union[pa.StringArray, pa.StructArray, pa.ListArray]) -> pa.StructArray:
-        """Cast an Arrow array to the EXR arrow storage type.
-        The Arrow types that can be converted to the EXR pyarrow storage type are:
+        """Cast an Arrow array to the Exr arrow storage type.
+        The Arrow types that can be converted to the Exr pyarrow storage type are:
 
         - `pa.string()` - it must contain the "path" data
-        - `pa.binary()` - it must contain the EXR bytes
+        - `pa.binary()` - it must contain the Exr bytes
         - `pa.struct({"bytes": pa.binary()})`
         - `pa.struct({"path": pa.string()})`
         - `pa.struct({"bytes": pa.binary(), "path": pa.string()})`  - order doesn't matter
-        - `pa.list(*)` - it must contain the EXR array data
+        - `pa.list(*)` - it must contain the Exr array data
 
         Args:
             storage (`Union[pa.StringArray, pa.StructArray, pa.ListArray]`):
                 PyArrow array to cast.
 
         Returns:
-            `pa.StructArray`: Array in the EXR arrow storage type, that is
+            `pa.StructArray`: Array in the Exr arrow storage type, that is
                 `pa.struct({"bytes": pa.binary(), "path": pa.string()})`.
         """
         if pa.types.is_string(storage.type):
@@ -199,14 +199,14 @@ class EXR:
         return array_cast(storage, self.pa_type)
 
     def embed_storage(self, storage: pa.StructArray) -> pa.StructArray:
-        """Embed EXR files into the Arrow array.
+        """Embed Exr files into the Arrow array.
 
         Args:
             storage (`pa.StructArray`):
                 PyArrow array to embed.
 
         Returns:
-            `pa.StructArray`: Array in the EXR arrow storage type, that is
+            `pa.StructArray`: Array in the Exr arrow storage type, that is
                 `pa.struct({"bytes": pa.binary(), "path": pa.string()})`.
         """
 
