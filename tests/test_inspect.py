@@ -29,7 +29,7 @@ def test_inspect_dataset(path, tmp_path):
 @pytest.mark.filterwarnings("ignore:metric_module_factory is deprecated:FutureWarning")
 @pytest.mark.parametrize("path", ["accuracy"])
 def test_inspect_metric(path, tmp_path):
-    inspect_metric(path, tmp_path, trust_remote_code=True)
+    inspect_metric(path, tmp_path, trust_remote_code=True, revision="2.21")
     script_name = path + ".py"
     assert script_name in os.listdir(tmp_path)
     assert "__pycache__" not in os.listdir(tmp_path)
