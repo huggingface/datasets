@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 @dataclass
 class Translation:
-    """`FeatureConnector` for translations with fixed languages per example.
+    """`Feature` for translations with fixed languages per example.
     Here for compatiblity with tfds.
 
     Args:
@@ -50,7 +50,7 @@ class Translation:
 
 @dataclass
 class TranslationVariableLanguages:
-    """`FeatureConnector` for translations with variable languages per example.
+    """`Feature` for translations with variable languages per example.
     Here for compatiblity with tfds.
 
     Args:

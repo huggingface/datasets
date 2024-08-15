@@ -460,8 +460,9 @@ def cast_to_python_objects(obj: Any, only_1d_for_numpy=False, optimize_list_cast
 @dataclass
 class Value:
     """
-    The `Value` dtypes are as follows:
+    Scalar feature value of a particular data type.
 
+    The possible dtypes of `Value` are as follows:
     - `null`
     - `bool`
     - `int8`
@@ -488,6 +489,10 @@ class Value:
     - `large_binary`
     - `string`
     - `large_string`
+
+    Args:
+        dtype (`str`):
+            Name of the data type.
 
     Example:
 
@@ -546,9 +551,9 @@ class Array2D(_ArrayXD):
 
     Args:
         shape (`tuple`):
-            The size of each dimension.
+            Size of each dimension.
         dtype (`str`):
-            The value of the data type.
+            Name of the data type.
 
     Example:
 
@@ -571,9 +576,9 @@ class Array3D(_ArrayXD):
 
     Args:
         shape (`tuple`):
-            The size of each dimension.
+            Size of each dimension.
         dtype (`str`):
-            The value of the data type.
+            Name of the data type.
 
     Example:
 
@@ -596,9 +601,9 @@ class Array4D(_ArrayXD):
 
     Args:
         shape (`tuple`):
-            The size of each dimension.
+            Size of each dimension.
         dtype (`str`):
-            The value of the data type.
+            Name of the data type.
 
     Example:
 
@@ -621,9 +626,9 @@ class Array5D(_ArrayXD):
 
     Args:
         shape (`tuple`):
-            The size of each dimension.
+            Size of each dimension.
         dtype (`str`):
-            The value of the data type.
+            Name of the data type.
 
     Example:
 
@@ -1139,7 +1144,7 @@ class Sequence:
     Mostly here for compatiblity with tfds.
 
     Args:
-        feature:
+        feature ([`FeatureType`]):
             A list of features of a single type or a dictionary of types.
         length (`int`):
             Length of the sequence.
@@ -1170,7 +1175,7 @@ class LargeList:
     It is backed by `pyarrow.LargeListType`, which is like `pyarrow.ListType` but with 64-bit rather than 32-bit offsets.
 
     Args:
-        dtype:
+        dtype ([`FeatureType`]):
             Child feature data type of each item within the large list.
     """
 
@@ -1695,30 +1700,30 @@ class Features(dict):
     and values are the type of that column.
 
     `FieldType` can be one of the following:
-        - a [`~datasets.Value`] feature specifies a single typed value, e.g. `int64` or `string`.
-        - a [`~datasets.ClassLabel`] feature specifies a field with a predefined set of classes which can have labels
-          associated to them and will be stored as integers in the dataset.
-        - a python `dict` which specifies that the field is a nested field containing a mapping of sub-fields to sub-fields
-          features. It's possible to have nested fields of nested fields in an arbitrary manner.
-        - a python `list` or a [`~datasets.Sequence`] specifies that the field contains a list of objects. The python
-          `list` or [`~datasets.Sequence`] should be provided with a single sub-feature as an example of the feature
-          type hosted in this list.
+        - [`Value`] feature specifies a single data type value, e.g. `int64` or `string`.
+        - [`ClassLabel`] feature specifies a predefined set of classes which can have labels associated to them and
+          will be stored as integers in the dataset.
+        - Python `dict` specifies a composite feature containing a mapping of sub-fields to sub-features.
+          It's possible to have nested fields of nested fields in an arbitrary manner.
+        - Python `list`, [`LargeList`] or [`Sequence`] specifies a composite feature containing a sequence of
+          sub-features, all of the same feature type.
 
           <Tip>
 
-           A [`~datasets.Sequence`] with a internal dictionary feature will be automatically converted into a dictionary of
+           A [`Sequence`] with an internal dictionary feature will be automatically converted into a dictionary of
            lists. This behavior is implemented to have a compatibility layer with the TensorFlow Datasets library but may be
-           un-wanted in some cases. If you don't want this behavior, you can use a python `list` instead of the
-           [`~datasets.Sequence`].
+           un-wanted in some cases. If you don't want this behavior, you can use a Python `list` or a [`LargeList`]
+           instead of the [`Sequence`].
 
           </Tip>
 
-        - a [`Array2D`], [`Array3D`], [`Array4D`] or [`Array5D`] feature for multidimensional arrays.
-        - an [`Audio`] feature to store the absolute path to an audio file or a dictionary with the relative path
+        - [`Array2D`], [`Array3D`], [`Array4D`] or [`Array5D`] feature for multidimensional arrays.
+        - [`Audio`] feature to store the absolute path to an audio file or a dictionary with the relative path
           to an audio file ("path" key) and its bytes content ("bytes" key). This feature extracts the audio data.
-        - an [`Image`] feature to store the absolute path to an image file, an `np.ndarray` object, a `PIL.Image.Image` object
-          or a dictionary with the relative path to an image file ("path" key) and its bytes content ("bytes" key). This feature extracts the image data.
-        - [`~datasets.Translation`] and [`~datasets.TranslationVariableLanguages`], the two features specific to Machine Translation.
+        - [`Image`] feature to store the absolute path to an image file, an `np.ndarray` object, a `PIL.Image.Image` object
+          or a dictionary with the relative path to an image file ("path" key) and its bytes content ("bytes" key).
+          This feature extracts the image data.
+        - [`Translation`] or [`TranslationVariableLanguages`] feature specific to Machine Translation.
     """
 
     def __init__(*args, **kwargs):
