@@ -551,7 +551,7 @@ class Array2D(_ArrayXD):
 
     Args:
         shape (`tuple`):
-            The size of each dimension.
+            Size of each dimension.
         dtype (`str`):
             Name of the data type.
 
@@ -576,7 +576,7 @@ class Array3D(_ArrayXD):
 
     Args:
         shape (`tuple`):
-            The size of each dimension.
+            Size of each dimension.
         dtype (`str`):
             Name of the data type.
 
@@ -601,7 +601,7 @@ class Array4D(_ArrayXD):
 
     Args:
         shape (`tuple`):
-            The size of each dimension.
+            Size of each dimension.
         dtype (`str`):
             Name of the data type.
 
@@ -626,7 +626,7 @@ class Array5D(_ArrayXD):
 
     Args:
         shape (`tuple`):
-            The size of each dimension.
+            Size of each dimension.
         dtype (`str`):
             Name of the data type.
 
