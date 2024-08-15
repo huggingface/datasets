@@ -54,9 +54,6 @@ class DownloadConfig:
 
             </Deprecated>
 
-        ignore_url_params (`bool`, defaults to `False`):
-            Whether to strip all query parameters and fragments from
-            the download URL before using it for caching the file.
         storage_options (`dict`, *optional*):
             Key/value pairs to be passed on to the dataset file-system backend, if any.
         download_desc (`str`, *optional*):
@@ -80,7 +77,6 @@ class DownloadConfig:
     max_retries: int = 1
     token: Optional[Union[str, bool]] = None
     use_auth_token: InitVar[Optional[Union[str, bool]]] = "deprecated"
-    ignore_url_params: bool = False
     storage_options: Dict[str, Any] = field(default_factory=dict)
     download_desc: Optional[str] = None
     disable_tqdm: bool = False

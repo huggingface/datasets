@@ -76,7 +76,7 @@ from .utils.file_utils import (
     OfflineModeIsEnabled,
     _raise_if_offline_mode_is_enabled,
     cached_path,
-    head_hf_s3,
+    get_datasets_user_agent,
     init_hf_modules,
     is_relative_path,
     relative_to_absolute_path,
@@ -276,7 +276,11 @@ def increase_load_count(name: str):
     """Update the download count of a dataset."""
     if not config.HF_HUB_OFFLINE and config.HF_UPDATE_DOWNLOAD_COUNTS:
         try:
-            head_hf_s3(name, filename=name + ".py")
+            requests.head(
+                "/".join((config.S3_DATASETS_BUCKET_PREFIX, name, name + ".py")),
+                user_agent=get_datasets_user_agent(),
+                timeout=3,
+            )
         except Exception:
             pass
 
@@ -1637,6 +1641,7 @@ def dataset_module_factory(
                     download_mode=download_mode,
                 ).get_module()
         except Exception as e1:
+            raise  # TODO: REMOVE
             # All the attempts failed, before raising the error we should check if the module is already cached
             try:
                 return CachedDatasetModuleFactory(
