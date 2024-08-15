@@ -492,7 +492,7 @@ class Value:
 
     Args:
         dtype (`str`):
-            Name of a data type.
+            Name of the data type.
 
     Example:
 
@@ -553,7 +553,7 @@ class Array2D(_ArrayXD):
         shape (`tuple`):
             The size of each dimension.
         dtype (`str`):
-            The value of the data type.
+            Name of the data type.
 
     Example:
 
@@ -578,7 +578,7 @@ class Array3D(_ArrayXD):
         shape (`tuple`):
             The size of each dimension.
         dtype (`str`):
-            The value of the data type.
+            Name of the data type.
 
     Example:
 
@@ -603,7 +603,7 @@ class Array4D(_ArrayXD):
         shape (`tuple`):
             The size of each dimension.
         dtype (`str`):
-            The value of the data type.
+            Name of the data type.
 
     Example:
 
@@ -628,7 +628,7 @@ class Array5D(_ArrayXD):
         shape (`tuple`):
             The size of each dimension.
         dtype (`str`):
-            The value of the data type.
+            Name of the data type.
 
     Example:
 
