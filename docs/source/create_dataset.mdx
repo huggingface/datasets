@@ -7,6 +7,19 @@ In this tutorial, you'll learn how to use 🤗 Datasets low-code methods for cre
 * Folder-based builders for quickly creating an image or audio dataset
 * `from_` methods for creating datasets from local files
 
+## File-based builders
+
+🤗 Datasets supports many common formats such as `csv`, `json/jsonl`, `parquet`, `txt`.
+
+For example it can read a dataset made up of one or several CSV files (in this case, pass your CSV files as a list):
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("csv", data_files="my_file.csv")
+```
+
+To get the list of supported formats and code examples, follow this guide [here](https://huggingface.co/docs/datasets/loading#local-and-remote-files).
+
 ## Folder-based builders
 
 There are two folder-based builders, [`ImageFolder`] and [`AudioFolder`]. These are low-code methods for quickly creating an image or speech and audio dataset with several thousand examples. They are great for rapidly prototyping computer vision and speech models before scaling to a larger dataset. Folder-based builders takes your data and automatically generates the dataset's features, splits, and labels. Under the hood:
@@ -61,11 +74,9 @@ squirtle.png, When it retracts its long neck into its shell, it squirts out wate
 
 To learn more about each of these folder-based builders, check out the and <a href="https://huggingface.co/docs/datasets/image_dataset#imagefolder"><span class="underline decoration-yellow-400 decoration-2 font-semibold">ImageFolder</span></a> or <a href="https://huggingface.co/docs/datasets/audio_dataset#audiofolder"><span class="underline decoration-pink-400 decoration-2 font-semibold">AudioFolder</span></a> guides.
 
-For similiar builders to load data from common formats such as `csv`, `json/jsonl`, `parquet`, and `txt` follow this guide [here](https://huggingface.co/docs/datasets/loading#local-and-remote-files)
+## From Python dictionaries
 
-## From local files
-
-You can also create a dataset from local files by specifying the path to the data files. There are two ways you can create a dataset using the `from_` methods:
+You can also create a dataset from data in Python dictionaries. There are two ways you can create a dataset using the `from_` methods:
 
     * The [`~Dataset.from_generator`] method is the most memory-efficient way to create a dataset from a [generator](https://wiki.python.org/moin/Generators) due to a generators iterative behavior. This is especially useful when you're working with a really large dataset that may not fit in memory, since the dataset is generated on disk progressively and then memory-mapped.
 
@@ -104,11 +115,5 @@ You can also create a dataset from local files by specifying the path to the dat
     ```py
     >>> audio_dataset = Dataset.from_dict({"audio": ["path/to/audio_1", ..., "path/to/audio_n"]}).cast_column("audio", Audio())
     ```
-
-## Next steps
-
-We didn't mention this in the tutorial, but you can also create a dataset with a loading script. A loading script is a more manual and code-intensive method for creating a dataset, and are not well supported on Hugging Face. Though in some rare cases it can still be helpful.
-
-To learn more about how to write loading scripts, take a look at the <a href="https://huggingface.co/docs/datasets/main/en/image_dataset#loading-script"><span class="underline decoration-yellow-400 decoration-2 font-semibold">image loading script</span></a>, <a href="https://huggingface.co/docs/datasets/main/en/audio_dataset"><span class="underline decoration-pink-400 decoration-2 font-semibold">audio loading script</span></a>, and <a href="https://huggingface.co/docs/datasets/main/en/dataset_script"><span class="underline decoration-green-400 decoration-2 font-semibold">text loading script</span></a> guides.
 
 Now that you know how to create a dataset, consider sharing it on the Hub so the community can also benefit from your work! Go on to the next section to learn how to share your dataset.
