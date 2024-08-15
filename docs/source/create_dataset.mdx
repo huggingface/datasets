@@ -74,9 +74,9 @@ squirtle.png, When it retracts its long neck into its shell, it squirts out wate
 
 To learn more about each of these folder-based builders, check out the and <a href="https://huggingface.co/docs/datasets/image_dataset#imagefolder"><span class="underline decoration-yellow-400 decoration-2 font-semibold">ImageFolder</span></a> or <a href="https://huggingface.co/docs/datasets/audio_dataset#audiofolder"><span class="underline decoration-pink-400 decoration-2 font-semibold">AudioFolder</span></a> guides.
 
-## From local files paths
+## From Python dictionaries
 
-You can also create a dataset from local files by specifying the path to the data files. There are two ways you can create a dataset using the `from_` methods:
+You can also create a dataset from data in Python dictionaries. There are two ways you can create a dataset using the `from_` methods:
 
     * The [`~Dataset.from_generator`] method is the most memory-efficient way to create a dataset from a [generator](https://wiki.python.org/moin/Generators) due to a generators iterative behavior. This is especially useful when you're working with a really large dataset that may not fit in memory, since the dataset is generated on disk progressively and then memory-mapped.
 
