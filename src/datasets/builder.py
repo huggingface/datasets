@@ -51,7 +51,6 @@ from .data_files import DataFilesDict, DataFilesPatternsDict, sanitize_patterns
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadManager, DownloadMode
-from .download.mock_download_manager import MockDownloadManager
 from .download.streaming_download_manager import StreamingDownloadManager, xjoin
 from .exceptions import DatasetGenerationCastError, DatasetGenerationError, FileFormatError, ManualDownloadError
 from .features import Features
@@ -931,14 +930,6 @@ class DatasetBuilder:
             )
 
         is_local = not is_remote_filesystem(self._fs)
-
-        if (
-            isinstance(dl_manager, MockDownloadManager)
-            or not is_local
-            or file_format != "arrow"
-            or max_shard_size is not None
-        ):
-            try_from_hf_gcs = False
         self.dl_manager = dl_manager
 
         # Prevent parallel local disk operations
