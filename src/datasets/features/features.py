@@ -1705,7 +1705,7 @@ class Features(dict):
           will be stored as integers in the dataset.
         - Python `dict` specifies a composite feature containing a mapping of sub-fields to sub-features.
           It's possible to have nested fields of nested fields in an arbitrary manner.
-        - Python `list` or a [`LargeList`] or a [`Sequence`] specifies a composite feature containing a sequence of
+        - Python `list`, [`LargeList`] or [`Sequence`] specifies a composite feature containing a sequence of
           sub-features, all of the same feature type.
 
           <Tip>
