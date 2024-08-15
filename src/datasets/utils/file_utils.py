@@ -189,7 +189,6 @@ def cached_path(
                     repo_type=resolved_path.repo_type,
                     revision=resolved_path.revision,
                     filename=resolved_path.path_in_repo,
-                    cache_dir=download_config.cache_dir,
                     force_download=download_config.force_download,
                     proxies=download_config.proxies,
                 )
