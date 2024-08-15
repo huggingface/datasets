@@ -460,8 +460,9 @@ def cast_to_python_objects(obj: Any, only_1d_for_numpy=False, optimize_list_cast
 @dataclass
 class Value:
     """
-    The `Value` dtypes are as follows:
+    Scalar feature value of a particular data type.
 
+    The possible dtypes of `Value` are as follows:
     - `null`
     - `bool`
     - `int8`
@@ -488,6 +489,10 @@ class Value:
     - `large_binary`
     - `string`
     - `large_string`
+
+    Args:
+        dtype (`str`):
+            Name of a data type.
 
     Example:
 
@@ -1139,7 +1144,7 @@ class Sequence:
     Mostly here for compatiblity with tfds.
 
     Args:
-        feature:
+        feature ([`FeatureType`]):
             A list of features of a single type or a dictionary of types.
         length (`int`):
             Length of the sequence.
@@ -1170,7 +1175,7 @@ class LargeList:
     It is backed by `pyarrow.LargeListType`, which is like `pyarrow.ListType` but with 64-bit rather than 32-bit offsets.
 
     Args:
-        dtype:
+        dtype ([`FeatureType`]):
             Child feature data type of each item within the large list.
     """
 
