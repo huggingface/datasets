@@ -1535,6 +1535,7 @@ class BaseDatasetTest(TestCase):
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertRaises(ValueError, dset.map, func_return_multi_row_pd_dataframe)
 
+    @require_polars
     def test_map_return_pl_dataframe(self, in_memory):
         import polars as pl
 
