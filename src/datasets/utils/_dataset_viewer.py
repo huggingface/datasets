@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Optional, Union
 
-from huggingface_hub.utils import http_backoff
+from huggingface_hub.utils import get_session
 
 from .. import config
 from ..exceptions import DatasetsError
@@ -30,8 +30,7 @@ def get_exported_parquet_files(dataset: str, revision: str, token: Optional[Unio
     """
     dataset_viewer_parquet_url = config.HF_ENDPOINT.replace("://", "://datasets-server.") + "/parquet?dataset="
     try:
-        parquet_data_files_response = http_backoff(
-            "GET",
+        parquet_data_files_response = get_session().get(
             url=dataset_viewer_parquet_url + dataset,
             headers=get_authentication_headers_for_url(config.HF_ENDPOINT + f"datasets/{dataset}", token=token),
             timeout=100.0,
@@ -67,12 +66,10 @@ def get_exported_dataset_infos(
     """
     dataset_viewer_info_url = config.HF_ENDPOINT.replace("://", "://datasets-server.") + "/info?dataset="
     try:
-        info_response = http_get(
+        info_response = get_session().get(
             url=dataset_viewer_info_url + dataset,
-            temp_file=None,
             headers=get_authentication_headers_for_url(config.HF_ENDPOINT + f"datasets/{dataset}", token=token),
             timeout=100.0,
-            max_retries=3,
         )
         info_response.raise_for_status()
         if "X-Revision" in info_response.headers:
