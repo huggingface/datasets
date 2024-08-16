@@ -1,7 +1,7 @@
 import pytest
 import requests
 
-from datasets.utils.file_utils import http_head
+from datasets.utils.file_utils import fsspec_head
 
 from .utils import OfflineSimulationMode, RequestWouldHangIndefinitelyError, offline
 
@@ -25,4 +25,4 @@ def test_offline_with_connection_error():
 def test_offline_with_datasets_offline_mode_enabled():
     with offline(OfflineSimulationMode.HF_HUB_OFFLINE_SET_TO_1):
         with pytest.raises(ConnectionError):
-            http_head("https://huggingface.co")
+            fsspec_head("https://huggingface.co")

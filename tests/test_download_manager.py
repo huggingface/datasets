@@ -11,9 +11,9 @@ from datasets.utils.file_utils import hash_url_to_filename, xopen
 from datasets.utils.py_utils import NestedDataStructure
 
 
-URL = "http://www.mocksite.com/file1.txt"
+URL = "tmp://file1.txt"
 CONTENT = '"text": ["foo", "foo"]'
-HASH = "6d8ce9aa78a471c7477201efbeabd3bb01ac2e7d100a6dc024ba1608361f90a8"
+HASH = "ce0516943c3a4f9af269cf40fa658d615fa0f00d2dd9ef3f0ac5a3b35be0b719"
 
 
 class MockResponse:
@@ -30,12 +30,10 @@ def mock_request(*args, **kwargs):
 
 
 @pytest.mark.parametrize("urls_type", ["str", "list", "dict", "dict_of_dict"])
-def test_download_manager_download(urls_type, tmp_path, monkeypatch):
-    import requests
-
-    monkeypatch.setattr(requests, "request", mock_request)
-
+def test_download_manager_download(urls_type, tmp_path, tmpfs):
     url = URL
+    with tmpfs.open(url, "w") as f:
+        f.write(CONTENT)
     urls_types = {"str": url, "list": [url], "dict": {"train": url}, "dict_of_dict": {"train": {"en": url}}}
     urls = urls_types[urls_type]
     dataset_name = "dummy"
