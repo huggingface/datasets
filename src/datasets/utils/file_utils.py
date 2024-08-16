@@ -35,7 +35,7 @@ import huggingface_hub.errors
 import requests
 from fsspec.core import strip_protocol, url_to_fs
 from fsspec.utils import can_be_local
-from huggingface_hub.utils import EntryNotFoundError, insecure_hashlib
+from huggingface_hub.utils import EntryNotFoundError, get_session, insecure_hashlib
 from packaging import version
 
 from .. import __version__, config
@@ -169,10 +169,12 @@ def cached_path(
 
     if is_remote_url(url_or_filename):
         # URL, so get it from the cache (downloading if necessary)
-        # HF HTTP URLs are prepared as to hf:// URLs
         url_or_filename, storage_options = _prepare_path_and_storage_options(
             url_or_filename, download_config=download_config
         )
+        # Download files from Hugging Face.
+        # Note: no need to check for https://huggingface.co file URLs since _prepare_path_and_storage_options
+        # prepares Hugging Face HTTP URLs as hf:// paths already
         if url_or_filename.startswith("hf://"):
             resolved_path = huggingface_hub.HfFileSystem(
                 endpoint=config.HF_ENDPOINT, token=download_config.token
@@ -199,6 +201,7 @@ def cached_path(
                 huggingface_hub.utils.GatedRepoError,
             ) as e:
                 raise FileNotFoundError(str(e)) from e
+        # Download external files
         else:
             output_path = get_from_cache(
                 url_or_filename,
@@ -909,7 +912,7 @@ def _prepare_single_hop_path_and_storage_options(
         client_kwargs = storage_options.pop("client_kwargs", {})
         storage_options["client_kwargs"] = {"trust_env": True, **client_kwargs}  # Enable reading proxy env variables
         if "drive.google.com" in urlpath:
-            response = requests.head(urlpath, timeout=10)
+            response = get_session().head(urlpath, timeout=10)
             for k, v in response.cookies.items():
                 if k.startswith("download_warning"):
                     urlpath += "&confirm=" + v

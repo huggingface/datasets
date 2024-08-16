@@ -37,7 +37,7 @@ import requests
 import yaml
 from fsspec.core import url_to_fs
 from huggingface_hub import DatasetCard, DatasetCardData, HfApi, HfFileSystem
-from huggingface_hub.utils import GatedRepoError, RepositoryNotFoundError, RevisionNotFoundError
+from huggingface_hub.utils import GatedRepoError, RepositoryNotFoundError, RevisionNotFoundError, get_session
 
 from . import config
 from .arrow_dataset import Dataset
@@ -276,7 +276,7 @@ def increase_load_count(name: str):
     """Update the download count of a dataset."""
     if not config.HF_HUB_OFFLINE and config.HF_UPDATE_DOWNLOAD_COUNTS:
         try:
-            requests.head(
+            get_session().head(
                 "/".join((config.S3_DATASETS_BUCKET_PREFIX, name, name + ".py")),
                 user_agent=get_datasets_user_agent(),
                 timeout=3,
