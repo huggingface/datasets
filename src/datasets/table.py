@@ -2017,7 +2017,7 @@ def cast_array_to_feature(
                 array_offsets = _combine_list_array_offsets_with_mask(array)
                 return pa.ListArray.from_arrays(array_offsets, casted_array_values)
         elif isinstance(feature, LargeList):
-            casted_array_values = _c(array.values, feature.dtype)
+            casted_array_values = _c(array.values, feature.feature)
             if pa.types.is_large_list(array.type) and casted_array_values.type == array.values.type:
                 # Both array and feature have equal large_list type and values (within the list) type
                 return array
@@ -2075,7 +2075,9 @@ def cast_array_to_feature(
             return pa.ListArray.from_arrays(array_offsets, _c(array.values, feature[0]), mask=array.is_null())
         elif isinstance(feature, LargeList):
             array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
-            return pa.LargeListArray.from_arrays(array_offsets, _c(array.values, feature.dtype), mask=array.is_null())
+            return pa.LargeListArray.from_arrays(
+                array_offsets, _c(array.values, feature.feature), mask=array.is_null()
+            )
         elif isinstance(feature, Sequence):
             if feature.length > -1:
                 if feature.length == array.type.list_size:
@@ -2155,7 +2157,7 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
         # feature must be LargeList(subfeature)
         # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
         array_offsets = _combine_list_array_offsets_with_mask(array)
-        return pa.LargeListArray.from_arrays(array_offsets, _e(array.values, feature.dtype))
+        return pa.LargeListArray.from_arrays(array_offsets, _e(array.values, feature.feature))
     elif pa.types.is_fixed_size_list(array.type):
         # feature must be Sequence(subfeature)
         if isinstance(feature, Sequence) and feature.length > -1:
