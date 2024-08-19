@@ -7,10 +7,11 @@ from packaging import version
 
 from datasets.utils.file_utils import fsspec_get, fsspec_head
 
-from .utils import OfflineSimulationMode, RequestWouldHangIndefinitelyError, offline
+from .utils import OfflineSimulationMode, RequestWouldHangIndefinitelyError, offline, require_not_windows
 
 
 @pytest.mark.integration
+@require_not_windows  # fsspec get keeps a file handle on windows that raises PermissionError
 def test_offline_with_timeout():
     with offline(OfflineSimulationMode.CONNECTION_TIMES_OUT):
         with pytest.raises(RequestWouldHangIndefinitelyError):
@@ -24,6 +25,7 @@ def test_offline_with_timeout():
 
 
 @pytest.mark.integration
+@require_not_windows  # fsspec get keeps a file handle on windows that raises PermissionError
 def test_offline_with_connection_error():
     with offline(OfflineSimulationMode.CONNECTION_FAILS):
         with pytest.raises(requests.exceptions.ConnectionError):
