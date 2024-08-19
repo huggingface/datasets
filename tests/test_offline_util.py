@@ -1,7 +1,9 @@
 from tempfile import NamedTemporaryFile
 
+import huggingface_hub
 import pytest
 import requests
+from packaging import version
 
 from datasets.utils.file_utils import fsspec_get, fsspec_head
 
@@ -15,8 +17,10 @@ def test_offline_with_timeout():
             requests.request("GET", "https://huggingface.co")
         with pytest.raises(requests.exceptions.ConnectTimeout):
             requests.request("GET", "https://huggingface.co", timeout=1.0)
-        with pytest.raises(requests.exceptions.ConnectTimeout), NamedTemporaryFile() as temp_file:
-            fsspec_get("hf://dummy", temp_file=temp_file)
+        # old versions of `huggingface_hub` don't have timeouts by default and don't allow to set timeouts in HfFileSystem
+        if version(huggingface_hub.__version__) >= version("0.23.0"):
+            with pytest.raises(requests.exceptions.ConnectTimeout), NamedTemporaryFile() as temp_file:
+                fsspec_get("hf://dummy", temp_file=temp_file)
 
 
 @pytest.mark.integration
