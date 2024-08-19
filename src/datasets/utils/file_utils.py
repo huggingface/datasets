@@ -429,7 +429,7 @@ def get_from_cache(
         # Otherwise, you get corrupt cache entries if the download gets interrupted.
         with temp_file_manager() as temp_file:
             logger.info(f"{url} not found in cache or force_download set to True, downloading to {temp_file.name}")
-            # GET file objectViewer
+            # GET file object
             fsspec_get(url, temp_file, storage_options=storage_options, desc=download_desc, disable_tqdm=disable_tqdm)
 
         logger.info(f"storing {url} in cache at {cache_path}")
