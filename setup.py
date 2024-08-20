@@ -144,6 +144,7 @@ AUDIO_REQUIRE = [
     "soundfile>=0.12.1",
     "librosa",
     "soxr>=0.4.0; python_version>='3.9'",  # Supports numpy-2
+    "numba>=0.52.0",  # Fix GH-7111 by preventing installation of numba-0.51.2 (librosa requires numba >= 0.51.0)
 ]
 
 VISION_REQUIRE = [
