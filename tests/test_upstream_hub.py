@@ -28,6 +28,7 @@ from datasets import (
 )
 from datasets.config import METADATA_CONFIGS_FIELD
 from datasets.data_files import get_data_patterns
+from datasets.exceptions import DatasetNotFoundError
 from datasets.packaged_modules.folder_based_builder.folder_based_builder import (
     FolderBasedBuilder,
     FolderBasedBuilderConfig,
@@ -953,3 +954,15 @@ class TestLoadFromHub:
             assert data_file_patterns == {
                 "train": ["data/train-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"]
             }
+
+    @pytest.mark.parametrize("dataset", ["gated", "private"])
+    def test_load_dataset_raises_for_unauthenticated_user(
+        self, dataset, hf_gated_dataset_repo_txt_data, hf_private_dataset_repo_txt_data
+    ):
+        dataset_ids = {
+            "gated": hf_gated_dataset_repo_txt_data,
+            "private": hf_private_dataset_repo_txt_data,
+        }
+        dataset_id = dataset_ids[dataset]
+        with pytest.raises(DatasetNotFoundError):
+            _ = load_dataset(dataset_id, token=False)
