@@ -82,7 +82,7 @@ from .utils.file_utils import (
     relative_to_absolute_path,
     url_or_path_join,
 )
-from .utils.hub import check_auth_for_gated_repo, hf_dataset_url
+from .utils.hub import check_auth, hf_dataset_url
 from .utils.info_utils import VerificationMode, is_small_dataset
 from .utils.logging import get_logger
 from .utils.metadata import MetadataConfigs
@@ -1593,7 +1593,7 @@ def dataset_module_factory(
                 raise DatasetNotFoundError(f"Dataset '{path}' doesn't exist on the Hub or cannot be accessed.") from e
             if dataset_info.gated:
                 try:
-                    check_auth_for_gated_repo(hf_api, repo_id=path, token=download_config.token)
+                    check_auth(hf_api, repo_id=path, token=download_config.token)
                 except GatedRepoError as e:
                     message = f"Dataset '{path}' is a gated dataset on the Hub."
                     if "401 Client Error" in str(e):
