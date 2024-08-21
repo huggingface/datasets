@@ -194,6 +194,7 @@ TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
 NUMPY2_INCOMPATIBLE_LIBRARIES = [
     "faiss-cpu",
+    "librosa",  # librosa -> numba-0.60.0 requires numpy < 2.1 (see GH-7111)
     "tensorflow",
     "transformers",
 ]
