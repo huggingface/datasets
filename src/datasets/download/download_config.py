@@ -73,10 +73,6 @@ class DownloadConfig:
     download_desc: Optional[str] = None
     disable_tqdm: bool = False
 
-    def __post_init__(self):
-        if "hf" not in self.storage_options:
-            self.storage_options["hf"] = {"token": self.token, "endpoint": config.HF_ENDPOINT}
-
     def copy(self) -> "DownloadConfig":
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
 

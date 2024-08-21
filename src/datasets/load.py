@@ -82,11 +82,12 @@ from .utils.file_utils import (
     relative_to_absolute_path,
     url_or_path_join,
 )
-from .utils.hub import hf_dataset_url
+from .utils.hub import check_auth, hf_dataset_url
 from .utils.info_utils import VerificationMode, is_small_dataset
 from .utils.logging import get_logger
 from .utils.metadata import MetadataConfigs
 from .utils.py_utils import get_imports, lock_importable_file
+from .utils.typing import PathLike
 from .utils.version import Version
 
 
@@ -282,7 +283,7 @@ def increase_load_count(name: str):
 
 def _download_additional_modules(
     name: str, base_path: str, imports: Tuple[str, str, str, str], download_config: Optional[DownloadConfig]
-) -> List[Tuple[str, str]]:
+) -> Tuple[List[Tuple[str, str]], List[Tuple[str, str]]]:
     """
     Download additional module for a module <name>.py at URL (or local path) <base_path>/<name>.py
     The imports must have been parsed first using ``get_imports``.
@@ -324,6 +325,10 @@ def _download_additional_modules(
             local_import_path = os.path.join(local_import_path, sub_directory)
         local_imports.append((import_name, local_import_path))
 
+    return local_imports, library_imports
+
+
+def _check_library_imports(name: str, library_imports: List[Tuple[str, str]]) -> None:
     # Check library imports
     needs_to_be_installed = {}
     for library_import_name, library_import_path in library_imports:
@@ -344,7 +349,6 @@ def _download_additional_modules(
             f"{', '.join(needs_to_be_installed)}.\nPlease install {_them_str} using 'pip install "
             f"{' '.join(needs_to_be_installed.values())}' for instance."
         )
-    return local_imports
 
 
 def _copy_script_and_other_resources_in_importable_dir(
@@ -722,7 +726,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         dataset_infos_path = Path(self.path).parent / config.DATASETDICT_INFOS_FILENAME
         dataset_readme_path = Path(self.path).parent / config.REPOCARD_FILENAME
         imports = get_imports(self.path)
-        local_imports = _download_additional_modules(
+        local_imports, library_imports = _download_additional_modules(
             name=self.name,
             base_path=str(Path(self.path).parent),
             imports=imports,
@@ -761,6 +765,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
                     " repo on your local machine. Make sure you have read the code there to avoid malicious use, then"
                     " set the option `trust_remote_code=True` to remove this error."
                 )
+        _check_library_imports(name=self.name, library_imports=library_imports)
         module_path, hash = _load_importable_file(
             dynamic_modules_path=dynamic_modules_path,
             module_namespace="datasets",
@@ -1285,7 +1290,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         dataset_infos_path = self.download_dataset_infos_file()
         dataset_readme_path = self.download_dataset_readme_file()
         imports = get_imports(local_path)
-        local_imports = _download_additional_modules(
+        local_imports, library_imports = _download_additional_modules(
             name=self.name,
             base_path=hf_dataset_url(self.name, "", revision=self.revision),
             imports=imports,
@@ -1324,6 +1329,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
                     " repo on your local machine. Make sure you have read the code there to avoid malicious use, then"
                     " set the option `trust_remote_code=True` to remove this error."
                 )
+        _check_library_imports(name=self.name, library_imports=library_imports)
         module_path, hash = _load_importable_file(
             dynamic_modules_path=dynamic_modules_path,
             module_namespace="datasets",
@@ -1579,19 +1585,24 @@ def dataset_module_factory(
                 requests.exceptions.ConnectionError,
             ) as e:
                 raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({e.__class__.__name__})") from e
-            except GatedRepoError as e:
-                message = f"Dataset '{path}' is a gated dataset on the Hub."
-                if "401 Client Error" in str(e):
-                    message += " You must be authenticated to access it."
-                elif "403 Client Error" in str(e):
-                    message += f" Visit the dataset page at https://huggingface.co/datasets/{path} to ask for access."
-                raise DatasetNotFoundError(message) from e
             except RevisionNotFoundError as e:
                 raise DatasetNotFoundError(
                     f"Revision '{revision}' doesn't exist for dataset '{path}' on the Hub."
                 ) from e
             except RepositoryNotFoundError as e:
                 raise DatasetNotFoundError(f"Dataset '{path}' doesn't exist on the Hub or cannot be accessed.") from e
+            if dataset_info.gated:
+                try:
+                    check_auth(hf_api, repo_id=path, token=download_config.token)
+                except GatedRepoError as e:
+                    message = f"Dataset '{path}' is a gated dataset on the Hub."
+                    if "401 Client Error" in str(e):
+                        message += " You must be authenticated to access it."
+                    elif "403 Client Error" in str(e):
+                        message += (
+                            f" Visit the dataset page at https://huggingface.co/datasets/{path} to ask for access."
+                        )
+                    raise DatasetNotFoundError(message) from e
 
             if filename in [sibling.rfilename for sibling in dataset_info.siblings]:  # contains a dataset script
                 fs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=download_config.token)
@@ -1840,7 +1851,6 @@ def load_dataset(
     save_infos: bool = False,
     revision: Optional[Union[str, Version]] = None,
     token: Optional[Union[bool, str]] = None,
-    task="deprecated",
     streaming: bool = False,
     num_proc: Optional[int] = None,
     storage_options: Optional[Dict] = None,
@@ -1943,14 +1953,6 @@ def load_dataset(
         token (`str` or `bool`, *optional*):
             Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If `True`, or not specified, will get token from `"~/.huggingface"`.
-        task (`str`):
-            The task to prepare the dataset for during training and evaluation. Casts the dataset's [`Features`] to standardized column names and types as detailed in `datasets.tasks`.
-
-            <Deprecated version="2.13.0">
-
-            `task` was deprecated in version 2.13.0 and will be removed in 3.0.0.
-
-            </Deprecated>
         streaming (`bool`, defaults to `False`):
             If set to `True`, don't download the data files. Instead, it streams the data progressively while
             iterating on the dataset. An [`IterableDataset`] or [`IterableDatasetDict`] is returned instead in this case.
@@ -2037,13 +2039,6 @@ def load_dataset(
     >>> ds = load_dataset('imagefolder', data_dir='/path/to/images', split='train')
     ```
     """
-    if task != "deprecated":
-        warnings.warn(
-            "'task' was deprecated in version 2.13.0 and will be removed in 3.0.0.\n",
-            FutureWarning,
-        )
-    else:
-        task = None
     if data_files is not None and not data_files:
         raise ValueError(f"Empty 'data_files': '{data_files}'. It should be either non-empty or None (default).")
     if Path(path, config.DATASET_STATE_JSON_FILENAME).exists():
@@ -2099,12 +2094,6 @@ def load_dataset(
         keep_in_memory if keep_in_memory is not None else is_small_dataset(builder_instance.info.dataset_size)
     )
     ds = builder_instance.as_dataset(split=split, verification_mode=verification_mode, in_memory=keep_in_memory)
-    # Rename and cast features to match task schema
-    if task is not None:
-        # To avoid issuing the same warning twice
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", FutureWarning)
-            ds = ds.prepare_for_task(task)
     if save_infos:
         builder_instance._save_infos()
 
@@ -2112,16 +2101,16 @@ def load_dataset(
 
 
 def load_from_disk(
-    dataset_path: str, keep_in_memory: Optional[bool] = None, storage_options: Optional[dict] = None
+    dataset_path: PathLike, keep_in_memory: Optional[bool] = None, storage_options: Optional[dict] = None
 ) -> Union[Dataset, DatasetDict]:
     """
     Loads a dataset that was previously saved using [`~Dataset.save_to_disk`] from a dataset directory, or
     from a filesystem using any implementation of `fsspec.spec.AbstractFileSystem`.
 
     Args:
-        dataset_path (`str`):
-            Path (e.g. `"dataset/train"`) or remote URI (e.g.
-            `"s3://my-bucket/dataset/train"`) of the [`Dataset`] or [`DatasetDict`] directory where the dataset will be
+        dataset_path (`path-like`):
+            Path (e.g. `"dataset/train"`) or remote URI (e.g. `"s3://my-bucket/dataset/train"`)
+            of the [`Dataset`] or [`DatasetDict`] directory where the dataset/dataset-dict will be
             loaded from.
         keep_in_memory (`bool`, defaults to `None`):
             Whether to copy the dataset in-memory. If `None`, the dataset

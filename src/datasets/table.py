@@ -9,7 +9,6 @@ import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.types
 
-from . import config
 from .utils.logging import get_logger
 
 
@@ -1320,22 +1319,16 @@ class ConcatenationTable(Table):
         if schema is not None and table.schema != schema:
             # We fix the columns by concatenating with an empty table with the right columns
             empty_table = pa.Table.from_batches([], schema=schema)
-            # we set promote=True to fill missing columns with null values
-            if config.PYARROW_VERSION.major < 14:
-                table = pa.concat_tables([table, empty_table], promote=True)
-            else:
-                table = pa.concat_tables([table, empty_table], promote_options="default")
+            # We set promote_options="default" to fill missing columns with null values
+            table = pa.concat_tables([table, empty_table], promote_options="default")
         ConcatenationTable.__init__(self, table, blocks=blocks)
 
     @staticmethod
     def _concat_blocks(blocks: List[Union[TableBlock, pa.Table]], axis: int = 0) -> pa.Table:
         pa_tables = [table.table if hasattr(table, "table") else table for table in blocks]
         if axis == 0:
-            # we set promote=True to fill missing columns with null values
-            if config.PYARROW_VERSION.major < 14:
-                return pa.concat_tables(pa_tables, promote=True)
-            else:
-                return pa.concat_tables(pa_tables, promote_options="default")
+            # We set promote_options="default" to fill missing columns with null values
+            return pa.concat_tables(pa_tables, promote_options="default")
         elif axis == 1:
             for i, table in enumerate(pa_tables):
                 if i == 0:
@@ -1891,7 +1884,7 @@ def array_cast(
                 return array
             arrays = [_c(array.field(field.name), field.type) for field in pa_type]
             return pa.StructArray.from_arrays(arrays, fields=list(pa_type), mask=array.is_null())
-    elif pa.types.is_list(array.type):
+    elif pa.types.is_list(array.type) or pa.types.is_large_list(array.type):
         if pa.types.is_fixed_size_list(pa_type):
             if _are_list_values_of_length(array, pa_type.list_size):
                 if array.null_count > 0:
@@ -1906,46 +1899,39 @@ def array_cast(
                     else:
                         array = pc.list_slice(array, 0, pa_type.list_size, return_fixed_size_list=True)
                     array_values = array.values
-                    if config.PYARROW_VERSION.major < 15:
-                        return pa.Array.from_buffers(
-                            pa_type,
-                            len(array),
-                            [array.is_valid().buffers()[1]],
-                            children=[_c(array_values, pa_type.value_type)],
-                        )
-                    else:
-                        return pa.FixedSizeListArray.from_arrays(
-                            _c(array_values, pa_type.value_type), pa_type.list_size, mask=array.is_null()
-                        )
+                    return pa.FixedSizeListArray.from_arrays(
+                        _c(array_values, pa_type.value_type), pa_type.list_size, mask=array.is_null()
+                    )
                 else:
                     array_values = array.values[
-                        array.offset * pa_type.length : (array.offset + len(array)) * pa_type.length
+                        array.offset * pa_type.list_size : (array.offset + len(array)) * pa_type.list_size
                     ]
                     return pa.FixedSizeListArray.from_arrays(_c(array_values, pa_type.value_type), pa_type.list_size)
         elif pa.types.is_list(pa_type):
             # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
             array_offsets = _combine_list_array_offsets_with_mask(array)
             return pa.ListArray.from_arrays(array_offsets, _c(array.values, pa_type.value_type))
+        elif pa.types.is_large_list(pa_type):
+            # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
+            array_offsets = _combine_list_array_offsets_with_mask(array)
+            return pa.LargeListArray.from_arrays(array_offsets, _c(array.values, pa_type.value_type))
     elif pa.types.is_fixed_size_list(array.type):
         if pa.types.is_fixed_size_list(pa_type):
             if pa_type.list_size == array.type.list_size:
                 array_values = array.values[
                     array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
                 ]
-                if config.PYARROW_VERSION.major < 15:
-                    return pa.Array.from_buffers(
-                        pa_type,
-                        len(array),
-                        [array.is_valid().buffers()[1]],
-                        children=[_c(array_values, pa_type.value_type)],
-                    )
-                else:
-                    return pa.FixedSizeListArray.from_arrays(
-                        _c(array_values, pa_type.value_type), pa_type.list_size, mask=array.is_null()
-                    )
+                return pa.FixedSizeListArray.from_arrays(
+                    _c(array_values, pa_type.value_type), pa_type.list_size, mask=array.is_null()
+                )
         elif pa.types.is_list(pa_type):
             array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
             return pa.ListArray.from_arrays(array_offsets, _c(array.values, pa_type.value_type), mask=array.is_null())
+        elif pa.types.is_large_list(pa_type):
+            array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
+            return pa.LargeListArray.from_arrays(
+                array_offsets, _c(array.values, pa_type.value_type), mask=array.is_null()
+            )
     else:
         if pa.types.is_string(pa_type):
             if not allow_primitive_to_str and pa.types.is_primitive(array.type):
@@ -1995,7 +1981,7 @@ def cast_array_to_feature(
     Returns:
         array (`pyarrow.Array`): the casted array
     """
-    from .features.features import Sequence, get_nested_type
+    from .features.features import LargeList, Sequence, get_nested_type
 
     _c = partial(
         cast_array_to_feature,
@@ -2011,24 +1997,34 @@ def cast_array_to_feature(
     elif pa.types.is_struct(array.type):
         # feature must be a dict or Sequence(subfeatures_dict)
         if isinstance(feature, Sequence) and isinstance(feature.feature, dict):
-            feature = {
-                name: Sequence(subfeature, length=feature.length) for name, subfeature in feature.feature.items()
-            }
+            sequence_kwargs = vars(feature).copy()
+            feature = sequence_kwargs.pop("feature")
+            feature = {name: Sequence(subfeature, **sequence_kwargs) for name, subfeature in feature.items()}
         if isinstance(feature, dict) and {field.name for field in array.type} == set(feature):
             if array.type.num_fields == 0:
                 return array
             arrays = [_c(array.field(name), subfeature) for name, subfeature in feature.items()]
             return pa.StructArray.from_arrays(arrays, names=list(feature), mask=array.is_null())
-    elif pa.types.is_list(array.type):
-        # feature must be either [subfeature] or Sequence(subfeature)
+    elif pa.types.is_list(array.type) or pa.types.is_large_list(array.type):
+        # feature must be either [subfeature] or LargeList(subfeature) or Sequence(subfeature)
         if isinstance(feature, list):
             casted_array_values = _c(array.values, feature[0])
-            if casted_array_values.type == array.values.type:
+            if pa.types.is_list(array.type) and casted_array_values.type == array.values.type:
+                # Both array and feature have equal list type and values (within the list) type
                 return array
             else:
                 # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
                 array_offsets = _combine_list_array_offsets_with_mask(array)
                 return pa.ListArray.from_arrays(array_offsets, casted_array_values)
+        elif isinstance(feature, LargeList):
+            casted_array_values = _c(array.values, feature.dtype)
+            if pa.types.is_large_list(array.type) and casted_array_values.type == array.values.type:
+                # Both array and feature have equal large_list type and values (within the list) type
+                return array
+            else:
+                # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
+                array_offsets = _combine_list_array_offsets_with_mask(array)
+                return pa.LargeListArray.from_arrays(array_offsets, casted_array_values)
         elif isinstance(feature, Sequence):
             if feature.length > -1:
                 if _are_list_values_of_length(array, feature.length):
@@ -2055,17 +2051,9 @@ def cast_array_to_feature(
                             array = pc.list_slice(array, 0, feature.length, return_fixed_size_list=True)
                         array_values = array.values
                         casted_array_values = _c(array_values, feature.feature)
-                        if config.PYARROW_VERSION.major < 15:
-                            return pa.Array.from_buffers(
-                                pa.list_(casted_array_values.type, feature.length),
-                                len(array),
-                                [array.is_valid().buffers()[1]],
-                                children=[casted_array_values],
-                            )
-                        else:
-                            return pa.FixedSizeListArray.from_arrays(
-                                casted_array_values, feature.length, mask=array.is_null()
-                            )
+                        return pa.FixedSizeListArray.from_arrays(
+                            casted_array_values, feature.length, mask=array.is_null()
+                        )
                     else:
                         array_values = array.values[
                             array.offset * feature.length : (array.offset + len(array)) * feature.length
@@ -2073,7 +2061,8 @@ def cast_array_to_feature(
                         return pa.FixedSizeListArray.from_arrays(_c(array_values, feature.feature), feature.length)
             else:
                 casted_array_values = _c(array.values, feature.feature)
-                if casted_array_values.type == array.values.type:
+                if pa.types.is_list(array.type) and casted_array_values.type == array.values.type:
+                    # Both array and feature have equal list type and values (within the list) type
                     return array
                 else:
                     # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
@@ -2084,6 +2073,9 @@ def cast_array_to_feature(
         if isinstance(feature, list):
             array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
             return pa.ListArray.from_arrays(array_offsets, _c(array.values, feature[0]), mask=array.is_null())
+        elif isinstance(feature, LargeList):
+            array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
+            return pa.LargeListArray.from_arrays(array_offsets, _c(array.values, feature.dtype), mask=array.is_null())
         elif isinstance(feature, Sequence):
             if feature.length > -1:
                 if feature.length == array.type.list_size:
@@ -2091,17 +2083,7 @@ def cast_array_to_feature(
                         array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
                     ]
                     casted_array_values = _c(array_values, feature.feature)
-                    if config.PYARROW_VERSION.major < 15:
-                        return pa.Array.from_buffers(
-                            pa.list_(casted_array_values.type, feature.length),
-                            len(array),
-                            [array.is_valid().buffers()[1]],
-                            children=[casted_array_values],
-                        )
-                    else:
-                        return pa.FixedSizeListArray.from_arrays(
-                            casted_array_values, feature.length, mask=array.is_null()
-                        )
+                    return pa.FixedSizeListArray.from_arrays(casted_array_values, feature.length, mask=array.is_null())
             else:
                 array_offsets = (np.arange(len(array) + 1) + array.offset) * array.type.list_size
                 return pa.ListArray.from_arrays(array_offsets, _c(array.values, feature.feature), mask=array.is_null())
@@ -2169,6 +2151,11 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
             return pa.ListArray.from_arrays(array_offsets, _e(array.values, feature[0]))
         if isinstance(feature, Sequence) and feature.length == -1:
             return pa.ListArray.from_arrays(array_offsets, _e(array.values, feature.feature))
+    elif pa.types.is_large_list(array.type):
+        # feature must be LargeList(subfeature)
+        # Merge offsets with the null bitmap to avoid the "Null bitmap with offsets slice not supported" ArrowNotImplementedError
+        array_offsets = _combine_list_array_offsets_with_mask(array)
+        return pa.LargeListArray.from_arrays(array_offsets, _e(array.values, feature.dtype))
     elif pa.types.is_fixed_size_list(array.type):
         # feature must be Sequence(subfeature)
         if isinstance(feature, Sequence) and feature.length > -1:
@@ -2176,15 +2163,7 @@ def embed_array_storage(array: pa.Array, feature: "FeatureType"):
                 array.offset * array.type.list_size : (array.offset + len(array)) * array.type.list_size
             ]
             embedded_array_values = _e(array_values, feature.feature)
-            if config.PYARROW_VERSION.major < 15:
-                return pa.Array.from_buffers(
-                    pa.list_(array_values.type, feature.length),
-                    len(array),
-                    [array.is_valid().buffers()[1]],
-                    children=[embedded_array_values],
-                )
-            else:
-                return pa.FixedSizeListArray.from_arrays(embedded_array_values, feature.length, mask=array.is_null())
+            return pa.FixedSizeListArray.from_arrays(embedded_array_values, feature.length, mask=array.is_null())
     if not isinstance(feature, (Sequence, dict, list, tuple)):
         return array
     raise TypeError(f"Couldn't embed array of type\n{_short_str(array.type)}\nwith\n{_short_str(feature)}")

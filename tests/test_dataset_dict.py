@@ -16,6 +16,7 @@ from datasets.splits import NamedSplit
 from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
+    require_numpy1_on_windows,
     require_polars,
     require_tf,
     require_torch,
@@ -109,6 +110,7 @@ class DatasetDictTest(TestCase):
             self.assertEqual(dset_split[0]["col_2"].item(), "a")
         del dset
 
+    @require_numpy1_on_windows
     @require_torch
     def test_set_format_torch(self):
         import torch
@@ -594,7 +596,7 @@ def test_dummy_datasetdict_serialize_fs(mockfs):
     dataset_dict.save_to_disk(dataset_path, storage_options=mockfs.storage_options)
     assert mockfs.isdir(dataset_path)
     assert mockfs.glob(dataset_path + "/*")
-    reloaded = dataset_dict.load_from_disk(dataset_path, storage_options=mockfs.storage_options)
+    reloaded = DatasetDict.load_from_disk(dataset_path, storage_options=mockfs.storage_options)
     assert list(reloaded) == list(dataset_dict)
     for k in dataset_dict:
         assert reloaded[k].features == dataset_dict[k].features

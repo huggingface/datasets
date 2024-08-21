@@ -6,7 +6,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from functools import partial
 from itertools import cycle, islice
-from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 import fsspec.asyn
 import numpy as np
@@ -18,12 +18,15 @@ from .features import Features
 from .features.features import FeatureType, _align_features, _check_if_features_can_be_aligned, cast_to_python_objects
 from .formatting import PythonFormatter, TensorFormatter, get_format_type_from_alias, get_formatter
 from .info import DatasetInfo
-from .splits import NamedSplit
+from .splits import NamedSplit, Split
 from .table import cast_table_to_features, read_schema_from_file, table_cast
 from .utils.logging import get_logger
 from .utils.py_utils import Literal
 from .utils.sharding import _merge_gen_kwargs, _number_of_shards_in_gen_kwargs, _shuffle_gen_kwargs, _split_gen_kwargs
 
+
+if TYPE_CHECKING:
+    import torch
 
 logger = get_logger(__name__)
 
@@ -1677,6 +1680,18 @@ def _maybe_add_torch_iterable_dataset_parent_class(cls):
             cls.__bases__ += (torch.utils.data.IterableDataset,)
 
 
+def _maybe_share_with_torch_persistent_workers(value: Union[int, "torch.Tensor"]) -> Union[int, "torch.Tensor"]:
+    if config.TORCH_AVAILABLE:
+        import torch
+
+        if isinstance(value, torch.Tensor):
+            return value.share_memory_()
+        else:
+            return torch.tensor(value).share_memory_()
+    else:
+        return value
+
+
 class IterableDataset(DatasetInfoMixin):
     """A Dataset backed by an iterable."""
 
@@ -1703,8 +1718,8 @@ class IterableDataset(DatasetInfoMixin):
         self._formatting = formatting
         self._shuffling = shuffling
         self._distributed = distributed
-        self._epoch = 0
         self._token_per_repo_id: Dict[str, Union[str, bool, None]] = token_per_repo_id or {}
+        self._epoch: Union[int, "torch.Tensor"] = _maybe_share_with_torch_persistent_workers(0)
         self._starting_state_dict: Optional[dict] = None
         self._prepared_ex_iterable = self._prepare_ex_iterable_for_iteration()
         self._state_dict = self._prepared_ex_iterable._init_state_dict()
@@ -1822,18 +1837,24 @@ class IterableDataset(DatasetInfoMixin):
 
     def __setstate__(self, d):
         self.__dict__ = d
+        # Re-add torch shared memory, since shared memory is not always kept when pickling
+        self._epoch = _maybe_share_with_torch_persistent_workers(self._epoch)
         # Re-add torch iterable dataset as a parent class, since dynamically added parent classes are not kept when pickling
         _maybe_add_torch_iterable_dataset_parent_class(self.__class__)
 
     def _head(self, n=5):
         return _examples_to_batch(list(self.take(n)))
 
+    @property
+    def epoch(self) -> int:
+        return int(self._epoch)
+
     def _effective_generator(self):
-        if self._shuffling and self._epoch == 0:
+        if self._shuffling and self.epoch == 0:
             return self._shuffling.generator
         elif self._shuffling:
-            # Create effective seed using self._epoch (we subtract in order to avoir overflow in long_scalars)
-            effective_seed = deepcopy(self._shuffling.generator).integers(0, 1 << 63) - self._epoch
+            # Create effective seed using self.epoch (we subtract in order to avoir overflow in long_scalars)
+            effective_seed = deepcopy(self._shuffling.generator).integers(0, 1 << 63) - self.epoch
             effective_seed = (1 << 63) + effective_seed if effective_seed < 0 else effective_seed
             return np.random.default_rng(effective_seed)
         else:
@@ -2043,6 +2064,7 @@ class IterableDataset(DatasetInfoMixin):
         generator: Callable,
         features: Optional[Features] = None,
         gen_kwargs: Optional[dict] = None,
+        split: NamedSplit = Split.TRAIN,
     ) -> "IterableDataset":
         """Create an Iterable Dataset from a generator.
 
@@ -2055,7 +2077,10 @@ class IterableDataset(DatasetInfoMixin):
                 Keyword arguments to be passed to the `generator` callable.
                 You can define a sharded iterable dataset by passing the list of shards in `gen_kwargs`.
                 This can be used to improve shuffling and when iterating over the dataset with multiple workers.
+            split ([`NamedSplit`], defaults to `Split.TRAIN`):
+                Split name to be assigned to the dataset.
 
+                <Added version="2.21.0"/>
         Returns:
             `IterableDataset`
 
@@ -2086,10 +2111,7 @@ class IterableDataset(DatasetInfoMixin):
         from .io.generator import GeneratorDatasetInputStream
 
         return GeneratorDatasetInputStream(
-            generator=generator,
-            features=features,
-            gen_kwargs=gen_kwargs,
-            streaming=True,
+            generator=generator, features=features, gen_kwargs=gen_kwargs, streaming=True, split=split
         ).read()
 
     @staticmethod
@@ -2446,7 +2468,7 @@ class IterableDataset(DatasetInfoMixin):
         )
 
     def set_epoch(self, epoch: int):
-        self._epoch = epoch
+        self._epoch += epoch - self._epoch  # update torch value in shared memory in-place
 
     def skip(self, n: int) -> "IterableDataset":
         """
@@ -2609,11 +2631,6 @@ class IterableDataset(DatasetInfoMixin):
                     for col, feature in original_features.items()
                 }
             )
-            # check that it's still valid, especially with regard to task templates
-            try:
-                ds_iterable._info.copy()
-            except ValueError:
-                ds_iterable._info.task_templates = None
         return ds_iterable
 
     def remove_columns(self, column_names: Union[str, List[str]]) -> "IterableDataset":
@@ -2648,11 +2665,6 @@ class IterableDataset(DatasetInfoMixin):
             for col, _ in original_features.items():
                 if col in column_names:
                     del ds_iterable._info.features[col]
-            # check that it's still valid, especially with regard to task templates
-            try:
-                ds_iterable._info.copy()
-            except ValueError:
-                ds_iterable._info.task_templates = None
 
         return ds_iterable
 
@@ -2695,11 +2707,6 @@ class IterableDataset(DatasetInfoMixin):
                         f"{list(self._info.features.keys())}."
                     )
                 info.features = Features({c: info.features[c] for c in column_names})
-                # check that it's still valid, especially with regard to task templates
-                try:
-                    info.copy()
-                except ValueError:
-                    info.task_templates = None
 
         ex_iterable = SelectColumnsIterable(self._ex_iterable, column_names)
         return IterableDataset(
@@ -2748,11 +2755,6 @@ class IterableDataset(DatasetInfoMixin):
         """
         info = self._info.copy()
         info.features[column] = feature
-        # check that it's still valid, especially with regard to task templates
-        try:
-            info.copy()
-        except ValueError:
-            info.task_templates = None
         return IterableDataset(
             ex_iterable=self._ex_iterable,
             info=info,
@@ -2799,11 +2801,6 @@ class IterableDataset(DatasetInfoMixin):
         """
         info = self._info.copy()
         info.features = features
-        # check that it's still valid, especially with regard to task templates
-        try:
-            info.copy()
-        except ValueError:
-            info.task_templates = None
         return IterableDataset(
             ex_iterable=self._ex_iterable,
             info=info,
@@ -2844,6 +2841,26 @@ class IterableDataset(DatasetInfoMixin):
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
         )
+
+    def batch(self, batch_size: int, drop_last_batch: bool = False) -> "IterableDataset":
+        """
+        Group samples from the dataset into batches.
+
+        Args:
+            batch_size (`int`): The number of samples in each batch.
+            drop_last_batch (`bool`, defaults to `False`): Whether to drop the last incomplete batch.
+
+        Example:
+        ```py
+        >>> ds = load_dataset("some_dataset", streaming=True)
+        >>> batched_ds = ds.batch(batch_size=32)
+        ```
+        """
+
+        def batch_fn(unbatched):
+            return {k: [v] for k, v in unbatched.items()}
+
+        return self.map(batch_fn, batched=True, batch_size=batch_size, drop_last_batch=drop_last_batch)
 
 
 def _concatenate_iterable_datasets(

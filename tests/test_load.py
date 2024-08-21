@@ -51,6 +51,7 @@ from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
     offline,
+    require_moto,
     require_not_windows,
     require_pil,
     require_sndfile,
@@ -1589,11 +1590,56 @@ def test_load_from_disk_with_default_in_memory(
         expected_in_memory = False
 
     dset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, keep_in_memory=True, trust_remote_code=True)
-    dataset_path = os.path.join(tmp_path, "saved_dataset")
+    dataset_path = tmp_path / "saved_dataset"
     dset.save_to_disk(dataset_path)
 
     with assert_arrow_memory_increases() if expected_in_memory else assert_arrow_memory_doesnt_increase():
         _ = load_from_disk(dataset_path)
+
+
+@pytest.fixture
+def moto_server(monkeypatch):
+    from moto.server import ThreadedMotoServer
+
+    monkeypatch.setattr(
+        "os.environ",
+        {
+            "AWS_ENDPOINT_URL": "http://localhost:5000",
+            "AWS_DEFAULT_REGION": "us-east-1",
+            "AWS_ACCESS_KEY_ID": "FOO",
+            "AWS_SECRET_ACCESS_KEY": "BAR",
+        },
+    )
+    server = ThreadedMotoServer()
+    server.start()
+    try:
+        yield
+    finally:
+        server.stop()
+
+
+@require_moto
+def test_load_file_from_s3(moto_server):
+    # we need server mode here because of an aiobotocore incompatibility with moto.mock_aws
+    # (https://github.com/getmoto/moto/issues/6836)
+    import boto3
+
+    # Create a mock S3 bucket
+    bucket_name = "test-bucket"
+    s3 = boto3.client("s3", region_name="us-east-1")
+    s3.create_bucket(Bucket=bucket_name)
+
+    # Upload a file to the mock bucket
+    key = "test-file.csv"
+    csv_data = "Island\nIsabela\nBaltra"
+
+    s3.put_object(Bucket=bucket_name, Key=key, Body=csv_data)
+
+    # Load the file from the mock bucket
+    ds = datasets.load_dataset("csv", data_files={"train": "s3://test-bucket/test-file.csv"})
+
+    # Check if the loaded content matches the original content
+    assert list(ds["train"]) == [{"Island": "Isabela"}, {"Island": "Baltra"}]
 
 
 @pytest.mark.integration

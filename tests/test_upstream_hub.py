@@ -28,14 +28,16 @@ from datasets import (
 )
 from datasets.config import METADATA_CONFIGS_FIELD
 from datasets.data_files import get_data_patterns
+from datasets.exceptions import DatasetNotFoundError
 from datasets.packaged_modules.folder_based_builder.folder_based_builder import (
     FolderBasedBuilder,
     FolderBasedBuilderConfig,
 )
 from datasets.utils.file_utils import cached_path
 from datasets.utils.hub import hf_dataset_url
-from tests.fixtures.hub import CI_HUB_ENDPOINT, CI_HUB_USER, CI_HUB_USER_TOKEN
-from tests.utils import for_all_test_methods, require_pil, require_sndfile, xfail_if_500_502_http_error
+
+from .fixtures.hub import CI_HUB_ENDPOINT, CI_HUB_USER, CI_HUB_USER_TOKEN
+from .utils import for_all_test_methods, require_librosa, require_pil, require_sndfile, xfail_if_500_502_http_error
 
 
 pytestmark = pytest.mark.integration
@@ -383,6 +385,7 @@ class TestPushToHub:
             assert ds.features == hub_ds.features
             assert ds[:] == hub_ds[:]
 
+    @require_librosa
     @require_sndfile
     def test_push_dataset_to_hub_custom_features_audio(self, temporary_repo):
         audio_path = os.path.join(os.path.dirname(__file__), "features", "data", "test_audio_44100.wav")
@@ -951,3 +954,15 @@ class TestLoadFromHub:
             assert data_file_patterns == {
                 "train": ["data/train-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9]*.*"]
             }
+
+    @pytest.mark.parametrize("dataset", ["gated", "private"])
+    def test_load_dataset_raises_for_unauthenticated_user(
+        self, dataset, hf_gated_dataset_repo_txt_data, hf_private_dataset_repo_txt_data
+    ):
+        dataset_ids = {
+            "gated": hf_gated_dataset_repo_txt_data,
+            "private": hf_private_dataset_repo_txt_data,
+        }
+        dataset_id = dataset_ids[dataset]
+        with pytest.raises(DatasetNotFoundError):
+            _ = load_dataset(dataset_id, token=False)

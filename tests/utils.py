@@ -48,6 +48,7 @@ require_py7zr = pytest.mark.skipif(not config.PY7ZR_AVAILABLE, reason="test requ
 require_zstandard = pytest.mark.skipif(not config.ZSTANDARD_AVAILABLE, reason="test requires zstandard")
 
 # Audio
+require_librosa = pytest.mark.skipif(find_spec("librosa") is None, reason="test requires librosa")
 require_sndfile = pytest.mark.skipif(
     # On Windows and OS X, soundfile installs sndfile
     find_spec("soundfile") is None or version.parse(importlib.metadata.version("soundfile")) < version.parse("0.12.0"),
@@ -68,6 +69,11 @@ require_not_windows = pytest.mark.skipif(
 
 
 require_faiss = pytest.mark.skipif(find_spec("faiss") is None or sys.platform == "win32", reason="test requires faiss")
+require_moto = pytest.mark.skipif(find_spec("moto") is None, reason="test requires moto")
+require_numpy1_on_windows = pytest.mark.skipif(
+    version.parse(importlib.metadata.version("numpy")) >= version.parse("2.0.0") and sys.platform == "win32",
+    reason="test requires numpy < 2.0 on windows",
+)
 
 
 def require_regex(test_case):

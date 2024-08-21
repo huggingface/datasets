@@ -51,6 +51,7 @@ from .utils import (
     is_rng_equal,
     require_dill_gt_0_3_2,
     require_not_windows,
+    require_numpy1_on_windows,
     require_pyspark,
     require_tf,
     require_torch,
@@ -1279,6 +1280,7 @@ def test_iterable_dataset_from_generator_with_shards():
     assert dataset.n_shards == len(shard_names)
 
 
+@require_numpy1_on_windows
 def test_iterable_dataset_from_file(dataset: IterableDataset, arrow_file: str):
     with assert_arrow_memory_doesnt_increase():
         dataset_from_file = IterableDataset.from_file(arrow_file)
@@ -1639,6 +1641,28 @@ def test_iterable_dataset_is_torch_iterable_dataset(dataset: IterableDataset):
     assert dataloader._dataset_kind == _DatasetKind.Iterable
     out = list(dataloader)
     assert len(out) == DEFAULT_N_EXAMPLES
+
+
+@require_torch
+def test_iterable_dataset_persists_epoch_in_torch_workers(dataset: IterableDataset):
+    from torch.utils.data import DataLoader
+
+    dataset = dataset.shuffle(seed=42)
+    dataloader = DataLoader(dataset, num_workers=1, persistent_workers=True)
+    epoch0 = list(dataloader)
+    assert list(dataloader) == epoch0
+    dataset.set_epoch(1)
+    assert list(dataloader) != epoch0
+
+    # Make sure pickle works even with torch objects in shared memory
+    dataset_copy: IterableDataset = pickle.loads(pickle.dumps(dataset))
+    dataloader = DataLoader(dataset_copy, num_workers=1, persistent_workers=True)
+    epoch1 = list(dataloader)
+    assert list(dataloader) == epoch1
+    dataset.set_epoch(2)  # this should not affect the copy
+    assert list(dataloader) == epoch1
+    dataset_copy.set_epoch(2)
+    assert list(dataloader) != epoch1
 
 
 @pytest.mark.parametrize("n", [0, 2, int(1e10)])
@@ -2152,3 +2176,54 @@ def test_resume_dataloader(dataset: IterableDataset):
     dl = StatefulDataLoader(dataset)
     dl.load_state_dict(state_dict)
     assert remaining == list(dl)
+
+
+def test_iterable_dataset_batch():
+    # Create a simple IterableDataset
+    data = [{"id": i, "text": f"Text {i}"} for i in range(10)]
+    ds = IterableDataset.from_generator(lambda: (x for x in data))
+
+    # Test with batch_size=3, drop_last_batch=False
+    batched_ds = ds.batch(batch_size=3, drop_last_batch=False)
+    batches = list(batched_ds)
+
+    assert len(batches) == 4  # 3 full batches and 1 partial batch
+    for i, batch in enumerate(batches[:3]):  # Check full batches
+        assert len(batch["id"]) == 3
+        assert len(batch["text"]) == 3
+        assert batch["id"] == [3 * i, 3 * i + 1, 3 * i + 2]
+        assert batch["text"] == [f"Text {3*i}", f"Text {3*i+1}", f"Text {3*i+2}"]
+
+    # Check last partial batch
+    assert len(batches[3]["id"]) == 1
+    assert len(batches[3]["text"]) == 1
+    assert batches[3]["id"] == [9]
+    assert batches[3]["text"] == ["Text 9"]
+
+    # Test with batch_size=3, drop_last_batch=True
+    batched_ds = ds.batch(batch_size=3, drop_last_batch=True)
+    batches = list(batched_ds)
+
+    assert len(batches) == 3  # Only full batches
+    for i, batch in enumerate(batches):
+        assert len(batch["id"]) == 3
+        assert len(batch["text"]) == 3
+        assert batch["id"] == [3 * i, 3 * i + 1, 3 * i + 2]
+        assert batch["text"] == [f"Text {3*i}", f"Text {3*i+1}", f"Text {3*i+2}"]
+
+    # Test with batch_size=4 (doesn't evenly divide dataset size)
+    batched_ds = ds.batch(batch_size=4, drop_last_batch=False)
+    batches = list(batched_ds)
+
+    assert len(batches) == 3  # 2 full batches and 1 partial batch
+    for i, batch in enumerate(batches[:2]):  # Check full batches
+        assert len(batch["id"]) == 4
+        assert len(batch["text"]) == 4
+        assert batch["id"] == [4 * i, 4 * i + 1, 4 * i + 2, 4 * i + 3]
+        assert batch["text"] == [f"Text {4*i}", f"Text {4*i+1}", f"Text {4*i+2}", f"Text {4*i+3}"]
+
+    # Check last partial batch
+    assert len(batches[2]["id"]) == 2
+    assert len(batches[2]["text"]) == 2
+    assert batches[2]["id"] == [8, 9]
+    assert batches[2]["text"] == ["Text 8", "Text 9"]

@@ -30,9 +30,7 @@ from .info import DatasetInfo, DatasetInfosDict
 from .naming import _split_re
 from .splits import NamedSplit, Split, SplitDict, SplitInfo
 from .table import Table
-from .tasks import TaskTemplate
 from .utils import logging
-from .utils.deprecation_utils import deprecated
 from .utils.doc_utils import is_documented_by
 from .utils.metadata import MetadataConfigs
 from .utils.py_utils import asdict, glob_pattern_to_regex, string_to_dict
@@ -1218,10 +1216,9 @@ class DatasetDict(dict):
         If you want to store paths or urls, please use the Value("string") type.
 
         Args:
-            dataset_dict_path (`str`):
-                Path (e.g. `dataset/train`) or remote URI
-                (e.g. `s3://my-bucket/dataset/train`) of the dataset dict directory where the dataset dict will be
-                saved to.
+            dataset_dict_path (`path-like`):
+                Path (e.g. `dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`)
+                of the dataset dict directory where the dataset dict will be saved to.
             max_shard_size (`int` or `str`, *optional*, defaults to `"500MB"`):
                 The maximum size of the dataset shards to be uploaded to the hub. If expressed as a string, needs to be digits followed by a unit
                 (like `"50MB"`).
@@ -1282,7 +1279,7 @@ class DatasetDict(dict):
         Load a dataset that was previously saved using [`save_to_disk`] from a filesystem using `fsspec.spec.AbstractFileSystem`.
 
         Args:
-            dataset_dict_path (`str`):
+            dataset_dict_path (`path-like`):
                 Path (e.g. `"dataset/train"`) or remote URI (e.g. `"s3//my-bucket/dataset/train"`)
                 of the dataset dict directory where the dataset dict will be loaded from.
             keep_in_memory (`bool`, defaults to `None`):
@@ -1496,12 +1493,6 @@ class DatasetDict(dict):
             path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
         ).read()
 
-    @deprecated()
-    @is_documented_by(Dataset.prepare_for_task)
-    def prepare_for_task(self, task: Union[str, TaskTemplate], id: int = 0) -> "DatasetDict":
-        self._check_values_type()
-        return DatasetDict({k: dataset.prepare_for_task(task=task, id=id) for k, dataset in self.items()})
-
     @is_documented_by(Dataset.align_labels_with_mapping)
     def align_labels_with_mapping(self, label2id: Dict, label_column: str) -> "DatasetDict":
         self._check_values_type()
@@ -1640,7 +1631,8 @@ class DatasetDict(dict):
         )
         repo_id = repo_url.repo_id
 
-        if revision is not None:
+        if revision is not None and not revision.startswith("refs/pr/"):
+            # We do not call create_branch for a PR reference: 400 Bad Request
             api.create_branch(repo_id, branch=revision, token=token, repo_type="dataset", exist_ok=True)
 
         if not data_dir:
