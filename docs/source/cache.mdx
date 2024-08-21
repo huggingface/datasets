@@ -1,8 +1,14 @@
 # Cache management
 
-When you download a dataset, the processing scripts and data are stored locally on your computer. The cache allows 🤗 Datasets to avoid re-downloading or processing the entire dataset every time you use it. 
+When you download a dataset from Hugging Face, the data are stored locally on your computer.
+Files from Hugging Face are stored as usual in the `huggingface_hub` cache, which is at `~/.cache/huggingface/hub` by default.
+See the [Hub cache documentation](https://huggingface.co/docs/huggingface_hub/guides/manage-cache) for more details and how to change its location.
 
-This guide will show you how to:
+The Hub cache allows 🤗 Datasets to avoid re-downloading dataset files from Hugging Face every time you use them. 
+
+🤗 Datasets also has its own cache to store datasets converted in Arrow format (the format used by [`Dataset`] objects).
+
+This guide focues on the 🤗 Datasets cache and will show you how to:
 
 - Change the cache directory.
 - Control how a dataset is loaded from the cache.
@@ -11,17 +17,17 @@ This guide will show you how to:
 
 ## Cache directory
 
-The default cache directory is `~/.cache/huggingface/datasets`. Change the cache location by setting the shell environment variable, `HF_DATASETS_CACHE` to another directory:
+The default 🤗 Datasets cache directory is `~/.cache/huggingface/datasets`. Change the cache location by setting the shell environment variable, `HF_DATASETS_CACHE` to another directory:
 
 ```
-$ export HF_DATASETS_CACHE="/path/to/another/directory"
+$ export HF_DATASETS_CACHE="/path/to/another/directory/datasets"
 ```
 
 When you load a dataset, you also have the option to change where the data is cached. Change the `cache_dir` parameter to the path you want:
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset('LOADING_SCRIPT', cache_dir="PATH/TO/MY/CACHE/DIR")
+>>> dataset = load_dataset('username/dataset', cache_dir="/path/to/another/directory/datasets")
 ```
 
 ## Download mode
@@ -37,7 +43,7 @@ Refer to [`DownloadMode`] for a full list of download modes.
 
 ## Cache files
 
-Clean up the cache files in the directory with [`Dataset.cleanup_cache_files`]:
+Clean up the Arrow cache files in the directory with [`Dataset.cleanup_cache_files`]:
 
 ```py
 # Returns the number of removed cache files
