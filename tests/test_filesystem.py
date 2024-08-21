@@ -7,7 +7,7 @@ from fsspec import register_implementation
 from fsspec.core import url_to_fs
 from fsspec.registry import _registry as _fsspec_registry
 
-from datasets.filesystems import COMPRESSION_FILESYSTEMS, extract_path_from_uri, is_remote_filesystem
+from datasets.filesystems import COMPRESSION_FILESYSTEMS, is_remote_filesystem
 
 from .utils import require_lz4, require_zstandard
 
@@ -20,17 +20,6 @@ def test_mockfs(mockfs):
 def test_non_mockfs():
     assert "mock" not in _fsspec_registry
     assert "bz2" in _fsspec_registry
-
-
-def test_extract_path_from_uri():
-    mock_bucket = "mock-s3-bucket"
-    dataset_path = f"s3://{mock_bucket}"
-    dataset_path = extract_path_from_uri(dataset_path)
-    assert dataset_path.startswith("s3://") is False
-
-    dataset_path = "./local/path"
-    new_dataset_path = extract_path_from_uri(dataset_path)
-    assert dataset_path == new_dataset_path
 
 
 def test_is_remote_filesystem(mockfs):

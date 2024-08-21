@@ -3,7 +3,6 @@ import json
 import os
 import shutil
 import time
-import warnings
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
@@ -108,28 +107,13 @@ class Cache(datasets.ArrowBasedBuilder):
         info: Optional[datasets.DatasetInfo] = None,
         features: Optional[datasets.Features] = None,
         token: Optional[Union[bool, str]] = None,
-        use_auth_token="deprecated",
         repo_id: Optional[str] = None,
         data_files: Optional[Union[str, list, dict, datasets.data_files.DataFilesDict]] = None,
         data_dir: Optional[str] = None,
         storage_options: Optional[dict] = None,
         writer_batch_size: Optional[int] = None,
-        name="deprecated",
         **config_kwargs,
     ):
-        if use_auth_token != "deprecated":
-            warnings.warn(
-                "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
-                f"You can remove this warning by passing 'token={use_auth_token}' instead.",
-                FutureWarning,
-            )
-            token = use_auth_token
-        if name != "deprecated":
-            warnings.warn(
-                "Parameter 'name' was renamed to 'config_name' in version 2.3.0 and will be removed in 3.0.0.",
-                category=FutureWarning,
-            )
-            config_name = name
         if repo_id is None and dataset_name is None:
             raise ValueError("repo_id or dataset_name is required for the Cache dataset builder")
         if data_files is not None:

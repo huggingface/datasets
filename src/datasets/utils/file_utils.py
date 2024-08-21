@@ -16,7 +16,6 @@ import shutil
 import sys
 import tarfile
 import time
-import warnings
 import xml.dom.minidom
 import zipfile
 from contextlib import contextmanager
@@ -273,17 +272,8 @@ def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> st
     return ua
 
 
-def get_authentication_headers_for_url(
-    url: str, token: Optional[Union[str, bool]] = None, use_auth_token: Optional[Union[str, bool]] = "deprecated"
-) -> dict:
+def get_authentication_headers_for_url(url: str, token: Optional[Union[str, bool]] = None) -> dict:
     """Handle the HF authentication"""
-    if use_auth_token != "deprecated":
-        warnings.warn(
-            "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
-            f"You can remove this warning by passing 'token={use_auth_token}' instead.",
-            FutureWarning,
-        )
-        token = use_auth_token
     if url.startswith(config.HF_ENDPOINT):
         return huggingface_hub.utils.build_hf_headers(
             token=token, library_name="datasets", library_version=__version__
@@ -351,7 +341,6 @@ def get_from_cache(
     user_agent=None,
     use_etag=True,
     token=None,
-    use_auth_token="deprecated",
     storage_options=None,
     download_desc=None,
     disable_tqdm=False,
@@ -371,13 +360,6 @@ def get_from_cache(
     """
     if storage_options is None:
         storage_options = {}
-    if use_auth_token != "deprecated":
-        warnings.warn(
-            "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
-            f"You can remove this warning by passing 'token={use_auth_token}' instead.",
-            FutureWarning,
-        )
-        token = use_auth_token
     if cache_dir is None:
         cache_dir = config.HF_DATASETS_CACHE
     if isinstance(cache_dir, Path):

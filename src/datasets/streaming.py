@@ -57,7 +57,7 @@ def extend_module_for_streaming(module_path, download_config: Optional[DownloadC
 
     Args:
         module_path: Path to the module to be extended.
-        download_config : mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config: Mainly use `token` or `storage_options` to support different platforms and auth types.
     """
 
     module = importlib.import_module(module_path)
