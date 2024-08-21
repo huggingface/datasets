@@ -1672,7 +1672,7 @@ def test_load_dataset_distributed(tmp_path, csv_path):
 
 def distributed_load_dataset_with_script(args):
     data_name, tmp_dir, download_mode = args
-    dataset = load_dataset(data_name, cache_dir=tmp_dir, download_mode=download_mode)
+    dataset = load_dataset(data_name, cache_dir=tmp_dir, download_mode=download_mode, trust_remote_code=True)
     return dataset
 
 

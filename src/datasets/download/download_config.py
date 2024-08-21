@@ -43,9 +43,6 @@ class DownloadConfig:
         token (`str` or `bool`, *optional*):
             Optional string or boolean to use as Bearer token
             for remote files on the Datasets Hub. If `True`, or not specified, will get token from `~/.huggingface`.
-        ignore_url_params (`bool`, defaults to `False`):
-            Whether to strip all query parameters and fragments from
-            the download URL before using it for caching the file.
         storage_options (`dict`, *optional*):
             Key/value pairs to be passed on to the dataset file-system backend, if any.
         download_desc (`str`, *optional*):
@@ -68,7 +65,6 @@ class DownloadConfig:
     num_proc: Optional[int] = None
     max_retries: int = 1
     token: Optional[Union[str, bool]] = None
-    ignore_url_params: bool = False
     storage_options: Dict[str, Any] = field(default_factory=dict)
     download_desc: Optional[str] = None
     disable_tqdm: bool = False

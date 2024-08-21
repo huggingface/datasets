@@ -5,7 +5,6 @@ Copyright by the AllenNLP authors.
 """
 
 import asyncio
-import copy
 import glob
 import io
 import json
@@ -17,33 +16,31 @@ import shutil
 import sys
 import tarfile
 import time
-import urllib
 import xml.dom.minidom
 import zipfile
-from contextlib import closing, contextmanager
-from functools import partial
+from contextlib import contextmanager
 from io import BytesIO
 from itertools import chain
 from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Generator, List, Optional, Tuple, TypeVar, Union
 from unittest.mock import patch
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
 import aiohttp.client_exceptions
 import fsspec
 import huggingface_hub
+import huggingface_hub.errors
 import requests
 from fsspec.core import strip_protocol, url_to_fs
 from fsspec.utils import can_be_local
-from huggingface_hub.utils import EntryNotFoundError, insecure_hashlib
+from huggingface_hub.utils import EntryNotFoundError, get_session, insecure_hashlib
 from packaging import version
 
 from .. import __version__, config
 from ..download.download_config import DownloadConfig
 from ..filesystems import COMPRESSION_FILESYSTEMS
 from . import _tqdm, logging
-from . import tqdm as hf_tqdm
 from ._filelock import FileLock
 from .extract import ExtractManager
 from .track import TrackedIterableFromGenerator
@@ -94,24 +91,6 @@ def relative_to_absolute_path(path: T) -> T:
     """Convert relative path to absolute path."""
     abs_path_str = os.path.abspath(os.path.expanduser(os.path.expandvars(str(path))))
     return Path(abs_path_str) if isinstance(path, Path) else abs_path_str
-
-
-def hf_bucket_url(identifier: str, filename: str, use_cdn=False) -> str:
-    endpoint = config.CLOUDFRONT_DATASETS_DISTRIB_PREFIX if use_cdn else config.S3_DATASETS_BUCKET_PREFIX
-    return "/".join((endpoint, identifier, filename))
-
-
-def head_hf_s3(identifier: str, filename: str, use_cdn=False, max_retries=0) -> Union[requests.Response, Exception]:
-    return http_head(
-        hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn),
-        max_retries=max_retries,
-    )
-
-
-def hf_github_url(path: str, name: str, revision: Optional[str] = None) -> str:
-    default_revision = "main" if version.parse(__version__).is_devrelease else __version__
-    revision = revision or default_revision
-    return config.REPO_DATASETS_URL.format(revision=revision, path=path, name=name)
 
 
 def url_or_path_join(base_name: str, *pathnames: str) -> str:
@@ -192,29 +171,48 @@ def cached_path(
         url_or_filename, storage_options = _prepare_path_and_storage_options(
             url_or_filename, download_config=download_config
         )
-        # Pass HTTP storage_options to get_from_cache only if passed HTTP download_config.storage_options
-        if (
-            storage_options
-            and storage_options.keys() < {"http", "https"}
-            and not (download_config.storage_options and download_config.storage_options.keys() < {"http", "https"})
-        ):
-            storage_options = {}
-        output_path = get_from_cache(
-            url_or_filename,
-            cache_dir=cache_dir,
-            force_download=download_config.force_download,
-            proxies=download_config.proxies,
-            resume_download=download_config.resume_download,
-            user_agent=download_config.user_agent,
-            local_files_only=download_config.local_files_only,
-            use_etag=download_config.use_etag,
-            max_retries=download_config.max_retries,
-            token=download_config.token,
-            ignore_url_params=download_config.ignore_url_params,
-            storage_options=storage_options,
-            download_desc=download_config.download_desc,
-            disable_tqdm=download_config.disable_tqdm,
-        )
+        # Download files from Hugging Face.
+        # Note: no need to check for https://huggingface.co file URLs since _prepare_path_and_storage_options
+        # prepares Hugging Face HTTP URLs as hf:// paths already
+        if url_or_filename.startswith("hf://"):
+            resolved_path = huggingface_hub.HfFileSystem(
+                endpoint=config.HF_ENDPOINT, token=download_config.token
+            ).resolve_path(url_or_filename)
+            try:
+                output_path = huggingface_hub.HfApi(
+                    endpoint=config.HF_ENDPOINT,
+                    token=download_config.token,
+                    library_name="datasets",
+                    library_version=__version__,
+                    user_agent=get_datasets_user_agent(download_config.user_agent),
+                ).hf_hub_download(
+                    repo_id=resolved_path.repo_id,
+                    repo_type=resolved_path.repo_type,
+                    revision=resolved_path.revision,
+                    filename=resolved_path.path_in_repo,
+                    force_download=download_config.force_download,
+                    proxies=download_config.proxies,
+                )
+            except (
+                huggingface_hub.utils.RepositoryNotFoundError,
+                huggingface_hub.utils.EntryNotFoundError,
+                huggingface_hub.utils.RevisionNotFoundError,
+                huggingface_hub.utils.GatedRepoError,
+            ) as e:
+                raise FileNotFoundError(str(e)) from e
+        # Download external files
+        else:
+            output_path = get_from_cache(
+                url_or_filename,
+                cache_dir=cache_dir,
+                force_download=download_config.force_download,
+                user_agent=download_config.user_agent,
+                use_etag=download_config.use_etag,
+                token=download_config.token,
+                storage_options=storage_options,
+                download_desc=download_config.download_desc,
+                disable_tqdm=download_config.disable_tqdm,
+            )
     elif os.path.exists(url_or_filename):
         # File, and it exists.
         output_path = url_or_filename
@@ -296,45 +294,6 @@ def _raise_if_offline_mode_is_enabled(msg: Optional[str] = None):
         )
 
 
-def _request_with_retry(
-    method: str,
-    url: str,
-    max_retries: int = 0,
-    base_wait_time: float = 0.5,
-    max_wait_time: float = 2,
-    timeout: float = 10.0,
-    **params,
-) -> requests.Response:
-    """Wrapper around requests to retry in case it fails with a ConnectTimeout, with exponential backoff.
-
-    Note that if the environment variable HF_HUB_OFFLINE is set to 1, then a OfflineModeIsEnabled error is raised.
-
-    Args:
-        method (str): HTTP method, such as 'GET' or 'HEAD'.
-        url (str): The URL of the resource to fetch.
-        max_retries (int): Maximum number of retries, defaults to 0 (no retries).
-        base_wait_time (float): Duration (in seconds) to wait before retrying the first time. Wait time between
-            retries then grows exponentially, capped by max_wait_time.
-        max_wait_time (float): Maximum amount of time between two retries, in seconds.
-        **params (additional keyword arguments): Params to pass to :obj:`requests.request`.
-    """
-    _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
-    tries, success = 0, False
-    while not success:
-        tries += 1
-        try:
-            response = requests.request(method=method.upper(), url=url, timeout=timeout, **params)
-            success = True
-        except (requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError) as err:
-            if tries > max_retries:
-                raise err
-            else:
-                logger.info(f"{method} request to {url} timed out, retrying... [{tries/max_retries}]")
-                sleep_time = min(max_wait_time, base_wait_time * 2 ** (tries - 1))  # Exponential backoff
-                time.sleep(sleep_time)
-    return response
-
-
 def fsspec_head(url, storage_options=None):
     _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
     fs, path = url_to_fs(url, **(storage_options or {}))
@@ -375,116 +334,13 @@ def fsspec_get(url, temp_file, storage_options=None, desc=None, disable_tqdm=Fal
     fs.get_file(path, temp_file.name, callback=callback)
 
 
-def ftp_head(url, timeout=10.0):
-    _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
-    try:
-        with closing(urllib.request.urlopen(url, timeout=timeout)) as r:
-            r.read(1)
-    except Exception:
-        return False
-    return True
-
-
-def ftp_get(url, temp_file, timeout=10.0):
-    _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
-    try:
-        logger.info(f"Getting through FTP {url} into {temp_file.name}")
-        with closing(urllib.request.urlopen(url, timeout=timeout)) as r:
-            shutil.copyfileobj(r, temp_file)
-    except urllib.error.URLError as e:
-        raise ConnectionError(e) from None
-
-
-def http_get(
-    url,
-    temp_file,
-    proxies=None,
-    resume_size=0,
-    headers=None,
-    cookies=None,
-    timeout=100.0,
-    max_retries=0,
-    desc=None,
-    disable_tqdm=False,
-) -> Optional[requests.Response]:
-    headers = dict(headers) if headers is not None else {}
-    headers["user-agent"] = get_datasets_user_agent(user_agent=headers.get("user-agent"))
-    if resume_size > 0:
-        headers["Range"] = f"bytes={resume_size:d}-"
-    response = _request_with_retry(
-        method="GET",
-        url=url,
-        stream=True,
-        proxies=proxies,
-        headers=headers,
-        cookies=cookies,
-        max_retries=max_retries,
-        timeout=timeout,
-    )
-    if temp_file is None:
-        return response
-    if response.status_code == 416:  # Range not satisfiable
-        return
-    content_length = response.headers.get("Content-Length")
-    total = resume_size + int(content_length) if content_length is not None else None
-    with hf_tqdm(
-        unit="B",
-        unit_scale=True,
-        total=total,
-        initial=resume_size,
-        desc=desc or "Downloading",
-        position=multiprocessing.current_process()._identity[-1]  # contains the ranks of subprocesses
-        if os.environ.get("HF_DATASETS_STACK_MULTIPROCESSING_DOWNLOAD_PROGRESS_BARS") == "1"
-        and multiprocessing.current_process()._identity
-        else None,
-        disable=disable_tqdm,
-    ) as progress:
-        for chunk in response.iter_content(chunk_size=1024):
-            progress.update(len(chunk))
-            temp_file.write(chunk)
-
-
-def http_head(
-    url, proxies=None, headers=None, cookies=None, allow_redirects=True, timeout=10.0, max_retries=0
-) -> requests.Response:
-    headers = copy.deepcopy(headers) or {}
-    headers["user-agent"] = get_datasets_user_agent(user_agent=headers.get("user-agent"))
-    response = _request_with_retry(
-        method="HEAD",
-        url=url,
-        proxies=proxies,
-        headers=headers,
-        cookies=cookies,
-        allow_redirects=allow_redirects,
-        timeout=timeout,
-        max_retries=max_retries,
-    )
-    return response
-
-
-def request_etag(url: str, token: Optional[Union[str, bool]] = None) -> Optional[str]:
-    if urlparse(url).scheme not in ("http", "https"):
-        return None
-    headers = get_authentication_headers_for_url(url, token=token)
-    response = http_head(url, headers=headers, max_retries=3)
-    response.raise_for_status()
-    etag = response.headers.get("ETag") if response.ok else None
-    return etag
-
-
 def get_from_cache(
     url,
     cache_dir=None,
     force_download=False,
-    proxies=None,
-    etag_timeout=100,
-    resume_download=False,
     user_agent=None,
-    local_files_only=False,
     use_etag=True,
-    max_retries=0,
     token=None,
-    ignore_url_params=False,
     storage_options=None,
     download_desc=None,
     disable_tqdm=False,
@@ -511,22 +367,12 @@ def get_from_cache(
 
     os.makedirs(cache_dir, exist_ok=True)
 
-    if ignore_url_params:
-        # strip all query parameters and #fragments from the URL
-        cached_url = urljoin(url, urlparse(url).path)
-    else:
-        cached_url = url  # additional parameters may be added to the given URL
-
-    connected = False
     response = None
-    cookies = None
     etag = None
-    head_error = None
-    scheme = None
 
     # Try a first time to file the file on the local file system without eTag (None)
     # if we don't ask for 'force_download' then we spare a request
-    filename = hash_url_to_filename(cached_url, etag=None)
+    filename = hash_url_to_filename(url, etag=None)
     cache_path = os.path.join(cache_dir, filename)
 
     if os.path.exists(cache_path) and not force_download and not use_etag:
@@ -537,89 +383,16 @@ def get_from_cache(
     if user_agent is not None:
         headers["user-agent"] = user_agent
 
-    # We don't have the file locally or we need an eTag
-    if not local_files_only:
-        scheme = urlparse(url).scheme
-        if scheme == "ftp":
-            connected = ftp_head(url)
-        elif scheme not in {"http", "https"} or storage_options.get(scheme):
-            response = fsspec_head(url, storage_options=storage_options)
-            # s3fs uses "ETag", gcsfs uses "etag"
-            etag = (response.get("ETag", None) or response.get("etag", None)) if use_etag else None
-            connected = True
-        else:
-            try:
-                response = http_head(
-                    url,
-                    allow_redirects=True,
-                    proxies=proxies,
-                    timeout=etag_timeout,
-                    max_retries=max_retries,
-                    headers=headers,
-                )
-                if response.status_code == 200:  # ok
-                    etag = response.headers.get("ETag") if use_etag else None
-                    for k, v in response.cookies.items():
-                        # In some edge cases, we need to get a confirmation token
-                        if k.startswith("download_warning") and "drive.google.com" in url:
-                            url += "&confirm=" + v
-                            cookies = response.cookies
-                    connected = True
-                    # Fix Google Drive URL to avoid Virus scan warning
-                    if "drive.google.com" in url and "confirm=" not in url:
-                        url += "&confirm=t"
-                # In some edge cases, head request returns 400 but the connection is actually ok
-                elif (
-                    (response.status_code == 400 and "firebasestorage.googleapis.com" in url)
-                    or (response.status_code == 405 and "drive.google.com" in url)
-                    or (
-                        response.status_code == 403
-                        and (
-                            re.match(r"^https?://github.com/.*?/.*?/releases/download/.*?/.*?$", url)
-                            or re.match(r"^https://.*?s3.*?amazonaws.com/.*?$", response.url)
-                        )
-                    )
-                    or (response.status_code == 403 and "ndownloader.figstatic.com" in url)
-                ):
-                    connected = True
-                    logger.info(f"Couldn't get ETag version for url {url}")
-                elif response.status_code == 401 and config.HF_ENDPOINT in url and token is None:
-                    raise ConnectionError(
-                        f"Unauthorized for URL {url}. Please use the parameter `token=True` after logging in with `huggingface-cli login`"
-                    )
-            except (OSError, requests.exceptions.Timeout) as e:
-                # not connected
-                head_error = e
-                pass
-
-    # connected == False = we don't have a connection, or url doesn't exist, or is otherwise inaccessible.
-    # try to get the last downloaded one
-    if not connected:
-        if os.path.exists(cache_path) and not force_download:
-            return cache_path
-        if local_files_only:
-            raise FileNotFoundError(
-                f"Cannot find the requested files in the cached path at {cache_path} and outgoing traffic has been"
-                " disabled. To enable file online look-ups, set 'local_files_only' to False."
-            )
-        elif response is not None and response.status_code == 404:
-            raise FileNotFoundError(f"Couldn't find file at {url}")
-        _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
-        if head_error is not None:
-            raise ConnectionError(f"Couldn't reach {url} ({repr(head_error)})")
-        elif response is not None:
-            raise ConnectionError(f"Couldn't reach {url} (error {response.status_code})")
-        else:
-            raise ConnectionError(f"Couldn't reach {url}")
+    response = fsspec_head(url, storage_options=storage_options)
+    etag = (response.get("ETag", None) or response.get("etag", None)) if use_etag else None
 
     # Try a second time
-    filename = hash_url_to_filename(cached_url, etag)
+    filename = hash_url_to_filename(url, etag)
     cache_path = os.path.join(cache_dir, filename)
 
     if os.path.exists(cache_path) and not force_download:
         return cache_path
 
-    # From now on, connected is True.
     # Prevent parallel downloads of the same file with a lock.
     lock_path = cache_path + ".lock"
     with FileLock(lock_path):
@@ -634,36 +407,12 @@ def get_from_cache(
             with open(incomplete_path, mode) as f:
                 yield f
 
-        resume_size = 0
-        if resume_download:
-            temp_file_manager = partial(temp_file_manager, mode="a+b")
-            if os.path.exists(incomplete_path):
-                resume_size = os.stat(incomplete_path).st_size
-
         # Download to temporary file, then copy to cache path once finished.
         # Otherwise, you get corrupt cache entries if the download gets interrupted.
         with temp_file_manager() as temp_file:
             logger.info(f"{url} not found in cache or force_download set to True, downloading to {temp_file.name}")
-
             # GET file object
-            if scheme == "ftp":
-                ftp_get(url, temp_file)
-            elif scheme not in {"http", "https"} or storage_options.get(scheme):
-                fsspec_get(
-                    url, temp_file, storage_options=storage_options, desc=download_desc, disable_tqdm=disable_tqdm
-                )
-            else:
-                http_get(
-                    url,
-                    temp_file=temp_file,
-                    proxies=proxies,
-                    resume_size=resume_size,
-                    headers=headers,
-                    cookies=cookies,
-                    max_retries=max_retries,
-                    desc=download_desc,
-                    disable_tqdm=disable_tqdm,
-                )
+            fsspec_get(url, temp_file, storage_options=storage_options, desc=download_desc, disable_tqdm=disable_tqdm)
 
         logger.info(f"storing {url} in cache at {cache_path}")
         shutil.move(temp_file.name, cache_path)
@@ -1120,7 +869,7 @@ def _prepare_single_hop_path_and_storage_options(
     urlpath: str, download_config: Optional[DownloadConfig] = None
 ) -> Tuple[str, Dict[str, Dict[str, Any]]]:
     """
-    Prepare the URL and the kwargs that must be passed to the HttpFileSystem or to requests.get/head
+    Prepare the URL and the kwargs that must be passed to the HttpFileSystem or HfFileSystem
 
     In particular it resolves google drive URLs
     It also adds the authentication headers for the Hugging Face Hub, for both https:// and hf:// paths.
@@ -1145,7 +894,7 @@ def _prepare_single_hop_path_and_storage_options(
         client_kwargs = storage_options.pop("client_kwargs", {})
         storage_options["client_kwargs"] = {"trust_env": True, **client_kwargs}  # Enable reading proxy env variables
         if "drive.google.com" in urlpath:
-            response = http_head(urlpath)
+            response = get_session().head(urlpath, timeout=10)
             for k, v in response.cookies.items():
                 if k.startswith("download_warning"):
                     urlpath += "&confirm=" + v

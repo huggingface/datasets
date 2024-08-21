@@ -847,7 +847,6 @@ class DatasetBuilder:
             )
 
         is_local = not is_remote_filesystem(self._fs)
-
         self.dl_manager = dl_manager
 
         # Prevent parallel local disk operations

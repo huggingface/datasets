@@ -523,8 +523,6 @@ The reason you need to use a combination of [`~DownloadManager.download`] and [`
 ```py
 def _split_generators(self, dl_manager):
     """Returns SplitGenerators."""
-    dl_manager.download_config.ignore_url_params = True
-
     audio_path = dl_manager.download(_AUDIO_URL)
     local_extracted_archive = dl_manager.extract(audio_path) if not dl_manager.is_streaming else None
     path_to_clips = "librivox-indonesia"
