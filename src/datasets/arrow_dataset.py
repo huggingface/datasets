@@ -120,7 +120,6 @@ from .table import (
 )
 from .utils import logging
 from .utils import tqdm as hf_tqdm
-from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
 from .utils.info_utils import is_small_dataset
 from .utils.metadata import MetadataConfigs
