@@ -1,7 +1,8 @@
 import os
 import re
+from dataclasses import dataclass, field
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 import zstandard as zstd
@@ -12,6 +13,7 @@ from datasets.download.download_config import DownloadConfig
 from datasets.utils.file_utils import (
     OfflineModeIsEnabled,
     _get_extraction_protocol,
+    _prepare_single_hop_path_and_storage_options,
     cached_path,
     fsspec_get,
     fsspec_head,
@@ -47,7 +49,7 @@ FILE_CONTENT = """\
 
 FILE_PATH = "file"
 
-TEST_URL = "https://huggingface.co/datasets/hf-internal-testing/dataset_with_script/raw/main/some_text.txt"
+TEST_URL = "https://huggingface.co/datasets/hf-internal-testing/dataset_with_script/resolve/main/some_text.txt"
 TEST_URL_CONTENT = "foo\nbar\nfoobar"
 
 TEST_GG_DRIVE_FILENAME = "train.tsv"
@@ -75,6 +77,87 @@ def tmpfs_file(tmpfs):
     with open(os.path.join(tmpfs.local_root_dir, FILE_PATH), "w") as f:
         f.write(FILE_CONTENT)
     return FILE_PATH
+
+
+@pytest.mark.parametrize(
+    "protocol, download_config_storage_options, expected_fsspec_called",
+    [
+        ("hf", {}, True),
+        ("s3", {"s3": {"anon": True}}, True),
+        # HTTP calls fsspec only if passed HTTP download_config.storage_options:
+        ("https", {"https": {"block_size": "omit"}}, True),
+        ("https", {}, False),
+    ],
+)
+def test_cached_path_calls_fsspec_for_protocols(
+    protocol, download_config_storage_options, expected_fsspec_called, monkeypatch, tmp_path
+):
+    # GH-6598: Test no TypeError: __init__() got an unexpected keyword argument 'hf'
+    # fsspec_head/get:
+    mock_fsspec_head = MagicMock(return_value={})
+    mock_fsspec_get = MagicMock(return_value=None)
+    monkeypatch.setattr("datasets.utils.file_utils.fsspec_head", mock_fsspec_head)
+    monkeypatch.setattr("datasets.utils.file_utils.fsspec_get", mock_fsspec_get)
+
+    # http_head_get:
+    @dataclass
+    class Response:
+        status_code: int
+        headers: dict = field(default_factory=dict)
+        cookies: dict = field(default_factory=dict)
+
+    mock_http_head = MagicMock(return_value=Response(status_code=200))
+    mock_http_get = MagicMock(return_value=None)
+    monkeypatch.setattr("datasets.utils.file_utils.http_head", mock_http_head)
+    monkeypatch.setattr("datasets.utils.file_utils.http_get", mock_http_get)
+    # Test:
+    cache_dir = tmp_path / "cache"
+    download_config = DownloadConfig(cache_dir=cache_dir, storage_options=download_config_storage_options)
+    urls = {
+        "hf": "hf://datasets/org-name/ds-name@main/filename.ext",
+        "https": "https://doamin.org/filename.ext",
+        "s3": "s3://bucket-name/filename.ext",
+    }
+    url = urls[protocol]
+    _ = cached_path(url, download_config=download_config)
+    if expected_fsspec_called:
+        for mock in [mock_fsspec_head, mock_fsspec_get]:
+            assert mock.called
+            assert mock.call_count == 1
+            assert mock.call_args.args[0] == url
+            assert list(mock.call_args.kwargs["storage_options"].keys()) == [protocol]
+        for mock in [mock_http_head, mock_http_get]:
+            assert not mock.called
+    else:
+        for mock in [mock_fsspec_head, mock_fsspec_get]:
+            assert not mock.called
+        for mock in [mock_http_head, mock_http_get]:
+            assert mock.called
+            assert mock.call_count == 1
+            assert mock.call_args.args[0] == url
+
+
+@pytest.mark.parametrize(
+    "download_config_storage_options, expected_storage_options_passed_to_get_from_catch",
+    [
+        ({}, {}),  # No DownloadConfig.storage_options
+        ({"https": {"block_size": "omit"}}, {"https": {"client_kwargs": {"trust_env": True}, "block_size": "omit"}}),
+    ],
+)
+def test_cached_path_passes_http_storage_options_to_get_from_cache_only_if_present_in_download_config(
+    download_config_storage_options, expected_storage_options_passed_to_get_from_catch, monkeypatch, tmp_path
+):
+    # Test cached_path passes HTTP storage_options to get_from_cache only if passed HTTP download_config.storage_options
+    mock_get_from_catch = MagicMock(return_value=None)
+    monkeypatch.setattr("datasets.utils.file_utils.get_from_cache", mock_get_from_catch)
+    url = "https://domain.org/data.txt"
+    cache_dir = tmp_path / "cache"
+    download_config = DownloadConfig(cache_dir=cache_dir, storage_options=download_config_storage_options)
+    _ = cached_path(url, download_config=download_config)
+    assert mock_get_from_catch.called
+    assert mock_get_from_catch.call_count == 1
+    assert mock_get_from_catch.call_args.args[0] == url
+    assert mock_get_from_catch.call_args.kwargs["storage_options"] == expected_storage_options_passed_to_get_from_catch
 
 
 @pytest.mark.parametrize("compression_format", ["gzip", "xz", "zstd"])
@@ -174,6 +257,75 @@ def test_fsspec_offline(tmp_path_factory):
         fsspec_get("s3://huggingface.co", temp_file=filename)
     with pytest.raises(OfflineModeIsEnabled):
         fsspec_head("s3://huggingface.co")
+
+
+@pytest.mark.parametrize(
+    "urlpath, download_config, expected_urlpath, expected_storage_options",
+    [
+        (
+            "https://huggingface.co/datasets/hf-internal-testing/dataset_with_script/resolve/main/some_text.txt",
+            DownloadConfig(),
+            "hf://datasets/hf-internal-testing/dataset_with_script@main/some_text.txt",
+            {"hf": {"endpoint": "https://huggingface.co", "token": None}},
+        ),
+        (
+            "https://huggingface.co/datasets/hf-internal-testing/dataset_with_script/resolve/main/some_text.txt",
+            DownloadConfig(token="MY-TOKEN"),
+            "hf://datasets/hf-internal-testing/dataset_with_script@main/some_text.txt",
+            {"hf": {"endpoint": "https://huggingface.co", "token": "MY-TOKEN"}},
+        ),
+        (
+            "https://huggingface.co/datasets/hf-internal-testing/dataset_with_script/resolve/main/some_text.txt",
+            DownloadConfig(token="MY-TOKEN", storage_options={"hf": {"on_error": "omit"}}),
+            "hf://datasets/hf-internal-testing/dataset_with_script@main/some_text.txt",
+            {"hf": {"endpoint": "https://huggingface.co", "token": "MY-TOKEN", "on_error": "omit"}},
+        ),
+        (
+            "https://domain.org/data.txt",
+            DownloadConfig(),
+            "https://domain.org/data.txt",
+            {"https": {"client_kwargs": {"trust_env": True}}},
+        ),
+        (
+            "https://domain.org/data.txt",
+            DownloadConfig(storage_options={"https": {"block_size": "omit"}}),
+            "https://domain.org/data.txt",
+            {"https": {"client_kwargs": {"trust_env": True}, "block_size": "omit"}},
+        ),
+        (
+            "https://domain.org/data.txt",
+            DownloadConfig(storage_options={"https": {"client_kwargs": {"raise_for_status": True}}}),
+            "https://domain.org/data.txt",
+            {"https": {"client_kwargs": {"trust_env": True, "raise_for_status": True}}},
+        ),
+        (
+            "https://domain.org/data.txt",
+            DownloadConfig(storage_options={"https": {"client_kwargs": {"trust_env": False}}}),
+            "https://domain.org/data.txt",
+            {"https": {"client_kwargs": {"trust_env": False}}},
+        ),
+        (
+            "https://raw.githubusercontent.com/data.txt",
+            DownloadConfig(storage_options={"https": {"headers": {"x-test": "true"}}}),
+            "https://raw.githubusercontent.com/data.txt",
+            {
+                "https": {
+                    "client_kwargs": {"trust_env": True},
+                    "headers": {"x-test": "true", "Accept-Encoding": "identity"},
+                }
+            },
+        ),
+    ],
+)
+def test_prepare_single_hop_path_and_storage_options(
+    urlpath, download_config, expected_urlpath, expected_storage_options
+):
+    original_download_config_storage_options = str(download_config.storage_options)
+    prepared_urlpath, storage_options = _prepare_single_hop_path_and_storage_options(urlpath, download_config)
+    assert prepared_urlpath == expected_urlpath
+    assert storage_options == expected_storage_options
+    # Check that DownloadConfig.storage_options are not modified:
+    assert str(download_config.storage_options) == original_download_config_storage_options
 
 
 class DummyTestFS(AbstractFileSystem):

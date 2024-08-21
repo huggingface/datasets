@@ -4,6 +4,7 @@ This file is adapted from the AllenNLP library at https://github.com/allenai/all
 Copyright by the AllenNLP authors.
 """
 
+import asyncio
 import copy
 import glob
 import io
@@ -20,7 +21,6 @@ import urllib
 import warnings
 import xml.dom.minidom
 import zipfile
-from asyncio import TimeoutError
 from contextlib import closing, contextmanager
 from functools import partial
 from io import BytesIO
@@ -31,10 +31,10 @@ from unittest.mock import patch
 from urllib.parse import urljoin, urlparse
 from xml.etree import ElementTree as ET
 
+import aiohttp.client_exceptions
 import fsspec
 import huggingface_hub
 import requests
-from aiohttp.client_exceptions import ClientError
 from fsspec.core import strip_protocol, url_to_fs
 from fsspec.utils import can_be_local
 from huggingface_hub.utils import EntryNotFoundError, insecure_hashlib
@@ -97,30 +97,22 @@ def relative_to_absolute_path(path: T) -> T:
     return Path(abs_path_str) if isinstance(path, Path) else abs_path_str
 
 
-def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -> str:
-    if dataset:
-        endpoint = config.CLOUDFRONT_DATASETS_DISTRIB_PREFIX if use_cdn else config.S3_DATASETS_BUCKET_PREFIX
-    else:
-        endpoint = config.CLOUDFRONT_METRICS_DISTRIB_PREFIX if use_cdn else config.S3_METRICS_BUCKET_PREFIX
+def hf_bucket_url(identifier: str, filename: str, use_cdn=False) -> str:
+    endpoint = config.CLOUDFRONT_DATASETS_DISTRIB_PREFIX if use_cdn else config.S3_DATASETS_BUCKET_PREFIX
     return "/".join((endpoint, identifier, filename))
 
 
-def head_hf_s3(
-    identifier: str, filename: str, use_cdn=False, dataset=True, max_retries=0
-) -> Union[requests.Response, Exception]:
+def head_hf_s3(identifier: str, filename: str, use_cdn=False, max_retries=0) -> Union[requests.Response, Exception]:
     return http_head(
-        hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn, dataset=dataset),
+        hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn),
         max_retries=max_retries,
     )
 
 
-def hf_github_url(path: str, name: str, dataset=True, revision: Optional[str] = None) -> str:
+def hf_github_url(path: str, name: str, revision: Optional[str] = None) -> str:
     default_revision = "main" if version.parse(__version__).is_devrelease else __version__
     revision = revision or default_revision
-    if dataset:
-        return config.REPO_DATASETS_URL.format(revision=revision, path=path, name=name)
-    else:
-        return config.REPO_METRICS_URL.format(revision=revision, path=path, name=name)
+    return config.REPO_DATASETS_URL.format(revision=revision, path=path, name=name)
 
 
 def url_or_path_join(base_name: str, *pathnames: str) -> str:
@@ -198,6 +190,16 @@ def cached_path(
 
     if is_remote_url(url_or_filename):
         # URL, so get it from the cache (downloading if necessary)
+        url_or_filename, storage_options = _prepare_path_and_storage_options(
+            url_or_filename, download_config=download_config
+        )
+        # Pass HTTP storage_options to get_from_cache only if passed HTTP download_config.storage_options
+        if (
+            storage_options
+            and storage_options.keys() < {"http", "https"}
+            and not (download_config.storage_options and download_config.storage_options.keys() < {"http", "https"})
+        ):
+            storage_options = {}
         output_path = get_from_cache(
             url_or_filename,
             cache_dir=cache_dir,
@@ -210,7 +212,7 @@ def cached_path(
             max_retries=download_config.max_retries,
             token=download_config.token,
             ignore_url_params=download_config.ignore_url_params,
-            storage_options=download_config.storage_options,
+            storage_options=storage_options,
             download_desc=download_config.download_desc,
             disable_tqdm=download_config.disable_tqdm,
         )
@@ -266,8 +268,6 @@ def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> st
         ua += f"; tensorflow/{config.TF_VERSION}"
     if config.JAX_AVAILABLE:
         ua += f"; jax/{config.JAX_VERSION}"
-    if config.BEAM_AVAILABLE:
-        ua += f"; apache_beam/{config.BEAM_VERSION}"
     if isinstance(user_agent, dict):
         ua += f"; {'; '.join(f'{k}/{v}' for k, v in user_agent.items())}"
     elif isinstance(user_agent, str):
@@ -522,6 +522,8 @@ def get_from_cache(
         ConnectionError: in case of unreachable url
             and no cache on disk
     """
+    if storage_options is None:
+        storage_options = {}
     if use_auth_token != "deprecated":
         warnings.warn(
             "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
@@ -567,54 +569,55 @@ def get_from_cache(
         scheme = urlparse(url).scheme
         if scheme == "ftp":
             connected = ftp_head(url)
-        elif scheme not in ("http", "https"):
+        elif scheme not in {"http", "https"} or storage_options.get(scheme):
             response = fsspec_head(url, storage_options=storage_options)
             # s3fs uses "ETag", gcsfs uses "etag"
             etag = (response.get("ETag", None) or response.get("etag", None)) if use_etag else None
             connected = True
-        try:
-            response = http_head(
-                url,
-                allow_redirects=True,
-                proxies=proxies,
-                timeout=etag_timeout,
-                max_retries=max_retries,
-                headers=headers,
-            )
-            if response.status_code == 200:  # ok
-                etag = response.headers.get("ETag") if use_etag else None
-                for k, v in response.cookies.items():
-                    # In some edge cases, we need to get a confirmation token
-                    if k.startswith("download_warning") and "drive.google.com" in url:
-                        url += "&confirm=" + v
-                        cookies = response.cookies
-                connected = True
-                # Fix Google Drive URL to avoid Virus scan warning
-                if "drive.google.com" in url and "confirm=" not in url:
-                    url += "&confirm=t"
-            # In some edge cases, head request returns 400 but the connection is actually ok
-            elif (
-                (response.status_code == 400 and "firebasestorage.googleapis.com" in url)
-                or (response.status_code == 405 and "drive.google.com" in url)
-                or (
-                    response.status_code == 403
-                    and (
-                        re.match(r"^https?://github.com/.*?/.*?/releases/download/.*?/.*?$", url)
-                        or re.match(r"^https://.*?s3.*?amazonaws.com/.*?$", response.url)
+        else:
+            try:
+                response = http_head(
+                    url,
+                    allow_redirects=True,
+                    proxies=proxies,
+                    timeout=etag_timeout,
+                    max_retries=max_retries,
+                    headers=headers,
+                )
+                if response.status_code == 200:  # ok
+                    etag = response.headers.get("ETag") if use_etag else None
+                    for k, v in response.cookies.items():
+                        # In some edge cases, we need to get a confirmation token
+                        if k.startswith("download_warning") and "drive.google.com" in url:
+                            url += "&confirm=" + v
+                            cookies = response.cookies
+                    connected = True
+                    # Fix Google Drive URL to avoid Virus scan warning
+                    if "drive.google.com" in url and "confirm=" not in url:
+                        url += "&confirm=t"
+                # In some edge cases, head request returns 400 but the connection is actually ok
+                elif (
+                    (response.status_code == 400 and "firebasestorage.googleapis.com" in url)
+                    or (response.status_code == 405 and "drive.google.com" in url)
+                    or (
+                        response.status_code == 403
+                        and (
+                            re.match(r"^https?://github.com/.*?/.*?/releases/download/.*?/.*?$", url)
+                            or re.match(r"^https://.*?s3.*?amazonaws.com/.*?$", response.url)
+                        )
                     )
-                )
-                or (response.status_code == 403 and "ndownloader.figstatic.com" in url)
-            ):
-                connected = True
-                logger.info(f"Couldn't get ETag version for url {url}")
-            elif response.status_code == 401 and config.HF_ENDPOINT in url and token is None:
-                raise ConnectionError(
-                    f"Unauthorized for URL {url}. Please use the parameter `token=True` after logging in with `huggingface-cli login`"
-                )
-        except (OSError, requests.exceptions.Timeout) as e:
-            # not connected
-            head_error = e
-            pass
+                    or (response.status_code == 403 and "ndownloader.figstatic.com" in url)
+                ):
+                    connected = True
+                    logger.info(f"Couldn't get ETag version for url {url}")
+                elif response.status_code == 401 and config.HF_ENDPOINT in url and token is None:
+                    raise ConnectionError(
+                        f"Unauthorized for URL {url}. Please use the parameter `token=True` after logging in with `huggingface-cli login`"
+                    )
+            except (OSError, requests.exceptions.Timeout) as e:
+                # not connected
+                head_error = e
+                pass
 
     # connected == False = we don't have a connection, or url doesn't exist, or is otherwise inaccessible.
     # try to get the last downloaded one
@@ -672,7 +675,7 @@ def get_from_cache(
             # GET file object
             if scheme == "ftp":
                 ftp_get(url, temp_file)
-            elif scheme not in ("http", "https"):
+            elif scheme not in {"http", "https"} or storage_options.get(scheme):
                 fsspec_get(
                     url, temp_file, storage_options=storage_options, desc=download_desc, disable_tqdm=disable_tqdm
                 )
@@ -1103,7 +1106,12 @@ def _add_retries_to_file_obj_read_method(file_obj):
             try:
                 out = read(*args, **kwargs)
                 break
-            except (ClientError, TimeoutError) as err:
+            except (
+                aiohttp.client_exceptions.ClientError,
+                asyncio.TimeoutError,
+                requests.exceptions.ConnectTimeout,
+                requests.exceptions.ConnectionError,
+            ) as err:
                 disconnect_err = err
                 logger.warning(
                     f"Got disconnected from remote data host. Retrying in {config.STREAMING_READ_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
@@ -1151,7 +1159,7 @@ def _prepare_single_hop_path_and_storage_options(
         urlpath = "hf://" + urlpath[len(config.HF_ENDPOINT) + 1 :].replace("/resolve/", "@", 1)
     protocol = urlpath.split("://")[0] if "://" in urlpath else "file"
     if download_config is not None and protocol in download_config.storage_options:
-        storage_options = download_config.storage_options[protocol]
+        storage_options = download_config.storage_options[protocol].copy()
     elif download_config is not None and protocol not in download_config.storage_options:
         storage_options = {
             option_name: option_value
@@ -1160,40 +1168,34 @@ def _prepare_single_hop_path_and_storage_options(
         }
     else:
         storage_options = {}
-    if storage_options:
-        storage_options = {protocol: storage_options}
-    if protocol in ["http", "https"]:
-        storage_options[protocol] = {
-            "headers": {
-                **get_authentication_headers_for_url(urlpath, token=token),
-                "user-agent": get_datasets_user_agent(),
-            },
-            "client_kwargs": {"trust_env": True},  # Enable reading proxy env variables.
-            **(storage_options.get(protocol, {})),
-        }
+    if protocol in {"http", "https"}:
+        client_kwargs = storage_options.pop("client_kwargs", {})
+        storage_options["client_kwargs"] = {"trust_env": True, **client_kwargs}  # Enable reading proxy env variables
         if "drive.google.com" in urlpath:
             response = http_head(urlpath)
-            cookies = None
             for k, v in response.cookies.items():
                 if k.startswith("download_warning"):
                     urlpath += "&confirm=" + v
                     cookies = response.cookies
-                    storage_options[protocol] = {"cookies": cookies, **storage_options.get(protocol, {})}
-        # Fix Google Drive URL to avoid Virus scan warning
-        if "drive.google.com" in urlpath and "confirm=" not in urlpath:
-            urlpath += "&confirm=t"
+                    storage_options = {"cookies": cookies, **storage_options}
+            # Fix Google Drive URL to avoid Virus scan warning
+            if "confirm=" not in urlpath:
+                urlpath += "&confirm=t"
         if urlpath.startswith("https://raw.githubusercontent.com/"):
             # Workaround for served data with gzip content-encoding: https://github.com/fsspec/filesystem_spec/issues/389
-            storage_options[protocol]["headers"]["Accept-Encoding"] = "identity"
+            headers = storage_options.pop("headers", {})
+            storage_options["headers"] = {"Accept-Encoding": "identity", **headers}
     elif protocol == "hf":
-        storage_options[protocol] = {
+        storage_options = {
             "token": token,
             "endpoint": config.HF_ENDPOINT,
-            **storage_options.get(protocol, {}),
+            **storage_options,
         }
         # streaming with block_size=0 is only implemented in 0.21 (see https://github.com/huggingface/huggingface_hub/pull/1967)
         if config.HF_HUB_VERSION < version.parse("0.21.0"):
-            storage_options[protocol]["block_size"] = "default"
+            storage_options["block_size"] = "default"
+    if storage_options:
+        storage_options = {protocol: storage_options}
     return urlpath, storage_options
 
 

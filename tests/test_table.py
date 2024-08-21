@@ -1,14 +1,16 @@
 import copy
 import pickle
 from decimal import Decimal
+from functools import partial
 from typing import List, Union
+from unittest.mock import MagicMock
 
 import numpy as np
 import pyarrow as pa
 import pytest
 
-from datasets import Sequence, Value
-from datasets.features.features import Array2D, Array2DExtensionType, ClassLabel, Features, Image, get_nested_type
+from datasets.features import Array2D, ClassLabel, Features, Image, LargeList, Sequence, Value
+from datasets.features.features import Array2DExtensionType, get_nested_type
 from datasets.table import (
     ConcatenationTable,
     InMemoryTable,
@@ -19,6 +21,7 @@ from datasets.table import (
     _in_memory_arrow_table_from_file,
     _interpolation_search,
     _memory_mapped_arrow_table_from_file,
+    array_cast,
     cast_array_to_feature,
     concat_tables,
     embed_array_storage,
@@ -1259,6 +1262,60 @@ def test_cast_list_array_to_features_sequence(arr, slice, target_value_feature):
     assert casted_array.to_pylist() == arr.to_pylist()
 
 
+@pytest.mark.parametrize("sequence_feature_dtype", ["string", "int64"])
+@pytest.mark.parametrize("from_list_type", ["list", "fixed_size_list", "large_list"])
+@pytest.mark.parametrize("list_within_struct", [False, True])
+def test_cast_array_to_feature_with_list_array_and_sequence_feature(
+    list_within_struct, from_list_type, sequence_feature_dtype
+):
+    list_type = {
+        "list": pa.list_,
+        "fixed_size_list": partial(pa.list_, list_size=2),
+        "large_list": pa.large_list,
+    }
+    primitive_type = {
+        "string": pa.string(),
+        "int64": pa.int64(),
+    }
+    to_type = "list"
+    array_data = [0, 1]
+    array_type = list_type[from_list_type](pa.int64())
+    sequence_feature = Value(sequence_feature_dtype)
+    expected_array_type = list_type[to_type](primitive_type[sequence_feature_dtype])
+    if list_within_struct:
+        array_data = {"col_1": array_data}
+        array_type = pa.struct({"col_1": array_type})
+        sequence_feature = {"col_1": sequence_feature}
+        expected_array_type = pa.struct({"col_1": expected_array_type})
+    feature = Sequence(sequence_feature)
+    array = pa.array([array_data], type=array_type)
+    cast_array = cast_array_to_feature(array, feature)
+    assert cast_array.type == expected_array_type
+
+
+@pytest.mark.parametrize("large_list_feature_value_type", ["string", "int64"])
+@pytest.mark.parametrize("from_list_type", ["list", "fixed_size_list", "large_list"])
+def test_cast_array_to_feature_with_list_array_and_large_list_feature(from_list_type, large_list_feature_value_type):
+    list_type = {
+        "list": pa.list_,
+        "fixed_size_list": partial(pa.list_, list_size=2),
+        "large_list": pa.large_list,
+    }
+    primitive_type = {
+        "string": pa.string(),
+        "int64": pa.int64(),
+    }
+    to_type = "large_list"
+    array_data = [0, 1]
+    array_type = list_type[from_list_type](pa.int64())
+    large_list_feature_value = Value(large_list_feature_value_type)
+    expected_array_type = list_type[to_type](primitive_type[large_list_feature_value_type])
+    feature = LargeList(large_list_feature_value)
+    array = pa.array([array_data], type=array_type)
+    cast_array = cast_array_to_feature(array, feature)
+    assert cast_array.type == expected_array_type
+
+
 def test_cast_array_xd_to_features_sequence():
     arr = np.random.randint(0, 10, size=(8, 2, 3)).tolist()
     arr = Array2DExtensionType(shape=(2, 3), dtype="int64").wrap_array(pa.array(arr, pa.list_(pa.list_(pa.int64()))))
@@ -1292,6 +1349,39 @@ def test_embed_array_storage_nested(image_file):
     assert isinstance(embedded_images_array.to_pylist()[0]["foo"]["bytes"], bytes)
 
 
+@pytest.mark.parametrize(
+    "array, feature, expected_embedded_array_type",
+    [
+        (
+            pa.array([[{"path": "image_path"}]], type=pa.list_(Image.pa_type)),
+            [Image()],
+            pa.types.is_list,
+        ),
+        (
+            pa.array([[{"path": "image_path"}]], type=pa.large_list(Image.pa_type)),
+            LargeList(Image()),
+            pa.types.is_large_list,
+        ),
+        (
+            pa.array([[{"path": "image_path"}]], type=pa.list_(Image.pa_type)),
+            Sequence(Image()),
+            pa.types.is_list,
+        ),
+    ],
+)
+def test_embed_array_storage_with_list_types(array, feature, expected_embedded_array_type, monkeypatch):
+    mock_embed_storage = MagicMock(
+        return_value=pa.StructArray.from_arrays(
+            [pa.array([b"image_bytes"], type=pa.binary()), pa.array(["image_path"], type=pa.string())],
+            ["bytes", "path"],
+        )
+    )
+    monkeypatch.setattr(Image, "embed_storage", mock_embed_storage)
+    embedded_images_array = embed_array_storage(array, feature)
+    assert expected_embedded_array_type(embedded_images_array.type)
+    assert embedded_images_array.to_pylist() == [[{"bytes": b"image_bytes", "path": "image_path"}]]
+
+
 def test_embed_table_storage(image_file):
     features = Features({"image": Image()})
     table = table_cast(pa.table({"image": [image_file]}), features.arrow_schema)
@@ -1323,3 +1413,17 @@ def test_table_iter(table, batch_size, drop_last_batch):
     if num_rows > 0:
         reloaded = pa.concat_tables(subtables)
         assert table.slice(0, num_rows).to_pydict() == reloaded.to_pydict()
+
+
+@pytest.mark.parametrize("to_type", ["list", "fixed_size_list", "large_list"])
+@pytest.mark.parametrize("from_type", ["list", "fixed_size_list", "large_list"])
+def test_array_cast(from_type, to_type):
+    array_type = {
+        "list": pa.list_(pa.int64()),
+        "fixed_size_list": pa.list_(pa.int64(), 2),
+        "large_list": pa.large_list(pa.int64()),
+    }
+    arr = pa.array([[0, 1]], type=array_type[from_type])
+    cast_arr = array_cast(arr, array_type[to_type])
+    assert cast_arr.type == array_type[to_type]
+    assert cast_arr.values == arr.values

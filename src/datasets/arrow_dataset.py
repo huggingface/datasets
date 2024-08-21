@@ -1032,6 +1032,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         keep_in_memory: bool = False,
         gen_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
+        split: NamedSplit = Split.TRAIN,
         **kwargs,
     ):
         """Create a Dataset from a generator.
@@ -1054,6 +1055,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 If `num_proc` is greater than one, then all list values in `gen_kwargs` must be the same length. These values will be split between calls to the generator. The number of shards will be the minimum of the shortest list in `gen_kwargs` and `num_proc`.
 
                 <Added version="2.7.0"/>
+            split ([`NamedSplit`], defaults to `Split.TRAIN`):
+                Split name to be assigned to the dataset.
+
+                <Added version="2.21.0"/>
             **kwargs (additional keyword arguments):
                 Keyword arguments to be passed to :[`GeneratorConfig`].
 
@@ -1090,6 +1095,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             keep_in_memory=keep_in_memory,
             gen_kwargs=gen_kwargs,
             num_proc=num_proc,
+            split=split,
             **kwargs,
         ).read()
 
@@ -1418,7 +1424,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         If you want to store paths or urls, please use the Value("string") type.
 
         Args:
-            dataset_path (`str`):
+            dataset_path (`path-like`):
                 Path (e.g. `dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`)
                 of the dataset directory where the dataset will be saved to.
             fs (`fsspec.spec.AbstractFileSystem`, *optional*):
@@ -1618,7 +1624,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @staticmethod
     def load_from_disk(
-        dataset_path: str,
+        dataset_path: PathLike,
         fs="deprecated",
         keep_in_memory: Optional[bool] = None,
         storage_options: Optional[dict] = None,
@@ -1628,7 +1634,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         filesystem using any implementation of `fsspec.spec.AbstractFileSystem`.
 
         Args:
-            dataset_path (`str`):
+            dataset_path (`path-like`):
                 Path (e.g. `"dataset/train"`) or remote URI (e.g. `"s3//my-bucket/dataset/train"`)
                 of the dataset directory where the dataset will be loaded from.
             fs (`fsspec.spec.AbstractFileSystem`, *optional*):
@@ -3276,7 +3282,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         def validate_function_output(processed_inputs, indices):
             """Validate output of the map function."""
-            if processed_inputs is not None and not isinstance(processed_inputs, (Mapping, pa.Table, pd.DataFrame)):
+            allowed_processed_inputs_types = (Mapping, pa.Table, pd.DataFrame)
+            if config.POLARS_AVAILABLE and "polars" in sys.modules:
+                import polars as pl
+
+                allowed_processed_inputs_types += (pl.DataFrame,)
+            if processed_inputs is not None and not isinstance(processed_inputs, allowed_processed_inputs_types):
                 raise TypeError(
                     f"Provided `function` which is applied to all elements of table returns a variable of type {type(processed_inputs)}. Make sure provided `function` returns a variable of type `dict` (or a pyarrow table) to update the dataset or `None` if you are only interested in side effects."
                 )
@@ -3335,7 +3346,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 returned_lazy_dict = False
             if update_data is None:
                 # Check if the function returns updated examples
-                update_data = isinstance(processed_inputs, (Mapping, pa.Table, pd.DataFrame))
+                updatable_types = (Mapping, pa.Table, pd.DataFrame)
+                if config.POLARS_AVAILABLE and "polars" in sys.modules:
+                    import polars as pl
+
+                    updatable_types += (pl.DataFrame,)
+                update_data = isinstance(processed_inputs, updatable_types)
                 validate_function_output(processed_inputs, indices)
             if not update_data:
                 return None  # Nothing to update, let's move on
@@ -3390,7 +3406,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             else:
                 buf_writer = None
                 logger.info(f"Caching processed dataset at {cache_file_name}")
-                tmp_file = tempfile.NamedTemporaryFile("wb", dir=os.path.dirname(cache_file_name), delete=False)
+                cache_dir = os.path.dirname(cache_file_name)
+                os.makedirs(cache_dir, exist_ok=True)
+                tmp_file = tempfile.NamedTemporaryFile("wb", dir=cache_dir, delete=False)
                 writer = ArrowWriter(
                     features=writer_features,
                     path=tmp_file.name,
@@ -3516,6 +3534,57 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 yield rank, True, Dataset.from_buffer(buf_writer.getvalue(), info=info, split=shard.split)
         else:
             yield rank, True, shard
+
+    @transmit_format
+    @fingerprint_transform(inplace=False)
+    def batch(
+        self,
+        batch_size: int,
+        drop_last_batch: bool = False,
+        num_proc: Optional[int] = None,
+        new_fingerprint: Optional[str] = None,
+    ) -> "Dataset":
+        """
+        Group samples from the dataset into batches.
+
+        Args:
+            batch_size (`int`):
+                The number of samples in each batch.
+            drop_last_batch (`bool`, defaults to `False`):
+                Whether to drop the last incomplete batch.
+            num_proc (`int`, *optional*, defaults to `None`):
+                Max number of processes when generating cache. Already cached shards are loaded sequentially.
+            new_fingerprint (`str`, *optional*, defaults to `None`):
+                The new fingerprint of the dataset after transform.
+                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
+
+        Returns:
+            [`Dataset`]: A new Dataset where each item is a batch of multiple samples from the original dataset.
+
+        Example:
+
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> batched_ds = ds.batch(batch_size=4)
+        >>> batched_ds[0]
+        {'text': ['compassionately explores the seemingly irreconcilable situation...', ...],  # 4 items
+        'label': [1, 1, 1, 1]}
+        ```
+        """
+
+        def batch_fn(example):
+            return {k: [v] for k, v in example.items()}
+
+        return self.map(
+            batch_fn,
+            batched=True,
+            batch_size=batch_size,
+            drop_last_batch=drop_last_batch,
+            num_proc=num_proc,
+            new_fingerprint=new_fingerprint,
+            desc="Batching examples",
+        )
 
     @transmit_format
     @fingerprint_transform(
@@ -3931,7 +4000,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         else:
             buf_writer = None
             logger.info(f"Caching indices mapping at {indices_cache_file_name}")
-            tmp_file = tempfile.NamedTemporaryFile("wb", dir=os.path.dirname(indices_cache_file_name), delete=False)
+            cache_dir = os.path.dirname(indices_cache_file_name)
+            os.makedirs(cache_dir, exist_ok=True)
+            tmp_file = tempfile.NamedTemporaryFile("wb", dir=cache_dir, delete=False)
             writer = ArrowWriter(
                 path=tmp_file.name, writer_batch_size=writer_batch_size, fingerprint=new_fingerprint, unit="indices"
             )
@@ -5526,7 +5597,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
         repo_id = repo_url.repo_id
 
-        if revision is not None:
+        if revision is not None and not revision.startswith("refs/pr/"):
+            # We do not call create_branch for a PR reference: 400 Bad Request
             api.create_branch(repo_id, branch=revision, token=token, repo_type="dataset", exist_ok=True)
 
         if not data_dir:

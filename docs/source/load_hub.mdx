@@ -80,7 +80,7 @@ DatasetDict({
 
 ## Configurations
 
-Some datasets contain several sub-datasets. For example, the [MInDS-14](https://huggingface.co/datasets/PolyAI/minds14) dataset has several sub-datasets, each one containing audio data in a different language. These sub-datasets are known as *configurations*, and you must explicitly select one when loading the dataset. If you don't provide a configuration name, 🤗 Datasets will raise a `ValueError` and remind you to choose a configuration.
+Some datasets contain several sub-datasets. For example, the [MInDS-14](https://huggingface.co/datasets/PolyAI/minds14) dataset has several sub-datasets, each one containing audio data in a different language. These sub-datasets are known as *configurations* or *subsets*, and you must explicitly select one when loading the dataset. If you don't provide a configuration name, 🤗 Datasets will raise a `ValueError` and remind you to choose a configuration.
 
 Use the [`get_dataset_config_names`] function to retrieve a list of all the possible configurations available to your dataset:
 
@@ -102,11 +102,7 @@ Then load the configuration you want:
 
 ## Remote code
 
-Certain datasets repositories contain a loading script with the Python code used to generate the dataset.
-Those datasets are generally exported to Parquet by Hugging Face, so that 🤗 Datasets can load the dataset fast and without running a loading script.
-
-Even if a Parquet export is not available, you can still use any dataset with Python code in its repository with `load_dataset`.
-All files and code uploaded to the Hub are scanned for malware (refer to the Hub security documentation for more information), but you should still review the dataset loading scripts and authors to avoid executing malicious code on your machine. You should set `trust_remote_code=True` to use a dataset with a loading script, or you will get an error:
+Certain datasets repositories contain a loading script with the Python code used to generate the dataset. All files and code uploaded to the Hub are scanned for malware (refer to the Hub security documentation for more information), but you should still review the dataset loading scripts and authors to avoid executing malicious code on your machine. You should set `trust_remote_code=True` to use a dataset with a loading script, or you will get an error:
 
 ```py
 >>> from datasets import get_dataset_config_names, get_dataset_split_names, load_dataset

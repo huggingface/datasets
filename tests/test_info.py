@@ -5,6 +5,7 @@ import yaml
 
 from datasets.features.features import Features, Value
 from datasets.info import DatasetInfo, DatasetInfosDict
+from datasets.utils.py_utils import asdict
 
 
 @pytest.mark.parametrize(
@@ -163,3 +164,15 @@ def test_from_merge_same_dataset_infos(dataset_info):
         assert dataset_info == dataset_info_merged
     else:
         assert DatasetInfo() == dataset_info_merged
+
+
+def test_dataset_info_from_dict_with_large_list():
+    dataset_info_dict = {
+        "citation": "",
+        "description": "",
+        "features": {"col_1": {"dtype": {"dtype": "int64", "_type": "Value"}, "_type": "LargeList"}},
+        "homepage": "",
+        "license": "",
+    }
+    dataset_info = DatasetInfo.from_dict(dataset_info_dict)
+    assert asdict(dataset_info) == dataset_info_dict

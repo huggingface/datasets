@@ -62,12 +62,12 @@ def test_convert_to_parquet(temporary_repo, hf_api, hf_token, ci_hub_config, ci_
         with patch.object(datasets.hub.HfApi, "create_commit", return_value=commit_info) as mock_create_commit:
             with patch.object(datasets.hub.HfApi, "create_branch") as mock_create_branch:
                 with patch.object(datasets.hub.HfApi, "list_repo_tree", return_value=[]):  # not needed
-                    _ = convert_to_parquet(repo_id, token=hf_token, trust_remote_code=True)
+                    with patch.object(datasets.hub.HfApi, "preupload_lfs_files", return_value=None):  # not needed
+                        _ = convert_to_parquet(repo_id, token=hf_token, trust_remote_code=True)
     # mock_create_branch
     assert mock_create_branch.called
-    assert mock_create_branch.call_count == 2
-    for call_args, expected_branch in zip(mock_create_branch.call_args_list, ["refs/pr/1", "script"]):
-        assert call_args.kwargs.get("branch") == expected_branch
+    assert mock_create_branch.call_count == 1
+    assert mock_create_branch.call_args.kwargs.get("branch") == "script"
     # mock_create_commit
     assert mock_create_commit.called
     assert mock_create_commit.call_count == 2

@@ -2,8 +2,9 @@
 
 There are two methods for creating and sharing an image dataset. This guide will show you how to:
 
+* Create an audio dataset from local files in python with [`Dataset.push_to_hub`]. This is an easy way that requires only a few steps in python.
+
 * Create an image dataset with `ImageFolder` and some metadata. This is a no-code solution for quickly creating an image dataset with several thousand images.
-* Create an image dataset by writing a loading script. This method is a bit more involved, but you have greater flexibility over how a dataset is defined, downloaded, and generated which can be useful for more complex or large scale image datasets.
 
 <Tip>
 
@@ -188,7 +189,7 @@ Load your WebDataset and it will create on column per file suffix (here "jpg" an
 {"bbox": [[302.0, 109.0, 73.0, 52.0]], "categories": [0]}
 ```
 
-## Loading script
+## (Legacy) Loading script
 
 Write a dataset loading script to share a dataset. It defines a dataset's splits and configurations, and handles downloading and generating a dataset. The script is located in the same folder or repository as the dataset and should have the same name.
 

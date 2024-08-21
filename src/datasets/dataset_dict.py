@@ -1229,10 +1229,9 @@ class DatasetDict(dict):
         If you want to store paths or urls, please use the Value("string") type.
 
         Args:
-            dataset_dict_path (`str`):
-                Path (e.g. `dataset/train`) or remote URI
-                (e.g. `s3://my-bucket/dataset/train`) of the dataset dict directory where the dataset dict will be
-                saved to.
+            dataset_dict_path (`path-like`):
+                Path (e.g. `dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`)
+                of the dataset dict directory where the dataset dict will be saved to.
             fs (`fsspec.spec.AbstractFileSystem`, *optional*):
                 Instance of the remote filesystem where the dataset will be saved to.
 
@@ -1312,7 +1311,7 @@ class DatasetDict(dict):
         Load a dataset that was previously saved using [`save_to_disk`] from a filesystem using `fsspec.spec.AbstractFileSystem`.
 
         Args:
-            dataset_dict_path (`str`):
+            dataset_dict_path (`path-like`):
                 Path (e.g. `"dataset/train"`) or remote URI (e.g. `"s3//my-bucket/dataset/train"`)
                 of the dataset dict directory where the dataset dict will be loaded from.
             fs (`fsspec.spec.AbstractFileSystem`, *optional*):
@@ -1701,7 +1700,8 @@ class DatasetDict(dict):
         )
         repo_id = repo_url.repo_id
 
-        if revision is not None:
+        if revision is not None and not revision.startswith("refs/pr/"):
+            # We do not call create_branch for a PR reference: 400 Bad Request
             api.create_branch(repo_id, branch=revision, token=token, repo_type="dataset", exist_ok=True)
 
         if not data_dir:

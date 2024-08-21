@@ -31,6 +31,7 @@ from datasets.features import (
     ClassLabel,
     Features,
     Image,
+    LargeList,
     Sequence,
     Translation,
     TranslationVariableLanguages,
@@ -49,6 +50,7 @@ from .utils import (
     require_dill_gt_0_3_2,
     require_jax,
     require_not_windows,
+    require_numpy1_on_windows,
     require_pil,
     require_polars,
     require_pyspark,
@@ -412,6 +414,7 @@ class BaseDatasetTest(TestCase):
                 self.assertIsInstance(dset[0]["col_2"], np.str_)
                 self.assertEqual(dset[0]["col_2"].item(), "a")
 
+    @require_numpy1_on_windows
     @require_torch
     def test_set_format_torch(self, in_memory):
         import torch
@@ -904,7 +907,10 @@ class BaseDatasetTest(TestCase):
             with Dataset.from_dict(
                 {"a": [{"en": "the cat", "fr": ["le chat", "la chatte"], "de": "die katze"}] * 10, "foo": [1] * 10},
                 features=Features(
-                    {"a": TranslationVariableLanguages(languages=["en", "fr", "de"]), "foo": Value("int64")}
+                    {
+                        "a": TranslationVariableLanguages(languages=["en", "fr", "de"]),
+                        "foo": Value("int64"),
+                    }
                 ),
             ) as dset:
                 with self._to(in_memory, tmp_dir, dset) as dset:
@@ -989,7 +995,11 @@ class BaseDatasetTest(TestCase):
                         self.assertDictEqual(
                             dset.features,
                             Features(
-                                {"a.b.bytes": Value("binary"), "a.b.path": Value("string"), "foo": Value("int64")}
+                                {
+                                    "a.b.bytes": Value("binary"),
+                                    "a.b.path": Value("string"),
+                                    "foo": Value("int64"),
+                                }
                             ),
                         )
                         self.assertNotEqual(dset._fingerprint, fingerprint)
@@ -1517,6 +1527,49 @@ class BaseDatasetTest(TestCase):
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertRaises(ValueError, dset.map, func_return_multi_row_pd_dataframe)
 
+    @require_polars
+    def test_map_return_pl_dataframe(self, in_memory):
+        import polars as pl
+
+        def func_return_single_row_pl_dataframe(x):
+            return pl.DataFrame({"id": [0], "text": ["a"]})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.map(func_return_single_row_pl_dataframe) as dset_test:
+                    self.assertEqual(len(dset_test), 30)
+                    self.assertDictEqual(
+                        dset_test.features,
+                        Features({"id": Value("int64"), "text": Value("large_string")}),
+                    )
+                    self.assertEqual(dset_test[0]["id"], 0)
+                    self.assertEqual(dset_test[0]["text"], "a")
+
+        # Batched
+        def func_return_single_row_pl_dataframe_batched(x):
+            batch_size = len(x[next(iter(x))])
+            return pl.DataFrame({"id": [0] * batch_size, "text": ["a"] * batch_size})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.map(func_return_single_row_pl_dataframe_batched, batched=True) as dset_test:
+                    self.assertEqual(len(dset_test), 30)
+                    self.assertDictEqual(
+                        dset_test.features,
+                        Features({"id": Value("int64"), "text": Value("large_string")}),
+                    )
+                    self.assertEqual(dset_test[0]["id"], 0)
+                    self.assertEqual(dset_test[0]["text"], "a")
+
+        # Error when returning a table with more than one row in the non-batched mode
+        def func_return_multi_row_pl_dataframe(x):
+            return pl.DataFrame({"id": [0, 1], "text": ["a", "b"]})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                self.assertRaises(ValueError, dset.map, func_return_multi_row_pl_dataframe)
+
+    @require_numpy1_on_windows
     @require_torch
     def test_map_torch(self, in_memory):
         import torch
@@ -1582,6 +1635,7 @@ class BaseDatasetTest(TestCase):
                     )
                     self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
 
+    @require_numpy1_on_windows
     @require_torch
     def test_map_tensor_batched(self, in_memory):
         import torch
@@ -1818,7 +1872,10 @@ class BaseDatasetTest(TestCase):
 
     def test_keep_features_after_transform_specified(self, in_memory):
         features = Features(
-            {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
+            {
+                "tokens": Sequence(Value("string")),
+                "labels": Sequence(ClassLabel(names=["negative", "positive"])),
+            }
         )
 
         def invert_labels(x):
@@ -1836,7 +1893,10 @@ class BaseDatasetTest(TestCase):
 
     def test_keep_features_after_transform_unspecified(self, in_memory):
         features = Features(
-            {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
+            {
+                "tokens": Sequence(Value("string")),
+                "labels": Sequence(ClassLabel(names=["negative", "positive"])),
+            }
         )
 
         def invert_labels(x):
@@ -1854,7 +1914,10 @@ class BaseDatasetTest(TestCase):
 
     def test_keep_features_after_transform_to_file(self, in_memory):
         features = Features(
-            {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
+            {
+                "tokens": Sequence(Value("string")),
+                "labels": Sequence(ClassLabel(names=["negative", "positive"])),
+            }
         )
 
         def invert_labels(x):
@@ -1873,7 +1936,10 @@ class BaseDatasetTest(TestCase):
 
     def test_keep_features_after_transform_to_memory(self, in_memory):
         features = Features(
-            {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
+            {
+                "tokens": Sequence(Value("string")),
+                "labels": Sequence(ClassLabel(names=["negative", "positive"])),
+            }
         )
 
         def invert_labels(x):
@@ -1890,7 +1956,10 @@ class BaseDatasetTest(TestCase):
 
     def test_keep_features_after_loading_from_cache(self, in_memory):
         features = Features(
-            {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
+            {
+                "tokens": Sequence(Value("string")),
+                "labels": Sequence(ClassLabel(names=["negative", "positive"])),
+            }
         )
 
         def invert_labels(x):
@@ -1913,7 +1982,10 @@ class BaseDatasetTest(TestCase):
 
     def test_keep_features_with_new_features(self, in_memory):
         features = Features(
-            {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
+            {
+                "tokens": Sequence(Value("string")),
+                "labels": Sequence(ClassLabel(names=["negative", "positive"])),
+            }
         )
 
         def invert_labels(x):
@@ -3697,7 +3769,11 @@ def test_dataset_from_json_features(features, jsonl_path, tmp_path):
 
 def test_dataset_from_json_with_class_label_feature(jsonl_str_path, tmp_path):
     features = Features(
-        {"col_1": ClassLabel(names=["s0", "s1", "s2", "s3"]), "col_2": Value("int64"), "col_3": Value("float64")}
+        {
+            "col_1": ClassLabel(names=["s0", "s1", "s2", "s3"]),
+            "col_2": Value("int64"),
+            "col_3": Value("float64"),
+        }
     )
     cache_dir = tmp_path / "cache"
     dataset = Dataset.from_json(jsonl_str_path, features=features, cache_dir=cache_dir)
@@ -3859,10 +3935,11 @@ def data_generator():
     return _gen
 
 
-def _check_generator_dataset(dataset, expected_features):
+def _check_generator_dataset(dataset, expected_features, split):
     assert isinstance(dataset, Dataset)
     assert dataset.num_rows == 4
     assert dataset.num_columns == 3
+    assert dataset.split == split
     assert dataset.column_names == ["col_1", "col_2", "col_3"]
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
@@ -3874,7 +3951,7 @@ def test_dataset_from_generator_keep_in_memory(keep_in_memory, data_generator, t
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
         dataset = Dataset.from_generator(data_generator, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
-    _check_generator_dataset(dataset, expected_features)
+    _check_generator_dataset(dataset, expected_features, NamedSplit("train"))
 
 
 @pytest.mark.parametrize(
@@ -3895,7 +3972,23 @@ def test_dataset_from_generator_features(features, data_generator, tmp_path):
         Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
     )
     dataset = Dataset.from_generator(data_generator, features=features, cache_dir=cache_dir)
-    _check_generator_dataset(dataset, expected_features)
+    _check_generator_dataset(dataset, expected_features, NamedSplit("train"))
+
+
+@pytest.mark.parametrize(
+    "split",
+    [None, NamedSplit("train"), "train", NamedSplit("foo"), "foo"],
+)
+def test_dataset_from_generator_split(split, data_generator, tmp_path):
+    cache_dir = tmp_path / "cache"
+    default_expected_split = "train"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    expected_split = split if split else default_expected_split
+    if split:
+        dataset = Dataset.from_generator(data_generator, cache_dir=cache_dir, split=split)
+    else:
+        dataset = Dataset.from_generator(data_generator, cache_dir=cache_dir)
+    _check_generator_dataset(dataset, expected_features, expected_split)
 
 
 @require_not_windows
@@ -4090,7 +4183,7 @@ def test_dummy_dataset_serialize_fs(dataset, mockfs):
     dataset.save_to_disk(dataset_path, storage_options=mockfs.storage_options)
     assert mockfs.isdir(dataset_path)
     assert mockfs.glob(dataset_path + "/*")
-    reloaded = dataset.load_from_disk(dataset_path, storage_options=mockfs.storage_options)
+    reloaded = Dataset.load_from_disk(dataset_path, storage_options=mockfs.storage_options)
     assert len(reloaded) == len(dataset)
     assert reloaded.features == dataset.features
     assert reloaded.to_dict() == dataset.to_dict()
@@ -4381,3 +4474,125 @@ def test_categorical_dataset(tmpdir):
 
     # Categorical types get transparently converted to string
     assert entry["animals"] == "Flamingo"
+
+
+def test_dataset_batch():
+    # Create a simple Dataset
+    data = {"id": list(range(10)), "text": [f"Text {i}" for i in range(10)]}
+    ds = Dataset.from_dict(data)
+
+    # Test with batch_size=3, drop_last_batch=False
+    batched_ds = ds.batch(batch_size=3, drop_last_batch=False)
+    batches = list(batched_ds)
+
+    assert len(batches) == 4  # 3 full batches and 1 partial batch
+    for i, batch in enumerate(batches[:3]):  # Check full batches
+        assert len(batch["id"]) == 3
+        assert len(batch["text"]) == 3
+        assert batch["id"] == [3 * i, 3 * i + 1, 3 * i + 2]
+        assert batch["text"] == [f"Text {3 * i}", f"Text {3 * i + 1}", f"Text {3 * i + 2}"]
+
+    # Check last partial batch
+    assert len(batches[3]["id"]) == 1
+    assert len(batches[3]["text"]) == 1
+    assert batches[3]["id"] == [9]
+    assert batches[3]["text"] == ["Text 9"]
+
+    # Test with batch_size=3, drop_last_batch=True
+    batched_ds = ds.batch(batch_size=3, drop_last_batch=True)
+    batches = list(batched_ds)
+
+    assert len(batches) == 3  # Only full batches
+    for i, batch in enumerate(batches):
+        assert len(batch["id"]) == 3
+        assert len(batch["text"]) == 3
+        assert batch["id"] == [3 * i, 3 * i + 1, 3 * i + 2]
+        assert batch["text"] == [f"Text {3 * i}", f"Text {3 * i + 1}", f"Text {3 * i + 2}"]
+
+    # Test with batch_size=4 (doesn't evenly divide dataset size)
+    batched_ds = ds.batch(batch_size=4, drop_last_batch=False)
+    batches = list(batched_ds)
+
+    assert len(batches) == 3  # 2 full batches and 1 partial batch
+    for i, batch in enumerate(batches[:2]):  # Check full batches
+        assert len(batch["id"]) == 4
+        assert len(batch["text"]) == 4
+        assert batch["id"] == [4 * i, 4 * i + 1, 4 * i + 2, 4 * i + 3]
+        assert batch["text"] == [f"Text {4 * i}", f"Text {4 * i + 1}", f"Text {4 * i + 2}", f"Text {4 * i + 3}"]
+
+    # Check last partial batch
+    assert len(batches[2]["id"]) == 2
+    assert len(batches[2]["text"]) == 2
+    assert batches[2]["id"] == [8, 9]
+    assert batches[2]["text"] == ["Text 8", "Text 9"]
+
+
+def test_dataset_from_dict_with_large_list():
+    data = {"col_1": [[1, 2], [3, 4]]}
+    features = Features({"col_1": LargeList(Value("int64"))})
+    ds = Dataset.from_dict(data, features=features)
+    assert isinstance(ds, Dataset)
+    assert pa.types.is_large_list(ds.data.schema.field("col_1").type)
+
+
+def test_dataset_save_to_disk_with_large_list(tmp_path):
+    data = {"col_1": [[1, 2], [3, 4]]}
+    features = Features({"col_1": LargeList(Value("int64"))})
+    ds = Dataset.from_dict(data, features=features)
+    dataset_path = tmp_path / "dataset_dir"
+    ds.save_to_disk(dataset_path)
+    assert (dataset_path / "data-00000-of-00001.arrow").exists()
+
+
+def test_dataset_save_to_disk_and_load_from_disk_round_trip_with_large_list(tmp_path):
+    data = {"col_1": [[1, 2], [3, 4]]}
+    features = Features({"col_1": LargeList(Value("int64"))})
+    ds = Dataset.from_dict(data, features=features)
+    dataset_path = tmp_path / "dataset_dir"
+    ds.save_to_disk(dataset_path)
+    assert (dataset_path / "data-00000-of-00001.arrow").exists()
+    loaded_ds = load_from_disk(dataset_path)
+    assert len(loaded_ds) == len(ds)
+    assert loaded_ds.features == ds.features
+    assert loaded_ds.to_dict() == ds.to_dict()
+
+
+@require_polars
+def test_from_polars_with_large_list():
+    import polars as pl
+
+    df = pl.from_dict({"col_1": [[1, 2], [3, 4]]})
+    ds = Dataset.from_polars(df)
+    assert isinstance(ds, Dataset)
+
+
+@require_polars
+def test_from_polars_save_to_disk_with_large_list(tmp_path):
+    import polars as pl
+
+    df = pl.from_dict({"col_1": [[1, 2], [3, 4]]})
+    ds = Dataset.from_polars(df)
+    dataset_path = tmp_path / "dataset_dir"
+    ds.save_to_disk(dataset_path)
+    assert (dataset_path / "data-00000-of-00001.arrow").exists()
+
+
+@require_polars
+def test_from_polars_save_to_disk_and_load_from_disk_round_trip_with_large_list(tmp_path):
+    import polars as pl
+
+    df = pl.from_dict({"col_1": [[1, 2], [3, 4]]})
+    ds = Dataset.from_polars(df)
+    dataset_path = tmp_path / "dataset_dir"
+    ds.save_to_disk(dataset_path)
+    assert (dataset_path / "data-00000-of-00001.arrow").exists()
+    loaded_ds = load_from_disk(dataset_path)
+    assert len(loaded_ds) == len(ds)
+    assert loaded_ds.features == ds.features
+    assert loaded_ds.to_dict() == ds.to_dict()
+
+
+@require_polars
+def test_polars_round_trip():
+    ds = Dataset.from_dict({"x": [[1, 2], [3, 4, 5]], "y": ["a", "b"]})
+    assert isinstance(Dataset.from_polars(ds.to_polars()), Dataset)

@@ -29,14 +29,11 @@ from datasets.features import Features, Image, Value
 from datasets.iterable_dataset import IterableDataset
 from datasets.load import (
     CachedDatasetModuleFactory,
-    CachedMetricModuleFactory,
-    GithubMetricModuleFactory,
     HubDatasetModuleFactoryWithoutScript,
     HubDatasetModuleFactoryWithParquetExport,
     HubDatasetModuleFactoryWithScript,
     LocalDatasetModuleFactoryWithoutScript,
     LocalDatasetModuleFactoryWithScript,
-    LocalMetricModuleFactory,
     PackagedDatasetModuleFactory,
     infer_module_for_data_files_list,
     infer_module_for_data_files_list_in_archives,
@@ -54,6 +51,7 @@ from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
     offline,
+    require_moto,
     require_not_windows,
     require_pil,
     require_sndfile,
@@ -101,23 +99,6 @@ SAMPLE_DATASET_TWO_CONFIG_IN_METADATA_WITH_DEFAULT = (
     "hf-internal-testing/audiofolder_two_configs_in_metadata_with_default"
 )
 SAMPLE_DATASET_CAPITAL_LETTERS_IN_NAME = "hf-internal-testing/DatasetWithCapitalLetters"
-
-
-METRIC_LOADING_SCRIPT_NAME = "__dummy_metric1__"
-
-METRIC_LOADING_SCRIPT_CODE = """
-import datasets
-from datasets import MetricInfo, Features, Value
-
-
-class __DummyMetric1__(datasets.Metric):
-
-    def _info(self):
-        return MetricInfo(features=Features({"predictions": Value("int"), "references": Value("int")}))
-
-    def _compute(self, predictions, references):
-        return {"__dummy_metric1__": sum(int(p == r) for p, r in zip(predictions, references))}
-"""
 
 
 @pytest.fixture
@@ -327,17 +308,6 @@ def dataset_loading_script_dir_readonly(tmp_path):
     return dataset_loading_script_dir
 
 
-@pytest.fixture
-def metric_loading_script_dir(tmp_path):
-    script_name = METRIC_LOADING_SCRIPT_NAME
-    script_dir = tmp_path / script_name
-    script_dir.mkdir()
-    script_path = script_dir / f"{script_name}.py"
-    with open(script_path, "w") as f:
-        f.write(METRIC_LOADING_SCRIPT_CODE)
-    return str(script_dir)
-
-
 @pytest.mark.parametrize(
     "data_files, expected_module, expected_builder_kwargs",
     [
@@ -396,7 +366,6 @@ class ModuleFactoryTest(TestCase):
         data_dir_with_two_config_in_metadata,
         sub_data_dirs,
         dataset_loading_script_dir,
-        metric_loading_script_dir,
     ):
         self._jsonl_path = jsonl_path
         self._data_dir = data_dir
@@ -407,7 +376,6 @@ class ModuleFactoryTest(TestCase):
         self._data_dir2 = sub_data_dirs[0]
         self._sub_data_dir = sub_data_dirs[1]
         self._dataset_loading_script_dir = dataset_loading_script_dir
-        self._metric_loading_script_dir = metric_loading_script_dir
 
     def setUp(self):
         self.hf_modules_cache = tempfile.mkdtemp()
@@ -446,40 +414,6 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
         assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
-
-    def test_GithubMetricModuleFactory_with_internal_import(self):
-        # "squad_v2" requires additional imports (internal)
-        factory = GithubMetricModuleFactory(
-            "squad_v2",
-            download_config=self.download_config,
-            dynamic_modules_path=self.dynamic_modules_path,
-            trust_remote_code=True,
-        )
-        module_factory_result = factory.get_module()
-        assert importlib.import_module(module_factory_result.module_path) is not None
-
-    @pytest.mark.filterwarnings("ignore:GithubMetricModuleFactory is deprecated:FutureWarning")
-    def test_GithubMetricModuleFactory_with_external_import(self):
-        # "bleu" requires additional imports (external from github)
-        factory = GithubMetricModuleFactory(
-            "bleu",
-            download_config=self.download_config,
-            dynamic_modules_path=self.dynamic_modules_path,
-            trust_remote_code=True,
-        )
-        module_factory_result = factory.get_module()
-        assert importlib.import_module(module_factory_result.module_path) is not None
-
-    def test_LocalMetricModuleFactory(self):
-        path = os.path.join(self._metric_loading_script_dir, f"{METRIC_LOADING_SCRIPT_NAME}.py")
-        factory = LocalMetricModuleFactory(
-            path,
-            download_config=self.download_config,
-            dynamic_modules_path=self.dynamic_modules_path,
-            trust_remote_code=True,
-        )
-        module_factory_result = factory.get_module()
-        assert importlib.import_module(module_factory_result.module_path) is not None
 
     def test_LocalDatasetModuleFactoryWithScript(self):
         path = os.path.join(self._dataset_loading_script_dir, f"{DATASET_LOADING_SCRIPT_NAME}.py")
@@ -910,38 +844,15 @@ class ModuleFactoryTest(TestCase):
                 module_factory_result = factory.get_module()
                 assert importlib.import_module(module_factory_result.module_path) is not None
 
-    @pytest.mark.filterwarnings("ignore:LocalMetricModuleFactory is deprecated:FutureWarning")
-    @pytest.mark.filterwarnings("ignore:CachedMetricModuleFactory is deprecated:FutureWarning")
-    def test_CachedMetricModuleFactory(self):
-        path = os.path.join(self._metric_loading_script_dir, f"{METRIC_LOADING_SCRIPT_NAME}.py")
-        factory = LocalMetricModuleFactory(
-            path,
-            download_config=self.download_config,
-            dynamic_modules_path=self.dynamic_modules_path,
-            trust_remote_code=True,
-        )
-        module_factory_result = factory.get_module()
-        for offline_mode in OfflineSimulationMode:
-            with offline(offline_mode):
-                factory = CachedMetricModuleFactory(
-                    METRIC_LOADING_SCRIPT_NAME,
-                    dynamic_modules_path=self.dynamic_modules_path,
-                )
-                module_factory_result = factory.get_module()
-                assert importlib.import_module(module_factory_result.module_path) is not None
-
 
 @pytest.mark.parametrize(
     "factory_class",
     [
         CachedDatasetModuleFactory,
-        CachedMetricModuleFactory,
-        GithubMetricModuleFactory,
         HubDatasetModuleFactoryWithoutScript,
         HubDatasetModuleFactoryWithScript,
         LocalDatasetModuleFactoryWithoutScript,
         LocalDatasetModuleFactoryWithScript,
-        LocalMetricModuleFactory,
         PackagedDatasetModuleFactory,
     ],
 )
@@ -1679,11 +1590,56 @@ def test_load_from_disk_with_default_in_memory(
         expected_in_memory = False
 
     dset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, keep_in_memory=True, trust_remote_code=True)
-    dataset_path = os.path.join(tmp_path, "saved_dataset")
+    dataset_path = tmp_path / "saved_dataset"
     dset.save_to_disk(dataset_path)
 
     with assert_arrow_memory_increases() if expected_in_memory else assert_arrow_memory_doesnt_increase():
         _ = load_from_disk(dataset_path)
+
+
+@pytest.fixture
+def moto_server(monkeypatch):
+    from moto.server import ThreadedMotoServer
+
+    monkeypatch.setattr(
+        "os.environ",
+        {
+            "AWS_ENDPOINT_URL": "http://localhost:5000",
+            "AWS_DEFAULT_REGION": "us-east-1",
+            "AWS_ACCESS_KEY_ID": "FOO",
+            "AWS_SECRET_ACCESS_KEY": "BAR",
+        },
+    )
+    server = ThreadedMotoServer()
+    server.start()
+    try:
+        yield
+    finally:
+        server.stop()
+
+
+@require_moto
+def test_load_file_from_s3(moto_server):
+    # we need server mode here because of an aiobotocore incompatibility with moto.mock_aws
+    # (https://github.com/getmoto/moto/issues/6836)
+    import boto3
+
+    # Create a mock S3 bucket
+    bucket_name = "test-bucket"
+    s3 = boto3.client("s3", region_name="us-east-1")
+    s3.create_bucket(Bucket=bucket_name)
+
+    # Upload a file to the mock bucket
+    key = "test-file.csv"
+    csv_data = "Island\nIsabela\nBaltra"
+
+    s3.put_object(Bucket=bucket_name, Key=key, Body=csv_data)
+
+    # Load the file from the mock bucket
+    ds = datasets.load_dataset("csv", data_files={"train": "s3://test-bucket/test-file.csv"})
+
+    # Check if the loaded content matches the original content
+    assert list(ds["train"]) == [{"Island": "Isabela"}, {"Island": "Baltra"}]
 
 
 @pytest.mark.integration

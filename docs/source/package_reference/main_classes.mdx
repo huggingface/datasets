@@ -168,6 +168,7 @@ The base class [`IterableDataset`] implements an iterable Dataset backed by pyth
     - rename_column
     - filter
     - shuffle
+    - batch
     - skip
     - take
     - load_state_dict
@@ -208,15 +209,25 @@ Dictionary with split names as keys ('train', 'test' for example), and `Iterable
 
 [[autodoc]] datasets.Features
 
-[[autodoc]] datasets.Sequence
+### Scalar
+
+[[autodoc]] datasets.Value
 
 [[autodoc]] datasets.ClassLabel
 
-[[autodoc]] datasets.Value
+### Composite
+
+[[autodoc]] datasets.LargeList
+
+[[autodoc]] datasets.Sequence
+
+### Translation
 
 [[autodoc]] datasets.Translation
 
 [[autodoc]] datasets.TranslationVariableLanguages
+
+### Arrays
 
 [[autodoc]] datasets.Array2D
 
@@ -226,19 +237,13 @@ Dictionary with split names as keys ('train', 'test' for example), and `Iterable
 
 [[autodoc]] datasets.Array5D
 
+### Audio
+
 [[autodoc]] datasets.Audio
 
+### Image
+
 [[autodoc]] datasets.Image
-
-## MetricInfo
-
-[[autodoc]] datasets.MetricInfo
-
-## Metric
-
-The base class `Metric` implements a Metric backed by one or several [`Dataset`].
-
-[[autodoc]] datasets.Metric
 
 ## Filesystems
 
