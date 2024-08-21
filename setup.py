@@ -196,7 +196,6 @@ NUMPY2_INCOMPATIBLE_LIBRARIES = [
     "faiss-cpu",
     "librosa",  # librosa -> numba-0.60.0 requires numpy < 2.1 (see GH-7111)
     "tensorflow",
-    "transformers",
 ]
 TESTS_NUMPY2_REQUIRE = [
     library for library in TESTS_REQUIRE if library.partition(">")[0] not in NUMPY2_INCOMPATIBLE_LIBRARIES
