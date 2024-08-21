@@ -66,7 +66,6 @@ def test_dataset_info_to_yaml_dict():
         features=Features({"a": Value("int32")}),
         post_processed={},
         supervised_keys=(),
-        task_templates=[],
         builder_name="builder",
         config_name="config",
         version="1.0.0",

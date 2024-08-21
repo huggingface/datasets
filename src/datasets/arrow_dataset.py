@@ -118,7 +118,6 @@ from .table import (
     table_iter,
     table_visitor,
 )
-from .tasks import TaskTemplate
 from .utils import logging
 from .utils import tqdm as hf_tqdm
 from .utils.deprecation_utils import deprecated
@@ -132,7 +131,6 @@ from .utils.py_utils import (
     glob_pattern_to_regex,
     iflatmap_unordered,
     string_to_dict,
-    unique_values,
 )
 from .utils.stratify import stratified_shuffle_split_generate_indices
 from .utils.tf_utils import dataset_to_tf, minimal_tf_collate_fn, multiprocess_dataset_to_tf
@@ -222,10 +220,6 @@ class DatasetInfoMixin:
     @property
     def supervised_keys(self):
         return self._info.supervised_keys
-
-    @property
-    def task_templates(self):
-        return self._info.task_templates
 
     @property
     def version(self):
@@ -585,36 +579,6 @@ def transmit_format(func):
         return out
 
     wrapper._decorator_name_ = "transmit_format"
-    return wrapper
-
-
-def transmit_tasks(func):
-    """Wrapper for dataset transforms that recreate a new Dataset to transmit the task templates of the original dataset to the new dataset"""
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if args:
-            self: "Dataset" = args[0]
-            args = args[1:]
-        else:
-            self: "Dataset" = kwargs.pop("self")
-        # apply actual function
-        out: Union["Dataset", "DatasetDict"] = func(self, *args, **kwargs)
-        datasets: List["Dataset"] = list(out.values()) if isinstance(out, dict) else [out]
-        for dataset in datasets:
-            # Remove task templates if a column mapping of the template is no longer valid
-            if self.info.task_templates is not None:
-                dataset.info.task_templates = [
-                    template
-                    for template in self.info.task_templates
-                    if all(
-                        dataset._info.features.get(k) == self._info.features.get(k)
-                        for k in template.column_mapping.keys()
-                    )
-                ]
-        return out
-
-    wrapper._decorator_name_ = "transmit_tasks"
     return wrapper
 
 
@@ -2176,7 +2140,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features[column] = feature
             return self.cast(features)
 
-    @transmit_tasks
     @transmit_format
     @fingerprint_transform(inplace=False)
     def remove_columns(self, column_names: Union[str, List[str]], new_fingerprint: Optional[str] = None) -> "Dataset":
@@ -2232,7 +2195,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
-    @transmit_tasks
     @fingerprint_transform(inplace=False)
     def rename_column(
         self, original_column_name: str, new_column_name: str, new_fingerprint: Optional[str] = None
@@ -2299,7 +2261,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
-    @transmit_tasks
     @fingerprint_transform(inplace=False)
     def rename_columns(self, column_mapping: Dict[str, str], new_fingerprint: Optional[str] = None) -> "Dataset":
         """
@@ -2367,7 +2328,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
-    @transmit_tasks
     @transmit_format
     @fingerprint_transform(inplace=False)
     def select_columns(self, column_names: Union[str, List[str]], new_fingerprint: Optional[str] = None) -> "Dataset":
@@ -2788,57 +2748,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset.set_transform(transform=transform, columns=columns, output_all_columns=output_all_columns)
         return dataset
 
-    @deprecated()
-    def prepare_for_task(self, task: Union[str, TaskTemplate], id: int = 0) -> "Dataset":
-        """
-        Prepare a dataset for the given task by casting the dataset's [`Features`] to standardized column names and types as detailed in [`datasets.tasks`](./task_templates).
-
-        Casts [`datasets.DatasetInfo.features`] according to a task-specific schema. Intended for single-use only, so all task templates are removed from [`datasets.DatasetInfo.task_templates`] after casting.
-
-        Args:
-            task (`Union[str, TaskTemplate]`):
-                The task to prepare the dataset for during training and evaluation. If `str`, supported tasks include:
-
-                - `"text-classification"`
-                - `"question-answering"`
-
-                If [`TaskTemplate`], must be one of the task templates in [`datasets.tasks`](./task_templates).
-            id (`int`, defaults to `0`):
-                The id required to unambiguously identify the task template when multiple task templates of the same type are supported.
-        """
-        # TODO(lewtun): Add support for casting nested features like answers.text and answers.answer_start in SQuAD
-        if isinstance(task, str):
-            tasks = [template.task for template in (self.info.task_templates or [])]
-            compatible_templates = [template for template in (self.info.task_templates or []) if template.task == task]
-            if not compatible_templates:
-                raise ValueError(
-                    f"Task {task} is not compatible with this dataset! Available tasks: {list(unique_values(tasks))}"
-                )
-
-            if not 0 <= id < len(compatible_templates):
-                templates_list_str = "\n".join(
-                    f"- `{idx}` for task {template}" for idx, template in enumerate(compatible_templates)
-                )
-                raise ValueError(
-                    f"Id {id} for task {task} is not in a valid range. Supported ids:\n{templates_list_str}"
-                )
-            template = compatible_templates[id]
-        elif isinstance(task, TaskTemplate):
-            template = task
-        else:
-            raise ValueError(
-                f"Expected a `str` or `datasets.TaskTemplate` object but got task {task} with type {type(task)}."
-            )
-        template = template.align_with_features(self.info.features)
-        column_mapping = template.column_mapping
-        columns_to_drop = [column for column in self.column_names if column not in column_mapping]
-        dataset = self.remove_columns(columns_to_drop)
-        dataset = dataset.rename_columns(column_mapping)
-        # We found a template so now flush `DatasetInfo` to skip the template update in `DatasetInfo.__post_init__`
-        dataset.info.task_templates = None
-        dataset = dataset.cast(features=template.features)
-        return dataset
-
     def _getitem(self, key: Union[int, slice, str, ListLike[int]], **kwargs) -> Union[Dict, List]:
         """
         Can be used to index columns (by string names) or rows (by integer, slice, or list-like of integer indices)
@@ -2924,7 +2833,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         cache_file_path = os.path.join(cache_directory, cache_file_name)
         return cache_file_path
 
-    @transmit_tasks
     @transmit_format
     def map(
         self,
@@ -3140,7 +3048,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 if os.path.exists(shard_kwargs["cache_file_name"]) and load_from_cache_file:
                     info = shard.info.copy()
                     info.features = features
-                    info.task_templates = None
                     return Dataset.from_file(shard_kwargs["cache_file_name"], info=info, split=shard.split)
             raise NonExistentDatasetError
 
@@ -3621,7 +3528,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # Create new Dataset from buffer or file
             info = shard.info.copy()
             info.features = writer._features
-            info.task_templates = None
             if buf_writer is None:
                 yield rank, True, Dataset.from_file(cache_file_name, info=info, split=shard.split)
             else:
