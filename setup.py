@@ -111,7 +111,7 @@ REQUIRED_PKGS = [
     # For file locking
     "filelock",
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
-    "numpy>=1.17,<2.1",  # Temporarily pin <2.1 (see GH-7111)
+    "numpy>=1.17",
     # Backend and serialization.
     # Minimum 15.0.0 to be able to cast dictionary types to their underlying types
     "pyarrow>=15.0.0",
@@ -194,6 +194,7 @@ TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
 NUMPY2_INCOMPATIBLE_LIBRARIES = [
     "faiss-cpu",
+    "librosa",  # librosa -> numba-0.60.0 requires numpy < 2.1 (see GH-7111)
     "tensorflow",
     "transformers",
 ]
