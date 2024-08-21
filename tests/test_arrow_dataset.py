@@ -2286,44 +2286,6 @@ class BaseDatasetTest(TestCase):
                             ) as dset_sorted_formatted:
                                 self.assertEqual(dset_sorted_formatted.format["type"], "numpy")
 
-    @require_tf
-    def test_export(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                # Export the data
-                tfrecord_path = os.path.join(tmp_dir, "test.tfrecord")
-                with dset.map(
-                    lambda ex, i: {
-                        "id": i,
-                        "question": f"Question {i}",
-                        "answers": {"text": [f"Answer {i}-0", f"Answer {i}-1"], "answer_start": [0, 1]},
-                    },
-                    with_indices=True,
-                    remove_columns=["filename"],
-                ) as formatted_dset:
-                    with formatted_dset.flatten() as formatted_dset:
-                        formatted_dset.set_format("numpy")
-                        formatted_dset.export(filename=tfrecord_path, format="tfrecord")
-
-                        # Import the data
-                        import tensorflow as tf
-
-                        tf_dset = tf.data.TFRecordDataset([tfrecord_path])
-                        feature_description = {
-                            "id": tf.io.FixedLenFeature([], tf.int64),
-                            "question": tf.io.FixedLenFeature([], tf.string),
-                            "answers.text": tf.io.VarLenFeature(tf.string),
-                            "answers.answer_start": tf.io.VarLenFeature(tf.int64),
-                        }
-                        tf_parsed_dset = tf_dset.map(
-                            lambda example_proto: tf.io.parse_single_example(example_proto, feature_description)
-                        )
-                        # Test that keys match original dataset
-                        for i, ex in enumerate(tf_parsed_dset):
-                            self.assertEqual(ex.keys(), formatted_dset[i].keys())
-                        # Test for equal number of elements
-                        self.assertEqual(i, len(formatted_dset) - 1)
-
     def test_to_csv(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             # File path argument

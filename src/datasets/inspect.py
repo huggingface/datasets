@@ -16,14 +16,8 @@
 """List and inspect datasets."""
 
 import os
-import shutil
-import warnings
-from pathlib import Path, PurePath
 from typing import Dict, List, Mapping, Optional, Sequence, Union
 
-import huggingface_hub
-
-from . import config
 from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadMode
 from .download.streaming_download_manager import StreamingDownloadManager
@@ -33,7 +27,6 @@ from .load import (
     get_dataset_builder_class,
     load_dataset_builder,
 )
-from .utils.deprecation_utils import deprecated
 from .utils.logging import get_logger
 from .utils.version import Version
 
@@ -45,76 +38,6 @@ class SplitsNotFoundError(ValueError):
     pass
 
 
-@deprecated("Use 'huggingface_hub.list_datasets' instead.")
-def list_datasets(with_community_datasets=True, with_details=False):
-    """List all the datasets scripts available on the Hugging Face Hub.
-
-    Args:
-        with_community_datasets (`bool`, *optional*, defaults to `True`):
-            Include the community provided datasets.
-        with_details (`bool`, *optional*, defaults to `False`):
-            Return the full details on the datasets instead of only the short name.
-
-    Example:
-
-    ```py
-    >>> from datasets import list_datasets
-    >>> list_datasets()
-    ['acronym_identification',
-     'ade_corpus_v2',
-     'adversarial_qa',
-     'aeslc',
-     'afrikaans_ner_corpus',
-     'ag_news',
-     ...
-    ]
-    ```
-    """
-    datasets = huggingface_hub.list_datasets(full=with_details)
-    if not with_community_datasets:
-        datasets = [dataset for dataset in datasets if "/" not in dataset.id]
-    if not with_details:
-        datasets = [dataset.id for dataset in datasets]
-    return list(datasets)
-
-
-@deprecated("Clone the dataset repository from the Hugging Face Hub instead.")
-def inspect_dataset(path: str, local_path: str, download_config: Optional[DownloadConfig] = None, **download_kwargs):
-    """
-    Allow inspection/modification of a dataset script by copying on local drive at local_path.
-
-    Args:
-        path (`str`): Path to the dataset processing script with the dataset builder. Can be either:
-
-            - a local path to processing script or the directory containing the script (if the script has the same name
-                as the directory),
-                e.g. `'./dataset/squad'` or `'./dataset/squad/squad.py'`.
-            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`list_datasets`])
-                e.g. `'squad'`, `'glue'` or `'openai/webtext'`.
-        local_path (`str`):
-            Path to the local folder to copy the dataset script to.
-        download_config ([`DownloadConfig`], *optional*):
-            Specific download configuration parameters.
-        **download_kwargs (additional keyword arguments):
-            Optional arguments for [`DownloadConfig`] which will override
-            the attributes of `download_config` if supplied.
-    """
-    if download_config is None:
-        download_config = DownloadConfig(**download_kwargs)
-    if os.path.isfile(path):
-        path = str(Path(path).parent)
-    if os.path.isdir(path):
-        shutil.copytree(path, local_path, dirs_exist_ok=True)
-    else:
-        huggingface_hub.HfApi(endpoint=config.HF_ENDPOINT, token=download_config.token).snapshot_download(
-            repo_id=path, repo_type="dataset", local_dir=local_path, force_download=download_config.force_download
-        )
-    print(
-        f"The dataset {path} can be inspected at {local_path}. "
-        f'You can modify this loading script  if it has one and use it with `datasets.load_dataset("{PurePath(local_path).as_posix()}")`.'
-    )
-
-
 def get_dataset_infos(
     path: str,
     data_files: Optional[Union[Dict, List, str]] = None,
@@ -122,7 +45,6 @@ def get_dataset_infos(
     download_mode: Optional[Union[DownloadMode, str]] = None,
     revision: Optional[Union[str, Version]] = None,
     token: Optional[Union[bool, str]] = None,
-    use_auth_token="deprecated",
     **config_kwargs,
 ):
     """Get the meta information about a dataset, returned as a dict mapping config name to DatasetInfoDict.
@@ -132,7 +54,7 @@ def get_dataset_infos(
 
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. `'./dataset/squad'` or `'./dataset/squad/squad.py'`
-            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`datasets.list_datasets`])
+            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`huggingface_hub.list_datasets`]),
                 e.g. `'squad'`, `'glue'` or``'openai/webtext'`
         revision (`Union[str, datasets.Version]`, *optional*):
             If specified, the dataset module will be loaded from the datasets repository at this version.
@@ -149,16 +71,6 @@ def get_dataset_infos(
         token (`str` or `bool`, *optional*):
             Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If `True`, or not specified, will get token from `"~/.huggingface"`.
-        use_auth_token (`str` or `bool`, *optional*):
-            Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-            If `True`, or not specified, will get token from `"~/.huggingface"`.
-
-            <Deprecated version="2.14.0">
-
-            `use_auth_token` was deprecated in favor of `token` in version 2.14.0 and will be removed in 3.0.0.
-
-            </Deprecated>
-
         **config_kwargs (additional keyword arguments):
             Optional attributes for builder class which will override the attributes if supplied.
 
@@ -170,14 +82,6 @@ def get_dataset_infos(
     {'default': DatasetInfo(description="Movie Review Dataset.\nThis is a dataset of containing 5,331 positive and 5,331 negative processed\nsentences from Rotten Tomatoes movie reviews...), ...}
     ```
     """
-    if use_auth_token != "deprecated":
-        warnings.warn(
-            "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
-            "You can remove this warning by passing 'token=<use_auth_token>' instead.",
-            FutureWarning,
-        )
-        token = use_auth_token
-
     config_names = get_dataset_config_names(
         path=path,
         revision=revision,
@@ -217,7 +121,7 @@ def get_dataset_config_names(
 
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. `'./dataset/squad'` or `'./dataset/squad/squad.py'`
-            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`datasets.list_datasets`])
+            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`huggingface_hub.list_datasets`]),
                 e.g. `'squad'`, `'glue'` or `'openai/webtext'`
         revision (`Union[str, datasets.Version]`, *optional*):
             If specified, the dataset module will be loaded from the datasets repository at this version.
@@ -289,7 +193,7 @@ def get_dataset_default_config_name(
 
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. `'./dataset/squad'` or `'./dataset/squad/squad.py'`
-            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`datasets.list_datasets`])
+            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`huggingface_hub.list_datasets`]),
                 e.g. `'squad'`, `'glue'` or `'openai/webtext'`
         revision (`Union[str, datasets.Version]`, *optional*):
             If specified, the dataset module will be loaded from the datasets repository at this version.
@@ -347,7 +251,6 @@ def get_dataset_config_info(
     download_mode: Optional[Union[DownloadMode, str]] = None,
     revision: Optional[Union[str, Version]] = None,
     token: Optional[Union[bool, str]] = None,
-    use_auth_token="deprecated",
     **config_kwargs,
 ) -> DatasetInfo:
     """Get the meta information (DatasetInfo) about a dataset for a particular config
@@ -357,7 +260,7 @@ def get_dataset_config_info(
 
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
-            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
+            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`huggingface_hub.list_datasets`]),
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         config_name (:obj:`str`, optional): Defining the name of the dataset configuration.
         data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
@@ -368,26 +271,9 @@ def get_dataset_config_info(
             You can specify a different version than the default "main" by using a commit SHA or a git tag of the dataset repository.
         token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, or not specified, will get token from `"~/.huggingface"`.
-        use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-            If True, or not specified, will get token from `"~/.huggingface"`.
-
-            <Deprecated version="2.14.0">
-
-            `use_auth_token` was deprecated in favor of `token` in version 2.14.0 and will be removed in 3.0.0.
-
-            </Deprecated>
-
         **config_kwargs (additional keyword arguments): optional attributes for builder class which will override the attributes if supplied.
 
     """
-    if use_auth_token != "deprecated":
-        warnings.warn(
-            "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
-            "You can remove this warning by passing 'token=<use_auth_token>' instead.",
-            FutureWarning,
-        )
-        token = use_auth_token
-
     builder = load_dataset_builder(
         path,
         name=config_name,
@@ -426,7 +312,6 @@ def get_dataset_split_names(
     download_mode: Optional[Union[DownloadMode, str]] = None,
     revision: Optional[Union[str, Version]] = None,
     token: Optional[Union[bool, str]] = None,
-    use_auth_token="deprecated",
     **config_kwargs,
 ):
     """Get the list of available splits for a particular config and dataset.
@@ -436,7 +321,7 @@ def get_dataset_split_names(
 
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. `'./dataset/squad'` or `'./dataset/squad/squad.py'`
-            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`datasets.list_datasets`])
+            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with [`huggingface_hub.list_datasets`]),
                 e.g. `'squad'`, `'glue'` or `'openai/webtext'`
         config_name (`str`, *optional*):
             Defining the name of the dataset configuration.
@@ -453,16 +338,6 @@ def get_dataset_split_names(
         token (`str` or `bool`, *optional*):
             Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If `True`, or not specified, will get token from `"~/.huggingface"`.
-        use_auth_token (`str` or `bool`, *optional*):
-            Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-            If `True`, or not specified, will get token from `"~/.huggingface"`.
-
-            <Deprecated version="2.14.0">
-
-            `use_auth_token` was deprecated in favor of `token` in version 2.14.0 and will be removed in 3.0.0.
-
-            </Deprecated>
-
         **config_kwargs (additional keyword arguments):
             Optional attributes for builder class which will override the attributes if supplied.
 
@@ -474,14 +349,6 @@ def get_dataset_split_names(
     ['train', 'validation', 'test']
     ```
     """
-    if use_auth_token != "deprecated":
-        warnings.warn(
-            "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
-            "You can remove this warning by passing 'token=<use_auth_token>' instead.",
-            FutureWarning,
-        )
-        token = use_auth_token
-
     info = get_dataset_config_info(
         path,
         config_name=config_name,

@@ -25,7 +25,6 @@ import shutil
 import textwrap
 import time
 import urllib
-import warnings
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
@@ -40,10 +39,7 @@ from tqdm.contrib.concurrent import thread_map
 from . import config, utils
 from .arrow_dataset import Dataset
 from .arrow_reader import (
-    HF_GCP_BASE_URL,
     ArrowReader,
-    DatasetNotOnHfGcsError,
-    MissingFilesOnHfGcsError,
     ReadInstruction,
 )
 from .arrow_writer import ArrowWriter, ParquetWriter, SchemaInferenceError
@@ -51,7 +47,6 @@ from .data_files import DataFilesDict, DataFilesPatternsDict, sanitize_patterns
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .download.download_config import DownloadConfig
 from .download.download_manager import DownloadManager, DownloadMode
-from .download.mock_download_manager import MockDownloadManager
 from .download.streaming_download_manager import StreamingDownloadManager, xjoin
 from .exceptions import DatasetGenerationCastError, DatasetGenerationError, FileFormatError, ManualDownloadError
 from .features import Features
@@ -70,7 +65,7 @@ from .table import CastError
 from .utils import logging
 from .utils import tqdm as hf_tqdm
 from .utils._filelock import FileLock
-from .utils.file_utils import cached_path, is_remote_url
+from .utils.file_utils import is_remote_url
 from .utils.info_utils import VerificationMode, get_size_checksum_dict, verify_checksums, verify_splits
 from .utils.py_utils import (
     classproperty,
@@ -279,14 +274,6 @@ class DatasetBuilder:
             It defines the number of samples that are kept in memory before writing them
             and also the length of the arrow chunks.
             None means that the ArrowWriter will use its default value.
-        name (`str`): Configuration name for the dataset.
-
-            <Deprecated version="2.3.0">
-
-            Use `config_name` instead.
-
-            </Deprecated>
-
         **config_kwargs (additional keyword arguments): Keyword arguments to be passed to the corresponding builder
             configuration class, set on the class attribute [`DatasetBuilder.BUILDER_CONFIG_CLASS`]. The builder
             configuration class is [`BuilderConfig`] or a subclass of it.
@@ -320,35 +307,18 @@ class DatasetBuilder:
         info: Optional[DatasetInfo] = None,
         features: Optional[Features] = None,
         token: Optional[Union[bool, str]] = None,
-        use_auth_token="deprecated",
         repo_id: Optional[str] = None,
         data_files: Optional[Union[str, list, dict, DataFilesDict]] = None,
         data_dir: Optional[str] = None,
         storage_options: Optional[dict] = None,
         writer_batch_size: Optional[int] = None,
-        name="deprecated",
         **config_kwargs,
     ):
-        if use_auth_token != "deprecated":
-            warnings.warn(
-                "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
-                f"You can remove this warning by passing 'token={use_auth_token}' instead.",
-                FutureWarning,
-            )
-            token = use_auth_token
-        if name != "deprecated":
-            warnings.warn(
-                "Parameter 'name' was renamed to 'config_name' in version 2.3.0 and will be removed in 3.0.0.",
-                category=FutureWarning,
-            )
-            config_name = name
         # DatasetBuilder name
         self.name: str = camelcase_to_snakecase(self.__module__.split(".")[-1])
         self.hash: Optional[str] = hash
         self.base_path = base_path
         self.token = token
-        # For backwards compatibility (e.g. if accessed in a dataset script)
-        self.use_auth_token = token
         self.repo_id = repo_id
         self.storage_options = storage_options or {}
         self.dataset_name = camelcase_to_snakecase(dataset_name) if dataset_name else self.name
@@ -754,11 +724,8 @@ class DatasetBuilder:
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[Union[DownloadMode, str]] = None,
         verification_mode: Optional[Union[VerificationMode, str]] = None,
-        ignore_verifications="deprecated",
-        try_from_hf_gcs="deprecated",
         dl_manager: Optional[DownloadManager] = None,
         base_path: Optional[str] = None,
-        use_auth_token="deprecated",
         file_format: str = "arrow",
         max_shard_size: Optional[Union[int, str]] = None,
         num_proc: Optional[int] = None,
@@ -781,38 +748,11 @@ class DatasetBuilder:
                 Verification mode determining the checks to run on the downloaded/processed dataset information (checksums/size/splits/...).
 
                 <Added version="2.9.1"/>
-            ignore_verifications (`bool`, defaults to `False`):
-                Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...).
-
-                <Deprecated version="2.9.1">
-
-                `ignore_verifications` was deprecated in version 2.9.1 and will be removed in 3.0.0.
-                Please use `verification_mode` instead.
-
-                </Deprecated>
-            try_from_hf_gcs (`bool`):
-                If `True`, it will try to download the already prepared dataset from the HF Google cloud storage.
-
-                <Deprecated version="2.16.0">
-
-                `try_from_hf_gcs` was deprecated in version 2.16.0 and will be removed in 3.0.0.
-                Host the processed files on the Hugging Face Hub instead.
-
-                </Deprecated>
             dl_manager (`DownloadManager`, *optional*):
                 Specific `DownloadManger` to use.
             base_path (`str`, *optional*):
                 Base path for relative paths that are used to download files. This can be a remote url.
                 If not specified, the value of the `base_path` attribute (`self.base_path`) will be used instead.
-            use_auth_token (`Union[str, bool]`, *optional*):
-                Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-                If True, or not specified, will get token from ~/.huggingface.
-
-                <Deprecated version="2.7.1">
-
-                Pass `use_auth_token` to `load_dataset_builder` instead.
-
-                </Deprecated>
             file_format (`str`, *optional*):
                 Format of the data files in which the dataset will be written.
                 Supported formats: "arrow", "parquet". Default to "arrow" format.
@@ -863,30 +803,6 @@ class DatasetBuilder:
         >>> builder.download_and_prepare("s3://my-bucket/my_rotten_tomatoes", storage_options=storage_options, file_format="parquet")
         ```
         """
-        if ignore_verifications != "deprecated":
-            verification_mode = VerificationMode.NO_CHECKS if ignore_verifications else VerificationMode.ALL_CHECKS
-            warnings.warn(
-                "'ignore_verifications' was deprecated in favor of 'verification_mode' in version 2.9.1 and will be removed in 3.0.0.\n"
-                f"You can remove this warning by passing 'verification_mode={verification_mode.value}' instead.",
-                FutureWarning,
-            )
-        if use_auth_token != "deprecated":
-            warnings.warn(
-                "'use_auth_token' was deprecated in version 2.7.1 and will be removed in 3.0.0. Pass `token` to `load_dataset_builder` instead.",
-                FutureWarning,
-            )
-            token = use_auth_token
-        else:
-            token = self.token
-
-        if try_from_hf_gcs != "deprecated":
-            warnings.warn(
-                "'try_from_hf_gcs' was deprecated in version 2.16.0 and will be removed in 3.0.0.",
-                FutureWarning,
-            )
-        else:
-            try_from_hf_gcs = False
-
         output_dir = output_dir if output_dir is not None else self._cache_dir
         # output_dir can be a remote bucket on GCS or S3
         fs, output_dir = url_to_fs(output_dir, **(storage_options or {}))
@@ -918,7 +834,7 @@ class DatasetBuilder:
                     force_extract=download_mode == DownloadMode.FORCE_REDOWNLOAD,
                     use_etag=False,
                     num_proc=num_proc,
-                    token=token,
+                    token=self.token,
                     storage_options=self.storage_options,
                 )  # We don't use etag for data files to speed up the process
 
@@ -932,13 +848,6 @@ class DatasetBuilder:
 
         is_local = not is_remote_filesystem(self._fs)
 
-        if (
-            isinstance(dl_manager, MockDownloadManager)
-            or not is_local
-            or file_format != "arrow"
-            or max_shard_size is not None
-        ):
-            try_from_hf_gcs = False
         self.dl_manager = dl_manager
 
         # Prevent parallel local disk operations
@@ -1008,28 +917,17 @@ class DatasetBuilder:
                 # Temporarily assign _output_dir to tmp_data_dir to avoid having to forward
                 # it to every sub function.
                 with temporary_assignment(self, "_output_dir", tmp_output_dir):
-                    # Try to download the already prepared dataset files
-                    downloaded_from_gcs = False
-                    if try_from_hf_gcs:
-                        try:
-                            self._download_prepared_from_hf_gcs(dl_manager.download_config)
-                            downloaded_from_gcs = True
-                        except (DatasetNotOnHfGcsError, MissingFilesOnHfGcsError):
-                            logger.info("Dataset not on Hf google storage. Downloading and preparing it from source")
-                        except ConnectionError:
-                            logger.warning("HF google storage unreachable. Downloading and preparing it from source")
-                    if not downloaded_from_gcs:
-                        prepare_split_kwargs = {"file_format": file_format}
-                        if max_shard_size is not None:
-                            prepare_split_kwargs["max_shard_size"] = max_shard_size
-                        if num_proc is not None:
-                            prepare_split_kwargs["num_proc"] = num_proc
-                        self._download_and_prepare(
-                            dl_manager=dl_manager,
-                            verification_mode=verification_mode,
-                            **prepare_split_kwargs,
-                            **download_and_prepare_kwargs,
-                        )
+                    prepare_split_kwargs = {"file_format": file_format}
+                    if max_shard_size is not None:
+                        prepare_split_kwargs["max_shard_size"] = max_shard_size
+                    if num_proc is not None:
+                        prepare_split_kwargs["num_proc"] = num_proc
+                    self._download_and_prepare(
+                        dl_manager=dl_manager,
+                        verification_mode=verification_mode,
+                        **prepare_split_kwargs,
+                        **download_and_prepare_kwargs,
+                    )
                     # Sync info
                     self.info.dataset_size = sum(split.num_bytes for split in self.info.splits.values())
                     self.info.download_checksums = dl_manager.get_recorded_sizes_checksums()
@@ -1057,26 +955,6 @@ class DatasetBuilder:
                      datasets.load_dataset("{self.repo_id or self.dataset_name}", data_dir="<path/to/manual/data>")"""
                 )
             )
-
-    def _download_prepared_from_hf_gcs(self, download_config: DownloadConfig):
-        relative_data_dir = self._relative_data_dir(with_version=True, with_hash=False)
-        reader = ArrowReader(self._output_dir, self.info)
-        # use reader instructions to download the right files
-        reader.download_from_hf_gcs(download_config, relative_data_dir)
-        downloaded_info = DatasetInfo.from_directory(self._output_dir)
-        self.info.update(downloaded_info)
-        # download post processing resources
-        remote_cache_dir = HF_GCP_BASE_URL + "/" + relative_data_dir.replace(os.sep, "/")
-        for split in self.info.splits:
-            for resource_file_name in self._post_processing_resources(split).values():
-                if os.sep in resource_file_name:
-                    raise ValueError(f"Resources shouldn't be in a sub-directory: {resource_file_name}")
-                try:
-                    resource_path = cached_path(remote_cache_dir + "/" + resource_file_name)
-                    shutil.move(resource_path, os.path.join(self._output_dir, resource_file_name))
-                except ConnectionError:
-                    logger.info(f"Couldn't download resourse file {resource_file_name} from Hf google storage.")
-        logger.info("Dataset downloaded from Hf google storage.")
 
     def _download_and_prepare(self, dl_manager, verification_mode, **prepare_split_kwargs):
         """Downloads and prepares dataset for reading.
@@ -1190,7 +1068,6 @@ class DatasetBuilder:
         split: Optional[Split] = None,
         run_post_process=True,
         verification_mode: Optional[Union[VerificationMode, str]] = None,
-        ignore_verifications="deprecated",
         in_memory=False,
     ) -> Union[Dataset, DatasetDict]:
         """Return a Dataset for the specified split.
@@ -1206,16 +1083,6 @@ class DatasetBuilder:
                 downloaded/processed dataset information (checksums/size/splits/...).
 
                 <Added version="2.9.1"/>
-            ignore_verifications (`bool`, defaults to `False`):
-                Whether to ignore the verifications of the
-                downloaded/processed dataset information (checksums/size/splits/...).
-
-                <Deprecated version="2.9.1">
-
-                `ignore_verifications` was deprecated in version 2.9.1 and will be removed in 3.0.0.
-                Please use `verification_mode` instead.
-
-                </Deprecated>
             in_memory (`bool`, defaults to `False`):
                 Whether to copy the data in-memory.
 
@@ -1236,13 +1103,6 @@ class DatasetBuilder:
         })
         ```
         """
-        if ignore_verifications != "deprecated":
-            verification_mode = verification_mode.NO_CHECKS if ignore_verifications else VerificationMode.ALL_CHECKS
-            warnings.warn(
-                "'ignore_verifications' was deprecated in favor of 'verification' in version 2.9.1 and will be removed in 3.0.0.\n"
-                f"You can remove this warning by passing 'verification_mode={verification_mode.value}' instead.",
-                FutureWarning,
-            )
         if self._file_format is not None and self._file_format != "arrow":
             raise FileFormatError('Loading a dataset not written in the "arrow" format is not supported.')
         if is_remote_filesystem(self._fs):
