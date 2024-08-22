@@ -1658,15 +1658,23 @@ def dataset_module_factory(
                 if isinstance(e1, (DataFilesNotFoundError, DatasetNotFoundError, EmptyDatasetError)):
                     raise e1 from None
                 if isinstance(e1, FileNotFoundError):
-                    raise FileNotFoundError(
-                        f"Couldn't find a dataset script at {relative_to_absolute_path(combined_path)} or any data file in the same directory. "
-                        f"Couldn't find '{path}' on the Hugging Face Hub either: {type(e1).__name__}: {e1}"
-                    ) from None
+                    if trust_remote_code:
+                        raise FileNotFoundError(
+                            f"Couldn't find a dataset script at {relative_to_absolute_path(combined_path)} or any data file in the same directory. "
+                            f"Couldn't find '{path}' on the Hugging Face Hub either: {type(e1).__name__}: {e1}"
+                        ) from None
+                    else:
+                        raise FileNotFoundError(
+                            f"Couldn't find any data file at {relative_to_absolute_path(path)}. "
+                            f"Couldn't find '{path}' on the Hugging Face Hub either: {type(e1).__name__}: {e1}"
+                        ) from None
                 raise e1 from None
-    else:
+    elif trust_remote_code:
         raise FileNotFoundError(
             f"Couldn't find a dataset script at {relative_to_absolute_path(combined_path)} or any data file in the same directory."
         )
+    else:
+        raise FileNotFoundError(f"Couldn't find any data file at {relative_to_absolute_path(path)}.")
 
 
 def load_dataset_builder(
