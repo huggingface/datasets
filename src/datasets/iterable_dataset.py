@@ -1601,8 +1601,7 @@ class TypedExamplesIterable(_BaseExamplesIterable):
             return self._iter_arrow
 
     def _init_state_dict(self) -> dict:
-        if not self._state_dict:
-            self._state_dict = self.ex_iterable._init_state_dict()
+        self._state_dict = self.ex_iterable._init_state_dict()
         return self._state_dict
 
     def __iter__(self):
