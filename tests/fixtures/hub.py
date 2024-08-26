@@ -33,7 +33,9 @@ def ci_hub_config(monkeypatch):
 
 
 @pytest.fixture
-def set_ci_hub_access_token(ci_hub_config):
+def set_ci_hub_access_token(ci_hub_config, monkeypatch):
+    # Enable implicit token
+    monkeypatch.setattr("huggingface_hub.constants.HF_HUB_DISABLE_IMPLICIT_TOKEN", False)
     old_environ = dict(os.environ)
     os.environ["HF_TOKEN"] = CI_HUB_USER_TOKEN
     yield
