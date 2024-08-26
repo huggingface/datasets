@@ -802,7 +802,7 @@ class ModuleFactoryTest(TestCase):
         factory = HubDatasetModuleFactoryWithParquetExport(
             SAMPLE_DATASET_IDENTIFIER,
             download_config=self.download_config,
-            revision="1a21ac5846fc3f36ad5f128740c58932d3d7806f",
+            revision="0e1cee81e718feadf49560b287c4eb669c2efb1a",
         )
         factory.get_module()
         factory = HubDatasetModuleFactoryWithParquetExport(
