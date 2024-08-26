@@ -1,5 +1,6 @@
 import pytest
 
+from datasets.exceptions import DatasetNotFoundError
 from datasets.inspect import (
     get_dataset_config_info,
     get_dataset_config_names,
@@ -35,11 +36,18 @@ def test_get_dataset_config_info_private(hf_token, hf_private_dataset_repo_txt_d
     "path, config_name, expected_exception",
     [
         ("paws", None, ValueError),
+        # non-existing, gated, private:
+        ("hf-internal-testing/non-existing-dataset", "default", DatasetNotFoundError),
+        ("hf-internal-testing/gated_dataset_with_data_files", "default", DatasetNotFoundError),
+        ("hf-internal-testing/private_dataset_with_data_files", "default", DatasetNotFoundError),
+        ("hf-internal-testing/gated_dataset_with_script", "default", DatasetNotFoundError),
+        ("hf-internal-testing/private_dataset_with_script", "default", DatasetNotFoundError),
     ],
 )
-def test_get_dataset_config_info_error(path, config_name, expected_exception):
+def test_get_dataset_config_info_raises(path, config_name, expected_exception):
+    kwargs = {"trust_remote_code": True} if path.endswith("_with_script") else {}
     with pytest.raises(expected_exception):
-        get_dataset_config_info(path, config_name=config_name)
+        get_dataset_config_info(path, config_name=config_name, **kwargs)
 
 
 @pytest.mark.parametrize(
