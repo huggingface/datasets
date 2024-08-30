@@ -1,6 +1,5 @@
 import copy
-import warnings
-from dataclasses import InitVar, dataclass, field
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
@@ -44,19 +43,6 @@ class DownloadConfig:
         token (`str` or `bool`, *optional*):
             Optional string or boolean to use as Bearer token
             for remote files on the Datasets Hub. If `True`, or not specified, will get token from `~/.huggingface`.
-        use_auth_token (`str` or `bool`, *optional*):
-            Optional string or boolean to use as Bearer token
-            for remote files on the Datasets Hub. If `True`, or not specified, will get token from `~/.huggingface`.
-
-            <Deprecated version="2.14.0">
-
-            `use_auth_token` was deprecated in favor of `token` in version 2.14.0 and will be removed in 3.0.0.
-
-            </Deprecated>
-
-        ignore_url_params (`bool`, defaults to `False`):
-            Whether to strip all query parameters and fragments from
-            the download URL before using it for caching the file.
         storage_options (`dict`, *optional*):
             Key/value pairs to be passed on to the dataset file-system backend, if any.
         download_desc (`str`, *optional*):
@@ -79,20 +65,9 @@ class DownloadConfig:
     num_proc: Optional[int] = None
     max_retries: int = 1
     token: Optional[Union[str, bool]] = None
-    use_auth_token: InitVar[Optional[Union[str, bool]]] = "deprecated"
-    ignore_url_params: bool = False
     storage_options: Dict[str, Any] = field(default_factory=dict)
     download_desc: Optional[str] = None
     disable_tqdm: bool = False
-
-    def __post_init__(self, use_auth_token):
-        if use_auth_token != "deprecated":
-            warnings.warn(
-                "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
-                f"You can remove this warning by passing 'token={use_auth_token}' instead.",
-                FutureWarning,
-            )
-            self.token = use_auth_token
 
     def copy(self) -> "DownloadConfig":
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})

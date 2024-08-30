@@ -30,6 +30,11 @@ def set_test_cache_config(tmp_path_factory, monkeypatch):
     monkeypatch.setattr("datasets.config.EXTRACTED_DATASETS_PATH", str(test_extracted_datasets_path))
 
 
+@pytest.fixture(autouse=True)
+def disable_implicit_token(monkeypatch):
+    monkeypatch.setattr("huggingface_hub.constants.HF_HUB_DISABLE_IMPLICIT_TOKEN", True)
+
+
 @pytest.fixture(autouse=True, scope="session")
 def disable_tqdm_output():
     datasets.disable_progress_bar()

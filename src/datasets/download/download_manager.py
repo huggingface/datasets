@@ -19,7 +19,6 @@ import enum
 import io
 import multiprocessing
 import os
-import warnings
 from datetime import datetime
 from functools import partial
 from typing import Dict, List, Optional, Union
@@ -30,13 +29,10 @@ from tqdm.contrib.concurrent import thread_map
 
 from .. import config
 from ..utils import tqdm as hf_tqdm
-from ..utils.deprecation_utils import DeprecatedEnum, deprecated
 from ..utils.file_utils import (
     ArchiveIterable,
     FilesIterable,
     cached_path,
-    get_from_cache,
-    hash_url_to_filename,
     is_relative_path,
     stack_multiprocessing_download_progress_bars,
     url_or_path_join,
@@ -70,16 +66,6 @@ class DownloadMode(enum.Enum):
     REUSE_DATASET_IF_EXISTS = "reuse_dataset_if_exists"
     REUSE_CACHE_IF_EXISTS = "reuse_cache_if_exists"
     FORCE_REDOWNLOAD = "force_redownload"
-
-
-class GenerateMode(DeprecatedEnum):
-    REUSE_DATASET_IF_EXISTS = "reuse_dataset_if_exists"
-    REUSE_CACHE_IF_EXISTS = "reuse_cache_if_exists"
-    FORCE_REDOWNLOAD = "force_redownload"
-
-    @property
-    def help_message(self):
-        return "Use 'DownloadMode' instead."
 
 
 class DownloadManager:
@@ -141,53 +127,6 @@ class DownloadManager:
             self._recorded_sizes_checksums[str(url)] = get_size_checksum_dict(
                 path, record_checksum=self.record_checksums
             )
-
-    @deprecated("Use `.download`/`.download_and_extract` with `fsspec` URLs instead.")
-    def download_custom(self, url_or_urls, custom_download):
-        """
-        Download given urls(s) by calling `custom_download`.
-
-        Args:
-            url_or_urls (`str` or `list` or `dict`):
-                URL or `list` or `dict` of URLs to download and extract. Each URL is a `str`.
-            custom_download (`Callable[src_url, dst_path]`):
-                The source URL and destination path. For example
-                `tf.io.gfile.copy`, that lets you download from  Google storage.
-
-        Returns:
-            downloaded_path(s): `str`, The downloaded paths matching the given input
-                `url_or_urls`.
-
-        Example:
-
-        ```py
-        >>> downloaded_files = dl_manager.download_custom('s3://my-bucket/data.zip', custom_download_for_my_private_bucket)
-        ```
-        """
-        cache_dir = self.download_config.cache_dir or config.DOWNLOADED_DATASETS_PATH
-        max_retries = self.download_config.max_retries
-
-        def url_to_downloaded_path(url):
-            return os.path.join(cache_dir, hash_url_to_filename(url))
-
-        downloaded_path_or_paths = map_nested(url_to_downloaded_path, url_or_urls)
-        url_or_urls = NestedDataStructure(url_or_urls)
-        downloaded_path_or_paths = NestedDataStructure(downloaded_path_or_paths)
-        for url, path in zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten()):
-            try:
-                get_from_cache(
-                    url, cache_dir=cache_dir, local_files_only=True, use_etag=False, max_retries=max_retries
-                )
-                cached = True
-            except FileNotFoundError:
-                cached = False
-            if not cached or self.download_config.force_download:
-                custom_download(url, path)
-                get_from_cache(
-                    url, cache_dir=cache_dir, local_files_only=True, use_etag=False, max_retries=max_retries
-                )
-        self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
-        return downloaded_path_or_paths.data
 
     def download(self, url_or_urls):
         """Download given URL(s).
@@ -332,21 +271,12 @@ class DownloadManager:
         """
         return FilesIterable.from_urlpaths(paths)
 
-    def extract(self, path_or_paths, num_proc="deprecated"):
+    def extract(self, path_or_paths):
         """Extract given path(s).
 
         Args:
             path_or_paths (path or `list` or `dict`):
                 Path of file to extract. Each path is a `str`.
-            num_proc (`int`):
-                Use multi-processing if `num_proc` > 1 and the length of
-                `path_or_paths` is larger than `num_proc`.
-
-                <Deprecated version="2.6.2">
-
-                Pass `DownloadConfig(num_proc=<num_proc>)` to the initializer instead.
-
-                </Deprecated>
 
         Returns:
             extracted_path(s): `str`, The extracted paths matching the given input
@@ -359,11 +289,6 @@ class DownloadManager:
         >>> extracted_files = dl_manager.extract(downloaded_files)
         ```
         """
-        if num_proc != "deprecated":
-            warnings.warn(
-                "'num_proc' was deprecated in version 2.6.2 and will be removed in 3.0.0. Pass `DownloadConfig(num_proc=<num_proc>)` to the initializer instead.",
-                FutureWarning,
-            )
         download_config = self.download_config.copy()
         download_config.extract_compressed_file = True
         extract_func = partial(self._download_single, download_config=download_config)

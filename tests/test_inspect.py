@@ -1,27 +1,16 @@
-import os
-from pathlib import Path
-
 import pytest
 
+from datasets.exceptions import DatasetNotFoundError
 from datasets.inspect import (
     get_dataset_config_info,
     get_dataset_config_names,
     get_dataset_default_config_name,
     get_dataset_infos,
     get_dataset_split_names,
-    inspect_dataset,
 )
-from datasets.packaged_modules.csv import csv
 
 
 pytestmark = pytest.mark.integration
-
-
-@pytest.mark.parametrize("path", ["hf-internal-testing/dataset_with_script", csv.__file__])
-def test_inspect_dataset(path, tmp_path):
-    inspect_dataset(path, tmp_path)
-    script_name = Path(path).stem + ".py"
-    assert script_name in os.listdir(tmp_path)
 
 
 @pytest.mark.parametrize(
@@ -47,11 +36,18 @@ def test_get_dataset_config_info_private(hf_token, hf_private_dataset_repo_txt_d
     "path, config_name, expected_exception",
     [
         ("paws", None, ValueError),
+        # non-existing, gated, private:
+        ("hf-internal-testing/non-existing-dataset", "default", DatasetNotFoundError),
+        ("hf-internal-testing/gated_dataset_with_data_files", "default", DatasetNotFoundError),
+        ("hf-internal-testing/private_dataset_with_data_files", "default", DatasetNotFoundError),
+        ("hf-internal-testing/gated_dataset_with_script", "default", DatasetNotFoundError),
+        ("hf-internal-testing/private_dataset_with_script", "default", DatasetNotFoundError),
     ],
 )
-def test_get_dataset_config_info_error(path, config_name, expected_exception):
+def test_get_dataset_config_info_raises(path, config_name, expected_exception):
+    kwargs = {"trust_remote_code": True} if path.endswith("_with_script") else {}
     with pytest.raises(expected_exception):
-        get_dataset_config_info(path, config_name=config_name)
+        get_dataset_config_info(path, config_name=config_name, **kwargs)
 
 
 @pytest.mark.parametrize(

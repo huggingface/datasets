@@ -790,10 +790,10 @@ class ModuleFactoryTest(TestCase):
         )
         assert module_factory_result.builder_configs_parameters.builder_configs[0].data_files == {
             "train": [
-                "hf://datasets/hf-internal-testing/dataset_with_script@0c97cd1168f31e683059ddcf0703e3f45d9007c4/default/train/0000.parquet"
+                "hf://datasets/hf-internal-testing/dataset_with_script@3d8a0e457ddb581301fb13f60d38906c9cdcaf1c/default/train/0000.parquet"
             ],
             "validation": [
-                "hf://datasets/hf-internal-testing/dataset_with_script@0c97cd1168f31e683059ddcf0703e3f45d9007c4/default/validation/0000.parquet"
+                "hf://datasets/hf-internal-testing/dataset_with_script@3d8a0e457ddb581301fb13f60d38906c9cdcaf1c/default/validation/0000.parquet"
             ],
         }
 
@@ -802,7 +802,7 @@ class ModuleFactoryTest(TestCase):
         factory = HubDatasetModuleFactoryWithParquetExport(
             SAMPLE_DATASET_IDENTIFIER,
             download_config=self.download_config,
-            revision="1a21ac5846fc3f36ad5f128740c58932d3d7806f",
+            revision="0e1cee81e718feadf49560b287c4eb669c2efb1a",
         )
         factory.get_module()
         factory = HubDatasetModuleFactoryWithParquetExport(
@@ -1590,7 +1590,7 @@ def test_load_from_disk_with_default_in_memory(
         expected_in_memory = False
 
     dset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, keep_in_memory=True, trust_remote_code=True)
-    dataset_path = os.path.join(tmp_path, "saved_dataset")
+    dataset_path = tmp_path / "saved_dataset"
     dset.save_to_disk(dataset_path)
 
     with assert_arrow_memory_increases() if expected_in_memory else assert_arrow_memory_doesnt_increase():
@@ -1672,7 +1672,7 @@ def test_load_dataset_distributed(tmp_path, csv_path):
 
 def distributed_load_dataset_with_script(args):
     data_name, tmp_dir, download_mode = args
-    dataset = load_dataset(data_name, cache_dir=tmp_dir, download_mode=download_mode)
+    dataset = load_dataset(data_name, cache_dir=tmp_dir, download_mode=download_mode, trust_remote_code=True)
     return dataset
 
 

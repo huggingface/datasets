@@ -37,7 +37,7 @@ import requests
 import yaml
 from fsspec.core import url_to_fs
 from huggingface_hub import DatasetCard, DatasetCardData, HfApi, HfFileSystem
-from huggingface_hub.utils import GatedRepoError, RepositoryNotFoundError, RevisionNotFoundError
+from huggingface_hub.utils import GatedRepoError, RepositoryNotFoundError, RevisionNotFoundError, get_session
 
 from . import config
 from .arrow_dataset import Dataset
@@ -76,17 +76,18 @@ from .utils.file_utils import (
     OfflineModeIsEnabled,
     _raise_if_offline_mode_is_enabled,
     cached_path,
-    head_hf_s3,
+    get_datasets_user_agent,
     init_hf_modules,
     is_relative_path,
     relative_to_absolute_path,
     url_or_path_join,
 )
-from .utils.hub import hf_dataset_url
+from .utils.hub import check_auth, hf_dataset_url
 from .utils.info_utils import VerificationMode, is_small_dataset
 from .utils.logging import get_logger
 from .utils.metadata import MetadataConfigs
 from .utils.py_utils import get_imports, lock_importable_file
+from .utils.typing import PathLike
 from .utils.version import Version
 
 
@@ -275,7 +276,11 @@ def increase_load_count(name: str):
     """Update the download count of a dataset."""
     if not config.HF_HUB_OFFLINE and config.HF_UPDATE_DOWNLOAD_COUNTS:
         try:
-            head_hf_s3(name, filename=name + ".py")
+            get_session().head(
+                "/".join((config.S3_DATASETS_BUCKET_PREFIX, name, name + ".py")),
+                user_agent=get_datasets_user_agent(),
+                timeout=3,
+            )
         except Exception:
             pass
 
@@ -497,7 +502,7 @@ def infer_module_for_data_files_list(
 
     Args:
         data_files_list (DataFilesList): List of data files.
-        download_config (bool or str, optional): mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config (bool or str, optional): Mainly use `token` or `storage_options` to support different platforms and auth types.
 
     Returns:
         tuple[str, dict[str, Any]]: Tuple with
@@ -531,7 +536,7 @@ def infer_module_for_data_files_list_in_archives(
 
     Args:
         data_files_list (DataFilesList): List of data files.
-        download_config (bool or str, optional): mainly use use_auth_token or storage_options to support different platforms and auth types.
+        download_config (bool or str, optional): Mainly use `token` or `storage_options` to support different platforms and auth types.
 
     Returns:
         tuple[str, dict[str, Any]]: Tuple with
@@ -1584,19 +1589,24 @@ def dataset_module_factory(
                 requests.exceptions.ConnectionError,
             ) as e:
                 raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({e.__class__.__name__})") from e
-            except GatedRepoError as e:
-                message = f"Dataset '{path}' is a gated dataset on the Hub."
-                if "401 Client Error" in str(e):
-                    message += " You must be authenticated to access it."
-                elif "403 Client Error" in str(e):
-                    message += f" Visit the dataset page at https://huggingface.co/datasets/{path} to ask for access."
-                raise DatasetNotFoundError(message) from e
             except RevisionNotFoundError as e:
                 raise DatasetNotFoundError(
                     f"Revision '{revision}' doesn't exist for dataset '{path}' on the Hub."
                 ) from e
             except RepositoryNotFoundError as e:
                 raise DatasetNotFoundError(f"Dataset '{path}' doesn't exist on the Hub or cannot be accessed.") from e
+            if dataset_info.gated:
+                try:
+                    check_auth(hf_api, repo_id=path, token=download_config.token)
+                except GatedRepoError as e:
+                    message = f"Dataset '{path}' is a gated dataset on the Hub."
+                    if "401 Client Error" in str(e):
+                        message += " You must be authenticated to access it."
+                    elif "403 Client Error" in str(e):
+                        message += (
+                            f" Visit the dataset page at https://huggingface.co/datasets/{path} to ask for access."
+                        )
+                    raise DatasetNotFoundError(message) from e
 
             if filename in [sibling.rfilename for sibling in dataset_info.siblings]:  # contains a dataset script
                 fs = HfFileSystem(endpoint=config.HF_ENDPOINT, token=download_config.token)
@@ -1648,15 +1658,23 @@ def dataset_module_factory(
                 if isinstance(e1, (DataFilesNotFoundError, DatasetNotFoundError, EmptyDatasetError)):
                     raise e1 from None
                 if isinstance(e1, FileNotFoundError):
-                    raise FileNotFoundError(
-                        f"Couldn't find a dataset script at {relative_to_absolute_path(combined_path)} or any data file in the same directory. "
-                        f"Couldn't find '{path}' on the Hugging Face Hub either: {type(e1).__name__}: {e1}"
-                    ) from None
+                    if trust_remote_code:
+                        raise FileNotFoundError(
+                            f"Couldn't find a dataset script at {relative_to_absolute_path(combined_path)} or any data file in the same directory. "
+                            f"Couldn't find '{path}' on the Hugging Face Hub either: {type(e1).__name__}: {e1}"
+                        ) from None
+                    else:
+                        raise FileNotFoundError(
+                            f"Couldn't find any data file at {relative_to_absolute_path(path)}. "
+                            f"Couldn't find '{path}' on the Hugging Face Hub either: {type(e1).__name__}: {e1}"
+                        ) from None
                 raise e1 from None
-    else:
+    elif trust_remote_code:
         raise FileNotFoundError(
             f"Couldn't find a dataset script at {relative_to_absolute_path(combined_path)} or any data file in the same directory."
         )
+    else:
+        raise FileNotFoundError(f"Couldn't find any data file at {relative_to_absolute_path(path)}.")
 
 
 def load_dataset_builder(
@@ -1670,7 +1688,6 @@ def load_dataset_builder(
     download_mode: Optional[Union[DownloadMode, str]] = None,
     revision: Optional[Union[str, Version]] = None,
     token: Optional[Union[bool, str]] = None,
-    use_auth_token="deprecated",
     storage_options: Optional[Dict] = None,
     trust_remote_code: Optional[bool] = None,
     _require_default_config_name=True,
@@ -1734,15 +1751,6 @@ def load_dataset_builder(
         token (`str` or `bool`, *optional*):
             Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If `True`, or not specified, will get token from `"~/.huggingface"`.
-        use_auth_token (`str` or `bool`, *optional*):
-            Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-            If `True`, or not specified, will get token from `"~/.huggingface"`.
-
-            <Deprecated version="2.14.0">
-
-            `use_auth_token` was deprecated in favor of `token` in version 2.14.0 and will be removed in 3.0.0.
-
-            </Deprecated>
         storage_options (`dict`, *optional*, defaults to `None`):
             **Experimental**. Key/value pairs to be passed on to the dataset file-system backend, if any.
 
@@ -1777,13 +1785,6 @@ def load_dataset_builder(
      'text': Value(dtype='string', id=None)}
     ```
     """
-    if use_auth_token != "deprecated":
-        warnings.warn(
-            "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
-            "You can remove this warning by passing 'token=<use_auth_token>' instead.",
-            FutureWarning,
-        )
-        token = use_auth_token
     download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     if token is not None:
         download_config = download_config.copy() if download_config else DownloadConfig()
@@ -1858,13 +1859,10 @@ def load_dataset(
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[Union[DownloadMode, str]] = None,
     verification_mode: Optional[Union[VerificationMode, str]] = None,
-    ignore_verifications="deprecated",
     keep_in_memory: Optional[bool] = None,
     save_infos: bool = False,
     revision: Optional[Union[str, Version]] = None,
     token: Optional[Union[bool, str]] = None,
-    use_auth_token="deprecated",
-    task="deprecated",
     streaming: bool = False,
     num_proc: Optional[int] = None,
     storage_options: Optional[Dict] = None,
@@ -1954,15 +1952,6 @@ def load_dataset(
             Verification mode determining the checks to run on the downloaded/processed dataset information (checksums/size/splits/...).
 
             <Added version="2.9.1"/>
-        ignore_verifications (`bool`, defaults to `False`):
-            Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...).
-
-            <Deprecated version="2.9.1">
-
-            `ignore_verifications` was deprecated in version 2.9.1 and will be removed in 3.0.0.
-            Please use `verification_mode` instead.
-
-            </Deprecated>
         keep_in_memory (`bool`, defaults to `None`):
             Whether to copy the dataset in-memory. If `None`, the dataset
             will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
@@ -1976,23 +1965,6 @@ def load_dataset(
         token (`str` or `bool`, *optional*):
             Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If `True`, or not specified, will get token from `"~/.huggingface"`.
-        use_auth_token (`str` or `bool`, *optional*):
-            Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
-            If `True`, or not specified, will get token from `"~/.huggingface"`.
-
-            <Deprecated version="2.14.0">
-
-            `use_auth_token` was deprecated in favor of `token` in version 2.14.0 and will be removed in 3.0.0.
-
-            </Deprecated>
-        task (`str`):
-            The task to prepare the dataset for during training and evaluation. Casts the dataset's [`Features`] to standardized column names and types as detailed in `datasets.tasks`.
-
-            <Deprecated version="2.13.0">
-
-            `task` was deprecated in version 2.13.0 and will be removed in 3.0.0.
-
-            </Deprecated>
         streaming (`bool`, defaults to `False`):
             If set to `True`, don't download the data files. Instead, it streams the data progressively while
             iterating on the dataset. An [`IterableDataset`] or [`IterableDatasetDict`] is returned instead in this case.
@@ -2079,27 +2051,6 @@ def load_dataset(
     >>> ds = load_dataset('imagefolder', data_dir='/path/to/images', split='train')
     ```
     """
-    if use_auth_token != "deprecated":
-        warnings.warn(
-            "'use_auth_token' was deprecated in favor of 'token' in version 2.14.0 and will be removed in 3.0.0.\n"
-            "You can remove this warning by passing 'token=<use_auth_token>' instead.",
-            FutureWarning,
-        )
-        token = use_auth_token
-    if ignore_verifications != "deprecated":
-        verification_mode = VerificationMode.NO_CHECKS if ignore_verifications else VerificationMode.ALL_CHECKS
-        warnings.warn(
-            "'ignore_verifications' was deprecated in favor of 'verification_mode' in version 2.9.1 and will be removed in 3.0.0.\n"
-            f"You can remove this warning by passing 'verification_mode={verification_mode.value}' instead.",
-            FutureWarning,
-        )
-    if task != "deprecated":
-        warnings.warn(
-            "'task' was deprecated in version 2.13.0 and will be removed in 3.0.0.\n",
-            FutureWarning,
-        )
-    else:
-        task = None
     if data_files is not None and not data_files:
         raise ValueError(f"Empty 'data_files': '{data_files}'. It should be either non-empty or None (default).")
     if Path(path, config.DATASET_STATE_JSON_FILENAME).exists():
@@ -2155,12 +2106,6 @@ def load_dataset(
         keep_in_memory if keep_in_memory is not None else is_small_dataset(builder_instance.info.dataset_size)
     )
     ds = builder_instance.as_dataset(split=split, verification_mode=verification_mode, in_memory=keep_in_memory)
-    # Rename and cast features to match task schema
-    if task is not None:
-        # To avoid issuing the same warning twice
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", FutureWarning)
-            ds = ds.prepare_for_task(task)
     if save_infos:
         builder_instance._save_infos()
 
@@ -2168,27 +2113,17 @@ def load_dataset(
 
 
 def load_from_disk(
-    dataset_path: str, fs="deprecated", keep_in_memory: Optional[bool] = None, storage_options: Optional[dict] = None
+    dataset_path: PathLike, keep_in_memory: Optional[bool] = None, storage_options: Optional[dict] = None
 ) -> Union[Dataset, DatasetDict]:
     """
     Loads a dataset that was previously saved using [`~Dataset.save_to_disk`] from a dataset directory, or
     from a filesystem using any implementation of `fsspec.spec.AbstractFileSystem`.
 
     Args:
-        dataset_path (`str`):
-            Path (e.g. `"dataset/train"`) or remote URI (e.g.
-            `"s3://my-bucket/dataset/train"`) of the [`Dataset`] or [`DatasetDict`] directory where the dataset will be
+        dataset_path (`path-like`):
+            Path (e.g. `"dataset/train"`) or remote URI (e.g. `"s3://my-bucket/dataset/train"`)
+            of the [`Dataset`] or [`DatasetDict`] directory where the dataset/dataset-dict will be
             loaded from.
-        fs (`~filesystems.S3FileSystem` or `fsspec.spec.AbstractFileSystem`, *optional*):
-            Instance of the remote filesystem used to download the files from.
-
-            <Deprecated version="2.9.0">
-
-            `fs` was deprecated in version 2.9.0 and will be removed in 3.0.0.
-            Please use `storage_options` instead, e.g. `storage_options=fs.storage_options`.
-
-            </Deprecated>
-
         keep_in_memory (`bool`, defaults to `None`):
             Whether to copy the dataset in-memory. If `None`, the dataset
             will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
@@ -2211,14 +2146,6 @@ def load_from_disk(
     >>> ds = load_from_disk('path/to/dataset/directory')
     ```
     """
-    if fs != "deprecated":
-        warnings.warn(
-            "'fs' was deprecated in favor of 'storage_options' in version 2.9.0 and will be removed in 3.0.0.\n"
-            "You can remove this warning by passing 'storage_options=fs.storage_options' instead.",
-            FutureWarning,
-        )
-        storage_options = fs.storage_options
-
     fs: fsspec.AbstractFileSystem
     fs, *_ = url_to_fs(dataset_path, **(storage_options or {}))
     if not fs.exists(dataset_path):
