@@ -385,7 +385,7 @@ def resolve_pattern(
         glob_kwargs["expand_info"] = False
     matched_paths = [
         filepath if filepath.startswith(protocol_prefix) else protocol_prefix + filepath
-        for filepath in fs.glob(pattern, **glob_kwargs).items()
+        for filepath in fs.glob(pattern, **glob_kwargs)
         if (xbasename(filepath) not in files_to_ignore)
         and not _is_inside_unrequested_special_dir(filepath, fs_pattern)
         and not _is_unrequested_hidden_file_or_is_inside_unrequested_hidden_dir(filepath, fs_pattern)
