@@ -1,4 +1,5 @@
 import importlib
+import os
 import shutil
 import warnings
 from typing import List
@@ -42,6 +43,10 @@ def rename(fs: fsspec.AbstractFileSystem, src: str, dst: str):
     """
     if not is_remote_filesystem(fs):
         # LocalFileSystem.mv does copy + rm, it is more efficient to simply move a local directory
-        shutil.move(fs._strip_protocol(src), fs._strip_protocol(dst))
+        try:
+            shutil.move(fs._strip_protocol(src), fs._strip_protocol(dst))
+        except:
+            shutil.copyfile(fs._strip_protocol(src), fs._strip_protocol(dst))
+            os.remove(fs._strip_protocol(src))
     else:
         fs.mv(src, dst, recursive=True)
