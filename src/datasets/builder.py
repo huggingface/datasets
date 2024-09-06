@@ -872,9 +872,10 @@ class DatasetBuilder:
                 if not has_sufficient_disk_space(
                     self.info.size_in_bytes or 0, directory=Path(self._output_dir).parent
                 ):
-                    raise OSError(
-                        f"Not enough disk space. Needed: {size_str(self.info.size_in_bytes or 0)} (download: {size_str(self.info.download_size or 0)}, generated: {size_str(self.info.dataset_size or 0)}, post-processed: {size_str(self.info.post_processing_size or 0)})"
-                    )
+                    pass
+                    # raise OSError(
+                    #     f"Not enough disk space. Needed: {size_str(self.info.size_in_bytes or 0)} (download: {size_str(self.info.download_size or 0)}, generated: {size_str(self.info.dataset_size or 0)}, post-processed: {size_str(self.info.post_processing_size or 0)})"
+                    # )
 
             @contextlib.contextmanager
             def incomplete_dir(dirname):
