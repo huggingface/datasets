@@ -5613,7 +5613,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     @transmit_format
     @fingerprint_transform(inplace=False)
-    def add_column(self, name: str, column: Union[list, np.array], new_fingerprint: str):
+    def add_column(
+        self, name: str, column: Union[list, np.array], new_fingerprint: str, feature: Optional[FeatureType] = None
+    ):
         """Add column to Dataset.
 
         <Added version="1.7"/>
@@ -5640,7 +5642,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         })
         ```
         """
-        column_table = InMemoryTable.from_pydict({name: column})
+
+        if feature:
+            pyarrow_schema = Features({name: feature}).arrow_schema
+        else:
+            pyarrow_schema = None
+
+        column_table = InMemoryTable.from_pydict({name: column}, schema=pyarrow_schema)
         _check_column_names(self._data.column_names + column_table.column_names)
         dataset = self.flatten_indices() if self._indices is not None else self
         # Concatenate tables horizontally
