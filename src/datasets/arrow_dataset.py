@@ -5625,6 +5625,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Column name.
             column (`list` or `np.array`):
                 Column data to be added.
+            feature (`FeatureType` or `None`, defaults to `None`):
+                Column datatype.
 
         Returns:
             [`Dataset`]
