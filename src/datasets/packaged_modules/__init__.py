@@ -61,6 +61,7 @@ _EXTENSION_TO_MODULE: Dict[str, Tuple[str, dict]] = {
     ".tsv": ("csv", {"sep": "\t"}),
     ".json": ("json", {}),
     ".jsonl": ("json", {}),
+    # ndjson is no longer maintained (see: https://github.com/ndjson/ndjson-spec/issues/35#issuecomment-1285673417)
     ".ndjson": ("json", {}),
     ".parquet": ("parquet", {}),
     ".geoparquet": ("parquet", {}),

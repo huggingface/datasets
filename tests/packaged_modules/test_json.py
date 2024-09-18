@@ -24,6 +24,7 @@ def jsonl_file(tmp_path):
     return str(filename)
 
 
+# ndjson format is no longer maintained (see: https://github.com/ndjson/ndjson-spec/issues/35#issuecomment-1285673417)
 @pytest.fixture
 def ndjson_file(tmp_path):
     filename = tmp_path / "file.ndjson"
