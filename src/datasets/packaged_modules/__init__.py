@@ -61,6 +61,7 @@ _EXTENSION_TO_MODULE: Dict[str, Tuple[str, dict]] = {
     ".tsv": ("csv", {"sep": "\t"}),
     ".json": ("json", {}),
     ".jsonl": ("json", {}),
+    ".ndjson": ("json", {}),
     ".parquet": ("parquet", {}),
     ".geoparquet": ("parquet", {}),
     ".gpq": ("parquet", {}),
