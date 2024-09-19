@@ -136,7 +136,11 @@ class Exr:
                         bytes_ = BytesIO(f.read())
                     array = exload(bytes_)  # exload can handle file-like objects
         else:
-            array = exload(BytesIO(bytes_))  # exload can handle file-like objects
+            try:
+                array = exload(BytesIO(bytes_))  # exload can handle file-like objects
+            except Exception as e:
+                print (f"Warning, cannot read exr file because of {e}")
+                array = np.zeros((768, 1024), dtype=np.float64)
         return array
 
     def flatten(self) -> Union["FeatureType", Dict[str, "FeatureType"]]:
