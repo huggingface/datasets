@@ -6142,6 +6142,9 @@ def _interleave_map_style_datasets(
         raise ValueError(
             f"{stopping_strategy} stopping strategy in `interleave_datasets` is not implemented yet with a list of {type(datasets[0])}"
         )
+    if probabilities is not None:
+        datasets = [dataset for dataset, proability in zip(datasets, probabilities) if proability > 0]
+        probabilities = [probability for probability in probabilities if probability > 0]
 
     # To interleave the datasets, we concatenate them and then we re-order the indices
     concatenated_datasets = _concatenate_map_style_datasets(datasets, info=info, split=split)
