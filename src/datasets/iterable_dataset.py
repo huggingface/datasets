@@ -821,6 +821,11 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         probabilities: Optional[List[float]] = None,
         stopping_strategy: Literal["first_exhausted", "all_exhausted"] = "first_exhausted",
     ):
+        if probabilities is not None:
+            ex_iterables = [
+                ex_iterable for ex_iterable, probability in zip(ex_iterables, probabilities) if probability > 0
+            ]
+            probabilities = [probability for probability in probabilities if probability > 0]
         super().__init__(ex_iterables, stopping_strategy)
         self.generator = deepcopy(generator)
         self.probabilities = probabilities
