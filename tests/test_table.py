@@ -1149,7 +1149,7 @@ def test_cast_decimal_array_to_features():
         ([{}, {}], [{"age": None, "name": None}, {"age": None, "name": None}]),  # completely empty struct
     ],
 )
-def test_cast_array_to_features_with_struct_with_missing_fields(array_list, expected_list):
+def test_cast_array_to_feature_with_struct_with_missing_fields(array_list, expected_list):
     arr = pa.array(array_list)
     feature = {"age": Value("int32"), "name": Value("string")}
     cast_array = cast_array_to_feature(arr, feature)
