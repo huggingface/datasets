@@ -1142,12 +1142,19 @@ def test_cast_decimal_array_to_features():
         cast_array_to_feature(arr, Sequence(Value("string")), allow_decimal_to_str=False)
 
 
-def test_cast_array_to_features_with_struct_with_missing_fields():
-    arr = pa.array([{"age": 25}, {"age": 63}])
+@pytest.mark.parametrize(
+    "array_list, expected_list",
+    [
+        ([{"age": 25}, {"age": 63}], [{"age": 25, "name": None}, {"age": 63, "name": None}]),
+        ([{}, {}], [{"age": None, "name": None}, {"age": None, "name": None}]),  # completely empty struct
+    ],
+)
+def test_cast_array_to_feature_with_struct_with_missing_fields(array_list, expected_list):
+    arr = pa.array(array_list)
     feature = {"age": Value("int32"), "name": Value("string")}
     cast_array = cast_array_to_feature(arr, feature)
     assert cast_array.type == pa.struct({"age": pa.int32(), "name": pa.string()})
-    assert cast_array.to_pylist() == [{"age": 25, "name": None}, {"age": 63, "name": None}]
+    assert cast_array.to_pylist() == expected_list
 
 
 def test_cast_array_to_features_nested():
