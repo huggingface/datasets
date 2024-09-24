@@ -278,7 +278,7 @@ def increase_load_count(name: str):
         try:
             get_session().head(
                 "/".join((config.S3_DATASETS_BUCKET_PREFIX, name, name + ".py")),
-                user_agent=get_datasets_user_agent(),
+                headers={"User-Agent": get_datasets_user_agent()},
                 timeout=3,
             )
         except Exception:
