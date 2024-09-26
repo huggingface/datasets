@@ -23,6 +23,7 @@ from datasets.table import (
     _memory_mapped_arrow_table_from_file,
     array_cast,
     cast_array_to_feature,
+    cast_table_to_schema,
     concat_tables,
     embed_array_storage,
     embed_table_storage,
@@ -1442,3 +1443,11 @@ def test_array_cast(from_type, to_type):
     cast_arr = array_cast(arr, array_type[to_type])
     assert cast_arr.type == array_type[to_type]
     assert cast_arr.values == arr.values
+
+
+def test_cast_table_to_schema_with_missing_fields():
+    table = pa.table({"age": [25, 63]})
+    schema = pa.schema({"age": pa.int32(), "name": pa.string()})
+    cast_table = cast_table_to_schema(table, schema)
+    assert cast_table.schema == pa.schema({"age": pa.int32(), "name": pa.string()})
+    assert cast_table.to_pydict() == {"age": [25, 63], "name": [None, None]}
