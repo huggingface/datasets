@@ -182,6 +182,7 @@ TESTS_REQUIRE = [
     "tensorflow>=2.16.0; python_version>='3.10'",  # Pins numpy < 2
     "tiktoken",
     "torch>=2.0.0",
+    "torchdata",
     "soundfile>=0.12.1",
     "transformers>=4.42.0",  # Pins numpy < 2
     "zstandard",
