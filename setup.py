@@ -63,7 +63,7 @@ Steps to make a release:
    Check that you can install it in a virtualenv/notebook by running:
      ```
      pip install huggingface-hub fsspec aiohttp
-     pip install -U tqdm
+     pip install -U tqdm pyarrow
      pip install -i https://testpypi.python.org/pypi datasets
      ```
 
@@ -182,6 +182,7 @@ TESTS_REQUIRE = [
     "tensorflow>=2.16.0; python_version>='3.10'",  # Pins numpy < 2
     "tiktoken",
     "torch>=2.0.0",
+    "torchdata",
     "soundfile>=0.12.1",
     "transformers>=4.42.0",  # Pins numpy < 2
     "zstandard",
@@ -233,7 +234,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="3.0.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="3.0.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
