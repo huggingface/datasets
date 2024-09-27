@@ -63,7 +63,7 @@ Steps to make a release:
    Check that you can install it in a virtualenv/notebook by running:
      ```
      pip install huggingface-hub fsspec aiohttp
-     pip install -U tqdm
+     pip install -U tqdm pyarrow
      pip install -i https://testpypi.python.org/pypi datasets
      ```
 
