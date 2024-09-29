@@ -131,26 +131,38 @@ class JsonDatasetWriter:
             json_str += "\n"
         return json_str.encode(self.encoding)
 
-    def _write(
+    def _write_orient_records(
         self,
         file_obj: BinaryIO,
-        orient,
         lines,
         **to_json_kwargs,
-    ) -> int:
-        """Writes the pyarrow table as JSON lines to a binary file handle.
+    ):
+        """Handles writing to file when orient = 'records'"""
 
-        Caller is responsible for opening and closing the handle.
-        """
         written = 0
+        first_batch = True
+        if not lines:
+            file_obj.write("[".encode(self.encoding))
 
         if self.num_proc is None or self.num_proc == 1:
-            for offset in hf_tqdm(
-                range(0, len(self.dataset), self.batch_size),
-                unit="ba",
-                desc="Creating json from Arrow format",
-            ):
-                json_str = self._batch_json((offset, orient, lines, to_json_kwargs))
+            for offset in hf_tqdm(range(0, len(self.dataset), self.batch_size), unit="ba", desc="Writing JSON lines"):
+                json_str = self._batch_json((offset, "records", lines, to_json_kwargs))
+
+                if not lines:
+                    json_str = json_str.decode(self.encoding).strip()
+
+                    # Remove the square brackets from the batch string
+                    if json_str.startswith("[") and json_str.endswith("]"):
+                        json_str = json_str[1:-1]
+
+                    if not first_batch:
+                        # Add a comma between batches
+                        file_obj.write(",".encode(self.encoding))
+                    else:
+                        first_batch = False
+
+                    json_str = json_str.encode(self.encoding)
+
                 written += file_obj.write(json_str)
         else:
             num_rows, batch_size = len(self.dataset), self.batch_size
@@ -158,12 +170,48 @@ class JsonDatasetWriter:
                 for json_str in hf_tqdm(
                     pool.imap(
                         self._batch_json,
-                        [(offset, orient, lines, to_json_kwargs) for offset in range(0, num_rows, batch_size)],
+                        [(offset, "records", lines, to_json_kwargs) for offset in range(0, num_rows, batch_size)],
                     ),
                     total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
                     unit="ba",
-                    desc="Creating json from Arrow format",
+                    desc="Writing JSON lines",
                 ):
+                    if not lines:
+                        json_str = json_str.decode(self.encoding).strip()
+
+                        # Remove the square brackets from the batch string
+                        if json_str.startswith("[") and json_str.endswith("]"):
+                            json_str = json_str[1:-1]
+
+                        if not first_batch:
+                            # Add a comma between batches
+                            file_obj.write(",".encode(self.encoding))
+                        else:
+                            first_batch = False
+
+                        json_str = json_str.encode(self.encoding)
+
                     written += file_obj.write(json_str)
+
+        if not lines:
+            file_obj.write("]".encode(self.encoding))
+
+        return written
+
+    def _write(
+        self,
+        file_obj: BinaryIO,
+        orient,
+        lines,
+        **to_json_kwargs,
+    ) -> int:
+        """Writes the pyarrow table as JSON, dispatching based on the orient and lines."""
+
+        written = 0
+
+        if orient == "records":
+            written = self._write_orient_records(file_obj=file_obj, lines=lines, **to_json_kwargs)
+        else:
+            pass
 
         return written
