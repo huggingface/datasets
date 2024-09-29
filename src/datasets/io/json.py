@@ -126,7 +126,15 @@ class JsonDatasetWriter:
             key=slice(offset, offset + self.batch_size),
             indices=self.dataset._indices,
         )
-        json_str = batch.to_pandas().to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
+
+        df = batch.to_pandas()
+
+        # If orient="index", adjust the index to reflect the batch offset
+        if orient == "index":
+            df.index = range(offset, offset + len(df))
+
+        json_str = df.to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
+
         if not json_str.endswith("\n"):
             json_str += "\n"
         return json_str.encode(self.encoding)
@@ -138,12 +146,15 @@ class JsonDatasetWriter:
         lines,
         **to_json_kwargs,
     ):
-        """Handles writing to file when orient in ['records', 'values']"""
+        """Handles writing to file when orient in ['records', 'values', 'index']"""
 
         written = 0
         first_batch = True
         if not lines:
-            file_obj.write("[".encode(self.encoding))
+            if orient in ["records", "values"]:
+                file_obj.write("[".encode(self.encoding))
+            elif orient in ["index"]:
+                file_obj.write("{".encode(self.encoding))
 
         if self.num_proc is None or self.num_proc == 1:
             for offset in hf_tqdm(range(0, len(self.dataset), self.batch_size), unit="ba", desc="Writing JSON lines"):
@@ -152,8 +163,10 @@ class JsonDatasetWriter:
                 if not lines:
                     json_str = json_str.decode(self.encoding).strip()
 
-                    # Remove the square brackets from the batch string
-                    if json_str.startswith("[") and json_str.endswith("]"):
+                    # Remove the square or curly brackets from the batch string
+                    if (json_str.startswith("[") and json_str.endswith("]")) or (
+                        json_str.startswith("{") and json_str.endswith("}")
+                    ):
                         json_str = json_str[1:-1]
 
                     if not first_batch:
@@ -180,8 +193,10 @@ class JsonDatasetWriter:
                     if not lines:
                         json_str = json_str.decode(self.encoding).strip()
 
-                        # Remove the square brackets from the batch string
-                        if json_str.startswith("[") and json_str.endswith("]"):
+                        # Remove the square or curly brackets from the batch string
+                        if (json_str.startswith("[") and json_str.endswith("]")) or (
+                            json_str.startswith("{") and json_str.endswith("}")
+                        ):
                             json_str = json_str[1:-1]
 
                         if not first_batch:
@@ -195,7 +210,10 @@ class JsonDatasetWriter:
                     written += file_obj.write(json_str)
 
         if not lines:
-            file_obj.write("]".encode(self.encoding))
+            if orient in ["records", "values"]:
+                file_obj.write("]".encode(self.encoding))
+            elif orient in ["index"]:
+                file_obj.write("}".encode(self.encoding))
 
         return written
 
@@ -210,7 +228,7 @@ class JsonDatasetWriter:
 
         written = 0
 
-        if orient in ["records", "values"]:
+        if orient in ["records", "values", "index"]:
             written = self._write_orient_list_like(file_obj=file_obj, orient=orient, lines=lines, **to_json_kwargs)
         else:
             pass
