@@ -131,13 +131,14 @@ class JsonDatasetWriter:
             json_str += "\n"
         return json_str.encode(self.encoding)
 
-    def _write_orient_records(
+    def _write_orient_list_like(
         self,
         file_obj: BinaryIO,
+        orient,
         lines,
         **to_json_kwargs,
     ):
-        """Handles writing to file when orient = 'records'"""
+        """Handles writing to file when orient in ['records', 'values']"""
 
         written = 0
         first_batch = True
@@ -146,7 +147,7 @@ class JsonDatasetWriter:
 
         if self.num_proc is None or self.num_proc == 1:
             for offset in hf_tqdm(range(0, len(self.dataset), self.batch_size), unit="ba", desc="Writing JSON lines"):
-                json_str = self._batch_json((offset, "records", lines, to_json_kwargs))
+                json_str = self._batch_json((offset, orient, lines, to_json_kwargs))
 
                 if not lines:
                     json_str = json_str.decode(self.encoding).strip()
@@ -170,7 +171,7 @@ class JsonDatasetWriter:
                 for json_str in hf_tqdm(
                     pool.imap(
                         self._batch_json,
-                        [(offset, "records", lines, to_json_kwargs) for offset in range(0, num_rows, batch_size)],
+                        [(offset, orient, lines, to_json_kwargs) for offset in range(0, num_rows, batch_size)],
                     ),
                     total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
                     unit="ba",
@@ -209,8 +210,8 @@ class JsonDatasetWriter:
 
         written = 0
 
-        if orient == "records":
-            written = self._write_orient_records(file_obj=file_obj, lines=lines, **to_json_kwargs)
+        if orient in ["records", "values"]:
+            written = self._write_orient_list_like(file_obj=file_obj, orient=orient, lines=lines, **to_json_kwargs)
         else:
             pass
 
