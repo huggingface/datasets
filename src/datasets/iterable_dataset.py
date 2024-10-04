@@ -1486,8 +1486,6 @@ class SkipExamplesIterable(_BaseExamplesIterable):
 class RepeatExamplesIterable(_BaseExamplesIterable):
     """
     Iterable that repeats the underlying iterable a given number of times.
-    It does not duplicate shards, so that duplicate shards are not seen in
-    the same iteration.
     """
 
     def __init__(
@@ -1507,16 +1505,15 @@ class RepeatExamplesIterable(_BaseExamplesIterable):
         return self._state_dict
 
     def __iter__(self):
-        if self.num_times is None:
-            while True:
-                yield from self.ex_iterable
-                if self._state_dict:
-                    self._state_dict["repeat_index"] += 1
-        else:
-            for _ in range(self.num_times):
-                yield from self.ex_iterable
-                if self._state_dict:
-                    self._state_dict["repeat_index"] += 1
+        repeat_index = self._state_dict["repeat_index"] if self._state_dict else 0
+        while True:
+            if self.num_times and repeat_index >= max(self.num_times, 0):
+                break
+            yield from self.ex_iterable
+            repeat_index += 1
+            if self._state_dict:
+                self._state_dict["repeat_index"] = repeat_index
+                self._state_dict["ex_iterable"] = self.ex_iterable._init_state_dict()
 
     def shuffle_data_sources(self, generator: np.random.Generator) -> "RepeatExamplesIterable":
         """Shuffle the underlying iterable, then repeat."""
@@ -2568,14 +2565,34 @@ class IterableDataset(DatasetInfoMixin):
         """
         Create a new [`IterableDataset`] that repeats the underlying dataset `num_times` times.
 
-        N.B. Duplicate data is never seen in the same iteration, even after shuffling:
-        ds.repeat(n).shuffle(seed=42) is equivalent to ds.shuffle(seed=42).repeat(n)
+        N.B. The effect of calling shuffle after repeat depends significantly on buffer size.
+        With buffer_size 1, duplicate data is never seen in the same iteration, even after shuffling:
+        ds.repeat(n).shuffle(seed=42, buffer_size=1) is equivalent to ds.shuffle(seed=42, buffer_size=1).repeat(n),
+        and only shuffles shard orders within each iteration.
+        With buffer size >= (num samples in the dataset * num_times), we get full shuffling of the repeated data, i.e. we can observe duplicates in
+        the same iteration.
 
         Args:
             num_times (`int`) or (`None`):
                 Number of times to repeat the dataset. If `None`, the dataset will be repeated indefinitely.
 
         Example:
+        ```py
+        >>> from datasets import load_dataset
+        >>> ds = load_dataset("rotten_tomatoes", split="train")
+        >>> ds = ds.take(2).repeat(2)
+        >>> list(ds)
+        [{'label': 1,
+         'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'},
+         {'label': 1,
+         'text': 'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .'},
+         {'label': 1, 'text': 'effective but too-tepid biopic'},
+         {'label': 1,
+         'text': 'the rock is destined to be the 21st century\'s new " conan " and that he\'s going to make a splash even greater than arnold schwarzenegger , jean-claud van damme or steven segal .'},
+         {'label': 1,
+         'text': 'the gorgeously elaborate continuation of " the lord of the rings " trilogy is so huge that a column of words cannot adequately describe co-writer/director peter jackson\'s expanded vision of j . r . r . tolkien\'s middle-earth .'},
+         {'label': 1, 'text': 'effective but too-tepid biopic'}]
+        ```
         """
         return IterableDataset(
             ex_iterable=RepeatExamplesIterable(self._ex_iterable, num_times=num_times),
