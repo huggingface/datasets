@@ -3979,11 +3979,11 @@ def test_dataset_from_generator_with_rank(with_rank, num_proc, tmp_path):
     gen_kwargs = {"arg_1": examples}
     datasets = [
         Dataset.from_generator(
-            _gen_with_rank, gen_kwargs=gen_kwargs, cache_dir=cache_dir, with_rank=with_rank, num_proc=num_proc
+            _gen_with_rank, gen_kwargs=gen_kwargs, cache_dir=cache_dir, with_rank=_with_rank, num_proc=num_proc
         )
         for _with_rank in [with_rank, not with_rank]
     ]
-    datasets[0].fingerprint == datasets[1].fingerprint
+    assert datasets[0]._fingerprint == datasets[1]._fingerprint
     dataset = datasets[0]
     assert isinstance(dataset, Dataset)
     assert dataset.num_rows == num_examples

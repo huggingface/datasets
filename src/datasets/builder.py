@@ -1586,8 +1586,10 @@ class GeneratorBasedBuilder(DatasetBuilder):
         with_rank: bool = False,
     ) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
         if with_rank:
-            gen_kwargs["rank"] = job_id
-        generator = self._generate_examples(**gen_kwargs)
+            generator = self._generate_examples(rank=job_id, **gen_kwargs)
+        else:
+            generator = self._generate_examples(**gen_kwargs)
+
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"
         shard_lengths = []
