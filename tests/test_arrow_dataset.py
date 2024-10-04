@@ -3953,6 +3953,58 @@ def test_dataset_from_generator_split(split, data_generator, tmp_path):
     _check_generator_dataset(dataset, expected_features, expected_split)
 
 
+@pytest.mark.parametrize(
+    "with_rank",
+    [True, False],
+)
+@pytest.mark.parametrize(
+    "num_proc",
+    [None, 1, 2, 3, 4],
+)
+def test_dataset_from_generator_with_rank(with_rank, num_proc, tmp_path):
+    cache_dir = tmp_path / "cache"
+
+    def _gen_with_rank(arg_1, **kwargs):
+        for a in arg_1:
+            res = {"col_1": a}
+            if with_rank:
+                assert "rank" in kwargs
+                res["rank"] = kwargs["rank"]
+            else:
+                assert "rank" not in kwargs
+            yield res
+
+    num_examples = 10
+    examples = list(range(num_examples))
+    gen_kwargs = {"arg_1": examples}
+    datasets = [
+        Dataset.from_generator(
+            _gen_with_rank, gen_kwargs=gen_kwargs, cache_dir=cache_dir, with_rank=with_rank, num_proc=num_proc
+        )
+        for _with_rank in [with_rank, not with_rank]
+    ]
+    datasets[0].fingerprint == datasets[1].fingerprint
+    dataset = datasets[0]
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == num_examples
+    assert dataset.num_columns == 2 if with_rank else 1
+    assert dataset.split == NamedSplit("train")
+    assert dataset.column_names == ["col_1", "rank"] if with_rank else ["col_1"]
+    if with_rank:
+        expected_features = {"col_1": "int64", "rank": "int64"}
+    else:
+        expected_features = {"col_1": "int64"}
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
+    npt.assert_array_equal(examples, dataset["col_1"])
+    if with_rank:
+        if num_proc is None:
+            ranks = [0]
+        else:
+            ranks = np.arange(num_proc)
+        npt.assert_array_equal(ranks, list(set(dataset["rank"])))
+
+
 @require_not_windows
 @require_dill_gt_0_3_2
 @require_pyspark

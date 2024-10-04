@@ -1438,6 +1438,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
         file_format="arrow",
         num_proc: Optional[int] = None,
         max_shard_size: Optional[Union[int, str]] = None,
+        with_rank: bool = False,
     ):
         max_shard_size = convert_file_size_to_int(max_shard_size or config.MAX_SHARD_SIZE)
 
@@ -1483,7 +1484,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
             job_id = 0
             with pbar:
                 for job_id, done, content in self._prepare_split_single(
-                    gen_kwargs=gen_kwargs, job_id=job_id, **_prepare_split_args
+                    gen_kwargs=gen_kwargs, job_id=job_id, with_rank=with_rank, **_prepare_split_args
                 ):
                     if done:
                         result = content
@@ -1496,7 +1497,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
             ]
         else:
             kwargs_per_job = [
-                {"gen_kwargs": gen_kwargs, "job_id": job_id, **_prepare_split_args}
+                {"gen_kwargs": gen_kwargs, "job_id": job_id, "with_rank": with_rank, **_prepare_split_args}
                 for job_id, gen_kwargs in enumerate(
                     _split_gen_kwargs(split_generator.gen_kwargs, max_num_jobs=num_proc)
                 )
@@ -1582,7 +1583,10 @@ class GeneratorBasedBuilder(DatasetBuilder):
         split_info: SplitInfo,
         check_duplicate_keys: bool,
         job_id: int,
+        with_rank: bool = False,
     ) -> Iterable[Tuple[int, bool, Union[int, tuple]]]:
+        if with_rank:
+            gen_kwargs["rank"] = job_id
         generator = self._generate_examples(**gen_kwargs)
         writer_class = ParquetWriter if file_format == "parquet" else ArrowWriter
         embed_local_files = file_format == "parquet"
