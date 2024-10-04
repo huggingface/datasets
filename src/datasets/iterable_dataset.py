@@ -2564,7 +2564,7 @@ class IterableDataset(DatasetInfoMixin):
             token_per_repo_id=self._token_per_repo_id,
         )
 
-    def repeat(self, num_times: Optional[int] = None) -> "IterableDataset":
+    def repeat(self, num_times: Optional[int]) -> "IterableDataset":
         """
         Create a new [`IterableDataset`] that repeats the underlying dataset `num_times` times.
 
