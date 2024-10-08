@@ -2293,7 +2293,9 @@ class IterableDataset(DatasetInfoMixin):
             else self._ex_iterable
         )
         ex_iterable = (
-            RebatchedArrowExamplesIterable(ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch)
+            RebatchedArrowExamplesIterable(
+                ex_iterable, batch_size=batch_size if batched else 1, drop_last_batch=drop_last_batch
+            )
             if self._formatting and self._formatting.format_type == "arrow"
             else ex_iterable
         )
