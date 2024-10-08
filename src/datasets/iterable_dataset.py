@@ -926,7 +926,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
 
     @property
     def iter_arrow(self):
-        if self.formatting and self.formatting.format_type == "arrow":
+        if self.formatting and (self.formatting.format_type == "arrow" or self.ex_iterable.iter_arrow):
             return self._iter_arrow
 
     def _init_state_dict(self) -> dict:
@@ -939,8 +939,8 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         return self._state_dict
 
     def __iter__(self):
-        if self.formatting and self.formatting.format_type == "arrow":
-            formatter = PythonFormatter()
+        if self.formatting and (self.formatting.format_type == "arrow" or self.ex_iterable.iter_arrow):
+            formatter = get_formatter(self.formatting.format_type)
             for key, pa_table in self._iter_arrow(max_chunksize=1):
                 yield key, formatter.format_row(pa_table)
         else:
