@@ -885,6 +885,41 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         )
 
 
+def formatted_arrow_examples_iterator(ex_iterable, formatter, batched: bool = False):
+    for key, pa_table in ex_iterable.iter_arrow():
+        if batched:
+            yield key, formatter.format_batch(pa_table)
+        else:
+            yield key, formatter.format_row(pa_table)
+
+
+def formatted_python_examples_iterator(ex_iterable, batch_size, formatter, batched: bool = False):
+    iterator = iter(ex_iterable)
+    if formatter:
+        format_dict = (
+            formatter.recursive_tensorize if isinstance(formatter, TensorFormatter) else cast_to_python_objects
+        )
+    else:
+        format_dict = None
+    if batched:
+        for key, example in iterator:
+            # If `batched`, first build the batch, if `batch_size` is None or <=0, then the batch is the whole dataset
+            iterator_batch = (
+                iterator if batch_size is None or batch_size <= 0 else islice(iterator, batch_size - 1)
+            )  # take the next batch_size - 1 examples from iterator
+            key_examples_list = [(key, example)] + list(iterator_batch)
+            keys, examples = zip(*key_examples_list)
+            batch = _examples_to_batch(examples)
+            batch = format_dict(batch) if format_dict else batch
+            # the new key is the concatenation of the examples keys from the batch
+            new_key = "_".join(str(key) for key in keys)
+            yield new_key, batch
+    else:
+        for key, example in iterator:
+            example = format_dict(example) if format_dict else example
+            yield key, example
+
+
 class MappedExamplesIterable(_BaseExamplesIterable):
     def __init__(
         self,
@@ -926,7 +961,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
 
     @property
     def iter_arrow(self):
-        if self.formatting and (self.formatting.format_type == "arrow" or self.ex_iterable.iter_arrow):
+        if self.formatting and self.formatting.format_type == "arrow":
             return self._iter_arrow
 
     def _init_state_dict(self) -> dict:
@@ -939,8 +974,8 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         return self._state_dict
 
     def __iter__(self):
-        if self.formatting and (self.formatting.format_type == "arrow" or self.ex_iterable.iter_arrow):
-            formatter = get_formatter(self.formatting.format_type)
+        if self.formatting and self.formatting.format_type == "arrow":
+            formatter = PythonFormatter()
             for key, pa_table in self._iter_arrow(max_chunksize=1):
                 yield key, formatter.format_row(pa_table)
         else:
@@ -953,44 +988,43 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             num_examples_to_skip = self._state_dict["num_examples_since_previous_state"]
         else:
             num_examples_to_skip = 0
-        iterator = iter(self.ex_iterable)
 
-        if self.formatting:
-            formatter = get_formatter(self.formatting.format_type)
-            format_dict = (
-                formatter.recursive_tensorize if isinstance(formatter, TensorFormatter) else cast_to_python_objects
+        formatter = get_formatter(self.formatting.format_type) if self.formatting else None
+        if self.formatting and self.ex_iterable.iter_arrow:
+            # we still want to use an arrow iterator, yielding single batches of size self.batch_size
+            # to which the formatter can be applied
+            ex_iterable = RebatchedArrowExamplesIterable(
+                self.ex_iterable, batch_size=self.batch_size if self.batched else 1, drop_last_batch=False
             )
+            batched_examples_iterator = formatted_arrow_examples_iterator(ex_iterable, formatter, batched=self.batched)
+
         else:
-            format_dict = None
+            batched_examples_iterator = formatted_python_examples_iterator(
+                self.ex_iterable, batch_size=self.batch_size, formatter=formatter, batched=self.batched
+            )
 
         if self.batched:
             if self._state_dict:
                 self._state_dict["previous_state"] = self.ex_iterable.state_dict()
                 self._state_dict["num_examples_since_previous_state"] = 0
                 self._state_dict["previous_state_example_idx"] = current_idx
-            for key, example in iterator:
-                # If `batched`, first build the batch, if `batch_size` is None or <=0, then the batch is the whole dataset
-                iterator_batch = (
-                    iterator
-                    if self.batch_size is None or self.batch_size <= 0
-                    else islice(iterator, self.batch_size - 1)
-                )
-                key_examples_list = [(key, example)] + list(iterator_batch)
-                keys, examples = zip(*key_examples_list)
+            for new_key, batch in batched_examples_iterator:
+                if batch:
+                    batch_len = len(batch[next(iter(batch))])
+                else:
+                    batch_len = 0
                 if (
                     self.drop_last_batch
                     and self.batch_size is not None
                     and self.batch_size > 0
-                    and len(examples) < self.batch_size
+                    and batch_len < self.batch_size
                 ):  # ignore last batch
                     return
-                batch = _examples_to_batch(examples)
-                batch = format_dict(batch) if format_dict else batch
                 # then apply the transform
                 inputs = batch
                 function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
                 if self.with_indices:
-                    function_args.append([current_idx + i for i in range(len(key_examples_list))])
+                    function_args.append([current_idx + i for i in range(batch_len)])
                 transformed_batch = dict(batch)  # this will be updated with the function output
                 transformed_batch.update(self.function(*function_args, **self.fn_kwargs))
                 # then remove the unwanted columns
@@ -1006,10 +1040,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     ]
                     if bad_cols:
                         raise ValueError(
-                            f"Column lengths mismatch: columns {bad_cols} have length {[len(transformed_batch[col]) for col in bad_cols]} while {first_col} has length {len(transformed_batch[first_col])}."
+                            f"Column lengths mismatch: columns {bad_cols} have length {[len(transformed_batch[col]) for col in bad_cols]}"
+                            f" while {first_col} has length {len(transformed_batch[first_col])}."
                         )
-                # the new key is the concatenation of the examples keys from the batch
-                new_key = "_".join(str(key) for key in keys)
+
                 # yield one example at a time from the transformed batch
                 for example in _batch_to_examples(transformed_batch):
                     current_idx += 1
@@ -1024,11 +1058,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     self._state_dict["num_examples_since_previous_state"] = 0
                     self._state_dict["previous_state_example_idx"] = current_idx
         else:
-            for key, example in iterator:
+            for key, example in batched_examples_iterator:
                 # If not batched, we can apply the transform and yield the example directly
                 # first copy the example, since we might drop some keys
                 example = dict(example)
-                example = format_dict(example) if format_dict else example
                 # then apply the transform
                 inputs = example
                 function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
@@ -1082,7 +1115,8 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             output_table = self.function(*function_args, **self.fn_kwargs)
             if not isinstance(output_table, pa.Table):
                 raise TypeError(
-                    f"Provided `function` which is applied to pyarrow tables returns a variable of type {type(output_table)}. Make sure provided `function` returns a a pyarrow table to update the dataset."
+                    f"Provided `function` which is applied to pyarrow tables returns a variable of type "
+                    f"{type(output_table)}. Make sure provided `function` returns a a pyarrow table to update the dataset."
                 )
             # we don't need to merge results for consistency with Dataset.map which merges iif both input and output are dicts
             # then remove the unwanted columns
