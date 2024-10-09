@@ -963,7 +963,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
 
     @property
     def is_typed(self):
-        return self.ex_iterable.is_typed
+        return False
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {
