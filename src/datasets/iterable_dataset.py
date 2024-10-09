@@ -1698,7 +1698,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
             formatter = PythonFormatter()
         else:
             formatter = get_formatter(
-                self.format_type, features=self.features, token_per_repo_id=self.token_per_repo_id
+                self.formatting.format_type, features=self.features, token_per_repo_id=self.token_per_repo_id
             )
         if self.ex_iterable.iter_arrow:
             # feature casting (inc column addition) handled within self._iter_arrow()
@@ -2418,7 +2418,9 @@ class IterableDataset(DatasetInfoMixin):
             fn_kwargs = {}
 
         ex_iterable = (
-            RebatchedArrowExamplesIterable(self._ex_iterable, batch_size=batch_size if batched else 1, drop_last_batch=drop_last_batch)
+            RebatchedArrowExamplesIterable(
+                self._ex_iterable, batch_size=batch_size if batched else 1, drop_last_batch=drop_last_batch
+            )
             if self._formatting and self._ex_iterable.iter_arrow
             else self._ex_iterable
         )
