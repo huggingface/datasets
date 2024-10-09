@@ -141,7 +141,7 @@ class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
 
     def format_row(self, pa_table: pa.Table) -> Mapping:
         row = self.numpy_arrow_extractor().extract_row(pa_table)
-        row = self.python_features_decoder.decode_row(row, token_per_repo_id=self.token_per_repo_id)
+        row = self.python_features_decoder.decode_row(row)
         return self.recursive_tensorize(row)
 
     def format_column(self, pa_table: pa.Table) -> "jax.Array":
@@ -153,7 +153,7 @@ class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
 
     def format_batch(self, pa_table: pa.Table) -> Mapping:
         batch = self.numpy_arrow_extractor().extract_batch(pa_table)
-        batch = self.python_features_decoder.decode_batch(batch, token_per_repo_id=self.token_per_repo_id)
+        batch = self.python_features_decoder.decode_batch(batch)
         batch = self.recursive_tensorize(batch)
         for column_name in batch:
             batch[column_name] = self._consolidate(batch[column_name])

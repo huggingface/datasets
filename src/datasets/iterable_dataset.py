@@ -1652,9 +1652,11 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
                 yield key, format_dict(example)
 
     def _iter_arrow(self) -> Iterator[Tuple[Key, pa.Table]]:
-        schema = self.features.arrow_schema
-        for key, pa_table in self.ex_iterable.iter_arrow():
+        if not self.features:
+            yield from self.ex_iterable._iter_arrow()
+        for key, pa_table in self.ex_iterable._iter_arrow():
             columns = set(pa_table.column_names)
+            schema = self.features.arrow_schema
             # add missing columns
             for column_name in self.features:
                 if column_name not in columns:
@@ -2329,11 +2331,12 @@ class IterableDataset(DatasetInfoMixin):
             fn_kwargs = {}
 
         ex_iterable = (
-            RebatchedArrowExamplesIterable(ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch)
-            if self._formatting and ex_iterable.iter_arrow
-            else ex_iterable
+            RebatchedArrowExamplesIterable(self._ex_iterable, batch_size=batch_size, drop_last_batch=drop_last_batch)
+            if self._formatting and self._ex_iterable.iter_arrow
+            else self._ex_iterable
         )
         if self._formatting or features:
+            # apply formatting after iter_arrow to avoid re-encoding the examples
             ex_iterable = FormattedExamplesIterable(
                 ex_iterable,
                 format_type=self._formatting.format_type or "python",
@@ -2421,16 +2424,15 @@ class IterableDataset(DatasetInfoMixin):
         info = copy.deepcopy(self._info)
         info.features = None
 
+        ex_iterable = self._ex_iterable
         # We need the examples to be decoded for certain feature types like Image or Audio, so we use TypedExamplesIterable here
-        if self._info.features or (self._formatting and self._formatting.format_type != "arrow"):
+        if self._info.features or self._formatting:
             ex_iterable = FormattedExamplesIterable(
                 ex_iterable,
-                format_type=self._formatting.format_type,
+                format_type=self._formatting.format_type or "python",
                 features=self._info.features,
                 token_per_repo_id=self._token_per_repo_id,
             )
-        else:
-            ex_iterable = self._ex_iterable
 
         ex_iterable = FilteredExamplesIterable(
             ex_iterable,

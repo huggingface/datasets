@@ -228,7 +228,7 @@ class PythonFeaturesDecoder:
         return self.features.decode_column(column, column_name) if self.features else column
 
     def decode_batch(self, batch: dict) -> dict:
-        return self.features.decode_batch(batch, token_per_repo_id=self.token_per_repo_id) if self.features else batch
+        return self.features.decode_batch(batch) if self.features else batch
 
 
 class PandasFeaturesDecoder:
@@ -449,7 +449,7 @@ class PythonFormatter(Formatter[Mapping, list, Mapping]):
         if self.lazy:
             return LazyRow(pa_table, self)
         row = self.python_arrow_extractor().extract_row(pa_table)
-        row = self.python_features_decoder.decode_row(row, token_per_repo_id=self.token_per_repo_id)
+        row = self.python_features_decoder.decode_row(row)
         return row
 
     def format_column(self, pa_table: pa.Table) -> list:
@@ -461,7 +461,7 @@ class PythonFormatter(Formatter[Mapping, list, Mapping]):
         if self.lazy:
             return LazyBatch(pa_table, self)
         batch = self.python_arrow_extractor().extract_batch(pa_table)
-        batch = self.python_features_decoder.decode_batch(batch, token_per_repo_id=self.token_per_repo_id)
+        batch = self.python_features_decoder.decode_batch(batch)
         return batch
 
 
@@ -526,7 +526,7 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
 
     def format_batch(self, pa_table: pa.Table) -> dict:
         batch = self.python_arrow_extractor().extract_batch(pa_table)
-        batch = self.python_features_decoder.decode_batch(batch, token_per_repo_id=self.token_per_repo_id)
+        batch = self.python_features_decoder.decode_batch(batch)
         return self.transform(batch)
 
 
