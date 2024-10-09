@@ -215,17 +215,20 @@ class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFr
 
 
 class PythonFeaturesDecoder:
-    def __init__(self, features: Optional[Features]):
+    def __init__(
+        self, features: Optional[Features], token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None
+    ):
         self.features = features
+        self.token_per_repo_id = token_per_repo_id
 
     def decode_row(self, row: dict) -> dict:
-        return self.features.decode_example(row) if self.features else row
+        return self.features.decode_example(row, token_per_repo_id=self.token_per_repo_id) if self.features else row
 
     def decode_column(self, column: list, column_name: str) -> list:
         return self.features.decode_column(column, column_name) if self.features else column
 
     def decode_batch(self, batch: dict) -> dict:
-        return self.features.decode_batch(batch) if self.features else batch
+        return self.features.decode_batch(batch, token_per_repo_id=self.token_per_repo_id) if self.features else batch
 
 
 class PandasFeaturesDecoder:
@@ -393,9 +396,14 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     numpy_arrow_extractor = NumpyArrowExtractor
     pandas_arrow_extractor = PandasArrowExtractor
 
-    def __init__(self, features: Optional[Features] = None):
+    def __init__(
+        self,
+        features: Optional[Features] = None,
+        token_per_repo_id: Optional[Dict[str, Union[str, bool, None]]] = None,
+    ):
         self.features = features
-        self.python_features_decoder = PythonFeaturesDecoder(self.features)
+        self.token_per_repo_id = token_per_repo_id
+        self.python_features_decoder = PythonFeaturesDecoder(self.features, self.token_per_repo_id)
         self.pandas_features_decoder = PandasFeaturesDecoder(self.features)
 
     def __call__(self, pa_table: pa.Table, query_type: str) -> Union[RowFormat, ColumnFormat, BatchFormat]:
@@ -433,15 +441,15 @@ class ArrowFormatter(Formatter[pa.Table, pa.Array, pa.Table]):
 
 
 class PythonFormatter(Formatter[Mapping, list, Mapping]):
-    def __init__(self, features=None, lazy=False):
-        super().__init__(features)
+    def __init__(self, features=None, lazy=False, token_per_repo_id=None):
+        super().__init__(features, token_per_repo_id)
         self.lazy = lazy
 
     def format_row(self, pa_table: pa.Table) -> Mapping:
         if self.lazy:
             return LazyRow(pa_table, self)
         row = self.python_arrow_extractor().extract_row(pa_table)
-        row = self.python_features_decoder.decode_row(row)
+        row = self.python_features_decoder.decode_row(row, token_per_repo_id=self.token_per_repo_id)
         return row
 
     def format_column(self, pa_table: pa.Table) -> list:
@@ -453,7 +461,7 @@ class PythonFormatter(Formatter[Mapping, list, Mapping]):
         if self.lazy:
             return LazyBatch(pa_table, self)
         batch = self.python_arrow_extractor().extract_batch(pa_table)
-        batch = self.python_features_decoder.decode_batch(batch)
+        batch = self.python_features_decoder.decode_batch(batch, token_per_repo_id=self.token_per_repo_id)
         return batch
 
 
@@ -484,8 +492,8 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
     to return.
     """
 
-    def __init__(self, transform: Callable[[dict], dict], features=None, **kwargs):
-        super().__init__(features=features)
+    def __init__(self, transform: Callable[[dict], dict], features=None, token_per_repo_id=None, **kwargs):
+        super().__init__(features=features, token_per_repo_id=token_per_repo_id)
         self.transform = transform
 
     def format_row(self, pa_table: pa.Table) -> dict:
@@ -518,7 +526,7 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
 
     def format_batch(self, pa_table: pa.Table) -> dict:
         batch = self.python_arrow_extractor().extract_batch(pa_table)
-        batch = self.python_features_decoder.decode_batch(batch)
+        batch = self.python_features_decoder.decode_batch(batch, token_per_repo_id=self.token_per_repo_id)
         return self.transform(batch)
 
 

@@ -36,8 +36,8 @@ DEVICE_MAPPING: Optional[dict] = None
 
 
 class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
-    def __init__(self, features=None, device=None, **jnp_array_kwargs):
-        super().__init__(features=features)
+    def __init__(self, features=None, device=None, token_per_repo_id=None, **jnp_array_kwargs):
+        super().__init__(features=features, token_per_repo_id=token_per_repo_id)
         import jax
         from jaxlib.xla_client import Device
 
@@ -141,7 +141,7 @@ class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
 
     def format_row(self, pa_table: pa.Table) -> Mapping:
         row = self.numpy_arrow_extractor().extract_row(pa_table)
-        row = self.python_features_decoder.decode_row(row)
+        row = self.python_features_decoder.decode_row(row, token_per_repo_id=self.token_per_repo_id)
         return self.recursive_tensorize(row)
 
     def format_column(self, pa_table: pa.Table) -> "jax.Array":
@@ -153,7 +153,7 @@ class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
 
     def format_batch(self, pa_table: pa.Table) -> Mapping:
         batch = self.numpy_arrow_extractor().extract_batch(pa_table)
-        batch = self.python_features_decoder.decode_batch(batch)
+        batch = self.python_features_decoder.decode_batch(batch, token_per_repo_id=self.token_per_repo_id)
         batch = self.recursive_tensorize(batch)
         for column_name in batch:
             batch[column_name] = self._consolidate(batch[column_name])
