@@ -2417,21 +2417,32 @@ class IterableDataset(DatasetInfoMixin):
         if fn_kwargs is None:
             fn_kwargs = {}
 
-        ex_iterable = (
-            RebatchedArrowExamplesIterable(
-                self._ex_iterable, batch_size=batch_size if batched else 1, drop_last_batch=drop_last_batch
-            )
-            if self._formatting and self._ex_iterable.iter_arrow
-            else self._ex_iterable
-        )
-        if self._formatting or features:
-            # apply formatting after iter_arrow to avoid re-encoding the examples
+        ex_iterable = self._ex_iterable
+        if (self._formatting and self._formatting.format_type == "arrow"):
+            # apply formatting before iter_arrow to keep map examples iterable happy
             ex_iterable = FormattedExamplesIterable(
                 ex_iterable,
                 formatting=copy.deepcopy(self._formatting),
                 features=features,
                 token_per_repo_id=self._token_per_repo_id,
             )
+            ex_iterable = RebatchedArrowExamplesIterable(
+                ex_iterable, batch_size=batch_size if batched else 1, drop_last_batch=drop_last_batch
+            )
+        else:
+            if self._formatting and self._ex_iterable.iter_arrow:
+                ex_iterable = RebatchedArrowExamplesIterable(
+                    self._ex_iterable, batch_size=batch_size if batched else 1, drop_last_batch=drop_last_batch
+                )
+            if self._formatting or features:
+                # apply formatting after iter_arrow to avoid re-encoding the examples
+                ex_iterable = FormattedExamplesIterable(
+                    ex_iterable,
+                    formatting=copy.deepcopy(self._formatting),
+                    features=features,
+                    token_per_repo_id=self._token_per_repo_id,
+                )
+
         ex_iterable = MappedExamplesIterable(
             ex_iterable,
             function=function,
@@ -2442,6 +2453,7 @@ class IterableDataset(DatasetInfoMixin):
             drop_last_batch=drop_last_batch,
             remove_columns=remove_columns,
             fn_kwargs=fn_kwargs,
+            # pass formatting bc we need to know that we can call iter_arrow if the formatting is arrow
             formatting=copy.deepcopy(self._formatting)
             if self._formatting and self._formatting.format_type == "arrow"
             else None,  # formatting is handled within ex_iterable
