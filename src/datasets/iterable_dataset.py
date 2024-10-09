@@ -1385,6 +1385,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
             input_columns=self.input_columns,
             batched=self.batched,
             batch_size=self.batch_size,
+            formatting=self.formatting,
         )
 
     def shard_data_sources(self, worker_id: int, num_workers: int) -> "FilteredExamplesIterable":
@@ -1396,6 +1397,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
             input_columns=self.input_columns,
             batched=self.batched,
             batch_size=self.batch_size,
+            formatting=self.formatting,
         )
 
     @property
