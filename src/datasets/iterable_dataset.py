@@ -996,10 +996,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             ex_iterable = RebatchedArrowExamplesIterable(
                 self.ex_iterable, batch_size=self.batch_size if self.batched else 1, drop_last_batch=False
             )
-            batched_examples_iterator = formatted_arrow_examples_iterator(ex_iterable, formatter, batched=self.batched)
+            inputs_iterator = formatted_arrow_examples_iterator(ex_iterable, formatter, batched=self.batched)
 
         else:
-            batched_examples_iterator = formatted_python_examples_iterator(
+            inputs_iterator = formatted_python_examples_iterator(
                 self.ex_iterable, batch_size=self.batch_size, formatter=formatter, batched=self.batched
             )
 
@@ -1008,9 +1008,9 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 self._state_dict["previous_state"] = self.ex_iterable.state_dict()
                 self._state_dict["num_examples_since_previous_state"] = 0
                 self._state_dict["previous_state_example_idx"] = current_idx
-            for new_key, batch in batched_examples_iterator:
-                if batch:
-                    batch_len = len(batch[next(iter(batch))])
+            for new_key, inputs_batch in inputs_iterator:
+                if inputs_batch:
+                    batch_len = len(inputs_batch[next(iter(inputs_batch))])
                 else:
                     batch_len = 0
                 if (
@@ -1021,11 +1021,12 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 ):  # ignore last batch
                     return
                 # then apply the transform
-                inputs = batch
-                function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
+                function_args = (
+                    [inputs_batch] if self.input_columns is None else [inputs_batch[col] for col in self.input_columns]
+                )
                 if self.with_indices:
                     function_args.append([current_idx + i for i in range(batch_len)])
-                transformed_batch = dict(batch)  # this will be updated with the function output
+                transformed_batch = dict(inputs_batch)  # this will be updated with the function output
                 transformed_batch.update(self.function(*function_args, **self.fn_kwargs))
                 # then remove the unwanted columns
                 if self.remove_columns:
@@ -1058,16 +1059,15 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     self._state_dict["num_examples_since_previous_state"] = 0
                     self._state_dict["previous_state_example_idx"] = current_idx
         else:
-            for key, example in batched_examples_iterator:
+            for key, input_example in inputs_iterator:
                 # If not batched, we can apply the transform and yield the example directly
                 # first copy the example, since we might drop some keys
-                example = dict(example)
+                inputs = dict(input_example)
                 # then apply the transform
-                inputs = example
                 function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
                 if self.with_indices:
                     function_args.append(current_idx)
-                transformed_example = dict(example)  # this will be updated with the function output
+                transformed_example = dict(input_example)  # this will be updated with the function output
                 transformed_example.update(self.function(*function_args, **self.fn_kwargs))
                 # then we remove the unwanted columns
                 if self.remove_columns:
@@ -1251,10 +1251,10 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
             ex_iterable = RebatchedArrowExamplesIterable(
                 self.ex_iterable, batch_size=self.batch_size if self.batched else 1, drop_last_batch=False
             )
-            batched_examples_iterator = formatted_arrow_examples_iterator(ex_iterable, formatter, batched=self.batched)
+            inputs_iterator = formatted_arrow_examples_iterator(ex_iterable, formatter, batched=self.batched)
 
         else:
-            batched_examples_iterator = formatted_python_examples_iterator(
+            inputs_iterator = formatted_python_examples_iterator(
                 self.ex_iterable, batch_size=self.batch_size, formatter=formatter, batched=self.batched
             )
 
@@ -1263,24 +1263,21 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                 self._state_dict["previous_state"] = self.ex_iterable.state_dict()
                 self._state_dict["num_examples_since_previous_state"] = 0
                 self._state_dict["previous_state_example_idx"] = current_idx
-            for combined_key, batch in batched_examples_iterator:
-                if batch:
-                    batch_len = len(batch[next(iter(batch))])
+            for combined_key, inputs_batch in inputs_iterator:
+                if inputs_batch:
+                    batch_len = len(inputs_batch[next(iter(inputs_batch))])
                 else:
                     batch_len = 0
                 # then compute the mask for the batch
-                inputs = batch
-                function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
+                function_args = (
+                    [inputs_batch] if self.input_columns is None else [inputs_batch[col] for col in self.input_columns]
+                )
                 if self.with_indices:
                     function_args.append([current_idx + i for i in range(batch_len)])
                 mask = self.function(*function_args, **self.fn_kwargs)
                 # yield one example at a time from the batch
-                examples = _batch_to_examples(batch)
-                # TODO: nicer way to handle keys?
-                if not self.formatting:
-                    keys = combined_key.split("_")
-                else:
-                    keys = [combined_key] * len(mask)
+                examples = _batch_to_examples(inputs_batch)
+                keys = [combined_key] * len(mask)
                 for key, example, to_keep in zip(keys, examples, mask):
                     current_idx += 1
                     if self._state_dict:
@@ -1295,11 +1292,12 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                     self._state_dict["num_examples_since_previous_state"] = 0
                     self._state_dict["previous_state_example_idx"] = current_idx
         else:
-            for key, example in batched_examples_iterator:
+            for key, input_example in inputs_iterator:
                 # If not batched, we can apply the filtering function direcly
-                example = dict(example)
-                inputs = example
-                function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
+                inputs = dict(input_example)
+                function_args = (
+                    [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
+                )
                 if self.with_indices:
                     function_args.append(current_idx)
                 to_keep = self.function(*function_args, **self.fn_kwargs)
@@ -1307,7 +1305,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                 if self._state_dict:
                     self._state_dict["previous_state_example_idx"] += 1
                 if to_keep:
-                    yield key, example
+                    yield key, input_example
 
     def _iter_arrow(self, max_chunksize: Optional[int] = None):
         if self.ex_iterable.iter_arrow:
