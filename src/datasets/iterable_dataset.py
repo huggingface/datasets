@@ -1713,9 +1713,10 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
                 else cast_to_python_objects  # cast in case features is None
             )
             for key, example in self.ex_iterable:
-                example = _apply_feature_types_on_example(
-                    example, self.features, token_per_repo_id=self.token_per_repo_id
-                )
+                if self.features:
+                    example = _apply_feature_types_on_example(
+                        example, self.features, token_per_repo_id=self.token_per_repo_id
+                    )
                 yield key, format_dict(example)
 
     def _iter_arrow(self) -> Iterator[Tuple[Key, pa.Table]]:
