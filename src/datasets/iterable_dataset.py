@@ -1740,7 +1740,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
             self.ex_iterable.shuffle_data_sources(generator),
             features=self.features,
             token_per_repo_id=self.token_per_repo_id,
-            format_type=self.format_type,
+            formatting=self.formatting,
         )
 
     def shard_data_sources(self, worker_id: int, num_workers: int) -> "FormattedExamplesIterable":
@@ -1749,7 +1749,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
             self.ex_iterable.shard_data_sources(worker_id, num_workers),
             features=self.features,
             token_per_repo_id=self.token_per_repo_id,
-            format_type=self.format_type,
+            formatting=self.formatting,
         )
 
     @property
