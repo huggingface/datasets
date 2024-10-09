@@ -1655,23 +1655,34 @@ def _apply_feature_types_on_batch(
     return decoded_batch
 
 
+@dataclass
+class FormattingConfig:
+    format_type: Optional[str]
+
+    def __post_init__(self):
+        if self.format_type == "pandas":
+            raise NotImplementedError(
+                "The 'pandas' formatting is not implemented for iterable datasets. You can use 'numpy' or 'arrow' instead."
+            )
+
+
 class FormattedExamplesIterable(_BaseExamplesIterable):
     def __init__(
         self,
         ex_iterable: _BaseExamplesIterable,
-        format_type: str,
+        formatting: Optional[FormattingConfig],
         features: Optional[Features],
         token_per_repo_id: Dict[str, Union[str, bool, None]],
     ):
         super().__init__()
         self.ex_iterable = ex_iterable
         self.features = features
-        self.format_type = format_type
+        self.formatting = formatting
         self.token_per_repo_id = token_per_repo_id
 
     @property
     def iter_arrow(self):
-        if self.format_type == "arrow" and self.ex_iterable.iter_arrow:
+        if self.ex_iterable.iter_arrow and (not self.formatting or self.formatting.format_type == "arrow"):
             return self._iter_arrow
 
     @property
@@ -1683,7 +1694,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
         return self._state_dict
 
     def __iter__(self):
-        if self.format_type == "arrow":
+        if not self.formatting or self.formatting.format_type == "arrow":
             formatter = PythonFormatter()
         else:
             formatter = get_formatter(
@@ -1743,17 +1754,6 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
     @property
     def n_shards(self) -> int:
         return self.ex_iterable.n_shards
-
-
-@dataclass
-class FormattingConfig:
-    format_type: Optional[str]
-
-    def __post_init__(self):
-        if self.format_type == "pandas":
-            raise NotImplementedError(
-                "The 'pandas' formatting is not implemented for iterable datasets. You can use 'numpy' or 'arrow' instead."
-            )
 
 
 @dataclass
@@ -2426,7 +2426,7 @@ class IterableDataset(DatasetInfoMixin):
             # apply formatting after iter_arrow to avoid re-encoding the examples
             ex_iterable = FormattedExamplesIterable(
                 ex_iterable,
-                format_type=self._formatting.format_type or "python",
+                formatting=copy.deepcopy(self._formatting),
                 features=features,
                 token_per_repo_id=self._token_per_repo_id,
             )
@@ -2512,7 +2512,7 @@ class IterableDataset(DatasetInfoMixin):
         if self._info.features or self._formatting:
             ex_iterable = FormattedExamplesIterable(
                 ex_iterable,
-                format_type=self._formatting.format_type or "python",
+                formatting=copy.deepcopy(self._formatting),
                 features=self._info.features,
                 token_per_repo_id=self._token_per_repo_id,
             )
