@@ -1252,8 +1252,6 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
             num_examples_to_skip = 0
         iterator = iter(self.ex_iterable)
 
-        # N.B. Formatting will get called twice (in FormattedExamplesIterator and here) - hopefully not expensive...
-        # TODO: use ex_iterable.is_formatted or something...
         if self.formatting:
             formatter = get_formatter(self.formatting.format_type)
             format_dict = (
@@ -2540,7 +2538,8 @@ class IterableDataset(DatasetInfoMixin):
             batched=batched,
             batch_size=batch_size,
             fn_kwargs=fn_kwargs,
-            formatting=self._formatting,  # we still pass formatting to enable iter_arrow with formatting
+            # TODO: could allow arbitrary formatting with arrow iteration on filter, but currently blocked in iter_arrow
+            formatting=copy.deepcopy(self._formatting) if self._formatting and self._formatting.format_type == "arrow" else None,
         )
         return IterableDataset(
             ex_iterable=ex_iterable,
