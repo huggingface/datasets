@@ -1220,7 +1220,8 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
     @property
     def iter_arrow(self):
         # if self.formatting is not None, we format, filter, then return arrow iterator
-        if self.ex_iterable.iter_arrow:
+        # if formatting is unset, we don't, as that would require filter fn to accept arrow format
+        if self.formatting and self.ex_iterable.iter_arrow:
             return self._iter_arrow
 
     @property
