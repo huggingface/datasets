@@ -1728,7 +1728,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
     ):
         super().__init__()
         self.ex_iterable = ex_iterable
-        self.features = features
+        self._features = features
         self.formatting = formatting
         self.token_per_repo_id = token_per_repo_id
 
@@ -1739,7 +1739,11 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
 
     @property
     def is_typed(self):
-        return self.features is not None
+        return self._features is not None
+
+    @property
+    def features(self):
+        return self._features
 
     def _init_state_dict(self) -> dict:
         self._state_dict = self.ex_iterable._init_state_dict()
@@ -1750,7 +1754,7 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
             formatter = PythonFormatter()
         else:
             formatter = get_formatter(
-                self.formatting.format_type, features=self.features, token_per_repo_id=self.token_per_repo_id
+                self.formatting.format_type, features=self._features, token_per_repo_id=self.token_per_repo_id
             )
         if self.ex_iterable.iter_arrow:
             # feature casting (inc column addition) handled within self._iter_arrow()
