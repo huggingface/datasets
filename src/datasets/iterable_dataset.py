@@ -134,6 +134,10 @@ class _BaseExamplesIterable:
     def is_typed(self) -> bool:
         return False
 
+    @property
+    def features(self) -> Optional[Features]:
+        return None
+
     def shuffle_data_sources(self, generator: np.random.Generator) -> "_BaseExamplesIterable":
         """
         Either shuffle the shards/sources of the dataset, or propagate the shuffling to the underlying iterable.
@@ -401,6 +405,10 @@ class RebatchedArrowExamplesIterable(_BaseExamplesIterable):
     def is_typed(self):
         return self.ex_iterable.is_typed
 
+    @property
+    def features(self):
+        return self.ex_iterable.features
+
     def _init_state_dict(self) -> dict:
         self._state_dict = {
             "ex_iterable": self.ex_iterable._init_state_dict(),
@@ -530,6 +538,10 @@ class SelectColumnsIterable(_BaseExamplesIterable):
     def is_typed(self):
         return self.ex_iterable.is_typed
 
+    @property
+    def features(self):
+        return self.ex_iterable.features
+
     def _init_state_dict(self) -> dict:
         self._state_dict = self.ex_iterable._init_state_dict()
         return self._state_dict
@@ -565,6 +577,10 @@ class StepExamplesIterable(_BaseExamplesIterable):
     @property
     def is_typed(self):
         return self.ex_iterable.is_typed
+
+    @property
+    def features(self):
+        return self.ex_iterable.features
 
     def _init_state_dict(self) -> dict:
         self._state_dict = self.ex_iterable._init_state_dict()
@@ -612,6 +628,10 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
     @property
     def is_typed(self):
         return self.ex_iterables[0].is_typed
+
+    @property
+    def features(self):
+        return self.ex_iterables[0].features
 
     def _get_indices_iterator(self):
         # this is an infinite iterator to keep track of which iterator we want to pick examples from
@@ -694,12 +714,12 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
     """
     VerticallyConcatenatedMultiSourcesExamplesIterable simply chains the input iterables.
     It doesn't require the examples iterables to always yield the same columns.
-    Instead, this is handled by the `IterableDataset` class or `TypedExamplesIterable`.
+    Instead, this is handled by the `IterableDataset` class or `FormattedExamplesIterable`.
 
     For information, `IterableDataset` merges the features of all the datasets to concatenate into one.
     We use `IterableDataset._resolve_features` to obtain the features of all the datasets to concatenate.
 
-    Then for each example, `IterableDataset` and `TypedExamplesIterable` automatically fill missing columns with None.
+    Then for each example, `IterableDataset` and `FormattedExamplesIterable` automatically fill missing columns with None.
     This is done with `_apply_feature_types_on_example`.
     """
 
@@ -710,6 +730,10 @@ class VerticallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable):
     @property
     def is_typed(self):
         return self.ex_iterables[0].is_typed
+
+    @property
+    def features(self):
+        return self.ex_iterables[0].features
 
     @property
     def iter_arrow(self):
@@ -777,12 +801,12 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
     This check is done once when yielding the first example.
 
     However it doesn't fill missing columns with None.
-    Instead, this is handled by the `IterableDataset` class or `TypedExamplesIterable`.
+    Instead, this is handled by the `IterableDataset` class or `FormattedExamplesIterable`.
 
     For information, `IterableDataset` merges the features of all the datasets to concatenate into one.
     We use `IterableDataset._resolve_features` to obtain the features of all the datasets to concatenate.
 
-    Then for each example, `IterableDataset` and `TypedExamplesIterable` automatically fill missing columns with None.
+    Then for each example, `IterableDataset` and `FormattedExamplesIterable` automatically fill missing columns with None.
     This is done with `_apply_feature_types_on_example`.
     """
 
@@ -794,6 +818,10 @@ class HorizontallyConcatenatedMultiSourcesExamplesIterable(_BaseExamplesIterable
     @property
     def is_typed(self):
         return self.ex_iterables[0].is_typed
+
+    @property
+    def features(self):
+        return self.ex_iterables[0].features
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {"ex_iterables": [ex_iterable._init_state_dict() for ex_iterable in self.ex_iterables]}
@@ -857,6 +885,10 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
     @property
     def is_typed(self):
         return self.ex_iterables[0].is_typed
+
+    @property
+    def features(self):
+        return self.ex_iterables[0].features
 
     def _get_indices_iterator(self):
         rng = deepcopy(self.generator)
@@ -964,6 +996,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
     @property
     def is_typed(self):
         return False
+
+    @property
+    def features(self):
+        return None
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {
@@ -1228,6 +1264,10 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
     def is_typed(self):
         return self.ex_iterable.is_typed
 
+    @property
+    def features(self):
+        return self.ex_iterable.features
+
     def _init_state_dict(self) -> dict:
         self._state_dict = {
             "ex_iterable": self.ex_iterable._init_state_dict(),
@@ -1429,6 +1469,10 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
     def is_typed(self):
         return self.ex_iterable.is_typed
 
+    @property
+    def features(self):
+        return self.ex_iterable.features
+
     def _init_state_dict(self) -> dict:
         self._state_dict = self.ex_iterable._init_state_dict()
         self._original_state_dict = self.state_dict()
@@ -1503,6 +1547,10 @@ class SkipExamplesIterable(_BaseExamplesIterable):
     def is_typed(self):
         return self.ex_iterable.is_typed
 
+    @property
+    def features(self):
+        return self.ex_iterable.features
+
     def _init_state_dict(self) -> dict:
         self._state_dict = {"skipped": False, "ex_iterable": self.ex_iterable._init_state_dict()}
         return self._state_dict
@@ -1569,6 +1617,10 @@ class TakeExamplesIterable(_BaseExamplesIterable):
     @property
     def is_typed(self):
         return self.ex_iterable.is_typed
+
+    @property
+    def features(self):
+        return self.ex_iterable.features
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {"num_taken": 0, "ex_iterable": self.ex_iterable._init_state_dict()}
@@ -2522,7 +2574,8 @@ class IterableDataset(DatasetInfoMixin):
         if isinstance(input_columns, str):
             input_columns = [input_columns]
 
-        # We need the examples to be decoded for certain feature types like Image or Audio, so we use TypedExamplesIterable here
+        # We need the examples to be decoded for certain feature types like Image or Audio,
+        # format and type before filtering
         ex_iterable = self._ex_iterable
         if self._info.features or self._formatting:
             ex_iterable = FormattedExamplesIterable(
@@ -2978,7 +3031,7 @@ class IterableDataset(DatasetInfoMixin):
     def _resolve_features(self):
         if self.features is not None:
             return self
-        elif isinstance(self._ex_iterable, TypedExamplesIterable):
+        elif self._ex_iterable.is_typed:
             features = self._ex_iterable.features
         else:
             features = _infer_features_from_batch(self.with_format(None)._head())
