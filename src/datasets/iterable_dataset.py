@@ -2480,7 +2480,8 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable = FormattedExamplesIterable(
                 ex_iterable,
                 formatting=copy.deepcopy(self._formatting),
-                features=features,
+                # only extract features if not already extracted by ex_iterable
+                features=None if ex_iterable.is_typed else self._info.features,
                 token_per_repo_id=self._token_per_repo_id,
             )
             ex_iterable = RebatchedArrowExamplesIterable(
@@ -2491,12 +2492,13 @@ class IterableDataset(DatasetInfoMixin):
                 ex_iterable = RebatchedArrowExamplesIterable(
                     self._ex_iterable, batch_size=batch_size if batched else 1, drop_last_batch=drop_last_batch
                 )
-            if self._formatting or features:
+            if self._formatting:
                 # apply formatting after iter_arrow to avoid re-encoding the examples
                 ex_iterable = FormattedExamplesIterable(
                     ex_iterable,
                     formatting=copy.deepcopy(self._formatting),
-                    features=features,
+                    # only extract features if not already extracted by ex_iterable
+                    features=None if ex_iterable.is_typed else self._info.features,
                     token_per_repo_id=self._token_per_repo_id,
                 )
 
@@ -2585,7 +2587,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable = FormattedExamplesIterable(
                 ex_iterable,
                 formatting=copy.deepcopy(self._formatting),
-                features=self._info.features,
+                features=None if ex_iterable.is_typed else self._info.features,
                 token_per_repo_id=self._token_per_repo_id,
             )
 
