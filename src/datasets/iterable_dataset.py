@@ -2539,10 +2539,7 @@ class IterableDataset(DatasetInfoMixin):
             batched=batched,
             batch_size=batch_size,
             fn_kwargs=fn_kwargs,
-            # TODO: could allow arbitrary formatting with arrow iteration on filter, but currently blocked in iter_arrow
-            formatting=copy.deepcopy(self._formatting)
-            if self._formatting and self._formatting.format_type == "arrow"
-            else None,
+            formatting=copy.deepcopy(self._formatting),  # required by iter_arrow
         )
         return IterableDataset(
             ex_iterable=ex_iterable,
