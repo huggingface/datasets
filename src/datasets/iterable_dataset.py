@@ -2417,7 +2417,7 @@ class IterableDataset(DatasetInfoMixin):
             fn_kwargs = {}
 
         ex_iterable = self._ex_iterable
-        if (self._formatting and self._formatting.format_type == "arrow"):
+        if self._formatting and self._formatting.format_type == "arrow":
             # apply formatting before iter_arrow to keep map examples iterable happy
             ex_iterable = FormattedExamplesIterable(
                 ex_iterable,
@@ -2539,7 +2539,9 @@ class IterableDataset(DatasetInfoMixin):
             batch_size=batch_size,
             fn_kwargs=fn_kwargs,
             # TODO: could allow arbitrary formatting with arrow iteration on filter, but currently blocked in iter_arrow
-            formatting=copy.deepcopy(self._formatting) if self._formatting and self._formatting.format_type == "arrow" else None,
+            formatting=copy.deepcopy(self._formatting)
+            if self._formatting and self._formatting.format_type == "arrow"
+            else None,
         )
         return IterableDataset(
             ex_iterable=ex_iterable,
