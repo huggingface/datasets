@@ -1001,7 +1001,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
 
     @property
     def features(self):
-        return None
+        return self._return_features
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {
