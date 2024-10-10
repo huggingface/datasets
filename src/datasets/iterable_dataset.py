@@ -2532,7 +2532,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable=ex_iterable,
             info=info,
             split=self._split,
-            formatting=None,  # we dont know the formatting state after map; user should set explicitly if needed
+            formatting=None,  # formatting is applied in mapped ex_iterable; no need to re-apply it in IterableDataset
             shuffling=copy.deepcopy(self._shuffling),
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
