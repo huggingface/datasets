@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Union
 
 import pyarrow as pa
 
-from .features import FeatureWithEncoding
+from .base import Feature
 
 
 if TYPE_CHECKING:
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class Translation:
+class Translation(Feature):
     """`Feature` for translations with fixed languages per example.
     Here for compatiblity with tfds.
 
@@ -51,7 +51,7 @@ class Translation:
 
 
 @dataclass
-class TranslationVariableLanguages(FeatureWithEncoding):
+class TranslationVariableLanguages(Feature):
     """`Feature` for translations with variable languages per example.
     Here for compatiblity with tfds.
 
@@ -82,6 +82,8 @@ class TranslationVariableLanguages(FeatureWithEncoding):
     ... }
     ```
     """
+
+    requires_encoding: ClassVar[bool] = True
 
     languages: Optional[List] = None
     num_languages: Optional[int] = None

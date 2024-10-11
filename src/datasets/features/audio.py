@@ -11,7 +11,7 @@ from ..download.download_config import DownloadConfig
 from ..table import array_cast
 from ..utils.file_utils import xopen, xsplitext
 from ..utils.py_utils import no_op_if_value_is_null, string_to_dict
-from .features import FeatureWithEncoding
+from .base import Feature
 
 
 if TYPE_CHECKING:
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class Audio(FeatureWithEncoding):
+class Audio(Feature):
     """Audio [`Feature`] to extract audio data from an audio file.
 
     Input: The Audio feature accepts as input:
@@ -62,6 +62,9 @@ class Audio(FeatureWithEncoding):
      'sampling_rate': 16000}
     ```
     """
+
+    requires_encoding: ClassVar[bool] = True
+    requires_decoding: ClassVar[bool] = True
 
     sampling_rate: Optional[int] = None
     mono: bool = True

@@ -19,7 +19,6 @@ import copy
 import json
 import re
 import sys
-from abc import ABC, abstractmethod
 from collections.abc import Iterable, Mapping
 from collections.abc import Sequence as SequenceABC
 from dataclasses import InitVar, dataclass, field, fields
@@ -42,6 +41,7 @@ from ..table import array_cast
 from ..utils import experimental, logging
 from ..utils.py_utils import asdict, first_non_null_value, zip_dict
 from .audio import Audio
+from .base import Feature
 from .image import Image, encode_pil_image
 from .translation import Translation, TranslationVariableLanguages
 
@@ -459,18 +459,7 @@ def cast_to_python_objects(obj: Any, only_1d_for_numpy=False, optimize_list_cast
 
 
 @dataclass
-class FeatureWithEncoding(ABC):
-    """
-    Base class for feature types like Audio, Image, ClassLabel, etc that require encoding.
-    """
-
-    @abstractmethod
-    def encode_example(self, example):
-        pass
-
-
-@dataclass
-class Value(FeatureWithEncoding):
+class Value(Feature):
     """
     Scalar feature value of a particular data type.
 
@@ -516,6 +505,8 @@ class Value(FeatureWithEncoding):
     ```
     """
 
+    requires_encoding: ClassVar[bool] = True
+
     dtype: str
     id: Optional[str] = None
     # Automatically constructed
@@ -545,7 +536,9 @@ class Value(FeatureWithEncoding):
             return value
 
 
-class _ArrayXD(FeatureWithEncoding):
+class _ArrayXD(Feature):
+    requires_encoding: ClassVar[bool] = True
+
     def __post_init__(self):
         self.shape = tuple(self.shape)
 
@@ -553,7 +546,7 @@ class _ArrayXD(FeatureWithEncoding):
         pa_type = globals()[self.__class__.__name__ + "ExtensionType"](self.shape, self.dtype)
         return pa_type
 
-    def encode_example(self, value):
+    def _encode_example(self, value):
         return value
 
 
@@ -953,7 +946,7 @@ def pandas_types_mapper(dtype):
 
 
 @dataclass
-class ClassLabel(FeatureWithEncoding):
+class ClassLabel(Feature):
     """Feature type for integer class labels.
 
     There are 3 ways to define a `ClassLabel`, which correspond to the 3 arguments:
@@ -983,6 +976,8 @@ class ClassLabel(FeatureWithEncoding):
     {'label': ClassLabel(num_classes=3, names=['bad', 'ok', 'good'], id=None)}
     ```
     """
+
+    requires_encoding: ClassVar[bool] = True
 
     num_classes: InitVar[Optional[int]] = None  # Pseudo-field: ignored by asdict/fields when converting to/from dict
     names: List[str] = None
@@ -1102,7 +1097,7 @@ class ClassLabel(FeatureWithEncoding):
         output = [self._int2str[int(v)] for v in values]
         return output if return_list else output[0]
 
-    def encode_example(self, example_data):
+    def _encode_example(self, example_data):
         if self.num_classes is None:
             raise ValueError(
                 "Trying to use ClassLabel feature with undefined number of class. "
@@ -1151,7 +1146,7 @@ class ClassLabel(FeatureWithEncoding):
 
 
 @dataclass
-class Sequence:
+class Sequence(Feature):
     """Construct a list of feature from a single type or a dict of types.
     Mostly here for compatiblity with tfds.
 
@@ -1181,7 +1176,7 @@ class Sequence:
 
 
 @dataclass
-class LargeList:
+class LargeList(Feature):
     """Feature type for large list data composed of child feature data type.
 
     It is backed by `pyarrow.LargeListType`, which is like `pyarrow.ListType` but with 64-bit rather than 32-bit offsets.
@@ -1358,7 +1353,7 @@ def encode_nested_example(schema, obj, level=0):
             return list(obj)
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
-    elif isinstance(schema, FeatureWithEncoding):
+    elif schema.requires_encoding:
         return schema.encode_example(obj) if obj is not None else None
     # Other object should be directly convertible to a native Arrow type (like Translation and Translation)
     return obj
@@ -1409,7 +1404,7 @@ def decode_nested_example(schema, obj, token_per_repo_id: Optional[Dict[str, Uni
         else:
             return decode_nested_example([schema.feature], obj)
     # Object with special decoding:
-    elif isinstance(schema, (Audio, Image)):
+    elif schema.requires_decoding:
         # we pass the token to read and decode files from private repositories in streaming mode
         if obj is not None and schema.decode:
             return schema.decode_example(obj, token_per_repo_id=token_per_repo_id)
@@ -1441,6 +1436,7 @@ def register_feature(
     Register a Feature object using a name and class.
     This function must be used on a Feature class.
     """
+    assert issubclass(feature_cls, Feature), "Feature class must inherit from datasets.Feature"
     if feature_type in _FEATURE_TYPES:
         logger.warning(
             f"Overwriting feature type '{feature_type}' ({_FEATURE_TYPES[feature_type].__name__} -> {feature_cls.__name__})"
