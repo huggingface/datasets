@@ -1265,9 +1265,7 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
 
     @property
     def iter_arrow(self):
-        # if self.formatting is not None, we format, filter, then return arrow iterator
-        # if formatting is unset, we don't, as that would require filter fn to accept arrow format
-        if self.formatting and self.ex_iterable.iter_arrow:
+        if self.formatting and self.formatting.format_type == "arrow":
             return self._iter_arrow
 
     @property
@@ -1386,23 +1384,8 @@ class FilteredExamplesIterable(_BaseExamplesIterable):
                 and self.drop_last_batch
             ):
                 return
-            # first build the batch
-            if self.formatting and self.formatting.format_type != "arrow":
-                formatter = get_formatter(self.formatting.format_type)
-                if self.batched:
-                    batch = formatter.format_batch(pa_table)
-                    function_args = (
-                        [batch] if self.input_columns is None else [batch[col] for col in self.input_columns]
-                    )
-                else:
-                    example = formatter.format_row(pa_table)
-                    function_args = (
-                        [example] if self.input_columns is None else [example[col] for col in self.input_columns]
-                    )
-            else:
-                function_args = (
-                    [pa_table] if self.input_columns is None else [pa_table[col] for col in self.input_columns]
-                )
+
+            function_args = [pa_table] if self.input_columns is None else [pa_table[col] for col in self.input_columns]
             if self.with_indices:
                 if self.batched:
                     function_args.append([current_idx + i for i in range(len(pa_table))])
