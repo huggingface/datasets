@@ -1436,7 +1436,7 @@ def register_feature(
     Register a Feature object using a name and class.
     This function must be used on a Feature class.
     """
-    assert issubclass(feature_cls, Feature), "Feature class must inherit from datasets.Feature"
+    assert issubclass(feature_cls, Feature), f"Feature class {feature_cls.__name__} must inherit from datasets.Feature"
     if feature_type in _FEATURE_TYPES:
         logger.warning(
             f"Overwriting feature type '{feature_type}' ({_FEATURE_TYPES[feature_type].__name__} -> {feature_cls.__name__})"
@@ -1633,8 +1633,8 @@ def require_decoding(feature: FeatureType, ignore_decode_attribute: bool = False
         return require_decoding(feature.feature)
     elif isinstance(feature, Sequence):
         return require_decoding(feature.feature)
-    else:
-        return hasattr(feature, "decode_example") and (feature.decode if not ignore_decode_attribute else True)
+    elif isinstance(feature, Feature):
+        return feature.requires_decoding and (feature.decode if not ignore_decode_attribute else True)
 
 
 def require_storage_cast(feature: FeatureType) -> bool:
