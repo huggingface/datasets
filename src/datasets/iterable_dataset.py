@@ -1204,6 +1204,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             remove_columns=self.remove_columns,
             fn_kwargs=self.fn_kwargs,
             formatting=self.formatting,
+            return_features=self._return_features,
         )
 
     def shard_data_sources(self, worker_id: int, num_workers: int) -> "MappedExamplesIterable":
@@ -1219,6 +1220,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             remove_columns=self.remove_columns,
             fn_kwargs=self.fn_kwargs,
             formatting=self.formatting,
+            return_features=self._return_features,
         )
 
     @property
