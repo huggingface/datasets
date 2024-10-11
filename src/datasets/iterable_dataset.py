@@ -997,7 +997,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
 
     @property
     def is_typed(self):
-        return self._return_features  # user has extracted features
+        return self._return_features is not None  # user has extracted features
 
     @property
     def features(self):
