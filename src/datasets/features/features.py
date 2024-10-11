@@ -19,6 +19,7 @@ import copy
 import json
 import re
 import sys
+from abc import ABC, abstractmethod
 from collections.abc import Iterable, Mapping
 from collections.abc import Sequence as SequenceABC
 from dataclasses import InitVar, dataclass, field, fields
@@ -458,7 +459,18 @@ def cast_to_python_objects(obj: Any, only_1d_for_numpy=False, optimize_list_cast
 
 
 @dataclass
-class Value:
+class FeatureWithEncoding(ABC):
+    """
+    Base class for feature types like Audio, Image, ClassLabel, etc that require encoding.
+    """
+
+    @abstractmethod
+    def encode_example(self, example):
+        pass
+
+
+@dataclass
+class Value(FeatureWithEncoding):
     """
     Scalar feature value of a particular data type.
 
@@ -533,7 +545,7 @@ class Value:
             return value
 
 
-class _ArrayXD:
+class _ArrayXD(FeatureWithEncoding):
     def __post_init__(self):
         self.shape = tuple(self.shape)
 
@@ -941,7 +953,7 @@ def pandas_types_mapper(dtype):
 
 
 @dataclass
-class ClassLabel:
+class ClassLabel(FeatureWithEncoding):
     """Feature type for integer class labels.
 
     There are 3 ways to define a `ClassLabel`, which correspond to the 3 arguments:
@@ -1346,7 +1358,7 @@ def encode_nested_example(schema, obj, level=0):
             return list(obj)
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
-    elif isinstance(schema, (Audio, Image, ClassLabel, TranslationVariableLanguages, Value, _ArrayXD)):
+    elif isinstance(schema, FeatureWithEncoding):
         return schema.encode_example(obj) if obj is not None else None
     # Other object should be directly convertible to a native Arrow type (like Translation and Translation)
     return obj
