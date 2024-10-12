@@ -1747,7 +1747,9 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
             formatter = PythonFormatter()
         else:
             formatter = get_formatter(
-                self.formatting.format_type, features=self._features, token_per_repo_id=self.token_per_repo_id
+                self.formatting.format_type,
+                features=self._features if not self.ex_iterable.is_typed else None,
+                token_per_repo_id=self.token_per_repo_id,
             )
         if self.ex_iterable.iter_arrow:
             # feature casting (inc column addition) handled within self._iter_arrow()
@@ -1762,7 +1764,8 @@ class FormattedExamplesIterable(_BaseExamplesIterable):
                 else cast_to_python_objects  # cast in case features is None
             )
             for key, example in self.ex_iterable:
-                if self.features:
+                # don't apply feature types if already applied by ex_iterable (e.g. in case of chained with_format)
+                if self.features and not self.ex_iterable.is_typed:
                     example = _apply_feature_types_on_example(
                         example, self.features, token_per_repo_id=self.token_per_repo_id
                     )
@@ -2369,11 +2372,17 @@ class IterableDataset(DatasetInfoMixin):
         # TODO(QL): add format_kwargs
         # TODO(QL): add format_columns and return_all_columns
         # TODO(QL): add pandas format
+        ex_iterable = FormattedExamplesIterable(
+            self._ex_iterable,
+            formatting=FormattingConfig(format_type=type),
+            features=self.features,
+            token_per_repo_id=self._token_per_repo_id,
+        )
         return IterableDataset(
-            ex_iterable=self._ex_iterable,
+            ex_iterable=ex_iterable,
             info=self._info.copy(),
             split=self._split,
-            formatting=FormattingConfig(format_type=type),
+            formatting=None,  # formatting is applied in ex_iterable
             shuffling=copy.deepcopy(self._shuffling),
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
