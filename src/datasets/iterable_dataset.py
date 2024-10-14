@@ -1110,12 +1110,12 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 if self.remove_columns:
                     for c in self.remove_columns:
                         del transformed_example[c]
-                if self._return_features:
-                    for c in self._return_features.keys():
+                if self.features:
+                    for c in self.features.keys():
                         if c not in transformed_example:
                             transformed_example[c] = None
                     # TODO: check types
-                    transformed_example = self._return_features.decode_example(transformed_example)
+                    transformed_example = self.features.decode_example(transformed_example)
                 current_idx += 1
                 if self._state_dict:
                     self._state_dict["previous_state_example_idx"] += 1
@@ -1200,7 +1200,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             remove_columns=self.remove_columns,
             fn_kwargs=self.fn_kwargs,
             formatting=self.formatting,
-            return_features=self._return_features,
+            features=self.features,
         )
 
     def shard_data_sources(self, worker_id: int, num_workers: int) -> "MappedExamplesIterable":
@@ -1216,7 +1216,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
             remove_columns=self.remove_columns,
             fn_kwargs=self.fn_kwargs,
             formatting=self.formatting,
-            return_features=self._return_features,
+            features=self.features,
         )
 
     @property
@@ -2514,7 +2514,7 @@ class IterableDataset(DatasetInfoMixin):
             formatting=copy.deepcopy(self._formatting)
             if self._formatting and self._formatting.format_type == "arrow"
             else None,  # formatting is handled within ex_iterable
-            return_features=features,
+            features=features,
         )
         info = self.info.copy()
         info.features = features
