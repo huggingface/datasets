@@ -1076,8 +1076,14 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     ]
                     if bad_cols:
                         raise ValueError(
-                            f"Column lengths mismatch: columns {bad_cols} have length {[len(transformed_batch[col]) for col in bad_cols]} while {first_col} has length {len(transformed_batch[first_col])}."
+                            f"Column lengths mismatch: columns {bad_cols} have length {[len(transformed_batch[col]) for col in bad_cols]} "
+                            f"while {first_col} has length {len(transformed_batch[first_col])}."
                         )
+                if self.features:
+                    for c in self.features.keys():
+                        if c not in transformed_batch:
+                            transformed_batch[c] = [None] * len(transformed_batch[first_col])
+                    transformed_batch = self.features.decode_batch(transformed_batch)
                 # the new key is the concatenation of the examples keys from the batch
                 new_key = "_".join(str(key) for key in keys)
                 # yield one example at a time from the transformed batch
@@ -1114,7 +1120,6 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     for c in self.features.keys():
                         if c not in transformed_example:
                             transformed_example[c] = None
-                    # TODO: check types
                     transformed_example = self.features.decode_example(transformed_example)
                 current_idx += 1
                 if self._state_dict:
