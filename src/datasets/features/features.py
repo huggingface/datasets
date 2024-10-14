@@ -791,10 +791,7 @@ class ArrayExtensionArray(pa.ExtensionArray):
     def to_pylist(self):
         zero_copy_only = _is_zero_copy_only(self.storage.type, unnest=True)
         numpy_arr = self.to_numpy(zero_copy_only=zero_copy_only)
-        if self.type.shape[0] is None and numpy_arr.dtype == object:
-            return [arr.tolist() for arr in numpy_arr.tolist()]
-        else:
-            return numpy_arr.tolist()
+        return list(numpy_arr)
 
 
 class PandasArrayExtensionDtype(PandasExtensionDtype):
