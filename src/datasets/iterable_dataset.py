@@ -2383,7 +2383,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable=ex_iterable,
             info=self._info.copy(),
             split=self._split,
-            formatting=None,  # formatting is applied in ex_iterable
+            formatting=FormattingConfig(format_type=type),
             shuffling=copy.deepcopy(self._shuffling),
             distributed=copy.deepcopy(self._distributed),
             token_per_repo_id=self._token_per_repo_id,
