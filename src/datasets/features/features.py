@@ -546,6 +546,33 @@ class _ArrayXD:
 
 
 @dataclass
+class Array1D(_ArrayXD):
+    """Create a one-dimensional array.
+
+    Unlike Sequence, will be extracted as a numpy array irrespective of formatting.
+
+    Args:
+        shape (`tuple`):
+            Size of each dimension.
+        dtype (`str`):
+            Name of the data type.
+
+    Example:
+
+    ```py
+    >>> from datasets import Features
+    >>> features = Features({'x': Array1D(shape=(3,), dtype='int32')})
+    ```
+    """
+
+    shape: tuple
+    dtype: str
+    id: Optional[str] = None
+    # Automatically constructed
+    _type: str = field(default="Array1D", init=False, repr=False)
+
+
+@dataclass
 class Array2D(_ArrayXD):
     """Create a two-dimensional array.
 
@@ -649,8 +676,8 @@ class _ArrayXDExtensionType(pa.ExtensionType):
     ndims: Optional[int] = None
 
     def __init__(self, shape: tuple, dtype: str):
-        if self.ndims is None or self.ndims <= 1:
-            raise ValueError("You must instantiate an array type with a value for dim that is > 1")
+        if self.ndims is None:
+            raise ValueError("You must instantiate an array type with a value for dim that is >= 1")
         if len(shape) != self.ndims:
             raise ValueError(f"shape={shape} and ndims={self.ndims} don't match")
         for dim in range(1, self.ndims):
@@ -691,6 +718,10 @@ class _ArrayXDExtensionType(pa.ExtensionType):
         return PandasArrayExtensionDtype(self.value_type)
 
 
+class Array1DExtensionType(_ArrayXDExtensionType):
+    ndims = 1
+
+
 class Array2DExtensionType(_ArrayXDExtensionType):
     ndims = 2
 
@@ -708,6 +739,7 @@ class Array5DExtensionType(_ArrayXDExtensionType):
 
 
 # Register the extension types for deserialization
+pa.register_extension_type(Array1DExtensionType((1,), "int64"))
 pa.register_extension_type(Array2DExtensionType((1, 2), "int64"))
 pa.register_extension_type(Array3DExtensionType((1, 2, 3), "int64"))
 pa.register_extension_type(Array4DExtensionType((1, 2, 3, 4), "int64"))
@@ -1491,8 +1523,11 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
         feature = generate_from_arrow_type(pa_type.value_type)
         return LargeList(feature=feature)
     elif isinstance(pa_type, _ArrayXDExtensionType):
-        array_feature = [None, None, Array2D, Array3D, Array4D, Array5D][pa_type.ndims]
-        return array_feature(shape=pa_type.shape, dtype=pa_type.value_type)
+        if pa_type.ndims >= 1:
+            array_feature = [Array1D, Array2D, Array3D, Array4D, Array5D][pa_type.ndims - 1]
+            return array_feature(shape=pa_type.shape, dtype=pa_type.value_type)
+        else:
+            raise ValueError("Cannot convert 0-dimensional array to Array Feature type.")
     elif isinstance(pa_type, pa.DataType):
         return Value(dtype=_arrow_to_datasets_dtype(pa_type))
     else:
@@ -1712,7 +1747,7 @@ class Features(dict):
 
           </Tip>
 
-        - [`Array2D`], [`Array3D`], [`Array4D`] or [`Array5D`] feature for multidimensional arrays.
+        - [`Array1D`], [`Array2D`], [`Array3D`], [`Array4D`] or [`Array5D`] feature for multidimensional arrays.
         - [`Audio`] feature to store the absolute path to an audio file or a dictionary with the relative path
           to an audio file ("path" key) and its bytes content ("bytes" key). This feature extracts the audio data.
         - [`Image`] feature to store the absolute path to an image file, an `np.ndarray` object, a `PIL.Image.Image` object
