@@ -1339,11 +1339,11 @@ def test_cast_array_xd_to_features_sequence():
     # Variable size list
     casted_array = cast_array_to_feature(arr, Sequence(Array2D(shape=(2, 3), dtype="int32")))
     assert casted_array.type == get_nested_type(Sequence(Array2D(shape=(2, 3), dtype="int32")))
-    assert casted_array.to_pylist() == arr.to_pylist()
+    assert (casted_array.to_pylist() == arr.to_pylist()).all()
     # Fixed size list
     casted_array = cast_array_to_feature(arr, Sequence(Array2D(shape=(2, 3), dtype="int32"), length=4))
     assert casted_array.type == get_nested_type(Sequence(Array2D(shape=(2, 3), dtype="int32"), length=4))
-    assert casted_array.to_pylist() == arr.to_pylist()
+    assert (casted_array.to_pylist() == arr.to_pylist()).all()
 
 
 def test_embed_array_storage(image_file):

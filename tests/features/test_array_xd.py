@@ -419,7 +419,7 @@ def test_array_xd_with_none():
 def test_array_xd_with_np(seq_type, dtype, shape, feature_class):
     feature = feature_class(dtype=dtype, shape=shape)
     data = np.zeros(shape, dtype=dtype)
-    expected = data.tolist()
+    expected = data
     if seq_type == "sequence":
         feature = datasets.Sequence(feature)
         data = [data]
@@ -429,7 +429,12 @@ def test_array_xd_with_np(seq_type, dtype, shape, feature_class):
         data = [[data]]
         expected = [[expected]]
     ds = datasets.Dataset.from_dict({"col": [data]}, features=datasets.Features({"col": feature}))
-    assert ds[0]["col"] == expected
+    if seq_type == "sequence":
+        assert (ds[0]["col"][0] == expected[0]).all()
+    elif seq_type == "sequence_of_sequence":
+        assert (ds[0]["col"][0][0] == expected[0][0]).all()
+    else:
+        assert (ds[0]["col"] == expected).all()
 
 
 @pytest.mark.parametrize("with_none", [False, True])

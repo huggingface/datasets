@@ -172,7 +172,9 @@ class PythonArrowExtractor(BaseArrowExtractor[dict, list, dict]):
     def extract_column(self, pa_table: pa.Table) -> list:
         if pa.types.is_struct(pa_table[pa_table.column_names[0]].type):
             return extract_struct_array(pa_table[pa_table.column_names[0]])
+        # TODO: handle list of struct
         else:
+            # should work for list of ArrayXD
             return pa_table.column(0).to_pylist()
 
     def extract_batch(self, pa_table: pa.Table) -> dict:
