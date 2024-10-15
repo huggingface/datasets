@@ -201,10 +201,13 @@ def extract_struct_array(pa_array: pa.StructArray) -> list:
 
 class PythonArrowExtractor(BaseArrowExtractor[dict, list, dict]):
     def extract_row(self, pa_table: pa.Table) -> dict:
-        return _unnest(pa_table.to_pydict())
+        return _unnest(self.extract_batch(pa_table))
 
     def extract_column(self, pa_table: pa.Table) -> list:
-        return pa_table.column(0).to_pylist()
+        if pa.types.is_struct(pa_table[pa_table.column_names[0]].type):
+            return extract_struct_array(pa_table[pa_table.column_names[0]])
+        else:
+            return pa_table.column(0).to_pylist()
 
     def extract_batch(self, pa_table: pa.Table) -> dict:
         batch = {}
