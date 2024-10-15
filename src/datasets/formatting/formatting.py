@@ -209,9 +209,7 @@ class PythonArrowExtractor(BaseArrowExtractor[dict, list, dict]):
     def extract_batch(self, pa_table: pa.Table) -> dict:
         batch = {}
         for col in pa_table.column_names:
-            if pa.types.is_list(pa_table[col].type):
-                batch[col] = list(pa_table[col].to_numpy())
-            elif pa.types.is_struct(pa_table[col].type):
+            if pa.types.is_struct(pa_table[col].type):
                 batch[col] = extract_struct_array(pa_table[col])
             else:
                 batch[col] = pa_table[col].to_pylist()
