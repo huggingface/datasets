@@ -186,6 +186,7 @@ class SimpleArrowExtractor(BaseArrowExtractor[pa.Table, pa.Array, pa.Table]):
 
 
 def extract_struct_array(pa_array: pa.StructArray) -> list:
+    """StructArray.to_pylist / to_pydict does not call sub-arrays to_pylist / to_pydict methods so handle them manually."""
     if isinstance(pa_array, pa.ChunkedArray):
         batch_chunks = [extract_struct_array(chunk) for chunk in pa_array.chunks]
         return [item for chunk in batch_chunks for item in chunk]
