@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from typing import ClassVar
 
 
-@dataclass
 class Feature:
     """
     Base class for feature types like Audio, Image, ClassLabel, etc that require special treatment (encoding/decoding).
