@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 @dataclass
 class Video:
-    """Video [`Feature`] to read video data from an video file.
+    """Video [`Feature`] to read video data from a video file.
 
     Input: The Video feature accepts as input:
     - A `str`: Absolute path to the video file (i.e. random access is allowed).
@@ -104,7 +104,7 @@ class Video:
             return {"bytes": value.get("bytes"), "path": value.get("path")}
         else:
             raise ValueError(
-                f"An video sample should have one of 'path' or 'bytes' but they are missing or None in {value}."
+                f"A video sample should have one of 'path' or 'bytes' but they are missing or None in {value}."
             )
 
     def decode_example(self, value: dict, token_per_repo_id=None) -> "VideoReader":
@@ -139,7 +139,7 @@ class Video:
         path, bytes_ = value["path"], value["bytes"]
         if bytes_ is None:
             if path is None:
-                raise ValueError(f"An video should have one of 'path' or 'bytes' but both are None in {value}.")
+                raise ValueError(f"A video should have one of 'path' or 'bytes' but both are None in {value}.")
             else:
                 if is_local_path(path):
                     video = VideoReader(path)
