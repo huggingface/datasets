@@ -975,7 +975,7 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         self.input_columns = input_columns
         self.fn_kwargs = fn_kwargs or {}
         self.formatting = formatting  # required for iter_arrow
-        self.features = features
+        self._features = features
         # sanity checks
         if formatting and formatting.format_type == "arrow":
             # batch_size should match for iter_arrow
@@ -998,6 +998,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
     @property
     def is_typed(self):
         return self.features is not None  # user has extracted features
+
+    @property
+    def features(self):
+        return self._features
 
     def _init_state_dict(self) -> dict:
         self._state_dict = {
