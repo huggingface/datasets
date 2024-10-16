@@ -30,8 +30,8 @@ if TYPE_CHECKING:
 
 
 class TFFormatter(TensorFormatter[Mapping, "tf.Tensor", Mapping]):
-    def __init__(self, features=None, **tf_tensor_kwargs):
-        super().__init__(features=features)
+    def __init__(self, features=None, token_per_repo_id=None, **tf_tensor_kwargs):
+        super().__init__(features=features, token_per_repo_id=token_per_repo_id)
         self.tf_tensor_kwargs = tf_tensor_kwargs
         import tensorflow as tf  # noqa: F401 - import tf at initialization
 
