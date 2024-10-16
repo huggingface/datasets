@@ -5293,7 +5293,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def push_to_hub(
         self,
         repo_id: str,
-        config_name: str = "default",
+        config_name: Optional[str] = "default",
         set_default: Optional[bool] = None,
         split: Optional[str] = None,
         data_dir: Optional[str] = None,
@@ -5399,6 +5399,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         >>> french_dataset = load_dataset("<organization>/<dataset_id>", "fr")
         ```
         """
+        if config_name is None:
+            config_name = "default"
         if config_name == "data":
             raise ValueError("`config_name` cannot be 'data'. Please, choose another name for configuration.")
 
