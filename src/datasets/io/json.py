@@ -1,3 +1,4 @@
+import json
 import multiprocessing
 import os
 from typing import BinaryIO, Optional, Union
@@ -119,17 +120,231 @@ class JsonDatasetWriter:
         return written
 
     def _batch_json(self, args):
-        offset, orient, lines, to_json_kwargs = args
+        offset, orient, lines, column_names, to_json_kwargs = args
 
         batch = query_table(
             table=self.dataset.data,
             key=slice(offset, offset + self.batch_size),
             indices=self.dataset._indices,
         )
-        json_str = batch.to_pandas().to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
+
+        if orient in ["columns"]:
+            batch = batch.select([column_names])
+
+        df = batch.to_pandas()
+
+        if orient in ["index", "columns"]:
+            # Adjust the index to reflect the batch offset
+            df.index = range(offset, offset + len(df))
+
+        json_str = df.to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
+
+        if orient in ["columns"]:
+            # Read the dict pointed by column_names key
+            json_str = json.dumps(json.loads(json_str)[column_names], ensure_ascii=False)
+
         if not json_str.endswith("\n"):
             json_str += "\n"
+
         return json_str.encode(self.encoding)
+
+    def _write_orient_columns(
+        self,
+        file_obj: BinaryIO,
+        orient,
+        lines,
+        **to_json_kwargs,
+    ):
+        """Handles writing to file when orient in ['columns']"""
+        written = 0
+        first_column = True
+
+        written += file_obj.write("{".encode(self.encoding))
+
+        for column_name in self.dataset.column_names:
+            if not first_column:
+                written += file_obj.write(",".encode(self.encoding))
+            else:
+                first_column = False
+
+            written += file_obj.write(f'"{column_name}":{{'.encode(self.encoding))
+            first_batch = True
+
+            if self.num_proc is None or self.num_proc == 1:
+                for offset in hf_tqdm(
+                    range(0, len(self.dataset), self.batch_size), unit="ba", desc=f"Writing column {column_name}"
+                ):
+                    json_str = self._batch_json((offset, orient, lines, column_name, to_json_kwargs))
+
+                    json_str = json_str.decode(self.encoding).strip()
+
+                    # Remove the curly brackets from the batch string
+                    if json_str.startswith("{") and json_str.endswith("}"):
+                        json_str = json_str[1:-1]
+
+                    if not first_batch:
+                        written += file_obj.write(",".encode(self.encoding))
+                    else:
+                        first_batch = False
+
+                    json_str = json_str.encode(self.encoding)
+                    written += file_obj.write(json_str)
+            else:
+                num_rows, batch_size = len(self.dataset), self.batch_size
+                with multiprocessing.Pool(self.num_proc) as pool:
+                    for json_str in hf_tqdm(
+                        pool.imap(
+                            self._batch_json,
+                            [
+                                (offset, orient, lines, column_name, to_json_kwargs)
+                                for offset in range(0, num_rows, batch_size)
+                            ],
+                        ),
+                        total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
+                        unit="ba",
+                        desc="Writing JSON lines",
+                    ):
+                        json_str = json_str.decode(self.encoding).strip()
+
+                        # Remove the curly brackets from the batch string
+                        if json_str.startswith("{") and json_str.endswith("}"):
+                            json_str = json_str[1:-1]
+
+                        if not first_batch:
+                            written += file_obj.write(",".encode(self.encoding))
+                        else:
+                            first_batch = False
+
+                        json_str = json_str.encode(self.encoding)
+                        written += file_obj.write(json_str)
+
+            written += file_obj.write("}".encode(self.encoding))
+
+        written += file_obj.write("}".encode(self.encoding))
+
+        return written
+
+    def _write_orient_list_like(
+        self,
+        file_obj: BinaryIO,
+        orient,
+        lines,
+        **to_json_kwargs,
+    ):
+        """Handles writing to file when orient in ['records', 'values', 'index']"""
+
+        written = 0
+        first_batch = True
+        column_names = self.dataset.column_names
+
+        if not lines:
+            if orient in ["records", "values"]:
+                written += file_obj.write("[".encode(self.encoding))
+            elif orient in ["index"]:
+                written += file_obj.write("{".encode(self.encoding))
+
+        if self.num_proc is None or self.num_proc == 1:
+            for offset in hf_tqdm(range(0, len(self.dataset), self.batch_size), unit="ba", desc="Writing JSON lines"):
+                json_str = self._batch_json((offset, orient, lines, column_names, to_json_kwargs))
+
+                if not lines:
+                    json_str = json_str.decode(self.encoding).strip()
+
+                    # Remove the square or curly brackets from the batch string
+                    if (json_str.startswith("[") and json_str.endswith("]")) or (
+                        json_str.startswith("{") and json_str.endswith("}")
+                    ):
+                        json_str = json_str[1:-1]
+
+                    if not first_batch:
+                        # Add a comma between batches
+                        written += file_obj.write(",".encode(self.encoding))
+                    else:
+                        first_batch = False
+
+                    json_str = json_str.encode(self.encoding)
+
+                written += file_obj.write(json_str)
+        else:
+            num_rows, batch_size = len(self.dataset), self.batch_size
+            with multiprocessing.Pool(self.num_proc) as pool:
+                for json_str in hf_tqdm(
+                    pool.imap(
+                        self._batch_json,
+                        [
+                            (offset, orient, lines, column_names, to_json_kwargs)
+                            for offset in range(0, num_rows, batch_size)
+                        ],
+                    ),
+                    total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
+                    unit="ba",
+                    desc="Writing JSON lines",
+                ):
+                    if not lines:
+                        json_str = json_str.decode(self.encoding).strip()
+
+                        # Remove the square or curly brackets from the batch string
+                        if (json_str.startswith("[") and json_str.endswith("]")) or (
+                            json_str.startswith("{") and json_str.endswith("}")
+                        ):
+                            json_str = json_str[1:-1]
+
+                        if not first_batch:
+                            # Add a comma between batches
+                            written += file_obj.write(",".encode(self.encoding))
+                        else:
+                            first_batch = False
+
+                        json_str = json_str.encode(self.encoding)
+
+                    written += file_obj.write(json_str)
+
+        if not lines:
+            if orient in ["records", "values"]:
+                written += file_obj.write("]".encode(self.encoding))
+            elif orient in ["index"]:
+                written += file_obj.write("}".encode(self.encoding))
+
+        return written
+
+    def _write_legacy(
+        self,
+        file_obj: BinaryIO,
+        orient,
+        lines,
+        **to_json_kwargs,
+    ) -> int:
+        """Handles writing to file when orient in ['split', 'table']"""
+
+        written = 0
+        column_names = self.dataset.column_names
+
+        if self.num_proc is None or self.num_proc == 1:
+            for offset in hf_tqdm(
+                range(0, len(self.dataset), self.batch_size),
+                unit="ba",
+                desc="Creating json from Arrow format",
+            ):
+                json_str = self._batch_json((offset, orient, lines, column_names, to_json_kwargs))
+                written += file_obj.write(json_str)
+        else:
+            num_rows, batch_size = len(self.dataset), self.batch_size
+            with multiprocessing.Pool(self.num_proc) as pool:
+                for json_str in hf_tqdm(
+                    pool.imap(
+                        self._batch_json,
+                        [
+                            (offset, orient, lines, column_names, to_json_kwargs)
+                            for offset in range(0, num_rows, batch_size)
+                        ],
+                    ),
+                    total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
+                    unit="ba",
+                    desc="Creating json from Arrow format",
+                ):
+                    written += file_obj.write(json_str)
+
+        return written
 
     def _write(
         self,
@@ -138,32 +353,15 @@ class JsonDatasetWriter:
         lines,
         **to_json_kwargs,
     ) -> int:
-        """Writes the pyarrow table as JSON lines to a binary file handle.
+        """Writes the pyarrow table as JSON, dispatching based on the orient and lines."""
 
-        Caller is responsible for opening and closing the handle.
-        """
         written = 0
 
-        if self.num_proc is None or self.num_proc == 1:
-            for offset in hf_tqdm(
-                range(0, len(self.dataset), self.batch_size),
-                unit="ba",
-                desc="Creating json from Arrow format",
-            ):
-                json_str = self._batch_json((offset, orient, lines, to_json_kwargs))
-                written += file_obj.write(json_str)
+        if orient in ["records", "values", "index"]:
+            written = self._write_orient_list_like(file_obj=file_obj, orient=orient, lines=lines, **to_json_kwargs)
+        elif orient in ["columns"]:
+            written = self._write_orient_columns(file_obj=file_obj, orient=orient, lines=lines, **to_json_kwargs)
         else:
-            num_rows, batch_size = len(self.dataset), self.batch_size
-            with multiprocessing.Pool(self.num_proc) as pool:
-                for json_str in hf_tqdm(
-                    pool.imap(
-                        self._batch_json,
-                        [(offset, orient, lines, to_json_kwargs) for offset in range(0, num_rows, batch_size)],
-                    ),
-                    total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
-                    unit="ba",
-                    desc="Creating json from Arrow format",
-                ):
-                    written += file_obj.write(json_str)
+            written = self._write_legacy(file_obj=file_obj, orient=orient, lines=lines, **to_json_kwargs)
 
         return written
