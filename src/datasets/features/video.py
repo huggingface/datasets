@@ -19,30 +19,6 @@ if TYPE_CHECKING:
     from .features import FeatureType
 
 
-def _patched_init(self: "VideoReader", uri: Union[str, BytesIO], *args, **kwargs) -> None:
-    if hasattr(uri, "read"):
-        self._hf_encoded = {"bytes": uri.read(), "path": None}
-        uri.seek(0)
-    elif isinstance(uri, str):
-        self._hf_encoded = {"bytes": None, "path": uri}
-    self._original_init(uri, *args, **kwargs)
-
-
-def patch_decord():
-    if config.DECORD_AVAILABLE:
-        from decord import VideoReader
-    else:
-        raise ImportError("To support decoding videos, please install 'decord'.")
-    if not hasattr(VideoReader, "_hf_patched"):
-        VideoReader._original_init = VideoReader.__init__
-        VideoReader.__init__ = _patched_init
-        VideoReader._hf_patched = True
-
-
-if config.DECORD_AVAILABLE:
-    patch_decord()
-
-
 @dataclass
 class Video:
     """Video [`Feature`] to read video data from an video file.
@@ -104,7 +80,6 @@ class Video:
         if config.DECORD_AVAILABLE:
             from decord import VideoReader
 
-            patch_decord()
         else:
             raise ImportError("To support encoding videos, please install 'decord'.")
 
@@ -154,7 +129,6 @@ class Video:
             raise RuntimeError("Decoding is disabled for this feature. Please use Video(decode=True) instead.")
 
         if config.DECORD_AVAILABLE:
-            patch_decord()
             from decord import VideoReader
         else:
             raise ImportError("To support decoding videos, please install 'decord'.")
@@ -298,4 +272,50 @@ def encode_decord_video(video: "VideoReader") -> dict:
 
 def encode_np_array(array: np.ndarray) -> dict:
     raise NotImplementedError()
-    return {"path": None, "bytes": video_to_bytes(video)}
+
+
+# Patching decord a little bit to:
+# 1. store the encoded video data {"path": ..., "bytes": ...} in `video._hf_encoded``
+# 2. set the decord bridge to numpy/torch/tf/jax using `video._hf_bridge_out` (per video instance) instead of decord.bridge.bridge_out (global)
+# This doesn't affect the normal usage of decord.
+
+
+def _patched_init(self: "VideoReader", uri: Union[str, BytesIO], *args, **kwargs) -> None:
+    from decord.bridge import bridge_out
+
+    if hasattr(uri, "read"):
+        self._hf_encoded = {"bytes": uri.read(), "path": None}
+        uri.seek(0)
+    elif isinstance(uri, str):
+        self._hf_encoded = {"bytes": None, "path": uri}
+    self._hf_bridge_out = bridge_out
+    self._original_init(uri, *args, **kwargs)
+
+
+def _patched_next(self: "VideoReader", *args, **kwargs):
+    return self._hf_bridge_out(self._original_next(*args, **kwargs))
+
+
+def _patched_get_batch(self: "VideoReader", *args, **kwargs):
+    return self._hf_bridge_out(self._original_get_batch(*args, **kwargs))
+
+
+def patch_decord():
+    if config.DECORD_AVAILABLE:
+        import decord.video_reader
+        from decord import VideoReader
+    else:
+        raise ImportError("To support decoding videos, please install 'decord'.")
+    if not hasattr(VideoReader, "_hf_patched"):
+        decord.video_reader.bridge_out = lambda x: x
+        VideoReader._original_init = VideoReader.__init__
+        VideoReader.__init__ = _patched_init
+        VideoReader._original_next = VideoReader.next
+        VideoReader.next = _patched_next
+        VideoReader._original_get_batch = VideoReader.get_batch
+        VideoReader.get_batch = _patched_get_batch
+        VideoReader._hf_patched = True
+
+
+if config.DECORD_AVAILABLE:
+    patch_decord()

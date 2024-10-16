@@ -105,6 +105,12 @@ class JaxFormatter(TensorFormatter[Mapping, "jax.Array", Mapping]):
 
             if isinstance(value, PIL.Image.Image):
                 value = np.asarray(value)
+        elif config.DECORD_AVAILABLE and "decord" in sys.modules:
+            from decord import VideoReader
+
+            if isinstance(value, VideoReader):
+                value._hf_bridge_out = lambda x: jnp.array(np.asarray(x))
+                return value
 
         # using global variable since `jaxlib.xla_extension.Device` is not serializable neither
         # with `pickle` nor with `dill`, so we need to use a global variable instead

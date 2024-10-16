@@ -178,6 +178,18 @@ def require_pil(test_case):
     return test_case
 
 
+def require_decord(test_case):
+    """
+    Decorator marking a test that requires decord.
+
+    These tests are skipped when decord isn't installed.
+
+    """
+    if not config.PIL_AVAILABLE:
+        test_case = unittest.skip("test requires decord")(test_case)
+    return test_case
+
+
 def require_transformers(test_case):
     """
     Decorator marking a test that requires transformers.

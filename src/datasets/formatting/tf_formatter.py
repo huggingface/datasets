@@ -69,6 +69,13 @@ class TFFormatter(TensorFormatter[Mapping, "tf.Tensor", Mapping]):
 
             if isinstance(value, PIL.Image.Image):
                 value = np.asarray(value)
+        elif config.DECORD_AVAILABLE and "decord" in sys.modules:
+            from decord import VideoReader
+            from decord.bridge import to_tensorflow
+
+            if isinstance(value, VideoReader):
+                value._hf_bridge_out = to_tensorflow
+                return value
 
         return tf.convert_to_tensor(value, **{**default_dtype, **self.tf_tensor_kwargs})
 
