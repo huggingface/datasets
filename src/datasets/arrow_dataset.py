@@ -77,7 +77,7 @@ from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .data_files import sanitize_patterns
 from .download.streaming_download_manager import xgetsize
-from .features import Audio, ClassLabel, Features, Image, Sequence, Value
+from .features import Audio, ClassLabel, Features, Image, Sequence, Value, Video
 from .features.features import (
     FeatureType,
     _align_features,
@@ -1416,9 +1416,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         Saves a dataset to a dataset directory, or in a filesystem using any implementation of `fsspec.spec.AbstractFileSystem`.
 
-        For [`Image`] and [`Audio`] data:
+        For [`Image`], [`Audio`] and [`Video`] data:
 
-        All the Image() and Audio() data are stored in the arrow files.
+        All the Image(), Audio() and Video() data are stored in the arrow files.
         If you want to store paths or urls, please use the Value("string") type.
 
         Args:
@@ -5065,7 +5065,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
             def extra_nbytes_visitor(array, feature):
                 nonlocal extra_nbytes
-                if isinstance(feature, (Audio, Image)):
+                if isinstance(feature, (Audio, Image, Video)):
                     for x in array.to_pylist():
                         if x is not None and x["bytes"] is None and x["path"] is not None:
                             size = xgetsize(x["path"])
@@ -5310,7 +5310,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Pushes the dataset to the hub as a Parquet dataset.
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
 
-        The resulting Parquet files are self-contained by default. If your dataset contains [`Image`] or [`Audio`]
+        The resulting Parquet files are self-contained by default. If your dataset contains [`Image`], [`Audio`] or [`Video`]
         data, the Parquet files will store the bytes of your images or audio files.
         You can disable this by setting `embed_external_files` to `False`.
 

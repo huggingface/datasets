@@ -75,6 +75,14 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
                     value = value[:, :, np.newaxis]
 
                 value = value.transpose((2, 0, 1))
+        elif config.DECORD_AVAILABLE and "decord" in sys.modules:
+            from decord import VideoReader
+            from decord.bridge import to_torch
+
+            if isinstance(value, VideoReader):
+                value._hf_bridge_out = to_torch
+                return value
+
         return torch.tensor(value, **{**default_dtype, **self.torch_tensor_kwargs})
 
     def _recursive_tensorize(self, data_struct):

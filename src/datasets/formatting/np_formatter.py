@@ -62,6 +62,12 @@ class NumpyFormatter(TensorFormatter[Mapping, np.ndarray, Mapping]):
 
             if isinstance(value, PIL.Image.Image):
                 return np.asarray(value, **self.np_array_kwargs)
+        elif config.DECORD_AVAILABLE and "decord" in sys.modules:
+            from decord import VideoReader
+
+            if isinstance(value, VideoReader):
+                value._hf_bridge_out = np.asarray
+                return value
 
         return np.asarray(value, **{**default_dtype, **self.np_array_kwargs})
 
