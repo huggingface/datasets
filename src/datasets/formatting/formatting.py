@@ -161,8 +161,22 @@ def extract_struct_array(pa_array: pa.StructArray) -> list:
         if pa.types.is_struct(pa_array.field(field.name).type):
             batch[field.name] = extract_struct_array(pa_array.field(field.name))
         else:
-            batch[field.name] = pa_array.field(field.name).to_pylist()
+            # use logic from _arrow_array_to_numpy to preserve dtype
+            if isinstance(pa_array.type, _ArrayXDExtensionType):
+                zero_copy_only = _is_zero_copy_only(pa_array.type.storage_dtype, unnest=True)
+                batch[field.name] = list(pa_array.to_numpy(zero_copy_only=zero_copy_only))
+            else:
+                batch[field.name] = pa_array.field(field.name).to_pylist()
     return dict_of_lists_to_list_of_dicts(batch)
+
+
+def extract_array_xdextension_array(pa_array: pa.Array) -> list:
+    print("Extracting array xdextension array")
+    if isinstance(pa_array, pa.ChunkedArray):
+        return [arr for chunk in pa_array.chunks for arr in extract_array_xdextension_array(chunk)]
+    else:
+        zero_copy_only = _is_zero_copy_only(pa_array.type.storage_dtype, unnest=True)
+        return list(pa_array.to_numpy(zero_copy_only=zero_copy_only))
 
 
 class PythonArrowExtractor(BaseArrowExtractor[dict, list, dict]):
@@ -183,7 +197,12 @@ class PythonArrowExtractor(BaseArrowExtractor[dict, list, dict]):
             if pa.types.is_struct(pa_table[col].type):
                 batch[col] = extract_struct_array(pa_table[col])
             else:
-                batch[col] = pa_table[col].to_pylist()
+                pa_array = pa_table[col]
+                if isinstance(pa_array.type, _ArrayXDExtensionType):
+                    # don't call to_pylist() to preserve dtype of the fixed-size array
+                    batch[col] = extract_array_xdextension_array(pa_array)
+                else:
+                    batch[col] = pa_table[col].to_pylist()
         return batch
 
 
