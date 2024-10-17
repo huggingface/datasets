@@ -1014,7 +1014,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                 proxies=self.download_config.proxies,
             )
             dataset_card_data = DatasetCard.load(dataset_readme_path).data
-        except FileNotFoundError:
+        except EntryNotFoundError:
             dataset_card_data = DatasetCardData()
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
@@ -1679,6 +1679,17 @@ def dataset_module_factory(
                     download_mode=download_mode,
                     use_exported_dataset_infos=use_exported_dataset_infos,
                 ).get_module()
+            except GatedRepoError as e:
+                message = f"Dataset '{path}' is a gated dataset on the Hub."
+                if "401 Client Error" in str(e):
+                    message += " You must be authenticated to access it."
+                elif "403 Client Error" in str(e):
+                    message += f" Visit the dataset page at https://huggingface.co/datasets/{path} to ask for access."
+                raise DatasetNotFoundError(message) from e
+            except RevisionNotFoundError as e:
+                raise DatasetNotFoundError(
+                    f"Revision '{revision}' doesn't exist for dataset '{path}' on the Hub."
+                ) from e
         except Exception as e1:
             # All the attempts failed, before raising the error we should check if the module is already cached
             try:
