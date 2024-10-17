@@ -39,7 +39,7 @@ from fsspec.core import url_to_fs
 from huggingface_hub import DatasetCard, DatasetCardData, HfApi, HfFileSystem
 from huggingface_hub.utils import GatedRepoError, RepositoryNotFoundError, RevisionNotFoundError, get_session
 
-from . import config
+from . import __version__, config
 from .arrow_dataset import Dataset
 from .builder import BuilderConfig, DatasetBuilder
 from .data_files import (
@@ -989,34 +989,37 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         increase_load_count(name)
 
     def get_module(self) -> DatasetModule:
-        hfh_dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
-            self.name,
-            revision=self.revision,
+        # Get the Dataset Card and fix the revision in case there are new commits in the meantime
+        api = HfApi(
+            endpoint=config.HF_ENDPOINT,
             token=self.download_config.token,
-            timeout=100.0,
+            library_name="datasets",
+            library_version=__version__,
+            user_agent=get_datasets_user_agent(self.download_config.user_agent),
         )
-        # even if metadata_configs is not None (which means that we will resolve files for each config later)
-        # we cannot skip resolving all files because we need to infer module name by files extensions
-        revision = hfh_dataset_info.sha  # fix the revision in case there are new commits in the meantime
-        base_path = f"hf://datasets/{self.name}@{revision}/{self.data_dir or ''}".rstrip("/")
-
-        download_config = self.download_config.copy()
-        if download_config.download_desc is None:
-            download_config.download_desc = "Downloading readme"
         try:
-            dataset_readme_path = cached_path(
-                hf_dataset_url(self.name, config.REPOCARD_FILENAME, revision=revision),
-                download_config=download_config,
+            dataset_readme_path = api.hf_hub_download(
+                repo_id=self.name,
+                filename=config.REPOCARD_FILENAME,
+                repo_type="dataset",
+                revision=self.revision,
+                proxies=self.download_config.proxies,
             )
-            dataset_card_data = DatasetCard.load(Path(dataset_readme_path)).data
+            commit_hash = os.path.dirname(dataset_readme_path)
+            dataset_card_data = DatasetCard.load(dataset_readme_path).data
         except FileNotFoundError:
+            commit_hash = api.dataset_info(
+                self.name,
+                revision=self.revision,
+                timeout=100.0,
+            ).sha
             dataset_card_data = DatasetCardData()
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading standalone yaml"
         try:
             standalone_yaml_path = cached_path(
-                hf_dataset_url(self.name, config.REPOYAML_FILENAME, revision=revision),
+                hf_dataset_url(self.name, config.REPOYAML_FILENAME, revision=commit_hash),
                 download_config=download_config,
             )
             with open(standalone_yaml_path, "r", encoding="utf-8") as f:
@@ -1027,6 +1030,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
                     dataset_card_data = DatasetCardData(**_dataset_card_data_dict)
         except FileNotFoundError:
             pass
+        base_path = f"hf://datasets/{self.name}@{commit_hash}/{self.data_dir or ''}".rstrip("/")
         metadata_configs = MetadataConfigs.from_dataset_card_data(dataset_card_data)
         dataset_infos = DatasetInfosDict.from_dataset_card_data(dataset_card_data)
         # Use the infos from the parquet export except in some cases:
@@ -1110,7 +1114,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             ]
             default_config_name = None
         builder_kwargs = {
-            "base_path": hf_dataset_url(self.name, "", revision=revision).rstrip("/"),
+            "base_path": hf_dataset_url(self.name, "", revision=commit_hash).rstrip("/"),
             "repo_id": self.name,
             "dataset_name": camelcase_to_snakecase(Path(self.name).name),
         }
@@ -1122,7 +1126,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         try:
             # this file is deprecated and was created automatically in old versions of push_to_hub
             dataset_infos_path = cached_path(
-                hf_dataset_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=revision),
+                hf_dataset_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=commit_hash),
                 download_config=download_config,
             )
             with open(dataset_infos_path, encoding="utf-8") as f:
@@ -1143,10 +1147,9 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         if default_config_name is None and len(dataset_infos) == 1:
             default_config_name = next(iter(dataset_infos))
 
-        hash = revision
         return DatasetModule(
             module_path,
-            hash,
+            commit_hash,
             builder_kwargs,
             dataset_infos=dataset_infos,
             builder_configs_parameters=BuilderConfigsParameters(
