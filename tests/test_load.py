@@ -876,19 +876,22 @@ class ModuleFactoryTest(TestCase):
 
 
 @pytest.mark.parametrize(
-    "factory_class",
+    "factory_class,requires_commit_hash",
     [
-        CachedDatasetModuleFactory,
-        HubDatasetModuleFactoryWithoutScript,
-        HubDatasetModuleFactoryWithScript,
-        LocalDatasetModuleFactoryWithoutScript,
-        LocalDatasetModuleFactoryWithScript,
-        PackagedDatasetModuleFactory,
+        (CachedDatasetModuleFactory, False),
+        (HubDatasetModuleFactoryWithoutScript, True),
+        (HubDatasetModuleFactoryWithScript, True),
+        (LocalDatasetModuleFactoryWithoutScript, False),
+        (LocalDatasetModuleFactoryWithScript, False),
+        (PackagedDatasetModuleFactory, False),
     ],
 )
-def test_module_factories(factory_class):
+def test_module_factories(factory_class, requires_commit_hash):
     name = "dummy_name"
-    factory = factory_class(name)
+    if requires_commit_hash:
+        factory = factory_class(name, commit_hash="foo")
+    else:
+        factory = factory_class(name)
     assert factory.name == name
 
 
