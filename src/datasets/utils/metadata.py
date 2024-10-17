@@ -102,7 +102,7 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
     @classmethod
     def _from_exported_parquet_files_and_dataset_infos(
         cls,
-        revision: str,
+        commit_hash: str,
         exported_parquet_files: List[Dict[str, Any]],
         dataset_infos: DatasetInfosDict,
     ) -> "MetadataConfigs":
@@ -112,7 +112,7 @@ class MetadataConfigs(Dict[str, Dict[str, Any]]):
                     {
                         "split": split_name,
                         "path": [
-                            parquet_file["url"].replace("refs%2Fconvert%2Fparquet", revision)
+                            parquet_file["url"].replace("refs%2Fconvert%2Fparquet", commit_hash)
                             for parquet_file in parquet_files_for_split
                         ],
                     }
