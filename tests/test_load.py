@@ -90,8 +90,13 @@ SAMPLE_DATASET_IDENTIFIER2 = "hf-internal-testing/dataset_with_data_files"  # on
 SAMPLE_DATASET_IDENTIFIER3 = "hf-internal-testing/multi_dir_dataset"  # has multiple data directories
 SAMPLE_DATASET_IDENTIFIER4 = "hf-internal-testing/imagefolder_with_metadata"  # imagefolder with a metadata file outside of the train/test directories
 SAMPLE_DATASET_IDENTIFIER5 = "hf-internal-testing/imagefolder_with_metadata_no_splits"  # imagefolder with a metadata file and no default split names in data files
-SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER = "hf-internal-testing/_dummy"
-SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST = "_dummy"
+
+SAMPLE_DATASET_COMMIT_HASH = "0e1cee81e718feadf49560b287c4eb669c2efb1a"
+SAMPLE_DATASET_COMMIT_HASH2 = "c19550d35263090b1ec2bfefdbd737431fafec40"
+SAMPLE_DATASET_COMMIT_HASH3 = "aaa2d4bdd1d877d1c6178562cfc584bdfa90f6dc"
+SAMPLE_DATASET_COMMIT_HASH4 = "a7415617490f32e51c2f0ea20b5ce7cfba035a62"
+SAMPLE_DATASET_COMMIT_HASH5 = "4971fa562942cab8263f56a448c3f831b18f1c27"
+
 SAMPLE_DATASET_NO_CONFIGS_IN_METADATA = "hf-internal-testing/audiofolder_no_configs_in_metadata"
 SAMPLE_DATASET_SINGLE_CONFIG_IN_METADATA = "hf-internal-testing/audiofolder_single_config_in_metadata"
 SAMPLE_DATASET_TWO_CONFIG_IN_METADATA = "hf-internal-testing/audiofolder_two_configs_in_metadata"
@@ -99,6 +104,15 @@ SAMPLE_DATASET_TWO_CONFIG_IN_METADATA_WITH_DEFAULT = (
     "hf-internal-testing/audiofolder_two_configs_in_metadata_with_default"
 )
 SAMPLE_DATASET_CAPITAL_LETTERS_IN_NAME = "hf-internal-testing/DatasetWithCapitalLetters"
+
+SAMPLE_DATASET_NO_CONFIGS_IN_METADATA_COMMIT_HASH = "26cd5079bb0d3cd1521c6894765a0b8edb159d7f"
+SAMPLE_DATASET_SINGLE_CONFIG_IN_METADATA_COMMIT_HASH = "1668dfc91efae975e44457cdabef60fb9200820a"
+SAMPLE_DATASET_TWO_CONFIG_IN_METADATA_COMMIT_HASH = "e71bce498e6c2bd2c58b20b097fdd3389793263f"
+SAMPLE_DATASET_TWO_CONFIG_IN_METADATA_WITH_DEFAULT_COMMIT_HASH = "38937109bb4dc7067f575fe6e7b420158eb9cf32"
+SAMPLE_DATASET_CAPITAL_LETTERS_IN_NAME_COMMIT_HASH = "70aa36264a6954920a13dd0465156a60b9f8af4b"
+
+SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER = "hf-internal-testing/_dummy"
+SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST = "_dummy"
 
 
 @pytest.fixture
@@ -388,14 +402,16 @@ class ModuleFactoryTest(TestCase):
 
     def test_HubDatasetModuleFactoryWithScript_dont_trust_remote_code(self):
         factory = HubDatasetModuleFactoryWithScript(
-            "hf-internal-testing/dataset_with_script",
+            SAMPLE_DATASET_IDENTIFIER,
+            commit_hash=SAMPLE_DATASET_COMMIT_HASH,
             download_config=self.download_config,
             dynamic_modules_path=self.dynamic_modules_path,
         )
         with patch.object(config, "HF_DATASETS_TRUST_REMOTE_CODE", None):  # this will be the default soon
             self.assertRaises(ValueError, factory.get_module)
         factory = HubDatasetModuleFactoryWithScript(
-            "hf-internal-testing/dataset_with_script",
+            SAMPLE_DATASET_IDENTIFIER,
+            commit_hash=SAMPLE_DATASET_COMMIT_HASH,
             download_config=self.download_config,
             dynamic_modules_path=self.dynamic_modules_path,
             trust_remote_code=False,
@@ -406,9 +422,9 @@ class ModuleFactoryTest(TestCase):
         # "wmt_t2t" has additional imports (internal)
         factory = HubDatasetModuleFactoryWithScript(
             "wmt_t2t",
+            commit_hash="861aac88b2c6247dd93ade8b1c189ce714627750",
             download_config=self.download_config,
             dynamic_modules_path=self.dynamic_modules_path,
-            revision="861aac88b2c6247dd93ade8b1c189ce714627750",
             trust_remote_code=True,
         )
         module_factory_result = factory.get_module()
@@ -616,7 +632,7 @@ class ModuleFactoryTest(TestCase):
     @pytest.mark.integration
     def test_HubDatasetModuleFactoryWithoutScript(self):
         factory = HubDatasetModuleFactoryWithoutScript(
-            SAMPLE_DATASET_IDENTIFIER2, download_config=self.download_config
+            SAMPLE_DATASET_IDENTIFIER2, commit_hash=SAMPLE_DATASET_COMMIT_HASH2, download_config=self.download_config
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
@@ -626,7 +642,10 @@ class ModuleFactoryTest(TestCase):
     def test_HubDatasetModuleFactoryWithoutScript_with_data_dir(self):
         data_dir = "data2"
         factory = HubDatasetModuleFactoryWithoutScript(
-            SAMPLE_DATASET_IDENTIFIER3, data_dir=data_dir, download_config=self.download_config
+            SAMPLE_DATASET_IDENTIFIER3,
+            commit_hash=SAMPLE_DATASET_COMMIT_HASH3,
+            data_dir=data_dir,
+            download_config=self.download_config,
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
@@ -645,7 +664,7 @@ class ModuleFactoryTest(TestCase):
     @pytest.mark.integration
     def test_HubDatasetModuleFactoryWithoutScript_with_metadata(self):
         factory = HubDatasetModuleFactoryWithoutScript(
-            SAMPLE_DATASET_IDENTIFIER4, download_config=self.download_config
+            SAMPLE_DATASET_IDENTIFIER4, commit_hash=SAMPLE_DATASET_COMMIT_HASH4, download_config=self.download_config
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
@@ -660,7 +679,7 @@ class ModuleFactoryTest(TestCase):
         assert any(Path(data_file).name == "metadata.jsonl" for data_file in builder_config.data_files["test"])
 
         factory = HubDatasetModuleFactoryWithoutScript(
-            SAMPLE_DATASET_IDENTIFIER5, download_config=self.download_config
+            SAMPLE_DATASET_IDENTIFIER5, commit_hash=SAMPLE_DATASET_COMMIT_HASH5, download_config=self.download_config
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
@@ -677,6 +696,7 @@ class ModuleFactoryTest(TestCase):
     def test_HubDatasetModuleFactoryWithoutScript_with_one_default_config_in_metadata(self):
         factory = HubDatasetModuleFactoryWithoutScript(
             SAMPLE_DATASET_SINGLE_CONFIG_IN_METADATA,
+            commit_hash=SAMPLE_DATASET_SINGLE_CONFIG_IN_METADATA_COMMIT_HASH,
             download_config=self.download_config,
         )
         module_factory_result = factory.get_module()
@@ -714,9 +734,17 @@ class ModuleFactoryTest(TestCase):
 
     @pytest.mark.integration
     def test_HubDatasetModuleFactoryWithoutScript_with_two_configs_in_metadata(self):
-        datasets_names = [SAMPLE_DATASET_TWO_CONFIG_IN_METADATA, SAMPLE_DATASET_TWO_CONFIG_IN_METADATA_WITH_DEFAULT]
-        for dataset_name in datasets_names:
-            factory = HubDatasetModuleFactoryWithoutScript(dataset_name, download_config=self.download_config)
+        datasets_names = [
+            (SAMPLE_DATASET_TWO_CONFIG_IN_METADATA, SAMPLE_DATASET_TWO_CONFIG_IN_METADATA_COMMIT_HASH),
+            (
+                SAMPLE_DATASET_TWO_CONFIG_IN_METADATA_WITH_DEFAULT,
+                SAMPLE_DATASET_TWO_CONFIG_IN_METADATA_WITH_DEFAULT_COMMIT_HASH,
+            ),
+        ]
+        for dataset_name, commit_hash in datasets_names:
+            factory = HubDatasetModuleFactoryWithoutScript(
+                dataset_name, commit_hash=commit_hash, download_config=self.download_config
+            )
             module_factory_result = factory.get_module()
             assert importlib.import_module(module_factory_result.module_path) is not None
 
@@ -767,6 +795,7 @@ class ModuleFactoryTest(TestCase):
     def test_HubDatasetModuleFactoryWithScript(self):
         factory = HubDatasetModuleFactoryWithScript(
             SAMPLE_DATASET_IDENTIFIER,
+            commit_hash=SAMPLE_DATASET_COMMIT_HASH,
             download_config=self.download_config,
             dynamic_modules_path=self.dynamic_modules_path,
             trust_remote_code=True,
@@ -779,6 +808,7 @@ class ModuleFactoryTest(TestCase):
     def test_HubDatasetModuleFactoryWithParquetExport(self):
         factory = HubDatasetModuleFactoryWithParquetExport(
             SAMPLE_DATASET_IDENTIFIER,
+            commit_hash=SAMPLE_DATASET_COMMIT_HASH,
             download_config=self.download_config,
         )
         module_factory_result = factory.get_module()
@@ -802,13 +832,13 @@ class ModuleFactoryTest(TestCase):
         factory = HubDatasetModuleFactoryWithParquetExport(
             SAMPLE_DATASET_IDENTIFIER,
             download_config=self.download_config,
-            revision="0e1cee81e718feadf49560b287c4eb669c2efb1a",
+            commit_hash=SAMPLE_DATASET_COMMIT_HASH,
         )
         factory.get_module()
         factory = HubDatasetModuleFactoryWithParquetExport(
             SAMPLE_DATASET_IDENTIFIER,
             download_config=self.download_config,
-            revision="wrong_sha",
+            commit_hash="wrong_sha",
         )
         with self.assertRaises(_dataset_viewer.DatasetViewerError):
             factory.get_module()

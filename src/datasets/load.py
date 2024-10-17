@@ -980,7 +980,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
     def __init__(
         self,
         name: str,
-        commit_hash: Optional[str] = None,
+        commit_hash: str,
         data_dir: Optional[str] = None,
         data_files: Optional[Union[str, List, Dict]] = None,
         download_config: Optional[DownloadConfig] = None,
@@ -1165,7 +1165,7 @@ class HubDatasetModuleFactoryWithParquetExport(_DatasetModuleFactory):
     def __init__(
         self,
         name: str,
-        commit_hash: Optional[str] = None,
+        commit_hash: str,
         download_config: Optional[DownloadConfig] = None,
     ):
         self.name = name
@@ -1223,7 +1223,7 @@ class HubDatasetModuleFactoryWithScript(_DatasetModuleFactory):
     def __init__(
         self,
         name: str,
-        commit_hash: Optional[str] = None,
+        commit_hash: str,
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[Union[DownloadMode, str]] = None,
         dynamic_modules_path: Optional[str] = None,
