@@ -189,7 +189,11 @@ class DownloadManager:
             download_func = partial(self._download_single, download_config=download_config)
 
             fs: fsspec.AbstractFileSystem
-            fs, path = url_to_fs(url_or_filenames[0], **download_config.storage_options)
+            path = str(url_or_filenames[0])
+            if is_relative_path(path):
+                # append the relative path to the base_path
+                path = url_or_path_join(self._base_path, path)
+            fs, path = url_to_fs(path, **download_config.storage_options)
             size = 0
             try:
                 size = fs.info(path).get("size", 0)
