@@ -1603,7 +1603,9 @@ def dataset_module_factory(
                     proxies=download_config.proxies,
                 )
                 commit_hash = os.path.basename(os.path.dirname(dataset_readme_path))
-            except EntryNotFoundError:
+            except EntryNotFoundError as e:
+                if "internet connection" in str(e).lower():
+                    raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({e.__class__.__name__})") from e
                 commit_hash = api.dataset_info(
                     path,
                     revision=revision,
