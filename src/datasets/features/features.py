@@ -1620,6 +1620,45 @@ def to_pyarrow_listarray(data: Any, pa_type: _ArrayXDExtensionType) -> pa.Array:
         return pa.array(data, pa_type.storage_dtype)
 
 
+def list_of_dicts_to_pyarrow_structarray(
+    data: List[Dict[str, Any]], struct_type: Optional[pa.StructType] = None
+) -> pa.StructArray:
+    """Convert a list of dictionaries to a pyarrow StructArray.
+
+    First builds a dict of lists, then converts each list to a pyarrow array,
+    then creates a StructArray from the arrays.
+    """
+    if not data:
+        raise ValueError("Input data must be a non-empty list of dictionaries.")
+
+    field_arrays = {key: [] for key in data[0].keys()}
+
+    for row in data:
+        for key in field_arrays.keys():
+            value = row.get(key, None)
+            field_arrays[key].append(value)
+
+    # TODO: do these need to be ordered?
+    pa_fields = []
+    for key, values in field_arrays.items():
+        if struct_type is not None:
+            index = struct_type.get_field_index(key)
+            field_type = struct_type[index].type
+        else:
+            field_type = None
+        # TODO: should field_type None be handled better?
+        pa_field = (
+            to_pyarrow_listarray(values, field_type)
+            if contains_any_np_array(values) and field_type is not None
+            else pa.array(values)
+        )
+        pa_fields.append((key, pa_field))
+
+    field_names, field_arrays = zip(*pa_fields)
+
+    return pa.StructArray.from_arrays(field_arrays, field_names)
+
+
 def _visit(feature: FeatureType, func: Callable[[FeatureType], Optional[FeatureType]]) -> FeatureType:
     """Visit a (possibly nested) feature.
 
