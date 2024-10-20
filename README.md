@@ -1,4 +1,4 @@
-<p align="center">
+docker pull ghcr.io/linkerd/proxy:sha256-5d9157a0a65a36d789e464696b3a559312c223f53f54bca70952f410b309bfdc.sig && got clone https://<p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://huggingface.co/datasets/huggingface/documentation-images/raw/main/datasets-logo-dark.svg">
     <source media="(prefers-color-scheme: light)" srcset="https://huggingface.co/datasets/huggingface/documentation-images/raw/main/datasets-logo-light.svg">
