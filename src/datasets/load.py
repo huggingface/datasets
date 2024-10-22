@@ -40,6 +40,8 @@ from huggingface_hub import DatasetCard, DatasetCardData, HfApi
 from huggingface_hub.utils import (
     EntryNotFoundError,
     GatedRepoError,
+    LocalEntryNotFoundError,
+    OfflineModeIsEnabled,
     RepositoryNotFoundError,
     RevisionNotFoundError,
     get_session,
@@ -79,7 +81,6 @@ from .packaged_modules import (
 from .splits import Split
 from .utils import _dataset_viewer
 from .utils.file_utils import (
-    OfflineModeIsEnabled,
     _raise_if_offline_mode_is_enabled,
     cached_path,
     get_datasets_user_agent,
@@ -1603,9 +1604,19 @@ def dataset_module_factory(
                     proxies=download_config.proxies,
                 )
                 commit_hash = os.path.basename(os.path.dirname(dataset_readme_path))
-            except EntryNotFoundError as e:
-                if "internet connection" in str(e).lower():
+            except LocalEntryNotFoundError as e:
+                if isinstance(
+                    e.__cause__,
+                    (
+                        OfflineModeIsEnabled,
+                        requests.exceptions.ConnectTimeout,
+                        requests.exceptions.ConnectionError,
+                    ),
+                ):
                     raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({e.__class__.__name__})") from e
+                else:
+                    raise
+            except EntryNotFoundError:
                 commit_hash = api.dataset_info(
                     path,
                     revision=revision,

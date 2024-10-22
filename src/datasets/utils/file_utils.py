@@ -282,14 +282,10 @@ def get_authentication_headers_for_url(url: str, token: Optional[Union[str, bool
         return {}
 
 
-class OfflineModeIsEnabled(ConnectionError):
-    pass
-
-
 def _raise_if_offline_mode_is_enabled(msg: Optional[str] = None):
     """Raise an OfflineModeIsEnabled error (subclass of ConnectionError) if HF_HUB_OFFLINE is True."""
     if config.HF_HUB_OFFLINE:
-        raise OfflineModeIsEnabled(
+        raise huggingface_hub.errors.OfflineModeIsEnabled(
             "Offline mode is enabled." if msg is None else "Offline mode is enabled. " + str(msg)
         )
 
