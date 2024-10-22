@@ -7,10 +7,10 @@ import pytest
 import zstandard as zstd
 from fsspec.registry import _registry as _fsspec_registry
 from fsspec.spec import AbstractBufferedFile, AbstractFileSystem
+from huggingface_hub.errors import OfflineModeIsEnabled
 
 from datasets.download.download_config import DownloadConfig
 from datasets.utils.file_utils import (
-    OfflineModeIsEnabled,
     _get_extraction_protocol,
     _prepare_single_hop_path_and_storage_options,
     cached_path,
