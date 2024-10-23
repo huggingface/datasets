@@ -70,6 +70,11 @@ class TFFormatter(TensorFormatter[Mapping, "tf.Tensor", Mapping]):
             if isinstance(value, PIL.Image.Image):
                 value = np.asarray(value)
         elif config.DECORD_AVAILABLE and "decord" in sys.modules:
+            # We need to import torch first, otherwise later it can cause issues
+            # e.g. "RuntimeError: random_device could not be read"
+            # when running `torch.tensor(value).share_memory_()`
+            if config.TORCH_AVAILABLE:
+                import torch  # noqa
             from decord import VideoReader
             from decord.bridge import to_tensorflow
 

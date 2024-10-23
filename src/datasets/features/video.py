@@ -78,6 +78,11 @@ class Video:
             `dict` with "path" and "bytes" fields
         """
         if config.DECORD_AVAILABLE:
+            # We need to import torch first, otherwise later it can cause issues
+            # e.g. "RuntimeError: random_device could not be read"
+            # when running `torch.tensor(value).share_memory_()`
+            if config.TORCH_AVAILABLE:
+                import torch  # noqa
             from decord import VideoReader
 
         else:
@@ -129,6 +134,11 @@ class Video:
             raise RuntimeError("Decoding is disabled for this feature. Please use Video(decode=True) instead.")
 
         if config.DECORD_AVAILABLE:
+            # We need to import torch first, otherwise later it can cause issues
+            # e.g. "RuntimeError: random_device could not be read"
+            # when running `torch.tensor(value).share_memory_()`
+            if config.TORCH_AVAILABLE:
+                import torch  # noqa
             from decord import VideoReader
         else:
             raise ImportError("To support decoding videos, please install 'decord'.")
@@ -302,6 +312,11 @@ def _patched_get_batch(self: "VideoReader", *args, **kwargs):
 
 def patch_decord():
     if config.DECORD_AVAILABLE:
+        # We need to import torch first, otherwise later it can cause issues
+        # e.g. "RuntimeError: random_device could not be read"
+        # when running `torch.tensor(value).share_memory_()`
+        if config.TORCH_AVAILABLE:
+            import torch  # noqa
         import decord.video_reader
         from decord import VideoReader
     else:
