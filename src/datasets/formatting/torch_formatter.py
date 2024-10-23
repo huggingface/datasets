@@ -66,7 +66,8 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
 
         elif isinstance(value, (np.number, np.ndarray)) and np.issubdtype(value.dtype, np.floating):
             default_dtype = {"dtype": torch.float32}
-        elif config.PIL_AVAILABLE and "PIL" in sys.modules:
+
+        if config.PIL_AVAILABLE and "PIL" in sys.modules:
             import PIL.Image
 
             if isinstance(value, PIL.Image.Image):
@@ -75,7 +76,7 @@ class TorchFormatter(TensorFormatter[Mapping, "torch.Tensor", Mapping]):
                     value = value[:, :, np.newaxis]
 
                 value = value.transpose((2, 0, 1))
-        elif config.DECORD_AVAILABLE and "decord" in sys.modules:
+        if config.DECORD_AVAILABLE and "decord" in sys.modules:
             from decord import VideoReader
             from decord.bridge import to_torch
 

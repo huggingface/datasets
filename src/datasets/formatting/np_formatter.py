@@ -57,12 +57,13 @@ class NumpyFormatter(TensorFormatter[Mapping, np.ndarray, Mapping]):
             default_dtype = {"dtype": np.int64}
         elif isinstance(value, np.ndarray) and np.issubdtype(value.dtype, np.floating):
             default_dtype = {"dtype": np.float32}
-        elif config.PIL_AVAILABLE and "PIL" in sys.modules:
+
+        if config.PIL_AVAILABLE and "PIL" in sys.modules:
             import PIL.Image
 
             if isinstance(value, PIL.Image.Image):
                 return np.asarray(value, **self.np_array_kwargs)
-        elif config.DECORD_AVAILABLE and "decord" in sys.modules:
+        if config.DECORD_AVAILABLE and "decord" in sys.modules:
             # We need to import torch first, otherwise later it can cause issues
             # e.g. "RuntimeError: random_device could not be read"
             # when running `torch.tensor(value).share_memory_()`

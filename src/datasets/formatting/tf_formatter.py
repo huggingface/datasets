@@ -64,12 +64,13 @@ class TFFormatter(TensorFormatter[Mapping, "tf.Tensor", Mapping]):
             default_dtype = {"dtype": tf.int64}
         elif isinstance(value, (np.number, np.ndarray)) and np.issubdtype(value.dtype, np.floating):
             default_dtype = {"dtype": tf.float32}
-        elif config.PIL_AVAILABLE and "PIL" in sys.modules:
+
+        if config.PIL_AVAILABLE and "PIL" in sys.modules:
             import PIL.Image
 
             if isinstance(value, PIL.Image.Image):
                 value = np.asarray(value)
-        elif config.DECORD_AVAILABLE and "decord" in sys.modules:
+        if config.DECORD_AVAILABLE and "decord" in sys.modules:
             # We need to import torch first, otherwise later it can cause issues
             # e.g. "RuntimeError: random_device could not be read"
             # when running `torch.tensor(value).share_memory_()`
