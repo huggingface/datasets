@@ -319,17 +319,18 @@ def patch_decord():
             import torch  # noqa
         import decord.video_reader
         from decord import VideoReader
+
+        if not hasattr(VideoReader, "_hf_patched"):
+            decord.video_reader.bridge_out = lambda x: x
+            VideoReader._original_init = VideoReader.__init__
+            VideoReader.__init__ = _patched_init
+            VideoReader._original_next = VideoReader.next
+            VideoReader.next = _patched_next
+            VideoReader._original_get_batch = VideoReader.get_batch
+            VideoReader.get_batch = _patched_get_batch
+            VideoReader._hf_patched = True
     else:
         raise ImportError("To support decoding videos, please install 'decord'.")
-    if not hasattr(VideoReader, "_hf_patched"):
-        decord.video_reader.bridge_out = lambda x: x
-        VideoReader._original_init = VideoReader.__init__
-        VideoReader.__init__ = _patched_init
-        VideoReader._original_next = VideoReader.next
-        VideoReader.next = _patched_next
-        VideoReader._original_get_batch = VideoReader.get_batch
-        VideoReader.get_batch = _patched_get_batch
-        VideoReader._hf_patched = True
 
 
 if config.DECORD_AVAILABLE:
