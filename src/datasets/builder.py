@@ -930,7 +930,8 @@ class DatasetBuilder:
                     # Sync info
                     self.info.dataset_size = sum(split.num_bytes for split in self.info.splits.values())
                     self.info.download_checksums = dl_manager.get_recorded_sizes_checksums()
-                    self.info.size_in_bytes = self.info.dataset_size + self.info.download_size
+                    if self.info.download_size is not None:
+                        self.info.size_in_bytes = self.info.dataset_size + self.info.download_size
                     # Save info
                     self._save_info()
 
