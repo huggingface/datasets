@@ -5249,15 +5249,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         shards = (self.shard(num_shards=num_shards, index=i, contiguous=True) for i in range(num_shards))
 
         if decodable_columns:
+            from .io.parquet import get_writer_batch_size
 
-            def shards_with_embedded_external_files(shards):
+            def shards_with_embedded_external_files(shards: Iterator[Dataset]) -> Iterator[Dataset]:
                 for shard in shards:
                     format = shard.format
                     shard = shard.with_format("arrow")
                     shard = shard.map(
                         embed_table_storage,
                         batched=True,
-                        batch_size=1000,
+                        batch_size=get_writer_batch_size(shard.features),
                         keep_in_memory=True,
                     )
                     shard = shard.with_format(**format)
