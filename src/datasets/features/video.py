@@ -21,7 +21,8 @@ if TYPE_CHECKING:
 
 @dataclass
 class Video:
-    """Video [`Feature`] to read video data from a video file.
+    """
+    **Experimental.** Video [`Feature`] to read video data from a video file.
 
     Input: The Video feature accepts as input:
     - A `str`: Absolute path to the video file (i.e. random access is allowed).
@@ -32,7 +33,6 @@ class Video:
 
       This is useful for archived files with sequential access.
 
-    - An `np.ndarray`: NumPy array representing a video.
     - A `decord.VideoReader`: decord video reader object.
 
     Args:
