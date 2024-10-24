@@ -14,6 +14,7 @@ from .pandas import pandas
 from .parquet import parquet
 from .sql import sql
 from .text import text
+from .videofolder import videofolder
 from .webdataset import webdataset
 from .xml import xml
 
@@ -41,6 +42,7 @@ _PACKAGED_DATASETS_MODULES = {
     "text": (text.__name__, _hash_python_lines(inspect.getsource(text).splitlines())),
     "imagefolder": (imagefolder.__name__, _hash_python_lines(inspect.getsource(imagefolder).splitlines())),
     "audiofolder": (audiofolder.__name__, _hash_python_lines(inspect.getsource(audiofolder).splitlines())),
+    "videofolder": (videofolder.__name__, _hash_python_lines(inspect.getsource(videofolder).splitlines())),
     "webdataset": (webdataset.__name__, _hash_python_lines(inspect.getsource(webdataset).splitlines())),
     "xml": (xml.__name__, _hash_python_lines(inspect.getsource(xml).splitlines())),
 }
@@ -77,7 +79,9 @@ _EXTENSION_TO_MODULE.update({ext: ("imagefolder", {}) for ext in imagefolder.Ima
 _EXTENSION_TO_MODULE.update({ext.upper(): ("imagefolder", {}) for ext in imagefolder.ImageFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext: ("audiofolder", {}) for ext in audiofolder.AudioFolder.EXTENSIONS})
 _EXTENSION_TO_MODULE.update({ext.upper(): ("audiofolder", {}) for ext in audiofolder.AudioFolder.EXTENSIONS})
-_MODULE_SUPPORTS_METADATA = {"imagefolder", "audiofolder"}
+_EXTENSION_TO_MODULE.update({ext: ("videofolder", {}) for ext in videofolder.VideoFolder.EXTENSIONS})
+_EXTENSION_TO_MODULE.update({ext.upper(): ("videofolder", {}) for ext in videofolder.VideoFolder.EXTENSIONS})
+_MODULE_SUPPORTS_METADATA = {"imagefolder", "audiofolder", "videofolder"}
 
 # Used to filter data files based on extensions given a module name
 _MODULE_TO_EXTENSIONS: Dict[str, List[str]] = {}
