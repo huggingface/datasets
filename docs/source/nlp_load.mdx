@@ -34,3 +34,13 @@ To load remote text files via HTTP, pass the URLs instead:
 ```py
 >>> dataset = load_dataset("text", data_files="https://huggingface.co/datasets/lhoestq/test/resolve/main/some_text.txt")
 ```
+
+To load XML data you can use the "xml" loader, which is equivalent to "text" with sample_by="document":
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("xml", data_files={"train": ["my_xml_1.xml", "my_xml_2.xml"], "test": "my_xml_file.xml"})
+
+# Load from a directory
+>>> dataset = load_dataset("xml", data_dir="path/to/xml/dataset")
+```
