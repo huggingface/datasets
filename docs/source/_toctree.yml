@@ -72,6 +72,8 @@
       title: Semantic segmentation
     - local: object_detection
       title: Object detection
+    - local: video_load
+      title: Load video data
     title: "Vision"
   - sections:
     - local: nlp_load
