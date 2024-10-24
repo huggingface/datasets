@@ -340,7 +340,7 @@ class ArrowWriter:
 
         self.fingerprint = fingerprint
         self.disable_nullable = disable_nullable
-        self.writer_batch_size = writer_batch_size or config.DEFAULT_MAX_BATCH_SIZE
+        self.writer_batch_size = writer_batch_size
         self.update_features = update_features
         self.with_metadata = with_metadata
         self.unit = unit
@@ -352,6 +352,11 @@ class ArrowWriter:
         self.current_rows: List[pa.Table] = []
         self.pa_writer: Optional[pa.RecordBatchStreamWriter] = None
         self.hkey_record = []
+
+        if self.writer_batch_size is None and self._features is not None:
+            from .io.parquet import get_writer_batch_size
+
+            self.writer_batch_size = get_writer_batch_size(self._features) or config.DEFAULT_MAX_BATCH_SIZE
 
     def __len__(self):
         """Return the number of writed and staged examples"""
@@ -397,6 +402,10 @@ class ArrowWriter:
             schema = schema.with_metadata({})
         self._schema = schema
         self.pa_writer = self._WRITER_CLASS(self.stream, schema)
+        if self.writer_batch_size is None:
+            from .io.parquet import get_writer_batch_size
+
+            self.writer_batch_size = get_writer_batch_size(self._features) or config.DEFAULT_MAX_BATCH_SIZE
 
     @property
     def schema(self):
